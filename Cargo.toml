@@ -5,3 +5,5 @@ authors = ["Marcelina Kościelnicka <mwk@0x04.net>"]
 edition = "2018"
 
 [dependencies]
+tempdir = "0.3.7"
+nix = "0.17.0"

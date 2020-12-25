@@ -1,11 +1,17 @@
-use std::io;
-use std::io::{BufRead, Lines};
+use nix;
+use nix::sys::stat::Mode;
+use nix::unistd::mkfifo;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader, Lines, Read};
 use std::num;
+use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
+use tempdir::TempDir;
 
 #[derive(Debug)]
 pub enum Error {
     IoError(io::Error),
+    NixError(nix::Error),
     ParseError(String),
 }
 
@@ -60,6 +66,7 @@ pub struct Wire {
 pub enum PipKind {
     Uni,
     BiPass,
+    BiUniBuf,
     BiBuf,
 }
 
@@ -89,6 +96,20 @@ pub struct Parser {
     tiles_done: bool,
 }
 
+pub struct Options {
+    pub part: String,
+    pub need_pips: bool,
+    pub need_conns: bool,
+    pub dump_test: bool,
+    pub dump_excluded: bool,
+}
+
+struct ToolchainReader {
+    _dir: TempDir,
+    fifo: Option<File>,
+    child: Child,
+}
+
 use Error::ParseError;
 
 impl From<io::Error> for Error {
@@ -97,10 +118,17 @@ impl From<io::Error> for Error {
     }
 }
 
+impl From<nix::Error> for Error {
+    fn from(x: nix::Error) -> Error {
+        Error::NixError(x)
+    }
+}
+
 impl From<Error> for io::Error {
     fn from(x: Error) -> io::Error {
         match x {
             Error::IoError(x) => x,
+            Error::NixError(x) => io::Error::new(io::ErrorKind::Other, format!("{:?}", x)),
             Error::ParseError(s) => io::Error::new(io::ErrorKind::Other, s),
         }
     }
@@ -118,6 +146,7 @@ impl FromStr for PipKind {
         match s {
             "->" => Ok(PipKind::Uni),
             "==" => Ok(PipKind::BiPass),
+            "=>" => Ok(PipKind::BiUniBuf),
             "=-" => Ok(PipKind::BiBuf),
             _ => Err(ParseError(format!("invalid pip direction {}", s))),
         }
@@ -175,6 +204,10 @@ impl Parser {
             lines,
             tiles_done: false,
         })
+    }
+
+    pub fn from_toolchain(opt: Options) -> Result<Self, Error> {
+        Parser::new(Box::new(ToolchainReader::new(opt)?))
     }
 
     pub fn get_tile(&mut self) -> Result<Option<Tile>, Error> {
@@ -259,6 +292,18 @@ impl Parser {
                     let l: Vec<_> = l.split(" ").collect();
                     let (name, kind, bonded) = match l[..] {
                         [name, kind, bonded, _] => (
+                            name.to_string(),
+                            kind.to_string(),
+                            match bonded {
+                                "bonded" => PrimBonded::Bonded,
+                                "unbonded" => PrimBonded::Unbonded,
+                                "internal" => PrimBonded::Internal,
+                                _ => {
+                                    return Err(ParseError(format!("unknown bonding: {}", bonded)))
+                                }
+                            },
+                        ),
+                        [name, kind, bonded, _, _] => (
                             name.to_string(),
                             kind.to_string(),
                             match bonded {
@@ -402,5 +447,60 @@ impl Parser {
     }
     pub fn height(&self) -> u32 {
         self.height
+    }
+}
+
+impl ToolchainReader {
+    pub fn new(opt: Options) -> Result<BufReader<Self>, Error> {
+        let dir = TempDir::new("xdlrc")?;
+        let path = dir.path().join("fifo.xdlrc");
+        mkfifo(&path, Mode::S_IRUSR | Mode::S_IWUSR)?;
+        let mut cmd = Command::new("xdl");
+        cmd.current_dir(dir.path().as_os_str());
+        cmd.stdin(Stdio::null());
+        cmd.stdout(Stdio::null());
+        cmd.stderr(Stdio::null());
+        cmd.arg("-report");
+        if opt.need_pips {
+            cmd.arg("-pips");
+        }
+        if opt.need_conns {
+            cmd.arg("-all_conns");
+        }
+        if opt.dump_test {
+            cmd.env("XIL_TEST_ARCS", "1");
+        }
+        if opt.dump_excluded {
+            cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
+        }
+        cmd.arg(opt.part);
+        cmd.arg("fifo.xdlrc");
+        let child = cmd.spawn()?;
+        let fifo = Some(File::open(path)?);
+        Ok(BufReader::new(ToolchainReader {
+            fifo,
+            _dir: dir,
+            child,
+        }))
+    }
+}
+
+impl Read for ToolchainReader {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match &mut self.fifo {
+            Some(fifo) => fifo.read(buf),
+            None => Ok(0),
+        }
+    }
+}
+
+impl Drop for ToolchainReader {
+    fn drop(&mut self) {
+        self.fifo = None;
+        // Nothing much to do if it fails.
+        match self.child.wait() {
+            Ok(_) => (),
+            Err(_) => (),
+        }
     }
 }
