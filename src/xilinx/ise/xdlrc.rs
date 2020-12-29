@@ -7,6 +7,7 @@ use std::num;
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use tempdir::TempDir;
+use super::super::rawdump::TkSitePinDir;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,16 +43,9 @@ pub struct Prim {
 }
 
 #[derive(Debug)]
-pub enum PinWireKind {
-    Input,
-    Output,
-    Bidir,
-}
-
-#[derive(Debug)]
 pub struct PinWire {
     pub name: String,
-    pub kind: PinWireKind,
+    pub dir: TkSitePinDir,
     pub wire: String,
 }
 
@@ -191,7 +185,7 @@ impl Parser {
             .split(" ")
             .collect();
         let (width, height) = match l[..] {
-            [w, h] => (w.parse::<u32>()?, h.parse::<u32>()?),
+            [h, w] => (w.parse::<u32>()?, h.parse::<u32>()?),
             _ => return Err(ParseError(format!("tiles wrong arg count"))),
         };
         // Make the actual parser.
@@ -222,7 +216,7 @@ impl Parser {
             // Parse tile.
             let l: Vec<_> = l.split(" ").collect();
             let (x, y, name, kind) = match l[..] {
-                [x, y, name, kind, _] => (
+                [y, x, name, kind, _] => (
                     x.parse::<u32>()?,
                     y.parse::<u32>()?,
                     name.to_string(),
@@ -264,10 +258,10 @@ impl Parser {
                                 match l[..] {
                                     [n, k, w] => pinwires.push(PinWire {
                                         name: n.to_string(),
-                                        kind: match k {
-                                            "input" => PinWireKind::Input,
-                                            "output" => PinWireKind::Output,
-                                            "bidir" => PinWireKind::Bidir,
+                                        dir: match k {
+                                            "input" => TkSitePinDir::Input,
+                                            "output" => TkSitePinDir::Output,
+                                            "bidir" => TkSitePinDir::Bidir,
                                             _ => {
                                                 return Err(ParseError(format!(
                                                     "unknown pinwire kind {}",
