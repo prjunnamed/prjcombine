@@ -1,20 +1,14 @@
-use nix;
 use nix::sys::stat::Mode;
 use nix::unistd::mkfifo;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Lines, Read};
-use std::num;
 use std::process::{Child, Command, Stdio};
 use std::str::FromStr;
 use tempdir::TempDir;
-use super::super::rawdump::TkSitePinDir;
+use crate::xilinx::rawdump::TkSitePinDir;
+use crate::error::Error;
 
-#[derive(Debug)]
-pub enum Error {
-    IoError(io::Error),
-    NixError(nix::Error),
-    ParseError(String),
-}
+use Error::ParseError;
 
 #[derive(Debug)]
 pub struct Tile {
@@ -102,36 +96,6 @@ struct ToolchainReader {
     _dir: TempDir,
     fifo: Option<File>,
     child: Child,
-}
-
-use Error::ParseError;
-
-impl From<io::Error> for Error {
-    fn from(x: io::Error) -> Error {
-        Error::IoError(x)
-    }
-}
-
-impl From<nix::Error> for Error {
-    fn from(x: nix::Error) -> Error {
-        Error::NixError(x)
-    }
-}
-
-impl From<Error> for io::Error {
-    fn from(x: Error) -> io::Error {
-        match x {
-            Error::IoError(x) => x,
-            Error::NixError(x) => io::Error::new(io::ErrorKind::Other, format!("{:?}", x)),
-            Error::ParseError(s) => io::Error::new(io::ErrorKind::Other, s),
-        }
-    }
-}
-
-impl From<num::ParseIntError> for Error {
-    fn from(_: num::ParseIntError) -> Error {
-        Error::ParseError(format!("failed to parse integer"))
-    }
 }
 
 impl FromStr for PipKind {

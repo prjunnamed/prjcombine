@@ -1,6 +1,7 @@
 use std::collections::{HashSet, HashMap};
-use super::super::rawdump::{Part, Source, Coord, TkPipInversion};
-use super::xdlrc::{Parser, Options, Error, PipKind, Tile, Wire};
+use crate::xilinx::rawdump::{Part, Source, Coord, TkPipInversion};
+use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
+use crate::error::Error;
 use crate::stringpool::StringPool;
 
 fn is_buf_speed(speed: &Option<String>) -> bool {
