@@ -1,8 +1,9 @@
 use std::collections::{HashSet, HashMap};
 use crate::xilinx::rawdump::{Part, Source, Coord, TkPipInversion};
-use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
 use crate::error::Error;
 use crate::stringpool::StringPool;
+use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
+use super::partgen::PartPkg;
 
 fn is_buf_speed(speed: &Option<String>) -> bool {
     match speed {
@@ -128,13 +129,21 @@ impl Nodes {
 }
 
 
-pub fn get_rawdump(device: &str, pkg: &str, family: &str) -> Result<Part, Error> {
+pub fn get_rawdump(part: &PartPkg) -> Result<Part, Error> {
+    let partname = part.device.clone() + &part.package;
+    let pinmap: HashMap<String, String> = part.pins.iter()
+        .filter_map(|pin| match &pin.pad {
+            None => None,
+            Some(pad) => Some((pin.pin.to_string(), pad.to_string())),
+        })
+        .collect();
+
     let mut sp = StringPool::new();
 
     let mut pips_non_test: HashSet<(u32, u32, u32)> = HashSet::new();
     let mut pips_non_excl: HashSet<(u32, u32, u32)> = HashSet::new();
     let mut parser = Parser::from_toolchain(Options {
-        part: device.to_string() + pkg,
+        part: partname.clone(),
         need_pips: true,
         need_conns: false,
         dump_test: false,
@@ -146,7 +155,7 @@ pub fn get_rawdump(device: &str, pkg: &str, family: &str) -> Result<Part, Error>
         }
     }
     let mut parser = Parser::from_toolchain(Options {
-        part: device.to_string() + pkg,
+        part: partname.clone(),
         need_pips: true,
         need_conns: false,
         dump_test: true,
@@ -158,13 +167,13 @@ pub fn get_rawdump(device: &str, pkg: &str, family: &str) -> Result<Part, Error>
         }
     }
     let mut parser = Parser::from_toolchain(Options {
-        part: device.to_string() + pkg,
+        part: partname,
         need_pips: true,
         need_conns: true,
         dump_test: true,
         dump_excluded: true,
     })?;
-    let mut rd = Part::new(device.to_string(), family.to_string(), Source::ISE, parser.width() as u16, parser.height() as u16);
+    let mut rd = Part::new(part.device.clone(), part.family.clone(), Source::ISE, parser.width() as u16, parser.height() as u16);
 
     let mut nodes = Nodes {
         nodes: Vec::new(),
@@ -178,8 +187,7 @@ pub fn get_rawdump(device: &str, pkg: &str, family: &str) -> Result<Part, Error>
             t.name.clone(),
             t.kind.clone(),
             &t.prims.iter().map(|p| (
-                // XXX pkg map
-                &p.name[..],
+                &pinmap.get(&p.name).unwrap_or(&p.name)[..],
                 &p.kind[..],
                 p.pinwires.iter().map(|pw| (
                     &pw.name[..],
