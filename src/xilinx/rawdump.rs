@@ -138,6 +138,25 @@ pub struct TkNodeTemplate {
     pub wires: Vec<TkNodeTemplateWire>,
 }
 
+#[derive(Debug)]
+pub struct PartPkg {
+    pub name: String,
+    pub speedgrades: Vec<String>,
+    pub pins: Vec<PkgPin>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PkgPin {
+    pub pad: Option<String>,
+    pub pin: String,
+    pub vref_bank: Option<u32>,
+    pub vcco_bank: Option<u32>,
+    pub func: String,
+    pub tracelen_um: Option<u32>,
+    pub delay_min_fs: Option<u32>,
+    pub delay_max_fs: Option<u32>,
+}
+
 pub struct Part {
     pub part: String,
     pub family: String,
@@ -156,6 +175,7 @@ pub struct Part {
     pub wires_by_name: HashMap<String, WireIdx>,
     pub slot_kinds: Vec<String>,
     pub slot_kinds_by_name: HashMap<String, u16>,
+    pub packages: Vec<PartPkg>,
 }
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
@@ -214,6 +234,7 @@ impl Part {
             wires_by_name: HashMap::new(),
             slot_kinds: Vec::new(),
             slot_kinds_by_name: HashMap::new(),
+            packages: Vec::new(),
         }
     }
 
@@ -534,6 +555,10 @@ impl Part {
             };
             self.tiles.get_mut(&coord).unwrap().set_conn_wire(idx, node);
         }
+    }
+
+    pub fn add_package(&mut self, name: String, speedgrades: Vec<String>, pins: Vec<PkgPin>) {
+        self.packages.push(PartPkg {name, speedgrades, pins});
     }
 
     pub fn wire_to_idx(&mut self, s: &str) -> WireIdx {

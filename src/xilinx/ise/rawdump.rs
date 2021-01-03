@@ -3,7 +3,7 @@ use crate::xilinx::rawdump::{Part, Source, Coord, TkPipInversion};
 use crate::error::Error;
 use crate::stringpool::StringPool;
 use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
-use super::partgen::PartPkg;
+use super::partgen::PartgenPkg;
 
 fn is_buf_speed(speed: &Option<String>) -> bool {
     match speed {
@@ -129,7 +129,8 @@ impl Nodes {
 }
 
 
-pub fn get_rawdump(part: &PartPkg) -> Result<Part, Error> {
+pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
+    let part = &pkgs[0];
     let partname = part.device.clone() + &part.package;
     let pinmap: HashMap<String, String> = part.pins.iter()
         .filter_map(|pin| match &pin.pad {
@@ -236,5 +237,9 @@ pub fn get_rawdump(part: &PartPkg) -> Result<Part, Error> {
         }
     }
     nodes.finish_all(&mut rd, &mut sp);
+    for pkg in pkgs {
+        assert!(pkg.device == rd.part);
+        rd.add_package(pkg.package.clone(), pkg.speedgrades.clone(), pkg.pins.clone());
+    }
     Ok(rd)
 }

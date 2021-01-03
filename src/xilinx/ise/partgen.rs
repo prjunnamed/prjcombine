@@ -1,28 +1,17 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use crate::error::Error;
 use std::process::{Command, Stdio};
+use crate::error::Error;
+use crate::xilinx::rawdump::PkgPin;
 use tempdir::TempDir;
 
 #[derive(Debug)]
-pub struct PartPkg {
+pub struct PartgenPkg {
     pub family: String,
     pub device: String,
     pub package: String,
     pub speedgrades: Vec<String>,
     pub pins: Vec<PkgPin>,
-}
-
-#[derive(Debug)]
-pub struct PkgPin {
-    pub pad: Option<String>,
-    pub pin: String,
-    pub vref_bank: Option<u32>,
-    pub vcco_bank: Option<u32>,
-    pub func: String,
-    pub tracelen_um: Option<u32>,
-    pub delay_min_fs: Option<u32>,
-    pub delay_max_fs: Option<u32>,
 }
 
 fn parse_delay(d: &str) -> Result<Option<u32>, Error> {
@@ -164,7 +153,7 @@ mod tests {
     }
 }
 
-pub fn get_pkgs(query: &str) -> Result<Vec<PartPkg>, Error> {
+pub fn get_pkgs(query: &str) -> Result<Vec<PartgenPkg>, Error> {
     let dir = TempDir::new("partgen-pkg")?;
     let mut cmd = Command::new("partgen");
     cmd.current_dir(dir.path().as_os_str());
@@ -182,7 +171,7 @@ pub fn get_pkgs(query: &str) -> Result<Vec<PartPkg>, Error> {
     let file = File::open(dir.path().join("partlist.xct"))?;
     let bufread = BufReader::new(file);
     let mut lines = bufread.lines();
-    let mut res: Vec<PartPkg> = Vec::new();
+    let mut res: Vec<PartgenPkg> = Vec::new();
     loop {
         let l = match lines.next() {
             None => break,
@@ -232,7 +221,7 @@ pub fn get_pkgs(query: &str) -> Result<Vec<PartPkg>, Error> {
         let pfile = File::open(dir.path().join(format!("{}.pkg", words[1].to_lowercase())))?;
         let mut pbufread = BufReader::new(pfile);
         let pins = parse_pkgfile(&mut pbufread)?;
-        res.push(PartPkg {family, device, package, speedgrades, pins});
+        res.push(PartgenPkg {family, device, package, speedgrades, pins});
     }
     Ok(res)
 }
