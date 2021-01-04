@@ -424,6 +424,7 @@ impl ToolchainReader {
         }
         if opt.need_conns {
             cmd.arg("-all_conns");
+            cmd.arg("-speed");
         }
         if opt.dump_test {
             cmd.env("XIL_TEST_ARCS", "1");

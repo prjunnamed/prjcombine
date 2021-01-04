@@ -113,6 +113,7 @@ impl Nodes {
         let node = &mut self.nodes[nidx];
         for k in wwires.iter() {
             if !node.seen.contains_key(k) && !nseen.contains_key(k) {
+                self.wire2node.insert(*k, nidx);
                 node.unseen.insert(*k);
             }
         }
@@ -120,6 +121,7 @@ impl Nodes {
             if node.unseen.contains(k) {
                 node.unseen.remove(k);
             }
+            self.wire2node.insert(*k, nidx);
             node.seen.insert(*k, *v);
         }
         if node.unseen.is_empty() {

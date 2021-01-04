@@ -1,12 +1,13 @@
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct Coord {
     pub x: u16,
     pub y: u16,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct WireIdx {
     idx: u32,
 }
@@ -19,7 +20,7 @@ impl WireIdx {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct SpeedIdx {
     idx: u32,
 }
@@ -33,7 +34,7 @@ impl SpeedIdx {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct NodeIdx {
     idx: u32,
 }
@@ -47,54 +48,59 @@ impl NodeIdx {
     }
 }
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum Source {
     ISE,
     Vivado,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkSiteSlot {
     Single(u16),
     Indexed(u16, u8),
     Xy(u16, u8, u8),
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkSitePinDir {
     Input,
     Output,
     Bidir,
 }
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct TkSitePin {
     pub dir: TkSitePinDir,
     pub wire: WireIdx,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TkSite {
     pub slot: TkSiteSlot,
     pub kind: String,
     pub pins: HashMap<String, TkSitePin>,
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkWire {
     Internal(SpeedIdx),
     Connected(usize),
 }
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkPipMode {
     Const(SpeedIdx),
     Variable(usize),
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkPipInversion {
     Never,
     Always,
     Prog,
 }
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct TkPip {
     pub is_buf: bool,
     pub is_excluded: bool,
@@ -103,6 +109,7 @@ pub struct TkPip {
     pub mode: TkPipMode,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TileKind {
     pub sites: Vec<TkSite>,
     pub sites_by_slot: HashMap<TkSiteSlot, usize>,
@@ -113,39 +120,42 @@ pub struct TileKind {
     pub tiles: Vec<Coord>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tile {
     pub name: String,
     pub kind: String,
     pub sites: Vec<Option<String>>,
+    #[serde(skip)]
     pub conn_wires: Vec<NodeIdx>,
     pub var_pips: Vec<SpeedIdx>,
 }
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct TkNode {
     pub base: Coord,
     pub template: u32,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct TkNodeTemplateWire {
     pub delta: Coord,
     pub wire: WireIdx,
     pub speed: SpeedIdx,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
 pub struct TkNodeTemplate {
     pub wires: Vec<TkNodeTemplateWire>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartPkg {
     pub name: String,
     pub speedgrades: Vec<String>,
     pub pins: Vec<PkgPin>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
 pub struct PkgPin {
     pub pad: Option<String>,
     pub pin: String,
@@ -157,6 +167,7 @@ pub struct PkgPin {
     pub delay_max_fs: Option<u32>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Part {
     pub part: String,
     pub family: String,
@@ -167,13 +178,17 @@ pub struct Part {
     pub tiles: HashMap<Coord, Tile>,
     pub tiles_by_name: HashMap<String, Coord>,
     pub speeds: Vec<String>,
+    #[serde(skip)]
     pub speeds_by_name: HashMap<String, SpeedIdx>,
     pub nodes: Vec<TkNode>,
     pub templates: Vec<TkNodeTemplate>,
+    #[serde(skip)]
     pub templates_idx: HashMap<TkNodeTemplate, u32>,
     pub wires: Vec<String>,
+    #[serde(skip)]
     pub wires_by_name: HashMap<String, WireIdx>,
     pub slot_kinds: Vec<String>,
+    #[serde(skip)]
     pub slot_kinds_by_name: HashMap<String, u16>,
     pub packages: Vec<PartPkg>,
 }
@@ -512,12 +527,14 @@ impl Part {
         }
         let bx = wires.iter().map(|(t, _, _)| t.x).min().unwrap();
         let by = wires.iter().map(|(t, _, _)| t.y).min().unwrap();
+        let mut twires: Vec<_> = wires.iter().map(|(t, w, s)| TkNodeTemplateWire {
+            delta: Coord{x: t.x - bx, y: t.y - by},
+            wire: *w,
+            speed: *s,
+        }).collect();
+        twires.sort();
         let template = TkNodeTemplate {
-            wires: wires.iter().map(|(t, w, s)| TkNodeTemplateWire {
-                delta: Coord{x: t.x - bx, y: t.y - by},
-                wire: *w,
-                speed: *s,
-            }).collect()
+            wires: twires,
         };
         let tidx = match self.templates_idx.get(&template) {
             None => {
@@ -587,6 +604,24 @@ impl Part {
         }
     }
 
+    pub fn print_wire(&self, w: WireIdx) -> &str {
+        if w == WireIdx::NONE {
+            "[NONE]"
+        } else {
+            &self.wires[w.idx as usize]
+        }
+    }
+
+    pub fn print_speed(&self, s: SpeedIdx) -> &str {
+        if s == SpeedIdx::NONE {
+            "[NONE]"
+        } else if s == SpeedIdx::UNKNOWN {
+            "[UNKNOWN]"
+        } else {
+            &self.speeds[s.idx as usize]
+        }
+    }
+
     pub fn slot_kind_to_idx(&mut self, s: &str) -> u16 {
         match self.slot_kinds_by_name.get(s) {
             None => {
@@ -608,6 +643,9 @@ impl Tile {
     pub fn set_conn_wire(&mut self, idx: usize, val: NodeIdx) {
         if self.conn_wires.len() <= idx {
             self.conn_wires.resize(idx + 1, NodeIdx::NONE);
+        }
+        if self.conn_wires[idx] != NodeIdx::PENDING && self.conn_wires[idx] != NodeIdx::NONE && val != NodeIdx::PENDING {
+            panic!("conn wire double set {}", self.name);
         }
         self.conn_wires[idx] = val;
     }
