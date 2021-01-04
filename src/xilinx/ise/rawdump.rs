@@ -1,5 +1,5 @@
 use std::collections::{HashSet, HashMap};
-use crate::xilinx::rawdump::{Part, Source, Coord, TkPipInversion};
+use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion};
 use crate::error::Error;
 use crate::stringpool::StringPool;
 use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
@@ -38,7 +38,7 @@ struct Nodes {
 }
 
 impl Nodes {
-    fn finish_node(&mut self, rd: &mut Part, sp: &mut StringPool, idx: usize) {
+    fn finish_node(&mut self, rd: &mut PartBuilder, sp: &mut StringPool, idx: usize) {
         let node = &mut self.nodes[idx];
         if node.seen.is_empty() && node.unseen.is_empty() {
             return;
@@ -58,7 +58,7 @@ impl Nodes {
         rd.add_node(&wires);
         self.free_node(idx);
     }
-    fn finish_all(&mut self, rd: &mut Part, sp: &mut StringPool) {
+    fn finish_all(&mut self, rd: &mut PartBuilder, sp: &mut StringPool) {
         for nidx in 0..self.nodes.len() {
             self.finish_node(rd, sp, nidx);
         }
@@ -69,7 +69,7 @@ impl Nodes {
         node.unseen.clear();
         self.freelist.push(idx);
     }
-    fn process_wire(&mut self, rd: &mut Part, sp: &mut StringPool, t: &Tile, w: &Wire) {
+    fn process_wire(&mut self, rd: &mut PartBuilder, sp: &mut StringPool, t: &Tile, w: &Wire) {
         let mut wnodes: HashSet<usize> = HashSet::new();
         let mut wwires: HashSet<(u32, u32)> = HashSet::new();
         wwires.insert((sp.put(&t.name), sp.put(&w.name)));
@@ -133,6 +133,7 @@ impl Nodes {
 
 pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
     let part = &pkgs[0];
+    let device = &part.device;
     let partname = part.device.clone() + &part.package;
     let pinmap: HashMap<String, String> = part.pins.iter()
         .filter_map(|pin| match &pin.pad {
@@ -176,7 +177,7 @@ pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
         dump_test: true,
         dump_excluded: true,
     })?;
-    let mut rd = Part::new(part.device.clone(), part.family.clone(), Source::ISE, parser.width() as u16, parser.height() as u16);
+    let mut rd = PartBuilder::new(part.device.clone(), part.family.clone(), Source::ISE, parser.width() as u16, parser.height() as u16);
 
     let mut nodes = Nodes {
         nodes: Vec::new(),
@@ -240,8 +241,8 @@ pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
     }
     nodes.finish_all(&mut rd, &mut sp);
     for pkg in pkgs {
-        assert!(pkg.device == rd.part);
+        assert!(pkg.device == *device);
         rd.add_package(pkg.package.clone(), pkg.speedgrades.clone(), pkg.pins.clone());
     }
-    Ok(rd)
+    Ok(rd.finish())
 }
