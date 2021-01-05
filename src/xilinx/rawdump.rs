@@ -1,4 +1,7 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::path::Path;
+use crate::error::Error;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
@@ -661,6 +664,22 @@ impl Part {
                 tile.set_conn_wire(idx, NodeIdx::from_raw(i));
             }
         }
+    }
+
+    pub fn from_file<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
+        let f = File::open(path)?;
+        let xz = xz2::read::XzDecoder::new(f);
+        let mut res: Part = bincode::deserialize_from(xz).unwrap();
+        res.post_deserialize();
+        Ok(res)
+    }
+
+    pub fn to_file<P: AsRef<Path>> (&self, path: P) -> Result<(), Error> {
+        let f = File::create(path)?;
+        let mut xz = xz2::write::XzEncoder::new(f, 9);
+        bincode::serialize_into(&mut xz, self).unwrap();
+        xz.finish()?;
+        Ok(())
     }
 }
 
