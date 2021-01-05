@@ -1,8 +1,9 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use crate::error::Error;
 use crate::xilinx::rawdump::PkgPin;
+use crate::xilinx::toolchain::Toolchain;
 use tempdir::TempDir;
 
 #[derive(Debug)]
@@ -153,9 +154,9 @@ mod tests {
     }
 }
 
-pub fn get_pkgs(query: &str) -> Result<Vec<PartgenPkg>, Error> {
+pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Error> {
     let dir = TempDir::new("partgen-pkg")?;
-    let mut cmd = Command::new("partgen");
+    let mut cmd = tc.command("partgen");
     cmd.current_dir(dir.path().as_os_str());
     cmd.stdin(Stdio::null());
     cmd.stdout(Stdio::null());

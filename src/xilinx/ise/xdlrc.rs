@@ -1,11 +1,14 @@
 use nix::sys::stat::Mode;
 use nix::unistd::mkfifo;
+use nix::fcntl::{fcntl, FcntlArg};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Lines, Read};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Stdio};
 use std::str::FromStr;
+use std::os::unix::io::AsRawFd;
 use tempdir::TempDir;
 use crate::xilinx::rawdump::TkSitePinDir;
+use crate::xilinx::toolchain::Toolchain;
 use crate::error::Error;
 
 use Error::ParseError;
@@ -164,8 +167,8 @@ impl Parser {
         })
     }
 
-    pub fn from_toolchain(opt: Options) -> Result<Self, Error> {
-        Parser::new(Box::new(ToolchainReader::new(opt)?))
+    pub fn from_toolchain(tc: &Toolchain, opt: Options) -> Result<Self, Error> {
+        Parser::new(Box::new(ToolchainReader::new(tc, opt)?))
     }
 
     pub fn get_tile(&mut self) -> Result<Option<Tile>, Error> {
@@ -409,11 +412,11 @@ impl Parser {
 }
 
 impl ToolchainReader {
-    pub fn new(opt: Options) -> Result<BufReader<Self>, Error> {
+    pub fn new(tc: &Toolchain, opt: Options) -> Result<BufReader<Self>, Error> {
         let dir = TempDir::new("xdlrc")?;
         let path = dir.path().join("fifo.xdlrc");
         mkfifo(&path, Mode::S_IRUSR | Mode::S_IWUSR)?;
-        let mut cmd = Command::new("xdl");
+        let mut cmd = tc.command("xdl");
         cmd.current_dir(dir.path().as_os_str());
         cmd.stdin(Stdio::null());
         cmd.stdout(Stdio::null());
@@ -422,7 +425,7 @@ impl ToolchainReader {
         if opt.need_pips {
             cmd.arg("-pips");
         }
-        if opt.need_conns {
+        if opt.need_conns && !tc.use_wine {
             cmd.arg("-all_conns");
             cmd.arg("-speed");
         }
@@ -435,9 +438,10 @@ impl ToolchainReader {
         cmd.arg(opt.part);
         cmd.arg("fifo.xdlrc");
         let child = cmd.spawn()?;
-        let fifo = Some(File::open(path)?);
+        let fifo = File::open(path)?;
+        fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20))?;
         Ok(BufReader::new(ToolchainReader {
-            fifo,
+            fifo: Some(fifo),
             _dir: dir,
             child,
         }))

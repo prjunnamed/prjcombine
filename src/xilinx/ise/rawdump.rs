@@ -1,5 +1,6 @@
 use std::collections::{HashSet, HashMap};
 use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion};
+use crate::xilinx::toolchain::Toolchain;
 use crate::error::Error;
 use crate::stringpool::StringPool;
 use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};
@@ -131,7 +132,7 @@ impl Nodes {
 }
 
 
-pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
+pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
     let part = &pkgs[0];
     let device = &part.device;
     let partname = part.device.clone() + &part.package;
@@ -146,7 +147,7 @@ pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
 
     let mut pips_non_test: HashSet<(u32, u32, u32)> = HashSet::new();
     let mut pips_non_excl: HashSet<(u32, u32, u32)> = HashSet::new();
-    let mut parser = Parser::from_toolchain(Options {
+    let mut parser = Parser::from_toolchain(tc, Options {
         part: partname.clone(),
         need_pips: true,
         need_conns: false,
@@ -158,7 +159,7 @@ pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
             pips_non_test.insert((sp.put(&t.name), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
         }
     }
-    let mut parser = Parser::from_toolchain(Options {
+    let mut parser = Parser::from_toolchain(tc, Options {
         part: partname.clone(),
         need_pips: true,
         need_conns: false,
@@ -170,7 +171,7 @@ pub fn get_rawdump(pkgs: &[PartgenPkg]) -> Result<Part, Error> {
             pips_non_excl.insert((sp.put(&t.name), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
         }
     }
-    let mut parser = Parser::from_toolchain(Options {
+    let mut parser = Parser::from_toolchain(tc, Options {
         part: partname,
         need_pips: true,
         need_conns: true,
