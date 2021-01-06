@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 use std::fs::File;
 use std::path::Path;
 use crate::error::Error;
@@ -201,9 +201,9 @@ fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
         None => return None,
         Some(pos) => (&s[..pos], &s[pos+2..]),
     };
-    let (x, y) = match r.rfind("_Y") {
+    let (x, y) = match r.rfind("Y") {
         None => return None,
-        Some(pos) => (&r[..pos], &r[pos+2..]),
+        Some(pos) => (&r[..pos], &r[pos+1..]),
     };
     let x = match x.parse::<u32>() {
         Err(_) => return None,
@@ -214,6 +214,14 @@ fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
         Ok(y) => y,
     };
     Some((l, x, y))
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn split_xy_test() {
+        assert_eq!(super::split_xy("SLICE_X123Y456"), Some(("SLICE", 123, 456)));
+    }
 }
 
 fn get_lastnum(s: &str) -> u8 {
@@ -282,15 +290,61 @@ impl PartBuilder {
                 }
             }
         }
+        let mut slots: HashSet<TkSiteSlot> = HashSet::new();
         for (n, k, p) in sites {
-            res.insert(n, if self.part.family == "virtex" || self.part.family == "virtexe" {
+            let slot = if self.part.family == "xc4000e" || self.part.family == "xc4000ex" || self.part.family == "xc4000xla" || self.part.family == "xc4000xv" || self.part.family == "spartanxl" {
+                if let Some(urpos) = n.find("_R") {
+                    if let Some(dpos) = n.find(".") {
+                        TkSiteSlot::Indexed(self.slot_kind_to_idx(&n[..urpos]), n[dpos+1..].parse::<u8>().unwrap())
+                    } else {
+                        TkSiteSlot::Single(self.slot_kind_to_idx(&n[..urpos]))
+                    }
+                } else if *k == "IOB" || *k == "CLKIOB" || *k == "FCLKIOB" {
+                    TkSiteSlot::Indexed(self.slot_kind_to_idx("IOB"), from_pinnum(p, "O"))
+                } else if *k == "CIN" || *k == "COUT" || *k == "BUFF" {
+                    TkSiteSlot::Single(self.slot_kind_to_idx(k))
+                } else if *k == "PRI-CLK" {
+                    TkSiteSlot::Single(self.slot_kind_to_idx("BUFGP"))
+                } else if *k == "SEC-CLK" {
+                    TkSiteSlot::Single(self.slot_kind_to_idx("BUFGS"))
+                } else if *k == "BUFG" || *k == "BUFGE" || *k == "BUFGLS" {
+                    let pos = n.find("_").unwrap();
+                    TkSiteSlot::Indexed(self.slot_kind_to_idx(&n[..pos]), match &n[pos..] {
+                        "_WNW" => 0,
+                        "_ENE" => 1,
+                        "_NNE" => 2,
+                        "_SSE" => 3,
+                        "_ESE" => 4,
+                        "_WSW" => 5,
+                        "_SSW" => 6,
+                        "_NNW" => 7,
+                        _ => panic!("cannot match {}", n),
+                    })
+                } else {
+                    TkSiteSlot::Single(self.slot_kind_to_idx(n))
+                }
+            } else if self.part.family == "virtex" || self.part.family == "virtexe" {
                 match *k {
-                    "IOB" | "EMPTYIOB" | "PCIIOB" | "DLLIOB" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "I")),
+                    "IOB" | "EMPTYIOB" | "PCIIOB" | "DLLIOB" => TkSiteSlot::Indexed(self.slot_kind_to_idx("IOB"), from_pinnum(p, "I")),
                     "TBUF" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "O")),
-                    "SLICE" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "X")),
+                    "SLICE" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "CIN")),
                     "GCLKIOB" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "GCLKOUT")),
                     "GCLK" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), from_pinnum(p, "CE")),
-                    "DLL" => TkSiteSlot::Single(self.slot_kind_to_idx(n)),
+                    "DLL" => TkSiteSlot::Indexed(self.slot_kind_to_idx(k), match *n {
+                        "DLL0" => 0,
+                        "DLL1" => 1,
+                        "DLL2" => 2,
+                        "DLL3" => 3,
+                        "DLL0P" => 0,
+                        "DLL1P" => 1,
+                        "DLL2P" => 2,
+                        "DLL3P" => 3,
+                        "DLL0S" => 4,
+                        "DLL1S" => 5,
+                        "DLL2S" => 6,
+                        "DLL3S" => 7,
+                        _ => panic!("cannot match {}", n),
+                    }),
                     _ => TkSiteSlot::Single(self.slot_kind_to_idx(k))
                 }
             } else if *k == "TBUF" && self.part.family.starts_with("virtex2") {
@@ -306,9 +360,20 @@ impl PartBuilder {
                 let base = self.slot_kind_to_idx(base);
                 let (bx, by) = *minxy.get(&base).unwrap();
                 TkSiteSlot::Xy(base, (x - bx) as u8, (y - by) as u8)
+            } else if (self.part.family.starts_with("virtex2") || self.part.family.starts_with("spartan3")) && (k.starts_with("IOB") || k.starts_with("IBUF") || k.starts_with("DIFF")) {
+                TkSiteSlot::Indexed(self.slot_kind_to_idx("IOB"), from_pinnum(p, "T"))
+            } else if ((self.part.family.starts_with("virtex2") || self.part.family == "spartan3") && k.starts_with("DCI")) || (self.part.family == "spartan3" && *k == "BUFGMUX") {
+                TkSiteSlot::Indexed(self.slot_kind_to_idx(k), get_lastnum(n))
+            } else if self.part.family.starts_with("virtex2") && *k == "BUFGMUX" {
+                TkSiteSlot::Indexed(self.slot_kind_to_idx(k), n[7..8].parse::<u8>().unwrap())
+            } else if self.part.family == "spartan6" && k.starts_with("IOB") {
+                TkSiteSlot::Indexed(self.slot_kind_to_idx("IOB"), from_pinnum(p, "PADOUT"))
             } else {
                 TkSiteSlot::Single(self.slot_kind_to_idx(n))
-            });
+            };
+            assert!(!slots.contains(&slot));
+            slots.insert(slot);
+            res.insert(n, slot);
         }
         res
     }
