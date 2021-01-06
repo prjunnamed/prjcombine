@@ -18,7 +18,7 @@ fn is_buf_speed(speed: &Option<String>) -> bool {
         } else if s.starts_with("D_") {
             // umm.
             false
-        } else if s.starts_with("CCDMA1D8_") {
+        } else if s.starts_with("CCMA1D8_") {
             // umm.
             false
         } else {

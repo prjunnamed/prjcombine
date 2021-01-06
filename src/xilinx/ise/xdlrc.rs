@@ -439,7 +439,10 @@ impl ToolchainReader {
         cmd.arg("fifo.xdlrc");
         let child = cmd.spawn()?;
         let fifo = File::open(path)?;
-        fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20))?;
+        match fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20)) {
+            Ok(_) => (),
+            Err(_) => (),
+        }
         Ok(BufReader::new(ToolchainReader {
             fifo: Some(fifo),
             _dir: dir,
