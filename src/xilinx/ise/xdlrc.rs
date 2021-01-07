@@ -1,15 +1,9 @@
-use nix::sys::stat::Mode;
-use nix::unistd::mkfifo;
-use nix::fcntl::{fcntl, FcntlArg};
-use std::fs::File;
-use std::io::{self, BufRead, BufReader, Lines, Read};
-use std::process::{Child, Stdio};
+use std::io::{BufRead, Lines};
 use std::str::FromStr;
-use std::os::unix::io::AsRawFd;
-use tempdir::TempDir;
 use crate::xilinx::rawdump::TkSitePinDir;
-use crate::xilinx::toolchain::Toolchain;
 use crate::error::Error;
+use crate::toolreader::ToolchainReader;
+use crate::toolchain::Toolchain;
 
 use Error::ParseError;
 
@@ -95,12 +89,6 @@ pub struct Options {
     pub dump_excluded: bool,
 }
 
-struct ToolchainReader {
-    _dir: TempDir,
-    fifo: Option<File>,
-    child: Child,
-}
-
 impl FromStr for PipKind {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Error> {
@@ -168,7 +156,24 @@ impl Parser {
     }
 
     pub fn from_toolchain(tc: &Toolchain, opt: Options) -> Result<Self, Error> {
-        Parser::new(Box::new(ToolchainReader::new(tc, opt)?))
+        let mut args = vec!["-report"];
+        let mut env: Vec<(&'static str, &'static str)> = Vec::new();
+        if opt.need_pips {
+            args.push("-pips");
+        }
+        if opt.need_conns && !tc.use_wine {
+            args.push("-all_conns");
+            args.push("-speed");
+        }
+        if opt.dump_test {
+            env.push(("XIL_TEST_ARCS", "1"));
+        }
+        if opt.dump_excluded {
+            env.push(("XIL_DRM_EXCLUDE_ARCS", "1"));
+        }
+        args.push(&opt.part);
+        args.push("fifo.xdlrc");
+        Parser::new(Box::new(ToolchainReader::new(tc, "xdl", &args, &env, "fifo.xdlrc")?))
     }
 
     pub fn get_tile(&mut self) -> Result<Option<Tile>, Error> {
@@ -408,65 +413,5 @@ impl Parser {
     }
     pub fn height(&self) -> u32 {
         self.height
-    }
-}
-
-impl ToolchainReader {
-    pub fn new(tc: &Toolchain, opt: Options) -> Result<BufReader<Self>, Error> {
-        let dir = TempDir::new("xdlrc")?;
-        let path = dir.path().join("fifo.xdlrc");
-        mkfifo(&path, Mode::S_IRUSR | Mode::S_IWUSR)?;
-        let mut cmd = tc.command("xdl");
-        cmd.current_dir(dir.path().as_os_str());
-        cmd.stdin(Stdio::null());
-        cmd.stdout(Stdio::null());
-        cmd.stderr(Stdio::null());
-        cmd.arg("-report");
-        if opt.need_pips {
-            cmd.arg("-pips");
-        }
-        if opt.need_conns && !tc.use_wine {
-            cmd.arg("-all_conns");
-            cmd.arg("-speed");
-        }
-        if opt.dump_test {
-            cmd.env("XIL_TEST_ARCS", "1");
-        }
-        if opt.dump_excluded {
-            cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
-        }
-        cmd.arg(opt.part);
-        cmd.arg("fifo.xdlrc");
-        let child = cmd.spawn()?;
-        let fifo = File::open(path)?;
-        match fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20)) {
-            Ok(_) => (),
-            Err(_) => (),
-        }
-        Ok(BufReader::new(ToolchainReader {
-            fifo: Some(fifo),
-            _dir: dir,
-            child,
-        }))
-    }
-}
-
-impl Read for ToolchainReader {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match &mut self.fifo {
-            Some(fifo) => fifo.read(buf),
-            None => Ok(0),
-        }
-    }
-}
-
-impl Drop for ToolchainReader {
-    fn drop(&mut self) {
-        self.fifo = None;
-        // Nothing much to do if it fails.
-        match self.child.wait() {
-            Ok(_) => (),
-            Err(_) => (),
-        }
     }
 }

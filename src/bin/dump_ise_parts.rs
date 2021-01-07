@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use rayon::prelude::*;
 use prjcombine::xilinx::ise::rawdump::get_rawdump;
 use prjcombine::xilinx::ise::partgen::{get_pkgs, PartgenPkg};
-use prjcombine::xilinx::toolchain::Toolchain;
+use prjcombine::toolchain::Toolchain;
 
 fn main() -> Result<(), io::Error> {
     let args: Vec<String> = env::args().collect();

@@ -1,6 +1,6 @@
 use std::collections::{HashSet, HashMap};
 use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion};
-use crate::xilinx::toolchain::Toolchain;
+use crate::toolchain::Toolchain;
 use crate::error::Error;
 use crate::stringpool::StringPool;
 use super::xdlrc::{Parser, Options, PipKind, Tile, Wire};

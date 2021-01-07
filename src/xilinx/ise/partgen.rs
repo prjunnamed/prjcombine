@@ -3,7 +3,7 @@ use std::io::{BufRead, BufReader};
 use std::process::Stdio;
 use crate::error::Error;
 use crate::xilinx::rawdump::PkgPin;
-use crate::xilinx::toolchain::Toolchain;
+use crate::toolchain::Toolchain;
 use tempdir::TempDir;
 
 #[derive(Debug)]
