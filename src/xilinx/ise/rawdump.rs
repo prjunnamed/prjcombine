@@ -146,29 +146,33 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
     let mut sp = StringPool::new();
 
     let mut pips_non_test: HashSet<(u32, u32, u32)> = HashSet::new();
-    let mut pips_non_excl: HashSet<(u32, u32, u32)> = HashSet::new();
-    let mut parser = Parser::from_toolchain(tc, Options {
-        part: partname.clone(),
-        need_pips: true,
-        need_conns: false,
-        dump_test: false,
-        dump_excluded: true,
-    })?;
-    while let Some(t) = parser.get_tile()? {
-        for pip in t.pips {
-            pips_non_test.insert((sp.put(&t.name), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
+    {
+        let mut parser = Parser::from_toolchain(tc, Options {
+            part: partname.clone(),
+            need_pips: true,
+            need_conns: false,
+            dump_test: false,
+            dump_excluded: true,
+        })?;
+        while let Some(t) = parser.get_tile()? {
+            for pip in t.pips {
+                pips_non_test.insert((sp.put(&t.kind), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
+            }
         }
     }
-    let mut parser = Parser::from_toolchain(tc, Options {
-        part: partname.clone(),
-        need_pips: true,
-        need_conns: false,
-        dump_test: true,
-        dump_excluded: false,
-    })?;
-    while let Some(t) = parser.get_tile()? {
-        for pip in t.pips {
-            pips_non_excl.insert((sp.put(&t.name), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
+    let mut pips_non_excl: HashSet<(u32, u32, u32)> = HashSet::new();
+    {
+        let mut parser = Parser::from_toolchain(tc, Options {
+            part: partname.clone(),
+            need_pips: true,
+            need_conns: false,
+            dump_test: true,
+            dump_excluded: false,
+        })?;
+        while let Some(t) = parser.get_tile()? {
+            for pip in t.pips {
+                pips_non_excl.insert((sp.put(&t.kind), sp.put(&pip.wire_from), sp.put(&pip.wire_to)));
+            }
         }
     }
     let mut parser = Parser::from_toolchain(tc, Options {
@@ -216,8 +220,8 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
                     PipKind::BiPass => false,
                     PipKind::Uni => is_buf_speed(&p.speed),
                 },
-                !pips_non_excl.contains(&(sp.put(&t.name), sp.put(&p.wire_from), sp.put(&p.wire_to))),
-                !pips_non_test.contains(&(sp.put(&t.name), sp.put(&p.wire_from), sp.put(&p.wire_to))),
+                !pips_non_excl.contains(&(sp.put(&t.kind), sp.put(&p.wire_from), sp.put(&p.wire_to))),
+                !pips_non_test.contains(&(sp.put(&t.kind), sp.put(&p.wire_from), sp.put(&p.wire_to))),
                 TkPipInversion::Never,
                 match &p.speed {
                     None => None,

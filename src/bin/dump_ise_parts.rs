@@ -42,9 +42,12 @@ fn main() -> Result<(), io::Error> {
     };
     create_dir_all(&args[2])?;
     let mut parts: HashMap<String, Vec<PartgenPkg>> = HashMap::new();
-    for ise_fam in ise_families {
+    for ise_fam in ise_families.iter() {
         println!("querying {}", ise_fam);
-        for pkg in get_pkgs(&tc, ise_fam)? {
+    }
+    let pkg_list: Vec<_> = ise_families.into_par_iter().map(|ise_fam| get_pkgs(&tc, ise_fam)).collect();
+    for pkgs in pkg_list {
+        for pkg in pkgs? {
             match parts.get_mut(&pkg.device) {
                 None => { parts.insert(pkg.device.to_string(), vec![pkg]); },
                 Some(v) => { v.push(pkg); },
