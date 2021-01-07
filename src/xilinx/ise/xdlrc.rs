@@ -173,7 +173,7 @@ impl Parser {
         }
         args.push(&opt.part);
         args.push("fifo.xdlrc");
-        Parser::new(Box::new(ToolchainReader::new(tc, "xdl", &args, &env, "fifo.xdlrc")?))
+        Parser::new(Box::new(ToolchainReader::new(tc, "xdl", &args, &env, "fifo.xdlrc", &[])?))
     }
 
     pub fn get_tile(&mut self) -> Result<Option<Tile>, Error> {

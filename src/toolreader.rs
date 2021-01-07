@@ -1,7 +1,7 @@
 use nix::sys::stat::Mode;
 use nix::unistd::mkfifo;
 use nix::fcntl::{fcntl, FcntlArg};
-use std::fs::File;
+use std::fs::{File, write};
 use std::io::{self, BufReader, Read};
 use std::process::{Child, Stdio};
 use std::os::unix::io::AsRawFd;
@@ -16,8 +16,12 @@ pub struct ToolchainReader {
 }
 
 impl ToolchainReader {
-    pub fn new(tc: &Toolchain, cmd: &str, args: &[&str], env: &[(&str, &str)], fifo_name: &str) -> Result<BufReader<Self>, Error> {
+    pub fn new(tc: &Toolchain, cmd: &str, args: &[&str], env: &[(&str, &str)], fifo_name: &str, input_files: &[(&str, &[u8])]) -> Result<BufReader<Self>, Error> {
         let dir = TempDir::new(cmd)?;
+        for (k, v) in input_files {
+            let path = dir.path().join(k);
+            write(path, v)?;
+        }
         let path = dir.path().join(fifo_name);
         mkfifo(&path, Mode::S_IRUSR | Mode::S_IWUSR)?;
         let mut cmd = tc.command(cmd);
