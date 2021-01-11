@@ -1,5 +1,5 @@
 use std::collections::{HashSet, HashMap};
-use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion};
+use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion, TkPipDirection};
 use crate::toolchain::Toolchain;
 use crate::error::Error;
 use crate::stringpool::StringPool;
@@ -201,7 +201,8 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
                 p.pinwires.iter().map(|pw| (
                     &pw.name[..],
                     pw.dir,
-                    Some(&pw.wire[..])
+                    Some(&pw.wire[..]),
+                    None,
                 )).collect::<Vec<_>>(),
             )).collect::<Vec<_>>(),
             &t.wires.iter().map(|w| (
@@ -223,6 +224,12 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
                 !pips_non_excl.contains(&(sp.put(&t.kind), sp.put(&p.wire_from), sp.put(&p.wire_to))),
                 !pips_non_test.contains(&(sp.put(&t.kind), sp.put(&p.wire_from), sp.put(&p.wire_to))),
                 TkPipInversion::Never,
+                match p.kind {
+                    PipKind::BiBuf => TkPipDirection::BiFwd,
+                    PipKind::BiUniBuf => TkPipDirection::BiFwd,
+                    PipKind::BiPass => TkPipDirection::BiFwd,
+                    PipKind::Uni => TkPipDirection::Uni,
+                },
                 match &p.speed {
                     None => None,
                     Some(s) => Some(&s[..]),
@@ -247,7 +254,10 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
     nodes.finish_all(&mut rd, &mut sp);
     for pkg in pkgs {
         assert!(pkg.device == *device);
-        rd.add_package(pkg.package.clone(), pkg.speedgrades.clone(), pkg.pins.clone());
+        rd.add_package(pkg.package.clone(), pkg.pins.clone());
+        for speed in pkg.speedgrades.iter() {
+            rd.add_combo(pkg.device.clone() + &pkg.package + speed, pkg.device.clone(), pkg.package.clone(), speed.clone(), "".to_string());
+        }
     }
     Ok(rd.finish())
 }

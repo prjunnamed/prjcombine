@@ -75,6 +75,7 @@ pub enum TkSitePinDir {
 pub struct TkSitePin {
     pub dir: TkSitePinDir,
     pub wire: WireIdx,
+    pub speed: SpeedIdx,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,11 +105,19 @@ pub enum TkPipInversion {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
+pub enum TkPipDirection {
+    Uni,
+    BiFwd,
+    BiBwd,
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct TkPip {
     pub is_buf: bool,
     pub is_excluded: bool,
     pub is_test: bool,
     pub inversion: TkPipInversion,
+    pub direction: TkPipDirection,
     pub mode: TkPipMode,
 }
 
@@ -152,10 +161,12 @@ pub struct TkNodeTemplate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartPkg {
+pub struct PartCombo {
     pub name: String,
-    pub speedgrades: Vec<String>,
-    pub pins: Vec<PkgPin>,
+    pub device: String,
+    pub package: String,
+    pub speed: String,
+    pub temp: String,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
@@ -184,11 +195,12 @@ pub struct Part {
     pub templates: Vec<TkNodeTemplate>,
     pub wires: Vec<String>,
     pub slot_kinds: Vec<String>,
-    pub packages: Vec<PartPkg>,
+    pub packages: HashMap<String, Vec<PkgPin>>,
+    pub combos: Vec<PartCombo>,
 }
 
 pub struct PartBuilder {
-    part: Part,
+    pub part: Part,
     pub tiles_by_name: HashMap<String, Coord>,
     pub speeds_by_name: HashMap<String, SpeedIdx>,
     pub templates_idx: HashMap<TkNodeTemplate, u32>,
@@ -256,7 +268,8 @@ impl PartBuilder {
                 templates: Vec::new(),
                 wires: Vec::new(),
                 slot_kinds: Vec::new(),
-                packages: Vec::new(),
+                packages: HashMap::new(),
+                combos: Vec::new(),
             },
             tiles_by_name: HashMap::new(),
             speeds_by_name: HashMap::new(),
@@ -266,9 +279,9 @@ impl PartBuilder {
         }
     }
 
-    fn slotify<'a>(&mut self, sites: &'a [(&'a str, &'a str, Vec<(&'a str, TkSitePinDir, Option<&'a str>)>)]) -> HashMap<&'a str, TkSiteSlot> {
-        fn from_pinnum(pins: &[(&str, TkSitePinDir, Option<&str>)], pin: &str) -> u8 {
-            for (n, _, w) in pins {
+    fn slotify<'a>(&mut self, sites: &'a [(&'a str, &'a str, Vec<(&'a str, TkSitePinDir, Option<&'a str>, Option<&'a str>)>)]) -> HashMap<&'a str, TkSiteSlot> {
+        fn from_pinnum(pins: &[(&str, TkSitePinDir, Option<&str>, Option<&str>)], pin: &str) -> u8 {
+            for (n, _, w, _) in pins {
                 if *n == pin {
                     return get_lastnum(w.unwrap());
                 }
@@ -383,9 +396,9 @@ impl PartBuilder {
         coord: Coord,
         name: String,
         kind: String,
-        sites: &[(&str, &str, Vec<(&str, TkSitePinDir, Option<&str>)>)],
+        sites: &[(&str, &str, Vec<(&str, TkSitePinDir, Option<&str>, Option<&str>)>)],
         wires: &[(&str, Option<&str>)],
-        pips: &[(&str, &str, bool, bool, bool, TkPipInversion, Option<&str>)],
+        pips: &[(&str, &str, bool, bool, bool, TkPipInversion, TkPipDirection, Option<&str>)],
     ) {
         assert!(coord.x < self.part.width);
         assert!(coord.y < self.part.height);
@@ -393,13 +406,14 @@ impl PartBuilder {
         let wires : Vec<_> = wires.iter().map(|(n, s)| (
             self.wire_to_idx(n), self.speed_to_idx(*s)
         )).collect();
-        let pips : Vec<_> = pips.iter().map(|(wf, wt, ib, ie, it, inv, s)| (
+        let pips : Vec<_> = pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
             self.wire_to_idx(wf),
             self.wire_to_idx(wt),
             *ib,
             *ie,
             *it,
             *inv,
+            *dir,
             self.speed_to_idx(*s),
         )).collect();
         let slots = self.slotify(sites);
@@ -407,10 +421,11 @@ impl PartBuilder {
             *slots.get(n).unwrap(),
             *n,
             *k,
-            p.iter().map(|(n, d, w)| (
+            p.iter().map(|(n, d, w, s)| (
                 *n,
                 *d,
-                match w {Some(w) => self.wire_to_idx(w), None => WireIdx::NONE}
+                match w {Some(w) => self.wire_to_idx(w), None => WireIdx::NONE},
+                self.speed_to_idx(*s),
             )).collect::<Vec<_>>()
         )).collect();
 
@@ -445,13 +460,16 @@ impl PartBuilder {
                     match tk.sites_by_slot.get(&slot) {
                         Some(idx) => {
                             let site = &mut tk.sites[*idx];
-                            for (n, _, w) in pins {
+                            for (n, _, w, s) in pins {
                                 let pin = site.pins.get_mut(n).unwrap();
                                 if w == WireIdx::NONE { continue; }
                                 if pin.wire != WireIdx::NONE && pin.wire != w {
                                     panic!("pin wire mismatch");
                                 }
                                 pin.wire = w;
+                                if pin.speed != s {
+                                    panic!("pin speed mismatch");
+                                }
                             }
                             set_site(*idx, name.to_string());
                         },
@@ -460,7 +478,7 @@ impl PartBuilder {
                             tk.sites.push(TkSite {
                                 slot: slot,
                                 kind: kind.to_string(),
-                                pins: pins.iter().map(|(n, d, w)| (n.to_string(), TkSitePin {dir: *d, wire: *w})).collect(),
+                                pins: pins.iter().map(|(n, d, w, s)| (n.to_string(), TkSitePin {dir: *d, wire: *w, speed: *s})).collect(),
                             });
                             tk.sites_by_slot.insert(slot, i);
                             set_site(i, name.to_string());
@@ -495,7 +513,7 @@ impl PartBuilder {
                 }
 
                 // Process pips.
-                for (wf, wt, ib, ie, it, inv, s) in pips {
+                for (wf, wt, ib, ie, it, inv, dir, s) in pips {
                     let k = (wf, wt);
                     match match tk.pips.get(&k) {
                         None => {
@@ -504,12 +522,13 @@ impl PartBuilder {
                                 is_excluded: ie,
                                 is_test: it,
                                 inversion: inv,
+                                direction: dir,
                                 mode: TkPipMode::Const(s),
                             });
                             None
                         },
-                        Some(TkPip{is_buf, is_excluded, is_test, inversion, mode}) => {
-                            if *is_buf != ib || *is_excluded != ie || *is_test != it || *inversion != inv {
+                        Some(TkPip{is_buf, is_excluded, is_test, inversion, direction, mode}) => {
+                            if *is_buf != ib || *is_excluded != ie || *is_test != it || *inversion != inv || *direction != dir {
                                 panic!("pip flags mismatch {} {} {} {} {} {} {} {:?} {} {}, {}, {:?}", name, kind, self.part.wires[wf.idx as usize], self.part.wires[wt.idx as usize], is_buf, is_excluded, is_test, inversion, ib, ie, it, inv);
                             }
                             match mode {
@@ -547,19 +566,20 @@ impl PartBuilder {
                     sites: sites_raw.iter().map(|(slot, _, kind, pins)| TkSite {
                         slot: *slot,
                         kind: kind.to_string(),
-                        pins: pins.iter().map(|(n, d, w)| (n.to_string(), TkSitePin {dir: *d, wire: *w})).collect(),
+                        pins: pins.iter().map(|(n, d, w, s)| (n.to_string(), TkSitePin {dir: *d, wire: *w, speed: *s})).collect(),
                     }).collect(),
                     sites_by_slot: sites_raw.iter().enumerate().map(|(idx, (slot, _, _, _))| (*slot, idx)).collect(),
                     wires: wires.iter().map(|(n, s)| (
                         *n, TkWire::Internal(*s)
                     )).collect(),
                     conn_wires: Vec::new(),
-                    pips: pips.iter().map(|(wf, wt, ib, ie, it, inv, s)| (
+                    pips: pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
                         (*wf, *wt), TkPip {
                             is_buf: *ib,
                             is_excluded: *ie,
                             is_test: *it,
                             inversion: *inv,
+                            direction: *dir,
                             mode: TkPipMode::Const(*s),
                         }
                     )).collect(),
@@ -644,8 +664,11 @@ impl PartBuilder {
         }
     }
 
-    pub fn add_package(&mut self, name: String, speedgrades: Vec<String>, pins: Vec<PkgPin>) {
-        self.part.packages.push(PartPkg {name, speedgrades, pins});
+    pub fn add_package(&mut self, name: String, pins: Vec<PkgPin>) {
+        self.part.packages.insert(name, pins);
+    }
+    pub fn add_combo(&mut self, name: String, device: String, package: String, speed: String, temp: String) {
+        self.part.combos.push(PartCombo {name, device, package, speed, temp});
     }
 
     pub fn wire_to_idx(&mut self, s: &str) -> WireIdx {
