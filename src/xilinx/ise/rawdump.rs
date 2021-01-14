@@ -205,14 +205,14 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
                     None,
                 )).collect::<Vec<_>>(),
             )).collect::<Vec<_>>(),
-            &t.wires.iter().map(|w| (
+            &t.wires.iter().filter(|w| w.name != "SWBOX_STUB").map(|w| (
                 &w.name[..],
                 match &w.speed {
                     None => None,
                     Some(s) => Some(&s[..]),
                 }
             )).collect::<Vec<_>>(),
-            &t.pips.iter().filter(|p| p.route_through.is_none()).map(|p| (
+            &t.pips.iter().filter(|p| p.route_through.is_none() && p.wire_from != "SWBOX_STUB" && p.wire_to != "SWBOX_STUB").map(|p| (
                 &p.wire_from[..],
                 &p.wire_to[..],
                 match p.kind {

@@ -328,7 +328,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                                 v.retain(|n| node_sp.get(*n).ends_with(&suffix));
                             }
                             if v.len() == 1 {
-                                Some(v[0].to_string())
+                                Some(node_sp.get(v[0]).to_string())
                             } else {
                                 panic!("SITE PIN WIRE AMBIGUOUS {:?} {:?}", sl, v.iter().map(|n| node_sp.get(*n)).collect::<Vec<_>>());
                             }

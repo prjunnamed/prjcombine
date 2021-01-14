@@ -57,7 +57,7 @@ pub enum Source {
     Vivado,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkSiteSlot {
     Single(u16),
     Indexed(u16, u8),
@@ -735,6 +735,10 @@ impl Part {
         } else {
             &self.speeds[s.idx as usize]
         }
+    }
+
+    pub fn print_slot_kind(&self, sk: u16) -> &str {
+        &self.slot_kinds[sk as usize]
     }
 
     pub fn post_deserialize(&mut self) {
