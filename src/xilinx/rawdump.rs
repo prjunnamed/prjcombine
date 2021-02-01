@@ -105,12 +105,6 @@ pub enum TkWire {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
-pub enum TkPipMode {
-    Const(SpeedIdx),
-    Variable(usize),
-}
-
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkPipInversion {
     Never,
     Always,
@@ -131,7 +125,7 @@ pub struct TkPip {
     pub is_test: bool,
     pub inversion: TkPipInversion,
     pub direction: TkPipDirection,
-    pub mode: TkPipMode,
+    pub speed: SpeedIdx,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -141,7 +135,6 @@ pub struct TileKind {
     pub wires: HashMap<WireIdx, TkWire>,
     pub conn_wires: Vec<WireIdx>,
     pub pips: HashMap<(WireIdx, WireIdx), TkPip>,
-    pub var_pips: Vec<(WireIdx, WireIdx)>,
     pub tiles: Vec<Coord>,
 }
 
@@ -152,7 +145,6 @@ pub struct Tile {
     pub sites: Vec<Option<String>>,
     #[serde(skip)]
     pub conn_wires: Vec<NodeOrClass>,
-    pub var_pips: Vec<SpeedIdx>,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
@@ -440,22 +432,45 @@ impl PartBuilder {
         assert!(coord.x < self.part.width);
         assert!(coord.y < self.part.height);
 
-        let w2nc : HashMap<WireIdx, NodeClassIdx> = HashMap::new();
-        // XXX actually fill
+        let mut w2nc : HashMap<WireIdx, NodeClassIdx> = HashMap::new();
+        let pips : Vec<_> = pips.iter().copied().map(|(wf, wt, ib, ie, it, inv, dir, s)| {
+            let wf = self.index.wire_to_idx(wf);
+            let wt = self.index.wire_to_idx(wt);
+            let s = match s {
+                Some(s) => if s == "pip_FAKEPIP" {
+                    SpeedIdx::NONE
+                } else if s.starts_with("pip_") {
+                    let ss : Vec<_> = s.split("__").collect();
+                    match ss[..] {
+                        [_pk, _pid, sid, did] => {
+                            let (sid, did) = if dir == TkPipDirection::BiBwd {
+                                (self.index.node_class_to_idx(did), self.index.node_class_to_idx(sid))
+                            } else {
+                                (self.index.node_class_to_idx(sid), self.index.node_class_to_idx(did))
+                            };
+                            let csid = *w2nc.entry(wf).or_insert(sid);
+                            let cdid = *w2nc.entry(wt).or_insert(did);
+                            if csid != sid {
+                                panic!("src node class mismatch on {} {} {} {}", s, self.index.wires[wf.idx as usize], self.index.node_classes[sid.idx as usize], self.index.node_classes[csid.idx as usize]);
+                            }
+                            if cdid != did {
+                                panic!("dst node class mismatch on {} {} {} {}", s, self.index.wires[wt.idx as usize], self.index.node_classes[did.idx as usize], self.index.node_classes[cdid.idx as usize]);
+                            }
+                        }
+                        _ => panic!("weird pip string {:?}", s),
+                    }
+                    SpeedIdx::NONE
+                } else {
+                    self.index.speed_to_idx(Some(s))
+                },
+                None => SpeedIdx::NONE,
+            };
+            (wf, wt, ib, ie, it, inv, dir, s)
+        }).collect();
         let wires : Vec<_> = wires.iter().map(|(n, s)| {
             let w = self.index.wire_to_idx(n);
             (w, self.index.speed_to_idx(*s), w2nc.get(&w).copied().unwrap_or(NodeClassIdx::UNKNOWN))
         }).collect();
-        let pips : Vec<_> = pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
-            self.index.wire_to_idx(wf),
-            self.index.wire_to_idx(wt),
-            *ib,
-            *ie,
-            *it,
-            *inv,
-            *dir,
-            self.index.speed_to_idx(*s),
-        )).collect();
         let slots = self.slotify(sites);
         let sites_raw : Vec<_> = sites.iter().map(|(n, k, p)| (
             *slots.get(n).unwrap(),
@@ -471,7 +486,6 @@ impl PartBuilder {
 
         let mut sites: Vec<Option<String>> = Vec::new();
         let mut conn_wires: Vec<NodeOrClass> = Vec::new();
-        let mut var_pips: Vec<SpeedIdx> = Vec::new();
 
         let mut set_site = |i, s| {
             if sites.len() <= i {
@@ -485,13 +499,6 @@ impl PartBuilder {
                 conn_wires.resize(i + 1, NodeOrClass::None);
             }
             conn_wires[i] = ni;
-        };
-
-        let mut set_var_pip = |i, si| {
-            if var_pips.len() <= i {
-                var_pips.resize(i + 1, SpeedIdx::NONE);
-            }
-            var_pips[i] = si;
         };
 
         match self.part.tile_kinds.get_mut(&kind) {
@@ -569,46 +576,17 @@ impl PartBuilder {
                 // Process pips.
                 for (wf, wt, ib, ie, it, inv, dir, s) in pips {
                     let k = (wf, wt);
-                    match match tk.pips.get(&k) {
-                        None => {
-                            tk.pips.insert(k, TkPip {
-                                is_buf: ib,
-                                is_excluded: ie,
-                                is_test: it,
-                                inversion: inv,
-                                direction: dir,
-                                mode: TkPipMode::Const(s),
-                            });
-                            None
-                        },
-                        Some(TkPip{is_buf, is_excluded, is_test, inversion, direction, mode}) => {
-                            if *is_buf != ib || *is_excluded != ie || *is_test != it || *inversion != inv || *direction != dir {
-                                panic!("pip flags mismatch {} {} {} {} {} {} {} {:?} {} {}, {}, {:?}", name, kind, self.index.wires[wf.idx as usize], self.index.wires[wt.idx as usize], is_buf, is_excluded, is_test, inversion, ib, ie, it, inv);
-                            }
-                            match mode {
-                                TkPipMode::Const(cs) => {
-                                    if *cs != s {
-                                        let i = tk.var_pips.len();
-                                        tk.var_pips.push((wf, wt));
-                                        set_var_pip(i, s);
-                                        for crd in &tk.tiles {
-                                            let tile = self.part.tiles.get_mut(&crd).unwrap();
-                                            tile.set_var_pip(i, if tile.has_wire(tk, wf) && tile.has_wire(tk, wt) { *cs } else { SpeedIdx::NONE });
-                                        }
-                                        Some(i)
-                                    } else {
-                                        None
-                                    }
-                                },
-                                TkPipMode::Variable(i) => {
-                                    set_var_pip(*i, s);
-                                    None
-                                }
-                            }
-                        },
-                    } {
-                        None => (),
-                        Some(i) => tk.pips.get_mut(&k).unwrap().mode = TkPipMode::Variable(i),
+                    let pip = TkPip {
+                        is_buf: ib,
+                        is_excluded: ie,
+                        is_test: it,
+                        inversion: inv,
+                        direction: dir,
+                        speed: s,
+                    };
+                    let orig = *tk.pips.entry(k).or_insert(pip);
+                    if orig != pip {
+                        panic!("pip mismatch {} {} {} {} {:?} {:?}", name, kind, self.index.wires[wf.idx as usize], self.index.wires[wt.idx as usize], pip, orig);
                     }
                 }
 
@@ -627,17 +605,16 @@ impl PartBuilder {
                         *n, TkWire::Internal(*s, *nc)
                     )).collect(),
                     conn_wires: Vec::new(),
-                    pips: pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
-                        (*wf, *wt), TkPip {
-                            is_buf: *ib,
-                            is_excluded: *ie,
-                            is_test: *it,
-                            inversion: *inv,
-                            direction: *dir,
-                            mode: TkPipMode::Const(*s),
+                    pips: pips.iter().copied().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
+                        (wf, wt), TkPip {
+                            is_buf: ib,
+                            is_excluded: ie,
+                            is_test: it,
+                            inversion: inv,
+                            direction: dir,
+                            speed: s,
                         }
                     )).collect(),
-                    var_pips: Vec::new(),
                     tiles: vec![coord],
                 });
                 for (_, name, _, _) in sites_raw {
@@ -650,7 +627,6 @@ impl PartBuilder {
             kind,
             sites,
             conn_wires,
-            var_pips,
         });
         self.tiles_by_name.insert(name, coord);
     }
@@ -935,12 +911,6 @@ impl Tile {
             None => NodeOrClass::None,
             Some(ni) => *ni,
         }
-    }
-    pub fn set_var_pip(&mut self, idx: usize, val: SpeedIdx) {
-        if self.var_pips.len() <= idx {
-            self.var_pips.resize(idx + 1, SpeedIdx::NONE);
-        }
-        self.var_pips[idx] = val;
     }
     pub fn has_wire(&self, tk: &TileKind, w: WireIdx) -> bool {
         match tk.wires.get(&w) {
