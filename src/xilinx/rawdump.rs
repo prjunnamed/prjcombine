@@ -51,16 +51,16 @@ impl SpeedIdx {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
-pub struct NodeIdx {
-    idx: u32,
+pub enum NodeOrClass {
+    Node(u32),
+    Pending(NodeClassIdx),
+    None,
 }
 
-impl NodeIdx {
-    pub const NONE: NodeIdx = NodeIdx { idx: u32::MAX };
-    pub const PENDING: NodeIdx = NodeIdx { idx: u32::MAX - 1 };
-    fn from_raw(i: usize) -> NodeIdx {
-        assert!(i < (u32::MAX - 1) as usize);
-        NodeIdx {idx: i as u32}
+impl NodeOrClass {
+    pub fn make_node(idx: usize) -> NodeOrClass {
+        assert!(idx <= u32::MAX as usize);
+        NodeOrClass::Node(idx as u32)
     }
 }
 
@@ -151,7 +151,7 @@ pub struct Tile {
     pub kind: String,
     pub sites: Vec<Option<String>>,
     #[serde(skip)]
-    pub conn_wires: Vec<NodeIdx>,
+    pub conn_wires: Vec<NodeOrClass>,
     pub var_pips: Vec<SpeedIdx>,
 }
 
@@ -232,7 +232,6 @@ pub struct PartBuilder {
     pub part: Part,
     index: PartBuilderIndex,
     tiles_by_name: HashMap<String, Coord>,
-    node_cls_queue: HashMap<(Coord, WireIdx), NodeClassIdx>,
     fixup_nodes_queue : Vec<(String, WireIdx, SpeedIdx, NodeClassIdx)>,
 }
 
@@ -313,7 +312,6 @@ impl PartBuilder {
                 wires_by_name: HashMap::new(),
                 slot_kinds_by_name: HashMap::new(),
             },
-            node_cls_queue: HashMap::new(),
             fixup_nodes_queue: Vec::new(),
         }
     }
@@ -472,7 +470,7 @@ impl PartBuilder {
         )).collect();
 
         let mut sites: Vec<Option<String>> = Vec::new();
-        let mut conn_wires: Vec<NodeIdx> = Vec::new();
+        let mut conn_wires: Vec<NodeOrClass> = Vec::new();
         let mut var_pips: Vec<SpeedIdx> = Vec::new();
 
         let mut set_site = |i, s| {
@@ -484,7 +482,7 @@ impl PartBuilder {
 
         let mut set_conn_wire = |i, ni| {
             if conn_wires.len() <= i {
-                conn_wires.resize(i + 1, NodeIdx::NONE);
+                conn_wires.resize(i + 1, NodeOrClass::None);
             }
             conn_wires[i] = ni;
         };
@@ -537,8 +535,7 @@ impl PartBuilder {
                             let i = tk.conn_wires.len();
                             tk.wires.insert(n, TkWire::Connected(i));
                             tk.conn_wires.push(n);
-                            set_conn_wire(i, NodeIdx::PENDING);
-                            self.node_cls_queue.insert((coord, n), nc);
+                            set_conn_wire(i, NodeOrClass::Pending(nc));
                         },
                         Some(TkWire::Internal(cs, cnc)) => {
                             if cs != s || cnc != nc {
@@ -546,16 +543,13 @@ impl PartBuilder {
                                 tk.wires.insert(n, TkWire::Connected(i));
                                 tk.conn_wires.push(n);
                                 for crd in &tk.tiles {
-                                    self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
-                                    self.node_cls_queue.insert((*crd, n), cnc);
+                                    self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeOrClass::Pending(cnc));
                                 }
-                                set_conn_wire(i, NodeIdx::PENDING);
-                                self.node_cls_queue.insert((coord, n), nc);
+                                set_conn_wire(i, NodeOrClass::Pending(nc));
                             }
                         },
                         Some(TkWire::Connected(i)) => {
-                            set_conn_wire(i, NodeIdx::PENDING);
-                            self.node_cls_queue.insert((coord, n), nc);
+                            set_conn_wire(i, NodeOrClass::Pending(nc));
                         },
                     }
                 }
@@ -566,8 +560,7 @@ impl PartBuilder {
                             *v = TkWire::Connected(i);
                             tk.conn_wires.push(*k);
                             for crd in &tk.tiles {
-                                self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
-                                self.node_cls_queue.insert((*crd, *k), cnc);
+                                self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeOrClass::Pending(cnc));
                             }
                         }
                     }
@@ -681,18 +674,30 @@ impl PartBuilder {
         }
         let bx = wires.iter().map(|(t, _, _)| t.x).min().unwrap();
         let by = wires.iter().map(|(t, _, _)| t.y).min().unwrap();
-        let mut twires: Vec<_> = wires.iter().map(|(t, w, s)| TkNodeTemplateWire {
+        let mut twires: Vec<_> = wires.iter().copied().map(|(t, w, s)| TkNodeTemplateWire {
             delta: Coord{x: t.x - bx, y: t.y - by},
-            wire: *w,
-            speed: *s,
-            cls: *self.node_cls_queue.get(&(*t, *w)).unwrap(),
+            wire: w,
+            speed: s,
+            cls: {
+                let tile = self.part.tiles.get(&t).unwrap();
+                let tk = self.part.tile_kinds.get(&tile.kind).unwrap();
+                match *tk.wires.get(&w).unwrap() {
+                    TkWire::Internal(_, nc) => nc,
+                    TkWire::Connected(idx) => {
+                        match tile.get_conn_wire(idx) {
+                            NodeOrClass::Pending(nc) => nc,
+                            _ => panic!("wire to be connected is not pending"),
+                        }
+                    }
+                }
+            },
         }).collect();
         twires.sort();
         let template = TkNodeTemplate {
             wires: twires,
         };
         let tidx = self.index.template_to_idx(template);
-        let node = NodeIdx::from_raw(self.part.nodes.len());
+        let node = NodeOrClass::make_node(self.part.nodes.len());
         self.part.nodes.push(TkNode {
             base: Coord{x: bx, y: by},
             template: tidx,
@@ -709,7 +714,7 @@ impl PartBuilder {
                     tk.conn_wires.push(wire);
                     for crd in &tk.tiles {
                         let t = self.part.tiles.get_mut(&crd).unwrap();
-                        t.set_conn_wire(i, NodeIdx::PENDING);
+                        t.set_conn_wire(i, NodeOrClass::Pending(nc));
                     }
                     self.fixup_nodes_queue.push((kind, wire, s, nc));
                     i
@@ -737,7 +742,7 @@ impl PartBuilder {
             let mut tidx : Option<u32> = None;
             for crd in &tk.tiles {
                 let t = self.part.tiles.get_mut(&crd).unwrap();
-                if t.get_conn_wire(idx) == NodeIdx::PENDING {
+                if let NodeOrClass::Pending(_) = t.get_conn_wire(idx) {
                     let ctidx = match tidx {
                         Some(i) => i,
                         None => {
@@ -756,7 +761,7 @@ impl PartBuilder {
                             i
                         }
                     };
-                    let node = NodeIdx::from_raw(self.part.nodes.len());
+                    let node = NodeOrClass::make_node(self.part.nodes.len());
                     self.part.nodes.push(TkNode {
                         base: *crd,
                         template: ctidx,
@@ -890,7 +895,7 @@ impl Part {
                     TkWire::Internal(_, _) => panic!("node on internal wire"),
                     TkWire::Connected(idx) => *idx,
                 };
-                tile.set_conn_wire(idx, NodeIdx::from_raw(i));
+                tile.set_conn_wire(idx, NodeOrClass::make_node(i));
             }
         }
     }
@@ -913,18 +918,21 @@ impl Part {
 }
 
 impl Tile {
-    pub fn set_conn_wire(&mut self, idx: usize, val: NodeIdx) {
+    pub fn set_conn_wire(&mut self, idx: usize, val: NodeOrClass) {
         if self.conn_wires.len() <= idx {
-            self.conn_wires.resize(idx + 1, NodeIdx::NONE);
+            self.conn_wires.resize(idx + 1, NodeOrClass::None);
         }
-        if self.conn_wires[idx] != NodeIdx::PENDING && self.conn_wires[idx] != NodeIdx::NONE && val != NodeIdx::PENDING {
-            panic!("conn wire double set {}", self.name);
+        match (self.conn_wires[idx], val) {
+            (NodeOrClass::Node(_), _) => panic!("conn wire double set {}", self.name),
+            (_, NodeOrClass::None) => panic!("removing wire {}", self.name),
+            (NodeOrClass::Pending(_), NodeOrClass::Pending(_)) => panic!("conn wire double pending {}", self.name),
+            _ => (),
         }
         self.conn_wires[idx] = val;
     }
-    pub fn get_conn_wire(&self, idx: usize) -> NodeIdx {
+    pub fn get_conn_wire(&self, idx: usize) -> NodeOrClass {
         match self.conn_wires.get(idx) {
-            None => NodeIdx::NONE,
+            None => NodeOrClass::None,
             Some(ni) => *ni,
         }
     }
@@ -941,7 +949,7 @@ impl Tile {
             Some(TkWire::Connected(idx)) => {
                 match self.conn_wires.get(*idx) {
                     None => false,
-                    Some(ni) => *ni != NodeIdx::NONE,
+                    Some(ni) => *ni != NodeOrClass::None,
                 }
             }
         }
