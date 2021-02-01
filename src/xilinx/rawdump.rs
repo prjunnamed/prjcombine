@@ -24,6 +24,19 @@ impl WireIdx {
 }
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
+pub struct NodeClassIdx {
+    idx: u32,
+}
+
+impl NodeClassIdx {
+    pub const UNKNOWN: NodeClassIdx = NodeClassIdx { idx: u32::MAX };
+    fn from_raw(i: usize) -> NodeClassIdx {
+        assert!(i < u32::MAX as usize);
+        NodeClassIdx {idx: i as u32}
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct SpeedIdx {
     idx: u32,
 }
@@ -87,7 +100,7 @@ pub struct TkSite {
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TkWire {
-    Internal(SpeedIdx),
+    Internal(SpeedIdx, NodeClassIdx),
     Connected(usize),
 }
 
@@ -153,6 +166,7 @@ pub struct TkNodeTemplateWire {
     pub delta: Coord,
     pub wire: WireIdx,
     pub speed: SpeedIdx,
+    pub cls: NodeClassIdx,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
@@ -191,6 +205,7 @@ pub struct Part {
     pub tile_kinds: HashMap<String, TileKind>,
     pub tiles: HashMap<Coord, Tile>,
     pub speeds: Vec<String>,
+    pub node_classes: Vec<String>,
     pub nodes: Vec<TkNode>,
     pub templates: Vec<TkNodeTemplate>,
     pub wires: Vec<String>,
@@ -201,11 +216,14 @@ pub struct Part {
 
 pub struct PartBuilder {
     pub part: Part,
-    pub tiles_by_name: HashMap<String, Coord>,
-    pub speeds_by_name: HashMap<String, SpeedIdx>,
-    pub templates_idx: HashMap<TkNodeTemplate, u32>,
-    pub wires_by_name: HashMap<String, WireIdx>,
-    pub slot_kinds_by_name: HashMap<String, u16>,
+    tiles_by_name: HashMap<String, Coord>,
+    speeds_by_name: HashMap<String, SpeedIdx>,
+    node_classes_by_name: HashMap<String, NodeClassIdx>,
+    templates_idx: HashMap<TkNodeTemplate, u32>,
+    wires_by_name: HashMap<String, WireIdx>,
+    slot_kinds_by_name: HashMap<String, u16>,
+    node_cls_queue: HashMap<(Coord, WireIdx), NodeClassIdx>,
+    fixup_nodes_queue : Vec<(String, WireIdx, SpeedIdx, NodeClassIdx)>,
 }
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
@@ -264,6 +282,7 @@ impl PartBuilder {
                 tile_kinds: HashMap::new(),
                 tiles: HashMap::new(),
                 speeds: Vec::new(),
+                node_classes: Vec::new(),
                 nodes: Vec::new(),
                 templates: Vec::new(),
                 wires: Vec::new(),
@@ -273,9 +292,12 @@ impl PartBuilder {
             },
             tiles_by_name: HashMap::new(),
             speeds_by_name: HashMap::new(),
+            node_classes_by_name: HashMap::new(),
             templates_idx: HashMap::new(),
             wires_by_name: HashMap::new(),
             slot_kinds_by_name: HashMap::new(),
+            node_cls_queue: HashMap::new(),
+            fixup_nodes_queue: Vec::new(),
         }
     }
 
@@ -403,9 +425,12 @@ impl PartBuilder {
         assert!(coord.x < self.part.width);
         assert!(coord.y < self.part.height);
 
-        let wires : Vec<_> = wires.iter().map(|(n, s)| (
-            self.wire_to_idx(n), self.speed_to_idx(*s)
-        )).collect();
+        let w2nc : HashMap<WireIdx, NodeClassIdx> = HashMap::new();
+        // XXX actually fill
+        let wires : Vec<_> = wires.iter().map(|(n, s)| {
+            let w = self.wire_to_idx(n);
+            (w, self.speed_to_idx(*s), w2nc.get(&w).copied().unwrap_or(NodeClassIdx::UNKNOWN))
+        }).collect();
         let pips : Vec<_> = pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
             self.wire_to_idx(wf),
             self.wire_to_idx(wt),
@@ -487,28 +512,47 @@ impl PartBuilder {
                 }
 
                 // Process wires.
-                for (n, s) in wires {
-                    match tk.wires.get(&n) {
+                let mut wire_set : HashSet<WireIdx> = HashSet::new();
+                for (n, s, nc) in wires {
+                    wire_set.insert(n);
+                    match tk.wires.get(&n).copied() {
                         None => {
                             let i = tk.conn_wires.len();
                             tk.wires.insert(n, TkWire::Connected(i));
                             tk.conn_wires.push(n);
                             set_conn_wire(i, NodeIdx::PENDING);
+                            self.node_cls_queue.insert((coord, n), nc);
                         },
-                        Some(TkWire::Internal(cs)) => {
-                            if *cs != s {
+                        Some(TkWire::Internal(cs, cnc)) => {
+                            if cs != s || cnc != nc {
                                 let i = tk.conn_wires.len();
                                 tk.wires.insert(n, TkWire::Connected(i));
                                 tk.conn_wires.push(n);
-                                set_conn_wire(i, NodeIdx::PENDING);
                                 for crd in &tk.tiles {
-                                    self.part.tiles.get_mut(&crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
+                                    self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
+                                    self.node_cls_queue.insert((*crd, n), cnc);
                                 }
+                                set_conn_wire(i, NodeIdx::PENDING);
+                                self.node_cls_queue.insert((coord, n), nc);
                             }
                         },
                         Some(TkWire::Connected(i)) => {
-                            set_conn_wire(*i, NodeIdx::PENDING);
+                            set_conn_wire(i, NodeIdx::PENDING);
+                            self.node_cls_queue.insert((coord, n), nc);
                         },
+                    }
+                }
+                for (k, v) in tk.wires.iter_mut() {
+                    if !wire_set.contains(k) {
+                        if let TkWire::Internal(_, cnc) = *v {
+                            let i = tk.conn_wires.len();
+                            *v = TkWire::Connected(i);
+                            tk.conn_wires.push(*k);
+                            for crd in &tk.tiles {
+                                self.part.tiles.get_mut(crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
+                                self.node_cls_queue.insert((*crd, *k), cnc);
+                            }
+                        }
                     }
                 }
 
@@ -569,8 +613,8 @@ impl PartBuilder {
                         pins: pins.iter().map(|(n, d, w, s)| (n.to_string(), TkSitePin {dir: *d, wire: *w, speed: *s})).collect(),
                     }).collect(),
                     sites_by_slot: sites_raw.iter().enumerate().map(|(idx, (slot, _, _, _))| (*slot, idx)).collect(),
-                    wires: wires.iter().map(|(n, s)| (
-                        *n, TkWire::Internal(*s)
+                    wires: wires.iter().map(|(n, s, nc)| (
+                        *n, TkWire::Internal(*s, *nc)
                     )).collect(),
                     conn_wires: Vec::new(),
                     pips: pips.iter().map(|(wf, wt, ib, ie, it, inv, dir, s)| (
@@ -611,8 +655,11 @@ impl PartBuilder {
             let (coord, wire, speed) = wires[0];
             let tile = self.part.tiles.get(&coord).unwrap();
             let tk = self.part.tile_kinds.get(&tile.kind).unwrap();
-            if *tk.wires.get(&wire).unwrap() == TkWire::Internal(speed) {
-                return;
+            let w = tk.wires.get(&wire).unwrap();
+            if let TkWire::Internal(s, _) = w {
+                if *s == speed {
+                    return;
+                }
             }
         }
         let bx = wires.iter().map(|(t, _, _)| t.x).min().unwrap();
@@ -621,6 +668,7 @@ impl PartBuilder {
             delta: Coord{x: t.x - bx, y: t.y - by},
             wire: *w,
             speed: *s,
+            cls: *self.node_cls_queue.get(&(*t, *w)).unwrap(),
         }).collect();
         twires.sort();
         let template = TkNodeTemplate {
@@ -646,16 +694,19 @@ impl PartBuilder {
         });
         for (coord, wire, _) in wires {
             let tile = self.part.tiles.get(&coord).unwrap();
-            let tk = self.part.tile_kinds.get_mut(&tile.kind).unwrap();
+            let kind = tile.kind.clone();
+            let tk = self.part.tile_kinds.get_mut(&kind).unwrap();
             let w = tk.wires.get_mut(&wire).unwrap();
             let idx = match *w {
-                TkWire::Internal(_) => {
+                TkWire::Internal(s, nc) => {
                     let i = tk.conn_wires.len();
                     *w = TkWire::Connected(i);
                     tk.conn_wires.push(wire);
                     for crd in &tk.tiles {
-                        self.part.tiles.get_mut(&crd).unwrap().set_conn_wire(i, NodeIdx::PENDING);
+                        let t = self.part.tiles.get_mut(&crd).unwrap();
+                        t.set_conn_wire(i, NodeIdx::PENDING);
                     }
+                    self.fixup_nodes_queue.push((kind, wire, s, nc));
                     i
                 },
                 TkWire::Connected(i) => i,
@@ -712,8 +763,68 @@ impl PartBuilder {
             Some(i) => *i
         }
     }
+    pub fn node_class_to_idx(&mut self, s: &str) -> NodeClassIdx {
+        match self.node_classes_by_name.get(s) {
+            None => {
+                let i = NodeClassIdx::from_raw(self.part.node_classes.len());
+                self.part.node_classes.push(s.to_string());
+                self.node_classes_by_name.insert(s.to_string(), i);
+                i
+            },
+            Some(i) => *i
+        }
+    }
 
-    pub fn finish(self) -> Part {
+    pub fn finish(mut self) -> Part {
+        for (kind, w, s, nc) in self.fixup_nodes_queue {
+            let tk = self.part.tile_kinds.get(&kind).unwrap();
+            let idx = match *tk.wires.get(&w).unwrap() {
+                TkWire::Connected(i) => i,
+                _ => unreachable!(),
+            };
+            let mut tidx : Option<u32> = None;
+            for crd in &tk.tiles {
+                let t = self.part.tiles.get_mut(&crd).unwrap();
+                if t.get_conn_wire(idx) == NodeIdx::PENDING {
+                    let ctidx = match tidx {
+                        Some(i) => i,
+                        None => {
+                            let template = TkNodeTemplate {
+                                wires: vec![
+                                    TkNodeTemplateWire {
+                                        delta: Coord{x:0, y:0},
+                                        wire: w,
+                                        speed: s,
+                                        cls: nc,
+                                    },
+                                ],
+                            };
+                            let i = match self.templates_idx.get(&template) {
+                                None => {
+                                    let i = self.part.templates.len();
+                                    if i > u32::MAX as usize {
+                                        panic!("out of templates");
+                                    }
+                                    let i = i as u32;
+                                    self.part.templates.push(template.clone());
+                                    self.templates_idx.insert(template, i);
+                                    i
+                                },
+                                Some(i) => *i
+                            };
+                            tidx = Some(i);
+                            i
+                        }
+                    };
+                    let node = NodeIdx::from_raw(self.part.nodes.len());
+                    self.part.nodes.push(TkNode {
+                        base: *crd,
+                        template: ctidx,
+                    });
+                    t.set_conn_wire(idx, node);
+                }
+            }
+        }
         self.part
     }
 }
@@ -741,6 +852,14 @@ impl Part {
         &self.slot_kinds[sk as usize]
     }
 
+    pub fn print_node_class(&self, nc: NodeClassIdx) -> &str {
+        if nc == NodeClassIdx::UNKNOWN {
+            "[UNKNOWN]"
+        } else {
+            &self.node_classes[nc.idx as usize]
+        }
+    }
+
     pub fn post_deserialize(&mut self) {
         for (i, node) in self.nodes.iter().enumerate() {
             let template = &self.templates[node.template as usize];
@@ -750,7 +869,7 @@ impl Part {
                 let tk = self.tile_kinds.get(&tile.kind).unwrap();
                 let wire = tk.wires.get(&w.wire).unwrap();
                 let idx = match wire {
-                    TkWire::Internal(_) => panic!("node on internal wire"),
+                    TkWire::Internal(_, _) => panic!("node on internal wire"),
                     TkWire::Connected(idx) => *idx,
                 };
                 tile.set_conn_wire(idx, NodeIdx::from_raw(i));
@@ -785,6 +904,12 @@ impl Tile {
         }
         self.conn_wires[idx] = val;
     }
+    pub fn get_conn_wire(&self, idx: usize) -> NodeIdx {
+        match self.conn_wires.get(idx) {
+            None => NodeIdx::NONE,
+            Some(ni) => *ni,
+        }
+    }
     pub fn set_var_pip(&mut self, idx: usize, val: SpeedIdx) {
         if self.var_pips.len() <= idx {
             self.var_pips.resize(idx + 1, SpeedIdx::NONE);
@@ -794,7 +919,7 @@ impl Tile {
     pub fn has_wire(&self, tk: &TileKind, w: WireIdx) -> bool {
         match tk.wires.get(&w) {
             None => false,
-            Some(TkWire::Internal(_)) => true,
+            Some(TkWire::Internal(_, _)) => true,
             Some(TkWire::Connected(idx)) => {
                 match self.conn_wires.get(*idx) {
                     None => false,
