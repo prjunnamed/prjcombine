@@ -632,10 +632,10 @@ impl PartBuilder {
     }
 
     pub fn add_node(&mut self, wires: &[(&str, &str, Option<&str>)]) {
-        let wires: Vec<_> = wires.iter().map(|(t, w, s)| (
-            *self.tiles_by_name.get(*t).unwrap(),
+        let wires: Vec<_> = wires.iter().copied().map(|(t, w, s)| (
+            *self.tiles_by_name.get(t).unwrap(),
             self.index.wire_to_idx(w),
-            self.index.speed_to_idx(*s),
+            self.index.speed_to_idx(s),
         )).collect();
         if wires.len() == 1 {
             let (coord, wire, speed) = wires[0];
@@ -662,7 +662,7 @@ impl PartBuilder {
                     TkWire::Connected(idx) => {
                         match tile.get_conn_wire(idx) {
                             NodeOrClass::Pending(nc) => nc,
-                            _ => panic!("wire to be connected is not pending"),
+                            _ => NodeClassIdx::UNKNOWN,
                         }
                     }
                 }

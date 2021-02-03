@@ -1,18 +1,28 @@
-use std::env;
 use std::io;
-use std::path::Path;
+use std::path::{PathBuf};
 use std::fs::create_dir_all;
 use std::collections::HashMap;
+use structopt::StructOpt;
 use rayon::prelude::*;
 use prjcombine::xilinx::ise::rawdump::get_rawdump;
 use prjcombine::xilinx::ise::partgen::{get_pkgs, PartgenPkg};
 use prjcombine::toolchain::Toolchain;
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "dump_ise_parts", about = "Dump ISE part geometry into rawdump files.")]
+struct Opt {
+    toolchain: String,
+    #[structopt(parse(from_os_str))]
+    target_directory: PathBuf,
+    families: Vec<String>,
+}
+
+
 fn main() -> Result<(), io::Error> {
-    let args: Vec<String> = env::args().collect();
-    let tc = Toolchain::from_file(&args[1])?;
+    let opt = Opt::from_args();
+    let tc = Toolchain::from_file(&opt.toolchain)?;
     let mut ise_families: Vec<&'static str> = Vec::new();
-    for family in &args[3..] {
+    for family in opt.families.iter() {
         ise_families.extend(match &family[..] {
             "xc4000e" => vec!["xc4000e", "xc4000l", "spartan"],
             "xc4000ex" => vec!["xc4000ex", "xc4000xl"],
@@ -31,7 +41,7 @@ fn main() -> Result<(), io::Error> {
             "virtex4" => vec!["virtex4", "qvirtex4", "qrvirtex4"],
             "virtex5" => vec!["virtex5", "qvirtex5"],
             "virtex6" => vec!["virtex6", "virtex6l", "qvirtex6", "qvirtex6l"],
-            "series7" => vec![
+            "7series" => vec![
                 "artix7", "artix7l", "aartix7", "qartix7",
                 "kintex7", "kintex7l", "qkintex7", "qkintex7l",
                 "virtex7", "qvirtex7",
@@ -40,7 +50,7 @@ fn main() -> Result<(), io::Error> {
             _ => return Err(io::Error::new(io::ErrorKind::Other, format!("unknown family {}", family))),
         });
     };
-    create_dir_all(&args[2])?;
+    create_dir_all(&opt.target_directory)?;
     let mut parts: HashMap<String, Vec<PartgenPkg>> = HashMap::new();
     for ise_fam in ise_families.iter() {
         println!("querying {}", ise_fam);
@@ -59,7 +69,7 @@ fn main() -> Result<(), io::Error> {
     }
     for res in parts.into_par_iter().map(|(part, pkgs)| -> Result<(), io::Error> {
         println!("dumping {}", part);
-        let fdir = Path::new(&args[2]).join(&pkgs[0].family);
+        let fdir = opt.target_directory.join(&pkgs[0].family);
         create_dir_all(&fdir)?;
         let rd = get_rawdump(&tc, &pkgs)?;
         let path = fdir.join(part.clone() + ".xz");

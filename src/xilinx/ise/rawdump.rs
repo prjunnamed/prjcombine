@@ -237,6 +237,9 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Error> {
             )).collect::<Vec<_>>(),
         );
         for w in t.wires.iter() {
+            if w.name == "SWBOX_STUB" {
+                continue;
+            }
             if w.conns.is_empty() {
                 rd.add_node(&[(
                     &t.name,
