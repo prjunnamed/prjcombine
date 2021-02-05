@@ -7,7 +7,7 @@ use crate::stringpool::StringPool;
 use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkSitePinDir, TkPipInversion, TkPipDirection, PkgPin};
 use super::parts::VivadoPart;
 
-const TILE_BATCH_SIZE: usize = 10000;
+const TILE_BATCH_SIZE: usize = 4000;
 
 const LIST_TILES_TCL: &str = r#"
 link_design -part [lindex $argv 0]

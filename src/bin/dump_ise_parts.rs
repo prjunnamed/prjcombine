@@ -1,5 +1,5 @@
 use std::io;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::fs::create_dir_all;
 use std::collections::HashMap;
 use structopt::StructOpt;
@@ -16,7 +16,6 @@ struct Opt {
     target_directory: PathBuf,
     families: Vec<String>,
 }
-
 
 fn main() -> Result<(), io::Error> {
     let opt = Opt::from_args();

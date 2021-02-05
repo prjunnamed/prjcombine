@@ -1,18 +1,27 @@
-use std::env;
 use std::io;
-use std::path::Path;
+use std::path::PathBuf;
 use std::fs::create_dir_all;
 use std::collections::{HashMap, HashSet};
+use structopt::StructOpt;
 use rayon::prelude::*;
 use prjcombine::xilinx::vivado::rawdump::get_rawdump;
 use prjcombine::xilinx::vivado::parts::{get_parts, VivadoPart};
 use prjcombine::toolchain::Toolchain;
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "dump_vivado_parts", about = "Dump Vivado part geometry into rawdump files.")]
+struct Opt {
+    toolchain: String,
+    #[structopt(parse(from_os_str))]
+    target_directory: PathBuf,
+    families: Vec<String>,
+}
+
 fn main() -> Result<(), io::Error> {
-    let args: Vec<String> = env::args().collect();
-    let tc = Toolchain::from_file(&args[1])?;
-    let families: HashSet<_> = args[3..].iter().map(|s| s.to_string()).collect();
-    create_dir_all(&args[2])?;
+    let opt = Opt::from_args();
+    let tc = Toolchain::from_file(&opt.toolchain)?;
+    let families: HashSet<_> = opt.families.iter().map(|s| s.to_string()).collect();
+    create_dir_all(&opt.target_directory)?;
     let mut parts: HashMap<String, Vec<VivadoPart>> = HashMap::new();
     for part in get_parts(&tc)? {
         if !families.contains(&part.actual_family) && !families.contains(&part.device) {
@@ -28,7 +37,7 @@ fn main() -> Result<(), io::Error> {
     }
     for res in parts.into_par_iter().map(|(dev, devparts)| -> Result<(), io::Error> {
         println!("dumping {}", dev);
-        let fdir = Path::new(&args[2]).join(&devparts[0].actual_family);
+        let fdir = opt.target_directory.join(&devparts[0].actual_family);
         create_dir_all(&fdir)?;
         let rd = get_rawdump(&tc, &devparts)?;
         let path = fdir.join(dev.clone() + ".xz");

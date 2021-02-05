@@ -439,7 +439,7 @@ impl PartBuilder {
             let s = match s {
                 Some(s) => if s == "pip_FAKEPIP" {
                     SpeedIdx::NONE
-                } else if s.starts_with("pip_") {
+                } else if s.starts_with("pip_") && s != "pip_OPTDLY_XIPHY" {
                     let ss : Vec<_> = s.split("__").collect();
                     match ss[..] {
                         [_pk, _pid, sid, did] => {
