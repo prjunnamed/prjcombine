@@ -145,6 +145,7 @@ pub struct Tile {
     pub sites: Vec<Option<String>>,
     #[serde(skip)]
     pub conn_wires: Vec<NodeOrClass>,
+    pub pip_overrides: HashMap<(WireIdx, WireIdx), (NodeClassIdx, NodeClassIdx)>,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
@@ -433,6 +434,7 @@ impl PartBuilder {
         assert!(coord.y < self.part.height);
 
         let mut w2nc : HashMap<WireIdx, NodeClassIdx> = HashMap::new();
+        let mut cpips : Vec<(WireIdx, WireIdx, NodeClassIdx, NodeClassIdx)> = Vec::new();
         let pips : Vec<_> = pips.iter().copied().map(|(wf, wt, ib, ie, it, inv, dir, s)| {
             let wf = self.index.wire_to_idx(wf);
             let wt = self.index.wire_to_idx(wt);
@@ -448,14 +450,15 @@ impl PartBuilder {
                             } else {
                                 (self.index.node_class_to_idx(sid), self.index.node_class_to_idx(did))
                             };
-                            let csid = *w2nc.entry(wf).or_insert(sid);
-                            let cdid = *w2nc.entry(wt).or_insert(did);
-                            if csid != sid {
-                                panic!("src node class mismatch on {} {} {} {}", s, self.index.wires[wf.idx as usize], self.index.node_classes[sid.idx as usize], self.index.node_classes[csid.idx as usize]);
+                            let csid = w2nc.entry(wf).or_insert(sid);
+                            if *csid != sid {
+                                *csid = NodeClassIdx::UNKNOWN;
                             }
-                            if cdid != did {
-                                panic!("dst node class mismatch on {} {} {} {}", s, self.index.wires[wt.idx as usize], self.index.node_classes[did.idx as usize], self.index.node_classes[cdid.idx as usize]);
+                            let cdid = w2nc.entry(wt).or_insert(did);
+                            if *cdid != did {
+                                *cdid = NodeClassIdx::UNKNOWN;
                             }
+                            cpips.push((wf, wt, sid, did));
                         }
                         _ => panic!("weird pip string {:?}", s),
                     }
@@ -467,6 +470,12 @@ impl PartBuilder {
             };
             (wf, wt, ib, ie, it, inv, dir, s)
         }).collect();
+        let mut pip_overrides : HashMap<(WireIdx, WireIdx), (NodeClassIdx, NodeClassIdx)> = HashMap::new();
+        for (wf, wt, sid, did) in cpips {
+            if w2nc[&wf] != sid || w2nc[&wt] != did {
+                pip_overrides.insert((wf, wt), (sid, did));
+            }
+        }
         let wires : Vec<_> = wires.iter().map(|(n, s)| {
             let w = self.index.wire_to_idx(n);
             (w, self.index.speed_to_idx(*s), w2nc.get(&w).copied().unwrap_or(NodeClassIdx::UNKNOWN))
@@ -627,6 +636,7 @@ impl PartBuilder {
             kind,
             sites,
             conn_wires,
+            pip_overrides,
         });
         self.tiles_by_name.insert(name, coord);
     }

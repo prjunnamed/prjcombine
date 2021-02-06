@@ -4,6 +4,7 @@ use std::fs::create_dir_all;
 use std::collections::HashMap;
 use structopt::StructOpt;
 use rayon::prelude::*;
+use rayon::ThreadPoolBuilder;
 use prjcombine::xilinx::ise::rawdump::get_rawdump;
 use prjcombine::xilinx::ise::partgen::{get_pkgs, PartgenPkg};
 use prjcombine::toolchain::Toolchain;
@@ -15,10 +16,13 @@ struct Opt {
     #[structopt(parse(from_os_str))]
     target_directory: PathBuf,
     families: Vec<String>,
+    #[structopt(short="n", long, default_value="0")]
+    num_threads: usize,
 }
 
 fn main() -> Result<(), io::Error> {
     let opt = Opt::from_args();
+    ThreadPoolBuilder::new().num_threads(opt.num_threads).build_global().unwrap();
     let tc = Toolchain::from_file(&opt.toolchain)?;
     let mut ise_families: Vec<&'static str> = Vec::new();
     for family in opt.families.iter() {
