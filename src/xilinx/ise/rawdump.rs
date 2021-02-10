@@ -1,5 +1,6 @@
 use std::collections::{HashSet, HashMap};
-use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkPipInversion, TkPipDirection};
+use crate::xilinx::rawdump::{Part, Source, Coord, TkPipInversion, TkPipDirection};
+use crate::xilinx::rdbuild::PartBuilder;
 use crate::toolchain::Toolchain;
 use crate::error::Error;
 use crate::stringpool::StringPool;

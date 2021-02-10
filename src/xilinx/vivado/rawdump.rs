@@ -4,7 +4,8 @@ use crate::toolchain::Toolchain;
 use crate::toolreader::ToolchainReader;
 use crate::error::Error;
 use crate::stringpool::StringPool;
-use crate::xilinx::rawdump::{PartBuilder, Part, Source, Coord, TkSitePinDir, TkPipInversion, TkPipDirection, PkgPin};
+use crate::xilinx::rawdump::{Part, Source, Coord, TkSitePinDir, TkPipInversion, TkPipDirection, PkgPin};
+use crate::xilinx::rdbuild::PartBuilder;
 use super::parts::VivadoPart;
 
 const TILE_BATCH_SIZE: usize = 4000;
