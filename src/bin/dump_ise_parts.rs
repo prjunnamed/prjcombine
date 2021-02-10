@@ -71,13 +71,17 @@ fn main() -> Result<(), io::Error> {
         println!("device {} [{}]: {}", part, pkgs[0].family, pkgs.iter().fold(String::new(), |acc, pkg| acc + &pkg.package + ", "));
     }
     for res in parts.into_par_iter().map(|(part, pkgs)| -> Result<(), io::Error> {
-        println!("dumping {}", part);
         let fdir = opt.target_directory.join(&pkgs[0].family);
         create_dir_all(&fdir)?;
-        let rd = get_rawdump(&tc, &pkgs)?;
-        let path = fdir.join(part.clone() + ".xz");
-        rd.to_file(&path)?;
-        println!("dumped {}", part);
+        let path = fdir.join(part.clone() + ".zstd");
+        if path.exists() {
+            println!("skipping {}", part);
+        } else {
+            println!("dumping {}", part);
+            let rd = get_rawdump(&tc, &pkgs)?;
+            rd.to_file(&path)?;
+            println!("dumped {}", part);
+        }
         Ok(())
     }).collect::<Vec<_>>() {
         res?;

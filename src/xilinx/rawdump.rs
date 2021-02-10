@@ -888,18 +888,22 @@ impl Part {
 
     pub fn from_file<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
         let f = File::open(path)?;
-        let xz = xz2::read::XzDecoder::new(f);
-        let mut res: Part = bincode::deserialize_from(xz).unwrap();
+        let cf = zstd::stream::Decoder::new(f)?;
+        let mut res: Part = bincode::deserialize_from(cf).unwrap();
         res.post_deserialize();
         Ok(res)
     }
 
     pub fn to_file<P: AsRef<Path>> (&self, path: P) -> Result<(), Error> {
         let f = File::create(path)?;
-        let mut xz = xz2::write::XzEncoder::new(f, 9);
-        bincode::serialize_into(&mut xz, self).unwrap();
-        xz.finish()?;
+        let mut cf = zstd::stream::Encoder::new(f, 9)?;
+        bincode::serialize_into(&mut cf, self).unwrap();
+        cf.finish()?;
         Ok(())
+    }
+
+    pub fn all_wires(&self) -> impl Iterator<Item = WireIdx> {
+        (0..self.wires.len()).map(WireIdx::from_raw)
     }
 }
 

@@ -40,13 +40,17 @@ fn main() -> Result<(), io::Error> {
         println!("device {} [{}]: {}", dev, devparts[0].actual_family, devparts.iter().fold(String::new(), |acc, dp| acc + &dp.name + ", "));
     }
     for res in parts.into_par_iter().map(|(dev, devparts)| -> Result<(), io::Error> {
-        println!("dumping {}", dev);
         let fdir = opt.target_directory.join(&devparts[0].actual_family);
         create_dir_all(&fdir)?;
-        let rd = get_rawdump(&tc, &devparts)?;
-        let path = fdir.join(dev.clone() + ".xz");
-        rd.to_file(&path)?;
-        println!("dumped {}", dev);
+        let path = fdir.join(dev.clone() + ".zstd");
+        if path.exists() {
+            println!("skipping {}", dev);
+        } else {
+            println!("dumping {}", dev);
+            let rd = get_rawdump(&tc, &devparts)?;
+            rd.to_file(&path)?;
+            println!("dumped {}", dev);
+        }
         Ok(())
     }).collect::<Vec<_>>() {
         res?;
