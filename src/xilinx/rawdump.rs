@@ -104,7 +104,7 @@ pub struct TkSitePin {
     pub speed: SpeedIdx,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct TkSite {
     pub slot: TkSiteSlot,
     pub kind: String,
@@ -141,7 +141,7 @@ pub struct TkPip {
     pub speed: SpeedIdx,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct TileKind {
     pub sites: Vec<TkSite>,
     pub sites_by_slot: HashMap<TkSiteSlot, usize>,
@@ -151,7 +151,7 @@ pub struct TileKind {
     pub tiles: Vec<Coord>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Tile {
     pub name: String,
     pub kind: String,
@@ -180,7 +180,7 @@ pub struct TkNodeTemplate {
     pub wires: Vec<TkNodeTemplateWire>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PartCombo {
     pub name: String,
     pub device: String,
