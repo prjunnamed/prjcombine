@@ -1,18 +1,22 @@
+use std::fs::File;
+use std::path::Path;
 use ndarray::Array2;
 use serde::{Serialize, Deserialize};
+use crate::namevec::{NameVec, Named};
+use crate::error::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeomDb {
     pub name: String,
-    pub vert_bus: Vec<String>,
-    pub horiz_bus: Vec<String>,
-    pub wires: Vec<WireClass>,
-    pub port_slots: Vec<String>,
-    pub ports: Vec<PortClass>,
-    pub tile_slots: Vec<String>,
-    pub tiles: Vec<TileClass>,
-    pub grids: Vec<Grid>,
-    pub parts: Vec<Part>,
+    pub vert_bus: NameVec<String>,
+    pub horiz_bus: NameVec<String>,
+    pub wires: NameVec<WireClass>,
+    pub port_slots: NameVec<String>,
+    pub ports: NameVec<PortClass>,
+    pub tile_slots: NameVec<String>,
+    pub tiles: NameVec<TileClass>,
+    pub grids: NameVec<Grid>,
+    pub parts: NameVec<Part>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +26,10 @@ pub struct WireClass {
     pub has_multicell_drive: bool,
     pub is_permabuf_alias: bool,
     pub conn: WireConn,
+}
+
+impl Named for WireClass {
+    fn get_name(&self) -> &str { &self.name }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +53,10 @@ pub struct PortClass {
     pub conns: Vec<PortConn>,
 }
 
+impl Named for PortClass {
+    fn get_name(&self) -> &str { &self.name }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PortConn {
     Unconnected,
@@ -56,14 +68,18 @@ pub enum PortConn {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TileClass {
     pub name: String,
-    pub slot: usize,
     pub raw_variants: Vec<String>,
     // dx, dy, slot
     pub cells: Vec<(usize, usize, usize)>,
     pub muxes: Vec<TileMux>,
+    pub tiedmuxes: Vec<TileTiedMux>,
     pub trans: Vec<TileTran>,
     pub ties: Vec<TileTie>,
     pub sites: Vec<SiteSlot>,
+}
+
+impl Named for TileClass {
+    fn get_name(&self) -> &str { &self.name }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, Serialize, Deserialize)]
@@ -194,6 +210,10 @@ pub struct Grid {
     pub tiles: Vec<Tile>,
 }
 
+impl Named for Grid {
+    fn get_name(&self) -> &str { &self.name }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GridCell {
     // tile idx, cell idx
@@ -201,10 +221,11 @@ pub struct GridCell {
     pub ports: Vec<Option<Port>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct GridRanges {
     // first is always 0, last is always width
     pub endpoints: Vec<usize>,
+    pub midpoints: Vec<usize>,
     // range #x means [endpoints[x], endpoints[x+1])
     pub grid2range: Vec<usize>,
 }
@@ -230,4 +251,24 @@ pub struct Port {
 pub struct Part {
     pub name: String,
     pub grid: usize,
+}
+
+impl Named for Part {
+    fn get_name(&self) -> &str { &self.name }
+}
+
+impl GeomDb {
+    pub fn from_file<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
+        let f = File::open(path)?;
+        let cf = zstd::stream::Decoder::new(f)?;
+        Ok(bincode::deserialize_from(cf).unwrap())
+    }
+
+    pub fn to_file<P: AsRef<Path>> (&self, path: P) -> Result<(), Error> {
+        let f = File::create(path)?;
+        let mut cf = zstd::stream::Encoder::new(f, 9)?;
+        bincode::serialize_into(&mut cf, self).unwrap();
+        cf.finish()?;
+        Ok(())
+    }
 }
