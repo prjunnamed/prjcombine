@@ -45,7 +45,7 @@ fn main() -> Result<(), io::Error> {
         println!("TT {}", name);
         for site in tt.sites.iter().sorted_by_key(|site| site.slot) {
             let slot = match site.slot {
-                TkSiteSlot::Single(sk) => format!("{}", rd.print_slot_kind(sk)),
+                TkSiteSlot::Single(sk) => rd.print_slot_kind(sk).to_string(),
                 TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.print_slot_kind(sk), idx),
                 TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.print_slot_kind(sk), x, y),
             };
@@ -91,7 +91,7 @@ fn main() -> Result<(), io::Error> {
         let tt = rd.tile_kinds.get(&tile.kind).unwrap();
         for (ts, tks) in tile.sites.iter().zip(tt.sites.iter()).sorted_by_key(|(_, tks)| tks.slot) {
             let slot = match tks.slot {
-                TkSiteSlot::Single(sk) => format!("{}", rd.print_slot_kind(sk)),
+                TkSiteSlot::Single(sk) => rd.print_slot_kind(sk).to_string(),
                 TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.print_slot_kind(sk), idx),
                 TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.print_slot_kind(sk), x, y),
             };

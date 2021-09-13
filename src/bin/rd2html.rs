@@ -13,7 +13,7 @@ struct TileInfo (
     &'static [&'static str]
 );
 
-const COLORS: &'static [(&'static str, (u8, u8, u8))] = &[
+const COLORS: &[(&str, (u8, u8, u8))] = &[
     ("int", (204, 204, 204)),
     ("int-buf", (102, 102, 255)),
     ("int-if", (153, 153, 255)),
@@ -58,7 +58,7 @@ const COLORS: &'static [(&'static str, (u8, u8, u8))] = &[
 
 const SINGLE: (isize, isize, isize, isize) = (0, 0, 0, 0);
 
-const XC4K_TILES: &'static [TileInfo] = &[
+const XC4K_TILES: &[TileInfo] = &[
     TileInfo ("CENTER", SINGLE, &["clb"]),
     TileInfo ("BOT", SINGLE, &["io"]),
     TileInfo ("BOTS", SINGLE, &["io"]),
@@ -133,7 +133,7 @@ const XC4K_TILES: &'static [TileInfo] = &[
     TileInfo ("TCCBRK", SINGLE, &[]),
 ];
 
-const VIRTEX_TILES: &'static [TileInfo] = &[
+const VIRTEX_TILES: &[TileInfo] = &[
     TileInfo ("CENTER", SINGLE, &["int", "clb"]),
     TileInfo ("CLKH", SINGLE, &["clk-spine"]),
     TileInfo ("BOT", SINGLE, &["int", "io"]),
@@ -201,7 +201,7 @@ const VIRTEX_TILES: &'static [TileInfo] = &[
     TileInfo ("GBRKV", SINGLE, &["clk-brk"]),
 ];
 
-const VIRTEX2_TILES: &'static [TileInfo] = &[
+const VIRTEX2_TILES: &[TileInfo] = &[
     TileInfo ("CENTER", SINGLE, &["int", "clb"]),
 
     TileInfo ("LR_IOIS", SINGLE, &["int", "io"]),
@@ -387,7 +387,7 @@ const VIRTEX2_TILES: &'static [TileInfo] = &[
     TileInfo ("EMPTY0X64", SINGLE, &[]),
 ];
 
-const SPARTAN3_TILES: &'static [TileInfo] = &[
+const SPARTAN3_TILES: &[TileInfo] = &[
     TileInfo ("CENTER", SINGLE, &["int", "clb"]),
     TileInfo ("CENTER_SMALL", SINGLE, &["int", "clb"]),
 
@@ -466,7 +466,7 @@ const SPARTAN3_TILES: &'static [TileInfo] = &[
     TileInfo ("EMPTY0X2", SINGLE, &[]),
 ];
 
-const SPARTAN3E_TILES: &'static [TileInfo] = &[
+const SPARTAN3E_TILES: &[TileInfo] = &[
     TileInfo ("CENTER_SMALL", SINGLE, &["int", "clb"]),
     TileInfo ("CENTER_SMALL_BRK", SINGLE, &["int", "clb", "clk-brk"]),
 
@@ -695,7 +695,7 @@ const SPARTAN3E_TILES: &'static [TileInfo] = &[
     TileInfo ("EMPTY_TTERM", SINGLE, &[]),
 ];
 
-const SPARTAN6_TILES: &'static [TileInfo] = &[
+const SPARTAN6_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("INT_TERM", SINGLE, &["int"]),
     TileInfo ("INT_BRAM", SINGLE, &["int"]),
@@ -970,7 +970,7 @@ const SPARTAN6_TILES: &'static [TileInfo] = &[
     TileInfo ("EMP_RIOB", SINGLE, &[]),
 ];
 
-const VIRTEX4_TILES: &'static [TileInfo] = &[
+const VIRTEX4_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("INT_SO", SINGLE, &["int"]),
     TileInfo ("INT_SO_DCM0", SINGLE, &["int"]),
@@ -1077,7 +1077,7 @@ const VIRTEX4_TILES: &'static [TileInfo] = &[
     TileInfo ("CFG_VBRK_FRAME", SINGLE, &["vbrk"]),
 ];
 
-const VIRTEX5_TILES: &'static [TileInfo] = &[
+const VIRTEX5_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("INT_INTERFACE", SINGLE, &["int-if"]),
     TileInfo ("GTX_LEFT_INT_INTERFACE", SINGLE, &["int-if"]),
@@ -1198,7 +1198,7 @@ const VIRTEX5_TILES: &'static [TileInfo] = &[
     TileInfo ("NULL", SINGLE, &[]),
 ];
 
-const VIRTEX6_TILES: &'static [TileInfo] = &[
+const VIRTEX6_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("INT_INTERFACE", SINGLE, &["int-if"]),
     TileInfo ("IOI_L_INT_INTERFACE", SINGLE, &["int-if"]),
@@ -1302,7 +1302,7 @@ const VIRTEX6_TILES: &'static [TileInfo] = &[
     TileInfo ("NULL", SINGLE, &[]),
 ];
 
-const SERIES7_TILES: &'static [TileInfo] = &[
+const SERIES7_TILES: &[TileInfo] = &[
     TileInfo ("INT_L", SINGLE, &["int"]),
     TileInfo ("INT_R", SINGLE, &["int"]),
     TileInfo ("INT_L_SLV", SINGLE, &["int", "int-buf"]),
@@ -1536,7 +1536,7 @@ const SERIES7_TILES: &'static [TileInfo] = &[
     TileInfo ("NULL", SINGLE, &[]),
 ];
 
-const ULTRASCALE_TILES: &'static [TileInfo] = &[
+const ULTRASCALE_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("INT_RBRK", SINGLE, &["clk-brk"]),
     TileInfo ("INT_TERM_B", SINGLE, &["bterm"]),
@@ -1813,7 +1813,7 @@ const ULTRASCALE_TILES: &'static [TileInfo] = &[
     TileInfo ("GTY_QUAD_LEFT_TERM_B_FT", (50, 0, 0, 0), &[]),
 ];
 
-const ULTRASCALEPLUS_TILES: &'static [TileInfo] = &[
+const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("RCLK_INT_L", SINGLE, &["clk-last-buf"]),
     TileInfo ("RCLK_INT_R", SINGLE, &["clk-last-buf"]),
@@ -2404,7 +2404,7 @@ const ULTRASCALEPLUS_TILES: &'static [TileInfo] = &[
     TileInfo ("CFG_M12BUF_IO_CFG_TOP_R", (0, 0, 29, 0), &[]),
 ];
 
-const VERSAL_TILES: &'static [TileInfo] = &[
+const VERSAL_TILES: &[TileInfo] = &[
     TileInfo ("INT", SINGLE, &["int"]),
     TileInfo ("REBUF_INT_T_CORE", SINGLE, &[]),
     TileInfo ("REBUF_INT_B_CORE", SINGLE, &[]),
@@ -2824,10 +2824,8 @@ fn main() -> Result<(), io::Error> {
                                     if ntile.kind != "NULL" && ntile.kind != "PCIE_NULL" {
                                         panic!("Tile {} expanded onto {} which is not NULL", tile.name, ntile.name);
                                     }
-                                } else {
-                                    if ntk.wires.len() != 0 {
-                                        panic!("Tile {} expanded onto {} which is not empty", tile.name, ntile.name);
-                                    }
+                                } else if !ntk.wires.is_empty() {
+                                    panic!("Tile {} expanded onto {} which is not empty", tile.name, ntile.name);
                                 }
                             }
                         }
@@ -2863,18 +2861,15 @@ fn main() -> Result<(), io::Error> {
                 Some(c) => cs.push(c),
             }
         }
-        if cs.len() == 0 {
-        } else if cs.len() == 1 {
-            ofile.write_all(format!("td.{} {{ background: rgb({}, {}, {}); }}\n", tname, cs[0].0, cs[0].1, cs[0].2).as_bytes())?;
-        } else if cs.len() == 2 {
-            ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2).as_bytes())?;
-        } else if cs.len() == 3 {
-            ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2, cs[2].0, cs[2].1, cs[2].2).as_bytes())?;
-        } else {
-            panic!("too colorful {}", tname);
+        match cs.len() {
+            0 => (),
+            1 => ofile.write_all(format!("td.{} {{ background: rgb({}, {}, {}); }}\n", tname, cs[0].0, cs[0].1, cs[0].2).as_bytes())?,
+            2 => ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2).as_bytes())?,
+            3 => ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2, cs[2].0, cs[2].1, cs[2].2).as_bytes())?,
+            _ => panic!("too colorful {}", tname),
         }
     }
-    ofile.write_all(format!("</style></head><body><table><tr>\n").as_bytes())?;
+    ofile.write_all("</style></head><body><table><tr>\n".as_bytes())?;
     for y in (0..grid.dim().1).rev() {
         for x in 0..grid.dim().0 {
             if let Some((crd, cs, rs)) = grid[(x, y)] {
@@ -2906,15 +2901,15 @@ fn main() -> Result<(), io::Error> {
                         ofile.write_all(format!("<br/>{}&nbsp;{}&nbsp;[MISSING]", tks.kind, slot).as_bytes())?;
                     }
                 }
-                ofile.write_all(format!("</div></td>\n").as_bytes())?;
+                ofile.write_all("</div></td>\n".as_bytes())?;
             }
         }
-        ofile.write_all(format!("<td class=\"_rpad\"></td>\n").as_bytes())?;
-        ofile.write_all(format!("</tr><tr>\n").as_bytes())?;
+        ofile.write_all("<td class=\"_rpad\"></td>\n".as_bytes())?;
+        ofile.write_all("</tr><tr>\n".as_bytes())?;
     }
     for _ in 0..grid.dim().0 {
-        ofile.write_all(format!("<td class=\"_bpad\"></td>\n").as_bytes())?;
+        ofile.write_all("<td class=\"_bpad\"></td>\n".as_bytes())?;
     }
-    ofile.write_all(format!("</tr></table></body></html>\n").as_bytes())?;
+    ofile.write_all("</tr></table></body></html>\n".as_bytes())?;
     Ok(())
 }

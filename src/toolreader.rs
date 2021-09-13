@@ -37,10 +37,7 @@ impl ToolchainReader {
         }
         let child = cmd.spawn()?;
         let fifo = File::open(path)?;
-        match fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20)) {
-            Ok(_) => (),
-            Err(_) => (),
-        }
+        let _ = fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1<<20));
         Ok(BufReader::new(ToolchainReader {
             fifo: Some(fifo),
             _dir: dir,
@@ -62,9 +59,6 @@ impl Drop for ToolchainReader {
     fn drop(&mut self) {
         self.fifo = None;
         // Nothing much to do if it fails.
-        match self.child.wait() {
-            Ok(_) => (),
-            Err(_) => (),
-        }
+        let _ = self.child.wait();
     }
 }

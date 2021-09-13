@@ -221,6 +221,11 @@ pub struct Part {
 }
 
 impl Part {
+    pub fn wire(&self, w: WireIdx) -> &str {
+        assert_ne!(w, WireIdx::NONE);
+        &self.wires[w.idx as usize]
+    }
+
     pub fn print_wire(&self, w: WireIdx) -> &str {
         if w == WireIdx::NONE {
             "[NONE]"
@@ -260,8 +265,8 @@ impl Part {
                 let tk = self.tile_kinds.get(&tile.kind).unwrap();
                 let wire = tk.wires.get(&w.wire).unwrap();
                 let idx = match wire {
-                    TkWire::Internal(_, _) => panic!("node on internal wire"),
-                    TkWire::Connected(idx) => *idx,
+                    &TkWire::Internal(_, _) => panic!("node on internal wire"),
+                    &TkWire::Connected(idx) => idx,
                 };
                 tile.set_conn_wire(idx, NodeOrClass::make_node(i));
             }
@@ -305,17 +310,17 @@ impl Tile {
     pub fn get_conn_wire(&self, idx: usize) -> NodeOrClass {
         match self.conn_wires.get(idx) {
             None => NodeOrClass::None,
-            Some(ni) => *ni,
+            Some(&ni) => ni,
         }
     }
     pub fn has_wire(&self, tk: &TileKind, w: WireIdx) -> bool {
         match tk.wires.get(&w) {
             None => false,
-            Some(TkWire::Internal(_, _)) => true,
-            Some(TkWire::Connected(idx)) => {
-                match self.conn_wires.get(*idx) {
+            Some(&TkWire::Internal(_, _)) => true,
+            Some(&TkWire::Connected(idx)) => {
+                match self.conn_wires.get(idx) {
                     None => false,
-                    Some(ni) => *ni != NodeOrClass::None,
+                    Some(&ni) => ni != NodeOrClass::None,
                 }
             }
         }

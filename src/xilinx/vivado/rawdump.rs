@@ -158,7 +158,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
             }
         }
         if !got_end {
-            return Err(Error::ParseError(format!("missing END in tiles")));
+            return Err(Error::ParseError("missing END in tiles".to_string()));
         }
         assert!((width as usize) * (height as usize) == tile_names.len());
     }
@@ -181,8 +181,8 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
     {
         let mut tlist: Vec<u8> = Vec::new();
         for (_, tn) in tts {
-            tlist.write(tn.as_bytes())?;
-            tlist.write(b"\n")?;
+            tlist.write_all(tn.as_bytes())?;
+            tlist.write_all(b"\n")?;
         }
         let tr = ToolchainReader::new(tc, "vivado", &["-nolog", "-nojournal", "-mode", "batch", "-source", "script.tcl", "-tclargs", &fpart.name], &[], "tts.fifo", &[("script.tcl", DUMP_TTS_TCL.as_bytes()), ("tts.list", &tlist)])?;
         let lines = tr.lines();
@@ -246,7 +246,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
             }
         }
         if !got_end {
-            return Err(Error::ParseError(format!("missing END in TTs")));
+            return Err(Error::ParseError("missing END in TTs".to_string()));
         }
     }
 
@@ -256,8 +256,8 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
     for batch in tile_names.chunks(TILE_BATCH_SIZE) {
         let mut tlist: Vec<u8> = Vec::new();
         for t in batch {
-            tlist.write(t.as_bytes())?;
-            tlist.write(b"\n")?;
+            tlist.write_all(t.as_bytes())?;
+            tlist.write_all(b"\n")?;
         }
         let tr = ToolchainReader::new(tc, "vivado", &["-nolog", "-nojournal", "-mode", "batch", "-source", "script.tcl", "-tclargs", &fpart.name], &[], "tiles.fifo", &[("script.tcl", DUMP_TILES_TCL.as_bytes()), ("tiles.list", &tlist)])?;
         let lines = tr.lines();
@@ -307,7 +307,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                     };
                     let si = &sl[3][1..];
                     let node = &sl[4][1..];
-                    let speed: Option<&str> = if si == "" {
+                    let speed: Option<&str> = if si.is_empty() {
                         None
                     } else {
                         Some(speed_models.get(&si.parse::<u32>().unwrap()).unwrap())
@@ -316,22 +316,21 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                         None => None,
                         Some(v) => {
                             let mut v = v.clone();
-                            if v.len() > 1 && match pin {
-                                "DOUT" => true,
-                                "SYSREF_OUT_NORTH_P" => true,
-                                "SYSREF_OUT_SOUTH_P" => true,
-                                "CLK_DISTR_OUT_NORTH" => true,
-                                "CLK_DISTR_OUT_SOUTH" => true,
-                                "T1_ALLOWED_SOUTH" => true,
-                                _ => false,
-                            } {
+                            if v.len() > 1 && matches!(pin,
+                                "DOUT" |
+                                "SYSREF_OUT_NORTH_P" |
+                                "SYSREF_OUT_SOUTH_P" |
+                                "CLK_DISTR_OUT_NORTH" |
+                                "CLK_DISTR_OUT_SOUTH" |
+                                "T1_ALLOWED_SOUTH"
+                            ) {
                                 let suffix = format!("_{}", pin);
-                                v.retain(|n| node_sp.get(*n).ends_with(&suffix));
+                                v.retain(|&n| node_sp.get(n).ends_with(&suffix));
                             }
                             if v.len() == 1 {
                                 Some(node_sp.get(v[0]).to_string())
                             } else {
-                                panic!("SITE PIN WIRE AMBIGUOUS {:?} {:?}", sl, v.iter().map(|n| node_sp.get(*n)).collect::<Vec<_>>());
+                                panic!("SITE PIN WIRE AMBIGUOUS {:?} {:?}", sl, v.iter().map(|&n| node_sp.get(n)).collect::<Vec<_>>());
                             }
                         }
                     };
@@ -349,10 +348,10 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                     let si = sl[2].parse::<u32>().unwrap();
                     let node = &sl[3][1..];
                     wires.push((name.to_string(), si));
-                    if node != "" {
-                        let nwires = nodes.entry(node.to_string()).or_insert(Vec::new());
+                    if !node.is_empty() {
+                        let nwires = nodes.entry(node.to_string()).or_default();
                         nwires.push((node_sp.put(tile.as_ref().unwrap()), node_sp.put(name), si));
-                        let n2w = tile_n2w.entry(node.to_string()).or_insert(Vec::new());
+                        let n2w = tile_n2w.entry(node.to_string()).or_default();
                         n2w.push(node_sp.put(name));
                     }
                 },
@@ -364,7 +363,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                     if pip.is_pseudo {
                         continue;
                     }
-                    let speed: Option<&str> = if si == "" {
+                    let speed: Option<&str> = if si.is_empty() {
                         None
                     } else {
                         Some(speed_models.get(&si.parse::<u32>().unwrap()).unwrap())
@@ -408,8 +407,8 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                     assert!(!tile.is_none());
                     rd.add_tile(coord.unwrap(), tile.unwrap(), tt.unwrap(),
                         &sites.iter().map(|(n, t, p)| -> (&str, &str, _) {
-                            (&n, &t, p.iter().map(|(n, d, w, s)| -> (&str, TkSitePinDir, Option<&str>, Option<&str>) {
-                                (n, *d, w.as_ref().map(|s| &s[..]), *s)
+                            (&n, &t, p.iter().map(|&(ref n, d, ref w, s)| -> (&str, TkSitePinDir, Option<&str>, Option<&str>) {
+                                (n, d, w.as_ref().map(|s| &s[..]), s)
                             }).collect::<Vec<_>>())
                         }).collect::<Vec<_>>(),
                         &wires.iter().map(|(w, s)| -> (&str, Option<&str>) {
@@ -434,7 +433,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
             }
         }
         if !got_end {
-            return Err(Error::ParseError(format!("missing END in tiles")));
+            return Err(Error::ParseError("missing END in tiles".to_string()));
         }
     }
 
@@ -470,21 +469,21 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Error> 
                     let mind = &sl[5][1..];
                     let maxd = &sl[6][1..];
                     pins.push(PkgPin {
-                        pad: if site == "" { None } else { Some(site.to_string()) },
+                        pad: if site.is_empty() { None } else { Some(site.to_string()) },
                         pin: pin.to_string(),
-                        vref_bank: if bank == "" { None } else { Some(bank.parse()?) },
-                        vcco_bank: if bank == "" { None } else { Some(bank.parse()?) },
+                        vref_bank: if bank.is_empty() { None } else { Some(bank.parse()?) },
+                        vcco_bank: if bank.is_empty() { None } else { Some(bank.parse()?) },
                         func: func.to_string(),
                         tracelen_um: None,
-                        delay_min_fs: if mind == "" { None } else { Some(mind.parse()?) },
-                        delay_max_fs: if maxd == "" { None } else { Some(maxd.parse()?) },
+                        delay_min_fs: if mind.is_empty() { None } else { Some(mind.parse()?) },
+                        delay_max_fs: if maxd.is_empty() { None } else { Some(maxd.parse()?) },
                     });
                 },
                 _ => panic!("unknown line {}", sl[0]),
             }
         }
         if !got_end {
-            return Err(Error::ParseError(format!("missing END in tiles")));
+            return Err(Error::ParseError("missing END in tiles".to_string()));
         }
         rd.add_package(part.package.to_string(), pins);
     }

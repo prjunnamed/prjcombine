@@ -31,3 +31,9 @@ impl StringPool {
         }
     }
 }
+
+impl Default for StringPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}

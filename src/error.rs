@@ -33,12 +33,12 @@ impl From<Error> for io::Error {
 
 impl From<num::ParseIntError> for Error {
     fn from(_: num::ParseIntError) -> Error {
-        Error::ParseError(format!("failed to parse integer"))
+        Error::ParseError("failed to parse integer".to_string())
     }
 }
 
 impl From<num::ParseFloatError> for Error {
     fn from(_: num::ParseFloatError) -> Error {
-        Error::ParseError(format!("failed to parse float"))
+        Error::ParseError("failed to parse float".to_string())
     }
 }

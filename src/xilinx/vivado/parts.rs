@@ -70,7 +70,7 @@ pub fn get_parts(tc: &Toolchain) -> Result<Vec<VivadoPart>, Error> {
         });
     }
     if !got_end {
-        return Err(Error::ParseError(format!("missing END")));
+        return Err(Error::ParseError("missing END".to_string()));
     }
     Ok(res)
 }

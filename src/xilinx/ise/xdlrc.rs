@@ -109,39 +109,39 @@ impl Parser {
         let l = loop {
             let l = lines
                 .next()
-                .ok_or(ParseError(format!("eof before xdl_resource_report")))??;
-            if !l.starts_with("#") {
+                .ok_or_else(|| ParseError("eof before xdl_resource_report".to_string()))??;
+            if !l.starts_with('#') {
                 break l;
             }
         };
         // xdl_resource_report.
         let l: Vec<_> = l
             .strip_prefix("(xdl_resource_report ")
-            .ok_or(ParseError(format!("expected xdl_resource_report")))?
-            .split(" ")
+            .ok_or_else(|| ParseError("expected xdl_resource_report".to_string()))?
+            .split(' ')
             .collect();
         let (version, part, family) = match l[..] {
             [v, p, f] => (v.to_string(), p.to_string(), f.to_string()),
-            _ => return Err(ParseError(format!("xdl_resource_report wrong arg count"))),
+            _ => return Err(ParseError("xdl_resource_report wrong arg count".to_string())),
         };
         // More comments.
         let l = loop {
             let l = lines
                 .next()
-                .ok_or(ParseError(format!("eof before xdl_resource_report")))??;
-            if !l.starts_with("#") {
+                .ok_or_else(|| ParseError("eof before xdl_resource_report".to_string()))??;
+            if !l.starts_with('#') {
                 break l;
             }
         };
         // tiles.
         let l: Vec<_> = l
             .strip_prefix("(tiles ")
-            .ok_or(ParseError(format!("expected tiles")))?
-            .split(" ")
+            .ok_or_else(|| ParseError("expected tiles".to_string()))?
+            .split(' ')
             .collect();
         let (width, height) = match l[..] {
             [h, w] => (w.parse::<u32>()?, h.parse::<u32>()?),
-            _ => return Err(ParseError(format!("tiles wrong arg count"))),
+            _ => return Err(ParseError("tiles wrong arg count".to_string())),
         };
         // Make the actual parser.
         Ok(Parser {
@@ -183,10 +183,10 @@ impl Parser {
         let l = self
             .lines
             .next()
-            .ok_or(ParseError(format!("eof in tiles")))??;
+            .ok_or_else(|| ParseError("eof in tiles".to_string()))??;
         if let Some(l) = l.strip_prefix("\t(tile ") {
             // Parse tile.
-            let l: Vec<_> = l.split(" ").collect();
+            let l: Vec<_> = l.split(' ').collect();
             let (x, y, name, kind) = match l[..] {
                 [y, x, name, kind, _] => (
                     x.parse::<u32>()?,
@@ -194,7 +194,7 @@ impl Parser {
                     name.to_string(),
                     kind.to_string(),
                 ),
-                _ => return Err(ParseError(format!("tile wrong arg count"))),
+                _ => return Err(ParseError("tile wrong arg count".to_string())),
             };
 
             let mut prims: Vec<Prim> = Vec::new();
@@ -205,7 +205,7 @@ impl Parser {
                 let l = self
                     .lines
                     .next()
-                    .ok_or(ParseError(format!("eof in tile")))??;
+                    .ok_or_else(|| ParseError("eof in tile".to_string()))??;
                 if l == "\t)" {
                     break;
                 } else if let Some(l) = l.strip_prefix("\t\t(primitive_site ") {
@@ -219,14 +219,14 @@ impl Parser {
                             let l = self
                                 .lines
                                 .next()
-                                .ok_or(ParseError(format!("eof in primitive_site")))??;
+                                .ok_or_else(|| ParseError("eof in primitive_site".to_string()))??;
                             if l == "\t\t)" {
                                 break;
                             } else if let Some(l) = l.strip_prefix("\t\t\t(pinwire ") {
                                 let l = l
                                     .strip_suffix(")")
-                                    .ok_or(ParseError(format!("missing ) on pinwire")))?;
-                                let l: Vec<_> = l.split(" ").collect();
+                                    .ok_or_else(|| ParseError("missing ) on pinwire".to_string()))?;
+                                let l: Vec<_> = l.split(' ').collect();
                                 match l[..] {
                                     [n, k, w] => pinwires.push(PinWire {
                                         name: n.to_string(),
@@ -244,7 +244,7 @@ impl Parser {
                                         wire: w.to_string(),
                                     }),
                                     _ => {
-                                        return Err(ParseError(format!("pinwire wrong arg count")))
+                                        return Err(ParseError("pinwire wrong arg count".to_string()))
                                     }
                                 }
                             } else {
@@ -255,7 +255,7 @@ impl Parser {
                             }
                         }
                     }
-                    let l: Vec<_> = l.split(" ").collect();
+                    let l: Vec<_> = l.split(' ').collect();
                     let (name, kind, bonded) = match l[..] {
                         [name, kind, bonded, _] => (
                             name.to_string(),
@@ -281,7 +281,7 @@ impl Parser {
                                 }
                             },
                         ),
-                        _ => return Err(ParseError(format!("primitive_site wrong arg count"))),
+                        _ => return Err(ParseError("primitive_site wrong arg count".to_string())),
                     };
                     prims.push(Prim {
                         name,
@@ -300,47 +300,47 @@ impl Parser {
                             let l = self
                                 .lines
                                 .next()
-                                .ok_or(ParseError(format!("eof in wire")))??;
+                                .ok_or_else(|| ParseError("eof in wire".to_string()))??;
                             if l == "\t\t)" {
                                 break;
                             } else if let Some(l) = l.strip_prefix("\t\t\t(conn ") {
                                 let l = l
                                     .strip_suffix(")")
-                                    .ok_or(ParseError(format!("missing ) on conn")))?;
-                                let l: Vec<_> = l.split(" ").collect();
+                                    .ok_or_else(|| ParseError("missing ) on conn".to_string()))?;
+                                let l: Vec<_> = l.split(' ').collect();
                                 match l[..] {
                                     [tile, wire] => {
                                         conns.push((tile.to_string(), wire.to_string()))
                                     }
-                                    _ => return Err(ParseError(format!("conn wrong arg count"))),
+                                    _ => return Err(ParseError("conn wrong arg count".to_string())),
                                 }
                             } else {
                                 return Err(ParseError(format!("expected wire item: {}", l)));
                             }
                         }
                     }
-                    let l: Vec<_> = l.split(" ").collect();
+                    let l: Vec<_> = l.split(' ').collect();
                     let (name, speed) = match l[..] {
                         [name, _] => (name.to_string(), None),
                         [name, _, speed] => (name.to_string(), Some(speed.to_string())),
-                        _ => return Err(ParseError(format!("wire wrong arg count"))),
+                        _ => return Err(ParseError("wire wrong arg count".to_string())),
                     };
                     wires.push(Wire { name, speed, conns });
                 } else if let Some(l) = l.strip_prefix("\t\t(pip ") {
                     let l = l
                         .strip_suffix(")")
-                        .ok_or(ParseError(format!("missing ) on pip")))?;
+                        .ok_or_else(|| ParseError("missing ) on pip".to_string()))?;
                     let (l, rt) = match l.strip_suffix(")") {
                         Some(l) => {
                             let sl: Vec<_> = l.split(" (_ROUTETHROUGH-").collect();
                             if sl.len() != 2 {
                                 return Err(ParseError(format!("not routethru pip: {:?}", l)));
                             }
-                            let sl1: Vec<_> = sl[1].split(" ").collect();
+                            let sl1: Vec<_> = sl[1].split(' ').collect();
                             if sl1.len() != 2 {
                                 return Err(ParseError(format!("not routethru pip: {:?}", l)));
                             }
-                            let sl10: Vec<_> = sl1[0].split("-").collect();
+                            let sl10: Vec<_> = sl1[0].split('-').collect();
                             if sl10.len() != 2 {
                                 return Err(ParseError(format!("not routethru pip: {:?}", l)));
                             }
@@ -355,7 +355,7 @@ impl Parser {
                         }
                         None => (l, None),
                     };
-                    let l: Vec<_> = l.split(" ").collect();
+                    let l: Vec<_> = l.split(' ').collect();
                     match l[..] {
                         [_, w1, kind, w2, speed] => pips.push(Pip {
                             wire_from: w1.to_string(),
@@ -373,7 +373,7 @@ impl Parser {
                         }),
                         _ => return Err(ParseError(format!("pip wrong arg count: {:?}", l))),
                     }
-                } else if l.starts_with("\t\t(tile_summary") && l.ends_with(")") {
+                } else if l.starts_with("\t\t(tile_summary") && l.ends_with(')') {
                     // eh.
                 } else {
                     return Err(ParseError(format!("expected tile item: {}", l)));

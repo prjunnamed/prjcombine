@@ -38,6 +38,9 @@ impl<T: Named> NameVec<T> {
     pub fn len(&self) -> usize {
         self.vec.len()
     }
+    pub fn is_empty(&self) -> bool {
+        self.vec.is_empty()
+    }
     pub fn idx(&self, name: &str) -> usize {
         self.index[name]
     }
@@ -49,6 +52,12 @@ impl<T: Named> NameVec<T> {
     }
     pub fn iter_mut(&mut self) -> IterMut<T> {
         self.into_iter()
+    }
+}
+
+impl<T: Named> Default for NameVec<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

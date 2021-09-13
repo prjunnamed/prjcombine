@@ -34,7 +34,7 @@ pub fn parse_pkgfile(f: &mut impl BufRead) -> Result<Vec<PkgPin>, Error> {
     let mut res: Vec<PkgPin> = Vec::new();
     for l in f.lines() {
         let l = l?;
-        if l.starts_with("#") { continue; }
+        if l.starts_with('#') { continue; }
         let l: Vec<_> = l.split_whitespace().collect();
 
         match l[..] {
@@ -162,12 +162,12 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Error> {
     cmd.stdout(Stdio::null());
     cmd.stderr(Stdio::null());
     cmd.arg("-v");
-    if query != "" {
+    if !query.is_empty() {
         cmd.arg(query);
     }
     let status = cmd.status()?;
     if !status.success() {
-        return Err(Error::ParseError(format!("non-zero partgen exit status")));
+        return Err(Error::ParseError("non-zero partgen exit status".to_string()));
     }
     let file = File::open(dir.path().join("partlist.xct"))?;
     let bufread = BufReader::new(file);
@@ -192,7 +192,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Error> {
             return Err(Error::ParseError(format!("does not start with part: {}", l)));
         }
         let mut part = words[1].to_lowercase();
-        if !part.starts_with("x") {
+        if !part.starts_with('x') {
             part = format!("xc{}", part);
         }
         let (device, package, family) = match split_partname(&part) {
@@ -202,7 +202,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Error> {
         let mut speedgrades: Vec<String> = Vec::new();
         while cont {
             let l = match lines.next() {
-                None => return Err(Error::ParseError(format!("part definition cut off"))),
+                None => return Err(Error::ParseError("part definition cut off".to_string())),
                 Some(l) => l?,
             };
             let mut sl: &str = &l;
@@ -213,8 +213,8 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Error> {
             }
             if let Some(x) = sl.strip_prefix("\tSPEEDGRADE=") {
                 let x: Vec<_> = x.split_whitespace().collect();
-                if x.len() == 0 {
-                    return Err(Error::ParseError(format!("empty speedgrade")));
+                if x.is_empty() {
+                    return Err(Error::ParseError("empty speedgrade".to_string()));
                 }
                 speedgrades.push(x[0].to_string());
             }
