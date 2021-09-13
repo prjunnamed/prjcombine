@@ -1,0 +1,10 @@
+[package]
+name = "prjcombine_toolchain"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+nix = "0.22"
+tempdir = "0.3"
+serde = "1.0"
+toml = "0.5"

@@ -1,0 +1,12 @@
+[package]
+name = "prjcombine_vivado_dump"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+prjcombine_xilinx_rawdump = { path = "../prjcombine_xilinx_rawdump" }
+prjcombine_toolchain = { path = "../prjcombine_toolchain" }
+simple-error = "0.2"
+indexmap = "1.7"
+rayon = "1.5"
+structopt = "0.3"
