@@ -6,6 +6,7 @@ use std::io::{self, Write};
 
 mod parser;
 
+#[derive(Debug)]
 pub struct Design {
     pub name: String,
     pub part: String,
@@ -15,6 +16,7 @@ pub struct Design {
     pub nets: Vec<Net>,
 }
 
+#[derive(Debug)]
 pub struct Instance {
     pub name: String,
     pub kind: String,
@@ -22,6 +24,7 @@ pub struct Instance {
     pub cfg: Config,
 }
 
+#[derive(Debug)]
 pub enum Placement {
     Placed { tile: String, site: String },
     Unplaced,
@@ -31,12 +34,7 @@ pub enum Placement {
 
 type Config = Vec<Vec<String>>;
 
-pub struct ConfigValue {
-    pub cell: String,
-    pub value: String,
-    pub secondary: Option<String>,
-}
-
+#[derive(Debug)]
 pub struct Net {
     pub name: String,
     pub typ: NetType,
@@ -46,17 +44,20 @@ pub struct Net {
     pub cfg: Config,
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum NetType {
     Plain,
     Gnd,
     Vcc,
 }
 
+#[derive(Debug)]
 pub struct NetPin {
     pub inst_name: String,
     pub pin: String,
 }
 
+#[derive(Debug)]
 pub struct NetPip {
     pub tile: String,
     pub wire_from: String,
@@ -64,6 +65,7 @@ pub struct NetPip {
     pub dir: PipDirection,
 }
 
+#[derive(Debug)]
 pub enum PipDirection {
     Unbuf,
     BiUniBuf,
@@ -237,5 +239,106 @@ impl Design {
 
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         parser::parse(s)
+    }
+}
+
+pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
+    let rval = match sz {
+        4 => val.strip_prefix("D=")?,
+        5 => val.strip_prefix("O5=")?,
+        6 => val.strip_prefix("O6=")?,
+        _ => panic!("invalid sz"),
+    };
+    let mask = match sz {
+        4 => 0xffff,
+        5 => 0xffffffff,
+        6 => 0xffffffffffffffff,
+        _ => panic!("invalid sz"),
+    };
+    if rval.starts_with("0x") {
+        u64::from_str_radix(&rval[2..], 16).ok()
+    } else {
+        #[derive(Eq, PartialEq, Copy, Clone, Debug)]
+        enum StackEntry {
+            Val(u64),
+            And,
+            Or,
+            Xor,
+            Not,
+            Par,
+        }
+        let mut stack = Vec::new();
+        let mut ch = rval.chars();
+        loop {
+            let c = ch.next();
+            while let &[.., StackEntry::Not, StackEntry::Val(v)] = &stack[..] {
+                stack.pop();
+                stack.pop();
+                stack.push(StackEntry::Val(!v));
+            }
+            while let &[.., StackEntry::Val(v1), StackEntry::And, StackEntry::Val(v2)] = &stack[..] {
+                stack.pop();
+                stack.pop();
+                stack.pop();
+                stack.push(StackEntry::Val(v1 & v2));
+            }
+            if c == Some('*') {
+                stack.push(StackEntry::And);
+                continue;
+            }
+            while let &[.., StackEntry::Val(v1), StackEntry::Xor, StackEntry::Val(v2)] = &stack[..] {
+                stack.pop();
+                stack.pop();
+                stack.pop();
+                stack.push(StackEntry::Val(v1 ^ v2));
+            }
+            if c == Some('@') {
+                stack.push(StackEntry::Xor);
+                continue;
+            }
+            while let &[.., StackEntry::Val(v1), StackEntry::Or, StackEntry::Val(v2)] = &stack[..] {
+                stack.pop();
+                stack.pop();
+                stack.pop();
+                stack.push(StackEntry::Val(v1 | v2));
+            }
+            if c == None {
+                break;
+            }
+            match c.unwrap() {
+                '(' => stack.push(StackEntry::Par),
+                '0' => stack.push(StackEntry::Val(0)),
+                '1' => stack.push(StackEntry::Val(0xffffffffffffffff)),
+                'A' => {
+                    stack.push(StackEntry::Val(match ch.next()? {
+                        '1' => 0xaaaaaaaaaaaaaaaa,
+                        '2' => 0xcccccccccccccccc,
+                        '3' => 0xf0f0f0f0f0f0f0f0,
+                        '4' => 0xff00ff00ff00ff00,
+                        '5' => 0xffff0000ffff0000,
+                        '6' => 0xffffffff00000000,
+                        _ => return None,
+                    }));
+                }
+                '+' => stack.push(StackEntry::Or),
+                '~' => stack.push(StackEntry::Not),
+                ')' => {
+                    if let &[.., StackEntry::Par, StackEntry::Val(v)] = &stack[..] {
+                        stack.pop();
+                        stack.pop();
+                        stack.push(StackEntry::Val(v));
+                    } else {
+                        return None;
+                    }
+                },
+                _ => return None,
+            }
+        }
+        if stack.len() == 1 {
+            if let StackEntry::Val(r) = stack[0] {
+                return Some(r & mask);
+            }
+        }
+        None
     }
 }

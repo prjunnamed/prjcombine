@@ -5,7 +5,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::process::Stdio;
-use tempdir::TempDir;
+use tempfile;
 
 #[derive(Debug)]
 pub struct PartgenPkg {
@@ -187,7 +187,9 @@ mod tests {
 }
 
 pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn Error>> {
-    let dir = TempDir::new("partgen-pkg")?;
+    let dir = tempfile::Builder::new()
+        .prefix("prjcombine_ise_dump_partgen")
+        .tempdir()?;
     let mut cmd = tc.command("partgen");
     cmd.current_dir(dir.path().as_os_str());
     cmd.stdin(Stdio::null());

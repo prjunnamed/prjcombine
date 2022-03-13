@@ -7,4 +7,5 @@ members = [
 	"prjcombine_vivado_dump",
 	"prjcombine_xilinx_rd2geom",
 	"prjcombine_xdl",
+	"prjcombine_v2xdl_verify",
 ]
