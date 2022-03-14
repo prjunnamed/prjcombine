@@ -824,21 +824,21 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     }
                     TgtConfigVal::Lut(n, v) => {
                         if c[2] != "#LUT" || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
-                            println!("mismatched val {c:?} {n} {v:x}");
+                            println!("mismatched val {c:?} {n} LUT {v:x}");
                             ok = false;
                             continue;
                         }
                     }
                     TgtConfigVal::Rom(n, v) => {
                         if c[2] != "#ROM" || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
-                            println!("mismatched val {c:?} {n} {v:x}");
+                            println!("mismatched val {c:?} {n} ROM {v:x}");
                             ok = false;
                             continue;
                         }
                     }
                     TgtConfigVal::Ram(n, v) => {
                         if c[2] != "#RAM" || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
-                            println!("mismatched val {c:?} {n} {v:x}");
+                            println!("mismatched val {c:?} {n} RAM {v:x}");
                             ok = false;
                             continue;
                         }

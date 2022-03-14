@@ -53,6 +53,9 @@ impl SrcInst {
     pub fn param_bits(&mut self, name: &str, val: &[BitVal]) {
         self.param(name, ParamVal::Bits(val.to_vec()));
     }
+    pub fn param_str(&mut self, name: &str, val: &str) {
+        self.param(name, ParamVal::String(val.to_string()));
+    }
 }
 
 #[derive(Clone, Debug)]

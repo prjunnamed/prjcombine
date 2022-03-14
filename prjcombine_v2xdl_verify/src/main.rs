@@ -6,11 +6,12 @@ use std::io::Write;
 use rayon::prelude::*;
 
 mod types;
-mod clb_lut4;
-mod clb_lut6;
 mod run;
 mod verilog;
 mod verify;
+mod clb_lut4;
+mod clb_lut6;
+mod ramb;
 
 use types::{TestGenCtx, Test};
 
@@ -37,6 +38,7 @@ fn get_virtex_tests(family: &str) -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex, &mut test);
         res.push(test);
     }
     res
@@ -53,6 +55,7 @@ fn get_virtex2_tests(family: &str) -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex2, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex2, &mut test);
         res.push(test);
     }
     res
@@ -61,16 +64,17 @@ fn get_virtex2_tests(family: &str) -> Vec<Test> {
 fn get_spartan3_tests(family: &str) -> Vec<Test> {
     let mut res = Vec::new();
     let mut ctx = TestGenCtx::new();
-    let part = match family {
-        "spartan3" => "xc3s2000-4-fg900",
-        "spartan3e" => "xc3s1600e-4-fg484",
-        "spartan3a" => "xc3s1400a-4-fg676",
-        "spartan3adsp" => "xc3sd1800a-4-fg676",
+    let (part, ramb_mode) = match family {
+        "spartan3" => ("xc3s2000-4-fg900", ramb::Mode::Virtex2),
+        "spartan3e" => ("xc3s1600e-4-fg484", ramb::Mode::Virtex2),
+        "spartan3a" => ("xc3s1400a-4-fg676", ramb::Mode::Spartan3A),
+        "spartan3adsp" => ("xc3sd1800a-4-fg676", ramb::Mode::Spartan3ADsp),
         _ => unreachable!(),
     };
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Spartan3, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb_mode, &mut test);
         res.push(test);
     }
     res
@@ -83,6 +87,7 @@ fn get_virtex4_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex4, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex4, &mut test);
         res.push(test);
     }
     res
@@ -95,6 +100,7 @@ fn get_virtex5_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Virtex5, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex5, &mut test);
         res.push(test);
     }
     res
@@ -107,6 +113,7 @@ fn get_virtex6_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Virtex6, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex6, &mut test);
         res.push(test);
     }
     res
@@ -119,6 +126,7 @@ fn get_spartan6_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Spartan6, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Spartan6, &mut test);
         res.push(test);
     }
     res
@@ -131,6 +139,7 @@ fn get_7series_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Series7, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Series7, &mut test);
         res.push(test);
     }
     res
@@ -158,7 +167,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             "7series" => get_7series_tests(),
             _ => panic!("unknown family {}", family),
         };
-        //for t in tests {
         tests.par_iter().for_each(|t| {
             let tn = &t.name;
             println!("Testing {family} {tn}...");

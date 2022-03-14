@@ -35,11 +35,11 @@ pub fn run(tc: &Toolchain, part: &str, vlog: &str) -> Result<Design, Box<dyn std
     let mut cmd = tc.command("ngdbuild");
     cmd.current_dir(dir.path().as_os_str());
     cmd.stdin(Stdio::null());
-    cmd.stdout(Stdio::null());
-    cmd.stderr(Stdio::null());
     cmd.arg("t");
-    let status = cmd.status()?;
-    if !status.success() {
+    let status = cmd.output()?;
+    if !status.status.success() {
+        let _ = std::io::stderr().write_all(&status.stdout);
+        let _ = std::io::stderr().write_all(&status.stderr);
         bail!("non-zero ngdbuild status");
     }
 
