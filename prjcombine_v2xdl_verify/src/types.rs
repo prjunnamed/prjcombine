@@ -56,6 +56,9 @@ impl SrcInst {
     pub fn param_str(&mut self, name: &str, val: &str) {
         self.param(name, ParamVal::String(val.to_string()));
     }
+    pub fn param_int(&mut self, name: &str, val: i32) {
+        self.param(name, ParamVal::Int(val));
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -112,11 +115,19 @@ impl TgtInst {
     pub fn pin_in(&mut self, name: &str, net: &str) {
         self.pins.push((name.to_string(), net.to_string(), TgtPinDir::Input));
     }
+    pub fn pin_in_inv(&mut self, name: &str, net: &str, inv: bool) {
+        self.pin_in(name, net);
+        self.cfg(&format!("{name}INV"), &if inv {format!("{name}_B")} else {format!("{name}")});
+    }
     pub fn pin_out(&mut self, name: &str, net: &str) {
         self.pins.push((name.to_string(), net.to_string(), TgtPinDir::Output));
     }
     pub fn pin_tie(&mut self, name: &str, val: bool) {
         self.pin_ties.push((name.to_string(), val));
+    }
+    pub fn pin_tie_inv(&mut self, name: &str, val: bool, inv: bool) {
+        self.pin_tie(name, val);
+        self.cfg(&format!("{name}INV"), &if inv {format!("{name}_B")} else {format!("{name}")});
     }
     pub fn pin_dumout(&mut self, name: &str) {
         self.pin_dumout.push(name.to_string());

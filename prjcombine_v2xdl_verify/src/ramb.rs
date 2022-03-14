@@ -181,11 +181,9 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         ti.cfg("WRITE_MODE_B", wmode_b);
         ti.cfg("DOA_REG", "0");
         ti.cfg("DOB_REG", "0");
-        ti.cfg("REGCEAINV", "REGCEA");
-        ti.pin_tie("REGCEA", false);
+        ti.pin_tie_inv("REGCEA", false, false);
         if dp {
-            ti.cfg("REGCEBINV", "REGCEB");
-            ti.pin_tie("REGCEB", false);
+            ti.pin_tie_inv("REGCEB", false, false);
         }
     } else if mode == Mode::Virtex5 {
         if is_36 {
@@ -235,21 +233,15 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 ti.pin_tie(&format!("REGCEB{ul}"), false);
             }
             if is_36 {
-                ti.pin_tie(&format!("REGCLKA{ul}"), true);
-                ti.pin_tie(&format!("REGCLKB{ul}"), true);
-                ti.cfg(&format!("REGCLKA{ul}INV"), &format!("REGCLKA{ul}_B"));
-                ti.cfg(&format!("REGCLKB{ul}INV"), &format!("REGCLKB{ul}_B"));
+                ti.pin_tie_inv(&format!("REGCLKA{ul}"), true, true);
+                ti.pin_tie_inv(&format!("REGCLKB{ul}"), true, true);
             }
             if !dp {
-                ti.pin_tie(&format!("CLKB{ul}"), true);
-                ti.pin_tie(&format!("ENB{ul}"), true);
-                ti.pin_tie(&format!("SSRB{ul}"), true);
-                ti.cfg(&format!("CLKB{ul}INV"), &format!("CLKB{ul}_B"));
-                ti.cfg(&format!("ENB{ul}INV"), &format!("ENB{ul}_B"));
-                ti.cfg(&format!("SSRB{ul}INV"), &format!("SSRB{ul}_B"));
+                ti.pin_tie_inv(&format!("CLKB{ul}"), true, true);
+                ti.pin_tie_inv(&format!("ENB{ul}"), true, true);
+                ti.pin_tie_inv(&format!("SSRB{ul}"), true, true);
                 if !is_36 {
-                    ti.pin_tie(&format!("REGCLKB{ul}"), true);
-                    ti.cfg(&format!("REGCLKB{ul}INV"), &format!("REGCLKB{ul}_B"));
+                    ti.pin_tie_inv(&format!("REGCLKB{ul}"), true, true);
                 }
                 for i in 0..8 {
                     ti.pin_tie(&format!("WEB{ul}{i}"), false);
@@ -304,26 +296,18 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         for &ul in &uls {
             ti.pin_tie(&format!("REGCEAREGCE{ul}"), false);
             ti.pin_tie(&format!("REGCEB{ul}"), false);
-            ti.pin_tie(&format!("RSTREGARSTREG{ul}"), true);
-            ti.pin_tie(&format!("RSTREGB{ul}"), true);
-            ti.pin_tie(&format!("REGCLKARDRCLK{ul}"), true);
-            ti.cfg(&format!("RSTREGARSTREG{ul}INV"), &format!("RSTREGARSTREG{ul}_B"));
-            ti.cfg(&format!("RSTREGB{ul}INV"), &format!("RSTREGB{ul}_B"));
-            ti.cfg(&format!("REGCLKARDRCLK{ul}INV"), &format!("REGCLKARDRCLK{ul}_B"));
+            ti.pin_tie_inv(&format!("RSTREGARSTREG{ul}"), true, true);
+            ti.pin_tie_inv(&format!("RSTREGB{ul}"), true, true);
+            ti.pin_tie_inv(&format!("REGCLKARDRCLK{ul}"), true, true);
             if is_36 {
-                ti.pin_tie(&format!("REGCLKB{ul}"), false);
-                ti.cfg(&format!("REGCLKB{ul}INV"), &format!("REGCLKB{ul}"));
+                ti.pin_tie_inv(&format!("REGCLKB{ul}"), false, false);
             } else {
-                ti.pin_tie(&format!("REGCLKB{ul}"), true);
-                ti.cfg(&format!("REGCLKB{ul}INV"), &format!("REGCLKB{ul}_B"));
+                ti.pin_tie_inv(&format!("REGCLKB{ul}"), true, true);
             }
             if !dp {
-                ti.pin_tie(&format!("CLKBWRCLK{ul}"), true);
-                ti.pin_tie(&format!("ENBWREN{ul}"), true);
-                ti.pin_tie(&format!("RSTRAMB{ul}"), true);
-                ti.cfg(&format!("CLKBWRCLK{ul}INV"), &format!("CLKBWRCLK{ul}_B"));
-                ti.cfg(&format!("ENBWREN{ul}INV"), &format!("ENBWREN{ul}_B"));
-                ti.cfg(&format!("RSTRAMB{ul}INV"), &format!("RSTRAMB{ul}_B"));
+                ti.pin_tie_inv(&format!("CLKBWRCLK{ul}"), true, true);
+                ti.pin_tie_inv(&format!("ENBWREN{ul}"), true, true);
+                ti.pin_tie_inv(&format!("RSTRAMB{ul}"), true, true);
                 for i in 0..14 {
                     ti.pin_tie(&format!("ADDRBWRADDR{ul}{i}"), true);
                 }
@@ -523,7 +507,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             for i in wlog2..top {
                 let hwi;
                 if mode == Mode::Spartan6 && (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
-                    // ISE bug? should also swizzle for wlog2 == 5?
+                    // TODO: wtf
                     hwi = match i {
                         0..=3 => i,
                         4 => 13,
@@ -619,22 +603,16 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             inst.connect(&format!("WE{vl}"), &we);
             for ul in &uls {
                 if xl == "A" {
-                    ti.pin_in(&format!("CLKARDCLK{ul}"), &clk_x);
-                    ti.pin_in(&format!("ENARDEN{ul}"), &en_x);
-                    ti.pin_in(&format!("RSTRAMARSTRAM{ul}"), &rst_x);
-                    ti.cfg(&format!("CLKARDCLK{ul}INV"), &if clk_inv {format!("CLKARDCLK{ul}_B")} else {format!("CLKARDCLK{ul}")});
-                    ti.cfg(&format!("ENARDEN{ul}INV"), &if en_inv {format!("ENARDEN{ul}_B")} else {format!("ENARDEN{ul}")});
-                    ti.cfg(&format!("RSTRAMARSTRAM{ul}INV"), &if rst_inv {format!("RSTRAMARSTRAM{ul}_B")} else {format!("RSTRAMARSTRAM{ul}")});
+                    ti.pin_in_inv(&format!("CLKARDCLK{ul}"), &clk_x, clk_inv);
+                    ti.pin_in_inv(&format!("ENARDEN{ul}"), &en_x, en_inv);
+                    ti.pin_in_inv(&format!("RSTRAMARSTRAM{ul}"), &rst_x, rst_inv);
                     for i in 0..4 {
                         ti.pin_in(&format!("WEA{ul}{i}"), &we);
                     }
                 } else {
-                    ti.pin_in(&format!("CLKBWRCLK{ul}"), &clk_x);
-                    ti.pin_in(&format!("ENBWREN{ul}"), &en_x);
-                    ti.pin_in(&format!("RSTRAMB{ul}"), &rst_x);
-                    ti.cfg(&format!("CLKBWRCLK{ul}INV"), &if clk_inv {format!("CLKBWRCLK{ul}_B")} else {format!("CLKBWRCLK{ul}")});
-                    ti.cfg(&format!("ENBWREN{ul}INV"), &if en_inv {format!("ENBWREN{ul}_B")} else {format!("ENBWREN{ul}")});
-                    ti.cfg(&format!("RSTRAMB{ul}INV"), &if rst_inv {format!("RSTRAMB{ul}_B")} else {format!("RSTRAMB{ul}")});
+                    ti.pin_in_inv(&format!("CLKBWRCLK{ul}"), &clk_x, clk_inv);
+                    ti.pin_in_inv(&format!("ENBWREN{ul}"), &en_x, en_inv);
+                    ti.pin_in_inv(&format!("RSTRAMB{ul}"), &rst_x, rst_inv);
                     for i in 0..4 {
                         ti.pin_in(&format!("WEBWE{ul}{i}"), &we);
                     }
@@ -644,37 +622,31 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             let we = test.make_in(ctx);
             inst.connect(&format!("WE{vl}"), &we);
             for ul in &uls {
-                ti.pin_in(&format!("CLK{xl}{ul}"), &clk_x);
-                ti.pin_in(&format!("EN{xl}{ul}"), &en_x);
-                ti.pin_in(&format!("SSR{xl}{ul}"), &rst_x);
-                ti.cfg(&format!("CLK{xl}{ul}INV"), &if clk_inv {format!("CLK{xl}{ul}_B")} else {format!("CLK{xl}{ul}")});
-                ti.cfg(&format!("EN{xl}{ul}INV"), &if en_inv {format!("EN{xl}{ul}_B")} else {format!("EN{xl}{ul}")});
-                ti.cfg(&format!("SSR{xl}{ul}INV"), &if rst_inv {format!("SSR{xl}{ul}_B")} else {format!("SSR{xl}{ul}")});
+                ti.pin_in_inv(&format!("CLK{xl}{ul}"), &clk_x, clk_inv);
+                ti.pin_in_inv(&format!("EN{xl}{ul}"), &en_x, en_inv);
+                ti.pin_in_inv(&format!("SSR{xl}{ul}"), &rst_x, rst_inv);
                 if !is_36 {
-                    ti.pin_in(&format!("REGCLK{xl}{ul}"), &clk_x);
-                    ti.cfg(&format!("REGCLK{xl}{ul}INV"), &if clk_inv {format!("REGCLK{xl}{ul}_B")} else {format!("REGCLK{xl}{ul}")});
+                    ti.pin_in_inv(&format!("REGCLK{xl}{ul}"), &clk_x, clk_inv);
                 }
                 for i in 0..4 {
                     ti.pin_in(&format!("WE{xl}{ul}{i}"), &we);
                 }
             }
         } else {
-            ti.pin_in(&format!("CLK{xl}"), &clk_x);
-            ti.pin_in(&format!("EN{xl}"), &en_x);
             if mode == Mode::Virtex {
+                ti.pin_in(&format!("CLK{xl}"), &clk_x);
+                ti.pin_in(&format!("EN{xl}"), &en_x);
+                ti.pin_in(&format!("RST{xl}"), &rst_x);
                 ti.cfg(&format!("CLK{xl}MUX"), if clk_inv {"0"} else {"1"});
                 ti.cfg(&format!("EN{xl}MUX"), &if en_inv {format!("EN{xl}_B")} else {format!("EN{xl}")});
                 ti.cfg(&format!("RST{xl}MUX"), &if rst_inv {format!("RST{xl}_B")} else {format!("RST{xl}")});
-                ti.pin_in(&format!("RST{xl}"), &rst_x);
             } else {
-                ti.cfg(&format!("CLK{xl}INV"), &if clk_inv {format!("CLK{xl}_B")} else {format!("CLK{xl}")});
-                ti.cfg(&format!("EN{xl}INV"), &if en_inv {format!("EN{xl}_B")} else {format!("EN{xl}")});
+                ti.pin_in_inv(&format!("CLK{xl}"), &clk_x, clk_inv);
+                ti.pin_in_inv(&format!("EN{xl}"), &en_x, en_inv);
                 if matches!(mode, Mode::Spartan3ADsp | Mode::Spartan6) {
-                    ti.cfg(&format!("RST{xl}INV"), &if rst_inv {format!("RST{xl}_B")} else {format!("RST{xl}")});
-                    ti.pin_in(&format!("RST{xl}"), &rst_x);
+                    ti.pin_in_inv(&format!("RST{xl}"), &rst_x, rst_inv);
                 } else {
-                    ti.cfg(&format!("SSR{xl}INV"), &if rst_inv {format!("SSR{xl}_B")} else {format!("SSR{xl}")});
-                    ti.pin_in(&format!("SSR{xl}"), &rst_x);
+                    ti.pin_in_inv(&format!("SSR{xl}"), &rst_x, rst_inv);
                 }
             }
             if !bwe {
@@ -684,12 +656,10 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                     ti.cfg(&format!("WE{xl}MUX"), &if we_inv {format!("WE{xl}_B")} else {format!("WE{xl}")});
                     ti.pin_in(&format!("WE{xl}"), &we_x);
                 } else if mode == Mode::Virtex2 {
-                    ti.cfg(&format!("WE{xl}INV"), &if we_inv {format!("WE{xl}_B")} else {format!("WE{xl}")});
-                    ti.pin_in(&format!("WE{xl}"), &we_x);
+                    ti.pin_in_inv(&format!("WE{xl}"), &we_x, we_inv);
                 } else {
                     for i in 0..4 {
-                        ti.cfg(&format!("WE{xl}{i}INV"), &if we_inv {format!("WE{xl}{i}_B")} else {format!("WE{xl}{i}")});
-                        ti.pin_in(&format!("WE{xl}{i}"), &we_x);
+                        ti.pin_in_inv(&format!("WE{xl}{i}"), &we_x, we_inv);
                     }
                 }
             } else {
@@ -699,8 +669,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                     we.push(we_v);
                     for j in 0..(1 << 5 - wlog2) {
                         let ii = i + j * (1 << wlog2 - 3);
-                        ti.cfg(&format!("WE{xl}{ii}INV"), &if we_inv {format!("WE{xl}{ii}_B")} else {format!("WE{xl}{ii}")});
-                        ti.pin_in(&format!("WE{xl}{ii}"), &we_x);
+                        ti.pin_in_inv(&format!("WE{xl}{ii}"), &we_x, we_inv);
                     }
                 }
                 inst.connect_bus(&format!("WE{vl}"), &we);
@@ -752,8 +721,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
     if matches!(mode, Mode::Spartan3A | Mode::Spartan3ADsp | Mode::Spartan6) && !dp {
         if mode != Mode::Spartan6 {
             for i in 0..4 {
-                ti.cfg(&format!("WEB{i}INV"), &format!("WEB{i}_B"));
-                ti.pin_tie(&format!("WEB{i}"), true);
+                ti.pin_tie_inv(&format!("WEB{i}"), true, true);
             }
         }
     }
@@ -771,6 +739,549 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
     test.tgt_insts.push(ti);
 }
 
+fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp: bool) {
+    let prim = format!("RAMB{sz}BWER");
+    let mut inst = SrcInst::new(ctx, &prim);
+    let mut ti = TgtInst::new(&[&prim]);
+
+    let (use_a, use_b) = if sdp {
+        (true, true)
+    } else {
+        match ctx.rng.gen_range(0..3) {
+            0 => (true, true),
+            1 => (false, true),
+            2 => (true, false),
+            _ => unreachable!(),
+        }
+    };
+    let (mut awlog2, mut bwlog2);
+    if sdp {
+        awlog2 = 5;
+        bwlog2 = 5;
+    } else if sz == 8 {
+        awlog2 = ctx.rng.gen_range(0..5);
+        bwlog2 = ctx.rng.gen_range(0..5);
+    } else {
+        awlog2 = ctx.rng.gen_range(0..6);
+        bwlog2 = ctx.rng.gen_range(0..6);
+    }
+    if !use_a {
+        awlog2 = 0;
+    }
+    if !use_b {
+        bwlog2 = 0;
+    }
+    ti.bel(&prim, &inst.name, "");
+
+    if sz == 8 {
+        inst.param_str("RAM_MODE", if sdp {"SDP"} else {"TDP"});
+    }
+    if mode == Mode::Spartan6 {
+        ti.cfg("RAM_MODE", if sdp {"SDP"} else {"TDP"});
+    }
+
+    if sz == 16 {
+        for i in 0..64 {
+            let init = ctx.gen_bits(256);
+            inst.param_bits(&format!("INIT_{i:02X}"), &init);
+            ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+        }
+        for i in 0..8 {
+            let init = ctx.gen_bits(256);
+            inst.param_bits(&format!("INITP_{i:02X}"), &init);
+            ti.cfg(&format!("INITP_{i:02X}"), &fmt_hex(&init));
+        }
+    } else {
+        for i in 0..32 {
+            let init = ctx.gen_bits(256);
+            inst.param_bits(&format!("INIT_{i:02X}"), &init);
+            ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+        }
+        for i in 0..4 {
+            let init = ctx.gen_bits(256);
+            inst.param_bits(&format!("INITP_{i:02X}"), &init);
+            ti.cfg(&format!("INITP_{i:02X}"), &fmt_hex(&init));
+        }
+    }
+
+    let rsttype = if ctx.rng.gen() {"ASYNC"} else {"SYNC"};
+    inst.param_str("RSTTYPE", rsttype);
+    ti.cfg("RSTTYPE", rsttype);
+
+    for (a, use_, wlog2) in [('A', use_a, awlog2), ('B', use_b, bwlog2)] {
+        if use_ {
+            inst.param_int(&format!("DATA_WIDTH_{a}"), [1, 2, 4, 9, 18, 36][wlog2]);
+            ti.cfg(&format!("DATA_WIDTH_{a}"), ["1", "2", "4", "9", "18", "36"][wlog2]);
+        } else {
+            inst.param_int(&format!("DATA_WIDTH_{a}"), 0);
+            ti.cfg(&format!("DATA_WIDTH_{a}"), "0");
+        }
+
+        let do_reg = ctx.rng.gen_range(0..2);
+        inst.param_int(&format!("DO{a}_REG"), do_reg);
+        ti.cfg(&format!("DO{a}_REG"), &format!("{}", do_reg));
+        let wrmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"].choose(&mut ctx.rng).unwrap();
+        inst.param_str(&format!("WRITE_MODE_{a}"), wrmode);
+        ti.cfg(&format!("WRITE_MODE_{a}"), wrmode);
+
+        let addr = test.make_ins(ctx, if sz == 16 { 14 } else { 13 });
+        if sz == 16 {
+            inst.connect_bus(&format!("ADDR{a}"), &addr);
+        } else if a == 'A' {
+            inst.connect_bus("ADDRAWRADDR", &addr);
+        } else {
+            inst.connect_bus("ADDRBRDADDR", &addr);
+        }
+        let di = test.make_ins(ctx, if sz == 16 { 32 } else { 16 });
+        let dip = test.make_ins(ctx, if sz == 16 { 4 } else { 2 });
+        let do_ = test.make_outs(ctx, if sz == 16 { 32 } else { 16 });
+        let dop = test.make_outs(ctx, if sz == 16 { 4 } else { 2 });
+        if sz == 16 {
+            inst.connect_bus(&format!("DI{a}"), &di);
+            inst.connect_bus(&format!("DIP{a}"), &dip);
+            inst.connect_bus(&format!("DO{a}"), &do_);
+            inst.connect_bus(&format!("DOP{a}"), &dop);
+        } else {
+            inst.connect_bus(&format!("DI{a}DI"), &di);
+            inst.connect_bus(&format!("DIP{a}DIP"), &dip);
+            inst.connect_bus(&format!("DO{a}DO"), &do_);
+            inst.connect_bus(&format!("DOP{a}DOP"), &dop);
+        }
+
+        let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
+        let (en_v, en_x, en_inv) = test.make_in_inv(ctx);
+        let (rst_v, rst_x, rst_inv) = test.make_in_inv(ctx);
+        let (regce_v, regce_x, regce_inv) = test.make_in_inv(ctx);
+        if sz == 16 {
+            inst.connect(&format!("CLK{a}"), &clk_v);
+            inst.connect(&format!("EN{a}"), &en_v);
+            inst.connect(&format!("RST{a}"), &rst_v);
+            inst.connect(&format!("REGCE{a}"), &regce_v);
+        } else if a == 'A' {
+            inst.connect("CLKAWRCLK", &clk_v);
+            inst.connect("ENAWREN", &en_v);
+            inst.connect("RSTA", &rst_v);
+            inst.connect("REGCEA", &regce_v);
+        } else {
+            inst.connect("CLKBRDCLK", &clk_v);
+            inst.connect("ENBRDEN", &en_v);
+            inst.connect("RSTBRST", &rst_v);
+            inst.connect("REGCEBREGCE", &regce_v);
+        }
+
+        let init = ctx.gen_bits(if sz == 16 {36} else {18});
+        let srval = ctx.gen_bits(if sz == 16 {36} else {18});
+        inst.param_bits(&format!("INIT_{a}"), &init);
+        inst.param_bits(&format!("SRVAL_{a}"), &srval);
+        ti.cfg(&format!("INIT_{a}"), &fmt_hex(&init));
+        ti.cfg(&format!("SRVAL_{a}"), &fmt_hex(&srval));
+
+        if mode == Mode::Spartan6 {
+            let en_rstram = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+            inst.param_str(&format!("EN_RSTRAM_{a}"), en_rstram);
+            ti.cfg(&format!("EN_RSTRAM_{a}"), en_rstram);
+            let rst_priority = if ctx.rng.gen() {"CE"} else {"SR"};
+            inst.param_str(&format!("RST_PRIORITY_{a}"), rst_priority);
+            ti.cfg(&format!("RST_PRIORITY_{a}"), rst_priority);
+        }
+
+        if use_ || mode == Mode::Spartan6 {
+            if mode == Mode::Spartan3ADsp {
+                for i in wlog2..14 {
+                    ti.pin_in(&format!("ADDR{a}{i}"), &addr[i]);
+                }
+                for i in 0..(1 << wlog2) {
+                    ti.pin_in(&format!("DI{a}{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{a}{i}"), &do_[i]);
+                }
+                if wlog2 >= 3 {
+                    for i in 0..(1 << wlog2 - 3) {
+                        ti.pin_in(&format!("DIP{a}{i}"), &dip[i]);
+                        ti.pin_out(&format!("DOP{a}{i}"), &dop[i]);
+                    }
+                }
+            } else if sz == 16 {
+                for i in 0..14 {
+                    let hwi;
+                    if (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
+                        // TODO: wtf
+                        hwi = match i {
+                            0..=3 => i,
+                            4 => 13,
+                            _ => i - 1,
+                        };
+                    } else {
+                        hwi = i;
+                    }
+                    ti.pin_in(&format!("ADDR{a}{hwi}"), &addr[i]);
+                }
+                for i in 0..32 {
+                    ti.pin_in(&format!("DI{a}{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{a}{i}"), &do_[i]);
+                }
+                for i in 0..4 {
+                    ti.pin_in(&format!("DIP{a}{i}"), &dip[i]);
+                    ti.pin_out(&format!("DOP{a}{i}"), &dop[i]);
+                }
+            } else {
+                for i in 0..13 {
+                    if a == 'A' {
+                        ti.pin_in(&format!("ADDRAWRADDR{i}"), &addr[i]);
+                    } else {
+                        ti.pin_in(&format!("ADDRBRDADDR{i}"), &addr[i]);
+                    }
+                }
+                for i in 0..16 {
+                    ti.pin_in(&format!("DI{a}DI{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{a}DO{i}"), &do_[i]);
+                }
+                for i in 0..2 {
+                    ti.pin_in(&format!("DIP{a}DIP{i}"), &dip[i]);
+                    ti.pin_out(&format!("DOP{a}DOP{i}"), &dop[i]);
+                }
+            }
+            if sz == 16 {
+                ti.pin_in_inv(&format!("CLK{a}"), &clk_x, clk_inv);
+                ti.pin_in_inv(&format!("EN{a}"), &en_x, en_inv);
+                ti.pin_in_inv(&format!("RST{a}"), &rst_x, rst_inv);
+                ti.pin_in_inv(&format!("REGCE{a}"), &regce_x, regce_inv);
+            } else if a == 'A' {
+                ti.pin_in_inv("CLKAWRCLK", &clk_x, clk_inv);
+                ti.pin_in_inv("ENAWREN", &en_x, en_inv);
+                ti.pin_in_inv("RSTA", &rst_x, rst_inv);
+                ti.pin_in_inv("REGCEA", &regce_x, regce_inv);
+            } else {
+                ti.pin_in_inv("CLKBRDCLK", &clk_x, clk_inv);
+                ti.pin_in_inv("ENBRDEN", &en_x, en_inv);
+                ti.pin_in_inv("RSTBRST", &rst_x, rst_inv);
+                ti.pin_in_inv("REGCEBREGCE", &regce_x, regce_inv);
+            }
+            let mut we = Vec::new();
+            for i in 0..(if sz == 16 {4} else {2}) {
+                let (we_v, we_x, we_inv) = test.make_in_inv(ctx);
+                we.push(we_v);
+                if sz == 16 {
+                    ti.pin_in_inv(&format!("WE{a}{i}"), &we_x, we_inv);
+                } else if a == 'A' {
+                    ti.pin_in_inv(&format!("WEAWEL{i}"), &we_x, we_inv);
+                } else {
+                    ti.pin_in_inv(&format!("WEBWEU{i}"), &we_x, we_inv);
+                }
+            }
+            if sz == 16 {
+                inst.connect_bus(&format!("WE{a}"), &we);
+            } else if a == 'A' {
+                inst.connect_bus("WEAWEL", &we);
+            } else {
+                inst.connect_bus("WEBWEU", &we);
+            }
+        } else {
+            for i in 0..4 {
+                ti.pin_tie_inv(&format!("WE{a}{i}"), true, true);
+            }
+        }
+    }
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
+fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "RAMB32_S64_ECC");
+
+    let do_reg = if mode == Mode::Virtex4 {
+        ctx.rng.gen_range(0..2)
+    } else {
+        0
+    };
+    inst.param_int("DO_REG", do_reg);
+
+    let di = test.make_ins(ctx, 64);
+    inst.connect_bus("DI", &di);
+    let do_ = test.make_outs(ctx, 64);
+    inst.connect_bus("DO", &do_);
+    let status = test.make_outs(ctx, 2);
+    inst.connect_bus("STATUS", &status);
+    let rdaddr = test.make_ins(ctx, 9);
+    inst.connect_bus("RDADDR", &rdaddr);
+    let wraddr = test.make_ins(ctx, 9);
+    inst.connect_bus("WRADDR", &wraddr);
+    let (rdclk_v, rdclk_x, rdclk_inv) = test.make_in_inv(ctx);
+    inst.connect("RDCLK", &rdclk_v);
+    let (wrclk_v, wrclk_x, wrclk_inv) = test.make_in_inv(ctx);
+    inst.connect("WRCLK", &wrclk_v);
+    let (rden_v, rden_x, rden_inv) = test.make_in_inv(ctx);
+    inst.connect("RDEN", &rden_v);
+    let (wren_v, wren_x, wren_inv) = test.make_in_inv(ctx);
+    inst.connect("WREN", &wren_v);
+
+    if mode == Mode::Virtex4 {
+        inst.connect("SSR", "0");
+        let mut tis = [
+            TgtInst::new(&["RAMB16"]),
+            TgtInst::new(&["RAMB16"]),
+        ];
+        tis[0].bel("RAMB16", &format!("{}/RAMB16_LOWER", inst.name), "");
+        tis[1].bel("RAMB16", &format!("{}/RAMB16_UPPER", inst.name), "");
+        for ti in &mut tis {
+            ti.cfg("INIT_A", "000000000");
+            ti.cfg("INIT_B", "000000000");
+            ti.cfg("SRVAL_A", "000000000");
+            ti.cfg("SRVAL_B", "000000000");
+            ti.cfg("DOA_REG", &format!("{do_reg}"));
+            ti.cfg("DOB_REG", "0");
+            ti.cfg("INVERT_CLK_DOA_REG", "FALSE");
+            ti.cfg("INVERT_CLK_DOB_REG", "FALSE");
+            ti.cfg("SAVEDATA", "FALSE");
+            ti.cfg("EN_ECC_READ", "TRUE");
+            ti.cfg("EN_ECC_WRITE", "TRUE");
+            ti.cfg("RAM_EXTENSION_A", "NONE");
+            ti.cfg("RAM_EXTENSION_B", "NONE");
+            ti.cfg("READ_WIDTH_A", "36");
+            ti.cfg("READ_WIDTH_B", "36");
+            ti.cfg("WRITE_WIDTH_A", "36");
+            ti.cfg("WRITE_WIDTH_B", "36");
+            ti.cfg("WRITE_MODE_A", "READ_FIRST");
+            ti.cfg("WRITE_MODE_B", "READ_FIRST");
+            for i in 0..64 {
+                ti.cfg(&format!("INIT_{i:02X}"), ZERO_INIT);
+            }
+            for i in 0..8 {
+                ti.cfg(&format!("INITP_{i:02X}"), ZERO_INIT);
+            }
+            ti.pin_in_inv("CLKA", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("CLKB", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("ENA", &rden_x, rden_inv);
+            ti.pin_in_inv("ENB", &wren_x, wren_inv);
+            ti.pin_tie_inv("WEA0", false, false);
+            ti.pin_tie_inv("WEA1", false, false);
+            ti.pin_tie_inv("WEA2", false, false);
+            ti.pin_tie_inv("WEA3", false, false);
+            ti.pin_tie_inv("WEB0", true, false);
+            ti.pin_tie_inv("WEB1", true, false);
+            ti.pin_tie_inv("WEB2", true, false);
+            ti.pin_tie_inv("WEB3", true, false);
+            ti.pin_tie_inv("REGCEA", true, false);
+            ti.pin_tie_inv("REGCEB", false, false);
+            ti.pin_tie_inv("SSRA", false, false);
+            ti.pin_tie_inv("SSRB", false, false);
+            for i in 0..9 {
+                ti.pin_in(&format!("ADDRA{}", i+5), &rdaddr[i]);
+                ti.pin_in(&format!("ADDRB{}", i+5), &wraddr[i]);
+            }
+            for i in 0..32 {
+                ti.pin_tie(&format!("DIA{}", i), false);
+            }
+            for i in 0..4 {
+                ti.pin_tie(&format!("DIPA{}", i), false);
+            }
+        }
+
+        for i in 0..32 {
+            match i {
+                14 => {
+                    tis[0].pin_in("DIPB1", &di[i]);
+                    tis[0].pin_out("DOPA1", &do_[i]);
+                }
+                15 => {
+                    tis[0].pin_in("DIPB3", &di[i]);
+                    tis[0].pin_out("DOPA3", &do_[i]);
+                }
+                30 => {
+                    tis[0].pin_in("DIPB0", &di[i]);
+                    tis[0].pin_out("DOPA0", &do_[i]);
+                }
+                31 => {
+                    tis[0].pin_in("DIPB2", &di[i]);
+                    tis[0].pin_out("DOPA2", &do_[i]);
+                }
+                _ => {
+                    tis[0].pin_in(&format!("DIB{i}"), &di[i]);
+                    tis[0].pin_out(&format!("DOA{i}"), &do_[i]);
+                }
+            }
+        }
+        for i in 0..32 {
+            match i {
+                0 => {
+                    tis[1].pin_in("DIPB0", &di[i + 32]);
+                    tis[1].pin_out("DOPA0", &do_[i + 32]);
+                }
+                1 => {
+                    tis[1].pin_in("DIPB2", &di[i + 32]);
+                    tis[1].pin_out("DOPA2", &do_[i + 32]);
+                }
+                16 => {
+                    tis[1].pin_in("DIPB1", &di[i + 32]);
+                    tis[1].pin_out("DOPA1", &do_[i + 32]);
+                }
+                17 => {
+                    tis[1].pin_in("DIPB3", &di[i + 32]);
+                    tis[1].pin_out("DOPA3", &do_[i + 32]);
+                }
+                _ => {
+                    tis[1].pin_in(&format!("DIB{i}"), &di[i + 32]);
+                    tis[1].pin_out(&format!("DOA{i}"), &do_[i + 32]);
+                }
+            }
+        }
+        tis[0].pin_tie("DIB14", false);
+        tis[0].pin_tie("DIB15", false);
+        tis[0].pin_tie("DIB30", false);
+        tis[0].pin_tie("DIB31", false);
+        tis[1].pin_tie("DIB0", false);
+        tis[1].pin_tie("DIB1", false);
+        tis[1].pin_tie("DIB16", false);
+        tis[1].pin_tie("DIB17", false);
+        tis[0].pin_out("DOA31", &status[0]);
+        tis[1].pin_out("DOA0", &status[1]);
+
+        for ti in tis {
+            test.tgt_insts.push(ti);
+        }
+    } else {
+        let (ssr_v, ssr_x, ssr_inv) = test.make_in_inv(ctx);
+        inst.connect("SSR", &ssr_v);
+        let mut ti = TgtInst::new(&[if mode == Mode::Virtex5 {"RAMB36SDP_EXP"} else {"RAMB36E1"}]);
+        for i in 0..128 {
+            ti.cfg(&format!("INIT_{i:02X}"), ZERO_INIT);
+        }
+        for i in 0..16 {
+            ti.cfg(&format!("INITP_{i:02X}"), ZERO_INIT);
+        }
+        if mode == Mode::Virtex5 {
+            ti.bel("RAMB36SDP_EXP", &inst.name, "");
+            ti.cfg("DO_REG", "1");
+            // what.
+            ti.cfg("EN_ECC_READ", "FALSE");
+            ti.cfg("EN_ECC_WRITE", "FALSE");
+            ti.cfg("EN_ECC_SCRUB", "FALSE");
+            ti.cfg("INIT", "000000000000000000");
+            ti.cfg("SRVAL", "000000000000000000");
+            ti.cfg("SAVEDATA", "FALSE");
+            ti.pin_in_inv("RDCLKL", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDCLKU", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDRCLKL", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDRCLKU", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("WRCLKL", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("WRCLKU", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("RDENL", &rden_x, rden_inv);
+            ti.pin_in_inv("RDENU", &rden_x, rden_inv);
+            ti.pin_in_inv("WRENL", &wren_x, wren_inv);
+            ti.pin_in_inv("WRENU", &wren_x, wren_inv);
+            ti.pin_in_inv("SSRL", &ssr_x, ssr_inv);
+            ti.pin_in_inv("SSRU", &ssr_x, ssr_inv);
+            ti.pin_tie("TIEOFFSSRBL", false);
+            ti.pin_tie("TIEOFFSSRBU", false);
+            for i in 0..4 {
+                ti.pin_tie(&format!("TIEOFFWEAL{i}"), false);
+                ti.pin_tie(&format!("TIEOFFWEAU{i}"), false);
+            }
+            for i in 0..8 {
+                ti.pin_tie(&format!("WEL{i}"), true);
+                ti.pin_tie(&format!("WEU{i}"), true);
+            }
+            for i in 0..9 {
+                ti.pin_in(&format!("RDADDRL{}", i+6), &rdaddr[i]);
+                ti.pin_in(&format!("RDADDRU{}", i+6), &rdaddr[i]);
+                ti.pin_in(&format!("WRADDRL{}", i+6), &wraddr[i]);
+                ti.pin_in(&format!("WRADDRU{}", i+6), &wraddr[i]);
+            }
+            ti.pin_tie("RDADDRL15", true);
+            ti.pin_tie("WRADDRL15", true);
+            ti.pin_tie("REGCEL", true);
+            ti.pin_tie("REGCEU", true);
+            for i in 0..64 {
+                ti.pin_in(&format!("DI{i}"), &di[i]);
+                ti.pin_out(&format!("DO{i}"), &do_[i]);
+            }
+            ti.pin_out("SBITERR", &status[0]);
+            ti.pin_out("DBITERR", &status[1]);
+        } else {
+            ti.bel("RAMB36E1", &inst.name, "");
+            ti.cfg("DOA_REG", "1");
+            ti.cfg("DOB_REG", "1");
+            ti.cfg("EN_ECC_READ", "FALSE");
+            ti.cfg("EN_ECC_WRITE", "FALSE");
+            ti.cfg("INIT_A", "000000000000000000");
+            ti.cfg("INIT_B", "000000000000000000");
+            ti.cfg("SRVAL_A", "000000000000000000");
+            ti.cfg("SRVAL_B", "000000000000000000");
+            ti.cfg("WRITE_MODE_A", "READ_FIRST");
+            ti.cfg("WRITE_MODE_B", "READ_FIRST");
+            ti.cfg("WRITE_WIDTH_A", "0");
+            ti.cfg("WRITE_WIDTH_B", "72");
+            ti.cfg("READ_WIDTH_A", "72");
+            ti.cfg("READ_WIDTH_B", "0");
+            ti.cfg("SAVEDATA", "FALSE");
+            ti.cfg("RAM_MODE", "SDP");
+            ti.cfg("RSTREG_PRIORITY_A", "REGCE");
+            ti.cfg("RSTREG_PRIORITY_B", "REGCE");
+            ti.cfg("RAM_EXTENSION_A", "NONE");
+            ti.cfg("RAM_EXTENSION_B", "NONE");
+            ti.cfg("RDADDR_COLLISION_HWCONFIG", "DELAYED_WRITE");
+            if mode == Mode::Series7 {
+                ti.cfg("EN_PWRGATE", "NONE");
+            }
+            ti.pin_tie("REGCEAREGCEL", true);
+            ti.pin_tie("REGCEAREGCEU", true);
+            ti.pin_tie("REGCEBL", true);
+            ti.pin_tie("REGCEBU", true);
+            ti.pin_in_inv("CLKARDCLKL", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("CLKARDCLKU", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("CLKBWRCLKL", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("CLKBWRCLKU", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("ENARDENL", &rden_x, rden_inv);
+            ti.pin_in_inv("ENARDENU", &rden_x, rden_inv);
+            ti.pin_in_inv("ENBWRENL", &wren_x, wren_inv);
+            ti.pin_in_inv("ENBWRENU", &wren_x, wren_inv);
+            ti.pin_in_inv("RSTREGARSTREGL", &ssr_x, ssr_inv);
+            ti.pin_in_inv("RSTREGARSTREGU", &ssr_x, ssr_inv);
+            ti.pin_tie_inv("RSTRAMARSTRAML", true, true);
+            ti.pin_tie_inv("RSTRAMARSTRAMU", true, true);
+            ti.pin_tie_inv("RSTRAMBL", true, true);
+            ti.pin_tie_inv("RSTRAMBU", true, true);
+            ti.pin_tie_inv("RSTREGBL", false, false);
+            ti.pin_tie_inv("RSTREGBU", false, false);
+            ti.pin_tie_inv("REGCLKARDRCLKL", true, true);
+            ti.pin_tie_inv("REGCLKARDRCLKU", true, true);
+            ti.pin_tie_inv("REGCLKBL", false, false);
+            ti.pin_tie_inv("REGCLKBU", false, false);
+            for i in 0..4 {
+                ti.pin_tie(&format!("WEAL{i}"), false);
+                ti.pin_tie(&format!("WEAU{i}"), false);
+            }
+            for i in 0..8 {
+                ti.pin_tie(&format!("WEBWEL{i}"), true);
+                ti.pin_tie(&format!("WEBWEU{i}"), true);
+            }
+            for i in 0..6 {
+                ti.pin_tie(&format!("ADDRARDADDRL{i}"), true);
+                ti.pin_tie(&format!("ADDRARDADDRU{i}"), true);
+                ti.pin_tie(&format!("ADDRBWRADDRL{i}"), true);
+                ti.pin_tie(&format!("ADDRBWRADDRU{i}"), true);
+            }
+            for i in 0..9 {
+                ti.pin_in(&format!("ADDRARDADDRL{}", i+6), &rdaddr[i]);
+                ti.pin_in(&format!("ADDRARDADDRU{}", i+6), &rdaddr[i]);
+                ti.pin_in(&format!("ADDRBWRADDRL{}", i+6), &wraddr[i]);
+                ti.pin_in(&format!("ADDRBWRADDRU{}", i+6), &wraddr[i]);
+            }
+            ti.pin_tie("ADDRARDADDRL15", true);
+            ti.pin_tie("ADDRBWRADDRL15", true);
+            for i in 0..32 {
+                ti.pin_in(&format!("DIADI{i}"), &di[i]);
+                ti.pin_in(&format!("DIBDI{i}"), &di[i+32]);
+                ti.pin_out(&format!("DOADO{i}"), &do_[i]);
+                ti.pin_out(&format!("DOBDO{i}"), &do_[i+32]);
+            }
+        }
+        test.tgt_insts.push(ti);
+    }
+
+    test.src_insts.push(inst);
+}
+
 pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
     for _ in 0..5 {
         if matches!(mode, Mode::Virtex | Mode::Virtex2 | Mode::Spartan3A | Mode::Spartan3ADsp) {
@@ -786,15 +1297,16 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
             }
         }
         if matches!(mode, Mode::Spartan3ADsp | Mode::Spartan6) {
-            // gen_ramb_bwer(test, ctx, mode, 16);
+            gen_ramb_bwer(test, ctx, mode, 16, false);
         }
         if mode == Mode::Spartan6 {
-            // gen_ramb_bwer(test, ctx, mode, 8);
+            gen_ramb_bwer(test, ctx, mode, 8, false);
+            gen_ramb_bwer(test, ctx, mode, 8, true);
         }
         if matches!(mode, Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
             // RAMB16
             // RAMB16 cascade pair
-            // RAMB32_S64_ECC
+            gen_ramb32_ecc(test, ctx, mode);
             // FIFO16
         }
         if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
