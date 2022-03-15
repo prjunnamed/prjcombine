@@ -179,8 +179,8 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         }
         ti.cfg("WRITE_MODE_A", wmode_a);
         ti.cfg("WRITE_MODE_B", wmode_b);
-        ti.cfg("DOA_REG", "0");
-        ti.cfg("DOB_REG", "0");
+        ti.cfg_int("DOA_REG", 0);
+        ti.cfg_int("DOB_REG", 0);
         ti.pin_tie_inv("REGCEA", false, false);
         if dp {
             ti.pin_tie_inv("REGCEB", false, false);
@@ -202,8 +202,8 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             }
             ti.cfg("WRITE_MODE_A", wmode_a);
             ti.cfg("WRITE_MODE_B", wmode_b);
-            ti.cfg("DOA_REG", "0");
-            ti.cfg("DOB_REG", "0");
+            ti.cfg_int("DOA_REG", 0);
+            ti.cfg_int("DOB_REG", 0);
         } else {
             if ul == "L" {
                 ti.bel("RAMB18X2_LOWER", &inst.name, "");
@@ -224,8 +224,8 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             }
             ti.cfg(&format!("WRITE_MODE_A_{ul}"), wmode_a);
             ti.cfg(&format!("WRITE_MODE_B_{ul}"), wmode_b);
-            ti.cfg(&format!("DOA_REG_{ul}"), "0");
-            ti.cfg(&format!("DOB_REG_{ul}"), "0");
+            ti.cfg_int(&format!("DOA_REG_{ul}"), 0);
+            ti.cfg_int(&format!("DOB_REG_{ul}"), 0);
         }
         for &ul in &uls {
             ti.pin_tie(&format!("REGCEA{ul}"), false);
@@ -284,8 +284,8 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         }
         ti.cfg("WRITE_MODE_A", wmode_a);
         ti.cfg("WRITE_MODE_B", wmode_b);
-        ti.cfg("DOA_REG", "0");
-        ti.cfg("DOB_REG", "0");
+        ti.cfg_int("DOA_REG", 0);
+        ti.cfg_int("DOB_REG", 0);
         ti.cfg("RAM_MODE", "TDP");
         ti.cfg("RDADDR_COLLISION_HWCONFIG", "DELAYED_WRITE");
         ti.cfg("RSTREG_PRIORITY_A", "REGCE");
@@ -349,8 +349,8 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         } else {
             ti.cfg("DATA_WIDTH_B", "0");
         }
-        ti.cfg("DOA_REG", "0");
-        ti.cfg("DOB_REG", "0");
+        ti.cfg_int("DOA_REG", 0);
+        ti.cfg_int("DOB_REG", 0);
         ti.cfg("RSTTYPE", "SYNC");
         ti.cfg("WRITE_MODE_A", wmode_a);
         ti.cfg("WRITE_MODE_B", wmode_b);
@@ -819,7 +819,7 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
 
         let do_reg = ctx.rng.gen_range(0..2);
         inst.param_int(&format!("DO{a}_REG"), do_reg);
-        ti.cfg(&format!("DO{a}_REG"), &format!("{}", do_reg));
+        ti.cfg_int(&format!("DO{a}_REG"), do_reg);
         let wrmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"].choose(&mut ctx.rng).unwrap();
         inst.param_str(&format!("WRITE_MODE_{a}"), wrmode);
         ti.cfg(&format!("WRITE_MODE_{a}"), wrmode);
@@ -1028,8 +1028,8 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("INIT_B", "000000000");
             ti.cfg("SRVAL_A", "000000000");
             ti.cfg("SRVAL_B", "000000000");
-            ti.cfg("DOA_REG", &format!("{do_reg}"));
-            ti.cfg("DOB_REG", "0");
+            ti.cfg_int("DOA_REG", do_reg);
+            ti.cfg_int("DOB_REG", 0);
             ti.cfg("INVERT_CLK_DOA_REG", "FALSE");
             ti.cfg("INVERT_CLK_DOB_REG", "FALSE");
             ti.cfg("SAVEDATA", "FALSE");
@@ -1151,7 +1151,7 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         }
         if mode == Mode::Virtex5 {
             ti.bel("RAMB36SDP_EXP", &inst.name, "");
-            ti.cfg("DO_REG", "1");
+            ti.cfg_int("DO_REG", 1);
             // what.
             ti.cfg("EN_ECC_READ", "FALSE");
             ti.cfg("EN_ECC_WRITE", "FALSE");
@@ -1199,8 +1199,8 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_out("DBITERR", &status[1]);
         } else {
             ti.bel("RAMB36E1", &inst.name, "");
-            ti.cfg("DOA_REG", "1");
-            ti.cfg("DOB_REG", "1");
+            ti.cfg_int("DOA_REG", 1);
+            ti.cfg_int("DOB_REG", 1);
             ti.cfg("EN_ECC_READ", "FALSE");
             ti.cfg("EN_ECC_WRITE", "FALSE");
             ti.cfg("INIT_A", "000000000000000000");
@@ -1370,10 +1370,10 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         if sz == 16 {
             if !is_sdp {
                 ti.bel("RAMBFIFO18_LOWER", &inst.name, "");
-                ti.cfg("DO_REG", &format!("{}", do_reg));
+                ti.cfg_int("DO_REG", do_reg);
             } else {
                 ti.bel("RAMBFIFO18_36_LOWER", &inst.name, "");
-                ti.cfg("DO_REG_L", &format!("{}", do_reg));
+                ti.cfg_int("DO_REG_L", do_reg);
                 ti.pin_tie("TIEOFFWEAL0", false);
                 ti.pin_tie("TIEOFFWEAL1", false);
                 ti.pin_tie("TIEOFFWEAL2", false);
@@ -1389,7 +1389,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
                 ti.cfg("EN_ECC_READ", en_ecc_read);
                 ti.cfg("EN_ECC_WRITE", en_ecc_write);
             }
-            ti.cfg("DO_REG", &format!("{}", do_reg));
+            ti.cfg_int("DO_REG", do_reg);
             ti.pin_tie("TIEOFFREGCEAL", true);
             ti.pin_tie("TIEOFFREGCEAU", true);
         }
@@ -1453,7 +1453,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
             }
         }
         ti.cfg("DATA_WIDTH", ["1", "2", "4", "9", "18", "36", "72"][wlog2]);
-        ti.cfg("DO_REG", &format!("{}", do_reg));
+        ti.cfg_int("DO_REG", do_reg);
         if mode == Mode::Series7 {
             ti.cfg("EN_PWRGATE", "NONE");
         } else {

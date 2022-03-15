@@ -97,6 +97,9 @@ impl TgtInst {
     pub fn cfg(&mut self, name: &str, val: &str) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
     }
+    pub fn cfg_int(&mut self, name: &str, val: i32) {
+        self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
+    }
     pub fn cond_cfg(&mut self, name: &str, val: &str, kind: &str) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), Some(kind.to_string())));
     }
