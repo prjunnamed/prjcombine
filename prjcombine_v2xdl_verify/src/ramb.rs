@@ -1282,6 +1282,572 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     test.src_insts.push(inst);
 }
 
+fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
+    let wlog2;
+    let is_sdp = ctx.rng.gen();
+    if sz == 16 {
+        if is_sdp {
+            wlog2 = 5;
+        } else {
+            wlog2 = ctx.rng.gen_range(2..5);
+        }
+    } else {
+        if is_sdp {
+            wlog2 = 6;
+        } else {
+            wlog2 = ctx.rng.gen_range(2..6);
+        }
+    }
+    let prim = match (pk, sz, is_sdp) {
+        (4, 16, _) => "FIFO16",
+        (5, 16, false) => "FIFO18",
+        (5, 16, true) => "FIFO18_36",
+        (5, 32, false) => "FIFO36",
+        (5, 32, true) => "FIFO36_72",
+        (6, 16, _) => "FIFO18E1",
+        (6, 32, _) => "FIFO36E1",
+        _ => unreachable!(),
+    };
+    let hwprim = match (mode, sz, is_sdp) {
+        (Mode::Virtex4, 16, _) => "FIFO16",
+        (Mode::Virtex5, 16, false) => "RAMBFIFO18",
+        (Mode::Virtex5, 16, true) => "RAMBFIFO18_36",
+        (Mode::Virtex5, 32, false) => "FIFO36_EXP",
+        (Mode::Virtex5, 32, true) => "FIFO36_72_EXP",
+        (Mode::Virtex6 | Mode::Series7, 16, _) => "FIFO18E1",
+        (Mode::Virtex6 | Mode::Series7, 32, _) => "FIFO36E1",
+        _ => unreachable!(),
+    };
+    let mut inst = SrcInst::new(ctx, &prim);
+    let mut ti = TgtInst::new(&[hwprim]);
+
+    if pk != 5 || !is_sdp {
+        inst.param_int("DATA_WIDTH", [1, 2, 4, 9, 18, 36, 72][wlog2]);
+    }
+    if pk == 6 {
+        if sz == 16 {
+            inst.param_str("FIFO_MODE", if is_sdp {"FIFO18_36"} else {"FIFO18"})
+        } else {
+            inst.param_str("FIFO_MODE", if is_sdp {"FIFO36_72"} else {"FIFO36"})
+        }
+    }
+
+    let en_ecc_read;
+    let en_ecc_write;
+    let en_syn;
+    let do_reg;
+    if pk != 4 && is_sdp && sz == 32 {
+        en_ecc_read = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+        en_ecc_write = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+        inst.param_str("EN_ECC_READ", en_ecc_read);
+        inst.param_str("EN_ECC_WRITE", en_ecc_write);
+    } else {
+        en_ecc_read = "FALSE";
+        en_ecc_write = "FALSE";
+    }
+    if pk != 4 {
+        en_syn = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+        do_reg = if en_syn == "FALSE" || ctx.rng.gen() {1} else {0};
+        inst.param_str("EN_SYN", en_syn);
+        inst.param_int("DO_REG", do_reg);
+    } else {
+        en_syn = "FALSE";
+        do_reg = 1;
+    }
+    if mode != Mode::Virtex4 {
+        ti.cfg("EN_SYN", en_syn);
+    }
+
+    if mode == Mode::Virtex4 {
+        ti.bel("FIFO16", &inst.name, "");
+        ti.cfg("DATA_WIDTH", ["1", "2", "4", "9", "18", "36", "72"][wlog2]);
+        ti.cfg("EN_ECC_READ", en_ecc_read);
+        ti.cfg("EN_ECC_WRITE", en_ecc_write);
+    } else if mode == Mode::Virtex5 {
+        if !is_sdp {
+            ti.cfg("DATA_WIDTH", ["1", "2", "4", "9", "18", "36", "72"][wlog2]);
+        }
+        if sz == 16 {
+            if !is_sdp {
+                ti.bel("RAMBFIFO18_LOWER", &inst.name, "");
+                ti.cfg("DO_REG", &format!("{}", do_reg));
+            } else {
+                ti.bel("RAMBFIFO18_36_LOWER", &inst.name, "");
+                ti.cfg("DO_REG_L", &format!("{}", do_reg));
+                ti.pin_tie("TIEOFFWEAL0", false);
+                ti.pin_tie("TIEOFFWEAL1", false);
+                ti.pin_tie("TIEOFFWEAL2", false);
+                ti.pin_tie("TIEOFFWEAL3", false);
+                ti.pin_tie("TIEOFFSSRBL", false);
+            }
+            ti.pin_tie("TIEOFFREGCEAL", true);
+        } else {
+            if !is_sdp {
+                ti.bel("FIFO36_EXP", &inst.name, "");
+            } else {
+                ti.bel("FIFO36_72_EXP", &inst.name, "");
+                ti.cfg("EN_ECC_READ", en_ecc_read);
+                ti.cfg("EN_ECC_WRITE", en_ecc_write);
+            }
+            ti.cfg("DO_REG", &format!("{}", do_reg));
+            ti.pin_tie("TIEOFFREGCEAL", true);
+            ti.pin_tie("TIEOFFREGCEAU", true);
+        }
+    } else {
+        if sz == 16 {
+            if pk == 5 {
+                ti.bel("FIFO18E1", &format!("{}/FIFO18E1", inst.name), "");
+            } else {
+                ti.bel("FIFO18E1", &inst.name, "");
+            }
+            if pk == 6 {
+                let init = ctx.gen_bits(36);
+                let srval = ctx.gen_bits(36);
+                inst.param_bits("INIT", &init);
+                inst.param_bits("SRVAL", &srval);
+                ti.cfg("INIT", &fmt_hex(&init));
+                ti.cfg("SRVAL", &fmt_hex(&srval));
+            } else {
+                ti.cfg("INIT", "000000000");
+                ti.cfg("SRVAL", "000000000");
+            }
+            if is_sdp {
+                ti.cfg("FIFO_MODE", "FIFO18_36");
+            } else {
+                ti.cfg("FIFO_MODE", "FIFO18");
+            }
+        } else {
+            if pk == 5 {
+                ti.bel("FIFO36E1", &format!("{}/FIFO36E1", inst.name), "");
+            } else {
+                ti.bel("FIFO36E1", &inst.name, "");
+            }
+            ti.cfg("EN_ECC_READ", en_ecc_read);
+            ti.cfg("EN_ECC_WRITE", en_ecc_write);
+            if pk == 6 {
+                let init = ctx.gen_bits(72);
+                let srval = ctx.gen_bits(72);
+                inst.param_bits("INIT", &init);
+                inst.param_bits("SRVAL", &srval);
+                ti.cfg("INIT", &fmt_hex(&init));
+                ti.cfg("SRVAL", &fmt_hex(&srval));
+            } else {
+                ti.cfg("INIT", "000000000000000000");
+                ti.cfg("SRVAL", "000000000000000000");
+            }
+            if is_sdp {
+                ti.cfg("FIFO_MODE", "FIFO36_72");
+            } else {
+                ti.cfg("FIFO_MODE", "FIFO36");
+            }
+            if pk == 6 {
+                for p in ["INJECTSBITERR", "INJECTDBITERR"] {
+                    let w = test.make_in(ctx);
+                    inst.connect(p, &w);
+                    ti.pin_in(p, &w);
+                }
+            } else if is_sdp && (en_ecc_write == "TRUE" || en_ecc_read == "TRUE") {
+                for p in ["INJECTSBITERR", "INJECTDBITERR"] {
+                    ti.pin_tie(p, false);
+                }
+            }
+        }
+        ti.cfg("DATA_WIDTH", ["1", "2", "4", "9", "18", "36", "72"][wlog2]);
+        ti.cfg("DO_REG", &format!("{}", do_reg));
+        if mode == Mode::Series7 {
+            ti.cfg("EN_PWRGATE", "NONE");
+        } else {
+            ti.cfg("RSTREG_PRIORITY", "RSTREG");
+        }
+    }
+
+    let (rdclk_v, rdclk_x, rdclk_inv) = test.make_in_inv(ctx);
+    inst.connect("RDCLK", &rdclk_v);
+    let (wrclk_v, wrclk_x, wrclk_inv);
+    if en_syn == "TRUE" {
+        (wrclk_v, wrclk_x, wrclk_inv) = (rdclk_v.clone(), rdclk_x.clone(), rdclk_inv);
+    } else {
+        (wrclk_v, wrclk_x, wrclk_inv) = test.make_in_inv(ctx);
+    }
+    inst.connect("WRCLK", &wrclk_v);
+    let (rden_v, rden_x, rden_inv) = test.make_in_inv(ctx);
+    inst.connect("RDEN", &rden_v);
+    let (wren_v, wren_x, wren_inv) = test.make_in_inv(ctx);
+    inst.connect("WREN", &wren_v);
+    let (rst_v, rst_x, rst_inv) = test.make_in_inv(ctx);
+    inst.connect("RST", &rst_v);
+
+    let (di, dip, do_, dop);
+    if pk == 5 && !is_sdp {
+        if sz == 16 {
+            di = test.make_ins(ctx, 16);
+            dip = test.make_ins(ctx, 2);
+            do_ = test.make_outs(ctx, 16);
+            dop = test.make_outs(ctx, 2);
+        } else {
+            di = test.make_ins(ctx, 32);
+            dip = test.make_ins(ctx, 4);
+            do_ = test.make_outs(ctx, 32);
+            dop = test.make_outs(ctx, 4);
+        }
+    } else {
+        if sz == 16  {
+            di = test.make_ins(ctx, 32);
+            dip = test.make_ins(ctx, 4);
+            do_ = test.make_outs(ctx, 32);
+            dop = test.make_outs(ctx, 4);
+        } else {
+            di = test.make_ins(ctx, 64);
+            dip = test.make_ins(ctx, 8);
+            do_ = test.make_outs(ctx, 64);
+            dop = test.make_outs(ctx, 8);
+        }
+    }
+    inst.connect_bus("DI", &di);
+    inst.connect_bus("DIP", &dip);
+    inst.connect_bus("DO", &do_);
+    inst.connect_bus("DOP", &dop);
+    if mode == Mode::Virtex4 {
+        for i in 0..32 {
+            ti.pin_in(&format!("DI{i}"), &di[i]);
+            ti.pin_out(&format!("DO{i}"), &do_[i]);
+        }
+        for i in 0..4 {
+            ti.pin_in(&format!("DIP{i}"), &dip[i]);
+            ti.pin_out(&format!("DOP{i}"), &dop[i]);
+        }
+        ti.pin_in_inv("RDCLK", &rdclk_x, rdclk_inv);
+        ti.pin_in_inv("WRCLK", &wrclk_x, wrclk_inv);
+        ti.pin_in_inv("RDEN", &rden_x, rden_inv);
+        ti.pin_in_inv("WREN", &wren_x, wren_inv);
+        ti.pin_in_inv("RST", &rst_x, rst_inv);
+    } else if mode == Mode::Virtex5 {
+        if sz == 16 {
+            if !is_sdp {
+                for i in 0..16 {
+                    ti.pin_in(&format!("DI{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..2 {
+                    ti.pin_in(&format!("DIP{i}"), &dip[i]);
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            } else {
+                for i in 0..32 {
+                    ti.pin_in(&format!("DI{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..4 {
+                    ti.pin_in(&format!("DIP{i}"), &dip[i]);
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            }
+            ti.pin_in_inv("RDCLK", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDRCLK", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("WRCLK", &wrclk_x, wrclk_inv);
+        } else {
+            if !is_sdp {
+                for i in 0..32 {
+                    ti.pin_in(&format!("DI{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..4 {
+                    if wlog2 == 3 && i == 1 {
+                        ti.pin_in(&format!("DIP{i}"), &dip[0]);
+                    } else {
+                        ti.pin_in(&format!("DIP{i}"), &dip[i]);
+                    }
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            } else {
+                for i in 0..64 {
+                    ti.pin_in(&format!("DI{i}"), &di[i]);
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..8 {
+                    ti.pin_in(&format!("DIP{i}"), &dip[i]);
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            }
+            ti.pin_in_inv("RDCLKL", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDCLKU", &rdclk_x, rdclk_inv);
+            if do_reg == 1 {
+                ti.pin_in_inv("RDRCLKL", &rdclk_x, rdclk_inv);
+                ti.pin_in_inv("RDRCLKU", &rdclk_x, rdclk_inv);
+            } else {
+                ti.pin_tie_inv("RDRCLKL", false, false);
+                ti.pin_tie_inv("RDRCLKU", false, false);
+            }
+            ti.pin_in_inv("WRCLKL", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("WRCLKU", &wrclk_x, wrclk_inv);
+        }
+        ti.pin_in_inv("RDEN", &rden_x, rden_inv);
+        ti.pin_in_inv("WREN", &wren_x, wren_inv);
+        ti.pin_in_inv("RST", &rst_x, rst_inv);
+    } else {
+        if sz == 16 {
+            if !is_sdp {
+                for i in 0..16 {
+                    ti.pin_in(&format!("DIBDI{i}"), &di[i]);
+                }
+                for i in 0..2 {
+                    ti.pin_in(&format!("DIPBDIP{i}"), &dip[i]);
+                }
+            } else {
+                for i in 0..16 {
+                    ti.pin_in(&format!("DIADI{i}"), &di[i]);
+                    ti.pin_in(&format!("DIBDI{i}"), &di[i+16]);
+                }
+                for i in 0..2 {
+                    ti.pin_in(&format!("DIPADIP{i}"), &dip[i]);
+                    ti.pin_in(&format!("DIPBDIP{i}"), &dip[i+2]);
+                }
+            }
+            if pk == 4 && !is_sdp {
+                for i in 0..16 {
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..2 {
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            } else {
+                for i in 0..do_.len() {
+                    ti.pin_out(&format!("DO{i}"), &do_[i]);
+                }
+                for i in 0..dop.len() {
+                    ti.pin_out(&format!("DOP{i}"), &dop[i]);
+                }
+            }
+            ti.pin_in_inv("RDCLK", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("WRCLK", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("RDEN", &rden_x, rden_inv);
+            ti.pin_in_inv("WREN", &wren_x, wren_inv);
+            ti.pin_in_inv("RST", &rst_x, rst_inv);
+            if pk == 4 {
+                ti.pin_tie_inv("RSTREG", false, false);
+            } else if pk == 6 {
+                let regce = test.make_in(ctx);
+                let (rr_v, rr_x, rr_inv) = test.make_in_inv(ctx);
+                inst.connect("REGCE", &regce);
+                inst.connect("RSTREG", &rr_v);
+                if en_syn == "TRUE" {
+                    ti.pin_in("REGCE", &regce);
+                } else if do_reg == 1 {
+                    ti.pin_tie("REGCE", true);
+                } else {
+                    ti.pin_tie("REGCE", false);
+                }
+                if do_reg == 1 && en_syn == "TRUE" {
+                    ti.pin_in_inv("RSTREG", &rr_x, rr_inv);
+                } else {
+                    ti.pin_tie_inv("RSTREG", false, false);
+                }
+            } else {
+                if do_reg == 1 {
+                    ti.pin_tie("REGCE", true);
+                    if en_syn == "TRUE" {
+                        ti.pin_tie_inv("RSTREG", true, true);
+                    } else {
+                        ti.pin_tie_inv("RSTREG", false, false);
+                    }
+                } else {
+                    ti.pin_tie("REGCE", false);
+                    ti.pin_tie_inv("RSTREG", false, false);
+                }
+            }
+            if do_reg == 1 && pk != 4 {
+                ti.pin_in_inv("RDRCLK", &rdclk_x, rdclk_inv);
+            } else {
+                ti.pin_tie_inv("RDRCLK", true, true);
+            }
+        } else {
+            if !is_sdp {
+                for i in 0..32 {
+                    ti.pin_in(&format!("DIBDI{i}"), &di[i]);
+                }
+                for i in 0..4 {
+                    if wlog2 == 3 && i == 1 {
+                        ti.pin_in(&format!("DIPBDIP{i}"), &dip[0]);
+                    } else {
+                        ti.pin_in(&format!("DIPBDIP{i}"), &dip[i]);
+                    }
+                }
+            } else {
+                for i in 0..32 {
+                    ti.pin_in(&format!("DIADI{i}"), &di[i]);
+                    ti.pin_in(&format!("DIBDI{i}"), &di[i+32]);
+                }
+                for i in 0..4 {
+                    ti.pin_in(&format!("DIPADIP{i}"), &dip[i]);
+                    ti.pin_in(&format!("DIPBDIP{i}"), &dip[i+4]);
+                }
+            }
+            for i in 0..do_.len() {
+                ti.pin_out(&format!("DO{i}"), &do_[i]);
+            }
+            for i in 0..dop.len() {
+                ti.pin_out(&format!("DOP{i}"), &dop[i]);
+            }
+            ti.pin_in_inv("RDCLKL", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("RDCLKU", &rdclk_x, rdclk_inv);
+            ti.pin_in_inv("WRCLKL", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("WRCLKU", &wrclk_x, wrclk_inv);
+            ti.pin_in_inv("RDENL", &rden_x, rden_inv);
+            ti.pin_tie_inv("RDENU", true, true);
+            ti.pin_in_inv("WRENL", &wren_x, wren_inv);
+            ti.pin_tie_inv("WRENU", true, true);
+            ti.pin_in_inv("RST", &rst_x, rst_inv);
+            if pk == 6 {
+                let regce = test.make_in(ctx);
+                let (rr_v, rr_x, rr_inv) = test.make_in_inv(ctx);
+                inst.connect("REGCE", &regce);
+                inst.connect("RSTREG", &rr_v);
+                if do_reg == 1 && en_syn == "TRUE" {
+                    ti.pin_in("REGCEL", &regce);
+                    ti.pin_in("REGCEU", &regce);
+                } else if do_reg == 1 {
+                    ti.pin_tie("REGCEL", true);
+                    ti.pin_tie("REGCEU", true);
+                } else {
+                    ti.pin_tie("REGCEL", false);
+                    ti.pin_tie("REGCEU", false);
+                }
+                if do_reg == 1 || en_syn == "TRUE" {
+                    ti.pin_in_inv("RSTREGL", &rr_x, rr_inv);
+                    ti.pin_in_inv("RSTREGU", &rr_x, rr_inv);
+                } else {
+                    ti.pin_tie_inv("RSTREGL", false, false);
+                    ti.pin_tie_inv("RSTREGU", false, false);
+                }
+            } else {
+                if do_reg == 1 {
+                    ti.pin_tie("REGCEL", true);
+                    ti.pin_tie("REGCEU", true);
+                } else {
+                    ti.pin_tie("REGCEL", false);
+                    ti.pin_tie("REGCEU", false);
+                }
+                ti.pin_tie_inv("RSTREGL", true, true);
+                ti.pin_tie_inv("RSTREGU", true, true);
+            }
+            if do_reg == 1 {
+                ti.pin_in_inv("RDRCLKL", &rdclk_x, rdclk_inv);
+                ti.pin_in_inv("RDRCLKU", &rdclk_x, rdclk_inv);
+            } else {
+                ti.pin_tie_inv("RDRCLKL", true, true);
+                ti.pin_tie_inv("RDRCLKU", true, true);
+            }
+        }
+        // XXX
+    }
+
+    for p in ["EMPTY", "FULL", "ALMOSTEMPTY", "ALMOSTFULL", "RDERR", "WRERR"] {
+        let w = test.make_out(ctx);
+        inst.connect(p, &w);
+        ti.pin_out(p, &w);
+    }
+
+    let cntbits;
+    if pk == 4 {
+        cntbits = 12;
+    } else if pk == 5 {
+        if is_sdp {
+            cntbits = 9;
+        } else if sz == 16 {
+            cntbits = 12;
+        } else {
+            cntbits = 13;
+        }
+    } else {
+        if sz == 16 {
+            cntbits = 12;
+        } else {
+            cntbits = 13;
+        }
+    }
+
+    let fwft = if do_reg == 1 && en_syn == "FALSE" && ctx.rng.gen() {"TRUE"} else {"FALSE"};
+    inst.param_str("FIRST_WORD_FALL_THROUGH", fwft);
+    ti.cfg("FIRST_WORD_FALL_THROUGH", fwft);
+
+    let num_e;
+    if sz == 16 {
+        num_e = 1 << 14 - wlog2;
+    } else {
+        num_e = 1 << 15 - wlog2;
+    }
+    let (ae_off, af_off);
+    if en_syn == "FALSE" {
+        match mode {
+            Mode::Virtex4 => {
+                if fwft == "TRUE" {
+                    ae_off = ctx.rng.gen_range(6..(num_e - 2));
+                } else {
+                    ae_off = ctx.rng.gen_range(5..(num_e - 3));
+                }
+                af_off = ctx.rng.gen_range(4..(num_e - 4));
+            }
+            Mode::Virtex5 | Mode::Virtex6 => {
+                if fwft == "TRUE" {
+                    ae_off = ctx.rng.gen_range(6..(num_e - 3));
+                } else {
+                    ae_off = ctx.rng.gen_range(5..(num_e - 4));
+                }
+                af_off = ctx.rng.gen_range(4..(num_e - 4));
+            }
+            Mode::Series7 => {
+                if fwft == "TRUE" {
+                    ae_off = ctx.rng.gen_range(6..(num_e - 4));
+                } else {
+                    ae_off = ctx.rng.gen_range(5..(num_e - 5));
+                }
+                af_off = ctx.rng.gen_range(4..(num_e - 6));
+            }
+            _ => unreachable!(),
+        }
+    } else {
+        ae_off = ctx.rng.gen_range(1..(num_e - 1));
+        af_off = ctx.rng.gen_range(1..(num_e - 1));
+    }
+    inst.param_int("ALMOST_EMPTY_OFFSET", ae_off);
+    inst.param_int("ALMOST_FULL_OFFSET", af_off);
+    if mode == Mode::Virtex6 || (sz == 32 && !is_sdp) || (mode == Mode::Series7 && pk != 4) {
+        ti.cfg("ALMOST_EMPTY_OFFSET", &format!("{ae_off:04X}"));
+        ti.cfg("ALMOST_FULL_OFFSET", &format!("{af_off:04X}"));
+    } else {
+        ti.cfg("ALMOST_EMPTY_OFFSET", &format!("{ae_off:03X}"));
+        ti.cfg("ALMOST_FULL_OFFSET", &format!("{af_off:03X}"));
+    }
+
+    for p in ["RDCOUNT", "WRCOUNT"] {
+        let w = test.make_outs(ctx, cntbits);
+        inst.connect_bus(p, &w);
+        let mut num = cntbits;
+        if pk == 4 && mode != Mode::Virtex4 && is_sdp {
+            num = 9;
+        }
+        for i in 0..num {
+            ti.pin_out(&format!("{p}{i}"), &w[i]);
+        }
+    }
+
+    if wlog2 == 6 || (sz == 32 && pk == 6) {
+        for p in ["SBITERR", "DBITERR"] {
+            let w = test.make_out(ctx);
+            inst.connect(p, &w);
+            ti.pin_out(p, &w);
+        }
+        let w = test.make_outs(ctx, 8);
+        inst.connect_bus("ECCPARITY", &w);
+        for i in 0..8 {
+            ti.pin_out(&format!("ECCPARITY{i}"), &w[i]);
+        }
+    }
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
 pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
     for _ in 0..5 {
         if matches!(mode, Mode::Virtex | Mode::Virtex2 | Mode::Spartan3A | Mode::Spartan3ADsp) {
@@ -1307,21 +1873,19 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
             // RAMB16
             // RAMB16 cascade pair
             gen_ramb32_ecc(test, ctx, mode);
-            // FIFO16
+            gen_fifo(test, ctx, mode, 16, 4);
         }
         if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
-            // FIFO18
-            // FIFO18_36
-            // FIFO36
-            // FIFO36_72
+            gen_fifo(test, ctx, mode, 16, 5);
+            gen_fifo(test, ctx, mode, 32, 5);
             // RAMB18
             // RAMB18SDP
             // RAMB36
             // RAMB36SDP
         }
         if matches!(mode, Mode::Virtex6 | Mode::Series7) {
-            // FIFO18E1
-            // FIFO36E1
+            gen_fifo(test, ctx, mode, 16, 6);
+            gen_fifo(test, ctx, mode, 32, 6);
             // RAMB18E1
             // RAMB36E1
         }

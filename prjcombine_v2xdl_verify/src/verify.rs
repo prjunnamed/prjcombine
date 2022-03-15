@@ -812,13 +812,13 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
         for c in inst.cfg.iter() {
             if let Some((bel, val)) = cfg_expect.remove(&c[0]) {
                 if c[1] != bel && bel != "DUMMY" {
-                    println!("mismatched bel {c:?} {bel}");
+                    println!("mismatched bel {ina} {c:?} {bel}", ina=inst.name);
                     ok = false;
                 }
                 match val {
                     TgtConfigVal::Plain(v) => {
                         if c[2] != v || c.len() != 3 {
-                            println!("mismatched val {c:?} {v}");
+                            println!("mismatched val {ina} {c:?} {v}", ina=inst.name);
                             ok = false;
                         }
                     }
@@ -927,11 +927,11 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 let key = (pin.inst_name.clone(), pin.pin.clone());
                 if let Some(pval) = wire_tie.remove(&key) {
                     if tval != pval {
-                        println!("wrong tie val {key:?}");
+                        println!("wrong tie val {key:?} has {tval} expected {pval}");
                         ok = false;
                     }
                 } else {
-                    println!("unknown tie {key:?}");
+                    println!("unknown tie {key:?} {tval}");
                     ok = false;
                 }
             }
