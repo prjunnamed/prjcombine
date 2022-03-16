@@ -15,20 +15,6 @@ pub enum Mode {
     Series7,
 }
 
-fn fmt_hex(bits: &[BitVal]) -> String {
-    let mut res = String::new();
-    for i in (0..((bits.len()+3)/4)).rev() {
-        let mut v = 0;
-        for j in 0..4 {
-            if 4*i+j < bits.len() && bits[4*i+j] == BitVal::S1 {
-                v |= 1 << j;
-            }
-        }
-        res.push(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'][v]);
-    }
-    res
-}
-
 const ZERO_INIT: &str = "0000000000000000000000000000000000000000000000000000000000000000";
 
 const PORT_ATTR_V: &[&str] = &[
@@ -368,9 +354,9 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INIT_{i:02X}"), &init);
             if init_lowercase(mode) {
-                ti.cfg(&format!("INIT_{i:02x}"), &fmt_hex(&init));
+                ti.cfg_hex(&format!("INIT_{i:02x}"), &init, true);
             } else {
-                ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+                ti.cfg_hex(&format!("INIT_{i:02X}"), &init, true);
             }
         }
         if mode != Mode::Virtex {
@@ -390,11 +376,11 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INIT_{i:02X}"), &init);
             if mode == Mode::Virtex5 && !is_36 {
-                ti.cfg(&format!("INIT_{i:02X}_{ul}"), &fmt_hex(&init));
+                ti.cfg_hex(&format!("INIT_{i:02X}_{ul}"), &init, true);
             } else if init_lowercase(mode) {
-                ti.cfg(&format!("INIT_{i:02x}"), &fmt_hex(&init));
+                ti.cfg_hex(&format!("INIT_{i:02x}"), &init, true);
             } else {
-                ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+                ti.cfg_hex(&format!("INIT_{i:02X}"), &init, true);
             }
         }
         if awlog2 >= 3 || (dp && bwlog2 >= 3) {
@@ -402,11 +388,11 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 let init = ctx.gen_bits(256);
                 inst.param_bits(&format!("INITP_{i:02X}"), &init);
                 if mode == Mode::Virtex5 && !is_36 {
-                    ti.cfg(&format!("INITP_{i:02X}_{ul}"), &fmt_hex(&init));
+                    ti.cfg_hex(&format!("INITP_{i:02X}_{ul}"), &init, true);
                 } else if init_lowercase(mode) {
-                    ti.cfg(&format!("INITP_{i:02x}"), &fmt_hex(&init));
+                    ti.cfg_hex(&format!("INITP_{i:02x}"), &init, true);
                 } else {
-                    ti.cfg(&format!("INITP_{i:02X}"), &fmt_hex(&init));
+                    ti.cfg_hex(&format!("INITP_{i:02X}"), &init, true);
                 }
             }
         } else if mode != Mode::Virtex2 {
@@ -709,11 +695,11 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                     }
                 }
                 if mode == Mode::Virtex5 && !is_36 {
-                    ti.cfg(&format!("INIT_{xl}_{ul}"), &fmt_hex(&init));
-                    ti.cfg(&format!("SRVAL_{xl}_{ul}"), &fmt_hex(&srval));
+                    ti.cfg_hex(&format!("INIT_{xl}_{ul}"), &init, true);
+                    ti.cfg_hex(&format!("SRVAL_{xl}_{ul}"), &srval, true);
                 } else {
-                    ti.cfg(&format!("INIT_{xl}"), &fmt_hex(&init));
-                    ti.cfg(&format!("SRVAL_{xl}"), &fmt_hex(&srval));
+                    ti.cfg_hex(&format!("INIT_{xl}"), &init, true);
+                    ti.cfg_hex(&format!("SRVAL_{xl}"), &srval, true);
                 }
             }
         }
@@ -784,23 +770,23 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
         for i in 0..64 {
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INIT_{i:02X}"), &init);
-            ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+            ti.cfg_hex(&format!("INIT_{i:02X}"), &init, true);
         }
         for i in 0..8 {
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INITP_{i:02X}"), &init);
-            ti.cfg(&format!("INITP_{i:02X}"), &fmt_hex(&init));
+            ti.cfg_hex(&format!("INITP_{i:02X}"), &init, true);
         }
     } else {
         for i in 0..32 {
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INIT_{i:02X}"), &init);
-            ti.cfg(&format!("INIT_{i:02X}"), &fmt_hex(&init));
+            ti.cfg_hex(&format!("INIT_{i:02X}"), &init, true);
         }
         for i in 0..4 {
             let init = ctx.gen_bits(256);
             inst.param_bits(&format!("INITP_{i:02X}"), &init);
-            ti.cfg(&format!("INITP_{i:02X}"), &fmt_hex(&init));
+            ti.cfg_hex(&format!("INITP_{i:02X}"), &init, true);
         }
     }
 
@@ -873,8 +859,8 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
         let srval = ctx.gen_bits(if sz == 16 {36} else {18});
         inst.param_bits(&format!("INIT_{a}"), &init);
         inst.param_bits(&format!("SRVAL_{a}"), &srval);
-        ti.cfg(&format!("INIT_{a}"), &fmt_hex(&init));
-        ti.cfg(&format!("SRVAL_{a}"), &fmt_hex(&srval));
+        ti.cfg_hex(&format!("INIT_{a}"), &init, true);
+        ti.cfg_hex(&format!("SRVAL_{a}"), &srval, true);
 
         if mode == Mode::Spartan6 {
             let en_rstram = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
@@ -1405,8 +1391,8 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
                 let srval = ctx.gen_bits(36);
                 inst.param_bits("INIT", &init);
                 inst.param_bits("SRVAL", &srval);
-                ti.cfg("INIT", &fmt_hex(&init));
-                ti.cfg("SRVAL", &fmt_hex(&srval));
+                ti.cfg_hex("INIT", &init, true);
+                ti.cfg_hex("SRVAL", &srval, true);
             } else {
                 ti.cfg("INIT", "000000000");
                 ti.cfg("SRVAL", "000000000");
@@ -1429,8 +1415,8 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
                 let srval = ctx.gen_bits(72);
                 inst.param_bits("INIT", &init);
                 inst.param_bits("SRVAL", &srval);
-                ti.cfg("INIT", &fmt_hex(&init));
-                ti.cfg("SRVAL", &fmt_hex(&srval));
+                ti.cfg_hex("INIT", &init, true);
+                ti.cfg_hex("SRVAL", &srval, true);
             } else {
                 ti.cfg("INIT", "000000000000000000");
                 ti.cfg("SRVAL", "000000000000000000");
@@ -1848,6 +1834,71 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     test.tgt_insts.push(ti);
 }
 
+pub fn gen_io_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, is_out: bool) {
+    let prim = if is_out {"OUT_FIFO"} else {"IN_FIFO"};
+    let mut inst = SrcInst::new(ctx, prim);
+    let mut ti = TgtInst::new(&[prim]);
+
+    ti.bel(prim, &inst.name, "");
+
+    let ar_mode = *[
+        if is_out {"ARRAY_MODE_8_X_4"} else {"ARRAY_MODE_4_X_8"},
+        "ARRAY_MODE_4_X_4",
+    ].choose(&mut ctx.rng).unwrap();
+    inst.param_str("ARRAY_MODE", ar_mode);
+    ti.cfg("ARRAY_MODE", ar_mode);
+
+    // This is a primitive parameter, but a TRUE is rejected anyway.
+    ti.cfg("SYNCHRONOUS_MODE", "FALSE");
+
+    let aev = ctx.rng.gen_range(1..3);
+    inst.param_int("ALMOST_EMPTY_VALUE", aev);
+    ti.cfg_int("ALMOST_EMPTY_VALUE", aev);
+    let afv = ctx.rng.gen_range(1..3);
+    inst.param_int("ALMOST_FULL_VALUE", afv);
+    ti.cfg_int("ALMOST_FULL_VALUE", afv);
+
+    if is_out {
+        let od = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+        inst.param_str("OUTPUT_DISABLE", od);
+        ti.cfg("OUTPUT_DISABLE", od);
+    }
+
+    for pin in ["RDEN", "WREN", "RESET", "RDCLK", "WRCLK"] {
+        let w = test.make_in(ctx);
+        inst.connect(pin, &w);
+        ti.pin_in(pin, &w);
+    }
+
+    for pin in ["FULL", "EMPTY", "ALMOSTFULL", "ALMOSTEMPTY"] {
+        let w = test.make_out(ctx);
+        inst.connect(pin, &w);
+        ti.pin_out(pin, &w);
+    }
+
+    for i in 0..10 {
+        let qsz = if !is_out || matches!(i, 5 | 6) {8} else {4};
+        let q = test.make_outs(ctx, qsz);
+        inst.connect_bus(&format!("Q{i}"), &q);
+        for j in 0..qsz {
+            ti.pin_out(&format!("Q{i}{j}"), &q[j]);
+        }
+        let dsz = if is_out || matches!(i, 5 | 6) {8} else {4};
+        let d = test.make_ins(ctx, dsz);
+        inst.connect_bus(&format!("D{i}"), &d);
+        for j in 0..dsz {
+            ti.pin_in(&format!("D{i}{j}"), &d[j]);
+        }
+    }
+
+    ti.cfg("SLOW_RD_CLK", "FALSE");
+    ti.cfg("SLOW_WR_CLK", "FALSE");
+    ti.cfg("SPARE", "0000");
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
 pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
     for _ in 0..5 {
         if matches!(mode, Mode::Virtex | Mode::Virtex2 | Mode::Spartan3A | Mode::Spartan3ADsp) {
@@ -1888,6 +1939,10 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
             gen_fifo(test, ctx, mode, 32, 6);
             // RAMB18E1
             // RAMB36E1
+        }
+        if mode == Mode::Series7 {
+            gen_io_fifo(test, ctx, mode, false);
+            gen_io_fifo(test, ctx, mode, true);
         }
     }
 }

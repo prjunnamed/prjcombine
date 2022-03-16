@@ -97,6 +97,24 @@ impl TgtInst {
     pub fn cfg(&mut self, name: &str, val: &str) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
     }
+    pub fn cfg_hex(&mut self, name: &str, val: &[BitVal], uppercase: bool) {
+        let mut res = String::new();
+        let hexdigs = if uppercase {
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+        } else {
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+        };
+        for i in (0..((val.len()+3)/4)).rev() {
+            let mut v = 0;
+            for j in 0..4 {
+                if 4*i+j < val.len() && val[4*i+j] == BitVal::S1 {
+                    v |= 1 << j;
+                }
+            }
+            res.push(hexdigs[v]);
+        }
+        self.cfg(name, &res);
+    }
     pub fn cfg_int(&mut self, name: &str, val: i32) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
     }

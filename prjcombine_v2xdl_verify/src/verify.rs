@@ -830,7 +830,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                         }
                     }
                     TgtConfigVal::Rom(n, v) => {
-                        if c[2] != "#ROM" || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
+                        if !matches!(&c[2][..], "#ROM" | "#LUT") || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
                             println!("mismatched val {c:?} {n} ROM {v:x}");
                             ok = false;
                             continue;

@@ -726,7 +726,7 @@ fn gen_rom32x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 val |= 1 << (2 * i);
             }
         }
-        ti.bel_lut(&format!("{c}6LUT"), &inst.name, 6, val);
+        ti.bel_rom(&format!("{c}6LUT"), &inst.name, 6, val);
         for i in 0..5 {
             ti.pin_in(&format!("{c}{ii}", ii = i + 2), &inp[i]);
         }
@@ -738,7 +738,7 @@ fn gen_rom32x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 val |= 1 << i;
             }
         }
-        ti.bel_lut(&format!("{c}5LUT"), &inst.name, 5, val);
+        ti.bel_rom(&format!("{c}5LUT"), &inst.name, 5, val);
         for i in 0..5 {
             ti.pin_in(&format!("{c}{ii}", ii = i + 1), &inp[i]);
         }
@@ -784,7 +784,7 @@ fn gen_rom64x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val |= 1 << i;
         }
     }
-    ti.bel_lut(&format!("{c}6LUT"), &inst.name, 6, val);
+    ti.bel_rom(&format!("{c}6LUT"), &inst.name, 6, val);
     for i in 0..6 {
         ti.pin_in(&format!("{c}{ii}", ii = i + 1), &inp[i]);
     }
@@ -830,8 +830,8 @@ fn gen_rom128x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val_a |= 1 << i;
         }
     }
-    ti.bel_lut(&format!("{a}6LUT"), &format!("{}/HIGH", inst.name), 6, val_a);
-    ti.bel_lut(&format!("{b}6LUT"), &format!("{}/LOW", inst.name), 6, val_b);
+    ti.bel_rom(&format!("{a}6LUT"), &format!("{}/HIGH", inst.name), 6, val_a);
+    ti.bel_rom(&format!("{b}6LUT"), &format!("{}/LOW", inst.name), 6, val_b);
     ti.bel(bel, &format!("{}/F7", inst.name), "");
     for i in 0..6 {
         ti.pin_in(&format!("{a}{ii}", ii = i + 1), &inp[i]);
@@ -883,10 +883,10 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val_a |= 1 << i;
         }
     }
-    ti.bel_lut(&format!("A6LUT"), &format!("{}/A", inst.name), 6, val_a);
-    ti.bel_lut(&format!("B6LUT"), &format!("{}/B", inst.name), 6, val_b);
-    ti.bel_lut(&format!("C6LUT"), &format!("{}/C", inst.name), 6, val_c);
-    ti.bel_lut(&format!("D6LUT"), &format!("{}/D", inst.name), 6, val_d);
+    ti.bel_rom(&format!("A6LUT"), &format!("{}/A", inst.name), 6, val_a);
+    ti.bel_rom(&format!("B6LUT"), &format!("{}/B", inst.name), 6, val_b);
+    ti.bel_rom(&format!("C6LUT"), &format!("{}/C", inst.name), 6, val_c);
+    ti.bel_rom(&format!("D6LUT"), &format!("{}/D", inst.name), 6, val_d);
     ti.bel("F7AMUX", &format!("{}/F7.A", inst.name), "");
     ti.bel("F7BMUX", &format!("{}/F7.B", inst.name), "");
     ti.bel("F8MUX", &format!("{}/F8", inst.name), "");

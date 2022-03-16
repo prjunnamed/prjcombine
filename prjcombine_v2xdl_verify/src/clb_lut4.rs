@@ -706,11 +706,7 @@ fn gen_rom16x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val |= 1 << i;
         }
     }
-    if matches!(mode, Mode::Virtex | Mode::Virtex2) {
-        ti.bel_rom(&format!("{f}"), &inst.name, 4, val);
-    } else {
-        ti.bel_lut(&format!("{f}"), &inst.name, 4, val);
-    }
+    ti.bel_rom(&format!("{f}"), &inst.name, 4, val);
     for i in 0..4 {
         ti.pin_in(&format!("{f}{ii}", ii = i + 1), &inp[i]);
     }
@@ -767,13 +763,8 @@ fn gen_rom32px1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
                 val_f |= 1 << j;
             }
         }
-        if matches!(mode, Mode::Virtex | Mode::Virtex2) || (i % 4 >= 2) {
-            ti.bel_rom("F", &name_f, 4, val_f);
-            ti.bel_rom("G", &name_g, 4, val_g);
-        } else {
-            ti.bel_lut("F", &name_f, 4, val_f);
-            ti.bel_lut("G", &name_g, 4, val_g);
-        }
+        ti.bel_rom("F", &name_f, 4, val_f);
+        ti.bel_rom("G", &name_g, 4, val_g);
         for i in 0..4 {
             ti.pin_in(&format!("F{ii}", ii = i + 1), &inp[i]);
             ti.pin_in(&format!("G{ii}", ii = i + 1), &inp[i]);
