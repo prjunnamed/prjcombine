@@ -59,6 +59,9 @@ impl SrcInst {
     pub fn param_int(&mut self, name: &str, val: i32) {
         self.param(name, ParamVal::Int(val));
     }
+    pub fn param_bool(&mut self, name: &str, val: bool) {
+        self.param(name, ParamVal::String(if val {"TRUE"} else {"FALSE"}.to_string()));
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -84,6 +87,25 @@ pub struct TgtInst {
     pub pin_dumout: Vec<String>,
 }
 
+fn fmt_hex(val: &[BitVal], uppercase: bool) -> String {
+    let mut res = String::new();
+    let hexdigs = if uppercase {
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+    } else {
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+    };
+    for i in (0..((val.len()+3)/4)).rev() {
+        let mut v = 0;
+        for j in 0..4 {
+            if 4*i+j < val.len() && val[4*i+j] == BitVal::S1 {
+                v |= 1 << j;
+            }
+        }
+        res.push(hexdigs[v]);
+    }
+    res
+}
+
 impl TgtInst {
     pub fn new(kind: &[&str]) -> Self {
         TgtInst {
@@ -98,31 +120,25 @@ impl TgtInst {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
     }
     pub fn cfg_hex(&mut self, name: &str, val: &[BitVal], uppercase: bool) {
-        let mut res = String::new();
-        let hexdigs = if uppercase {
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
-        } else {
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
-        };
-        for i in (0..((val.len()+3)/4)).rev() {
-            let mut v = 0;
-            for j in 0..4 {
-                if 4*i+j < val.len() && val[4*i+j] == BitVal::S1 {
-                    v |= 1 << j;
-                }
-            }
-            res.push(hexdigs[v]);
-        }
-        self.cfg(name, &res);
+        self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(fmt_hex(val, uppercase)), None));
     }
     pub fn cfg_int(&mut self, name: &str, val: i32) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), None));
     }
+    pub fn cfg_bool(&mut self, name: &str, val: bool) {
+        self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(if val {"TRUE"} else {"FALSE"}.to_string()), None));
+    }
     pub fn cond_cfg(&mut self, name: &str, val: &str, kind: &str) {
         self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(val.to_string()), Some(kind.to_string())));
     }
+    pub fn cond_cfg_hex(&mut self, name: &str, val: &[BitVal], uppercase: bool, kind: &str) {
+        self.config.push((name.to_string(), "".to_string(), TgtConfigVal::Plain(fmt_hex(val, uppercase)), Some(kind.to_string())));
+    }
     pub fn bel(&mut self, name: &str, bel: &str, val: &str) {
         self.config.push((name.to_string(), bel.to_string(), TgtConfigVal::Plain(val.to_string()), None));
+    }
+    pub fn cond_bel(&mut self, name: &str, bel: &str, val: &str, kind: &str) {
+        self.config.push((name.to_string(), bel.to_string(), TgtConfigVal::Plain(val.to_string()), Some(kind.to_string())));
     }
     pub fn bel_rom(&mut self, name: &str, bel: &str, sz: u8, val: u64) {
         self.config.push((name.to_string(), bel.to_string(), TgtConfigVal::Rom(sz, val), None));
@@ -191,15 +207,35 @@ impl Test {
         res
     }
 
+    pub fn make_bufg(&mut self, ctx: &mut TestGenCtx) -> String {
+        let i = self.make_in(ctx);
+        let res = self.make_wire(ctx);
+        let mut inst = SrcInst::new(ctx, "BUFG");
+        inst.connect("I", &i);
+        inst.connect("O", &res);
+        let mut ti = TgtInst::new(&["BUFG"]);
+        ti.bel("GCLK_BUFFER", &inst.name, "");
+        ti.pin_in("I0", &i);
+        ti.pin_out("O", &res);
+        self.src_insts.push(inst);
+        self.tgt_insts.push(ti);
+        res
+    }
+
+    pub fn make_inv(&mut self, ctx: &mut TestGenCtx, i: &str) -> String {
+        let res = self.make_wire(ctx);
+        let mut inst = SrcInst::new(ctx, "INV");
+        inst.connect("I", i);
+        inst.connect("O", &res);
+        self.src_insts.push(inst);
+        res
+    }
+
     pub fn make_in_inv(&mut self, ctx: &mut TestGenCtx) -> (String, String, bool) {
         let raw = self.make_in(ctx);
         let inv = ctx.rng.gen();
         if inv {
-            let res = self.make_wire(ctx);
-            let mut inst = SrcInst::new(ctx, "INV");
-            inst.connect("I", &raw);
-            inst.connect("O", &res);
-            self.src_insts.push(inst);
+            let res = self.make_inv(ctx, &raw);
             (res, raw, true)
         } else {
             (raw.clone(), raw, false)
