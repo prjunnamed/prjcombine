@@ -118,6 +118,7 @@ fn get_virtex5_tests() -> Vec<Test> {
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex5, &mut test);
         res.push(test);
         let mut test = Test::new(&format!("hard{i}"), part);
+        hard::gen_ppc440(&mut test, &mut ctx);
         hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex5);
         res.push(test);
     }

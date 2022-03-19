@@ -1,5 +1,6 @@
 use crate::types::{Test, SrcInst, TgtInst, TestGenCtx, BitVal};
 use rand::Rng;
+use rand::seq::SliceRandom;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum EmacMode {
@@ -829,6 +830,481 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
         make_in_inv(test, ctx, &mut inst, &mut ti, "TIEPVRBIT30");
         make_in_inv(test, ctx, &mut inst, &mut ti, "TIEPVRBIT31");
     }
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
+fn gen_arb_config(ctx: &mut TestGenCtx) -> Vec<BitVal> {
+    let mut res = ctx.gen_bits(32);
+    for (i, v) in [0, 1, 2, 3, 4].choose_multiple(&mut ctx.rng, 5).copied().enumerate() {
+        res[4*(i+1)] = if v & 1 != 0 {BitVal::S1} else {BitVal::S0};
+        res[4*(i+1)+1] = if v & 2 != 0 {BitVal::S1} else {BitVal::S0};
+        res[4*(i+1)+2] = if v & 4 != 0 {BitVal::S1} else {BitVal::S0};
+    }
+    res
+}
+
+fn make_bufg(test: &mut Test, ctx: &mut TestGenCtx, i: &str, o: &str) {
+    let mut inst = SrcInst::new(ctx, "BUFG");
+    inst.connect("I", &i);
+    inst.connect("O", &o);
+    let mut ti = TgtInst::new(&["BUFG"]);
+    ti.bel("BUFG", &inst.name, "");
+    ti.pin_in("I0", &i);
+    ti.pin_out("O", &o);
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
+pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
+    let mut inst = SrcInst::new(ctx, "PPC440");
+    let mut ti = TgtInst::new(&["PPC440"]);
+    ti.bel("PPC440", &inst.name, "");
+
+    let clkout = test.make_wire(ctx);
+    {
+        let mut inst = SrcInst::new(ctx, "PLL_ADV");
+        let mut ti = TgtInst::new(&["PLL_ADV"]);
+        ti.bel("PLL_ADV", &inst.name, "");
+        let clkin = test.make_in(ctx);
+        let clkin_b = test.make_wire(ctx);
+        make_bufg(test, ctx, &clkin, &clkin_b);
+        let clkout0 = test.make_wire(ctx);
+        let clkout1 = test.make_wire(ctx);
+        let clkout1_b = test.make_out(ctx);
+        inst.connect("CLKOUT0", &clkout0);
+        inst.connect("CLKOUT1", &clkout1);
+        inst.connect("CLKINSEL", "1'b1");
+        inst.connect("CLKIN1", &clkin_b);
+        ti.pin_out("CLKOUT0", &clkout0);
+        ti.pin_out("CLKOUT1", &clkout1);
+        inst.param_str("CLKOUT1_DESKEW_ADJUST", "PPC");
+        ti.pin_tie("CLKINSEL", true);
+        ti.pin_in("CLKIN1", &clkin_b);
+        make_bufg(test, ctx, &clkout0, &clkout);
+        make_bufg(test, ctx, &clkout1, &clkout1_b);
+
+        ti.cfg("BANDWIDTH", "OPTIMIZED");
+        ti.cfg("CLKFBOUT_DESKEW_ADJUST", "0");
+        ti.cfg("CLKINSELINV", "CLKINSEL");
+        ti.cfg("CLKOUT0_DESKEW_ADJUST", "0");
+        ti.cfg("CLKOUT1_DESKEW_ADJUST", "10");
+        ti.cfg("CLKOUT2_DESKEW_ADJUST", "0");
+        ti.cfg("CLKOUT3_DESKEW_ADJUST", "0");
+        ti.cfg("CLKOUT4_DESKEW_ADJUST", "0");
+        ti.cfg("CLKOUT5_DESKEW_ADJUST", "0");
+        ti.cfg("CMT_TEST_CLK_SEL", "7");
+        ti.cfg("COMPENSATION", "SYSTEM_SYNCHRONOUS");
+        ti.cfg("DIVCLK_DIVIDE", "1");
+        ti.cfg("EN_REL", "FALSE");
+        ti.cfg("LOCK_FAST_FILTER", "HIGH");
+        ti.cfg("LOCK_SLOW_FILTER", "HIGH");
+        ti.cfg("PLL_2_DCM1_CLK_SEL", "6");
+        ti.cfg("PLL_2_DCM2_CLK_SEL", "6");
+        ti.cfg("PLL_AVDD_COMP_SET", "3");
+        ti.cfg("PLL_AVDD_VBG_PD", "1");
+        ti.cfg("PLL_AVDD_VBG_SEL", "9");
+        ti.cfg("PLL_CLK0MX", "0");
+        ti.cfg("PLL_CLK1MX", "0");
+        ti.cfg("PLL_CLK2MX", "0");
+        ti.cfg("PLL_CLK3MX", "0");
+        ti.cfg("PLL_CLK4MX", "0");
+        ti.cfg("PLL_CLK5MX", "0");
+        ti.cfg("PLL_CLKBURST_CNT", "0");
+        ti.cfg("PLL_CLKBURST_ENABLE", "FALSE");
+        ti.cfg("PLL_CLKCNTRL", "0");
+        ti.cfg("PLL_CLKFBMX", "0");
+        ti.cfg("PLL_CLKFBOUT2_EDGE", "TRUE");
+        ti.cfg("PLL_CLKFBOUT2_NOCOUNT", "TRUE");
+        ti.cfg("PLL_CLKFB_MUX_SEL", "0");
+        ti.cfg("PLL_CLKIN_MUX_SEL", "0");
+        ti.cfg("PLL_CP_BIAS_TRIP_SHIFT", "FALSE");
+        ti.cfg("PLL_CP_RES", "1");
+        ti.cfg("PLL_DIRECT_PATH_CNTRL", "FALSE");
+        ti.cfg("PLL_DVDD_COMP_SET", "3");
+        ti.cfg("PLL_DVDD_VBG_PD", "1");
+        ti.cfg("PLL_DVDD_VBG_SEL", "9");
+        ti.cfg("PLL_EN", "FALSE");
+        ti.cfg("PLL_EN_TCLK0", "FALSE");
+        ti.cfg("PLL_EN_TCLK1", "FALSE");
+        ti.cfg("PLL_EN_TCLK2", "FALSE");
+        ti.cfg("PLL_EN_TCLK3", "FALSE");
+        ti.cfg("PLL_EN_TCLK4", "FALSE");
+        ti.cfg("PLL_EN_VCO0", "TRUE");
+        ti.cfg("PLL_EN_VCO1", "TRUE");
+        ti.cfg("PLL_EN_VCO2", "TRUE");
+        ti.cfg("PLL_EN_VCO3", "TRUE");
+        ti.cfg("PLL_EN_VCO4", "TRUE");
+        ti.cfg("PLL_EN_VCO5", "TRUE");
+        ti.cfg("PLL_EN_VCO6", "TRUE");
+        ti.cfg("PLL_EN_VCO7", "TRUE");
+        ti.cfg("PLL_EN_VCO_DIV1", "FALSE");
+        ti.cfg("PLL_EN_VCO_DIV6", "FALSE");
+        ti.cfg("PLL_INC_FLOCK", "TRUE");
+        ti.cfg("PLL_INC_SLOCK", "TRUE");
+        ti.cfg("PLL_LF_NEN", "3");
+        ti.cfg("PLL_LF_PEN", "0");
+        ti.cfg("PLL_LOCK_CNT", "63");
+        ti.cfg("PLL_LOCK_CNT_RST_FAST", "FALSE");
+        ti.cfg("PLL_MAN_LF_EN", "FALSE");
+        ti.cfg("PLL_NBTI_EN", "FALSE");
+        ti.cfg("PLL_PFD_CNTRL", "8");
+        ti.cfg("PLL_PFD_DLY", "1");
+        ti.cfg("PLL_PMCD_MODE", "FALSE");
+        ti.cfg("PLL_PWRD_CFG", "FALSE");
+        ti.cfg("PLL_SEL_SLIPD", "FALSE");
+        ti.cfg("PLL_SKEW_CNTRL", "0");
+        ti.cfg("PLL_TCK4_SEL", "0");
+        ti.cfg("PLL_UNLOCK_CNT", "4");
+        ti.cfg("PLL_UNLOCK_CNT_RST_FAST", "FALSE");
+        ti.cfg("PLL_VLFHIGH_DIS", "FALSE");
+        ti.cfg("RESET_ON_LOSS_OF_LOCK", "FALSE");
+        ti.cfg("RST_DEASSERT_CLK", "CLKIN1");
+        ti.cfg("WAIT_DCM1_LOCK", "FALSE");
+        ti.cfg("WAIT_DCM2_LOCK", "FALSE");
+        ti.cfg("CLKFBOUT_MULT", "1");
+        ti.cfg("CLKFBOUT_PHASE", "0.0");
+        ti.cfg("CLKIN1_PERIOD", "0.000000");
+        ti.cfg("CLKIN2_PERIOD", "0.000000");
+        ti.cfg("CLKOUT0_DIVIDE", "1");
+        ti.cfg("CLKOUT0_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT0_PHASE", "0.0");
+        ti.cfg("CLKOUT1_DIVIDE", "1");
+        ti.cfg("CLKOUT1_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT1_PHASE", "0.0");
+        ti.cfg("CLKOUT2_DIVIDE", "1");
+        ti.cfg("CLKOUT2_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT2_PHASE", "0.0");
+        ti.cfg("CLKOUT3_DIVIDE", "1");
+        ti.cfg("CLKOUT3_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT3_PHASE", "0.0");
+        ti.cfg("CLKOUT4_DIVIDE", "1");
+        ti.cfg("CLKOUT4_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT4_PHASE", "0.0");
+        ti.cfg("CLKOUT5_DIVIDE", "1");
+        ti.cfg("CLKOUT5_DUTY_CYCLE", "0.5");
+        ti.cfg("CLKOUT5_PHASE", "0.0");
+        ti.cfg("PLL_CLKFBOUT2_DT", "000000");
+        ti.cfg("PLL_CLKFBOUT2_HT", "000001");
+        ti.cfg("PLL_CLKFBOUT2_LT", "000001");
+        ti.cfg("PLL_EN_CNTRL", "001110110000111100100001010110100000101100100000000001001100010111100110100110");
+        ti.cfg("PLL_FLOCK", "000000");
+        ti.cfg("PLL_IN_DLY_SET", "000011101");
+        ti.cfg("PLL_LOCK_FB_P1", "01000");
+        ti.cfg("PLL_LOCK_FB_P2", "01000");
+        ti.cfg("PLL_LOCK_REF_P1", "01000");
+        ti.cfg("PLL_LOCK_REF_P2", "01000");
+        ti.cfg("PLL_MISC", "0000");
+        ti.cfg("PLL_OPT_INV", "000000");
+        ti.cfg("REF_JITTER", "0.1");
+
+        test.src_insts.push(inst);
+        test.tgt_insts.push(ti);
+    }
+
+    // CPM
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMCORESLEEPREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMDECIRPTREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMFITIRPTREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMMSRCE");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMMSREE");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMTIMERRESETREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440CPMWDIRPTREQ");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMDCRCLK");
+    let clk_inv = ctx.rng.gen();
+    if clk_inv {
+        let clk = test.make_inv(ctx, &clkout);
+        inst.connect("CPMC440CLK", &clk);
+    } else {
+        inst.connect("CPMC440CLK", &clkout);
+    }
+    ti.pin_in_inv("CPMC440CLK", &clkout, clk_inv);
+    make_in(test, ctx, &mut inst, &mut ti, "CPMC440CLKEN");
+    make_in(test, ctx, &mut inst, &mut ti, "CPMC440CORECLOCKINACTIVE");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMC440TIMERCLOCK");
+    for i in 0..4 {
+        make_in_inv(test, ctx, &mut inst, &mut ti, &format!("CPMDMA{i}LLCLK"));
+    }
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMFCMCLK");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMINTERCONNECTCLK");
+    make_in(test, ctx, &mut inst, &mut ti, "CPMINTERCONNECTCLKEN");
+    make_in(test, ctx, &mut inst, &mut ti, "CPMINTERCONNECTCLKNTO1");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMMCCLK");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMPPCMPLBCLK");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMPPCS0PLBCLK");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "CPMPPCS1PLBCLK");
+
+    // INTERCONNECT
+    make_out(test, ctx, &mut inst, &mut ti, "PPCCPMINTERCONNECTBUSY");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCEICINTERCONNECTIRQ");
+    make_param_hex(ctx, &mut inst, &mut ti, "INTERCONNECT_IMASK", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "INTERCONNECT_TMPL_SEL", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "XBAR_ADDRMAP_TMPL0", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "XBAR_ADDRMAP_TMPL1", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "XBAR_ADDRMAP_TMPL2", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "XBAR_ADDRMAP_TMPL3", 32);
+
+    // PLB master interface
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBABORT");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBBUSLOCK");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBLOCKERR");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBRDBURST");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBREQUEST");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBRNW");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCMPLBWRBURST");
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBWRDBUS", 0, 127);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBBE", 0, 15);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBTATTRIBUTE", 0, 15);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBPRIORITY", 0, 1);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBTYPE", 0, 2);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBABUS", 0, 31);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBSIZE", 0, 3);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCMPLBUABUS", 28, 31);
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMADDRACK");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMMBUSY");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMMIRQ");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMMRDERR");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMMWRERR");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMRDBTERM");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMRDDACK");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMRDPENDREQ");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMREARBITRATE");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMTIMEOUT");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMWRBTERM");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMWRDACK");
+    make_in(test, ctx, &mut inst, &mut ti, "PLBPPCMWRPENDREQ");
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMRDDBUS", 0, 127);
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMRDPENDPRI", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMREQPRI", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMSSIZE", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMWRPENDPRI", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "PLBPPCMRDWDADDR", 0, 3);
+    let val = gen_arb_config(ctx);
+    inst.param_bits("PPCM_ARBCONFIG", &val);
+    ti.cfg_hex("PPCM_ARBCONFIG", &val, true);
+    make_param_hex(ctx, &mut inst, &mut ti, "PPCM_CONTROL", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "PPCM_COUNTER", 32);
+
+    // PLB slave interfaces
+    for i in 0..2 {
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBADDRACK"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDBTERM"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDCOMP"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDDACK"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBREARBITRATE"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWAIT"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRBTERM"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRCOMP"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRDACK"));
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDDBUS"), 0, 127);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBSSIZE"), 0, 1);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMBUSY"), 0, 3);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMIRQ"), 0, 3);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMRDERR"), 0, 3);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMWRERR"), 0, 3);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDWDADDR"), 0, 3);
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}ABORT"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}BUSLOCK"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}LOCKERR"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}PAVALID"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDBURST"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPENDREQ"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPRIM"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RNW"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}SAVALID"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRBURST"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPENDREQ"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPRIM"));
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRDBUS"), 0, 127);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}BE"), 0, 15);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}TATTRIBUTE"), 0, 15);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}MASTERID"), 0, 1);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}MSIZE"), 0, 1);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPENDPRI"), 0, 1);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}REQPRI"), 0, 1);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPENDPRI"), 0, 1);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}TYPE"), 0, 2);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}SIZE"), 0, 3);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}ABUS"), 0, 31);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}UABUS"), 28, 31);
+        make_param_bool(ctx, &mut inst, &mut ti, &format!("PPCS{i}_WIDTH_128N64"));
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("PPCS{i}_CONTROL"), 32);
+        for j in 0..4 {
+            make_param_hex(ctx, &mut inst, &mut ti, &format!("PPCS{i}_ADDRMAP_TMPL{j}"), 32);
+        }
+    }
+    ti.cfg("PLB_TEST", "0");
+
+    // DCR
+    make_param_bool(ctx, &mut inst, &mut ti, "DCR_AUTOLOCK_ENABLE");
+
+    make_param_bool(ctx, &mut inst, &mut ti, "PPCDM_ASYNCMODE");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCDMDCRREAD");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCDMDCRWRITE");
+    make_in(test, ctx, &mut inst, &mut ti, "DCRPPCDMACK");
+    make_in(test, ctx, &mut inst, &mut ti, "DCRPPCDMTIMEOUTWAIT");
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCDMDCRDBUSOUT", 0, 31);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCDMDCRABUS", 0, 9);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCDMDCRUABUS", 20, 21);
+    make_ins(test, ctx, &mut inst, &mut ti, "DCRPPCDMDBUSIN", 0, 31);
+
+    make_param_bool(ctx, &mut inst, &mut ti, "PPCDS_ASYNCMODE");
+    make_in(test, ctx, &mut inst, &mut ti, "DCRPPCDSREAD");
+    make_in(test, ctx, &mut inst, &mut ti, "DCRPPCDSWRITE");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCDSDCRACK");
+    make_out(test, ctx, &mut inst, &mut ti, "PPCDSDCRTIMEOUTWAIT");
+    make_ins(test, ctx, &mut inst, &mut ti, "DCRPPCDSDBUSOUT", 0, 31);
+    make_ins(test, ctx, &mut inst, &mut ti, "DCRPPCDSABUS", 0, 9);
+    make_outs(test, ctx, &mut inst, &mut ti, "PPCDSDCRDBUSIN", 0, 31);
+
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEDCRBASEADDR", 0, 1);
+
+    ti.cfg("DCR_TEST", "0");
+
+    // DMA
+    for i in 0..4 {
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLRSTENGINEACK"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLRXDSTRDYN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXEOFN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXEOPN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXSOFN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXSOPN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXSRCRDYN"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}RXIRQ"));
+        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}TXIRQ"));
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXD"), 0, 31);
+        make_outs(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXREM"), 0, 3);
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RSTENGINEREQ"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXEOFN"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXEOPN"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSOFN"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSOPN"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSRCRDYN"));
+        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}TXDSTRDYN"));
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXD"), 0, 31);
+        make_ins(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXREM"), 0, 3);
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_CONTROL"), 8);
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_RXIRQTIMER"), 10);
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_TXIRQTIMER"), 10);
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_RXCHANNELCTRL"), 32);
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_TXCHANNELCTRL"), 32);
+    }
+    ti.cfg("DMA_TEST", "0");
+
+    // MI
+    make_out(test, ctx, &mut inst, &mut ti, "MIMCADDRESSVALID");
+    make_out(test, ctx, &mut inst, &mut ti, "MIMCBANKCONFLICT");
+    make_out(test, ctx, &mut inst, &mut ti, "MIMCREADNOTWRITE");
+    make_out(test, ctx, &mut inst, &mut ti, "MIMCROWCONFLICT");
+    make_out(test, ctx, &mut inst, &mut ti, "MIMCWRITEDATAVALID");
+    make_outs(test, ctx, &mut inst, &mut ti, "MIMCWRITEDATA", 0, 127);
+    make_outs(test, ctx, &mut inst, &mut ti, "MIMCBYTEENABLE", 0, 15);
+    make_outs(test, ctx, &mut inst, &mut ti, "MIMCADDRESS", 0, 35);
+    make_in(test, ctx, &mut inst, &mut ti, "MCMIADDRREADYTOACCEPT");
+    make_in(test, ctx, &mut inst, &mut ti, "MCMIREADDATAERR");
+    make_in(test, ctx, &mut inst, &mut ti, "MCMIREADDATAVALID");
+    make_ins(test, ctx, &mut inst, &mut ti, "MCMIREADDATA", 0, 127);
+    let val = ctx.gen_bits(32);
+    inst.param_bits("MI_CONTROL", &val);
+    ti.cfg_hex("MI_CONTROL", &val, true);
+    ti.cfg_bool("MI_CONTROL_BIT6", val[25] == BitVal::S1);
+    let val = gen_arb_config(ctx);
+    inst.param_bits("MI_ARBCONFIG", &val);
+    ti.cfg_hex("MI_ARBCONFIG", &val, true);
+    make_param_hex(ctx, &mut inst, &mut ti, "MI_BANKCONFLICT_MASK", 32);
+    make_param_hex(ctx, &mut inst, &mut ti, "MI_ROWCONFLICT_MASK", 32);
+    ti.cfg("MIB_TEST", "0");
+
+    // APU
+    make_param_hex(ctx, &mut inst, &mut ti, "APU_CONTROL", 17);
+    for i in 0..16 {
+        make_param_hex(ctx, &mut inst, &mut ti, &format!("APU_UDI{i}"), 24);
+    }
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMDECFPUOP");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMDECLOAD");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMDECNONAUTON");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMDECSTORE");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMDECUDIVALID");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMENDIAN");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMFLUSH");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMINSTRVALID");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMLOADDVALID");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMMSRFE0");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMMSRFE1");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMNEXTINSTRREADY");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMOPERANDVALID");
+    make_out(test, ctx, &mut inst, &mut ti, "APUFCMWRITEBACKOK");
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMLOADDATA", 0, 127);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMDECLDSTXFERSIZE", 0, 2);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMINSTRUCTION", 0, 31);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMRADATA", 0, 31);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMRBDATA", 0, 31);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMDECUDI", 0, 3);
+    make_outs(test, ctx, &mut inst, &mut ti, "APUFCMLOADBYTEADDR", 0, 3);
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPUCONFIRMINSTR");
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPUDONE");
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPUEXCEPTION");
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPUFPSCRFEX");
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPURESULTVALID");
+    make_in(test, ctx, &mut inst, &mut ti, "FCMAPUSLEEPNOTREADY");
+    make_ins(test, ctx, &mut inst, &mut ti, "FCMAPUSTOREDATA", 0, 127);
+    make_ins(test, ctx, &mut inst, &mut ti, "FCMAPURESULT", 0, 31);
+    make_ins(test, ctx, &mut inst, &mut ti, "FCMAPUCR", 0, 3);
+    ti.cfg("APU_TEST", "0");
+
+    // JTG
+    make_out(test, ctx, &mut inst, &mut ti, "C440JTGTDO");
+    make_out(test, ctx, &mut inst, &mut ti, "C440JTGTDOEN");
+    make_in_inv(test, ctx, &mut inst, &mut ti, "JTGC440TCK");
+    make_in(test, ctx, &mut inst, &mut ti, "JTGC440TDI");
+    make_in(test, ctx, &mut inst, &mut ti, "JTGC440TMS");
+    make_in(test, ctx, &mut inst, &mut ti, "JTGC440TRSTNEG");
+
+    // EIC
+    make_in(test, ctx, &mut inst, &mut ti, "EICC440CRITIRQ");
+    make_in(test, ctx, &mut inst, &mut ti, "EICC440EXTIRQ");
+
+    // TRC
+    make_out(test, ctx, &mut inst, &mut ti, "C440TRCCYCLE");
+    make_out(test, ctx, &mut inst, &mut ti, "C440TRCTRIGGEREVENTOUT");
+    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCTRIGGEREVENTTYPE", 0, 13);
+    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCBRANCHSTATUS", 0, 2);
+    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCEXECUTIONSTATUS", 0, 4);
+    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCTRACESTATUS", 0, 6);
+    make_in(test, ctx, &mut inst, &mut ti, "TRCC440TRACEDISABLE");
+    make_in(test, ctx, &mut inst, &mut ti, "TRCC440TRIGGEREVENTIN");
+
+    // DBG
+    make_outs(test, ctx, &mut inst, &mut ti, "C440DBGSYSTEMCONTROL", 0, 7);
+    make_in(test, ctx, &mut inst, &mut ti, "DBGC440DEBUGHALT");
+    make_in(test, ctx, &mut inst, &mut ti, "DBGC440UNCONDDEBUGEVENT");
+    make_ins(test, ctx, &mut inst, &mut ti, "DBGC440SYSTEMSTATUS", 0, 4);
+
+    // misc
+    make_param_bool(ctx, &mut inst, &mut ti, "CLOCK_DELAY");
+    make_out(test, ctx, &mut inst, &mut ti, "C440MACHINECHECK");
+    make_out(test, ctx, &mut inst, &mut ti, "C440RSTCHIPRESETREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440RSTCORERESETREQ");
+    make_out(test, ctx, &mut inst, &mut ti, "C440RSTSYSTEMRESETREQ");
+    make_in(test, ctx, &mut inst, &mut ti, "RSTC440RESETCHIP");
+    make_in(test, ctx, &mut inst, &mut ti, "RSTC440RESETCORE");
+    make_in(test, ctx, &mut inst, &mut ti, "RSTC440RESETSYSTEM");
+    make_in(test, ctx, &mut inst, &mut ti, "TIEC440ENDIANRESET");
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDLDCACHEPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDNONCACHEPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDTOUCHPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDURGENTPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRFLUSHPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRSTOREPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRURGENTPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDFETCHPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDSPECPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDTOUCHPLBPRIO", 0, 1);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ERPNRESET", 0, 3);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440USERRESET", 0, 3);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440PIR", 28, 31);
+    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440PVR", 28, 31);
 
     test.src_insts.push(inst);
     test.tgt_insts.push(ti);
