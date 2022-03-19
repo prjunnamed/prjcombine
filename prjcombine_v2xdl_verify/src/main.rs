@@ -13,6 +13,7 @@ mod clb_lut4;
 mod clb_lut6;
 mod ramb;
 mod dsp;
+mod hard;
 
 use types::{TestGenCtx, Test};
 
@@ -58,6 +59,9 @@ fn get_virtex2_tests(family: &str) -> Vec<Test> {
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex2, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex2, &mut test);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex2, &mut test);
+        if family == "virtex2p" {
+            hard::gen_ppc405(&mut test, &mut ctx, false);
+        }
         res.push(test);
     }
     res
@@ -92,6 +96,8 @@ fn get_virtex4_tests() -> Vec<Test> {
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex4, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex4, &mut test);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex4, &mut test);
+        hard::gen_ppc405(&mut test, &mut ctx, true);
+        hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex4);
         res.push(test);
     }
     res
@@ -104,8 +110,15 @@ fn get_virtex5_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Virtex5, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("ramb{i}"), part);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex5, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("dsp{i}"), part);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex5, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("hard{i}"), part);
+        hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex5);
         res.push(test);
     }
     res
@@ -118,8 +131,15 @@ fn get_virtex6_tests() -> Vec<Test> {
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Virtex6, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("ramb{i}"), part);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex6, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("dsp{i}"), part);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex6, &mut test);
+        res.push(test);
+        let mut test = Test::new(&format!("hard{i}"), part);
+        hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex6);
         res.push(test);
     }
     res
