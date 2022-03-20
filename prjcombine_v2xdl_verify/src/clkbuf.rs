@@ -333,14 +333,13 @@ fn gen_bufgctrl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     test.tgt_insts.push(ti);
 }
 
-fn gen_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+fn make_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, i: &str) {
     let mut inst = SrcInst::new(ctx, "BUFR");
     let mut ti = TgtInst::new(&["BUFR"]);
 
-    let i = test.make_in(ctx);
+    let o = make_clk_out(test, ctx, mode);
     let ce = test.make_in(ctx);
     let clr = test.make_in(ctx);
-    let o = make_clk_out(test, ctx, mode);
     inst.connect("I", &i);
     inst.connect("CE", &ce);
     inst.connect("CLR", &clr);
@@ -360,6 +359,121 @@ fn gen_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     test.tgt_insts.push(ti);
 }
 
+fn gen_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let i = test.make_in(ctx);
+    make_bufr(test, ctx, mode, &i);
+}
+
+fn gen_bufh(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "BUFH");
+
+    let i = test.make_in(ctx);
+    let o = make_clk_out(test, ctx, mode);
+    inst.connect("I", &i);
+    inst.connect("O", &o);
+
+    match mode {
+        Mode::Spartan6 => {
+            let mut ti = TgtInst::new(&["BUFH"]);
+            ti.bel("BUFH", &inst.name, "");
+            ti.pin_in("I", &i);
+            ti.pin_out("O", &o);
+            test.tgt_insts.push(ti);
+        }
+        _ => {
+            let mut ti = TgtInst::new(&["BUFHCE"]);
+            ti.bel("BUFHCE", &inst.name, "");
+            ti.pin_in("I", &i);
+            ti.pin_out("O", &o);
+            ti.pin_tie_inv("CE", true, false);
+            if mode == Mode::Series7 {
+                ti.cfg("CE_TYPE", "SYNC");
+            }
+            ti.cfg("INIT_OUT", "0");
+            test.tgt_insts.push(ti);
+        }
+    }
+
+    test.src_insts.push(inst);
+}
+
+fn gen_bufhce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "BUFHCE");
+    let mut ti = TgtInst::new(&["BUFHCE"]);
+
+    let i = test.make_in(ctx);
+    let (ce_v, ce_x, ce_inv) = test.make_in_inv(ctx);
+    let o = make_clk_out(test, ctx, mode);
+    inst.connect("I", &i);
+    inst.connect("CE", &ce_v);
+    inst.connect("O", &o);
+    let init = ctx.gen_bits(1);
+    inst.param_bits("INIT_OUT", &init);
+
+    ti.bel("BUFHCE", &inst.name, "");
+    ti.pin_in("I", &i);
+    ti.pin_in_inv("CE", &ce_x, ce_inv);
+    ti.pin_out("O", &o);
+    ti.cfg_hex("INIT_OUT", &init, true);
+
+    if mode == Mode::Series7 {
+        let cet = *["SYNC", "ASYNC"].choose(&mut ctx.rng).unwrap();
+        inst.param_str("CE_TYPE", cet);
+        ti.cfg("CE_TYPE", cet);
+    }
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
+fn gen_bufmr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "BUFMR");
+
+    let i = test.make_in(ctx);
+    let o = test.make_wire(ctx);
+    make_bufr(test, ctx, mode, &o);
+    inst.connect("I", &i);
+    inst.connect("O", &o);
+
+    let mut ti = TgtInst::new(&["BUFMRCE"]);
+    ti.bel("BUFMRCE", &inst.name, "");
+    ti.pin_in("I", &i);
+    ti.pin_out("O", &o);
+    ti.pin_tie_inv("CE", true, false);
+    ti.cfg("CE_TYPE", "SYNC");
+    ti.cfg("INIT_OUT", "0");
+    test.tgt_insts.push(ti);
+
+    test.src_insts.push(inst);
+}
+
+fn gen_bufmrce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "BUFMRCE");
+    let mut ti = TgtInst::new(&["BUFMRCE"]);
+
+    let i = test.make_in(ctx);
+    let (ce_v, ce_x, ce_inv) = test.make_in_inv(ctx);
+    let o = test.make_wire(ctx);
+    make_bufr(test, ctx, mode, &o);
+    inst.connect("I", &i);
+    inst.connect("CE", &ce_v);
+    inst.connect("O", &o);
+    let init = ctx.gen_bits(1);
+    inst.param_bits("INIT_OUT", &init);
+    let cet = *["SYNC", "ASYNC"].choose(&mut ctx.rng).unwrap();
+    inst.param_str("CE_TYPE", cet);
+
+    ti.bel("BUFMRCE", &inst.name, "");
+    ti.pin_in("I", &i);
+    ti.pin_in_inv("CE", &ce_x, ce_inv);
+    ti.pin_out("O", &o);
+    ti.cfg_hex("INIT_OUT", &init, true);
+    ti.cfg("CE_TYPE", cet);
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
 pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     gen_bufg(test, ctx, mode);
     if mode != Mode::Virtex {
@@ -370,5 +484,15 @@ pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         gen_bufgmux_ctrl(test, ctx, mode);
         gen_bufgctrl(test, ctx, mode);
         gen_bufr(test, ctx, mode);
+    }
+    if matches!(mode, Mode::Spartan6 | Mode::Virtex6 | Mode::Series7) {
+        gen_bufh(test, ctx, mode);
+    }
+    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        gen_bufhce(test, ctx, mode);
+    }
+    if mode == Mode::Series7 {
+        gen_bufmr(test, ctx, mode);
+        gen_bufmrce(test, ctx, mode);
     }
 }
