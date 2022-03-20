@@ -333,6 +333,33 @@ fn gen_bufgctrl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     test.tgt_insts.push(ti);
 }
 
+fn gen_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
+    let mut inst = SrcInst::new(ctx, "BUFR");
+    let mut ti = TgtInst::new(&["BUFR"]);
+
+    let i = test.make_in(ctx);
+    let ce = test.make_in(ctx);
+    let clr = test.make_in(ctx);
+    let o = make_clk_out(test, ctx, mode);
+    inst.connect("I", &i);
+    inst.connect("CE", &ce);
+    inst.connect("CLR", &clr);
+    inst.connect("O", &o);
+    let div = *["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"].choose(&mut ctx.rng).unwrap();
+    inst.param_str("BUFR_DIVIDE", div);
+
+
+    ti.bel("BUFR", &inst.name, "");
+    ti.pin_in("I", &i);
+    ti.pin_in("CE", &ce);
+    ti.pin_in("CLR", &clr);
+    ti.pin_out("O", &o);
+    ti.cfg("BUFR_DIVIDE", div);
+
+    test.src_insts.push(inst);
+    test.tgt_insts.push(ti);
+}
+
 pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     gen_bufg(test, ctx, mode);
     if mode != Mode::Virtex {
@@ -342,5 +369,6 @@ pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     if matches!(mode, Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
         gen_bufgmux_ctrl(test, ctx, mode);
         gen_bufgctrl(test, ctx, mode);
+        gen_bufr(test, ctx, mode);
     }
 }
