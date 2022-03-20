@@ -14,6 +14,7 @@ mod clb_lut6;
 mod ramb;
 mod dsp;
 mod hard;
+mod clkbuf;
 
 use types::{TestGenCtx, Test};
 
@@ -41,6 +42,7 @@ fn get_virtex_tests(family: &str) -> Vec<Test> {
         let mut test = Test::new(&format!("clb{i}"), part);
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex, &mut test);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex);
         res.push(test);
     }
     res
@@ -59,6 +61,7 @@ fn get_virtex2_tests(family: &str) -> Vec<Test> {
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Virtex2, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex2, &mut test);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex2, &mut test);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex2);
         if family == "virtex2p" {
             hard::gen_ppc405(&mut test, &mut ctx, false);
         }
@@ -82,6 +85,7 @@ fn get_spartan3_tests(family: &str) -> Vec<Test> {
         clb_lut4::gen_clb(&mut ctx, clb_lut4::Mode::Spartan3, &mut test);
         ramb::gen_ramb(&mut ctx, ramb_mode, &mut test);
         dsp::gen_dsp(&mut ctx, dsp_mode, &mut test);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Spartan3);
         res.push(test);
     }
     res
@@ -98,6 +102,7 @@ fn get_virtex4_tests() -> Vec<Test> {
         dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex4, &mut test);
         hard::gen_ppc405(&mut test, &mut ctx, true);
         hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex4);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex4);
         res.push(test);
     }
     res
@@ -120,6 +125,7 @@ fn get_virtex5_tests() -> Vec<Test> {
         let mut test = Test::new(&format!("hard{i}"), part);
         hard::gen_ppc440(&mut test, &mut ctx);
         hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex5);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex5);
         res.push(test);
     }
     res
@@ -141,6 +147,7 @@ fn get_virtex6_tests() -> Vec<Test> {
         res.push(test);
         let mut test = Test::new(&format!("hard{i}"), part);
         hard::gen_emac(&mut test, &mut ctx, hard::EmacMode::Virtex6);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex6);
         res.push(test);
     }
     res
@@ -155,6 +162,7 @@ fn get_spartan6_tests() -> Vec<Test> {
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Spartan6, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Spartan6, &mut test);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Spartan6, &mut test);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Spartan6);
         res.push(test);
     }
     res
@@ -169,6 +177,7 @@ fn get_7series_tests() -> Vec<Test> {
         clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Series7, &mut test);
         ramb::gen_ramb(&mut ctx, ramb::Mode::Series7, &mut test);
         dsp::gen_dsp(&mut ctx, dsp::Mode::Series7, &mut test);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Series7);
         res.push(test);
     }
     res
