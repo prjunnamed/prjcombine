@@ -1,15 +1,15 @@
 [package]
 name = "prjcombine_xilinx_rd2geom"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
+prjcombine_xilinx_geom = { path = "../prjcombine_xilinx_geom" }
 prjcombine_xilinx_rawdump = { path = "../prjcombine_xilinx_rawdump" }
-prjcombine_toolchain = { path = "../prjcombine_toolchain" }
-serde = { version = "1.0", features = ["derive"] }
-bincode = "1.3"
-zstd = "0.9"
 jemallocator = "0.3.0"
-itertools = "0.10"
 structopt = "0.3"
-ndarray = { version = "0.15", features = ["serde"] }
+simple-error = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+ron = "0.7"
+itertools = "0.10"
+rayon = "1.5.1"

@@ -6,6 +6,10 @@ members = [
 	"prjcombine_ise_dump",
 	"prjcombine_vivado_dump",
 	"prjcombine_xilinx_rd2geom",
+	"prjcombine_xilinx_geom",
 	"prjcombine_xdl",
 	"prjcombine_v2xdl_verify",
 ]
+
+[profile.release]
+debug = 1

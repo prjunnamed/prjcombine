@@ -12,6 +12,7 @@ pub enum BitVal {
 pub enum ParamVal {
     String(String),
     Int(i32),
+    #[allow(dead_code)]
     Float(f64),
     Bits(Vec<BitVal>),
 }
