@@ -54,10 +54,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut ise_families: Vec<&'static str> = Vec::new();
     for family in opt.families.iter() {
         ise_families.extend(match &family[..] {
+            "xc3000a" => vec!["xc3000a", "xc3000l", "xc3100a", "xc3100l"],
             "xc4000e" => vec!["xc4000e", "xc4000l", "spartan"],
             "xc4000ex" => vec!["xc4000ex", "xc4000xl"],
             "xc4000xla" => vec!["xc4000xla"],
             "xc4000xv" => vec!["xc4000xv"],
+            "xc5200" => vec!["xc5200"],
             "spartanxl" => vec!["spartanxl"],
             "virtex" => vec!["virtex", "qvirtex", "qrvirtex", "spartan2"],
             "virtexe" => vec!["virtexe", "qvirtexe", "spartan2e", "aspartan2e"],

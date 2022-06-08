@@ -2,8 +2,11 @@ use prjcombine_toolchain::{Toolchain, ToolchainReader};
 use prjcombine_xilinx_rawdump::TkSitePinDir;
 use simple_error::{bail, SimpleError};
 use std::error::Error;
-use std::io::{BufRead, Lines};
+use std::fs::File;
+use std::io::{BufRead, BufReader, Lines, Write};
 use std::str::FromStr;
+use std::process::Stdio;
+use tempfile;
 
 #[derive(Debug)]
 pub struct Tile {
@@ -170,15 +173,38 @@ impl Parser {
             env.push(("XIL_DRM_EXCLUDE_ARCS", "1"));
         }
         args.push(&opt.part);
-        args.push("fifo.xdlrc");
-        Parser::new(Box::new(ToolchainReader::new(
-            tc,
-            "xdl",
-            &args,
-            &env,
-            "fifo.xdlrc",
-            &[],
-        )?))
+        if tc.use_wine {
+            let dir = tempfile::Builder::new()
+                .prefix("prjcombine_ise_dump_xdl")
+                .tempdir()?;
+            args.push("out.xdlrc");
+            let mut cmd = tc.command("xdl");
+            cmd.current_dir(dir.path().as_os_str());
+            cmd.stdin(Stdio::null());
+            for arg in args {
+                cmd.arg(arg);
+            }
+            for (k, v) in env {
+                cmd.env(k, v);
+            }
+            let status = cmd.output()?;
+            if !status.status.success() {
+                let _ = std::io::stderr().write_all(&status.stdout);
+                let _ = std::io::stderr().write_all(&status.stderr);
+                bail!("non-zero xdl exit status");
+            }
+            Parser::new(Box::new(BufReader::new(File::open(dir.path().join("out.xdlrc"))?)))
+        } else {
+            args.push("fifo.xdlrc");
+            Parser::new(Box::new(ToolchainReader::new(
+                tc,
+                "xdl",
+                &args,
+                &env,
+                "fifo.xdlrc",
+                &[],
+            )?))
+        }
     }
 
     pub fn get_tile(&mut self) -> Result<Option<Tile>, Box<dyn Error>> {
@@ -325,7 +351,12 @@ impl Parser {
                         .ok_or_else(|| SimpleError::new("missing ) on pip"))?;
                     let (l, rt) = match l.strip_suffix(")") {
                         Some(l) => {
-                            let sl: Vec<_> = l.split(" (_ROUTETHROUGH-").collect();
+                            let sl: Vec<_>;
+                            if l.contains("_ROUTETHROUGH") {
+                                sl = l.split(" (_ROUTETHROUGH-").collect();
+                            } else {
+                                sl = l.split(" (ROUTETHROUGH-").collect();
+                            }
                             if sl.len() != 2 {
                                 bail!("not routethru pip: {:?}", l);
                             }

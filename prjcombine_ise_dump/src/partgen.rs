@@ -3,7 +3,7 @@ use prjcombine_xilinx_rawdump::PkgPin;
 use simple_error::bail;
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::process::Stdio;
 use tempfile;
 
@@ -41,6 +41,25 @@ pub fn parse_pkgfile(f: &mut impl BufRead) -> Result<Vec<PkgPin>, Box<dyn Error>
         let l: Vec<_> = l.split_whitespace().collect();
 
         match l[..] {
+            [typ, pad, pin] => {
+                if typ != "pin" && typ != "pkgpin" {
+                    continue;
+                }
+                res.push(PkgPin {
+                    pad: if typ == "pin" {
+                        Some(pad.to_string())
+                    } else {
+                        None
+                    },
+                    pin: pin.to_string(),
+                    vref_bank: None,
+                    vcco_bank: None,
+                    func: "IO".to_string(),
+                    tracelen_um: None,
+                    delay_min_fs: None,
+                    delay_max_fs: None,
+                });
+            }
             [typ, pad, pin, bank, func, _, _] => {
                 if typ != "pin" && typ != "pkgpin" {
                     continue;
@@ -115,12 +134,14 @@ const PATTERNS: &[(&str, &str, &str)] = &[
     ("x[ca]95[0-9]+(?:xl|xv)?", "[a-z]{2}[0-9]+", "xc9500"),
     ("xcr3[0-9]+xl", "[a-z]{2}[0-9]+", "xpla3"),
     ("x[ca]2c[0-9]+a?", "[a-z]{2}g?[0-9]+", "xbr"),
+    ("xc3[01][0-9]+[al]", "[a-z]{2}[0-9]+", "xc3000a"),
     ("xc40[0-9]+[el]", "[a-z]{2}[0-9]+", "xc4000e"),
     ("xcs[0-9]+", "[a-z]{2}[0-9]+", "xc4000e"),
     ("xc40[0-9]+(?:xl|ex)", "[a-z]{2}[0-9]+", "xc4000ex"),
     ("xc40[0-9]+xla", "[a-z]{2}[0-9]+", "xc4000xla"),
     ("xc40[0-9]+xv", "[a-z]{2}[0-9]+", "xc4000xv"),
     ("xcs[0-9]+xl", "[a-z]{2}[0-9]+", "spartanxl"),
+    ("xc52[0-9]+", "[a-z]{2}[0-9]+", "xc5200"),
     ("x(?:cv|qv|qvr|c2s)[0-9]+", "[a-z]{2}[0-9]+", "virtex"),
     ("x(?:cv|qv|c2s|a2s)[0-9]+e", "[a-z]{2}[0-9]+", "virtexe"),
     ("x(?:c|q|qr)2v[0-9]+", "[a-z]{2}[0-9]+", "virtex2"),
@@ -193,14 +214,14 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
     let mut cmd = tc.command("partgen");
     cmd.current_dir(dir.path().as_os_str());
     cmd.stdin(Stdio::null());
-    cmd.stdout(Stdio::null());
-    cmd.stderr(Stdio::null());
     cmd.arg("-v");
     if !query.is_empty() {
         cmd.arg(query);
     }
-    let status = cmd.status()?;
-    if !status.success() {
+    let status = cmd.output()?;
+    if !status.status.success() {
+        let _ = std::io::stderr().write_all(&status.stdout);
+        let _ = std::io::stderr().write_all(&status.stderr);
         bail!("non-zero partgen exit status");
     }
     let file = File::open(dir.path().join("partlist.xct"))?;
@@ -253,7 +274,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
                 speedgrades.push(x[0].to_string());
             }
         }
-        let pfile = File::open(dir.path().join(format!("{}.pkg", words[1].to_lowercase())))?;
+        let pfile = File::open(dir.path().join(words[3]))?;
         let mut pbufread = BufReader::new(pfile);
         let pins = parse_pkgfile(&mut pbufread)?;
         res.push(PartgenPkg {
