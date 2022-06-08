@@ -52,18 +52,20 @@ mod tests {
 
 fn get_lastnum(s: &str) -> u8 {
     let mut num: Option<u8> = None;
+    let mut res = None;
     for c in s.chars() {
         if c.is_ascii_digit() {
             let v = c.to_digit(10).unwrap() as u8;
             num = Some(match num {
                 None => v,
                 Some(c) => c * 10 + v,
-            })
+            });
+            res = num;
         } else {
-            num = None
+            num = None;
         }
     }
-    num.unwrap()
+    res.unwrap()
 }
 
 impl PartBuilder {
@@ -135,8 +137,16 @@ impl PartBuilder {
             }
         }
         let mut slots: HashSet<TkSiteSlot> = HashSet::new();
-        for &(n, k, ref p) in sites {
-            let slot = if self.part.family == "xc4000e"
+        for (i, &(n, k, ref p)) in sites.iter().enumerate() {
+            let slot = if self.part.family == "xc3000a" {
+                match k {
+                    "IOB" | "TBUF" | "PULLUP" => TkSiteSlot::Indexed(
+                        self.index.slot_kind_to_idx(k),
+                        i as u8,
+                    ),
+                    _ => TkSiteSlot::Single(self.index.slot_kind_to_idx(k)),
+                }
+            } else if self.part.family == "xc4000e"
                 || self.part.family == "xc4000ex"
                 || self.part.family == "xc4000xla"
                 || self.part.family == "xc4000xv"
@@ -179,6 +189,31 @@ impl PartBuilder {
                                 },
                             )
                         }
+                        _ => TkSiteSlot::Single(self.index.slot_kind_to_idx(n)),
+                    }
+                }
+            } else if self.part.family == "xc5200" {
+                if let Some(urpos) = n.find("_R") {
+                    if let Some(dpos) = n.find('.') {
+                        let end = &n[dpos + 1..];
+                        let idx = if end.starts_with("LC") {
+                            end[2..].parse::<u8>().unwrap()
+                        } else {
+                            end.parse::<u8>().unwrap()
+                        };
+                        TkSiteSlot::Indexed(
+                            self.index.slot_kind_to_idx(&n[..urpos]),
+                            idx
+                        )
+                    } else {
+                        TkSiteSlot::Single(self.index.slot_kind_to_idx(&n[..urpos]))
+                    }
+                } else {
+                    match k {
+                        "IOB" | "CLKIOB" => TkSiteSlot::Indexed(
+                            self.index.slot_kind_to_idx("IOB"),
+                            from_pinnum(p, "O"),
+                        ),
                         _ => TkSiteSlot::Single(self.index.slot_kind_to_idx(n)),
                     }
                 }
