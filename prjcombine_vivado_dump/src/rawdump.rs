@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
 use std::io::{BufRead, Write};
+use std::fmt::Write as FmtWrite;
 
 const TILE_BATCH_SIZE: usize = 4000;
 
@@ -18,8 +19,9 @@ set fd [open "tiles.fifo" w]
 foreach x [get_tiles] {
     set gx [get_property GRID_POINT_X $x]
     set gy [get_property GRID_POINT_Y $x]
+    set tn [get_property NAME $x]
     set tt [get_property TYPE $x]
-    puts $fd "TILE $gx $gy $x $tt"
+    puts $fd "TILE $gx $gy $tn $tt"
 }
 foreach x [get_speed_models] {
     set idx [get_property SPEED_INDEX $x]
@@ -47,7 +49,7 @@ link_design -part [lindex $argv 0]
 set ifd [open "tts.list" r]
 set fd [open "tts.fifo" w]
 while { [gets $ifd tname] >= 0 } {
-    set tile [get_tiles $tname]
+    set tile [get_tiles -filter "NAME == $tname"]
     set tt [get_property TYPE $tile]
     puts $fd "TILE $tt $tile"
     foreach x [get_pips -of $tile] {
@@ -69,35 +71,36 @@ puts $fd "END"
 
 const DUMP_TILES_TCL: &str = r#"
 link_design -part [lindex $argv 0]
-set ifd [open "tiles.list" r]
+set ifd [open "crd.list" r]
 set fd [open "tiles.fifo" w]
-while { [gets $ifd tname] >= 0 } {
-    set tile [get_tiles $tname]
-    set gx [get_property GRID_POINT_X $tile]
-    set gy [get_property GRID_POINT_Y $tile]
-    set tt [get_property TYPE $tile]
-    puts $fd "TILE $gx $gy $tile $tt"
-    foreach x [get_wires -of $tile] {
-        set node [get_nodes -of $x]
-        set si [get_property SPEED_INDEX $x]
-        puts $fd "WIRE $x $si #$node"
-    }
-    foreach x [get_pips -of $tile] {
-        set si [get_property SPEED_INDEX $x]
-        puts $fd "PIP #$x #$si"
-    }
-    foreach x [get_sites -of $tile] {
-        set type [get_property SITE_TYPE $x]
-        puts $fd "SITE $x $type"
-        foreach y [get_site_pins -of $x] {
-            set node [get_nodes -of $y]
-            set dir [get_property DIRECTION $y]
-            set si [get_property SPEED_INDEX $y]
-            puts $fd "SITEPIN #$y #$dir #$si #$node"
+while { [gets $ifd ty] >= 0 } {
+    foreach tile [get_tiles -filter "GRID_POINT_Y == $ty"] {
+        set gx [get_property GRID_POINT_X $tile]
+        set gy [get_property GRID_POINT_Y $tile]
+        set tt [get_property TYPE $tile]
+        puts $fd "TILE $gx $gy $tile $tt"
+        foreach x [get_wires -of $tile] {
+            set node [get_nodes -of $x]
+            set si [get_property SPEED_INDEX $x]
+            puts $fd "WIRE $x $si #$node"
         }
-        puts $fd "ENDSITE"
+        foreach x [get_pips -of $tile] {
+            set si [get_property SPEED_INDEX $x]
+            puts $fd "PIP #$x #$si"
+        }
+        foreach x [get_sites -of $tile] {
+            set type [get_property SITE_TYPE $x]
+            puts $fd "SITE $x $type"
+            foreach y [get_site_pins -of $x] {
+                set node [get_nodes -of $y]
+                set dir [get_property DIRECTION $y]
+                set si [get_property SPEED_INDEX $y]
+                puts $fd "SITEPIN #$y #$dir #$si #$node"
+            }
+            puts $fd "ENDSITE"
+        }
+        puts $fd "ENDTILE"
     }
-    puts $fd "ENDTILE"
 }
 puts $fd "END"
 "#;
@@ -159,6 +162,9 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     break;
                 }
                 "TILE" => {
+                    if sl.len() != 5 {
+                        println!("UMMMM {} {}", fpart.name, l);
+                    }
                     let gx: u16 = sl[1].parse()?;
                     let gy: u16 = sl[2].parse()?;
                     tile_names.push(sl[3].to_string());
@@ -265,6 +271,9 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     break;
                 }
                 "TILE" => {
+                    if sl.len() != 3 {
+                        println!("UMMMM {} {}", fpart.name, l);
+                    }
                     tile = sl[2].to_string();
                     tt = sl[1].to_string();
                     tt_pips.insert(sl[1].to_string(), HashMap::new());
@@ -321,12 +330,12 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
 
     // STEP 3: dump tiles [sites, pip speed, wires], STREAM THE MOTHERFUCKER, gather nodes
     let mut node_sp = IndexSet::new();
-    let mut nodes: HashMap<String, Vec<(u32, u32, u32)>> = HashMap::new();
-    for batch in tile_names.chunks(TILE_BATCH_SIZE) {
-        let mut tlist: Vec<u8> = Vec::new();
-        for t in batch {
-            tlist.write_all(t.as_bytes())?;
-            tlist.write_all(b"\n")?;
+    let mut nodes: HashMap<(u32, u32), Vec<(u32, u32, u32)>> = HashMap::new();
+    let gys: Vec<_> = (0..height).collect();
+    for batch in gys.chunks(TILE_BATCH_SIZE / (width as usize)) {
+        let mut crdlist = String::new();
+        for y in batch {
+            writeln!(crdlist, "{y}").unwrap();
         }
         let tr = ToolchainReader::new(
             tc,
@@ -345,7 +354,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
             "tiles.fifo",
             &[
                 ("script.tcl", DUMP_TILES_TCL.as_bytes()),
-                ("tiles.list", &tlist),
+                ("crd.list", crdlist.as_bytes()),
             ],
         )?;
         let lines = tr.lines();
@@ -381,6 +390,9 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
             let sl: Vec<_> = l.split_whitespace().collect();
             match sl[0] {
                 "TILE" => {
+                    if sl.len() != 5 {
+                        println!("UMMMM {} {}", fpart.name, l);
+                    }
                     assert!(tile.is_none());
                     coord = Some(Coord {
                         x: sl[1].parse()?,
@@ -390,7 +402,11 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     tt = Some(sl[4].to_string());
                     wpref = sl[3].to_string() + "/";
                     ppref = sl[3].to_string() + "/" + sl[4] + ".";
-                    ttt_pips = Some(tt_pips.get(sl[4]).unwrap());
+                    let pips = tt_pips.get(sl[4]);
+                    if pips.is_none() {
+                        println!("OOPS: {}", l);
+                    }
+                    ttt_pips = Some(pips.unwrap());
                 }
                 "SITE" => {
                     assert!(site.is_none());
@@ -457,7 +473,10 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     let node = &sl[3][1..];
                     wires.push((name.to_string(), si));
                     if !node.is_empty() {
-                        let nwires = nodes.entry(node.to_string()).or_default();
+                        let pos = node.find('/').unwrap();
+                        let node_t = intern(&mut node_sp, &node[..pos]);
+                        let node_w = intern(&mut node_sp, &node[pos+1..]);
+                        let nwires = nodes.entry((node_t, node_w)).or_default();
                         nwires.push((
                             intern(&mut node_sp, tile.as_ref().unwrap()),
                             intern(&mut node_sp, name),
@@ -478,7 +497,12 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     let speed: Option<&str> = if si.is_empty() {
                         None
                     } else {
-                        Some(speed_models.get(&si.parse::<u32>().unwrap()).unwrap())
+                        let si = si.parse::<u32>().unwrap();
+                        let s = speed_models.get(&si);
+                        if s.is_none() {
+                            println!("UMMMM NO SI {}", l);
+                        }
+                        s.map(|x| &x[..])
                     };
                     if pip.is_bidi {
                         pips.push((

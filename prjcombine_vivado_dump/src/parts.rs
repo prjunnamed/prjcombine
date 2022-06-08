@@ -78,7 +78,7 @@ pub fn get_parts(tc: &Toolchain) -> Result<Vec<VivadoPart>, Box<dyn Error>> {
             .to_string(),
             arch: sl[2].to_string(),
             family: sl[3].to_string(),
-            device: sl[4].to_string(),
+            device: if sl[1].contains("-es") { sl[4].to_string() + &sl[1][sl[1].len()-4..]} else { sl[4].to_string() },
             package: sl[5].to_string(),
             speed: sl[6].to_string(),
             temp: sl.get(7).unwrap_or(&"").to_string(),
