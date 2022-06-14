@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+	"prjcombine_entity",
 	"prjcombine_toolchain",
 	"prjcombine_xilinx_rawdump",
 	"prjcombine_ise_dump",
