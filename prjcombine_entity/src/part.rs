@@ -40,7 +40,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         self.vals.get_mut(idx).and_then(|x| x.as_mut())
     }
 
-    pub fn contans_id(&self, id: I) -> bool {
+    pub fn contains_id(&self, id: I) -> bool {
         let idx = id.to_idx();
         self.vals.get(idx).map_or(false, |x| x.is_some())
     }
@@ -361,6 +361,18 @@ impl<I: EntityId, V: Serialize> Serialize for EntityPartVec<I, V> {
             map.serialize_entry(&k, v)?;
         }
         map.end()
+    }
+}
+
+impl<I: EntityId, V> FromIterator<(I, V)> for EntityPartVec<I, V> {
+    fn from_iter<T>(iter: T) -> Self
+    where T: IntoIterator<Item=(I, V)>
+    {
+        let mut res = Self::new();
+        for (k, v) in iter {
+            res.insert(k, v);
+        }
+        res
     }
 }
 

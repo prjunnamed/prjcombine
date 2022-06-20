@@ -1,6 +1,7 @@
 use prjcombine_xilinx_rawdump::Part;
-use prjcombine_xilinx_geom::{Grid, Bond, DeviceBond, Device, DisabledPart, GeomDb, DeviceCombo, ExtraDie};
-use std::collections::{HashSet, HashMap, BTreeSet};
+use prjcombine_xilinx_geom::{Grid, Bond, DeviceBond, Device, DisabledPart, GeomDb, DeviceCombo, ExtraDie, BondId, GridId, DevBondId, DevSpeedId, int};
+use prjcombine_entity::{EntityVec, EntitySet, EntityMap};
+use std::collections::{HashSet, BTreeSet, BTreeMap, btree_map};
 use itertools::Itertools;
 
 pub struct PreDevice {
@@ -8,28 +9,28 @@ pub struct PreDevice {
     pub grids: Vec<Grid>,
     pub grid_master: usize,
     pub extras: Vec<ExtraDie>,
-    pub bonds: Vec<(String, Bond)>,
-    pub speeds: Vec<String>,
+    pub bonds: EntityVec<DevBondId, (String, Bond)>,
+    pub speeds: EntityVec<DevSpeedId, String>,
     pub combos: Vec<DeviceCombo>,
     pub disabled: BTreeSet<DisabledPart>,
 }
 
-pub fn make_device_multi(rd: &Part, grids: Vec<Grid>, grid_master: usize, extras: Vec<ExtraDie>, bonds: Vec<(String, Bond)>, disabled: BTreeSet<DisabledPart>) -> PreDevice {
-    let speeds: Vec<_> = rd.combos.iter().map(|c| c.speed.clone()).unique().collect();
-    let bonds_lut: HashMap<_, _> = bonds.iter().enumerate().map(|(i, b)| (b.0.clone(), i)).collect();
-    let speeds_lut: HashMap<_, _> = speeds.iter().enumerate().map(|(i, s)| (s.clone(), i)).collect();
+pub fn make_device_multi(rd: &Part, grids: Vec<Grid>, grid_master: usize, extras: Vec<ExtraDie>, mut bonds: Vec<(String, Bond)>, disabled: BTreeSet<DisabledPart>) -> PreDevice {
+    let mut speeds = EntitySet::new();
+    bonds.sort_by(|x, y| x.0.cmp(&y.0));
+    let bonds = EntityMap::<DevBondId, _, _>::from_iter(bonds);
     let combos = rd.combos.iter().map(|c| DeviceCombo {
         name: c.name.clone(),
-        devbond_idx: bonds_lut[&c.package],
-        speed_idx: speeds_lut[&c.speed],
+        devbond_idx: bonds.get(&c.package).unwrap().0,
+        speed_idx: speeds.insert(c.speed.clone()).0,
     }).collect();
     PreDevice {
         name: rd.part.clone(),
         grids,
         grid_master,
         extras,
-        bonds,
-        speeds,
+        bonds: bonds.into_vec(),
+        speeds: speeds.into_vec(),
         combos,
         disabled: disabled,
     }
@@ -40,45 +41,43 @@ pub fn make_device(rd: &Part, grid: Grid, bonds: Vec<(String, Bond)>, disabled: 
 }
 
 pub struct GridBuilder {
-    grids: Vec<Grid>,
-    bonds: Vec<Bond>,
+    grids: EntityVec<GridId, Grid>,
+    bonds: EntityVec<BondId, Bond>,
     devices: Vec<Device>,
+    ints: BTreeMap<String, int::IntDb>,
 }
 
 impl GridBuilder {
     pub fn new() -> Self {
         Self {
-            grids: Vec::new(),
-            bonds: Vec::new(),
+            grids: EntityVec::new(),
+            bonds: EntityVec::new(),
             devices: Vec::new(),
+            ints: BTreeMap::new(),
         }
     }
 
-    pub fn insert_grid(&mut self, grid: Grid) -> usize {
-        for (i, g) in self.grids.iter().enumerate() {
+    pub fn insert_grid(&mut self, grid: Grid) -> GridId {
+        for (i, g) in self.grids.iter() {
             if g == &grid {
                 return i;
             }
         }
-        let res = self.grids.len();
-        self.grids.push(grid);
-        res
+        self.grids.push(grid)
     }
 
-    pub fn insert_bond(&mut self, bond: Bond) -> usize {
-        for (i, b) in self.bonds.iter().enumerate() {
-            if b == &bond {
-                return i;
+    pub fn insert_bond(&mut self, bond: Bond) -> BondId {
+        for (k, v) in self.bonds.iter() {
+            if v == &bond {
+                return k;
             }
         }
-        let res = self.bonds.len();
-        self.bonds.push(bond);
-        res
+        self.bonds.push(bond)
     }
 
     pub fn ingest(&mut self, pre: PreDevice) {
         let grids = pre.grids.into_iter().map(|x| self.insert_grid(x)).collect();
-        let bonds = pre.bonds.into_iter().map(|(name, b)| DeviceBond { name, bond_idx: self.insert_bond(b) }).collect();
+        let bonds = pre.bonds.map_values(|(name, b)| DeviceBond { name, bond: self.insert_bond(b) });
         self.devices.push(Device {
             name: pre.name,
             grids,
@@ -91,11 +90,65 @@ impl GridBuilder {
         });
     }
 
+    pub fn ingest_int(&mut self, int: int::IntDb) {
+        match self.ints.entry(int.name.clone()) {
+            btree_map::Entry::Vacant(x) => {
+                x.insert(int);
+            }
+            btree_map::Entry::Occupied(mut x) => {
+                let x = x.get_mut();
+                assert_eq!(x.wires, int.wires);
+                macro_rules! merge_dicts {
+                    ($f:ident) => {
+                        for (_, k, v) in int.$f {
+                            match x.$f.get(&k) {
+                                None => {
+                                    x.$f.insert(k, v);
+                                }
+                                Some((_, v2)) => {
+                                    if v != *v2 {
+                                        println!("FAIL at {}", k);
+                                    }
+                                    assert_eq!(&v, v2);
+                                }
+                            }
+                        }
+                    }
+                }
+                merge_dicts!(nodes);
+                merge_dicts!(terms);
+                merge_dicts!(passes);
+                merge_dicts!(intfs);
+                merge_dicts!(bels);
+                for (_, k, v) in int.namings {
+                    match x.namings.get_mut(&k) {
+                        None => {
+                            x.namings.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            for (kk, vv) in v {
+                                match v2.get(kk) {
+                                    None => {
+                                        v2.insert(kk, vv);
+                                    }
+                                    Some(vv2) => {
+                                        assert_eq!(&vv, vv2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn finish(self) -> GeomDb {
         GeomDb {
             grids: self.grids,
             bonds: self.bonds,
             devices: self.devices,
+            ints: self.ints,
         }
     }
 }

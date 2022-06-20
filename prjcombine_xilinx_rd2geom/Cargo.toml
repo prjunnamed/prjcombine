@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+prjcombine_entity = { path = "../prjcombine_entity" }
 prjcombine_xilinx_geom = { path = "../prjcombine_xilinx_geom" }
 prjcombine_xilinx_rawdump = { path = "../prjcombine_xilinx_rawdump" }
 jemallocator = "0.3.0"
@@ -13,3 +14,4 @@ serde = { version = "1.0", features = ["derive"] }
 ron = "0.7"
 itertools = "0.10"
 rayon = "1.5.1"
+enum-map = { version = "2.4.0", features = ["serde"] }

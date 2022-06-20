@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use serde::{Serialize, Deserialize};
+use prjcombine_entity::{EntityVec, entity_id};
 
 pub mod xc4k;
 pub mod xc5200;
@@ -11,6 +12,15 @@ pub mod virtex6;
 pub mod series7;
 pub mod ultrascale;
 pub mod spartan6;
+
+pub mod int;
+
+entity_id! {
+    pub id GridId usize;
+    pub id BondId usize;
+    pub id DevBondId usize;
+    pub id DevSpeedId usize;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
@@ -29,7 +39,7 @@ pub enum Grid {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeviceBond {
     pub name: String,
-    pub bond_idx: usize,
+    pub bond: BondId,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -54,8 +64,8 @@ pub enum DisabledPart {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeviceCombo {
     pub name: String,
-    pub devbond_idx: usize,
-    pub speed_idx: usize,
+    pub devbond_idx: DevBondId,
+    pub speed_idx: DevSpeedId,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -67,11 +77,11 @@ pub enum ExtraDie {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
-    pub grids: Vec<usize>,
+    pub grids: Vec<GridId>,
     pub grid_master: usize,
     pub extras: Vec<ExtraDie>,
-    pub bonds: Vec<DeviceBond>,
-    pub speeds: Vec<String>,
+    pub bonds: EntityVec<DevBondId, DeviceBond>,
+    pub speeds: EntityVec<DevSpeedId, String>,
     // valid (bond, speed) pairs
     pub combos: Vec<DeviceCombo>,
     pub disabled: BTreeSet<DisabledPart>,
@@ -364,7 +374,6 @@ pub enum BondPin {
     AdcAVccAux,
     DacByBank(u32, DacPin, u32),
     AdcByBank(u32, AdcPin, u32),
-
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -376,9 +385,8 @@ pub struct Bond {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
-    pub grids: Vec<Grid>,
-    pub bonds: Vec<Bond>,
+    pub grids: EntityVec<GridId, Grid>,
+    pub bonds: EntityVec<BondId, Bond>,
     pub devices: Vec<Device>,
-    // TODO interconnect data
-    // TODO bel - interconnect bonds
+    pub ints: BTreeMap<String, int::IntDb>,
 }

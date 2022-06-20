@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, int, int::Dir};
 use prjcombine_xilinx_geom::virtex5::{self, ColumnKind, HardColumn};
 
 use itertools::Itertools;
 
 use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
+use crate::intb::IntBuilder;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
     let mut res: Vec<Option<ColumnKind>> = Vec::new();
@@ -91,6 +92,372 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
         }
     }
     res
+}
+
+fn make_int_db(rd: &Part) -> int::IntDb {
+    let mut builder = IntBuilder::new("virtex5", rd);
+    builder.node_type("INT", "INT", "NODE.INT");
+
+    builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
+    builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+
+    for i in 0..10 {
+        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
+            format!("GCLK{i}"),
+        ]);
+    }
+    for i in 0..4 {
+        builder.wire(format!("RCLK{i}"), int::WireKind::ClkOut(10+i), &[
+            format!("RCLK{i}"),
+        ]);
+    }
+
+    for (name, da, db, dbeg, dend, dmid) in [
+        ("EL", Dir::E, Dir::E, None, None, None),
+        ("ER", Dir::E, Dir::E, Some((0, Dir::S)), None, None),
+        ("EN", Dir::E, Dir::N, None, None, None),
+        ("ES", Dir::E, Dir::S, None, None, None),
+        ("WL", Dir::W, Dir::W, Some((0, Dir::S)), None, None),
+        ("WR", Dir::W, Dir::W, Some((2, Dir::N)), None, None),
+        ("WN", Dir::W, Dir::N, None, Some((0, Dir::S)), None),
+        ("WS", Dir::W, Dir::S, None, None, Some((0, Dir::S))),
+        ("NL", Dir::N, Dir::N, Some((0, Dir::S)), None, None),
+        ("NR", Dir::N, Dir::N, Some((2, Dir::N)), None, None),
+        ("NE", Dir::N, Dir::E, None, None, Some((2, Dir::N))),
+        ("NW", Dir::N, Dir::W, None, Some((2, Dir::N)), None),
+        ("SL", Dir::S, Dir::S, Some((2, Dir::N)), None, None),
+        ("SR", Dir::S, Dir::S, None, None, None),
+        ("SE", Dir::S, Dir::E, None, None, None),
+        ("SW", Dir::S, Dir::W, None, None, None),
+    ] {
+        for i in 0..3 {
+            let beg;
+            if let Some((xi, dbeg)) = dbeg {
+                if xi == i {
+                    let beg_x = builder.mux_out(
+                        format!("DBL.{name}{i}.0.{dbeg}"),
+                        &[&format!("{name}2BEG_{dbeg}{i}")],
+                    );
+                    beg = builder.branch(beg_x, !dbeg,
+                        format!("DBL.{name}{i}.0"),
+                        &[format!("{name}2BEG{i}")]
+                    );
+                } else {
+                    beg = builder.mux_out(
+                        format!("DBL.{name}{i}.0"),
+                        &[format!("{name}2BEG{i}")]
+                    );
+                }
+            } else {
+                beg = builder.mux_out(
+                    format!("DBL.{name}{i}.0"),
+                    &[format!("{name}2BEG{i}")]
+                );
+            }
+            let mid = builder.branch(beg, da,
+                format!("DBL.{name}{i}.1"),
+                &[format!("{name}2MID{i}")],
+            );
+            if let Some((xi, dmid)) = dmid {
+                if xi == i {
+                    let mid_buf = builder.buf(mid,
+                        format!("DBL.{name}{i}.1.BUF"),
+                        &[format!("{name}2MID_FAKE{i}")],
+                    );
+                    builder.branch(mid_buf, dmid,
+                        format!("DBL.{name}{i}.1.{dmid}"),
+                        &[format!("{name}2MID_{dmid}{i}")],
+                    );
+                }
+            }
+            let end = builder.branch(mid, db,
+                format!("DBL.{name}{i}.2"),
+                &[format!("{name}2END{i}")],
+            );
+            if let Some((xi, dend)) = dend {
+                if xi == i {
+                    builder.branch(end, dend,
+                        format!("DBL.{name}{i}.2.{dend}"),
+                        &[format!("{name}2END_{dend}{i}")],
+                    );
+                }
+            }
+        }
+    }
+
+    for (name, da, db, dbeg, dend, dmid) in [
+        ("EL", Dir::E, Dir::E, None, None, None),
+        ("ER", Dir::E, Dir::E, None, None, None),
+        ("EN", Dir::E, Dir::N, None, None, None),
+        ("ES", Dir::E, Dir::S, None, None, None),
+        ("WL", Dir::W, Dir::W, Some((0, Dir::S)), None, None),
+        ("WR", Dir::W, Dir::W, None, None, None),
+        ("WN", Dir::W, Dir::N, None, Some((0, Dir::S)), None),
+        ("WS", Dir::W, Dir::S, None, None, Some((0, Dir::S))),
+        ("NL", Dir::N, Dir::N, None, None, None),
+        ("NR", Dir::N, Dir::N, Some((2, Dir::N)), None, None),
+        ("NE", Dir::N, Dir::E, None, None, Some((2, Dir::N))),
+        ("NW", Dir::N, Dir::W, None, Some((2, Dir::N)), None),
+        ("SL", Dir::S, Dir::S, None, None, None),
+        ("SR", Dir::S, Dir::S, None, None, None),
+        ("SE", Dir::S, Dir::E, None, None, None),
+        ("SW", Dir::S, Dir::W, None, None, None),
+    ] {
+        for i in 0..3 {
+            let beg;
+            if let Some((xi, dbeg)) = dbeg {
+                if xi == i {
+                    let beg_x = builder.mux_out(
+                        format!("PENT.{name}{i}.0.{dbeg}"),
+                        &[&format!("{name}5BEG_{dbeg}{i}")],
+                    );
+                    beg = builder.branch(beg_x, !dbeg,
+                        format!("PENT.{name}{i}.0"),
+                        &[format!("{name}5BEG{i}")]
+                    );
+                } else {
+                    beg = builder.mux_out(
+                        format!("PENT.{name}{i}.0"),
+                        &[format!("{name}5BEG{i}")]
+                    );
+                }
+            } else {
+                beg = builder.mux_out(
+                    format!("PENT.{name}{i}.0"),
+                    &[format!("{name}5BEG{i}")]
+                );
+            }
+            let a = builder.branch(beg, da,
+                format!("PENT.{name}{i}.1"),
+                &[format!("{name}5A{i}")],
+            );
+            let b = builder.branch(a, da,
+                format!("PENT.{name}{i}.2"),
+                &[format!("{name}5B{i}")],
+            );
+            let mid = builder.branch(b, da,
+                format!("PENT.{name}{i}.3"),
+                &[format!("{name}5MID{i}")],
+            );
+            if let Some((xi, dmid)) = dmid {
+                if xi == i {
+                    let mid_buf = builder.buf(mid,
+                        format!("PENT.{name}{i}.3.BUF"),
+                        &[format!("{name}5MID_FAKE{i}")],
+                    );
+                    builder.branch(mid_buf, dmid,
+                        format!("PENT.{name}{i}.3.{dmid}"),
+                        &[format!("{name}5MID_{dmid}{i}")],
+                    );
+                }
+            }
+            let c = builder.branch(mid, db,
+                format!("PENT.{name}{i}.4"),
+                &[format!("{name}5C{i}")],
+            );
+            let end = builder.branch(c, db,
+                format!("PENT.{name}{i}.5"),
+                &[format!("{name}5END{i}")],
+            );
+            if let Some((xi, dend)) = dend {
+                if xi == i {
+                    builder.branch(end, dend,
+                        format!("PENT.{name}{i}.5.{dend}"),
+                        &[format!("{name}5END_{dend}{i}")],
+                    );
+                }
+            }
+        }
+    }
+
+    // The long wires.
+    let mid = builder.wire("LH.9", int::WireKind::MultiOut, &["LH9"]);
+    let mut prev = mid;
+    let mut lh_all = vec![mid];
+    for i in (0..9).rev() {
+        prev = builder.multi_branch(prev, Dir::E, format!("LH.{i}"), &[format!("LH{i}")]);
+        lh_all.push(prev);
+    }
+    let mut prev = mid;
+    let mut lh_bh_e = Vec::new();
+    for i in 10..19 {
+        prev = builder.multi_branch(prev, Dir::W, format!("LH.{i}"), &[format!("LH{i}")]);
+        lh_bh_e.push(prev);
+        lh_all.push(prev);
+    }
+    let mid = builder.wire("LV.9", int::WireKind::MultiOut, &["LV9"]);
+    let mut prev = mid;
+    let mut lv_bh_n = Vec::new();
+    for i in (0..9).rev() {
+        prev = builder.multi_branch(prev, Dir::S, format!("LV.{i}"), &[format!("LV{i}")]);
+        lv_bh_n.push(prev);
+    }
+    let mut prev = mid;
+    let mut lv_bh_s = Vec::new();
+    for i in 10..19 {
+        prev = builder.multi_branch(prev, Dir::N, format!("LV.{i}"), &[format!("LV{i}")]);
+        lv_bh_s.push(prev);
+    }
+
+    // The control inputs.
+    for i in 0..2 {
+        builder.mux_out(
+            format!("IMUX.GFAN{i}"),
+            &[format!("GFAN{i}")],
+        );
+    }
+    for i in 0..2 {
+        builder.mux_out(
+            format!("IMUX.CLK{i}"),
+            &[format!("CLK_B{i}")],
+        );
+    }
+    for i in 0..4 {
+        let w = builder.mux_out(
+            format!("IMUX.CTRL{i}"),
+            &[format!("CTRL{i}")],
+        );
+        builder.buf(w,
+            format!("IMUX.CTRL{i}.SITE"),
+            &[format!("CTRL_B{i}")],
+        );
+        let b = builder.buf(w,
+            format!("IMUX.CTRL{i}.BOUNCE"),
+            &[format!("CTRL_BOUNCE{i}")],
+        );
+        let dir = match i {
+            0 => Dir::S,
+            3 => Dir::N,
+            _ => continue,
+        };
+        builder.branch(b, dir,
+            format!("IMUX.CTRL{i}.BOUNCE.{dir}"),
+            &[format!("CTRL_BOUNCE_{dir}{i}")],
+        );
+    }
+    for i in 0..8 {
+        let w = builder.mux_out(
+            format!("IMUX.BYP{i}"),
+            &[format!("BYP{i}")],
+        );
+        builder.buf(w,
+            format!("IMUX.BYP{i}.SITE"),
+            &[format!("BYP_B{i}")],
+        );
+        let b = builder.buf(w,
+            format!("BYP{i}.BOUNCE"),
+            &[format!("BYP_BOUNCE{i}")],
+        );
+        let dir = match i {
+            0 | 4 => Dir::S,
+            3 | 7 => Dir::N,
+            _ => continue,
+        };
+        builder.branch(b, dir,
+            format!("IMUX.BYP{i}.BOUNCE.{dir}"),
+            &[format!("BYP_BOUNCE_{dir}{i}")],
+        );
+    }
+    for i in 0..8 {
+        let w = builder.mux_out(
+            format!("IMUX.FAN{i}"),
+            &[format!("FAN{i}")],
+        );
+        builder.buf(w,
+            format!("IMUX.FAN{i}.SITE"),
+            &[format!("FAN_B{i}")],
+        );
+        let b = builder.buf(w,
+            format!("FAN{i}.BOUNCE"),
+            &[format!("FAN_BOUNCE{i}")],
+        );
+        let dir = match i {
+            0 => Dir::S,
+            7 => Dir::N,
+            _ => continue,
+        };
+        builder.branch(b, dir,
+            format!("IMUX.FAN{i}.BOUNCE.{dir}"),
+            &[format!("FAN_BOUNCE_{dir}{i}")],
+        );
+    }
+    for i in 0..48 {
+        builder.mux_out(
+            format!("IMUX.IMUX{i}"),
+            &[format!("IMUX_B{i}")],
+        );
+    }
+
+    for i in 0..24 {
+        let w = builder.logic_out(
+            format!("OUT{i}"),
+            &[format!("LOGIC_OUTS{i}")],
+        );
+        let dir = match i {
+            15 | 17 => Dir::N,
+            12 | 18 => Dir::S,
+            _ => continue,
+        };
+        builder.branch(w, dir,
+            format!("OUT{i}.{dir}.DBL"),
+            &[format!("LOGIC_OUTS_{dir}{i}")],
+        );
+        builder.branch(w, dir,
+            format!("OUT{i}.{dir}.PENT"),
+            &[format!("LOGIC_OUTS_{dir}1_{i}")],
+        );
+    }
+
+    builder.extract_nodes();
+
+    builder.extract_term_buf("W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
+    builder.extract_term_buf("W", Dir::W, "GTX_L_TERM_INT", "TERM.W", &[]);
+    builder.extract_term_buf("E", Dir::E, "R_TERM_INT", "TERM.E", &[]);
+    builder.make_blackhole_term("E.HOLE", Dir::E, &lh_bh_e);
+    builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
+    builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
+    let forced = [
+        (builder.find_wire("PENT.NW2.5.N"), builder.find_wire("PENT.WN0.5")),
+        (builder.find_wire("PENT.WN0.5"), builder.find_wire("PENT.WS2.4")),
+    ];
+    builder.extract_term_buf("S.PPC", Dir::S, "PPC_T_TERM", "TERM.PPC.S", &forced);
+    let forced = [
+        (builder.find_wire("PENT.NR2.0"), builder.find_wire("PENT.WL0.0.S")),
+        (builder.find_wire("PENT.SL0.1"), builder.find_wire("PENT.NR2.0")),
+    ];
+    builder.extract_term_buf("N.PPC", Dir::N, "PPC_B_TERM", "TERM.PPC.N", &forced);
+
+    if let Some(tk) = rd.tile_kinds.get("INT_BUFS_L") {
+        for &xy_l in &tk.tiles {
+            let mut xy_r = xy_l;
+            while !matches!(&rd.tiles[&xy_r].kind[..], "INT_BUFS_R" | "INT_BUFS_R_MON") {
+                xy_r.x += 1;
+            }
+            if xy_l.y < 10 || xy_l.y >= rd.height - 10 {
+                // wheeee.
+                continue;
+            }
+            let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
+            let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+            builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W", Some("INT_BUFS.W.FAR"))), Some((xy_l, "INT_BUFS.E.OUT", "INT_BUFS.E")), int_w_xy, &lh_all);
+            builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E", Some("INT_BUFS.E.FAR"))), Some((xy_r, "INT_BUFS.W.OUT", "INT_BUFS.W")), int_e_xy, &lh_all);
+        }
+    }
+    if let Some(tk) = rd.tile_kinds.get("L_TERM_PPC") {
+        for &xy_l in &tk.tiles {
+            let mut xy_r = xy_l;
+            while rd.tiles[&xy_r].kind != "R_TERM_PPC" {
+                xy_r.x += 1;
+            }
+            let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
+            let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((xy_l, "TERM.PPC.E.OUT", "TERM.PPC.E.IN")), int_w_xy, &lh_all);
+            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W.IN")), int_e_xy, &lh_all);
+        }
+    }
+
+    builder.build()
 }
 
 fn make_grid(rd: &Part) -> virtex5::Grid {
@@ -265,8 +632,9 @@ fn make_bond(grid: &virtex5::Grid, pins: &[PkgPin]) -> Bond {
     }
 }
 
-pub fn ingest(rd: &Part) -> PreDevice {
+pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let grid = make_grid(rd);
+    let int_db = make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         bonds.push((
@@ -274,5 +642,5 @@ pub fn ingest(rd: &Part) -> PreDevice {
             make_bond(&grid, pins),
         ));
     }
-    make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new())
+    (make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new()), Some(int_db))
 }

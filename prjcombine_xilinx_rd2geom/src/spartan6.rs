@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord};
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, int, int::Dir};
 use prjcombine_xilinx_geom::spartan6::{self, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo};
 
 use itertools::Itertools;
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, find_tiles, IntGrid, PreDevice, make_device};
+use crate::intb::IntBuilder;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
     let mut res: Vec<Option<ColumnKind>> = Vec::new();
@@ -466,6 +467,250 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
     }
 }
 
+fn make_int_db(rd: &Part) -> int::IntDb {
+    let mut builder = IntBuilder::new("spartan6", rd);
+    builder.node_type("INT", "INT", "NODE.INT");
+    builder.node_type("INT_BRK", "INT", "NODE.INT.BRK");
+    builder.node_type("INT_BRAM", "INT", "NODE.INT");
+    builder.node_type("INT_BRAM_BRK", "INT", "NODE.INT.BRK");
+    builder.node_type("INT_GCLK", "INT", "NODE.INT");
+    builder.node_type("INT_TERM", "INT", "NODE.INT.TERM");
+    builder.node_type("INT_TERM_BRK", "INT", "NODE.INT.TERM.BRK");
+    builder.node_type("IOI_INT", "IOI", "NODE.IOI");
+    builder.node_type("LIOI_INT", "IOI", "NODE.IOI");
+    builder.node_type("LIOI_INT_BRK", "IOI", "NODE.IOI.BRK");
+
+    builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
+    builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+
+    for i in 0..16 {
+        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
+            format!("GCLK{i}"),
+            format!("GCLK{i}_BRK"),
+        ]);
+    }
+
+    for (lr, dir, dend) in [
+        ("L", Dir::E, Some((0, Dir::S))),
+        ("R", Dir::E, Some((3, Dir::N))),
+        ("L", Dir::W, Some((3, Dir::N))),
+        ("R", Dir::W, Some((0, Dir::S))),
+        ("L", Dir::N, Some((0, Dir::S))),
+        ("R", Dir::N, None),
+        ("L", Dir::S, None),
+        ("R", Dir::S, Some((3, Dir::N))),
+    ] {
+        for i in 0..4 {
+            let b = builder.mux_out(
+                format!("SNG.{dir}{lr}{i}.0"),
+                &[format!("{dir}{lr}1B{i}")],
+            );
+            let e = builder.branch(b, dir, 
+                format!("SNG.{dir}{lr}{i}.1"),
+                &[format!("{dir}{lr}1E{i}")],
+            );
+            if let Some((xi, dend)) = dend {
+                if i == xi {
+                    builder.branch(e, dend,
+                        format!("SNG.{dir}{lr}{i}.2"),
+                        &[format!("{dir}{lr}1E_{dend}{i}")],
+                    );
+                }
+            }
+        }
+    }
+
+    for (da, db, dend) in [
+        (Dir::E, Dir::E, None),
+        (Dir::W, Dir::W, Some((3, Dir::N))),
+        (Dir::N, Dir::N, Some((0, Dir::S))),
+        (Dir::N, Dir::E, Some((0, Dir::S))),
+        (Dir::N, Dir::W, Some((0, Dir::S))),
+        (Dir::S, Dir::S, Some((3, Dir::N))),
+        (Dir::S, Dir::E, None),
+        (Dir::S, Dir::W, Some((3, Dir::N))),
+    ] {
+        for i in 0..4 {
+            let b = builder.mux_out(
+                format!("DBL.{da}{db}{i}.0"),
+                &[format!("{da}{db}2B{i}")],
+            );
+            let m = builder.branch(b, da,
+                format!("DBL.{da}{db}{i}.1"),
+                &[format!("{da}{db}2M{i}")],
+            );
+            let e = builder.branch(m, db,
+                format!("DBL.{da}{db}{i}.2"),
+                &[format!("{da}{db}2E{i}")],
+            );
+            if let Some((xi, dend)) = dend {
+                if i == xi {
+                    builder.branch(e, dend,
+                        format!("DBL.{da}{db}{i}.3"),
+                        &[format!("{da}{db}2E_{dend}{i}")],
+                    );
+                }
+            }
+        }
+    }
+
+    for (da, db, dend) in [
+        (Dir::E, Dir::E, None),
+        (Dir::W, Dir::W, Some((0, Dir::S))),
+        (Dir::N, Dir::N, None),
+        (Dir::N, Dir::E, None),
+        (Dir::N, Dir::W, Some((0, Dir::S))),
+        (Dir::S, Dir::S, Some((3, Dir::N))),
+        (Dir::S, Dir::E, None),
+        (Dir::S, Dir::W, Some((3, Dir::N))),
+    ] {
+        for i in 0..4 {
+            let b = builder.mux_out(
+                format!("QUAD.{da}{db}{i}.0"),
+                &[format!("{da}{db}4B{i}")],
+            );
+            let a = builder.branch(b, da,
+                format!("QUAD.{da}{db}{i}.1"),
+                &[format!("{da}{db}4A{i}")],
+            );
+            let m = builder.branch(a, da,
+                format!("QUAD.{da}{db}{i}.2"),
+                &[format!("{da}{db}4M{i}")],
+            );
+            let c = builder.branch(m, db,
+                format!("QUAD.{da}{db}{i}.3"),
+                &[format!("{da}{db}4C{i}")],
+            );
+            let e = builder.branch(c, db,
+                format!("QUAD.{da}{db}{i}.4"),
+                &[format!("{da}{db}4E{i}")],
+            );
+            if let Some((xi, dend)) = dend {
+                if i == xi {
+                    builder.branch(e, dend,
+                        format!("QUAD.{da}{db}{i}.5"),
+                        &[format!("{da}{db}4E_{dend}{i}")],
+                    );
+                }
+            }
+        }
+    }
+
+    for i in 0..2 {
+        builder.mux_out(
+            format!("IMUX.GFAN{i}"),
+            &[format!("GFAN{i}")],
+        );
+    }
+    for i in 0..2 {
+        builder.mux_out(
+            format!("IMUX.CLK{i}"),
+            &[format!("CLK{i}")],
+        );
+    }
+    for i in 0..2 {
+        builder.mux_out(
+            format!("IMUX.SR{i}"),
+            &[format!("SR{i}")],
+        );
+    }
+    for i in 0..63 {
+        let w = builder.mux_out(
+            format!("IMUX.LOGICIN{i}"),
+            &[
+                format!("LOGICIN_B{i}"),
+                format!("INT_TERM_LOGICIN_B{i}"),
+            ],
+        );
+        let dir = match i {
+            20 | 36 | 44 | 62 => Dir::S,
+            21 | 28 | 52 | 60 => Dir::N,
+            _ => continue,
+        };
+        let b = builder.buf(w,
+            format!("IMUX.LOGICIN{i}.BOUNCE"),
+            &[format!("LOGICIN{i}")],
+        );
+        builder.branch(b, dir,
+            format!("IMUX.LOGICIN{i}.BOUNCE.{dir}"),
+            &[&format!("LOGICIN_{dir}{i}")],
+        );
+    }
+    builder.mux_out(
+        &format!("IMUX.LOGICIN63"),
+        &["FAN_B"],
+    );
+
+    for i in 0..24 {
+        builder.logic_out(format!("OUT{i}"), &[
+            format!("LOGICOUT{i}"),
+            format!("INT_TERM_LOGICOUT{i}"),
+        ]);
+    }
+
+    builder.extract_nodes();
+
+    for tkn in [
+        "CNR_TL_LTERM",
+        "IOI_LTERM",
+        "IOI_LTERM_LOWER_BOT",
+        "IOI_LTERM_LOWER_TOP",
+        "IOI_LTERM_UPPER_BOT",
+        "IOI_LTERM_UPPER_TOP",
+    ] {
+        builder.extract_term_buf("W", Dir::W, tkn, "TERM.W", &[]);
+    }
+    builder.extract_term_buf("W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
+    if let Some(tk) = rd.tile_kinds.get("INT_LTERM") {
+        for &term_xy in &tk.tiles {
+            let int_xy = builder.walk_to_int(term_xy, Dir::E).unwrap();
+            // sigh.
+            if int_xy.x == term_xy.x + 3 {
+                continue;
+            }
+            builder.extract_term_buf_tile("W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
+        }
+    }
+    for tkn in [
+        "CNR_TL_RTERM",
+        "IOI_RTERM",
+        "IOI_RTERM_LOWER_BOT",
+        "IOI_RTERM_LOWER_TOP",
+        "IOI_RTERM_UPPER_BOT",
+        "IOI_RTERM_UPPER_TOP",
+    ] {
+        builder.extract_term_buf("E", Dir::E, tkn, "TERM.E", &[]);
+    }
+    for tkn in [
+        "INT_RTERM",
+        "INT_INTERFACE_RTERM",
+    ] {
+        builder.extract_term_buf("E", Dir::E, tkn, "TERM.E.INTF", &[]);
+    }
+    for tkn in [
+        "CNR_BR_BTERM",
+        "IOI_BTERM",
+        "IOI_BTERM_BUFPLL",
+        "CLB_INT_BTERM",
+        "DSP_INT_BTERM",
+        // NOTE: RAMB_BOT_BTERM is *not* a terminator — it's empty
+    ] {
+        builder.extract_term_buf("S", Dir::S, tkn, "TERM.S", &[]);
+    }
+    for tkn in [
+        "CNR_TR_TTERM",
+        "IOI_TTERM",
+        "IOI_TTERM_BUFPLL",
+        "DSP_INT_TTERM",
+        "RAMB_TOP_TTERM",
+    ] {
+        builder.extract_term_buf("N", Dir::N, tkn, "TERM.N", &[]);
+    }
+
+    builder.build()
+}
+
 fn make_grid(rd: &Part) -> (spartan6::Grid, BTreeSet<DisabledPart>) {
     let int = extract_int(rd, &[
         "INT",
@@ -606,8 +851,9 @@ fn make_bond(grid: &spartan6::Grid, disabled: &BTreeSet<DisabledPart>, pins: &[P
     }
 }
 
-pub fn ingest(rd: &Part) -> PreDevice {
+pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let (grid, disabled) = make_grid(rd);
+    let int_db = make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         bonds.push((
@@ -615,5 +861,5 @@ pub fn ingest(rd: &Part) -> PreDevice {
             make_bond(&grid, &disabled, pins),
         ));
     }
-    make_device(rd, geom::Grid::Spartan6(grid), bonds, disabled)
+    (make_device(rd, geom::Grid::Spartan6(grid), bonds, disabled), Some(int_db))
 }

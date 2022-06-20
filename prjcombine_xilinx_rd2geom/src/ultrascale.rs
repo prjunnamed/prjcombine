@@ -1,12 +1,14 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeOrClass};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, int, int::Dir};
 use prjcombine_xilinx_geom::ultrascale::{self, GridKind, ColumnKind, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt};
 
 use itertools::Itertools;
+use enum_map::enum_map;
 
 use crate::grid::{extract_int, find_column, find_columns, find_rows, find_tiles, IntGrid, PreDevice, make_device_multi};
+use crate::intb::IntBuilder;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
     let mut res: Vec<Option<ColumnKind>> = Vec::new();
@@ -293,6 +295,739 @@ fn get_ps(rd: &Part, int: &IntGrid) -> Option<Ps> {
         col,
         has_vcu: find_column(rd, &["VCU_VCU_FT"]).is_some(),
     })
+}
+
+fn make_int_db_u(rd: &Part) -> int::IntDb {
+    let mut builder = IntBuilder::new("ultrascale", rd);
+    builder.node_type("INT", "INT", "NODE.INT");
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+    builder.wire("GND", int::WireKind::Tie1, &["GND_WIRE"]);
+
+    for i in 0..16 {
+        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
+            format!("GCLK_B_0_{i}"),
+        ]);
+    }
+
+    for (iq, q) in ["NE", "NW", "SE", "SW"].into_iter().enumerate() {
+        for (ih, h) in ["E", "W"].into_iter().enumerate() {
+            for i in 0..16 {
+                match (iq, i) {
+                    (1 | 3, 0) => {
+                        let w = builder.mux_out(
+                            format!("SDND.{q}.{h}.{i}"),
+                            &[format!("SDND{q}_{h}_{i}_FTS")],
+                        );
+                        builder.branch(w, Dir::S,
+                            format!("SDND.{q}.{h}.{i}.S"),
+                            &[format!("SDND{q}_{h}_BLS_{i}_FTN")],
+                        );
+                    }
+                    (1 | 3, 15) => {
+                        let w = builder.mux_out(
+                            format!("SDND.{q}.{h}.{i}"),
+                            &[format!("SDND{q}_{h}_{i}_FTN")],
+                        );
+                        builder.branch(w, Dir::N,
+                            format!("SDND.{q}.{h}.{i}.N"),
+                            &[format!("SDND{q}_{h}_BLN_{i}_FTS")],
+                        );
+                    }
+                    _ => {
+                        let xlat = [
+                            0,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                            13,
+                            14,
+                            15,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                        ];
+                        builder.mux_out(
+                            format!("SDND.{q}.{h}.{i}"),
+                            &[format!("INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT", n = iq * 32 + ih * 16 + xlat[i])],
+                        );
+                    }
+                }
+            }
+        }
+    }
+    // Singles.
+    for i in 0..8 {
+        let beg = builder.mux_out(
+            format!("SNG.E.E.{i}.0"),
+            &[format!("EE1_E_BEG{i}")],
+        );
+        let end = builder.branch(beg, Dir::E,
+            format!("SNG.E.E.{i}.1"),
+            &[format!("EE1_E_END{i}")],
+        );
+        if i == 0 {
+            builder.branch(end, Dir::S,
+                format!("SNG.E.E.{i}.1.S"),
+                &[format!("EE1_E_BLS_{i}_FTN")],
+            );
+        }
+    }
+    for i in 0..8 {
+        if i == 0 {
+            let beg = builder.mux_out(
+                format!("SNG.E.W.{i}.0"),
+                &[format!("EE1_W_{i}_FTS")],
+            );
+            builder.branch(beg, Dir::S,
+                format!("SNG.E.W.{i}.0.S"),
+                &[format!("EE1_W_BLS_{i}_FTN")],
+            );
+        } else {
+            builder.mux_out(
+                format!("SNG.E.W.{i}.0"),
+                &[format!("INT_INT_SINGLE_{n}_INT_OUT", n = i + 8)],
+            );
+        }
+    }
+    for i in 0..8 {
+        builder.mux_out(
+            format!("SNG.W.E.{i}.0"),
+            &[format!("INT_INT_SINGLE_{n}_INT_OUT", n = i + 48)],
+        );
+    }
+    for i in 0..8 {
+        let beg = builder.mux_out(
+            format!("SNG.W.W.{i}.0"),
+            &[format!("WW1_W_BEG{i}")],
+        );
+        builder.branch(beg, Dir::W,
+            format!("SNG.W.W.{i}.1"),
+            &[format!("WW1_W_END{i}")],
+        );
+    }
+    for dir in [Dir::N, Dir::S] {
+        for ew in ["E", "W"] {
+            for i in 0..8 {
+                let beg = builder.mux_out(
+                    format!("SNG.{dir}.{ew}.{i}.0"),
+                    &[format!("{dir}{dir}1_{ew}_BEG{i}")],
+                );
+                let end = builder.branch(beg, dir,
+                    format!("SNG.{dir}.{ew}.{i}.1"),
+                    &[format!("{dir}{dir}1_{ew}_END{i}")],
+                );
+                if i == 0 && dir == Dir::S {
+                    builder.branch(end, Dir::S,
+                        format!("SNG.{dir}.{ew}.{i}.1.S"),
+                        &[format!("{dir}{dir}1_{ew}_BLS_{i}_FTN")],
+                    );
+                }
+            }
+        }
+    }
+    // Doubles.
+    for dir in [Dir::E, Dir::W] {
+        for ew in ["E", "W"] {
+            for i in 0..8 {
+                let beg = builder.mux_out(
+                    format!("DBL.{dir}.{ew}.{i}.0"),
+                    &[format!("{dir}{dir}2_{ew}_BEG{i}")],
+                );
+                let end = builder.branch(beg, dir,
+                    format!("DBL.{dir}.{ew}.{i}.1"),
+                    &[format!("{dir}{dir}2_{ew}_END{i}")],
+                );
+                if i == 7 && dir == Dir::E {
+                    builder.branch(end, Dir::N,
+                        format!("DBL.{dir}.{ew}.{i}.1.N"),
+                        &[format!("{dir}{dir}2_{ew}_BLN_{i}_FTS")],
+                    );
+                }
+            }
+        }
+    }
+    for dir in [Dir::N, Dir::S] {
+        let ftd = !dir;
+        for ew in ["E", "W"] {
+            for i in 0..8 {
+                let beg = builder.mux_out(
+                    format!("DBL.{dir}.{ew}.{i}.0"),
+                    &[format!("{dir}{dir}2_{ew}_BEG{i}")],
+                );
+                let a = builder.branch(beg, dir,
+                    format!("DBL.{dir}.{ew}.{i}.1"),
+                    &[format!("{dir}{dir}2_{ew}_A_FT{ftd}{i}")],
+                );
+                let end = builder.branch(a, dir,
+                    format!("DBL.{dir}.{ew}.{i}.2"),
+                    &[format!("{dir}{dir}2_{ew}_END{i}")],
+                );
+                if i == 7 && dir == Dir::N {
+                    builder.branch(end, Dir::N,
+                        format!("DBL.{dir}.{ew}.{i}.2.N"),
+                        &[format!("{dir}{dir}2_{ew}_BLN_{i}_FTS")],
+                    );
+                }
+            }
+        }
+    }
+
+    for (iq, q) in ["NE", "NW", "SE", "SW"].into_iter().enumerate() {
+        for (ih, h) in ['E', 'W'].into_iter().enumerate() {
+            for i in 0..16 {
+                match (q, h, i) {
+                    ("NW", 'E', 0) |
+                    ("SW", 'E', 0) |
+                    ("NW", 'W', 0) |
+                    ("NW", 'W', 1) => {
+                        let w = builder.mux_out(
+                            format!("QLND.{q}.{h}.{i}"),
+                            &[format!("QLND{q}_{h}_{i}_FTS")],
+                        );
+                        builder.branch(w, Dir::S,
+                            format!("QLND.{q}.{h}.{i}.S"),
+                            &[format!("QLND{q}_{h}_BLS_{i}_FTN")],
+                        );
+                    }
+                    ("NW", 'E', 15) |
+                    ("SW", 'E', 15) |
+                    ("SE", 'W', 15) => {
+                        let w = builder.mux_out(
+                            format!("QLND.{q}.{h}.{i}"),
+                            &[format!("QLND{q}_{h}_{i}_FTN")],
+                        );
+                        builder.branch(w, Dir::N,
+                            format!("QLND.{q}.{h}.{i}.N"),
+                            &[format!("QLND{q}_{h}_BLN_{i}_FTS")],
+                        );
+                    }
+                    _ => {
+                        let xlat = [
+                            0,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                            13,
+                            14,
+                            15,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                        ];
+                        builder.mux_out(
+                            format!("QLND.{q}.{h}.{i}"),
+                            &[format!("INT_NODE_QUAD_LONG_{n}_INT_OUT", n = iq * 32 + ih * 16 + xlat[i])],
+                        );
+                    }
+                }
+            }
+        }
+    }
+    for (dir, name, l, n, fts, ftn) in [
+        (Dir::E, "QUAD", 2, 16, true, true),
+        (Dir::W, "QUAD", 2, 16, false, false),
+        (Dir::N, "QUAD.4", 4, 8, false, false),
+        (Dir::N, "QUAD.5", 5, 8, false, true),
+        (Dir::S, "QUAD.4", 4, 8, false, false),
+        (Dir::S, "QUAD.5", 5, 8, false, false),
+        (Dir::E, "LONG", 6, 8, true, false),
+        (Dir::W, "LONG", 6, 8, false, true),
+        (Dir::N, "LONG.12", 12, 4, false, false),
+        (Dir::N, "LONG.16", 16, 4, false, true),
+        (Dir::S, "LONG.12", 12, 4, true, false),
+        (Dir::S, "LONG.16", 16, 4, false, false),
+    ] {
+        let ftd = !dir;
+        let ll = if matches!(dir, Dir::E | Dir::W) {l * 2} else {l};
+        for i in 0..n {
+            let mut w = builder.mux_out(
+                format!("{name}.{dir}.{i}.0"),
+                &[format!("{dir}{dir}{ll}_BEG{i}")],
+            );
+            for j in 1..l {
+                let nn = (b'A' + (j - 1)) as char;
+                w = builder.branch(w, dir,
+                    format!("{name}.{dir}.{i}.{j}"),
+                    &[format!("{dir}{dir}{ll}_{nn}_FT{ftd}{i}")],
+                );
+            }
+            w = builder.branch(w, dir,
+                format!("{name}.{dir}.{i}.{l}"),
+                &[format!("{dir}{dir}{ll}_END{i}")],
+            );
+            if i == 0 && fts {
+                builder.branch(w, Dir::S,
+                    format!("{name}.{dir}.{i}.{l}.S"),
+                    &[format!("{dir}{dir}{ll}_BLS_{i}_FTN")],
+                );
+            }
+            if i == (n - 1) && ftn {
+                builder.branch(w, Dir::N,
+                    format!("{name}.{dir}.{i}.{l}.N"),
+                    &[format!("{dir}{dir}{ll}_BLN_{i}_FTS")],
+                );
+            }
+        }
+    }
+
+    for i in 0..16 {
+        for j in 0..2 {
+            builder.mux_out(
+                format!("INT_NODE_GLOBAL.{i}.{j}"),
+                &[format!("INT_NODE_GLOBAL_{i}_OUT{j}")],
+            );
+        }
+    }
+    for i in 0..8 {
+        builder.mux_out(
+            format!("IMUX.E.CTRL.{i}"),
+            &[format!("CTRL_E_B{i}")],
+        );
+    }
+    for i in 0..10 {
+        builder.mux_out(
+            format!("IMUX.W.CTRL.{i}"),
+            &[format!("CTRL_W_B{i}")],
+        );
+    }
+
+    for (iq, q) in ["1", "2"].into_iter().enumerate() {
+        for (ih, h) in ['E', 'W'].into_iter().enumerate() {
+            for i in 0..32 {
+                match i {
+                    1 | 3 => {
+                        let w = builder.mux_out(
+                            format!("INODE.{q}.{h}.{i}"),
+                            &[format!("INODE_{q}_{h}_{i}_FTS")],
+                        );
+                        builder.branch(w, Dir::S,
+                            format!("INODE.{q}.{h}.{i}.S"),
+                            &[format!("INODE_{q}_{h}_BLS_{i}_FTN")],
+                        );
+                    }
+                    28 | 30 => {
+                        let w = builder.mux_out(
+                            format!("INODE.{q}.{h}.{i}"),
+                            &[format!("INODE_{q}_{h}_{i}_FTN")],
+                        );
+                        builder.branch(w, Dir::N,
+                            format!("INODE.{q}.{h}.{i}.N"),
+                            &[format!("INODE_{q}_{h}_BLN_{i}_FTS")],
+                        );
+                    }
+                    _ => {
+                        // TODO: not the real permutation...
+                        let xlat = [
+                            0, 23, 22, 25, 24, 26, 27, 28,
+                            29, 30, 31, 1, 2, 3, 4, 5,
+                            6, 7, 8, 9, 10, 12, 13, 14,
+                            15, 16, 17, 18, 20, 19, 11, 21,
+                        ];
+                        builder.mux_out(
+                            format!("INODE.{q}.{h}.{i}"),
+                            &[format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + ih * 32 + xlat[i])],
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    for ew in ['E', 'W'] {
+        for i in 0..16 {
+            match i {
+                1 | 3 | 5 | 7 | 11 => {
+                    let w = builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BOUNCE_{ew}_{i}_FTS")],
+                    );
+                    builder.branch(w, Dir::S,
+                        format!("IMUX.{ew}.BYP.{i}.S"),
+                        &[format!("BOUNCE_{ew}_BLS_{i}_FTN")],
+                    );
+                }
+                8 | 10 | 12 | 14 => {
+                    let w = builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BOUNCE_{ew}_{i}_FTN")],
+                    );
+                    builder.branch(w, Dir::N,
+                        format!("IMUX.{ew}.BYP.{i}.N"),
+                        &[format!("BOUNCE_{ew}_BLN_{i}_FTS")],
+                    );
+                }
+                _ => {
+                    builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BYPASS_{ew}{i}")],
+                    );
+                }
+            }
+        }
+    }
+    for ew in ['E', 'W'] {
+        for i in 0..48 {
+            builder.mux_out(
+                format!("IMUX.{ew}.IMUX.{i}"),
+                &[format!("IMUX_{ew}{i}")],
+            );
+        }
+    }
+
+    for ew in ['E', 'W'] {
+        for i in 0..32 {
+            builder.logic_out(
+                format!("OUT.{ew}.{i}"),
+                &[format!("LOGIC_OUTS_{ew}{i}")],
+            );
+        }
+    }
+
+    builder.extract_nodes();
+
+    builder.extract_term_conn("W", Dir::W, "INT_TERM_L_IO", &[]);
+    builder.extract_term_conn("W", Dir::W, "INT_INT_INTERFACE_GT_LEFT_FT", &[]);
+    builder.extract_term_conn("E", Dir::E, "INT_INTERFACE_GT_R", &[]);
+    builder.extract_term_conn("S", Dir::S, "INT_TERM_B", &[]);
+    builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+
+    builder.build()
+}
+
+fn make_int_db_up(rd: &Part) -> int::IntDb {
+    let mut builder = IntBuilder::new("ultrascaleplus", rd);
+    builder.node_type("INT", "INT", "NODE.INT");
+
+    let d2n = enum_map!(
+        Dir::N => 0,
+        Dir::S => 1,
+        Dir::E => 2,
+        Dir::W => 3,
+    );
+
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+
+    for i in 0..16 {
+        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
+            format!("GCLK_B_0_{i}"),
+        ]);
+    }
+
+    for (ih, h) in ["E", "W"].into_iter().enumerate() {
+        for i in 0..96 {
+            match i {
+                0 | 2 => {
+                    let w = builder.mux_out(
+                        format!("SDQNODE.{h}.{i}"),
+                        &[format!("SDQNODE_{h}_{i}_FT1")],
+                    );
+                    builder.branch(w, Dir::S,
+                        format!("SDQNODE.{h}.{i}.S"),
+                        &[format!("SDQNODE_{h}_BLS_{i}_FT0")],
+                    );
+                }
+                91 | 93 | 95 => {
+                    let w = builder.mux_out(
+                        format!("SDQNODE.{h}.{i}"),
+                        &[format!("SDQNODE_{h}_{i}_FT0")],
+                    );
+                    builder.branch(w, Dir::N,
+                        format!("SDQNODE.{h}.{i}.N"),
+                        &[format!("SDQNODE_{h}_BLN_{i}_FT1")],
+                    );
+                }
+                _ => {
+                    // TODO not the true permutation
+                    let a = [
+                        0, 11, 22, 33, 44, 1, 2, 3,
+                        4, 5, 6, 7, 8, 9, 10, 12,
+                        13, 14, 15, 16, 17, 18, 19, 20,
+                        21, 23, 24, 25, 26, 27, 28, 29,
+                        30, 31, 32, 34, 35, 36, 37, 38,
+                        39, 40, 41, 42, 43, 45, 46, 47,
+                    ][i >> 1];
+                    let aa = a + ih * 48;
+                    let b = i & 1;
+                    builder.mux_out(
+                        format!("SDQNODE.{h}.{i}"),
+                        &[format!("INT_NODE_SDQ_{aa}_INT_OUT{b}")],
+                    );
+                }
+            }
+        }
+    }
+    for (dir, name, l, ll, fts, ftn) in [
+        (Dir::E, "SNG", 1, 1, false, false),
+        (Dir::W, "SNG", 1, 1, false, true),
+        (Dir::N, "SNG", 1, 1, false, false),
+        (Dir::S, "SNG", 1, 1, false, false),
+
+        (Dir::E, "DBL", 1, 2, false, false),
+        (Dir::W, "DBL", 1, 2, true, false),
+        (Dir::N, "DBL", 2, 2, false, false),
+        (Dir::S, "DBL", 2, 2, false, false),
+
+        (Dir::E, "QUAD", 2, 4, false, false),
+        (Dir::W, "QUAD", 2, 4, false, false),
+        (Dir::N, "QUAD", 4, 4, false, true),
+        (Dir::S, "QUAD", 4, 4, true, false),
+    ] {
+        let ftd = d2n[!dir];
+        for ew in ['E', 'W'] {
+            for i in 0..8 {
+                match (ll, dir, ew) {
+                    (1, Dir::E, 'W') => {
+                        let (a, b) = [
+                            (60, 1),
+                            (4, 0),
+                            (61, 1),
+                            (5, 0),
+                            (62, 1),
+                            (6, 0),
+                            (63, 1),
+                            (7, 0),
+                        ][i];
+                        builder.mux_out(
+                            format!("{name}.{dir}.{ew}.{i}.0"),
+                            &[format!("INT_INT_SDQ_{a}_INT_OUT{b}")],
+                        );
+                    }
+                    (1, Dir::W, 'E') => {
+                        if i == 7 {
+                            let w = builder.mux_out(
+                                format!("{name}.{dir}.{ew}.{i}.0"),
+                                &[format!("{dir}{dir}{ll}_{ew}_{i}_FT0")],
+                            );
+                            builder.branch(w, Dir::N,
+                                format!("{name}.{dir}.{ew}.{i}.{l}.N"),
+                                &[format!("{dir}{dir}{ll}_{ew}_BLN_{i}_FT1")],
+                            );
+                        } else {
+                            let (a, b) = [
+                                (72, 0),
+                                (32, 1),
+                                (73, 0),
+                                (33, 1),
+                                (74, 0),
+                                (34, 1),
+                                (75, 0),
+                            ][i];
+                            builder.mux_out(
+                                format!("{name}.{dir}.{ew}.{i}.0"),
+                                &[format!("INT_INT_SDQ_{a}_INT_OUT{b}")],
+                            );
+                        }
+                    }
+                    _ => {
+                        let mut w = builder.mux_out(
+                            format!("{name}.{dir}.{ew}.{i}.0"),
+                            &[format!("{dir}{dir}{ll}_{ew}_BEG{i}")],
+                        );
+                        for j in 1..l {
+                            let nn = (b'A' + (j - 1)) as char;
+                            w = builder.branch(w, dir,
+                                format!("{name}.{dir}.{ew}.{i}.{j}"),
+                                &[format!("{dir}{dir}{ll}_{ew}_{nn}_FT{ftd}_{i}")],
+                            );
+                        }
+                        w = builder.branch(w, dir,
+                            format!("{name}.{dir}.{ew}.{i}.{l}"),
+                            &[format!("{dir}{dir}{ll}_{ew}_END{i}")],
+                        );
+                        if i == 0 && fts {
+                            builder.branch(w, Dir::S,
+                                format!("{name}.{dir}.{ew}.{i}.{l}.S"),
+                                &[format!("{dir}{dir}{ll}_{ew}_BLS_{i}_FT0")],
+                            );
+                        }
+                        if i == 7 && ftn {
+                            builder.branch(w, Dir::N,
+                                format!("{name}.{dir}.{ew}.{i}.{l}.N"),
+                                &[format!("{dir}{dir}{ll}_{ew}_BLN_{i}_FT1")],
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (dir, name, l, fts, ftn) in [
+        (Dir::E, "LONG", 6, true, true),
+        (Dir::W, "LONG", 6, false, false),
+        (Dir::N, "LONG", 12, false, false),
+        (Dir::S, "LONG", 12, false, false),
+    ] {
+        let ftd = d2n[!dir];
+        for i in 0..8 {
+            let mut w = builder.mux_out(
+                format!("{name}.{dir}.{i}.0"),
+                &[format!("{dir}{dir}12_BEG{i}")],
+            );
+            for j in 1..l {
+                let nn = (b'A' + (j - 1)) as char;
+                w = builder.branch(w, dir,
+                    format!("{name}.{dir}.{i}.{j}"),
+                    &[format!("{dir}{dir}12_{nn}_FT{ftd}_{i}")],
+                );
+            }
+            w = builder.branch(w, dir,
+                format!("{name}.{dir}.{i}.{l}"),
+                &[format!("{dir}{dir}12_END{i}")],
+            );
+            if i == 0 && fts {
+                builder.branch(w, Dir::S,
+                    format!("{name}.{dir}.{i}.{l}.S"),
+                    &[format!("{dir}{dir}12_BLS_{i}_FT0")],
+                );
+            }
+            if i == 7 && ftn {
+                builder.branch(w, Dir::N,
+                    format!("{name}.{dir}.{i}.{l}.N"),
+                    &[format!("{dir}{dir}12_BLN_{i}_FT1")],
+                );
+            }
+        }
+    }
+
+    for i in 0..16 {
+        for j in 0..2 {
+            builder.mux_out(
+                format!("INT_NODE_GLOBAL.{i}.{j}"),
+                &[format!("INT_NODE_GLOBAL_{i}_INT_OUT{j}")],
+            );
+        }
+    }
+    for i in 0..8 {
+        builder.mux_out(
+            format!("IMUX.E.CTRL.{i}"),
+            &[format!("CTRL_E{i}")],
+        );
+    }
+    for i in 0..10 {
+        builder.mux_out(
+            format!("IMUX.W.CTRL.{i}"),
+            &[format!("CTRL_W{i}")],
+        );
+    }
+
+    for (ih, h) in ['E', 'W'].into_iter().enumerate() {
+        for i in 0..64 {
+            match i {
+                1 | 3 | 5 | 9 => {
+                    let w = builder.mux_out(
+                        format!("INODE.{h}.{i}"),
+                        &[format!("INODE_{h}_{i}_FT1")],
+                    );
+                    builder.branch(w, Dir::S,
+                        format!("INODE.{h}.{i}.S"),
+                        &[format!("INODE_{h}_BLS_{i}_FT0")],
+                    );
+                }
+                54 | 58 | 60 | 62 => {
+                    let w = builder.mux_out(
+                        format!("INODE.{h}.{i}"),
+                        &[format!("INODE_{h}_{i}_FT0")],
+                    );
+                    builder.branch(w, Dir::N,
+                        format!("INODE.{h}.{i}.N"),
+                        &[format!("INODE_{h}_BLN_{i}_FT1")],
+                    );
+                }
+                _ => {
+                    // TODO not the true permutation
+                    let a = [
+                        0, 11, 22, 30, 31, 1, 2, 3,
+                        4, 5, 6, 7, 8, 9, 10, 12,
+                        13, 14, 15, 16, 17, 18, 19, 20,
+                        21, 23, 24, 25, 26, 27, 28, 29,
+                    ][i >> 1];
+                    let aa = a + ih * 32;
+                    let b = i & 1;
+                    builder.mux_out(
+                        format!("INODE.{h}.{i}"),
+                        &[format!("INT_NODE_IMUX_{aa}_INT_OUT{b}")],
+                    );
+                }
+            }
+        }
+    }
+
+    for ew in ['E', 'W'] {
+        for i in 0..16 {
+            match i {
+                0 | 2 => {
+                    let w = builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BOUNCE_{ew}_{i}_FT1")],
+                    );
+                    builder.branch(w, Dir::S,
+                        format!("IMUX.{ew}.BYP.{i}.S"),
+                        &[format!("BOUNCE_{ew}_BLS_{i}_FT0")],
+                    );
+                }
+                13 | 15 => {
+                    let w = builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BOUNCE_{ew}_{i}_FT0")],
+                    );
+                    builder.branch(w, Dir::N,
+                        format!("IMUX.{ew}.BYP.{i}.N"),
+                        &[format!("BOUNCE_{ew}_BLN_{i}_FT1")],
+                    );
+                }
+                _ => {
+                    builder.mux_out(
+                        format!("IMUX.{ew}.BYP.{i}"),
+                        &[format!("BYPASS_{ew}{i}")],
+                    );
+                }
+            }
+        }
+    }
+    for ew in ['E', 'W'] {
+        for i in 0..48 {
+            builder.mux_out(
+                format!("IMUX.{ew}.IMUX.{i}"),
+                &[format!("IMUX_{ew}{i}")],
+            );
+        }
+    }
+
+    for ew in ['E', 'W'] {
+        for i in 0..32 {
+            builder.logic_out(
+                format!("OUT.{ew}.{i}"),
+                &[format!("LOGIC_OUTS_{ew}{i}")],
+            );
+        }
+    }
+
+    builder.extract_nodes();
+
+    builder.extract_term_conn("W", Dir::W, "INT_INTF_L_TERM_GT", &[]);
+    builder.extract_term_conn("W", Dir::W, "INT_INTF_LEFT_TERM_PSS", &[]);
+    builder.extract_term_conn("W", Dir::W, "INT_INTF_LEFT_TERM_IO_FT", &[]);
+    builder.extract_term_conn("E", Dir::E, "INT_INTF_R_TERM_GT", &[]);
+    builder.extract_term_conn("E", Dir::E, "INT_INTF_RIGHT_TERM_IO", &[]);
+    builder.extract_term_conn("S", Dir::S, "INT_TERM_B", &[]);
+    builder.extract_term_conn("S", Dir::S, "INT_TERM_P", &[]);
+    builder.extract_term_conn("S", Dir::S, "INT_INT_TERM_H_FT", &[]);
+    builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+
+    builder.build()
 }
 
 fn make_grids(rd: &Part) -> (Vec<ultrascale::Grid>, usize, BTreeSet<DisabledPart>) {
@@ -1021,8 +1756,13 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[ultrascale::Grid], grid_master: usiz
     }
 }
 
-pub fn ingest(rd: &Part) -> PreDevice {
+pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let (grids, grid_master, disabled) = make_grids(rd);
+    let int_db = if rd.family == "ultrascale" {
+        make_int_db_u(rd)
+    } else {
+        make_int_db_up(rd)
+    };
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         bonds.push((
@@ -1031,5 +1771,5 @@ pub fn ingest(rd: &Part) -> PreDevice {
         ));
     }
     let grids = grids.into_iter().map(|x| geom::Grid::Ultrascale(x)).collect();
-    make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled)
+    (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))
 }
