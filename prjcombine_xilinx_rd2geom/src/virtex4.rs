@@ -384,8 +384,108 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 let naming_n = format!("TERM.PPC.N{i}");
                 let naming_nf = format!("TERM.PPC.N{i}.FAR");
                 let naming_no = format!("TERM.PPC.N{i}.OUT");
-            builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some((pt_xy, &naming_s, Some(&naming_sf))), Some((pb_xy, &naming_no, &naming_n)), int_s_xy, &[]);
-            builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some((pb_xy, &naming_n, Some(&naming_nf))), Some((pt_xy, &naming_so, &naming_s)), int_n_xy, &[]);
+                builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some((pt_xy, &naming_s, Some(&naming_sf))), Some((pb_xy, &naming_no, &naming_n)), int_s_xy, &[]);
+                builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some((pb_xy, &naming_n, Some(&naming_nf))), Some((pt_xy, &naming_so, &naming_s)), int_n_xy, &[]);
+            }
+        }
+    }
+
+    for (tkn, n, height) in [
+        ("BRAM", "BRAM", 4),
+        ("DSP", "DSP", 4),
+        ("CCM", "CCM", 4),
+        ("DCM", "DCM", 4),
+        ("DCM_BOT", "DCM", 4),
+        ("SYS_MON", "SYSMON", 4),
+    ] {
+        if let Some(tk) = rd.tile_kinds.get(tkn) {
+            for &xy in &tk.tiles {
+                for i in 0..height {
+                    let int_xy = Coord {
+                        x: xy.x - 1,
+                        y: xy.y + i,
+                    };
+                    builder.extract_intf_tile("INTF", xy, int_xy, format!("{n}.{i}"), Some(&format!("{n}.{i}.INTFBUF")), None, None);
+                }
+            }
+        }
+    }
+    for tkn in [
+        "IOIS_LC",
+        "IOIS_NC",
+    ] {
+        builder.extract_intf("INTF", Dir::E, tkn, "IOIS", Some("IOIS.INTFBUF"), None, None);
+    }
+    if let Some(tk) = rd.tile_kinds.get("CFG_CENTER") {
+        for &xy in &tk.tiles {
+            for i in 0..16 {
+                let int_xy = Coord {
+                    x: xy.x - 1,
+                    y: if i < 8 {xy.y - 8 + i} else {xy.y + 1 + i - 8},
+                };
+                builder.extract_intf_tile("INTF", xy, int_xy, format!("CFG_CENTER.{i}"), Some(&format!("CFG_CENTER.{i}.INTFBUF")), None, None);
+            }
+        }
+    }
+    for (dir, tkn) in [
+        (Dir::W, "MGT_AL"),
+        (Dir::W, "MGT_AL_BOT"),
+        (Dir::W, "MGT_AL_MID"),
+        (Dir::W, "MGT_BL"),
+        (Dir::E, "MGT_AR"),
+        (Dir::E, "MGT_AR_BOT"),
+        (Dir::E, "MGT_AR_MID"),
+        (Dir::E, "MGT_BR"),
+    ] {
+        if let Some(tk) = rd.tile_kinds.get(tkn) {
+            for &xy in &tk.tiles {
+                for i in 0..16 {
+                    let int_xy = Coord {
+                        x: if dir == Dir::E {xy.x - 1} else {xy.x + 1},
+                        y: if i < 8 {xy.y - 9 + i} else {xy.y + i - 8},
+                    };
+                    builder.extract_intf_tile("INTF", xy, int_xy, format!("MGT.{i}"), Some(&format!("MGT.{i}.INTFBUF")), None, None);
+                }
+            }
+        }
+    }
+    if let Some(tk) = rd.tile_kinds.get("PB") {
+        for &pb_xy in &tk.tiles {
+            let pt_xy = Coord {
+                x: pb_xy.x,
+                y: pb_xy.y + 18,
+            };
+            for (i, delta) in [
+                0, 1, 2, 3,
+                5, 6, 7, 8, 9, 10, 11, 12,
+                14, 15, 16, 17, 18, 19, 20, 21,
+                23, 24, 25, 26,
+            ].into_iter().enumerate() {
+                let int_w_xy = Coord {
+                    x: pb_xy.x - 1,
+                    y: pb_xy.y - 4 + delta,
+                };
+                let int_e_xy = Coord {
+                    x: pb_xy.x + 15,
+                    y: pb_xy.y - 4 + delta,
+                };
+                let xy = if i < 12 { pb_xy } else { pt_xy };
+                builder.extract_intf_tile("INTF", xy, int_w_xy, format!("PPC.L{i}"), Some(&format!("PPC.L{i}.INTFBUF")), None, None);
+                builder.extract_intf_tile("INTF", xy, int_e_xy, format!("PPC.R{i}"), Some(&format!("PPC.R{i}.INTFBUF")), None, None);
+            }
+            for (i, delta) in [
+                1, 3, 5, 7, 9, 11, 13
+            ].into_iter().enumerate() {
+                let int_s_xy = Coord {
+                    x: pb_xy.x + delta,
+                    y: pb_xy.y - 4,
+                };
+                let int_n_xy = Coord {
+                    x: pb_xy.x + delta,
+                    y: pb_xy.y + 22,
+                };
+                builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("PPC.B{i}"), Some(&format!("PPC.B{i}.INTFBUF")), None, None);
+                builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("PPC.T{i}"), Some(&format!("PPC.T{i}.INTFBUF")), None, None);
             }
         }
     }

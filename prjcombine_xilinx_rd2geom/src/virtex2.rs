@@ -1080,12 +1080,54 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
             }
         }
     }
-    // XXX
-    // - extract intfs + namings
-    //   - PPC
-    //   - GT_0
-    //   - GT_123
-    //   - GT_4
+
+    // NOTE: there are actually 4 different intf kinds differing in cfg bit loc,
+    // take care of this later on
+    for (tkn, name, naming) in [
+        ("BGIGABIT_INT0", "PPC", "NODE.GT"),
+        ("BGIGABIT_INT1", "PPC", "NODE.GT"),
+        ("BGIGABIT_INT2", "PPC", "NODE.GT"),
+        ("BGIGABIT_INT3", "PPC", "NODE.GT"),
+        ("BGIGABIT_INT4", "PPC", "NODE.GT.CLKPAD"),
+        ("TGIGABIT_INT0", "PPC", "NODE.GT"),
+        ("TGIGABIT_INT1", "PPC", "NODE.GT"),
+        ("TGIGABIT_INT2", "PPC", "NODE.GT"),
+        ("TGIGABIT_INT3", "PPC", "NODE.GT"),
+        ("TGIGABIT_INT4", "PPC", "NODE.GT.CLKPAD"),
+        ("BGIGABIT10_INT0", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT1", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT2", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT3", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT4", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT5", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT6", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT7", "PPC", "NODE.GT"),
+        ("BGIGABIT10_INT8", "PPC", "NODE.GT.CLKPAD"),
+        ("TGIGABIT10_INT0", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT1", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT2", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT3", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT4", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT5", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT6", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT7", "PPC", "NODE.GT"),
+        ("TGIGABIT10_INT8", "PPC", "NODE.GT.CLKPAD"),
+        ("LPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
+        ("LPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
+        ("LLPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
+        ("LLPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
+        ("ULPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
+        ("ULPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
+        ("RPPC_X0Y0_INT", "PPC", "NODE.PPC.R"),
+        ("RPPC_X1Y0_INT", "PPC", "NODE.PPC.R"),
+        ("BPPC_X0Y0_INT", "PPC", "NODE.PPC.B"),
+        ("BPPC_X1Y0_INT", "PPC", "NODE.PPC.B"),
+        ("TPPC_X0Y0_INT", "PPC", "NODE.PPC.T"),
+        ("TPPC_X1Y0_INT", "PPC", "NODE.PPC.T"),
+    ] {
+        builder.extract_intf(name, Dir::E, tkn, naming, None, None, None);
+    }
+
     // - extract bels + namings
     //   - RLL
     //   - SLICE ×4

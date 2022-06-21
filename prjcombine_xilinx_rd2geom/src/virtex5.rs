@@ -409,6 +409,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         );
     }
 
+    for i in 0..4 {
+        let w = builder.test_out(format!("TEST{i}"));
+        builder.extra_name(format!("INT_INTERFACE_BLOCK_INPS_B{i}"), w);
+        builder.extra_name(format!("PPC_L_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
+        builder.extra_name(format!("PPC_R_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
+        builder.extra_name(format!("GTX_LEFT_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
+    }
+
     builder.extract_nodes();
 
     builder.extract_term_buf("W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
@@ -455,6 +463,18 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((xy_l, "TERM.PPC.E.OUT", "TERM.PPC.E.IN")), int_w_xy, &lh_all);
             builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W.IN")), int_e_xy, &lh_all);
         }
+    }
+
+    builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", None, Some("INTF.SITE"), None);
+    for (n, tkn) in [
+        ("GTX_LEFT", "GTX_LEFT_INT_INTERFACE"),
+        ("GTP", "GTP_INT_INTERFACE"),
+        ("EMAC", "EMAC_INT_INTERFACE"),
+        ("PCIE", "PCIE_INT_INTERFACE"),
+        ("PPC_L", "PPC_L_INT_INTERFACE"),
+        ("PPC_R", "PPC_R_INT_INTERFACE"),
+    ] {
+        builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
     }
 
     builder.build()

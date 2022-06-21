@@ -21,6 +21,7 @@ pub struct IntBuilder<'a> {
     node_types: Vec<NodeType<'a>>,
     stub_outs: HashSet<String>,
     extra_names: HashMap<String, int::WireId>,
+    extra_names_tile: HashMap<String, HashMap<String, int::WireId>>,
 }
 
 fn name_wire(db: &mut int::IntDb, naming: int::NamingId, wire: int::WireId, name: impl AsRef<str>) {
@@ -54,6 +55,7 @@ impl<'a> IntBuilder<'a> {
             node_types: vec![],
             stub_outs: Default::default(),
             extra_names: Default::default(),
+            extra_names_tile: Default::default(),
         }
     }
 
@@ -123,6 +125,10 @@ impl<'a> IntBuilder<'a> {
         self.wire(name, int::WireKind::LogicOut, raw_names)
     }
 
+    pub fn test_out(&mut self, name: impl Into<String>) -> int::WireId {
+        self.wire(name, int::WireKind::TestOut, &[""])
+    }
+
     pub fn buf(&mut self, src: int::WireId, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
         self.wire(name, int::WireKind::Buf(src), raw_names)
     }
@@ -149,6 +155,10 @@ impl<'a> IntBuilder<'a> {
 
     pub fn extra_name(&mut self, name: impl Into<String>, wire: int::WireId) {
         self.extra_names.insert(name.into(), wire);
+    }
+
+    pub fn extra_name_tile(&mut self, tile: impl Into<String>, name: impl Into<String>, wire: int::WireId) {
+        self.extra_names_tile.entry(tile.into()).or_default().insert(name.into(), wire);
     }
 
     pub fn extract_nodes(&mut self) {
@@ -267,6 +277,8 @@ impl<'a> IntBuilder<'a> {
             let mut res = HashMap::new();
             for (&wi, &tkw) in &tk.wires {
                 if let Some(&w) = self.extra_names.get(self.rd.wire(wi)) {
+                    res.insert(wi, vec![w]);
+                } else if let Some(&w) = self.extra_names_tile.get(&tile.kind).and_then(|x| x.get(self.rd.wire(wi))) {
                     res.insert(wi, vec![w]);
                 } else if let rawdump::TkWire::Connected(idx) = tkw {
                     if let rawdump::NodeOrClass::Node(nidx) = tile.get_conn_wire(idx) {
@@ -731,6 +743,104 @@ impl<'a> IntBuilder<'a> {
                 assert_eq!(term, *cterm);
             }
         };
+    }
+
+    pub fn extract_intf_tile(&mut self, name: impl AsRef<str>, xy: Coord, int_xy: Coord, naming: impl AsRef<str>, buf_naming: Option<&str>, site_naming: Option<&str>, delay_naming: Option<&str>) {
+        let names = self.recover_names(xy, int_xy);
+        let tile = &self.rd.tiles[&xy];
+        let tk = &self.rd.tile_kinds[&tile.kind];
+        let naming = self.make_naming(naming);
+        let buf_naming = buf_naming.map(|x| self.make_naming(x));
+        let site_naming = site_naming.map(|x| self.make_naming(x));
+        let delay_naming = delay_naming.map(|x| self.make_naming(x));
+        let mut out_muxes: HashMap<int::WireId, Vec<int::WireId>> = HashMap::new();
+        let bufs = self.get_bufs(tk);
+        let mut wires = EntityPartVec::new();
+        let mut delayed = HashMap::new();
+        if delay_naming.is_some() {
+            for (&wdi, &wfi) in &bufs {
+                if let Some(wfl) = names.get(&wfi) {
+                    for &wf in wfl {
+                        if !matches!(self.db.wires[wf].kind, int::WireKind::MuxOut) {
+                            continue;
+                        }
+                        for &wti in tk.wires.keys() {
+                            if tk.pips.contains_key(&(wfi, wti)) && tk.pips.contains_key(&(wdi, wti)) {
+                                self.name_wire(naming, wf, self.rd.wire(wfi));
+                                self.name_wire(site_naming.unwrap(), wf, self.rd.wire(wti));
+                                self.name_wire(delay_naming.unwrap(), wf, self.rd.wire(wdi));
+                                delayed.insert(wti, wf);
+                                wires.insert(wf, int::IntfInfo::InputDelay);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for &(wfi, wti) in tk.pips.keys() {
+            if let Some(wtl) = names.get(&wti) {
+                for &wt in wtl {
+                    if !matches!(self.db.wires[wt].kind, int::WireKind::LogicOut) {
+                        continue;
+                    }
+                    self.name_wire(naming, wt, self.rd.wire(wti));
+                    let mut rwfi = wfi;
+                    if buf_naming.is_some() && bufs.contains_key(&wfi) {
+                        rwfi = bufs[&wfi];
+                    }
+                    if let Some(wfl) = names.get(&rwfi) {
+                        let wf;
+                        if wfl.len() == 1 {
+                            wf = wfl[0];
+                        } else {
+                            let nwfl: Vec<_> = wfl.iter().copied().filter(|&x| matches!(self.db.wires[x].kind, int::WireKind::MuxOut)).collect();
+                            if nwfl.len() == 1 {
+                                wf = nwfl[0];
+                            } else {
+                                println!("AMBIG INTF MUX IN {} {} {}", tile.kind, self.rd.wire(wti), self.rd.wire(wfi));
+                                continue;
+                            }
+                        }
+                        self.name_wire(naming, wf, self.rd.wire(rwfi));
+                        if rwfi != wfi {
+                            self.name_wire(buf_naming.unwrap(), wf, self.rd.wire(wfi));
+                        }
+                        assert!(!wires.contains_id(wf));
+                        out_muxes.entry(wt).or_default().push(wf);
+                    } else if let Some(&wf) = delayed.get(&wfi) {
+                        out_muxes.entry(wt).or_default().push(wf);
+                    } else {
+                        if let Some(sn) = site_naming {
+                            out_muxes.entry(wt).or_default();
+                            self.name_wire(sn, wt, self.rd.wire(wfi));
+                        }
+                    }
+                }
+            }
+        }
+        for (k, v) in out_muxes {
+            wires.insert(k, int::IntfInfo::OutputTestMux(v.into_iter().collect()));
+        }
+        let intf = int::IntfKind {
+            wires,
+        };
+        match self.db.intfs.get_mut(name.as_ref()) {
+            None => {
+                self.db.intfs.insert(name.as_ref().to_string(), intf);
+            }
+            Some((_, cintf)) => {
+                assert_eq!(intf, *cintf);
+            }
+        };
+    }
+
+    pub fn extract_intf(&mut self, name: impl AsRef<str>, dir: int::Dir, tkn: impl AsRef<str>, naming: impl AsRef<str>, buf_naming: Option<&str>, site_naming: Option<&str>, delay_naming: Option<&str>) {
+        if let Some(tk) = self.rd.tile_kinds.get(tkn.as_ref()) {
+            for &xy in &tk.tiles {
+                let int_xy = self.walk_to_int(xy, !dir).unwrap();
+                self.extract_intf_tile(name.as_ref(), xy, int_xy, naming.as_ref(), buf_naming, site_naming, delay_naming);
+            }
+        }
     }
 
     pub fn build(self) -> int::IntDb {

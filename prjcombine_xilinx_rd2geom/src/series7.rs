@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord};
+use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord, self as rawdump};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ExtraDie, PsPin, int, int::Dir};
 use prjcombine_xilinx_geom::series7::{self, GridKind, ColumnKind, IoColumn, IoKind, HoleKind, Hole, GtColumn, GtKind};
 
@@ -596,6 +596,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             ],
         );
     }
+    for i in 0..48 {
+        let w = builder.test_out(format!("IMUX.BRAM{i}"));
+        builder.extra_name(format!("INT_INTERFACE_BRAM_UTURN_IMUX{i}"), w);
+        builder.extra_name(format!("INT_INTERFACE_BRAM_UTURN_R_IMUX{i}"), w);
+    }
 
     for i in 0..24 {
         builder.logic_out(
@@ -605,6 +610,13 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 format!("LOGIC_OUTS_L{i}"),
             ],
         );
+    }
+
+    for i in 0..4 {
+        let w = builder.test_out(format!("TEST{i}"));
+        builder.extra_name(format!("INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
+        builder.extra_name(format!("INT_INTERFACE_BLOCK_OUTS_L_B{i}"), w);
+        builder.extra_name(format!("INT_INTERFACE_PSS_BLOCK_OUTS_L_B{i}"), w);
     }
 
     builder.extract_nodes();
@@ -664,6 +676,38 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     // TODO: this enough?
     builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
     builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
+
+    for (dir, n, tkn) in [
+        (Dir::W, "L", "INT_INTERFACE_L"),
+        (Dir::E, "R", "INT_INTERFACE_R"),
+        (Dir::W, "L", "IO_INT_INTERFACE_L"),
+        (Dir::E, "R", "IO_INT_INTERFACE_R"),
+        (Dir::W, "PSS", "INT_INTERFACE_PSS_L"),
+    ] {
+        builder.extract_intf("INTF", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), None);
+    }
+    for (dir, n, tkn) in [
+        (Dir::W, "L", "BRAM_INT_INTERFACE_L"),
+        (Dir::E, "R", "BRAM_INT_INTERFACE_R"),
+    ] {
+        builder.extract_intf("INTF.BRAM", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), None);
+    }
+    for (dir, n, tkn) in [
+        (Dir::E, "GTP", "GTP_INT_INTERFACE"),
+        (Dir::W, "GTP_L", "GTP_INT_INTERFACE_L"),
+        (Dir::E, "GTP_R", "GTP_INT_INTERFACE_R"),
+        (Dir::E, "GTX", "GTX_INT_INTERFACE"),
+        (Dir::W, "GTX_L", "GTX_INT_INTERFACE_L"),
+        (Dir::E, "GTH", "GTH_INT_INTERFACE"),
+        (Dir::W, "GTH_L", "GTH_INT_INTERFACE_L"),
+        (Dir::W, "PCIE_L", "PCIE_INT_INTERFACE_L"),
+        (Dir::W, "PCIE_LEFT_L", "PCIE_INT_INTERFACE_LEFT_L"),
+        (Dir::E, "PCIE_R", "PCIE_INT_INTERFACE_R"),
+        (Dir::W, "PCIE3_L", "PCIE3_INT_INTERFACE_L"),
+        (Dir::E, "PCIE3_R", "PCIE3_INT_INTERFACE_R"),
+    ] {
+        builder.extract_intf("INTF.DELAY", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
+    }
 
     builder.build()
 }
@@ -989,7 +1033,7 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, 
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let (grids, grid_master, extras) = make_grids(rd);
-    let int_db = make_int_db(rd);
+    let mut int_db = make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         bonds.push((
@@ -998,5 +1042,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let grids = grids.into_iter().map(|x| geom::Grid::Series7(x)).collect();
+    // XXX GROSS HACK ALERT
+    if rd.source == rawdump::Source::Vivado {
+        int_db.intfs.clear();
+    }
     (make_device_multi(rd, grids, grid_master, extras, bonds, BTreeSet::new()), Some(int_db))
 }

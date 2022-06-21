@@ -77,6 +77,7 @@ pub enum WireKind {
     ClkOut(usize),
     MuxOut,
     LogicOut,
+    TestOut,
     MultiOut,
     Buf(WireId),
     MultiBranch(Dir),
@@ -179,8 +180,8 @@ pub struct ExpandedTileIntf {
     pub kind: IntfKindId,
     pub name: String,
     pub wire_naming_int: NamingId,
-    pub wire_naming_delay: NamingId,
-    pub wire_naming_site: NamingId,
+    pub wire_naming_delay: Option<NamingId>,
+    pub wire_naming_site: Option<NamingId>,
 }
 
 pub type Coord = (u32, u32);
@@ -211,7 +212,7 @@ pub enum ExpandedTileDir {
         kind: PassKindId,
         name: String,
         wire_naming_near: NamingId,
-        wire_naming_far: NamingId,
+        wire_naming_far: Option<NamingId>,
     },
     PassDouble {
         target: Coord,

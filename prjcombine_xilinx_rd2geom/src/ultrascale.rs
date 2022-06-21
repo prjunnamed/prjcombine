@@ -335,22 +335,8 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                     }
                     _ => {
                         let xlat = [
-                            0,
-                            7,
-                            8,
-                            9,
-                            10,
-                            11,
-                            12,
-                            13,
-                            14,
-                            15,
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6,
+                            0, 7, 8, 9, 10, 11, 12, 13,
+                            14, 15, 1, 2, 3, 4, 5, 6,
                         ];
                         builder.mux_out(
                             format!("SDND.{q}.{h}.{i}"),
@@ -509,22 +495,8 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                     }
                     _ => {
                         let xlat = [
-                            0,
-                            7,
-                            8,
-                            9,
-                            10,
-                            11,
-                            12,
-                            13,
-                            14,
-                            15,
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6,
+                            0, 7, 8, 9, 10, 11, 12, 13,
+                            14, 15, 1, 2, 3, 4, 5, 6,
                         ];
                         builder.mux_out(
                             format!("QLND.{q}.{h}.{i}"),
@@ -628,12 +600,11 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                         );
                     }
                     _ => {
-                        // TODO: not the real permutation...
                         let xlat = [
-                            0, 23, 22, 25, 24, 26, 27, 28,
-                            29, 30, 31, 1, 2, 3, 4, 5,
-                            6, 7, 8, 9, 10, 12, 13, 14,
-                            15, 16, 17, 18, 20, 19, 11, 21,
+                            0, 11, 22, 25, 26, 27, 28, 29,
+                            30, 31, 1, 2, 3, 4, 5, 6,
+                            7, 8, 9, 10, 12, 13, 14, 15,
+                            16, 17, 18, 19, 20, 21, 23, 24,
                         ];
                         builder.mux_out(
                             format!("INODE.{q}.{h}.{i}"),
@@ -695,6 +666,25 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         }
     }
 
+    for ew in ['E', 'W'] {
+        for i in 0..4 {
+            let w = builder.test_out(format!("TEST.{ew}.{i}"));
+            let tiles: &[&str] = if ew == 'W' {&[
+                "INT_INTERFACE_L",
+                "INT_INT_INTERFACE_XIPHY_FT",
+                "INT_INTERFACE_PCIE_L",
+                "INT_INT_INTERFACE_GT_LEFT_FT",
+            ]} else {&[
+                "INT_INTERFACE_R",
+                "INT_INTERFACE_PCIE_R",
+                "INT_INTERFACE_GT_R",
+            ]};
+            for &t in tiles {
+                builder.extra_name_tile(t, format!("BLOCK_OUTS{i}"), w);
+            }
+        }
+    }
+
     builder.extract_nodes();
 
     builder.extract_term_conn("W", Dir::W, "INT_TERM_L_IO", &[]);
@@ -702,6 +692,23 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     builder.extract_term_conn("E", Dir::E, "INT_INTERFACE_GT_R", &[]);
     builder.extract_term_conn("S", Dir::S, "INT_TERM_B", &[]);
     builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+
+    for (dir, tkn) in [
+        (Dir::W, "INT_INTERFACE_L"),
+        (Dir::E, "INT_INTERFACE_R"),
+    ] {
+        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), None, Some(&format!("INTF.{dir}.SITE")), None);
+    }
+
+    for (dir, n, tkn) in [
+        (Dir::W, "IO", "INT_INT_INTERFACE_XIPHY_FT"),
+        (Dir::W, "PCIE", "INT_INTERFACE_PCIE_L"),
+        (Dir::E, "PCIE", "INT_INTERFACE_PCIE_R"),
+        (Dir::W, "GT", "INT_INT_INTERFACE_GT_LEFT_FT"),
+        (Dir::E, "GT", "INT_INTERFACE_GT_R"),
+    ] {
+        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), None, Some(&format!("INTF.{dir}.{n}.SITE")), Some(&format!("INTF.{dir}.{n}.DELAY")));
+    }
 
     builder.build()
 }
@@ -1026,6 +1033,32 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     builder.extract_term_conn("S", Dir::S, "INT_TERM_P", &[]);
     builder.extract_term_conn("S", Dir::S, "INT_INT_TERM_H_FT", &[]);
     builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+
+    for (dir, tkn) in [
+        (Dir::W, "INT_INTF_L"),
+        (Dir::E, "INT_INTF_R"),
+    ] {
+        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), None, Some(&format!("INTF.{dir}.SITE")), None);
+    }
+
+    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", format!("INTF.PSS"), None, Some(&format!("INTF.PSS.SITE")), Some(&format!("INTF.PSS.DELAY")));
+    for (dir, tkn) in [
+        (Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
+        (Dir::W, "INT_INTF_L_CMT"),
+        (Dir::W, "INT_INTF_L_IO"),
+        (Dir::E, "INT_INTF_RIGHT_TERM_IO"),
+    ] {
+        builder.extract_intf(format!("INTF.{dir}.IO"), dir, tkn, format!("INTF.{dir}.IO"), None, Some(&format!("INTF.{dir}.IO.SITE")), Some(&format!("INTF.{dir}.IO.DELAY")));
+    }
+
+    for (dir, n, tkn) in [
+        (Dir::W, "PCIE", "INT_INTF_L_PCIE4"),
+        (Dir::E, "PCIE", "INT_INTF_R_PCIE4"),
+        (Dir::W, "GT", "INT_INTF_L_TERM_GT"),
+        (Dir::E, "GT", "INT_INTF_R_TERM_GT"),
+    ] {
+        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), None, Some(&format!("INTF.{dir}.{n}.SITE")), Some(&format!("INTF.{dir}.{n}.DELAY")));
+    }
 
     builder.build()
 }

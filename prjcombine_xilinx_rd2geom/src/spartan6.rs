@@ -600,19 +600,28 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     for i in 0..2 {
         builder.mux_out(
             format!("IMUX.GFAN{i}"),
-            &[format!("GFAN{i}")],
+            &[
+                format!("GFAN{i}"),
+                format!("INT_IOI_GFAN{i}"),
+            ],
         );
     }
     for i in 0..2 {
         builder.mux_out(
             format!("IMUX.CLK{i}"),
-            &[format!("CLK{i}")],
+            &[
+                format!("CLK{i}"),
+                format!("INT_TERM_CLK{i}"),
+            ],
         );
     }
     for i in 0..2 {
         builder.mux_out(
             format!("IMUX.SR{i}"),
-            &[format!("SR{i}")],
+            &[
+                format!("SR{i}"),
+                format!("INT_TERM_SR{i}"),
+            ],
         );
     }
     for i in 0..63 {
@@ -706,6 +715,22 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "RAMB_TOP_TTERM",
     ] {
         builder.extract_term_buf("N", Dir::N, tkn, "TERM.N", &[]);
+    }
+
+    for (dir, tkn, naming) in [
+        (Dir::E, "INT_INTERFACE", "INTF"),
+        (Dir::E, "INT_INTERFACE_CARRY", "INTF"),
+        (Dir::E, "INT_INTERFACE_REGC", "INTF.REGC"),
+        (Dir::W, "INT_INTERFACE_LTERM", "INTF.LTERM"),
+        (Dir::E, "INT_INTERFACE_RTERM", "INTF.RTERM"),
+    ] {
+        builder.extract_intf("INTF", dir, tkn, naming, None, Some(&format!("{naming}.SITE")), None);
+    }
+    for tkn in [
+        "INT_INTERFACE_IOI",
+        "INT_INTERFACE_IOI_DCMBOT",
+    ] {
+        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", None, Some("INTF.IOI.SITE"), None);
     }
 
     builder.build()
