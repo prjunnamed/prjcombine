@@ -6,7 +6,7 @@ use std::fs::{write, File};
 use std::io::{self, BufReader, Read};
 use std::os::unix::io::AsRawFd;
 use std::process::{Child, Stdio};
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 pub struct ToolchainReader {
     _dir: TempDir,
@@ -23,7 +23,7 @@ impl ToolchainReader {
         fifo_name: &str,
         input_files: &[(&str, &[u8])],
     ) -> Result<BufReader<Self>, Box<dyn std::error::Error>> {
-        let dir = TempDir::new(cmd)?;
+        let dir = TempDir::new()?;
         for (k, v) in input_files {
             let path = dir.path().join(k);
             write(path, v)?;

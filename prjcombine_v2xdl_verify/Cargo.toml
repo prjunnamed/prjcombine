@@ -12,4 +12,4 @@ prjcombine_toolchain = { path = "../prjcombine_toolchain" }
 prjcombine_xdl = { path = "../prjcombine_xdl" }
 tempfile = "3.0"
 simple-error = "0.2"
-rayon = "1.5.1"
+rayon = "1.5"
