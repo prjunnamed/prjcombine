@@ -65,7 +65,6 @@ impl<'a> IntBuilder<'a> {
             let node = match self.db.nodes.get(node) {
                 None => self.db.nodes.insert(node.to_string(), int::NodeKind {
                     muxes: Default::default(),
-                    ptrans: Default::default(),
                 }).0,
                 Some((i, _)) => i,
             };
@@ -125,6 +124,10 @@ impl<'a> IntBuilder<'a> {
         self.wire(name, int::WireKind::LogicOut, raw_names)
     }
 
+    pub fn multi_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
+        self.wire(name, int::WireKind::MultiOut, raw_names)
+    }
+
     pub fn test_out(&mut self, name: impl Into<String>) -> int::WireId {
         self.wire(name, int::WireKind::TestOut, &[""])
     }
@@ -145,6 +148,12 @@ impl<'a> IntBuilder<'a> {
 
     pub fn multi_branch(&mut self, src: int::WireId, dir: int::Dir, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
         let res = self.wire(name, int::WireKind::MultiBranch(!dir), raw_names);
+        self.conn_branch(src, dir, res);
+        res
+    }
+
+    pub fn pip_branch(&mut self, src: int::WireId, dir: int::Dir, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
+        let res = self.wire(name, int::WireKind::PipBranch(!dir), raw_names);
         self.conn_branch(src, dir, res);
         res
     }
@@ -175,12 +184,19 @@ impl<'a> IntBuilder<'a> {
 
             let node = &mut self.db.nodes[nt.node];
 
-            for (&(wfi, wti), pip) in nt.tk.pips.iter() {
+            for &(wfi, wti) in nt.tk.pips.keys() {
                 if let Some(&wt) = names.get(&wti) {
                     match self.db.wires[wt].kind {
-                        int::WireKind::MultiBranch(_) => (),
-                        int::WireKind::MultiOut => (),
+                        int::WireKind::PipBranch(_) |
+                        int::WireKind::PipOut |
+                        int::WireKind::MultiBranch(_) |
+                        int::WireKind::MultiOut |
                         int::WireKind::MuxOut => (),
+                        int::WireKind::Branch(_) => {
+                            if self.db.name != "virtex" {
+                                continue;
+                            }
+                        }
                         int::WireKind::Buf(dwf) => {
                             let wf = names[&wfi];
                             assert_eq!(wf, dwf);
@@ -189,21 +205,17 @@ impl<'a> IntBuilder<'a> {
                         _ => continue,
                     }
                     if let Some(&wf) = names.get(&wfi) {
-                        if pip.is_buf || pip.direction == rawdump::TkPipDirection::Uni {
-                            // XXX
-                            let kind = int::MuxKind::Plain;
-                            if !node.muxes.contains_id(wt) {
-                                node.muxes.insert(wt, int::MuxInfo {
-                                    kind,
-                                    ins: Default::default(),
-                                });
-                            }
-                            let mux = &mut node.muxes[wt];
-                            assert_eq!(mux.kind, kind);
-                            mux.ins.insert(wf);
-                        } else {
-                            node.ptrans.insert((wt, wf));
+                        // XXX
+                        let kind = int::MuxKind::Plain;
+                        if !node.muxes.contains_id(wt) {
+                            node.muxes.insert(wt, int::MuxInfo {
+                                kind,
+                                ins: Default::default(),
+                            });
                         }
+                        let mux = &mut node.muxes[wt];
+                        assert_eq!(mux.kind, kind);
+                        mux.ins.insert(wf);
                     } else if self.stub_outs.contains(self.rd.wire(wfi)) {
                         // ignore
                     } else {

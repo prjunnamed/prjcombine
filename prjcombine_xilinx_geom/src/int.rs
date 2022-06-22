@@ -79,15 +79,16 @@ pub enum WireKind {
     LogicOut,
     TestOut,
     MultiOut,
+    PipOut,
     Buf(WireId),
     MultiBranch(Dir),
+    PipBranch(Dir),
     Branch(Dir),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NodeKind {
     pub muxes: EntityPartVec<WireId, MuxInfo>,
-    pub ptrans: BTreeSet<(WireId, WireId)>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
