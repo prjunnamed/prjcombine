@@ -1,45 +1,41 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, int, int::Dir};
-use prjcombine_xilinx_geom::spartan6::{self, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo};
-
-use itertools::Itertools;
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, ColId, RowId, int, int::Dir};
+use prjcombine_xilinx_geom::spartan6::{self, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo, Row};
+use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, find_tiles, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
 
-fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
-    let mut res: Vec<Option<ColumnKind>> = Vec::new();
-    for _ in 0..int.cols.len() {
-        res.push(None);
-    }
+fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
+    let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     for c in find_columns(rd, &["CLEXL", "CLEXL_DUMMY"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::CleXL);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::CleXL);
     }
     for c in find_columns(rd, &["CLEXM", "CLEXM_DUMMY"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::CleXM);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::CleXM);
     }
     for c in find_columns(rd, &["BRAMSITE2", "BRAMSITE2_DUMMY"]) {
-        res[int.lookup_column(c - 2) as usize] = Some(ColumnKind::Bram);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::Bram);
     }
     for c in find_columns(rd, &["MACCSITE2"]) {
-        res[int.lookup_column(c - 2) as usize] = Some(ColumnKind::Dsp);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::Dsp);
     }
     for c in find_columns(rd, &["RIOI", "LIOI"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Io);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Io);
     }
     for c in find_columns(rd, &["CLKC"]) {
-        res[int.lookup_column(c - 3) as usize] = Some(ColumnKind::CleClk);
+        res[int.lookup_column(c - 3)] = Some(ColumnKind::CleClk);
     }
     for c in find_columns(rd, &["GTPDUAL_DSP_FEEDTHRU"]) {
-        res[int.lookup_column(c - 2) as usize] = Some(ColumnKind::DspPlus);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::DspPlus);
     }
-    res.into_iter().map(|x| x.unwrap()).collect()
+    res.map_values(|x| x.unwrap())
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid, top: bool) -> Vec<ColumnIoKind> {
-    int.cols.iter().map(|&x| {
+fn get_cols_io(rd: &Part, int: &IntGrid, top: bool) -> EntityVec<ColId, ColumnIoKind> {
+    int.cols.map_values(|&x| {
         let co = Coord {
             x: x as u16 + 1,
             y: if top {rd.height - 3} else {2},
@@ -56,22 +52,28 @@ fn get_cols_io(rd: &Part, int: &IntGrid, top: bool) -> Vec<ColumnIoKind> {
             (true, false) => ColumnIoKind::Outer,
             (true, true) => ColumnIoKind::Both,
         }
-
-    }).collect()
+    })
 }
 
-fn get_rows_io(rd: &Part, int: &IntGrid, right: bool) -> Vec<bool> {
-    int.rows.iter().map(|&y| {
-        let c = Coord {
-            x: if right {rd.width - 4} else {3},
+fn make_rows(rd: &Part, int: &IntGrid) -> EntityVec<RowId, Row> {
+    int.rows.map_values(|&y| {
+        let c_l = Coord {
+            x: 3,
             y: y as u16,
         };
-        matches!(&rd.tiles[&c].kind[..], "LIOI" | "RIOI" | "LIOI_BRK" | "RIOI_BRK")
-    }).collect()
+        let c_r = Coord {
+            x: rd.width - 4,
+            y: y as u16,
+        };
+        Row {
+            lio: matches!(&rd.tiles[&c_l].kind[..], "LIOI" | "LIOI_BRK"),
+            rio: matches!(&rd.tiles[&c_r].kind[..], "RIOI" | "RIOI_BRK"),
+        }
+    })
 }
 
-fn get_cols_clk_fold(rd: &Part, int: &IntGrid) -> Option<(u32, u32)> {
-    let v: Vec<_> = find_columns(rd, &["DSP_HCLK_GCLK_FOLD"]).into_iter().map(|x| int.lookup_column(x - 2)).sorted().collect();
+fn get_cols_clk_fold(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
+    let v: Vec<_> = find_columns(rd, &["DSP_HCLK_GCLK_FOLD"]).into_iter().map(|x| int.lookup_column(x - 2)).collect();
     match &v[..] {
         &[] => None,
         &[l, r] => Some((l, r)),
@@ -79,7 +81,7 @@ fn get_cols_clk_fold(rd: &Part, int: &IntGrid) -> Option<(u32, u32)> {
     }
 }
 
-fn get_cols_reg_buf(rd: &Part, int: &IntGrid) -> (u32, u32) {
+fn get_cols_reg_buf(rd: &Part, int: &IntGrid) -> (ColId, ColId) {
     let l = if let Some(c) = find_column(rd, &["REGH_BRAM_FEEDTHRU_L_GCLK", "REGH_DSP_L"]) {
         int.lookup_column(c - 2)
     } else if let Some(c) = find_column(rd, &["REGH_CLEXM_INT_GCLKL"]) {
@@ -97,19 +99,19 @@ fn get_cols_reg_buf(rd: &Part, int: &IntGrid) -> (u32, u32) {
     (l, r)
 }
 
-fn get_rows_midbuf(rd: &Part, int: &IntGrid) -> (u32, u32) {
+fn get_rows_midbuf(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
     let b = int.lookup_row(find_row(rd, &["REG_V_MIDBUF_BOT"]).unwrap());
     let t = int.lookup_row(find_row(rd, &["REG_V_MIDBUF_TOP"]).unwrap());
     (b, t)
 }
 
-fn get_rows_hclkbuf(rd: &Part, int: &IntGrid) -> (u32, u32) {
+fn get_rows_hclkbuf(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
     let b = int.lookup_row(find_row(rd, &["REG_V_HCLKBUF_BOT"]).unwrap());
     let t = int.lookup_row(find_row(rd, &["REG_V_HCLKBUF_TOP"]).unwrap());
     (b, t)
 }
 
-fn get_rows_bank_split(rd: &Part, int: &IntGrid) -> Option<(u32, u32)> {
+fn get_rows_bank_split(rd: &Part, int: &IntGrid) -> Option<(RowId, RowId)> {
     if let Some(x) = find_row(rd, &["MCB_CAP_INT_BRK"]) {
         let l = int.lookup_row(x);
         let r = int.lookup_row(x) - 1;
@@ -119,15 +121,15 @@ fn get_rows_bank_split(rd: &Part, int: &IntGrid) -> Option<(u32, u32)> {
     }
 }
 
-fn get_rows_bufio_split(rd: &Part, int: &IntGrid) -> (u32, u32) {
+fn get_rows_bufio_split(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
     let b = int.lookup_row_inter(find_row(rd, &["HCLK_IOIL_BOT_SPLIT"]).unwrap());
     let t = int.lookup_row_inter(find_row(rd, &["HCLK_IOIL_TOP_SPLIT"]).unwrap());
     (b, t)
 }
 
 fn get_gts(rd: &Part, int: &IntGrid) -> Gts {
-    let vt: Vec<_> = find_columns(rd, &["GTPDUAL_TOP", "GTPDUAL_TOP_UNUSED"]).into_iter().map(|x| int.lookup_column(x - 2)).sorted().collect();
-    let vb: Vec<_> = find_columns(rd, &["GTPDUAL_BOT", "GTPDUAL_BOT_UNUSED"]).into_iter().map(|x| int.lookup_column(x - 2)).sorted().collect();
+    let vt: Vec<_> = find_columns(rd, &["GTPDUAL_TOP", "GTPDUAL_TOP_UNUSED"]).into_iter().map(|x| int.lookup_column(x - 2)).collect();
+    let vb: Vec<_> = find_columns(rd, &["GTPDUAL_BOT", "GTPDUAL_BOT_UNUSED"]).into_iter().map(|x| int.lookup_column(x - 2)).collect();
     match (&vt[..], &vb[..]) {
         (&[], &[]) => Gts::None,
         (&[l], &[]) => Gts::Single(l),
@@ -364,10 +366,10 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
                 }
                 if f.starts_with("M") {
                     let (col, mi) = match &f[0..2] {
-                        "M1" => (grid.columns.len() as u32 - 1, 0),
-                        "M3" => (0, 0),
-                        "M4" => (0, 1),
-                        "M5" => (grid.columns.len() as u32 - 1, 1),
+                        "M1" => (grid.columns.last_id().unwrap(), 0),
+                        "M3" => (grid.columns.first_id().unwrap(), 0),
+                        "M4" => (grid.columns.first_id().unwrap(), 1),
+                        "M5" => (grid.columns.last_id().unwrap(), 1),
                         _ => unreachable!(),
                     };
                     assert_eq!(coord.col, col);
@@ -758,16 +760,17 @@ fn make_grid(rd: &Part) -> (spartan6::Grid, BTreeSet<DisabledPart>) {
     }
     for (c, r) in find_tiles(rd, &["BRAMSITE2_DUMMY"]) {
         let c = int.lookup_column(c - 2);
-        let r = int.lookup_row(r) / 16;
+        let r = int.lookup_row(r).to_idx() as u32 / 16;
         disabled.insert(DisabledPart::Spartan6BramRegion(c, r));
     }
     for (c, r) in find_tiles(rd, &["MACCSITE2_DUMMY"]) {
         let c = int.lookup_column(c - 2);
-        let r = int.lookup_row(r) / 16;
+        let r = int.lookup_row(r).to_idx() as u32 / 16;
         disabled.insert(DisabledPart::Spartan6DspRegion(c, r));
     }
     let columns = make_columns(rd, &int);
-    let col_clk = columns.iter().position(|&x| x == ColumnKind::CleClk).unwrap() as u32;
+    let rows = make_rows(rd, &int);
+    let col_clk = columns.iter().find_map(|(k, &v)| if v == ColumnKind::CleClk {Some(k)} else {None}).unwrap();
     let mut grid = spartan6::Grid {
         columns,
         cols_bio: get_cols_io(rd, &int, false),
@@ -775,9 +778,7 @@ fn make_grid(rd: &Part) -> (spartan6::Grid, BTreeSet<DisabledPart>) {
         col_clk,
         cols_clk_fold: get_cols_clk_fold(rd, &int),
         cols_reg_buf: get_cols_reg_buf(rd, &int),
-        rows: int.rows.len() as u32 / 16,
-        rows_lio: get_rows_io(rd, &int, false),
-        rows_rio: get_rows_io(rd, &int, true),
+        rows,
         rows_midbuf: get_rows_midbuf(rd, &int),
         rows_hclkbuf: get_rows_hclkbuf(rd, &int),
         rows_bank_split: get_rows_bank_split(rd, &int),

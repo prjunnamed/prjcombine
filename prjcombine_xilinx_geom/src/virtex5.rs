@@ -1,17 +1,18 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{GtPin, SysMonPin, CfgPin};
+use super::{GtPin, SysMonPin, CfgPin, ColId, RowId};
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
-    pub columns: Vec<ColumnKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub cols_mgt_buf: BTreeSet<u32>,
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub cols_mgt_buf: BTreeSet<ColId>,
     pub col_hard: Option<HardColumn>,
-    pub cols_io: [Option<u32>; 3],
-    pub rows: u32,
-    pub row_cfg: u32,
-    pub holes_ppc: Vec<(u32, u32)>,
+    pub cols_io: [Option<ColId>; 3],
+    pub rows: usize,
+    pub row_cfg: usize,
+    pub holes_ppc: Vec<(ColId, RowId)>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -27,15 +28,15 @@ pub enum ColumnKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
-    pub col: u32,
-    pub rows_emac: Vec<u32>,
-    pub rows_pcie: Vec<u32>,
+    pub col: ColId,
+    pub rows_emac: Vec<RowId>,
+    pub rows_pcie: Vec<RowId>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub bel: u32,
     pub ioc: u32,
     pub bank: u32,
@@ -45,28 +46,28 @@ pub struct Io {
 impl Io {
     pub fn iob_name(&self) -> String {
         let x = self.ioc;
-        let y = self.row * 2 + self.bel;
+        let y = self.row.to_idx() as u32 * 2 + self.bel;
         format!("IOB_X{x}Y{y}")
     }
     pub fn is_cc(&self) -> bool {
-        matches!(self.row % 20, 8..=11)
+        matches!(self.row.to_idx() % 20, 8..=11)
     }
     pub fn is_gc(&self) -> bool {
         matches!(self.bank, 3 | 4)
     }
     pub fn is_vref(&self) -> bool {
-        self.row % 10 == 5 && self.bel == 0
+        self.row.to_idx() % 10 == 5 && self.bel == 0
     }
     pub fn is_vr(&self) -> bool {
         match self.bank {
             1 | 2 => false,
-            3 => self.row % 10 == 7,
-            4 => self.row % 10 == 2,
-            _ => self.row % 20 == 7,
+            3 => self.row.to_idx() % 10 == 7,
+            4 => self.row.to_idx() % 10 == 2,
+            _ => self.row.to_idx() % 20 == 7,
         }
     }
     pub fn sm_pair(&self) -> Option<u32> {
-        match (self.bank, self.row % 20) {
+        match (self.bank, self.row.to_idx() % 20) {
             (13, 10) => Some(0),
             (13, 11) => Some(1),
             (13, 12) => Some(2),
@@ -87,7 +88,7 @@ impl Io {
         }
     }
     pub fn get_cfg(&self) -> Option<CfgPin> {
-        match (self.bank, self.row % 20, self.bel) {
+        match (self.bank, self.row.to_idx() % 20, self.bel) {
             (4, 16, 0) => Some(CfgPin::Data(8)),
             (4, 16, 1) => Some(CfgPin::Data(9)),
             (4, 17, 0) => Some(CfgPin::Data(10)),
@@ -143,8 +144,8 @@ impl Io {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub gtc: u32,
     pub bank: u32,
     pub is_gtx: bool,
@@ -152,7 +153,7 @@ pub struct Gt {
 
 impl Gt {
     pub fn get_pads(&self, grid: &Grid) -> Vec<(String, String, GtPin, u32)> {
-        let reg = self.row / 20;
+        let reg = self.row.to_idx() / 20;
         let ipy = if reg < grid.row_cfg {
             reg * 6
         } else {
@@ -193,11 +194,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[0].unwrap(),
-                        row: i * 20 + j,
+                        row: RowId::from_idx(i * 20 + j),
                         ioc: 0,
                         bel: k,
-                        bank,
-                        bbel: (19 - j) * 2 + k,
+                        bank: bank as u32,
+                        bbel: (19 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -211,11 +212,11 @@ impl Grid {
                     for k in 0..2 {
                         res.push(Io {
                             col: self.cols_io[1].unwrap(),
-                            row: i * 20 + j,
+                            row: RowId::from_idx(i * 20 + j),
                             ioc: 1,
                             bel: k,
-                            bank,
-                            bbel: (19 - j) * 2 + k,
+                            bank: bank as u32,
+                            bbel: (19 - j as u32) * 2 + k,
                         });
                     }
                 }
@@ -232,11 +233,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1].unwrap(),
-                        row: base + j,
+                        row: RowId::from_idx(base + j),
                         ioc: 1,
                         bel: k,
                         bank,
-                        bbel: (9 - j) * 2 + k,
+                        bbel: (9 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -249,11 +250,11 @@ impl Grid {
                     for k in 0..2 {
                         res.push(Io {
                             col: self.cols_io[1].unwrap(),
-                            row: i * 20 + j,
+                            row: RowId::from_idx(i * 20 + j),
                             ioc: 1,
                             bel: k,
-                            bank,
-                            bbel: (19 - j) * 2 + k,
+                            bank: bank as u32,
+                            bbel: (19 - j as u32) * 2 + k,
                         });
                     }
                 }
@@ -271,11 +272,11 @@ impl Grid {
                     for k in 0..2 {
                         res.push(Io {
                             col,
-                            row: i * 20 + j,
+                            row: RowId::from_idx(i * 20 + j),
                             ioc: 2,
                             bel: k,
-                            bank,
-                            bbel: (19 - j) * 2 + k,
+                            bank: bank as u32,
+                            bbel: (19 - j as u32) * 2 + k,
                         });
                     }
                 }
@@ -294,10 +295,10 @@ impl Grid {
                     111 + (i - self.row_cfg) * 4
                 };
                 res.push(Gt {
-                    col: 0,
-                    row: i * 20,
+                    col: self.columns.first_id().unwrap(),
+                    row: RowId::from_idx(i * 20),
                     gtc: 0,
-                    bank,
+                    bank: bank as u32,
                     is_gtx: true,
                 });
             }
@@ -311,10 +312,10 @@ impl Grid {
                     112 + (i - self.row_cfg) * 4
                 };
                 res.push(Gt {
-                    col: self.columns.len() as u32 - 1,
-                    row: i * 20,
+                    col: self.columns.last_id().unwrap(),
+                    row: RowId::from_idx(i * 20),
                     gtc: 1,
-                    bank,
+                    bank: bank as u32,
                     is_gtx,
                 });
             }
@@ -323,12 +324,12 @@ impl Grid {
     }
 
     pub fn has_left_gt(&self) -> bool {
-        self.columns[0] == ColumnKind::Gtx
+        *self.columns.first().unwrap() == ColumnKind::Gtx
     }
 
     pub fn get_sysmon_pads(&self) -> Vec<(String, SysMonPin)> {
         let mut res = Vec::new();
-        if self.columns[0] == ColumnKind::Gtx {
+        if self.has_left_gt() {
             let ipy = 6 * self.row_cfg;
             res.push((format!("IPAD_X1Y{}", ipy), SysMonPin::VP));
             res.push((format!("IPAD_X1Y{}", ipy+1), SysMonPin::VN));

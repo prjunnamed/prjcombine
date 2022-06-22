@@ -1,19 +1,20 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{CfgPin, DisabledPart, SysMonPin, GtPin};
+use super::{CfgPin, DisabledPart, SysMonPin, GtPin, ColId, RowId};
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
-    pub columns: Vec<ColumnKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub cols_mgt_buf: BTreeSet<u32>,
-    pub col_cfg: u32,
-    pub cols_qbuf: (u32, u32),
-    pub cols_io: [Option<u32>; 4],
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub cols_mgt_buf: BTreeSet<ColId>,
+    pub col_cfg: ColId,
+    pub cols_qbuf: (ColId, ColId),
+    pub cols_io: [Option<ColId>; 4],
     pub col_hard: Option<HardColumn>,
-    pub rows: u32,
-    pub row_gth_start: u32,
-    pub row_cfg: u32,
+    pub rows: usize,
+    pub row_gth_start: usize,
+    pub row_cfg: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -29,15 +30,15 @@ pub enum ColumnKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
-    pub col: u32,
-    pub rows_emac: Vec<u32>,
-    pub rows_pcie: Vec<u32>,
+    pub col: ColId,
+    pub rows_emac: Vec<RowId>,
+    pub rows_pcie: Vec<RowId>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub ioc: u32,
     pub iox: u32,
     pub bank: u32,
@@ -47,32 +48,32 @@ pub struct Io {
 impl Io {
     pub fn iob_name(&self) -> String {
         let x = self.iox;
-        let y = self.row;
+        let y = self.row.to_idx();
         format!("IOB_X{x}Y{y}")
     }
     pub fn is_mrcc(&self) -> bool {
-        matches!(self.row % 40, 18..=21)
+        matches!(self.row.to_idx() % 40, 18..=21)
     }
     pub fn is_srcc(&self) -> bool {
-        matches!(self.row % 40, 16 | 17 | 22 | 23)
+        matches!(self.row.to_idx() % 40, 16 | 17 | 22 | 23)
     }
     pub fn is_gc(&self) -> bool {
-        matches!((self.bank, self.row % 40), (24 | 34, 36..=39) | (25 | 35, 0..=3))
+        matches!((self.bank, self.row.to_idx() % 40), (24 | 34, 36..=39) | (25 | 35, 0..=3))
     }
     pub fn is_vref(&self) -> bool {
-        self.row % 20 == 10
+        self.row.to_idx() % 20 == 10
     }
     pub fn is_vr(&self) -> bool {
         match self.bank {
-            34 => matches!(self.row % 40, 0 | 1),
-            24 => matches!(self.row % 40, 4 | 5),
-            15 | 25 | 35 => matches!(self.row % 40, 6 | 7),
-            _ => matches!(self.row % 40, 14 | 15),
+            34 => matches!(self.row.to_idx() % 40, 0 | 1),
+            24 => matches!(self.row.to_idx() % 40, 4 | 5),
+            15 | 25 | 35 => matches!(self.row.to_idx() % 40, 6 | 7),
+            _ => matches!(self.row.to_idx() % 40, 14 | 15),
         }
     }
     pub fn sm_pair(&self, grid: &Grid) -> Option<u32> {
         let has_ol = grid.cols_io[0].is_some();
-        match (self.bank, self.row % 40) {
+        match (self.bank, self.row.to_idx() % 40) {
             (15, 8 | 9) => Some(15),
             (15, 12 | 13) => Some(14),
             (15, 14 | 15) => Some(13),
@@ -101,7 +102,7 @@ impl Io {
         }
     }
     pub fn get_cfg(&self) -> Option<CfgPin> {
-        match (self.bank, self.row % 40) {
+        match (self.bank, self.row.to_idx() % 40) {
             (24, 6) => Some(CfgPin::CsoB),
             (24, 7) => Some(CfgPin::Rs(0)),
             (24, 8) => Some(CfgPin::Rs(1)),
@@ -157,8 +158,8 @@ impl Io {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub gtc: u32,
     pub gy: u32,
     pub bank: u32,
@@ -174,9 +175,9 @@ impl Gt {
             (1, 0)
         };
         if self.is_gth {
-            let gthy = self.row / 40 - grid.row_gth_start;
-            let opy = grid.row_gth_start * 32 + gthy * 8;
-            let ipy = grid.row_gth_start * 24 + gthy * 12;
+            let gthy = self.row.to_idx() / 40 - grid.row_gth_start;
+            let opy = (grid.row_gth_start * 32 + gthy * 8) as u32;
+            let ipy = (grid.row_gth_start * 24 + gthy * 12) as u32;
             for b in 0..4 {
                 res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)), format!("MGTTXN{}_{}", b, self.bank), GtPin::TxN, b));
                 res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b) + 1), format!("MGTTXP{}_{}", b, self.bank), GtPin::TxP, b));
@@ -210,15 +211,15 @@ impl Grid {
         for ioc in 0..4 {
             if let Some(col) = self.cols_io[ioc as usize] {
                 for j in 0..self.rows {
-                    let bank = 15 + j - self.row_cfg + ioc * 10;
+                    let bank = 15 + j - self.row_cfg + ioc as usize * 10;
                     for k in 0..40 {
                         res.push(Io {
                             col,
-                            row: j * 40 + k,
+                            row: RowId::from_idx(j * 40 + k),
                             ioc,
                             iox,
-                            bank,
-                            bbel: 39 - k,
+                            bank: bank as u32,
+                            bbel: 39 - k as u32,
                         });
                     }
                 }
@@ -232,29 +233,29 @@ impl Grid {
         let mut res = Vec::new();
         let mut gy = 0;
         for i in 0..self.rows {
-            if disabled.contains(&DisabledPart::Virtex6GtxRow(i)) {
+            if disabled.contains(&DisabledPart::Virtex6GtxRow(i as u32)) {
                 continue;
             }
             let is_gth = i >= self.row_gth_start;
             if self.has_left_gt() {
                 let bank = 105 + i - self.row_cfg;
                 res.push(Gt {
-                    col: 0,
-                    row: i * 40,
+                    col: self.columns.first_id().unwrap(),
+                    row: RowId::from_idx(i * 40),
                     gtc: 0,
                     gy,
-                    bank,
+                    bank: bank as u32,
                     is_gth,
                 });
             }
             if self.col_hard.is_some() {
                 let bank = 115 + i - self.row_cfg;
                 res.push(Gt {
-                    col: self.columns.len() as u32 - 1,
-                    row: i * 40,
+                    col: self.columns.last_id().unwrap(),
+                    row: RowId::from_idx(i * 40),
                     gtc: 1,
                     gy,
-                    bank,
+                    bank: bank as u32,
                     is_gth,
                 });
             }
@@ -264,7 +265,7 @@ impl Grid {
     }
 
     pub fn has_left_gt(&self) -> bool {
-        self.columns[0] == ColumnKind::Gt
+        *self.columns.first().unwrap() == ColumnKind::Gt
     }
 
     pub fn get_sysmon_pads(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<(String, SysMonPin)> {
@@ -275,7 +276,7 @@ impl Grid {
         } else {
             let mut ipy = 6;
             for i in 0..self.row_cfg {
-                if !disabled.contains(&DisabledPart::Virtex6GtxRow(i)) {
+                if !disabled.contains(&DisabledPart::Virtex6GtxRow(i as u32)) {
                     ipy += 24;
                 }
             }

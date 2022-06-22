@@ -1,19 +1,20 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{GtPin, SysMonPin, CfgPin};
+use super::{GtPin, SysMonPin, CfgPin, ColId, RowId};
+use prjcombine_entity::{EntityId, EntityVec};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
-    pub columns: Vec<ColumnKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub cols_io: [u32; 3],
-    pub rows: u32,
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub cols_io: [ColId; 3],
+    pub rows: usize,
     pub has_bot_sysmon: bool,
     pub has_top_sysmon: bool,
-    pub rows_cfg_io: u32,
-    pub ccm: u32,
-    pub row_cfg: u32,
-    pub holes_ppc: Vec<(u32, u32)>,
+    pub rows_cfg_io: usize,
+    pub ccm: usize,
+    pub row_cfg: usize,
+    pub holes_ppc: Vec<(ColId, RowId)>,
     pub has_bram_fx: bool,
 }
 
@@ -28,8 +29,8 @@ pub enum ColumnKind {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub bel: u32,
     pub ioc: u32,
     pub bank: u32,
@@ -39,20 +40,20 @@ pub struct Io {
 impl Io {
     pub fn iob_name(&self) -> String {
         let x = self.ioc;
-        let y = self.row * 2 + self.bel;
+        let y = self.row.to_idx() * 2 + self.bel as usize;
         format!("IOB_X{x}Y{y}")
     }
     pub fn is_cc(&self) -> bool {
-        matches!(self.row % 16, 7 | 8)
+        matches!(self.row.to_idx() % 16, 7 | 8)
     }
     pub fn is_lc(&self) -> bool {
-        matches!(self.row % 16, 7 | 8) || self.ioc == 1
+        matches!(self.row.to_idx() % 16, 7 | 8) || self.ioc == 1
     }
     pub fn is_gc(&self) -> bool {
         matches!(self.bank, 3 | 4) || (matches!(self.bank, 1 | 2) && matches!(self.bbel, 18..=33))
     }
     pub fn is_vref(&self) -> bool {
-        self.row % 8 == 4 && self.bel == 0
+        self.row.to_idx() % 8 == 4 && self.bel == 0
     }
     pub fn is_vr(&self) -> bool {
         match self.bank {
@@ -60,7 +61,7 @@ impl Io {
             2 => self.bbel / 2 == 23,
             3 => self.bbel / 2 == 2,
             4 => self.bbel / 2 == 7,
-            _ => self.row % 32 == 9,
+            _ => self.row.to_idx() % 32 == 9,
         }
     }
     pub fn get_cfg(&self) -> Option<CfgPin> {
@@ -71,14 +72,14 @@ impl Io {
             return None;
         }
         if self.bank == 2 {
-            Some(CfgPin::Data((self.row % 8 * 2 + self.bel) as u8))
+            Some(CfgPin::Data((self.row.to_idx() % 8 * 2 + self.bel as usize) as u8))
         } else {
-            Some(CfgPin::Data((self.row % 8 * 2 + self.bel + 16) as u8))
+            Some(CfgPin::Data((self.row.to_idx() % 8 * 2 + self.bel as usize + 16) as u8))
         }
     }
     pub fn sm_pair(&self, grid: &Grid) -> Option<(u32, u32)> {
         if grid.has_bot_sysmon {
-            match (self.bank, self.row % 32) {
+            match (self.bank, self.row.to_idx() % 32) {
                 (7, 0) => return Some((0, 1)),
                 (7, 1) => return Some((0, 2)),
                 (7, 2) => return Some((0, 3)),
@@ -90,7 +91,7 @@ impl Io {
             }
         }
         if grid.has_top_sysmon {
-            match (self.bank, self.row % 32) {
+            match (self.bank, self.row.to_idx() % 32) {
                 (5, 24) => return Some((1, 1)),
                 (5, 25) => return Some((1, 2)),
                 (5, 26) => return Some((1, 3)),
@@ -107,15 +108,15 @@ impl Io {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub gtc: u32,
     pub bank: u32,
 }
 
 impl Gt {
     pub fn get_pads(&self, grid: &Grid) -> Vec<(String, String, GtPin, u32)> {
-        let reg = self.row / 32;
+        let reg = self.row.to_idx() / 32;
         let (ipx, ipy);
         if grid.has_bot_sysmon {
             ipy = 2 + reg * 6;
@@ -162,16 +163,15 @@ impl Grid {
         let mut res = Vec::new();
         // left column
         for (i, b) in lbanks.iter().copied().enumerate() {
-            let i = i as u32;
             for j in 0..32 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[0],
-                        row: i * 32 + j,
+                        row: RowId::from_idx(i * 32 + j),
                         ioc: 0,
                         bel: k,
                         bank: b,
-                        bbel: (32 - j) * 2 + k,
+                        bbel: (32 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -183,11 +183,11 @@ impl Grid {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: base + j,
+                    row: RowId::from_idx(base + j),
                     ioc: 1,
                     bel: k,
                     bank: 4,
-                    bbel: (8 - j) * 2 + k,
+                    bbel: (8 - j as u32) * 2 + k,
                 });
             }
         }
@@ -198,11 +198,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: base + j,
+                        row: RowId::from_idx(base + j),
                         ioc: 1,
                         bel: k,
                         bank: 2,
-                        bbel: (8 + 16 - (j ^ 8)) * 2 + k,
+                        bbel: (8 + 16 - (j as u32 ^ 8)) * 2 + k,
                     });
                 }
             }
@@ -213,11 +213,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: base + j,
+                        row: RowId::from_idx(base + j),
                         ioc: 1,
                         bel: k,
                         bank: 2,
-                        bbel: (24 + 16 - (j ^ 8)) * 2 + k,
+                        bbel: (24 + 16 - (j as u32 ^ 8)) * 2 + k,
                     });
                 }
             }
@@ -227,11 +227,11 @@ impl Grid {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: base + j,
+                    row: RowId::from_idx(base + j),
                     ioc: 1,
                     bel: k,
                     bank: 2,
-                    bbel: (8 - j) * 2 + k,
+                    bbel: (8 - j as u32) * 2 + k,
                 });
             }
         }
@@ -241,11 +241,11 @@ impl Grid {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: base + j,
+                    row: RowId::from_idx(base + j),
                     ioc: 1,
                     bel: k,
                     bank: 1,
-                    bbel: (8 - j) * 2 + k,
+                    bbel: (8 - j as u32) * 2 + k,
                 });
             }
         }
@@ -255,11 +255,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: base + j,
+                        row: RowId::from_idx(base + j),
                         ioc: 1,
                         bel: k,
                         bank: 1,
-                        bbel: (24 + 16 - j) * 2 + k,
+                        bbel: (24 + 16 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -270,11 +270,11 @@ impl Grid {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: base + j,
+                        row: RowId::from_idx(base + j),
                         ioc: 1,
                         bel: k,
                         bank: 1,
-                        bbel: (8 + 16 - j) * 2 + k,
+                        bbel: (8 + 16 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -285,26 +285,25 @@ impl Grid {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: base + j,
+                    row: RowId::from_idx(base + j),
                     ioc: 1,
                     bel: k,
                     bank: 3,
-                    bbel: (8 - j) * 2 + k,
+                    bbel: (8 - j as u32) * 2 + k,
                 });
             }
         }
         // right column
         for (i, b) in rbanks.iter().copied().enumerate() {
-            let i = i as u32;
             for j in 0..32 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[2],
-                        row: i * 32 + j,
+                        row: RowId::from_idx(i * 32 + j),
                         ioc: 2,
                         bel: k,
                         bank: b,
-                        bbel: (32 - j) * 2 + k,
+                        bbel: (32 - j as u32) * 2 + k,
                     });
                 }
             }
@@ -314,7 +313,7 @@ impl Grid {
 
     pub fn get_gt(&self) -> Vec<Gt> {
         let mut res = Vec::new();
-        if self.columns[0] == ColumnKind::Gt {
+        if *self.columns.first().unwrap() == ColumnKind::Gt {
             let lbanks: &[u32] = match self.rows {
                 4 => &[105, 102],
                 6 => &[105, 103, 102],
@@ -325,8 +324,8 @@ impl Grid {
             };
             for (i, b) in lbanks.iter().copied().enumerate() {
                 res.push(Gt {
-                    col: 0,
-                    row: i as u32 * 32,
+                    col: self.columns.first_id().unwrap(),
+                    row: RowId::from_idx(i * 32),
                     gtc: 0,
                     bank: b,
                 });
@@ -343,8 +342,8 @@ impl Grid {
             };
             for (i, b) in rbanks.iter().copied().enumerate() {
                 res.push(Gt {
-                    col: self.columns.len() as u32 - 1,
-                    row: i as u32 * 32,
+                    col: self.columns.last_id().unwrap(),
+                    row: RowId::from_idx(i * 32),
                     gtc: 1,
                     bank: b,
                 });
@@ -355,7 +354,7 @@ impl Grid {
 
     pub fn get_sysmon_pads(&self) -> Vec<(String, u32, SysMonPin)> {
         let mut res = Vec::new();
-        let has_gt = self.columns[0] == ColumnKind::Gt;
+        let has_gt = *self.columns.first().unwrap() == ColumnKind::Gt;
         if has_gt {
             if self.has_bot_sysmon {
                 res.push((format!("IPAD_X1Y0"), 0, SysMonPin::VP));

@@ -81,8 +81,57 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
-    pub fn map_values<NV>(self, f: impl FnMut(V) -> NV) -> EntityVec<I, NV> {
+    pub fn map_values<NV>(&self, f: impl FnMut(&V) -> NV) -> EntityVec<I, NV> {
+        self.values().map(f).collect()
+    }
+
+    pub fn into_map_values<NV>(self, f: impl FnMut(V) -> NV) -> EntityVec<I, NV> {
         self.into_values().map(f).collect()
+    }
+
+    pub fn first(&self) -> Option<&V> {
+        self.vals.first()
+    }
+
+    pub fn first_mut(&mut self) -> Option<&mut V> {
+        self.vals.first_mut()
+    }
+
+    pub fn first_id(&self) -> Option<I> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(I::from_idx(0))
+        }
+    }
+
+    pub fn last(&self) -> Option<&V> {
+        self.vals.last()
+    }
+
+    pub fn last_mut(&mut self) -> Option<&mut V> {
+        self.vals.last_mut()
+    }
+
+    pub fn last_id(&self) -> Option<I> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(I::from_idx(self.len() - 1))
+        }
+    }
+
+    pub fn next_id(&self) -> I {
+        I::from_idx(self.len())
+    }
+
+    pub fn binary_search(&self, x: &V) -> Result<I, I>
+    where V: Ord
+    {
+        match self.vals.binary_search(x) {
+            Ok(x) => Ok(I::from_idx(x)),
+            Err(x) => Err(I::from_idx(x)),
+        }
     }
 }
 

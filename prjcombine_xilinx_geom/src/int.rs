@@ -2,6 +2,7 @@ use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
 use prjcombine_entity::{EntityVec, EntityPartVec, EntityMap, entity_id};
 use enum_map::{EnumMap, Enum};
+use ndarray::Array2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Enum, Serialize, Deserialize)]
 pub enum Dir {
@@ -159,12 +160,14 @@ pub struct BelPort {
 }
 
 
-/*
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedInt {
-    pub int_grid: Array2D<ExpandedTile>,
+pub struct ExpandedGrid {
+    pub tie_kind: Option<String>,
+    pub tie_pin_gnd: Option<String>,
+    pub tie_pin_vcc: Option<String>,
+    pub tie_pin_pullup: Option<String>,
+    pub tiles: Array2<Option<ExpandedTile>>,
 }
-*/
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
@@ -172,6 +175,7 @@ pub struct ExpandedTile {
     pub name: String,
     pub tie_name: Option<String>,
     pub wire_naming: NamingId,
+    pub special: bool,
     pub intf: Option<ExpandedTileIntf>,
     pub dirs: EnumMap<Dir, ExpandedTileDir>,
 }

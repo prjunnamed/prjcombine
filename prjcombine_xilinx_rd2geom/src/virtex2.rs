@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, ColId, RowId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex2::{self, GridKind, ColumnKind, ColumnIoKind, RowIoKind, Dcms};
-
-use itertools::Itertools;
+use prjcombine_entity::EntityVec;
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
@@ -25,8 +24,8 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> Vec<ColumnKind> {
-    let mut res = Vec::new();
+fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, ColumnKind> {
+    let mut res = EntityVec::new();
     res.push(ColumnKind::Io);
     for _ in 0..(int.cols.len() - 2) {
         res.push(ColumnKind::Clb);
@@ -39,32 +38,32 @@ fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> Vec<ColumnKind> {
     };
     for rc in find_columns(rd, &["BRAM0", "BRAM0_SMALL"]) {
         let c = int.lookup_column(rc);
-        res[c as usize] = ColumnKind::Bram;
+        res[c] = ColumnKind::Bram;
         if bram_cont != 0 {
             for d in 1..bram_cont {
-                res[(c + d) as usize] = ColumnKind::BramCont(d as u8);
+                res[c + d] = ColumnKind::BramCont(d as u8);
             }
         }
     }
     for rc in find_columns(rd, &["MACC0_SMALL"]) {
         let c = int.lookup_column(rc);
-        res[c as usize] = ColumnKind::Dsp;
+        res[c] = ColumnKind::Dsp;
     }
     res
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &[ColumnKind]) -> Vec<ColumnIoKind> {
-    let mut res = Vec::new();
+fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &EntityVec<ColId, ColumnKind>) -> EntityVec<ColId, ColumnIoKind> {
+    let mut res = EntityVec::new();
     res.push(ColumnIoKind::None);
     while res.len() < int.cols.len() - 1 {
         match kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                 let c0 = Coord {
-                    x: int.cols[res.len()] as u16,
+                    x: int.cols[res.next_id()] as u16,
                     y: 0,
                 };
                 let c1 = Coord {
-                    x: (int.cols[res.len()] + 1) as u16,
+                    x: (int.cols[res.next_id()] + 1) as u16,
                     y: 0,
                 };
                 let tk0 = &rd.tiles[&c0].kind[..];
@@ -90,7 +89,7 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &[ColumnKind]) ->
                 }
             }
             GridKind::Spartan3 => {
-                if cols[res.len()] == ColumnKind::Bram {
+                if cols[res.next_id()] == ColumnKind::Bram {
                     res.push(ColumnIoKind::None);
                 } else {
                     for i in 0..2 {
@@ -105,7 +104,7 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &[ColumnKind]) ->
             }
             GridKind::Spartan3E => {
                 let c = Coord {
-                    x: int.cols[res.len()] as u16,
+                    x: int.cols[res.next_id()] as u16,
                     y: 0,
                 };
                 let tk = &rd.tiles[&c].kind[..];
@@ -138,12 +137,12 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &[ColumnKind]) ->
     res
 }
 
-fn get_col_clk(rd: &Part, int: &IntGrid) -> u32 {
+fn get_col_clk(rd: &Part, int: &IntGrid) -> ColId {
     int.lookup_column(find_column(rd, &["CLKC", "CLKC_50A", "CLKC_LL"]).unwrap() + 1)
 }
 
-fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Option<(u32, u32)> {
-    let cols: Vec<_> = find_columns(rd, &["GCLKV"]).into_iter().sorted().collect();
+fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
+    let cols: Vec<_> = find_columns(rd, &["GCLKV"]).into_iter().collect();
     if cols.is_empty() {
         None
     } else {
@@ -164,7 +163,7 @@ fn get_gt_bank(rd: &Part, c: Coord) -> u32 {
     unreachable!();
 }
 
-fn get_cols_gt(rd: &Part, int: &IntGrid) -> BTreeMap<u32, (u32, u32)> {
+fn get_cols_gt(rd: &Part, int: &IntGrid) -> BTreeMap<ColId, (u32, u32)> {
     let mut res = BTreeMap::new();
     for rc in find_columns(rd, &["BGIGABIT_INT0"]) {
         let c = int.lookup_column(rc);
@@ -193,8 +192,8 @@ fn get_cols_gt(rd: &Part, int: &IntGrid) -> BTreeMap<u32, (u32, u32)> {
     res
 }
 
-fn get_rows_io(rd: &Part, int: &IntGrid, kind: GridKind) -> Vec<RowIoKind> {
-    let mut res = Vec::new();
+fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoKind> {
+    let mut res = EntityVec::new();
     res.push(RowIoKind::None);
     while res.len() < int.rows.len() - 1 {
         match kind {
@@ -209,7 +208,7 @@ fn get_rows_io(rd: &Part, int: &IntGrid, kind: GridKind) -> Vec<RowIoKind> {
             GridKind::Spartan3E => {
                 let c = Coord {
                     x: 0,
-                    y: int.rows[res.len()] as u16,
+                    y: int.rows[res.next_id()] as u16,
                 };
                 let tk = &rd.tiles[&c].kind[..];
                 match tk {
@@ -246,7 +245,7 @@ fn get_rows_io(rd: &Part, int: &IntGrid, kind: GridKind) -> Vec<RowIoKind> {
     res
 }
 
-fn get_rows_ram(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<(u32, u32)> {
+fn get_rows_ram(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<(RowId, RowId)> {
     if kind == GridKind::Spartan3E {
         let b = int.lookup_row(find_row(rd, &["COB_TERM_B"]).unwrap());
         let t = int.lookup_row(find_row(rd, &["COB_TERM_T"]).unwrap());
@@ -256,11 +255,10 @@ fn get_rows_ram(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<(u32, u32)> 
     }
 }
 
-fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
+fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId)> {
     let rows_hclk: Vec<_> = find_rows(rd, &["GCLKH"])
         .into_iter()
         .map(|r| int.lookup_row(r - 1) + 1)
-        .sorted()
         .collect();
     let mut rows_brk = HashSet::new();
     for r in find_rows(rd, &["BRKH", "CLKH", "CLKH_LL"]) {
@@ -269,13 +267,13 @@ fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
     for r in find_rows(rd, &["CENTER_SMALL_BRK"]) {
         rows_brk.insert(int.lookup_row(r) + 1);
     }
-    rows_brk.insert(int.rows.len() as u32);
-    let rows_brk: Vec<_> = rows_brk.into_iter().sorted().collect();
+    rows_brk.insert(int.rows.next_id());
+    let rows_brk: Vec<_> = rows_brk.into_iter().collect();
     assert_eq!(rows_hclk.len(), rows_brk.len());
     rows_hclk.into_iter().zip(rows_brk.into_iter()).collect()
 }
 
-fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<u32> {
+fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<RowId> {
     match kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
             Some(int.lookup_row(find_row(rd, &["REG_L"]).unwrap() + 1))
@@ -284,7 +282,7 @@ fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<u32> {
     }
 }
 
-fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
+fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = Vec::new();
     for tt in ["LLPPC_X0Y0_INT", "LLPPC_X1Y0_INT"] {
         if let Some(tk) = rd.tile_kinds.get(tt) {
@@ -2071,8 +2069,7 @@ fn make_grid(rd: &Part) -> virtex2::Grid {
         col_clk: get_col_clk(rd, &int),
         cols_clkv: get_cols_clkv(rd, &int),
         cols_gt: get_cols_gt(rd, &int),
-        rows: int.rows.len() as u32,
-        rows_io: get_rows_io(rd, &int, kind),
+        rows: get_rows(rd, &int, kind),
         rows_ram: get_rows_ram(rd, &int, kind),
         rows_hclk: get_rows_hclk(rd, &int),
         row_pci: get_row_pci(rd, &int, kind),

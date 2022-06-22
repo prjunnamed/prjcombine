@@ -1,39 +1,37 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, SysMonPin, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, SysMonPin, ColId, RowId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex4::{self, ColumnKind};
+use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
 
-fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
-    let mut res: Vec<Option<ColumnKind>> = Vec::new();
-    for _ in 0..int.cols.len() {
-        res.push(None);
-    }
+fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
+    let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     for c in find_columns(rd, &["CLB"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Clb);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Clb);
     }
     for c in find_columns(rd, &["BRAM"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Bram);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Bram);
     }
     for c in find_columns(rd, &["DSP"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Dsp);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Dsp);
     }
     for c in find_columns(rd, &["IOIS_LC", "IOIS_LC_L"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Io);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Io);
     }
     for c in find_columns(rd, &["MGT_AR"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::Gt);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Gt);
     }
     for c in find_columns(rd, &["MGT_AL"]) {
-        res[int.lookup_column(c + 1) as usize] = Some(ColumnKind::Gt);
+        res[int.lookup_column(c + 1)] = Some(ColumnKind::Gt);
     }
-    res.into_iter().map(|x| x.unwrap()).collect()
+    res.map_values(|x| x.unwrap())
 }
 
-fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
+fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in find_columns(rd, &["CFG_VBRK_FRAME"]) {
         res.insert(int.lookup_column_inter(c));
@@ -41,24 +39,24 @@ fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
     res
 }
 
-fn get_cols_io(columns: &[ColumnKind]) -> [u32; 3] {
-    let v: Vec<_> = columns.iter().copied().enumerate().filter(|&(_, x)| x == ColumnKind::Io).map(|(i, _)| i as u32).collect();
+fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [ColId; 3] {
+    let v: Vec<_> = columns.iter().filter_map(|(k, &v)| if v == ColumnKind::Io {Some(k)} else {None}).collect();
     v.try_into().unwrap()
 }
 
-fn get_row_cfg(rd: &Part, int: &IntGrid) -> u32 {
-    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()) / 16
+fn get_row_cfg(rd: &Part, int: &IntGrid) -> usize {
+    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()).to_idx() / 16
 }
 
-fn get_rows_cfg_io(rd: &Part, int: &IntGrid, row_cfg: u32) -> u32 {
-    let d2i = int.lookup_row_inter(find_row(rd, &["HCLK_DCMIOB"]).unwrap());
-    let i2d = int.lookup_row_inter(find_row(rd, &["HCLK_IOBDCM"]).unwrap());
+fn get_rows_cfg_io(rd: &Part, int: &IntGrid, row_cfg: usize) -> usize {
+    let d2i = int.lookup_row_inter(find_row(rd, &["HCLK_DCMIOB"]).unwrap()).to_idx();
+    let i2d = int.lookup_row_inter(find_row(rd, &["HCLK_IOBDCM"]).unwrap()).to_idx();
     assert_eq!(i2d - row_cfg * 16, row_cfg * 16 - d2i);
     (i2d - row_cfg * 16 - 8) / 16
 }
 
-fn get_ccm(rd: &Part) -> u32 {
-    (find_rows(rd, &["CCM"]).len() / 2) as u32
+fn get_ccm(rd: &Part) -> usize {
+    find_rows(rd, &["CCM"]).len() / 2
 }
 
 fn get_has_sysmons(rd: &Part) -> (bool, bool) {
@@ -66,13 +64,13 @@ fn get_has_sysmons(rd: &Part) -> (bool, bool) {
     (sysmons.contains(&1), sysmons.contains(&((rd.height - 9) as i32)))
 }
 
-fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
+fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = Vec::new();
     if let Some(tk) = rd.tile_kinds.get("PB") {
         for tile in &tk.tiles {
             let x = int.lookup_column((tile.x - 1) as i32);
             let y = int.lookup_row((tile.y - 4) as i32);
-            assert_eq!(y % 16, 12);
+            assert_eq!(y.to_idx() % 16, 12);
             res.push((x, y));
         }
     }
@@ -503,7 +501,7 @@ fn make_grid(rd: &Part) -> virtex4::Grid {
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_io,
-        rows: (int.rows.len() / 16) as u32,
+        rows: int.rows.len() / 16,
         has_bot_sysmon,
         has_top_sysmon,
         rows_cfg_io: get_rows_cfg_io(rd, &int, row_cfg),

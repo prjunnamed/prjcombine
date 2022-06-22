@@ -9,3 +9,4 @@ edition = "2021"
 serde = { version = "1.0", features = ["derive"] }
 prjcombine_entity = { path = "../prjcombine_entity" }
 enum-map = { version = "2.4.0", features = ["serde"] }
+ndarray = { version = "0.15", features = ["serde"] }

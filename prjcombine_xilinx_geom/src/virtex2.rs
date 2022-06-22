@@ -1,6 +1,7 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord};
+use crate::{CfgPin, BelCoord, ColId, RowId};
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -16,22 +17,21 @@ pub enum GridKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
-    pub columns: Vec<ColumnKind>,
-    pub cols_io: Vec<ColumnIoKind>,
-    pub col_clk: u32,
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_io: EntityVec<ColId, ColumnIoKind>,
+    pub col_clk: ColId,
     // For Spartan 3* other than 3s50a
-    pub cols_clkv: Option<(u32, u32)>,
+    pub cols_clkv: Option<(ColId, ColId)>,
     // column -> (bottom bank, top bank)
-    pub cols_gt: BTreeMap<u32, (u32, u32)>,
-    pub rows: u32,
-    pub rows_io: Vec<RowIoKind>,
+    pub cols_gt: BTreeMap<ColId, (u32, u32)>,
+    pub rows: EntityVec<RowId, RowIoKind>,
     // For Spartan 3E: range of rows containing RAMs
-    pub rows_ram: Option<(u32, u32)>,
+    pub rows_ram: Option<(RowId, RowId)>,
     // (hclk row, end row)
-    pub rows_hclk: Vec<(u32, u32)>,
+    pub rows_hclk: Vec<(RowId, RowId)>,
     // For Virtex 2
-    pub row_pci: Option<u32>,
-    pub holes_ppc: Vec<(u32, u32)>,
+    pub row_pci: Option<RowId>,
+    pub holes_ppc: Vec<(ColId, RowId)>,
     // For Spartan 3E, 3A*
     pub dcms: Option<Dcms>,
     pub has_ll: bool,
@@ -93,16 +93,20 @@ pub struct Io {
 }
 
 impl Grid {
+    pub fn row_mid(&self) -> RowId {
+        RowId::from_idx(self.rows.len() / 2)
+    }
+
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut ctr = 1;
         match self.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                 // top
-                for cs in 0..self.columns.len() {
-                    let c = cs as u32;
-                    let is_l = c < self.col_clk - 2 || (c >= self.col_clk && c < self.col_clk + 2);
-                    let bels: &[u32] = match self.cols_io[c as usize] {
+                for col in self.columns.ids() {
+                    let row = self.rows.last_id().unwrap();
+                    let is_l = col < self.col_clk - 2 || (col >= self.col_clk && col < self.col_clk + 2);
+                    let bels: &[u32] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => if is_l {&[2, 1, 0]} else {&[3, 2, 1]},
                         ColumnIoKind::Double(0) => if is_l {&[3, 2, 1, 0]} else {&[3, 2]},
@@ -112,7 +116,7 @@ impl Grid {
                     for &bel in bels {
                         let mut name = format!("PAD{ctr}");
                         if self.kind == GridKind::Virtex2PX {
-                            if c == self.col_clk - 1 {
+                            if col == self.col_clk - 1 {
                                 match bel {
                                     0 => name = format!("CLKPPAD1"),
                                     1 => name = format!("CLKNPAD1"),
@@ -122,11 +126,11 @@ impl Grid {
                         }
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: self.rows - 1,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if c < self.col_clk { 0 } else { 1 },
+                            bank: if col < self.col_clk { 0 } else { 1 },
                             name,
                             kind: IoKind::Io,
                         });
@@ -134,9 +138,10 @@ impl Grid {
                     }
                 }
                 // right
-                for r in (0..self.rows).rev() {
-                    let is_b = r < self.rows / 2;
-                    let bels: &[u32] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter().rev() {
+                    let col = self.columns.last_id().unwrap();
+                    let is_b = row < self.row_mid();
+                    let bels: &[u32] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Double(0) => if is_b {&[3, 2, 1, 0]} else {&[1, 0]},
                         RowIoKind::Double(1) => if is_b {&[3, 2]} else {&[3, 2, 1, 0]},
@@ -145,11 +150,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: (self.columns.len() - 1) as u32,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if r < self.rows / 2 { 3 } else { 2 },
+                            bank: if row < self.row_mid() { 3 } else { 2 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -157,10 +162,10 @@ impl Grid {
                     }
                 }
                 // bottom
-                for cs in (0..(self.columns.len())).rev() {
-                    let c = cs as u32;
-                    let is_l = c < self.col_clk - 2 || (c >= self.col_clk && c < self.col_clk + 2);
-                    let bels: &[u32] = match self.cols_io[c as usize] {
+                for col in self.columns.ids().rev() {
+                    let row = self.rows.first_id().unwrap();
+                    let is_l = col < self.col_clk - 2 || (col >= self.col_clk && col < self.col_clk + 2);
+                    let bels: &[u32] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => if is_l {&[3, 2, 1]} else {&[2, 1, 0]},
                         ColumnIoKind::Double(0) => if is_l {&[3, 2, 1, 0]} else {&[1, 0]},
@@ -170,7 +175,7 @@ impl Grid {
                     for &bel in bels {
                         let mut name = format!("PAD{ctr}");
                         if self.kind == GridKind::Virtex2PX {
-                            if c == self.col_clk - 1 {
+                            if col == self.col_clk - 1 {
                                 match bel {
                                     2 => name = format!("CLKPPAD2"),
                                     3 => name = format!("CLKNPAD2"),
@@ -180,11 +185,11 @@ impl Grid {
                         }
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: 0,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if c < self.col_clk { 5 } else { 4 },
+                            bank: if col < self.col_clk { 5 } else { 4 },
                             name,
                             kind: IoKind::Io,
                         });
@@ -192,9 +197,10 @@ impl Grid {
                     }
                 }
                 // left
-                for r in 0..self.rows {
-                    let is_b = r < self.rows / 2;
-                    let bels: &[u32] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter() {
+                    let col = self.columns.first_id().unwrap();
+                    let is_b = row < self.row_mid();
+                    let bels: &[u32] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Double(0) => if is_b {&[0, 1, 2, 3]} else {&[0, 1]},
                         RowIoKind::Double(1) => if is_b {&[2, 3]} else {&[0, 1, 2, 3]},
@@ -203,11 +209,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: 0,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if r < self.rows / 2 { 6 } else { 7 },
+                            bank: if row < self.row_mid() { 6 } else { 7 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -217,9 +223,9 @@ impl Grid {
             }
             GridKind::Spartan3 => {
                 // top
-                for cs in 0..self.columns.len() {
-                    let c = cs as u32;
-                    let bels: &[u32] = match self.cols_io[c as usize] {
+                for col in self.columns.ids() {
+                    let row = self.rows.last_id().unwrap();
+                    let bels: &[u32] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[2, 1, 0],
                         ColumnIoKind::Double(1) => &[1, 0],
@@ -228,11 +234,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: self.rows - 1,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if c < self.col_clk { 0 } else { 1 },
+                            bank: if col < self.col_clk { 0 } else { 1 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -240,8 +246,9 @@ impl Grid {
                     }
                 }
                 // right
-                for r in (0..self.rows).rev() {
-                    let bels: &[u32] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter().rev() {
+                    let col = self.columns.last_id().unwrap();
+                    let bels: &[u32] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[1, 0],
                         _ => unreachable!(),
@@ -249,11 +256,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: (self.columns.len() - 1) as u32,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if r < self.rows / 2 { 3 } else { 2 },
+                            bank: if row < self.row_mid() { 3 } else { 2 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -261,9 +268,9 @@ impl Grid {
                     }
                 }
                 // bottom
-                for cs in (0..(self.columns.len())).rev() {
-                    let c = cs as u32;
-                    let bels: &[u32] = match self.cols_io[c as usize] {
+                for col in self.columns.ids().rev() {
+                    let row = self.rows.first_id().unwrap();
+                    let bels: &[u32] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[2, 1, 0],
                         ColumnIoKind::Double(1) => &[1, 0],
@@ -272,11 +279,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: 0,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if c < self.col_clk { 5 } else { 4 },
+                            bank: if col < self.col_clk { 5 } else { 4 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -284,8 +291,9 @@ impl Grid {
                     }
                 }
                 // left
-                for r in 0..self.rows {
-                    let bels: &[u32] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter() {
+                    let col = self.columns.first_id().unwrap();
+                    let bels: &[u32] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[0, 1],
                         _ => unreachable!(),
@@ -293,11 +301,11 @@ impl Grid {
                     for &bel in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: 0,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
-                            bank: if r < self.rows / 2 { 6 } else { 7 },
+                            bank: if row < self.row_mid() { 6 } else { 7 },
                             name: format!("PAD{ctr}"),
                             kind: IoKind::Io,
                         });
@@ -309,9 +317,9 @@ impl Grid {
                 const I: IoKind = IoKind::Input;
                 const IO: IoKind = IoKind::Io;
                 // top
-                for cs in 0..self.columns.len() {
-                    let c = cs as u32;
-                    let bels: &[(u32, IoKind)] = match self.cols_io[c as usize] {
+                for col in self.columns.ids() {
+                    let row = self.rows.last_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => &[(2, IO)],
                         ColumnIoKind::Double(0) => &[(1, IO), (0, IO)],
@@ -328,8 +336,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: self.rows - 1,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 0,
@@ -340,8 +348,9 @@ impl Grid {
                     }
                 }
                 // right
-                for r in (0..self.rows).rev() {
-                    let bels: &[(u32, IoKind)] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter().rev() {
+                    let col = self.columns.last_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[(2, IO)],
                         RowIoKind::Double(0) => &[(1, IO), (0, IO)],
@@ -358,8 +367,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: (self.columns.len() - 1) as u32,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 1,
@@ -370,9 +379,9 @@ impl Grid {
                     }
                 }
                 // bottom
-                for cs in (0..(self.columns.len())).rev() {
-                    let c = cs as u32;
-                    let bels: &[(u32, IoKind)] = match self.cols_io[c as usize] {
+                for col in self.columns.ids().rev() {
+                    let row = self.rows.first_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => &[(2, IO)],
                         ColumnIoKind::Double(0) => &[(2, I)],
@@ -389,8 +398,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: 0,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 2,
@@ -401,8 +410,9 @@ impl Grid {
                     }
                 }
                 // left
-                for r in 0..self.rows {
-                    let bels: &[(u32, IoKind)] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter() {
+                    let col = self.columns.first_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[(2, IO)],
                         RowIoKind::Double(0) => &[],
@@ -419,8 +429,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: 0,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 3,
@@ -435,9 +445,9 @@ impl Grid {
                 const I: IoKind = IoKind::Input;
                 const IO: IoKind = IoKind::Io;
                 // top
-                for cs in 0..self.columns.len() {
-                    let c = cs as u32;
-                    let bels: &[(u32, IoKind)] = match self.cols_io[c as usize] {
+                for col in self.columns.ids() {
+                    let row = self.rows.last_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[(0, IO), (1, IO), (2, I)],
                         ColumnIoKind::Double(1) => &[(0, IO), (1, IO)],
@@ -446,8 +456,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: self.rows - 1,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 0,
@@ -458,8 +468,9 @@ impl Grid {
                     }
                 }
                 // right
-                for r in (0..self.rows).rev() {
-                    let bels: &[(u32, IoKind)] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter().rev() {
+                    let col = self.columns.last_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Quad(0) => &[(1, IO), (0, IO)],
                         RowIoKind::Quad(1) => &[(1, IO), (0, IO)],
@@ -470,8 +481,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: (self.columns.len() - 1) as u32,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 1,
@@ -482,9 +493,9 @@ impl Grid {
                     }
                 }
                 // bottom
-                for cs in (0..(self.columns.len())).rev() {
-                    let c = cs as u32;
-                    let bels: &[(u32, IoKind)] = match self.cols_io[c as usize] {
+                for col in self.columns.ids().rev() {
+                    let row = self.rows.first_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match self.cols_io[col] {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[(2, I), (1, IO), (0, IO)],
                         ColumnIoKind::Double(1) => &[(1, IO), (0, IO)],
@@ -504,8 +515,8 @@ impl Grid {
                         }
                         res.push(Io {
                             coord: BelCoord {
-                                col: c,
-                                row: 0,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 2,
@@ -516,8 +527,9 @@ impl Grid {
                     }
                 }
                 // left
-                for r in 0..self.rows {
-                    let bels: &[(u32, IoKind)] = match self.rows_io[r as usize] {
+                for (row, &kind) in self.rows.iter() {
+                    let col = self.columns.first_id().unwrap();
+                    let bels: &[(u32, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Quad(0) => &[(0, I), (1, I)],
                         RowIoKind::Quad(1) => &[(0, IO), (1, IO)],
@@ -528,8 +540,8 @@ impl Grid {
                     for &(bel, kind) in bels {
                         res.push(Io {
                             coord: BelCoord {
-                                col: 0,
-                                row: r,
+                                col,
+                                row,
                                 bel,
                             },
                             bank: 3,

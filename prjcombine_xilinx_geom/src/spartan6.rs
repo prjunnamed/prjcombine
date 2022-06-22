@@ -1,22 +1,21 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, GtPin, DisabledPart};
+use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId};
+use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
-    pub columns: Vec<ColumnKind>,
-    pub cols_bio: Vec<ColumnIoKind>,
-    pub cols_tio: Vec<ColumnIoKind>,
-    pub col_clk: u32,
-    pub cols_clk_fold: Option<(u32, u32)>,
-    pub cols_reg_buf: (u32, u32),
-    pub rows: u32,
-    pub rows_lio: Vec<bool>,
-    pub rows_rio: Vec<bool>,
-    pub rows_midbuf: (u32, u32),
-    pub rows_hclkbuf: (u32, u32),
-    pub rows_bufio_split: (u32, u32),
-    pub rows_bank_split: Option<(u32, u32)>,
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_bio: EntityVec<ColId, ColumnIoKind>,
+    pub cols_tio: EntityVec<ColId, ColumnIoKind>,
+    pub col_clk: ColId,
+    pub cols_clk_fold: Option<(ColId, ColId)>,
+    pub cols_reg_buf: (ColId, ColId),
+    pub rows: EntityVec<RowId, Row>,
+    pub rows_midbuf: (RowId, RowId),
+    pub rows_hclkbuf: (RowId, RowId),
+    pub rows_bufio_split: (RowId, RowId),
+    pub rows_bank_split: Option<(RowId, RowId)>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
     pub vref: BTreeSet<BelCoord>,
@@ -44,27 +43,33 @@ pub enum ColumnIoKind {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Row {
+    pub lio: bool,
+    pub rio: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Gts {
     None,
-    Single(u32),
-    Double(u32, u32),
-    Quad(u32, u32),
+    Single(ColId),
+    Double(ColId, ColId),
+    Quad(ColId, ColId),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McbIo {
-    pub row: u32,
+    pub row: RowId,
     pub bel: u32,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Mcb {
-    pub row_mcb: u32,
-    pub row_mui: [u32; 8],
-    pub iop_dq: [u32; 8],
-    pub iop_dqs: [u32; 2],
+    pub row_mcb: RowId,
+    pub row_mui: [RowId; 8],
+    pub iop_dq: [RowId; 8],
+    pub iop_dqs: [RowId; 2],
     pub io_dm: [McbIo; 2],
-    pub iop_clk: u32,
+    pub iop_clk: RowId,
     pub io_addr: [McbIo; 15],
     pub io_ba: [McbIo; 3],
     pub io_ras: McbIo,
@@ -112,10 +117,9 @@ impl Grid {
         let mut res = Vec::new();
         let mut ctr = 1;
         // top
-        for (cs, kind) in self.cols_tio.iter().copied().enumerate() {
-            let col = cs as u32;
-            let row_o = self.rows * 16 - 1;
-            let row_i = self.rows * 16 - 2;
+        for (col, &kind) in self.cols_tio.iter() {
+            let row_o = self.rows.last_id().unwrap();
+            let row_i = row_o - 1;
             if matches!(kind, ColumnIoKind::Outer | ColumnIoKind::Both) {
                 for bel in [0, 1] {
                     res.push(Io {
@@ -146,9 +150,11 @@ impl Grid {
             }
         }
         // right
-        for (rs, present) in self.rows_rio.iter().copied().enumerate().rev() {
-            let col = self.columns.len() as u32 - 1;
-            let row = rs as u32;
+        for (row, rd) in self.rows.iter().rev() {
+            if !rd.rio {
+                continue;
+            }
+            let col = self.columns.last_id().unwrap();
             let bank = if let Some((_, sr)) = self.rows_bank_split {
                 if row >= sr {
                     5
@@ -158,31 +164,30 @@ impl Grid {
             } else {
                 1
             };
-            if present {
-                for bel in [0, 1] {
-                    res.push(Io {
-                        bank,
-                        coord: BelCoord {
-                            col,
-                            row,
-                            bel,
-                        },
-                        name: format!("PAD{ctr}"),
-                    });
-                    ctr += 1;
-                }
+            for bel in [0, 1] {
+                res.push(Io {
+                    bank,
+                    coord: BelCoord {
+                        col,
+                        row,
+                        bel,
+                    },
+                    name: format!("PAD{ctr}"),
+                });
+                ctr += 1;
             }
         }
         // bot
-        for (cs, kind) in self.cols_bio.iter().copied().enumerate().rev() {
-            let col = cs as u32;
+        for (col, &kind) in self.cols_bio.iter().rev() {
+            let row_o = self.rows.first_id().unwrap();
+            let row_i = row_o + 1;
             if matches!(kind, ColumnIoKind::Outer | ColumnIoKind::Both) {
                 for bel in [0, 1] {
                     res.push(Io {
                         bank: 2,
                         coord: BelCoord {
                             col,
-                            row: 0,
+                            row: row_o,
                             bel,
                         },
                         name: format!("PAD{ctr}"),
@@ -196,7 +201,7 @@ impl Grid {
                         bank: 2,
                         coord: BelCoord {
                             col,
-                            row: 1,
+                            row: row_i,
                             bel,
                         },
                         name: format!("PAD{ctr}"),
@@ -205,9 +210,12 @@ impl Grid {
                 }
             }
         }
-        // right
-        for (rs, present) in self.rows_lio.iter().copied().enumerate() {
-            let row = rs as u32;
+        // left
+        for (row, rd) in self.rows.iter() {
+            if !rd.lio {
+                continue;
+            }
+            let col = self.columns.first_id().unwrap();
             let bank = if let Some((sl, _)) = self.rows_bank_split {
                 if row >= sl {
                     4
@@ -217,19 +225,17 @@ impl Grid {
             } else {
                 3
             };
-            if present {
-                for bel in [0, 1] {
-                    res.push(Io {
-                        bank,
-                        coord: BelCoord {
-                            col: 0,
-                            row,
-                            bel,
-                        },
-                        name: format!("PAD{ctr}"),
-                    });
-                    ctr += 1;
-                }
+            for bel in [0, 1] {
+                res.push(Io {
+                    bank,
+                    coord: BelCoord {
+                        col,
+                        row,
+                        bel,
+                    },
+                    name: format!("PAD{ctr}"),
+                });
+                ctr += 1;
             }
         }
         res

@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use serde::{Serialize, Deserialize};
-use prjcombine_entity::{EntityVec, entity_id};
+use prjcombine_entity::{EntityVec, entity_id, EntityId};
 
 pub mod xc4k;
 pub mod xc5200;
@@ -20,6 +20,37 @@ entity_id! {
     pub id BondId usize;
     pub id DevBondId usize;
     pub id DevSpeedId usize;
+
+    pub id ColId u16;
+    pub id RowId u16;
+}
+
+impl core::ops::Add<usize> for ColId {
+    type Output = ColId;
+    fn add(self, x: usize) -> ColId {
+        ColId::from_idx(self.to_idx() + x)
+    }
+}
+
+impl core::ops::Sub<usize> for ColId {
+    type Output = ColId;
+    fn sub(self, x: usize) -> ColId {
+        ColId::from_idx(self.to_idx() - x)
+    }
+}
+
+impl core::ops::Add<usize> for RowId {
+    type Output = RowId;
+    fn add(self, x: usize) -> RowId {
+        RowId::from_idx(self.to_idx() + x)
+    }
+}
+
+impl core::ops::Sub<usize> for RowId {
+    type Output = RowId;
+    fn sub(self, x: usize) -> RowId {
+        RowId::from_idx(self.to_idx() - x)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -47,16 +78,16 @@ pub enum DisabledPart {
     // Virtex-E: primary DLLs are disabled
     VirtexPrimaryDlls,
     // Virtex-E: a BRAM column is disabled
-    VirtexBram(u32),
+    VirtexBram(ColId),
     // Virtex 6: disable primitive in given row
-    Virtex6Emac(u32),
+    Virtex6Emac(RowId),
     Virtex6GtxRow(u32),
     Virtex6SysMon,
     Spartan6Gtp,
     Spartan6Mcb,
-    Spartan6ClbColumn(u32),
-    Spartan6BramRegion(u32, u32),
-    Spartan6DspRegion(u32, u32),
+    Spartan6ClbColumn(ColId),
+    Spartan6BramRegion(ColId, u32),
+    Spartan6DspRegion(ColId, u32),
     Region(u32),
     Ps,
 }
@@ -313,8 +344,8 @@ pub enum AdcPin {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub struct BelCoord {
-    pub col: u32,
-    pub row: u32,
+    pub col: ColId,
+    pub row: RowId,
     pub bel: u32,
 }
 

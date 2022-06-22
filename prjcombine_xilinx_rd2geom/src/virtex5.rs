@@ -1,47 +1,43 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ColId, RowId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex5::{self, ColumnKind, HardColumn};
-
-use itertools::Itertools;
+use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
 
-fn make_columns(rd: &Part, int: &IntGrid) -> Vec<ColumnKind> {
-    let mut res: Vec<Option<ColumnKind>> = Vec::new();
-    for _ in 0..int.cols.len() {
-        res.push(None);
-    }
+fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
+    let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     for c in find_columns(rd, &["CLBLL"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::ClbLL);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::ClbLL);
     }
     for c in find_columns(rd, &["CLBLM"]) {
-        res[int.lookup_column(c - 1) as usize] = Some(ColumnKind::ClbLM);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::ClbLM);
     }
     for c in find_columns(rd, &["BRAM", "PCIE_BRAM"]) {
-        res[int.lookup_column(c - 2) as usize] = Some(ColumnKind::Bram);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::Bram);
     }
     for c in find_columns(rd, &["DSP"]) {
-        res[int.lookup_column(c - 2) as usize] = Some(ColumnKind::Dsp);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::Dsp);
     }
     for c in find_columns(rd, &["IOI"]) {
-        res[int.lookup_column_inter(c) as usize - 1] = Some(ColumnKind::Io);
+        res[int.lookup_column_inter(c) - 1] = Some(ColumnKind::Io);
     }
     for c in find_columns(rd, &["GT3"]) {
-        res[int.lookup_column(c - 3) as usize] = Some(ColumnKind::Gtp);
+        res[int.lookup_column(c - 3)] = Some(ColumnKind::Gtp);
     }
     for c in find_columns(rd, &["GTX"]) {
-        res[int.lookup_column(c - 3) as usize] = Some(ColumnKind::Gtx);
+        res[int.lookup_column(c - 3)] = Some(ColumnKind::Gtx);
     }
     for c in find_columns(rd, &["GTX_LEFT"]) {
-        res[int.lookup_column(c + 2) as usize] = Some(ColumnKind::Gtx);
+        res[int.lookup_column(c + 2)] = Some(ColumnKind::Gtx);
     }
-    res.into_iter().map(|x| x.unwrap()).collect()
+    res.map_values(|x| x.unwrap())
 }
 
-fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
+fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in find_columns(rd, &["CFG_VBRK"]) {
         res.insert(int.lookup_column_inter(c));
@@ -49,7 +45,7 @@ fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
     res
 }
 
-fn get_cols_mgt_buf(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
+fn get_cols_mgt_buf(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
     for c in find_columns(rd, &["HCLK_BRAM_MGT, HCLK_BRAM_MGT_LEFT"]) {
         res.insert(int.lookup_column(c - 2));
@@ -59,8 +55,8 @@ fn get_cols_mgt_buf(rd: &Part, int: &IntGrid) -> BTreeSet<u32> {
 
 fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
     let col = int.lookup_column(find_column(rd, &["EMAC", "PCIE_B"])? - 2);
-    let rows_emac = find_rows(rd, &["EMAC"]).into_iter().map(|r| int.lookup_row(r)).sorted().collect();
-    let rows_pcie = find_rows(rd, &["PCIE_B"]).into_iter().map(|r| int.lookup_row(r) - 10).sorted().collect();
+    let rows_emac = find_rows(rd, &["EMAC"]).into_iter().map(|r| int.lookup_row(r)).collect();
+    let rows_pcie = find_rows(rd, &["PCIE_B"]).into_iter().map(|r| int.lookup_row(r) - 10).collect();
     Some(HardColumn {
         col,
         rows_emac,
@@ -68,8 +64,8 @@ fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
     })
 }
 
-fn get_cols_io(columns: &[ColumnKind]) -> [Option<u32>; 3] {
-    let v: Vec<_> = columns.iter().copied().enumerate().filter(|&(_, x)| x == ColumnKind::Io).map(|(i, _)| i as u32).collect();
+fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
+    let v: Vec<_> = columns.iter().filter_map(|(k, &v)| if v == ColumnKind::Io {Some(k)} else {None}).collect();
     if v.len() == 2 {
         [Some(v[0]), Some(v[1]), None]
     } else {
@@ -77,17 +73,17 @@ fn get_cols_io(columns: &[ColumnKind]) -> [Option<u32>; 3] {
     }
 }
 
-fn get_row_cfg(rd: &Part, int: &IntGrid) -> u32 {
-    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()) / 20
+fn get_row_cfg(rd: &Part, int: &IntGrid) -> usize {
+    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()).to_idx() / 20
 }
 
-fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
+fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = Vec::new();
     if let Some(tk) = rd.tile_kinds.get("PPC_B") {
         for tile in &tk.tiles {
             let x = int.lookup_column((tile.x - 11) as i32);
             let y = int.lookup_row((tile.y - 10) as i32);
-            assert_eq!(y % 20, 0);
+            assert_eq!(y.to_idx() % 20, 0);
             res.push((x, y));
         }
     }
@@ -491,7 +487,7 @@ fn make_grid(rd: &Part) -> virtex5::Grid {
         cols_mgt_buf: get_cols_mgt_buf(rd, &int),
         col_hard: get_col_hard(rd, &int),
         cols_io,
-        rows: (int.rows.len() / 20) as u32,
+        rows: (int.rows.len() / 20),
         row_cfg,
         holes_ppc: get_holes_ppc(rd, &int),
     }

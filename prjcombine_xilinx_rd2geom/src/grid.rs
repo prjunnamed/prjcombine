@@ -1,8 +1,7 @@
 use prjcombine_xilinx_rawdump::Part;
-use prjcombine_xilinx_geom::{Grid, Bond, DeviceBond, Device, DisabledPart, GeomDb, DeviceCombo, ExtraDie, BondId, GridId, DevBondId, DevSpeedId, int};
+use prjcombine_xilinx_geom::{Grid, Bond, DeviceBond, Device, DisabledPart, GeomDb, DeviceCombo, ExtraDie, BondId, GridId, DevBondId, DevSpeedId, ColId, RowId, int};
 use prjcombine_entity::{EntityVec, EntitySet, EntityMap};
-use std::collections::{HashSet, BTreeSet, BTreeMap, btree_map};
-use itertools::Itertools;
+use std::collections::{BTreeSet, BTreeMap, btree_map};
 
 pub struct PreDevice {
     pub name: String,
@@ -77,7 +76,7 @@ impl GridBuilder {
 
     pub fn ingest(&mut self, pre: PreDevice) {
         let grids = pre.grids.into_iter().map(|x| self.insert_grid(x)).collect();
-        let bonds = pre.bonds.map_values(|(name, b)| DeviceBond { name, bond: self.insert_bond(b) });
+        let bonds = pre.bonds.into_map_values(|(name, b)| DeviceBond { name, bond: self.insert_bond(b) });
         self.devices.push(Device {
             name: pre.name,
             grids,
@@ -153,8 +152,8 @@ impl GridBuilder {
     }
 }
 
-pub fn find_columns(rd: &Part, tts: &[&str]) -> HashSet<i32> {
-    let mut res = HashSet::new();
+pub fn find_columns(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
+    let mut res = BTreeSet::new();
     for &tt in tts {
         if let Some(tk) = rd.tile_kinds.get(tt) {
             for t in &tk.tiles {
@@ -173,8 +172,8 @@ pub fn find_column(rd: &Part, tts: &[&str]) -> Option<i32> {
     res.into_iter().next()
 }
 
-pub fn find_rows(rd: &Part, tts: &[&str]) -> HashSet<i32> {
-    let mut res = HashSet::new();
+pub fn find_rows(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
+    let mut res = BTreeSet::new();
     for &tt in tts {
         if let Some(tk) = rd.tile_kinds.get(tt) {
             for t in &tk.tiles {
@@ -193,8 +192,8 @@ pub fn find_row(rd: &Part, tts: &[&str]) -> Option<i32> {
     res.into_iter().next()
 }
 
-pub fn find_tiles(rd: &Part, tts: &[&str]) -> HashSet<(i32, i32)> {
-    let mut res = HashSet::new();
+pub fn find_tiles(rd: &Part, tts: &[&str]) -> BTreeSet<(i32, i32)> {
+    let mut res = BTreeSet::new();
     for &tt in tts {
         if let Some(tk) = rd.tile_kinds.get(tt) {
             for t in &tk.tiles {
@@ -207,22 +206,22 @@ pub fn find_tiles(rd: &Part, tts: &[&str]) -> HashSet<(i32, i32)> {
 
 #[derive(Clone, Debug)]
 pub struct IntGrid {
-    pub cols: Vec<i32>,
-    pub rows: Vec<i32>,
+    pub cols: EntityVec<ColId, i32>,
+    pub rows: EntityVec<RowId, i32>,
 }
 
 impl IntGrid {
-    pub fn lookup_column(&self, col: i32) -> u32 {
-        self.cols.binary_search(&col).unwrap() as u32
+    pub fn lookup_column(&self, col: i32) -> ColId {
+        self.cols.binary_search(&col).unwrap()
     }
-    pub fn lookup_column_inter(&self, col: i32) -> u32 {
-        self.cols.binary_search(&col).unwrap_err() as u32
+    pub fn lookup_column_inter(&self, col: i32) -> ColId {
+        self.cols.binary_search(&col).unwrap_err()
     }
-    pub fn lookup_row(&self, row: i32) -> u32 {
-        self.rows.binary_search(&row).unwrap() as u32
+    pub fn lookup_row(&self, row: i32) -> RowId {
+        self.rows.binary_search(&row).unwrap()
     }
-    pub fn lookup_row_inter(&self, row: i32) -> u32 {
-        self.rows.binary_search(&row).unwrap_err() as u32
+    pub fn lookup_row_inter(&self, row: i32) -> RowId {
+        self.rows.binary_search(&row).unwrap_err()
     }
 }
 
@@ -243,7 +242,7 @@ pub fn extract_int(rd: &Part, tts: &[&str], extra_cols: &[ExtraCol]) -> IntGrid 
         }
     }
     IntGrid {
-        cols: cols.into_iter().sorted().collect(),
-        rows: rows.into_iter().sorted().collect(),
+        cols: cols.into_iter().collect(),
+        rows: rows.into_iter().collect(),
     }
 }

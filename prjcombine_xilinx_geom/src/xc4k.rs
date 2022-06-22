@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord};
+use crate::{CfgPin, BelCoord, ColId, RowId};
+use prjcombine_entity::EntityId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -40,8 +41,8 @@ impl Grid {
             for bel in [0, 1] {
                 res.push(Io {
                     coord: BelCoord {
-                        col: c,
-                        row: self.rows - 1,
+                        col: ColId::from_idx(c as usize),
+                        row: RowId::from_idx(self.rows as usize - 1),
                         bel,
                     },
                     name: format!("PAD{ctr}"),
@@ -54,8 +55,8 @@ impl Grid {
             for bel in [0, 1] {
                 res.push(Io {
                     coord: BelCoord {
-                        col: self.columns - 1,
-                        row: r,
+                        col: ColId::from_idx(self.columns as usize - 1),
+                        row: RowId::from_idx(r as usize),
                         bel,
                     },
                     name: format!("PAD{ctr}"),
@@ -68,8 +69,8 @@ impl Grid {
             for bel in [1, 0] {
                 res.push(Io {
                     coord: BelCoord {
-                        col: c,
-                        row: 0,
+                        col: ColId::from_idx(c as usize),
+                        row: RowId::from_idx(0),
                         bel,
                     },
                     name: format!("PAD{ctr}"),
@@ -82,8 +83,8 @@ impl Grid {
             for bel in [1, 0] {
                 res.push(Io {
                     coord: BelCoord {
-                        col: 0,
-                        row: r,
+                        col: ColId::from_idx(0),
+                        row: RowId::from_idx(r as usize),
                         bel,
                     },
                     name: format!("PAD{ctr}"),

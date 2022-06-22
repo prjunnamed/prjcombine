@@ -1,9 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, DisabledPart, CfgPin, Bond, BondPin, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, DisabledPart, CfgPin, Bond, BondPin, ColId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex::{self, GridKind};
-
-use itertools::Itertools;
 
 use crate::grid::{extract_int, find_columns, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
@@ -20,26 +18,23 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn get_cols_bram(rd: &Part, int: &IntGrid) -> Vec<u32> {
+fn get_cols_bram(rd: &Part, int: &IntGrid) -> Vec<ColId> {
     find_columns(rd, &["LBRAM", "RBRAM", "MBRAM", "MBRAMS2E"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
-        .sorted()
         .collect()
 }
 
-fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(u32, u32)> {
+fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId)> {
     let cols_clkv: Vec<_> = find_columns(rd, &["LBRAM", "RBRAM", "GCLKV", "CLKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
-        .sorted()
         .collect();
     let mut cols_brk: Vec<_> = find_columns(rd, &["GBRKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
-        .sorted()
         .collect();
-    cols_brk.push(int.cols.len() as u32);
+    cols_brk.push(int.cols.next_id());
     assert_eq!(cols_clkv.len(), cols_brk.len());
     cols_clkv.into_iter().zip(cols_brk.into_iter()).collect()
 }
@@ -99,12 +94,12 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex::Grid) {
                         "IO_DOUT_BUSY" => CfgPin::Dout,
                         "IO_IRDY" => {
                             assert_eq!(coord.bel, 3);
-                            assert_eq!(coord.row, grid.rows / 2);
+                            assert_eq!(coord.row, grid.row_mid());
                             continue;
                         }
                         "IO_TRDY" => {
                             assert_eq!(coord.bel, 1);
-                            assert_eq!(coord.row, grid.rows / 2 - 1);
+                            assert_eq!(coord.row, grid.row_mid() - 1);
                             continue;
                         }
                         _ => panic!("UNK FUNC {func} {coord:?}"),

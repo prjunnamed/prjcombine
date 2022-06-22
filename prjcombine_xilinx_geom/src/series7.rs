@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin};
+use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId};
+use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -12,10 +13,10 @@ pub enum GridKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
-    pub columns: Vec<ColumnKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub col_cfg: u32,
-    pub col_clk: u32,
+    pub columns: EntityVec<ColId, ColumnKind>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub col_cfg: ColId,
+    pub col_clk: ColId,
     pub cols_io: [Option<IoColumn>; 2],
     pub cols_gt: [Option<GtColumn>; 2],
     pub rows: u32,
@@ -42,13 +43,13 @@ pub enum ColumnKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IoColumn {
-    pub col: u32,
+    pub col: ColId,
     pub rows: Vec<Option<IoKind>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GtColumn {
-    pub col: u32,
+    pub col: ColId,
     pub rows: Vec<Option<GtKind>>,
 }
 
@@ -77,13 +78,13 @@ pub enum HoleKind {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Hole {
     pub kind: HoleKind,
-    pub col: u32,
+    pub col: ColId,
     pub row: u32,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
-    pub col: u32,
+    pub col: ColId,
     pub row: u32,
     pub ioc: u32,
     pub iox: u32,
@@ -322,7 +323,7 @@ fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32,
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
-    pub col: u32,
+    pub col: ColId,
     pub row: u32,
     pub gx: u32,
     pub gy: u32,

@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, DisabledPart};
+use crate::{CfgPin, DisabledPart, ColId};
+use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -8,12 +9,18 @@ pub enum GridKind {
     UltrascalePlus,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+pub enum ColSide {
+    Left,
+    Right,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
-    pub columns: Vec<ColumnKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub cols_fsr_gap: BTreeSet<u32>,
+    pub columns: EntityVec<ColId, Column>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub cols_fsr_gap: BTreeSet<ColId>,
     pub col_cfg: HardColumn,
     pub col_hard: Option<HardColumn>,
     pub cols_io: Vec<IoColumn>,
@@ -25,9 +32,8 @@ pub struct Grid {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum ColumnKind {
+pub enum ColumnKindLeft {
     CleL,
-    CleLDcg10,
     CleM,
     CleMClkBuf,
     CleMLaguna,
@@ -35,17 +41,36 @@ pub enum ColumnKind {
     BramAuxClmp,
     BramBramClmp,
     BramTd,
+    Uram,
+    Hard,
+    Io,
+    Gt,
+    Sdfec,
+    DfeC,
+    DfeDF,
+    DfeE,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ColumnKindRight {
+    CleL,
+    CleLDcg10,
     Dsp,
     DspClkBuf,
     Uram,
     Hard,
     Io,
     Gt,
-    Sdfec,
     DfeB,
     DfeC,
     DfeDF,
     DfeE,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Column {
+    pub l: ColumnKindLeft,
+    pub r: ColumnKindRight,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -65,7 +90,7 @@ pub enum HardRowKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
-    pub col: u32,
+    pub col: ColId,
     pub rows: Vec<HardRowKind>,
 }
 
@@ -85,13 +110,14 @@ pub enum IoRowKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IoColumn {
-    pub col: u32,
+    pub col: ColId,
+    pub side: ColSide,
     pub rows: Vec<IoRowKind>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Ps {
-    pub col: u32,
+    pub col: ColId,
     pub has_vcu: bool,
 }
 
@@ -104,7 +130,8 @@ pub enum IoKind {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
-    pub col: u32,
+    pub col: ColId,
+    pub side: Option<ColSide>,
     pub row: u32,
     pub bel: u32,
     pub iox: u32,
@@ -380,7 +407,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
     let mut iox_hard = 0;
     let mut iox_cfg = 0;
     let mut iox = 0;
-    let mut prev_col = 0;
+    let mut prev_col = grids[0].columns.first_id().unwrap();
     for (i, &has_io) in io_has_io.iter().enumerate() {
         if hard_has_io && grids[0].col_hard.as_ref().unwrap().col > prev_col && grids[0].col_hard.as_ref().unwrap().col < grids[0].cols_io[i].col {
             iox_hard = iox;
@@ -426,6 +453,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                         }
                         res.push(Io {
                             col: c.col,
+                            side: Some(c.side),
                             row,
                             bel,
                             iox: iox_io[i],
@@ -456,6 +484,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                     for bel in 0..24 {
                         res.push(Io {
                             col: c.col,
+                            side: None,
                             row,
                             bel,
                             iox: iox_hard,
@@ -480,6 +509,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                 for bel in 0..24 {
                     res.push(Io {
                         col: grid.col_cfg.col,
+                        side: None,
                         row,
                         bel,
                         iox: iox_cfg,
@@ -500,7 +530,8 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
-    pub col: u32,
+    pub col: ColId,
+    pub side: ColSide,
     pub row: u32,
     pub gx: u32,
     pub gy: u32,
@@ -584,6 +615,7 @@ pub fn get_gt(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                     }
                     res.push(Gt {
                         col: c.col,
+                        side: c.side,
                         row,
                         gx: col_gx[i],
                         gy: row_gy[row as usize],
