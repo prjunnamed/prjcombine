@@ -1,8 +1,7 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
+use enum_map::Enum;
 use prjcombine_entity::{EntityVec, EntityPartVec, EntityMap, entity_id};
-use enum_map::{EnumMap, Enum};
-use ndarray::Array2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Enum, Serialize, Deserialize)]
 pub enum Dir {
@@ -62,6 +61,24 @@ pub struct IntDb {
     pub intfs: EntityMap<IntfKindId, String, IntfKind>,
     pub bels: EntityMap<BelKindId, String, BelKind>,
     pub namings: EntityMap<NamingId, String, EntityPartVec<WireId, String>>,
+}
+
+impl IntDb {
+    pub fn get_node(&self, name: &str) -> NodeKindId {
+        self.nodes.get(name).unwrap().0
+    }
+    pub fn get_term(&self, name: &str) -> TermKindId {
+        self.terms.get(name).unwrap().0
+    }
+    pub fn get_pass(&self, name: &str) -> PassKindId {
+        self.passes.get(name).unwrap().0
+    }
+    pub fn get_intf(&self, name: &str) -> IntfKindId {
+        self.intfs.get(name).unwrap().0
+    }
+    pub fn get_naming(&self, name: &str) -> NamingId {
+        self.namings.get(name).unwrap().0
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -157,90 +174,4 @@ pub struct BelKind {
 pub struct BelPort {
     pub tile_idx: BelTileId,
     pub wire: WireId,
-}
-
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedGrid {
-    pub tie_kind: Option<String>,
-    pub tie_pin_gnd: Option<String>,
-    pub tie_pin_vcc: Option<String>,
-    pub tie_pin_pullup: Option<String>,
-    pub tiles: Array2<Option<ExpandedTile>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedTile {
-    pub kind: NodeKindId,
-    pub name: String,
-    pub tie_name: Option<String>,
-    pub wire_naming: NamingId,
-    pub special: bool,
-    pub intf: Option<ExpandedTileIntf>,
-    pub dirs: EnumMap<Dir, ExpandedTileDir>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedTileIntf {
-    pub kind: IntfKindId,
-    pub name: String,
-    pub wire_naming_int: NamingId,
-    pub wire_naming_delay: Option<NamingId>,
-    pub wire_naming_site: Option<NamingId>,
-}
-
-pub type Coord = (u32, u32);
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ExpandedTileDir {
-    None,
-    TermAnon {
-        kind: TermKindId,
-    },
-    Term {
-        kind: TermKindId,
-        name: String,
-        wire_naming: NamingId,
-    },
-    TermBuf {
-        kind: TermKindId,
-        name: String,
-        wire_naming_out: NamingId,
-        wire_naming_in: NamingId,
-    },
-    PassAnon {
-        target: Coord,
-        kind: PassKindId,
-    },
-    PassSingle {
-        target: Coord,
-        kind: PassKindId,
-        name: String,
-        wire_naming_near: NamingId,
-        wire_naming_far: Option<NamingId>,
-    },
-    PassDouble {
-        target: Coord,
-        kind: PassKindId,
-        name_near: String,
-        wire_naming_near_near: NamingId,
-        wire_naming_near_far: NamingId,
-        name_far: String,
-        wire_naming_far_out: NamingId,
-        wire_naming_far_in: NamingId,
-    },
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedBel {
-    pub name: String,
-    pub tile_name: String,
-    pub tiles: EntityVec<BelTileId, ExpandedBelTile>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedBelTile {
-    pub coord: Coord,
-    pub wire_naming: (NamingId, NamingId),
-    pub int_special_naming: Option<NamingId>,
 }

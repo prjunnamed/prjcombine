@@ -8,7 +8,7 @@ use serde::ser::{Serialize, Serializer, SerializeSeq};
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 
 use crate::EntityId;
-use crate::id::Ids;
+use crate::id::EntityIds;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct EntityVec<I, V> {
@@ -49,8 +49,8 @@ impl<I: EntityId, V> EntityVec<I, V> {
         self.vals.clear()
     }
 
-    pub fn ids(&self) -> Ids<I> {
-        Ids::new(self.vals.len())
+    pub fn ids(&self) -> EntityIds<I> {
+        EntityIds::new(self.vals.len())
     }
 
     pub fn values(&self) -> core::slice::Iter<'_, V> {

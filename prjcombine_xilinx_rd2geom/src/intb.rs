@@ -504,12 +504,15 @@ impl<'a> IntBuilder<'a> {
             }
             match dir {
                 int::Dir::W => {
-                    if xy.x == self.rd.width - 1 {
+                    if xy.x == 0 {
                         return None;
                     }
                     xy.x -= 1;
                 },
                 int::Dir::E => {
+                    if xy.x == self.rd.width - 1 {
+                        return None;
+                    }
                     xy.x += 1;
                 }
                 int::Dir::S => {

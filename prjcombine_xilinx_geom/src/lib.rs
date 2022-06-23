@@ -14,6 +14,7 @@ pub mod ultrascale;
 pub mod spartan6;
 
 pub mod int;
+pub mod eint;
 
 entity_id! {
     pub id GridId usize;
@@ -32,10 +33,22 @@ impl core::ops::Add<usize> for ColId {
     }
 }
 
+impl core::ops::AddAssign<usize> for ColId {
+    fn add_assign(&mut self, x: usize) {
+        *self = *self + x;
+    }
+}
+
 impl core::ops::Sub<usize> for ColId {
     type Output = ColId;
     fn sub(self, x: usize) -> ColId {
         ColId::from_idx(self.to_idx() - x)
+    }
+}
+
+impl core::ops::SubAssign<usize> for ColId {
+    fn sub_assign(&mut self, x: usize) {
+        *self = *self - x;
     }
 }
 
@@ -46,10 +59,22 @@ impl core::ops::Add<usize> for RowId {
     }
 }
 
+impl core::ops::AddAssign<usize> for RowId {
+    fn add_assign(&mut self, x: usize) {
+        *self = *self + x;
+    }
+}
+
 impl core::ops::Sub<usize> for RowId {
     type Output = RowId;
     fn sub(self, x: usize) -> RowId {
         RowId::from_idx(self.to_idx() - x)
+    }
+}
+
+impl core::ops::SubAssign<usize> for RowId {
+    fn sub_assign(&mut self, x: usize) {
+        *self = *self - x;
     }
 }
 

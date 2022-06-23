@@ -102,14 +102,14 @@ pub trait EntityId: Debug + Copy + Clone + Send + Sync + Eq + PartialEq + Ord + 
 // iterator
 
 #[derive(Clone, Debug)]
-pub struct Ids<I> {
+pub struct EntityIds<I> {
     cur: usize,
     end: usize,
     ids: PhantomData<I>,
 }
 
-impl<I: EntityId> Ids<I> {
-    pub (crate) fn new(num: usize) -> Self {
+impl<I: EntityId> EntityIds<I> {
+    pub fn new(num: usize) -> Self {
         Self {
             cur: 0,
             end: num,
@@ -118,7 +118,7 @@ impl<I: EntityId> Ids<I> {
     }
 }
 
-impl<I: EntityId> Iterator for Ids<I> {
+impl<I: EntityId> Iterator for EntityIds<I> {
     type Item = I;
     fn next(&mut self) -> Option<I> {
         if self.cur == self.end {
@@ -131,7 +131,7 @@ impl<I: EntityId> Iterator for Ids<I> {
     }
 }
 
-impl<I: EntityId> DoubleEndedIterator for Ids<I> {
+impl<I: EntityId> DoubleEndedIterator for EntityIds<I> {
     fn next_back(&mut self) -> Option<I> {
         if self.cur == self.end {
             None
@@ -142,7 +142,7 @@ impl<I: EntityId> DoubleEndedIterator for Ids<I> {
     }
 }
 
-impl<I: EntityId> ExactSizeIterator for Ids<I> {
+impl<I: EntityId> ExactSizeIterator for EntityIds<I> {
     fn len(&self) -> usize {
         self.end - self.cur
     }

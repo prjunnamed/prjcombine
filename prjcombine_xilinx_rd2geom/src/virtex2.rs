@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, ColId, RowId, int, int::Dir};
-use prjcombine_xilinx_geom::virtex2::{self, GridKind, ColumnKind, ColumnIoKind, RowIoKind, Dcms};
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, ColId, RowId, int, int::Dir, eint};
+use prjcombine_xilinx_geom::virtex2::{self, GridKind, Column, ColumnKind, ColumnIoKind, RowIoKind, Dcms};
 use prjcombine_entity::EntityVec;
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, IntGrid, PreDevice, make_device};
@@ -24,13 +24,13 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, ColumnKind> {
+fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Column> {
     let mut res = EntityVec::new();
-    res.push(ColumnKind::Io);
+    res.push(Column{kind: ColumnKind::Io, io: ColumnIoKind::None});
     for _ in 0..(int.cols.len() - 2) {
-        res.push(ColumnKind::Clb);
+        res.push(Column{kind: ColumnKind::Clb, io: ColumnIoKind::None});
     }
-    res.push(ColumnKind::Io);
+    res.push(Column{kind: ColumnKind::Io, io: ColumnIoKind::None});
     let bram_cont = match kind {
         GridKind::Spartan3E | GridKind::Spartan3A => 4,
         GridKind::Spartan3ADsp => 3,
@@ -38,32 +38,32 @@ fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Co
     };
     for rc in find_columns(rd, &["BRAM0", "BRAM0_SMALL"]) {
         let c = int.lookup_column(rc);
-        res[c] = ColumnKind::Bram;
+        res[c].kind = ColumnKind::Bram;
         if bram_cont != 0 {
             for d in 1..bram_cont {
-                res[c + d] = ColumnKind::BramCont(d as u8);
+                res[c + d].kind = ColumnKind::BramCont(d as u8);
             }
         }
     }
     for rc in find_columns(rd, &["MACC0_SMALL"]) {
         let c = int.lookup_column(rc);
-        res[c] = ColumnKind::Dsp;
+        res[c].kind = ColumnKind::Dsp;
     }
     res
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &EntityVec<ColId, ColumnKind>) -> EntityVec<ColId, ColumnIoKind> {
-    let mut res = EntityVec::new();
-    res.push(ColumnIoKind::None);
-    while res.len() < int.cols.len() - 1 {
+fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<ColId, Column>) {
+    let mut col = cols.first_id().unwrap() + 1;
+    let col_r = cols.last_id().unwrap();
+    while col != col_r {
         match kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                 let c0 = Coord {
-                    x: int.cols[res.next_id()] as u16,
+                    x: int.cols[col] as u16,
                     y: 0,
                 };
                 let c1 = Coord {
-                    x: (int.cols[res.next_id()] + 1) as u16,
+                    x: (int.cols[col] + 1) as u16,
                     y: 0,
                 };
                 let tk0 = &rd.tiles[&c0].kind[..];
@@ -71,70 +71,73 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &EntityVec<ColId,
                 match (tk0, tk1) {
                     ("BTERM012" | "BCLKTERM012" | "ML_BCLKTERM012", "BTERM323") | ("BTERM010", "BTERM123" | "BCLKTERM123" | "ML_BCLKTERM123") => {
                         for i in 0..2 {
-                            res.push(ColumnIoKind::Double(i));
+                            cols[col].io = ColumnIoKind::Double(i as u8);
+                            col += 1;
                         }
                     }
                     ("BTERM123" | "BTERM012", _) => {
-                        res.push(ColumnIoKind::Single);
+                        cols[col].io = ColumnIoKind::Single;
+                        col += 1;
                     }
                     ("BBTERM", _) => {
-                        res.push(ColumnIoKind::None);
+                        col += 1;
                     }
                     ("BGIGABIT_IOI_TERM" | "BGIGABIT10_IOI_TERM", _) => {
-                        for _ in 0..3 {
-                            res.push(ColumnIoKind::None);
-                        }
+                        col += 3;
                     }
                     _ => panic!("unknown tk {tk0} {tk1}"),
                 }
             }
             GridKind::Spartan3 => {
-                if cols[res.next_id()] == ColumnKind::Bram {
-                    res.push(ColumnIoKind::None);
+                if cols[col].kind == ColumnKind::Bram {
+                    col += 1;
                 } else {
                     for i in 0..2 {
-                        res.push(ColumnIoKind::Double(i));
+                        cols[col].io = ColumnIoKind::Double(i as u8);
+                        col += 1;
                     }
                 }
             }
             GridKind::Spartan3A | GridKind::Spartan3ADsp => {
                 for i in 0..2 {
-                    res.push(ColumnIoKind::Double(i));
+                    cols[col].io = ColumnIoKind::Double(i as u8);
+                    col += 1;
                 }
             }
             GridKind::Spartan3E => {
                 let c = Coord {
-                    x: int.cols[res.next_id()] as u16,
+                    x: int.cols[col] as u16,
                     y: 0,
                 };
                 let tk = &rd.tiles[&c].kind[..];
                 match tk {
                     "BTERM4" | "BTERM4_BRAM2" | "BTERM4CLK" => {
                         for i in 0..4 {
-                            res.push(ColumnIoKind::Quad(i));
+                            cols[col].io = ColumnIoKind::Quad(i as u8);
+                            col += 1;
                         }
                     }
                     "BTERM3" => {
                         for i in 0..3 {
-                            res.push(ColumnIoKind::Triple(i));
+                            cols[col].io = ColumnIoKind::Triple(i as u8);
+                            col += 1;
                         }
                     }
                     "BTERM2" => {
                         for i in 0..2 {
-                            res.push(ColumnIoKind::Double(i));
+                            cols[col].io = ColumnIoKind::Double(i as u8);
+                            col += 1;
                         }
                     }
                     "BTERM1" => {
-                        res.push(ColumnIoKind::Single);
+                        cols[col].io = ColumnIoKind::Single;
+                        col += 1;
                     }
                     _ => panic!("unknown tk {tk}"),
                 }
             }
         }
     }
-    res.push(ColumnIoKind::None);
-    assert_eq!(res.len(), int.cols.len());
-    res
 }
 
 fn get_col_clk(rd: &Part, int: &IntGrid) -> ColId {
@@ -1079,37 +1082,35 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         }
     }
 
-    // NOTE: there are actually 4 different intf kinds differing in cfg bit loc,
-    // take care of this later on
     for (tkn, name, naming) in [
-        ("BGIGABIT_INT0", "PPC", "NODE.GT"),
-        ("BGIGABIT_INT1", "PPC", "NODE.GT"),
-        ("BGIGABIT_INT2", "PPC", "NODE.GT"),
-        ("BGIGABIT_INT3", "PPC", "NODE.GT"),
-        ("BGIGABIT_INT4", "PPC", "NODE.GT.CLKPAD"),
-        ("TGIGABIT_INT0", "PPC", "NODE.GT"),
-        ("TGIGABIT_INT1", "PPC", "NODE.GT"),
-        ("TGIGABIT_INT2", "PPC", "NODE.GT"),
-        ("TGIGABIT_INT3", "PPC", "NODE.GT"),
-        ("TGIGABIT_INT4", "PPC", "NODE.GT.CLKPAD"),
-        ("BGIGABIT10_INT0", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT1", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT2", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT3", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT4", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT5", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT6", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT7", "PPC", "NODE.GT"),
-        ("BGIGABIT10_INT8", "PPC", "NODE.GT.CLKPAD"),
-        ("TGIGABIT10_INT0", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT1", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT2", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT3", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT4", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT5", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT6", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT7", "PPC", "NODE.GT"),
-        ("TGIGABIT10_INT8", "PPC", "NODE.GT.CLKPAD"),
+        ("BGIGABIT_INT0", "GT.0", "NODE.GT"),
+        ("BGIGABIT_INT1", "GT.123", "NODE.GT"),
+        ("BGIGABIT_INT2", "GT.123", "NODE.GT"),
+        ("BGIGABIT_INT3", "GT.123", "NODE.GT"),
+        ("BGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD"),
+        ("TGIGABIT_INT0", "GT.0", "NODE.GT"),
+        ("TGIGABIT_INT1", "GT.123", "NODE.GT"),
+        ("TGIGABIT_INT2", "GT.123", "NODE.GT"),
+        ("TGIGABIT_INT3", "GT.123", "NODE.GT"),
+        ("TGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD"),
+        ("BGIGABIT10_INT0", "GT.0", "NODE.GT"),
+        ("BGIGABIT10_INT1", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT2", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT3", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT4", "GT.0", "NODE.GT"),
+        ("BGIGABIT10_INT5", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT6", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT7", "GT.123", "NODE.GT"),
+        ("BGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD"),
+        ("TGIGABIT10_INT0", "GT.0", "NODE.GT"),
+        ("TGIGABIT10_INT1", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT2", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT3", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT4", "GT.0", "NODE.GT"),
+        ("TGIGABIT10_INT5", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT6", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT7", "GT.123", "NODE.GT"),
+        ("TGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD"),
         ("LPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
         ("LPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
         ("LLPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
@@ -1937,15 +1938,15 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         "CLKLH_DCM_LL",
         "CLKRH_DCM_LL",
     ] {
-        builder.extract_pass_buf("LLV", Dir::S, tkn, "PASS.LLV");
+        builder.extract_pass_buf("LLV", Dir::S, tkn, "LLV");
     }
     let llv_clklr_kind = if rd.family == "spartan3a" {
         "LLV"
     } else {
         "LLV.CLKLR.S3E"
     };
-    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKL_IOIS_LL", "PASS.LLV.CLKL");
-    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKR_IOIS_LL", "PASS.LLV.CLKR");
+    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKL_IOIS_LL", "LLV.CLKL");
+    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKR_IOIS_LL", "LLV.CLKR");
     for tkn in [
         "CLKV_LL",
         "CLKT_LL",
@@ -2003,7 +2004,7 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
                 }
             }
         }
-        builder.extract_pass_buf("LLH.DCM", Dir::W, "CLKV_DCM_LL", "LLH");
+        builder.extract_pass_buf("LLH.DCM.S3ADSP", Dir::W, "CLKV_DCM_LL", "LLH");
     } else {
         builder.extract_pass_buf("LLH", Dir::W, "CLKV_DCM_LL", "LLH");
     }
@@ -2060,12 +2061,11 @@ fn make_grid(rd: &Part) -> virtex2::Grid {
         "UR",
     ], &[]);
     let kind = get_kind(rd);
-    let columns = make_columns(rd, &int, kind);
-    let cols_io = get_cols_io(rd, &int, kind, &columns);
+    let mut columns = make_columns(rd, &int, kind);
+    get_cols_io(rd, &int, kind, &mut columns);
     let mut grid = virtex2::Grid {
         kind,
         columns,
-        cols_io,
         col_clk: get_col_clk(rd, &int),
         cols_clkv: get_cols_clkv(rd, &int),
         cols_gt: get_cols_gt(rd, &int),
@@ -2184,6 +2184,44 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             pkg.clone(),
             make_bond(&grid, pins),
         ));
+    }
+    // XXX kill me
+    let lut: HashMap<_, _> = rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect();
+    let eint = grid.expand_grid(&int_db);
+    for t in eint.tiles {
+        if let Some(t) = t {
+            if let Some(crd) = lut.get(&t.name) {
+                let tile = &rd.tiles[crd];
+                if let Some(ref tn) = t.tie_name {
+                    if !tile.sites.iter().any(|x| if let Some(x) = x {x == tn} else {false}) {
+                        println!("WHOOPSIE NO VCC {} {} {}", rd.part, t.name, tn);
+                    }
+                }
+            } else {
+                println!("WHOOPSIE NO TILE {} {}", rd.part, t.name);
+            }
+            for d in t.dirs.values() {
+                match d {
+                    eint::ExpandedTileDir::Pass(p) => {
+                        for n in [&p.tile, &p.tile_far] {
+                            if let Some(n) = n {
+                                if !lut.contains_key(n) {
+                                    println!("WHOOPSIE NO TILE {} {}", rd.part, n);
+                                }
+                            }
+                        }
+                    }
+                    eint::ExpandedTileDir::Term(p) => {
+                        if let Some(n) = &p.tile {
+                            if !lut.contains_key(n) {
+                                println!("WHOOPSIE NO TILE {} {}", rd.part, n);
+                            }
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
     }
     (make_device(rd, geom::Grid::Virtex2(grid), bonds, BTreeSet::new()), Some(int_db))
 }

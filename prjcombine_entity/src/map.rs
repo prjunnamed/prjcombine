@@ -12,7 +12,7 @@ use indexmap::map::IndexMap;
 use indexmap::Equivalent;
 
 use crate::{EntityId, EntityVec};
-use crate::id::Ids;
+use crate::id::EntityIds;
 
 #[derive(Clone)]
 pub struct EntityMap<I, K: Hash, V, RS: BuildHasher = RandomState> {
@@ -81,8 +81,8 @@ where
         self.map.contains_key(key)
     }
 
-    pub fn ids(&self) -> Ids<I> {
-        Ids::new(self.len())
+    pub fn ids(&self) -> EntityIds<I> {
+        EntityIds::new(self.len())
     }
 
     pub fn iter(&self) -> Iter<'_, I, K, V> {
