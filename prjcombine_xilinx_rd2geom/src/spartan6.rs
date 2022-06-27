@@ -2,13 +2,14 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
 use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, ColId, RowId, int, int::Dir};
-use prjcombine_xilinx_geom::spartan6::{self, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo, Row};
+use prjcombine_xilinx_geom::spartan6::{self, Column, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo, Row};
 use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, find_tiles, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
-fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
+fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     for c in find_columns(rd, &["CLEXL", "CLEXL_DUMMY"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::CleXL);
@@ -31,27 +32,44 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     for c in find_columns(rd, &["GTPDUAL_DSP_FEEDTHRU"]) {
         res[int.lookup_column(c - 2)] = Some(ColumnKind::DspPlus);
     }
-    res.map_values(|x| x.unwrap())
-}
-
-fn get_cols_io(rd: &Part, int: &IntGrid, top: bool) -> EntityVec<ColId, ColumnIoKind> {
-    int.cols.map_values(|&x| {
-        let co = Coord {
-            x: x as u16 + 1,
-            y: if top {rd.height - 3} else {2},
-        };
-        let ci = Coord {
-            x: x as u16 + 1,
-            y: if top {rd.height - 4} else {3},
-        };
-        let has_o = rd.tiles[&co].kind.ends_with("IOI_OUTER");
-        let has_i = rd.tiles[&ci].kind.ends_with("IOI_INNER");
-        match (has_o, has_i) {
-            (false, false) => ColumnIoKind::None,
-            (false, true) => ColumnIoKind::Inner,
-            (true, false) => ColumnIoKind::Outer,
-            (true, true) => ColumnIoKind::Both,
-        }
+    res.map(|col, kind| Column {
+        kind: kind.unwrap(),
+        bio: {
+            let co = Coord {
+                x: int.cols[col] as u16 + 1,
+                y: 2,
+            };
+            let ci = Coord {
+                x: int.cols[col] as u16 + 1,
+                y: 3,
+            };
+            let has_o = rd.tiles[&co].kind.ends_with("IOI_OUTER");
+            let has_i = rd.tiles[&ci].kind.ends_with("IOI_INNER");
+            match (has_o, has_i) {
+                (false, false) => ColumnIoKind::None,
+                (false, true) => ColumnIoKind::Inner,
+                (true, false) => ColumnIoKind::Outer,
+                (true, true) => ColumnIoKind::Both,
+            }
+        },
+        tio: {
+            let co = Coord {
+                x: int.cols[col] as u16 + 1,
+                y: rd.height - 3,
+            };
+            let ci = Coord {
+                x: int.cols[col] as u16 + 1,
+                y: rd.height - 4,
+            };
+            let has_o = rd.tiles[&co].kind.ends_with("IOI_OUTER");
+            let has_i = rd.tiles[&ci].kind.ends_with("IOI_INNER");
+            match (has_o, has_i) {
+                (false, false) => ColumnIoKind::None,
+                (false, true) => ColumnIoKind::Inner,
+                (true, false) => ColumnIoKind::Outer,
+                (true, true) => ColumnIoKind::Both,
+            }
+        },
     })
 }
 
@@ -725,12 +743,26 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         (Dir::E, "INT_INTERFACE_REGC", "INTF.REGC"),
         (Dir::W, "INT_INTERFACE_LTERM", "INTF.LTERM"),
         (Dir::E, "INT_INTERFACE_RTERM", "INTF.RTERM"),
+        (Dir::E, "LL", "INTF.CNR"),
+        (Dir::E, "UL", "INTF.CNR"),
+        (Dir::E, "LR_LOWER", "INTF.CNR"),
+        (Dir::E, "LR_UPPER", "INTF.CNR"),
+        (Dir::E, "UR_LOWER", "INTF.CNR"),
+        (Dir::E, "UR_UPPER", "INTF.CNR"),
     ] {
         builder.extract_intf("INTF", dir, tkn, naming, None, Some(&format!("{naming}.SITE")), None);
     }
     for tkn in [
         "INT_INTERFACE_IOI",
         "INT_INTERFACE_IOI_DCMBOT",
+    ] {
+        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF", None, Some("INTF.SITE"), None);
+    }
+    for tkn in [
+        "LIOI",
+        "LIOI_BRK",
+        "RIOI",
+        "RIOI_BRK",
     ] {
         builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", None, Some("INTF.IOI.SITE"), None);
     }
@@ -770,11 +802,9 @@ fn make_grid(rd: &Part) -> (spartan6::Grid, BTreeSet<DisabledPart>) {
     }
     let columns = make_columns(rd, &int);
     let rows = make_rows(rd, &int);
-    let col_clk = columns.iter().find_map(|(k, &v)| if v == ColumnKind::CleClk {Some(k)} else {None}).unwrap();
+    let col_clk = columns.iter().find_map(|(k, &v)| if v.kind == ColumnKind::CleClk {Some(k)} else {None}).unwrap();
     let mut grid = spartan6::Grid {
         columns,
-        cols_bio: get_cols_io(rd, &int, false),
-        cols_tio: get_cols_io(rd, &int, true),
         col_clk,
         cols_clk_fold: get_cols_clk_fold(rd, &int),
         cols_reg_buf: get_cols_reg_buf(rd, &int),
@@ -887,5 +917,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, &disabled, pins),
         ));
     }
+    let eint = grid.expand_grid(&int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Spartan6(grid), bonds, disabled), Some(int_db))
 }

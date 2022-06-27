@@ -5,6 +5,7 @@ use prjcombine_xilinx_geom::virtex::{self, GridKind};
 
 use crate::grid::{extract_int, find_columns, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {
@@ -186,7 +187,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             format!("S_P{i}"),
             format!("TOP_S_BUF{i}"),
         ]);
-        let w = builder.pip_branch(w, Dir::N, format!("SINGLE.N{i}"), &[
+        let w = builder.pip_branch(w, Dir::S, format!("SINGLE.N{i}"), &[
             format!("N{i}"),
             format!("BOT_N{i}"),
         ]);
@@ -468,10 +469,10 @@ fn make_grid(rd: &Part) -> (virtex::Grid, BTreeSet<DisabledPart>) {
     add_disabled_brams(&mut disabled, rd, &int);
     let mut grid = virtex::Grid {
         kind,
-        columns: int.cols.len() as u32,
+        columns: int.cols.len(),
         cols_bram: get_cols_bram(&rd, &int),
         cols_clkv: get_cols_clkv(&rd, &int),
-        rows: int.rows.len() as u32,
+        rows: int.rows.len(),
         vref: BTreeSet::new(),
         cfg_io: BTreeMap::new(),
     };
@@ -550,5 +551,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, pins),
         ));
     }
+    let eint = grid.expand_grid(&int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Virtex(grid), bonds, disabled), Some(int_db))
 }

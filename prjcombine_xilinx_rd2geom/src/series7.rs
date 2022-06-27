@@ -551,7 +551,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             ],
         );
         let b = builder.buf(w,
-            format!("BYP{i}.BOUNCE"),
+            format!("IMUX.BYP{i}.BOUNCE"),
             &[format!("BYP_BOUNCE{i}")],
         );
         if matches!(i, 2 | 3 | 6 | 7) {
@@ -574,7 +574,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             ],
         );
         let b = builder.buf(w,
-            format!("FAN{i}.BOUNCE"),
+            format!("IMUX.FAN{i}.BOUNCE"),
             &[format!("FAN_BOUNCE{i}")],
         );
         if matches!(i, 0 | 2 | 4 | 6) {

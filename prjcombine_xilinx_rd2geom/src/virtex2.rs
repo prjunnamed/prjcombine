@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, ColId, RowId, int, int::Dir, eint};
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, ColId, RowId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex2::{self, GridKind, Column, ColumnKind, ColumnIoKind, RowIoKind, Dcms};
 use prjcombine_entity::EntityVec;
 
 use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {
@@ -438,8 +439,8 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
     builder.node_type("ML_TBS_IOIS", "IOI", "NODE.IOI.TB");
     builder.node_type("GIGABIT_IOI", "IOI", "NODE.IOI.TB");
     builder.node_type("GIGABIT10_IOI", "IOI", "NODE.IOI.TB");
-    builder.node_type("MK_B_IOIS", "IOI", "NODE.IOI.CLK_B");
-    builder.node_type("MK_T_IOIS", "IOI", "NODE.IOI.CLK_T");
+    builder.node_type("MK_B_IOIS", "IOI.CLK_B", "NODE.IOI.CLK_B");
+    builder.node_type("MK_T_IOIS", "IOI.CLK_T", "NODE.IOI.CLK_T");
     builder.node_type("BRAM0", "BRAM", "NODE.BRAM");
     builder.node_type("BRAM1", "BRAM", "NODE.BRAM");
     builder.node_type("BRAM2", "BRAM", "NODE.BRAM");
@@ -801,6 +802,8 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         builder.mux_out(format!("IMUX.IOI.TCE{i}"), &[format!("TCE_B{i}")]);
     }
     // BRAM special inputs
+    let bram_s = builder.make_naming("BRAM.S");
+    let bram_n = builder.make_naming("BRAM.N");
     for ab in ["A", "B"] {
         for i in 0..4 {
             let root = builder.mux_out(format!("IMUX.BRAM_ADDR{ab}{i}"), &[
@@ -808,12 +811,21 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
             ]);
             for dir in [Dir::S, Dir::N] {
                 let mut last = root;
-                for j in 1..4 {
-                    last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}{j}"), &[""]);
+                for j in 1..5 {
+                    if dir == Dir::N {
+                        builder.name_wire(bram_s, last, format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4));
+                    }
+                    if j == 4 {
+                        last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}4"), &[
+                            format!("BRAM_ADDR{ab}_{dir}END{i}"),
+                        ]);
+                    } else {
+                        last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}{j}"), &[""]);
+                    }
+                    if dir == Dir::N {
+                        builder.name_wire(bram_n, last, format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4));
+                    }
                 }
-                builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}4"), &[
-                    format!("BRAM_ADDR{ab}_{dir}END{i}"),
-                ]);
             }
         }
     }
@@ -1159,26 +1171,26 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
     builder.node_type("CENTER_SMALL", "CLB", "NODE.CLB");
     builder.node_type("CENTER_SMALL_BRK", "CLB", "NODE.CLB.BRK");
     if rd.family.starts_with("spartan3a") {
-        builder.node_type("LIOIS", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_BRK", "IOI.S3E", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("LIOIS_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_CLK_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_CLK_PCI_BRK", "IOI.S3E", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("LIBUFS", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("LIBUFS_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS_CLK_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_BRK", "IOI.S3E", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("RIBUFS_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3E", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_CLK_PCI_BRK", "IOI.S3E", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("BIOIS", "IOI.S3E", "NODE.IOI.S3A.TB");
-        builder.node_type("BIOIB", "IOI.S3E", "NODE.IOI.S3A.TB");
-        builder.node_type("TIOIS", "IOI.S3E", "NODE.IOI.S3A.TB");
-        builder.node_type("TIOIB", "IOI.S3E", "NODE.IOI.S3A.TB");
+        builder.node_type("LIOIS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("LIOIS_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
+        builder.node_type("LIOIS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("LIOIS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("LIOIS_CLK_PCI_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
+        builder.node_type("LIBUFS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("LIBUFS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIOIS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIOIS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIOIS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIBUFS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIBUFS_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
+        builder.node_type("RIBUFS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
+        builder.node_type("RIBUFS_CLK_PCI_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
+        builder.node_type("BIOIS", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
+        builder.node_type("BIOIB", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
+        builder.node_type("TIOIS", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
+        builder.node_type("TIOIB", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
     } else if rd.family == "spartan3e" {
         builder.node_type("LIOIS", "IOI.S3E", "NODE.IOI");
         builder.node_type("LIOIS_BRK", "IOI.S3E", "NODE.IOI.BRK");
@@ -1889,7 +1901,6 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         "BCLKTERM2",
         "BCLKTERM3",
         "BBTERM",
-        "CNT_BTERM",
     ] {
         builder.extract_term("S", Dir::S, tkn, "TERM.S");
     }
@@ -1908,10 +1919,11 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         "TCLKTERM2",
         "TCLKTERM3",
         "BTTERM",
-        "CNT_TTERM",
     ] {
         builder.extract_term("N", Dir::N, tkn, "TERM.N");
     }
+    builder.extract_term("S", Dir::S, "CNR_BTERM", "TERM.S.CNR");
+    builder.extract_term("N", Dir::N, "CNR_TTERM", "TERM.N.CNR");
 
     if rd.family == "spartan3e" {
         let cob_term_t_y = rd.tile_kinds["COB_TERM_T"].tiles[0].y;
@@ -1931,6 +1943,9 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         ] {
             builder.extract_pass_simple("CLKLR.S3E", Dir::S, tkn, &[]);
         }
+    }
+    if rd.family == "spartan3" {
+        builder.extract_pass_simple("BRKH.S3", Dir::S, "BRKH", &[]);
     }
     for tkn in [
         "CLKH_LL",
@@ -2185,43 +2200,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, pins),
         ));
     }
-    // XXX kill me
-    let lut: HashMap<_, _> = rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect();
     let eint = grid.expand_grid(&int_db);
-    for t in eint.tiles {
-        if let Some(t) = t {
-            if let Some(crd) = lut.get(&t.name) {
-                let tile = &rd.tiles[crd];
-                if let Some(ref tn) = t.tie_name {
-                    if !tile.sites.iter().any(|x| if let Some(x) = x {x == tn} else {false}) {
-                        println!("WHOOPSIE NO VCC {} {} {}", rd.part, t.name, tn);
-                    }
-                }
-            } else {
-                println!("WHOOPSIE NO TILE {} {}", rd.part, t.name);
-            }
-            for d in t.dirs.values() {
-                match d {
-                    eint::ExpandedTileDir::Pass(p) => {
-                        for n in [&p.tile, &p.tile_far] {
-                            if let Some(n) = n {
-                                if !lut.contains_key(n) {
-                                    println!("WHOOPSIE NO TILE {} {}", rd.part, n);
-                                }
-                            }
-                        }
-                    }
-                    eint::ExpandedTileDir::Term(p) => {
-                        if let Some(n) = &p.tile {
-                            if !lut.contains_key(n) {
-                                println!("WHOOPSIE NO TILE {} {}", rd.part, n);
-                            }
-                        }
-                    }
-                    _ => (),
-                }
-            }
-        }
-    }
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Virtex2(grid), bonds, BTreeSet::new()), Some(int_db))
 }

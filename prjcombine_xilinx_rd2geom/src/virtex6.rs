@@ -7,6 +7,7 @@ use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
@@ -308,7 +309,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             &[format!("BYP_B{i}")],
         );
         let b = builder.buf(w,
-            format!("BYP{i}.BOUNCE"),
+            format!("IMUX.BYP{i}.BOUNCE"),
             &[format!("BYP_BOUNCE{i}")],
         );
         if matches!(i, 2 | 3 | 6 | 7) {
@@ -328,7 +329,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             &[format!("FAN_B{i}")],
         );
         let b = builder.buf(w,
-            format!("FAN{i}.BOUNCE"),
+            format!("IMUX.FAN{i}.BOUNCE"),
             &[format!("FAN_BOUNCE{i}")],
         );
         if matches!(i, 0 | 2 | 4 | 6) {
@@ -628,5 +629,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(rd, &grid, &disabled, pins),
         ));
     }
+    let eint = grid.expand_grid(&int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Virtex6(grid), bonds, disabled), Some(int_db))
 }

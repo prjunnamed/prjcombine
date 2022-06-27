@@ -143,6 +143,7 @@ pub struct PassKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PassInfo {
+    BlackHole,
     Pass(PassWireIn),
     BiSplitter(PassWireIn),
     Mux(BTreeSet<PassWireIn>),

@@ -7,6 +7,7 @@ use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
@@ -394,7 +395,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ("CCM", "CCM", 4),
         ("DCM", "DCM", 4),
         ("DCM_BOT", "DCM", 4),
-        ("SYS_MON", "SYSMON", 4),
+        ("SYS_MON", "SYSMON", 8),
     ] {
         if let Some(tk) = rd.tile_kinds.get(tkn) {
             for &xy in &tk.tiles {
@@ -671,5 +672,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, pins),
         ));
     }
+    let eint = grid.expand_grid(&int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Virtex4(grid), bonds, BTreeSet::new()), Some(int_db))
 }

@@ -17,6 +17,7 @@ mod series7;
 mod ultrascale;
 mod grid;
 mod intb;
+mod verify;
 
 #[derive(Debug, StructOpt)]
 #[structopt(

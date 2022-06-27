@@ -5,6 +5,9 @@ use enum_map::{EnumMap, enum_map};
 use prjcombine_entity::{EntityVec, EntityId, EntityIds};
 use ndarray::Array2;
 
+pub type Coord = (ColId, RowId);
+pub type IntWire = (Coord, WireId);
+
 #[derive(Clone, Debug)]
 pub struct ExpandedGrid<'a> {
     pub db: &'a IntDb,
@@ -185,6 +188,17 @@ impl ExpandedGrid<'_> {
         });
     }
 
+    pub fn fill_term_anon(&mut self, xy: Coord, kind: &str) {
+        let kind = self.db.get_term(kind);
+        let dir = self.db.terms[kind].dir;
+        self.tile_mut(xy).dirs[dir] = ExpandedTileDir::Term(ExpandedTileTerm {
+            kind,
+            tile: None,
+            naming: None,
+            naming_in: None,
+        });
+    }
+
     pub fn fill_main_passes(&mut self) {
         let pass_w = self.db.get_pass("MAIN.W");
         let pass_e = self.db.get_pass("MAIN.E");
@@ -225,6 +239,81 @@ impl ExpandedGrid<'_> {
             }
         }
     }
+
+    pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
+        loop {
+            let tile = self.tile(wire.0);
+            let wi = &self.db.wires[wire.1];
+            match wi.kind {
+                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
+                    match &tile.dirs[dir] {
+                        ExpandedTileDir::Pass(p) => {
+                            let pass = &self.db.passes[p.kind];
+                            match pass.wires.get(wire.1) {
+                                Some(&PassInfo::BlackHole) => return None,
+                                Some(&PassInfo::Pass(wf)) => {
+                                    match wf {
+                                        PassWireIn::Near(wf) => {
+                                            if let Some(n) = p.naming_near {
+                                                let n = &self.db.namings[n];
+                                                if n.contains_id(wf) {
+                                                    break;
+                                                }
+                                            }
+                                            wire.1 = wf;
+                                        }
+                                        PassWireIn::Far(wf) => {
+                                            if let Some(n) = p.naming_far {
+                                                let n = &self.db.namings[n];
+                                                if n.contains_id(wf) {
+                                                    break;
+                                                }
+                                            }
+                                            // horrible hack alert
+                                            if self.db.nodes.key(self.tile(p.target).kind) == "DCM.S3.DUMMY" &&
+                                                self.db.wires[wf].name.starts_with("OMUX") &&
+                                                matches!(self.db.wires[wf].kind, WireKind::MuxOut) {
+                                                    break;
+                                            }
+                                            wire = (p.target, wf)
+                                        }
+                                    }
+                                }
+                                _ => break,
+                            }
+                        },
+                        ExpandedTileDir::Term(t) => {
+                            let term = &self.db.terms[t.kind];
+                            match term.wires.get(wire.1) {
+                                Some(&TermInfo::BlackHole) => return None,
+                                Some(&TermInfo::Pass(wf)) => {
+                                    if let Some(n) = t.naming {
+                                        let n = &self.db.namings[n];
+                                        if n.contains_id(wire.1) {
+                                            break;
+                                        }
+                                    }
+                                    wire.1 = wf;
+                                }
+                                None => {
+                                    // horrible hack alert
+                                    if self.db.terms.key(t.kind) == "N.PPC" && self.db.wires[wire.1].name == "IMUX.BYP4.BOUNCE.S" {
+                                        wire.1 = WireId::from_idx(wire.1.to_idx() - 14);
+                                        assert_eq!(self.db.wires[wire.1].name, "IMUX.BYP0.BOUNCE.S");
+                                    }
+                                    break;
+                                }
+                                _ => break,
+                            }
+                        },
+                        _ => break,
+                    }
+                }
+                _ => break,
+            }
+        }
+        Some(wire)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -247,8 +336,6 @@ pub struct ExpandedTileIntf {
     pub naming_site: Option<NamingId>,
     pub naming_delay: Option<NamingId>,
 }
-
-pub type Coord = (ColId, RowId);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ExpandedTileDir {

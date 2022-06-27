@@ -576,6 +576,14 @@ impl<'a> IntBuilder<'a> {
         let int_naming = &self.db.namings[self.get_int_naming(int_xy)];
         let mut wires = EntityPartVec::new();
         let src_node2wires = self.get_int_node2wires(src_xy);
+        if self.rd.family.starts_with("virtex2") {
+            let tcwires = self.extract_term_tile_conn(dir, int_xy, &Default::default());
+            for (wt, ti) in tcwires {
+                if let int::TermInfo::Pass(wf) = ti {
+                    wires.insert(wt, int::PassInfo::Pass(int::PassWireIn::Near(wf)));
+                }
+            }
+        }
         for &wn in force_pass {
             if let Some(&wf) = self.main_passes[dir].get(wn) {
                 wires.insert(wn, int::PassInfo::Pass(int::PassWireIn::Far(wf)));

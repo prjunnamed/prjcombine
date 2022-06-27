@@ -7,6 +7,7 @@ use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
+use crate::verify::Verifier;
 
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
@@ -342,7 +343,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             &[format!("BYP_B{i}")],
         );
         let b = builder.buf(w,
-            format!("BYP{i}.BOUNCE"),
+            format!("IMUX.BYP{i}.BOUNCE"),
             &[format!("BYP_BOUNCE{i}")],
         );
         let dir = match i {
@@ -365,7 +366,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             &[format!("FAN_B{i}")],
         );
         let b = builder.buf(w,
-            format!("FAN{i}.BOUNCE"),
+            format!("IMUX.FAN{i}.BOUNCE"),
             &[format!("FAN_BOUNCE{i}")],
         );
         let dir = match i {
@@ -472,6 +473,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     ] {
         builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
     }
+
+    let mps = builder.db.passes.get("MAIN.S").unwrap().1.clone();
+    builder.db.passes.insert("MAIN.NHOLE.S".to_string(), mps);
+    let mut mpn = builder.db.passes.get("MAIN.N").unwrap().1.clone();
+    for w in lv_bh_n {
+        mpn.wires.insert(w, int::PassInfo::BlackHole);
+    }
+    builder.db.passes.insert("MAIN.NHOLE.N".to_string(), mpn);
 
     builder.build()
 }
@@ -658,5 +667,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, pins),
         ));
     }
+    let eint = grid.expand_grid(&int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     (make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new()), Some(int_db))
 }

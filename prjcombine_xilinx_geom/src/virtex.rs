@@ -1,6 +1,7 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, ColId, RowId};
+use crate::{CfgPin, BelCoord, ColId, RowId, eint, int};
+use ndarray::Array2;
 use prjcombine_entity::EntityId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -13,10 +14,10 @@ pub enum GridKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
-    pub columns: u32,
+    pub columns: usize,
     pub cols_bram: Vec<ColId>,
     pub cols_clkv: Vec<(ColId, ColId)>,
-    pub rows: u32,
+    pub rows: usize,
     pub vref: BTreeSet<BelCoord>,
     pub cfg_io: BTreeMap<CfgPin, BelCoord>,
 }
@@ -97,5 +98,59 @@ impl Grid {
             }
         }
         res
+    }
+
+    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+        let mut grid = eint::ExpandedGrid {
+            db,
+            tie_kind: None,
+            tie_pin_pullup: None,
+            tie_pin_gnd: None,
+            tie_pin_vcc: None,
+            tiles: Array2::default([self.rows, self.columns]),
+        };
+        let col_l = grid.cols().next().unwrap();
+        let col_r = grid.cols().next_back().unwrap();
+        let row_b = grid.rows().next().unwrap();
+        let row_t = grid.rows().next_back().unwrap();
+        for col in grid.cols() {
+            if col == col_l {
+                for row in grid.rows() {
+                    if row == row_b {
+                        grid.fill_tile((col, row), "CNR.BL", "NODE.CNR.BL", "BL".to_string());
+                    } else if row == row_t {
+                        grid.fill_tile((col, row), "CNR.TL", "NODE.CNR.TL", "TL".to_string());
+                    } else {
+                        let r = row_t.to_idx() - row.to_idx();
+                        grid.fill_tile((col, row), "IO.L", "NODE.IO.L", format!("LR{r}"));
+                    }
+                }
+            } else if col == col_r {
+                for row in grid.rows() {
+                    if row == row_b {
+                        grid.fill_tile((col, row), "CNR.BR", "NODE.CNR.BR", "BR".to_string());
+                    } else if row == row_t {
+                        grid.fill_tile((col, row), "CNR.TR", "NODE.CNR.TR", "TR".to_string());
+                    } else {
+                        let r = row_t.to_idx() - row.to_idx();
+                        grid.fill_tile((col, row), "IO.R", "NODE.IO.R", format!("RR{r}"));
+                    }
+                }
+            } else {
+                let c = col.to_idx();
+                for row in grid.rows() {
+                    if row == row_b {
+                        grid.fill_tile((col, row), "IO.B", "NODE.IO.B", format!("BC{c}"));
+                    } else if row == row_t {
+                        grid.fill_tile((col, row), "IO.T", "NODE.IO.T", format!("TC{c}"));
+                    } else {
+                        let r = row_t.to_idx() - row.to_idx();
+                        grid.fill_tile((col, row), "CLB", "NODE.CLB", format!("R{r}C{c}"));
+                    }
+                }
+            }
+        }
+        grid.fill_main_passes();
+        grid
     }
 }

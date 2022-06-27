@@ -81,6 +81,10 @@ impl<I: EntityId, V> EntityVec<I, V> {
         }
     }
 
+    pub fn map<NV>(&self, mut f: impl FnMut(I, &V) -> NV) -> EntityVec<I, NV> {
+        self.iter().map(|(i, v)| f(i, v)).collect()
+    }
+
     pub fn map_values<NV>(&self, f: impl FnMut(&V) -> NV) -> EntityVec<I, NV> {
         self.values().map(f).collect()
     }

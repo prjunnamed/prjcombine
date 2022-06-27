@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{CfgPin, DisabledPart, SysMonPin, GtPin, ColId, RowId};
+use super::{CfgPin, DisabledPart, SysMonPin, GtPin, ColId, RowId, int, eint};
+use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -289,5 +290,157 @@ impl Grid {
             }
         }
         res
+    }
+
+    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+        let mut grid = eint::ExpandedGrid {
+            db,
+            tie_kind: Some("TIEOFF".to_string()),
+            tie_pin_pullup: None,
+            tie_pin_gnd: Some("HARD0".to_string()),
+            tie_pin_vcc: Some("HARD1".to_string()),
+            tiles: Array2::default([self.rows * 40, self.columns.len()]),
+        };
+
+        let mut tie_x = 0;
+        for (col, &kind) in &self.columns {
+            for row in grid.rows() {
+                let x = col.to_idx();
+                let y = row.to_idx();
+                grid.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
+                match kind {
+                    ColumnKind::ClbLL => (),
+                    ColumnKind::ClbLM => (),
+                    ColumnKind::Io if col < self.col_cfg => {
+                        grid.tile_mut((col, row)).intf = Some(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF"),
+                            name: format!("IOI_L_INT_INTERFACE_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF.IOI_L"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.IOI_L.SITE")),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
+                        grid.tile_mut((col, row)).intf = Some(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF"),
+                            name: format!("INT_INTERFACE_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.SITE")),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKind::Gt => {
+                        if x == 0 {
+                            grid.tile_mut((col, row)).intf = Some(eint::ExpandedTileIntf {
+                                kind: db.get_intf("INTF.DELAY"),
+                                name: format!("GT_L_INT_INTERFACE_X{x}Y{y}"),
+                                naming_int: db.get_naming("INTF.GT_L"),
+                                naming_buf: None,
+                                naming_site: Some(db.get_naming("INTF.GT_L.SITE")),
+                                naming_delay: Some(db.get_naming("INTF.GT_L.DELAY")),
+                            });
+                        } else {
+                            grid.tile_mut((col, row)).intf = Some(eint::ExpandedTileIntf {
+                                kind: db.get_intf("INTF.DELAY"),
+                                name: format!("GTX_INT_INTERFACE_X{x}Y{y}"),
+                                naming_int: db.get_naming("INTF.GTX"),
+                                naming_buf: None,
+                                naming_site: Some(db.get_naming("INTF.GTX.SITE")),
+                                naming_delay: Some(db.get_naming("INTF.GTX.DELAY")),
+                            });
+                        }
+                    }
+                }
+            }
+            tie_x += 1;
+            if kind == ColumnKind::Dsp {
+                tie_x += 1;
+            }
+        }
+
+        let row_b = RowId::from_idx(self.row_cfg * 40 - 40);
+        let row_t = RowId::from_idx(self.row_cfg * 40 + 40);
+        grid.nuke_rect(self.col_cfg - 6, row_b, 6, 80);
+        for dx in 0..6 {
+            let col = self.col_cfg - 6 + dx;
+            if row_b.to_idx() != 0 {
+                grid.fill_term_anon((col, row_b - 1), "N");
+            }
+            if row_t.to_idx() != self.rows * 40 {
+                grid.fill_term_anon((col, row_t), "S");
+            }
+        }
+
+        if let Some(ref col_hard) = self.col_hard {
+            let col = col_hard.col;
+            let x = col.to_idx();
+            for &br in &col_hard.rows_emac {
+                for dy in 0..10 {
+                    let row = br + dy;
+                    let y = row.to_idx();
+                    grid.tile_mut((col, row)).intf = Some(eint::ExpandedTileIntf {
+                        kind: db.get_intf("INTF.DELAY"),
+                        name: format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
+                        naming_int: db.get_naming("INTF.EMAC"),
+                        naming_buf: None,
+                        naming_site: Some(db.get_naming("INTF.EMAC.SITE")),
+                        naming_delay: Some(db.get_naming("INTF.EMAC.DELAY")),
+                    });
+                }
+            }
+            for &br in &col_hard.rows_pcie {
+                grid.nuke_rect(col - 1, br, 2, 20);
+                for dy in 0..20 {
+                    let row = br + dy;
+                    let y = row.to_idx();
+                    grid.tile_mut((col - 3, row)).intf = Some(eint::ExpandedTileIntf {
+                        kind: db.get_intf("INTF.DELAY"),
+                        name: format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3),
+                        naming_int: db.get_naming("INTF.PCIE_L"),
+                        naming_buf: None,
+                        naming_site: Some(db.get_naming("INTF.PCIE_L.SITE")),
+                        naming_delay: Some(db.get_naming("INTF.PCIE_L.DELAY")),
+                    });
+                    grid.tile_mut((col - 2, row)).intf = Some(eint::ExpandedTileIntf {
+                        kind: db.get_intf("INTF.DELAY"),
+                        name: format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2),
+                        naming_int: db.get_naming("INTF.PCIE_R"),
+                        naming_buf: None,
+                        naming_site: Some(db.get_naming("INTF.PCIE_R.SITE")),
+                        naming_delay: Some(db.get_naming("INTF.PCIE_R.DELAY")),
+                    });
+                }
+                if br.to_idx() != 0 {
+                    grid.fill_term_anon((col - 1, br - 1), "N");
+                    grid.fill_term_anon((col, br - 1), "N");
+                }
+                grid.fill_term_anon((col - 1, br + 20), "S");
+                grid.fill_term_anon((col, br + 20), "S");
+            }
+        }
+
+        let row_b = grid.rows().next().unwrap();
+        let row_t = grid.rows().next_back().unwrap();
+        for col in grid.cols() {
+            if grid[(col, row_b)].is_some() {
+                grid.fill_term_anon((col, row_b), "S.HOLE");
+            }
+            if grid[(col, row_t)].is_some() {
+                grid.fill_term_anon((col, row_t), "N.HOLE");
+            }
+        }
+        let col_l = grid.cols().next().unwrap();
+        let col_r = grid.cols().next_back().unwrap();
+        for row in grid.rows() {
+            grid.fill_term_anon((col_l, row), "W");
+            grid.fill_term_anon((col_r, row), "E");
+        }
+
+        grid.fill_main_passes();
+
+        grid
     }
 }
