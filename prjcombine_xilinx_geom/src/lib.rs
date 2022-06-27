@@ -24,6 +24,7 @@ entity_id! {
 
     pub id ColId u16;
     pub id RowId u16;
+    pub id SlrId u16;
 }
 
 impl core::ops::Add<usize> for ColId {
@@ -133,8 +134,8 @@ pub enum ExtraDie {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
-    pub grids: Vec<GridId>,
-    pub grid_master: usize,
+    pub grids: EntityVec<SlrId, GridId>,
+    pub grid_master: SlrId,
     pub extras: Vec<ExtraDie>,
     pub bonds: EntityVec<DevBondId, DeviceBond>,
     pub speeds: EntityVec<DevSpeedId, String>,

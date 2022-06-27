@@ -9,12 +9,12 @@ pub struct Grid {
     pub columns: EntityVec<ColId, ColumnKind>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_io: [ColId; 3],
-    pub rows: usize,
+    pub regs: usize,
     pub has_bot_sysmon: bool,
     pub has_top_sysmon: bool,
-    pub rows_cfg_io: usize,
+    pub regs_cfg_io: usize,
     pub ccm: usize,
-    pub row_cfg: usize,
+    pub reg_cfg: usize,
     pub holes_ppc: Vec<(ColId, RowId)>,
     pub has_bram_fx: bool,
 }
@@ -145,7 +145,7 @@ impl Gt {
 
 impl Grid {
     pub fn get_io(&self) -> Vec<Io> {
-        let lbanks: &[u32] = match self.rows {
+        let lbanks: &[u32] = match self.regs {
             4 => &[7, 5],
             6 => &[7, 9, 5],
             8 => &[7, 11, 9, 5],
@@ -153,7 +153,7 @@ impl Grid {
             12 => &[7, 11, 15, 13, 9, 5],
             _ => unreachable!(),
         };
-        let rbanks: &[u32] = match self.rows {
+        let rbanks: &[u32] = match self.regs {
             4 => &[8, 6],
             6 => &[8, 10, 6],
             8 => &[8, 12, 10, 6],
@@ -179,7 +179,7 @@ impl Grid {
         }
         // center column
         // bank 4
-        let base = (self.row_cfg - self.rows_cfg_io) * 16 - 8;
+        let base = (self.reg_cfg - self.regs_cfg_io) * 16 - 8;
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
@@ -193,8 +193,8 @@ impl Grid {
             }
         }
         // bank 2
-        if self.rows_cfg_io > 1 {
-            let base = (self.row_cfg - self.rows_cfg_io) * 16;
+        if self.regs_cfg_io > 1 {
+            let base = (self.reg_cfg - self.regs_cfg_io) * 16;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
@@ -208,8 +208,8 @@ impl Grid {
                 }
             }
         }
-        if self.rows_cfg_io > 2 {
-            let base = self.row_cfg * 16 - 32;
+        if self.regs_cfg_io > 2 {
+            let base = self.reg_cfg * 16 - 32;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
@@ -223,7 +223,7 @@ impl Grid {
                 }
             }
         }
-        let base = self.row_cfg * 16 - 16;
+        let base = self.reg_cfg * 16 - 16;
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
@@ -237,7 +237,7 @@ impl Grid {
             }
         }
         // bank 1
-        let base = self.row_cfg * 16 + 8;
+        let base = self.reg_cfg * 16 + 8;
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
@@ -250,8 +250,8 @@ impl Grid {
                 });
             }
         }
-        if self.rows_cfg_io > 2 {
-            let base = self.row_cfg * 16 + 16;
+        if self.regs_cfg_io > 2 {
+            let base = self.reg_cfg * 16 + 16;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
@@ -265,8 +265,8 @@ impl Grid {
                 }
             }
         }
-        if self.rows_cfg_io > 1 {
-            let base = (self.row_cfg + self.rows_cfg_io) * 16 - 16;
+        if self.regs_cfg_io > 1 {
+            let base = (self.reg_cfg + self.regs_cfg_io) * 16 - 16;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
@@ -281,7 +281,7 @@ impl Grid {
             }
         }
         // bank 3
-        let base = (self.row_cfg + self.rows_cfg_io) * 16;
+        let base = (self.reg_cfg + self.regs_cfg_io) * 16;
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
@@ -315,7 +315,7 @@ impl Grid {
     pub fn get_gt(&self) -> Vec<Gt> {
         let mut res = Vec::new();
         if *self.columns.first().unwrap() == ColumnKind::Gt {
-            let lbanks: &[u32] = match self.rows {
+            let lbanks: &[u32] = match self.regs {
                 4 => &[105, 102],
                 6 => &[105, 103, 102],
                 8 => &[106, 105, 103, 102],
@@ -333,7 +333,7 @@ impl Grid {
             }
         }
         if *self.columns.last().unwrap() == ColumnKind::Gt {
-            let rbanks: &[u32] = match self.rows {
+            let rbanks: &[u32] = match self.regs {
                 4 => &[110, 113],
                 6 => &[110, 112, 113],
                 8 => &[109, 110, 112, 113],
@@ -362,7 +362,7 @@ impl Grid {
                 res.push((format!("IPAD_X1Y1"), 0, SysMonPin::VN));
             }
             if self.has_top_sysmon {
-                let ipy = self.rows * 3;
+                let ipy = self.regs * 3;
                 res.push((format!("IPAD_X1Y{}", ipy), 1, SysMonPin::VP));
                 res.push((format!("IPAD_X1Y{}", ipy+1), 1, SysMonPin::VN));
             }
@@ -386,7 +386,7 @@ impl Grid {
             tie_pin_pullup: Some("KEEP1".to_string()),
             tie_pin_gnd: Some("HARD0".to_string()),
             tie_pin_vcc: Some("HARD1".to_string()),
-            tiles: Array2::default([self.rows * 16, self.columns.len()]),
+            tiles: Array2::default([self.regs * 16, self.columns.len()]),
         };
 
         for (col, &kind) in &self.columns {
@@ -472,8 +472,8 @@ impl Grid {
         }
         for dy in 0..16 {
             let x = self.cols_io[1].to_idx();
-            let y = self.row_cfg * 16 - 1;
-            let row = RowId::from_idx(self.row_cfg * 16 - 8 + dy);
+            let y = self.reg_cfg * 16 - 1;
+            let row = RowId::from_idx(self.reg_cfg * 16 - 8 + dy);
             grid.tile_mut((self.cols_io[1], row)).intf = Some(eint::ExpandedTileIntf {
                 kind: db.get_intf("INTF"),
                 name: format!("CFG_CENTER_X{x}Y{y}"),
@@ -483,8 +483,8 @@ impl Grid {
                 naming_delay: None,
             });
         }
-        for dy in 0..(self.rows_cfg_io * 16) {
-            let row = RowId::from_idx(self.row_cfg * 16 + 8 + dy);
+        for dy in 0..(self.regs_cfg_io * 16) {
+            let row = RowId::from_idx(self.reg_cfg * 16 + 8 + dy);
             let x = self.cols_io[1].to_idx();
             let y = row.to_idx();
             grid.tile_mut((self.cols_io[1], row)).intf = Some(eint::ExpandedTileIntf {
@@ -496,8 +496,8 @@ impl Grid {
                 naming_delay: None,
             });
         }
-        for dy in 0..(self.rows_cfg_io * 16) {
-            let row = RowId::from_idx(self.row_cfg * 16 - 8 - self.rows_cfg_io * 16 + dy);
+        for dy in 0..(self.regs_cfg_io * 16) {
+            let row = RowId::from_idx(self.reg_cfg * 16 - 8 - self.regs_cfg_io * 16 + dy);
             let x = self.cols_io[1].to_idx();
             let y = row.to_idx();
             grid.tile_mut((self.cols_io[1], row)).intf = Some(eint::ExpandedTileIntf {
@@ -509,7 +509,7 @@ impl Grid {
                 naming_delay: None,
             });
         }
-        let mut row = RowId::from_idx(self.row_cfg * 16 + 8 + self.rows_cfg_io * 16);
+        let mut row = RowId::from_idx(self.reg_cfg * 16 + 8 + self.regs_cfg_io * 16);
         let mut ccms = self.ccm;
         while row != row_t {
             let t = if ccms != 0 {
@@ -533,7 +533,7 @@ impl Grid {
             }
             row += 4;
         }
-        let mut row = RowId::from_idx(self.row_cfg * 16 - 8 - self.rows_cfg_io * 16);
+        let mut row = RowId::from_idx(self.reg_cfg * 16 - 8 - self.regs_cfg_io * 16);
         let mut ccms = self.ccm;
         while row != row_b {
             row -= 4;

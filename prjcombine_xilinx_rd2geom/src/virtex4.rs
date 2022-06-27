@@ -45,15 +45,15 @@ fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [ColId; 3] {
     v.try_into().unwrap()
 }
 
-fn get_row_cfg(rd: &Part, int: &IntGrid) -> usize {
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
     int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()).to_idx() / 16
 }
 
-fn get_rows_cfg_io(rd: &Part, int: &IntGrid, row_cfg: usize) -> usize {
+fn get_regs_cfg_io(rd: &Part, int: &IntGrid, reg_cfg: usize) -> usize {
     let d2i = int.lookup_row_inter(find_row(rd, &["HCLK_DCMIOB"]).unwrap()).to_idx();
     let i2d = int.lookup_row_inter(find_row(rd, &["HCLK_IOBDCM"]).unwrap()).to_idx();
-    assert_eq!(i2d - row_cfg * 16, row_cfg * 16 - d2i);
-    (i2d - row_cfg * 16 - 8) / 16
+    assert_eq!(i2d - reg_cfg * 16, reg_cfg * 16 - d2i);
+    (i2d - reg_cfg * 16 - 8) / 16
 }
 
 fn get_ccm(rd: &Part) -> usize {
@@ -497,17 +497,17 @@ fn make_grid(rd: &Part) -> virtex4::Grid {
     let columns = make_columns(rd, &int);
     let cols_io = get_cols_io(&columns);
     let (has_bot_sysmon, has_top_sysmon) = get_has_sysmons(rd);
-    let row_cfg = get_row_cfg(rd, &int);
+    let reg_cfg = get_reg_cfg(rd, &int);
     virtex4::Grid {
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_io,
-        rows: int.rows.len() / 16,
+        regs: int.rows.len() / 16,
         has_bot_sysmon,
         has_top_sysmon,
-        rows_cfg_io: get_rows_cfg_io(rd, &int, row_cfg),
+        regs_cfg_io: get_regs_cfg_io(rd, &int, reg_cfg),
         ccm: get_ccm(rd),
-        row_cfg,
+        reg_cfg,
         holes_ppc: get_holes_ppc(rd, &int),
         has_bram_fx: get_has_bram_fx(rd),
     }

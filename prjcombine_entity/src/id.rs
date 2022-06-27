@@ -62,7 +62,7 @@ macro_rules! __impl_entity_id {
         #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, serde::Serialize, serde::Deserialize)]
         $v struct $id($t);
 
-        impl<'de> $crate::EntityId for $id {
+        impl $crate::EntityId for $id {
             fn to_idx(self) -> usize {
                 self.0.into()
             }

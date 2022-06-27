@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId};
-use prjcombine_entity::EntityVec;
+use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId, RowId, SlrId};
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -19,9 +19,9 @@ pub struct Grid {
     pub col_clk: ColId,
     pub cols_io: [Option<IoColumn>; 2],
     pub cols_gt: [Option<GtColumn>; 2],
-    pub rows: u32,
-    pub row_cfg: u32,
-    pub row_clk: u32,
+    pub regs: usize,
+    pub reg_cfg: usize,
+    pub reg_clk: usize,
     pub holes: Vec<Hole>,
     pub has_ps: bool,
     pub has_slr: bool,
@@ -44,13 +44,13 @@ pub enum ColumnKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IoColumn {
     pub col: ColId,
-    pub rows: Vec<Option<IoKind>>,
+    pub regs: Vec<Option<IoKind>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GtColumn {
     pub col: ColId,
-    pub rows: Vec<Option<GtKind>>,
+    pub regs: Vec<Option<GtKind>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -79,13 +79,15 @@ pub enum HoleKind {
 pub struct Hole {
     pub kind: HoleKind,
     pub col: ColId,
-    pub row: u32,
+    pub row: RowId,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
     pub col: ColId,
-    pub row: u32,
+    pub row: RowId,
+    pub slr: SlrId,
+    pub reg_base: usize,
     pub ioc: u32,
     pub iox: u32,
     pub bank: u32,
@@ -95,29 +97,29 @@ pub struct Io {
 impl Io {
     pub fn iob_name(&self) -> String {
         let x = self.iox;
-        let y = self.row;
+        let y = self.row.to_idx() + self.reg_base * 50;
         format!("IOB_X{x}Y{y}")
     }
     pub fn is_mrcc(&self) -> bool {
-        matches!(self.row % 50, 23..=26)
+        matches!(self.row.to_idx() % 50, 23..=26)
     }
     pub fn is_srcc(&self) -> bool {
-        matches!(self.row % 50, 21 | 22 | 27 | 28)
+        matches!(self.row.to_idx() % 50, 21 | 22 | 27 | 28)
     }
     pub fn is_dqs(&self) -> bool {
-        matches!(self.row % 50, 7 | 8 | 19 | 20 | 31 | 32 | 43 | 44)
+        matches!(self.row.to_idx() % 50, 7 | 8 | 19 | 20 | 31 | 32 | 43 | 44)
     }
     pub fn is_vref(&self) -> bool {
-        matches!(self.row % 50, 11 | 37)
+        matches!(self.row.to_idx() % 50, 11 | 37)
     }
     pub fn is_vrp(&self) -> bool {
-        self.kind == IoKind::Hpio && matches!(self.row % 50, 0)
+        self.kind == IoKind::Hpio && matches!(self.row.to_idx() % 50, 0)
     }
     pub fn is_vrn(&self) -> bool {
-        self.kind == IoKind::Hpio && matches!(self.row % 50, 49)
+        self.kind == IoKind::Hpio && matches!(self.row.to_idx() % 50, 49)
     }
     pub fn get_cfg(&self, has_14: bool) -> Option<CfgPin> {
-        match (self.bank, self.row % 50) {
+        match (self.bank, self.row.to_idx() % 50) {
             (14, 1) => Some(CfgPin::Data(16)),
             (14, 2) => Some(CfgPin::Data(17)),
             (14, 3) => Some(CfgPin::Data(18)),
@@ -181,7 +183,7 @@ impl Io {
     pub fn sm_pair(&self, has_15: bool, has_35: bool) -> Option<u32> {
         if !has_35 {
             // Kintex, some Artix
-            match (self.bank, self.row % 50) {
+            match (self.bank, self.row.to_idx() % 50) {
                 (15, 25 | 26) => Some(5),
                 (15, 27 | 28) => Some(12),
                 (15, 29 | 30) => Some(4),
@@ -197,7 +199,7 @@ impl Io {
             }
         } else if !has_15 {
             // Zynq
-            match (self.bank, self.row % 50) {
+            match (self.bank, self.row.to_idx() % 50) {
                 (35, 1 | 2) => Some(15),
                 (35, 5 | 6) => Some(7),
                 (35, 7 | 8) => Some(14),
@@ -218,7 +220,7 @@ impl Io {
             }
         } else {
             // Virtex, most Artix
-            match (self.bank, self.row % 50) {
+            match (self.bank, self.row.to_idx() % 50) {
                 (15, 29 | 30) => Some(11),
                 (15, 31 | 32) => Some(3),
                 (15, 33 | 34) => Some(10),
@@ -241,22 +243,24 @@ impl Io {
     }
 }
 
-pub fn get_io(grids: &[Grid], grid_master: usize) -> Vec<Io> {
+pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId) -> Vec<Io> {
     let mut res = Vec::new();
-    let row_cfg: u32 = grids[grid_master].row_cfg + grids[..grid_master].iter().map(|x| x.rows).sum::<u32>();
+    let reg_cfg: usize = grids[grid_master].reg_cfg + grids.iter().filter(|&(k, _)| k < grid_master).map(|(_, x)| x.regs).sum::<usize>();
     for ioc in 0..2 {
-        let iox = if grids[0].cols_io[0].is_none() {0} else {ioc};
-        let mut row_base = 0;
-        for grid in grids {
+        let iox = if grids[grid_master].cols_io[0].is_none() {0} else {ioc};
+        let mut reg_base = 0;
+        for (slr, grid) in grids {
             if let Some(ref col) = grid.cols_io[ioc as usize] {
-                for (j, &kind) in col.rows.iter().enumerate() {
+                for (j, &kind) in col.regs.iter().enumerate() {
                     if let Some(kind) = kind {
-                        let row = row_base + j as u32;
-                        let bank = 15 + row - row_cfg + ioc * 20;
+                        let bank = (15 + reg_base + j - reg_cfg) as u32 + ioc * 20;
                         for k in 0..50 {
+                            let row = RowId::from_idx(j * 50 + k);
                             res.push(Io {
                                 col: col.col,
-                                row: row * 50 + k,
+                                row,
+                                slr,
+                                reg_base,
                                 ioc,
                                 iox,
                                 bank,
@@ -266,13 +270,13 @@ pub fn get_io(grids: &[Grid], grid_master: usize) -> Vec<Io> {
                     }
                 }
             }
-            row_base += grid.rows;
+            reg_base += grid.regs;
         }
     }
     res
 }
 
-fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32, u32, u32, u32, u32)> {
+fn get_iopad_y(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32, u32, u32, u32, u32)> {
     let mut res = Vec::new();
     let mut ipy = 0;
     let mut opy = 0;
@@ -281,22 +285,22 @@ fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32,
         ipy += 6;
         opy += 2;
     }
-    for grid in grids {
-        for j in 0..grid.rows {
+    for grid in grids.values() {
+        for j in 0..grid.regs {
             let mut has_gt = false;
             if let Some(ref col) = grid.cols_gt[0] {
-                has_gt |= col.rows[j as usize].is_some();
+                has_gt |= col.regs[j].is_some();
             }
             if let Some(ref col) = grid.cols_gt[1] {
-                has_gt |= col.rows[j as usize].is_some();
+                has_gt |= col.regs[j].is_some();
             }
             for hole in &grid.holes {
-                if matches!(hole.kind, HoleKind::GtpLeft | HoleKind::GtpRight) && hole.row == j * 50 {
+                if matches!(hole.kind, HoleKind::GtpLeft | HoleKind::GtpRight) && hole.row == RowId::from_idx(j * 50) {
                     has_gt = true;
                 }
             }
             if has_gt {
-                if grid.row_cfg == j && !is_7k70t {
+                if grid.reg_cfg == j && !is_7k70t {
                     res.push((gy, opy, ipy, ipy + 24, ipy + 18));
                     ipy += 36;
                 } else {
@@ -306,7 +310,7 @@ fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32,
                 gy += 1;
                 opy += 8;
             } else {
-                if grid.row_cfg == j && !is_7k70t {
+                if grid.reg_cfg == j && !is_7k70t {
                     res.push((0, 0, 0, 0, ipy));
                     ipy += 6;
                 } else {
@@ -316,7 +320,7 @@ fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32,
         }
     }
     if is_7k70t {
-        res[grids[0].row_cfg as usize].4 = ipy + 6;
+        res[grids.first().unwrap().reg_cfg].4 = ipy + 6;
     }
     res
 }
@@ -324,7 +328,9 @@ fn get_iopad_y(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32,
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Gt {
     pub col: ColId,
-    pub row: u32,
+    pub row: RowId,
+    pub reg_base: usize,
+    pub slr: SlrId,
     pub gx: u32,
     pub gy: u32,
     pub ipx: u32,
@@ -364,37 +370,40 @@ impl Gt {
     }
 }
 
-pub fn get_gt(grids: &[Grid], grid_master: usize, extras: &[ExtraDie], is_7k70t: bool) -> Vec<Gt> {
+pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, extras: &[ExtraDie], is_7k70t: bool) -> Vec<Gt> {
     let iopad_y = get_iopad_y(grids, extras, is_7k70t);
-    let row_cfg: u32 = grids[grid_master].row_cfg + grids[..grid_master].iter().map(|x| x.rows).sum::<u32>();
+    let reg_cfg: usize = grids[grid_master].reg_cfg + grids.iter().filter(|&(k, _)| k < grid_master).map(|(_, x)| x.regs).sum::<usize>();
     let mut res = Vec::new();
-    let mut row_base = 0;
+    let mut reg_base = 0;
     let has_gtz = !extras.is_empty();
-    for grid in grids {
+    for (slr, grid) in grids {
         let has_left_gt = grid.cols_gt[0].is_some();
         for gtc in 0..2 {
             let gx: u32 = if has_left_gt { gtc } else { 0 };
             let opx: u32 = if has_gtz { gtc * 2 } else if has_left_gt { gtc } else { 0 };
             let ipx: u32 = if has_gtz { gtc * 3 } else if has_left_gt { gtc * 2 } else if !is_7k70t { 1 } else { 0 };
             if let Some(ref col) = grid.cols_gt[gtc as usize] {
-                for (j, &kind) in col.rows.iter().enumerate() {
+                for (j, &kind) in col.regs.iter().enumerate() {
                     if let Some(kind) = kind {
-                        let row = row_base + j as u32;
+                        let reg = reg_base + j;
                         let bank = if kind == GtKind::Gtp {
                             if grid.has_ps {
                                 112
-                            } else if row == 0 {
+                            } else if reg == 0 {
                                 213
                             } else {
                                 216
                             }
                         } else {
-                            15 + row - row_cfg + [200, 100][gtc as usize]
+                            (15 + reg - reg_cfg + [200, 100][gtc as usize]) as u32
                         };
-                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[row as usize];
+                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[reg as usize];
+                        let row = RowId::from_idx(j * 50);
                         res.push(Gt {
                             col: col.col,
-                            row: row * 50,
+                            row,
+                            slr,
+                            reg_base,
                             gx,
                             gy,
                             opx,
@@ -418,12 +427,14 @@ pub fn get_gt(grids: &[Grid], grid_master: usize, extras: &[ExtraDie], is_7k70t:
             let gx = gtc;
             let opx = gtc;
             let ipx = gtc + 1;
-            let row = row_base + hole.row / 50;
-            let bank = if row == 0 {13} else {16} + [200, 100][gtc as usize];
-            let (gy, opy, ipy_l, ipy_h, _) = iopad_y[row as usize];
+            let reg = reg_base + hole.row.to_idx() / 50;
+            let bank = if reg == 0 {13} else {16} + [200, 100][gtc as usize];
+            let (gy, opy, ipy_l, ipy_h, _) = iopad_y[reg];
             res.push(Gt {
                 col: hole.col,
-                row: row * 50,
+                row: hole.row,
+                reg_base,
+                slr,
                 gx,
                 gy,
                 opx,
@@ -435,24 +446,24 @@ pub fn get_gt(grids: &[Grid], grid_master: usize, extras: &[ExtraDie], is_7k70t:
                 kind: GtKind::Gtp,
             });
         }
-        row_base += grid.rows;
+        reg_base += grid.regs;
     }
     res
 }
 
-pub fn get_sysmon_pads(grids: &[Grid], extras: &[ExtraDie], is_7k70t: bool) -> Vec<(String, u32, SysMonPin)> {
+pub fn get_sysmon_pads(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7k70t: bool) -> Vec<(String, u32, SysMonPin)> {
     let iopad_y = get_iopad_y(grids, extras, is_7k70t);
     let mut res = Vec::new();
-    let mut row_base = 0;
-    for (i, grid) in grids.iter().enumerate() {
-        if grid.row_cfg == grid.rows {
+    let mut reg_base = 0;
+    for (i, grid) in grids {
+        if grid.reg_cfg == grid.regs {
             continue;
         }
         let ipx = if grid.cols_gt[0].is_some() { 1 } else { 0 };
-        let ipy = iopad_y[(row_base + grid.row_cfg) as usize].4;
-        res.push((format!("IPAD_X{}Y{}", ipx, ipy), i as u32, SysMonPin::VP));
-        res.push((format!("IPAD_X{}Y{}", ipx, ipy+1), i as u32, SysMonPin::VN));
-        row_base += grid.rows;
+        let ipy = iopad_y[reg_base + grid.reg_cfg].4;
+        res.push((format!("IPAD_X{}Y{}", ipx, ipy), i.to_idx() as u32, SysMonPin::VP));
+        res.push((format!("IPAD_X{}Y{}", ipx, ipy+1), i.to_idx() as u32, SysMonPin::VN));
+        reg_base += grid.regs;
     }
     res
 }
@@ -492,27 +503,26 @@ pub fn get_gtz_pads(extras: &[ExtraDie]) -> Vec<(String, String, u32, GtPin, u32
     res
 }
 
-pub fn get_ps_pads(grids: &[Grid]) -> Vec<(String, u32, PsPin)> {
+pub fn get_ps_pads(grids: &EntityVec<SlrId, Grid>) -> Vec<(String, u32, PsPin)> {
     let mut res = Vec::new();
-    if grids[0].has_ps {
-        // XXX
-        res.push((format!("IOPAD_X1Y1"), 502, PsPin::DdrWeB));
-        res.push((format!("IOPAD_X1Y2"), 502, PsPin::DdrVrN));
-        res.push((format!("IOPAD_X1Y3"), 502, PsPin::DdrVrP));
+    if grids.first().unwrap().has_ps {
+        res.push(("IOPAD_X1Y1".to_string(), 502, PsPin::DdrWeB));
+        res.push(("IOPAD_X1Y2".to_string(), 502, PsPin::DdrVrN));
+        res.push(("IOPAD_X1Y3".to_string(), 502, PsPin::DdrVrP));
         for i in 0..13 {
             res.push((format!("IOPAD_X1Y{}", 4 + i), 502, PsPin::DdrA(i)));
         }
-        res.push((format!("IOPAD_X1Y17"), 502, PsPin::DdrA(14)));
-        res.push((format!("IOPAD_X1Y18"), 502, PsPin::DdrA(13)));
+        res.push(("IOPAD_X1Y17".to_string(), 502, PsPin::DdrA(14)));
+        res.push(("IOPAD_X1Y18".to_string(), 502, PsPin::DdrA(13)));
         for i in 0..3 {
             res.push((format!("IOPAD_X1Y{}", 19 + i), 502, PsPin::DdrBa(i)));
         }
-        res.push((format!("IOPAD_X1Y22"), 502, PsPin::DdrCasB));
-        res.push((format!("IOPAD_X1Y23"), 502, PsPin::DdrCke(0)));
-        res.push((format!("IOPAD_X1Y24"), 502, PsPin::DdrCkN(0)));
-        res.push((format!("IOPAD_X1Y25"), 502, PsPin::DdrCkP(0)));
-        res.push((format!("IOPAD_X1Y26"), 500, PsPin::Clk));
-        res.push((format!("IOPAD_X1Y27"), 502, PsPin::DdrCsB(0)));
+        res.push(("IOPAD_X1Y22".to_string(), 502, PsPin::DdrCasB));
+        res.push(("IOPAD_X1Y23".to_string(), 502, PsPin::DdrCke(0)));
+        res.push(("IOPAD_X1Y24".to_string(), 502, PsPin::DdrCkN(0)));
+        res.push(("IOPAD_X1Y25".to_string(), 502, PsPin::DdrCkP(0)));
+        res.push(("IOPAD_X1Y26".to_string(), 500, PsPin::Clk));
+        res.push(("IOPAD_X1Y27".to_string(), 502, PsPin::DdrCsB(0)));
         for i in 0..4 {
             res.push((format!("IOPAD_X1Y{}", 28 + i), 502, PsPin::DdrDm(i)));
         }
@@ -525,14 +535,14 @@ pub fn get_ps_pads(grids: &[Grid]) -> Vec<(String, u32, PsPin)> {
         for i in 0..4 {
             res.push((format!("IOPAD_X1Y{}", 68 + i), 502, PsPin::DdrDqsP(i)));
         }
-        res.push((format!("IOPAD_X1Y72"), 502, PsPin::DdrDrstB));
+        res.push(("IOPAD_X1Y72".to_string(), 502, PsPin::DdrDrstB));
         for i in 0..54 {
             res.push((format!("IOPAD_X1Y{}", 77 + i), if i < 16 {500} else {501}, PsPin::Mio(i)));
         }
-        res.push((format!("IOPAD_X1Y131"), 502, PsPin::DdrOdt(0)));
-        res.push((format!("IOPAD_X1Y132"), 500, PsPin::PorB));
-        res.push((format!("IOPAD_X1Y133"), 502, PsPin::DdrRasB));
-        res.push((format!("IOPAD_X1Y134"), 501, PsPin::SrstB));
+        res.push(("IOPAD_X1Y131".to_string(), 502, PsPin::DdrOdt(0)));
+        res.push(("IOPAD_X1Y132".to_string(), 500, PsPin::PorB));
+        res.push(("IOPAD_X1Y133".to_string(), 502, PsPin::DdrRasB));
+        res.push(("IOPAD_X1Y134".to_string(), 501, PsPin::SrstB));
     }
     res
 }

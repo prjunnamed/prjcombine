@@ -74,7 +74,7 @@ fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
     }
 }
 
-fn get_row_cfg(rd: &Part, int: &IntGrid) -> usize {
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
     int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()).to_idx() / 20
 }
 
@@ -489,15 +489,15 @@ fn make_grid(rd: &Part) -> virtex5::Grid {
     let int = extract_int(rd, &["INT"], &[]);
     let columns = make_columns(rd, &int);
     let cols_io = get_cols_io(&columns);
-    let row_cfg = get_row_cfg(rd, &int);
+    let reg_cfg = get_reg_cfg(rd, &int);
     virtex5::Grid {
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_mgt_buf: get_cols_mgt_buf(rd, &int),
         col_hard: get_col_hard(rd, &int),
         cols_io,
-        rows: (int.rows.len() / 20),
-        row_cfg,
+        regs: (int.rows.len() / 20),
+        reg_cfg,
         holes_ppc: get_holes_ppc(rd, &int),
     }
 }

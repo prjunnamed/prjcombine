@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, DisabledPart, ColId};
+use crate::{CfgPin, DisabledPart, ColId, SlrId};
 use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -24,7 +24,7 @@ pub struct Grid {
     pub col_cfg: HardColumn,
     pub col_hard: Option<HardColumn>,
     pub cols_io: Vec<IoColumn>,
-    pub rows: u32,
+    pub regs: usize,
     pub ps: Option<Ps>,
     pub has_hbm: bool,
     pub is_dmc: bool,
@@ -91,7 +91,7 @@ pub enum HardRowKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
     pub col: ColId,
-    pub rows: Vec<HardRowKind>,
+    pub regs: Vec<HardRowKind>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -112,7 +112,7 @@ pub enum IoRowKind {
 pub struct IoColumn {
     pub col: ColId,
     pub side: ColSide,
-    pub rows: Vec<IoRowKind>,
+    pub regs: Vec<IoRowKind>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -132,7 +132,7 @@ pub enum IoKind {
 pub struct Io {
     pub col: ColId,
     pub side: Option<ColSide>,
-    pub row: u32,
+    pub reg: u32,
     pub bel: u32,
     pub iox: u32,
     pub ioy: u32,
@@ -336,84 +336,84 @@ impl Io {
     }
 }
 
-pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPart>) -> Vec<Io> {
+pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>) -> Vec<Io> {
     let mut res = Vec::new();
-    let mut io_has_io: Vec<_> = grids[0].cols_io.iter().map(|_| false).collect();
+    let mut io_has_io: Vec<_> = grids[grid_master].cols_io.iter().map(|_| false).collect();
     let mut hard_has_io = false;
     let mut cfg_has_io = false;
-    let mut row_has_hprio = Vec::new();
-    let mut row_has_hdio = Vec::new();
-    let mut row_base = 0;
-    let mut row_cfg = None;
-    for (gi, grid) in grids.iter().enumerate() {
-        for _ in 0..grid.rows {
-            row_has_hdio.push(false);
-            row_has_hprio.push(false);
+    let mut reg_has_hprio = Vec::new();
+    let mut reg_has_hdio = Vec::new();
+    let mut reg_base = 0;
+    let mut reg_cfg = None;
+    for (gi, grid) in grids {
+        for _ in 0..grid.regs {
+            reg_has_hdio.push(false);
+            reg_has_hprio.push(false);
         }
         for (i, c) in grid.cols_io.iter().enumerate() {
-            for (j, &kind) in c.rows.iter().enumerate() {
-                let row = row_base + (j as u32);
-                if disabled.contains(&DisabledPart::Region(row)) {
+            for (j, &kind) in c.regs.iter().enumerate() {
+                let reg = reg_base + j;
+                if disabled.contains(&DisabledPart::Region(reg as u32)) {
                     continue
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
                     io_has_io[i] = true;
-                    row_has_hprio[row as usize] = true;
+                    reg_has_hprio[reg] = true;
                 }
             }
         }
         if let Some(ref c) = grid.col_hard {
-            for (j, &kind) in c.rows.iter().enumerate() {
-                let row = row_base + (j as u32);
-                if disabled.contains(&DisabledPart::Region(row)) {
+            for (j, &kind) in c.regs.iter().enumerate() {
+                let reg = reg_base + j;
+                if disabled.contains(&DisabledPart::Region(reg as u32)) {
                     continue
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                     hard_has_io = true;
-                    row_has_hdio[row as usize] = true;
+                    reg_has_hdio[reg] = true;
                 }
             }
         }
-        for (j, &kind) in grid.col_cfg.rows.iter().enumerate() {
-            let row = row_base + (j as u32);
-            if disabled.contains(&DisabledPart::Region(row)) {
+        for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
+            let reg = reg_base + j;
+            if disabled.contains(&DisabledPart::Region(reg as u32)) {
                 continue
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                 cfg_has_io = true;
-                row_has_hdio[row as usize] = true;
+                reg_has_hdio[reg] = true;
             }
             if gi == grid_master && kind == HardRowKind::Cfg {
-                row_cfg = Some(row);
+                reg_cfg = Some(reg);
             }
         }
-        row_base += grid.rows;
+        reg_base += grid.regs;
     }
-    let row_cfg = row_cfg.unwrap();
+    let reg_cfg = reg_cfg.unwrap();
     let mut ioy: u32 = 0;
-    let mut row_ioy = Vec::new();
-    for (has_hprio, has_hdio) in row_has_hprio.into_iter().zip(row_has_hdio.into_iter()) {
+    let mut reg_ioy = Vec::new();
+    for (has_hprio, has_hdio) in reg_has_hprio.into_iter().zip(reg_has_hdio.into_iter()) {
         if has_hprio {
-            row_ioy.push((ioy, ioy + 26));
+            reg_ioy.push((ioy, ioy + 26));
             ioy += 52;
         } else if has_hdio {
-            row_ioy.push((ioy, ioy + 12));
+            reg_ioy.push((ioy, ioy + 12));
             ioy += 24;
         } else {
-            row_ioy.push((ioy, ioy));
+            reg_ioy.push((ioy, ioy));
         }
     }
     let mut iox_io = Vec::new();
     let mut iox_hard = 0;
     let mut iox_cfg = 0;
     let mut iox = 0;
-    let mut prev_col = grids[0].columns.first_id().unwrap();
+    let mut prev_col = grids[grid_master].columns.first_id().unwrap();
     for (i, &has_io) in io_has_io.iter().enumerate() {
-        if hard_has_io && grids[0].col_hard.as_ref().unwrap().col > prev_col && grids[0].col_hard.as_ref().unwrap().col < grids[0].cols_io[i].col {
+        if hard_has_io && grids[grid_master].col_hard.as_ref().unwrap().col > prev_col && grids[grid_master].col_hard.as_ref().unwrap().col < grids[grid_master].cols_io[i].col {
             iox_hard = iox;
             iox += 1;
         }
-        if cfg_has_io && grids[0].col_cfg.col > prev_col && grids[0].col_cfg.col < grids[0].cols_io[i].col {
+        if cfg_has_io && grids[grid_master].col_cfg.col > prev_col && grids[grid_master].col_cfg.col < grids[grid_master].cols_io[i].col {
             iox_cfg = iox;
             iox += 1;
         }
@@ -421,7 +421,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
         if has_io {
             iox += 1;
         }
-        prev_col = grids[0].cols_io[i].col;
+        prev_col = grids[grid_master].cols_io[i].col;
     }
     let iox_spec = if iox_io.len() > 1 && io_has_io[iox_io.len() - 2] {
         iox_io[iox_io.len() - 2]
@@ -429,18 +429,18 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
         assert!(io_has_io[iox_io.len() - 1]);
         iox_io[iox_io.len() - 1]
     };
-    row_base = 0;
-    for grid in grids.iter() {
+    reg_base = 0;
+    for grid in grids.values() {
         // HPIO/HRIO
         for (i, c) in grid.cols_io.iter().enumerate() {
-            for (j, &kind) in c.rows.iter().enumerate() {
-                let row = row_base + j as u32;
-                if disabled.contains(&DisabledPart::Region(row)) {
+            for (j, &kind) in c.regs.iter().enumerate() {
+                let reg = reg_base + j;
+                if disabled.contains(&DisabledPart::Region(reg as u32)) {
                     continue
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
                     for bel in 0..52 {
-                        let mut bank = 65 + row - row_cfg + iox_io[i] * 20 - iox_spec * 20;
+                        let mut bank = (65 + reg - reg_cfg) as u32 + iox_io[i] * 20 - iox_spec * 20;
                         if bank == 64 && kind == IoRowKind::Hrio {
                             if bel < 26 {
                                 bank = 94;
@@ -448,16 +448,16 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                                 bank = 84;
                             }
                         }
-                        if i == 0 && iox_io[i] != iox_spec && grids[0].kind == GridKind::UltrascalePlus && !hard_has_io {
+                        if i == 0 && iox_io[i] != iox_spec && grids[grid_master].kind == GridKind::UltrascalePlus && !hard_has_io {
                             bank -= 20;
                         }
                         res.push(Io {
                             col: c.col,
                             side: Some(c.side),
-                            row,
+                            reg: reg as u32,
                             bel,
                             iox: iox_io[i],
-                            ioy: row_ioy[row as usize].0 + bel,
+                            ioy: reg_ioy[reg].0 + bel,
                             bank,
                             kind: match kind {
                                 IoRowKind::Hpio => IoKind::Hpio,
@@ -474,21 +474,21 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
         }
         // HDIO
         if let Some(ref c) = grid.col_hard {
-            for (j, &kind) in c.rows.iter().enumerate() {
-                let row = row_base + j as u32;
-                if disabled.contains(&DisabledPart::Region(row)) {
+            for (j, &kind) in c.regs.iter().enumerate() {
+                let reg = reg_base + j;
+                if disabled.contains(&DisabledPart::Region(reg as u32)) {
                     continue
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                    let bank = 65 + row - row_cfg + iox_hard * 20 - iox_spec * 20;
+                    let bank = (65 + reg - reg_cfg) as u32 + iox_hard * 20 - iox_spec * 20;
                     for bel in 0..24 {
                         res.push(Io {
                             col: c.col,
                             side: None,
-                            row,
+                            reg: reg as u32,
                             bel,
                             iox: iox_hard,
-                            ioy: if bel < 12 { row_ioy[row as usize].0 + bel } else { row_ioy[row as usize].1 + bel - 12 },
+                            ioy: if bel < 12 { reg_ioy[reg].0 + bel } else { reg_ioy[reg].1 + bel - 12 },
                             bank,
                             kind: IoKind::Hdio,
                             grid_kind: grid.kind,
@@ -499,21 +499,21 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                 }
             }
         }
-        for (j, &kind) in grid.col_cfg.rows.iter().enumerate() {
-            let row = row_base + j as u32;
-            if disabled.contains(&DisabledPart::Region(row)) {
+        for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
+            let reg = reg_base + j;
+            if disabled.contains(&DisabledPart::Region(reg as u32)) {
                 continue
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                let bank = 65 + row - row_cfg + iox_cfg * 20 - iox_spec * 20;
+                let bank = (65 + reg - reg_cfg) as u32 + iox_cfg * 20 - iox_spec * 20;
                 for bel in 0..24 {
                     res.push(Io {
                         col: grid.col_cfg.col,
                         side: None,
-                        row,
+                        reg: reg as u32,
                         bel,
                         iox: iox_cfg,
-                        ioy: if bel < 12 { row_ioy[row as usize].0 + bel } else { row_ioy[row as usize].1 + bel - 12 },
+                        ioy: if bel < 12 { reg_ioy[reg].0 + bel } else { reg_ioy[reg].1 + bel - 12 },
                         bank,
                         kind: IoKind::Hdio,
                         grid_kind: grid.kind,
@@ -523,7 +523,7 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                 }
             }
         }
-        row_base += grid.rows;
+        reg_base += grid.regs;
     }
     res
 }
@@ -532,14 +532,14 @@ pub fn get_io(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
 pub struct Gt {
     pub col: ColId,
     pub side: ColSide,
-    pub row: u32,
+    pub reg: u32,
     pub gx: u32,
     pub gy: u32,
     pub bank: u32,
     pub kind: IoRowKind,
 }
 
-pub fn get_gt(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
+pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
     let mut res = Vec::new();
     for kind in [
         IoRowKind::Gth,
@@ -550,42 +550,42 @@ pub fn get_gt(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
         IoRowKind::RfAdc,
         IoRowKind::RfDac,
     ] {
-        let mut col_has_gt: Vec<_> = grids[0].cols_io.iter().map(|_| false).collect();
-        let mut row_has_gt = Vec::new();
-        let mut row_base = 0;
-        let mut row_cfg = None;
-        for (gi, grid) in grids.iter().enumerate() {
-            for _ in 0..grid.rows {
-                row_has_gt.push(false);
+        let mut col_has_gt: Vec<_> = grids[grid_master].cols_io.iter().map(|_| false).collect();
+        let mut reg_has_gt = Vec::new();
+        let mut reg_base = 0;
+        let mut reg_cfg = None;
+        for (gi, grid) in grids {
+            for _ in 0..grid.regs {
+                reg_has_gt.push(false);
             }
             for (i, c) in grid.cols_io.iter().enumerate() {
-                for (j, &rkind) in c.rows.iter().enumerate() {
-                    let row = row_base + (j as u32);
-                    if disabled.contains(&DisabledPart::Region(row)) {
+                for (j, &rkind) in c.regs.iter().enumerate() {
+                    let reg = reg_base + j;
+                    if disabled.contains(&DisabledPart::Region(reg as u32)) {
                         continue
                     }
                     if kind == rkind {
                         col_has_gt[i] = true;
-                        row_has_gt[row as usize] = true;
+                        reg_has_gt[reg] = true;
                     }
                 }
             }
-            for (j, &rkind) in grid.col_cfg.rows.iter().enumerate() {
-                let row = row_base + (j as u32);
-                if disabled.contains(&DisabledPart::Region(row)) {
+            for (j, &rkind) in grid.col_cfg.regs.iter().enumerate() {
+                let reg = reg_base + j;
+                if disabled.contains(&DisabledPart::Region(reg as u32)) {
                     continue
                 }
                 if gi == grid_master && rkind == HardRowKind::Cfg {
-                    row_cfg = Some(row);
+                    reg_cfg = Some(reg);
                 }
             }
-            row_base += grid.rows;
+            reg_base += grid.regs;
         }
-        let row_cfg = row_cfg.unwrap();
+        let reg_cfg = reg_cfg.unwrap();
         let mut gy: u32 = 0;
-        let mut row_gy = Vec::new();
-        for has_gt in row_has_gt {
-            row_gy.push(gy);
+        let mut reg_gy = Vec::new();
+        for has_gt in reg_has_gt {
+            reg_gy.push(gy);
             if has_gt {
                 gy += 1;
             }
@@ -598,33 +598,33 @@ pub fn get_gt(grids: &[Grid], grid_master: usize, disabled: &BTreeSet<DisabledPa
                 gx += 1;
             }
         }
-        row_base = 0;
-        for grid in grids.iter() {
+        reg_base = 0;
+        for grid in grids.values() {
             for (i, c) in grid.cols_io.iter().enumerate() {
-                for (j, &rkind) in c.rows.iter().enumerate() {
-                    let row = row_base + j as u32;
-                    if disabled.contains(&DisabledPart::Region(row)) {
+                for (j, &rkind) in c.regs.iter().enumerate() {
+                    let reg = reg_base + j;
+                    if disabled.contains(&DisabledPart::Region(reg as u32)) {
                         continue
                     }
                     if kind != rkind {
                         continue
                     }
-                    let mut bank = 125 + row - row_cfg;
+                    let mut bank = (125 + reg - reg_cfg) as u32;
                     if i != 0 {
                         bank += 100;
                     }
                     res.push(Gt {
                         col: c.col,
                         side: c.side,
-                        row,
+                        reg: reg as u32,
                         gx: col_gx[i],
-                        gy: row_gy[row as usize],
+                        gy: reg_gy[reg],
                         bank,
                         kind,
                     });
                 }
             }
-            row_base += grid.rows;
+            reg_base += grid.regs;
         }
     }
     res

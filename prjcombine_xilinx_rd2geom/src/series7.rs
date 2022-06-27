@@ -1,13 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord, self as rawdump};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ExtraDie, PsPin, ColId, RowId, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ExtraDie, PsPin, ColId, RowId, SlrId, int, int::Dir};
 use prjcombine_xilinx_geom::series7::{self, GridKind, ColumnKind, IoColumn, IoKind, HoleKind, Hole, GtColumn, GtKind};
 use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::intb::IntBuilder;
 
-use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, find_tiles, IntGrid, ExtraCol, PreDevice, make_device_multi};
+use crate::grid::{extract_int_slr, find_columns, find_rows, find_row, IntGrid, ExtraCol, PreDevice, make_device_multi};
 
 fn get_kind(rd: &Part) -> GridKind {
     if find_columns(rd, &["GTX_COMMON", "GTH_COMMON"]).is_empty() {
@@ -19,58 +19,58 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
+fn make_columns(int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     *res.first_mut().unwrap() = Some(ColumnKind::Gt);
     *res.last_mut().unwrap() = Some(ColumnKind::Gt);
-    for c in find_columns(rd, &["CLBLL_L"]) {
+    for c in int.find_columns(&["CLBLL_L"]) {
         res[int.lookup_column(c + 1)] = Some(ColumnKind::ClbLL);
     }
-    for c in find_columns(rd, &["CLBLM_L"]) {
+    for c in int.find_columns(&["CLBLM_L"]) {
         res[int.lookup_column(c + 1)] = Some(ColumnKind::ClbLM);
     }
-    for c in find_columns(rd, &["CLBLL_R"]) {
+    for c in int.find_columns(&["CLBLL_R"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::ClbLL);
     }
-    for c in find_columns(rd, &["CLBLM_R"]) {
+    for c in int.find_columns(&["CLBLM_R"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::ClbLM);
     }
-    for c in find_columns(rd, &["BRAM_L"]) {
+    for c in int.find_columns(&["BRAM_L"]) {
         res[int.lookup_column(c + 2)] = Some(ColumnKind::Bram);
     }
-    for c in find_columns(rd, &["BRAM_R"]) {
+    for c in int.find_columns(&["BRAM_R"]) {
         res[int.lookup_column(c - 2)] = Some(ColumnKind::Bram);
     }
-    for c in find_columns(rd, &["DSP_L"]) {
+    for c in int.find_columns(&["DSP_L"]) {
         res[int.lookup_column(c + 2)] = Some(ColumnKind::Dsp);
     }
-    for c in find_columns(rd, &["DSP_R"]) {
+    for c in int.find_columns(&["DSP_R"]) {
         res[int.lookup_column(c - 2)] = Some(ColumnKind::Dsp);
     }
-    for c in find_columns(rd, &["RIOI", "RIOI3"]) {
+    for c in int.find_columns(&["RIOI", "RIOI3"]) {
         res[int.lookup_column_inter(c) - 1] = Some(ColumnKind::Io);
     }
-    for c in find_columns(rd, &["LIOI", "LIOI3"]) {
+    for c in int.find_columns(&["LIOI", "LIOI3"]) {
         res[int.lookup_column_inter(c)] = Some(ColumnKind::Io);
     }
-    for c in find_columns(rd, &["CMT_FIFO_R"]) {
+    for c in int.find_columns(&["CMT_FIFO_R"]) {
         res[int.lookup_column(c - 2)] = Some(ColumnKind::Cmt);
     }
-    for c in find_columns(rd, &["CMT_FIFO_L"]) {
+    for c in int.find_columns(&["CMT_FIFO_L"]) {
         res[int.lookup_column(c + 2)] = Some(ColumnKind::Cmt);
     }
-    for c in find_columns(rd, &["VFRAME"]) {
+    for c in int.find_columns(&["VFRAME"]) {
         res[int.lookup_column(c + 2)] = Some(ColumnKind::Cfg);
     }
-    for c in find_columns(rd, &["CLK_HROW_BOT_R"]) {
+    for c in int.find_columns(&["CLK_HROW_BOT_R"]) {
         res[int.lookup_column(c - 2)] = Some(ColumnKind::Clk);
     }
-    for c in find_columns(rd, &["CFG_CENTER_BOT"]) {
+    for c in int.find_columns(&["CFG_CENTER_BOT"]) {
         for d in [-10, -9, -6, -5, -2, -1] {
             res[int.lookup_column(c + d)] = Some(ColumnKind::ClbLL);
         }
     }
-    for c in find_columns(rd, &["INT_INTERFACE_PSS_L"]) {
+    for c in int.find_columns(&["INT_INTERFACE_PSS_L"]) {
         for (d, kind) in [
             (-46, ColumnKind::Io),
             (-45, ColumnKind::Cmt),
@@ -98,12 +98,12 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     res.map_values(|x| x.unwrap())
 }
 
-fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
+fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
-    for c in find_columns(rd, &["VBRK"]) {
+    for c in int.find_columns(&["VBRK"]) {
         res.insert(int.lookup_column_inter(c));
     }
-    for c in find_columns(rd, &["INT_INTERFACE_PSS_L"]) {
+    for c in int.find_columns(&["INT_INTERFACE_PSS_L"]) {
         res.insert(int.lookup_column_inter(c - 41));
         res.insert(int.lookup_column_inter(c - 32));
         res.insert(int.lookup_column_inter(c - 21));
@@ -113,158 +113,142 @@ fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_holes(rd: &Part, int: &IntGrid, row_start: u32, row_end: u32) -> Vec<Hole> {
+fn get_holes(int: &IntGrid) -> Vec<Hole> {
     let mut res = Vec::new();
-    for (x, y) in find_tiles(rd, &["PCIE_BOT"]) {
+    for (x, y) in int.find_tiles(&["PCIE_BOT"]) {
         let col = int.lookup_column(x - 2);
-        let row = int.lookup_row(y - 10).to_idx() as u32;
-        assert_eq!(row % 50, 0);
-        if row < row_start || row >= row_end {
-            continue;
-        }
+        let row = int.lookup_row(y - 10);
+        assert_eq!(row.to_idx() % 50, 0);
         res.push(Hole {
             kind: HoleKind::Pcie2Right,
             col,
-            row: row - row_start,
+            row,
         });
     }
-    for (x, y) in find_tiles(rd, &["PCIE_BOT_LEFT"]) {
+    for (x, y) in int.find_tiles(&["PCIE_BOT_LEFT"]) {
         let col = int.lookup_column(x - 2);
-        let row = int.lookup_row(y - 10).to_idx() as u32;
-        assert_eq!(row % 50, 0);
-        if row < row_start || row >= row_end {
-            continue;
-        }
+        let row = int.lookup_row(y - 10);
+        assert_eq!(row.to_idx() % 50, 0);
         res.push(Hole {
             kind: HoleKind::Pcie2Left,
             col,
-            row: row - row_start,
+            row,
         });
     }
-    for (x, y) in find_tiles(rd, &["PCIE3_BOT_RIGHT"]) {
+    for (x, y) in int.find_tiles(&["PCIE3_BOT_RIGHT"]) {
         let col = int.lookup_column(x - 2);
-        let row = int.lookup_row(y - 7).to_idx() as u32;
-        assert_eq!(row % 50, 25);
-        if row < row_start || row >= row_end {
-            continue;
-        }
+        let row = int.lookup_row(y - 7);
+        assert_eq!(row.to_idx() % 50, 25);
         res.push(Hole {
             kind: HoleKind::Pcie3,
             col,
-            row: row - row_start,
+            row,
         });
     }
-    for (x, y) in find_tiles(rd, &["GTP_CHANNEL_0_MID_LEFT"]) {
+    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_LEFT"]) {
         let col = int.lookup_column(x - 14);
-        let row = int.lookup_row(y - 5).to_idx() as u32;
-        assert_eq!(row % 50, 0);
-        if row < row_start || row >= row_end {
-            continue;
-        }
+        let row = int.lookup_row(y - 5);
+        assert_eq!(row.to_idx() % 50, 0);
         res.push(Hole {
             kind: HoleKind::GtpLeft,
             col,
-            row: row - row_start,
+            row,
         });
     }
-    for (x, y) in find_tiles(rd, &["GTP_CHANNEL_0_MID_RIGHT"]) {
+    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_RIGHT"]) {
         let col = int.lookup_column(x + 19);
-        let row = int.lookup_row(y - 5).to_idx() as u32;
-        assert_eq!(row % 50, 0);
-        if row < row_start || row >= row_end {
-            continue;
-        }
+        let row = int.lookup_row(y - 5);
+        assert_eq!(row.to_idx() % 50, 0);
         res.push(Hole {
             kind: HoleKind::GtpRight,
             col,
-            row: row - row_start,
+            row,
         });
     }
     res
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid, row_start: u32, row_end: u32) -> [Option<IoColumn>; 2] {
+fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
     let mut res = [None, None];
-    if let Some(x) = find_column(rd, &["LIOI", "LIOI3"]) {
+    if let Some(x) = int.find_column(&["LIOI", "LIOI3"]) {
         let col = int.lookup_column_inter(x);
-        let mut rows = Vec::new();
-        for i in (row_start / 50)..(row_end / 50) {
+        let mut regs = Vec::new();
+        for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: x as u16,
-                y: int.rows[RowId::from_idx(i as usize * 50 + 1)] as u16,
+                y: int.rows[RowId::from_idx(i * 50 + 1)] as u16,
             };
-            let kind = match &rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tiles[&c].kind[..] {
                 "LIOI" => Some(IoKind::Hpio),
                 "LIOI3" => Some(IoKind::Hrio),
                 "PCIE_NULL" | "NULL" => None,
                 _ => unreachable!(),
             };
-            rows.push(kind);
+            regs.push(kind);
         }
-        res[0] = Some(IoColumn { col, rows });
+        res[0] = Some(IoColumn { col, regs });
     }
-    if let Some(x) = find_column(rd, &["RIOI", "RIOI3"]) {
+    if let Some(x) = int.find_column(&["RIOI", "RIOI3"]) {
         let col = int.lookup_column_inter(x) - 1;
-        let mut rows = Vec::new();
-        for i in (row_start / 50)..(row_end / 50) {
+        let mut regs = Vec::new();
+        for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: x as u16,
-                y: int.rows[RowId::from_idx(i as usize * 50 + 1)] as u16,
+                y: int.rows[RowId::from_idx(i * 50 + 1)] as u16,
             };
-            let kind = match &rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tiles[&c].kind[..] {
                 "RIOI" => Some(IoKind::Hpio),
                 "RIOI3" => Some(IoKind::Hrio),
                 "NULL" => None,
                 _ => unreachable!(),
             };
-            rows.push(kind);
+            regs.push(kind);
         }
-        res[1] = Some(IoColumn { col, rows });
+        res[1] = Some(IoColumn { col, regs });
     }
     res
 }
 
-fn get_cols_gt(rd: &Part, int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>, row_start: u32, row_end: u32) -> [Option<GtColumn>; 2] {
+fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option<GtColumn>; 2] {
     let mut res = [None, None];
     if *columns.first().unwrap() == ColumnKind::Gt {
-        let mut rows = Vec::new();
-        for i in (row_start / 50)..(row_end / 50) {
+        let mut regs = Vec::new();
+        for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: 0,
-                y: int.rows[RowId::from_idx(i as usize * 50 + 5)] as u16,
+                y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
             };
-            let kind = match &rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tiles[&c].kind[..] {
                 "GTH_CHANNEL_0" => Some(GtKind::Gth),
                 "GTX_CHANNEL_0" => Some(GtKind::Gtx),
                 _ => unreachable!(),
             };
-            rows.push(kind);
+            regs.push(kind);
         }
-        res[0] = Some(GtColumn { col: columns.first_id().unwrap(), rows });
+        res[0] = Some(GtColumn { col: columns.first_id().unwrap(), regs });
     }
-    let col;
-    if *columns.last().unwrap() == ColumnKind::Gt {
-        col = columns.last_id().unwrap();
+    let col = if *columns.last().unwrap() == ColumnKind::Gt {
+        columns.last_id().unwrap()
     } else {
-        col = columns.last_id().unwrap() - 6;
-    }
+        columns.last_id().unwrap() - 6
+    };
     let x = int.cols[col] + 4;
-    let mut rows = Vec::new();
-    for i in (row_start / 50)..(row_end / 50) {
+    let mut regs = Vec::new();
+    for i in 0..(int.rows.len() / 50) {
         let c = Coord {
             x: x as u16,
-            y: int.rows[RowId::from_idx(i as usize * 50 + 5)] as u16,
+            y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
         };
-        let kind = match &rd.tiles[&c].kind[..] {
+        let kind = match &int.rd.tiles[&c].kind[..] {
             "GTH_CHANNEL_0" => Some(GtKind::Gth),
             "GTX_CHANNEL_0" => Some(GtKind::Gtx),
             "GTP_CHANNEL_0" => Some(GtKind::Gtp),
             _ => None,
         };
-        rows.push(kind);
+        regs.push(kind);
     }
-    if rows.iter().any(|&x| x.is_some()) {
-        res[1] = Some(GtColumn { col, rows });
+    if regs.iter().any(|&x| x.is_some()) {
+        res[1] = Some(GtColumn { col, regs });
     }
     res
 }
@@ -709,64 +693,68 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.build()
 }
 
-fn make_grids(rd: &Part) -> (Vec<series7::Grid>, usize, Vec<ExtraDie>) {
-    let int = extract_int(rd, &["INT_L", "INT_R", "INT_L_SLV", "INT_L_SLV_FLY", "INT_R_SLV", "INT_R_SLV_FLY"], &[
-        ExtraCol { tts: &["CFG_CENTER_BOT"], dx: &[-10, -9, -6, -5, -2, -1] },
-        ExtraCol { tts: &["INT_INTERFACE_PSS_L"], dx: &[
-            -46, -45,
-            -39, -38,
-            -35, -34,
-            -29, -28,
-            -25, -24,
-            -19, -18,
-            -15, -14,
-            -9, -8,
-            -5, -4
-        ] },
-    ]);
-    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["T_TERM_INT_SLV"]).into_iter().map(|r| int.lookup_row_inter(r).to_idx() as u32).collect();
-    rows_slr_split.remove(&0);
-    rows_slr_split.insert(int.rows.len() as u32);
+fn make_grids(rd: &Part) -> (EntityVec<SlrId, series7::Grid>, SlrId, Vec<ExtraDie>) {
+    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["B_TERM_INT_SLV"]).into_iter().map(|x| x as u16).collect();
+    rows_slr_split.insert(0);
+    rows_slr_split.insert(rd.height);
+    if rows_slr_split.contains(&2) {
+        rows_slr_split.remove(&0);
+    }
+    if rows_slr_split.contains(&(rd.height - 2)) {
+        rows_slr_split.remove(&rd.height);
+    }
+    let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
     let kind = get_kind(rd);
-    let columns = make_columns(rd, &int);
-    let cols_vbrk = get_cols_vbrk(rd, &int);
-    let col_cfg = int.lookup_column(find_column(rd, &["CFG_CENTER_BOT"]).unwrap() + 3);
-    let col_clk = int.lookup_column(find_column(rd, &["CLK_HROW_BOT_R"]).unwrap() - 2);
-    let has_no_tbuturn = !find_rows(rd, &["T_TERM_INT_NOUTURN"]).is_empty();
-    let rows_cfg: Vec<_> = find_rows(rd, &["CFG_CENTER_BOT"]).into_iter().map(|r| int.lookup_row(r - 10).to_idx() as u32 + 50).collect();
-    let rows_clk: Vec<_> = find_rows(rd, &["CLK_BUFG_BOT_R"]).into_iter().map(|r| int.lookup_row(r).to_idx() as u32 + 4).collect();
-    let has_ps = !find_columns(rd, &["INT_INTERFACE_PSS_L"]).is_empty();
-    let has_slr = !find_columns(rd, &["INT_L_SLV"]).is_empty();
-    for &x in &rows_cfg {
-        assert_eq!(x % 50, 0);
-    }
-    for &x in &rows_clk {
-        assert_eq!(x % 50, 0);
-    }
-    let mut grids = Vec::new();
-    let mut row_start = 0;
-    for (i, row_end) in rows_slr_split.into_iter().enumerate() {
-        assert_eq!(row_end % 50, 0);
-        grids.push(series7::Grid {
+    let mut grids = EntityVec::new();
+    let mut grid_master = None;
+    for w in rows_slr_split.windows(2) {
+        let int = extract_int_slr(rd, &["INT_L", "INT_R", "INT_L_SLV", "INT_L_SLV_FLY", "INT_R_SLV", "INT_R_SLV_FLY"], &[
+            ExtraCol { tts: &["CFG_CENTER_BOT"], dx: &[-10, -9, -6, -5, -2, -1] },
+            ExtraCol { tts: &["INT_INTERFACE_PSS_L"], dx: &[
+                -46, -45,
+                -39, -38,
+                -35, -34,
+                -29, -28,
+                -25, -24,
+                -19, -18,
+                -15, -14,
+                -9, -8,
+                -5, -4
+            ] },
+        ], *w[0], *w[1]);
+        let columns = make_columns(&int);
+        let cols_vbrk = get_cols_vbrk(&int);
+        let col_cfg = int.lookup_column(int.find_column(&["CFG_CENTER_BOT"]).unwrap() + 3);
+        let col_clk = int.lookup_column(int.find_column(&["CLK_HROW_BOT_R"]).unwrap() - 2);
+        let has_no_tbuturn = !int.find_rows(&["T_TERM_INT_NOUTURN"]).is_empty();
+        let row_cfg = int.lookup_row(int.find_row(&["CFG_CENTER_BOT"]).unwrap() - 10) + 50;
+        let row_clk = int.lookup_row(int.find_row(&["CLK_BUFG_BOT_R"]).unwrap()) + 4;
+        let has_ps = !int.find_columns(&["INT_INTERFACE_PSS_L"]).is_empty();
+        let has_slr = !int.find_columns(&["INT_L_SLV"]).is_empty();
+        assert_eq!(row_cfg.to_idx() % 50, 0);
+        assert_eq!(row_clk.to_idx() % 50, 0);
+        assert_eq!(int.rows.len() % 50, 0);
+        let slr = grids.push(series7::Grid {
             kind,
             columns: columns.clone(),
             cols_vbrk: cols_vbrk.clone(),
             col_cfg,
             col_clk,
-            cols_io: get_cols_io(rd, &int, row_start, row_end),
-            cols_gt: get_cols_gt(rd, &int, &columns, row_start, row_end),
-            rows: (row_end - row_start) / 50,
-            row_cfg: (rows_cfg[i] - row_start) / 50,
-            row_clk: (rows_clk[i] - row_start) / 50,
-            holes: get_holes(rd, &int, row_start, row_end),
+            cols_io: get_cols_io(&int),
+            cols_gt: get_cols_gt(&int, &columns),
+            regs: int.rows.len() / 50,
+            reg_cfg: row_cfg.to_idx() / 50,
+            reg_clk: row_clk.to_idx() / 50,
+            holes: get_holes(&int),
             has_ps,
             has_slr,
             has_no_tbuturn,
         });
-        row_start = row_end;
+        if int.find_row(&["CFG_CENTER_MID"]).is_some() {
+            grid_master = Some(slr);
+        }
     }
-    let row_cfg_master = int.lookup_row(find_row(rd, &["CFG_CENTER_MID"]).unwrap() - 31).to_idx() as u32 + 50;
-    let grid_master = rows_cfg.iter().position(|&x| x == row_cfg_master).unwrap();
+    let grid_master = grid_master.unwrap();
     let mut extras = Vec::new();
     if find_row(rd, &["GTZ_BOT"]).is_some() {
         extras.push(ExtraDie::GtzBottom);
@@ -783,7 +771,7 @@ fn split_num(s: &str) -> Option<(&str, u32)> {
     Some((&s[..pos], n))
 }
 
-fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, extras: &[ExtraDie], pins: &[PkgPin]) -> Bond {
+fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, series7::Grid>, grid_master: SlrId, extras: &[ExtraDie], pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let is_7k70t = rd.part.contains("7k70t");
     let io_lookup: HashMap<_, _> = series7::get_io(grids, grid_master)
@@ -813,17 +801,17 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, 
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
-                let mut exp_func = match io.row % 50 {
+                let mut exp_func = match io.row.to_idx() % 50 {
                     0 => format!("IO_25"),
                     49 => format!("IO_0"),
                     n => format!("IO_L{}{}_T{}", (50 - n) / 2, ['P', 'N'][n as usize % 2], 3 - (n - 1) / 12),
                 };
-                if matches!(pkg, "fbg484" | "fbv484") && rd.part.contains("7k") && io.bank == 16 && matches!(io.row % 50, 2 | 14 | 37) {
-                    exp_func = format!("IO_{}_T{}", (50 - io.row % 50) / 2, 3 - (io.row % 50 - 1) / 12);
+                if matches!(pkg, "fbg484" | "fbv484") && rd.part.contains("7k") && io.bank == 16 && matches!(io.row.to_idx() % 50, 2 | 14 | 37) {
+                    exp_func = format!("IO_{}_T{}", (50 - io.row.to_idx() % 50) / 2, 3 - (io.row.to_idx() % 50 - 1) / 12);
                 }
-                if io.bank == 35 && matches!(io.row % 50, 21 | 22) {
+                if io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22) {
                     if let Some(sm) = io.sm_pair(has_15, has_35) {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row as usize % 2]).unwrap();
+                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row.to_idx() % 2]).unwrap();
                     }
                 }
                 if io.is_srcc() {
@@ -868,9 +856,9 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, 
                     None => (),
                     _ => unreachable!(),
                 }
-                if !(io.bank == 35 && matches!(io.row % 50, 21 | 22)) {
+                if !(io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22)) {
                     if let Some(sm) = io.sm_pair(has_15, has_35) {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row as usize % 2]).unwrap();
+                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row.to_idx() % 2]).unwrap();
                     }
                 }
                 if io.is_vref() {
@@ -888,7 +876,7 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, 
                 }
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 assert_eq!(pin.vcco_bank, Some(io.bank));
-                BondPin::IoByBank(io.bank, io.row % 50)
+                BondPin::IoByBank(io.bank, (io.row.to_idx() % 50) as u32)
             } else if let Some(&(ref exp_func, bank, gpin, idx)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f=pin.func);
@@ -969,10 +957,10 @@ fn make_bond(rd: &Part, pkg: &str, grids: &[series7::Grid], grid_master: usize, 
                 "CFGBVS_0" => BondPin::Cfg(CfgPin::CfgBvs),
                 "DXN_0" => BondPin::Dxn,
                 "DXP_0" => BondPin::Dxp,
-                "GNDADC_0" | "GNDADC" => BondPin::SysMonByBank(grid_master as u32, SysMonPin::AVss),
-                "VCCADC_0" | "VCCADC" => BondPin::SysMonByBank(grid_master as u32, SysMonPin::AVdd),
-                "VREFP_0" => BondPin::SysMonByBank(grid_master as u32, SysMonPin::VRefP),
-                "VREFN_0" => BondPin::SysMonByBank(grid_master as u32, SysMonPin::VRefN),
+                "GNDADC_0" | "GNDADC" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::AVss),
+                "VCCADC_0" | "VCCADC" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::AVdd),
+                "VREFP_0" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::VRefP),
+                "VREFN_0" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::VRefN),
                 "MGTAVTT" => BondPin::GtByRegion(10, GtRegionPin::AVtt),
                 "MGTAVCC" => BondPin::GtByRegion(10, GtRegionPin::AVcc),
                 "MGTVCCAUX" => BondPin::GtByRegion(10, GtRegionPin::VccAux),
@@ -1038,7 +1026,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(rd, pkg, &grids, grid_master, &extras, pins),
         ));
     }
-    let grids = grids.into_iter().map(|x| geom::Grid::Series7(x)).collect();
+    let grids = grids.into_map_values(|x| geom::Grid::Series7(x));
     // XXX GROSS HACK ALERT
     if rd.source == rawdump::Source::Vivado {
         int_db.intfs.clear();

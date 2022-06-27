@@ -13,9 +13,9 @@ pub struct Grid {
     pub cols_qbuf: (ColId, ColId),
     pub cols_io: [Option<ColId>; 4],
     pub col_hard: Option<HardColumn>,
-    pub rows: usize,
-    pub row_gth_start: usize,
-    pub row_cfg: usize,
+    pub regs: usize,
+    pub reg_gth_start: usize,
+    pub reg_cfg: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -176,9 +176,9 @@ impl Gt {
             (1, 0)
         };
         if self.is_gth {
-            let gthy = self.row.to_idx() / 40 - grid.row_gth_start;
-            let opy = (grid.row_gth_start * 32 + gthy * 8) as u32;
-            let ipy = (grid.row_gth_start * 24 + gthy * 12) as u32;
+            let gthy = self.row.to_idx() / 40 - grid.reg_gth_start;
+            let opy = (grid.reg_gth_start * 32 + gthy * 8) as u32;
+            let ipy = (grid.reg_gth_start * 24 + gthy * 12) as u32;
             for b in 0..4 {
                 res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)), format!("MGTTXN{}_{}", b, self.bank), GtPin::TxN, b));
                 res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b) + 1), format!("MGTTXP{}_{}", b, self.bank), GtPin::TxP, b));
@@ -211,8 +211,8 @@ impl Grid {
         let mut iox = 0;
         for ioc in 0..4 {
             if let Some(col) = self.cols_io[ioc as usize] {
-                for j in 0..self.rows {
-                    let bank = 15 + j - self.row_cfg + ioc as usize * 10;
+                for j in 0..self.regs {
+                    let bank = 15 + j - self.reg_cfg + ioc as usize * 10;
                     for k in 0..40 {
                         res.push(Io {
                             col,
@@ -233,13 +233,13 @@ impl Grid {
     pub fn get_gt(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
         let mut res = Vec::new();
         let mut gy = 0;
-        for i in 0..self.rows {
+        for i in 0..self.regs {
             if disabled.contains(&DisabledPart::Virtex6GtxRow(i as u32)) {
                 continue;
             }
-            let is_gth = i >= self.row_gth_start;
+            let is_gth = i >= self.reg_gth_start;
             if self.has_left_gt() {
-                let bank = 105 + i - self.row_cfg;
+                let bank = 105 + i - self.reg_cfg;
                 res.push(Gt {
                     col: self.columns.first_id().unwrap(),
                     row: RowId::from_idx(i * 40),
@@ -250,7 +250,7 @@ impl Grid {
                 });
             }
             if self.col_hard.is_some() {
-                let bank = 115 + i - self.row_cfg;
+                let bank = 115 + i - self.reg_cfg;
                 res.push(Gt {
                     col: self.columns.last_id().unwrap(),
                     row: RowId::from_idx(i * 40),
@@ -276,7 +276,7 @@ impl Grid {
             res.push((format!("IPAD_X0Y1"), SysMonPin::VN));
         } else {
             let mut ipy = 6;
-            for i in 0..self.row_cfg {
+            for i in 0..self.reg_cfg {
                 if !disabled.contains(&DisabledPart::Virtex6GtxRow(i as u32)) {
                     ipy += 24;
                 }
@@ -299,7 +299,7 @@ impl Grid {
             tie_pin_pullup: None,
             tie_pin_gnd: Some("HARD0".to_string()),
             tie_pin_vcc: Some("HARD1".to_string()),
-            tiles: Array2::default([self.rows * 40, self.columns.len()]),
+            tiles: Array2::default([self.regs * 40, self.columns.len()]),
         };
 
         let mut tie_x = 0;
@@ -361,15 +361,15 @@ impl Grid {
             }
         }
 
-        let row_b = RowId::from_idx(self.row_cfg * 40 - 40);
-        let row_t = RowId::from_idx(self.row_cfg * 40 + 40);
+        let row_b = RowId::from_idx(self.reg_cfg * 40 - 40);
+        let row_t = RowId::from_idx(self.reg_cfg * 40 + 40);
         grid.nuke_rect(self.col_cfg - 6, row_b, 6, 80);
         for dx in 0..6 {
             let col = self.col_cfg - 6 + dx;
             if row_b.to_idx() != 0 {
                 grid.fill_term_anon((col, row_b - 1), "N");
             }
-            if row_t.to_idx() != self.rows * 40 {
+            if row_t.to_idx() != self.regs * 40 {
                 grid.fill_term_anon((col, row_t), "S");
             }
         }

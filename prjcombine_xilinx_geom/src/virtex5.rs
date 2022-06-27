@@ -11,8 +11,8 @@ pub struct Grid {
     pub cols_mgt_buf: BTreeSet<ColId>,
     pub col_hard: Option<HardColumn>,
     pub cols_io: [Option<ColId>; 3],
-    pub rows: usize,
-    pub row_cfg: usize,
+    pub regs: usize,
+    pub reg_cfg: usize,
     pub holes_ppc: Vec<(ColId, RowId)>,
 }
 
@@ -155,7 +155,7 @@ pub struct Gt {
 impl Gt {
     pub fn get_pads(&self, grid: &Grid) -> Vec<(String, String, GtPin, u32)> {
         let reg = self.row.to_idx() / 20;
-        let ipy = if reg < grid.row_cfg {
+        let ipy = if reg < grid.reg_cfg {
             reg * 6
         } else {
             6 + reg * 6
@@ -185,11 +185,11 @@ impl Grid {
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         // left column
-        for i in 0..self.rows {
-            let bank = if i < self.row_cfg {
-                13 + (self.row_cfg - i - 1) * 4
+        for i in 0..self.regs {
+            let bank = if i < self.reg_cfg {
+                13 + (self.reg_cfg - i - 1) * 4
             } else {
-                11 + (i - self.row_cfg) * 4
+                11 + (i - self.reg_cfg) * 4
             };
             for j in 0..20 {
                 for k in 0..2 {
@@ -206,9 +206,9 @@ impl Grid {
         }
         // center column
         // bottom banks
-        if self.row_cfg > 3 {
-            for i in 0..(self.row_cfg - 3) {
-                let bank = 6 + (self.row_cfg - 4 - i) * 2;
+        if self.reg_cfg > 3 {
+            for i in 0..(self.reg_cfg - 3) {
+                let bank = 6 + (self.reg_cfg - 4 - i) * 2;
                 for j in 0..20 {
                     for k in 0..2 {
                         res.push(Io {
@@ -225,10 +225,10 @@ impl Grid {
         }
         // special banks 4, 2, 1, 3
         for (bank, base) in [
-            (4, self.row_cfg * 20 - 30),
-            (2, self.row_cfg * 20 - 20),
-            (1, self.row_cfg * 20 + 10),
-            (3, self.row_cfg * 20 + 20),
+            (4, self.reg_cfg * 20 - 30),
+            (2, self.reg_cfg * 20 - 20),
+            (1, self.reg_cfg * 20 + 10),
+            (3, self.reg_cfg * 20 + 20),
         ] {
             for j in 0..10 {
                 for k in 0..2 {
@@ -244,9 +244,9 @@ impl Grid {
             }
         }
         // top banks
-        if (self.rows - self.row_cfg) > 3 {
-            for i in (self.row_cfg + 3)..self.rows {
-                let bank = 5 + (i - self.row_cfg - 3) * 2;
+        if (self.regs - self.reg_cfg) > 3 {
+            for i in (self.reg_cfg + 3)..self.regs {
+                let bank = 5 + (i - self.reg_cfg - 3) * 2;
                 for j in 0..20 {
                     for k in 0..2 {
                         res.push(Io {
@@ -263,11 +263,11 @@ impl Grid {
         }
         // right column
         if let Some(col) = self.cols_io[2] {
-            for i in 0..self.rows {
-                let bank = if i < self.row_cfg {
-                    14 + (self.row_cfg - i - 1) * 4
+            for i in 0..self.regs {
+                let bank = if i < self.reg_cfg {
+                    14 + (self.reg_cfg - i - 1) * 4
                 } else {
-                    12 + (i - self.row_cfg) * 4
+                    12 + (i - self.reg_cfg) * 4
                 };
                 for j in 0..20 {
                     for k in 0..2 {
@@ -289,11 +289,11 @@ impl Grid {
     pub fn get_gt(&self) -> Vec<Gt> {
         let mut res = Vec::new();
         if self.has_left_gt() {
-            for i in 0..self.rows {
-                let bank = if i < self.row_cfg {
-                    113 + (self.row_cfg - i - 1) * 4
+            for i in 0..self.regs {
+                let bank = if i < self.reg_cfg {
+                    113 + (self.reg_cfg - i - 1) * 4
                 } else {
-                    111 + (i - self.row_cfg) * 4
+                    111 + (i - self.reg_cfg) * 4
                 };
                 res.push(Gt {
                     col: self.columns.first_id().unwrap(),
@@ -306,11 +306,11 @@ impl Grid {
         }
         if self.col_hard.is_some() {
             let is_gtx = *self.columns.last().unwrap() == ColumnKind::Gtx;
-            for i in 0..self.rows {
-                let bank = if i < self.row_cfg {
-                    114 + (self.row_cfg - i - 1) * 4
+            for i in 0..self.regs {
+                let bank = if i < self.reg_cfg {
+                    114 + (self.reg_cfg - i - 1) * 4
                 } else {
-                    112 + (i - self.row_cfg) * 4
+                    112 + (i - self.reg_cfg) * 4
                 };
                 res.push(Gt {
                     col: self.columns.last_id().unwrap(),
@@ -331,11 +331,11 @@ impl Grid {
     pub fn get_sysmon_pads(&self) -> Vec<(String, SysMonPin)> {
         let mut res = Vec::new();
         if self.has_left_gt() {
-            let ipy = 6 * self.row_cfg;
+            let ipy = 6 * self.reg_cfg;
             res.push((format!("IPAD_X1Y{}", ipy), SysMonPin::VP));
             res.push((format!("IPAD_X1Y{}", ipy+1), SysMonPin::VN));
         } else if self.col_hard.is_some() {
-            let ipy = 6 * self.row_cfg;
+            let ipy = 6 * self.reg_cfg;
             res.push((format!("IPAD_X0Y{}", ipy), SysMonPin::VP));
             res.push((format!("IPAD_X0Y{}", ipy+1), SysMonPin::VN));
         } else {
@@ -352,7 +352,7 @@ impl Grid {
             tie_pin_pullup: Some("KEEP1".to_string()),
             tie_pin_gnd: Some("HARD0".to_string()),
             tie_pin_vcc: Some("HARD1".to_string()),
-            tiles: Array2::default([self.rows * 20, self.columns.len()]),
+            tiles: Array2::default([self.regs * 20, self.columns.len()]),
         };
 
         for (col, &kind) in &self.columns {

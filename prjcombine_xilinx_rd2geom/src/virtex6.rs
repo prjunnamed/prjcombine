@@ -103,11 +103,11 @@ fn get_col_cfg(rd: &Part, int: &IntGrid) -> ColId {
     int.lookup_column(find_column(rd, &["CFG_CENTER_0"]).unwrap() + 2)
 }
 
-fn get_row_cfg(rd: &Part, int: &IntGrid) -> usize {
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
     int.lookup_row(find_row(rd, &["CFG_CENTER_2"]).unwrap() - 10).to_idx() / 40
 }
 
-fn get_row_gth_start(rd: &Part, int: &IntGrid) -> usize {
+fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> usize {
     if let Some(r) = find_rows(rd, &["GTH_BOT"]).into_iter().min() {
         int.lookup_row(r - 10).to_idx() / 40
     } else {
@@ -423,9 +423,9 @@ fn make_grid(rd: &Part) -> (virtex6::Grid, BTreeSet<DisabledPart>) {
         cols_qbuf: get_cols_qbuf(rd, &int),
         col_hard: get_col_hard(rd, &int),
         cols_io: get_cols_io(&rd, &int),
-        rows: int.rows.len() / 40,
-        row_cfg: get_row_cfg(rd, &int),
-        row_gth_start: get_row_gth_start(rd, &int),
+        regs: int.rows.len() / 40,
+        reg_cfg: get_reg_cfg(rd, &int),
+        reg_gth_start: get_reg_gth_start(rd, &int),
     };
     (grid, disabled)
 }
