@@ -101,14 +101,17 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
-        let mut grid = eint::ExpandedGrid {
+        let mut egrid = eint::ExpandedGrid {
             db,
             tie_kind: None,
             tie_pin_pullup: None,
             tie_pin_gnd: None,
             tie_pin_vcc: None,
-            tiles: Array2::default([self.rows, self.columns]),
+            tiles: Default::default(),
         };
+        let slrid = egrid.tiles.push(Array2::default([self.rows, self.columns]));
+        let mut grid = egrid.slr_mut(slrid);
+
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
         let row_b = grid.rows().next().unwrap();
@@ -151,6 +154,6 @@ impl Grid {
             }
         }
         grid.fill_main_passes();
-        grid
+        egrid
     }
 }

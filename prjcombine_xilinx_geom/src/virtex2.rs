@@ -583,14 +583,17 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
-        let mut grid = eint::ExpandedGrid {
+        let mut egrid = eint::ExpandedGrid {
             db,
             tie_kind: Some("VCC".to_string()),
             tie_pin_pullup: Some("VCCOUT".to_string()),
             tie_pin_gnd: None,
             tie_pin_vcc: None,
-            tiles: Array2::default([self.rows.len(), self.columns.len()]),
+            tiles: Default::default(),
         };
+
+        let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
+        let mut grid = egrid.slr_mut(slrid);
 
         let use_xy = matches!(self.kind, GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp);
         let mut rows_brk: BTreeSet<_> = self.rows_hclk.iter().map(|&(_, r)| r - 1).collect();
@@ -1528,6 +1531,6 @@ impl Grid {
             }
         }
 
-        grid
+        egrid
     }
 }

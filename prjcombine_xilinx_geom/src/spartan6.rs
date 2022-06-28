@@ -344,14 +344,16 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
-        let mut grid = eint::ExpandedGrid {
+        let mut egrid = eint::ExpandedGrid {
             db,
             tie_kind: Some("TIEOFF".to_string()),
             tie_pin_pullup: Some("KEEP1".to_string()),
             tie_pin_gnd: Some("HARD0".to_string()),
             tie_pin_vcc: Some("HARD1".to_string()),
-            tiles: Array2::default([self.rows.len(), self.columns.len()]),
+            tiles: Default::default(),
         };
+        let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
+        let mut grid = egrid.slr_mut(slrid);
 
         let mut tie_x = 0;
         let mut rxlut = EntityVec::new();
@@ -880,6 +882,6 @@ impl Grid {
 
         grid.fill_main_passes();
 
-        grid
+        egrid
     }
 }
