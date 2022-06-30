@@ -332,7 +332,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     builder.extract_pass_simple("BRKH", Dir::S, "BRKH", &[]);
-    builder.extract_pass_buf("CLB_BUFFER", Dir::W, "CLB_BUFFER", "PASS.CLB_BUFFER");
+    builder.extract_pass_buf("CLB_BUFFER", Dir::W, "CLB_BUFFER", "PASS.CLB_BUFFER", &[]);
 
     builder.stub_out("PB_OMUX11_B5");
     builder.stub_out("PB_OMUX11_B6");

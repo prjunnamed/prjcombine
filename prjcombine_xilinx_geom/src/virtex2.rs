@@ -583,14 +583,9 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
-        let mut egrid = eint::ExpandedGrid {
-            db,
-            tie_kind: Some("VCC".to_string()),
-            tie_pin_pullup: Some("VCCOUT".to_string()),
-            tie_pin_gnd: None,
-            tie_pin_vcc: None,
-            tiles: Default::default(),
-        };
+        let mut egrid = eint::ExpandedGrid::new(db);
+        egrid.tie_kind = Some("VCC".to_string());
+        egrid.tie_pin_pullup = Some("VCCOUT".to_string());
 
         let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
         let mut grid = egrid.slr_mut(slrid);
@@ -1213,7 +1208,7 @@ impl Grid {
                 for dc in 0..10 {
                     let col = bc + dc;
                     if let Some(ref mut tile) = grid[(col, row)] {
-                        tile.intf = Some(eint::ExpandedTileIntf {
+                        tile.intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("PPC"),
                             name: tile.name.clone(),
                             naming_int: tile.naming,
@@ -1236,7 +1231,7 @@ impl Grid {
                 tile.special = true;
                 tile.kind = kind_gt0;
                 tile.naming = naming_gt0;
-                tile.intf = Some(eint::ExpandedTileIntf {
+                tile.intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("GT.CLKPAD"),
                     name: tile.name.clone(),
                     naming_int: tile.naming,
@@ -1257,7 +1252,7 @@ impl Grid {
                     tile.special = true;
                     tile.kind = kind_gt;
                     tile.naming = naming_gt;
-                    tile.intf = Some(eint::ExpandedTileIntf {
+                    tile.intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf(if d % 4 == 0 {"GT.0"} else {"GT.123"}),
                         name: tile.name.clone(),
                         naming_int: tile.naming,

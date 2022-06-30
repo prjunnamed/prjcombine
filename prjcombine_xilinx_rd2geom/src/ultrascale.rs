@@ -2,8 +2,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeOrClass};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, ColId, SlrId, int, int::Dir};
-use prjcombine_xilinx_geom::ultrascale::{self, GridKind, Column, ColumnKindLeft, ColumnKindRight, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt, ColSide};
+use prjcombine_xilinx_geom::ultrascale::{self, GridKind, Column, ColumnKindLeft, ColumnKindRight, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt, ColSide, expand_grid};
 use prjcombine_entity::{EntityVec, EntityId};
+use crate::verify::Verifier;
 
 use enum_map::enum_map;
 
@@ -1041,7 +1042,7 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), None, Some(&format!("INTF.{dir}.SITE")), None);
     }
 
-    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", format!("INTF.PSS"), None, Some(&format!("INTF.PSS.SITE")), Some(&format!("INTF.PSS.DELAY")));
+    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", None, Some("INTF.PSS.SITE"), Some("INTF.PSS.DELAY"));
     for (dir, tkn) in [
         (Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
         (Dir::W, "INT_INTF_L_CMT"),
@@ -1059,6 +1060,8 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     ] {
         builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), None, Some(&format!("INTF.{dir}.{n}.SITE")), Some(&format!("INTF.{dir}.{n}.DELAY")));
     }
+
+    builder.extract_pass_simple("IO", Dir::W, "INT_IBRK_FSR2IO", &[]);
 
     builder.build()
 }
@@ -1125,8 +1128,8 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[2].regs.push(IoRowKind::Gth);
             grids[s0].cols_io[2].regs.push(IoRowKind::Gth);
-            disabled.insert(DisabledPart::Region(3));
-            disabled.insert(DisabledPart::Region(4));
+            disabled.insert(DisabledPart::Region(s0, 3));
+            disabled.insert(DisabledPart::Region(s0, 4));
         } else if rd.part.contains("ku085") {
             let s0 = SlrId::from_idx(0);
             let s1 = SlrId::from_idx(1);
@@ -1142,7 +1145,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s1].cols_io[2].regs.push(IoRowKind::Hpio);
             grids[s1].cols_io[3].regs.push(IoRowKind::Gth);
             assert_eq!(grids[s0], grids[s1]);
-            disabled.insert(DisabledPart::Region(9));
+            disabled.insert(DisabledPart::Region(s1, 4));
         } else if rd.part.contains("zu25dr") {
             let s0 = SlrId::from_idx(0);
             assert_eq!(grids.len(), 1);
@@ -1159,8 +1162,8 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
             grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
-            disabled.insert(DisabledPart::Region(6));
-            disabled.insert(DisabledPart::Region(7));
+            disabled.insert(DisabledPart::Region(s0, 6));
+            disabled.insert(DisabledPart::Region(s0, 7));
         } else if rd.part.contains("ku19p") {
             let s0 = SlrId::from_idx(0);
             assert_eq!(grids.len(), 1);
@@ -1174,8 +1177,8 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[1].regs.insert(0, IoRowKind::Gty);
             grids[s0].cols_io[1].regs.push(IoRowKind::Gtm);
-            disabled.insert(DisabledPart::Region(0));
-            disabled.insert(DisabledPart::Region(10));
+            disabled.insert(DisabledPart::Region(s0, 0));
+            disabled.insert(DisabledPart::Region(s0, 10));
         } else {
             println!("UNKNOWN CUT TOP {}", rd.part);
         }
@@ -1199,7 +1202,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s0].cols_io[2].regs.insert(0, IoRowKind::Hrio);
             grids[s0].cols_io[3].regs.insert(0, IoRowKind::Gth);
             assert_eq!(grids[s0], grids[s1]);
-            disabled.insert(DisabledPart::Region(0));
+            disabled.insert(DisabledPart::Region(s0, 0));
         } else if rd.part.contains("ku19p") {
             // fixed above
         } else {
@@ -1803,6 +1806,10 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(rd, pkg, &grids, grid_master, &disabled, pins),
         ));
     }
+    let grid_refs = grids.map_values(|x| x);
+    let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     let grids = grids.into_map_values(|x| geom::Grid::Ultrascale(x));
     (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))
 }

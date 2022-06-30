@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 use enum_map::{EnumMap, enum_map};
 use prjcombine_entity::{EntityVec, EntityId, EntityIds};
 use ndarray::Array2;
+use std::collections::HashMap;
 
 pub type Coord = (ColId, RowId);
 pub type IntWire = (SlrId, Coord, WireId);
@@ -16,6 +17,7 @@ pub struct ExpandedGrid<'a> {
     pub tie_pin_vcc: Option<String>,
     pub tie_pin_pullup: Option<String>,
     pub tiles: EntityVec<SlrId, Array2<Option<ExpandedTile>>>,
+    pub slr_wires: HashMap<IntWire, IntWire>,
 }
 
 pub struct ExpandedSlrRef<'a, 'b> {
@@ -29,6 +31,18 @@ pub struct ExpandedSlrRefMut<'a, 'b> {
 }
 
 impl<'a> ExpandedGrid<'a> {
+    pub fn new(db: &'a IntDb) -> Self {
+        ExpandedGrid {
+            db,
+            tie_kind: None,
+            tie_pin_gnd: None,
+            tie_pin_vcc: None,
+            tie_pin_pullup: None,
+            tiles: EntityVec::new(),
+            slr_wires: HashMap::new(),
+        }
+    }
+
     pub fn slrs<'b>(&'b self) -> impl Iterator<Item=ExpandedSlrRef<'a, 'b>> {
         self.tiles.ids().map(|slr| self.slr(slr))
     }
@@ -98,7 +112,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             tie_name: None,
             naming: self.grid.db.get_naming(naming),
             special: false,
-            intf: None,
+            intfs: vec![],
             dirs: enum_map!(_ => ExpandedTileDir::None),
         });
     }
@@ -111,7 +125,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             tie_name: None,
             naming: self.grid.db.get_naming(naming),
             special: true,
-            intf: None,
+            intfs: vec![],
             dirs: enum_map!(_ => ExpandedTileDir::None),
         });
     }
@@ -316,9 +330,10 @@ impl ExpandedGrid<'_> {
                                             wire.2 = wf;
                                         }
                                         PassWireIn::Far(wf) => {
-                                            if let Some(n) = p.naming_far {
-                                                let n = &self.db.namings[n];
-                                                if n.contains_id(wf) {
+                                            if let Some(nf) = p.naming_far {
+                                                let nn = &self.db.namings[p.naming_near.unwrap()];
+                                                let nf = &self.db.namings[nf];
+                                                if nn.contains_id(wire.2) && nf.contains_id(wf) {
                                                     break;
                                                 }
                                             }
@@ -366,7 +381,11 @@ impl ExpandedGrid<'_> {
                 _ => break,
             }
         }
-        Some(wire)
+        if let Some(&twire) = self.slr_wires.get(&wire) {
+            Some(twire)
+        } else {
+            Some(wire)
+        }
     }
 }
 
@@ -377,7 +396,7 @@ pub struct ExpandedTile {
     pub tie_name: Option<String>,
     pub naming: NamingId,
     pub special: bool,
-    pub intf: Option<ExpandedTileIntf>,
+    pub intfs: Vec<ExpandedTileIntf>,
     pub dirs: EnumMap<Dir, ExpandedTileDir>,
 }
 

@@ -1,7 +1,8 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, DisabledPart, ColId, SlrId};
-use prjcombine_entity::EntityVec;
+use crate::{CfgPin, DisabledPart, ColId, RowId, SlrId, int, eint};
+use ndarray::Array2;
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -181,7 +182,6 @@ impl Io {
                     18 | 19 => Some(2),
                     20 | 21 => Some(1),
                     22 | 23 => Some(0),
-                    // XXX
                     _ => None,
                 }
             } else {
@@ -352,39 +352,36 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         }
         for (i, c) in grid.cols_io.iter().enumerate() {
             for (j, &kind) in c.regs.iter().enumerate() {
-                let reg = reg_base + j;
-                if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                     continue
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
                     io_has_io[i] = true;
-                    reg_has_hprio[reg] = true;
+                    reg_has_hprio[reg_base + j] = true;
                 }
             }
         }
         if let Some(ref c) = grid.col_hard {
             for (j, &kind) in c.regs.iter().enumerate() {
-                let reg = reg_base + j;
-                if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                     continue
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                     hard_has_io = true;
-                    reg_has_hdio[reg] = true;
+                    reg_has_hdio[reg_base + j] = true;
                 }
             }
         }
         for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
-            let reg = reg_base + j;
-            if disabled.contains(&DisabledPart::Region(reg as u32)) {
+            if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                 continue
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                 cfg_has_io = true;
-                reg_has_hdio[reg] = true;
+                reg_has_hdio[reg_base + j] = true;
             }
             if gi == grid_master && kind == HardRowKind::Cfg {
-                reg_cfg = Some(reg);
+                reg_cfg = Some(reg_base + j);
             }
         }
         reg_base += grid.regs;
@@ -430,12 +427,12 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         iox_io[iox_io.len() - 1]
     };
     reg_base = 0;
-    for grid in grids.values() {
+    for (gi, grid) in grids {
         // HPIO/HRIO
         for (i, c) in grid.cols_io.iter().enumerate() {
             for (j, &kind) in c.regs.iter().enumerate() {
                 let reg = reg_base + j;
-                if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                     continue
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
@@ -476,7 +473,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         if let Some(ref c) = grid.col_hard {
             for (j, &kind) in c.regs.iter().enumerate() {
                 let reg = reg_base + j;
-                if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                     continue
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
@@ -501,7 +498,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         }
         for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
             let reg = reg_base + j;
-            if disabled.contains(&DisabledPart::Region(reg as u32)) {
+            if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                 continue
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
@@ -561,7 +558,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             for (i, c) in grid.cols_io.iter().enumerate() {
                 for (j, &rkind) in c.regs.iter().enumerate() {
                     let reg = reg_base + j;
-                    if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                    if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                         continue
                     }
                     if kind == rkind {
@@ -572,7 +569,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             }
             for (j, &rkind) in grid.col_cfg.regs.iter().enumerate() {
                 let reg = reg_base + j;
-                if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                     continue
                 }
                 if gi == grid_master && rkind == HardRowKind::Cfg {
@@ -599,11 +596,11 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             }
         }
         reg_base = 0;
-        for grid in grids.values() {
+        for (gi, grid) in grids {
             for (i, c) in grid.cols_io.iter().enumerate() {
                 for (j, &rkind) in c.regs.iter().enumerate() {
                     let reg = reg_base + j;
-                    if disabled.contains(&DisabledPart::Region(reg as u32)) {
+                    if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
                         continue
                     }
                     if kind != rkind {
@@ -628,4 +625,237 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         }
     }
     res
+}
+
+pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    let mut egrid = eint::ExpandedGrid::new(db);
+    let mut yb = 0;
+    for (slrid, grid) in grids {
+        let mut reg_skip_bot = 0;
+        let mut reg_skip_top = 0;
+        for i in 0..grid.regs {
+            if disabled.contains(&DisabledPart::Region(slrid, i as u32)) {
+                reg_skip_bot += 1;
+            } else {
+                break;
+            }
+        }
+        for i in (0..grid.regs).rev() {
+            if disabled.contains(&DisabledPart::Region(slrid, i as u32)) {
+                reg_skip_top += 1;
+            } else {
+                break;
+            }
+        }
+        if grid.kind == GridKind::Ultrascale && reg_skip_bot != 0 {
+            yb += 1;
+        }
+        let row_skip = reg_skip_bot * 60;
+        egrid.tiles.push(Array2::default([grid.regs * 60, grid.columns.len()]));
+        let mut slr = egrid.slr_mut(slrid);
+        for (col, &cd) in &grid.columns {
+            let x = col.to_idx();
+            for row in slr.rows() {
+                let y = if row.to_idx() < row_skip {
+                    0
+                } else {
+                    yb + row.to_idx() - row_skip
+                };
+                slr.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                match cd.l {
+                    ColumnKindLeft::CleL | ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => (),
+                    ColumnKindLeft::Bram | ColumnKindLeft::BramTd | ColumnKindLeft::BramAuxClmp | ColumnKindLeft::BramBramClmp | ColumnKindLeft::Uram => {
+                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_L"} else {"INT_INTF_L"};
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.W"),
+                            name: format!("{kind}_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF.W"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.W.SITE")),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKindLeft::Gt | ColumnKindLeft::Io => {
+                        let cio = grid.cols_io.iter().find(|x| x.col == col && x.side == ColSide::Left).unwrap();
+                        let rk = cio.regs[row.to_idx() / 60];
+                        match (grid.kind, rk) {
+                            (_, IoRowKind::None) => (),
+                            (GridKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => {
+                                let kind = "INT_INT_INTERFACE_XIPHY_FT";
+                                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                                    kind: db.get_intf("INTF.W.DELAY"),
+                                    name: format!("{kind}_X{x}Y{y}"),
+                                    naming_int: db.get_naming("INTF.W.IO"),
+                                    naming_buf: None,
+                                    naming_site: Some(db.get_naming("INTF.W.IO.SITE")),
+                                    naming_delay: Some(db.get_naming("INTF.W.IO.DELAY")),
+                                });
+                            }
+                            (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
+                                let kind = if col.to_idx() == 0 {"INT_INTF_LEFT_TERM_IO_FT"} else if matches!(row.to_idx() % 15, 0 | 1 | 13 | 14) {"INT_INTF_L_CMT"} else {"INT_INTF_L_IO"};
+                                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                                    kind: db.get_intf("INTF.W.IO"),
+                                    name: format!("{kind}_X{x}Y{y}"),
+                                    naming_int: db.get_naming("INTF.W.IO"),
+                                    naming_buf: None,
+                                    naming_site: Some(db.get_naming("INTF.W.IO.SITE")),
+                                    naming_delay: Some(db.get_naming("INTF.W.IO.DELAY")),
+                                });
+                            }
+                            _ => {
+                                let kind = if grid.kind == GridKind::Ultrascale {"INT_INT_INTERFACE_GT_LEFT_FT"} else {"INT_INTF_L_TERM_GT"};
+                                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                                    kind: db.get_intf("INTF.W.DELAY"),
+                                    name: format!("{kind}_X{x}Y{y}"),
+                                    naming_int: db.get_naming("INTF.W.GT"),
+                                    naming_buf: None,
+                                    naming_site: Some(db.get_naming("INTF.W.GT.SITE")),
+                                    naming_delay: Some(db.get_naming("INTF.W.GT.DELAY")),
+                                });
+                            }
+                        }
+                    }
+                    ColumnKindLeft::Hard | ColumnKindLeft::Sdfec | ColumnKindLeft::DfeC | ColumnKindLeft::DfeDF | ColumnKindLeft::DfeE => {
+                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_PCIE_L"} else {"INT_INTF_L_PCIE4"};
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.W.DELAY"),
+                            name: format!("{kind}_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF.W.PCIE"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.W.PCIE.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.W.PCIE.DELAY")),
+                        });
+                    }
+                }
+                match cd.r {
+                    ColumnKindRight::CleL | ColumnKindRight::CleLDcg10 => (),
+                    ColumnKindRight::Dsp | ColumnKindRight::DspClkBuf | ColumnKindRight::Uram => {
+                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_R"} else {"INT_INTF_R"};
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.E"),
+                            name: format!("{kind}_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF.E"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.E.SITE")),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKindRight::Gt | ColumnKindRight::Io => {
+                        let cio = grid.cols_io.iter().find(|x| x.col == col && x.side == ColSide::Right).unwrap();
+                        let rk = cio.regs[row.to_idx() / 60];
+                        match (grid.kind, rk) {
+                            (_, IoRowKind::None) => (),
+                            (GridKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => unreachable!(),
+                            (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
+                                let kind = "INT_INTF_RIGHT_TERM_IO";
+                                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                                    kind: db.get_intf("INTF.E.IO"),
+                                    name: format!("{kind}_X{x}Y{y}"),
+                                    naming_int: db.get_naming("INTF.E.IO"),
+                                    naming_buf: None,
+                                    naming_site: Some(db.get_naming("INTF.E.IO.SITE")),
+                                    naming_delay: Some(db.get_naming("INTF.E.IO.DELAY")),
+                                });
+                            }
+                            _ => {
+                                let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_GT_R"} else {"INT_INTF_R_TERM_GT"};
+                                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                                    kind: db.get_intf("INTF.E.DELAY"),
+                                    name: format!("{kind}_X{x}Y{y}"),
+                                    naming_int: db.get_naming("INTF.E.GT"),
+                                    naming_buf: None,
+                                    naming_site: Some(db.get_naming("INTF.E.GT.SITE")),
+                                    naming_delay: Some(db.get_naming("INTF.E.GT.DELAY")),
+                                });
+                            }
+                        }
+                    }
+                    ColumnKindRight::Hard | ColumnKindRight::DfeB | ColumnKindRight::DfeC | ColumnKindRight::DfeDF | ColumnKindRight::DfeE => {
+                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_PCIE_R"} else {"INT_INTF_R_PCIE4"};
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.E.DELAY"),
+                            name: format!("{kind}_X{x}Y{y}"),
+                            naming_int: db.get_naming("INTF.E.PCIE"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.E.PCIE.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.E.PCIE.DELAY")),
+                        });
+                    }
+                }
+            }
+        }
+
+        if grid.kind == GridKind::UltrascalePlus {
+            for (col, &cd) in &grid.columns {
+                if cd.l == ColumnKindLeft::Io && col.to_idx() != 0 {
+                    let pass_e = db.get_pass("IO.E");
+                    let pass_w = db.get_pass("IO.W");
+                    for row in slr.rows() {
+                        slr.fill_pass_anon((col - 1, row), (col, row), pass_e, pass_w);
+                    }
+                }
+            }
+        }
+
+        if let Some(ref ps) = grid.ps {
+            let height = if ps.has_vcu {240} else {180};
+            let width = ps.col.to_idx();
+            slr.nuke_rect(ColId(0), RowId(0), width, height);
+            if height != grid.regs * 60 {
+                let row_t = RowId::from_idx(height);
+                for dx in 0..width {
+                    let col = ColId::from_idx(dx);
+                    slr.fill_term_anon((col, row_t), "S");
+                }
+            }
+            let x = ps.col.to_idx();
+            for dy in 0..height {
+                let row = RowId::from_idx(dy);
+                let y = if row.to_idx() < row_skip {
+                    0
+                } else {
+                    yb + row.to_idx() - row_skip
+                };
+                slr.fill_term_anon((ps.col, row), "W");
+                slr.tile_mut((ps.col, row)).intfs.insert(0, eint::ExpandedTileIntf {
+                    kind: db.get_intf("INTF.W.IO"),
+                    name: format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}"),
+                    naming_int: db.get_naming("INTF.PSS"),
+                    naming_buf: None,
+                    naming_site: Some(db.get_naming("INTF.PSS.SITE")),
+                    naming_delay: Some(db.get_naming("INTF.PSS.DELAY")),
+                });
+            }
+        }
+
+        slr.nuke_rect(ColId(0), RowId(0), grid.columns.len(), reg_skip_bot * 60);
+        slr.nuke_rect(ColId(0), RowId::from_idx((grid.regs - reg_skip_top) * 60), grid.columns.len(), reg_skip_top * 60);
+
+        let col_l = slr.cols().next().unwrap();
+        let col_r = slr.cols().next_back().unwrap();
+        let row_b = slr.rows().next().unwrap();
+        let row_t = slr.rows().next_back().unwrap();
+        for col in slr.cols() {
+            if slr[(col, row_b)].is_some() {
+                slr.fill_term_anon((col, row_b), "S");
+            }
+            if slr[(col, row_t)].is_some() {
+                slr.fill_term_anon((col, row_t), "N");
+            }
+        }
+        for row in slr.rows() {
+            if slr[(col_l, row)].is_some() {
+                slr.fill_term_anon((col_l, row), "W");
+            }
+            if slr[(col_r, row)].is_some() {
+                slr.fill_term_anon((col_r, row), "E");
+            }
+        }
+
+        slr.fill_main_passes();
+
+        yb += slr.rows().len() - reg_skip_bot * 60 - reg_skip_top * 60;
+    }
+
+    egrid
 }

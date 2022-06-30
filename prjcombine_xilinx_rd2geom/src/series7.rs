@@ -2,8 +2,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord, self as rawdump};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ExtraDie, PsPin, ColId, RowId, SlrId, int, int::Dir};
-use prjcombine_xilinx_geom::series7::{self, GridKind, ColumnKind, IoColumn, IoKind, HoleKind, Hole, GtColumn, GtKind};
+use prjcombine_xilinx_geom::series7::{self, GridKind, ColumnKind, IoColumn, IoKind, HoleKind, Hole, GtColumn, GtKind, expand_grid};
 use prjcombine_entity::{EntityVec, EntityId};
+use crate::verify::Verifier;
 
 use crate::intb::IntBuilder;
 
@@ -690,6 +691,16 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         builder.extract_intf("INTF.DELAY", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
     }
 
+    let forced: Vec<_> = builder.db.wires.iter().filter_map(|(w, wi)| {
+        if wi.name.starts_with("SNG.S") || wi.name.starts_with("SNG.N") {
+            None
+        } else {
+            Some(w)
+        }
+    }).collect();
+
+    builder.extract_pass_buf("BRKH", Dir::S, "BRKH_INT", "PASS.BRKH", &forced);
+
     builder.build()
 }
 
@@ -1026,6 +1037,10 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(rd, pkg, &grids, grid_master, &extras, pins),
         ));
     }
+    let grid_refs = grids.map_values(|x| x);
+    let eint = expand_grid(&grid_refs, grid_master, &extras, &int_db);
+    let mut vrf = Verifier::new(rd, &eint);
+    vrf.finish();
     let grids = grids.into_map_values(|x| geom::Grid::Series7(x));
     // XXX GROSS HACK ALERT
     if rd.source == rawdump::Source::Vivado {

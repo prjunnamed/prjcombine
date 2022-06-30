@@ -101,14 +101,7 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
-        let mut egrid = eint::ExpandedGrid {
-            db,
-            tie_kind: None,
-            tie_pin_pullup: None,
-            tie_pin_gnd: None,
-            tie_pin_vcc: None,
-            tiles: Default::default(),
-        };
+        let mut egrid = eint::ExpandedGrid::new(db);
         let slrid = egrid.tiles.push(Array2::default([self.rows, self.columns]));
         let mut grid = egrid.slr_mut(slrid);
 

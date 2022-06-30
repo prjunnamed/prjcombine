@@ -1953,20 +1953,20 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         "CLKLH_DCM_LL",
         "CLKRH_DCM_LL",
     ] {
-        builder.extract_pass_buf("LLV", Dir::S, tkn, "LLV");
+        builder.extract_pass_buf("LLV", Dir::S, tkn, "LLV", &[]);
     }
     let llv_clklr_kind = if rd.family == "spartan3a" {
         "LLV"
     } else {
         "LLV.CLKLR.S3E"
     };
-    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKL_IOIS_LL", "LLV.CLKL");
-    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKR_IOIS_LL", "LLV.CLKR");
+    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKL_IOIS_LL", "LLV.CLKL", &[]);
+    builder.extract_pass_buf(llv_clklr_kind, Dir::S, "CLKR_IOIS_LL", "LLV.CLKR", &[]);
     for tkn in [
         "CLKV_LL",
         "CLKT_LL",
     ] {
-        builder.extract_pass_buf("LLH", Dir::W, tkn, "LLH");
+        builder.extract_pass_buf("LLH", Dir::W, tkn, "LLH", &[]);
     }
     if let Some(tk) = rd.tile_kinds.get("CLKB_LL") {
         for &xy in &tk.tiles {
@@ -2019,9 +2019,9 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
                 }
             }
         }
-        builder.extract_pass_buf("LLH.DCM.S3ADSP", Dir::W, "CLKV_DCM_LL", "LLH");
+        builder.extract_pass_buf("LLH.DCM.S3ADSP", Dir::W, "CLKV_DCM_LL", "LLH", &[]);
     } else {
-        builder.extract_pass_buf("LLH", Dir::W, "CLKV_DCM_LL", "LLH");
+        builder.extract_pass_buf("LLH", Dir::W, "CLKV_DCM_LL", "LLH", &[]);
     }
 
     // XXX

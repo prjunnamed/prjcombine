@@ -523,7 +523,7 @@ impl<'a> Verifier<'a> {
                                 _ => (),
                             }
                         }
-                        if let Some(ref intf) = et.intf {
+                        for intf in &et.intfs {
                             if let Some(crd) = self.xlat_tile(&intf.name) {
                                 let ik = &self.db.intfs[intf.kind];
                                 let naming_int = &self.db.namings[intf.naming_int];

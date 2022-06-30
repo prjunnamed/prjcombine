@@ -594,6 +594,7 @@ impl<'a> IntBuilder<'a> {
                 let wni = self.rdwi[wnn];
                 if let Some(nidx) = self.get_node(int_tile, int_tk, wni) {
                     if let Some(w) = src_node2wires.get(&nidx) {
+                        let w: Vec<_> = w.iter().copied().filter(|x| cand_inps_far.contains(x)).collect();
                         if w.len() == 1 {
                             wires.insert(wn, int::PassInfo::Pass(int::PassWireIn::Far(w[0])));
                         }
@@ -729,23 +730,27 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_pass_simple(&mut self, name: impl AsRef<str>, dir: int::Dir, tkn: impl AsRef<str>, force_pass: &[int::WireId]) {
         if let Some(tk) = self.rd.tile_kinds.get(tkn.as_ref()) {
             for xy in tk.tiles.iter().copied() {
-                let int_fwd_xy = self.walk_to_int(xy, dir).unwrap();
-                let int_bwd_xy = self.walk_to_int(xy, !dir).unwrap();
-                self.extract_pass_tile(format!("{}.{}", name.as_ref(), dir), dir, int_bwd_xy, None, None, int_fwd_xy, force_pass);
-                self.extract_pass_tile(format!("{}.{}", name.as_ref(), !dir), !dir, int_fwd_xy, None, None, int_bwd_xy, force_pass);
+                if let Some(int_fwd_xy) = self.walk_to_int(xy, dir) {
+                    if let Some(int_bwd_xy) = self.walk_to_int(xy, !dir) {
+                        self.extract_pass_tile(format!("{}.{}", name.as_ref(), dir), dir, int_bwd_xy, None, None, int_fwd_xy, force_pass);
+                        self.extract_pass_tile(format!("{}.{}", name.as_ref(), !dir), !dir, int_fwd_xy, None, None, int_bwd_xy, force_pass);
+                    }
+                }
             }
         }
     }
 
-    pub fn extract_pass_buf(&mut self, name: impl AsRef<str>, dir: int::Dir, tkn: impl AsRef<str>, naming: impl AsRef<str>) {
+    pub fn extract_pass_buf(&mut self, name: impl AsRef<str>, dir: int::Dir, tkn: impl AsRef<str>, naming: impl AsRef<str>, force_pass: &[int::WireId]) {
         if let Some(tk) = self.rd.tile_kinds.get(tkn.as_ref()) {
             for xy in tk.tiles.iter().copied() {
-                let int_fwd_xy = self.walk_to_int(xy, dir).unwrap();
-                let int_bwd_xy = self.walk_to_int(xy, !dir).unwrap();
-                let naming_fwd = format!("{}.{}", naming.as_ref(), dir);
-                let naming_bwd = format!("{}.{}", naming.as_ref(), !dir);
-                self.extract_pass_tile(format!("{}.{}", name.as_ref(), dir), dir, int_bwd_xy, Some((xy, &naming_bwd, Some(&naming_fwd))), None, int_fwd_xy, &[]);
-                self.extract_pass_tile(format!("{}.{}", name.as_ref(), !dir), !dir, int_fwd_xy, Some((xy, &naming_fwd, Some(&naming_bwd))), None, int_bwd_xy, &[]);
+                if let Some(int_fwd_xy) = self.walk_to_int(xy, dir) {
+                    if let Some(int_bwd_xy) = self.walk_to_int(xy, !dir) {
+                        let naming_fwd = format!("{}.{}", naming.as_ref(), dir);
+                        let naming_bwd = format!("{}.{}", naming.as_ref(), !dir);
+                        self.extract_pass_tile(format!("{}.{}", name.as_ref(), dir), dir, int_bwd_xy, Some((xy, &naming_bwd, Some(&naming_fwd))), None, int_fwd_xy, force_pass);
+                        self.extract_pass_tile(format!("{}.{}", name.as_ref(), !dir), !dir, int_fwd_xy, Some((xy, &naming_fwd, Some(&naming_bwd))), None, int_bwd_xy, force_pass);
+                    }
+                }
             }
         }
     }

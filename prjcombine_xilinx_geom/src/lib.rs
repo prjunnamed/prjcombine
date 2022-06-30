@@ -114,7 +114,7 @@ pub enum DisabledPart {
     Spartan6ClbColumn(ColId),
     Spartan6BramRegion(ColId, u32),
     Spartan6DspRegion(ColId, u32),
-    Region(u32),
+    Region(SlrId, u32),
     Ps,
 }
 

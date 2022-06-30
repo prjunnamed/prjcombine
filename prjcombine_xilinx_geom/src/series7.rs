@@ -1,6 +1,7 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use serde::{Serialize, Deserialize};
-use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId, RowId, SlrId};
+use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId, RowId, SlrId, int, eint};
+use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -545,4 +546,412 @@ pub fn get_ps_pads(grids: &EntityVec<SlrId, Grid>) -> Vec<(String, u32, PsPin)> 
         res.push(("IOPAD_X1Y134".to_string(), 501, PsPin::SrstB));
     }
     res
+}
+
+pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extras: &[ExtraDie], db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    let mut egrid = eint::ExpandedGrid::new(db);
+    egrid.tie_kind = Some("TIEOFF".to_string());
+    egrid.tie_pin_gnd = Some("HARD0".to_string());
+    egrid.tie_pin_vcc = Some("HARD1".to_string());
+    let mut yb = 0;
+    let mut tie_yb = 0;
+    if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
+        yb += 1;
+    }
+    for (slrid, grid) in grids {
+        egrid.tiles.push(Array2::default([grid.regs * 50, grid.columns.len()]));
+        let mut slr = egrid.slr_mut(slrid);
+        let mut x = 0;
+        let mut tie_x = 0;
+        let mut xlut = EntityVec::new();
+        for (col, &kind) in &grid.columns {
+            xlut.push(x);
+            if grid.regs == 2 && grid.has_ps && col.to_idx() < 18 {
+                continue;
+            }
+            if grid.regs <= 2 && col < grid.col_cfg && col >= grid.col_cfg - 6 {
+                continue;
+            }
+            let lr = ['L', 'R'][col.to_idx() % 2];
+            if lr == 'L' && kind == ColumnKind::Dsp {
+                tie_x += 1;
+            }
+            for row in slr.rows() {
+                let y = yb + row.to_idx();
+                let tie_y = tie_yb + row.to_idx();
+                slr.fill_tile((col, row), "INT", &format!("NODE.INT.{lr}"), format!("INT_{lr}_X{x}Y{y}"));
+                slr.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                match kind {
+                    ColumnKind::ClbLL => (),
+                    ColumnKind::ClbLM => (),
+                    ColumnKind::Io => {
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF"),
+                            name: format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            naming_int: db.get_naming(&format!("INTF.{lr}")),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming(&format!("INTF.{lr}.SITE"))),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKind::Bram => {
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.BRAM"),
+                            name: format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            naming_int: db.get_naming(&format!("INTF.{lr}")),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming(&format!("INTF.{lr}.SITE"))),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKind::Dsp | ColumnKind::Cmt | ColumnKind::Cfg | ColumnKind::Clk => {
+                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF"),
+                            name: format!("INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            naming_int: db.get_naming(&format!("INTF.{lr}")),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming(&format!("INTF.{lr}.SITE"))),
+                            naming_delay: None,
+                        });
+                    }
+                    ColumnKind::Gt => (),
+                }
+            }
+            x += 1;
+            tie_x += 1;
+            if lr == 'R' && kind == ColumnKind::Dsp {
+                tie_x += 1;
+            }
+        }
+
+        let row_cb = RowId::from_idx(grid.reg_cfg * 50 - 50);
+        let row_ct = RowId::from_idx(grid.reg_cfg * 50 + 50);
+        if grid.regs == 1 {
+            slr.nuke_rect(grid.col_cfg - 6, row_cb, 6, 50);
+        } else {
+            slr.nuke_rect(grid.col_cfg - 6, row_cb, 6, 100);
+            for dx in 0..6 {
+                let col = grid.col_cfg - 6 + dx;
+                if row_cb.to_idx() != 0 {
+                    slr.fill_term_anon((col, row_cb - 1), "N");
+                }
+                if row_ct.to_idx() != grid.regs * 50 {
+                    slr.fill_term_anon((col, row_ct), "S");
+                }
+            }
+        }
+
+        let col_l = slr.cols().next().unwrap();
+        let col_r = slr.cols().next_back().unwrap();
+        let row_b = slr.rows().next().unwrap();
+        let row_t = slr.rows().next_back().unwrap();
+        if grid.has_ps {
+            slr.nuke_rect(grid.columns.first_id().unwrap(), row_t - 99, 18, 100);
+            if grid.regs != 2 {
+                let row = row_t - 100;
+                for dx in 0..18 {
+                    let col = col_l + dx;
+                    slr.fill_term_anon((col, row), "N");
+                }
+            }
+            let col = col_l + 18;
+            for dy in 0..100 {
+                let row = row_t - 99 + dy;
+                slr.fill_term_anon((col, row), "W");
+                let y = yb + row.to_idx();
+                let x = xlut[col];
+                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
+                    kind: db.get_intf("INTF"),
+                    name: format!("INT_INTERFACE_PSS_L_X{x}Y{y}"),
+                    naming_int: db.get_naming("INTF.PSS"),
+                    naming_buf: None,
+                    naming_site: Some(db.get_naming("INTF.PSS.SITE")),
+                    naming_delay: None,
+                });
+            }
+        }
+
+        for hole in &grid.holes {
+            match hole.kind {
+                HoleKind::Pcie2Left | HoleKind::Pcie2Right => {
+                    slr.nuke_rect(hole.col + 1, hole.row, 2, 25);
+                    for dx in 1..3 {
+                        let col = hole.col + dx;
+                        if hole.row.to_idx() != 0 {
+                            slr.fill_term_anon((col, hole.row - 1), "N");
+                        }
+                        slr.fill_term_anon((col, hole.row + 25), "S");
+                    }
+                    let col_l = hole.col;
+                    let col_r = hole.col + 3;
+                    let xl = xlut[col_l];
+                    let xr = xlut[col_r];
+                    for dy in 0..25 {
+                        let row = hole.row + dy;
+                        let y = yb + row.to_idx();
+                        slr.tile_mut((col_l, row)).intfs.clear();
+                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}"),
+                            naming_int: db.get_naming("INTF.PCIE_R"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.PCIE_R.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.PCIE_R.DELAY")),
+                        });
+                        slr.tile_mut((col_r, row)).intfs.clear();
+                        if hole.kind == HoleKind::Pcie2Left {
+                            slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
+                                kind: db.get_intf("INTF.DELAY"),
+                                name: format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}"),
+                                naming_int: db.get_naming("INTF.PCIE_LEFT_L"),
+                                naming_buf: None,
+                                naming_site: Some(db.get_naming("INTF.PCIE_LEFT_L.SITE")),
+                                naming_delay: Some(db.get_naming("INTF.PCIE_LEFT_L.DELAY")),
+                            });
+                        } else {
+                            slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
+                                kind: db.get_intf("INTF.DELAY"),
+                                name: format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}"),
+                                naming_int: db.get_naming("INTF.PCIE_L"),
+                                naming_buf: None,
+                                naming_site: Some(db.get_naming("INTF.PCIE_L.SITE")),
+                                naming_delay: Some(db.get_naming("INTF.PCIE_L.DELAY")),
+                            });
+                        }
+                    }
+                }
+                HoleKind::Pcie3 => {
+                    slr.nuke_rect(hole.col + 1, hole.row, 4, 50);
+                    for dx in 1..5 {
+                        let col = hole.col + dx;
+                        slr.fill_term_anon((col, hole.row - 1), "N");
+                        slr.fill_term_anon((col, hole.row + 50), "S");
+                    }
+                    let col_l = hole.col;
+                    let col_r = hole.col + 5;
+                    let xl = xlut[col_l];
+                    let xr = xlut[col_r];
+                    for dy in 0..50 {
+                        let row = hole.row + dy;
+                        let y = yb + row.to_idx();
+                        slr.tile_mut((col_l, row)).intfs.clear();
+                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}"),
+                            naming_int: db.get_naming("INTF.PCIE3_R"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.PCIE3_R.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.PCIE3_R.DELAY")),
+                        });
+                        slr.tile_mut((col_r, row)).intfs.clear();
+                        slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}"),
+                            naming_int: db.get_naming("INTF.PCIE3_L"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.PCIE3_L.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.PCIE3_L.DELAY")),
+                        });
+                    }
+                }
+                HoleKind::GtpLeft => {
+                    slr.nuke_rect(hole.col + 1, hole.row, 18, 50);
+                    for dx in 1..19 {
+                        let col = hole.col + dx;
+                        if hole.row.to_idx() != 0 {
+                            slr.fill_term_anon((col, hole.row - 1), "N");
+                        }
+                        if hole.row.to_idx() + 50 != grid.regs * 50 {
+                            slr.fill_term_anon((col, hole.row + 50), "S");
+                        }
+                    }
+                    let col_l = hole.col;
+                    let col_r = hole.col + 19;
+                    let xl = xlut[col_l];
+                    for dy in 0..50 {
+                        let row = hole.row + dy;
+                        let y = yb + row.to_idx();
+                        slr.tile_mut((col_l, row)).intfs.clear();
+                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("GTP_INT_INTERFACE_R_X{xl}Y{y}"),
+                            naming_int: db.get_naming("INTF.GTP_R"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.GTP_R.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.GTP_R.DELAY")),
+                        });
+                        slr.fill_term_anon((col_l, row), "E");
+                        slr.fill_term_anon((col_r, row), "W");
+                    }
+                }
+                HoleKind::GtpRight => {
+                    slr.nuke_rect(hole.col - 18, hole.row, 18, 50);
+                    for dx in 1..19 {
+                        let col = hole.col - 19 + dx;
+                        if hole.row.to_idx() != 0 {
+                            slr.fill_term_anon((col, hole.row - 1), "N");
+                        }
+                        if hole.row.to_idx() + 50 != grid.regs * 50 {
+                            slr.fill_term_anon((col, hole.row + 50), "S");
+                        }
+                    }
+                    let col_l = hole.col - 19;
+                    let col_r = hole.col;
+                    let xr = xlut[col_r];
+                    for dy in 0..50 {
+                        let row = hole.row + dy;
+                        let y = yb + row.to_idx();
+                        slr.tile_mut((col_r, row)).intfs.clear();
+                        slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("GTP_INT_INTERFACE_L_X{xr}Y{y}"),
+                            naming_int: db.get_naming("INTF.GTP_L"),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming("INTF.GTP_L.SITE")),
+                            naming_delay: Some(db.get_naming("INTF.GTP_L.DELAY")),
+                        });
+                        slr.fill_term_anon((col_l, row), "E");
+                        slr.fill_term_anon((col_r, row), "W");
+                    }
+                }
+            }
+        }
+
+        if let Some(ref gtcol) = grid.cols_gt[0] {
+            for (reg, &kind) in gtcol.regs.iter().enumerate() {
+                if let Some(kind) = kind {
+                    let br = RowId::from_idx(reg * 50);
+                    let x = xlut[gtcol.col];
+                    for dy in 0..50 {
+                        let row = br + dy;
+                        let y = yb + row.to_idx();
+                        let t = match kind {
+                            GtKind::Gtp => unreachable!(),
+                            GtKind::Gtx => "GTX",
+                            GtKind::Gth => "GTH",
+                        };
+                        slr.tile_mut((gtcol.col, row)).intfs.clear();
+                        slr.tile_mut((gtcol.col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("{t}_INT_INTERFACE_L_X{x}Y{y}"),
+                            naming_int: db.get_naming(&format!("INTF.{t}_L")),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming(&format!("INTF.{t}_L.SITE"))),
+                            naming_delay: Some(db.get_naming(&format!("INTF.{t}_L.DELAY"))),
+                        });
+                    }
+                }
+            }
+        }
+
+        if let Some(ref gtcol) = grid.cols_gt[1] {
+            let need_holes = grid.columns[gtcol.col] != ColumnKind::Gt;
+            for (reg, &kind) in gtcol.regs.iter().enumerate() {
+                if let Some(kind) = kind {
+                    let br = RowId::from_idx(reg * 50);
+                    if need_holes {
+                        slr.nuke_rect(gtcol.col + 1, br, 6, 50);
+                        if reg != 0 && gtcol.regs[reg - 1].is_none() {
+                            for dx in 1..7 {
+                                slr.fill_term_anon((gtcol.col + dx, br - 1), "N");
+                            }
+                        }
+                        if reg != grid.regs - 1 && gtcol.regs[reg + 1].is_none() {
+                            for dx in 1..7 {
+                                slr.fill_term_anon((gtcol.col + dx, br + 50), "S");
+                            }
+                        }
+                        for dy in 0..50 {
+                            slr.fill_term_anon((gtcol.col, br + dy), "E");
+                        }
+                    }
+                    let x = xlut[gtcol.col];
+                    for dy in 0..50 {
+                        let row = br + dy;
+                        let y = yb + row.to_idx();
+                        let t = match kind {
+                            GtKind::Gtp => "GTP",
+                            GtKind::Gtx => "GTX",
+                            GtKind::Gth => "GTH",
+                        };
+                        slr.tile_mut((gtcol.col, row)).intfs.clear();
+                        slr.tile_mut((gtcol.col, row)).intfs.push(eint::ExpandedTileIntf {
+                            kind: db.get_intf("INTF.DELAY"),
+                            name: format!("{t}_INT_INTERFACE_X{x}Y{y}"),
+                            naming_int: db.get_naming(&format!("INTF.{t}")),
+                            naming_buf: None,
+                            naming_site: Some(db.get_naming(&format!("INTF.{t}.SITE"))),
+                            naming_delay: Some(db.get_naming(&format!("INTF.{t}.DELAY"))),
+                        });
+                    }
+                }
+            }
+        }
+
+        for col in slr.cols() {
+            if slr[(col, row_b)].is_some() {
+                if grid.has_no_tbuturn {
+                    slr.fill_term_anon((col, row_b), "S.HOLE");
+                } else {
+                    slr.fill_term_anon((col, row_b), "S");
+                }
+            }
+            if slr[(col, row_t)].is_some() {
+                if grid.has_no_tbuturn {
+                    slr.fill_term_anon((col, row_t), "N.HOLE");
+                } else {
+                    slr.fill_term_anon((col, row_t), "N");
+                }
+            }
+        }
+        for row in slr.rows() {
+            if slr[(col_l, row)].is_some() {
+                slr.fill_term_anon((col_l, row), "W");
+            }
+            if slr[(col_r, row)].is_some() {
+                slr.fill_term_anon((col_r, row), "E");
+            }
+        }
+        for reg in 1..grid.regs {
+            let row_s = RowId::from_idx(reg * 50 - 1);
+            let row_n = RowId::from_idx(reg * 50);
+            let pass_s = db.get_pass("BRKH.S");
+            let pass_n = db.get_pass("BRKH.N");
+            let naming_s = db.get_naming("PASS.BRKH.S");
+            let naming_n = db.get_naming("PASS.BRKH.N");
+            for col in slr.cols() {
+                if slr[(col, row_s)].is_some() && slr[(col, row_n)].is_some() {
+                    let x = xlut[col];
+                    let y = yb + row_s.to_idx();
+                    slr.fill_pass_buf((col, row_s), (col, row_n), pass_n, pass_s, format!("BRKH_INT_X{x}Y{y}"), naming_s, naming_n);
+                }
+            }
+        }
+
+        slr.fill_main_passes();
+
+        yb += slr.rows().len();
+        tie_yb += slr.rows().len();
+    }
+
+    let lvb6 = db.wires.iter().find_map(|(k, v)| if v.name == "LVB.6" {Some(k)} else {None}).unwrap();
+    let mut slr_wires = HashMap::new();
+    for i in 1..grids.len() {
+        let slrid_s = SlrId::from_idx(i - 1);
+        let slrid_n = SlrId::from_idx(i);
+        let slr_s = egrid.slr(slrid_s);
+        let slr_n = egrid.slr(slrid_n);
+        for col in slr_s.cols() {
+            for dy in 0..49 {
+                let row_s = slr_s.rows().next_back().unwrap() - 49 + dy;
+                let row_n = slr_n.rows().next().unwrap() + 1 + dy;
+                if slr_s[(col, row_s)].is_some() && slr_n[(col, row_n)].is_some() {
+                    slr_wires.insert((slrid_n, (col, row_n), lvb6), (slrid_s, (col, row_s), lvb6));
+                }
+            }
+        }
+    }
+    egrid.slr_wires = slr_wires;
+
+    egrid
 }
