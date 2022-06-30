@@ -433,25 +433,22 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                         None => None,
                         Some(v) => {
                             let mut v = v.clone();
-                            if v.len() > 1
-                                && matches!(
-                                    pin,
-                                    "DOUT"
-                                        | "SYSREF_OUT_NORTH_P"
-                                        | "SYSREF_OUT_SOUTH_P"
-                                        | "CLK_DISTR_OUT_NORTH"
-                                        | "CLK_DISTR_OUT_SOUTH"
-                                        | "T1_ALLOWED_SOUTH"
-                                )
-                            {
-                                let suffix = format!("_{}", pin);
-                                v.retain(|&n| unintern(&node_sp, n).ends_with(&suffix));
+                            if v.len() > 1 {
+                                let skind = &site.as_ref().unwrap().1;
+                                match pin {
+                                    "DOUT" | "SYSREF_OUT_NORTH_P" | "SYSREF_OUT_SOUTH_P" | "CLK_DISTR_OUT_NORTH" | "CLK_DISTR_OUT_SOUTH" | "T1_ALLOWED_SOUTH" | "CLK_IN" => {
+                                        let suffix = format!("_{}", pin);
+                                        v.retain(|&n| unintern(&node_sp, n).ends_with(&suffix));
+                                    }
+                                    _ => (),
+                                }
                             }
                             if v.len() == 1 {
                                 Some(unintern(&node_sp, v[0]).to_string())
                             } else {
+                                let skind = &site.as_ref().unwrap().1;
                                 panic!(
-                                    "SITE PIN WIRE AMBIGUOUS {:?} {:?}",
+                                    "SITE PIN WIRE AMBIGUOUS {skind} {pin} {:?} {:?}",
                                     sl,
                                     v.iter().map(|&n| unintern(&node_sp, n)).collect::<Vec<_>>()
                                 );
