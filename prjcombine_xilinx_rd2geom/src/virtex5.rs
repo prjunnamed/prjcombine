@@ -474,13 +474,13 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
     }
 
-    let mps = builder.db.passes.get("MAIN.S").unwrap().1.clone();
-    builder.db.passes.insert("MAIN.NHOLE.S".to_string(), mps);
-    let mut mpn = builder.db.passes.get("MAIN.N").unwrap().1.clone();
+    let mps = builder.db.terms.get("MAIN.S").unwrap().1.clone();
+    builder.db.terms.insert("MAIN.NHOLE.S".to_string(), mps);
+    let mut mpn = builder.db.terms.get("MAIN.N").unwrap().1.clone();
     for w in lv_bh_n {
-        mpn.wires.insert(w, int::PassInfo::BlackHole);
+        mpn.wires.insert(w, int::TermInfo::BlackHole);
     }
-    builder.db.passes.insert("MAIN.NHOLE.N".to_string(), mpn);
+    builder.db.terms.insert("MAIN.NHOLE.N".to_string(), mpn);
 
     builder.build()
 }

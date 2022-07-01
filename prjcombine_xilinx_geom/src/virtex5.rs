@@ -446,20 +446,22 @@ impl Grid {
                 let ry = y / 10 * 11 + y % 10 + 1;
                 let tile_l = format!("L_TERM_PPC_X{xl}Y{y}");
                 let tile_r = format!("R_TERM_PPC_X{rxr}Y{ry}");
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col_r, row),
-                    kind: db.get_pass("PPC.E"),
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col_r, row)),
+                    kind: db.get_term("PPC.E"),
                     tile: Some(tile_l.clone()),
                     naming_near: Some(db.get_naming("TERM.PPC.E")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.E.FAR")),
                     tile_far: Some(tile_r.clone()),
                     naming_far_out: Some(db.get_naming("TERM.PPC.W.OUT")),
                     naming_far_in: Some(db.get_naming("TERM.PPC.W.IN")),
-                }, eint::ExpandedTilePass {
-                    target: (col_l, row),
-                    kind: db.get_pass("PPC.W"),
+                }, eint::ExpandedTileTerm {
+                    target: Some((col_l, row)),
+                    kind: db.get_term("PPC.W"),
                     tile: Some(tile_r),
                     naming_near: Some(db.get_naming("TERM.PPC.W")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.W.FAR")),
                     tile_far: Some(tile_l),
                     naming_far_out: Some(db.get_naming("TERM.PPC.E.OUT")),
@@ -498,12 +500,12 @@ impl Grid {
 
         let row_b = grid.rows().next().unwrap();
         let row_t = grid.rows().next_back().unwrap();
-        let pass_n = db.get_pass("MAIN.NHOLE.N");
-        let pass_s = db.get_pass("MAIN.NHOLE.S");
+        let term_n = db.get_term("MAIN.NHOLE.N");
+        let term_s = db.get_term("MAIN.NHOLE.S");
         for col in grid.cols() {
             grid.fill_term_anon((col, row_b), "S.HOLE");
             grid.fill_term_anon((col, row_t), "N.HOLE");
-            grid.fill_pass_anon((col, row_t - 1), (col, row_t), pass_n, pass_s);
+            grid.fill_term_pair_anon((col, row_t - 1), (col, row_t), term_n, term_s);
         }
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
@@ -523,8 +525,8 @@ impl Grid {
             }
         }
 
-        let pass_w = db.get_pass("INT_BUFS.W");
-        let pass_e = db.get_pass("INT_BUFS.E");
+        let term_w = db.get_term("INT_BUFS.W");
+        let term_e = db.get_term("INT_BUFS.E");
         let naming_w = db.get_naming("INT_BUFS.W");
         let naming_wf = db.get_naming("INT_BUFS.W.FAR");
         let naming_wo = db.get_naming("INT_BUFS.W.OUT");
@@ -541,20 +543,22 @@ impl Grid {
                 let tile_l = format!("INT_BUFS_L_X{x}Y{y}");
                 let mon = if self.columns[col_l] == ColumnKind::Gtx {"_MON"} else {""};
                 let tile_r = format!("INT_BUFS_R{mon}_X{xx}Y{y}", xx = x + 1);
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col + 1, row),
-                    kind: pass_e,
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col + 1, row)),
+                    kind: term_e,
                     tile: Some(tile_l.clone()),
                     naming_near: Some(naming_e),
+                    naming_near_in: None,
                     naming_far: Some(naming_ef),
                     tile_far: Some(tile_r.clone()),
                     naming_far_out: Some(naming_wo),
                     naming_far_in: Some(naming_w),
-                }, eint::ExpandedTilePass {
-                    target: (col, row),
-                    kind: pass_w,
+                }, eint::ExpandedTileTerm {
+                    target: Some((col, row)),
+                    kind: term_w,
                     tile: Some(tile_r),
                     naming_near: Some(naming_w),
+                    naming_near_in: None,
                     naming_far: Some(naming_wf),
                     tile_far: Some(tile_l),
                     naming_far_out: Some(naming_eo),

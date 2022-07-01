@@ -44,7 +44,6 @@ entity_id! {
     pub id WireId u16, reserve 1;
     pub id NodeKindId u16, reserve 1;
     pub id TermKindId u16, reserve 1;
-    pub id PassKindId u16, reserve 1;
     pub id IntfKindId u16, reserve 1;
     pub id BelKindId u16, reserve 1;
     pub id NamingId u16, reserve 1;
@@ -57,7 +56,6 @@ pub struct IntDb {
     pub wires: EntityVec<WireId, WireInfo>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
-    pub passes: EntityMap<PassKindId, String, PassKind>,
     pub intfs: EntityMap<IntfKindId, String, IntfKind>,
     pub bels: EntityMap<BelKindId, String, BelKind>,
     pub namings: EntityMap<NamingId, String, EntityPartVec<WireId, String>>,
@@ -69,9 +67,6 @@ impl IntDb {
     }
     pub fn get_term(&self, name: &str) -> TermKindId {
         self.terms.get(name).unwrap().0
-    }
-    pub fn get_pass(&self, name: &str) -> PassKindId {
-        self.passes.get(name).unwrap().0
     }
     pub fn get_intf(&self, name: &str) -> IntfKindId {
         self.intfs.get(name).unwrap().0
@@ -131,26 +126,13 @@ pub struct TermKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TermInfo {
     BlackHole,
-    Pass(WireId),
-    Mux(BTreeSet<WireId>),
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PassKind {
-    pub dir: Dir,
-    pub wires: EntityPartVec<WireId, PassInfo>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum PassInfo {
-    BlackHole,
-    Pass(PassWireIn),
-    BiSplitter(PassWireIn),
-    Mux(BTreeSet<PassWireIn>),
+    Pass(TermWireIn),
+    BiSplitter(TermWireIn),
+    Mux(BTreeSet<TermWireIn>),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum PassWireIn {
+pub enum TermWireIn {
     Near(WireId),
     Far(WireId),
 }

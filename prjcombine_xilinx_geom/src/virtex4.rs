@@ -569,20 +569,22 @@ impl Grid {
             for dy in 0..22 {
                 let row = br + 1 + dy;
                 let tile = if dy < 11 {&tile_pb} else {&tile_pt};
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col_r, row),
-                    kind: db.get_pass("PPC.E"),
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col_r, row)),
+                    kind: db.get_term("PPC.E"),
                     tile: Some(tile.clone()),
                     naming_near: Some(db.get_naming(&format!("TERM.PPC.E{dy}"))),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming(&format!("TERM.PPC.W{dy}.MID"))),
                     tile_far: Some(tile.clone()),
                     naming_far_out: Some(db.get_naming(&format!("TERM.PPC.W{dy}.MID"))),
                     naming_far_in: Some(db.get_naming(&format!("TERM.PPC.W{dy}"))),
-                }, eint::ExpandedTilePass {
-                    target: (col_l, row),
-                    kind: db.get_pass("PPC.W"),
+                }, eint::ExpandedTileTerm {
+                    target: Some((col_l, row)),
+                    kind: db.get_term("PPC.W"),
                     tile: Some(tile.clone()),
                     naming_near: Some(db.get_naming(&format!("TERM.PPC.W{dy}"))),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming(&format!("TERM.PPC.E{dy}.MID"))),
                     tile_far: Some(tile.clone()),
                     naming_far_out: Some(db.get_naming(&format!("TERM.PPC.E{dy}.MID"))),
@@ -593,20 +595,22 @@ impl Grid {
             let row_t = br + 23;
             for dx in 0..7 {
                 let col = bc + 1 + dx;
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col, row_t),
-                    kind: db.get_pass(if dx < 5 {"PPCA.N"} else {"PPCB.N"}),
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col, row_t)),
+                    kind: db.get_term(if dx < 5 {"PPCA.N"} else {"PPCB.N"}),
                     tile: Some(tile_pb.clone()),
                     naming_near: Some(db.get_naming(&format!("TERM.PPC.N{dx}"))),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming(&format!("TERM.PPC.N{dx}.FAR"))),
                     tile_far: Some(tile_pt.clone()),
                     naming_far_out: Some(db.get_naming(&format!("TERM.PPC.S{dx}.OUT"))),
                     naming_far_in: Some(db.get_naming(&format!("TERM.PPC.S{dx}"))),
-                }, eint::ExpandedTilePass {
-                    target: (col, row_b),
-                    kind: db.get_pass(if dx < 5 {"PPCA.S"} else {"PPCB.S"}),
+                }, eint::ExpandedTileTerm {
+                    target: Some((col, row_b)),
+                    kind: db.get_term(if dx < 5 {"PPCA.S"} else {"PPCB.S"}),
                     tile: Some(tile_pt.clone()),
                     naming_near: Some(db.get_naming(&format!("TERM.PPC.S{dx}"))),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming(&format!("TERM.PPC.S{dx}.FAR"))),
                     tile_far: Some(tile_pb.clone()),
                     naming_far_out: Some(db.get_naming(&format!("TERM.PPC.N{dx}.OUT"))),
@@ -709,21 +713,21 @@ impl Grid {
             }
         }
 
-        let pass_s = db.get_pass("BRKH.S");
-        let pass_n = db.get_pass("BRKH.N");
+        let term_s = db.get_term("BRKH.S");
+        let term_n = db.get_term("BRKH.N");
         for col in grid.cols() {
             for row in grid.rows() {
                 if row.to_idx() % 8 != 0 || row.to_idx() == 0 {
                     continue;
                 }
                 if grid[(col, row)].is_some() {
-                    grid.fill_pass_anon((col, row - 1), (col, row), pass_n, pass_s);
+                    grid.fill_term_pair_anon((col, row - 1), (col, row), term_n, term_s);
                 }
             }
         }
 
-        let pass_w = db.get_pass("CLB_BUFFER.W");
-        let pass_e = db.get_pass("CLB_BUFFER.E");
+        let term_w = db.get_term("CLB_BUFFER.W");
+        let term_e = db.get_term("CLB_BUFFER.E");
         let naming_w = db.get_naming("PASS.CLB_BUFFER.W");
         let naming_e = db.get_naming("PASS.CLB_BUFFER.E");
         for (col, &cd) in &self.columns {
@@ -734,7 +738,7 @@ impl Grid {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let tile = format!("CLB_BUFFER_X{x}Y{y}");
-                grid.fill_pass_buf((col, row), (col + 1, row), pass_e, pass_w, tile, naming_w, naming_e);
+                grid.fill_term_pair_buf((col, row), (col + 1, row), term_e, term_w, tile, naming_w, naming_e);
             }
         }
 

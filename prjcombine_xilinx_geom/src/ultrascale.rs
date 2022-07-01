@@ -788,10 +788,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
         if grid.kind == GridKind::UltrascalePlus {
             for (col, &cd) in &grid.columns {
                 if cd.l == ColumnKindLeft::Io && col.to_idx() != 0 {
-                    let pass_e = db.get_pass("IO.E");
-                    let pass_w = db.get_pass("IO.W");
+                    let term_e = db.get_term("IO.E");
+                    let term_w = db.get_term("IO.W");
                     for row in slr.rows() {
-                        slr.fill_pass_anon((col - 1, row), (col, row), pass_e, pass_w);
+                        slr.fill_term_pair_anon((col - 1, row), (col, row), term_e, term_w);
                     }
                 }
             }

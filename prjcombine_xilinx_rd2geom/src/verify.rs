@@ -335,192 +335,139 @@ impl<'a> Verifier<'a> {
             for col in slr.cols() {
                 for row in slr.rows() {
                     if let Some(et) = &slr[(col, row)] {
-                        for d in et.dirs.values() {
-                            match d {
-                                eint::ExpandedTileDir::Pass(p) => {
-                                    let crd;
-                                    if let Some(n) = &p.tile {
-                                        if let Some(c) = self.xlat_tile(n) {
-                                            crd = c;
-                                        } else {
-                                            println!("MISSING PASS TILE {}", n);
-                                            continue;
-                                        }
+                        for t in et.terms.values() {
+                            if let Some(t) = t {
+                                let crd;
+                                if let Some(n) = &t.tile {
+                                    if let Some(c) = self.xlat_tile(n) {
+                                        crd = c;
                                     } else {
+                                        println!("MISSING TERM TILE {}", n);
                                         continue;
                                     }
-                                    let crd_far;
-                                    if let Some(n) = &p.tile_far {
-                                        if let Some(c) = self.xlat_tile(n) {
-                                            crd_far = Some(c);
-                                        } else {
-                                            println!("MISSING PASS TILE {}", n);
-                                            continue;
-                                        }
+                                } else {
+                                    continue;
+                                }
+                                let crd_far;
+                                if let Some(n) = &t.tile_far {
+                                    if let Some(c) = self.xlat_tile(n) {
+                                        crd_far = Some(c);
                                     } else {
-                                        crd_far = None;
+                                        println!("MISSING PASS TILE {}", n);
+                                        continue;
                                     }
-                                    let naming_near = &self.db.namings[p.naming_near.unwrap()];
-                                    let naming_far = p.naming_far.map(|x| &self.db.namings[x]);
-                                    let naming_far_out = p.naming_far_out.map(|x| &self.db.namings[x]);
-                                    let naming_far_in = p.naming_far_in.map(|x| &self.db.namings[x]);
-                                    for (wt, ti) in &self.db.passes[p.kind].wires {
-                                        if let Some(wiret) = self.grid.resolve_wire_raw((slr.slr, (col, row), wt)) {
-                                            match *ti {
-                                                int::PassInfo::Pass(wf) => {
-                                                    if naming_near.contains_id(wt) {
-                                                        match wf {
-                                                            int::PassWireIn::Near(wf) => {
+                                } else {
+                                    crd_far = None;
+                                }
+                                let naming_near = &self.db.namings[t.naming_near.unwrap()];
+                                let naming_near_in = t.naming_near_in.map(|x| &self.db.namings[x]);
+                                let naming_far = t.naming_far.map(|x| &self.db.namings[x]);
+                                let naming_far_out = t.naming_far_out.map(|x| &self.db.namings[x]);
+                                let naming_far_in = t.naming_far_in.map(|x| &self.db.namings[x]);
+                                for (wt, ti) in &self.db.terms[t.kind].wires {
+                                    if let Some(wiret) = self.grid.resolve_wire_raw((slr.slr, (col, row), wt)) {
+                                        match *ti {
+                                            int::TermInfo::Pass(wf) => {
+                                                if naming_near.contains_id(wt) {
+                                                    match wf {
+                                                        int::TermWireIn::Near(wf) => {
+                                                            if !self.pin_int_wire(crd, &naming_near[wt], wiret) {
+                                                                println!("MISSING INT WIRE {} {}", t.tile.as_ref().unwrap(), naming_near[wt]);
+                                                            }
+                                                            if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
+                                                                if let Some(naming_near_in) = naming_near_in {
+                                                                    if !self.pin_int_wire(crd, &naming_near_in[wt], wiref) {
+                                                                        println!("MISSING INT WIRE {} {}", t.tile.as_ref().unwrap(), naming_near_in[wt]);
+                                                                    }
+                                                                    self.claim_pip(crd, &naming_near[wt], &naming_near_in[wt]);
+                                                                } else {
+                                                                    if !naming_near.contains_id(wf) {
+                                                                        continue;
+                                                                    }
+                                                                    if !self.pin_int_wire(crd, &naming_near[wf], wiref) {
+                                                                        println!("MISSING INT WIRE {} {}", t.tile.as_ref().unwrap(), naming_near[wf]);
+                                                                    }
+                                                                    self.claim_pip(crd, &naming_near[wt], &naming_near[wf]);
+                                                                }
+                                                            }
+                                                        }
+                                                        int::TermWireIn::Far(wf) => {
+                                                            if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, t.target.unwrap(), wf)) {
+                                                                if self.missing_int_wires.contains(&wiret) || self.missing_int_wires.contains(&wiref) {
+                                                                    continue;
+                                                                }
+                                                                if !naming_far.unwrap().contains_id(wf) {
+                                                                    continue;
+                                                                }
+                                                                if let Some(crd_far) = crd_far {
+                                                                    if !self.pin_int_wire(crd_far, &naming_far_in.unwrap()[wf], wiref) {
+                                                                        continue;
+                                                                    }
+                                                                    self.claim_node(&[
+                                                                        (crd, &naming_far.unwrap()[wf]),
+                                                                        (crd_far, &naming_far_out.unwrap()[wf]),
+                                                                    ]);
+                                                                    self.claim_pip(crd_far, &naming_far_out.unwrap()[wf], &naming_far_in.unwrap()[wf]);
+                                                                } else {
+                                                                    if !self.pin_int_wire(crd, &naming_far.unwrap()[wf], wiref) {
+                                                                        continue;
+                                                                    }
+                                                                }
                                                                 if !self.pin_int_wire(crd, &naming_near[wt], wiret) {
-                                                                    println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming_near[wt]);
+                                                                    continue;
                                                                 }
-                                                                if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
-                                                                    if !naming_near.contains_id(wf) {
-                                                                        continue;
-                                                                    }
-                                                                    if !self.pin_int_wire(crd, &naming_near[wf], wiref) {
-                                                                        println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming_near[wf]);
-                                                                    }
-                                                                    self.claim_pip(crd, &naming_near[wt], &naming_near[wf]);
-                                                                }
-                                                            }
-                                                            int::PassWireIn::Far(wf) => {
-                                                                if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, p.target, wf)) {
-                                                                    if self.missing_int_wires.contains(&wiret) || self.missing_int_wires.contains(&wiref) {
-                                                                        continue;
-                                                                    }
-                                                                    if !naming_far.unwrap().contains_id(wf) {
-                                                                        continue;
-                                                                    }
-                                                                    if let Some(crd_far) = crd_far {
-                                                                        if !self.pin_int_wire(crd_far, &naming_far_in.unwrap()[wf], wiref) {
-                                                                            continue;
-                                                                        }
-                                                                        self.claim_node(&[
-                                                                            (crd, &naming_far.unwrap()[wf]),
-                                                                            (crd_far, &naming_far_out.unwrap()[wf]),
-                                                                        ]);
-                                                                        self.claim_pip(crd_far, &naming_far_out.unwrap()[wf], &naming_far_in.unwrap()[wf]);
-                                                                    } else {
-                                                                        if !self.pin_int_wire(crd, &naming_far.unwrap()[wf], wiref) {
-                                                                            continue;
-                                                                        }
-                                                                    }
-                                                                    if !self.pin_int_wire(crd, &naming_near[wt], wiret) {
-                                                                        continue;
-                                                                    }
-                                                                    self.claim_pip(crd, &naming_near[wt], &naming_far.unwrap()[wf]);
-                                                                }
+                                                                self.claim_pip(crd, &naming_near[wt], &naming_far.unwrap()[wf]);
                                                             }
                                                         }
                                                     }
                                                 }
-                                                int::PassInfo::Mux(ref wfs) => {
-                                                    if !self.pin_int_wire(crd, &naming_near[wt], wiret) {
-                                                        println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming_near[wt]);
-                                                    }
-                                                    for &wf in wfs {
-                                                        match wf {
-                                                            int::PassWireIn::Near(wf) => {
-                                                                if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
-                                                                    if !naming_near.contains_id(wf) {
-                                                                        continue;
-                                                                    }
-                                                                    if !self.pin_int_wire(crd, &naming_near[wf], wiref) {
-                                                                        continue;
-                                                                    }
-                                                                    self.claim_pip(crd, &naming_near[wt], &naming_near[wf]);
-                                                                }
-                                                            }
-                                                            int::PassWireIn::Far(wf) => {
-                                                                if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, p.target, wf)) {
-                                                                    if !naming_far.unwrap().contains_id(wf) {
-                                                                        continue;
-                                                                    }
-                                                                    if let Some(crd_far) = crd_far {
-                                                                        if !self.pin_int_wire(crd_far, &naming_far_in.unwrap()[wf], wiref) {
-                                                                            println!("MISSING INT WIRE {} {}", p.tile_far.as_ref().unwrap(), naming_far_in.unwrap()[wf]);
-                                                                        }
-                                                                        self.claim_node(&[
-                                                                            (crd, &naming_far.unwrap()[wf]),
-                                                                            (crd_far, &naming_far_out.unwrap()[wf]),
-                                                                        ]);
-                                                                        self.claim_pip(crd_far, &naming_far_out.unwrap()[wf], &naming_far_in.unwrap()[wf]);
-                                                                    } else {
-                                                                        if !self.pin_int_wire(crd, &naming_far.unwrap()[wf], wiref) {
-                                                                            println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming_far.unwrap()[wf]);
-                                                                        }
-                                                                    }
-                                                                    self.claim_pip(crd, &naming_near[wt], &naming_far.unwrap()[wf]);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                _ => (),
                                             }
+                                            int::TermInfo::Mux(ref wfs) => {
+                                                if !self.pin_int_wire(crd, &naming_near[wt], wiret) {
+                                                    println!("MISSING INT WIRE {} {}", t.tile.as_ref().unwrap(), naming_near[wt]);
+                                                }
+                                                for &wf in wfs {
+                                                    match wf {
+                                                        int::TermWireIn::Near(wf) => {
+                                                            if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
+                                                                if !naming_near.contains_id(wf) {
+                                                                    continue;
+                                                                }
+                                                                if !self.pin_int_wire(crd, &naming_near[wf], wiref) {
+                                                                    continue;
+                                                                }
+                                                                self.claim_pip(crd, &naming_near[wt], &naming_near[wf]);
+                                                            }
+                                                        }
+                                                        int::TermWireIn::Far(wf) => {
+                                                            if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, t.target.unwrap(), wf)) {
+                                                                if !naming_far.unwrap().contains_id(wf) {
+                                                                    continue;
+                                                                }
+                                                                if let Some(crd_far) = crd_far {
+                                                                    if !self.pin_int_wire(crd_far, &naming_far_in.unwrap()[wf], wiref) {
+                                                                        println!("MISSING INT WIRE {} {}", t.tile_far.as_ref().unwrap(), naming_far_in.unwrap()[wf]);
+                                                                    }
+                                                                    self.claim_node(&[
+                                                                        (crd, &naming_far.unwrap()[wf]),
+                                                                        (crd_far, &naming_far_out.unwrap()[wf]),
+                                                                    ]);
+                                                                    self.claim_pip(crd_far, &naming_far_out.unwrap()[wf], &naming_far_in.unwrap()[wf]);
+                                                                } else {
+                                                                    if !self.pin_int_wire(crd, &naming_far.unwrap()[wf], wiref) {
+                                                                        println!("MISSING INT WIRE {} {}", t.tile.as_ref().unwrap(), naming_far.unwrap()[wf]);
+                                                                    }
+                                                                }
+                                                                self.claim_pip(crd, &naming_near[wt], &naming_far.unwrap()[wf]);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            _ => (),
                                         }
                                     }
                                 }
-                                eint::ExpandedTileDir::Term(p) => {
-                                    let crd;
-                                    if let Some(n) = &p.tile {
-                                        if let Some(c) = self.xlat_tile(n) {
-                                            crd = c;
-                                        } else {
-                                            println!("MISSING TERM TILE {}", n);
-                                            continue;
-                                        }
-                                    } else {
-                                        continue;
-                                    }
-                                    let naming = &self.db.namings[p.naming.unwrap()];
-                                    let naming_in = p.naming_in.map(|x| &self.db.namings[x]);
-                                    for (wt, ti) in &self.db.terms[p.kind].wires {
-                                        if let Some(wiret) = self.grid.resolve_wire_raw((slr.slr, (col, row), wt)) {
-                                            match *ti {
-                                                int::TermInfo::Pass(wf) => {
-                                                    if naming.contains_id(wt) {
-                                                        if !self.pin_int_wire(crd, &naming[wt], wiret) {
-                                                            println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming[wt]);
-                                                        }
-                                                        if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
-                                                            if let Some(naming_in) = naming_in {
-                                                                if !self.pin_int_wire(crd, &naming_in[wt], wiref) {
-                                                                    println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming_in[wt]);
-                                                                }
-                                                                self.claim_pip(crd, &naming[wt], &naming_in[wt]);
-                                                            } else {
-                                                                if !self.pin_int_wire(crd, &naming[wf], wiref) {
-                                                                    println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming[wf]);
-                                                                }
-                                                                self.claim_pip(crd, &naming[wt], &naming[wf]);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                int::TermInfo::Mux(ref wfs) => {
-                                                    if !self.pin_int_wire(crd, &naming[wt], wiret) {
-                                                        println!("MISSING INT WIRE {} {}", p.tile.as_ref().unwrap(), naming[wt]);
-                                                    }
-                                                    for &wf in wfs {
-                                                        if let Some(wiref) = self.grid.resolve_wire_raw((slr.slr, (col, row), wf)) {
-                                                            if !naming.contains_id(wf) {
-                                                                continue;
-                                                            }
-                                                            if !self.pin_int_wire(crd, &naming[wf], wiref) {
-                                                                continue;
-                                                            }
-                                                            self.claim_pip(crd, &naming[wt], &naming[wf]);
-                                                        }
-                                                    }
-                                                }
-                                                _ => (),
-                                            }
-                                        }
-                                    }
-                                }
-                                _ => (),
                             }
                         }
                         for intf in &et.intfs {

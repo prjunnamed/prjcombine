@@ -118,7 +118,6 @@ impl GridBuilder {
                 }
                 merge_dicts!(nodes);
                 merge_dicts!(terms);
-                merge_dicts!(passes);
                 merge_dicts!(intfs);
                 merge_dicts!(bels);
                 for (_, k, v) in int.namings {

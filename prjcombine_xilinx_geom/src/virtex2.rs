@@ -933,11 +933,11 @@ impl Grid {
                     let x = xlut[col + d];
                     let yb = b.to_idx();
                     let yt = t.to_idx();
-                    grid.fill_pass_term(
+                    grid.fill_term_pair_bounce(
                         (col + d, b - 1),
                         (col + d, t + 1),
-                        db.get_pass("BRAM.N"),
-                        db.get_pass("BRAM.S"),
+                        db.get_term("BRAM.N"),
+                        db.get_term("BRAM.S"),
                         format!("COB_TERM_B_X{x}Y{yb}"),
                         format!("COB_TERM_T_X{x}Y{yt}"),
                         db.get_naming("TERM.BRAM.N"),
@@ -1145,20 +1145,22 @@ impl Grid {
                 let c = bramclut[col_r - 1];
                 let r = yt - row.to_idx();
                 let tile_r = format!("BMR{r}C{c}");
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col_r, row),
-                    kind: db.get_pass("PPC.E"),
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col_r, row)),
+                    kind: db.get_term("PPC.E"),
                     tile: Some(tile_l.clone()),
                     naming_near: Some(db.get_naming("TERM.PPC.E")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.E.FAR")),
                     tile_far: Some(tile_r.clone()),
                     naming_far_out: Some(db.get_naming("TERM.PPC.W.OUT")),
                     naming_far_in: Some(db.get_naming("TERM.PPC.W")),
-                }, eint::ExpandedTilePass {
-                    target: (col_l, row),
-                    kind: db.get_pass("PPC.W"),
+                }, eint::ExpandedTileTerm {
+                    target: Some((col_l, row)),
+                    kind: db.get_term("PPC.W"),
                     tile: Some(tile_r),
                     naming_near: Some(db.get_naming("TERM.PPC.W")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.W.FAR")),
                     tile_far: Some(tile_l),
                     naming_far_out: Some(db.get_naming("TERM.PPC.E.OUT")),
@@ -1183,20 +1185,22 @@ impl Grid {
                     tile_b = format!("PTERMBR{rb}BRAMC{c}");
                     tile_t = format!("PTERMTR{rt}BRAMC{c}");
                 }
-                grid.fill_pass_pair(eint::ExpandedTilePass {
-                    target: (col, row_t),
-                    kind: db.get_pass("PPC.N"),
+                grid.fill_term_pair(eint::ExpandedTileTerm {
+                    target: Some((col, row_t)),
+                    kind: db.get_term("PPC.N"),
                     tile: Some(tile_b.clone()),
                     naming_near: Some(db.get_naming("TERM.PPC.N")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.N.FAR")),
                     tile_far: Some(tile_t.clone()),
                     naming_far_out: Some(db.get_naming("TERM.PPC.S.OUT")),
                     naming_far_in: Some(db.get_naming("TERM.PPC.S")),
-                }, eint::ExpandedTilePass {
-                    target: (col, row_b),
-                    kind: db.get_pass("PPC.S"),
+                }, eint::ExpandedTileTerm {
+                    target: Some((col, row_b)),
+                    kind: db.get_term("PPC.S"),
                     tile: Some(tile_t),
                     naming_near: Some(db.get_naming("TERM.PPC.S")),
+                    naming_near_in: None,
                     naming_far: Some(db.get_naming("TERM.PPC.S.FAR")),
                     tile_far: Some(tile_b),
                     naming_far_out: Some(db.get_naming("TERM.PPC.N.OUT")),
@@ -1277,8 +1281,8 @@ impl Grid {
                 while grid[(col, row_n)].is_none() {
                     row_n += 1;
                 }
-                let mut pass_s = db.get_pass("LLV.S");
-                let mut pass_n = db.get_pass("LLV.N");
+                let mut term_s = db.get_term("LLV.S");
+                let mut term_n = db.get_term("LLV.N");
                 let mut naming_s = db.get_naming("LLV.S");
                 let mut naming_n = db.get_naming("LLV.N");
                 let mut tile;
@@ -1295,8 +1299,8 @@ impl Grid {
                         tile = format!("CLKR_IOIS_LL_X{x}Y{y}");
                     }
                     if self.kind != GridKind::Spartan3A {
-                        pass_s = db.get_pass("LLV.CLKLR.S3E.S");
-                        pass_n = db.get_pass("LLV.CLKLR.S3E.N");
+                        term_s = db.get_term("LLV.CLKLR.S3E.S");
+                        term_n = db.get_term("LLV.CLKLR.S3E.N");
                     }
                 } else {
                     tile = format!("CLKH_LL_X{x}Y{y}");
@@ -1319,7 +1323,7 @@ impl Grid {
                         tile = format!("CLKH_DCM_LL_X{x}Y{y}");
                     }
                 }
-                grid.fill_pass_buf((col, row_s), (col, row_n), pass_n, pass_s, tile, naming_s, naming_n);
+                grid.fill_term_pair_buf((col, row_s), (col, row_n), term_n, term_s, tile, naming_s, naming_n);
             }
             for row in self.rows.ids() {
                 let mut col_l = self.col_clk - 1;
@@ -1332,8 +1336,8 @@ impl Grid {
                 }
                 let x = xlut[self.col_clk - 1];
                 let y = row.to_idx();
-                let mut pass_w = db.get_pass("LLH.W");
-                let mut pass_e = db.get_pass("LLH.E");
+                let mut term_w = db.get_term("LLH.W");
+                let mut term_e = db.get_term("LLH.E");
                 let naming_w = db.get_naming("LLH.W");
                 let naming_e = db.get_naming("LLH.E");
                 let tile = if row == row_b {
@@ -1342,42 +1346,42 @@ impl Grid {
                     format!("CLKT_LL_X{x}Y{y}")
                 } else if self.kind != GridKind::Spartan3E && [row_b + 2, row_b + 3, row_b + 4, row_t - 4, row_t - 3, row_t - 2].into_iter().any(|x| x == row) {
                     if self.kind == GridKind::Spartan3ADsp {
-                        pass_w = db.get_pass("LLH.DCM.S3ADSP.W");
-                        pass_e = db.get_pass("LLH.DCM.S3ADSP.E");
+                        term_w = db.get_term("LLH.DCM.S3ADSP.W");
+                        term_e = db.get_term("LLH.DCM.S3ADSP.E");
                     }
                     format!("CLKV_DCM_LL_X{x}Y{y}")
                 } else {
                     format!("CLKV_LL_X{x}Y{y}")
                 };
-                grid.fill_pass_buf((col_l, row), (col_r, row), pass_e, pass_w, tile, naming_w, naming_e);
+                grid.fill_term_pair_buf((col_l, row), (col_r, row), term_e, term_w, tile, naming_w, naming_e);
             }
         }
         if self.kind == GridKind::Spartan3E && !self.has_ll {
-            let pass_s = db.get_pass("CLKLR.S3E.S");
-            let pass_n = db.get_pass("CLKLR.S3E.N");
+            let term_s = db.get_term("CLKLR.S3E.S");
+            let term_n = db.get_term("CLKLR.S3E.N");
             for col in [col_l, col_r] {
-                grid.fill_pass_anon((col, self.row_mid() - 1), (col, self.row_mid()), pass_n, pass_s);
+                grid.fill_term_pair_anon((col, self.row_mid() - 1), (col, self.row_mid()), term_n, term_s);
             }
         }
         if self.kind == GridKind::Spartan3 && !rows_brk.is_empty() {
-            let pass_s = db.get_pass("BRKH.S3.S");
-            let pass_n = db.get_pass("BRKH.S3.N");
+            let term_s = db.get_term("BRKH.S3.S");
+            let term_n = db.get_term("BRKH.S3.N");
             for &row_s in &rows_brk {
                 let row_n = row_s + 1;
                 for col in grid.cols() {
-                    grid.fill_pass_anon((col, row_s), (col, row_n), pass_n, pass_s);
+                    grid.fill_term_pair_anon((col, row_s), (col, row_n), term_n, term_s);
                 }
             }
         }
         if self.kind == GridKind::Spartan3ADsp {
-            let dsphole_e = db.get_pass("DSPHOLE.E");
-            let dsphole_w = db.get_pass("DSPHOLE.W");
-            let hdcm_e = db.get_pass("HDCM.E");
-            let hdcm_w = db.get_pass("HDCM.W");
+            let dsphole_e = db.get_term("DSPHOLE.E");
+            let dsphole_w = db.get_term("DSPHOLE.W");
+            let hdcm_e = db.get_term("HDCM.E");
+            let hdcm_w = db.get_term("HDCM.W");
             for (col, cd) in &self.columns {
                 if cd.kind == ColumnKind::Dsp {
                     for row in [row_b, row_t] {
-                        grid.fill_pass_anon((col, row), (col + 1, row), dsphole_e, dsphole_w);
+                        grid.fill_term_pair_anon((col, row), (col + 1, row), dsphole_e, dsphole_w);
                     }
                 }
             }
@@ -1386,7 +1390,7 @@ impl Grid {
                     self.row_mid() - 1,
                     self.row_mid(),
                 ] {
-                    grid.fill_pass_anon((col, row), (col + 4, row), dsphole_e, dsphole_w);
+                    grid.fill_term_pair_anon((col, row), (col + 4, row), dsphole_e, dsphole_w);
                 }
                 for row in [
                     self.row_mid() - 4,
@@ -1396,7 +1400,7 @@ impl Grid {
                     self.row_mid() + 2,
                     self.row_mid() + 3 
                 ] {
-                    grid.fill_pass_anon((col - 1, row), (col + 4, row), hdcm_e, hdcm_w);
+                    grid.fill_term_pair_anon((col - 1, row), (col + 4, row), hdcm_e, hdcm_w);
                 }
             }
         }
@@ -1418,13 +1422,13 @@ impl Grid {
                         if et.special {
                             continue;
                         }
-                        if let eint::ExpandedTileDir::Pass(ref mut p) = et.dirs[int::Dir::S] {
+                        if let Some(ref mut p) = et.terms[int::Dir::S] {
                             p.naming_near = Some(db.get_naming("BRAM.N"));
                             p.naming_far = Some(db.get_naming("BRAM.S"));
                         } else {
                             unreachable!();
                         }
-                        if let eint::ExpandedTileDir::Pass(ref mut p) = grid.tile_mut((col, row - 1)).dirs[int::Dir::N] {
+                        if let Some(ref mut p) = grid.tile_mut((col, row - 1)).terms[int::Dir::N] {
                             p.naming_near = Some(db.get_naming("BRAM.S"));
                             p.naming_far = Some(db.get_naming("BRAM.N"));
                         } else {
@@ -1438,8 +1442,8 @@ impl Grid {
         if matches!(self.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) {
             for (col, cd) in &self.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    grid.tile_mut((col, row_b)).dirs[int::Dir::N] = eint::ExpandedTileDir::None;
-                    grid.tile_mut((col, row_t)).dirs[int::Dir::S] = eint::ExpandedTileDir::None;
+                    grid.tile_mut((col, row_b)).terms[int::Dir::N] = None;
+                    grid.tile_mut((col, row_t)).terms[int::Dir::S] = None;
                 }
             }
         }

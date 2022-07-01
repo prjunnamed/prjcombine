@@ -915,15 +915,15 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
         for reg in 1..grid.regs {
             let row_s = RowId::from_idx(reg * 50 - 1);
             let row_n = RowId::from_idx(reg * 50);
-            let pass_s = db.get_pass("BRKH.S");
-            let pass_n = db.get_pass("BRKH.N");
+            let term_s = db.get_term("BRKH.S");
+            let term_n = db.get_term("BRKH.N");
             let naming_s = db.get_naming("PASS.BRKH.S");
             let naming_n = db.get_naming("PASS.BRKH.N");
             for col in slr.cols() {
                 if slr[(col, row_s)].is_some() && slr[(col, row_n)].is_some() {
                     let x = xlut[col];
                     let y = yb + row_s.to_idx();
-                    slr.fill_pass_buf((col, row_s), (col, row_n), pass_n, pass_s, format!("BRKH_INT_X{x}Y{y}"), naming_s, naming_n);
+                    slr.fill_term_pair_buf((col, row_s), (col, row_n), term_n, term_s, format!("BRKH_INT_X{x}Y{y}"), naming_s, naming_n);
                 }
             }
         }
