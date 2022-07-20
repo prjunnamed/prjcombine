@@ -1,14 +1,13 @@
-use prjcombine_xilinx_rawdump::{Part, Coord, WireIdx, self as rawdump};
+use prjcombine_xilinx_rawdump::{Part, Coord, self as rawdump};
 use prjcombine_xilinx_geom::{int, eint, eint::IntWire};
 use std::collections::{HashMap, HashSet, BTreeSet};
 use bitvec::vec::BitVec;
-use indexmap::IndexSet;
+use prjcombine_entity::EntityId;
 
 pub struct Verifier<'a> {
     pub rd: &'a Part,
     pub db: &'a int::IntDb,
     pub grid: &'a eint::ExpandedGrid<'a>,
-    pub wire_lut: HashMap<String, rawdump::WireIdx>,
     pub tile_lut: HashMap<String, Coord>,
     claimed_nodes: BitVec,
     claimed_twires: HashMap<Coord, BitVec>,
@@ -17,12 +16,6 @@ pub struct Verifier<'a> {
     int_site_wires: HashMap<IntWire, NodeOrWire>,
     missing_int_wires: HashSet<IntWire>,
     missing_int_site_wires: HashSet<IntWire>,
-    tkinfo: HashMap<String, TkInfo>,
-}
-
-struct TkInfo {
-    pips: IndexSet<(WireIdx, WireIdx)>,
-    wires: IndexSet<WireIdx>,
 }
 
 pub struct SitePin<'a> {
@@ -33,8 +26,8 @@ pub struct SitePin<'a> {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum NodeOrWire {
-    Node(usize),
-    Wire(Coord, usize),
+    Node(rawdump::NodeId),
+    Wire(Coord, rawdump::TkWireId),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -46,19 +39,10 @@ pub enum SitePinDir {
 
 impl<'a> Verifier<'a> {
     pub fn new(rd: &'a Part, grid: &'a eint::ExpandedGrid) -> Self {
-        let tkinfo = rd.tile_kinds.iter().map(|(n, tk)| {
-            let pips = tk.pips.keys().copied().collect();
-            let wires = tk.wires.iter().filter_map(|(&k, v)| if matches!(v, rawdump::TkWire::Internal(_, _)) {Some(k)} else {None}).collect();
-            (n.clone(), TkInfo {
-                pips,
-                wires,
-            })
-        }).collect();
         let mut res = Self {
             rd,
             db: grid.db,
             grid,
-            wire_lut: rd.wires.iter().enumerate().map(|(i, n)| (n.clone(), rawdump::WireIdx::from_raw(i))).collect(),
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
             claimed_nodes: BitVec::new(),
             claimed_twires: HashMap::new(),
@@ -67,7 +51,6 @@ impl<'a> Verifier<'a> {
             int_site_wires: HashMap::new(),
             missing_int_wires: HashSet::new(),
             missing_int_site_wires: HashSet::new(),
-            tkinfo,
         };
         res.handle_int();
         res
@@ -75,16 +58,15 @@ impl<'a> Verifier<'a> {
 
     fn lookup_wire(&self, crd: Coord, wire: &str) -> Option<NodeOrWire> {
         let tile = &self.rd.tiles[&crd];
-        let tk = &self.rd.tile_kinds[&tile.kind];
-        let widx = *self.wire_lut.get(wire)?;
-        match *tk.wires.get(&widx)? {
-            rawdump::TkWire::Internal(_, _) => {
-                let widx = self.tkinfo[&tile.kind].wires.get_full(&widx).unwrap().0;
-                Some(NodeOrWire::Wire(crd, widx))
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let widx = self.rd.wires.get(wire)?;
+        match tk.wires.get(&widx)? {
+            (twi, rawdump::TkWire::Internal(_, _)) => {
+                Some(NodeOrWire::Wire(crd, twi))
             }
-            rawdump::TkWire::Connected(idx) => {
+            (_, &rawdump::TkWire::Connected(idx)) => {
                 match tile.conn_wires.get(idx) {
-                    Some(&rawdump::NodeOrClass::Node(nidx)) => Some(NodeOrWire::Node(nidx as usize)),
+                    Some(&nidx) => Some(NodeOrWire::Node(nidx)),
                     _ => None,
                 }
             }
@@ -155,7 +137,7 @@ impl<'a> Verifier<'a> {
                     nw = Some(cnw);
                     match cnw {
                         NodeOrWire::Node(nidx) => {
-                            let nidx = nidx as usize;
+                            let nidx = nidx.to_idx();
                             if nidx >= self.claimed_nodes.len() {
                                 self.claimed_nodes.resize(nidx + 1, false);
                             }
@@ -165,6 +147,7 @@ impl<'a> Verifier<'a> {
                             self.claimed_nodes.set(nidx, true);
                         }
                         NodeOrWire::Wire(crd, widx) => {
+                            let widx = widx.to_idx();
                             let ctw = self.claimed_twires.entry(crd).or_default();
                             if widx >= ctw.len() {
                                 ctw.resize(widx + 1, false);
@@ -184,21 +167,22 @@ impl<'a> Verifier<'a> {
 
     pub fn claim_pip(&mut self, crd: Coord, wt: &str, wf: &str) {
         let tile = &self.rd.tiles[&crd];
+        let tk = &self.rd.tile_kinds[tile.kind];
         let tname = &tile.name;
-        let tkinfo = &self.tkinfo[&tile.kind];
-        let wti = if let Some(&wti) = self.wire_lut.get(wt) {
+        let wti = if let Some(wti) = self.rd.wires.get(wt) {
             wti
         } else {
             println!("MISSING PIP DEST WIRE {tname} {wt}");
             return;
         };
-        let wfi = if let Some(&wfi) = self.wire_lut.get(wf) {
+        let wfi = if let Some(wfi) = self.rd.wires.get(wf) {
             wfi
         } else {
             println!("MISSING PIP SRC WIRE {tname} {wf}");
             return;
         };
-        if let Some((idx, _)) = tkinfo.pips.get_full(&(wfi, wti)) {
+        if let Some((idx, _)) = tk.pips.get(&(wfi, wti)) {
+            let idx = idx.to_idx();
             let ctp = self.claimed_pips.entry(crd).or_default();
             if idx >= ctp.len() {
                 ctp.resize(idx + 1, false);
@@ -214,17 +198,15 @@ impl<'a> Verifier<'a> {
 
     pub fn claim_site(&mut self, crd: Coord, name: &str, kind: &str, pins: &[SitePin<'_>]) {
         let tile = &self.rd.tiles[&crd];
-        let tk = &self.rd.tile_kinds[&tile.kind];
-        for (i, n) in tile.sites.iter().enumerate() {
-            if let Some(n) = n {
-                if n == name {
-                    let site = &tk.sites[i];
-                    if site.kind != kind {
-                        println!("MISMATCHED SITE KIND {} {} {} {} {}", self.rd.part, tile.name, name, kind, site.kind);
-                    }
-                    // XXX pins
-                    return;
+        let tk = &self.rd.tile_kinds[tile.kind];
+        for (i, n) in tile.sites.iter() {
+            if n == name {
+                let site = &tk.sites[i];
+                if site.kind != kind {
+                    println!("MISMATCHED SITE KIND {} {} {} {} {}", self.rd.part, tile.name, name, kind, site.kind);
                 }
+                // XXX pins
+                return;
             }
         }
         println!("MISSING SITE {} {} {}", self.rd.part, tile.name, name);

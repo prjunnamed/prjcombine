@@ -75,6 +75,20 @@ where
         Some((I::from_idx(i), v))
     }
 
+    pub fn get_full<Q: ?Sized>(&self, key: &Q) -> Option<(I, &K, &V)>
+    where Q: Hash + Equivalent<K>
+    {
+        let (i, k, v) = self.map.get_full(key)?;
+        Some((I::from_idx(i), k, v))
+    }
+
+    pub fn get_full_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<(I, &K, &mut V)>
+    where Q: Hash + Equivalent<K>
+    {
+        let (i, k, v) = self.map.get_full_mut(key)?;
+        Some((I::from_idx(i), k, v))
+    }
+
     pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
     where Q: Hash + Equivalent<K>
     {
@@ -463,6 +477,6 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(DeserializeVisitor::new())
+        deserializer.deserialize_seq(DeserializeVisitor::new())
     }
 }

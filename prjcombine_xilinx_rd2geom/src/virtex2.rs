@@ -67,8 +67,8 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                     x: (int.cols[col] + 1) as u16,
                     y: 0,
                 };
-                let tk0 = &rd.tiles[&c0].kind[..];
-                let tk1 = &rd.tiles[&c1].kind[..];
+                let tk0 = &rd.tile_kinds.key(rd.tiles[&c0].kind)[..];
+                let tk1 = &rd.tile_kinds.key(rd.tiles[&c1].kind)[..];
                 match (tk0, tk1) {
                     ("BTERM012" | "BCLKTERM012" | "ML_BCLKTERM012", "BTERM323") | ("BTERM010", "BTERM123" | "BCLKTERM123" | "ML_BCLKTERM123") => {
                         for i in 0..2 {
@@ -110,7 +110,7 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                     x: int.cols[col] as u16,
                     y: 0,
                 };
-                let tk = &rd.tiles[&c].kind[..];
+                let tk = &rd.tile_kinds.key(rd.tiles[&c].kind)[..];
                 match tk {
                     "BTERM4" | "BTERM4_BRAM2" | "BTERM4CLK" => {
                         for i in 0..4 {
@@ -158,8 +158,7 @@ fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
 }
 
 fn get_gt_bank(rd: &Part, c: Coord) -> u32 {
-    for s in &rd.tiles[&c].sites {
-        let s = s.as_deref().unwrap();
+    for s in rd.tiles[&c].sites.values() {
         if s.starts_with("RXNPAD") {
             return s[6..].parse::<u32>().unwrap();
         }
@@ -214,7 +213,7 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoK
                     x: 0,
                     y: int.rows[res.next_id()] as u16,
                 };
-                let tk = &rd.tiles[&c].kind[..];
+                let tk = &rd.tile_kinds.key(rd.tiles[&c].kind)[..];
                 match tk {
                     "LTERM4" | "LTERM4B" | "LTERM4CLK" => {
                         for i in 0..4 {
@@ -289,7 +288,7 @@ fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<RowId> {
 fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = Vec::new();
     for tt in ["LLPPC_X0Y0_INT", "LLPPC_X1Y0_INT"] {
-        if let Some(tk) = rd.tile_kinds.get(tt) {
+        if let Some((_, tk)) = rd.tile_kinds.get(tt) {
             assert_eq!(tk.tiles.len(), 1);
             let tile = &tk.tiles[0];
             let x = int.lookup_column(tile.x as i32);
@@ -1071,26 +1070,22 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
     }
     builder.extract_term("N", Dir::N, "CNR_TTERM", "TERM.N.CNR");
 
-    if let Some(tk) = rd.tile_kinds.get("PTERMB") {
-        for &xy_b in &tk.tiles {
-            let xy_t = Coord {
-                x: xy_b.x,
-                y: xy_b.y + 14,
-            };
-            let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
-            let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
-            builder.extract_pass_tile("PPC.S", Dir::S, int_n_xy, Some((xy_t, "TERM.PPC.S", Some("TERM.PPC.S.FAR"))), Some((xy_b, "TERM.PPC.N.OUT", "TERM.PPC.N")), int_s_xy, &[]);
-            builder.extract_pass_tile("PPC.N", Dir::N, int_s_xy, Some((xy_b, "TERM.PPC.N", Some("TERM.PPC.N.FAR"))), Some((xy_t, "TERM.PPC.S.OUT", "TERM.PPC.S")), int_n_xy, &[]);
-        }
+    for &xy_b in rd.tiles_by_kind_name("PTERMB") {
+        let xy_t = Coord {
+            x: xy_b.x,
+            y: xy_b.y + 14,
+        };
+        let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
+        let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
+        builder.extract_pass_tile("PPC.S", Dir::S, int_n_xy, Some((xy_t, "TERM.PPC.S", Some("TERM.PPC.S.FAR"))), Some((xy_b, "TERM.PPC.N.OUT", "TERM.PPC.N")), int_s_xy, &[]);
+        builder.extract_pass_tile("PPC.N", Dir::N, int_s_xy, Some((xy_b, "TERM.PPC.N", Some("TERM.PPC.N.FAR"))), Some((xy_t, "TERM.PPC.S.OUT", "TERM.PPC.S")), int_n_xy, &[]);
     }
     for tkn in ["PTERMR", "PTERMBR", "PTERMTR"] {
-        if let Some(tk) = rd.tile_kinds.get(tkn) {
-            for &xy_r in &tk.tiles {
-                let int_w_xy = builder.walk_to_int(xy_r, Dir::W).unwrap();
-                let int_e_xy = builder.walk_to_int(xy_r, Dir::E).unwrap();
-                builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((int_w_xy, "TERM.PPC.E.OUT", "TERM.PPC.E")), int_w_xy, &[]);
-                builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((int_w_xy, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W")), int_e_xy, &[]);
-            }
+        for &xy_r in rd.tiles_by_kind_name(tkn) {
+            let int_w_xy = builder.walk_to_int(xy_r, Dir::W).unwrap();
+            let int_e_xy = builder.walk_to_int(xy_r, Dir::E).unwrap();
+            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((int_w_xy, "TERM.PPC.E.OUT", "TERM.PPC.E")), int_w_xy, &[]);
+            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((int_w_xy, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W")), int_e_xy, &[]);
         }
     }
 
@@ -1926,8 +1921,8 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
     builder.extract_term("N", Dir::N, "CNR_TTERM", "TERM.N.CNR");
 
     if rd.family == "spartan3e" {
-        let cob_term_t_y = rd.tile_kinds["COB_TERM_T"].tiles[0].y;
-        for &xy_b in &rd.tile_kinds["COB_TERM_B"].tiles {
+        let cob_term_t_y = rd.tile_kinds.get("COB_TERM_T").unwrap().1.tiles[0].y;
+        for &xy_b in &rd.tile_kinds.get("COB_TERM_B").unwrap().1.tiles {
             let xy_t = Coord {
                 x: xy_b.x,
                 y: cob_term_t_y,
@@ -1968,17 +1963,15 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
     ] {
         builder.extract_pass_buf("LLH", Dir::W, tkn, "LLH", &[]);
     }
-    if let Some(tk) = rd.tile_kinds.get("CLKB_LL") {
-        for &xy in &tk.tiles {
-            let fix_xy = Coord {
-                x: xy.x,
-                y: xy.y + 1,
-            };
-            let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W).unwrap();
-            let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E).unwrap();
-            builder.extract_pass_tile("LLH.W", Dir::W, int_bwd_xy, Some((xy, "LLH.E", Some("LLH.W"))), None, int_fwd_xy, &[]);
-            builder.extract_pass_tile("LLH.E", Dir::E, int_fwd_xy, Some((xy, "LLH.W", Some("LLH.E"))), None, int_bwd_xy, &[]);
-        }
+    for &xy in rd.tiles_by_kind_name("CLKB_LL") {
+        let fix_xy = Coord {
+            x: xy.x,
+            y: xy.y + 1,
+        };
+        let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W).unwrap();
+        let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E).unwrap();
+        builder.extract_pass_tile("LLH.W", Dir::W, int_bwd_xy, Some((xy, "LLH.E", Some("LLH.W"))), None, int_fwd_xy, &[]);
+        builder.extract_pass_tile("LLH.E", Dir::E, int_fwd_xy, Some((xy, "LLH.W", Some("LLH.E"))), None, int_bwd_xy, &[]);
     }
     if rd.family == "spartan3adsp" {
         for tkn in [
@@ -1987,36 +1980,32 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         ] {
             builder.extract_pass_simple("DSPHOLE", Dir::W, tkn, &lh);
         }
-        if let Some(tk) = rd.tile_kinds.get("DCM_BGAP") {
-            for &xy in &tk.tiles {
-                let mut int_w_xy = xy;
-                let mut int_e_xy = xy;
-                int_e_xy.x += 5;
-                builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
-                builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
-                int_w_xy.x -= 1;
-                for _ in 0..3 {
-                    int_w_xy.y -= 1;
-                    int_e_xy.y -= 1;
-                    builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
-                    builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
-                }
+        for &xy in rd.tiles_by_kind_name("DCM_BGAP") {
+            let mut int_w_xy = xy;
+            let mut int_e_xy = xy;
+            int_e_xy.x += 5;
+            builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
+            builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
+            int_w_xy.x -= 1;
+            for _ in 0..3 {
+                int_w_xy.y -= 1;
+                int_e_xy.y -= 1;
+                builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
+                builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
             }
         }
-        if let Some(tk) = rd.tile_kinds.get("DCM_SPLY") {
-            for &xy in &tk.tiles {
-                let mut int_w_xy = xy;
-                let mut int_e_xy = xy;
-                int_e_xy.x += 5;
-                builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
-                builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
-                int_w_xy.x -= 1;
-                for _ in 0..3 {
-                    int_w_xy.y += 1;
-                    int_e_xy.y += 1;
-                    builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
-                    builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
-                }
+        for &xy in rd.tiles_by_kind_name("DCM_SPLY") {
+            let mut int_w_xy = xy;
+            let mut int_e_xy = xy;
+            int_e_xy.x += 5;
+            builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
+            builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
+            int_w_xy.x -= 1;
+            for _ in 0..3 {
+                int_w_xy.y += 1;
+                int_e_xy.y += 1;
+                builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, int_w_xy, &lh);
+                builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, int_e_xy, &lh);
             }
         }
         builder.extract_pass_buf("LLH.DCM.S3ADSP", Dir::W, "CLKV_DCM_LL", "LLH", &[]);

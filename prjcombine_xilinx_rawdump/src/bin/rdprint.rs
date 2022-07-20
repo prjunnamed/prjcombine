@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use prjcombine_xilinx_rawdump::{
-    Coord, NodeOrClass, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire,
+    Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire,
 };
 use std::error::Error;
 use structopt::StructOpt;
@@ -63,13 +63,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    for (name, tt) in rd.tile_kinds.iter().sorted_by_key(|(name, _)| *name) {
+    for (_, name, tt) in rd.tile_kinds.iter().sorted_by_key(|(_, name, _)| *name) {
         println!("TT {}", name);
-        for site in tt.sites.iter().sorted_by_key(|site| site.slot) {
-            let slot = match site.slot {
-                TkSiteSlot::Single(sk) => rd.print_slot_kind(sk).to_string(),
-                TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.print_slot_kind(sk), idx),
-                TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.print_slot_kind(sk), x, y),
+        for (_, &slot, site) in tt.sites.iter().sorted_by_key(|&(_, slot, _)| slot) {
+            let slot = match slot {
+                TkSiteSlot::Single(sk) => rd.slot_kinds[sk].clone(),
+                TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.slot_kinds[sk], idx),
+                TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.slot_kinds[sk], x, y),
             };
             println!("\tSITE {} {}", site.kind, slot);
             for (name, pin) in site.pins.iter().sorted_by_key(|(name, _)| *name) {
@@ -77,21 +77,33 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "\t\tPIN {} {:?} {} {}",
                     name,
                     pin.dir,
-                    rd.print_wire(pin.wire),
-                    rd.print_speed(pin.speed)
+                    match pin.wire {
+                        Some(w) => &rd.wires[w],
+                        None => "[NONE]",
+                    },
+                    match pin.speed {
+                        Some(s) => &rd.speeds[s],
+                        None => "[NONE]",
+                    },
                 );
             }
         }
         if opt.wires {
-            for (wi, w) in tt.wires.iter().sorted_by_key(|(wi, _)| rd.print_wire(**wi)) {
-                let wn = rd.print_wire(*wi);
+            for (_, wi, w) in tt.wires.iter().sorted_by_key(|&(_, &wi, _)| &rd.wires[wi]) {
+                let wn = &rd.wires[*wi];
                 match *w {
                     TkWire::Internal(s, nc) => {
                         println!(
                             "\tWIRE {} {} {}",
                             wn,
-                            rd.print_speed(s),
-                            rd.print_node_class(nc)
+                            match s {
+                                Some(s) => &rd.speeds[s],
+                                None => "[NONE]",
+                            },
+                            match nc {
+                                Some(nc) => &rd.node_classes[nc],
+                                None => "[NONE]",
+                            }
                         );
                     }
                     TkWire::Connected(_) => {
@@ -99,10 +111,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            for ((wfi, wti), pip) in tt
+            for (_, &(wfi, wti), pip) in tt
                 .pips
                 .iter()
-                .sorted_by_key(|((wfi, wti), _)| (rd.print_wire(*wti), rd.print_wire(*wfi)))
+                .sorted_by_key(|&(_, &(wfi, wti), _)| (&rd.wires[wti], &rd.wires[wfi]))
             {
                 let mut flags = String::new();
                 flags.push(if pip.is_buf { 'B' } else { '-' });
@@ -118,30 +130,32 @@ fn main() -> Result<(), Box<dyn Error>> {
                     TkPipDirection::BiFwd => '>',
                     TkPipDirection::BiBwd => '<',
                 });
-                let speed = rd.print_speed(pip.speed);
                 println!(
                     "\tPIP {} {} {} {}",
-                    rd.print_wire(*wti),
-                    rd.print_wire(*wfi),
+                    rd.wires[wti],
+                    rd.wires[wfi],
                     flags,
-                    speed
+                    match pip.speed {
+                        Some(s) => &rd.speeds[s],
+                        None => "[NONE]",
+                    },
                 );
             }
         }
     }
     for (coord, tile) in rd.tiles.iter().sorted_by_key(|(coord, _)| *coord) {
-        println!("TILE {} {} {} {}", coord.x, coord.y, tile.name, tile.kind);
-        let tt = rd.tile_kinds.get(&tile.kind).unwrap();
-        for (ts, tks) in tile
+        let tk = &rd.tile_kinds[tile.kind];
+        println!("TILE {} {} {} {}", coord.x, coord.y, tile.name, rd.tile_kinds.key(tile.kind));
+        for (slot, ts) in tk
             .sites
             .iter()
-            .zip(tt.sites.iter())
-            .sorted_by_key(|(_, tks)| tks.slot)
+            .map(|(i, &slot, _)| (slot, tile.sites.get(i)))
+            .sorted_by_key(|&(slot, _)| slot)
         {
-            let slot = match tks.slot {
-                TkSiteSlot::Single(sk) => rd.print_slot_kind(sk).to_string(),
-                TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.print_slot_kind(sk), idx),
-                TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.print_slot_kind(sk), x, y),
+            let slot = match slot {
+                TkSiteSlot::Single(sk) => rd.slot_kinds[sk].clone(),
+                TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.slot_kinds[sk], idx),
+                TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.slot_kinds[sk], x, y),
             };
             println!(
                 "\tSITE {} {}",
@@ -150,19 +164,18 @@ fn main() -> Result<(), Box<dyn Error>> {
             );
         }
         if opt.conns {
-            for (wi, noc) in tt
+            for (wi, ni) in tk
                 .conn_wires
                 .iter()
-                .copied()
-                .zip(tile.conn_wires.iter().copied())
-                .sorted_by_key(|(wi, _)| rd.print_wire(*wi))
+                .map(|(i, &wi)| (wi, tile.conn_wires.get(i).copied()))
+                .sorted_by_key(|&(wi, _)| &rd.wires[wi])
             {
-                match noc {
-                    NodeOrClass::Node(ni) => {
-                        println!("\tWIRE {}:", rd.print_wire(wi));
-                        let node = &rd.nodes[ni as usize];
-                        let tpl = &rd.templates[node.template as usize];
-                        for w in tpl.wires.iter() {
+                match ni {
+                    Some(ni) => {
+                        println!("\tWIRE {}:", rd.wires[wi]);
+                        let node = &rd.nodes[ni];
+                        let tpl = &rd.templates[node.template];
+                        for w in tpl {
                             let tc = Coord {
                                 x: node.base.x + w.delta.x,
                                 y: node.base.y + w.delta.y,
@@ -171,16 +184,21 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!(
                                 "\t\t{} {} {} {}",
                                 otile.name,
-                                rd.print_wire(w.wire),
-                                rd.print_speed(w.speed),
-                                rd.print_node_class(w.cls)
+                                rd.wires[w.wire],
+                                match w.speed {
+                                    Some(s) => &rd.speeds[s],
+                                    None => "[NONE]",
+                                },
+                                match w.cls {
+                                    Some(nc) => &rd.node_classes[nc],
+                                    None => "[NONE]",
+                                }
                             );
                         }
                     }
-                    NodeOrClass::None => {
-                        println!("\tWIRE {}: MISSING", rd.print_wire(wi));
+                    None => {
+                        println!("\tWIRE {}: MISSING", rd.wires[wi]);
                     }
-                    _ => panic!("WIRE {} PENDING", rd.print_wire(wi)),
                 }
             }
         }

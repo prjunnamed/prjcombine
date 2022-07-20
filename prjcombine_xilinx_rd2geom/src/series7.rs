@@ -179,7 +179,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
                 x: x as u16,
                 y: int.rows[RowId::from_idx(i * 50 + 1)] as u16,
             };
-            let kind = match &int.rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
                 "LIOI" => Some(IoKind::Hpio),
                 "LIOI3" => Some(IoKind::Hrio),
                 "PCIE_NULL" | "NULL" => None,
@@ -197,7 +197,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
                 x: x as u16,
                 y: int.rows[RowId::from_idx(i * 50 + 1)] as u16,
             };
-            let kind = match &int.rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
                 "RIOI" => Some(IoKind::Hpio),
                 "RIOI3" => Some(IoKind::Hrio),
                 "NULL" => None,
@@ -219,7 +219,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
                 x: 0,
                 y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
             };
-            let kind = match &int.rd.tiles[&c].kind[..] {
+            let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
                 "GTH_CHANNEL_0" => Some(GtKind::Gth),
                 "GTX_CHANNEL_0" => Some(GtKind::Gtx),
                 _ => unreachable!(),
@@ -240,7 +240,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
             x: x as u16,
             y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
         };
-        let kind = match &int.rd.tiles[&c].kind[..] {
+        let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
             "GTH_CHANNEL_0" => Some(GtKind::Gth),
             "GTX_CHANNEL_0" => Some(GtKind::Gtx),
             "GTP_CHANNEL_0" => Some(GtKind::Gtp),
@@ -1042,9 +1042,5 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let mut vrf = Verifier::new(rd, &eint);
     vrf.finish();
     let grids = grids.into_map_values(|x| geom::Grid::Series7(x));
-    // XXX GROSS HACK ALERT
-    if rd.source == rawdump::Source::Vivado {
-        int_db.intfs.clear();
-    }
     (make_device_multi(rd, grids, grid_master, extras, bonds, BTreeSet::new()), Some(int_db))
 }

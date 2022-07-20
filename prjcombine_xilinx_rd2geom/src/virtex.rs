@@ -46,7 +46,7 @@ fn add_disabled_dlls(disabled: &mut BTreeSet<DisabledPart>, rd: &Part) {
         y: 0,
     };
     let t = &rd.tiles[&c];
-    if t.kind == "CLKB_2DLL" {
+    if rd.tile_kinds.key(t.kind) == "CLKB_2DLL" {
         disabled.insert(DisabledPart::VirtexPrimaryDlls);
     }
 }

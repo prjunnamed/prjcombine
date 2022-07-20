@@ -43,8 +43,8 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
                 x: int.cols[col] as u16 + 1,
                 y: 3,
             };
-            let has_o = rd.tiles[&co].kind.ends_with("IOI_OUTER");
-            let has_i = rd.tiles[&ci].kind.ends_with("IOI_INNER");
+            let has_o = rd.tile_kinds.key(rd.tiles[&co].kind).ends_with("IOI_OUTER");
+            let has_i = rd.tile_kinds.key(rd.tiles[&ci].kind).ends_with("IOI_INNER");
             match (has_o, has_i) {
                 (false, false) => ColumnIoKind::None,
                 (false, true) => ColumnIoKind::Inner,
@@ -61,8 +61,8 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
                 x: int.cols[col] as u16 + 1,
                 y: rd.height - 4,
             };
-            let has_o = rd.tiles[&co].kind.ends_with("IOI_OUTER");
-            let has_i = rd.tiles[&ci].kind.ends_with("IOI_INNER");
+            let has_o = rd.tile_kinds.key(rd.tiles[&co].kind).ends_with("IOI_OUTER");
+            let has_i = rd.tile_kinds.key(rd.tiles[&ci].kind).ends_with("IOI_INNER");
             match (has_o, has_i) {
                 (false, false) => ColumnIoKind::None,
                 (false, true) => ColumnIoKind::Inner,
@@ -84,8 +84,8 @@ fn make_rows(rd: &Part, int: &IntGrid) -> EntityVec<RowId, Row> {
             y: y as u16,
         };
         Row {
-            lio: matches!(&rd.tiles[&c_l].kind[..], "LIOI" | "LIOI_BRK"),
-            rio: matches!(&rd.tiles[&c_r].kind[..], "RIOI" | "RIOI_BRK"),
+            lio: matches!(&rd.tile_kinds.key(rd.tiles[&c_l].kind)[..], "LIOI" | "LIOI_BRK"),
+            rio: matches!(&rd.tile_kinds.key(rd.tiles[&c_r].kind)[..], "RIOI" | "RIOI_BRK"),
         }
     })
 }
@@ -691,15 +691,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         builder.extract_term_buf("W", Dir::W, tkn, "TERM.W", &[]);
     }
     builder.extract_term_buf("W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
-    if let Some(tk) = rd.tile_kinds.get("INT_LTERM") {
-        for &term_xy in &tk.tiles {
-            let int_xy = builder.walk_to_int(term_xy, Dir::E).unwrap();
-            // sigh.
-            if int_xy.x == term_xy.x + 3 {
-                continue;
-            }
-            builder.extract_term_buf_tile("W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
+
+    for &term_xy in rd.tiles_by_kind_name("INT_LTERM") {
+        let int_xy = builder.walk_to_int(term_xy, Dir::E).unwrap();
+        // sigh.
+        if int_xy.x == term_xy.x + 3 {
+            continue;
         }
+        builder.extract_term_buf_tile("W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
     }
     for tkn in [
         "CNR_TL_RTERM",

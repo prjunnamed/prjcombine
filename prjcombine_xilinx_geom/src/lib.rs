@@ -11,6 +11,7 @@ pub mod virtex5;
 pub mod virtex6;
 pub mod series7;
 pub mod ultrascale;
+pub mod versal;
 pub mod spartan6;
 
 pub mod int;
@@ -91,6 +92,7 @@ pub enum Grid {
     Virtex6(virtex6::Grid),
     Series7(series7::Grid),
     Ultrascale(ultrascale::Grid),
+    Versal(versal::Grid),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -116,6 +118,26 @@ pub enum DisabledPart {
     Spartan6DspRegion(ColId, u32),
     Region(SlrId, u32),
     Ps,
+    VersalHardIp(SlrId, ColId, usize),
+    VersalColumn(SlrId, ColId),
+    VersalGtRight(SlrId, usize),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum PartNamingKey {
+    VersalHdio(SlrId, ColId, usize),
+    VersalGtLeft(SlrId, usize),
+    VersalGtRight(SlrId, usize),
+    VersalVNoc(SlrId, ColId, usize),
+    VersalDdrMcBot(usize),
+    VersalDdrMcTop(usize),
+    VersalXpioBot(usize),
+    VersalXpioTop(usize),
+    VersalHbmTop(usize),
+    // XXX NPS bot
+    // XXX NPS top
+    // XXX NCRB top
+    // XXX ME top
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

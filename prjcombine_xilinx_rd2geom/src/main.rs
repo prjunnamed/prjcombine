@@ -15,6 +15,7 @@ mod virtex5;
 mod virtex6;
 mod series7;
 mod ultrascale;
+mod versal;
 mod grid;
 mod intb;
 mod verify;
@@ -49,6 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "virtex6" => virtex6::ingest(&rd),
             "7series" => series7::ingest(&rd),
             "ultrascale" | "ultrascaleplus" => ultrascale::ingest(&rd),
+            "versal" => versal::ingest(&rd),
             _ => panic!("unknown family {}", rd.family),
         }
     }).collect();

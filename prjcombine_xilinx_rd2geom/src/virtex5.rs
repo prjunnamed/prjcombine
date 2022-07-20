@@ -80,13 +80,11 @@ fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
 
 fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = Vec::new();
-    if let Some(tk) = rd.tile_kinds.get("PPC_B") {
-        for tile in &tk.tiles {
-            let x = int.lookup_column((tile.x - 11) as i32);
-            let y = int.lookup_row((tile.y - 10) as i32);
-            assert_eq!(y.to_idx() % 20, 0);
-            res.push((x, y));
-        }
+    for tile in rd.tiles_by_kind_name("PPC_B") {
+        let x = int.lookup_column((tile.x - 11) as i32);
+        let y = int.lookup_row((tile.y - 10) as i32);
+        assert_eq!(y.to_idx() % 20, 0);
+        res.push((x, y));
     }
     res
 }
@@ -433,33 +431,29 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     ];
     builder.extract_term_buf("N.PPC", Dir::N, "PPC_B_TERM", "TERM.PPC.N", &forced);
 
-    if let Some(tk) = rd.tile_kinds.get("INT_BUFS_L") {
-        for &xy_l in &tk.tiles {
-            let mut xy_r = xy_l;
-            while !matches!(&rd.tiles[&xy_r].kind[..], "INT_BUFS_R" | "INT_BUFS_R_MON") {
-                xy_r.x += 1;
-            }
-            if xy_l.y < 10 || xy_l.y >= rd.height - 10 {
-                // wheeee.
-                continue;
-            }
-            let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
-            let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-            builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W", Some("INT_BUFS.W.FAR"))), Some((xy_l, "INT_BUFS.E.OUT", "INT_BUFS.E")), int_w_xy, &lh_all);
-            builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E", Some("INT_BUFS.E.FAR"))), Some((xy_r, "INT_BUFS.W.OUT", "INT_BUFS.W")), int_e_xy, &lh_all);
+    for &xy_l in rd.tiles_by_kind_name("INT_BUFS_L") {
+        let mut xy_r = xy_l;
+        while !matches!(&rd.tile_kinds.key(rd.tiles[&xy_r].kind)[..], "INT_BUFS_R" | "INT_BUFS_R_MON") {
+            xy_r.x += 1;
         }
+        if xy_l.y < 10 || xy_l.y >= rd.height - 10 {
+            // wheeee.
+            continue;
+        }
+        let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
+        let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W", Some("INT_BUFS.W.FAR"))), Some((xy_l, "INT_BUFS.E.OUT", "INT_BUFS.E")), int_w_xy, &lh_all);
+        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E", Some("INT_BUFS.E.FAR"))), Some((xy_r, "INT_BUFS.W.OUT", "INT_BUFS.W")), int_e_xy, &lh_all);
     }
-    if let Some(tk) = rd.tile_kinds.get("L_TERM_PPC") {
-        for &xy_l in &tk.tiles {
-            let mut xy_r = xy_l;
-            while rd.tiles[&xy_r].kind != "R_TERM_PPC" {
-                xy_r.x += 1;
-            }
-            let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
-            let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((xy_l, "TERM.PPC.E.OUT", "TERM.PPC.E.IN")), int_w_xy, &lh_all);
-            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W.IN")), int_e_xy, &lh_all);
+    for &xy_l in rd.tiles_by_kind_name("L_TERM_PPC") {
+        let mut xy_r = xy_l;
+        while rd.tile_kinds.key(rd.tiles[&xy_r].kind) != "R_TERM_PPC" {
+            xy_r.x += 1;
         }
+        let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
+        let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((xy_l, "TERM.PPC.E.OUT", "TERM.PPC.E.IN")), int_w_xy, &lh_all);
+        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W.IN")), int_e_xy, &lh_all);
     }
 
     builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", None, Some("INTF.SITE"), None);

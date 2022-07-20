@@ -64,7 +64,7 @@ macro_rules! __impl_entity_id {
 
         impl $crate::EntityId for $id {
             fn to_idx(self) -> usize {
-                self.0.into()
+                self.0.try_into().unwrap()
             }
             fn from_idx(idx: usize) -> Self {
                 Self(idx.try_into().unwrap())

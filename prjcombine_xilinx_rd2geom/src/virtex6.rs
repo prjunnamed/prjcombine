@@ -369,19 +369,17 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.extract_term_conn("W", Dir::W, "L_TERM_INT", &[]);
     builder.extract_term_conn("E", Dir::E, "R_TERM_INT", &[]);
     builder.extract_term_conn("S", Dir::S, "BRKH_T_TERM_INT", &[]);
-    if let Some(tk) = rd.tile_kinds.get("PCIE") {
-        for &xy in &tk.tiles {
-            let int_xy_a = Coord {
-                x: xy.x,
-                y: xy.y + 11,
-            };
-            let int_xy_b = Coord {
-                x: xy.x + 2,
-                y: xy.y + 11,
-            };
-            builder.extract_term_conn_tile("S", Dir::S, int_xy_a, &[]);
-            builder.extract_term_conn_tile("S", Dir::S, int_xy_b, &[]);
-        }
+    for &xy in rd.tiles_by_kind_name("PCIE") {
+        let int_xy_a = Coord {
+            x: xy.x,
+            y: xy.y + 11,
+        };
+        let int_xy_b = Coord {
+            x: xy.x + 2,
+            y: xy.y + 11,
+        };
+        builder.extract_term_conn_tile("S", Dir::S, int_xy_a, &[]);
+        builder.extract_term_conn_tile("S", Dir::S, int_xy_b, &[]);
     }
     builder.extract_term_conn("N", Dir::N, "BRKH_B_TERM_INT", &[]);
     builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);

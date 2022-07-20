@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use structopt::StructOpt;
+use itertools::Itertools;
 
 #[derive(Copy, Clone)]
 struct TileInfo(
@@ -2174,6 +2175,11 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("GTM_DUAL_RIGHT_TERM_T_FT", (50, 0, 0, 0), &[]),
     TileInfo("GTM_GTY_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
     // right
+    TileInfo("GTFY_QUAD_RIGHT_FT", (50, 0, 60, 0), &["gtx"]),
+    TileInfo("GTFY_QUAD_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
+    TileInfo("GTFY_QUAD_RIGHT_TERM_T_FT", (50, 0, 0, 0), &[]),
+    TileInfo("GTFY_GTY_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
+    // right
     TileInfo("HSADC_HSADC_RIGHT_FT", (50, 0, 60, 0), &["hsadc"]),
     TileInfo("HSDAC_HSDAC_RIGHT_FT", (50, 0, 60, 0), &["hsdac"]),
     TileInfo("HSADC_HSADC_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
@@ -2227,6 +2233,11 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("GTM_DUAL_LEFT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
     TileInfo("GTM_DUAL_LEFT_TERM_B_FT", (50, 0, 0, 0), &[]),
     TileInfo("GTM_DUAL_LEFT_TERM_T_FT", (50, 0, 0, 0), &[]),
+    // left
+    TileInfo("GTFY_QUAD_LEFT_FT", (50, 0, 60, 0), &["gtx"]),
+    TileInfo("GTFY_QUAD_LEFT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
+    TileInfo("GTFY_QUAD_LEFT_TERM_B_FT", (50, 0, 0, 0), &[]),
+    TileInfo("GTFY_QUAD_LEFT_TERM_T_FT", (50, 0, 0, 0), &[]),
     // left
     TileInfo("PSS_ALTO", (158, 0, 184, 0), &["hardip"]),
     TileInfo("PSS_ALTO_TERM_B", (158, 0, 0, 0), &[]),
@@ -2475,12 +2486,16 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("INTF_HDIO_LOCF_BL_TILE", SINGLE, &["int-if"]),
     TileInfo("INTF_HDIO_ROCF_TR_TILE", SINGLE, &["int-if"]),
     TileInfo("INTF_HDIO_ROCF_TL_TILE", SINGLE, &["int-if"]),
+    TileInfo("INTF_HDIO_ROCF_BR_TILE", SINGLE, &["int-if"]),
+    TileInfo("INTF_HDIO_ROCF_BL_TILE", SINGLE, &["int-if"]),
     TileInfo("REBUF_INTF_IBRK_OPTDLY_HDIO_T_CORE", SINGLE, &[]),
     TileInfo("REBUF_INTF_IBRK_OPTDLY_HDIO_T_CORE_MY", SINGLE, &[]),
     TileInfo("REBUF_INTF_IBRK_OPTDLY_HDIO_B_CORE", SINGLE, &[]),
     TileInfo("REBUF_INTF_IBRK_OPTDLY_HDIO_B_CORE_MY", SINGLE, &[]),
     TileInfo("TERM_T_INTF_HDIO_CORE", SINGLE, &[]),
     TileInfo("TERM_T_INTF_HDIO_CORE_MY", SINGLE, &[]),
+    TileInfo("TERM_B_INTF_HDIO_CORE", SINGLE, &[]),
+    TileInfo("TERM_B_INTF_HDIO_CORE_MY", SINGLE, &[]),
     TileInfo("INTF_CFRM_TL_TILE", SINGLE, &["int-if"]), // XXX wtf
     TileInfo("INTF_CFRM_BL_TILE", SINGLE, &["int-if"]), // XXX wtf
     TileInfo("INTF_PSS_BL_TILE", SINGLE, &["int-if"]),
@@ -2669,6 +2684,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_T_HDIO_L_CORE", SINGLE, &[]),
     TileInfo("TERM_T_HDIO_R_CORE", SINGLE, &[]),
     TileInfo("TERM_P_HDIO_CORE", SINGLE, &[]),
+    TileInfo("TERM_B_HDIO_CORE", SINGLE, &[]),
     TileInfo("PCIEB_TOP_TILE", (0, 0, 58, 0), &["hardip"]),
     TileInfo("PCIEB_BOT_TILE", (0, 0, 58, 0), &["hardip"]),
     TileInfo("PCIEB5_TOP_TILE", (0, 0, 58, 0), &["hardip"]),
@@ -2688,6 +2704,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RBRK_HB_HFSR_CORE", SINGLE, &["clk-brk"]),
     TileInfo("RBRK_HB2_HFSR_CORE", SINGLE, &["clk-brk"]),
     TileInfo("RBRK_HB_CORE", SINGLE, &["clk-brk"]),
+    TileInfo("RBRK_HDIO_CORE", SINGLE, &["clk-brk"]),
     TileInfo("TERM_P_HB_CORE", SINGLE, &[]),
     TileInfo("TERM_P_HB2_CORE", SINGLE, &[]),
     TileInfo("TERM_P_HB3_CORE", SINGLE, &[]),
@@ -2700,15 +2717,16 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_P_GTY_CORE", (20, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTY_L_CORE", (27, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTY_XPIO_L_CORE", (27, 0, 0, 0), &[]),
-    TileInfo("GTYP_QUAD_SINGLE_MY", (27, 0, 58, 0), &["gty"]),
+    TileInfo("GTYP_QUAD_SINGLE_MY", (25, 0, 58, 0), &["gty"]),
     TileInfo("RBRK_GTYP_CORE_MY", (27, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTYP_CPM5_CORE", (27, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTYP_CPM5_BOT_CORE_MY", (27, 0, 0, 0), &["clk-brk"]),
     TileInfo("TERM_T_GTYP_L_CORE", (27, 0, 0, 0), &[]),
-    TileInfo("TERM_P_GTYP_CORE", (27, 0, 0, 0), &[]),
+    TileInfo("TERM_P_GTYP_CORE", (25, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTYP_CPM5_CORE", (27, 0, 0, 0), &[]),
-    TileInfo("GTM_QUAD_SINGLE_MY", (27, 0, 58, 0), &["gty"]),
+    TileInfo("GTM_QUAD_SINGLE_MY", (27, 0, 58, 0), &["gtm"]),
     TileInfo("RBRK_GTM_CORE_MY", (27, 0, 0, 0), &["clk-brk"]),
+    TileInfo("RBRK_GTYP_GTM_CORE_MY", (27, 0, 0, 0), &["clk-brk"]),
     TileInfo("TERM_T_GTM_L_CORE", (27, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTM_CORE", (27, 0, 0, 0), &[]),
     TileInfo("XRAM_CORE", (27, 0, 58, 0), &["hardip"]),
@@ -2727,10 +2745,17 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RBRK_GTM_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTYP_GTM_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("TERM_T_GTM_R_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_T_GTM_R_MONO_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_B_GTM_NODFX_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_B_GTM_CORE", (2, 0, 0, 0), &[]),
     TileInfo("GTM_REFCLK_TOP_TILE", (2, 0, 0, 0), &["gtclk"]),
     TileInfo("GTM_REFCLK_BOT_TILE", (2, 0, 0, 0), &["gtclk"]),
     TileInfo("GTYP_REFCLK_BOT_TILE", (2, 0, 0, 0), &["gtclk"]),
+    TileInfo("VDU_CORE_MY", (2, 0, 58, 0), &["hardip"]),
+    TileInfo("RBRK_VDU_CORE", (2, 0, 0, 0), &["clk-brk"]),
+    TileInfo("MISC_VDU_DECAP_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("RBRK_GTYP_VDU_CORE", (2, 0, 0, 0), &["clk-brk"]),
+    TileInfo("TERM_B_VDU_CORE", (2, 0, 0, 0), &[]),
     // XPIPE
     TileInfo("XPIPE_QUAD_SINGLE", (4, 0, 58, 0), &["hardip"]),
     TileInfo("RBRK_XPIPE_CORE", (4, 0, 0, 0), &["clk-brk"]),
@@ -2764,6 +2789,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RBRK_GTCLK_BBA_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTCLK_BBO_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTCLK_CCA_CORE", (2, 0, 0, 0), &["clk-brk"]),
+    TileInfo("RBRK_GTCLK_CCO_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTCLK_LEV3_AAO_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTCLK_LEV3_BBO_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTCLK_LEV3_CCO_CORE", (2, 0, 0, 0), &["clk-brk"]),
@@ -2775,15 +2801,17 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("FSR_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTYP_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTM_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
+    TileInfo("FSR_VDU_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_QUAD_GT_TILE", (0, 0, 59, 0), &[]),
     TileInfo("FSR_GTM_QUAD_GT_TILE", (0, 0, 59, 0), &[]),
+    TileInfo("FSR_GTYP_QUAD_GT_TILE", (0, 0, 59, 0), &[]),
     TileInfo("FSR_OCTAL_REMAP_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_QUAD_REMAP_TILE", (0, 0, 59, 0), &[]),
     TileInfo("CPM_CORE", (94, 0, 58, 0), &["hardip"]),
-    TileInfo("PSS_BASE_CORE", (94, 0, 97, 0), &["hardip"]),
+    TileInfo("PSS_BASE_CORE", (54, 0, 97, 0), &["hardip"]),
     TileInfo("CPM_G5_TILE", (69, 0, 239, 0), &["hardip"]),
     TileInfo("CFRM_CPIPE_TERM_CPM5_CORE", (0, 0, 239, 0), &[]),
-    TileInfo("TERM_B_PSS_DECAP_CORE", (94, 0, 20, 0), &[]),
+    TileInfo("TERM_B_PSS_DECAP_CORE", (54, 0, 20, 0), &[]),
     TileInfo("TERM_B_PSS_TILE", (0, 0, 0, 0), &[]),
     TileInfo("NOC_PNOC_MONO_CORE", (0, 0, 0, 0), &["noc"]),
     TileInfo("NOC_PNOC_SSIT_CORE", (0, 0, 0, 0), &["noc"]),
@@ -2805,6 +2833,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     // AI-ML grid
     TileInfo("AIE_ML_INTF_A_CORE", (10, 0, 10, 0), &["hardip"]),
     TileInfo("AIE_ML_INTF_B_TILE", (43, 0, 0, 0), &["hardip"]),
+    TileInfo("AIE_ML_INTF_C_TILE", (10, 0, 0, 0), &["hardip"]),
     TileInfo("AIE_ML_SHIM_PL_TILE", (10, 0, 10, 0), &["hardip"]),
     TileInfo("AIE_ML_SHIM_NOC_TILE", (10, 0, 10, 0), &["hardip"]),
     TileInfo("AIE_ML_TILE", (10, 0, 10, 0), &["hardip"]),
@@ -2812,8 +2841,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     // GT right
     TileInfo("CLK_GT_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_AAA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLK_GT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_BBA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLK_GT_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLK_GT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_TOP_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_TOP_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_MT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
@@ -2863,6 +2895,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_REBUF_VERT_GT_COA_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_GT_COO_TILE",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -2989,6 +3026,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_GT_COO_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_GT_BOO_TILE_MY",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3011,6 +3053,8 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLK_VNOC_SSIT_BOT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_SSIT_HSR_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLK_VNOC_PSS_AAA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLK_VNOC_PSS_BBA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_SSIT_MT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
@@ -3038,6 +3082,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_REBUF_VERT_VNOC_TOP_BOO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_VNOC_TOP_COO_TILE",
         (1, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -3208,7 +3257,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CMT_DPLL", SINGLE, &["pll-alt"]),
     TileInfo("CMT_DPLL_MY", SINGLE, &["pll-alt"]),
     TileInfo("CMT_DPLL_MX", SINGLE, &["pll-alt"]), // top
-    // TODO kill me
+    // junk
     TileInfo("NULL", SINGLE, &[]),
     TileInfo("INVALID_0_0", SINGLE, &["crippled"]),
     TileInfo("INVALID_1_1", SINGLE, &["crippled"]),
@@ -3222,6 +3271,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("INVALID_2_2", (1, 0, 1, 0), &["crippled"]),
     TileInfo("INVALID_3_1", (2, 0, 0, 0), &["crippled"]),
     TileInfo("INVALID_4_1", (3, 0, 0, 0), &["crippled"]),
+    TileInfo("INVALID_11_11", (10, 0, 10, 0), &["crippled"]),
 ];
 
 #[derive(Debug, StructOpt)]
@@ -3268,7 +3318,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|t| (t.0, t))
         .collect::<HashMap<_, _>>();
     for (crd, tile) in rd.tiles.iter() {
-        match tile_info_d.get(&tile.kind[..]) {
+        match tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..]) {
             None => (),
             Some(t) => {
                 if t.1 != SINGLE {
@@ -3291,16 +3341,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                             }
                             if ncrd != *crd {
                                 let ntile = &rd.tiles[&ncrd];
-                                let ntk = &rd.tile_kinds[&ntile.kind];
+                                let ntk = &rd.tile_kinds[ntile.kind];
+                                let ntkn = rd.tile_kinds.key(ntile.kind);
                                 if need_null {
-                                    if ntile.kind != "NULL" && ntile.kind != "PCIE_NULL" && ntile.kind != "INVALID_0_0" {
-                                        panic!(
+                                    if ntkn != "NULL" && ntkn != "PCIE_NULL" && ntkn != "INVALID_0_0" {
+                                        println!(
                                             "Tile {} expanded onto {} which is not NULL",
                                             tile.name, ntile.name
                                         );
                                     }
                                 } else if !ntk.wires.is_empty() {
-                                    panic!(
+                                    println!(
                                         "Tile {} expanded onto {} which is not empty",
                                         tile.name, ntile.name
                                     );
@@ -3352,14 +3403,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         for x in 0..grid.dim().0 {
             if let Some((crd, cs, rs)) = grid[(x, y)] {
                 let tile = &rd.tiles[&crd];
-                let tk = &rd.tile_kinds[&tile.kind];
+                let tk = &rd.tile_kinds[tile.kind];
                 let cls;
-                match tile_info_d.get(&tile.kind[..]) {
+                match tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..]) {
                     None => {
                         cls = "_unk";
-                        println!("unknown tile {}", tile.kind);
+                        println!("unknown tile {}", rd.tile_kinds.key(tile.kind));
                     }
-                    Some(_) => cls = &tile.kind,
+                    Some(_) => cls = rd.tile_kinds.key(tile.kind),
                 }
                 if rs != 1 || cs != 1 {
                     ofile.write_all(
@@ -3372,16 +3423,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 } else {
                     ofile.write_all(format!("<td class=\"{}\">", cls).as_bytes())?;
                 }
-                ofile.write_all(format!("<div>{}<br/>{}", tile.kind, tile.name).as_bytes())?;
-                for (tks, ts) in tk.sites.iter().zip(tile.sites.iter()) {
-                    let slot = match tks.slot {
-                        TkSiteSlot::Single(sk) => rd.print_slot_kind(sk).to_string(),
-                        TkSiteSlot::Indexed(sk, idx) => {
-                            format!("{}[{}]", rd.print_slot_kind(sk), idx)
-                        }
-                        TkSiteSlot::Xy(sk, x, y) => {
-                            format!("{}[{},{}]", rd.print_slot_kind(sk), x, y)
-                        }
+                ofile.write_all(format!("<div>{}<br/>{}", rd.tile_kinds.key(tile.kind), tile.name).as_bytes())?;
+                for (slot, ts, tks) in tk
+                    .sites
+                    .iter()
+                    .map(|(i, &slot, tks)| (slot, tile.sites.get(i), tks))
+                    .sorted_by_key(|&(slot, _, _)| slot)
+                {
+                    let slot = match slot {
+                        TkSiteSlot::Single(sk) => rd.slot_kinds[sk].clone(),
+                        TkSiteSlot::Indexed(sk, idx) => format!("{}[{}]", rd.slot_kinds[sk], idx),
+                        TkSiteSlot::Xy(sk, x, y) => format!("{}[{},{}]", rd.slot_kinds[sk], x, y),
                     };
                     if let Some(n) = ts {
                         ofile.write_all(

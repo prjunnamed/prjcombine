@@ -93,6 +93,13 @@ where
     pub fn into_vec(self) -> EntityVec<I, V> {
         self.into_values().collect()
     }
+
+    pub fn get_or_insert(&mut self, key: &(impl ToOwned<Owned=V> + Hash + Equivalent<V> + ?Sized)) -> I {
+        match self.get(key) {
+            Some(i) => i,
+            None => self.insert(key.to_owned()).0
+        }
+    }
 }
 
 impl<I, V> EntitySet<I, V>
@@ -365,6 +372,6 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(DeserializeVisitor::new())
+        deserializer.deserialize_seq(DeserializeVisitor::new())
     }
 }

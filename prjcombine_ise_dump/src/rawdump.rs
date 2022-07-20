@@ -3,7 +3,7 @@ use super::xdlrc::{Options, Parser, PipKind, Tile, Wire};
 use indexmap::IndexSet;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_xilinx_rawdump::{
-    build::PartBuilder, Coord, Part, Source, TkPipDirection, TkPipInversion,
+    build::{PartBuilder, PbPip, PbSitePin}, Coord, Part, Source, TkPipDirection, TkPipInversion,
 };
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
@@ -252,7 +252,12 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
                         &p.kind[..],
                         p.pinwires
                             .iter()
-                            .map(|pw| (&pw.name[..], pw.dir, Some(&pw.wire[..]), None))
+                            .map(|pw| PbSitePin {
+                                name: &pw.name,
+                                dir: pw.dir,
+                                wire: Some(&pw.wire),
+                                speed: None,
+                            })
                             .collect::<Vec<_>>(),
                     )
                 })
@@ -269,35 +274,33 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
                         && p.wire_from != "SWBOX_STUB"
                         && p.wire_to != "SWBOX_STUB"
                 })
-                .map(|p| {
-                    (
-                        &p.wire_from[..],
-                        &p.wire_to[..],
-                        match p.kind {
-                            PipKind::BiBuf => true,
-                            PipKind::BiUniBuf => true, // hm.
-                            PipKind::BiPass => false,
-                            PipKind::Uni => is_buf_speed(&p.speed),
-                        },
-                        !pips_non_excl.contains(&(
-                            intern(&mut sp, &t.kind),
-                            intern(&mut sp, &p.wire_from),
-                            intern(&mut sp, &p.wire_to),
-                        )),
-                        !pips_non_test.contains(&(
-                            intern(&mut sp, &t.kind),
-                            intern(&mut sp, &p.wire_from),
-                            intern(&mut sp, &p.wire_to),
-                        )),
-                        TkPipInversion::Never,
-                        match p.kind {
-                            PipKind::BiBuf => TkPipDirection::BiFwd,
-                            PipKind::BiUniBuf => TkPipDirection::BiFwd,
-                            PipKind::BiPass => TkPipDirection::BiFwd,
-                            PipKind::Uni => TkPipDirection::Uni,
-                        },
-                        p.speed.as_ref().map(|s| &s[..]),
-                    )
+                .map(|p| PbPip {
+                    wire_from: &p.wire_from,
+                    wire_to: &p.wire_to,
+                    is_buf: match p.kind {
+                        PipKind::BiBuf => true,
+                        PipKind::BiUniBuf => true, // hm.
+                        PipKind::BiPass => false,
+                        PipKind::Uni => is_buf_speed(&p.speed),
+                    },
+                    is_excluded: !pips_non_excl.contains(&(
+                        intern(&mut sp, &t.kind),
+                        intern(&mut sp, &p.wire_from),
+                        intern(&mut sp, &p.wire_to),
+                    )),
+                    is_test: !pips_non_test.contains(&(
+                        intern(&mut sp, &t.kind),
+                        intern(&mut sp, &p.wire_from),
+                        intern(&mut sp, &p.wire_to),
+                    )),
+                    inv: TkPipInversion::Never,
+                    dir: match p.kind {
+                        PipKind::BiBuf => TkPipDirection::BiFwd,
+                        PipKind::BiUniBuf => TkPipDirection::BiFwd,
+                        PipKind::BiPass => TkPipDirection::BiFwd,
+                        PipKind::Uni => TkPipDirection::Uni,
+                    },
+                    speed: p.speed.as_ref().map(|s| &s[..]),
                 })
                 .collect::<Vec<_>>(),
         );

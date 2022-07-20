@@ -137,6 +137,14 @@ impl<I: EntityId, V> EntityVec<I, V> {
             Err(x) => Err(I::from_idx(x)),
         }
     }
+
+    pub fn pop(&mut self) -> Option<(I, V)> {
+        if let Some(x) = self.vals.pop() {
+            Some((self.next_id(), x))
+        } else {
+            None
+        }
+    }
 }
 
 impl<I: EntityId, V> Default for EntityVec<I, V> {
@@ -354,6 +362,6 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(DeserializeVisitor::new())
+        deserializer.deserialize_seq(DeserializeVisitor::new())
     }
 }

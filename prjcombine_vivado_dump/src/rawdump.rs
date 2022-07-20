@@ -1,78 +1,24 @@
 use super::parts::VivadoPart;
-use indexmap::IndexSet;
 use prjcombine_toolchain::{Toolchain, ToolchainReader};
 use prjcombine_xilinx_rawdump::{
-    build::PartBuilder, Coord, Part, PkgPin, Source, TkPipDirection, TkPipInversion, TkSitePinDir,
+    build::{PartBuilder, PbPip, PbSitePin}, Coord, Part, PkgPin, Source, TkPipDirection, TkPipInversion, TkSitePinDir,
 };
-use simple_error::bail;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
 use std::io::{BufRead, Write};
 use std::fmt::Write as FmtWrite;
+use prjcombine_entity::{EntitySet, entity_id};
+use std::sync::Mutex;
+use rayon::prelude::*;
+use indicatif::ProgressBar;
 
 const TILE_BATCH_SIZE: usize = 4000;
 
-const LIST_TILES_TCL: &str = r#"
-link_design -part [lindex $argv 0]
-set fd [open "tiles.fifo" w]
-foreach x [get_tiles] {
-    set gx [get_property GRID_POINT_X $x]
-    set gy [get_property GRID_POINT_Y $x]
-    set tn [get_property NAME $x]
-    set tt [get_property TYPE $x]
-    puts $fd "TILE $gx $gy $tn $tt"
-}
-foreach x [get_speed_models] {
-    set idx [get_property SPEED_INDEX $x]
-    puts $fd "SPEED #$idx #$x"
-}
-puts $fd "END"
-"#;
-
-const DUMP_PKGPINS_TCL: &str = r#"
-link_design -part [lindex $argv 0]
-set fd [open "pkgpins.fifo" w]
-foreach x [get_package_pins] {
-    set bank [get_property BANK $x]
-    set mind [get_property MIN_DELAY $x]
-    set maxd [get_property MAX_DELAY $x]
-    set func [get_property PIN_FUNC $x]
-    set site [get_sites -of $x]
-    puts $fd "PKGPIN $x #$site #$bank #$func #$mind #$maxd"
-}
-puts $fd "END"
-"#;
-
-const DUMP_TTS_TCL: &str = r#"
-link_design -part [lindex $argv 0]
-set ifd [open "tts.list" r]
-set fd [open "tts.fifo" w]
-while { [gets $ifd tname] >= 0 } {
-    set tile [get_tiles -filter "NAME == $tname"]
-    set tt [get_property TYPE $tile]
-    puts $fd "TILE $tt $tile"
-    foreach x [get_pips -of $tile] {
-        set wf [get_wires -uphill -of $x]
-        set wt [get_wires -downhill -of $x]
-        set dir [get_property IS_DIRECTIONAL $x]
-        set buf0 [get_property IS_BUFFERED_2_0 $x]
-        set buf1 [get_property IS_BUFFERED_2_1 $x]
-        set excl [get_property IS_EXCLUDED_PIP $x]
-        set test [get_property IS_TEST_PIP $x]
-        set pseudo [get_property IS_PSEUDO $x]
-        set invfix [get_property IS_FIXED_INVERSION $x]
-        set invcan [get_property CAN_INVERT $x]
-        puts $fd "PIP $x $wf $wt $dir $buf0 $buf1 $excl $test $pseudo $invfix $invcan"
-    }
-}
-puts $fd "END"
-"#;
-
 const DUMP_TILES_TCL: &str = r#"
-link_design -part [lindex $argv 0]
 set ifd [open "crd.list" r]
 set fd [open "tiles.fifo" w]
+link_design -part [lindex $argv 0]
 while { [gets $ifd ty] >= 0 } {
     foreach tile [get_tiles -filter "GRID_POINT_Y == $ty"] {
         set gx [get_property GRID_POINT_X $tile]
@@ -113,26 +59,32 @@ fn parse_bool(s: &str) -> bool {
     }
 }
 
-fn intern(sp: &mut IndexSet<String>, s: &str) -> u32 {
-    match sp.get_index_of(s) {
-        Some(res) => res.try_into().unwrap(),
-        None => sp.insert_full(s.to_string()).0.try_into().unwrap(),
-    }
+entity_id!{
+    id NameId u32;
 }
 
-fn unintern(sp: &IndexSet<String>, idx: u32) -> &str {
-    sp.get_index(idx as usize).unwrap()
+const LIST_TILES_TCL: &str = r#"
+set fd [open "tiles.fifo" w]
+link_design -part [lindex $argv 0]
+foreach x [get_tiles] {
+    set gx [get_property GRID_POINT_X $x]
+    set gy [get_property GRID_POINT_Y $x]
+    set tt [get_property TYPE $x]
+    puts $fd "TILE $gx $gy $tt"
 }
+foreach x [get_speed_models] {
+    set idx [get_property SPEED_INDEX $x]
+    puts $fd "SPEED #$idx #$x"
+}
+puts $fd "END"
+"#;
 
-pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {
-    let fpart = &parts[0];
-
-    // STEP 1: list tiles, gather list of tile types, get dimensions; also list speed models
-    let mut tts: HashMap<String, String> = HashMap::new();
-    let mut tile_names: Vec<String> = Vec::new();
+fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> (HashMap<String, (u16, u16)>, u16, u16, HashMap<u32, String>) {
+    let mut tts = HashMap::new();
+    let mut tile_cnt = 0;
     let mut width: u16 = 0;
     let mut height: u16 = 0;
-    let mut speed_models: HashMap<u32, String> = HashMap::new();
+    let mut speed_models = HashMap::new();
     {
         let tr = ToolchainReader::new(
             tc,
@@ -145,31 +97,30 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                 "-source",
                 "script.tcl",
                 "-tclargs",
-                &fpart.name,
+                &part.name,
             ],
             &[],
             "tiles.fifo",
             &[("script.tcl", LIST_TILES_TCL.as_bytes())],
-        )?;
+        ).unwrap();
         let lines = tr.lines();
         let mut got_end = false;
         for l in lines {
-            let l = l?;
-            let sl: Vec<_> = l.split_whitespace().collect();
+            let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
             match sl[0] {
                 "END" => {
                     got_end = true;
                     break;
                 }
                 "TILE" => {
-                    if sl.len() != 5 {
-                        println!("UMMMM {} {}", fpart.name, l);
+                    if sl.len() != 4 {
+                        println!("UMMMM {} {:?}", part.name, sl);
                     }
-                    let gx: u16 = sl[1].parse()?;
-                    let gy: u16 = sl[2].parse()?;
-                    tile_names.push(sl[3].to_string());
-                    if !tts.contains_key(sl[4]) {
-                        tts.insert(sl[4].to_string(), sl[3].to_string());
+                    let gx: u16 = sl[1].parse().unwrap();
+                    let gy: u16 = sl[2].parse().unwrap();
+                    tile_cnt += 1;
+                    if !tts.contains_key(sl[3]) {
+                        tts.insert(sl[3].to_string(), (gx, gy));
                     }
                     if gy >= height {
                         height = gy + 1;
@@ -179,7 +130,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     }
                 }
                 "SPEED" => {
-                    let idx: u32 = sl[1][1..].parse()?;
+                    let idx: u32 = sl[1][1..].parse().unwrap();
                     let name = &sl[2][1..];
                     if idx == 65535 {
                         continue;
@@ -189,7 +140,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                             "double speed model {}: {} {}",
                             idx,
                             name,
-                            speed_models.get(&idx).unwrap()
+                            speed_models[&idx]
                         );
                     }
                     speed_models.insert(idx, name.to_string());
@@ -198,10 +149,454 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
             }
         }
         if !got_end {
-            bail!("missing END in tiles");
+            panic!("missing END in tiles");
         }
-        assert!((width as usize) * (height as usize) == tile_names.len());
+        assert_eq!((width as usize) * (height as usize), tile_cnt);
     }
+    (tts, width, height, speed_models)
+}
+
+struct TtPip {
+    wire_from: String,
+    wire_to: String,
+    is_bidi: bool,
+    is_buf: bool,
+    is_excluded: bool,
+    is_test: bool,
+    is_pseudo: bool,
+    inv: TkPipInversion,
+}
+
+const DUMP_TTS_TCL: &str = r#"
+set ifd [open "tts.list" r]
+set fd [open "tts.fifo" w]
+link_design -part [lindex $argv 0]
+while { [gets $ifd gx] >= 0 } {
+    gets $ifd gy
+    set tile [get_tiles -filter "GRID_POINT_X == $gx && GRID_POINT_Y == $gy"]
+    set tt [get_property TYPE $tile]
+    puts $fd "TILE $tt $tile"
+    foreach x [get_pips -of $tile] {
+        set wf [get_wires -uphill -of $x]
+        set wt [get_wires -downhill -of $x]
+        set dir [get_property IS_DIRECTIONAL $x]
+        set buf0 [get_property IS_BUFFERED_2_0 $x]
+        set buf1 [get_property IS_BUFFERED_2_1 $x]
+        set excl [get_property IS_EXCLUDED_PIP $x]
+        set test [get_property IS_TEST_PIP $x]
+        set pseudo [get_property IS_PSEUDO $x]
+        set invfix [get_property IS_FIXED_INVERSION $x]
+        set invcan [get_property CAN_INVERT $x]
+        puts $fd "PIP $x $wf $wt $dir $buf0 $buf1 $excl $test $pseudo $invfix $invcan"
+    }
+}
+puts $fd "END"
+"#;
+
+fn dump_tts(tc: &Toolchain, part: &VivadoPart, tts: &HashMap<String, (u16, u16)>) -> HashMap<String, HashMap<String, TtPip>> {
+    let mut res = HashMap::new();
+    let mut tlist: Vec<u8> = Vec::new();
+    for (gx, gy) in tts.values() {
+        writeln!(tlist, "{gx}").unwrap();
+        writeln!(tlist, "{gy}").unwrap();
+    }
+    let tr = ToolchainReader::new(
+        tc,
+        "vivado",
+        &[
+            "-nolog",
+            "-nojournal",
+            "-mode",
+            "batch",
+            "-source",
+            "script.tcl",
+            "-tclargs",
+            &part.name,
+        ],
+        &[],
+        "tts.fifo",
+        &[
+            ("script.tcl", DUMP_TTS_TCL.as_bytes()),
+            ("tts.list", &tlist),
+        ],
+    ).unwrap();
+    let lines = tr.lines();
+    let mut got_end = false;
+    let mut tile = "".to_string();
+    let mut tt = "".to_string();
+    let mut pips: Option<&mut HashMap<String, TtPip>> = None;
+    for l in lines {
+        let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+        match sl[0] {
+            "END" => {
+                got_end = true;
+                break;
+            }
+            "TILE" => {
+                if sl.len() != 3 {
+                    println!("UMMMM {} {:?}", part.name, sl);
+                }
+                tile = sl[2].to_string();
+                tt = sl[1].to_string();
+                res.insert(sl[1].to_string(), HashMap::new());
+                pips = Some(res.get_mut(sl[1]).unwrap());
+            }
+            "PIP" => {
+                let prefix = tile.clone() + "/";
+                let pprefix = tile.clone() + "/" + &tt + ".";
+                let name = sl[1].strip_prefix(&pprefix).unwrap();
+                let wf = sl[2].strip_prefix(&prefix).unwrap();
+                let wt = sl[3].strip_prefix(&prefix).unwrap();
+                let dir = parse_bool(sl[4]);
+                let buf0 = parse_bool(sl[5]);
+                let buf1 = parse_bool(sl[6]);
+                let excl = parse_bool(sl[7]);
+                let test = parse_bool(sl[8]);
+                let pseudo = parse_bool(sl[9]);
+                let invfix = parse_bool(sl[10]);
+                let invcan = parse_bool(sl[11]);
+                let sep = match (dir, buf0, buf1) {
+                    (true, false, false) => "->",
+                    (false, false, false) => "<->",
+                    (true, false, true) => "->>",
+                    (false, true, true) => "<<->>",
+                    _ => panic!("unk pip dirbuf {} {} {} {}", name, dir, buf0, buf1),
+                };
+                assert_eq!(name, wf.to_string() + sep + wt);
+                pips.as_mut().unwrap().insert(
+                    name.to_string(),
+                    TtPip {
+                        wire_from: wf.to_string(),
+                        wire_to: wt.to_string(),
+                        is_bidi: !dir,
+                        is_buf: buf1,
+                        is_excluded: excl,
+                        is_test: test,
+                        is_pseudo: pseudo,
+                        inv: match (invfix, invcan) {
+                            (false, false) => TkPipInversion::Never,
+                            (true, false) => TkPipInversion::Always,
+                            (false, true) => TkPipInversion::Prog,
+                            _ => panic!("unk inversion {} {}", invfix, invcan),
+                        },
+                    },
+                );
+            }
+            _ => panic!("unknown line {}", sl[0]),
+        }
+    }
+    assert_eq!(res.len(), tts.len());
+    if !got_end {
+        panic!("missing END in TTs");
+    }
+    res
+}
+
+const DUMP_PKGPINS_TCL: &str = r#"
+set fd [open "pkgpins.fifo" w]
+link_design -part [lindex $argv 0]
+foreach x [get_package_pins] {
+    set bank [get_property BANK $x]
+    set mind [get_property MIN_DELAY $x]
+    set maxd [get_property MAX_DELAY $x]
+    set func [get_property PIN_FUNC $x]
+    set site [get_sites -of $x]
+    puts $fd "PKGPIN $x #$site #$bank #$func #$mind #$maxd"
+}
+puts $fd "END"
+"#;
+
+fn dump_pkgpins(tc: &Toolchain, part: &VivadoPart) -> Vec<PkgPin> {
+    let mut pins: Vec<PkgPin> = Vec::new();
+    let tr = ToolchainReader::new(
+        tc,
+        "vivado",
+        &[
+            "-nolog",
+            "-nojournal",
+            "-mode",
+            "batch",
+            "-source",
+            "script.tcl",
+            "-tclargs",
+            &part.name,
+        ],
+        &[],
+        "pkgpins.fifo",
+        &[("script.tcl", DUMP_PKGPINS_TCL.as_bytes())],
+    ).unwrap();
+    let lines = tr.lines();
+    let mut got_end = false;
+    for l in lines {
+        let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+        match sl[0] {
+            "END" => {
+                got_end = true;
+                break;
+            }
+            "PKGPIN" => {
+                let pin = sl[1];
+                let site = &sl[2][1..];
+                let bank = &sl[3][1..];
+                let func = &sl[4][1..];
+                let mind = &sl[5][1..];
+                let maxd = &sl[6][1..];
+                pins.push(PkgPin {
+                    pad: if site.is_empty() {
+                        None
+                    } else {
+                        Some(site.to_string())
+                    },
+                    pin: pin.to_string(),
+                    vref_bank: if bank.is_empty() {
+                        None
+                    } else {
+                        Some(bank.parse().unwrap())
+                    },
+                    vcco_bank: if bank.is_empty() {
+                        None
+                    } else {
+                        Some(bank.parse().unwrap())
+                    },
+                    func: func.to_string(),
+                    tracelen_um: None,
+                    delay_min_fs: if mind.is_empty() {
+                        None
+                    } else {
+                        Some(mind.parse().unwrap())
+                    },
+                    delay_max_fs: if maxd.is_empty() {
+                        None
+                    } else {
+                        Some(maxd.parse().unwrap())
+                    },
+                });
+            }
+            _ => panic!("unknown line {}", sl[0]),
+        }
+    }
+    if !got_end {
+        panic!("missing END in tiles");
+    }
+    pins
+}
+
+struct Context {
+    tt_pips: HashMap<String, HashMap<String, TtPip>>,
+    speed_models: HashMap<u32, String>,
+    mctx: Mutex<MutContext>,
+    bar: ProgressBar,
+}
+
+struct MutContext {
+    names: EntitySet<NameId, String>,
+    nodes: HashMap<(NameId, NameId), Vec<(NameId, NameId, u32)>>,
+    rd: PartBuilder,
+}
+
+pub struct VSitePin<'a> {
+    name: String,
+    dir: TkSitePinDir,
+    wire: Option<String>,
+    speed: Option<&'a str>,
+}
+
+fn dump_site<'a>(lines: &mut std::io::Lines<impl BufRead>, name: &str, kind: &str, ctx: &'a Context, tile_n2w: &HashMap<String, Vec<String>>) -> Vec<VSitePin<'a>> {
+    let spref = format!("{name}/");
+    let mut site_pins = Vec::new();
+    loop {
+        let l = lines.next().unwrap();
+        let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+        match sl[0] {
+            "SITEPIN" => {
+                let pin = sl[1][1..].strip_prefix(&spref).unwrap();
+                let dir = match &sl[2][1..] {
+                    "IN" => TkSitePinDir::Input,
+                    "OUT" => TkSitePinDir::Output,
+                    "INOUT" => TkSitePinDir::Bidir,
+                    _ => panic!("weird pin dir {}", &sl[2][1..]),
+                };
+                let si = &sl[3][1..];
+                let node = &sl[4][1..];
+                let speed: Option<&str> = if si.is_empty() {
+                    None
+                } else {
+                    Some(&ctx.speed_models[&si.parse::<u32>().unwrap()])
+                };
+                let wire: Option<String> = match tile_n2w.get(node) {
+                    None => None,
+                    Some(v) => {
+                        let mut v = v.clone();
+                        if v.len() > 1 {
+                            match pin {
+                                "DOUT" | "SYSREF_OUT_NORTH_P" | "SYSREF_OUT_SOUTH_P" | "CLK_DISTR_OUT_NORTH" | "CLK_DISTR_OUT_SOUTH" | "T1_ALLOWED_SOUTH" | "CLK_IN" => {
+                                    let suffix = format!("_{}", pin);
+                                    v.retain(|n| n.ends_with(&suffix));
+                                }
+                                _ => (),
+                            }
+                        }
+                        if v.len() == 1 {
+                            Some(v[0].to_string())
+                        } else {
+                            panic!("SITE PIN WIRE AMBIGUOUS {kind} {pin} {sl:?} {v:?}");
+                        }
+                    }
+                };
+                site_pins.push(VSitePin {
+                    name: pin.to_string(),
+                    dir,
+                    wire,
+                    speed,
+                });
+            }
+            "ENDSITE" => return site_pins,
+            _ => panic!("unknown line {}", sl[0]),
+        }
+    }
+}
+
+fn dump_tile(lines: &mut std::io::Lines<impl BufRead>, crd: Coord, tile: &str, tt: &str, ctx: &Context) {
+    let wpref = format!("{tile}/");
+    let ppref = format!("{tile}/{tt}.");
+    let tt_pips = &ctx.tt_pips[tt];
+    let mut wires: Vec<(String, u32)> = Vec::new();
+    let mut pips = Vec::new();
+    let mut sites: Vec<(
+        String,
+        String,
+        Vec<VSitePin<'_>>,
+    )> = Vec::new();
+    let mut tile_n2w: HashMap<String, Vec<String>> = HashMap::new();
+    let mut node_wires = Vec::new();
+    loop {
+        let l = lines.next().unwrap();
+        let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+        match sl[0] {
+            "SITE" => {
+                let site_pins = dump_site(lines, sl[1], sl[2], ctx, &tile_n2w);
+                sites.push((sl[1].to_string(), sl[2].to_string(), site_pins));
+            }
+            "WIRE" => {
+                let name = sl[1].strip_prefix(&wpref).unwrap();
+                let si = sl[2].parse::<u32>().unwrap();
+                let node = &sl[3][1..];
+                wires.push((name.to_string(), si));
+                if !node.is_empty() {
+                    node_wires.push((name.to_string(), node.to_string(), si));
+                    tile_n2w.entry(node.to_string()).or_default().push(name.to_string());
+                }
+            }
+            "PIP" => {
+                let name = sl[1][1..].strip_prefix(&ppref).unwrap();
+                let si = &sl[2][1..];
+                let pip = &tt_pips[name];
+                if pip.is_pseudo {
+                    continue;
+                }
+                let speed: Option<&str> = if si.is_empty() {
+                    None
+                } else {
+                    let si = si.parse::<u32>().unwrap();
+                    let s = ctx.speed_models.get(&si);
+                    if s.is_none() && si != 65535 {
+                        println!("UMMMM NO SI {:?}", sl);
+                    }
+                    s.map(|x| &x[..])
+                };
+                if pip.is_bidi {
+                    pips.push(PbPip {
+                        wire_from: &pip.wire_from,
+                        wire_to: &pip.wire_to,
+                        is_buf: pip.is_buf,
+                        is_excluded: pip.is_excluded,
+                        is_test: pip.is_test,
+                        inv: pip.inv,
+                        dir: TkPipDirection::BiFwd,
+                        speed,
+                    });
+                    pips.push(PbPip {
+                        wire_from: &pip.wire_to,
+                        wire_to: &pip.wire_from,
+                        is_buf: pip.is_buf,
+                        is_excluded: pip.is_excluded,
+                        is_test: pip.is_test,
+                        inv: pip.inv,
+                        dir: TkPipDirection::BiBwd,
+                        speed,
+                    });
+                } else {
+                    pips.push(PbPip {
+                        wire_from: &pip.wire_from,
+                        wire_to: &pip.wire_to,
+                        is_buf: pip.is_buf,
+                        is_excluded: pip.is_excluded,
+                        is_test: pip.is_test,
+                        inv: pip.inv,
+                        dir: TkPipDirection::Uni,
+                        speed,
+                    });
+                }
+            }
+            "ENDTILE" => {
+                let mut mctx_l = ctx.mctx.lock().unwrap();
+                let mctx: &mut MutContext = &mut mctx_l;
+                mctx.rd.add_tile(
+                    crd,
+                    tile.to_string(),
+                    tt.to_string(),
+                    &sites
+                        .iter()
+                        .map(|(n, t, p)| -> (&str, &str, _) {
+                            (
+                                n,
+                                t,
+                                p.iter()
+                                    .map(
+                                        |sp| PbSitePin {
+                                            name: &sp.name,
+                                            dir: sp.dir,
+                                            wire: sp.wire.as_ref().map(|s| &s[..]),
+                                            speed: sp.speed,
+                                        }
+                                    )
+                                    .collect::<Vec<_>>(),
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                    &wires
+                        .iter()
+                        .map(|(w, s)| -> (&str, Option<&str>) {
+                            (w, Some(&ctx.speed_models[s][..]))
+                        })
+                        .collect::<Vec<_>>(),
+                    &pips,
+                );
+                for (name, node, si) in node_wires {
+                    let pos = node.find('/').unwrap();
+                    let node_t = mctx.names.get_or_insert(&node[..pos]);
+                    let node_w = mctx.names.get_or_insert(&node[pos+1..]);
+                    let nwires = mctx.nodes.entry((node_t, node_w)).or_default();
+                    let name = mctx.names.get_or_insert(&name);
+                    nwires.push((
+                        mctx.names.get_or_insert(tile),
+                        name,
+                        si,
+                    ));
+                }
+                ctx.bar.inc(1);
+                return;
+            }
+            _ => panic!("unknown line {}", sl[0]),
+        }
+    }
+}
+
+pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {
+    let fpart = &parts[0];
+
+    // STEP 1: list tiles, gather list of tile types, get dimensions; also list speed models
+    let (tts, width, height, speed_models) = list_tiles(tc, fpart);
     println!(
         "{}: {}×{} tiles, {} tts, {} SMs",
         fpart.device,
@@ -211,128 +606,29 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         speed_models.len()
     );
 
-    let mut rd = PartBuilder::new(
-        fpart.device.clone(),
-        fpart.actual_family.clone(),
-        Source::Vivado,
-        width,
-        height,
-    );
-
     // STEP 2: dump TTs [pips]
-    struct TtPip {
-        wire_from: String,
-        wire_to: String,
-        is_bidi: bool,
-        is_buf: bool,
-        is_excluded: bool,
-        is_test: bool,
-        is_pseudo: bool,
-        inv: TkPipInversion,
-    }
-    let mut tt_pips: HashMap<String, HashMap<String, TtPip>> = HashMap::new();
-    {
-        let mut tlist: Vec<u8> = Vec::new();
-        for (_, tn) in tts {
-            tlist.write_all(tn.as_bytes())?;
-            tlist.write_all(b"\n")?;
-        }
-        let tr = ToolchainReader::new(
-            tc,
-            "vivado",
-            &[
-                "-nolog",
-                "-nojournal",
-                "-mode",
-                "batch",
-                "-source",
-                "script.tcl",
-                "-tclargs",
-                &fpart.name,
-            ],
-            &[],
-            "tts.fifo",
-            &[
-                ("script.tcl", DUMP_TTS_TCL.as_bytes()),
-                ("tts.list", &tlist),
-            ],
-        )?;
-        let lines = tr.lines();
-        let mut got_end = false;
-        let mut tile = "".to_string();
-        let mut tt = "".to_string();
-        let mut pips: Option<&mut HashMap<String, TtPip>> = None;
-        for l in lines {
-            let l = l?;
-            let sl: Vec<_> = l.split_whitespace().collect();
-            match sl[0] {
-                "END" => {
-                    got_end = true;
-                    break;
-                }
-                "TILE" => {
-                    if sl.len() != 3 {
-                        println!("UMMMM {} {}", fpart.name, l);
-                    }
-                    tile = sl[2].to_string();
-                    tt = sl[1].to_string();
-                    tt_pips.insert(sl[1].to_string(), HashMap::new());
-                    pips = Some(tt_pips.get_mut(sl[1]).unwrap());
-                }
-                "PIP" => {
-                    let prefix = tile.clone() + "/";
-                    let pprefix = tile.clone() + "/" + &tt + ".";
-                    let name = sl[1].strip_prefix(&pprefix).unwrap();
-                    let wf = sl[2].strip_prefix(&prefix).unwrap();
-                    let wt = sl[3].strip_prefix(&prefix).unwrap();
-                    let dir = parse_bool(sl[4]);
-                    let buf0 = parse_bool(sl[5]);
-                    let buf1 = parse_bool(sl[6]);
-                    let excl = parse_bool(sl[7]);
-                    let test = parse_bool(sl[8]);
-                    let pseudo = parse_bool(sl[9]);
-                    let invfix = parse_bool(sl[10]);
-                    let invcan = parse_bool(sl[11]);
-                    let sep = match (dir, buf0, buf1) {
-                        (true, false, false) => "->",
-                        (false, false, false) => "<->",
-                        (true, false, true) => "->>",
-                        (false, true, true) => "<<->>",
-                        _ => panic!("unk pip dirbuf {} {} {} {}", name, dir, buf0, buf1),
-                    };
-                    assert_eq!(name, wf.to_string() + sep + wt);
-                    pips.as_mut().unwrap().insert(
-                        name.to_string(),
-                        TtPip {
-                            wire_from: wf.to_string(),
-                            wire_to: wt.to_string(),
-                            is_bidi: !dir,
-                            is_buf: buf1,
-                            is_excluded: excl,
-                            is_test: test,
-                            is_pseudo: pseudo,
-                            inv: match (invfix, invcan) {
-                                (false, false) => TkPipInversion::Never,
-                                (true, false) => TkPipInversion::Always,
-                                (false, true) => TkPipInversion::Prog,
-                                _ => panic!("unk inversion {} {}", invfix, invcan),
-                            },
-                        },
-                    );
-                }
-                _ => panic!("unknown line {}", sl[0]),
-            }
-        }
-        if !got_end {
-            bail!("missing END in TTs");
-        }
-    }
+    let tt_pips = dump_tts(tc, fpart, &tts);
 
     // STEP 3: dump tiles [sites, pip speed, wires], STREAM THE MOTHERFUCKER, gather nodes
-    let mut node_sp = IndexSet::new();
-    let mut nodes: HashMap<(u32, u32), Vec<(u32, u32, u32)>> = HashMap::new();
+    let ctx = Context {
+        tt_pips,
+        speed_models,
+        mctx: Mutex::new(MutContext {
+            names: EntitySet::new(),
+            nodes: HashMap::new(),
+            rd:  PartBuilder::new(
+                fpart.device.clone(),
+                fpart.actual_family.clone(),
+                Source::Vivado,
+                width,
+                height,
+            ),
+        }),
+        bar: ProgressBar::new((width as u64) * (height as u64)),
+    };
     let gys: Vec<_> = (0..height).collect();
-    for batch in gys.chunks(TILE_BATCH_SIZE / (width as usize)) {
+    let chunks: Vec<_> = gys.chunks(TILE_BATCH_SIZE / (width as usize)).collect();
+    chunks.into_par_iter().for_each(|batch| {
         let mut crdlist = String::new();
         for y in batch {
             writeln!(crdlist, "{y}").unwrap();
@@ -356,251 +652,42 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                 ("script.tcl", DUMP_TILES_TCL.as_bytes()),
                 ("crd.list", crdlist.as_bytes()),
             ],
-        )?;
-        let lines = tr.lines();
-        let mut got_end = false;
-        let mut tile: Option<String> = None;
-        let mut wpref: String = String::new();
-        let mut ppref: String = String::new();
-        let mut tt: Option<String> = None;
-        let mut coord: Option<Coord> = None;
-        let mut wires: Vec<(String, u32)> = Vec::new();
-        let mut pips: Vec<(
-            &str,
-            &str,
-            bool,
-            bool,
-            bool,
-            TkPipInversion,
-            TkPipDirection,
-            Option<&str>,
-        )> = Vec::new();
-        let mut ttt_pips: Option<&HashMap<String, TtPip>> = None;
-        let mut tile_n2w: HashMap<String, Vec<u32>> = HashMap::new();
-        let mut site_pins: Vec<(String, TkSitePinDir, Option<String>, Option<&str>)> = Vec::new();
-        let mut site: Option<(String, String)> = None;
-        let mut spref: String = String::new();
-        let mut sites: Vec<(
-            String,
-            String,
-            Vec<(String, TkSitePinDir, Option<String>, Option<&str>)>,
-        )> = Vec::new();
-        for l in lines {
-            let l = l?;
-            let sl: Vec<_> = l.split_whitespace().collect();
+        ).unwrap();
+        let mut lines = tr.lines();
+        loop {
+            let l = lines.next().unwrap();
+            let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
             match sl[0] {
                 "TILE" => {
                     if sl.len() != 5 {
-                        println!("UMMMM {} {}", fpart.name, l);
+                        println!("UMMMM {} {:?}", fpart.name, sl);
                     }
-                    assert!(tile.is_none());
-                    coord = Some(Coord {
-                        x: sl[1].parse()?,
-                        y: height - 1 - sl[2].parse::<u16>()?,
-                    });
-                    tile = Some(sl[3].to_string());
-                    tt = Some(sl[4].to_string());
-                    wpref = sl[3].to_string() + "/";
-                    ppref = sl[3].to_string() + "/" + sl[4] + ".";
-                    let pips = tt_pips.get(sl[4]);
-                    if pips.is_none() {
-                        println!("OOPS: {}", l);
-                    }
-                    ttt_pips = Some(pips.unwrap());
-                }
-                "SITE" => {
-                    assert!(site.is_none());
-                    site = Some((sl[1].to_string(), sl[2].to_string()));
-                    spref = sl[1].to_string() + "/";
-                }
-                "SITEPIN" => {
-                    assert!(!site.is_none());
-                    let pin = sl[1][1..].strip_prefix(&spref).unwrap();
-                    let dir = match &sl[2][1..] {
-                        "IN" => TkSitePinDir::Input,
-                        "OUT" => TkSitePinDir::Output,
-                        "INOUT" => TkSitePinDir::Bidir,
-                        _ => panic!("weird pin dir {}", &sl[2][1..]),
+                    let coord = Coord {
+                        x: sl[1].parse().unwrap(),
+                        y: height - 1 - sl[2].parse::<u16>().unwrap(),
                     };
-                    let si = &sl[3][1..];
-                    let node = &sl[4][1..];
-                    let speed: Option<&str> = if si.is_empty() {
-                        None
-                    } else {
-                        Some(speed_models.get(&si.parse::<u32>().unwrap()).unwrap())
-                    };
-                    let wire: Option<String> = match tile_n2w.get(node) {
-                        None => None,
-                        Some(v) => {
-                            let mut v = v.clone();
-                            if v.len() > 1 {
-                                let skind = &site.as_ref().unwrap().1;
-                                match pin {
-                                    "DOUT" | "SYSREF_OUT_NORTH_P" | "SYSREF_OUT_SOUTH_P" | "CLK_DISTR_OUT_NORTH" | "CLK_DISTR_OUT_SOUTH" | "T1_ALLOWED_SOUTH" | "CLK_IN" => {
-                                        let suffix = format!("_{}", pin);
-                                        v.retain(|&n| unintern(&node_sp, n).ends_with(&suffix));
-                                    }
-                                    _ => (),
-                                }
-                            }
-                            if v.len() == 1 {
-                                Some(unintern(&node_sp, v[0]).to_string())
-                            } else {
-                                let skind = &site.as_ref().unwrap().1;
-                                panic!(
-                                    "SITE PIN WIRE AMBIGUOUS {skind} {pin} {:?} {:?}",
-                                    sl,
-                                    v.iter().map(|&n| unintern(&node_sp, n)).collect::<Vec<_>>()
-                                );
-                            }
-                        }
-                    };
-                    site_pins.push((pin.to_string(), dir, wire, speed));
-                }
-                "ENDSITE" => {
-                    let (sname, skind) = site.unwrap();
-                    site = None;
-                    sites.push((sname, skind, site_pins));
-                    site_pins = Vec::new();
-                }
-                "WIRE" => {
-                    assert!(!tile.is_none());
-                    let name = sl[1].strip_prefix(&wpref).unwrap();
-                    let si = sl[2].parse::<u32>().unwrap();
-                    let node = &sl[3][1..];
-                    wires.push((name.to_string(), si));
-                    if !node.is_empty() {
-                        let pos = node.find('/').unwrap();
-                        let node_t = intern(&mut node_sp, &node[..pos]);
-                        let node_w = intern(&mut node_sp, &node[pos+1..]);
-                        let nwires = nodes.entry((node_t, node_w)).or_default();
-                        nwires.push((
-                            intern(&mut node_sp, tile.as_ref().unwrap()),
-                            intern(&mut node_sp, name),
-                            si,
-                        ));
-                        let n2w = tile_n2w.entry(node.to_string()).or_default();
-                        n2w.push(intern(&mut node_sp, name));
-                    }
-                }
-                "PIP" => {
-                    assert!(!tile.is_none());
-                    let name = sl[1][1..].strip_prefix(&ppref).unwrap();
-                    let si = &sl[2][1..];
-                    let pip = ttt_pips.unwrap().get(name).unwrap();
-                    if pip.is_pseudo {
-                        continue;
-                    }
-                    let speed: Option<&str> = if si.is_empty() {
-                        None
-                    } else {
-                        let si = si.parse::<u32>().unwrap();
-                        let s = speed_models.get(&si);
-                        if s.is_none() {
-                            println!("UMMMM NO SI {}", l);
-                        }
-                        s.map(|x| &x[..])
-                    };
-                    if pip.is_bidi {
-                        pips.push((
-                            &pip.wire_from,
-                            &pip.wire_to,
-                            pip.is_buf,
-                            pip.is_excluded,
-                            pip.is_test,
-                            pip.inv,
-                            TkPipDirection::BiFwd,
-                            speed,
-                        ));
-                        pips.push((
-                            &pip.wire_to,
-                            &pip.wire_from,
-                            pip.is_buf,
-                            pip.is_excluded,
-                            pip.is_test,
-                            pip.inv,
-                            TkPipDirection::BiBwd,
-                            speed,
-                        ));
-                    } else {
-                        pips.push((
-                            &pip.wire_from,
-                            &pip.wire_to,
-                            pip.is_buf,
-                            pip.is_excluded,
-                            pip.is_test,
-                            pip.inv,
-                            TkPipDirection::Uni,
-                            speed,
-                        ));
-                    }
-                }
-                "ENDTILE" => {
-                    assert!(site.is_none());
-                    assert!(!tile.is_none());
-                    rd.add_tile(
-                        coord.unwrap(),
-                        tile.unwrap(),
-                        tt.unwrap(),
-                        &sites
-                            .iter()
-                            .map(|(n, t, p)| -> (&str, &str, _) {
-                                (
-                                    &n,
-                                    &t,
-                                    p.iter()
-                                        .map(
-                                            |&(ref n, d, ref w, s)| -> (
-                                                &str,
-                                                TkSitePinDir,
-                                                Option<&str>,
-                                                Option<&str>,
-                                            ) {
-                                                (n, d, w.as_ref().map(|s| &s[..]), s)
-                                            },
-                                        )
-                                        .collect::<Vec<_>>(),
-                                )
-                            })
-                            .collect::<Vec<_>>(),
-                        &wires
-                            .iter()
-                            .map(|(w, s)| -> (&str, Option<&str>) {
-                                (w, Some(&speed_models.get(&s).unwrap()[..]))
-                            })
-                            .collect::<Vec<_>>(),
-                        &pips,
-                    );
-                    coord = None;
-                    tile = None;
-                    tt = None;
-                    wires = Vec::new();
-                    pips = Vec::new();
-                    sites = Vec::new();
-                    tile_n2w = HashMap::new();
+                    dump_tile(&mut lines, coord, sl[3], sl[4], &ctx);
                 }
                 "END" => {
-                    assert!(tile.is_none());
-                    got_end = true;
                     break;
                 }
                 _ => panic!("unknown line {}", sl[0]),
             }
         }
-        if !got_end {
-            bail!("missing END in tiles");
-        }
-    }
+    });
+
+    ctx.bar.finish();
+    let mut mctx = ctx.mctx.into_inner().unwrap();
 
     // STEP 4: stream nodes
-    for (_, v) in nodes {
-        rd.add_node(
+    for (_, v) in mctx.nodes {
+        mctx.rd.add_node(
             &v.into_iter()
                 .map(|(t, w, s)| -> (&str, &str, Option<&str>) {
                     (
-                        unintern(&node_sp, t),
-                        unintern(&node_sp, w),
-                        Some(speed_models.get(&s).unwrap()),
+                        &mctx.names[t],
+                        &mctx.names[w],
+                        Some(&ctx.speed_models[&s]),
                     )
                 })
                 .collect::<Vec<_>>(),
@@ -608,87 +695,19 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
     }
 
     // STEP 5: dump packages
+    let mut packages = HashMap::new();
     for part in parts.iter() {
-        if rd.part.packages.contains_key(&part.package) {
-            continue;
+        if !packages.contains_key(&part.package) {
+            packages.insert(part.package.clone(), part);
         }
-        let mut pins: Vec<PkgPin> = Vec::new();
-        let tr = ToolchainReader::new(
-            tc,
-            "vivado",
-            &[
-                "-nolog",
-                "-nojournal",
-                "-mode",
-                "batch",
-                "-source",
-                "script.tcl",
-                "-tclargs",
-                &part.name,
-            ],
-            &[],
-            "pkgpins.fifo",
-            &[("script.tcl", DUMP_PKGPINS_TCL.as_bytes())],
-        )?;
-        let lines = tr.lines();
-        let mut got_end = false;
-        for l in lines {
-            let l = l?;
-            let sl: Vec<_> = l.split_whitespace().collect();
-            match sl[0] {
-                "END" => {
-                    got_end = true;
-                    break;
-                }
-                "PKGPIN" => {
-                    let pin = sl[1];
-                    let site = &sl[2][1..];
-                    let bank = &sl[3][1..];
-                    let func = &sl[4][1..];
-                    let mind = &sl[5][1..];
-                    let maxd = &sl[6][1..];
-                    pins.push(PkgPin {
-                        pad: if site.is_empty() {
-                            None
-                        } else {
-                            Some(site.to_string())
-                        },
-                        pin: pin.to_string(),
-                        vref_bank: if bank.is_empty() {
-                            None
-                        } else {
-                            Some(bank.parse()?)
-                        },
-                        vcco_bank: if bank.is_empty() {
-                            None
-                        } else {
-                            Some(bank.parse()?)
-                        },
-                        func: func.to_string(),
-                        tracelen_um: None,
-                        delay_min_fs: if mind.is_empty() {
-                            None
-                        } else {
-                            Some(mind.parse()?)
-                        },
-                        delay_max_fs: if maxd.is_empty() {
-                            None
-                        } else {
-                            Some(maxd.parse()?)
-                        },
-                    });
-                }
-                _ => panic!("unknown line {}", sl[0]),
-            }
-        }
-        if !got_end {
-            bail!("missing END in tiles");
-        }
-        rd.add_package(part.package.to_string(), pins);
+    }
+    let pkg_pins: Vec<_> = packages.into_par_iter().map(|(pkg, part)| (pkg, dump_pkgpins(tc, part))).collect();
+    for (pkg, pins) in pkg_pins {
+        mctx.rd.add_package(pkg, pins);
     }
 
     for part in parts {
-        rd.add_combo(
+        mctx.rd.add_combo(
             part.name.clone(),
             part.device.clone(),
             part.package.clone(),
@@ -697,5 +716,5 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         );
     }
 
-    Ok(rd.finish())
+    Ok(mctx.rd.finish())
 }

@@ -21,7 +21,7 @@ pub fn make_device_multi(rd: &Part, grids: EntityVec<SlrId, Grid>, grid_master: 
     let combos = rd.combos.iter().map(|c| DeviceCombo {
         name: c.name.clone(),
         devbond_idx: bonds.get(&c.package).unwrap().0,
-        speed_idx: speeds.insert(c.speed.clone()).0,
+        speed_idx: speeds.get_or_insert(&c.speed),
     }).collect();
     PreDevice {
         name: rd.part.clone(),
@@ -156,10 +156,8 @@ impl GridBuilder {
 pub fn find_columns(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
     let mut res = BTreeSet::new();
     for &tt in tts {
-        if let Some(tk) = rd.tile_kinds.get(tt) {
-            for t in &tk.tiles {
-                res.insert(t.x as i32);
-            }
+        for &xy in rd.tiles_by_kind_name(tt) {
+            res.insert(xy.x as i32);
         }
     }
     res
@@ -176,10 +174,8 @@ pub fn find_column(rd: &Part, tts: &[&str]) -> Option<i32> {
 pub fn find_rows(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
     let mut res = BTreeSet::new();
     for &tt in tts {
-        if let Some(tk) = rd.tile_kinds.get(tt) {
-            for t in &tk.tiles {
-                res.insert(t.y as i32);
-            }
+        for &xy in rd.tiles_by_kind_name(tt) {
+            res.insert(xy.y as i32);
         }
     }
     res
@@ -196,10 +192,8 @@ pub fn find_row(rd: &Part, tts: &[&str]) -> Option<i32> {
 pub fn find_tiles(rd: &Part, tts: &[&str]) -> BTreeSet<(i32, i32)> {
     let mut res = BTreeSet::new();
     for &tt in tts {
-        if let Some(tk) = rd.tile_kinds.get(tt) {
-            for t in &tk.tiles {
-                res.insert((t.x as i32, t.y as i32));
-            }
+        for &xy in rd.tiles_by_kind_name(tt) {
+            res.insert((xy.x as i32, xy.y as i32));
         }
     }
     res
@@ -234,11 +228,9 @@ impl IntGrid<'_> {
     pub fn find_tiles(&self, tts: &[&str]) -> BTreeSet<(i32, i32)> {
         let mut res = BTreeSet::new();
         for &tt in tts {
-            if let Some(tk) = self.rd.tile_kinds.get(tt) {
-                for t in &tk.tiles {
-                    if (self.slr_start..self.slr_end).contains(&t.y) {
-                        res.insert((t.x as i32, t.y as i32));
-                    }
+            for &xy in self.rd.tiles_by_kind_name(tt) {
+                if (self.slr_start..self.slr_end).contains(&xy.y) {
+                    res.insert((xy.x as i32, xy.y as i32));
                 }
             }
         }
@@ -248,11 +240,9 @@ impl IntGrid<'_> {
     pub fn find_rows(&self, tts: &[&str]) -> BTreeSet<i32> {
         let mut res = BTreeSet::new();
         for &tt in tts {
-            if let Some(tk) = self.rd.tile_kinds.get(tt) {
-                for t in &tk.tiles {
-                    if (self.slr_start..self.slr_end).contains(&t.y) {
-                        res.insert(t.y as i32);
-                    }
+            for &xy in self.rd.tiles_by_kind_name(tt) {
+                if (self.slr_start..self.slr_end).contains(&xy.y) {
+                    res.insert(xy.y as i32);
                 }
             }
         }
@@ -270,11 +260,9 @@ impl IntGrid<'_> {
     pub fn find_columns(&self, tts: &[&str]) -> BTreeSet<i32> {
         let mut res = BTreeSet::new();
         for &tt in tts {
-            if let Some(tk) = self.rd.tile_kinds.get(tt) {
-                for t in &tk.tiles {
-                    if (self.slr_start..self.slr_end).contains(&t.y) {
-                        res.insert(t.x as i32);
-                    }
+            for &xy in self.rd.tiles_by_kind_name(tt) {
+                if (self.slr_start..self.slr_end).contains(&xy.y) {
+                    res.insert(xy.x as i32);
                 }
             }
         }
@@ -297,39 +285,27 @@ pub struct ExtraCol {
 }
 
 pub fn extract_int<'a>(rd: &'a Part, tts: &[&str], extra_cols: &[ExtraCol]) -> IntGrid<'a> {
-    let mut cols = find_columns(rd, tts);
-    let rows = find_rows(rd, tts);
-    for ec in extra_cols {
-        for c in find_columns(rd, ec.tts) {
-            for d in ec.dx {
-                cols.insert(c + d);
-            }
-        }
-    }
-    IntGrid {
-        rd,
-        cols: cols.into_iter().collect(),
-        rows: rows.into_iter().collect(),
-        slr_start: 0,
-        slr_end: rd.height,
-    }
+    extract_int_slr(rd, tts, extra_cols, 0, rd.height)
 }
 
 pub fn extract_int_slr<'a>(rd: &'a Part, tts: &[&str], extra_cols: &[ExtraCol], slr_start: u16, slr_end: u16) -> IntGrid<'a> {
-    let mut cols = find_columns(rd, tts);
-    let rows = find_rows(rd, tts);
+    let mut res = IntGrid {
+        rd,
+        cols: EntityVec::new(),
+        rows: EntityVec::new(),
+        slr_start,
+        slr_end,
+    };
+    let mut cols = res.find_columns(tts);
+    let rows = res.find_rows(tts);
     for ec in extra_cols {
-        for c in find_columns(rd, ec.tts) {
+        for c in res.find_columns(ec.tts) {
             for d in ec.dx {
                 cols.insert(c + d);
             }
         }
     }
-    IntGrid {
-        rd,
-        cols: cols.into_iter().collect(),
-        rows: rows.into_iter().filter(|&x| (slr_start..slr_end).contains(&(x as u16))).collect(),
-        slr_start,
-        slr_end,
-    }
+    res.cols = cols.into_iter().collect();
+    res.rows = rows.into_iter().filter(|&x| (slr_start..slr_end).contains(&(x as u16))).collect();
+    res
 }

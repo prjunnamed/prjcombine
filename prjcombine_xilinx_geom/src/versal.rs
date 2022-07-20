@@ -1,23 +1,32 @@
-use std::collections::BTreeSet, BTreeMap;
+use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::DisabledPart;
+use crate::{CfgPin, DisabledPart, ColId, RowId, SlrId, int, eint};
+use ndarray::Array2;
+use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
-    pub columns: Vec<ColumnKind>,
-    pub cols_bli_bot: BTreeMap<usize, BliKind>,
-    pub cols_bli_top: BTreeMap<usize, BliKind>,
-    pub cols_vbrk: BTreeSet<u32>,
-    pub cols_cpipe: BTreeSet<u32>,
-    pub cols_hard: Vec<HardColumn>,
-    pub cols_gt: Vec<GtColumn>,
-    pub col_cfrm: u32,
-    pub rows: u32,
-    pub rows_gt_left: Vec<GtRowKind>,
-    pub rows_gt_right: Vec<GtRowKind>,
+    pub columns: EntityVec<ColId, Column>,
+    pub cols_vbrk: BTreeSet<ColId>,
+    pub cols_cpipe: BTreeSet<ColId>,
+    pub cols_hard: [Option<HardColumn>; 3],
+    pub col_cfrm: ColId,
+    pub regs: usize,
+    pub regs_gt_left: Vec<GtRowKind>,
+    pub regs_gt_right: Option<Vec<GtRowKind>>,
     pub cpm: CpmKind,
     pub top: TopKind,
     pub bottom: BotKind,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Column {
+    pub l: ColumnKind,
+    pub r: ColumnKind,
+    pub has_bli_bot_l: bool,
+    pub has_bli_top_l: bool,
+    pub has_bli_bot_r: bool,
+    pub has_bli_top_r: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -55,12 +64,13 @@ pub enum HardRowKind {
     DcmacT,
     HscB,
     HscT,
+    CpmExt,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
-    pub col: u32,
-    pub rows: Vec<HardRowKind>,
+    pub col: ColId,
+    pub regs: Vec<HardRowKind>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -70,24 +80,37 @@ pub enum GtRowKind {
     Gtyp,
     Gtm,
     Xram,
+    Vdu,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum Bli {
-    Unknown,
-    // bank idx, nibble idx
-    XpioNibble(u32, u32),
-}
-
 pub enum BotKind {
-    Xpio(u32),
+    Xpio(usize),
     Ssit,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum TopKind {
-    Xpio(u32),
+    Xpio(usize),
     Ssit,
-    Ai(u32, u32),
-    AiMl(u32, u32),
+    Me,
+    Ai(usize, usize),
+    AiMl(usize, usize, usize),
     Hbm,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum NocEndpoint {
+    // tile idx, switch idx, port idx
+    BotNps(usize, usize, usize),
+    TopNps(usize, usize, usize),
+    Ncrb(usize, usize, usize),
+    // column, region, switch idx, port idx
+    VNocNps(ColId, usize, usize, usize),
+    VNocEnd(ColId, usize, usize),
+    Pmc(usize),
+    Me(usize, usize),
+    // tile idx, port idx
+    BotDmc(usize, usize),
+    TopDmc(usize, usize),
 }

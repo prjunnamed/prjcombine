@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeOrClass};
+use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeId};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, ColId, SlrId, int, int::Dir};
 use prjcombine_xilinx_geom::ultrascale::{self, GridKind, Column, ColumnKindLeft, ColumnKindRight, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt, ColSide, expand_grid};
 use prjcombine_entity::{EntityVec, EntityId};
@@ -151,13 +151,13 @@ fn get_cols_fsr_gap(int: &IntGrid) -> BTreeSet<ColId> {
 }
 
 fn get_cols_hard(int: &IntGrid) -> Vec<HardColumn> {
-    let mut vp_aux0: HashSet<u32> = HashSet::new();
-    if let Some(tk) = int.rd.tile_kinds.get("AMS") {
-        for (i, v) in tk.conn_wires.iter().enumerate() {
-            if int.rd.print_wire(*v) == "AMS_AMS_CORE_0_VP_AUX0" {
+    let mut vp_aux0: HashSet<NodeId> = HashSet::new();
+    if let Some((_, tk)) = int.rd.tile_kinds.get("AMS") {
+        for (i, &v) in tk.conn_wires.iter() {
+            if &int.rd.wires[v] == "AMS_AMS_CORE_0_VP_AUX0" {
                 for crd in &tk.tiles {
                     let tile = &int.rd.tiles[crd];
-                    if let NodeOrClass::Node(n) = tile.get_conn_wire(i) {
+                    if let Some(&n) = tile.conn_wires.get(i) {
                         vp_aux0.insert(n);
                     }
                 }
@@ -189,9 +189,9 @@ fn get_cols_hard(int: &IntGrid) -> Vec<HardColumn> {
             cells.insert((col, row), kind);
         }
     }
-    if let Some(tk) = int.rd.tile_kinds.get("HDIO_TOP_RIGHT") {
-        for (i, v) in tk.conn_wires.iter().enumerate() {
-            if int.rd.print_wire(*v) == "HDIO_IOBPAIR_53_SWITCH_OUT" {
+    if let Some((_, tk)) = int.rd.tile_kinds.get("HDIO_TOP_RIGHT") {
+        for (i, &v) in tk.conn_wires.iter() {
+            if &int.rd.wires[v] == "HDIO_IOBPAIR_53_SWITCH_OUT" {
                 for crd in &tk.tiles {
                     if !(int.slr_start..int.slr_end).contains(&crd.y) {
                         continue;
@@ -199,7 +199,7 @@ fn get_cols_hard(int: &IntGrid) -> Vec<HardColumn> {
                     let col = int.lookup_column_inter(crd.x as i32);
                     let row = int.lookup_row(crd.y as i32).to_idx() / 60;
                     let tile = &int.rd.tiles[crd];
-                    if let NodeOrClass::Node(n) = tile.get_conn_wire(i) {
+                    if let Some(&n) = tile.conn_wires.get(i) {
                         if vp_aux0.contains(&n) {
                             cells.insert((col, row), HardRowKind::HdioAms);
                         }
@@ -242,6 +242,7 @@ fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
         ("GTH_QUAD_LEFT", IoRowKind::Gth),
         ("GTY_L", IoRowKind::Gty),
         ("GTM_DUAL_LEFT_FT", IoRowKind::Gtm),
+        ("GTFY_QUAD_LEFT_FT", IoRowKind::Gtf),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
@@ -257,6 +258,7 @@ fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
         ("GTH_QUAD_RIGHT", IoRowKind::Gth),
         ("GTY_R", IoRowKind::Gty),
         ("GTM_DUAL_RIGHT_FT", IoRowKind::Gtm),
+        ("GTFY_QUAD_RIGHT_FT", IoRowKind::Gtf),
         ("HSADC_HSADC_RIGHT_FT", IoRowKind::HsAdc),
         ("HSDAC_HSDAC_RIGHT_FT", IoRowKind::HsDac),
         ("RFADC_RFADC_RIGHT_FT", IoRowKind::RfAdc),
@@ -1097,9 +1099,9 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
         assert_eq!(int.rows.len() % 60, 0);
         grids.push(ultrascale::Grid {
             kind,
-            columns: columns.clone(),
-            cols_vbrk: cols_vbrk.clone(),
-            cols_fsr_gap: cols_fsr_gap.clone(),
+            columns,
+            cols_vbrk,
+            cols_fsr_gap,
             col_cfg,
             col_hard,
             cols_io,
@@ -1539,6 +1541,9 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
         } else if let Some(x) = pad.strip_prefix("GTYE4_") {
             p = x;
             kind = IoRowKind::Gty;
+        } else if let Some(x) = pad.strip_prefix("GTF_") {
+            p = x;
+            kind = IoRowKind::Gtf;
         } else {
             return None
         }
@@ -1574,6 +1579,10 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
                 "MGTYRXN" => Some(BondPin::GtByBank(gt.bank, GtPin::RxN, bel)),
                 "MGTYTXP" => Some(BondPin::GtByBank(gt.bank, GtPin::TxP, bel)),
                 "MGTYTXN" => Some(BondPin::GtByBank(gt.bank, GtPin::TxN, bel)),
+                "MGTFRXP" => Some(BondPin::GtByBank(gt.bank, GtPin::RxP, bel)),
+                "MGTFRXN" => Some(BondPin::GtByBank(gt.bank, GtPin::RxN, bel)),
+                "MGTFTXP" => Some(BondPin::GtByBank(gt.bank, GtPin::TxP, bel)),
+                "MGTFTXN" => Some(BondPin::GtByBank(gt.bank, GtPin::TxN, bel)),
                 _ => None,
             }
         } else {
