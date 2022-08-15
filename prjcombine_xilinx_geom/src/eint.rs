@@ -110,7 +110,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             kind: self.grid.db.get_node(kind),
             name,
             tie_name: None,
-            naming: self.grid.db.get_naming(naming),
+            naming: self.grid.db.get_node_naming(naming),
             special: false,
             intfs: vec![],
             terms: enum_map!(_ => None),
@@ -123,7 +123,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             kind: self.grid.db.get_node(kind),
             name,
             tie_name: None,
-            naming: self.grid.db.get_naming(naming),
+            naming: self.grid.db.get_node_naming(naming),
             special: true,
             intfs: vec![],
             terms: enum_map!(_ => None),
@@ -178,88 +178,75 @@ impl ExpandedSlrRefMut<'_, '_> {
             target: Some(b),
             kind: fwd,
             tile: None,
-            naming_near: None,
-            naming_near_in: None,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: None,
         }, ExpandedTileTerm {
             target: Some(a),
             kind: bwd,
             tile: None,
-            naming_near: None,
-            naming_near_in: None,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: None,
         });
     }
 
-    pub fn fill_term_pair_buf(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId, tile: String, naming_a: NamingId, naming_b: NamingId) {
+    pub fn fill_term_pair_buf(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId, tile: String, naming_a: TermNamingId, naming_b: TermNamingId) {
         self.fill_term_pair(ExpandedTileTerm {
             target: Some(b),
             kind: fwd,
             tile: Some(tile.clone()),
-            naming_near: Some(naming_a),
-            naming_near_in: None,
-            naming_far: Some(naming_b),
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: Some(naming_a),
         }, ExpandedTileTerm {
             target: Some(a),
             kind: bwd,
             tile: Some(tile),
-            naming_near: Some(naming_b),
-            naming_near_in: None,
-            naming_far: Some(naming_a),
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: Some(naming_b),
         });
     }
 
-    pub fn fill_term_pair_bounce(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId, tile_a: String, tile_b: String, naming_a: NamingId, naming_b: NamingId) {
+    pub fn fill_term_pair_bounce(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId, tile_a: String, tile_b: String, naming_a: TermNamingId, naming_b: TermNamingId) {
         self.fill_term_pair(ExpandedTileTerm {
             target: Some(b),
             kind: fwd,
             tile: Some(tile_a),
-            naming_near: Some(naming_a),
-            naming_near_in: None,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: Some(naming_a),
         }, ExpandedTileTerm {
             target: Some(a),
             kind: bwd,
             tile: Some(tile_b),
-            naming_near: Some(naming_b),
-            naming_near_in: None,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: Some(naming_b),
         });
     }
 
-    pub fn fill_term_tile(&mut self, xy: Coord, kind: &str, naming: &str, naming_in: Option<&str>, tile: String) {
+    pub fn fill_term_pair_dbuf(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId, tile_a: String, tile_b: String, naming_a: TermNamingId, naming_b: TermNamingId) {
+        self.fill_term_pair(ExpandedTileTerm {
+            target: Some(b),
+            kind: fwd,
+            tile: Some(tile_a.clone()),
+            tile_far: Some(tile_b.clone()),
+            naming: Some(naming_a),
+        }, ExpandedTileTerm {
+            target: Some(a),
+            kind: bwd,
+            tile: Some(tile_b),
+            tile_far: Some(tile_a),
+            naming: Some(naming_b),
+        });
+    }
+
+    pub fn fill_term_tile(&mut self, xy: Coord, kind: &str, naming: &str, tile: String) {
         let kind = self.grid.db.get_term(kind);
-        let naming = self.grid.db.get_naming(naming);
-        let naming_in = naming_in.map(|x| self.grid.db.get_naming(x));
+        let naming = self.grid.db.get_term_naming(naming);
         let dir = self.grid.db.terms[kind].dir;
         self.tile_mut(xy).terms[dir] = Some(ExpandedTileTerm {
             target: None,
             kind,
             tile: Some(tile),
-            naming_near: Some(naming),
-            naming_near_in: naming_in,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: Some(naming),
         });
     }
 
@@ -270,12 +257,8 @@ impl ExpandedSlrRefMut<'_, '_> {
             target: None,
             kind,
             tile: None,
-            naming_near: None,
-            naming_near_in: None,
-            naming_far: None,
             tile_far: None,
-            naming_far_out: None,
-            naming_far_in: None,
+            naming: None,
         });
     }
 
@@ -334,31 +317,17 @@ impl ExpandedGrid<'_> {
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
                             Some(&TermInfo::Pass(wf)) => {
+                                if let Some(n) = t.naming {
+                                    let n = &self.db.term_namings[n];
+                                    if n.wires_out.contains_id(wire.2) {
+                                        break;
+                                    }
+                                }
                                 match wf {
                                     TermWireIn::Near(wf) => {
-                                        if let Some(n) = t.naming_near {
-                                            let n = &self.db.namings[n];
-                                            if let Some(ni) = t.naming_near_in {
-                                                let ni = &self.db.namings[ni];
-                                                if ni.contains_id(wire.2) {
-                                                    break;
-                                                }
-                                            } else {
-                                                if n.contains_id(wf) && n.contains_id(wire.2) {
-                                                    break;
-                                                }
-                                            }
-                                        }
                                         wire.2 = wf;
                                     }
                                     TermWireIn::Far(wf) => {
-                                        if let Some(nf) = t.naming_far {
-                                            let nn = &self.db.namings[t.naming_near.unwrap()];
-                                            let nf = &self.db.namings[nf];
-                                            if nn.contains_id(wire.2) && nf.contains_id(wf) {
-                                                break;
-                                            }
-                                        }
                                         // horrible hack alert
                                         if self.db.nodes.key(slr.tile(t.target.unwrap()).kind) == "DCM.S3.DUMMY" &&
                                             self.db.wires[wf].name.starts_with("OMUX") &&
@@ -400,7 +369,7 @@ pub struct ExpandedTile {
     pub kind: NodeKindId,
     pub name: String,
     pub tie_name: Option<String>,
-    pub naming: NamingId,
+    pub naming: NodeNamingId,
     pub special: bool,
     pub intfs: Vec<ExpandedTileIntf>,
     pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
@@ -410,10 +379,7 @@ pub struct ExpandedTile {
 pub struct ExpandedTileIntf {
     pub kind: IntfKindId,
     pub name: String,
-    pub naming_int: NamingId,
-    pub naming_buf: Option<NamingId>,
-    pub naming_site: Option<NamingId>,
-    pub naming_delay: Option<NamingId>,
+    pub naming: IntfNamingId,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -421,12 +387,8 @@ pub struct ExpandedTileTerm {
     pub target: Option<Coord>,
     pub kind: TermKindId,
     pub tile: Option<String>,
-    pub naming_near: Option<NamingId>,
-    pub naming_near_in: Option<NamingId>,
-    pub naming_far: Option<NamingId>,
     pub tile_far: Option<String>,
-    pub naming_far_out: Option<NamingId>,
-    pub naming_far_in: Option<NamingId>,
+    pub naming: Option<TermNamingId>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -439,6 +401,5 @@ pub struct ExpandedBel {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedBelTile {
     pub coord: Coord,
-    pub naming: (NamingId, NamingId),
-    pub int_special_naming: Option<NamingId>,
+    // TODO: naming
 }

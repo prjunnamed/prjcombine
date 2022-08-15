@@ -358,7 +358,7 @@ impl Grid {
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                grid.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
@@ -367,30 +367,21 @@ impl Grid {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF"),
                             name: format!("INT_INTERFACE_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.SITE")),
-                            naming_delay: None,
+                            naming: db.get_intf_naming("INTF"),
                         });
                     }
                     ColumnKind::Gtp | ColumnKind::Gtx if col.to_idx() != 0 => {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.DELAY"),
                             name: format!("GTP_INT_INTERFACE_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.GTP"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.GTP.SITE")),
-                            naming_delay: Some(db.get_naming("INTF.GTP.DELAY")),
+                            naming: db.get_intf_naming("INTF.GTP"),
                         });
                     }
                     ColumnKind::Gtp | ColumnKind::Gtx => {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.DELAY"),
                             name: format!("GTX_LEFT_INT_INTERFACE_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.GTX_LEFT"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.GTX_LEFT.SITE")),
-                            naming_delay: Some(db.get_naming("INTF.GTX_LEFT.DELAY")),
+                            naming: db.get_intf_naming("INTF.GTX_LEFT"),
                         });
                     }
                 }
@@ -408,10 +399,7 @@ impl Grid {
                     grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf("INTF.DELAY"),
                         name: format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
-                        naming_int: db.get_naming("INTF.EMAC"),
-                        naming_buf: None,
-                        naming_site: Some(db.get_naming("INTF.EMAC.SITE")),
-                        naming_delay: Some(db.get_naming("INTF.EMAC.DELAY")),
+                        naming: db.get_intf_naming("INTF.EMAC"),
                     });
                 }
             }
@@ -423,10 +411,7 @@ impl Grid {
                     grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf("INTF.DELAY"),
                         name: format!("PCIE_INT_INTERFACE_X{x}Y{y}"),
-                        naming_int: db.get_naming("INTF.PCIE"),
-                        naming_buf: None,
-                        naming_site: Some(db.get_naming("INTF.PCIE.SITE")),
-                        naming_delay: Some(db.get_naming("INTF.PCIE.DELAY")),
+                        naming: db.get_intf_naming("INTF.PCIE"),
                     });
                 }
             }
@@ -446,44 +431,25 @@ impl Grid {
                 let ry = y / 10 * 11 + y % 10 + 1;
                 let tile_l = format!("L_TERM_PPC_X{xl}Y{y}");
                 let tile_r = format!("R_TERM_PPC_X{rxr}Y{ry}");
-                grid.fill_term_pair(eint::ExpandedTileTerm {
-                    target: Some((col_r, row)),
-                    kind: db.get_term("PPC.E"),
-                    tile: Some(tile_l.clone()),
-                    naming_near: Some(db.get_naming("TERM.PPC.E")),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming("TERM.PPC.E.FAR")),
-                    tile_far: Some(tile_r.clone()),
-                    naming_far_out: Some(db.get_naming("TERM.PPC.W.OUT")),
-                    naming_far_in: Some(db.get_naming("TERM.PPC.W.IN")),
-                }, eint::ExpandedTileTerm {
-                    target: Some((col_l, row)),
-                    kind: db.get_term("PPC.W"),
-                    tile: Some(tile_r),
-                    naming_near: Some(db.get_naming("TERM.PPC.W")),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming("TERM.PPC.W.FAR")),
-                    tile_far: Some(tile_l),
-                    naming_far_out: Some(db.get_naming("TERM.PPC.E.OUT")),
-                    naming_far_in: Some(db.get_naming("TERM.PPC.E.IN")),
-                });
+                grid.fill_term_pair_dbuf((col_l, row), (col_r, row), 
+                    db.get_term("PPC.E"),
+                    db.get_term("PPC.W"),
+                    tile_l,
+                    tile_r,
+                    db.get_term_naming("PPC.E"),
+                    db.get_term_naming("PPC.W"),
+                );
                 grid.tile_mut((col_l, row)).intfs.clear();
                 grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF.DELAY"),
                     name: format!("PPC_L_INT_INTERFACE_X{xl}Y{y}"),
-                    naming_int: db.get_naming("INTF.PPC_L"),
-                    naming_buf: None,
-                    naming_site: Some(db.get_naming("INTF.PPC_L.SITE")),
-                    naming_delay: Some(db.get_naming("INTF.PPC_L.DELAY")),
+                    naming: db.get_intf_naming("INTF.PPC_L"),
                 });
                 grid.tile_mut((col_r, row)).intfs.clear();
                 grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF.DELAY"),
                     name: format!("PPC_R_INT_INTERFACE_X{xr}Y{y}"),
-                    naming_int: db.get_naming("INTF.PPC_R"),
-                    naming_buf: None,
-                    naming_site: Some(db.get_naming("INTF.PPC_R.SITE")),
-                    naming_delay: Some(db.get_naming("INTF.PPC_R.DELAY")),
+                    naming: db.get_intf_naming("INTF.PPC_R"),
                 });
             }
             let row_b = br - 1;
@@ -493,8 +459,8 @@ impl Grid {
             for dx in 1..13 {
                 let col = bc + dx;
                 let x = col.to_idx();
-                grid.fill_term_tile((col, row_b), "N.PPC", "TERM.PPC.N.OUT", Some("TERM.PPC.N.IN"), format!("PPC_B_TERM_X{x}Y{yb}"));
-                grid.fill_term_tile((col, row_t), "S.PPC", "TERM.PPC.S.OUT", Some("TERM.PPC.S.IN"), format!("PPC_T_TERM_X{x}Y{yt}"));
+                grid.fill_term_tile((col, row_b), "N.PPC", "TERM.PPC.N", format!("PPC_B_TERM_X{x}Y{yb}"));
+                grid.fill_term_tile((col, row_t), "S.PPC", "TERM.PPC.S", format!("PPC_T_TERM_X{x}Y{yt}"));
             }
         }
 
@@ -514,12 +480,12 @@ impl Grid {
         for row in grid.rows() {
             let y = row.to_idx();
             if self.columns[col_l] == ColumnKind::Gtx {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W.OUT", Some("TERM.W.IN"), format!("GTX_L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("GTX_L_TERM_INT_X{xl}Y{y}"));
             } else {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W.OUT", Some("TERM.W.IN"), format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
             }
             if matches!(self.columns[col_r], ColumnKind::Gtp | ColumnKind::Gtx) {
-                grid.fill_term_tile((col_r, row), "E", "TERM.E.OUT", Some("TERM.E.IN"), format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
             } else {
                 grid.fill_term_anon((col_r, row), "E.HOLE");
             }
@@ -527,12 +493,8 @@ impl Grid {
 
         let term_w = db.get_term("INT_BUFS.W");
         let term_e = db.get_term("INT_BUFS.E");
-        let naming_w = db.get_naming("INT_BUFS.W");
-        let naming_wf = db.get_naming("INT_BUFS.W.FAR");
-        let naming_wo = db.get_naming("INT_BUFS.W.OUT");
-        let naming_e = db.get_naming("INT_BUFS.E");
-        let naming_ef = db.get_naming("INT_BUFS.E.FAR");
-        let naming_eo = db.get_naming("INT_BUFS.E.OUT");
+        let naming_w = db.get_term_naming("INT_BUFS.W");
+        let naming_e = db.get_term_naming("INT_BUFS.E");
         for (col, &cd) in &self.columns {
             if cd != ColumnKind::Io || col == col_l || col == col_r {
                 continue;
@@ -543,27 +505,16 @@ impl Grid {
                 let tile_l = format!("INT_BUFS_L_X{x}Y{y}");
                 let mon = if self.columns[col_l] == ColumnKind::Gtx {"_MON"} else {""};
                 let tile_r = format!("INT_BUFS_R{mon}_X{xx}Y{y}", xx = x + 1);
-                grid.fill_term_pair(eint::ExpandedTileTerm {
-                    target: Some((col + 1, row)),
-                    kind: term_e,
-                    tile: Some(tile_l.clone()),
-                    naming_near: Some(naming_e),
-                    naming_near_in: None,
-                    naming_far: Some(naming_ef),
-                    tile_far: Some(tile_r.clone()),
-                    naming_far_out: Some(naming_wo),
-                    naming_far_in: Some(naming_w),
-                }, eint::ExpandedTileTerm {
-                    target: Some((col, row)),
-                    kind: term_w,
-                    tile: Some(tile_r),
-                    naming_near: Some(naming_w),
-                    naming_near_in: None,
-                    naming_far: Some(naming_wf),
-                    tile_far: Some(tile_l),
-                    naming_far_out: Some(naming_eo),
-                    naming_far_in: Some(naming_e),
-                });
+                grid.fill_term_pair_dbuf(
+                    (col, row),
+                    (col + 1, row),
+                    term_e,
+                    term_w,
+                    tile_l,
+                    tile_r,
+                    naming_e,
+                    naming_w,
+                );
             }
         }
 

@@ -46,7 +46,9 @@ entity_id! {
     pub id TermKindId u16, reserve 1;
     pub id IntfKindId u16, reserve 1;
     pub id BelKindId u16, reserve 1;
-    pub id NamingId u16, reserve 1;
+    pub id NodeNamingId u16, reserve 1;
+    pub id TermNamingId u16, reserve 1;
+    pub id IntfNamingId u16, reserve 1;
     pub id BelTileId u16, reserve 1;
 }
 
@@ -58,7 +60,9 @@ pub struct IntDb {
     pub terms: EntityMap<TermKindId, String, TermKind>,
     pub intfs: EntityMap<IntfKindId, String, IntfKind>,
     pub bels: EntityMap<BelKindId, String, BelKind>,
-    pub namings: EntityMap<NamingId, String, EntityPartVec<WireId, String>>,
+    pub node_namings: EntityMap<NodeNamingId, String, EntityPartVec<WireId, String>>,
+    pub term_namings: EntityMap<TermNamingId, String, TermNaming>,
+    pub intf_namings: EntityMap<IntfNamingId, String, IntfNaming>,
 }
 
 impl IntDb {
@@ -71,8 +75,14 @@ impl IntDb {
     pub fn get_intf(&self, name: &str) -> IntfKindId {
         self.intfs.get(name).unwrap().0
     }
-    pub fn get_naming(&self, name: &str) -> NamingId {
-        self.namings.get(name).unwrap().0
+    pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
+        self.node_namings.get(name).unwrap().0
+    }
+    pub fn get_term_naming(&self, name: &str) -> TermNamingId {
+        self.term_namings.get(name).unwrap().0
+    }
+    pub fn get_intf_naming(&self, name: &str) -> IntfNamingId {
+        self.intf_namings.get(name).unwrap().0
     }
 }
 
@@ -137,6 +147,26 @@ pub enum TermWireIn {
     Far(WireId),
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+pub struct TermNaming {
+    pub wires_out: EntityPartVec<WireId, TermWireOutNaming>,
+    pub wires_in_near: EntityPartVec<WireId, String>,
+    pub wires_in_far: EntityPartVec<WireId, TermWireInFarNaming>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum TermWireOutNaming {
+    Simple(String),
+    Buf(String, String),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum TermWireInFarNaming {
+    Simple(String),
+    Buf(String, String),
+    BufFar(String, String, String),
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IntfKind {
     pub wires: EntityPartVec<WireId, IntfInfo>,
@@ -146,6 +176,25 @@ pub struct IntfKind {
 pub enum IntfInfo {
     OutputTestMux(BTreeSet<WireId>),
     InputDelay,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+pub struct IntfNaming {
+    pub wires_out: EntityPartVec<WireId, IntfWireOutNaming>,
+    pub wires_in: EntityPartVec<WireId, IntfWireInNaming>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IntfWireOutNaming {
+    Simple(String),
+    Buf(String, String),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IntfWireInNaming {
+    Simple(String),
+    TestBuf(String, String),
+    Delay(String, String, String),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

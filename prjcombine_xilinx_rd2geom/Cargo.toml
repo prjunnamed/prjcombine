@@ -15,3 +15,4 @@ rayon = "1.5.1"
 enum-map = { version = "2.4.0", features = ["serde"] }
 bitvec =  {version = "1.0.0", features = ["serde"] }
 indexmap = { version = "1.8", features = ["serde"] }
+assert_matches = "1.5.0"

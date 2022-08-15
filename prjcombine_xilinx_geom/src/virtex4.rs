@@ -392,7 +392,7 @@ impl Grid {
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                grid.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
                 match kind {
                     ColumnKind::Bram => {
@@ -401,10 +401,7 @@ impl Grid {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF"),
                             name: format!("BRAM_X{x}Y{dy}"),
-                            naming_int: db.get_naming(&format!("BRAM.{yy}")),
-                            naming_buf: Some(db.get_naming(&format!("BRAM.{yy}.INTFBUF"))),
-                            naming_site: None,
-                            naming_delay: None,
+                            naming: db.get_intf_naming(&format!("BRAM.{yy}")),
                         });
                     }
                     ColumnKind::Dsp => {
@@ -413,10 +410,7 @@ impl Grid {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF"),
                             name: format!("DSP_X{x}Y{dy}"),
-                            naming_int: db.get_naming(&format!("DSP.{yy}")),
-                            naming_buf: Some(db.get_naming(&format!("DSP.{yy}.INTFBUF"))),
-                            naming_site: None,
-                            naming_delay: None,
+                            naming: db.get_intf_naming(&format!("DSP.{yy}")),
                         });
                     }
                     _ => (),
@@ -436,10 +430,7 @@ impl Grid {
                 grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: format!("IOIS_{c}{l}_X{x}Y{y}"),
-                    naming_int: db.get_naming("IOIS"),
-                    naming_buf: Some(db.get_naming("IOIS.INTFBUF")),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming("IOIS"),
                 });
             }
         }
@@ -462,10 +453,7 @@ impl Grid {
                 grid.tile_mut((self.cols_io[1], row + dy)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: format!("SYS_MON_X{x}Y{y}"),
-                    naming_int: db.get_naming(&format!("SYSMON.{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("SYSMON.{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("SYSMON.{dy}")),
                 });
             }
         }
@@ -476,10 +464,7 @@ impl Grid {
             grid.tile_mut((self.cols_io[1], row)).intfs.push(eint::ExpandedTileIntf {
                 kind: db.get_intf("INTF"),
                 name: format!("CFG_CENTER_X{x}Y{y}"),
-                naming_int: db.get_naming(&format!("CFG_CENTER.{dy}")),
-                naming_buf: Some(db.get_naming(&format!("CFG_CENTER.{dy}.INTFBUF"))),
-                naming_site: None,
-                naming_delay: None,
+                naming: db.get_intf_naming(&format!("CFG_CENTER.{dy}")),
             });
         }
         for dy in 0..(self.regs_cfg_io * 16) {
@@ -489,10 +474,7 @@ impl Grid {
             grid.tile_mut((self.cols_io[1], row)).intfs.push(eint::ExpandedTileIntf {
                 kind: db.get_intf("INTF"),
                 name: format!("IOIS_LC_X{x}Y{y}"),
-                naming_int: db.get_naming("IOIS"),
-                naming_buf: Some(db.get_naming("IOIS.INTFBUF")),
-                naming_site: None,
-                naming_delay: None,
+                naming: db.get_intf_naming("IOIS"),
             });
         }
         for dy in 0..(self.regs_cfg_io * 16) {
@@ -502,10 +484,7 @@ impl Grid {
             grid.tile_mut((self.cols_io[1], row)).intfs.push(eint::ExpandedTileIntf {
                 kind: db.get_intf("INTF"),
                 name: format!("IOIS_LC_X{x}Y{y}"),
-                naming_int: db.get_naming("IOIS"),
-                naming_buf: Some(db.get_naming("IOIS.INTFBUF")),
-                naming_site: None,
-                naming_delay: None,
+                naming: db.get_intf_naming("IOIS"),
             });
         }
         let mut row = RowId::from_idx(self.reg_cfg * 16 + 8 + self.regs_cfg_io * 16);
@@ -515,7 +494,7 @@ impl Grid {
                 ccms -= 1;
                 "CCM"
             } else {
-                grid.tile_mut((self.cols_io[1], row)).naming = db.get_naming("NODE.INT.DCM0");
+                grid.tile_mut((self.cols_io[1], row)).naming = db.get_node_naming("INT.DCM0");
                 "DCM"
             };
             let x = self.cols_io[1].to_idx();
@@ -524,10 +503,7 @@ impl Grid {
                 grid.tile_mut((self.cols_io[1], row + dy)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: format!("{t}_X{x}Y{y}"),
-                    naming_int: db.get_naming(&format!("{t}.{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("{t}.{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("{t}.{dy}")),
                 });
             }
             row += 4;
@@ -542,17 +518,14 @@ impl Grid {
                 ccms -= 1;
                 ("CCM", "CCM")
             } else {
-                grid.tile_mut((self.cols_io[1], row)).naming = db.get_naming("NODE.INT.DCM0");
+                grid.tile_mut((self.cols_io[1], row)).naming = db.get_node_naming("INT.DCM0");
                 ("DCM", "DCM_BOT")
             };
             for dy in 0..4 {
                 grid.tile_mut((self.cols_io[1], row + dy)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: format!("{tt}_X{x}Y{y}"),
-                    naming_int: db.get_naming(&format!("{t}.{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("{t}.{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("{t}.{dy}")),
                 });
             }
         }
@@ -569,53 +542,13 @@ impl Grid {
             for dy in 0..22 {
                 let row = br + 1 + dy;
                 let tile = if dy < 11 {&tile_pb} else {&tile_pt};
-                grid.fill_term_pair(eint::ExpandedTileTerm {
-                    target: Some((col_r, row)),
-                    kind: db.get_term("PPC.E"),
-                    tile: Some(tile.clone()),
-                    naming_near: Some(db.get_naming(&format!("TERM.PPC.E{dy}"))),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming(&format!("TERM.PPC.W{dy}.MID"))),
-                    tile_far: Some(tile.clone()),
-                    naming_far_out: Some(db.get_naming(&format!("TERM.PPC.W{dy}.MID"))),
-                    naming_far_in: Some(db.get_naming(&format!("TERM.PPC.W{dy}"))),
-                }, eint::ExpandedTileTerm {
-                    target: Some((col_l, row)),
-                    kind: db.get_term("PPC.W"),
-                    tile: Some(tile.clone()),
-                    naming_near: Some(db.get_naming(&format!("TERM.PPC.W{dy}"))),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming(&format!("TERM.PPC.E{dy}.MID"))),
-                    tile_far: Some(tile.clone()),
-                    naming_far_out: Some(db.get_naming(&format!("TERM.PPC.E{dy}.MID"))),
-                    naming_far_in: Some(db.get_naming(&format!("TERM.PPC.E{dy}"))),
-                });
+                grid.fill_term_pair_buf((col_l, row), (col_r, row), db.get_term("PPC.E"), db.get_term("PPC.W"), tile.clone(), db.get_term_naming(&format!("TERM.PPC.E{dy}")), db.get_term_naming(&format!("TERM.PPC.W{dy}")));
             }
             let row_b = br;
             let row_t = br + 23;
             for dx in 0..7 {
                 let col = bc + 1 + dx;
-                grid.fill_term_pair(eint::ExpandedTileTerm {
-                    target: Some((col, row_t)),
-                    kind: db.get_term(if dx < 5 {"PPCA.N"} else {"PPCB.N"}),
-                    tile: Some(tile_pb.clone()),
-                    naming_near: Some(db.get_naming(&format!("TERM.PPC.N{dx}"))),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming(&format!("TERM.PPC.N{dx}.FAR"))),
-                    tile_far: Some(tile_pt.clone()),
-                    naming_far_out: Some(db.get_naming(&format!("TERM.PPC.S{dx}.OUT"))),
-                    naming_far_in: Some(db.get_naming(&format!("TERM.PPC.S{dx}"))),
-                }, eint::ExpandedTileTerm {
-                    target: Some((col, row_b)),
-                    kind: db.get_term(if dx < 5 {"PPCA.S"} else {"PPCB.S"}),
-                    tile: Some(tile_pt.clone()),
-                    naming_near: Some(db.get_naming(&format!("TERM.PPC.S{dx}"))),
-                    naming_near_in: None,
-                    naming_far: Some(db.get_naming(&format!("TERM.PPC.S{dx}.FAR"))),
-                    tile_far: Some(tile_pb.clone()),
-                    naming_far_out: Some(db.get_naming(&format!("TERM.PPC.N{dx}.OUT"))),
-                    naming_far_in: Some(db.get_naming(&format!("TERM.PPC.N{dx}"))),
-                });
+                grid.fill_term_pair_dbuf((col, row_b), (col, row_t), db.get_term(if dx < 5 {"PPCA.N"} else {"PPCB.N"}), db.get_term(if dx < 5 {"PPCA.S"} else {"PPCB.S"}), tile_pb.clone(), tile_pt.clone(), db.get_term_naming(&format!("TERM.PPC.N{dx}")), db.get_term_naming(&format!("TERM.PPC.S{dx}")));
             }
             for dy in 0..24 {
                 let row = br + dy;
@@ -624,19 +557,13 @@ impl Grid {
                 grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile.clone(),
-                    naming_int: db.get_naming(&format!("PPC.L{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("PPC.L{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("PPC.L{dy}")),
                 });
                 grid.tile_mut((col_r, row)).intfs.clear();
                 grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile.clone(),
-                    naming_int: db.get_naming(&format!("PPC.R{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("PPC.R{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("PPC.R{dy}")),
                 });
             }
             for dx in 0..7 {
@@ -645,19 +572,13 @@ impl Grid {
                 grid.tile_mut((col, row_b)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile_pb.clone(),
-                    naming_int: db.get_naming(&format!("PPC.B{dx}")),
-                    naming_buf: Some(db.get_naming(&format!("PPC.B{dx}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("PPC.B{dx}")),
                 });
                 grid.tile_mut((col, row_t)).intfs.clear();
                 grid.tile_mut((col, row_t)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile_pt.clone(),
-                    naming_int: db.get_naming(&format!("PPC.T{dx}")),
-                    naming_buf: Some(db.get_naming(&format!("PPC.T{dx}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("PPC.T{dx}")),
                 });
             }
         }
@@ -668,8 +589,8 @@ impl Grid {
         let yt = row_t.to_idx();
         for col in grid.cols() {
             let x = col.to_idx();
-            grid.fill_term_tile((col, row_b), "S", "TERM.S", None, format!("B_TERM_INT_X{x}Y{yb}"));
-            grid.fill_term_tile((col, row_t), "N", "TERM.N", None, format!("T_TERM_INT_X{x}Y{yt}"));
+            grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("B_TERM_INT_X{x}Y{yb}"));
+            grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("T_TERM_INT_X{x}Y{yt}"));
         }
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
@@ -682,34 +603,28 @@ impl Grid {
                 let yy = y - dy + 8;
                 let ab = if y % 32 >= 16 {"A"} else {"B"};
                 let tile = format!("MGT_{ab}L_X{xl}Y{yy}");
-                grid.fill_term_tile((col_l, row), "W", &format!("TERM.W.MGT{dy}"), None, tile.clone());
+                grid.fill_term_tile((col_l, row), "W", &format!("TERM.W.MGT{dy}"), tile.clone());
                 grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile,
-                    naming_int: db.get_naming(&format!("MGT.{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("MGT.{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("MGT.{dy}")),
                 });
             } else {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W", None, format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
             }
             if self.columns[col_r] == ColumnKind::Gt {
                 let dy = y % 16;
                 let yy = y - dy + 8;
                 let ab = if y % 32 >= 16 {"A"} else {"B"};
                 let tile = format!("MGT_{ab}R_X{xr}Y{yy}");
-                grid.fill_term_tile((col_r, row), "E", &format!("TERM.E.MGT{dy}"), None, tile.clone());
+                grid.fill_term_tile((col_r, row), "E", &format!("TERM.E.MGT{dy}"), tile.clone());
                 grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF"),
                     name: tile,
-                    naming_int: db.get_naming(&format!("MGT.{dy}")),
-                    naming_buf: Some(db.get_naming(&format!("MGT.{dy}.INTFBUF"))),
-                    naming_site: None,
-                    naming_delay: None,
+                    naming: db.get_intf_naming(&format!("MGT.{dy}")),
                 });
             } else {
-                grid.fill_term_tile((col_r, row), "E", "TERM.E", None, format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
             }
         }
 
@@ -728,8 +643,8 @@ impl Grid {
 
         let term_w = db.get_term("CLB_BUFFER.W");
         let term_e = db.get_term("CLB_BUFFER.E");
-        let naming_w = db.get_naming("PASS.CLB_BUFFER.W");
-        let naming_e = db.get_naming("PASS.CLB_BUFFER.E");
+        let naming_w = db.get_term_naming("PASS.CLB_BUFFER.W");
+        let naming_e = db.get_term_naming("PASS.CLB_BUFFER.E");
         for (col, &cd) in &self.columns {
             if cd != ColumnKind::Io || col == col_l || col == col_r {
                 continue;

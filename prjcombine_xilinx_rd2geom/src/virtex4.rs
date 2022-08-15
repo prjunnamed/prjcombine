@@ -82,9 +82,9 @@ fn get_has_bram_fx(rd: &Part) -> bool {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex4", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
-    builder.node_type("INT_SO", "INT", "NODE.INT");
-    builder.node_type("INT_SO_DCM0", "INT", "NODE.INT.DCM0");
+    builder.node_type("INT", "INT", "INT");
+    builder.node_type("INT_SO", "INT", "INT");
+    builder.node_type("INT_SO_DCM0", "INT", "INT.DCM0");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -351,12 +351,10 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 y: pb_xy.y - 3 + delta,
             };
             let naming_w = format!("TERM.PPC.W{i}");
-            let naming_wm = format!("TERM.PPC.W{i}.MID");
             let naming_e = format!("TERM.PPC.E{i}");
-            let naming_em = format!("TERM.PPC.E{i}.MID");
             let xy = if i < 11 { pb_xy } else { pt_xy };
-            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy, &naming_w, Some(&naming_em))), Some((xy, &naming_em, &naming_e)), int_w_xy, &[]);
-            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy, &naming_e, Some(&naming_wm))), Some((xy, &naming_wm, &naming_w)), int_e_xy, &[]);
+            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy, &naming_w)), Some(xy), int_w_xy, &[]);
+            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy, &naming_e)), Some(xy), int_e_xy, &[]);
         }
         for (i, delta) in [
             1, 3, 5, 7, 9, 11, 13
@@ -371,13 +369,9 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             };
             let ab = if i < 5 {'A'} else {'B'};
             let naming_s = format!("TERM.PPC.S{i}");
-            let naming_sf = format!("TERM.PPC.S{i}.FAR");
-            let naming_so = format!("TERM.PPC.S{i}.OUT");
             let naming_n = format!("TERM.PPC.N{i}");
-            let naming_nf = format!("TERM.PPC.N{i}.FAR");
-            let naming_no = format!("TERM.PPC.N{i}.OUT");
-            builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some((pt_xy, &naming_s, Some(&naming_sf))), Some((pb_xy, &naming_no, &naming_n)), int_s_xy, &[]);
-            builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some((pb_xy, &naming_n, Some(&naming_nf))), Some((pt_xy, &naming_so, &naming_s)), int_n_xy, &[]);
+            builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some((pt_xy, &naming_s)), Some(pb_xy), int_s_xy, &[]);
+            builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some((pb_xy, &naming_n)), Some(pt_xy), int_n_xy, &[]);
         }
     }
 
@@ -395,7 +389,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: xy.x - 1,
                     y: xy.y + i,
                 };
-                builder.extract_intf_tile("INTF", xy, int_xy, format!("{n}.{i}"), Some(&format!("{n}.{i}.INTFBUF")), None, None);
+                builder.extract_intf_tile("INTF", xy, int_xy, format!("{n}.{i}"), false);
             }
         }
     }
@@ -403,7 +397,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "IOIS_LC",
         "IOIS_NC",
     ] {
-        builder.extract_intf("INTF", Dir::E, tkn, "IOIS", Some("IOIS.INTFBUF"), None, None);
+        builder.extract_intf("INTF", Dir::E, tkn, "IOIS", false);
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
         for i in 0..16 {
@@ -411,7 +405,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 x: xy.x - 1,
                 y: if i < 8 {xy.y - 8 + i} else {xy.y + 1 + i - 8},
             };
-            builder.extract_intf_tile("INTF", xy, int_xy, format!("CFG_CENTER.{i}"), Some(&format!("CFG_CENTER.{i}.INTFBUF")), None, None);
+            builder.extract_intf_tile("INTF", xy, int_xy, format!("CFG_CENTER.{i}"), false);
         }
     }
     for (dir, tkn) in [
@@ -430,7 +424,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: if dir == Dir::E {xy.x - 1} else {xy.x + 1},
                     y: if i < 8 {xy.y - 9 + i} else {xy.y + i - 8},
                 };
-                builder.extract_intf_tile("INTF", xy, int_xy, format!("MGT.{i}"), Some(&format!("MGT.{i}.INTFBUF")), None, None);
+                builder.extract_intf_tile("INTF", xy, int_xy, format!("MGT.{i}"), false);
             }
         }
     }
@@ -454,8 +448,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 y: pb_xy.y - 4 + delta,
             };
             let xy = if i < 12 { pb_xy } else { pt_xy };
-            builder.extract_intf_tile("INTF", xy, int_w_xy, format!("PPC.L{i}"), Some(&format!("PPC.L{i}.INTFBUF")), None, None);
-            builder.extract_intf_tile("INTF", xy, int_e_xy, format!("PPC.R{i}"), Some(&format!("PPC.R{i}.INTFBUF")), None, None);
+            builder.extract_intf_tile("INTF", xy, int_w_xy, format!("PPC.L{i}"), false);
+            builder.extract_intf_tile("INTF", xy, int_e_xy, format!("PPC.R{i}"), false);
         }
         for (i, delta) in [
             1, 3, 5, 7, 9, 11, 13
@@ -468,8 +462,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 x: pb_xy.x + delta,
                 y: pb_xy.y + 22,
             };
-            builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("PPC.B{i}"), Some(&format!("PPC.B{i}.INTFBUF")), None, None);
-            builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("PPC.T{i}"), Some(&format!("PPC.T{i}.INTFBUF")), None, None);
+            builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("PPC.B{i}"), false);
+            builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("PPC.T{i}"), false);
         }
     }
 

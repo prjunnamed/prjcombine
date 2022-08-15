@@ -302,7 +302,7 @@ fn get_ps(int: &IntGrid) -> Option<Ps> {
 
 fn make_int_db_u(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("ultrascale", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
+    builder.node_type("INT", "INT", "INT");
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
     builder.wire("GND", int::WireKind::Tie1, &["GND_WIRE"]);
 
@@ -700,7 +700,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         (Dir::W, "INT_INTERFACE_L"),
         (Dir::E, "INT_INTERFACE_R"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), None, Some(&format!("INTF.{dir}.SITE")), None);
+        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), true);
     }
 
     for (dir, n, tkn) in [
@@ -710,7 +710,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         (Dir::W, "GT", "INT_INT_INTERFACE_GT_LEFT_FT"),
         (Dir::E, "GT", "INT_INTERFACE_GT_R"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), None, Some(&format!("INTF.{dir}.{n}.SITE")), Some(&format!("INTF.{dir}.{n}.DELAY")));
+        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), true);
     }
 
     builder.build()
@@ -718,7 +718,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
 
 fn make_int_db_up(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("ultrascaleplus", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
+    builder.node_type("INT", "INT", "INT");
 
     let d2n = enum_map!(
         Dir::N => 0,
@@ -1041,17 +1041,17 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         (Dir::W, "INT_INTF_L"),
         (Dir::E, "INT_INTF_R"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), None, Some(&format!("INTF.{dir}.SITE")), None);
+        builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), true);
     }
 
-    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", None, Some("INTF.PSS.SITE"), Some("INTF.PSS.DELAY"));
+    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", true);
     for (dir, tkn) in [
         (Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
         (Dir::W, "INT_INTF_L_CMT"),
         (Dir::W, "INT_INTF_L_IO"),
         (Dir::E, "INT_INTF_RIGHT_TERM_IO"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.IO"), dir, tkn, format!("INTF.{dir}.IO"), None, Some(&format!("INTF.{dir}.IO.SITE")), Some(&format!("INTF.{dir}.IO.DELAY")));
+        builder.extract_intf(format!("INTF.{dir}.IO"), dir, tkn, format!("INTF.{dir}.IO"), true);
     }
 
     for (dir, n, tkn) in [
@@ -1060,7 +1060,7 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         (Dir::W, "GT", "INT_INTF_L_TERM_GT"),
         (Dir::E, "GT", "INT_INTF_R_TERM_GT"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), None, Some(&format!("INTF.{dir}.{n}.SITE")), Some(&format!("INTF.{dir}.{n}.DELAY")));
+        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), true);
     }
 
     builder.extract_pass_simple("IO", Dir::W, "INT_IBRK_FSR2IO", &[]);

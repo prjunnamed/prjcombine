@@ -305,7 +305,7 @@ impl Grid {
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                grid.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
@@ -314,20 +314,14 @@ impl Grid {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF"),
                             name: format!("IOI_L_INT_INTERFACE_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.IOI_L"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.IOI_L.SITE")),
-                            naming_delay: None,
+                            naming: db.get_intf_naming("INTF.IOI_L"),
                         });
                     }
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
                         grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF"),
                             name: format!("INT_INTERFACE_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.SITE")),
-                            naming_delay: None,
+                            naming: db.get_intf_naming("INTF"),
                         });
                     }
                     ColumnKind::Gt => {
@@ -335,19 +329,13 @@ impl Grid {
                             grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                 kind: db.get_intf("INTF.DELAY"),
                                 name: format!("GT_L_INT_INTERFACE_X{x}Y{y}"),
-                                naming_int: db.get_naming("INTF.GT_L"),
-                                naming_buf: None,
-                                naming_site: Some(db.get_naming("INTF.GT_L.SITE")),
-                                naming_delay: Some(db.get_naming("INTF.GT_L.DELAY")),
+                                naming: db.get_intf_naming("INTF.GT_L"),
                             });
                         } else {
                             grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                 kind: db.get_intf("INTF.DELAY"),
                                 name: format!("GTX_INT_INTERFACE_X{x}Y{y}"),
-                                naming_int: db.get_naming("INTF.GTX"),
-                                naming_buf: None,
-                                naming_site: Some(db.get_naming("INTF.GTX.SITE")),
-                                naming_delay: Some(db.get_naming("INTF.GTX.DELAY")),
+                                naming: db.get_intf_naming("INTF.GTX"),
                             });
                         }
                     }
@@ -383,10 +371,7 @@ impl Grid {
                     grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf("INTF.DELAY"),
                         name: format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
-                        naming_int: db.get_naming("INTF.EMAC"),
-                        naming_buf: None,
-                        naming_site: Some(db.get_naming("INTF.EMAC.SITE")),
-                        naming_delay: Some(db.get_naming("INTF.EMAC.DELAY")),
+                        naming: db.get_intf_naming("INTF.EMAC"),
                     });
                 }
             }
@@ -398,18 +383,12 @@ impl Grid {
                     grid.tile_mut((col - 3, row)).intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf("INTF.DELAY"),
                         name: format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3),
-                        naming_int: db.get_naming("INTF.PCIE_L"),
-                        naming_buf: None,
-                        naming_site: Some(db.get_naming("INTF.PCIE_L.SITE")),
-                        naming_delay: Some(db.get_naming("INTF.PCIE_L.DELAY")),
+                        naming: db.get_intf_naming("INTF.PCIE_L"),
                     });
                     grid.tile_mut((col - 2, row)).intfs.push(eint::ExpandedTileIntf {
                         kind: db.get_intf("INTF.DELAY"),
                         name: format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2),
-                        naming_int: db.get_naming("INTF.PCIE_R"),
-                        naming_buf: None,
-                        naming_site: Some(db.get_naming("INTF.PCIE_R.SITE")),
-                        naming_delay: Some(db.get_naming("INTF.PCIE_R.DELAY")),
+                        naming: db.get_intf_naming("INTF.PCIE_R"),
                     });
                 }
                 if br.to_idx() != 0 {

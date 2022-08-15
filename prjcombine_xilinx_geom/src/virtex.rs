@@ -113,35 +113,35 @@ impl Grid {
             if col == col_l {
                 for row in grid.rows() {
                     if row == row_b {
-                        grid.fill_tile((col, row), "CNR.BL", "NODE.CNR.BL", "BL".to_string());
+                        grid.fill_tile((col, row), "CNR.BL", "CNR.BL", "BL".to_string());
                     } else if row == row_t {
-                        grid.fill_tile((col, row), "CNR.TL", "NODE.CNR.TL", "TL".to_string());
+                        grid.fill_tile((col, row), "CNR.TL", "CNR.TL", "TL".to_string());
                     } else {
                         let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "IO.L", "NODE.IO.L", format!("LR{r}"));
+                        grid.fill_tile((col, row), "IO.L", "IO.L", format!("LR{r}"));
                     }
                 }
             } else if col == col_r {
                 for row in grid.rows() {
                     if row == row_b {
-                        grid.fill_tile((col, row), "CNR.BR", "NODE.CNR.BR", "BR".to_string());
+                        grid.fill_tile((col, row), "CNR.BR", "CNR.BR", "BR".to_string());
                     } else if row == row_t {
-                        grid.fill_tile((col, row), "CNR.TR", "NODE.CNR.TR", "TR".to_string());
+                        grid.fill_tile((col, row), "CNR.TR", "CNR.TR", "TR".to_string());
                     } else {
                         let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "IO.R", "NODE.IO.R", format!("RR{r}"));
+                        grid.fill_tile((col, row), "IO.R", "IO.R", format!("RR{r}"));
                     }
                 }
             } else {
                 let c = col.to_idx();
                 for row in grid.rows() {
                     if row == row_b {
-                        grid.fill_tile((col, row), "IO.B", "NODE.IO.B", format!("BC{c}"));
+                        grid.fill_tile((col, row), "IO.B", "IO.B", format!("BC{c}"));
                     } else if row == row_t {
-                        grid.fill_tile((col, row), "IO.T", "NODE.IO.T", format!("TC{c}"));
+                        grid.fill_tile((col, row), "IO.T", "IO.T", format!("TC{c}"));
                     } else {
                         let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "CLB", "NODE.CLB", format!("R{r}C{c}"));
+                        grid.fill_tile((col, row), "CLB", "CLB", format!("R{r}C{c}"));
                     }
                 }
             }

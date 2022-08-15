@@ -118,23 +118,23 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex::Grid) {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex", rd);
-    builder.node_type("CENTER", "CLB", "NODE.CLB");
-    builder.node_type("LEFT", "IO.L", "NODE.IO.L");
-    builder.node_type("LEFT_PCI_BOT", "IO.L", "NODE.IO.L");
-    builder.node_type("LEFT_PCI_TOP", "IO.L", "NODE.IO.L");
-    builder.node_type("RIGHT", "IO.R", "NODE.IO.R");
-    builder.node_type("RIGHT_PCI_BOT", "IO.R", "NODE.IO.R");
-    builder.node_type("RIGHT_PCI_TOP", "IO.R", "NODE.IO.R");
-    builder.node_type("BOT", "IO.B", "NODE.IO.B");
-    builder.node_type("BL_DLLIOB", "IO.B", "NODE.IO.B");
-    builder.node_type("BR_DLLIOB", "IO.B", "NODE.IO.B");
-    builder.node_type("TOP", "IO.T", "NODE.IO.T");
-    builder.node_type("TL_DLLIOB", "IO.T", "NODE.IO.T");
-    builder.node_type("TR_DLLIOB", "IO.T", "NODE.IO.T");
-    builder.node_type("LL", "CNR.BL", "NODE.CNR.BL");
-    builder.node_type("LR", "CNR.BR", "NODE.CNR.BR");
-    builder.node_type("UL", "CNR.TL", "NODE.CNR.TL");
-    builder.node_type("UR", "CNR.TR", "NODE.CNR.TR");
+    builder.node_type("CENTER", "CLB", "CLB");
+    builder.node_type("LEFT", "IO.L", "IO.L");
+    builder.node_type("LEFT_PCI_BOT", "IO.L", "IO.L");
+    builder.node_type("LEFT_PCI_TOP", "IO.L", "IO.L");
+    builder.node_type("RIGHT", "IO.R", "IO.R");
+    builder.node_type("RIGHT_PCI_BOT", "IO.R", "IO.R");
+    builder.node_type("RIGHT_PCI_TOP", "IO.R", "IO.R");
+    builder.node_type("BOT", "IO.B", "IO.B");
+    builder.node_type("BL_DLLIOB", "IO.B", "IO.B");
+    builder.node_type("BR_DLLIOB", "IO.B", "IO.B");
+    builder.node_type("TOP", "IO.T", "IO.T");
+    builder.node_type("TL_DLLIOB", "IO.T", "IO.T");
+    builder.node_type("TR_DLLIOB", "IO.T", "IO.T");
+    builder.node_type("LL", "CNR.BL", "CNR.BL");
+    builder.node_type("LR", "CNR.BR", "CNR.BR");
+    builder.node_type("UL", "CNR.TL", "CNR.TL");
+    builder.node_type("UR", "CNR.TR", "CNR.TR");
 
     for i in 0..4 {
         let w = builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[

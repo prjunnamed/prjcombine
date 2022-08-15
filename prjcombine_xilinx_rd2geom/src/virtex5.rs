@@ -91,7 +91,7 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex5", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
+    builder.node_type("INT", "INT", "INT");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -442,8 +442,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W", Some("INT_BUFS.W.FAR"))), Some((xy_l, "INT_BUFS.E.OUT", "INT_BUFS.E")), int_w_xy, &lh_all);
-        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E", Some("INT_BUFS.E.FAR"))), Some((xy_r, "INT_BUFS.W.OUT", "INT_BUFS.W")), int_e_xy, &lh_all);
+        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W")), Some(xy_l), int_w_xy, &lh_all);
+        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E")), Some(xy_r), int_e_xy, &lh_all);
     }
     for &xy_l in rd.tiles_by_kind_name("L_TERM_PPC") {
         let mut xy_r = xy_l;
@@ -452,11 +452,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((xy_l, "TERM.PPC.E.OUT", "TERM.PPC.E.IN")), int_w_xy, &lh_all);
-        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W.IN")), int_e_xy, &lh_all);
+        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "PPC.W")), Some(xy_l), int_w_xy, &lh_all);
+        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "PPC.E")), Some(xy_r), int_e_xy, &lh_all);
     }
 
-    builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", None, Some("INTF.SITE"), None);
+    builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", true);
     for (n, tkn) in [
         ("GTX_LEFT", "GTX_LEFT_INT_INTERFACE"),
         ("GTP", "GTP_INT_INTERFACE"),
@@ -465,7 +465,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ("PPC_L", "PPC_L_INT_INTERFACE"),
         ("PPC_R", "PPC_R_INT_INTERFACE"),
     ] {
-        builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
+        builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), true);
     }
 
     let mps = builder.db.terms.get("MAIN.S").unwrap().1.clone();

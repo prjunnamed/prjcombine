@@ -117,7 +117,7 @@ fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> usize {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex6", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
+    builder.node_type("INT", "INT", "INT");
 
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
@@ -385,8 +385,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
     builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
 
-    builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", None, Some("INTF.SITE"), None);
-    builder.extract_intf("INTF", Dir::E, "IOI_L_INT_INTERFACE", "INTF.IOI_L", None, Some("INTF.IOI_L.SITE"), None);
+    builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", true);
+    builder.extract_intf("INTF", Dir::E, "IOI_L_INT_INTERFACE", "INTF.IOI_L", true);
     for (n, tkn) in [
         ("GT_L", "GT_L_INT_INTERFACE"),
         ("GTX", "GTX_INT_INTERFACE"),
@@ -394,7 +394,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ("PCIE_L", "PCIE_INT_INTERFACE_L"),
         ("PCIE_R", "PCIE_INT_INTERFACE_R"),
     ] {
-        builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
+        builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), true);
     }
 
     builder.build()

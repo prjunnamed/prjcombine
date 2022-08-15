@@ -256,12 +256,12 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("series7", rd);
-    builder.node_type("INT_L", "INT", "NODE.INT.L");
-    builder.node_type("INT_R", "INT", "NODE.INT.R");
-    builder.node_type("INT_L_SLV_FLY", "INT", "NODE.INT.L");
-    builder.node_type("INT_R_SLV_FLY", "INT", "NODE.INT.R");
-    builder.node_type("INT_L_SLV", "INT", "NODE.INT.L.SLV");
-    builder.node_type("INT_R_SLV", "INT", "NODE.INT.R.SLV");
+    builder.node_type("INT_L", "INT", "INT.L");
+    builder.node_type("INT_R", "INT", "INT.R");
+    builder.node_type("INT_L_SLV_FLY", "INT", "INT.L");
+    builder.node_type("INT_R_SLV_FLY", "INT", "INT.R");
+    builder.node_type("INT_L_SLV", "INT", "INT.L.SLV");
+    builder.node_type("INT_R_SLV", "INT", "INT.R.SLV");
 
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
@@ -666,13 +666,13 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         (Dir::E, "R", "IO_INT_INTERFACE_R"),
         (Dir::W, "PSS", "INT_INTERFACE_PSS_L"),
     ] {
-        builder.extract_intf("INTF", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), None);
+        builder.extract_intf("INTF", dir, tkn, format!("INTF.{n}"), true);
     }
     for (dir, n, tkn) in [
         (Dir::W, "L", "BRAM_INT_INTERFACE_L"),
         (Dir::E, "R", "BRAM_INT_INTERFACE_R"),
     ] {
-        builder.extract_intf("INTF.BRAM", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), None);
+        builder.extract_intf("INTF.BRAM", dir, tkn, format!("INTF.{n}"), true);
     }
     for (dir, n, tkn) in [
         (Dir::E, "GTP", "GTP_INT_INTERFACE"),
@@ -688,7 +688,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         (Dir::W, "PCIE3_L", "PCIE3_INT_INTERFACE_L"),
         (Dir::E, "PCIE3_R", "PCIE3_INT_INTERFACE_R"),
     ] {
-        builder.extract_intf("INTF.DELAY", dir, tkn, format!("INTF.{n}"), None, Some(&format!("INTF.{n}.SITE")), Some(&format!("INTF.{n}.DELAY")));
+        builder.extract_intf("INTF.DELAY", dir, tkn, format!("INTF.{n}"), true);
     }
 
     let forced: Vec<_> = builder.db.wires.iter().filter_map(|(w, wi)| {
@@ -699,7 +699,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
     }).collect();
 
-    builder.extract_pass_buf("BRKH", Dir::S, "BRKH_INT", "PASS.BRKH", &forced);
+    builder.extract_pass_buf("BRKH", Dir::S, "BRKH_INT", "BRKH", &forced);
 
     builder.build()
 }

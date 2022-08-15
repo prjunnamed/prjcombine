@@ -120,10 +120,10 @@ impl GridBuilder {
                 merge_dicts!(terms);
                 merge_dicts!(intfs);
                 merge_dicts!(bels);
-                for (_, k, v) in int.namings {
-                    match x.namings.get_mut(&k) {
+                for (_, k, v) in int.node_namings {
+                    match x.node_namings.get_mut(&k) {
                         None => {
-                            x.namings.insert(k, v);
+                            x.node_namings.insert(k, v);
                         }
                         Some((_, v2)) => {
                             for (kk, vv) in v {
@@ -133,6 +133,47 @@ impl GridBuilder {
                                     }
                                     Some(vv2) => {
                                         assert_eq!(&vv, vv2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                merge_dicts!(term_namings);
+                for (_, k, v) in int.intf_namings {
+                    match x.intf_namings.get_mut(&k) {
+                        None => {
+                            x.intf_namings.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            for (kk, vv) in v.wires_in {
+                                match v2.wires_in.get(kk) {
+                                    None => {
+                                        v2.wires_in.insert(kk, vv);
+                                    }
+                                    Some(vv2) => {
+                                        assert_eq!(&vv, vv2);
+                                    }
+                                }
+                            }
+                            for (kk, vv) in v.wires_out {
+                                match v2.wires_out.get(kk) {
+                                    None => {
+                                        v2.wires_out.insert(kk, vv);
+                                    }
+                                    Some(vv2 @ int::IntfWireOutNaming::Buf(no, _)) => {
+                                        match vv {
+                                            int::IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
+                                            int::IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
+                                        }
+                                    }
+                                    Some(vv2 @ int::IntfWireOutNaming::Simple(n)) => {
+                                        if let int::IntfWireOutNaming::Buf(no, _) = &vv {
+                                            assert_eq!(no, n);
+                                            v2.wires_out.insert(kk, vv);
+                                        } else {
+                                            assert_eq!(&vv, vv2);
+                                        }
                                     }
                                 }
                             }

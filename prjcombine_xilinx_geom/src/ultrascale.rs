@@ -663,7 +663,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                 } else {
                     yb + row.to_idx() - row_skip
                 };
-                slr.fill_tile((col, row), "INT", "NODE.INT", format!("INT_X{x}Y{y}"));
+                slr.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 match cd.l {
                     ColumnKindLeft::CleL | ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => (),
                     ColumnKindLeft::Bram | ColumnKindLeft::BramTd | ColumnKindLeft::BramAuxClmp | ColumnKindLeft::BramBramClmp | ColumnKindLeft::Uram => {
@@ -671,10 +671,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                         slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.W"),
                             name: format!("{kind}_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.W"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.W.SITE")),
-                            naming_delay: None,
+                            naming: db.get_intf_naming("INTF.W"),
                         });
                     }
                     ColumnKindLeft::Gt | ColumnKindLeft::Io => {
@@ -687,10 +684,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                                 slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                     kind: db.get_intf("INTF.W.DELAY"),
                                     name: format!("{kind}_X{x}Y{y}"),
-                                    naming_int: db.get_naming("INTF.W.IO"),
-                                    naming_buf: None,
-                                    naming_site: Some(db.get_naming("INTF.W.IO.SITE")),
-                                    naming_delay: Some(db.get_naming("INTF.W.IO.DELAY")),
+                                    naming: db.get_intf_naming("INTF.W.IO"),
                                 });
                             }
                             (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
@@ -698,10 +692,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                                 slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                     kind: db.get_intf("INTF.W.IO"),
                                     name: format!("{kind}_X{x}Y{y}"),
-                                    naming_int: db.get_naming("INTF.W.IO"),
-                                    naming_buf: None,
-                                    naming_site: Some(db.get_naming("INTF.W.IO.SITE")),
-                                    naming_delay: Some(db.get_naming("INTF.W.IO.DELAY")),
+                                    naming: db.get_intf_naming("INTF.W.IO"),
                                 });
                             }
                             _ => {
@@ -709,10 +700,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                                 slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                     kind: db.get_intf("INTF.W.DELAY"),
                                     name: format!("{kind}_X{x}Y{y}"),
-                                    naming_int: db.get_naming("INTF.W.GT"),
-                                    naming_buf: None,
-                                    naming_site: Some(db.get_naming("INTF.W.GT.SITE")),
-                                    naming_delay: Some(db.get_naming("INTF.W.GT.DELAY")),
+                                    naming: db.get_intf_naming("INTF.W.GT"),
                                 });
                             }
                         }
@@ -722,10 +710,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                         slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.W.DELAY"),
                             name: format!("{kind}_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.W.PCIE"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.W.PCIE.SITE")),
-                            naming_delay: Some(db.get_naming("INTF.W.PCIE.DELAY")),
+                            naming: db.get_intf_naming("INTF.W.PCIE"),
                         });
                     }
                 }
@@ -736,10 +721,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                         slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.E"),
                             name: format!("{kind}_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.E"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.E.SITE")),
-                            naming_delay: None,
+                            naming: db.get_intf_naming("INTF.E"),
                         });
                     }
                     ColumnKindRight::Gt | ColumnKindRight::Io => {
@@ -753,10 +735,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                                 slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                     kind: db.get_intf("INTF.E.IO"),
                                     name: format!("{kind}_X{x}Y{y}"),
-                                    naming_int: db.get_naming("INTF.E.IO"),
-                                    naming_buf: None,
-                                    naming_site: Some(db.get_naming("INTF.E.IO.SITE")),
-                                    naming_delay: Some(db.get_naming("INTF.E.IO.DELAY")),
+                                    naming: db.get_intf_naming("INTF.E.IO"),
                                 });
                             }
                             _ => {
@@ -764,10 +743,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                                 slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                                     kind: db.get_intf("INTF.E.DELAY"),
                                     name: format!("{kind}_X{x}Y{y}"),
-                                    naming_int: db.get_naming("INTF.E.GT"),
-                                    naming_buf: None,
-                                    naming_site: Some(db.get_naming("INTF.E.GT.SITE")),
-                                    naming_delay: Some(db.get_naming("INTF.E.GT.DELAY")),
+                                    naming: db.get_intf_naming("INTF.E.GT"),
                                 });
                             }
                         }
@@ -777,10 +753,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                         slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
                             kind: db.get_intf("INTF.E.DELAY"),
                             name: format!("{kind}_X{x}Y{y}"),
-                            naming_int: db.get_naming("INTF.E.PCIE"),
-                            naming_buf: None,
-                            naming_site: Some(db.get_naming("INTF.E.PCIE.SITE")),
-                            naming_delay: Some(db.get_naming("INTF.E.PCIE.DELAY")),
+                            naming: db.get_intf_naming("INTF.E.PCIE"),
                         });
                     }
                 }
@@ -822,10 +795,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                 slr.tile_mut((ps.col, row)).intfs.insert(0, eint::ExpandedTileIntf {
                     kind: db.get_intf("INTF.W.IO"),
                     name: format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}"),
-                    naming_int: db.get_naming("INTF.PSS"),
-                    naming_buf: None,
-                    naming_site: Some(db.get_naming("INTF.PSS.SITE")),
-                    naming_delay: Some(db.get_naming("INTF.PSS.DELAY")),
+                    naming: db.get_intf_naming("INTF.PSS"),
                 });
             }
         }

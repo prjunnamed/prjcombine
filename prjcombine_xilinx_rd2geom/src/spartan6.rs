@@ -489,16 +489,16 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("spartan6", rd);
-    builder.node_type("INT", "INT", "NODE.INT");
-    builder.node_type("INT_BRK", "INT", "NODE.INT.BRK");
-    builder.node_type("INT_BRAM", "INT", "NODE.INT");
-    builder.node_type("INT_BRAM_BRK", "INT", "NODE.INT.BRK");
-    builder.node_type("INT_GCLK", "INT", "NODE.INT");
-    builder.node_type("INT_TERM", "INT", "NODE.INT.TERM");
-    builder.node_type("INT_TERM_BRK", "INT", "NODE.INT.TERM.BRK");
-    builder.node_type("IOI_INT", "IOI", "NODE.IOI");
-    builder.node_type("LIOI_INT", "IOI", "NODE.IOI");
-    builder.node_type("LIOI_INT_BRK", "IOI", "NODE.IOI.BRK");
+    builder.node_type("INT", "INT", "INT");
+    builder.node_type("INT_BRK", "INT", "INT.BRK");
+    builder.node_type("INT_BRAM", "INT", "INT");
+    builder.node_type("INT_BRAM_BRK", "INT", "INT.BRK");
+    builder.node_type("INT_GCLK", "INT", "INT");
+    builder.node_type("INT_TERM", "INT", "INT.TERM");
+    builder.node_type("INT_TERM_BRK", "INT", "INT.TERM.BRK");
+    builder.node_type("IOI_INT", "IOI", "IOI");
+    builder.node_type("LIOI_INT", "IOI", "IOI");
+    builder.node_type("LIOI_INT_BRK", "IOI", "IOI.BRK");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -749,13 +749,13 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         (Dir::E, "UR_LOWER", "INTF.CNR"),
         (Dir::E, "UR_UPPER", "INTF.CNR"),
     ] {
-        builder.extract_intf("INTF", dir, tkn, naming, None, Some(&format!("{naming}.SITE")), None);
+        builder.extract_intf("INTF", dir, tkn, naming, true);
     }
     for tkn in [
         "INT_INTERFACE_IOI",
         "INT_INTERFACE_IOI_DCMBOT",
     ] {
-        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF", None, Some("INTF.SITE"), None);
+        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF", true);
     }
     for tkn in [
         "LIOI",
@@ -763,7 +763,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "RIOI",
         "RIOI_BRK",
     ] {
-        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", None, Some("INTF.IOI.SITE"), None);
+        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", true);
     }
 
     builder.build()

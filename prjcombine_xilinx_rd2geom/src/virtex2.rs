@@ -431,65 +431,65 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
 
 fn make_int_db_v2(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex2", rd);
-    builder.node_type("CENTER", "CLB", "NODE.CLB");
-    builder.node_type("LR_IOIS", "IOI", "NODE.IOI.LR");
-    builder.node_type("TB_IOIS", "IOI", "NODE.IOI.TB");
-    builder.node_type("ML_TB_IOIS", "IOI", "NODE.IOI.TB");
-    builder.node_type("ML_TBS_IOIS", "IOI", "NODE.IOI.TB");
-    builder.node_type("GIGABIT_IOI", "IOI", "NODE.IOI.TB");
-    builder.node_type("GIGABIT10_IOI", "IOI", "NODE.IOI.TB");
-    builder.node_type("MK_B_IOIS", "IOI.CLK_B", "NODE.IOI.CLK_B");
-    builder.node_type("MK_T_IOIS", "IOI.CLK_T", "NODE.IOI.CLK_T");
-    builder.node_type("BRAM0", "BRAM", "NODE.BRAM");
-    builder.node_type("BRAM1", "BRAM", "NODE.BRAM");
-    builder.node_type("BRAM2", "BRAM", "NODE.BRAM");
-    builder.node_type("BRAM3", "BRAM", "NODE.BRAM");
-    builder.node_type("BRAM_IOIS", "DCM.V2", "NODE.BRAM_IOIS");
-    builder.node_type("ML_BRAM_IOIS", "DCM.V2P", "NODE.ML_BRAM_IOIS");
-    builder.node_type("LL", "CNR", "NODE.CNR");
-    builder.node_type("LR", "CNR", "NODE.CNR");
-    builder.node_type("UL", "CNR", "NODE.CNR");
-    builder.node_type("UR", "CNR", "NODE.CNR");
-    builder.node_type("BGIGABIT_INT0", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT_INT1", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT_INT2", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT_INT3", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD");
-    builder.node_type("TGIGABIT_INT0", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT_INT1", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT_INT2", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT_INT3", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD");
-    builder.node_type("BGIGABIT10_INT0", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT1", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT2", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT3", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT4", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT5", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT6", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT7", "PPC", "NODE.GT");
-    builder.node_type("BGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD");
-    builder.node_type("TGIGABIT10_INT0", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT1", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT2", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT3", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT4", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT5", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT6", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT7", "PPC", "NODE.GT");
-    builder.node_type("TGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD");
-    builder.node_type("LPPC_X0Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("LPPC_X1Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("LLPPC_X0Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("LLPPC_X1Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("ULPPC_X0Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("ULPPC_X1Y0_INT", "PPC", "NODE.PPC.L");
-    builder.node_type("RPPC_X0Y0_INT", "PPC", "NODE.PPC.R");
-    builder.node_type("RPPC_X1Y0_INT", "PPC", "NODE.PPC.R");
-    builder.node_type("BPPC_X0Y0_INT", "PPC", "NODE.PPC.B");
-    builder.node_type("BPPC_X1Y0_INT", "PPC", "NODE.PPC.B");
-    builder.node_type("TPPC_X0Y0_INT", "PPC", "NODE.PPC.T");
-    builder.node_type("TPPC_X1Y0_INT", "PPC", "NODE.PPC.T");
+    builder.node_type("CENTER", "CLB", "CLB");
+    builder.node_type("LR_IOIS", "IOI", "IOI.LR");
+    builder.node_type("TB_IOIS", "IOI", "IOI.TB");
+    builder.node_type("ML_TB_IOIS", "IOI", "IOI.TB");
+    builder.node_type("ML_TBS_IOIS", "IOI", "IOI.TB");
+    builder.node_type("GIGABIT_IOI", "IOI", "IOI.TB");
+    builder.node_type("GIGABIT10_IOI", "IOI", "IOI.TB");
+    builder.node_type("MK_B_IOIS", "IOI.CLK_B", "IOI.CLK_B");
+    builder.node_type("MK_T_IOIS", "IOI.CLK_T", "IOI.CLK_T");
+    builder.node_type("BRAM0", "BRAM", "BRAM");
+    builder.node_type("BRAM1", "BRAM", "BRAM");
+    builder.node_type("BRAM2", "BRAM", "BRAM");
+    builder.node_type("BRAM3", "BRAM", "BRAM");
+    builder.node_type("BRAM_IOIS", "DCM.V2", "BRAM_IOIS");
+    builder.node_type("ML_BRAM_IOIS", "DCM.V2P", "ML_BRAM_IOIS");
+    builder.node_type("LL", "CNR", "CNR");
+    builder.node_type("LR", "CNR", "CNR");
+    builder.node_type("UL", "CNR", "CNR");
+    builder.node_type("UR", "CNR", "CNR");
+    builder.node_type("BGIGABIT_INT0", "PPC", "GT");
+    builder.node_type("BGIGABIT_INT1", "PPC", "GT");
+    builder.node_type("BGIGABIT_INT2", "PPC", "GT");
+    builder.node_type("BGIGABIT_INT3", "PPC", "GT");
+    builder.node_type("BGIGABIT_INT4", "GT.CLKPAD", "GT.CLKPAD");
+    builder.node_type("TGIGABIT_INT0", "PPC", "GT");
+    builder.node_type("TGIGABIT_INT1", "PPC", "GT");
+    builder.node_type("TGIGABIT_INT2", "PPC", "GT");
+    builder.node_type("TGIGABIT_INT3", "PPC", "GT");
+    builder.node_type("TGIGABIT_INT4", "GT.CLKPAD", "GT.CLKPAD");
+    builder.node_type("BGIGABIT10_INT0", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT1", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT2", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT3", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT4", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT5", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT6", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT7", "PPC", "GT");
+    builder.node_type("BGIGABIT10_INT8", "GT.CLKPAD", "GT.CLKPAD");
+    builder.node_type("TGIGABIT10_INT0", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT1", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT2", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT3", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT4", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT5", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT6", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT7", "PPC", "GT");
+    builder.node_type("TGIGABIT10_INT8", "GT.CLKPAD", "GT.CLKPAD");
+    builder.node_type("LPPC_X0Y0_INT", "PPC", "PPC.L");
+    builder.node_type("LPPC_X1Y0_INT", "PPC", "PPC.L");
+    builder.node_type("LLPPC_X0Y0_INT", "PPC", "PPC.L");
+    builder.node_type("LLPPC_X1Y0_INT", "PPC", "PPC.L");
+    builder.node_type("ULPPC_X0Y0_INT", "PPC", "PPC.L");
+    builder.node_type("ULPPC_X1Y0_INT", "PPC", "PPC.L");
+    builder.node_type("RPPC_X0Y0_INT", "PPC", "PPC.R");
+    builder.node_type("RPPC_X1Y0_INT", "PPC", "PPC.R");
+    builder.node_type("BPPC_X0Y0_INT", "PPC", "PPC.B");
+    builder.node_type("BPPC_X1Y0_INT", "PPC", "PPC.B");
+    builder.node_type("TPPC_X0Y0_INT", "PPC", "PPC.T");
+    builder.node_type("TPPC_X1Y0_INT", "PPC", "PPC.T");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &[
         "VCC_PINWIRE",
@@ -801,8 +801,8 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         builder.mux_out(format!("IMUX.IOI.TCE{i}"), &[format!("TCE_B{i}")]);
     }
     // BRAM special inputs
-    let bram_s = builder.make_naming("BRAM.S");
-    let bram_n = builder.make_naming("BRAM.N");
+    let bram_s = builder.make_term_naming("BRAM.S");
+    let bram_n = builder.make_term_naming("BRAM.N");
     for ab in ["A", "B"] {
         for i in 0..4 {
             let root = builder.mux_out(format!("IMUX.BRAM_ADDR{ab}{i}"), &[
@@ -812,7 +812,7 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
                 let mut last = root;
                 for j in 1..5 {
                     if dir == Dir::N {
-                        builder.name_wire(bram_s, last, format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4));
+                        builder.name_term_in_far_wire(bram_n, last, format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4));
                     }
                     if j == 4 {
                         last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}4"), &[
@@ -822,7 +822,7 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
                         last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}{j}"), &[""]);
                     }
                     if dir == Dir::N {
-                        builder.name_wire(bram_n, last, format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4));
+                        builder.name_term_out_wire(bram_n, last, format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4));
                     }
                 }
             }
@@ -854,12 +854,12 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
             &format!("GIGABIT_INT_PPC1{i}"),
         ]);
         if i == 0 {
-            if let Some((_, n)) = builder.db.namings.get_mut("NODE.IOI.CLK_T") {
+            if let Some((_, n)) = builder.db.node_namings.get_mut("IOI.CLK_T") {
                 n.insert(w, "IOIS_BREFCLK_SE".to_string());
             }
         }
         if i == 2 {
-            if let Some((_, n)) = builder.db.namings.get_mut("NODE.IOI.CLK_B") {
+            if let Some((_, n)) = builder.db.node_namings.get_mut("IOI.CLK_B") {
                 n.insert(w, "IOIS_BREFCLK_SE".to_string());
             }
         }
@@ -1077,61 +1077,61 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         };
         let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
         let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
-        builder.extract_pass_tile("PPC.S", Dir::S, int_n_xy, Some((xy_t, "TERM.PPC.S", Some("TERM.PPC.S.FAR"))), Some((xy_b, "TERM.PPC.N.OUT", "TERM.PPC.N")), int_s_xy, &[]);
-        builder.extract_pass_tile("PPC.N", Dir::N, int_s_xy, Some((xy_b, "TERM.PPC.N", Some("TERM.PPC.N.FAR"))), Some((xy_t, "TERM.PPC.S.OUT", "TERM.PPC.S")), int_n_xy, &[]);
+        builder.extract_pass_tile("PPC.S", Dir::S, int_n_xy, Some((xy_t, "PPC.S")), Some(xy_b), int_s_xy, &[]);
+        builder.extract_pass_tile("PPC.N", Dir::N, int_s_xy, Some((xy_b, "PPC.N")), Some(xy_t), int_n_xy, &[]);
     }
     for tkn in ["PTERMR", "PTERMBR", "PTERMTR"] {
         for &xy_r in rd.tiles_by_kind_name(tkn) {
             let int_w_xy = builder.walk_to_int(xy_r, Dir::W).unwrap();
             let int_e_xy = builder.walk_to_int(xy_r, Dir::E).unwrap();
-            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "TERM.PPC.W", Some("TERM.PPC.W.FAR"))), Some((int_w_xy, "TERM.PPC.E.OUT", "TERM.PPC.E")), int_w_xy, &[]);
-            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((int_w_xy, "TERM.PPC.E", Some("TERM.PPC.E.FAR"))), Some((xy_r, "TERM.PPC.W.OUT", "TERM.PPC.W")), int_e_xy, &[]);
+            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "PPC.W")), Some(int_w_xy), int_w_xy, &[]);
+            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((int_w_xy, "PPC.E")), Some(xy_r), int_e_xy, &[]);
         }
     }
 
     for (tkn, name, naming) in [
-        ("BGIGABIT_INT0", "GT.0", "NODE.GT"),
-        ("BGIGABIT_INT1", "GT.123", "NODE.GT"),
-        ("BGIGABIT_INT2", "GT.123", "NODE.GT"),
-        ("BGIGABIT_INT3", "GT.123", "NODE.GT"),
-        ("BGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD"),
-        ("TGIGABIT_INT0", "GT.0", "NODE.GT"),
-        ("TGIGABIT_INT1", "GT.123", "NODE.GT"),
-        ("TGIGABIT_INT2", "GT.123", "NODE.GT"),
-        ("TGIGABIT_INT3", "GT.123", "NODE.GT"),
-        ("TGIGABIT_INT4", "GT.CLKPAD", "NODE.GT.CLKPAD"),
-        ("BGIGABIT10_INT0", "GT.0", "NODE.GT"),
-        ("BGIGABIT10_INT1", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT2", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT3", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT4", "GT.0", "NODE.GT"),
-        ("BGIGABIT10_INT5", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT6", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT7", "GT.123", "NODE.GT"),
-        ("BGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD"),
-        ("TGIGABIT10_INT0", "GT.0", "NODE.GT"),
-        ("TGIGABIT10_INT1", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT2", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT3", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT4", "GT.0", "NODE.GT"),
-        ("TGIGABIT10_INT5", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT6", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT7", "GT.123", "NODE.GT"),
-        ("TGIGABIT10_INT8", "GT.CLKPAD", "NODE.GT.CLKPAD"),
-        ("LPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
-        ("LPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
-        ("LLPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
-        ("LLPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
-        ("ULPPC_X0Y0_INT", "PPC", "NODE.PPC.L"),
-        ("ULPPC_X1Y0_INT", "PPC", "NODE.PPC.L"),
-        ("RPPC_X0Y0_INT", "PPC", "NODE.PPC.R"),
-        ("RPPC_X1Y0_INT", "PPC", "NODE.PPC.R"),
-        ("BPPC_X0Y0_INT", "PPC", "NODE.PPC.B"),
-        ("BPPC_X1Y0_INT", "PPC", "NODE.PPC.B"),
-        ("TPPC_X0Y0_INT", "PPC", "NODE.PPC.T"),
-        ("TPPC_X1Y0_INT", "PPC", "NODE.PPC.T"),
+        ("BGIGABIT_INT0", "GT.0", "GT"),
+        ("BGIGABIT_INT1", "GT.123", "GT"),
+        ("BGIGABIT_INT2", "GT.123", "GT"),
+        ("BGIGABIT_INT3", "GT.123", "GT"),
+        ("BGIGABIT_INT4", "GT.CLKPAD", "GT.CLKPAD"),
+        ("TGIGABIT_INT0", "GT.0", "GT"),
+        ("TGIGABIT_INT1", "GT.123", "GT"),
+        ("TGIGABIT_INT2", "GT.123", "GT"),
+        ("TGIGABIT_INT3", "GT.123", "GT"),
+        ("TGIGABIT_INT4", "GT.CLKPAD", "GT.CLKPAD"),
+        ("BGIGABIT10_INT0", "GT.0", "GT"),
+        ("BGIGABIT10_INT1", "GT.123", "GT"),
+        ("BGIGABIT10_INT2", "GT.123", "GT"),
+        ("BGIGABIT10_INT3", "GT.123", "GT"),
+        ("BGIGABIT10_INT4", "GT.0", "GT"),
+        ("BGIGABIT10_INT5", "GT.123", "GT"),
+        ("BGIGABIT10_INT6", "GT.123", "GT"),
+        ("BGIGABIT10_INT7", "GT.123", "GT"),
+        ("BGIGABIT10_INT8", "GT.CLKPAD", "GT.CLKPAD"),
+        ("TGIGABIT10_INT0", "GT.0", "GT"),
+        ("TGIGABIT10_INT1", "GT.123", "GT"),
+        ("TGIGABIT10_INT2", "GT.123", "GT"),
+        ("TGIGABIT10_INT3", "GT.123", "GT"),
+        ("TGIGABIT10_INT4", "GT.0", "GT"),
+        ("TGIGABIT10_INT5", "GT.123", "GT"),
+        ("TGIGABIT10_INT6", "GT.123", "GT"),
+        ("TGIGABIT10_INT7", "GT.123", "GT"),
+        ("TGIGABIT10_INT8", "GT.CLKPAD", "GT.CLKPAD"),
+        ("LPPC_X0Y0_INT", "PPC", "PPC.L"),
+        ("LPPC_X1Y0_INT", "PPC", "PPC.L"),
+        ("LLPPC_X0Y0_INT", "PPC", "PPC.L"),
+        ("LLPPC_X1Y0_INT", "PPC", "PPC.L"),
+        ("ULPPC_X0Y0_INT", "PPC", "PPC.L"),
+        ("ULPPC_X1Y0_INT", "PPC", "PPC.L"),
+        ("RPPC_X0Y0_INT", "PPC", "PPC.R"),
+        ("RPPC_X1Y0_INT", "PPC", "PPC.R"),
+        ("BPPC_X0Y0_INT", "PPC", "PPC.B"),
+        ("BPPC_X1Y0_INT", "PPC", "PPC.B"),
+        ("TPPC_X0Y0_INT", "PPC", "PPC.T"),
+        ("TPPC_X1Y0_INT", "PPC", "PPC.T"),
     ] {
-        builder.extract_intf(name, Dir::E, tkn, naming, None, None, None);
+        builder.extract_intf(name, Dir::E, tkn, naming, false);
     }
 
     // - extract bels + namings
@@ -1162,116 +1162,116 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
 
 fn make_int_db_s3(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("spartan3", rd);
-    builder.node_type("CENTER", "CLB", "NODE.CLB");
-    builder.node_type("CENTER_SMALL", "CLB", "NODE.CLB");
-    builder.node_type("CENTER_SMALL_BRK", "CLB", "NODE.CLB.BRK");
+    builder.node_type("CENTER", "CLB", "CLB");
+    builder.node_type("CENTER_SMALL", "CLB", "CLB");
+    builder.node_type("CENTER_SMALL_BRK", "CLB", "CLB.BRK");
     if rd.family.starts_with("spartan3a") {
-        builder.node_type("LIOIS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("LIOIS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("LIOIS_CLK_PCI_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("LIBUFS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("LIBUFS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIOIS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("RIBUFS_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3A.LR", "NODE.IOI.S3A.LR");
-        builder.node_type("RIBUFS_CLK_PCI_BRK", "IOI.S3A.LR", "NODE.IOI.S3A.LR.BRK");
-        builder.node_type("BIOIS", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
-        builder.node_type("BIOIB", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
-        builder.node_type("TIOIS", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
-        builder.node_type("TIOIB", "IOI.S3A.TB", "NODE.IOI.S3A.TB");
+        builder.node_type("LIOIS", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("LIOIS_BRK", "IOI.S3A.LR", "IOI.S3A.LR.BRK");
+        builder.node_type("LIOIS_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("LIOIS_CLK_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("LIOIS_CLK_PCI_BRK", "IOI.S3A.LR", "IOI.S3A.LR.BRK");
+        builder.node_type("LIBUFS", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("LIBUFS_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIOIS", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIOIS_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIOIS_CLK_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIBUFS", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIBUFS_BRK", "IOI.S3A.LR", "IOI.S3A.LR.BRK");
+        builder.node_type("RIBUFS_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3A.LR", "IOI.S3A.LR");
+        builder.node_type("RIBUFS_CLK_PCI_BRK", "IOI.S3A.LR", "IOI.S3A.LR.BRK");
+        builder.node_type("BIOIS", "IOI.S3A.TB", "IOI.S3A.TB");
+        builder.node_type("BIOIB", "IOI.S3A.TB", "IOI.S3A.TB");
+        builder.node_type("TIOIS", "IOI.S3A.TB", "IOI.S3A.TB");
+        builder.node_type("TIOIB", "IOI.S3A.TB", "IOI.S3A.TB");
     } else if rd.family == "spartan3e" {
-        builder.node_type("LIOIS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("LIOIS_BRK", "IOI.S3E", "NODE.IOI.BRK");
-        builder.node_type("LIOIS_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("LIOIS_CLK_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("LIBUFS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("LIBUFS_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIOIS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIOIS_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIOIS_CLK_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIBUFS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIBUFS_BRK", "IOI.S3E", "NODE.IOI.BRK");
-        builder.node_type("RIBUFS_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3E", "NODE.IOI");
-        builder.node_type("BIOIS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("BIBUFS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("TIOIS", "IOI.S3E", "NODE.IOI");
-        builder.node_type("TIBUFS", "IOI.S3E", "NODE.IOI");
+        builder.node_type("LIOIS", "IOI.S3E", "IOI");
+        builder.node_type("LIOIS_BRK", "IOI.S3E", "IOI.BRK");
+        builder.node_type("LIOIS_PCI", "IOI.S3E", "IOI");
+        builder.node_type("LIOIS_CLK_PCI", "IOI.S3E", "IOI");
+        builder.node_type("LIBUFS", "IOI.S3E", "IOI");
+        builder.node_type("LIBUFS_PCI", "IOI.S3E", "IOI");
+        builder.node_type("LIBUFS_CLK_PCI", "IOI.S3E", "IOI");
+        builder.node_type("RIOIS", "IOI.S3E", "IOI");
+        builder.node_type("RIOIS_PCI", "IOI.S3E", "IOI");
+        builder.node_type("RIOIS_CLK_PCI", "IOI.S3E", "IOI");
+        builder.node_type("RIBUFS", "IOI.S3E", "IOI");
+        builder.node_type("RIBUFS_BRK", "IOI.S3E", "IOI.BRK");
+        builder.node_type("RIBUFS_PCI", "IOI.S3E", "IOI");
+        builder.node_type("RIBUFS_CLK_PCI", "IOI.S3E", "IOI");
+        builder.node_type("BIOIS", "IOI.S3E", "IOI");
+        builder.node_type("BIBUFS", "IOI.S3E", "IOI");
+        builder.node_type("TIOIS", "IOI.S3E", "IOI");
+        builder.node_type("TIBUFS", "IOI.S3E", "IOI");
     } else {
         // NOTE: could be unified by pulling extra muxes from CLB
-        builder.node_type("LIOIS", "IOI.S3", "NODE.IOI");
-        builder.node_type("RIOIS", "IOI.S3", "NODE.IOI");
-        builder.node_type("BIOIS", "IOI.S3", "NODE.IOI");
-        builder.node_type("TIOIS", "IOI.S3", "NODE.IOI");
+        builder.node_type("LIOIS", "IOI.S3", "IOI");
+        builder.node_type("RIOIS", "IOI.S3", "IOI");
+        builder.node_type("BIOIS", "IOI.S3", "IOI");
+        builder.node_type("TIOIS", "IOI.S3", "IOI");
     }
     // NOTE:
     // - S3/S3E/S3A could be unified by pulling some extra muxes from CLB
     // - S3A/S3ADSP adds VCC input to B[XY] and splits B[XY] to two nodes
     if rd.family == "spartan3adsp" {
-        builder.node_type("BRAM0_SMALL", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM0_SMALL_BOT", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM1_SMALL", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM2_SMALL", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM3_SMALL", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM3_SMALL_TOP", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP");
-        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3ADSP", "NODE.BRAM.S3ADSP.BRK");
-        builder.node_type("MACC0_SMALL", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC0_SMALL_BOT", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC1_SMALL", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC2_SMALL", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC3_SMALL", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC3_SMALL_TOP", "BRAM.S3ADSP", "NODE.MACC");
-        builder.node_type("MACC3_SMALL_BRK", "BRAM.S3ADSP", "NODE.MACC.BRK");
+        builder.node_type("BRAM0_SMALL", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM0_SMALL_BOT", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM1_SMALL", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM2_SMALL", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM3_SMALL", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM3_SMALL_TOP", "BRAM.S3ADSP", "BRAM.S3ADSP");
+        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3ADSP", "BRAM.S3ADSP.BRK");
+        builder.node_type("MACC0_SMALL", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC0_SMALL_BOT", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC1_SMALL", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC2_SMALL", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC3_SMALL", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC3_SMALL_TOP", "BRAM.S3ADSP", "MACC");
+        builder.node_type("MACC3_SMALL_BRK", "BRAM.S3ADSP", "MACC.BRK");
     } else if rd.family == "spartan3a" {
-        builder.node_type("BRAM0_SMALL", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM0_SMALL_BOT", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM1_SMALL", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM2_SMALL", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL_TOP", "BRAM.S3A", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3A", "NODE.BRAM.BRK");
+        builder.node_type("BRAM0_SMALL", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM0_SMALL_BOT", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM1_SMALL", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM2_SMALL", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM3_SMALL", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM3_SMALL_TOP", "BRAM.S3A", "BRAM");
+        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3A", "BRAM.BRK");
     } else if rd.family == "spartan3e" {
-        builder.node_type("BRAM0_SMALL", "BRAM.S3E", "NODE.BRAM");
-        builder.node_type("BRAM1_SMALL", "BRAM.S3E", "NODE.BRAM");
-        builder.node_type("BRAM2_SMALL", "BRAM.S3E", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL", "BRAM.S3E", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3E", "NODE.BRAM.BRK");
+        builder.node_type("BRAM0_SMALL", "BRAM.S3E", "BRAM");
+        builder.node_type("BRAM1_SMALL", "BRAM.S3E", "BRAM");
+        builder.node_type("BRAM2_SMALL", "BRAM.S3E", "BRAM");
+        builder.node_type("BRAM3_SMALL", "BRAM.S3E", "BRAM");
+        builder.node_type("BRAM3_SMALL_BRK", "BRAM.S3E", "BRAM.BRK");
     } else {
-        builder.node_type("BRAM0", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM1", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM2", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM3", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM0_SMALL", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM1_SMALL", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM2_SMALL", "BRAM.S3", "NODE.BRAM");
-        builder.node_type("BRAM3_SMALL", "BRAM.S3", "NODE.BRAM");
+        builder.node_type("BRAM0", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM1", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM2", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM3", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM0_SMALL", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM1_SMALL", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM2_SMALL", "BRAM.S3", "BRAM");
+        builder.node_type("BRAM3_SMALL", "BRAM.S3", "BRAM");
     }
-    builder.node_type("BRAM_IOIS", "DCM", "NODE.DCM.S3");
-    builder.node_type("BRAM_IOIS_NODCM", "DCM.S3.DUMMY", "NODE.DCM.S3.DUMMY");
-    builder.node_type("DCMAUX_BL_CENTER", "DCM.S3E.DUMMY", "NODE.DCM.S3E.DUMMY");
-    builder.node_type("DCMAUX_TL_CENTER", "DCM.S3E.DUMMY", "NODE.DCM.S3E.DUMMY");
-    builder.node_type("DCM_BL_CENTER", "DCM", "NODE.DCM.S3E");
-    builder.node_type("DCM_TL_CENTER", "DCM", "NODE.DCM.S3E");
-    builder.node_type("DCM_BR_CENTER", "DCM", "NODE.DCM.S3E");
-    builder.node_type("DCM_TR_CENTER", "DCM", "NODE.DCM.S3E");
-    builder.node_type("DCM_H_BL_CENTER", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("DCM_H_TL_CENTER", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("DCM_H_BR_CENTER", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("DCM_H_TR_CENTER", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("DCM_BGAP", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("DCM_SPLY", "DCM", "NODE.DCM.S3E.H");
-    builder.node_type("LL", "CLB", "NODE.CNR");
-    builder.node_type("LR", "CLB", "NODE.CNR");
-    builder.node_type("UL", "CLB", "NODE.CNR");
-    builder.node_type("UR", "CLB", "NODE.CNR");
+    builder.node_type("BRAM_IOIS", "DCM", "DCM.S3");
+    builder.node_type("BRAM_IOIS_NODCM", "DCM.S3.DUMMY", "DCM.S3.DUMMY");
+    builder.node_type("DCMAUX_BL_CENTER", "DCM.S3E.DUMMY", "DCM.S3E.DUMMY");
+    builder.node_type("DCMAUX_TL_CENTER", "DCM.S3E.DUMMY", "DCM.S3E.DUMMY");
+    builder.node_type("DCM_BL_CENTER", "DCM", "DCM.S3E");
+    builder.node_type("DCM_TL_CENTER", "DCM", "DCM.S3E");
+    builder.node_type("DCM_BR_CENTER", "DCM", "DCM.S3E");
+    builder.node_type("DCM_TR_CENTER", "DCM", "DCM.S3E");
+    builder.node_type("DCM_H_BL_CENTER", "DCM", "DCM.S3E.H");
+    builder.node_type("DCM_H_TL_CENTER", "DCM", "DCM.S3E.H");
+    builder.node_type("DCM_H_BR_CENTER", "DCM", "DCM.S3E.H");
+    builder.node_type("DCM_H_TR_CENTER", "DCM", "DCM.S3E.H");
+    builder.node_type("DCM_BGAP", "DCM", "DCM.S3E.H");
+    builder.node_type("DCM_SPLY", "DCM", "DCM.S3E.H");
+    builder.node_type("LL", "CLB", "CNR");
+    builder.node_type("LR", "CLB", "CNR");
+    builder.node_type("UL", "CLB", "CNR");
+    builder.node_type("UR", "CLB", "CNR");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &[
         "VCC_PINWIRE",
@@ -1929,8 +1929,8 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
             };
             let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
             let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
-            builder.extract_pass_tile("BRAM.S", Dir::S, int_n_xy, Some((xy_t, "TERM.BRAM.S", None)), None, int_s_xy, &lv);
-            builder.extract_pass_tile("BRAM.N", Dir::N, int_s_xy, Some((xy_b, "TERM.BRAM.N", None)), None, int_n_xy, &lv);
+            builder.extract_pass_tile("BRAM.S", Dir::S, int_n_xy, Some((xy_t, "TERM.BRAM.S")), None, int_s_xy, &lv);
+            builder.extract_pass_tile("BRAM.N", Dir::N, int_s_xy, Some((xy_b, "TERM.BRAM.N")), None, int_n_xy, &lv);
         }
         for tkn in [
             "CLKL_IOIS",
@@ -1970,8 +1970,8 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         };
         let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W).unwrap();
         let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E).unwrap();
-        builder.extract_pass_tile("LLH.W", Dir::W, int_bwd_xy, Some((xy, "LLH.E", Some("LLH.W"))), None, int_fwd_xy, &[]);
-        builder.extract_pass_tile("LLH.E", Dir::E, int_fwd_xy, Some((xy, "LLH.W", Some("LLH.E"))), None, int_bwd_xy, &[]);
+        builder.extract_pass_tile("LLH.W", Dir::W, int_bwd_xy, Some((xy, "LLH.E")), None, int_fwd_xy, &[]);
+        builder.extract_pass_tile("LLH.E", Dir::E, int_fwd_xy, Some((xy, "LLH.W")), None, int_bwd_xy, &[]);
     }
     if rd.family == "spartan3adsp" {
         for tkn in [
