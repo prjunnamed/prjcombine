@@ -15,6 +15,12 @@ pub enum GridKind {
     Spartan3ADsp,
 }
 
+impl GridKind {
+    pub fn is_virtex2(self) -> bool {
+        matches!(self, Self::Virtex2 | Self::Virtex2P | Self::Virtex2PX)
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
@@ -582,6 +588,15 @@ impl Grid {
         res
     }
 
+    fn fill_term(&self, slr: &mut eint::ExpandedSlrRefMut, coord: eint::Coord, kind: &str, naming: &str, name: String) {
+        if self.kind.is_virtex2() {
+            let kind = slr.grid.db.get_node(kind);
+            let naming = slr.grid.db.get_node_naming(naming);
+            slr[coord].add_xnode(kind, &[&name], naming, &[coord]);
+        }
+        slr.fill_term_tile(coord, kind, naming, name);
+    }
+
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         egrid.tie_kind = Some("VCC".to_string());
@@ -589,6 +604,7 @@ impl Grid {
 
         let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
         let mut grid = egrid.slr_mut(slrid);
+        let def_rt = int::NodeRawTileId::from_idx(0);
 
         let use_xy = matches!(self.kind, GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp);
         let mut rows_brk: BTreeSet<_> = self.rows_hclk.iter().map(|&(_, r)| r - 1).collect();
@@ -637,40 +653,40 @@ impl Grid {
             grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("LR_X{xr}Y{yb}"));
             grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("UL_X{xl}Y{yt}"));
             grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("UR_X{xr}Y{yt}"));
-            grid.fill_term_tile((col_l, row_b), "W", "TERM.W", format!("CNR_LBTERM_X{xl}Y{yb}"));
-            grid.fill_term_tile((col_l, row_t), "W", "TERM.W", format!("CNR_LTTERM_X{xl}Y{yt}"));
-            grid.fill_term_tile((col_r, row_b), "E", "TERM.E", format!("CNR_RBTERM_X{xr}Y{yb}"));
-            grid.fill_term_tile((col_r, row_t), "E", "TERM.E", format!("CNR_RTTERM_X{xr}Y{yt}"));
-            grid.fill_term_tile((col_l, row_b), "S", "TERM.S.CNR", format!("CNR_BTERM_X{xl}Y{yb}"));
-            grid.fill_term_tile((col_l, row_t), "N", "TERM.N.CNR", format!("CNR_TTERM_X{xl}Y{yt}"));
-            grid.fill_term_tile((col_r, row_b), "S", "TERM.S.CNR", format!("CNR_BTERM_X{xr}Y{yb}"));
-            grid.fill_term_tile((col_r, row_t), "N", "TERM.N.CNR", format!("CNR_TTERM_X{xr}Y{yt}"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("CNR_LBTERM_X{xl}Y{yb}"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("CNR_LTTERM_X{xl}Y{yt}"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("CNR_RBTERM_X{xr}Y{yb}"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.E", "TERM.E", format!("CNR_RTTERM_X{xr}Y{yt}"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.S", "TERM.S.CNR", format!("CNR_BTERM_X{xl}Y{yb}"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.N", "TERM.N.CNR", format!("CNR_TTERM_X{xl}Y{yt}"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.S", "TERM.S.CNR", format!("CNR_BTERM_X{xr}Y{yb}"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("CNR_TTERM_X{xr}Y{yt}"));
         } else if matches!(self.kind, GridKind::Virtex2P | GridKind::Virtex2PX) {
             grid.fill_tile((col_l, row_b), cnr_kind, "CNR", format!("LIOIBIOI"));
             grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("RIOIBIOI"));
             grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("LIOITIOI"));
             grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("RIOITIOI"));
-            grid.fill_term_tile((col_l, row_b), "W", "TERM.W", format!("LTERMBIOI"));
-            grid.fill_term_tile((col_l, row_t), "W", "TERM.W", format!("LTERMTIOI"));
-            grid.fill_term_tile((col_r, row_b), "E", "TERM.E", format!("RTERMBIOI"));
-            grid.fill_term_tile((col_r, row_t), "E", "TERM.E", format!("RTERMTIOI"));
-            grid.fill_term_tile((col_l, row_b), "S", "TERM.S.CNR", format!("LIOIBTERM"));
-            grid.fill_term_tile((col_l, row_t), "N", "TERM.N.CNR", format!("LIOITTERM"));
-            grid.fill_term_tile((col_r, row_b), "S", "TERM.S.CNR", format!("RIOIBTERM"));
-            grid.fill_term_tile((col_r, row_t), "N", "TERM.N.CNR", format!("RIOITTERM"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("LTERMBIOI"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("LTERMTIOI"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("RTERMBIOI"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.E", "TERM.E", format!("RTERMTIOI"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.S", "TERM.S.CNR", format!("LIOIBTERM"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.N", "TERM.N.CNR", format!("LIOITTERM"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.S", "TERM.S.CNR", format!("RIOIBTERM"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("RIOITTERM"));
         } else {
             grid.fill_tile((col_l, row_b), cnr_kind, "CNR", format!("BL"));
             grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("BR"));
             grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("TL"));
             grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("TR"));
-            grid.fill_term_tile((col_l, row_b), "W", "TERM.W", format!("LBTERM"));
-            grid.fill_term_tile((col_l, row_t), "W", "TERM.W", format!("LTTERM"));
-            grid.fill_term_tile((col_r, row_b), "E", "TERM.E", format!("RBTERM"));
-            grid.fill_term_tile((col_r, row_t), "E", "TERM.E", format!("RTTERM"));
-            grid.fill_term_tile((col_l, row_b), "S", "TERM.S.CNR", format!("BLTERM"));
-            grid.fill_term_tile((col_l, row_t), "N", "TERM.N.CNR", format!("TLTERM"));
-            grid.fill_term_tile((col_r, row_b), "S", "TERM.S.CNR", format!("BRTERM"));
-            grid.fill_term_tile((col_r, row_t), "N", "TERM.N.CNR", format!("TRTERM"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("LBTERM"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("LTTERM"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("RBTERM"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.E", "TERM.E", format!("RTTERM"));
+            self.fill_term(&mut grid, (col_l, row_b), "TERM.S", "TERM.S.CNR", format!("BLTERM"));
+            self.fill_term(&mut grid, (col_l, row_t), "TERM.N", "TERM.N.CNR", format!("TLTERM"));
+            self.fill_term(&mut grid, (col_r, row_b), "TERM.S", "TERM.S.CNR", format!("BRTERM"));
+            self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("TRTERM"));
         }
 
         let io_kind = match self.kind {
@@ -758,8 +774,8 @@ impl Grid {
                         ltk = "LTERMCLK";
                     }
                 }
-                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("{ltk}_X{xl}Y{y}"));
-                grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("{rtk}_X{xr}Y{y}"));
+                self.fill_term(&mut grid, (col_l, row), "TERM.W", "TERM.W", format!("{ltk}_X{xl}Y{y}"));
+                self.fill_term(&mut grid, (col_r, row), "TERM.E", "TERM.E", format!("{rtk}_X{xr}Y{y}"));
             } else {
                 let r = yt - row.to_idx();
                 grid.fill_tile((col_l, row), io_kind, naming, format!("LIOIR{r}"));
@@ -776,8 +792,8 @@ impl Grid {
                     t_e = "TERM.E.U";
                     t_w = "TERM.W.U";
                 }
-                grid.fill_term_tile((col_l, row), "W", t_w, format!("LTERMR{r}"));
-                grid.fill_term_tile((col_r, row), "E", t_e, format!("RTERMR{r}"));
+                self.fill_term(&mut grid, (col_l, row), "TERM.W", t_w, format!("LTERMR{r}"));
+                self.fill_term(&mut grid, (col_r, row), "TERM.E", t_e, format!("RTERMR{r}"));
             }
         }
 
@@ -870,8 +886,8 @@ impl Grid {
                         _ => (),
                     }
                 }
-                grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("{btk}_X{x}Y{yb}"));
-                grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("{ttk}_X{x}Y{yt}"));
+                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("{btk}_X{x}Y{yb}"));
+                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("{ttk}_X{x}Y{yt}"));
             } else {
                 if cd.kind != ColumnKind::Clb {
                     continue;
@@ -884,8 +900,8 @@ impl Grid {
                     grid.fill_tile((col, row_b), io_kind, io_naming, format!("BIOIC{c}"));
                     grid.fill_tile((col, row_t), io_kind, io_naming, format!("TIOIC{c}"));
                 }
-                grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("BTERMC{c}"));
-                grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("TTERMC{c}"));
+                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("BTERMC{c}"));
+                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("TTERMC{c}"));
             }
         }
 
@@ -936,8 +952,8 @@ impl Grid {
                     grid.fill_term_pair_bounce(
                         (col + d, b - 1),
                         (col + d, t + 1),
-                        db.get_term("BRAM.N"),
-                        db.get_term("BRAM.S"),
+                        db.get_term("TERM.BRAM.N"),
+                        db.get_term("TERM.BRAM.S"),
                         format!("COB_TERM_B_X{x}Y{yb}"),
                         format!("COB_TERM_T_X{x}Y{yt}"),
                         db.get_term_naming("TERM.BRAM.N"),
@@ -1082,8 +1098,8 @@ impl Grid {
                 let c = bramclut[col];
                 grid.fill_tile((col, row_b), kind, naming, format!("BIOIBRAMC{c}"));
                 grid.fill_tile((col, row_t), kind, naming, format!("TIOIBRAMC{c}"));
-                grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("BTERMBRAMC{c}"));
-                grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("TTERMBRAMC{c}"));
+                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("BTERMBRAMC{c}"));
+                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("TTERMBRAMC{c}"));
             }
         }
 
@@ -1141,10 +1157,22 @@ impl Grid {
                 let col_l = bc;
                 let col_r = bc + 9;
                 let row = br + d;
-                let tile_l = grid.tile((col_l, row)).name.clone();
+                let tile_l = grid[(col_l, row)].nodes[0].names[def_rt].clone();
                 let c = bramclut[col_r - 1];
                 let r = yt - row.to_idx();
                 let tile_r = format!("BMR{r}C{c}");
+                grid[(col_l, row)].add_xnode(
+                    db.get_node("PPC.E"),
+                    &[&tile_l, &tile_r],
+                    db.get_node_naming("PPC.E"),
+                    &[(col_l, row), (col_r, row)]
+                );
+                grid[(col_r, row)].add_xnode(
+                    db.get_node("PPC.W"),
+                    &[&tile_r, &tile_l],
+                    db.get_node_naming("PPC.W"),
+                    &[(col_r, row), (col_l, row)]
+                );
                 grid.fill_term_pair_dbuf((col_l, row), (col_r, row), db.get_term("PPC.E"), db.get_term("PPC.W"), tile_l, tile_r, db.get_term_naming("PPC.E"), db.get_term_naming("PPC.W"));
             }
             // vert passes
@@ -1165,19 +1193,35 @@ impl Grid {
                     tile_b = format!("PTERMBR{rb}BRAMC{c}");
                     tile_t = format!("PTERMTR{rt}BRAMC{c}");
                 }
+                grid[(col, row_b)].add_xnode(
+                    db.get_node("PPC.N"),
+                    &[&tile_b, &tile_t],
+                    db.get_node_naming("PPC.N"),
+                    &[(col, row_b), (col, row_t)]
+                );
+                grid[(col, row_t)].add_xnode(
+                    db.get_node("PPC.S"),
+                    &[&tile_t, &tile_b],
+                    db.get_node_naming("PPC.S"),
+                    &[(col, row_t), (col, row_b)]
+                );
                 grid.fill_term_pair_dbuf((col, row_b), (col, row_t), db.get_term("PPC.N"), db.get_term("PPC.S"), tile_b, tile_t, db.get_term_naming("PPC.N"), db.get_term_naming("PPC.S"));
             }
             for dr in 0..16 {
                 let row = br + dr;
                 for dc in 0..10 {
                     let col = bc + dc;
-                    if let Some(ref mut tile) = grid[(col, row)] {
-                        tile.intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("PPC"),
-                            name: tile.name.clone(),
-                            naming: db.get_intf_naming(db.node_namings.key(tile.naming)),
-                        });
+                    let tile = &mut grid[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
                     }
+                    let name = tile.nodes[0].names[def_rt].clone();
+                    let nname = db.node_namings.key(tile.nodes[0].naming);
+                    tile.add_intf(
+                        db.get_intf("PPC"),
+                        name,
+                        db.get_intf_naming(nname),
+                    );
                 }
             }
         }
@@ -1188,15 +1232,17 @@ impl Grid {
             let naming_gt = db.get_node_naming("GT");
             let naming_gt0 = db.get_node_naming("GT.CLKPAD");
             for row in [row_b, row_t] {
-                let tile = grid.tile_mut((col, row));
-                tile.special = true;
-                tile.kind = kind_gt0;
-                tile.naming = naming_gt0;
-                tile.intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("GT.CLKPAD"),
-                    name: tile.name.clone(),
-                    naming: db.get_intf_naming("GT.CLKPAD"),
-                });
+                let tile = &mut grid[(col, row)];
+                let node = &mut tile.nodes[0];
+                node.special = true;
+                node.kind = kind_gt0;
+                node.naming = naming_gt0;
+                let name = node.names[def_rt].clone();
+                tile.add_intf(
+                    db.get_intf("GT.CLKPAD"),
+                    name,
+                    db.get_intf_naming("GT.CLKPAD"),
+                );
             }
             let n = match self.kind {
                 GridKind::Virtex2P => 4,
@@ -1206,15 +1252,17 @@ impl Grid {
             for br in [row_b + 1, row_t - n] {
                 for d in 0..n {
                     let row = br + d;
-                    let tile = grid.tile_mut((col, row));
-                    tile.special = true;
-                    tile.kind = kind_gt;
-                    tile.naming = naming_gt;
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf(if d % 4 == 0 {"GT.0"} else {"GT.123"}),
-                        name: tile.name.clone(),
-                        naming: db.get_intf_naming("GT"),
-                    });
+                    let tile = &mut grid[(col, row)];
+                    let node = &mut tile.nodes[0];
+                    node.special = true;
+                    node.kind = kind_gt;
+                    node.naming = naming_gt;
+                    let name = node.names[def_rt].clone();
+                    tile.add_intf(
+                        db.get_intf(if d % 4 == 0 {"GT.0"} else {"GT.123"}),
+                        name,
+                        db.get_intf_naming("GT"),
+                    );
                 }
             }
         }
@@ -1226,27 +1274,24 @@ impl Grid {
                 }
                 let mut row_s = self.row_mid() - 1;
                 let mut row_n = self.row_mid();
-                while grid[(col, row_s)].is_none() {
+                while grid[(col, row_s)].nodes.is_empty() {
                     row_s -= 1;
                 }
-                while grid[(col, row_n)].is_none() {
+                while grid[(col, row_n)].nodes.is_empty() {
                     row_n += 1;
                 }
                 let mut term_s = db.get_term("LLV.S");
                 let mut term_n = db.get_term("LLV.N");
-                let mut naming_s = db.get_term_naming("LLV.S");
-                let mut naming_n = db.get_term_naming("LLV.N");
+                let mut naming = db.get_node_naming("LLV");
                 let mut tile;
                 let x = xlut[col];
                 let y = self.row_mid().to_idx() - 1;
                 if col == col_l || col == col_r {
                     if col == col_l {
-                        naming_s = db.get_term_naming("LLV.CLKL.S");
-                        naming_n = db.get_term_naming("LLV.CLKL.N");
+                        naming = db.get_node_naming("LLV.CLKL");
                         tile = format!("CLKL_IOIS_LL_X{x}Y{y}");
                     } else {
-                        naming_s = db.get_term_naming("LLV.CLKR.S");
-                        naming_n = db.get_term_naming("LLV.CLKR.N");
+                        naming = db.get_node_naming("LLV.CLKR");
                         tile = format!("CLKR_IOIS_LL_X{x}Y{y}");
                     }
                     if self.kind != GridKind::Spartan3A {
@@ -1274,23 +1319,27 @@ impl Grid {
                         tile = format!("CLKH_DCM_LL_X{x}Y{y}");
                     }
                 }
-                grid.fill_term_pair_buf((col, row_s), (col, row_n), term_n, term_s, tile, naming_s, naming_n);
+                grid.fill_term_pair_anon((col, row_s), (col, row_n), term_n, term_s);
+                grid[(col, row_n)].add_xnode(
+                    db.get_node("LLV"),
+                    &[&tile],
+                    naming,
+                    &[(col, row_n), (col, row_s)],
+                );
             }
             for row in self.rows.ids() {
                 let mut col_l = self.col_clk - 1;
                 let mut col_r = self.col_clk;
-                while grid[(col_l, row)].is_none() {
+                while grid[(col_l, row)].nodes.is_empty() {
                     col_l -= 1;
                 }
-                while grid[(col_r, row)].is_none() {
+                while grid[(col_r, row)].nodes.is_empty() {
                     col_r += 1;
                 }
                 let x = xlut[self.col_clk - 1];
                 let y = row.to_idx();
                 let mut term_w = db.get_term("LLH.W");
                 let mut term_e = db.get_term("LLH.E");
-                let naming_w = db.get_term_naming("LLH.W");
-                let naming_e = db.get_term_naming("LLH.E");
                 let tile = if row == row_b {
                     format!("CLKB_LL_X{x}Y{y}")
                 } else if row == row_t {
@@ -1304,7 +1353,13 @@ impl Grid {
                 } else {
                     format!("CLKV_LL_X{x}Y{y}")
                 };
-                grid.fill_term_pair_buf((col_l, row), (col_r, row), term_e, term_w, tile, naming_w, naming_e);
+                grid.fill_term_pair_anon((col_l, row), (col_r, row), term_e, term_w);
+                grid[(col_r, row)].add_xnode(
+                    db.get_node("LLH"),
+                    &[&tile],
+                    db.get_node_naming("LLH"),
+                    &[(col_r, row), (col_l, row)],
+                );
             }
         }
         if self.kind == GridKind::Spartan3E && !self.has_ll {
@@ -1369,20 +1424,22 @@ impl Grid {
                     if row.to_idx() == 1 {
                         continue;
                     }
-                    if let Some(ref mut et) = grid[(col, row)] {
-                        if et.special {
-                            continue;
-                        }
-                        if let Some(ref mut p) = et.terms[int::Dir::S] {
-                            p.naming = Some(db.get_term_naming("BRAM.N"));
-                        } else {
-                            unreachable!();
-                        }
-                        if let Some(ref mut p) = grid.tile_mut((col, row - 1)).terms[int::Dir::N] {
-                            p.naming = Some(db.get_term_naming("BRAM.S"));
-                        } else {
-                            unreachable!();
-                        }
+                    let et = &mut grid[(col, row)];
+                    if et.nodes.is_empty() {
+                        continue;
+                    }
+                    if et.nodes[0].special {
+                        continue;
+                    }
+                    if let Some(ref mut p) = et.terms[int::Dir::S] {
+                        p.naming = Some(db.get_term_naming("BRAM.N"));
+                    } else {
+                        unreachable!();
+                    }
+                    if let Some(ref mut p) = grid[(col, row - 1)].terms[int::Dir::N] {
+                        p.naming = Some(db.get_term_naming("BRAM.S"));
+                    } else {
+                        unreachable!();
                     }
                 }
             }
@@ -1391,8 +1448,8 @@ impl Grid {
         if matches!(self.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) {
             for (col, cd) in &self.columns {
                 if matches!(cd.kind, ColumnKind::BramCont(_)) {
-                    grid.tile_mut((col, row_b)).terms[int::Dir::N] = None;
-                    grid.tile_mut((col, row_t)).terms[int::Dir::S] = None;
+                    grid[(col, row_b)].terms[int::Dir::N] = None;
+                    grid[(col, row_t)].terms[int::Dir::S] = None;
                 }
             }
         }
@@ -1425,57 +1482,59 @@ impl Grid {
         }
         for col in self.columns.ids() {
             for row in self.rows.ids() {
-                if let Some(ref mut tile) = grid[(col, row)] {
-                    if db.nodes.key(tile.kind) == "DCM.S3E.DUMMY" {
-                        continue;
-                    }
-                    let mut x = vcc_xlut[col];
-                    let mut y = vcc_ylut[row];
-                    if self.kind == GridKind::Virtex2 {
-                        // Look, just..... don't ask me.
-                        x = col.to_idx();
-                        if col == col_l {
-                            if row == row_b {
-                                y = self.rows.len() - 2;
-                            } else if row == row_t {
-                                y = self.rows.len() - 1;
-                            } else {
-                                y -= 1;
-                            }
-                        } else if col == col_r {
-                            if row == row_b {
-                                y = 0;
-                                x += 1;
-                            } else if row == row_t {
-                                y = 1;
-                                x += 1;
-                            } else {
-                                y += 1;
-                            }
-                        } else if col < self.col_clk {
-                            if row == row_b {
-                                y = 0;
-                            } else if row == row_t {
-                                y = 1;
-                            } else {
-                                y += 1;
-                            }
+                let tile = &mut grid[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                if db.nodes.key(tile.nodes[0].kind) == "DCM.S3E.DUMMY" {
+                    continue;
+                }
+                let mut x = vcc_xlut[col];
+                let mut y = vcc_ylut[row];
+                if self.kind == GridKind::Virtex2 {
+                    // Look, just..... don't ask me.
+                    x = col.to_idx();
+                    if col == col_l {
+                        if row == row_b {
+                            y = self.rows.len() - 2;
+                        } else if row == row_t {
+                            y = self.rows.len() - 1;
                         } else {
-                            if row == row_b {
-                                y = 2;
-                            } else if row == row_t {
-                                y = 3;
-                            } else {
-                                y += 3;
-                                if y >= self.rows.len() {
-                                    y -= self.rows.len();
-                                    x += 1;
-                                }
+                            y -= 1;
+                        }
+                    } else if col == col_r {
+                        if row == row_b {
+                            y = 0;
+                            x += 1;
+                        } else if row == row_t {
+                            y = 1;
+                            x += 1;
+                        } else {
+                            y += 1;
+                        }
+                    } else if col < self.col_clk {
+                        if row == row_b {
+                            y = 0;
+                        } else if row == row_t {
+                            y = 1;
+                        } else {
+                            y += 1;
+                        }
+                    } else {
+                        if row == row_b {
+                            y = 2;
+                        } else if row == row_t {
+                            y = 3;
+                        } else {
+                            y += 3;
+                            if y >= self.rows.len() {
+                                y -= self.rows.len();
+                                x += 1;
                             }
                         }
                     }
-                    tile.tie_name = Some(format!("VCC_X{x}Y{y}"));
                 }
+                tile.nodes[0].tie_name = Some(format!("VCC_X{x}Y{y}"));
             }
         }
 

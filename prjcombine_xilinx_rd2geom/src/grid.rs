@@ -126,16 +126,18 @@ impl GridBuilder {
                             x.node_namings.insert(k, v);
                         }
                         Some((_, v2)) => {
-                            for (kk, vv) in v {
-                                match v2.get(kk) {
+                            for (kk, vv) in v.wires {
+                                match v2.wires.get(&kk) {
                                     None => {
-                                        v2.insert(kk, vv);
+                                        v2.wires.insert(kk, vv);
                                     }
                                     Some(vv2) => {
                                         assert_eq!(&vv, vv2);
                                     }
                                 }
                             }
+                            assert_eq!(v.wire_bufs, v2.wire_bufs);
+                            assert_eq!(v.ext_pips, v2.ext_pips);
                         }
                     }
                 }

@@ -1,8 +1,8 @@
 use crate::int::*;
 use crate::{ColId, RowId, SlrId};
 use serde::{Serialize, Deserialize};
-use enum_map::{EnumMap, enum_map};
-use prjcombine_entity::{EntityVec, EntityId, EntityIds};
+use enum_map::EnumMap;
+use prjcombine_entity::{EntityVec, EntityId, EntityIds, EntityPartVec};
 use ndarray::Array2;
 use std::collections::HashMap;
 
@@ -16,7 +16,7 @@ pub struct ExpandedGrid<'a> {
     pub tie_pin_gnd: Option<String>,
     pub tie_pin_vcc: Option<String>,
     pub tie_pin_pullup: Option<String>,
-    pub tiles: EntityVec<SlrId, Array2<Option<ExpandedTile>>>,
+    pub tiles: EntityVec<SlrId, Array2<ExpandedTile>>,
     pub slr_wires: HashMap<IntWire, IntWire>,
 }
 
@@ -62,30 +62,26 @@ impl<'a> ExpandedGrid<'a> {
 }
 
 impl core::ops::Index<Coord> for ExpandedSlrRef<'_, '_> {
-    type Output = Option<ExpandedTile>;
-    fn index(&self, xy: Coord) -> &Option<ExpandedTile> {
+    type Output = ExpandedTile;
+    fn index(&self, xy: Coord) -> &ExpandedTile {
         &self.grid.tiles[self.slr][[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
 impl core::ops::Index<Coord> for ExpandedSlrRefMut<'_, '_> {
-    type Output = Option<ExpandedTile>;
-    fn index(&self, xy: Coord) -> &Option<ExpandedTile> {
+    type Output = ExpandedTile;
+    fn index(&self, xy: Coord) -> &ExpandedTile {
         &self.grid.tiles[self.slr][[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
 impl core::ops::IndexMut<Coord> for ExpandedSlrRefMut<'_, '_> {
-    fn index_mut(&mut self, xy: Coord) -> &mut Option<ExpandedTile> {
+    fn index_mut(&mut self, xy: Coord) -> &mut ExpandedTile {
         &mut self.grid.tiles[self.slr][[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
 impl ExpandedSlrRef<'_, '_> {
-    pub fn tile(&self, xy: Coord) -> &ExpandedTile {
-        self[xy].as_ref().unwrap()
-    }
-
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.grid.tiles[self.slr].shape()[0])
     }
@@ -96,44 +92,38 @@ impl ExpandedSlrRef<'_, '_> {
 }
 
 impl ExpandedSlrRefMut<'_, '_> {
-    pub fn tile(&self, xy: Coord) -> &ExpandedTile {
-        self[xy].as_ref().unwrap()
-    }
-
-    pub fn tile_mut(&mut self, xy: Coord) -> &mut ExpandedTile {
-        self[xy].as_mut().unwrap()
-    }
-
     pub fn fill_tile(&mut self, xy: Coord, kind: &str, naming: &str, name: String) {
-        assert!(self[xy].is_none());
-        self[xy] = Some(ExpandedTile {
-            kind: self.grid.db.get_node(kind),
-            name,
+        assert!(self[xy].nodes.is_empty());
+        let kind = self.grid.db.get_node(kind);
+        let naming = self.grid.db.get_node_naming(naming);
+        self[xy].nodes.push(ExpandedTileNode {
+            kind,
+            tiles: [xy].into_iter().collect(),
+            names: [(NodeRawTileId::from_idx(0), name)].into_iter().collect(),
             tie_name: None,
-            naming: self.grid.db.get_node_naming(naming),
+            naming,
             special: false,
-            intfs: vec![],
-            terms: enum_map!(_ => None),
         });
     }
 
     pub fn fill_tile_special(&mut self, xy: Coord, kind: &str, naming: &str, name: String) {
-        assert!(self[xy].is_none());
-        self[xy] = Some(ExpandedTile {
-            kind: self.grid.db.get_node(kind),
-            name,
+        assert!(self[xy].nodes.is_empty());
+        let kind = self.grid.db.get_node(kind);
+        let naming = self.grid.db.get_node_naming(naming);
+        self[xy].nodes.push(ExpandedTileNode {
+            kind,
+            tiles: [xy].into_iter().collect(),
+            names: [(NodeRawTileId::from_idx(0), name)].into_iter().collect(),
             tie_name: None,
-            naming: self.grid.db.get_node_naming(naming),
+            naming,
             special: true,
-            intfs: vec![],
-            terms: enum_map!(_ => None),
         });
     }
 
     pub fn nuke_rect(&mut self, x: ColId, y: RowId, w: usize, h: usize) {
         for dx in 0..w {
             for dy in 0..h {
-                self[(x + dx, y + dy)] = None;
+                self[(x + dx, y + dy)] = Default::default();
             }
         }
     }
@@ -169,8 +159,8 @@ impl ExpandedSlrRefMut<'_, '_> {
                 assert!(a.1 < b.1);
             }
         }
-        self.tile_mut(a).terms[dir] = Some(fwd);
-        self.tile_mut(b).terms[!dir] = Some(bwd);
+        self[a].terms[dir] = Some(fwd);
+        self[b].terms[!dir] = Some(bwd);
     }
 
     pub fn fill_term_pair_anon(&mut self, a: Coord, b: Coord, fwd: TermKindId, bwd: TermKindId) {
@@ -241,7 +231,7 @@ impl ExpandedSlrRefMut<'_, '_> {
         let kind = self.grid.db.get_term(kind);
         let naming = self.grid.db.get_term_naming(naming);
         let dir = self.grid.db.terms[kind].dir;
-        self.tile_mut(xy).terms[dir] = Some(ExpandedTileTerm {
+        self[xy].terms[dir] = Some(ExpandedTileTerm {
             target: None,
             kind,
             tile: Some(tile),
@@ -253,7 +243,7 @@ impl ExpandedSlrRefMut<'_, '_> {
     pub fn fill_term_anon(&mut self, xy: Coord, kind: &str) {
         let kind = self.grid.db.get_term(kind);
         let dir = self.grid.db.terms[kind].dir;
-        self.tile_mut(xy).terms[dir] = Some(ExpandedTileTerm {
+        self[xy].terms[dir] = Some(ExpandedTileTerm {
             target: None,
             kind,
             tile: None,
@@ -271,13 +261,13 @@ impl ExpandedSlrRefMut<'_, '_> {
         for row in self.rows() {
             let mut prev = None;
             for col in self.cols() {
-                if self[(col, row)].is_none() {
+                if self[(col, row)].nodes.is_empty() {
                     continue;
                 }
-                if prev.is_some() && self.tile((col, row)).terms[Dir::W].is_none() {
+                if prev.is_some() && self[(col, row)].terms[Dir::W].is_none() {
                     self.fill_term_pair_anon((prev.unwrap(), row), (col, row), pass_e, pass_w);
                 }
-                if self.tile((col, row)).terms[Dir::E].is_none() {
+                if self[(col, row)].terms[Dir::E].is_none() {
                     prev = Some(col);
                 } else {
                     prev = None;
@@ -288,13 +278,13 @@ impl ExpandedSlrRefMut<'_, '_> {
         for col in self.cols() {
             let mut prev = None;
             for row in self.rows() {
-                if self[(col, row)].is_none() {
+                if self[(col, row)].nodes.is_empty() {
                     continue;
                 }
-                if prev.is_some() && self.tile((col, row)).terms[Dir::S].is_none() {
+                if prev.is_some() && self[(col, row)].terms[Dir::S].is_none() {
                     self.fill_term_pair_anon((col, prev.unwrap()), (col, row), pass_n, pass_s);
                 }
-                if self.tile((col, row)).terms[Dir::N].is_none() {
+                if self[(col, row)].terms[Dir::N].is_none() {
                     prev = Some(row);
                 } else {
                     prev = None;
@@ -308,7 +298,7 @@ impl ExpandedGrid<'_> {
     pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
         let slr = self.slr(wire.0);
         loop {
-            let tile = slr.tile(wire.1);
+            let tile = &slr[wire.1];
             let wi = &self.db.wires[wire.2];
             match wi.kind {
                 WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
@@ -316,28 +306,31 @@ impl ExpandedGrid<'_> {
                         let term = &self.db.terms[t.kind];
                         match term.wires.get(wire.2) {
                             Some(&TermInfo::BlackHole) => return None,
-                            Some(&TermInfo::Pass(wf)) => {
+                            Some(&TermInfo::PassNear(wf)) => {
                                 if let Some(n) = t.naming {
                                     let n = &self.db.term_namings[n];
                                     if n.wires_out.contains_id(wire.2) {
                                         break;
                                     }
                                 }
-                                match wf {
-                                    TermWireIn::Near(wf) => {
-                                        wire.2 = wf;
-                                    }
-                                    TermWireIn::Far(wf) => {
-                                        // horrible hack alert
-                                        if self.db.nodes.key(slr.tile(t.target.unwrap()).kind) == "DCM.S3.DUMMY" &&
-                                            self.db.wires[wf].name.starts_with("OMUX") &&
-                                            matches!(self.db.wires[wf].kind, WireKind::MuxOut) {
-                                                break;
-                                        }
-                                        wire.1 = t.target.unwrap();
-                                        wire.2 = wf;
+                                wire.2 = wf;
+                            }
+                            Some(&TermInfo::PassFar(wf)) => {
+                                if let Some(n) = t.naming {
+                                    let n = &self.db.term_namings[n];
+                                    if n.wires_out.contains_id(wire.2) {
+                                        break;
                                     }
                                 }
+                                // horrible hack alert
+                                // XXX kill this
+                                if self.db.nodes.key(slr[t.target.unwrap()].nodes[0].kind) == "DCM.S3.DUMMY" &&
+                                    self.db.wires[wf].name.starts_with("OMUX") &&
+                                    matches!(self.db.wires[wf].kind, WireKind::MuxOut) {
+                                        break;
+                                }
+                                wire.1 = t.target.unwrap();
+                                wire.2 = wf;
                             }
                             None => {
                                 // horrible hack alert
@@ -364,15 +357,53 @@ impl ExpandedGrid<'_> {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ExpandedTile {
+    pub nodes: Vec<ExpandedTileNode>,
+    pub intfs: Vec<ExpandedTileIntf>,
+    pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
+}
+
+impl ExpandedTile {
+    pub fn insert_intf(&mut self, pos: usize, kind: IntfKindId, name: String, naming: IntfNamingId) {
+        self.intfs.insert(pos, ExpandedTileIntf {
+            kind,
+            name,
+            naming,
+        });
+    }
+
+    pub fn add_intf(&mut self, kind: IntfKindId, name: String, naming: IntfNamingId) {
+        self.intfs.push(ExpandedTileIntf {
+            kind,
+            name,
+            naming,
+        });
+    }
+
+    pub fn add_xnode(&mut self, kind: NodeKindId, names: &[&str], naming: NodeNamingId, coords: &[Coord]) {
+        assert!(!self.nodes.is_empty());
+        let names: EntityVec<_, _> = names.into_iter().map(|x| x.to_string()).collect();
+        let names = names.into_iter().collect();
+        self.nodes.push(ExpandedTileNode {
+            kind,
+            tiles: coords.into_iter().copied().collect(),
+            names,
+            tie_name: None,
+            naming,
+            special: true,
+        });
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ExpandedTileNode {
     pub kind: NodeKindId,
-    pub name: String,
+    pub tiles: EntityVec<NodeTileId, Coord>,
+    pub names: EntityPartVec<NodeRawTileId, String>,
     pub tie_name: Option<String>,
     pub naming: NodeNamingId,
     pub special: bool,
-    pub intfs: Vec<ExpandedTileIntf>,
-    pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

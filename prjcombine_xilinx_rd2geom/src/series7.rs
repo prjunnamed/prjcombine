@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord, self as rawdump};
+use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ExtraDie, PsPin, ColId, RowId, SlrId, int, int::Dir};
 use prjcombine_xilinx_geom::series7::{self, GridKind, ColumnKind, IoColumn, IoKind, HoleKind, Hole, GtColumn, GtKind, expand_grid};
 use prjcombine_entity::{EntityVec, EntityId};

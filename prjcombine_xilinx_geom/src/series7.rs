@@ -580,30 +580,30 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                 let y = yb + row.to_idx();
                 let tie_y = tie_yb + row.to_idx();
                 slr.fill_tile((col, row), "INT", &format!("INT.{lr}"), format!("INT_{lr}_X{x}Y{y}"));
-                slr.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                slr[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Io => {
-                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF"),
-                            name: format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            naming: db.get_intf_naming(&format!("INTF.{lr}")),
-                        });
+                        slr[(col, row)].add_intf(
+                            db.get_intf("INTF"),
+                            format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        );
                     }
                     ColumnKind::Bram => {
-                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.BRAM"),
-                            name: format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            naming: db.get_intf_naming(&format!("INTF.{lr}")),
-                        });
+                        slr[(col, row)].add_intf(
+                            db.get_intf("INTF.BRAM"),
+                            format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        );
                     }
                     ColumnKind::Dsp | ColumnKind::Cmt | ColumnKind::Cfg | ColumnKind::Clk => {
-                        slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF"),
-                            name: format!("INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            naming: db.get_intf_naming(&format!("INTF.{lr}")),
-                        });
+                        slr[(col, row)].add_intf(
+                            db.get_intf("INTF"),
+                            format!("INT_INTERFACE_{lr}_X{x}Y{y}"),
+                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        );
                     }
                     ColumnKind::Gt => (),
                 }
@@ -651,11 +651,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                 slr.fill_term_anon((col, row), "W");
                 let y = yb + row.to_idx();
                 let x = xlut[col];
-                slr.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF"),
-                    name: format!("INT_INTERFACE_PSS_L_X{x}Y{y}"),
-                    naming: db.get_intf_naming("INTF.PSS"),
-                });
+                slr[(col, row)].add_intf(
+                    db.get_intf("INTF"),
+                    format!("INT_INTERFACE_PSS_L_X{x}Y{y}"),
+                    db.get_intf_naming("INTF.PSS"),
+                );
             }
         }
 
@@ -677,25 +677,27 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                     for dy in 0..25 {
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
-                        slr.tile_mut((col_l, row)).intfs.clear();
-                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}"),
-                            naming: db.get_intf_naming("INTF.PCIE_R"),
-                        });
-                        slr.tile_mut((col_r, row)).intfs.clear();
+                        let tile_l = &mut slr[(col_l, row)];
+                        tile_l.intfs.clear();
+                        tile_l.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}"),
+                            db.get_intf_naming("INTF.PCIE_R"),
+                        );
+                        let tile_r = &mut slr[(col_r, row)];
+                        tile_r.intfs.clear();
                         if hole.kind == HoleKind::Pcie2Left {
-                            slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                                kind: db.get_intf("INTF.DELAY"),
-                                name: format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}"),
-                                naming: db.get_intf_naming("INTF.PCIE_LEFT_L"),
-                            });
+                            tile_r.add_intf(
+                                db.get_intf("INTF.DELAY"),
+                                format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}"),
+                                db.get_intf_naming("INTF.PCIE_LEFT_L"),
+                            );
                         } else {
-                            slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                                kind: db.get_intf("INTF.DELAY"),
-                                name: format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}"),
-                                naming: db.get_intf_naming("INTF.PCIE_L"),
-                            });
+                            tile_r.add_intf(
+                                db.get_intf("INTF.DELAY"),
+                                format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}"),
+                                db.get_intf_naming("INTF.PCIE_L"),
+                            );
                         }
                     }
                 }
@@ -713,18 +715,20 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                     for dy in 0..50 {
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
-                        slr.tile_mut((col_l, row)).intfs.clear();
-                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}"),
-                            naming: db.get_intf_naming("INTF.PCIE3_R"),
-                        });
-                        slr.tile_mut((col_r, row)).intfs.clear();
-                        slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}"),
-                            naming: db.get_intf_naming("INTF.PCIE3_L"),
-                        });
+                        let tile_l = &mut slr[(col_l, row)];
+                        tile_l.intfs.clear();
+                        tile_l.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}"),
+                            db.get_intf_naming("INTF.PCIE3_R"),
+                        );
+                        let tile_r = &mut slr[(col_r, row)];
+                        tile_r.intfs.clear();
+                        tile_r.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}"),
+                            db.get_intf_naming("INTF.PCIE3_L"),
+                        );
                     }
                 }
                 HoleKind::GtpLeft => {
@@ -744,12 +748,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                     for dy in 0..50 {
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
-                        slr.tile_mut((col_l, row)).intfs.clear();
-                        slr.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("GTP_INT_INTERFACE_R_X{xl}Y{y}"),
-                            naming: db.get_intf_naming("INTF.GTP_R"),
-                        });
+                        let tile = &mut slr[(col_l, row)];
+                        tile.intfs.clear();
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("GTP_INT_INTERFACE_R_X{xl}Y{y}"),
+                            db.get_intf_naming("INTF.GTP_R"),
+                        );
                         slr.fill_term_anon((col_l, row), "E");
                         slr.fill_term_anon((col_r, row), "W");
                     }
@@ -771,12 +776,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                     for dy in 0..50 {
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
-                        slr.tile_mut((col_r, row)).intfs.clear();
-                        slr.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("GTP_INT_INTERFACE_L_X{xr}Y{y}"),
-                            naming: db.get_intf_naming("INTF.GTP_L"),
-                        });
+                        let tile = &mut slr[(col_r, row)];
+                        tile.intfs.clear();
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("GTP_INT_INTERFACE_L_X{xr}Y{y}"),
+                            db.get_intf_naming("INTF.GTP_L"),
+                        );
                         slr.fill_term_anon((col_l, row), "E");
                         slr.fill_term_anon((col_r, row), "W");
                     }
@@ -797,12 +803,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                             GtKind::Gtx => "GTX",
                             GtKind::Gth => "GTH",
                         };
-                        slr.tile_mut((gtcol.col, row)).intfs.clear();
-                        slr.tile_mut((gtcol.col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("{t}_INT_INTERFACE_L_X{x}Y{y}"),
-                            naming: db.get_intf_naming(&format!("INTF.{t}_L")),
-                        });
+                        let tile = &mut slr[(gtcol.col, row)];
+                        tile.intfs.clear();
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("{t}_INT_INTERFACE_L_X{x}Y{y}"),
+                            db.get_intf_naming(&format!("INTF.{t}_L")),
+                        );
                     }
                 }
             }
@@ -838,26 +845,27 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
                             GtKind::Gtx => "GTX",
                             GtKind::Gth => "GTH",
                         };
-                        slr.tile_mut((gtcol.col, row)).intfs.clear();
-                        slr.tile_mut((gtcol.col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("{t}_INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming(&format!("INTF.{t}")),
-                        });
+                        let tile = &mut slr[(gtcol.col, row)];
+                        tile.intfs.clear();
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("{t}_INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming(&format!("INTF.{t}")),
+                        );
                     }
                 }
             }
         }
 
         for col in slr.cols() {
-            if slr[(col, row_b)].is_some() {
+            if !slr[(col, row_b)].nodes.is_empty() {
                 if grid.has_no_tbuturn {
                     slr.fill_term_anon((col, row_b), "S.HOLE");
                 } else {
                     slr.fill_term_anon((col, row_b), "S");
                 }
             }
-            if slr[(col, row_t)].is_some() {
+            if !slr[(col, row_t)].nodes.is_empty() {
                 if grid.has_no_tbuturn {
                     slr.fill_term_anon((col, row_t), "N.HOLE");
                 } else {
@@ -866,10 +874,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
             }
         }
         for row in slr.rows() {
-            if slr[(col_l, row)].is_some() {
+            if !slr[(col_l, row)].nodes.is_empty() {
                 slr.fill_term_anon((col_l, row), "W");
             }
-            if slr[(col_r, row)].is_some() {
+            if !slr[(col_r, row)].nodes.is_empty() {
                 slr.fill_term_anon((col_r, row), "E");
             }
         }
@@ -881,7 +889,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
             let naming_s = db.get_term_naming("BRKH.S");
             let naming_n = db.get_term_naming("BRKH.N");
             for col in slr.cols() {
-                if slr[(col, row_s)].is_some() && slr[(col, row_n)].is_some() {
+                if !slr[(col, row_s)].nodes.is_empty() && !slr[(col, row_n)].nodes.is_empty() {
                     let x = xlut[col];
                     let y = yb + row_s.to_idx();
                     slr.fill_term_pair_buf((col, row_s), (col, row_n), term_n, term_s, format!("BRKH_INT_X{x}Y{y}"), naming_s, naming_n);
@@ -906,7 +914,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extr
             for dy in 0..49 {
                 let row_s = slr_s.rows().next_back().unwrap() - 49 + dy;
                 let row_n = slr_n.rows().next().unwrap() + 1 + dy;
-                if slr_s[(col, row_s)].is_some() && slr_n[(col, row_n)].is_some() {
+                if !slr_s[(col, row_s)].nodes.is_empty() && !slr_n[(col, row_n)].nodes.is_empty() {
                     slr_wires.insert((slrid_n, (col, row_n), lvb6), (slrid_s, (col, row_s), lvb6));
                 }
             }

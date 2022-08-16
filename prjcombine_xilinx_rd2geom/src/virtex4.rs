@@ -282,10 +282,10 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     builder.extract_nodes();
 
-    builder.extract_term("W", Dir::W, "L_TERM_INT", "TERM.W");
-    builder.extract_term("E", Dir::E, "R_TERM_INT", "TERM.E");
-    builder.extract_term("S", Dir::S, "B_TERM_INT", "TERM.S");
-    builder.extract_term("N", Dir::N, "T_TERM_INT", "TERM.N");
+    builder.extract_term("W", None, Dir::W, "L_TERM_INT", "TERM.W");
+    builder.extract_term("E", None, Dir::E, "R_TERM_INT", "TERM.E");
+    builder.extract_term("S", None, Dir::S, "B_TERM_INT", "TERM.S");
+    builder.extract_term("N", None, Dir::N, "T_TERM_INT", "TERM.N");
     for tkn in [
         "MGT_AL_BOT",
         "MGT_AL_MID",
@@ -301,7 +301,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: xy.x + 1,
                     y: xy.y - 9 + delta,
                 };
-                builder.extract_term_tile("W", Dir::W, xy, format!("TERM.W.MGT{i}"), int_xy);
+                builder.extract_term_tile("W", None, Dir::W, xy, format!("TERM.W.MGT{i}"), int_xy);
             }
         }
     }
@@ -320,7 +320,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: xy.x - 1,
                     y: xy.y - 9 + delta,
                 };
-                builder.extract_term_tile("E", Dir::E, xy, format!("TERM.E.MGT{i}"), int_xy);
+                builder.extract_term_tile("E", None, Dir::E, xy, format!("TERM.E.MGT{i}"), int_xy);
             }
         }
     }
@@ -353,8 +353,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             let naming_w = format!("TERM.PPC.W{i}");
             let naming_e = format!("TERM.PPC.E{i}");
             let xy = if i < 11 { pb_xy } else { pt_xy };
-            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy, &naming_w)), Some(xy), int_w_xy, &[]);
-            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy, &naming_e)), Some(xy), int_e_xy, &[]);
+            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some(xy), Some(xy), Some(&naming_w), None, int_w_xy, &[]);
+            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some(xy), Some(xy), Some(&naming_e), None, int_e_xy, &[]);
         }
         for (i, delta) in [
             1, 3, 5, 7, 9, 11, 13
@@ -370,8 +370,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             let ab = if i < 5 {'A'} else {'B'};
             let naming_s = format!("TERM.PPC.S{i}");
             let naming_n = format!("TERM.PPC.N{i}");
-            builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some((pt_xy, &naming_s)), Some(pb_xy), int_s_xy, &[]);
-            builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some((pb_xy, &naming_n)), Some(pt_xy), int_n_xy, &[]);
+            builder.extract_pass_tile(format!("PPC{ab}.S"), Dir::S, int_n_xy, Some(pt_xy), Some(pb_xy), Some(&naming_s), None, int_s_xy, &[]);
+            builder.extract_pass_tile(format!("PPC{ab}.N"), Dir::N, int_s_xy, Some(pb_xy), Some(pt_xy), Some(&naming_n), None, int_n_xy, &[]);
         }
     }
 

@@ -442,8 +442,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some((xy_r, "INT_BUFS.W")), Some(xy_l), int_w_xy, &lh_all);
-        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some((xy_l, "INT_BUFS.E")), Some(xy_r), int_e_xy, &lh_all);
+        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some(xy_r), Some(xy_l), Some("INT_BUFS.W"), None, int_w_xy, &lh_all);
+        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some(xy_l), Some(xy_r), Some("INT_BUFS.E"), None, int_e_xy, &lh_all);
     }
     for &xy_l in rd.tiles_by_kind_name("L_TERM_PPC") {
         let mut xy_r = xy_l;
@@ -452,8 +452,8 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some((xy_r, "PPC.W")), Some(xy_l), int_w_xy, &lh_all);
-        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some((xy_l, "PPC.E")), Some(xy_r), int_e_xy, &lh_all);
+        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some(xy_r), Some(xy_l), Some("PPC.W"), None, int_w_xy, &lh_all);
+        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some(xy_l), Some(xy_r), Some("PPC.E"), None, int_e_xy, &lh_all);
     }
 
     builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", true);

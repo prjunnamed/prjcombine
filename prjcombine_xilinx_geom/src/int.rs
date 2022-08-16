@@ -49,6 +49,8 @@ entity_id! {
     pub id NodeNamingId u16, reserve 1;
     pub id TermNamingId u16, reserve 1;
     pub id IntfNamingId u16, reserve 1;
+    pub id NodeTileId u16, reserve 1;
+    pub id NodeRawTileId u16, reserve 1;
     pub id BelTileId u16, reserve 1;
 }
 
@@ -60,7 +62,7 @@ pub struct IntDb {
     pub terms: EntityMap<TermKindId, String, TermKind>,
     pub intfs: EntityMap<IntfKindId, String, IntfKind>,
     pub bels: EntityMap<BelKindId, String, BelKind>,
-    pub node_namings: EntityMap<NodeNamingId, String, EntityPartVec<WireId, String>>,
+    pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub term_namings: EntityMap<TermNamingId, String, TermNaming>,
     pub intf_namings: EntityMap<IntfNamingId, String, IntfNaming>,
 }
@@ -111,13 +113,16 @@ pub enum WireKind {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NodeKind {
-    pub muxes: EntityPartVec<WireId, MuxInfo>,
+    pub tiles: EntityVec<NodeTileId, ()>,
+    pub muxes: BTreeMap<NodeWireId, MuxInfo>,
 }
+
+pub type NodeWireId = (NodeTileId, WireId);
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MuxInfo {
     pub kind: MuxKind,
-    pub ins: BTreeSet<WireId>,
+    pub ins: BTreeSet<NodeWireId>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -125,6 +130,20 @@ pub enum MuxKind {
     Plain,
     Inv,
     OptInv,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+pub struct NodeNaming {
+    pub wires: BTreeMap<NodeWireId, String>,
+    pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
+    pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NodeExtPipNaming {
+    pub tile: NodeRawTileId,
+    pub wire_to: String,
+    pub wire_from: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -136,15 +155,8 @@ pub struct TermKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TermInfo {
     BlackHole,
-    Pass(TermWireIn),
-    BiSplitter(TermWireIn),
-    Mux(BTreeSet<TermWireIn>),
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum TermWireIn {
-    Near(WireId),
-    Far(WireId),
+    PassNear(WireId),
+    PassFar(WireId),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]

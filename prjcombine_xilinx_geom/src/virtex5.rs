@@ -359,30 +359,31 @@ impl Grid {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
+                let tile = &mut grid[(col, row)];
+                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io => {
-                        grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF"),
-                            name: format!("INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming("INTF"),
-                        });
+                        tile.add_intf(
+                            db.get_intf("INTF"),
+                            format!("INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming("INTF"),
+                        );
                     }
                     ColumnKind::Gtp | ColumnKind::Gtx if col.to_idx() != 0 => {
-                        grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("GTP_INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming("INTF.GTP"),
-                        });
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("GTP_INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming("INTF.GTP"),
+                        );
                     }
                     ColumnKind::Gtp | ColumnKind::Gtx => {
-                        grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF.DELAY"),
-                            name: format!("GTX_LEFT_INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming("INTF.GTX_LEFT"),
-                        });
+                        tile.add_intf(
+                            db.get_intf("INTF.DELAY"),
+                            format!("GTX_LEFT_INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming("INTF.GTX_LEFT"),
+                        );
                     }
                 }
             }
@@ -395,24 +396,26 @@ impl Grid {
                 for dy in 0..10 {
                     let row = br + dy;
                     let y = row.to_idx();
-                    grid.tile_mut((col, row)).intfs.clear();
-                    grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.DELAY"),
-                        name: format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF.EMAC"),
-                    });
+                    let tile = &mut grid[(col, row)];
+                    tile.intfs.clear();
+                    tile.add_intf(
+                        db.get_intf("INTF.DELAY"),
+                        format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
+                        db.get_intf_naming("INTF.EMAC"),
+                    );
                 }
             }
             for &br in &col_hard.rows_pcie {
                 for dy in 0..40 {
                     let row = br + dy;
                     let y = row.to_idx();
-                    grid.tile_mut((col, row)).intfs.clear();
-                    grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.DELAY"),
-                        name: format!("PCIE_INT_INTERFACE_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF.PCIE"),
-                    });
+                    let tile = &mut grid[(col, row)];
+                    tile.intfs.clear();
+                    tile.add_intf(
+                        db.get_intf("INTF.DELAY"),
+                        format!("PCIE_INT_INTERFACE_X{x}Y{y}"),
+                        db.get_intf_naming("INTF.PCIE"),
+                    );
                 }
             }
         }
@@ -439,18 +442,20 @@ impl Grid {
                     db.get_term_naming("PPC.E"),
                     db.get_term_naming("PPC.W"),
                 );
-                grid.tile_mut((col_l, row)).intfs.clear();
-                grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF.DELAY"),
-                    name: format!("PPC_L_INT_INTERFACE_X{xl}Y{y}"),
-                    naming: db.get_intf_naming("INTF.PPC_L"),
-                });
-                grid.tile_mut((col_r, row)).intfs.clear();
-                grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF.DELAY"),
-                    name: format!("PPC_R_INT_INTERFACE_X{xr}Y{y}"),
-                    naming: db.get_intf_naming("INTF.PPC_R"),
-                });
+                let tile = &mut grid[(col_l, row)];
+                tile.intfs.clear();
+                tile.add_intf(
+                    db.get_intf("INTF.DELAY"),
+                    format!("PPC_L_INT_INTERFACE_X{xl}Y{y}"),
+                    db.get_intf_naming("INTF.PPC_L"),
+                );
+                let tile = &mut grid[(col_r, row)];
+                tile.intfs.clear();
+                tile.add_intf(
+                    db.get_intf("INTF.DELAY"),
+                    format!("PPC_R_INT_INTERFACE_X{xr}Y{y}"),
+                    db.get_intf_naming("INTF.PPC_R"),
+                );
             }
             let row_b = br - 1;
             let row_t = br + 40;

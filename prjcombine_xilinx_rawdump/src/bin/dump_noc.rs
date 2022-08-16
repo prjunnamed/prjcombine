@@ -1,7 +1,5 @@
 use std::collections::HashMap;
-use prjcombine_xilinx_rawdump::{
-    Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire,
-};
+use prjcombine_xilinx_rawdump::{Part, TkWire};
 use std::error::Error;
 use structopt::StructOpt;
 

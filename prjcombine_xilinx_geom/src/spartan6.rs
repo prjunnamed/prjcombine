@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, int, eint};
+use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, int, eint::{self, ExpandedSlrRefMut, Coord}};
 use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
@@ -116,6 +116,29 @@ impl Gt {
         }
         res
     }
+}
+
+fn fill_intf_rterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, name: String) {
+    slr.fill_term_tile(crd, "E", "TERM.E.INTF", name.clone());
+    let tile = &mut slr[crd];
+    tile.intfs.clear();
+    tile.add_intf(
+        db.get_intf("INTF"),
+        name,
+        db.get_intf_naming("INTF.RTERM"),
+    );
+}
+
+fn fill_intf_lterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, name: String, is_brk: bool) {
+    slr.fill_term_tile(crd, "W", "TERM.W.INTF", name.clone());
+    let tile = &mut slr[crd];
+    tile.intfs.clear();
+    tile.add_intf(
+        db.get_intf("INTF"),
+        name,
+        db.get_intf_naming("INTF.LTERM"),
+    );
+    tile.nodes[0].naming = db.get_node_naming(if is_brk {"INT.TERM.BRK"} else {"INT.TERM"});
 }
 
 impl Grid {
@@ -351,6 +374,7 @@ impl Grid {
         egrid.tie_pin_vcc = Some("HARD1".to_string());
         let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
         let mut grid = egrid.slr_mut(slrid);
+        let def_rt = int::NodeRawTileId::from_idx(0);
 
         let mut tie_x = 0;
         let mut rxlut = EntityVec::new();
@@ -369,13 +393,13 @@ impl Grid {
                 }
                 let bram = if cd.kind == ColumnKind::Bram {if is_brk {"_BRAM_BRK"} else {"_BRAM"}} else {""};
                 grid.fill_tile((col, row), "INT", if is_brk {"INT.BRK"} else {"INT"}, format!("INT{bram}_X{x}Y{y}"));
-                grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                grid[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
                 if matches!(cd.kind, ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus) {
-                    grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: format!("INT_INTERFACE_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF"),
-                    });
+                    grid[(col, row)].add_intf(
+                        db.get_intf("INTF"),
+                        format!("INT_INTERFACE_X{x}Y{y}"),
+                        db.get_intf_naming("INTF"),
+                    );
                 }
             }
             tie_x += 1;
@@ -432,19 +456,20 @@ impl Grid {
             } else {
                 ""
             };
-            let tile = grid.tile_mut((col_l, row));
+            let tile = &mut grid[(col_l, row)];
             let mut ltt = "IOI_LTERM";
             if rd.lio {
-                tile.kind = db.get_node("IOI");
+                let node = &mut tile.nodes[0];
+                node.kind = db.get_node("IOI");
                 if !is_brk {
-                    tile.name = format!("LIOI_INT_X{xl}Y{y}");
+                    node.names[def_rt] = format!("LIOI_INT_X{xl}Y{y}");
                 }
-                tile.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
-                tile.intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF.IOI"),
-                    name: format!("LIOI{brk}_X{xl}Y{y}"),
-                    naming: db.get_intf_naming("INTF.IOI"),
-                });
+                node.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
+                tile.add_intf(
+                    db.get_intf("INTF.IOI"),
+                    format!("LIOI{brk}_X{xl}Y{y}"),
+                    db.get_intf_naming("INTF.IOI"),
+                );
             } else {
                 let cnr = if row == row_bo {
                     Some("LL")
@@ -455,35 +480,36 @@ impl Grid {
                 };
                 if let Some(cnr) = cnr {
                     ltt = "CNR_TL_LTERM";
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: format!("{cnr}_X{xl}Y{y}"),
-                        naming: db.get_intf_naming("INTF.CNR"),
-                    });
+                    tile.add_intf(
+                        db.get_intf("INTF"),
+                        format!("{cnr}_X{xl}Y{y}"),
+                        db.get_intf_naming("INTF.CNR"),
+                    );
                 } else {
                     let carry = if is_brk {"_CARRY"} else {""};
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: format!("INT_INTERFACE{carry}_X{xl}Y{y}"),
-                        naming: db.get_intf_naming("INTF"),
-                    });
+                    tile.add_intf(
+                        db.get_intf("INTF"),
+                        format!("INT_INTERFACE{carry}_X{xl}Y{y}"),
+                        db.get_intf_naming("INTF"),
+                    );
                 }
             }
             let rxl = rxlut[col_l] - 1;
             grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("{ltt}{txtra}_X{rxl}Y{ry}"));
-            let tile = grid.tile_mut((col_r, row));
+            let tile = &mut grid[(col_r, row)];
             let mut rtt = "IOI_RTERM";
             if rd.rio {
-                tile.kind = db.get_node("IOI");
+                let node = &mut tile.nodes[0];
+                node.kind = db.get_node("IOI");
                 if !is_brk {
-                    tile.name = format!("IOI_INT_X{xr}Y{y}");
+                    node.names[def_rt] = format!("IOI_INT_X{xr}Y{y}");
                 }
-                tile.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
-                tile.intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF.IOI"),
-                    name: format!("RIOI{brk}_X{xr}Y{y}"),
-                    naming: db.get_intf_naming("INTF.IOI"),
-                });
+                node.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
+                tile.add_intf(
+                    db.get_intf("INTF.IOI"),
+                    format!("RIOI{brk}_X{xr}Y{y}"),
+                    db.get_intf_naming("INTF.IOI"),
+                );
             } else {
                 let cnr = if row == row_bo {
                     Some("LR_LOWER")
@@ -498,18 +524,18 @@ impl Grid {
                 };
                 if let Some(cnr) = cnr {
                     rtt = "CNR_TR_RTERM";
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: format!("{cnr}_X{xr}Y{y}"),
-                        naming: db.get_intf_naming("INTF.CNR"),
-                    });
+                    tile.add_intf(
+                        db.get_intf("INTF"),
+                        format!("{cnr}_X{xr}Y{y}"),
+                        db.get_intf_naming("INTF.CNR"),
+                    );
                 } else {
                     let carry = if is_brk {"_CARRY"} else {""};
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: format!("INT_INTERFACE{carry}_X{xr}Y{y}"),
-                        naming: db.get_intf_naming("INTF"),
-                    });
+                    tile.add_intf(
+                        db.get_intf("INTF"),
+                        format!("INT_INTERFACE{carry}_X{xr}Y{y}"),
+                        db.get_intf_naming("INTF"),
+                    );
                 }
             }
             let rxr = rxlut[col_r] + 3;
@@ -524,16 +550,17 @@ impl Grid {
                     (row_bi, "INNER", cd.bio == ColumnIoKind::Outer),
                 ] {
                     let y = row.to_idx();
-                    let tile = grid.tile_mut((col, row));
+                    let tile = &mut grid[(col, row)];
+                    let node = &mut tile.nodes[0];
                     let unused = if unused {"_UNUSED"} else {""};
-                    tile.kind = db.get_node("IOI");
-                    tile.name = format!("IOI_INT_X{x}Y{y}");
-                    tile.naming = db.get_node_naming("IOI");
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.IOI"),
-                        name: format!("BIOI_{io}{unused}_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF.IOI"),
-                    });
+                    node.kind = db.get_node("IOI");
+                    node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
+                    node.naming = db.get_node_naming("IOI");
+                    tile.add_intf(
+                        db.get_intf("INTF.IOI"),
+                        format!("BIOI_{io}{unused}_X{x}Y{y}"),
+                        db.get_intf_naming("INTF.IOI"),
+                    );
                 }
             }
             if cd.tio != ColumnIoKind::None {
@@ -542,62 +569,65 @@ impl Grid {
                     (row_ti, "INNER", cd.tio == ColumnIoKind::Outer),
                 ] {
                     let y = row.to_idx();
-                    let tile = grid.tile_mut((col, row));
+                    let tile = &mut grid[(col, row)];
+                    let node = &mut tile.nodes[0];
                     let unused = if unused {"_UNUSED"} else {""};
-                    tile.kind = db.get_node("IOI");
-                    tile.name = format!("IOI_INT_X{x}Y{y}");
-                    tile.naming = db.get_node_naming("IOI");
-                    tile.intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.IOI"),
-                        name: format!("TIOI_{io}{unused}_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF.IOI"),
-                    });
+                    node.kind = db.get_node("IOI");
+                    node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
+                    node.naming = db.get_node_naming("IOI");
+                    tile.add_intf(
+                        db.get_intf("INTF.IOI"),
+                        format!("TIOI_{io}{unused}_X{x}Y{y}"),
+                        db.get_intf_naming("INTF.IOI"),
+                    );
                 }
             }
         }
 
         let yc = self.row_clk().to_idx();
-        grid.tile_mut((self.col_clk, self.row_clk())).intfs.push(eint::ExpandedTileIntf {
-            kind: db.get_intf("INTF"),
-            name: format!("INT_INTERFACE_REGC_X{xc}Y{yc}"),
-            naming: db.get_intf_naming("INTF.REGC"),
-        });
+        grid[(self.col_clk, self.row_clk())].add_intf(
+            db.get_intf("INTF"),
+            format!("INT_INTERFACE_REGC_X{xc}Y{yc}"),
+            db.get_intf_naming("INTF.REGC"),
+        );
 
         for br in self.get_dcms() {
             for row in [br + 7, br + 8] {
                 let y = row.to_idx();
-                let tile = grid.tile_mut((self.col_clk, row));
-                tile.kind = db.get_node("IOI");
-                tile.name = format!("IOI_INT_X{xc}Y{y}");
-                tile.naming = db.get_node_naming("IOI");
-                tile.intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF.IOI"),
-                    name: format!("INT_INTERFACE_IOI_X{xc}Y{y}"),
-                    naming: db.get_intf_naming("INTF"),
-                });
+                let tile = &mut grid[(self.col_clk, row)];
+                let node = &mut tile.nodes[0];
+                node.kind = db.get_node("IOI");
+                node.names[def_rt] = format!("IOI_INT_X{xc}Y{y}");
+                node.naming = db.get_node_naming("IOI");
+                tile.add_intf(
+                    db.get_intf("INTF.IOI"),
+                    format!("INT_INTERFACE_IOI_X{xc}Y{y}"),
+                    db.get_intf_naming("INTF"),
+                );
             }
         }
 
         for br in self.get_plls() {
             let row = br + 7;
             let y = row.to_idx();
-            let tile = grid.tile_mut((self.col_clk, row));
-            tile.intfs.push(eint::ExpandedTileIntf {
-                kind: db.get_intf("INTF"),
-                name: format!("INT_INTERFACE_CARRY_X{xc}Y{y}"),
-                naming: db.get_intf_naming("INTF"),
-            });
+            let tile = &mut grid[(self.col_clk, row)];
+            tile.add_intf(
+                db.get_intf("INTF"),
+                format!("INT_INTERFACE_CARRY_X{xc}Y{y}"),
+                db.get_intf_naming("INTF"),
+            );
             let row = br + 8;
             let y = row.to_idx();
-            let tile = grid.tile_mut((self.col_clk, row));
-            tile.kind = db.get_node("IOI");
-            tile.name = format!("IOI_INT_X{xc}Y{y}");
-            tile.naming = db.get_node_naming("IOI");
-            tile.intfs.push(eint::ExpandedTileIntf {
-                kind: db.get_intf("INTF.IOI"),
-                name: format!("INT_INTERFACE_IOI_X{xc}Y{y}"),
-                naming: db.get_intf_naming("INTF"),
-            });
+            let tile = &mut grid[(self.col_clk, row)];
+            let node = &mut tile.nodes[0];
+            node.kind = db.get_node("IOI");
+            node.names[def_rt] = format!("IOI_INT_X{xc}Y{y}");
+            node.naming = db.get_node_naming("IOI");
+            tile.add_intf(
+                db.get_intf("INTF.IOI"),
+                format!("INT_INTERFACE_IOI_X{xc}Y{y}"),
+                db.get_intf_naming("INTF"),
+            );
         }
 
         match self.gts {
@@ -625,21 +655,8 @@ impl Grid {
                     let is_brk = dy == 0;
                     let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
                     let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", tile_l.clone());
-                    grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", tile_r.clone());
-                    grid.tile_mut((col_l, row)).intfs.clear();
-                    grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_l,
-                        naming: db.get_intf_naming("INTF.RTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).intfs.clear();
-                    grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_r,
-                        naming: db.get_intf_naming("INTF.LTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).naming = db.get_node_naming(if is_brk {"INT.TERM.BRK"} else {"INT.TERM"});
+                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
+                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
                 }
                 let col_l = bc - 2;
                 let col_r = bc + 2;
@@ -651,21 +668,8 @@ impl Grid {
                     let is_brk = dy == 0;
                     let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
                     let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", tile_l.clone());
-                    grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", tile_r.clone());
-                    grid.tile_mut((col_l, row)).intfs.clear();
-                    grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_l,
-                        naming: db.get_intf_naming("INTF.RTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).intfs.clear();
-                    grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_r,
-                        naming: db.get_intf_naming("INTF.LTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).naming = db.get_node_naming(if is_brk {"INT.TERM.BRK"} else {"INT.TERM"});
+                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
+                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
                 }
             }
             _ => (),
@@ -694,21 +698,8 @@ impl Grid {
                     let is_brk = dy == 0;
                     let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
                     let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", tile_l.clone());
-                    grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", tile_r.clone());
-                    grid.tile_mut((col_l, row)).intfs.clear();
-                    grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_l,
-                        naming: db.get_intf_naming("INTF.RTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).intfs.clear();
-                    grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF"),
-                        name: tile_r,
-                        naming: db.get_intf_naming("INTF.LTERM"),
-                    });
-                    grid.tile_mut((col_r, row)).naming = db.get_node_naming(if is_brk {"INT.TERM.BRK"} else {"INT.TERM"});
+                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
+                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
                 }
             }
             _ => (),
@@ -737,21 +728,8 @@ impl Grid {
                 let rxr = rxlut[col_r] - 1;
                 let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
                 let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", tile_l.clone());
-                grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", tile_r.clone());
-                grid.tile_mut((col_l, row)).intfs.clear();
-                grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF"),
-                    name: tile_l,
-                    naming: db.get_intf_naming("INTF.RTERM"),
-                });
-                grid.tile_mut((col_r, row)).intfs.clear();
-                grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF"),
-                    name: tile_r,
-                    naming: db.get_intf_naming("INTF.LTERM"),
-                });
-                grid.tile_mut((col_r, row)).naming = db.get_node_naming("INT.TERM");
+                fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
+                fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, false);
             }
             let col_l = bcr - 5;
             let col_r = bcr + 7;
@@ -772,21 +750,8 @@ impl Grid {
                 let rxr = rxlut[col_r] - 1;
                 let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
                 let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", tile_l.clone());
-                grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", tile_r.clone());
-                grid.tile_mut((col_l, row)).intfs.clear();
-                grid.tile_mut((col_l, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF"),
-                    name: tile_l,
-                    naming: db.get_intf_naming("INTF.RTERM"),
-                });
-                grid.tile_mut((col_r, row)).intfs.clear();
-                grid.tile_mut((col_r, row)).intfs.push(eint::ExpandedTileIntf {
-                    kind: db.get_intf("INTF"),
-                    name: tile_r,
-                    naming: db.get_intf_naming("INTF.LTERM"),
-                });
-                grid.tile_mut((col_r, row)).naming = db.get_node_naming("INT.TERM");
+                fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
+                fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, false);
             }
         }
 
@@ -806,10 +771,10 @@ impl Grid {
             let ryt = rylut[row_to] + 1;
             let mut row_b = row_bo;
             let mut row_t = row_to;
-            while grid[(col, row_b)].is_none() {
+            while grid[(col, row_b)].nodes.is_empty() {
                 row_b += 1;
             }
-            while grid[(col, row_t)].is_none() {
+            while grid[(col, row_t)].nodes.is_empty() {
                 row_t -= 1;
             }
             if !btt.is_empty() {

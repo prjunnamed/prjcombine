@@ -306,37 +306,38 @@ impl Grid {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                grid.tile_mut((col, row)).tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
+                let tile = &mut grid[(col, row)];
+                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Io if col < self.col_cfg => {
-                        grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF"),
-                            name: format!("IOI_L_INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming("INTF.IOI_L"),
-                        });
+                        tile.add_intf(
+                            db.get_intf("INTF"),
+                            format!("IOI_L_INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming("INTF.IOI_L"),
+                        );
                     }
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
-                        grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                            kind: db.get_intf("INTF"),
-                            name: format!("INT_INTERFACE_X{x}Y{y}"),
-                            naming: db.get_intf_naming("INTF"),
-                        });
+                        tile.add_intf(
+                            db.get_intf("INTF"),
+                            format!("INT_INTERFACE_X{x}Y{y}"),
+                            db.get_intf_naming("INTF"),
+                        );
                     }
                     ColumnKind::Gt => {
                         if x == 0 {
-                            grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                                kind: db.get_intf("INTF.DELAY"),
-                                name: format!("GT_L_INT_INTERFACE_X{x}Y{y}"),
-                                naming: db.get_intf_naming("INTF.GT_L"),
-                            });
+                            tile.add_intf(
+                                db.get_intf("INTF.DELAY"),
+                                format!("GT_L_INT_INTERFACE_X{x}Y{y}"),
+                                db.get_intf_naming("INTF.GT_L"),
+                            );
                         } else {
-                            grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                                kind: db.get_intf("INTF.DELAY"),
-                                name: format!("GTX_INT_INTERFACE_X{x}Y{y}"),
-                                naming: db.get_intf_naming("INTF.GTX"),
-                            });
+                            tile.add_intf(
+                                db.get_intf("INTF.DELAY"),
+                                format!("GTX_INT_INTERFACE_X{x}Y{y}"),
+                                db.get_intf_naming("INTF.GTX"),
+                            );
                         }
                     }
                 }
@@ -367,12 +368,13 @@ impl Grid {
                 for dy in 0..10 {
                     let row = br + dy;
                     let y = row.to_idx();
-                    grid.tile_mut((col, row)).intfs.clear();
-                    grid.tile_mut((col, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.DELAY"),
-                        name: format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
-                        naming: db.get_intf_naming("INTF.EMAC"),
-                    });
+                    let tile = &mut grid[(col, row)];
+                    tile.intfs.clear();
+                    tile.add_intf(
+                        db.get_intf("INTF.DELAY"),
+                        format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
+                        db.get_intf_naming("INTF.EMAC"),
+                    );
                 }
             }
             for &br in &col_hard.rows_pcie {
@@ -380,16 +382,16 @@ impl Grid {
                 for dy in 0..20 {
                     let row = br + dy;
                     let y = row.to_idx();
-                    grid.tile_mut((col - 3, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.DELAY"),
-                        name: format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3),
-                        naming: db.get_intf_naming("INTF.PCIE_L"),
-                    });
-                    grid.tile_mut((col - 2, row)).intfs.push(eint::ExpandedTileIntf {
-                        kind: db.get_intf("INTF.DELAY"),
-                        name: format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2),
-                        naming: db.get_intf_naming("INTF.PCIE_R"),
-                    });
+                    grid[(col - 3, row)].add_intf(
+                        db.get_intf("INTF.DELAY"),
+                        format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3),
+                        db.get_intf_naming("INTF.PCIE_L"),
+                    );
+                    grid[(col - 2, row)].add_intf(
+                        db.get_intf("INTF.DELAY"),
+                        format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2),
+                        db.get_intf_naming("INTF.PCIE_R"),
+                    );
                 }
                 if br.to_idx() != 0 {
                     grid.fill_term_anon((col - 1, br - 1), "N");
@@ -403,10 +405,10 @@ impl Grid {
         let row_b = grid.rows().next().unwrap();
         let row_t = grid.rows().next_back().unwrap();
         for col in grid.cols() {
-            if grid[(col, row_b)].is_some() {
+            if !grid[(col, row_b)].nodes.is_empty() {
                 grid.fill_term_anon((col, row_b), "S.HOLE");
             }
-            if grid[(col, row_t)].is_some() {
+            if !grid[(col, row_t)].nodes.is_empty() {
                 grid.fill_term_anon((col, row_t), "N.HOLE");
             }
         }
