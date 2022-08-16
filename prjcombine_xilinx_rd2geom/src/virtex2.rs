@@ -491,7 +491,7 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
     builder.node_type("TPPC_X0Y0_INT", "PPC", "PPC.T");
     builder.node_type("TPPC_X1Y0_INT", "PPC", "PPC.T");
 
-    builder.wire("PULLUP", int::WireKind::TiePullup, &[
+    let w = builder.wire("PULLUP", int::WireKind::TiePullup, &[
         "VCC_PINWIRE",
         "IOIS_VCC_WIRE",
         "BRAM_VCC_WIRE",
@@ -499,6 +499,9 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         "CNR_VCC_WIRE",
         "GIGABIT_INT_VCC_WIRE",
     ]);
+    builder.extra_name("CLKB_VCC_WIRE", w);
+    builder.extra_name("CLKT_VCC_WIRE", w);
+
     for i in 0..8 {
         builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
             format!("GCLK{i}"),
@@ -511,23 +514,23 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         ]);
     }
 
-    for (i, da1, da2, db) in [
-        (0, Dir::S, None, None),
-        (1, Dir::W, Some(Dir::S), None),
-        (2, Dir::E, None, Some(Dir::S)),
-        (3, Dir::S, Some(Dir::E), None),
-        (4, Dir::S, None, None),
-        (5, Dir::S, Some(Dir::W), None),
-        (6, Dir::W, None, None),
-        (7, Dir::E, Some(Dir::S), None),
-        (8, Dir::E, Some(Dir::N), None),
-        (9, Dir::W, None, None),
-        (10, Dir::N, Some(Dir::W), None),
-        (11, Dir::N, None, None),
-        (12, Dir::N, Some(Dir::E), None),
-        (13, Dir::E, None, Some(Dir::N)),
-        (14, Dir::W, Some(Dir::N), None),
-        (15, Dir::N, None, None),
+    for (i, da1, da2, db, xname) in [
+        (0, Dir::S, None, None, Some(0)),
+        (1, Dir::W, Some(Dir::S), None, None),
+        (2, Dir::E, None, Some(Dir::S), None),
+        (3, Dir::S, Some(Dir::E), None, Some(1)),
+        (4, Dir::S, None, None, Some(2)),
+        (5, Dir::S, Some(Dir::W), None, Some(3)),
+        (6, Dir::W, None, None, None),
+        (7, Dir::E, Some(Dir::S), None, None),
+        (8, Dir::E, Some(Dir::N), None, None),
+        (9, Dir::W, None, None, None),
+        (10, Dir::N, Some(Dir::W), None, Some(0)),
+        (11, Dir::N, None, None, Some(1)),
+        (12, Dir::N, Some(Dir::E), None, Some(2)),
+        (13, Dir::E, None, Some(Dir::N), None),
+        (14, Dir::W, Some(Dir::N), None, None),
+        (15, Dir::N, None, None, Some(3)),
     ] {
         let omux = builder.mux_out(format!("OMUX{i}"), &[
             format!("OMUX{i}"),
@@ -537,6 +540,18 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
             format!("OMUX_{da1}{i}"),
             format!("LPPC_INT_OMUX_{da1}{i}"),
         ]);
+        match (xname, da1) {
+            (None, _) => (),
+            (Some(i), Dir::N) => {
+                builder.extra_name_sub(format!("CLKB_TO_OMUXL{i}"), 0, omux_da1);
+                builder.extra_name_sub(format!("CLKB_TO_OMUXR{i}"), 1, omux_da1);
+            }
+            (Some(i), Dir::S) => {
+                builder.extra_name_sub(format!("CLKT_TO_OMUXL{i}"), 0, omux_da1);
+                builder.extra_name_sub(format!("CLKT_TO_OMUXR{i}"), 1, omux_da1);
+            }
+            _ => unreachable!(),
+        }
         if let Some(da2) = da2 {
             builder.branch(omux_da1, da2, format!("OMUX{i}.{da1}{da2}"), &[
                 format!("OMUX_{da1}{da2}{i}"),
@@ -1002,6 +1017,24 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
     builder.extra_name("RTERM_PCI_OUT_U0", out_pci0);
     builder.extra_name("RTERM_PCI_OUT_U1", out_pci1);
 
+    for i in 0..8 {
+        let w = builder.mux_out(format!("CLK.IMUX.SEL{i}"), &[""]);
+        builder.extra_name(format!("CLKB_SELDUB{i}"), w);
+        builder.extra_name(format!("CLKT_SELDUB{i}"), w);
+    }
+    for i in 0..8 {
+        let w = builder.mux_out(format!("CLK.IMUX.CLK{i}"), &[""]);
+        let ii = i % 4;
+        let lr = if i < 4 {'R'} else {'L'};
+        builder.extra_name(format!("CLKB_CLKDUB{lr}{ii}"), w);
+        builder.extra_name(format!("CLKT_CLKDUB{lr}{ii}"), w);
+    }
+    for i in 0..8 {
+        let out = builder.logic_out(format!("CLK.OUT.{i}"), &[""]);
+        builder.extra_name(format!("CLKB_GCLK_ROOT{i}"), out);
+        builder.extra_name(format!("CLKT_GCLK_ROOT{i}"), out);
+    }
+
     builder.extract_nodes();
 
     for (tkn, n) in [
@@ -1132,6 +1165,33 @@ fn make_int_db_v2(rd: &Part) -> int::IntDb {
         ("TPPC_X1Y0_INT", "PPC", "PPC.T"),
     ] {
         builder.extract_intf(name, Dir::E, tkn, naming, false);
+    }
+
+    for tkn in ["CLKB", "ML_CLKB", "MK_CLKB"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let xy_l = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            let xy_r = Coord {
+                x: xy.x + 1,
+                y: xy.y,
+            };
+            builder.extract_xnode("CLKB", xy, &[xy_l, xy_r], "CLKB", &[]);
+        }
+    }
+    for tkn in ["CLKT", "ML_CLKT", "MK_CLKT"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let xy_l = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            let xy_r = Coord {
+                x: xy.x + 1,
+                y: xy.y,
+            };
+            builder.extract_xnode("CLKT", xy, &[xy_l, xy_r], "CLKT", &[]);
+        }
     }
 
     // - extract bels + namings
@@ -1273,7 +1333,7 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
     builder.node_type("UL", "CLB", "CNR");
     builder.node_type("UR", "CLB", "CNR");
 
-    builder.wire("PULLUP", int::WireKind::TiePullup, &[
+    let w = builder.wire("PULLUP", int::WireKind::TiePullup, &[
         "VCC_PINWIRE",
         "IOIS_VCC_WIRE",
         "BRAM_VCC_WIRE",
@@ -1282,6 +1342,8 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         "DCM_VCC_WIRE",
         "CNR_VCC_WIRE",
     ]);
+    builder.extra_name("CLKB_VCC_WIRE", w);
+    builder.extra_name("CLKT_VCC_WIRE", w);
 
     for i in 0..8 {
         builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
@@ -1297,23 +1359,23 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         ]);
     }
 
-    for (i, da1, da2, db) in [
-        (0, Dir::S, None, None),
-        (1, Dir::W, Some(Dir::S), None),
-        (2, Dir::E, None, Some(Dir::S)),
-        (3, Dir::S, Some(Dir::E), None),
-        (4, Dir::S, None, None),
-        (5, Dir::S, Some(Dir::W), None),
-        (6, Dir::W, None, None),
-        (7, Dir::E, Some(Dir::S), None),
-        (8, Dir::E, Some(Dir::N), None),
-        (9, Dir::W, None, Some(Dir::N)),
-        (10, Dir::N, Some(Dir::W), None),
-        (11, Dir::N, None, None),
-        (12, Dir::N, Some(Dir::E), None),
-        (13, Dir::E, None, None),
-        (14, Dir::W, Some(Dir::N), None),
-        (15, Dir::N, None, None),
+    for (i, da1, da2, db, xname) in [
+        (0, Dir::S, None, None, Some(0)),
+        (1, Dir::W, Some(Dir::S), None, None),
+        (2, Dir::E, None, Some(Dir::S), None),
+        (3, Dir::S, Some(Dir::E), None, Some(1)),
+        (4, Dir::S, None, None, Some(2)),
+        (5, Dir::S, Some(Dir::W), None, Some(3)),
+        (6, Dir::W, None, None, None),
+        (7, Dir::E, Some(Dir::S), None, None),
+        (8, Dir::E, Some(Dir::N), None, None),
+        (9, Dir::W, None, Some(Dir::N), None),
+        (10, Dir::N, Some(Dir::W), None, Some(0)),
+        (11, Dir::N, None, None, Some(1)),
+        (12, Dir::N, Some(Dir::E), None, Some(2)),
+        (13, Dir::E, None, None, None),
+        (14, Dir::W, Some(Dir::N), None, None),
+        (15, Dir::N, None, None, Some(3)),
     ] {
         let omux = builder.mux_out(format!("OMUX{i}"), &[
             format!("OMUX{i}"),
@@ -1321,6 +1383,16 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         let omux_da1 = builder.branch(omux, da1, format!("OMUX{i}.{da1}"), &[
             format!("OMUX_{da1}{i}"),
         ]);
+        match (xname, da1) {
+            (None, _) => (),
+            (Some(i), Dir::N) => {
+                builder.extra_name(format!("CLKB_TO_OMUX{i}"), omux_da1);
+            }
+            (Some(i), Dir::S) => {
+                builder.extra_name(format!("CLKT_TO_OMUX{i}"), omux_da1);
+            }
+            _ => unreachable!(),
+        }
         if let Some(da2) = da2 {
             builder.branch(omux_da1, da2, format!("OMUX{i}.{da1}{da2}"), &[
                 format!("OMUX_{da1}{da2}{i}"),
@@ -1847,6 +1919,22 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
         }
     }
 
+    for i in 0..4 {
+        let w = builder.mux_out(format!("CLK.IMUX.SEL{i}"), &[""]);
+        builder.extra_name(format!("CLKB_SELDUB{i}"), w);
+        builder.extra_name(format!("CLKT_SELDUB{i}"), w);
+    }
+    for i in 0..4 {
+        let w = builder.mux_out(format!("CLK.IMUX.CLK{i}"), &[""]);
+        builder.extra_name(format!("CLKB_CLKDUB{i}"), w);
+        builder.extra_name(format!("CLKT_CLKDUB{i}"), w);
+    }
+    for i in 0..4 {
+        let out = builder.logic_out(format!("CLK.OUT.{i}"), &[""]);
+        builder.extra_name(format!("CLKB_GCLK_MAIN{i}"), out);
+        builder.extra_name(format!("CLKT_GCLK_MAIN{i}"), out);
+    }
+
     builder.extract_nodes();
 
     for tkn in [
@@ -2024,6 +2112,27 @@ fn make_int_db_s3(rd: &Part) -> int::IntDb {
                 builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, None, None, int_w_xy, &lh);
                 builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, None, None, int_e_xy, &lh);
             }
+        }
+    }
+
+    for tkn in ["CLKB", "CLKB_LL"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let xy_l = Coord {
+                x: xy.x - 1,
+                y: if rd.family == "spartan3" {xy.y} else {xy.y + 1},
+            };
+            let t = if rd.family == "spartan3" {"CLKB.S3"} else {"CLKB.S3E"};
+            builder.extract_xnode(t, xy, &[xy_l], "CLKB", &lh);
+        }
+    }
+    for tkn in ["CLKT", "CLKT_LL"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let xy_l = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            let t = if rd.family == "spartan3" {"CLKT.S3"} else {"CLKT.S3E"};
+            builder.extract_xnode(t, xy, &[xy_l], "CLKT", &lh);
         }
     }
 

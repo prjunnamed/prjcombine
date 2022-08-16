@@ -1538,6 +1538,73 @@ impl Grid {
             }
         }
 
+        if self.kind.is_virtex2() {
+            let (kind_b, kind_t) = match self.kind {
+                GridKind::Virtex2 => ("CLKB", "CLKT"),
+                GridKind::Virtex2P => ("ML_CLKB", "ML_CLKT"),
+                GridKind::Virtex2PX => ("MK_CLKB", "MK_CLKT"),
+                _ => unreachable!(),
+            };
+            let vx = vcc_xlut[self.col_clk] - 1;
+            let vyb = row_b.to_idx();
+            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+                db.get_node("CLKB"),
+                &[kind_b],
+                db.get_node_naming("CLKB"),
+                &[(self.col_clk - 1, row_b), (self.col_clk, row_b)],
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
+            let vyt = if self.kind == GridKind::Virtex2 {1} else {row_t.to_idx()};
+            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+                db.get_node("CLKT"),
+                &[kind_t],
+                db.get_node_naming("CLKT"),
+                &[(self.col_clk - 1, row_t), (self.col_clk, row_t)],
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
+        } else {
+            let kind_b;
+            let kind_t;
+            let tile_b;
+            let tile_t;
+            let vyb = 0;
+            let vyt = vcc_ylut[row_t];
+            if self.kind == GridKind::Spartan3 {
+                kind_b = "CLKB.S3";
+                kind_t = "CLKT.S3";
+                tile_b = format!("CLKB");
+                tile_t = format!("CLKT");
+            } else {
+                kind_b = "CLKB.S3E";
+                kind_t = "CLKT.S3E";
+                let x = xlut[self.col_clk - 1];
+                let yb = row_b.to_idx();
+                let yt = row_t.to_idx();
+                if self.has_ll {
+                    tile_b = format!("CLKB_LL_X{x}Y{yb}");
+                    tile_t = format!("CLKT_LL_X{x}Y{yt}");
+                } else {
+                    tile_b = format!("CLKB_X{x}Y{yb}");
+                    tile_t = format!("CLKT_X{x}Y{yt}");
+                }
+            }
+            let vx = vcc_xlut[self.col_clk] - 1;
+            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+                db.get_node(kind_b),
+                &[&tile_b],
+                db.get_node_naming("CLKB"),
+                &[(self.col_clk - 1, row_b)]
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
+            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+                db.get_node(kind_t),
+                &[&tile_t],
+                db.get_node_naming("CLKT"),
+                &[(self.col_clk - 1, row_t)]
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
+        }
+
         egrid
     }
 }

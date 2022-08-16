@@ -20,8 +20,8 @@ pub struct IntBuilder<'a> {
     main_passes: EnumMap<int::Dir, EntityPartVec<int::WireId, int::WireId>>,
     node_types: Vec<NodeType>,
     stub_outs: HashSet<String>,
-    extra_names: HashMap<String, int::WireId>,
-    extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, int::WireId>>,
+    extra_names: HashMap<String, int::NodeWireId>,
+    extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, int::NodeWireId>>,
 }
 
 impl<'a> IntBuilder<'a> {
@@ -264,12 +264,16 @@ impl<'a> IntBuilder<'a> {
     }
 
     pub fn extra_name(&mut self, name: impl Into<String>, wire: int::WireId) {
-        self.extra_names.insert(name.into(), wire);
+        self.extra_names.insert(name.into(), (int::NodeTileId::from_idx(0), wire));
+    }
+
+    pub fn extra_name_sub(&mut self, name: impl Into<String>, sub: usize, wire: int::WireId) {
+        self.extra_names.insert(name.into(), (int::NodeTileId::from_idx(sub), wire));
     }
 
     pub fn extra_name_tile(&mut self, tile: impl AsRef<str>, name: impl Into<String>, wire: int::WireId) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
-            self.extra_names_tile.entry(tki).or_default().insert(name.into(), wire);
+            self.extra_names_tile.entry(tki).or_default().insert(name.into(), (int::NodeTileId::from_idx(0), wire));
         }
     }
 
@@ -394,9 +398,9 @@ impl<'a> IntBuilder<'a> {
             let mut res = HashMap::new();
             for (_, &wi, &tkw) in &tk.wires {
                 if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
-                    res.insert(wi, vec![w]);
+                    res.insert(wi, vec![w.1]);
                 } else if let Some(&w) = self.extra_names_tile.get(&tile.kind).and_then(|x| x.get(&self.rd.wires[wi])) {
-                    res.insert(wi, vec![w]);
+                    res.insert(wi, vec![w.1]);
                 } else if let rawdump::TkWire::Connected(idx) = tkw {
                     if let Some(&nidx) = tile.conn_wires.get(idx) {
                         if let Some(w) = node2wires.get(&nidx) {
@@ -1124,6 +1128,76 @@ impl<'a> IntBuilder<'a> {
             let int_xy = self.walk_to_int(xy, !dir).unwrap();
             self.extract_intf_tile(name.as_ref(), xy, int_xy, naming.as_ref(), has_out_bufs);
         }
+    }
+
+    pub fn extract_xnode(&mut self, name: &str, xy: Coord, int_xy: &[Coord], naming: &str, skip_wires: &[int::WireId]) {
+        let tile = &self.rd.tiles[&xy];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let mut names = HashMap::new();
+        let node2wires: EntityVec<int::NodeTileId, _> = int_xy.into_iter().copied().map(|x| self.get_int_node2wires(x)).collect();
+        let def_t = node2wires.first_id().unwrap();
+        for (_, &wi, &tkw) in tk.wires.iter() {
+            if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
+                names.insert(wi, w);
+                continue;
+            }
+            if let Some(xn) = self.extra_names_tile.get(&tile.kind) {
+                if let Some(&w) = xn.get(&self.rd.wires[wi]) {
+                    names.insert(wi, w);
+                    continue;
+                }
+            }
+            if let rawdump::TkWire::Connected(idx) = tkw {
+                if let Some(&nidx) = tile.conn_wires.get(idx) {
+                    for (k, v) in &node2wires {
+                        if let Some(w) = v.get(&nidx) {
+                            assert_eq!(w.len(), 1);
+                            names.insert(wi, (k, w[0]));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut node = int::NodeKind {
+            tiles: node2wires.map_values(|_| ()),
+            muxes: Default::default(),
+        };
+        let mut node_naming = int::NodeNaming::default();
+
+        for &(wfi, wti) in tk.pips.keys() {
+            if let Some(&wt) = names.get(&wti) {
+                if skip_wires.contains(&wt.1) {
+                    continue;
+                }
+                if matches!(self.db.wires[wt.1].kind, int::WireKind::LogicOut) {
+                    continue;
+                }
+                if let Some(&wf) = names.get(&wfi) {
+                    node_naming.wires.insert(wt, self.rd.wires[wti].to_string());
+                    node_naming.wires.insert(wf, self.rd.wires[wfi].to_string());
+                    // XXX
+                    let kind = int::MuxKind::Plain;
+                    if !node.muxes.contains_key(&wt) {
+                        node.muxes.insert(wt, int::MuxInfo {
+                            kind,
+                            ins: Default::default(),
+                        });
+                    }
+                    let mux = node.muxes.get_mut(&wt).unwrap();
+                    assert_eq!(mux.kind, kind);
+                    mux.ins.insert(wf);
+                } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
+                    // ignore
+                } else {
+                    println!("UNEXPECTED XNODE MUX IN {} {} {}", self.rd.tile_kinds.key(tile.kind), self.rd.wires[wti], self.rd.wires[wfi]);
+                }
+            }
+        }
+
+        self.insert_node_merge(name, node);
+        self.insert_node_naming(naming, node_naming);
     }
 
     pub fn build(self) -> int::IntDb {

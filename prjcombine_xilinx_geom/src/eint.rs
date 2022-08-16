@@ -340,7 +340,6 @@ impl ExpandedGrid<'_> {
                                 }
                                 break;
                             }
-                            _ => break,
                         }
                     } else {
                         break;
@@ -381,7 +380,7 @@ impl ExpandedTile {
         });
     }
 
-    pub fn add_xnode(&mut self, kind: NodeKindId, names: &[&str], naming: NodeNamingId, coords: &[Coord]) {
+    pub fn add_xnode(&mut self, kind: NodeKindId, names: &[&str], naming: NodeNamingId, coords: &[Coord]) -> &mut ExpandedTileNode {
         assert!(!self.nodes.is_empty());
         let names: EntityVec<_, _> = names.into_iter().map(|x| x.to_string()).collect();
         let names = names.into_iter().collect();
@@ -393,6 +392,7 @@ impl ExpandedTile {
             naming,
             special: true,
         });
+        self.nodes.last_mut().unwrap()
     }
 }
 

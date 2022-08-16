@@ -222,7 +222,7 @@ impl<'a> Verifier<'a> {
             if let Some(c) = self.xlat_tile(name) {
                 crds.insert(k, c);
             } else {
-                println!("MISSING INT TILE {}", name);
+                println!("MISSING INT TILE {} {}", self.rd.part, name);
                 return;
             }
         }
@@ -243,27 +243,34 @@ impl<'a> Verifier<'a> {
             }
         }
         for &w in &wires {
-            if matches!(self.db.wires[w.1].kind, int::WireKind::ClkOut(_)) {
-                continue;
-            }
-            if let Some(wire) = self.grid.resolve_wire_raw((slr, node.tiles[w.0], w.1)) {
-                if let Some(n) = naming.wires.get(&w) {
-                    if let Some(en) = naming.wire_bufs.get(&w) {
-                        if !self.pin_int_wire(crds[en.tile], &en.wire_from, wire) {
-                            missing.insert(w);
+            match self.db.wires[w.1].kind {
+                int::WireKind::ClkOut(_) => (),
+                int::WireKind::Tie0 | int::WireKind::Tie1 | int::WireKind::TiePullup => {
+                    if let Some(n) = naming.wires.get(&w) {
+                        self.claim_node(&[(crds[def_rt], n)]);
+                    }
+                }
+                _ => {
+                    if let Some(wire) = self.grid.resolve_wire_raw((slr, node.tiles[w.0], w.1)) {
+                        if let Some(n) = naming.wires.get(&w) {
+                            if let Some(en) = naming.wire_bufs.get(&w) {
+                                if !self.pin_int_wire(crds[en.tile], &en.wire_from, wire) {
+                                    missing.insert(w);
+                                } else {
+                                    self.claim_node(&[(crds[def_rt], n), (crds[en.tile], &en.wire_to)]);
+                                }
+                            } else {
+                                if !self.pin_int_wire(crds[def_rt], n, wire) {
+                                    missing.insert(w);
+                                }
+                            }
                         } else {
-                            self.claim_node(&[(crds[def_rt], n), (crds[en.tile], &en.wire_to)]);
+                            missing.insert(w);
                         }
                     } else {
-                        if !self.pin_int_wire(crds[def_rt], n, wire) {
-                            missing.insert(w);
-                        }
+                        bh.insert(w);
                     }
-                } else {
-                    missing.insert(w);
                 }
-            } else {
-                bh.insert(w);
             }
         }
         for (&wt, wfs) in &kind.muxes {
