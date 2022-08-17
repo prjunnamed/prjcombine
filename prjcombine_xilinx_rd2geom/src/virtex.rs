@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
 use prjcombine_xilinx_geom::{self as geom, DisabledPart, CfgPin, Bond, BondPin, ColId, int, int::Dir};
 use prjcombine_xilinx_geom::virtex::{self, GridKind};
+use prjcombine_entity::EntityId;
 
 use crate::grid::{extract_int, find_columns, IntGrid, PreDevice, make_device};
 use crate::intb::IntBuilder;
@@ -19,18 +20,20 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn get_cols_bram(rd: &Part, int: &IntGrid) -> Vec<ColId> {
+fn get_cols_bram(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     find_columns(rd, &["LBRAM", "RBRAM", "MBRAM", "MBRAMS2E"])
         .into_iter()
-        .map(|r| int.lookup_column_inter(r))
+        .map(|r| int.lookup_column(r))
         .collect()
 }
 
 fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId)> {
-    let cols_clkv: Vec<_> = find_columns(rd, &["LBRAM", "RBRAM", "GCLKV", "CLKV"])
+    let mut cols_clkv: Vec<_> = find_columns(rd, &["GCLKV", "CLKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
         .collect();
+    cols_clkv.insert(0, int.cols.first_id().unwrap() + 2);
+    cols_clkv.push(int.cols.last_id().unwrap() - 1);
     let mut cols_brk: Vec<_> = find_columns(rd, &["GBRKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
@@ -53,7 +56,7 @@ fn add_disabled_dlls(disabled: &mut BTreeSet<DisabledPart>, rd: &Part) {
 
 fn add_disabled_brams(disabled: &mut BTreeSet<DisabledPart>, rd: &Part, int: &IntGrid) {
     for c in find_columns(rd, &["MBRAMS2E"]) {
-        disabled.insert(DisabledPart::VirtexBram(int.lookup_column_inter(c)));
+        disabled.insert(DisabledPart::VirtexBram(int.lookup_column(c)));
     }
 }
 
@@ -136,6 +139,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.node_type("UL", "CNR.TL", "CNR.TL");
     builder.node_type("UR", "CNR.TR", "CNR.TR");
 
+    let mut bram_forbidden = Vec::new();
+    let mut bram_bt_forbidden = Vec::new();
+    let mut dll_forbidden = Vec::new();
+    let mut bram_extra_pips = BTreeMap::new();
+
+    let mut gclk = Vec::new();
     for i in 0..4 {
         let w = builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
             format!("GCLK{i}"),
@@ -146,12 +155,26 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             format!("LL_GCLK{i}"),
             format!("UL_GCLK{i}"),
         ]);
+        gclk.push(w);
+        bram_forbidden.push(w);
+        bram_bt_forbidden.push(w);
+        dll_forbidden.push(w);
         builder.buf(w, format!("GCLK{i}.BUF"), &[
             format!("BOT_GCLK{i}"),
             format!("TOP_GCLK{i}"),
         ]);
+        builder.extra_name(format!("BRAM_GCLKIN{i}"), w);
+        builder.extra_name(format!("BRAM_BOT_GCLKE{i}"), w);
+        builder.extra_name(format!("BRAM_TOP_GCLKE{i}"), w);
+        builder.extra_name(format!("BRAM_BOTP_GCLK{i}"), w);
+        builder.extra_name(format!("BRAM_TOPP_GCLK{i}"), w);
+        builder.extra_name(format!("BRAM_BOTS_GCLK{i}"), w);
+        builder.extra_name(format!("BRAM_TOPS_GCLK{i}"), w);
+        builder.extra_name_sub(format!("MBRAM_GCLKD{i}"), 0, w);
+        builder.extra_name_sub(format!("MBRAM_GCLKA{i}"), 3, w);
     }
-    builder.wire("PCI_CE", int::WireKind::ClkOut(4), &[
+
+    let pci_ce = builder.wire("PCI_CE", int::WireKind::MultiBranch(Dir::S), &[
         "LEFT_PCI_CE",
         "RIGHT_PCI_CE",
         "LL_PCI_CE",
@@ -159,6 +182,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "UL_PCI_CE",
         "UR_PCI_CE",
     ]);
+    builder.conn_branch(pci_ce, Dir::N, pci_ce);
 
     for i in 0..24 {
         let w = builder.wire(format!("SINGLE.E{i}"), int::WireKind::PipOut, &[
@@ -195,6 +219,35 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             format!("N_P{i}"),
             format!("BOT_N_BUF{i}"),
         ]);
+    }
+
+    let def_t = int::NodeTileId::from_idx(0);
+    for name in ["ADDR", "DIN", "DOUT"] {
+        let mut l = Vec::new();
+        let mut ln = Vec::new();
+        for i in 0..32 {
+            let w = builder.mux_out(format!("BRAM.SINGLE.{name}{i}"), &[""]);
+            builder.extra_name(format!("BRAM_R{name}S{i}"), w);
+            let s = builder.branch(w, Dir::S, format!("BRAM.SINGLE.{name}{i}.S"), &[""]);
+            builder.extra_name(format!("BRAM_R{name}N{i}"), s);
+            bram_forbidden.push(s);
+            let n = builder.branch(w, Dir::N, format!("BRAM.SINGLE.{name}{i}.n"), &[""]);
+            l.push(w);
+            ln.push(n);
+        }
+        for i in 0..32 {
+            let si;
+            if name == "ADDR" {
+                si = i;
+            } else {
+                si = i & 0x10 | (i + 0xf) & 0xf;
+            }
+            bram_extra_pips.insert(((def_t, l[i]), (def_t, ln[si])), int::NodeExtPipNaming {
+                tile: int::NodeRawTileId::from_idx(1),
+                wire_to: format!("BRAM_R{name}N{i}"),
+                wire_from: format!("BRAM_R{name}S{si}"),
+            });
+        }
     }
 
     let hexnames = |pref, i| [
@@ -333,6 +386,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     ])).collect();
     for i in 0..12 {
         builder.conn_branch(lv[i], Dir::N, lv[(i + 11) % 12]);
+        builder.extra_name(format!("BRAM_LV{i}"), lv[i]);
+        builder.extra_name(format!("BRAM_BOT_RLV{ii}", ii = (i + 11) % 12), lv[i]);
+        builder.extra_name(format!("BRAM_BOTP_RLV{ii}", ii = (i + 11) % 12), lv[i]);
+        builder.extra_name(format!("BRAM_TOP_RLV{i}"), lv[i]);
+        builder.extra_name(format!("BRAM_TOPP_RLV{i}"), lv[i]);
+        dll_forbidden.push(lv[i]);
     }
 
     for i in 0..2 {
@@ -380,6 +439,28 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.mux_out("IMUX.STARTUP.GWE", &["UL_GWE"]);
     builder.mux_out("IMUX.BSCAN.TDO1", &["UL_TDO1"]);
     builder.mux_out("IMUX.BSCAN.TDO2", &["UL_TDO2"]);
+
+    for ab in ['A', 'B'] {
+        for i in 0..16 {
+            let w = builder.mux_out(format!("OUT.BRAM.DI{ab}{i}"), &[""]);
+            builder.extra_name(format!("BRAM_DI{ab}{i}"), w);
+        }
+    }
+    for ab in ['A', 'B'] {
+        for i in 0..12 {
+            let w = builder.mux_out(format!("OUT.BRAM.ADDR{ab}{i}"), &[""]);
+            builder.extra_name(format!("BRAM_ADDR{ab}{i}"), w);
+        }
+    }
+    for name in ["CLK", "RST", "SEL", "WE"] {
+        for ab in ['A', 'B'] {
+            let w = builder.mux_out(format!("OUT.BRAM.{name}{ab}"), &[""]);
+            builder.extra_name(format!("BRAM_{name}{ab}"), w);
+            if name == "CLK" {
+                builder.extra_name(format!("MBRAM_{name}{ab}"), w);
+            }
+        }
+    }
 
     for i in 0..8 {
         let w = builder.mux_out(format!("OMUX{i}"), &[
@@ -444,12 +525,349 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ]);
     }
 
+    for ab in ['A', 'B'] {
+        for i in 0..16 {
+            let w = builder.logic_out(format!("OUT.BRAM.DO{ab}{i}"), &[""]);
+            builder.extra_name(format!("BRAM_DO{ab}{i}"), w);
+        }
+    }
+
+    for i in 0..2 {
+        let w = builder.mux_out(format!("CLK.IMUX.BUFGCE.CLK{i}"), &[""]);
+        builder.extra_name(format!("CLKB_GCLKBUF{i}_IN"), w);
+        builder.extra_name(format!("CLKT_GCLKBUF{ii}_IN", ii = i + 2), w);
+    }
+    for i in 0..2 {
+        let w = builder.mux_out(format!("CLK.IMUX.BUFGCE.CE{i}"), &[""]);
+        builder.extra_name(format!("CLKB_CE{i}"), w);
+        builder.extra_name(format!("CLKT_CE{i}"), w);
+    }
+    for i in 0..2 {
+        let w = builder.logic_out(format!("CLK.OUT.BUFGCE.O{i}"), &[""]);
+        builder.extra_name(format!("CLKB_GCLK{i}_PW"), w);
+        builder.extra_name(format!("CLKT_GCLK{ii}_PW", ii = i + 2), w);
+    }
+    let mut clkpad = Vec::new();
+    for i in 0..2 {
+        let w = builder.logic_out(format!("CLK.OUT.CLKPAD{i}"), &[""]);
+        builder.extra_name(format!("CLKB_CLKPAD{i}"), w);
+        builder.extra_name(format!("CLKT_CLKPAD{i}"), w);
+        clkpad.push(w);
+    }
+    let mut iofb = Vec::new();
+    for i in 0..2 {
+        let w = builder.logic_out(format!("CLK.OUT.IOFB{i}"), &[""]);
+        builder.extra_name(format!("CLKB_IOFB{i}"), w);
+        builder.extra_name(format!("CLKT_IOFB{i}"), w);
+        iofb.push(w);
+    }
+    for i in 1..4 {
+        let w = builder.mux_out(format!("PCI.IMUX.I{i}"), &[""]);
+        builder.extra_name(format!("CLKL_I{i}"), w);
+        builder.extra_name(format!("CLKR_I{i}"), w);
+    }
+    let mut dll_ins = Vec::new();
+    let mut clkin = None;
+    let mut clkfb = None;
+    for name in [
+        "CLKIN",
+        "CLKFB",
+        "RST",
+    ] {
+        let w = builder.mux_out(format!("DLL.IMUX.{name}"), &[""]);
+        builder.extra_name_sub(format!("CLKB_{name}L"), 1, w);
+        builder.extra_name_sub(format!("CLKB_{name}R"), 2, w);
+        builder.extra_name_sub(format!("CLKB_{name}L_1"), 3, w);
+        builder.extra_name_sub(format!("CLKB_{name}R_1"), 4, w);
+        builder.extra_name_sub(format!("CLKT_{name}L"), 1, w);
+        builder.extra_name_sub(format!("CLKT_{name}R"), 2, w);
+        builder.extra_name_sub(format!("CLKT_{name}L_1"), 3, w);
+        builder.extra_name_sub(format!("CLKT_{name}R_1"), 4, w);
+        builder.extra_name(format!("BRAM_BOT_{name}"), w);
+        builder.extra_name(format!("BRAM_BOTP_{name}"), w);
+        builder.extra_name(format!("BRAM_BOT_{name}_1"), w);
+        builder.extra_name(format!("BRAM_TOP_{name}"), w);
+        builder.extra_name(format!("BRAM_TOPP_{name}"), w);
+        builder.extra_name(format!("BRAM_TOPS_{name}"), w);
+        dll_ins.push(w);
+        bram_bt_forbidden.push(w);
+        if name == "CLKIN" {
+            clkin = Some(w);
+        }
+        if name == "CLKFB" {
+            clkfb = Some(w);
+        }
+    }
+    let clkin = clkin.unwrap();
+    let clkfb = clkfb.unwrap();
+    let mut clk2x = None;
+    for name in [
+        "CLK0",
+        "CLK90",
+        "CLK180",
+        "CLK270",
+        "CLK2X",
+        "CLK2X90",
+        "CLKDV",
+        "LOCKED",
+    ] {
+        let w = builder.logic_out(format!("DLL.OUT.{name}"), &[""]);
+        builder.extra_name_sub(format!("CLKB_{name}L"), 1, w);
+        builder.extra_name_sub(format!("CLKB_{name}R"), 2, w);
+        builder.extra_name_sub(format!("CLKB_{name}L_1"), 3, w);
+        builder.extra_name_sub(format!("CLKB_{name}R_1"), 4, w);
+        builder.extra_name_sub(format!("CLKT_{name}L"), 1, w);
+        builder.extra_name_sub(format!("CLKT_{name}R"), 2, w);
+        if name == "LOCKED" {
+            builder.extra_name_sub(format!("CLKT_LOCK_TL_1"), 3, w);
+        } else {
+            builder.extra_name_sub(format!("CLKT_{name}L_1"), 3, w);
+        }
+        builder.extra_name_sub(format!("CLKT_{name}R_1"), 4, w);
+        if name == "CLK2X" {
+            clk2x = Some(w);
+        }
+    }
+    let clk2x = clk2x.unwrap();
+
     builder.extract_nodes();
 
-    // XXX BRAM
-    // XXX CLK[BT]
-    // XXX DLLs
-    // XXX CLK[LR]
+    for tkn in [
+        "LBRAM", "RBRAM", "MBRAM",
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let mut x = xy.x - 1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
+                x -= 1;
+            }
+            let mut coords = Vec::new();
+            for dy in 0..4 {
+                coords.push(Coord { x: xy.x, y: xy.y + dy });
+            }
+            for dy in 0..4 {
+                coords.push(Coord { x, y: xy.y + dy });
+            }
+            builder.extract_xnode(tkn, xy, &coords, tkn, &bram_forbidden);
+        }
+        if let Some((_, n)) = builder.db.nodes.get_mut(tkn) {
+            let (_, naming) = builder.db.node_namings.get_mut(tkn).unwrap();
+            for (&k, v) in &bram_extra_pips {
+                let (wt, wf) = k;
+                n.muxes.get_mut(&wt).unwrap().ins.insert(wf);
+                naming.ext_pips.insert(k, v.clone());
+            }
+        }
+    }
+
+    for (tkn, node, naming) in [
+        ("BRAM_BOT", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("BRAM_BOT_GCLK", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("LBRAM_BOTS_GCLK", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("RBRAM_BOTS_GCLK", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("LBRAM_BOTS", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("RBRAM_BOTS", "BRAM_BOT", "BRAM_BOT.BOT"),
+        ("BRAM_BOT_NOGCLK", "BRAM_BOT", "BRAM_BOT.BOTP"),
+        ("BRAMS2E_BOT_NOGCLK", "BRAM_BOT", "BRAM_BOT.BOTP"),
+        ("LBRAM_BOTP", "BRAM_BOT", "BRAM_BOT.BOTP"),
+        ("RBRAM_BOTP", "BRAM_BOT", "BRAM_BOT.BOTP"),
+        ("BRAM_TOP", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("BRAM_TOP_GCLK", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("LBRAM_TOPS_GCLK", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("RBRAM_TOPS_GCLK", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("LBRAM_TOPS", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("RBRAM_TOPS", "BRAM_TOP", "BRAM_TOP.TOP"),
+        ("BRAM_TOP_NOGCLK", "BRAM_TOP", "BRAM_TOP.TOPP"),
+        ("BRAMS2E_TOP_NOGCLK", "BRAM_TOP", "BRAM_TOP.TOPP"),
+        ("LBRAM_TOPP", "BRAM_TOP", "BRAM_TOP.TOPP"),
+        ("RBRAM_TOPP", "BRAM_TOP", "BRAM_TOP.TOPP"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let mut x = xy.x - 1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
+                x -= 1;
+            }
+            let coords = [
+                xy,
+                Coord {x, y: xy.y },
+            ];
+            builder.extract_xnode(node, xy, &coords, naming, &bram_bt_forbidden);
+        }
+    }
+
+    for (tkn, node, mut naming) in [
+        ("BRAM_BOT", "DLL.BOT", ""),
+        ("LBRAM_BOTS_GCLK", "DLLS.BOT", "DLLS.BL.GCLK"),
+        ("RBRAM_BOTS_GCLK", "DLLS.BOT", "DLLS.BR.GCLK"),
+        ("LBRAM_BOTS", "DLLS.BOT", "DLLS.BL"),
+        ("RBRAM_BOTS", "DLLS.BOT", "DLLS.BR"),
+        ("LBRAM_BOTP", "DLLP.BOT", "DLLP.BL"),
+        ("RBRAM_BOTP", "DLLP.BOT", "DLLP.BR"),
+        ("BRAM_TOP", "DLL.TOP", ""),
+        ("LBRAM_TOPS_GCLK", "DLLS.TOP", "DLLS.TL.GCLK"),
+        ("RBRAM_TOPS_GCLK", "DLLS.TOP", "DLLS.TR.GCLK"),
+        ("LBRAM_TOPS", "DLLS.TOP", "DLLS.TL"),
+        ("RBRAM_TOPS", "DLLS.TOP", "DLLS.TR"),
+        ("LBRAM_TOPP", "DLLP.TOP", "DLLP.TL"),
+        ("RBRAM_TOPP", "DLLP.TOP", "DLLP.TR"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            if rd.family == "virtex" {
+                naming = match node {
+                    "DLL.BOT" => if xy.x == 1 {"DLL.BL"} else {"DLL.BR"},
+                    "DLL.TOP" => if xy.x == 1 {"DLL.TL"} else {"DLL.TR"},
+                    _ => unreachable!(),
+                };
+            }
+            let mut x = xy.x - 1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
+                x -= 1;
+            }
+            let coords = [
+                xy,
+                Coord {x, y: xy.y },
+            ];
+            builder.extract_xnode(node, xy, &coords, naming, &dll_forbidden);
+        }
+    }
+    for (naming, mode, bt, lr) in [
+        ("DLL.BL", '_', 'B', 'L'),
+        ("DLL.BR", '_', 'B', 'R'),
+        ("DLL.TL", '_', 'T', 'L'),
+        ("DLL.TR", '_', 'T', 'R'),
+        ("DLLP.BL", 'P', 'B', 'L'),
+        ("DLLP.BR", 'P', 'B', 'R'),
+        ("DLLP.TL", 'P', 'T', 'L'),
+        ("DLLP.TR", 'P', 'T', 'R'),
+        ("DLLS.BL", 'S', 'B', 'L'),
+        ("DLLS.BR", 'S', 'B', 'R'),
+        ("DLLS.TL", 'S', 'T', 'L'),
+        ("DLLS.TR", 'S', 'T', 'R'),
+        ("DLLS.BL.GCLK", 'S', 'B', 'L'),
+        ("DLLS.BR.GCLK", 'S', 'B', 'R'),
+        ("DLLS.TL.GCLK", 'S', 'T', 'L'),
+        ("DLLS.TR.GCLK", 'S', 'T', 'R'),
+    ] {
+        if let Some((_, naming)) = builder.db.node_namings.get_mut(naming) {
+            let xt = if mode == 'S' {"_1"} else {""};
+            let tile = int::NodeRawTileId::from_idx(1);
+            let t_dll = int::NodeTileId::from_idx(0);
+            let t_clk = int::NodeTileId::from_idx(2);
+            let t_dlls = int::NodeTileId::from_idx(3);
+            let wt_clkin = format!("CLK{bt}_CLKIN{lr}{xt}");
+            let wt_clkfb = format!("CLK{bt}_CLKFB{lr}{xt}");
+            for i in 0..2 {
+                naming.ext_pips.insert(((t_dll, clkin), (t_clk, clkpad[i])), int::NodeExtPipNaming {
+                    tile,
+                    wire_to: wt_clkin.clone(),
+                    wire_from: format!("CLK{bt}_CLKPAD{i}"),
+                });
+                naming.ext_pips.insert(((t_dll, clkfb), (t_clk, clkpad[i])), int::NodeExtPipNaming {
+                    tile,
+                    wire_to: wt_clkfb.clone(),
+                    wire_from: format!("CLK{bt}_CLKPAD{i}"),
+                });
+            }
+            if mode != '_' {
+                for i in 0..2 {
+                    naming.ext_pips.insert(((t_dll, clkin), (t_clk, iofb[i])), int::NodeExtPipNaming {
+                        tile,
+                        wire_to: wt_clkin.clone(),
+                        wire_from: format!("CLK{bt}_IOFB{i}"),
+                    });
+                    naming.ext_pips.insert(((t_dll, clkfb), (t_clk, iofb[i])), int::NodeExtPipNaming {
+                        tile,
+                        wire_to: wt_clkfb.clone(),
+                        wire_from: format!("CLK{bt}_IOFB{i}"),
+                    });
+                }
+                if mode == 'P' {
+                    naming.ext_pips.insert(((t_dll, clkin), (t_dlls, clk2x)), int::NodeExtPipNaming {
+                        tile,
+                        wire_to: wt_clkin,
+                        wire_from: format!("CLK{bt}_CLK2X{lr}_1"),
+                    });
+                } else {
+                    naming.ext_pips.insert(((t_dll, clkfb), (t_dll, clk2x)), int::NodeExtPipNaming {
+                        tile,
+                        wire_to: wt_clkfb,
+                        wire_from: format!("CLK{bt}_CLK2X{lr}_1"),
+                    });
+                }
+            }
+        }
+    }
+    for (node, mode) in [
+        ("DLL.BOT", '_'),
+        ("DLL.TOP", '_'),
+        ("DLLP.BOT", 'P'),
+        ("DLLP.TOP", 'P'),
+        ("DLLS.BOT", 'S'),
+        ("DLLS.TOP", 'S'),
+    ] {
+        if let Some((_, node)) = builder.db.nodes.get_mut(node) {
+            let t_dll = int::NodeTileId::from_idx(0);
+            let t_clk = int::NodeTileId::from_idx(2);
+            let t_dlls = int::NodeTileId::from_idx(3);
+            for i in 0..2 {
+                node.muxes.get_mut(&(t_dll, clkin)).unwrap().ins.insert((t_clk, clkpad[i]));
+                node.muxes.get_mut(&(t_dll, clkfb)).unwrap().ins.insert((t_clk, clkpad[i]));
+            }
+            if mode != '_' {
+                for i in 0..2 {
+                    node.muxes.get_mut(&(t_dll, clkin)).unwrap().ins.insert((t_clk, iofb[i]));
+                    node.muxes.get_mut(&(t_dll, clkfb)).unwrap().ins.insert((t_clk, iofb[i]));
+                }
+                if mode == 'P' {
+                    node.muxes.get_mut(&(t_dll, clkin)).unwrap().ins.insert((t_dlls, clk2x));
+                } else {
+                    node.muxes.get_mut(&(t_dll, clkfb)).unwrap().ins.insert((t_dll, clk2x));
+                }
+            }
+        }
+    }
+
+    let forbidden: Vec<_> = dll_ins.iter().copied().chain(gclk.iter().copied()).collect();
+    for tkn in [
+        "CLKB", "CLKB_4DLL", "CLKB_2DLL",
+        "CLKT", "CLKT_4DLL", "CLKT_2DLL",
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = Coord {
+                x: xy.x + 1,
+                y: xy.y,
+            };
+            let coords = if rd.family == "virtex" {
+                vec![
+                    int_xy,
+                    Coord { x: 1, y: xy.y },
+                    Coord { x: rd.width - 2, y: xy.y },
+                ]
+            } else {
+                let botp: Vec<_> = find_columns(rd, &["LBRAM_BOTP", "LBRAMS2E_BOTP", "RBRAM_BOTP", "RBRAMS2E_BOTP", "BRAMS2E_BOT_NOGCLK"]).into_iter().collect();
+                let bots: Vec<_> = find_columns(rd, &["LBRAM_BOTS", "LBRAM_BOTS_GCLK", "RBRAM_BOTS", "RBRAM_BOTS_GCLK"]).into_iter().collect();
+                assert_eq!(botp.len(), 2);
+                assert_eq!(bots.len(), 2);
+                vec![
+                    int_xy,
+                    Coord { x: botp[0] as u16, y: xy.y },
+                    Coord { x: botp[1] as u16, y: xy.y },
+                    Coord { x: bots[0] as u16, y: xy.y },
+                    Coord { x: bots[1] as u16, y: xy.y },
+                ]
+            };
+            builder.extract_xnode(tkn, xy, &coords, tkn, &forbidden);
+        }
+    }
+
+    for tkn in ["CLKL", "CLKR"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = Coord {
+                x: xy.x,
+                y: xy.y + 1,
+            };
+            builder.extract_xnode(tkn, xy, &[int_xy], tkn, &[pci_ce]);
+        }
+    }
 
     builder.build()
 }
@@ -458,6 +876,10 @@ fn make_grid(rd: &Part) -> (virtex::Grid, BTreeSet<DisabledPart>) {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
     let int = extract_int(rd, &[
         "CENTER",
+        "LBRAM",
+        "RBRAM",
+        "MBRAM",
+        "MBRAMS2E",
         "LL",
         "LR",
         "UL",
@@ -551,7 +973,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
             make_bond(&grid, pins),
         ));
     }
-    let eint = grid.expand_grid(&int_db);
+    let eint = grid.expand_grid(&disabled, &int_db);
     let mut vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Virtex(grid), bonds, disabled), Some(int_db))

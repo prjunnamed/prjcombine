@@ -232,6 +232,7 @@ impl<'a> Verifier<'a> {
         let mut wires = BTreeSet::new();
         let mut missing_t = HashSet::new();
         let mut missing_f = HashSet::new();
+        let mut found = HashSet::new();
         let kind = &self.db.nodes[node.kind];
         let naming = &self.db.node_namings[node.naming];
         for (&wt, wfs) in &kind.muxes {
@@ -264,6 +265,7 @@ impl<'a> Verifier<'a> {
                                     missing.insert(w);
                                 }
                             }
+                            found.insert(w);
                         } else {
                             missing.insert(w);
                         }
@@ -290,13 +292,23 @@ impl<'a> Verifier<'a> {
                     continue;
                 }
                 if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
-                    let wire_t = self.grid.resolve_wire_raw((slr, node.tiles[wt.0], wt.1)).unwrap();
-                    if !self.pin_int_wire(crds[en.tile], &en.wire_to, wire_t) {
-                        println!("MISSING EXT INT WIRE {} {}", node.names[en.tile], en.wire_to);
-                    }
                     let wire_f = self.grid.resolve_wire_raw((slr, node.tiles[wf.0], wf.1)).unwrap();
-                    if !self.pin_int_wire(crds[en.tile], &en.wire_from, wire_f) {
-                        println!("MISSING EXT INT WIRE {} {}", node.names[en.tile], en.wire_from);
+                    let wire_t = self.grid.resolve_wire_raw((slr, node.tiles[wt.0], wt.1)).unwrap();
+                    if !crds.contains_id(en.tile) || !self.pin_int_wire(crds[en.tile], &en.wire_from, wire_f) {
+                        if found.contains(&wf) {
+                            println!("MISSING EXT INT WIRE {} {}", node.names[en.tile], en.wire_from);
+                        } else {
+                            missing_f.insert(wf);
+                        }
+                        continue;
+                    }
+                    if !self.pin_int_wire(crds[en.tile], &en.wire_to, wire_t) {
+                        if found.contains(&wt) {
+                            println!("MISSING EXT INT WIRE {} {}", node.names[en.tile], en.wire_to);
+                        } else {
+                            missing_t.insert(wt);
+                        }
+                        continue;
                     }
                     self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
                 } else {

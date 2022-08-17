@@ -664,6 +664,16 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disa
                     yb + row.to_idx() - row_skip
                 };
                 slr.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
+                if row.to_idx() % 60 == 30 {
+                    let lr = if col < grid.col_cfg.col {'L'} else {'R'};
+                    let name = format!("RCLK_INT_{lr}_X{x}Y{yy}", yy = y - 1);
+                    slr[(col, row)].add_xnode(
+                        db.get_node("RCLK"),
+                        &[&name],
+                        db.get_node_naming("RCLK"),
+                        &[(col, row)]
+                    );
+                }
                 match cd.l {
                     ColumnKindLeft::CleL | ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => (),
                     ColumnKindLeft::Bram | ColumnKindLeft::BramTd | ColumnKindLeft::BramAuxClmp | ColumnKindLeft::BramBramClmp | ColumnKindLeft::Uram => {

@@ -381,7 +381,6 @@ impl ExpandedTile {
     }
 
     pub fn add_xnode(&mut self, kind: NodeKindId, names: &[&str], naming: NodeNamingId, coords: &[Coord]) -> &mut ExpandedTileNode {
-        assert!(!self.nodes.is_empty());
         let names: EntityVec<_, _> = names.into_iter().map(|x| x.to_string()).collect();
         let names = names.into_iter().collect();
         self.nodes.push(ExpandedTileNode {

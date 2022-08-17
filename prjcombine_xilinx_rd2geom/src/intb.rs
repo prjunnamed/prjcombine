@@ -341,15 +341,18 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn get_int_naming(&self, int_xy: Coord) -> int::NodeNamingId {
+    fn get_int_naming(&self, int_xy: Coord) -> Option<int::NodeNamingId> {
         let int_tile = &self.rd.tiles[&int_xy];
-        self.node_types.iter().find_map(|nt| if nt.tki == int_tile.kind { Some(nt.naming) } else { None }).unwrap()
+        self.node_types.iter().find_map(|nt| if nt.tki == int_tile.kind { Some(nt.naming) } else { None })
     }
 
     fn get_int_rev_naming(&self, int_xy: Coord) -> HashMap<String, int::WireId> {
-        let int_naming_id = self.get_int_naming(int_xy);
-        let int_naming = &self.db.node_namings[int_naming_id];
-        int_naming.wires.iter().filter_map(|(k, v)| if k.0.to_idx() == 0 {Some((v.to_string(), k.1))} else {None}).collect()
+        if let Some(int_naming_id) = self.get_int_naming(int_xy) {
+            let int_naming = &self.db.node_namings[int_naming_id];
+            int_naming.wires.iter().filter_map(|(k, v)| if k.0.to_idx() == 0 {Some((v.to_string(), k.1))} else {None}).collect()
+        } else {
+            Default::default()
+        }
     }
 
     fn get_node(&self, tile: &rawdump::Tile, tk: &rawdump::TileKind, wi: rawdump::WireId) -> Option<rawdump::NodeId> {
@@ -751,7 +754,7 @@ impl<'a> IntBuilder<'a> {
         let cand_inps_far = self.get_pass_inps(dir);
         let int_tile = &self.rd.tiles[&int_xy];
         let int_tk = &self.rd.tile_kinds[int_tile.kind];
-        let int_naming = &self.db.node_namings[self.get_int_naming(int_xy)];
+        let int_naming = &self.db.node_namings[self.get_int_naming(int_xy).unwrap()];
         let mut wires = EntityPartVec::new();
         let src_node2wires = self.get_int_node2wires(src_xy);
         if self.rd.family.starts_with("virtex2") {
@@ -1151,9 +1154,10 @@ impl<'a> IntBuilder<'a> {
                 if let Some(&nidx) = tile.conn_wires.get(idx) {
                     for (k, v) in &node2wires {
                         if let Some(w) = v.get(&nidx) {
-                            assert_eq!(w.len(), 1);
-                            names.insert(wi, (k, w[0]));
-                            break;
+                            if w.len() == 1 {
+                                names.insert(wi, (k, w[0]));
+                                break;
+                            }
                         }
                     }
                 }

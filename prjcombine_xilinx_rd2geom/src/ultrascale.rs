@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeId};
+use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeId, Coord};
 use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, ColId, SlrId, int, int::Dir};
 use prjcombine_xilinx_geom::ultrascale::{self, GridKind, Column, ColumnKindLeft, ColumnKindRight, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt, ColSide, expand_grid};
 use prjcombine_entity::{EntityVec, EntityId};
@@ -303,7 +303,8 @@ fn get_ps(int: &IntGrid) -> Option<Ps> {
 fn make_int_db_u(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("ultrascale", rd);
     builder.node_type("INT", "INT", "INT");
-    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+    let w = builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+    builder.extra_name("VCC_WIRE", w);
     builder.wire("GND", int::WireKind::Tie1, &["GND_WIRE"]);
 
     for i in 0..16 {
@@ -688,6 +689,27 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         }
     }
 
+    for i in 0..16 {
+        let w = builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[""]);
+        builder.extra_name(format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}"), w);
+    }
+    for i in 0..2 {
+        for j in 0..4 {
+            let w = builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[""]);
+            builder.extra_name(format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"), w);
+        }
+    }
+    for i in 0..2 {
+        for j in 0..4 {
+            let w = builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[""]);
+            builder.extra_name(format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"), w);
+        }
+    }
+    for i in 0..48 {
+        let w = builder.mux_out(format!("RCLK.INODE.{i}"), &[""]);
+        builder.extra_name(format!("INT_NODE_IMUX_{i}_INT_OUT"), w);
+    }
+
     builder.extract_nodes();
 
     builder.extract_term_conn("W", Dir::W, "INT_TERM_L_IO", &[]);
@@ -713,6 +735,16 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), true);
     }
 
+    for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = Coord {
+                x: xy.x,
+                y: xy.y + 1,
+            };
+            builder.extract_xnode("RCLK", xy, &[int_xy], "RCLK", &[]);
+        }
+    }
+
     builder.build()
 }
 
@@ -727,7 +759,8 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         Dir::W => 3,
     );
 
-    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+    let w = builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
+    builder.extra_name("VCC_WIRE", w);
 
     for i in 0..16 {
         builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
@@ -1025,6 +1058,37 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         }
     }
 
+    for i in 0..32 {
+        let w = builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[""]);
+        builder.extra_name(format!("CLK_LEAF_SITES_{i}_CE_INT"), w);
+    }
+    let w = builder.mux_out("RCLK.IMUX.ENSEL_PROG", &[""]);
+    builder.extra_name("CLK_LEAF_SITES_0_ENSEL_PROG", w);
+    let w = builder.mux_out("RCLK.IMUX.CLK_CASC_IN", &[""]);
+    builder.extra_name("CLK_LEAF_SITES_0_CLK_CASC_IN", w);
+    for i in 0..2 {
+        for j in 0..4 {
+            let w = builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[""]);
+            builder.extra_name(format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"), w);
+        }
+    }
+    for i in 0..2 {
+        for j in 0..3 {
+            let w = builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[""]);
+            builder.extra_name(format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"), w);
+        }
+    }
+    for i in 0..2 {
+        for j in 0..24 {
+            let w = builder.mux_out(format!("RCLK.INODE.{i}.{j}"), &[""]);
+            builder.extra_name(format!("INT_NODE_IMUX_{j}_INT_OUT{i}"), w);
+        }
+    }
+    for i in 0..48 {
+        let w = builder.wire(format!("RCLK.GND.{i}"), int::WireKind::Tie0, &[""]);
+        builder.extra_name_tile("RCLK_INT_L", format!("GND_WIRE{i}"), w);
+        builder.extra_name_tile("RCLK_INT_R", format!("GND_WIRE{i}"), w);
+    }
     builder.extract_nodes();
 
     builder.extract_term_conn("W", Dir::W, "INT_INTF_L_TERM_GT", &[]);
@@ -1064,6 +1128,16 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     }
 
     builder.extract_pass_simple("IO", Dir::W, "INT_IBRK_FSR2IO", &[]);
+
+    for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = Coord {
+                x: xy.x,
+                y: xy.y + 1,
+            };
+            builder.extract_xnode("RCLK", xy, &[int_xy], "RCLK", &[]);
+        }
+    }
 
     builder.build()
 }
