@@ -109,6 +109,7 @@ pub enum WireKind {
     MultiBranch(Dir),
     PipBranch(Dir),
     Branch(Dir),
+    CondAlias(NodeKindId, WireId),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

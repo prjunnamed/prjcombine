@@ -990,14 +990,7 @@ impl<'a> IntBuilder<'a> {
             dir,
             wires,
         };
-        match self.db.terms.get(name.as_ref()) {
-            None => {
-                self.db.terms.insert(name.as_ref().to_string(), term);
-            }
-            Some((_, cterm)) => {
-                assert_eq!(*cterm, term);
-            }
-        }
+        self.insert_term_merge(name.as_ref(), term);
     }
 
     pub fn extract_pass_simple(&mut self, name: impl AsRef<str>, dir: int::Dir, tkn: impl AsRef<str>, force_pass: &[int::WireId]) {

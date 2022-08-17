@@ -301,6 +301,12 @@ impl ExpandedGrid<'_> {
             let tile = &slr[wire.1];
             let wi = &self.db.wires[wire.2];
             match wi.kind {
+                WireKind::CondAlias(node, wf) => {
+                    if tile.nodes[0].kind != node {
+                        break;
+                    }
+                    wire.2 = wf;
+                }
                 WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
                     if let Some(t) = &tile.terms[dir] {
                         let term = &self.db.terms[t.kind];

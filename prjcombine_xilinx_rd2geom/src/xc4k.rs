@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use prjcombine_xilinx_rawdump::{Part, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin};
+use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, int};
 use prjcombine_xilinx_geom::xc4k::{self, GridKind};
 
 use crate::grid::{extract_int, PreDevice, make_device};
@@ -115,7 +115,7 @@ fn make_bond(grid: &xc4k::Grid, pins: &[PkgPin]) -> Bond {
     }
 }
 
-pub fn ingest(rd: &Part) -> PreDevice {
+pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let grid = make_grid(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
@@ -124,5 +124,5 @@ pub fn ingest(rd: &Part) -> PreDevice {
             make_bond(&grid, pins),
         ));
     }
-    make_device(rd, geom::Grid::Xc4k(grid), bonds, BTreeSet::new())
+    (make_device(rd, geom::Grid::Xc4k(grid), bonds, BTreeSet::new()), None)
 }

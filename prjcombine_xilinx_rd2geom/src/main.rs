@@ -40,8 +40,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         let rd = Part::from_file(file).unwrap();
         println!("INGEST {} {:?}", rd.part, rd.source);
         match &rd.family[..] {
-            "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => (xc4k::ingest(&rd), None),
-            "xc5200" => (xc5200::ingest(&rd), None),
+            "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => xc4k::ingest(&rd),
+            "xc5200" => xc5200::ingest(&rd),
             "virtex" | "virtexe" => virtex::ingest(&rd),
             "virtex2" | "virtex2p" | "spartan3" | "spartan3e" | "spartan3a" | "spartan3adsp" => virtex2::ingest(&rd),
             "spartan6" => spartan6::ingest(&rd),
