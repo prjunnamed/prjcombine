@@ -82,9 +82,6 @@ fn get_has_bram_fx(rd: &Part) -> bool {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex4", rd);
-    builder.node_type("INT", "INT", "INT");
-    builder.node_type("INT_SO", "INT", "INT");
-    builder.node_type("INT_SO_DCM0", "INT", "INT.DCM0");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -280,7 +277,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ]);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
+    builder.node_type("INT_SO", "INT", "INT");
+    builder.node_type("INT_SO_DCM0", "INT", "INT.DCM0");
 
     builder.extract_term("W", None, Dir::W, "L_TERM_INT", "TERM.W");
     builder.extract_term("E", None, Dir::E, "R_TERM_INT", "TERM.E");
@@ -651,7 +652,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Virtex4(grid), bonds, BTreeSet::new()), Some(int_db))
 }

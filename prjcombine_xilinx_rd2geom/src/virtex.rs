@@ -121,23 +121,6 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex::Grid) {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex", rd);
-    builder.node_type("CENTER", "CLB", "CLB");
-    builder.node_type("LEFT", "IO.L", "IO.L");
-    builder.node_type("LEFT_PCI_BOT", "IO.L", "IO.L");
-    builder.node_type("LEFT_PCI_TOP", "IO.L", "IO.L");
-    builder.node_type("RIGHT", "IO.R", "IO.R");
-    builder.node_type("RIGHT_PCI_BOT", "IO.R", "IO.R");
-    builder.node_type("RIGHT_PCI_TOP", "IO.R", "IO.R");
-    builder.node_type("BOT", "IO.B", "IO.B");
-    builder.node_type("BL_DLLIOB", "IO.B", "IO.B");
-    builder.node_type("BR_DLLIOB", "IO.B", "IO.B");
-    builder.node_type("TOP", "IO.T", "IO.T");
-    builder.node_type("TL_DLLIOB", "IO.T", "IO.T");
-    builder.node_type("TR_DLLIOB", "IO.T", "IO.T");
-    builder.node_type("LL", "CNR.BL", "CNR.BL");
-    builder.node_type("LR", "CNR.BR", "CNR.BR");
-    builder.node_type("UL", "CNR.TL", "CNR.TL");
-    builder.node_type("UR", "CNR.TR", "CNR.TR");
 
     let mut bram_forbidden = Vec::new();
     let mut bram_bt_forbidden = Vec::new();
@@ -154,7 +137,16 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             format!("TOP_HGCLK{i}"),
             format!("LL_GCLK{i}"),
             format!("UL_GCLK{i}"),
+            format!("BRAM_GCLKIN{i}"),
+            format!("BRAM_BOT_GCLKE{i}"),
+            format!("BRAM_TOP_GCLKE{i}"),
+            format!("BRAM_BOTP_GCLK{i}"),
+            format!("BRAM_TOPP_GCLK{i}"),
+            format!("BRAM_BOTS_GCLK{i}"),
+            format!("BRAM_TOPS_GCLK{i}"),
         ]);
+        builder.extra_name_sub(format!("MBRAM_GCLKD{i}"), 0, w);
+        builder.extra_name_sub(format!("MBRAM_GCLKA{i}"), 3, w);
         gclk.push(w);
         bram_forbidden.push(w);
         bram_bt_forbidden.push(w);
@@ -163,15 +155,6 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             format!("BOT_GCLK{i}"),
             format!("TOP_GCLK{i}"),
         ]);
-        builder.extra_name(format!("BRAM_GCLKIN{i}"), w);
-        builder.extra_name(format!("BRAM_BOT_GCLKE{i}"), w);
-        builder.extra_name(format!("BRAM_TOP_GCLKE{i}"), w);
-        builder.extra_name(format!("BRAM_BOTP_GCLK{i}"), w);
-        builder.extra_name(format!("BRAM_TOPP_GCLK{i}"), w);
-        builder.extra_name(format!("BRAM_BOTS_GCLK{i}"), w);
-        builder.extra_name(format!("BRAM_TOPS_GCLK{i}"), w);
-        builder.extra_name_sub(format!("MBRAM_GCLKD{i}"), 0, w);
-        builder.extra_name_sub(format!("MBRAM_GCLKA{i}"), 3, w);
     }
 
     let pci_ce = builder.wire("PCI_CE", int::WireKind::MultiBranch(Dir::S), &[
@@ -226,10 +209,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         let mut l = Vec::new();
         let mut ln = Vec::new();
         for i in 0..32 {
-            let w = builder.mux_out(format!("BRAM.SINGLE.{name}{i}"), &[""]);
-            builder.extra_name(format!("BRAM_R{name}S{i}"), w);
-            let s = builder.branch(w, Dir::S, format!("BRAM.SINGLE.{name}{i}.S"), &[""]);
-            builder.extra_name(format!("BRAM_R{name}N{i}"), s);
+            let w = builder.mux_out(format!("BRAM.SINGLE.{name}{i}"), &[
+                format!("BRAM_R{name}S{i}"),
+            ]);
+            let s = builder.branch(w, Dir::S, format!("BRAM.SINGLE.{name}{i}.S"), &[
+                format!("BRAM_R{name}N{i}"),
+            ]);
             bram_forbidden.push(s);
             let n = builder.branch(w, Dir::N, format!("BRAM.SINGLE.{name}{i}.n"), &[""]);
             l.push(w);
@@ -383,14 +368,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         format!("LR_LV{i}"),
         format!("UL_LV{i}"),
         format!("UR_LV{i}"),
+        format!("BRAM_LV{i}"),
+        format!("BRAM_BOT_RLV{ii}", ii = (i + 11) % 12),
+        format!("BRAM_BOTP_RLV{ii}", ii = (i + 11) % 12),
+        format!("BRAM_TOP_RLV{i}"),
+        format!("BRAM_TOPP_RLV{i}"),
     ])).collect();
     for i in 0..12 {
         builder.conn_branch(lv[i], Dir::N, lv[(i + 11) % 12]);
-        builder.extra_name(format!("BRAM_LV{i}"), lv[i]);
-        builder.extra_name(format!("BRAM_BOT_RLV{ii}", ii = (i + 11) % 12), lv[i]);
-        builder.extra_name(format!("BRAM_BOTP_RLV{ii}", ii = (i + 11) % 12), lv[i]);
-        builder.extra_name(format!("BRAM_TOP_RLV{i}"), lv[i]);
-        builder.extra_name(format!("BRAM_TOPP_RLV{i}"), lv[i]);
         dll_forbidden.push(lv[i]);
     }
 
@@ -442,23 +427,24 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     for ab in ['A', 'B'] {
         for i in 0..16 {
-            let w = builder.mux_out(format!("OUT.BRAM.DI{ab}{i}"), &[""]);
-            builder.extra_name(format!("BRAM_DI{ab}{i}"), w);
+            builder.mux_out(format!("OUT.BRAM.DI{ab}{i}"), &[
+                format!("BRAM_DI{ab}{i}"),
+            ]);
         }
     }
     for ab in ['A', 'B'] {
         for i in 0..12 {
-            let w = builder.mux_out(format!("OUT.BRAM.ADDR{ab}{i}"), &[""]);
-            builder.extra_name(format!("BRAM_ADDR{ab}{i}"), w);
+            builder.mux_out(format!("OUT.BRAM.ADDR{ab}{i}"), &[
+                format!("BRAM_ADDR{ab}{i}"),
+            ]);
         }
     }
     for name in ["CLK", "RST", "SEL", "WE"] {
         for ab in ['A', 'B'] {
-            let w = builder.mux_out(format!("OUT.BRAM.{name}{ab}"), &[""]);
-            builder.extra_name(format!("BRAM_{name}{ab}"), w);
-            if name == "CLK" {
-                builder.extra_name(format!("MBRAM_{name}{ab}"), w);
-            }
+            builder.mux_out(format!("OUT.BRAM.{name}{ab}"), &[
+                format!("BRAM_{name}{ab}"),
+                format!("MBRAM_{name}{ab}"),
+            ]);
         }
     }
 
@@ -512,13 +498,6 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             ]);
         }
     }
-    for i in 0..2 {
-        for pin in ["X", "Y", "XQ", "YQ", "XB", "YB"] {
-            builder.logic_out(format!("OUT.S{i}.{pin}"), &[
-                format!("S{i}_{pin}"),
-            ]);
-        }
-    }
     for pin in ["RESET", "DRCK1", "DRCK2", "SHIFT", "TDI", "UPDATE", "SEL1", "SEL2"] {
         builder.logic_out(format!("OUT.BSCAN.{pin}"), &[
             format!("UL_{pin}"),
@@ -527,44 +506,51 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     for ab in ['A', 'B'] {
         for i in 0..16 {
-            let w = builder.logic_out(format!("OUT.BRAM.DO{ab}{i}"), &[""]);
-            builder.extra_name(format!("BRAM_DO{ab}{i}"), w);
+            builder.logic_out(format!("OUT.BRAM.DO{ab}{i}"), &[
+                format!("BRAM_DO{ab}{i}"),
+            ]);
         }
     }
 
     for i in 0..2 {
-        let w = builder.mux_out(format!("CLK.IMUX.BUFGCE.CLK{i}"), &[""]);
-        builder.extra_name(format!("CLKB_GCLKBUF{i}_IN"), w);
-        builder.extra_name(format!("CLKT_GCLKBUF{ii}_IN", ii = i + 2), w);
+        builder.mux_out(format!("CLK.IMUX.BUFGCE.CLK{i}"), &[
+            format!("CLKB_GCLKBUF{i}_IN"),
+            format!("CLKT_GCLKBUF{ii}_IN", ii = i + 2),
+        ]);
     }
     for i in 0..2 {
-        let w = builder.mux_out(format!("CLK.IMUX.BUFGCE.CE{i}"), &[""]);
-        builder.extra_name(format!("CLKB_CE{i}"), w);
-        builder.extra_name(format!("CLKT_CE{i}"), w);
+        builder.mux_out(format!("CLK.IMUX.BUFGCE.CE{i}"), &[
+            format!("CLKB_CE{i}"),
+            format!("CLKT_CE{i}"),
+        ]);
     }
     for i in 0..2 {
-        let w = builder.logic_out(format!("CLK.OUT.BUFGCE.O{i}"), &[""]);
-        builder.extra_name(format!("CLKB_GCLK{i}_PW"), w);
-        builder.extra_name(format!("CLKT_GCLK{ii}_PW", ii = i + 2), w);
+        builder.logic_out(format!("CLK.OUT.BUFGCE.O{i}"), &[
+            format!("CLKB_GCLK{i}_PW"),
+            format!("CLKT_GCLK{ii}_PW", ii = i + 2),
+        ]);
     }
     let mut clkpad = Vec::new();
     for i in 0..2 {
-        let w = builder.logic_out(format!("CLK.OUT.CLKPAD{i}"), &[""]);
-        builder.extra_name(format!("CLKB_CLKPAD{i}"), w);
-        builder.extra_name(format!("CLKT_CLKPAD{i}"), w);
+        let w = builder.logic_out(format!("CLK.OUT.CLKPAD{i}"), &[
+            format!("CLKB_CLKPAD{i}"),
+            format!("CLKT_CLKPAD{i}"),
+        ]);
         clkpad.push(w);
     }
     let mut iofb = Vec::new();
     for i in 0..2 {
-        let w = builder.logic_out(format!("CLK.OUT.IOFB{i}"), &[""]);
-        builder.extra_name(format!("CLKB_IOFB{i}"), w);
-        builder.extra_name(format!("CLKT_IOFB{i}"), w);
+        let w = builder.logic_out(format!("CLK.OUT.IOFB{i}"), &[
+            format!("CLKB_IOFB{i}"),
+            format!("CLKT_IOFB{i}"),
+        ]);
         iofb.push(w);
     }
     for i in 1..4 {
-        let w = builder.mux_out(format!("PCI.IMUX.I{i}"), &[""]);
-        builder.extra_name(format!("CLKL_I{i}"), w);
-        builder.extra_name(format!("CLKR_I{i}"), w);
+        builder.mux_out(format!("PCI.IMUX.I{i}"), &[
+            format!("CLKL_I{i}"),
+            format!("CLKR_I{i}"),
+        ]);
     }
     let mut dll_ins = Vec::new();
     let mut clkin = None;
@@ -574,7 +560,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "CLKFB",
         "RST",
     ] {
-        let w = builder.mux_out(format!("DLL.IMUX.{name}"), &[""]);
+        let w = builder.mux_out(format!("DLL.IMUX.{name}"), &[
+            format!("BRAM_BOT_{name}"),
+            format!("BRAM_BOTP_{name}"),
+            format!("BRAM_BOT_{name}_1"),
+            format!("BRAM_TOP_{name}"),
+            format!("BRAM_TOPP_{name}"),
+            format!("BRAM_TOPS_{name}"),
+        ]);
         builder.extra_name_sub(format!("CLKB_{name}L"), 1, w);
         builder.extra_name_sub(format!("CLKB_{name}R"), 2, w);
         builder.extra_name_sub(format!("CLKB_{name}L_1"), 3, w);
@@ -583,12 +576,6 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         builder.extra_name_sub(format!("CLKT_{name}R"), 2, w);
         builder.extra_name_sub(format!("CLKT_{name}L_1"), 3, w);
         builder.extra_name_sub(format!("CLKT_{name}R_1"), 4, w);
-        builder.extra_name(format!("BRAM_BOT_{name}"), w);
-        builder.extra_name(format!("BRAM_BOTP_{name}"), w);
-        builder.extra_name(format!("BRAM_BOT_{name}_1"), w);
-        builder.extra_name(format!("BRAM_TOP_{name}"), w);
-        builder.extra_name(format!("BRAM_TOPP_{name}"), w);
-        builder.extra_name(format!("BRAM_TOPS_{name}"), w);
         dll_ins.push(w);
         bram_bt_forbidden.push(w);
         if name == "CLKIN" {
@@ -630,7 +617,25 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
     let clk2x = clk2x.unwrap();
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("CENTER", "CLB", "CLB");
+    builder.node_type("LEFT", "IO.L", "IO.L");
+    builder.node_type("LEFT_PCI_BOT", "IO.L", "IO.L");
+    builder.node_type("LEFT_PCI_TOP", "IO.L", "IO.L");
+    builder.node_type("RIGHT", "IO.R", "IO.R");
+    builder.node_type("RIGHT_PCI_BOT", "IO.R", "IO.R");
+    builder.node_type("RIGHT_PCI_TOP", "IO.R", "IO.R");
+    builder.node_type("BOT", "IO.B", "IO.B");
+    builder.node_type("BL_DLLIOB", "IO.B", "IO.B");
+    builder.node_type("BR_DLLIOB", "IO.B", "IO.B");
+    builder.node_type("TOP", "IO.T", "IO.T");
+    builder.node_type("TL_DLLIOB", "IO.T", "IO.T");
+    builder.node_type("TR_DLLIOB", "IO.T", "IO.T");
+    builder.node_type("LL", "CNR.BL", "CNR.BL");
+    builder.node_type("LR", "CNR.BR", "CNR.BR");
+    builder.node_type("UL", "CNR.TL", "CNR.TL");
+    builder.node_type("UR", "CNR.TR", "CNR.TR");
 
     for tkn in [
         "LBRAM", "RBRAM", "MBRAM",
@@ -974,7 +979,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&disabled, &int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Virtex(grid), bonds, disabled), Some(int_db))
 }

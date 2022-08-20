@@ -32,8 +32,10 @@ enum NodeOrWire {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SitePinDir {
+    #[allow(dead_code)]
     In,
     Out,
+    #[allow(dead_code)]
     Inout,
 }
 
@@ -205,7 +207,30 @@ impl<'a> Verifier<'a> {
                 if site.kind != kind {
                     println!("MISMATCHED SITE KIND {} {} {} {} {}", self.rd.part, tile.name, name, kind, site.kind);
                 }
-                // XXX pins
+                let mut extra_pins: HashSet<_> = site.pins.keys().map(|x| &x[..]).collect();
+                for pin in pins {
+                    if let Some(tkp) = site.pins.get(pin.pin) {
+                        extra_pins.remove(pin.pin);
+                        let exp_dir = match pin.dir {
+                            SitePinDir::In => rawdump::TkSitePinDir::Input,
+                            SitePinDir::Out => rawdump::TkSitePinDir::Output,
+                            SitePinDir::Inout => rawdump::TkSitePinDir::Bidir,
+                        };
+                        if tkp.dir != exp_dir {
+                            println!("PIN DIR MISMATCH {} {} {} {} {} {:?} {:?}", self.rd.part, tile.name, name, kind, pin.pin, tkp.dir, exp_dir);
+                        }
+                        let act_wire = tkp.wire.map(|x| &*self.rd.wires[x]);
+                        if pin.wire != act_wire {
+                            println!("PIN WIRE MISMATCH {} {} {} {} {} {:?} {:?}", self.rd.part, tile.name, name, kind, pin.pin, act_wire, pin.wire);
+                        }
+                        // XXX wire
+                    } else {
+                        println!("MISSING PIN {} {} {} {} {}", self.rd.part, tile.name, name, kind, pin.pin);
+                    }
+                }
+                for pin in extra_pins {
+                    println!("EXTRA PIN {} {} {} {} {}", self.rd.part, tile.name, name, kind, pin);
+                }
                 return;
             }
         }
@@ -323,28 +348,28 @@ impl<'a> Verifier<'a> {
         }
         if let Some(ref tn) = node.tie_name {
             let mut pins = vec![];
-            for w in wires {
-                let wi = &self.db.wires[w.1];
+            for (&k, v) in &naming.wires {
+                let wi = &self.db.wires[k.1];
                 match wi.kind {
                     int::WireKind::Tie0 => {
                         pins.push(SitePin {
                             dir: SitePinDir::Out,
                             pin: self.grid.tie_pin_gnd.as_ref().unwrap(),
-                            wire: Some(&naming.wires[&w]),
+                            wire: Some(v),
                         });
                     }
                     int::WireKind::Tie1 => {
                         pins.push(SitePin {
                             dir: SitePinDir::Out,
                             pin: self.grid.tie_pin_vcc.as_ref().unwrap(),
-                            wire: Some(&naming.wires[&w]),
+                            wire: Some(v),
                         });
                     }
                     int::WireKind::TiePullup => {
                         pins.push(SitePin {
                             dir: SitePinDir::Out,
                             pin: self.grid.tie_pin_pullup.as_ref().unwrap(),
-                            wire: Some(&naming.wires[&w]),
+                            wire: Some(v),
                         });
                     }
                     _ => (),
@@ -451,7 +476,7 @@ impl<'a> Verifier<'a> {
                                     }
                                 }
                             }
-                            Some(&int::TermWireOutNaming::Buf(ref wtn, ref wfn)) => unreachable!(),
+                            Some(&int::TermWireOutNaming::Buf(_, _)) => unreachable!(),
                         }
                     }
                     _ => (),

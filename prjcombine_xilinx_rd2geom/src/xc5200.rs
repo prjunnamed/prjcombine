@@ -51,21 +51,8 @@ fn make_bond(grid: &xc5200::Grid, pins: &[PkgPin]) -> Bond {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("xc5200", rd);
-    builder.node_type("CENTER", "CLB", "CLB");
-    builder.node_type("LEFT", "IO.L", "IO.L");
-    builder.node_type("LEFTCLK", "IO.L", "IO.L");
-    builder.node_type("RIGHT", "IO.R", "IO.R");
-    builder.node_type("RIGHTCLK", "IO.R", "IO.R");
-    builder.node_type("BOT", "IO.B", "IO.B");
-    builder.node_type("BOTCLK", "IO.B", "IO.B");
-    builder.node_type("TOP", "IO.T", "IO.T");
-    builder.node_type("TOPCLK", "IO.T", "IO.T");
-    builder.node_type("LL", "CNR.BL", "CNR.BL");
-    builder.node_type("LR", "CNR.BR", "CNR.BR");
-    builder.node_type("UL", "CNR.TL", "CNR.TL");
-    builder.node_type("UR", "CNR.TR", "CNR.TR");
 
-    let w = builder.wire("GND", int::WireKind::Tie0, &[
+    builder.wire("GND", int::WireKind::Tie0, &[
         "WIRE_PIN_GND_LEFT",
         "WIRE_PIN_GND_RIGHT",
         "WIRE_PIN_GND_BOT",
@@ -402,7 +389,21 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     ]);
     let bot_cin = builder.mux_out("IMUX.BOT.CIN", &["WIRE_COUT_BOT"]);
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("CENTER", "CLB", "CLB");
+    builder.node_type("LEFT", "IO.L", "IO.L");
+    builder.node_type("LEFTCLK", "IO.L", "IO.L");
+    builder.node_type("RIGHT", "IO.R", "IO.R");
+    builder.node_type("RIGHTCLK", "IO.R", "IO.R");
+    builder.node_type("BOT", "IO.B", "IO.B");
+    builder.node_type("BOTCLK", "IO.B", "IO.B");
+    builder.node_type("TOP", "IO.T", "IO.T");
+    builder.node_type("TOPCLK", "IO.T", "IO.T");
+    builder.node_type("LL", "CNR.BL", "CNR.BL");
+    builder.node_type("LR", "CNR.BR", "CNR.BR");
+    builder.node_type("UL", "CNR.TL", "CNR.TL");
+    builder.node_type("UR", "CNR.TR", "CNR.TR");
 
     let node_ll = builder.db.nodes.get("CNR.BL").unwrap().0;
     let node_lr = builder.db.nodes.get("CNR.BR").unwrap().0;
@@ -465,7 +466,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Xc5200(grid), bonds, BTreeSet::new()), Some(int_db))
 }

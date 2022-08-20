@@ -489,16 +489,6 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("spartan6", rd);
-    builder.node_type("INT", "INT", "INT");
-    builder.node_type("INT_BRK", "INT", "INT.BRK");
-    builder.node_type("INT_BRAM", "INT", "INT");
-    builder.node_type("INT_BRAM_BRK", "INT", "INT.BRK");
-    builder.node_type("INT_GCLK", "INT", "INT");
-    builder.node_type("INT_TERM", "INT", "INT.TERM");
-    builder.node_type("INT_TERM_BRK", "INT", "INT.TERM.BRK");
-    builder.node_type("IOI_INT", "IOI", "IOI");
-    builder.node_type("LIOI_INT", "IOI", "IOI");
-    builder.node_type("LIOI_INT_BRK", "IOI", "IOI.BRK");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -678,7 +668,18 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         ]);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
+    builder.node_type("INT_BRK", "INT", "INT.BRK");
+    builder.node_type("INT_BRAM", "INT", "INT");
+    builder.node_type("INT_BRAM_BRK", "INT", "INT.BRK");
+    builder.node_type("INT_GCLK", "INT", "INT");
+    builder.node_type("INT_TERM", "INT", "INT.TERM");
+    builder.node_type("INT_TERM_BRK", "INT", "INT.TERM.BRK");
+    builder.node_type("IOI_INT", "IOI", "IOI");
+    builder.node_type("LIOI_INT", "IOI", "IOI");
+    builder.node_type("LIOI_INT_BRK", "IOI", "IOI.BRK");
 
     for tkn in [
         "CNR_TL_LTERM",
@@ -917,7 +918,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Spartan6(grid), bonds, disabled), Some(int_db))
 }

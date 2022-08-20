@@ -45,13 +45,12 @@ entity_id! {
     pub id NodeKindId u16, reserve 1;
     pub id TermKindId u16, reserve 1;
     pub id IntfKindId u16, reserve 1;
-    pub id BelKindId u16, reserve 1;
     pub id NodeNamingId u16, reserve 1;
     pub id TermNamingId u16, reserve 1;
     pub id IntfNamingId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeRawTileId u16, reserve 1;
-    pub id BelTileId u16, reserve 1;
+    pub id NodeBelId u16, reserve 1;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -61,7 +60,6 @@ pub struct IntDb {
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
     pub intfs: EntityMap<IntfKindId, String, IntfKind>,
-    pub bels: EntityMap<BelKindId, String, BelKind>,
     pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub term_namings: EntityMap<TermNamingId, String, TermNaming>,
     pub intf_namings: EntityMap<IntfNamingId, String, IntfNaming>,
@@ -116,6 +114,7 @@ pub enum WireKind {
 pub struct NodeKind {
     pub tiles: EntityVec<NodeTileId, ()>,
     pub muxes: BTreeMap<NodeWireId, MuxInfo>,
+    pub bels: EntityMap<NodeBelId, String, BelInfo>,
 }
 
 pub type NodeWireId = (NodeTileId, WireId);
@@ -133,11 +132,29 @@ pub enum MuxKind {
     OptInv,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct BelInfo {
+    pub pins: BTreeMap<String, BelPin>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct BelPin {
+    pub wire: NodeWireId,
+    pub dir: PinDir,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum PinDir {
+    Input,
+    Output,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct NodeNaming {
     pub wires: BTreeMap<NodeWireId, String>,
     pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
+    pub bels: EntityVec<NodeBelId, BelNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -145,6 +162,17 @@ pub struct NodeExtPipNaming {
     pub tile: NodeRawTileId,
     pub wire_to: String,
     pub wire_from: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+pub struct BelNaming {
+    pub pins: BTreeMap<String, BelPinNaming>
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+pub struct BelPinNaming {
+    pub name: String,
+    pub pips: Vec<NodeExtPipNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -208,15 +236,4 @@ pub enum IntfWireInNaming {
     Simple(String),
     TestBuf(String, String),
     Delay(String, String, String),
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct BelKind {
-    pub ports: BTreeMap<String, BelPort>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct BelPort {
-    pub tile_idx: BelTileId,
-    pub wire: WireId,
 }

@@ -1,11 +1,10 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, ColId, SlrId, int, int::Dir};
+use std::collections::{BTreeMap, BTreeSet};
+use prjcombine_xilinx_geom::{self as geom, Bond, DisabledPart, ColId, SlrId, int};
 use prjcombine_xilinx_geom::versal::{self, Column, ColumnKind, HardColumn, HardRowKind, GtRowKind, CpmKind, TopKind, BotKind};
-use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeId, Coord};
+use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use prjcombine_entity::{EntityVec, EntityId};
 
 use crate::grid::{extract_int_slr, find_rows, IntGrid, PreDevice, make_device_multi};
-use crate::intb::IntBuilder;
 
 fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<HardColumn>; 3]) {
     let mut res = int.cols.map_values(|_| Column {
@@ -362,8 +361,8 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
     (grids, SlrId::from_idx(0), disabled)
 }
 
-fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, versal::Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, pins: &[PkgPin]) -> Bond {
-    let mut bond_pins = BTreeMap::new();
+fn make_bond(_rd: &Part, _pkg: &str, _grids: &EntityVec<SlrId, versal::Grid>, _grid_master: SlrId, _disabled: &BTreeSet<DisabledPart>, _pins: &[PkgPin]) -> Bond {
+    let bond_pins = BTreeMap::new();
     Bond {
         pins: bond_pins,
         io_banks: Default::default(),

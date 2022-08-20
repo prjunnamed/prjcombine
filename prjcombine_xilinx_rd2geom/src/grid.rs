@@ -119,7 +119,6 @@ impl GridBuilder {
                 merge_dicts!(nodes);
                 merge_dicts!(terms);
                 merge_dicts!(intfs);
-                merge_dicts!(bels);
                 for (_, k, v) in int.node_namings {
                     match x.node_namings.get_mut(&k) {
                         None => {

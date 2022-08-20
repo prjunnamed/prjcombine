@@ -302,9 +302,8 @@ fn get_ps(int: &IntGrid) -> Option<Ps> {
 
 fn make_int_db_u(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("ultrascale", rd);
-    builder.node_type("INT", "INT", "INT");
-    let w = builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
-    builder.extra_name("VCC_WIRE", w);
+
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
     builder.wire("GND", int::WireKind::Tie1, &["GND_WIRE"]);
 
     for i in 0..16 {
@@ -610,10 +609,8 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                             7, 8, 9, 10, 12, 13, 14, 15,
                             16, 17, 18, 19, 20, 21, 23, 24,
                         ];
-                        builder.mux_out(
-                            format!("INODE.{q}.{h}.{i}"),
-                            &[format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + ih * 32 + xlat[i])],
-                        );
+                        let w = builder.mux_out(format!("INODE.{q}.{h}.{i}"), &[""]);
+                        builder.extra_name_tile("INT", format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + ih * 32 + xlat[i]), w);
                     }
                 }
             }
@@ -672,7 +669,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
 
     for ew in ['E', 'W'] {
         for i in 0..4 {
-            let w = builder.test_out(format!("TEST.{ew}.{i}"));
+            let w = builder.test_out(format!("TEST.{ew}.{i}"), &[""]);
             let tiles: &[&str] = if ew == 'W' {&[
                 "INT_INTERFACE_L",
                 "INT_INT_INTERFACE_XIPHY_FT",
@@ -690,27 +687,33 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..16 {
-        let w = builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[""]);
-        builder.extra_name(format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}"), w);
+        builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[
+            format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}"),
+        ]);
     }
     for i in 0..2 {
         for j in 0..4 {
-            let w = builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[""]);
-            builder.extra_name(format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"), w);
+            builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[
+                format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"),
+            ]);
         }
     }
     for i in 0..2 {
         for j in 0..4 {
-            let w = builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[""]);
-            builder.extra_name(format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"), w);
+            builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[
+                format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"),
+            ]);
         }
     }
     for i in 0..48 {
         let w = builder.mux_out(format!("RCLK.INODE.{i}"), &[""]);
-        builder.extra_name(format!("INT_NODE_IMUX_{i}_INT_OUT"), w);
+        builder.extra_name_tile("RCLK_INT_L", format!("INT_NODE_IMUX_{i}_INT_OUT"), w);
+        builder.extra_name_tile("RCLK_INT_R", format!("INT_NODE_IMUX_{i}_INT_OUT"), w);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
 
     builder.extract_term_conn("W", Dir::W, "INT_TERM_L_IO", &[]);
     builder.extract_term_conn("W", Dir::W, "INT_INT_INTERFACE_GT_LEFT_FT", &[]);
@@ -750,7 +753,6 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
 
 fn make_int_db_up(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("ultrascaleplus", rd);
-    builder.node_type("INT", "INT", "INT");
 
     let d2n = enum_map!(
         Dir::N => 0,
@@ -759,8 +761,7 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         Dir::W => 3,
     );
 
-    let w = builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
-    builder.extra_name("VCC_WIRE", w);
+    builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
 
     for i in 0..16 {
         builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
@@ -999,10 +1000,8 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                     ][i >> 1];
                     let aa = a + ih * 32;
                     let b = i & 1;
-                    builder.mux_out(
-                        format!("INODE.{h}.{i}"),
-                        &[format!("INT_NODE_IMUX_{aa}_INT_OUT{b}")],
-                    );
+                    let w = builder.mux_out(format!("INODE.{h}.{i}"), &[""]);
+                    builder.extra_name_tile("INT", format!("INT_NODE_IMUX_{aa}_INT_OUT{b}"), w);
                 }
             }
         }
@@ -1059,29 +1058,31 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..32 {
-        let w = builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[""]);
-        builder.extra_name(format!("CLK_LEAF_SITES_{i}_CE_INT"), w);
+        builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[
+            format!("CLK_LEAF_SITES_{i}_CE_INT"),
+        ]);
     }
-    let w = builder.mux_out("RCLK.IMUX.ENSEL_PROG", &[""]);
-    builder.extra_name("CLK_LEAF_SITES_0_ENSEL_PROG", w);
-    let w = builder.mux_out("RCLK.IMUX.CLK_CASC_IN", &[""]);
-    builder.extra_name("CLK_LEAF_SITES_0_CLK_CASC_IN", w);
+    builder.mux_out("RCLK.IMUX.ENSEL_PROG", &["CLK_LEAF_SITES_0_ENSEL_PROG"]);
+    builder.mux_out("RCLK.IMUX.CLK_CASC_IN", &["CLK_LEAF_SITES_0_CLK_CASC_IN"]);
     for i in 0..2 {
         for j in 0..4 {
-            let w = builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[""]);
-            builder.extra_name(format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"), w);
+            builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[
+                format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"),
+            ]);
         }
     }
     for i in 0..2 {
         for j in 0..3 {
-            let w = builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[""]);
-            builder.extra_name(format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"), w);
+            builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[
+                format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"),
+            ]);
         }
     }
     for i in 0..2 {
         for j in 0..24 {
             let w = builder.mux_out(format!("RCLK.INODE.{i}.{j}"), &[""]);
-            builder.extra_name(format!("INT_NODE_IMUX_{j}_INT_OUT{i}"), w);
+            builder.extra_name_tile("RCLK_INT_L", format!("INT_NODE_IMUX_{j}_INT_OUT{i}"), w);
+            builder.extra_name_tile("RCLK_INT_R", format!("INT_NODE_IMUX_{j}_INT_OUT{i}"), w);
         }
     }
     for i in 0..48 {
@@ -1089,7 +1090,10 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         builder.extra_name_tile("RCLK_INT_L", format!("GND_WIRE{i}"), w);
         builder.extra_name_tile("RCLK_INT_R", format!("GND_WIRE{i}"), w);
     }
-    builder.extract_nodes();
+
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
 
     builder.extract_term_conn("W", Dir::W, "INT_INTF_L_TERM_GT", &[]);
     builder.extract_term_conn("W", Dir::W, "INT_INTF_LEFT_TERM_PSS", &[]);
@@ -1891,7 +1895,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     let grids = grids.into_map_values(|x| geom::Grid::Ultrascale(x));
     (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))

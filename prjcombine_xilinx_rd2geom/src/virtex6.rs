@@ -117,7 +117,6 @@ fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> usize {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex6", rd);
-    builder.node_type("INT", "INT", "INT");
 
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
@@ -354,17 +353,20 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..4 {
-        let w = builder.test_out(format!("TEST{i}"));
-        builder.extra_name(format!("INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("EMAC_INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("PCIE_INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("PCIE_INT_INTERFACE_L_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("IOI_L_INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("GTX_INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("GT_L_INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
+        builder.test_out(format!("TEST{i}"), &[
+            format!("INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("EMAC_INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("PCIE_INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("PCIE_INT_INTERFACE_L_BLOCK_OUTS_B{i}"),
+            format!("IOI_L_INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("GTX_INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("GT_L_INT_INTERFACE_BLOCK_OUTS_B{i}"),
+        ]);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
 
     builder.extract_term_conn("W", Dir::W, "L_TERM_INT", &[]);
     builder.extract_term_conn("E", Dir::E, "R_TERM_INT", &[]);
@@ -628,7 +630,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Virtex6(grid), bonds, disabled), Some(int_db))
 }

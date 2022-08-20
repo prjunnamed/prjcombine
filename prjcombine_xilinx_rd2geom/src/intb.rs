@@ -8,9 +8,9 @@ use assert_matches::assert_matches;
 
 use enum_map::{EnumMap, enum_map};
 
+#[derive(Clone, Debug)]
 struct NodeType {
     tki: rawdump::TileKindId,
-    node: int::NodeKindId,
     naming: int::NodeNamingId,
 }
 
@@ -32,7 +32,6 @@ impl<'a> IntBuilder<'a> {
             nodes: Default::default(),
             terms: Default::default(),
             intfs: Default::default(),
-            bels: Default::default(),
             node_namings: Default::default(),
             term_namings: Default::default(),
             intf_namings: Default::default(),
@@ -45,32 +44,6 @@ impl<'a> IntBuilder<'a> {
             stub_outs: Default::default(),
             extra_names: Default::default(),
             extra_names_tile: Default::default(),
-        }
-    }
-
-    pub fn node_type(&mut self, tile_kind: &str, node: &str, naming: &str) {
-        assert_eq!(self.db.wires.len(), 0);
-        if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
-            let node = match self.db.nodes.get(node) {
-                None => self.db.nodes.insert(node.to_string(), int::NodeKind {
-                    tiles: [()].into_iter().collect(),
-                    muxes: Default::default(),
-                }).0,
-                Some((i, _)) => i,
-            };
-            let naming = self.make_node_naming(naming);
-            self.node_types.push(NodeType {
-                tki,
-                node,
-                naming,
-            });
-        }
-    }
-
-    pub fn make_node_naming(&mut self, name: impl AsRef<str>) -> int::NodeNamingId {
-        match self.db.node_namings.get(name.as_ref()) {
-            None => self.db.node_namings.insert(name.as_ref().to_string(), Default::default()).0,
-            Some((i, _)) => i,
         }
     }
 
@@ -197,21 +170,10 @@ impl<'a> IntBuilder<'a> {
             name: name.into(),
             kind,
         });
-        let nwi = (int::NodeTileId::from_idx(0), res);
-        for nt in &self.node_types {
-            for rn in raw_names {
-                let rn = rn.as_ref();
-                let tk = &self.rd.tile_kinds[nt.tki];
-                for &wi in tk.wires.keys() {
-                    if self.rd.wires[wi] == rn {
-                        let naming = &mut self.db.node_namings[nt.naming];
-                        if !naming.wires.contains_key(&nwi) {
-                            naming.wires.insert(nwi, rn.to_string());
-                        } else {
-                            assert_eq!(naming.wires[&nwi], rn);
-                        }
-                    }
-                }
+        for rn in raw_names {
+            let rn = rn.as_ref();
+            if !rn.is_empty() {
+                self.extra_name(rn, res);
             }
         }
         res
@@ -229,8 +191,8 @@ impl<'a> IntBuilder<'a> {
         self.wire(name, int::WireKind::MultiOut, raw_names)
     }
 
-    pub fn test_out(&mut self, name: impl Into<String>) -> int::WireId {
-        self.wire(name, int::WireKind::TestOut, &[""])
+    pub fn test_out(&mut self, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
+        self.wire(name, int::WireKind::TestOut, raw_names)
     }
 
     pub fn buf(&mut self, src: int::WireId, name: impl Into<String>, raw_names: &[impl AsRef<str>]) -> int::WireId {
@@ -277,21 +239,42 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_nodes(&mut self) {
-        for nt in &self.node_types {
-            let naming = &self.db.node_namings[nt.naming];
-            let rev_naming: HashMap<_, _> = naming.wires.iter().map(|(&k, v)| (v.to_string(), k)).collect();
-            let mut names: HashMap<rawdump::WireId, int::NodeWireId> = HashMap::new();
-            let tk = &self.rd.tile_kinds[nt.tki];
-            let tkn = self.rd.tile_kinds.key(nt.tki);
+    pub fn extract_main_passes(&mut self) {
+        for (dir, wires) in &self.main_passes {
+            self.db.terms.insert(format!("MAIN.{dir}"), int::TermKind {
+                dir,
+                wires: wires.iter().map(|(k, &v)| (k, int::TermInfo::PassFar(v))).collect()
+            });
+        }
+    }
+
+    pub fn node_type(&mut self, tile_kind: &str, kind: &str, naming: &str) {
+        if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
+            let tk = &self.rd.tile_kinds[tki];
+            let tkn = self.rd.tile_kinds.key(tki);
+            let mut node = int::NodeKind {
+                tiles: [()].into_iter().collect(),
+                muxes: Default::default(),
+                bels: Default::default(),
+            };
+            let mut node_naming = int::NodeNaming::default();
+            let mut names = HashMap::new();
             for &wi in tk.wires.keys() {
-                let n = &self.rd.wires[wi];
-                if let Some(&w) = rev_naming.get(n) {
+                if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
                     names.insert(wi, w);
+                    continue;
+                }
+                if let Some(xn) = self.extra_names_tile.get(&tki) {
+                    if let Some(&w) = xn.get(&self.rd.wires[wi]) {
+                        names.insert(wi, w);
+                        continue;
+                    }
                 }
             }
 
-            let node = &mut self.db.nodes[nt.node];
+            for (&k, &v) in &names {
+                node_naming.wires.insert(v, self.rd.wires[k].clone());
+            }
 
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(&wt) = names.get(&wti) {
@@ -332,11 +315,11 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-        }
-        for (dir, wires) in &self.main_passes {
-            self.db.terms.insert(format!("MAIN.{dir}"), int::TermKind {
-                dir,
-                wires: wires.iter().map(|(k, &v)| (k, int::TermInfo::PassFar(v))).collect()
+            self.insert_node_merge(kind, node);
+            let naming = self.insert_node_naming(naming, node_naming);
+            self.node_types.push(NodeType {
+                tki,
+                naming,
             });
         }
     }
@@ -427,12 +410,12 @@ impl<'a> IntBuilder<'a> {
         }).collect()
     }
 
-    fn insert_node_merge(&mut self, name: &str, node: int::NodeKind) {
+    fn insert_node_merge(&mut self, name: &str, node: int::NodeKind) -> int::NodeKindId {
         match self.db.nodes.get_mut(name) {
             None => {
-                self.db.nodes.insert(name.to_string(), node);
+                self.db.nodes.insert(name.to_string(), node).0
             }
-            Some((_, cnode)) => {
+            Some((id, cnode)) => {
                 assert_eq!(node.tiles, cnode.tiles);
                 for (k, v) in node.muxes {
                     match cnode.muxes.get_mut(&k) {
@@ -447,16 +430,17 @@ impl<'a> IntBuilder<'a> {
                         }
                     }
                 }
+                id
             }
         }
     }
 
-    fn insert_node_naming(&mut self, name: &str, naming: int::NodeNaming) {
+    fn insert_node_naming(&mut self, name: &str, naming: int::NodeNaming) -> int::NodeNamingId {
         match self.db.node_namings.get_mut(name) {
             None => {
-                self.db.node_namings.insert(name.to_string(), naming);
+                self.db.node_namings.insert(name.to_string(), naming).0
             }
-            Some((_, cnaming)) => {
+            Some((id, cnaming)) => {
                 assert_eq!(naming.ext_pips, cnaming.ext_pips);
                 assert_eq!(naming.wire_bufs, cnaming.wire_bufs);
                 for (k, v) in naming.wires {
@@ -469,6 +453,7 @@ impl<'a> IntBuilder<'a> {
                         }
                     }
                 }
+                id
             }
         }
     }
@@ -598,11 +583,13 @@ impl<'a> IntBuilder<'a> {
             self.insert_node_merge(nn, int::NodeKind {
                 tiles: [()].into_iter().collect(),
                 muxes: node_muxes,
+                bels: Default::default(),
             });
             self.insert_node_naming(naming.as_ref(), int::NodeNaming {
                 wires: node_names,
                 wire_bufs: Default::default(),
                 ext_pips: Default::default(),
+                bels: Default::default(),
             });
         } else {
             assert!(node_muxes.is_empty());
@@ -975,11 +962,13 @@ impl<'a> IntBuilder<'a> {
                 self.insert_node_merge(nn, int::NodeKind {
                     tiles: node_tiles,
                     muxes: node_muxes,
+                    bels: Default::default(),
                 });
                 self.insert_node_naming(nnn, int::NodeNaming {
                     wires: node_names,
                     wire_bufs: node_wire_bufs,
                     ext_pips: Default::default(),
+                    bels: Default::default(),
                 });
             } else {
                 assert!(node_muxes.is_empty());
@@ -1131,7 +1120,6 @@ impl<'a> IntBuilder<'a> {
         let tk = &self.rd.tile_kinds[tile.kind];
         let mut names = HashMap::new();
         let node2wires: EntityVec<int::NodeTileId, _> = int_xy.into_iter().copied().map(|x| self.get_int_node2wires(x)).collect();
-        let def_t = node2wires.first_id().unwrap();
         for (_, &wi, &tkw) in tk.wires.iter() {
             if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
                 names.insert(wi, w);
@@ -1160,6 +1148,7 @@ impl<'a> IntBuilder<'a> {
         let mut node = int::NodeKind {
             tiles: node2wires.map_values(|_| ()),
             muxes: Default::default(),
+            bels: Default::default(),
         };
         let mut node_naming = int::NodeNaming::default();
 

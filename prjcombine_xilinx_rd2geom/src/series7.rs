@@ -256,12 +256,6 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("series7", rd);
-    builder.node_type("INT_L", "INT", "INT.L");
-    builder.node_type("INT_R", "INT", "INT.R");
-    builder.node_type("INT_L_SLV_FLY", "INT", "INT.L");
-    builder.node_type("INT_R_SLV_FLY", "INT", "INT.R");
-    builder.node_type("INT_L_SLV", "INT", "INT.L.SLV");
-    builder.node_type("INT_R_SLV", "INT", "INT.R.SLV");
 
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
@@ -579,9 +573,10 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         );
     }
     for i in 0..48 {
-        let w = builder.test_out(format!("IMUX.BRAM{i}"));
-        builder.extra_name(format!("INT_INTERFACE_BRAM_UTURN_IMUX{i}"), w);
-        builder.extra_name(format!("INT_INTERFACE_BRAM_UTURN_R_IMUX{i}"), w);
+        builder.test_out(format!("IMUX.BRAM{i}"), &[
+            format!("INT_INTERFACE_BRAM_UTURN_IMUX{i}"),
+            format!("INT_INTERFACE_BRAM_UTURN_R_IMUX{i}"),
+        ]);
     }
 
     for i in 0..24 {
@@ -595,13 +590,21 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..4 {
-        let w = builder.test_out(format!("TEST{i}"));
-        builder.extra_name(format!("INT_INTERFACE_BLOCK_OUTS_B{i}"), w);
-        builder.extra_name(format!("INT_INTERFACE_BLOCK_OUTS_L_B{i}"), w);
-        builder.extra_name(format!("INT_INTERFACE_PSS_BLOCK_OUTS_L_B{i}"), w);
+        builder.test_out(format!("TEST{i}"), &[
+            format!("INT_INTERFACE_BLOCK_OUTS_B{i}"),
+            format!("INT_INTERFACE_BLOCK_OUTS_L_B{i}"),
+            format!("INT_INTERFACE_PSS_BLOCK_OUTS_L_B{i}"),
+        ]);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT_L", "INT", "INT.L");
+    builder.node_type("INT_R", "INT", "INT.R");
+    builder.node_type("INT_L_SLV_FLY", "INT", "INT.L");
+    builder.node_type("INT_R_SLV_FLY", "INT", "INT.R");
+    builder.node_type("INT_L_SLV", "INT", "INT.L.SLV");
+    builder.node_type("INT_R_SLV", "INT", "INT.R.SLV");
 
     let forced: Vec<_> = (0..6).map(|i| (builder.find_wire(format!("LH.{}", i)), builder.find_wire(format!("LH.{}", 11 - i)))).collect();
     for tkn in [
@@ -1029,7 +1032,7 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, series7::Grid>, grid
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let (grids, grid_master, extras) = make_grids(rd);
-    let mut int_db = make_int_db(rd);
+    let int_db = make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         bonds.push((
@@ -1039,7 +1042,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let eint = expand_grid(&grid_refs, grid_master, &extras, &int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     let grids = grids.into_map_values(|x| geom::Grid::Series7(x));
     (make_device_multi(rd, grids, grid_master, extras, bonds, BTreeSet::new()), Some(int_db))

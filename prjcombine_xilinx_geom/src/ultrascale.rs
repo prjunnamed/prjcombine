@@ -629,7 +629,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
     res
 }
 
-pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     let mut yb = 0;
     for (slrid, grid) in grids {

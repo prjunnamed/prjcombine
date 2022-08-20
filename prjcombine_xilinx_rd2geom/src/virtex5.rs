@@ -91,7 +91,6 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
 
 fn make_int_db(rd: &Part) -> int::IntDb {
     let mut builder = IntBuilder::new("virtex5", rd);
-    builder.node_type("INT", "INT", "INT");
 
     builder.wire("PULLUP", int::WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", int::WireKind::Tie0, &["GND_WIRE"]);
@@ -405,14 +404,17 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..4 {
-        let w = builder.test_out(format!("TEST{i}"));
-        builder.extra_name(format!("INT_INTERFACE_BLOCK_INPS_B{i}"), w);
-        builder.extra_name(format!("PPC_L_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
-        builder.extra_name(format!("PPC_R_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
-        builder.extra_name(format!("GTX_LEFT_INT_INTERFACE_BLOCK_INPS_B{i}"), w);
+        builder.test_out(format!("TEST{i}"), &[
+            format!("INT_INTERFACE_BLOCK_INPS_B{i}"),
+            format!("PPC_L_INT_INTERFACE_BLOCK_INPS_B{i}"),
+            format!("PPC_R_INT_INTERFACE_BLOCK_INPS_B{i}"),
+            format!("GTX_LEFT_INT_INTERFACE_BLOCK_INPS_B{i}"),
+        ]);
     }
 
-    builder.extract_nodes();
+    builder.extract_main_passes();
+
+    builder.node_type("INT", "INT", "INT");
 
     builder.extract_term_buf("W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
     builder.extract_term_buf("W", Dir::W, "GTX_L_TERM_INT", "TERM.W", &[]);
@@ -662,7 +664,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
         ));
     }
     let eint = grid.expand_grid(&int_db);
-    let mut vrf = Verifier::new(rd, &eint);
+    let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     (make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new()), Some(int_db))
 }

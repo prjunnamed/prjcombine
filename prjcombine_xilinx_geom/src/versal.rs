@@ -1,8 +1,7 @@
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, DisabledPart, ColId, RowId, SlrId, int, eint};
-use ndarray::Array2;
-use prjcombine_entity::{EntityVec, EntityId};
+use crate::ColId;
+use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {

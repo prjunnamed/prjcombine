@@ -103,6 +103,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             tie_name: None,
             naming,
             special: false,
+            bels: Default::default(),
         });
     }
 
@@ -117,6 +118,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             tie_name: None,
             naming,
             special: true,
+            bels: Default::default(),
         });
     }
 
@@ -396,6 +398,7 @@ impl ExpandedTile {
             tie_name: None,
             naming,
             special: true,
+            bels: Default::default(),
         });
         self.nodes.last_mut().unwrap()
     }
@@ -409,6 +412,7 @@ pub struct ExpandedTileNode {
     pub tie_name: Option<String>,
     pub naming: NodeNamingId,
     pub special: bool,
+    pub bels: EntityPartVec<NodeBelId, String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -425,17 +429,4 @@ pub struct ExpandedTileTerm {
     pub tile: Option<String>,
     pub tile_far: Option<String>,
     pub naming: Option<TermNamingId>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedBel {
-    pub name: String,
-    pub tile_name: String,
-    pub tiles: EntityVec<BelTileId, ExpandedBelTile>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedBelTile {
-    pub coord: Coord,
-    // TODO: naming
 }

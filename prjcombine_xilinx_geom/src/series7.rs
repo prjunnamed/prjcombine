@@ -548,7 +548,7 @@ pub fn get_ps_pads(grids: &EntityVec<SlrId, Grid>) -> Vec<(String, u32, PsPin)> 
     res
 }
 
-pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, grid_master: SlrId, extras: &[ExtraDie], db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, extras: &[ExtraDie], db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());
