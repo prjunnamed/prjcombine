@@ -239,6 +239,12 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
+    pub fn extra_name_tile_sub(&mut self, tile: impl AsRef<str>, name: impl Into<String>, sub: usize, wire: int::WireId) {
+        if let Some((tki, _)) = self.rd.tile_kinds.get(tile.as_ref()) {
+            self.extra_names_tile.entry(tki).or_default().insert(name.into(), (int::NodeTileId::from_idx(sub), wire));
+        }
+    }
+
     pub fn extract_main_passes(&mut self) {
         for (dir, wires) in &self.main_passes {
             self.db.terms.insert(format!("MAIN.{dir}"), int::TermKind {
@@ -458,7 +464,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn insert_term_merge(&mut self, name: &str, term: int::TermKind) {
+    pub fn insert_term_merge(&mut self, name: &str, term: int::TermKind) {
         match self.db.terms.get_mut(name) {
             None => {
                 self.db.terms.insert(name.to_string(), term);
@@ -1177,7 +1183,7 @@ impl<'a> IntBuilder<'a> {
                 } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
                     // ignore
                 } else {
-                    println!("UNEXPECTED XNODE MUX IN {} {} {}", self.rd.tile_kinds.key(tile.kind), self.rd.wires[wti], self.rd.wires[wfi]);
+                    println!("UNEXPECTED XNODE MUX IN {} {} {} {}", self.rd.tile_kinds.key(tile.kind), tile.name, self.rd.wires[wti], self.rd.wires[wfi]);
                 }
             }
         }

@@ -1112,7 +1112,7 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), true);
     }
 
-    builder.extract_intf(format!("INTF.W.IO"), Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", true);
+    builder.extract_intf("INTF.W.IO", Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", true);
     for (dir, tkn) in [
         (Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
         (Dir::W, "INT_INTF_L_CMT"),
@@ -1692,7 +1692,7 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
                 }
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
-                let mut exp_func = format!("IO");
+                let mut exp_func = "IO".to_string();
                 if io.kind == IoKind::Hdio {
                     write!(exp_func, "_L{}{}", 1 + io.bel / 2, ['P', 'N'][io.bel as usize % 2]).unwrap();
                 } else {
@@ -1897,6 +1897,6 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
     let vrf = Verifier::new(rd, &eint);
     vrf.finish();
-    let grids = grids.into_map_values(|x| geom::Grid::Ultrascale(x));
+    let grids = grids.into_map_values(geom::Grid::Ultrascale);
     (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))
 }

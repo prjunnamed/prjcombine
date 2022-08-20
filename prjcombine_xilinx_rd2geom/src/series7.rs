@@ -1044,6 +1044,6 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let eint = expand_grid(&grid_refs, grid_master, &extras, &int_db);
     let vrf = Verifier::new(rd, &eint);
     vrf.finish();
-    let grids = grids.into_map_values(|x| geom::Grid::Series7(x));
+    let grids = grids.into_map_values(geom::Grid::Series7);
     (make_device_multi(rd, grids, grid_master, extras, bonds, BTreeSet::new()), Some(int_db))
 }
