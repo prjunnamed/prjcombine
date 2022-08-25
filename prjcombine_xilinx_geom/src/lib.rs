@@ -26,6 +26,7 @@ entity_id! {
     pub id ColId u16;
     pub id RowId u16;
     pub id SlrId u16;
+    pub id BelId u16;
 }
 
 impl core::ops::Add<usize> for ColId {
@@ -394,7 +395,7 @@ pub enum AdcPin {
 pub struct BelCoord {
     pub col: ColId,
     pub row: RowId,
-    pub bel: u32,
+    pub bel: BelId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

@@ -19,6 +19,7 @@ mod versal;
 mod grid;
 mod intb;
 mod verify;
+mod util;
 
 #[derive(Debug, StructOpt)]
 #[structopt(

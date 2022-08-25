@@ -883,7 +883,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
             let xy_r = builder.walk_to_int(xy, Dir::E).unwrap();
-            builder.extract_xnode("CLE_BC", xy, &[xy_l, xy_r], "CLE_BC", &[]);
+            builder.extract_xnode("CLE_BC", xy, &[], &[xy_l, xy_r], "CLE_BC", &[], &[]);
             let tile = &rd.tiles[&xy];
             let tk = &rd.tile_kinds[tile.kind];
             let naming = builder.db.get_node_naming("CLE_BC");
@@ -948,7 +948,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     for (dir, tkn, name, _) in intf_kinds {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = builder.walk_to_int(xy, !dir).unwrap();
-            builder.extract_xnode(name, xy, &[int_xy], name, &[]);
+            builder.extract_xnode(name, xy, &[], &[int_xy], name, &[], &[]);
         }
     }
 
@@ -973,7 +973,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 x: xy.x,
                 y: xy.y + 1,
             };
-            builder.extract_xnode("RCLK", xy, &[int_xy], "RCLK", &[]);
+            builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }
 

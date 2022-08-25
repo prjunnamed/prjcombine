@@ -744,7 +744,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                 x: xy.x,
                 y: xy.y + 1,
             };
-            builder.extract_xnode("RCLK", xy, &[int_xy], "RCLK", &[]);
+            builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }
 
@@ -1139,7 +1139,7 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                 x: xy.x,
                 y: xy.y + 1,
             };
-            builder.extract_xnode("RCLK", xy, &[int_xy], "RCLK", &[]);
+            builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }
 

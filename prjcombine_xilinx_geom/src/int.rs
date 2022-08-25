@@ -2,6 +2,7 @@ use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
 use enum_map::Enum;
 use prjcombine_entity::{EntityVec, EntityPartVec, EntityMap, entity_id};
+use crate::BelId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Enum, Serialize, Deserialize)]
 pub enum Dir {
@@ -50,7 +51,6 @@ entity_id! {
     pub id IntfNamingId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeRawTileId u16, reserve 1;
-    pub id NodeBelId u16, reserve 1;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -66,21 +66,27 @@ pub struct IntDb {
 }
 
 impl IntDb {
+    #[track_caller]
     pub fn get_node(&self, name: &str) -> NodeKindId {
         self.nodes.get(name).unwrap().0
     }
+    #[track_caller]
     pub fn get_term(&self, name: &str) -> TermKindId {
         self.terms.get(name).unwrap().0
     }
+    #[track_caller]
     pub fn get_intf(&self, name: &str) -> IntfKindId {
         self.intfs.get(name).unwrap().0
     }
+    #[track_caller]
     pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
         self.node_namings.get(name).unwrap().0
     }
+    #[track_caller]
     pub fn get_term_naming(&self, name: &str) -> TermNamingId {
         self.term_namings.get(name).unwrap().0
     }
+    #[track_caller]
     pub fn get_intf_naming(&self, name: &str) -> IntfNamingId {
         self.intf_namings.get(name).unwrap().0
     }
@@ -114,7 +120,7 @@ pub enum WireKind {
 pub struct NodeKind {
     pub tiles: EntityVec<NodeTileId, ()>,
     pub muxes: BTreeMap<NodeWireId, MuxInfo>,
-    pub bels: EntityMap<NodeBelId, String, BelInfo>,
+    pub bels: EntityMap<BelId, String, BelInfo>,
 }
 
 pub type NodeWireId = (NodeTileId, WireId);
@@ -154,7 +160,7 @@ pub struct NodeNaming {
     pub wires: BTreeMap<NodeWireId, String>,
     pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
-    pub bels: EntityVec<NodeBelId, BelNaming>,
+    pub bels: EntityVec<BelId, BelNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -164,14 +170,16 @@ pub struct NodeExtPipNaming {
     pub wire_from: String,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BelNaming {
+    pub tile: NodeRawTileId,
     pub pins: BTreeMap<String, BelPinNaming>
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct BelPinNaming {
     pub name: String,
+    pub name_far: String,
     pub pips: Vec<NodeExtPipNaming>,
 }
 

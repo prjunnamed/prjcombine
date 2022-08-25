@@ -1,5 +1,5 @@
 use crate::int::*;
-use crate::{ColId, RowId, SlrId};
+use crate::{ColId, RowId, SlrId, BelId};
 use serde::{Serialize, Deserialize};
 use enum_map::EnumMap;
 use prjcombine_entity::{EntityVec, EntityId, EntityIds, EntityPartVec};
@@ -59,6 +59,25 @@ impl<'a> ExpandedGrid<'a> {
             slr,
         }
     }
+
+    pub fn find_node(&self, slr: SlrId, coord: Coord, f: impl Fn(&ExpandedTileNode) -> bool) -> Option<&ExpandedTileNode> {
+        let slr = self.slr(slr);
+        let tile = slr.tile(coord);
+        tile.nodes.iter().find(|x| f(x))
+    }
+
+    pub fn find_bel(&self, slr: SlrId, coord: Coord, key: &str) -> Option<(&ExpandedTileNode, BelId, &BelInfo, &BelNaming)> {
+        let slr = self.slr(slr);
+        let tile = slr.tile(coord);
+        for node in &tile.nodes {
+            let nk = &self.db.nodes[node.kind];
+            let naming = &self.db.node_namings[node.naming];
+            if let Some((id, bel)) = nk.bels.get(key) {
+                return Some((node, id, bel, &naming.bels[id]));
+            }
+        }
+        None
+    }
 }
 
 impl core::ops::Index<Coord> for ExpandedSlrRef<'_, '_> {
@@ -81,7 +100,7 @@ impl core::ops::IndexMut<Coord> for ExpandedSlrRefMut<'_, '_> {
     }
 }
 
-impl ExpandedSlrRef<'_, '_> {
+impl<'a> ExpandedSlrRef<'_, 'a> {
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.grid.tiles[self.slr].shape()[0])
     }
@@ -89,10 +108,14 @@ impl ExpandedSlrRef<'_, '_> {
     pub fn cols(&self) -> EntityIds<ColId> {
         EntityIds::new(self.grid.tiles[self.slr].shape()[1])
     }
+
+    pub fn tile(&self, xy: Coord) -> &'a ExpandedTile {
+        &self.grid.tiles[self.slr][[xy.1.to_idx(), xy.0.to_idx()]]
+    }
 }
 
 impl ExpandedSlrRefMut<'_, '_> {
-    pub fn fill_tile(&mut self, xy: Coord, kind: &str, naming: &str, name: String) {
+    pub fn fill_tile(&mut self, xy: Coord, kind: &str, naming: &str, name: String) -> &mut ExpandedTileNode {
         assert!(self[xy].nodes.is_empty());
         let kind = self.grid.db.get_node(kind);
         let naming = self.grid.db.get_node_naming(naming);
@@ -105,9 +128,10 @@ impl ExpandedSlrRefMut<'_, '_> {
             special: false,
             bels: Default::default(),
         });
+        self[xy].nodes.last_mut().unwrap()
     }
 
-    pub fn fill_tile_special(&mut self, xy: Coord, kind: &str, naming: &str, name: String) {
+    pub fn fill_tile_special(&mut self, xy: Coord, kind: &str, naming: &str, name: String) -> &mut ExpandedTileNode {
         assert!(self[xy].nodes.is_empty());
         let kind = self.grid.db.get_node(kind);
         let naming = self.grid.db.get_node_naming(naming);
@@ -120,6 +144,7 @@ impl ExpandedSlrRefMut<'_, '_> {
             special: true,
             bels: Default::default(),
         });
+        self[xy].nodes.last_mut().unwrap()
     }
 
     pub fn nuke_rect(&mut self, x: ColId, y: RowId, w: usize, h: usize) {
@@ -332,7 +357,7 @@ impl ExpandedGrid<'_> {
                                 }
                                 // horrible hack alert
                                 // XXX kill this
-                                if self.db.nodes.key(slr[t.target.unwrap()].nodes[0].kind) == "DCM.S3.DUMMY" &&
+                                if self.db.nodes.key(slr[t.target.unwrap()].nodes[0].kind) == "INT.DCM.S3.DUMMY" &&
                                     self.db.wires[wf].name.starts_with("OMUX") &&
                                     matches!(self.db.wires[wf].kind, WireKind::MuxOut) {
                                         break;
@@ -412,7 +437,13 @@ pub struct ExpandedTileNode {
     pub tie_name: Option<String>,
     pub naming: NodeNamingId,
     pub special: bool,
-    pub bels: EntityPartVec<NodeBelId, String>,
+    pub bels: EntityPartVec<BelId, String>,
+}
+
+impl ExpandedTileNode {
+    pub fn add_bel(&mut self, idx: usize, name: String) {
+        self.bels.insert(BelId::from_idx(idx), name);
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

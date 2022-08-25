@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, eint, int, ColId, RowId};
+use crate::{CfgPin, BelCoord, eint, int, SlrId, ColId, RowId, BelId};
 use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
@@ -18,6 +18,12 @@ pub enum GridKind {
 impl GridKind {
     pub fn is_virtex2(self) -> bool {
         matches!(self, Self::Virtex2 | Self::Virtex2P | Self::Virtex2PX)
+    }
+    pub fn is_virtex2p(self) -> bool {
+        matches!(self, Self::Virtex2P | Self::Virtex2PX)
+    }
+    pub fn is_spartan3a(self) -> bool {
+        matches!(self, Self::Spartan3A | Self::Spartan3ADsp)
     }
 }
 
@@ -71,6 +77,12 @@ pub enum ColumnIoKind {
     Double(u8),
     Triple(u8),
     Quad(u8),
+    SingleLeft,
+    SingleRight,
+    SingleLeftAlt,
+    SingleRightAlt,
+    DoubleLeft(u8),
+    DoubleRight(u8),
 }
 
 #[allow(non_camel_case_types)]
@@ -81,6 +93,8 @@ pub enum RowIoKind {
     Double(u8),
     Triple(u8),
     Quad(u8),
+    DoubleBot(u8),
+    DoubleTop(u8),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -96,12 +110,42 @@ pub enum IoKind {
     Input,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IoDiffKind {
+    P(BelId),
+    N(BelId),
+    None,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IoPadKind {
+    None,
+    Input,
+    Io,
+    Clk,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Edge {
+    Top,
+    Bot,
+    Left,
+    Right,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
     pub bank: u32,
     pub coord: BelCoord,
     pub name: String,
     pub kind: IoKind,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct IoAttr {
+    pub bank: u32,
+    pub diff: IoDiffKind,
+    pub pad: IoPadKind,
 }
 
 impl Grid {
@@ -125,10 +169,6 @@ impl Grid {
         RowId::from_idx(self.rows.len() / 2)
     }
 
-    pub fn is_virtex2(&self) -> bool {
-        matches!(self.kind, GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX)
-    }
-
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut ctr = 1;
@@ -137,12 +177,14 @@ impl Grid {
                 // top
                 for (col, &cd) in self.columns.iter() {
                     let row = self.row_top();
-                    let is_l = col < self.col_clk - 2 || (col >= self.col_clk && col < self.col_clk + 2);
-                    let bels: &[u32] = match cd.io {
+                    let bels: &[usize] = match cd.io {
                         ColumnIoKind::None => &[],
-                        ColumnIoKind::Single => if is_l {&[2, 1, 0]} else {&[3, 2, 1]},
-                        ColumnIoKind::Double(0) => if is_l {&[3, 2, 1, 0]} else {&[3, 2]},
-                        ColumnIoKind::Double(1) => if is_l {&[1, 0]} else {&[3, 2, 1, 0]},
+                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => &[2, 1, 0],
+                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => &[3, 2, 1],
+                        ColumnIoKind::DoubleLeft(0) => &[3, 2, 1, 0],
+                        ColumnIoKind::DoubleLeft(1) => &[1, 0],
+                        ColumnIoKind::DoubleRight(0) => &[3, 2],
+                        ColumnIoKind::DoubleRight(1) => &[3, 2, 1, 0],
                         _ => unreachable!(),
                     };
                     for &bel in bels {
@@ -160,7 +202,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if col < self.col_clk { 0 } else { 1 },
                             name,
@@ -172,11 +214,12 @@ impl Grid {
                 // right
                 for (row, &kind) in self.rows.iter().rev() {
                     let col = self.col_right();
-                    let is_b = row < self.row_mid();
-                    let bels: &[u32] = match kind {
+                    let bels: &[usize] = match kind {
                         RowIoKind::None => &[],
-                        RowIoKind::Double(0) => if is_b {&[3, 2, 1, 0]} else {&[1, 0]},
-                        RowIoKind::Double(1) => if is_b {&[3, 2]} else {&[3, 2, 1, 0]},
+                        RowIoKind::DoubleBot(0) => &[3, 2, 1, 0],
+                        RowIoKind::DoubleBot(1) => &[3, 2],
+                        RowIoKind::DoubleTop(0) => &[1, 0],
+                        RowIoKind::DoubleTop(1) => &[3, 2, 1, 0],
                         _ => unreachable!(),
                     };
                     for &bel in bels {
@@ -184,7 +227,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if row < self.row_mid() { 3 } else { 2 },
                             name: format!("PAD{ctr}"),
@@ -196,12 +239,14 @@ impl Grid {
                 // bottom
                 for (col, &cd) in self.columns.iter().rev() {
                     let row = self.row_bot();
-                    let is_l = col < self.col_clk - 2 || (col >= self.col_clk && col < self.col_clk + 2);
-                    let bels: &[u32] = match cd.io {
+                    let bels: &[usize] = match cd.io {
                         ColumnIoKind::None => &[],
-                        ColumnIoKind::Single => if is_l {&[3, 2, 1]} else {&[2, 1, 0]},
-                        ColumnIoKind::Double(0) => if is_l {&[3, 2, 1, 0]} else {&[1, 0]},
-                        ColumnIoKind::Double(1) => if is_l {&[3, 2]} else {&[3, 2, 1, 0]},
+                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => &[3, 2, 1],
+                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => &[2, 1, 0],
+                        ColumnIoKind::DoubleLeft(0) => &[3, 2, 1, 0],
+                        ColumnIoKind::DoubleLeft(1) => &[3, 2],
+                        ColumnIoKind::DoubleRight(0) => &[1, 0],
+                        ColumnIoKind::DoubleRight(1) => &[3, 2, 1, 0],
                         _ => unreachable!(),
                     };
                     for &bel in bels {
@@ -219,7 +264,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if col < self.col_clk { 5 } else { 4 },
                             name,
@@ -231,11 +276,12 @@ impl Grid {
                 // left
                 for (row, &kind) in self.rows.iter() {
                     let col = self.col_left();
-                    let is_b = row < self.row_mid();
-                    let bels: &[u32] = match kind {
+                    let bels: &[usize] = match kind {
                         RowIoKind::None => &[],
-                        RowIoKind::Double(0) => if is_b {&[0, 1, 2, 3]} else {&[0, 1]},
-                        RowIoKind::Double(1) => if is_b {&[2, 3]} else {&[0, 1, 2, 3]},
+                        RowIoKind::DoubleBot(0) => &[0, 1, 2, 3],
+                        RowIoKind::DoubleBot(1) => &[2, 3],
+                        RowIoKind::DoubleTop(0) => &[0, 1],
+                        RowIoKind::DoubleTop(1) => &[0, 1, 2, 3],
                         _ => unreachable!(),
                     };
                     for &bel in bels {
@@ -243,7 +289,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if row < self.row_mid() { 6 } else { 7 },
                             name: format!("PAD{ctr}"),
@@ -257,7 +303,7 @@ impl Grid {
                 // top
                 for (col, &cd) in self.columns.iter() {
                     let row = self.row_top();
-                    let bels: &[u32] = match cd.io {
+                    let bels: &[usize] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[2, 1, 0],
                         ColumnIoKind::Double(1) => &[1, 0],
@@ -268,7 +314,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if col < self.col_clk { 0 } else { 1 },
                             name: format!("PAD{ctr}"),
@@ -280,7 +326,7 @@ impl Grid {
                 // right
                 for (row, &kind) in self.rows.iter().rev() {
                     let col = self.col_right();
-                    let bels: &[u32] = match kind {
+                    let bels: &[usize] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[1, 0],
                         _ => unreachable!(),
@@ -290,7 +336,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if row < self.row_mid() { 3 } else { 2 },
                             name: format!("PAD{ctr}"),
@@ -302,7 +348,7 @@ impl Grid {
                 // bottom
                 for (col, &cd) in self.columns.iter().rev() {
                     let row = self.row_bot();
-                    let bels: &[u32] = match cd.io {
+                    let bels: &[usize] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[2, 1, 0],
                         ColumnIoKind::Double(1) => &[1, 0],
@@ -313,7 +359,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if col < self.col_clk { 5 } else { 4 },
                             name: format!("PAD{ctr}"),
@@ -325,7 +371,7 @@ impl Grid {
                 // left
                 for (row, &kind) in self.rows.iter() {
                     let col = self.col_left();
-                    let bels: &[u32] = match kind {
+                    let bels: &[usize] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[0, 1],
                         _ => unreachable!(),
@@ -335,7 +381,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: if row < self.row_mid() { 6 } else { 7 },
                             name: format!("PAD{ctr}"),
@@ -351,7 +397,7 @@ impl Grid {
                 // top
                 for (col, &cd) in self.columns.iter() {
                     let row = self.row_top();
-                    let bels: &[(u32, IoKind)] = match cd.io {
+                    let bels: &[(usize, IoKind)] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => &[(2, IO)],
                         ColumnIoKind::Double(0) => &[(1, IO), (0, IO)],
@@ -370,7 +416,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 0,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -382,7 +428,7 @@ impl Grid {
                 // right
                 for (row, &kind) in self.rows.iter().rev() {
                     let col = self.col_right();
-                    let bels: &[(u32, IoKind)] = match kind {
+                    let bels: &[(usize, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[(2, IO)],
                         RowIoKind::Double(0) => &[(1, IO), (0, IO)],
@@ -401,7 +447,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 1,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -413,7 +459,7 @@ impl Grid {
                 // bottom
                 for (col, &cd) in self.columns.iter().rev() {
                     let row = self.row_bot();
-                    let bels: &[(u32, IoKind)] = match cd.io {
+                    let bels: &[(usize, IoKind)] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Single => &[(2, IO)],
                         ColumnIoKind::Double(0) => &[(2, I)],
@@ -432,7 +478,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 2,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -444,7 +490,7 @@ impl Grid {
                 // left
                 for (row, &kind) in self.rows.iter() {
                     let col = self.col_left();
-                    let bels: &[(u32, IoKind)] = match kind {
+                    let bels: &[(usize, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Single => &[(2, IO)],
                         RowIoKind::Double(0) => &[],
@@ -463,7 +509,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 3,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -479,7 +525,7 @@ impl Grid {
                 // top
                 for (col, &cd) in self.columns.iter() {
                     let row = self.row_top();
-                    let bels: &[(u32, IoKind)] = match cd.io {
+                    let bels: &[(usize, IoKind)] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[(0, IO), (1, IO), (2, I)],
                         ColumnIoKind::Double(1) => &[(0, IO), (1, IO)],
@@ -490,7 +536,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 0,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -502,7 +548,7 @@ impl Grid {
                 // right
                 for (row, &kind) in self.rows.iter().rev() {
                     let col = self.col_right();
-                    let bels: &[(u32, IoKind)] = match kind {
+                    let bels: &[(usize, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Quad(0) => &[(1, IO), (0, IO)],
                         RowIoKind::Quad(1) => &[(1, IO), (0, IO)],
@@ -515,7 +561,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 1,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -527,7 +573,7 @@ impl Grid {
                 // bottom
                 for (col, &cd) in self.columns.iter().rev() {
                     let row = self.row_bot();
-                    let bels: &[(u32, IoKind)] = match cd.io {
+                    let bels: &[(usize, IoKind)] = match cd.io {
                         ColumnIoKind::None => &[],
                         ColumnIoKind::Double(0) => &[(2, I), (1, IO), (0, IO)],
                         ColumnIoKind::Double(1) => &[(1, IO), (0, IO)],
@@ -549,7 +595,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 2,
                             name,
@@ -561,7 +607,7 @@ impl Grid {
                 // left
                 for (row, &kind) in self.rows.iter() {
                     let col = self.col_left();
-                    let bels: &[(u32, IoKind)] = match kind {
+                    let bels: &[(usize, IoKind)] = match kind {
                         RowIoKind::None => &[],
                         RowIoKind::Quad(0) => &[(0, I), (1, I)],
                         RowIoKind::Quad(1) => &[(0, IO), (1, IO)],
@@ -574,7 +620,7 @@ impl Grid {
                             coord: BelCoord {
                                 col,
                                 row,
-                                bel,
+                                bel: BelId::from_idx(bel),
                             },
                             bank: 3,
                             name: if kind == IoKind::Io {format!("PAD{ctr}")} else {format!("IPAD{ctr}")},
@@ -586,6 +632,248 @@ impl Grid {
             }
         }
         res
+    }
+
+    pub fn get_clk_io(&self, edge: Edge, idx: usize) -> Option<(eint::Coord, BelId)> {
+        if self.kind.is_virtex2() {
+            match edge {
+                Edge::Bot => {
+                    if self.kind == GridKind::Virtex2PX && matches!(idx, 6 | 7) {
+                        return None;
+                    }
+                    if idx < 4 {
+                        Some(((self.col_clk, self.row_bot()), BelId::from_idx(idx)))
+                    } else if idx < 8 {
+                        Some(((self.col_clk - 1, self.row_bot()), BelId::from_idx(idx - 4)))
+                    } else {
+                        None
+                    }
+                }
+                Edge::Top => {
+                    if self.kind == GridKind::Virtex2PX && matches!(idx, 4 | 5) {
+                        return None;
+                    }
+                    if idx < 4 {
+                        Some(((self.col_clk, self.row_top()), BelId::from_idx(idx)))
+                    } else if idx < 8 {
+                        Some(((self.col_clk - 1, self.row_top()), BelId::from_idx(idx - 4)))
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            }
+        } else if self.kind == GridKind::Spartan3 {
+            match edge {
+                Edge::Bot => {
+                    if idx < 2 {
+                        Some(((self.col_clk, self.row_bot()), BelId::from_idx(idx)))
+                    } else if idx < 4 {
+                        Some(((self.col_clk - 1, self.row_bot()), BelId::from_idx(idx - 2)))
+                    } else {
+                        None
+                    }
+                }
+                Edge::Top => {
+                    if idx < 2 {
+                        Some(((self.col_clk, self.row_top()), BelId::from_idx(idx)))
+                    } else if idx < 4 {
+                        Some(((self.col_clk - 1, self.row_top()), BelId::from_idx(idx - 2)))
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            }
+        } else if self.kind == GridKind::Spartan3E {
+            match (edge, idx) {
+                (Edge::Bot, 0 | 1) => Some(((self.col_clk, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 2 | 3) => Some(((self.col_clk + 1, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 4 | 5) => Some(((self.col_clk - 3, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 6 | 7) => Some(((self.col_clk - 1, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 0 | 1) => Some(((self.col_clk + 2, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 2 | 3) => Some(((self.col_clk, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 4 | 5) => Some(((self.col_clk - 1, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 6 | 7) => Some(((self.col_clk - 2, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Left, 0 | 1) => Some(((self.col_left(), self.row_mid() + 3), BelId::from_idx(idx % 2))),
+                (Edge::Left, 2 | 3) => Some(((self.col_left(), self.row_mid() + 1), BelId::from_idx(idx % 2))),
+                (Edge::Left, 4 | 5) => Some(((self.col_left(), self.row_mid() - 1), BelId::from_idx(idx % 2))),
+                (Edge::Left, 6 | 7) => Some(((self.col_left(), self.row_mid() - 3), BelId::from_idx(idx % 2))),
+                (Edge::Right, 0 | 1) => Some(((self.col_right(), self.row_mid()), BelId::from_idx(idx % 2))),
+                (Edge::Right, 2 | 3) => Some(((self.col_right(), self.row_mid() + 2), BelId::from_idx(idx % 2))),
+                (Edge::Right, 4 | 5) => Some(((self.col_right(), self.row_mid() - 4), BelId::from_idx(idx % 2))),
+                (Edge::Right, 6 | 7) => Some(((self.col_right(), self.row_mid() - 2), BelId::from_idx(idx % 2))),
+                _ => None,
+            }
+        } else {
+            match (edge, idx) {
+                (Edge::Bot, 0 | 1) => Some(((self.col_clk, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 2 | 3) => Some(((self.col_clk + 1, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 4 | 5) => Some(((self.col_clk - 2, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Bot, 6 | 7) => Some(((self.col_clk - 1, self.row_bot()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 0 | 1) => Some(((self.col_clk + 1, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 2 | 3) => Some(((self.col_clk, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 4 | 5) => Some(((self.col_clk - 1, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Top, 6 | 7) => Some(((self.col_clk - 2, self.row_top()), BelId::from_idx(idx % 2))),
+                (Edge::Left, 0 | 1) => Some(((self.col_left(), self.row_mid() + 2), BelId::from_idx(idx % 2 ^ 1))),
+                (Edge::Left, 2 | 3) => Some(((self.col_left(), self.row_mid() + 1), BelId::from_idx(idx % 2 ^ 1))),
+                (Edge::Left, 4 | 5) => Some(((self.col_left(), self.row_mid() - 1), BelId::from_idx(idx % 2 ^ 1))),
+                (Edge::Left, 6 | 7) => Some(((self.col_left(), self.row_mid() - 2), BelId::from_idx(idx % 2 ^ 1))),
+                (Edge::Right, 0 | 1) => Some(((self.col_right(), self.row_mid()), BelId::from_idx(idx % 2))),
+                (Edge::Right, 2 | 3) => Some(((self.col_right(), self.row_mid() + 1), BelId::from_idx(idx % 2))),
+                (Edge::Right, 4 | 5) => Some(((self.col_right(), self.row_mid() - 3), BelId::from_idx(idx % 2))),
+                (Edge::Right, 6 | 7) => Some(((self.col_right(), self.row_mid() - 2), BelId::from_idx(idx % 2))),
+                _ => None,
+            }
+        }
+    }
+
+    pub fn get_pci_io(&self, edge: Edge) -> [(eint::Coord, BelId); 2] {
+        match self.kind {
+            GridKind::Spartan3E => {
+                match edge {
+                    Edge::Left => [
+                        ((self.col_left(), self.row_mid() + 1), BelId::from_idx(1)),
+                        ((self.col_left(), self.row_mid() - 1), BelId::from_idx(0)),
+                    ],
+                    Edge::Right => [
+                        ((self.col_right(), self.row_mid()), BelId::from_idx(0)),
+                        ((self.col_right(), self.row_mid() - 2), BelId::from_idx(1)),
+                    ],
+                    _ => unreachable!(),
+                }
+            }
+            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                match edge {
+                    Edge::Left => [
+                        ((self.col_left(), self.row_mid() + 1), BelId::from_idx(0)),
+                        ((self.col_left(), self.row_mid() - 2), BelId::from_idx(1)),
+                    ],
+                    Edge::Right => [
+                        ((self.col_right(), self.row_mid() + 1), BelId::from_idx(0)),
+                        ((self.col_right(), self.row_mid() - 2), BelId::from_idx(1)),
+                    ],
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn get_io_node<'a>(&self, egrid: &'a eint::ExpandedGrid, coord: eint::Coord) -> Option<&'a eint::ExpandedTileNode> {
+        egrid.find_node(SlrId::from_idx(0), coord, |x| egrid.db.nodes.key(x.kind).starts_with("IOI"))
+    }
+
+    pub fn get_io_bel<'a>(&self, egrid: &'a eint::ExpandedGrid, coord: eint::Coord, bel: BelId) -> Option<(&'a eint::ExpandedTileNode, &'a int::BelInfo, &'a int::BelNaming, &'a str)> {
+        let node = self.get_io_node(egrid, coord)?;
+        let nk = &egrid.db.nodes[node.kind];
+        let naming = &egrid.db.node_namings[node.naming];
+        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
+    }
+
+    pub fn get_io_attr(&self, egrid: &eint::ExpandedGrid, coord: eint::Coord, bel: BelId) -> IoAttr {
+        let (_, _, _, name) = self.get_io_bel(egrid, coord, bel).unwrap();
+        let bank = match self.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
+                if coord.1 == self.row_top() {
+                    if coord.0 < self.col_clk {0} else {1}
+                } else if coord.0 == self.col_right() {
+                    if coord.1 < self.row_mid() {3} else {2}
+                } else if coord.1 == self.row_bot() {
+                    if coord.0 < self.col_clk {5} else {4}
+                } else if coord.0 == self.col_left() {
+                    if coord.1 < self.row_mid() {6} else {7}
+                } else {
+                    unreachable!()
+                }
+            }
+            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.1 == self.row_top() {
+                    0
+                } else if coord.0 == self.col_right() {
+                    1
+                } else if coord.1 == self.row_bot() {
+                    2
+                } else if coord.0 == self.col_left() {
+                    3
+                } else {
+                    unreachable!()
+                }
+            }
+        };
+        let diff = match self.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                if matches!(self.columns[coord.0].io, ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt) {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::None,
+                        1 => IoDiffKind::P(BelId::from_idx(2)),
+                        2 => IoDiffKind::N(BelId::from_idx(1)),
+                        3 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::P(BelId::from_idx(3)),
+                        3 => IoDiffKind::N(BelId::from_idx(2)),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3 => {
+                if coord.0 == self.col_left() {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::N(BelId::from_idx(1)),
+                        1 => IoDiffKind::P(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3E => {
+                match bel.to_idx() {
+                    0 => IoDiffKind::P(BelId::from_idx(1)),
+                    1 => IoDiffKind::N(BelId::from_idx(0)),
+                    2 => IoDiffKind::None,
+                    _ => unreachable!(),
+                }
+            }
+            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.1 == self.row_top() || coord.0 == self.col_left() {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::N(BelId::from_idx(1)),
+                        1 => IoDiffKind::P(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        };
+        let pad = if name.starts_with("PAD") {
+            IoPadKind::Io
+        } else if name.starts_with("IPAD") {
+            IoPadKind::Input
+        } else if name.starts_with("CLK") {
+            IoPadKind::Clk
+        } else {
+            IoPadKind::None
+        };
+        IoAttr { bank, diff, pad }
     }
 
     fn fill_term(&self, slr: &mut eint::ExpandedSlrRefMut, coord: eint::Coord, kind: &str, naming: &str, name: String) {
@@ -639,7 +927,7 @@ impl Grid {
             res
         });
 
-        let cnr_kind = if self.is_virtex2() {"CNR"} else {"CLB"};
+        let cnr_kind = if self.kind.is_virtex2() {"INT.CNR"} else {"INT.CLB"};
         let col_l = self.col_left();
         let col_r = self.col_right();
         let row_b = self.row_bot();
@@ -649,10 +937,10 @@ impl Grid {
         let yb = row_b.to_idx();
         let yt = row_t.to_idx();
         if use_xy {
-            grid.fill_tile((col_l, row_b), cnr_kind, "CNR", format!("LL_X{xl}Y{yb}"));
-            grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("LR_X{xr}Y{yb}"));
-            grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("UL_X{xl}Y{yt}"));
-            grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("UR_X{xr}Y{yt}"));
+            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", format!("LL_X{xl}Y{yb}"));
+            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", format!("LR_X{xr}Y{yb}"));
+            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", format!("UL_X{xl}Y{yt}"));
+            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", format!("UR_X{xr}Y{yt}"));
             self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("CNR_LBTERM_X{xl}Y{yb}"));
             self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("CNR_LTTERM_X{xl}Y{yt}"));
             self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("CNR_RBTERM_X{xr}Y{yb}"));
@@ -661,11 +949,11 @@ impl Grid {
             self.fill_term(&mut grid, (col_l, row_t), "TERM.N", "TERM.N.CNR", format!("CNR_TTERM_X{xl}Y{yt}"));
             self.fill_term(&mut grid, (col_r, row_b), "TERM.S", "TERM.S.CNR", format!("CNR_BTERM_X{xr}Y{yb}"));
             self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("CNR_TTERM_X{xr}Y{yt}"));
-        } else if matches!(self.kind, GridKind::Virtex2P | GridKind::Virtex2PX) {
-            grid.fill_tile((col_l, row_b), cnr_kind, "CNR", format!("LIOIBIOI"));
-            grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("RIOIBIOI"));
-            grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("LIOITIOI"));
-            grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("RIOITIOI"));
+        } else if self.kind.is_virtex2p() {
+            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", format!("LIOIBIOI"));
+            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", format!("RIOIBIOI"));
+            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", format!("LIOITIOI"));
+            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", format!("RIOITIOI"));
             self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("LTERMBIOI"));
             self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("LTERMTIOI"));
             self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("RTERMBIOI"));
@@ -675,10 +963,10 @@ impl Grid {
             self.fill_term(&mut grid, (col_r, row_b), "TERM.S", "TERM.S.CNR", format!("RIOIBTERM"));
             self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("RIOITTERM"));
         } else {
-            grid.fill_tile((col_l, row_b), cnr_kind, "CNR", format!("BL"));
-            grid.fill_tile((col_r, row_b), cnr_kind, "CNR", format!("BR"));
-            grid.fill_tile((col_l, row_t), cnr_kind, "CNR", format!("TL"));
-            grid.fill_tile((col_r, row_t), cnr_kind, "CNR", format!("TR"));
+            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", format!("BL"));
+            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", format!("BR"));
+            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", format!("TL"));
+            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", format!("TR"));
             self.fill_term(&mut grid, (col_l, row_b), "TERM.W", "TERM.W", format!("LBTERM"));
             self.fill_term(&mut grid, (col_l, row_t), "TERM.W", "TERM.W", format!("LTTERM"));
             self.fill_term(&mut grid, (col_r, row_b), "TERM.E", "TERM.E", format!("RBTERM"));
@@ -689,222 +977,1204 @@ impl Grid {
             self.fill_term(&mut grid, (col_r, row_t), "TERM.N", "TERM.N.CNR", format!("TRTERM"));
         }
 
-        let io_kind = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "IOI",
-            GridKind::Spartan3 => "IOI.S3",
-            GridKind::Spartan3E => "IOI.S3E",
-            _ => "IOI.S3A.LR",
-        };
-        for (row, kind) in self.rows.iter() {
-            if matches!(kind, RowIoKind::None) {
-                continue;
-            }
-            let naming = match self.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "IOI.LR",
-                GridKind::Spartan3 => "IOI",
-                GridKind::Spartan3E => if rows_brk.contains(&row) {"IOI.BRK"} else {"IOI"},
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => if rows_brk.contains(&row) {"IOI.S3A.LR.BRK"} else {"IOI.S3A.LR"},
-            };
-            if use_xy {
-                let y = row.to_idx();
-                let (lk, rk) = match kind {
-                    RowIoKind::Quad(0) | RowIoKind::Triple(0) => ("LIBUFS", "RIOIS"),
-                    RowIoKind::Quad(3) | RowIoKind::Triple(2) => ("LIOIS", "RIBUFS"),
-                    _ => ("LIOIS", "RIOIS"),
-                };
-                let clk = if row == self.row_mid() - 1 || row == self.row_mid() {"_CLK"} else {""};
-                let pci = if row >= self.row_mid() - 4 && row < self.row_mid() + 4 {"_PCI"} else {""};
-                let brk = if rows_brk.contains(&row) {"_BRK"} else {""};
-                grid.fill_tile((col_l, row), io_kind, naming, format!("{lk}{clk}{pci}{brk}_X{xl}Y{y}"));
-                grid.fill_tile((col_r, row), io_kind, naming, format!("{rk}{clk}{pci}{brk}_X{xr}Y{y}"));
-                let (mut ltk, mut rtk) = match kind {
-                    RowIoKind::Single => ("LTERM1", "RTERM1"),
-                    RowIoKind::Double(0) => ("LTERM2", "RTERM2"),
-                    RowIoKind::Triple(0) => ("LTERM3", "RTERM3"),
-                    RowIoKind::Quad(0) => ("LTERM4", "RTERM4"),
-                    _ => ("LTERM", "RTERM"),
-                };
-                if row == self.row_mid() {
-                    ltk = "LTERM4CLK";
-                    rtk = "RTERM4CLK";
-                }
-                if self.kind == GridKind::Spartan3E {
-                    if row == self.row_mid() - 4 {
-                        ltk = "LTERM4B";
-                        rtk = "RTERM4CLKB";
-                    }
-                    if row == self.row_mid() - 3 {
-                        ltk = "LTERMCLKA";
-                    }
-                    if row == self.row_mid() - 2 {
-                        rtk = "RTERMCLKA";
-                    }
-                    if row == self.row_mid() - 1 {
-                        ltk = "LTERMCLK";
-                    }
-                    if row == self.row_mid() + 1 {
-                        ltk = "LTERMCLKA";
-                    }
-                    if row == self.row_mid() + 2 {
-                        rtk = "RTERMCLKA";
-                    }
-                    if row == self.row_mid() + 3 {
-                        ltk = "LTERMCLK";
-                    }
+        if !use_xy {
+            for (c, b0, b1) in [
+                ((col_l, row_b), 6, 5),
+                ((col_r, row_b), 3, 4),
+                ((col_l, row_t), 7, 0),
+                ((col_r, row_t), 2, 1),
+            ] {
+                let tile = &mut grid[c];
+                let name = tile.nodes[0].names[int::NodeRawTileId::from_idx(0)].clone();
+                let kind = if self.kind == GridKind::Spartan3 && b0 == 2 {
+                    "DCI.UR"
                 } else {
-                    if row == self.row_mid() - 4 {
-                        ltk = "LTERM4B";
-                        rtk = "RTERM4B";
-                    }
-                    if row == self.row_mid() - 3 {
-                        rtk = "RTERMCLKB";
-                    }
-                    if row == self.row_mid() - 2 {
-                        ltk = "LTERMCLKA";
-                        rtk = "RTERMCLKA";
-                    }
-                    if row == self.row_mid() - 1 {
-                        ltk = "LTERMCLK";
-                    }
-                    if row == self.row_mid() + 1 {
-                        ltk = "LTERMCLKA";
-                        rtk = "RTERMCLKA";
-                    }
-                    if row == self.row_mid() + 2 {
-                        ltk = "LTERMCLK";
-                    }
-                }
-                self.fill_term(&mut grid, (col_l, row), "TERM.W", "TERM.W", format!("{ltk}_X{xl}Y{y}"));
-                self.fill_term(&mut grid, (col_r, row), "TERM.E", "TERM.E", format!("{rtk}_X{xr}Y{y}"));
-            } else {
-                let r = yt - row.to_idx();
-                grid.fill_tile((col_l, row), io_kind, naming, format!("LIOIR{r}"));
-                grid.fill_tile((col_r, row), io_kind, naming, format!("RIOIR{r}"));
-                let t_e;
-                let t_w;
+                    "DCI"
+                };
+                let node = tile.add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[c],
+                );
+                node.add_bel(0, format!("DCI{b0}"));
+                node.add_bel(1, format!("DCI{b1}"));
                 if self.kind == GridKind::Spartan3 {
-                    t_e = "TERM.E";
-                    t_w = "TERM.W";
-                } else if row < self.row_pci.unwrap() {
-                    t_e = "TERM.E.D";
-                    t_w = "TERM.W.D";
-                } else {
-                    t_e = "TERM.E.U";
-                    t_w = "TERM.W.U";
+                    node.add_bel(2, format!("DCIRESET{b0}"));
+                    node.add_bel(3, format!("DCIRESET{b1}"));
                 }
-                self.fill_term(&mut grid, (col_l, row), "TERM.W", t_w, format!("LTERMR{r}"));
-                self.fill_term(&mut grid, (col_r, row), "TERM.E", t_e, format!("RTERMR{r}"));
+            }
+        } else {
+            for c in [
+                (col_l, row_b),
+                (col_r, row_b),
+                (col_l, row_t),
+                (col_r, row_t),
+            ] {
+                let tile = &mut grid[c];
+                let name = tile.nodes[0].names[int::NodeRawTileId::from_idx(0)].clone();
+                tile.add_xnode(
+                    db.get_node("PCI_CE_CNR"),
+                    &[&name],
+                    db.get_node_naming("PCI_CE_CNR"),
+                    &[c],
+                );
             }
         }
 
-        let io_naming = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "IOI.TB",
-            GridKind::Spartan3 | GridKind::Spartan3E => "IOI",
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => "IOI.S3A.TB",
-        };
-        let io_kind = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "IOI",
-            GridKind::Spartan3 => "IOI.S3",
-            GridKind::Spartan3E => "IOI.S3E",
-            _ => "IOI.S3A.TB",
-        };
-        for (col, cd) in self.columns.iter() {
-            if use_xy {
-                if cd.kind == ColumnKind::Io {
-                    continue;
-                }
-                let (bk, tk) = match (self.kind, cd.io) {
-                    (GridKind::Spartan3E, ColumnIoKind::Double(0) | ColumnIoKind::Quad(0)) => ("BIBUFS", "TIOIS"),
-                    (GridKind::Spartan3E, ColumnIoKind::Double(1) | ColumnIoKind::Quad(3)) => ("BIOIS", "TIBUFS"),
-                    (GridKind::Spartan3E, ColumnIoKind::Triple(1)) => ("BIBUFS", "TIBUFS"),
-                    (GridKind::Spartan3A | GridKind::Spartan3ADsp, ColumnIoKind::Double(0)) => ("BIOIB", "TIOIB"),
-                    _ => ("BIOIS", "TIOIS"),
-                };
-                let x = xlut[col];
-                grid.fill_tile((col, row_b), io_kind, io_naming, format!("{bk}_X{x}Y{yb}"));
-                grid.fill_tile((col, row_t), io_kind, io_naming, format!("{tk}_X{x}Y{yt}"));
-                let (mut btk, mut ttk) = match cd.io {
-                    ColumnIoKind::Single => ("BTERM1", "TTERM1"),
-                    ColumnIoKind::Double(0) => ("BTERM2", "TTERM2"),
-                    ColumnIoKind::Triple(0) => ("BTERM3", "TTERM3"),
-                    ColumnIoKind::Quad(0) => ("BTERM4", "TTERM4"),
-                    _ => ("BTERM", "TTERM"),
-                };
-                if self.kind == GridKind::Spartan3E {
-                    if cd.io == ColumnIoKind::Quad(0) && cd.kind == ColumnKind::BramCont(2) {
-                        btk = "BTERM4_BRAM2";
-                        ttk = "TTERM4_BRAM2";
-                    }
-                    if col == self.col_clk - 3 {
-                        btk = "BTERMCLKA";
-                    }
-                    if col == self.col_clk - 2 {
-                        ttk = "TTERMCLK";
-                    }
-                    if col == self.col_clk - 1 {
-                        btk = "BTERMCLKB";
-                        ttk = "TTERMCLKA";
-                    }
-                    if col == self.col_clk {
-                        btk = "BTERM4CLK";
-                        ttk = "TTERM4CLK";
-                    }
-                    if col == self.col_clk + 1 {
-                        btk = "BTERMCLK";
-                    }
-                    if col == self.col_clk + 2 {
-                        ttk = "TTERMCLKA";
-                    }
-                } else {
-                    if col == self.col_clk - 2 {
-                        btk = "BTERM2CLK";
-                        ttk = "TTERM2CLK";
-                    }
-                    if col == self.col_clk - 1 {
-                        btk = "BTERMCLKB";
-                        ttk = "TTERMCLKA";
-                    }
-                    if col == self.col_clk {
-                        btk = "BTERM2CLK";
-                        ttk = "TTERM2CLK";
-                    }
-                    if col == self.col_clk + 1 {
-                        btk = "BTERMCLK";
-                        ttk = "TTERMCLKA";
-                    }
-                }
-                if self.kind == GridKind::Spartan3ADsp {
-                    match cd.kind {
-                        ColumnKind::BramCont(2) => {
-                            btk = "BTERM1";
-                            ttk = "TTERM1";
-                        }
-                        ColumnKind::Dsp => {
-                            btk = "BTERM1_MACC";
-                            ttk = "TTERM1_MACC";
-                        }
-                        _ => (),
-                    }
-                }
-                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("{btk}_X{x}Y{yb}"));
-                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("{ttk}_X{x}Y{yt}"));
-            } else {
-                if cd.kind != ColumnKind::Clb {
-                    continue;
-                }
-                let c = clut[col];
-                if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
-                    grid.fill_tile((col, row_b), "IOI.CLK_B", "IOI.CLK_B", format!("BIOIC{c}"));
-                    grid.fill_tile((col, row_t), "IOI.CLK_T", "IOI.CLK_T", format!("TIOIC{c}"));
-                } else {
-                    grid.fill_tile((col, row_b), io_kind, io_naming, format!("BIOIC{c}"));
-                    grid.fill_tile((col, row_t), io_kind, io_naming, format!("TIOIC{c}"));
-                }
-                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("BTERMC{c}"));
-                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("TTERMC{c}"));
+        {
+            let c = (col_r, row_b);
+            let tile = &mut grid[c];
+            let name = tile.nodes[0].names[int::NodeRawTileId::from_idx(0)].clone();
+            let kind = match self.kind {
+                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LR",
+                GridKind::Spartan3 => "LR.S3",
+                GridKind::Spartan3E => "LR.S3E",
+                GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
+            };
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[c],
+            );
+            node.add_bel(0, "STARTUP".to_string());
+            node.add_bel(1, "CAPTURE".to_string());
+            node.add_bel(2, "ICAP".to_string());
+            if self.kind.is_spartan3a() {
+                node.add_bel(3, "SPI_ACCESS".to_string());
             }
         }
 
+        {
+            let c = (col_l, row_t);
+            let tile = &mut grid[c];
+            let name = tile.nodes[0].names[int::NodeRawTileId::from_idx(0)].clone();
+            let node = tile.add_xnode(
+                db.get_node("PMV"),
+                &[&name],
+                db.get_node_naming("PMV"),
+                &[c],
+            );
+            node.add_bel(0, "PMV".to_string());
+            if self.kind.is_spartan3a() {
+                let node = tile.add_xnode(
+                    db.get_node("DNA_PORT"),
+                    &[&name],
+                    db.get_node_naming("DNA_PORT"),
+                    &[c],
+                );
+                node.add_bel(0, "DNA_PORT".to_string());
+            }
+        }
+
+        {
+            let c = (col_r, row_t);
+            let tile = &mut grid[c];
+            let name = tile.nodes[0].names[int::NodeRawTileId::from_idx(0)].clone();
+            let kind = match self.kind {
+                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BSCAN",
+                GridKind::Spartan3 | GridKind::Spartan3E => "UR.S3",
+                GridKind::Spartan3A | GridKind::Spartan3ADsp => "UR.S3A",
+            };
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[c],
+            );
+            node.add_bel(0, "BSCAN".to_string());
+            if self.kind.is_virtex2p() {
+                let node = tile.add_xnode(
+                    db.get_node("JTAGPPC"),
+                    &[&name],
+                    db.get_node_naming("JTAGPPC"),
+                    &[c],
+                );
+                node.add_bel(0, "JTAGPPC".to_string());
+            }
+        }
+
+        {
+            let mut ctr_pad = 1;
+            let mut ctr_nopad = if use_xy {0} else {1};
+            for (col, &cd) in &self.columns {
+                let row = row_t;
+                if use_xy {
+                    if cd.kind == ColumnKind::Io {
+                        continue;
+                    }
+                } else {
+                    if cd.kind != ColumnKind::Clb {
+                        continue;
+                    }
+                }
+                let pads: &[usize];
+                let ipads: &[usize];
+                let mut int_kind;
+                let mut int_naming;
+                let mut ioi_kind;
+                let mut ioi_naming;
+                let iobs_kind;
+                let iobs: &[usize];
+                let mut term = "";
+                let mut kind = "";
+                match self.kind {
+                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                        (pads, iobs_kind) = match cd.io {
+                            ColumnIoKind::None => (&[][..], None),
+                            ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => (&[2, 1, 0][..], Some(("IOBS.T.L1", 1))),
+                            ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => (&[3, 2, 1][..], Some(("IOBS.T.R1", 1))),
+                            ColumnIoKind::DoubleLeft(0) => (&[3, 2, 1, 0][..], Some(("IOBS.T.L2", 2))),
+                            ColumnIoKind::DoubleLeft(1) => (&[1, 0][..], None),
+                            ColumnIoKind::DoubleRight(0) => (&[3, 2][..], Some(("IOBS.T.R2", 2))),
+                            ColumnIoKind::DoubleRight(1) => (&[3, 2, 1, 0][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI";
+                        int_naming = "INT.IOI.TB";
+                        ioi_kind = "IOI";
+                        ioi_naming = "IOI";
+                        if matches!(cd.io, ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt) {
+                            ioi_naming = "IOI.TBS";
+                        }
+                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
+                            ioi_kind = "IOI.CLK_T";
+                            ioi_naming = "IOI.CLK_T";
+                            int_kind = "INT.IOI.CLK_T";
+                            int_naming = "INT.IOI.CLK_T";
+                        }
+                        iobs = &[3, 2, 1, 0];
+                    }
+                    GridKind::Spartan3 => {
+                        (pads, iobs_kind) = match cd.io {
+                            ColumnIoKind::Double(0) => (&[2, 1, 0][..], Some(("IOBS.S3.T2", 2))),
+                            ColumnIoKind::Double(1) => (&[1, 0][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI.S3";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3";
+                        ioi_naming = "IOI.S3.T";
+                        iobs = &[2, 1, 0];
+                    }
+                    GridKind::Spartan3E => {
+                        (pads, ipads, term, iobs_kind) = match cd.io {
+                            ColumnIoKind::Single => (
+                                &[2][..],
+                                &[][..],
+                                "TTERM1",
+                                Some(("IOBS.S3E.T1", 1))
+                            ),
+                            ColumnIoKind::Double(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "TTERM2",
+                                Some(("IOBS.S3E.T2", 2))
+                            ),
+                            ColumnIoKind::Double(1) => (
+                                &[][..],
+                                &[2][..],
+                                "TTERM",
+                                None
+                            ),
+                            ColumnIoKind::Triple(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "TTERM3",
+                                Some(("IOBS.S3E.T3", 3))
+                            ),
+                            ColumnIoKind::Triple(1) => (
+                                &[][..],
+                                &[2][..],
+                                "TTERM",
+                                None
+                            ),
+                            ColumnIoKind::Triple(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "TTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "TTERM4",
+                                Some(("IOBS.S3E.T4", 4))
+                            ),
+                            ColumnIoKind::Quad(1) => (
+                                &[2][..],
+                                &[][..],
+                                "TTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "TTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(3) => (
+                                &[][..],
+                                &[1, 0][..],
+                                "TTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if cd.io == ColumnIoKind::Quad(0) && cd.kind == ColumnKind::BramCont(2) {
+                            term = "TTERM4_BRAM2";
+                        }
+                        if col == self.col_clk - 2 {
+                            term = "TTERMCLK";
+                        }
+                        if col == self.col_clk - 1 {
+                            term = "TTERMCLKA";
+                        }
+                        if col == self.col_clk {
+                            term = "TTERM4CLK";
+                        }
+                        if col == self.col_clk + 2 {
+                            term = "TTERMCLKA";
+                        }
+                        int_kind = "INT.IOI.S3E";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3E";
+                        ioi_naming = "IOI.S3E.T";
+                        iobs = &[2, 1, 0];
+                        if ipads.is_empty() {
+                            kind = "TIOIS";
+                        } else {
+                            kind = "TIBUFS";
+                        }
+                    }
+                    GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                        (pads, ipads, term, iobs_kind) = match cd.io {
+                            ColumnIoKind::Double(0) => (
+                                &[0, 1][..],
+                                &[2][..],
+                                "TTERM2",
+                                Some(("IOBS.S3A.T2", 2))
+                            ),
+                            ColumnIoKind::Double(1) => (
+                                &[0, 1][..],
+                                &[][..],
+                                "TTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        int_kind = "INT.IOI.S3A.TB";
+                        int_naming = "INT.IOI.S3A.TB";
+                        if self.kind == GridKind::Spartan3ADsp {
+                            ioi_kind = "IOI.S3ADSP.T";
+                            ioi_naming = "IOI.S3ADSP.T";
+                        } else {
+                            ioi_kind = "IOI.S3A.T";
+                            ioi_naming = "IOI.S3A.T";
+                        }
+                        iobs = &[0, 1, 2];
+                        if ipads.is_empty() {
+                            kind = "TIOIS";
+                        } else {
+                            kind = "TIOIB";
+                        }
+                        if col == self.col_clk - 2 {
+                            term = "TTERM2CLK";
+                        }
+                        if col == self.col_clk - 1 {
+                            term = "TTERMCLKA";
+                        }
+                        if col == self.col_clk {
+                            term = "TTERM2CLK";
+                        }
+                        if col == self.col_clk + 1 {
+                            term = "TTERMCLKA";
+                        }
+                        if self.kind == GridKind::Spartan3ADsp {
+                            match cd.kind {
+                                ColumnKind::BramCont(2) => {
+                                    term = "TTERM1";
+                                }
+                                ColumnKind::Dsp => {
+                                    term = "TTERM1_MACC";
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+                let name;
+                let term_name;
+                if use_xy {
+                    let x = xlut[col];
+                    let y = row.to_idx();
+                    name = format!("{kind}_X{x}Y{y}");
+                    term_name = format!("{term}_X{x}Y{y}");
+                } else{
+                    let c = clut[col];
+                    name = format!("TIOIC{c}");
+                    term_name = format!("TTERMC{c}");
+                }
+                grid.fill_tile((col, row), int_kind, int_naming, name.clone());
+                self.fill_term(&mut grid, (col, row), "TERM.N", "TERM.N", term_name);
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(ioi_kind),
+                    &[&name],
+                    db.get_node_naming(ioi_naming),
+                    &[(col, row)],
+                );
+                for &i in iobs {
+                    if pads.contains(&i) {
+                        match (ioi_kind, i) {
+                            ("IOI.CLK_T", 0) => node.add_bel(i, "CLKPPAD1".to_string()),
+                            ("IOI.CLK_T", 1) => node.add_bel(i, "CLKNPAD1".to_string()),
+                            _ => node.add_bel(i, format!("PAD{ctr_pad}")),
+                        }
+                        ctr_pad += 1;
+                    } else if ipads.contains(&i) {
+                        node.add_bel(i, format!("IPAD{ctr_pad}"));
+                        ctr_pad += 1;
+                    } else {
+                        node.add_bel(i, format!("NOPAD{ctr_nopad}"));
+                        ctr_nopad += 1;
+                    }
+                }
+                if let Some((kind, num)) = iobs_kind {
+                    let coords: Vec<_> = (0..num).map(|dx| (col + dx, row)).collect();
+                    grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &coords,
+                    );
+                }
+                if !self.kind.is_virtex2() {
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("RANDOR"),
+                        &[&name],
+                        db.get_node_naming("RANDOR.T"),
+                        &[(col, row)],
+                    );
+                    let x = if self.kind == GridKind::Spartan3 {
+                        (clut[col] - 1) * 2
+                    } else {
+                        col.to_idx() - 1
+                    };
+                    node.add_bel(0, format!("RANDOR_X{x}Y1"));
+                }
+            }
+            for (row, &rd) in self.rows.iter().rev() {
+                let col = col_r;
+                if row == row_b || row == row_t {
+                    continue;
+                }
+                let pads: &[usize];
+                let ipads: &[usize];
+                let int_kind;
+                let int_naming;
+                let ioi_kind;
+                let ioi_naming;
+                let iobs_kind;
+                let iobs: &[usize];
+                let mut term = "";
+                let mut term_kind = "TERM.E";
+                match self.kind {
+                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                        (pads, iobs_kind) = match rd {
+                            RowIoKind::DoubleBot(0) => (&[3, 2, 1, 0][..], Some(("IOBS.R.B2", 2))),
+                            RowIoKind::DoubleBot(1) => (&[3, 2][..], None),
+                            RowIoKind::DoubleTop(0) => (&[1, 0][..], Some(("IOBS.R.T2", 2))),
+                            RowIoKind::DoubleTop(1) => (&[3, 2, 1, 0][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI";
+                        int_naming = "INT.IOI.LR";
+                        ioi_kind = "IOI";
+                        ioi_naming = "IOI";
+                        iobs = &[3, 2, 1, 0];
+                        term_kind = if row < self.row_pci.unwrap() {
+                            "TERM.E.D"
+                        } else {
+                            "TERM.E.U"
+                        };
+                    }
+                    GridKind::Spartan3 => {
+                        pads = &[1, 0];
+                        ipads = &[];
+                        iobs_kind = Some(("IOBS.S3.R1", 1));
+                        int_kind = "INT.IOI.S3";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3";
+                        ioi_naming = "IOI.S3.R";
+                        iobs = &[2, 1, 0];
+                    }
+                    GridKind::Spartan3E => {
+                        (pads, ipads, term, iobs_kind) = match rd {
+                            RowIoKind::Single => (
+                                &[2][..],
+                                &[][..],
+                                "RTERM1",
+                                Some(("IOBS.S3E.R1", 1))
+                            ),
+                            RowIoKind::Double(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM2",
+                                Some(("IOBS.S3E.R2", 2))
+                            ),
+                            RowIoKind::Double(1) => (
+                                &[][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Triple(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM3",
+                                Some(("IOBS.S3E.R3", 3))
+                            ),
+                            RowIoKind::Triple(1) => (
+                                &[2][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Triple(2) => (
+                                &[][..],
+                                &[2][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM4",
+                                Some(("IOBS.S3E.R4", 4))
+                            ),
+                            RowIoKind::Quad(1) => (
+                                &[][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(3) => (
+                                &[][..],
+                                &[2][..],
+                                "RTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if row == self.row_mid() {
+                            term = "RTERM4CLK";
+                        }
+                        if row == self.row_mid() - 4 {
+                            term = "RTERM4CLKB";
+                        }
+                        if row == self.row_mid() - 2 {
+                            term = "RTERMCLKA";
+                        }
+                        if row == self.row_mid() + 2 {
+                            term = "RTERMCLKA";
+                        }
+                        int_kind = "INT.IOI.S3E";
+                        if rows_brk.contains(&row) {
+                            int_naming = "INT.IOI.BRK";
+                        } else {
+                            int_naming = "INT.IOI";
+                        }
+                        ioi_kind = "IOI.S3E";
+                        if row >= self.row_mid() - 4 && row < self.row_mid() + 4 {
+                            if ipads.is_empty() {
+                                ioi_naming = "IOI.S3E.R.PCI.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3E.R.PCI";
+                            }
+                        } else {
+                            ioi_naming = "IOI.S3E.R";
+                        }
+                        iobs = &[2, 1, 0];
+                    }
+                    GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                        (pads, ipads, term, iobs_kind) = match rd {
+                            RowIoKind::Quad(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM4",
+                                Some(("IOBS.S3A.R4", 4))
+                            ),
+                            RowIoKind::Quad(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "RTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(3) => (
+                                &[][..],
+                                &[1, 0][..],
+                                "RTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if row == self.row_mid() {
+                            term = "RTERM4CLK";
+                        }
+                        if row == self.row_mid() - 4 {
+                            term = "RTERM4B";
+                        }
+                        if row == self.row_mid() - 3 {
+                            term = "RTERMCLKB";
+                        }
+                        if row == self.row_mid() - 2 {
+                            term = "RTERMCLKA";
+                        }
+                        if row == self.row_mid() + 1 {
+                            term = "RTERMCLKA";
+                        }
+                        int_kind = "INT.IOI.S3A.LR";
+                        if rows_brk.contains(&row) {
+                            int_naming = "INT.IOI.S3A.LR.BRK";
+                        } else {
+                            int_naming = "INT.IOI.S3A.LR";
+                        }
+                        if self.kind == GridKind::Spartan3ADsp {
+                            ioi_kind = "IOI.S3ADSP.R";
+                            if row >= self.row_mid() - 4 && row < self.row_mid() + 4 && ipads.is_empty() {
+                                ioi_naming = "IOI.S3ADSP.R.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3ADSP.R";
+                            }
+                        } else {
+                            ioi_kind = "IOI.S3A.R";
+                            if row >= self.row_mid() - 4 && row < self.row_mid() + 4 && ipads.is_empty() {
+                                ioi_naming = "IOI.S3A.R.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3A.R";
+                            }
+                        }
+                        iobs = &[1, 0];
+                    }
+                }
+                let name;
+                let term_name;
+                if use_xy {
+                    let x = xlut[col];
+                    let y = row.to_idx();
+                    let brk = if rows_brk.contains(&row) {"_BRK"} else {""};
+                    let clk = if row == self.row_mid() - 1 || row == self.row_mid() {"_CLK"} else {""};
+                    let pci = if row >= self.row_mid() - 4 && row < self.row_mid() + 4 {"_PCI"} else {""};
+                    let kind = if ipads.is_empty() {
+                        "RIOIS"
+                    } else {
+                        "RIBUFS"
+                    };
+                    name = format!("{kind}{clk}{pci}{brk}_X{x}Y{y}");
+                    term_name = format!("{term}_X{x}Y{y}");
+                } else {
+                    let r = row_t.to_idx() - row.to_idx();
+                    name = format!("RIOIR{r}");
+                    term_name = format!("RTERMR{r}");
+                }
+                grid.fill_tile((col, row), int_kind, int_naming, name.clone());
+                self.fill_term(&mut grid, (col, row), "TERM.E", term_kind, term_name);
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(ioi_kind),
+                    &[&name],
+                    db.get_node_naming(ioi_naming),
+                    &[(col, row)],
+                );
+                for &i in iobs {
+                    if pads.contains(&i) {
+                        node.add_bel(i, format!("PAD{ctr_pad}"));
+                        ctr_pad += 1;
+                    } else if ipads.contains(&i) {
+                        node.add_bel(i, format!("IPAD{ctr_pad}"));
+                        ctr_pad += 1;
+                    } else {
+                        node.add_bel(i, format!("NOPAD{ctr_nopad}"));
+                        ctr_nopad += 1;
+                    }
+                }
+                if let Some((kind, num)) = iobs_kind {
+                    let coords: Vec<_> = (0..num).map(|dx| (col, row + dx)).collect();
+                    grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &coords,
+                    );
+                }
+            }
+            for (col, &cd) in self.columns.iter().rev() {
+                let row = row_b;
+                if use_xy {
+                    if cd.kind == ColumnKind::Io {
+                        continue;
+                    }
+                } else {
+                    if cd.kind != ColumnKind::Clb {
+                        continue;
+                    }
+                }
+                let pads: &[usize];
+                let ipads: &[usize];
+                let mut int_kind;
+                let mut int_naming;
+                let mut ioi_kind;
+                let mut ioi_naming;
+                let iobs_kind;
+                let iobs: &[usize];
+                let mut term = "";
+                let mut kind = "";
+                match self.kind {
+                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                        (pads, iobs_kind) = match cd.io {
+                            ColumnIoKind::None => (&[][..], None),
+                            ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => (&[3, 2, 1][..], Some(("IOBS.B.L1", 1))),
+                            ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => (&[2, 1, 0][..], Some(("IOBS.B.R1", 1))),
+                            ColumnIoKind::DoubleLeft(0) => (&[3, 2, 1, 0][..], Some(("IOBS.B.L2", 2))),
+                            ColumnIoKind::DoubleRight(0) => (&[1, 0][..], Some(("IOBS.B.R2", 2))),
+                            ColumnIoKind::DoubleLeft(1) => (&[3, 2][..], None),
+                            ColumnIoKind::DoubleRight(1) => (&[3, 2, 1, 0][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI";
+                        int_naming = "INT.IOI.TB";
+                        ioi_kind = "IOI";
+                        ioi_naming = "IOI";
+                        if matches!(cd.io, ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt) {
+                            ioi_naming = "IOI.TBS";
+                        }
+                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
+                            ioi_kind = "IOI.CLK_B";
+                            ioi_naming = "IOI.CLK_B";
+                            int_kind = "INT.IOI.CLK_B";
+                            int_naming = "INT.IOI.CLK_B";
+                        }
+                        iobs = &[3, 2, 1, 0];
+                    }
+                    GridKind::Spartan3 => {
+                        (pads, iobs_kind) = match cd.io {
+                            ColumnIoKind::Double(0) => (&[1, 0][..], Some(("IOBS.S3.B2", 2))),
+                            ColumnIoKind::Double(1) => (&[2, 1, 0][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI.S3";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3";
+                        ioi_naming = "IOI.S3.B";
+                        iobs = &[2, 1, 0];
+                    }
+                    GridKind::Spartan3E => {
+                        (pads, ipads, term, iobs_kind) = match cd.io {
+                            ColumnIoKind::Single => (
+                                &[2][..],
+                                &[][..],
+                                "BTERM1",
+                                Some(("IOBS.S3E.B1", 1))
+                            ),
+                            ColumnIoKind::Double(0) => (
+                                &[][..],
+                                &[2][..],
+                                "BTERM2",
+                                Some(("IOBS.S3E.B2", 2))
+                            ),
+                            ColumnIoKind::Double(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            ColumnIoKind::Triple(0) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM3",
+                                Some(("IOBS.S3E.B3", 3))
+                            ),
+                            ColumnIoKind::Triple(1) => (
+                                &[][..],
+                                &[2][..],
+                                "BTERM",
+                                None
+                            ),
+                            ColumnIoKind::Triple(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(0) => (
+                                &[][..],
+                                &[1, 0][..],
+                                "BTERM4",
+                                Some(("IOBS.S3E.B4", 4))
+                            ),
+                            ColumnIoKind::Quad(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(2) => (
+                                &[2][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            ColumnIoKind::Quad(3) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if cd.io == ColumnIoKind::Quad(0) && cd.kind == ColumnKind::BramCont(2) {
+                            term = "BTERM4_BRAM2";
+                        }
+                        if col == self.col_clk - 3 {
+                            term = "BTERMCLKA";
+                        }
+                        if col == self.col_clk - 1 {
+                            term = "BTERMCLKB";
+                        }
+                        if col == self.col_clk {
+                            term = "BTERM4CLK";
+                        }
+                        if col == self.col_clk + 1 {
+                            term = "BTERMCLK";
+                        }
+                        int_kind = "INT.IOI.S3E";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3E";
+                        ioi_naming = "IOI.S3E.B";
+                        iobs = &[2, 1, 0];
+                        if ipads.is_empty() {
+                            kind = "BIOIS";
+                        } else {
+                            kind = "BIBUFS";
+                        }
+                    }
+                    GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                        (pads, ipads, term, iobs_kind) = match cd.io {
+                            ColumnIoKind::Double(0) => (
+                                &[1, 0][..],
+                                &[2][..],
+                                "BTERM2",
+                                Some(("IOBS.S3A.B2", 2))
+                            ),
+                            ColumnIoKind::Double(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "BTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        int_kind = "INT.IOI.S3A.TB";
+                        int_naming = "INT.IOI.S3A.TB";
+                        if self.kind == GridKind::Spartan3ADsp {
+                            ioi_kind = "IOI.S3ADSP.B";
+                            ioi_naming = "IOI.S3ADSP.B";
+                        } else {
+                            ioi_kind = "IOI.S3A.B";
+                            ioi_naming = "IOI.S3A.B";
+                        }
+                        iobs = &[2, 1, 0];
+                        if ipads.is_empty() {
+                            kind = "BIOIS";
+                        } else {
+                            kind = "BIOIB";
+                        }
+                        if col == self.col_clk - 2 {
+                            term = "BTERM2CLK";
+                        }
+                        if col == self.col_clk - 1 {
+                            term = "BTERMCLKB";
+                        }
+                        if col == self.col_clk {
+                            term = "BTERM2CLK";
+                        }
+                        if col == self.col_clk + 1 {
+                            term = "BTERMCLK";
+                        }
+                        if self.kind == GridKind::Spartan3ADsp {
+                            match cd.kind {
+                                ColumnKind::BramCont(2) => {
+                                    term = "BTERM1";
+                                }
+                                ColumnKind::Dsp => {
+                                    term = "BTERM1_MACC";
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+                let name;
+                let term_name;
+                if use_xy {
+                    let x = xlut[col];
+                    let y = row.to_idx();
+                    name = format!("{kind}_X{x}Y{y}");
+                    term_name = format!("{term}_X{x}Y{y}");
+                } else{
+                    let c = clut[col];
+                    name = format!("BIOIC{c}");
+                    term_name = format!("BTERMC{c}");
+                }
+                grid.fill_tile((col, row), int_kind, int_naming, name.clone());
+                self.fill_term(&mut grid, (col, row), "TERM.S", "TERM.S", term_name);
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(ioi_kind),
+                    &[&name],
+                    db.get_node_naming(ioi_naming),
+                    &[(col, row)],
+                );
+                for &i in iobs {
+                    if pads.contains(&i) {
+                        let mut name = format!("PAD{ctr_pad}");
+                        if self.kind == GridKind::Spartan3A && self.cols_clkv.is_none() {
+                            // 3s50a special
+                            match ctr_pad {
+                                94 => name = "PAD96".to_string(),
+                                96 => name = "PAD97".to_string(),
+                                97 => name = "PAD95".to_string(),
+                                _ => (),
+                            }
+                        }
+                        match (ioi_kind, i) {
+                            ("IOI.CLK_B", 2) => name = "CLKPPAD2".to_string(),
+                            ("IOI.CLK_B", 3) => name = "CLKNPAD2".to_string(),
+                            _ => (),
+                        }
+                        node.add_bel(i, name);
+                        ctr_pad += 1;
+                    } else if ipads.contains(&i) {
+                        let mut name = format!("IPAD{ctr_pad}");
+                        if self.kind == GridKind::Spartan3A && self.cols_clkv.is_none() && ctr_pad == 95 {
+                            name = "IPAD94".to_string();
+                        }
+                        node.add_bel(i, name);
+                        ctr_pad += 1;
+                    } else {
+                        node.add_bel(i, format!("NOPAD{ctr_nopad}"));
+                        ctr_nopad += 1;
+                    }
+                }
+                if let Some((kind, num)) = iobs_kind {
+                    let coords: Vec<_> = (0..num).map(|dx| (col + dx, row)).collect();
+                    grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &coords,
+                    );
+                }
+                if !self.kind.is_virtex2() {
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("RANDOR"),
+                        &[&name],
+                        db.get_node_naming("RANDOR.B"),
+                        &[(col, row)],
+                    );
+                    let x = if self.kind == GridKind::Spartan3 {
+                        (clut[col] - 1) * 2
+                    } else {
+                        col.to_idx() - 1
+                    };
+                    node.add_bel(0, format!("RANDOR_X{x}Y0"));
+                }
+            }
+            for (row, &rd) in self.rows.iter() {
+                let col = col_l;
+                if row == row_b || row == row_t {
+                    continue;
+                }
+                let pads: &[usize];
+                let ipads: &[usize];
+                let int_kind;
+                let int_naming;
+                let ioi_kind;
+                let ioi_naming;
+                let iobs_kind;
+                let iobs: &[usize];
+                let mut term = "";
+                let mut term_kind = "TERM.W";
+                match self.kind {
+                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                        (pads, iobs_kind) = match rd {
+                            RowIoKind::DoubleBot(0) => (&[0, 1, 2, 3][..], Some(("IOBS.L.B2", 2))),
+                            RowIoKind::DoubleBot(1) => (&[2, 3][..], None),
+                            RowIoKind::DoubleTop(0) => (&[0, 1][..], Some(("IOBS.L.T2", 2))),
+                            RowIoKind::DoubleTop(1) => (&[0, 1, 2, 3][..], None),
+                            _ => unreachable!(),
+                        };
+                        ipads = &[];
+                        int_kind = "INT.IOI";
+                        int_naming = "INT.IOI.LR";
+                        ioi_kind = "IOI";
+                        ioi_naming = "IOI";
+                        iobs = &[0, 1, 2, 3];
+                        term_kind = if row < self.row_pci.unwrap() {
+                            "TERM.W.D"
+                        } else {
+                            "TERM.W.U"
+                        };
+                    }
+                    GridKind::Spartan3 => {
+                        pads = &[0, 1];
+                        ipads = &[];
+                        iobs_kind = Some(("IOBS.S3.L1", 1));
+                        int_kind = "INT.IOI.S3";
+                        int_naming = "INT.IOI";
+                        ioi_kind = "IOI.S3";
+                        ioi_naming = "IOI.S3.L";
+                        iobs = &[0, 1, 2];
+                    }
+                    GridKind::Spartan3E => {
+                        (pads, ipads, term, iobs_kind) = match rd {
+                            RowIoKind::Single => (
+                                &[2][..],
+                                &[][..],
+                                "LTERM1",
+                                Some(("IOBS.S3E.L1", 1))
+                            ),
+                            RowIoKind::Double(0) => (
+                                &[][..],
+                                &[][..],
+                                "LTERM2",
+                                Some(("IOBS.S3E.L2", 2))
+                            ),
+                            RowIoKind::Double(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Triple(0) => (
+                                &[][..],
+                                &[2][..],
+                                "LTERM3",
+                                Some(("IOBS.S3E.L3", 3))
+                            ),
+                            RowIoKind::Triple(1) => (
+                                &[2][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Triple(2) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(0) => (
+                                &[][..],
+                                &[2][..],
+                                "LTERM4",
+                                Some(("IOBS.S3E.L4", 4))
+                            ),
+                            RowIoKind::Quad(1) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(2) => (
+                                &[][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(3) => (
+                                &[1, 0][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if row == self.row_mid() {
+                            term = "LTERM4CLK";
+                        }
+                        if row == self.row_mid() - 4 {
+                            term = "LTERM4B";
+                        }
+                        if row == self.row_mid() - 3 {
+                            term = "LTERMCLKA";
+                        }
+                        if row == self.row_mid() - 1 {
+                            term = "LTERMCLK";
+                        }
+                        if row == self.row_mid() + 1 {
+                            term = "LTERMCLKA";
+                        }
+                        if row == self.row_mid() + 3 {
+                            term = "LTERMCLK";
+                        }
+                        int_kind = "INT.IOI.S3E";
+                        if rows_brk.contains(&row) {
+                            int_naming = "INT.IOI.BRK";
+                        } else {
+                            int_naming = "INT.IOI";
+                        }
+                        ioi_kind = "IOI.S3E";
+                        if row >= self.row_mid() - 4 && row < self.row_mid() + 4 {
+                            if ipads.is_empty() {
+                                ioi_naming = "IOI.S3E.L.PCI.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3E.L.PCI";
+                            }
+                        } else {
+                            ioi_naming = "IOI.S3E.L";
+                        }
+                        iobs = &[2, 1, 0];
+                    }
+                    GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                        (pads, ipads, term, iobs_kind) = match rd {
+                            RowIoKind::Quad(0) => (
+                                &[][..],
+                                &[0, 1][..],
+                                "LTERM4",
+                                Some(("IOBS.S3A.L4", 4))
+                            ),
+                            RowIoKind::Quad(1) => (
+                                &[0, 1][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(2) => (
+                                &[0, 1][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            RowIoKind::Quad(3) => (
+                                &[0, 1][..],
+                                &[][..],
+                                "LTERM",
+                                None
+                            ),
+                            _ => unreachable!(),
+                        };
+                        if row == self.row_mid() {
+                            term = "LTERM4CLK";
+                        }
+                        if row == self.row_mid() - 4 {
+                            term = "LTERM4B";
+                        }
+                        if row == self.row_mid() - 2 {
+                            term = "LTERMCLKA";
+                        }
+                        if row == self.row_mid() - 1 {
+                            term = "LTERMCLK";
+                        }
+                        if row == self.row_mid() + 1 {
+                            term = "LTERMCLKA";
+                        }
+                        if row == self.row_mid() + 2 {
+                            term = "LTERMCLK";
+                        }
+                        int_kind = "INT.IOI.S3A.LR";
+                        if rows_brk.contains(&row) {
+                            int_naming = "INT.IOI.S3A.LR.BRK";
+                        } else {
+                            int_naming = "INT.IOI.S3A.LR";
+                        }
+                        if self.kind == GridKind::Spartan3ADsp {
+                            ioi_kind = "IOI.S3ADSP.L";
+                            if row >= self.row_mid() - 4 && row < self.row_mid() + 4 && ipads.is_empty() {
+                                ioi_naming = "IOI.S3ADSP.L.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3ADSP.L";
+                            }
+                        } else {
+                            ioi_kind = "IOI.S3A.L";
+                            if row >= self.row_mid() - 4 && row < self.row_mid() + 4 && ipads.is_empty() {
+                                ioi_naming = "IOI.S3A.L.PCI";
+                            } else {
+                                ioi_naming = "IOI.S3A.L";
+                            }
+                        }
+                        iobs = &[0, 1];
+                    }
+                }
+                let name;
+                let term_name;
+                if use_xy {
+                    let x = xlut[col];
+                    let y = row.to_idx();
+                    let brk = if rows_brk.contains(&row) {"_BRK"} else {""};
+                    let clk = if row == self.row_mid() - 1 || row == self.row_mid() {"_CLK"} else {""};
+                    let pci = if row >= self.row_mid() - 4 && row < self.row_mid() + 4 {"_PCI"} else {""};
+                    let kind = if ipads.is_empty() {
+                        "LIOIS"
+                    } else {
+                        "LIBUFS"
+                    };
+                    name = format!("{kind}{clk}{pci}{brk}_X{x}Y{y}");
+                    term_name = format!("{term}_X{x}Y{y}");
+                } else {
+                    let r = row_t.to_idx() - row.to_idx();
+                    name = format!("LIOIR{r}");
+                    term_name = format!("LTERMR{r}");
+                }
+                grid.fill_tile((col, row), int_kind, int_naming, name.clone());
+                self.fill_term(&mut grid, (col, row), "TERM.W", term_kind, term_name);
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(ioi_kind),
+                    &[&name],
+                    db.get_node_naming(ioi_naming),
+                    &[(col, row)],
+                );
+                for &i in iobs {
+                    if pads.contains(&i) {
+                        node.add_bel(i, format!("PAD{ctr_pad}"));
+                        ctr_pad += 1;
+                    } else if ipads.contains(&i) {
+                        node.add_bel(i, format!("IPAD{ctr_pad}"));
+                        ctr_pad += 1;
+                    } else {
+                        node.add_bel(i, format!("NOPAD{ctr_nopad}"));
+                        ctr_nopad += 1;
+                    }
+                }
+                if let Some((kind, num)) = iobs_kind {
+                    let coords: Vec<_> = (0..num).map(|dx| (col, row + dx)).collect();
+                    grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &coords,
+                    );
+                }
+            }
+        }
+
+        let mut cx = 0;
         for (col, &cd) in self.columns.iter() {
             if self.kind == GridKind::Spartan3E {
                 if cd.kind == ColumnKind::Io {
@@ -919,26 +2189,55 @@ impl Grid {
                 if io == RowIoKind::None {
                     continue;
                 }
-                if use_xy {
+                let tile = if use_xy {
                     let x = xlut[col];
                     let y = row.to_idx();
-                    let naming = if rows_brk.contains(&row) {"CLB.BRK"} else {"CLB"};
-                    grid.fill_tile((col, row), "CLB", naming, format!("CLB_X{x}Y{y}"));
+                    format!("CLB_X{x}Y{y}")
                 } else {
                     let c = clut[col];
                     let r = yt - row.to_idx();
-                    grid.fill_tile((col, row), "CLB", "CLB", format!("R{r}C{c}"));
+                    format!("R{r}C{c}")
+                };
+                let naming = if use_xy && rows_brk.contains(&row) {"INT.CLB.BRK"} else {"INT.CLB"};
+                grid.fill_tile((col, row), "INT.CLB", naming, tile.clone());
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node("CLB"),
+                    &[&tile],
+                    db.get_node_naming("CLB"),
+                    &[(col, row)],
+                );
+                let sx = 2 * cx;
+                let sy = 2 * (row.to_idx() - 1);
+                if self.kind.is_virtex2() {
+                    node.add_bel(0, format!("SLICE_X{x}Y{y}", x = sx, y = sy));
+                    node.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
+                    node.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
+                    node.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));
+                    if cx % 2 == 0 {
+                        node.add_bel(4, format!("TBUF_X{x}Y{y}", x = sx, y = sy));
+                        node.add_bel(5, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
+                    } else {
+                        node.add_bel(4, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
+                        node.add_bel(5, format!("TBUF_X{x}Y{y}", x = sx, y = sy));
+                    }
+                } else {
+                    node.add_bel(0, format!("SLICE_X{x}Y{y}", x = sx, y = sy));
+                    node.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
+                    node.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
+                    node.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));
                 }
             }
+            cx += 1;
         }
 
         let bram_kind = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
-            GridKind::Spartan3 => "BRAM.S3",
-            GridKind::Spartan3E => "BRAM.S3E",
-            GridKind::Spartan3A => "BRAM.S3A",
-            GridKind::Spartan3ADsp => "BRAM.S3ADSP",
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "INT.BRAM",
+            GridKind::Spartan3 => "INT.BRAM.S3",
+            GridKind::Spartan3E => "INT.BRAM.S3E",
+            GridKind::Spartan3A => "INT.BRAM.S3A",
+            GridKind::Spartan3ADsp => "INT.BRAM.S3ADSP",
         };
+        let mut sx = 0;
         for (col, &cd) in self.columns.iter() {
             if cd.kind != ColumnKind::Bram {
                 continue;
@@ -972,9 +2271,9 @@ impl Grid {
                     }
                 }
                 let naming = match self.kind {
-                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => "BRAM",
-                    GridKind::Spartan3E | GridKind::Spartan3A => if rows_brk.contains(&row) {"BRAM.BRK"} else {"BRAM"},
-                    GridKind::Spartan3ADsp => if rows_brk.contains(&row) {"BRAM.S3ADSP.BRK"} else {"BRAM.S3ADSP"},
+                    GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => "INT.BRAM",
+                    GridKind::Spartan3E | GridKind::Spartan3A => if rows_brk.contains(&row) {"INT.BRAM.BRK"} else {"INT.BRAM"},
+                    GridKind::Spartan3ADsp => if rows_brk.contains(&row) {"INT.BRAM.S3ADSP.BRK"} else {"INT.BRAM.S3ADSP"},
                 };
                 if use_xy {
                     let x = xlut[col];
@@ -996,53 +2295,140 @@ impl Grid {
                     }
                     grid.fill_tile((col, row), bram_kind, naming, format!("BRAM{i}_SMALL{md}_X{x}Y{y}"));
                     if self.kind == GridKind::Spartan3ADsp {
-                        let naming_macc = if rows_brk.contains(&row) {"MACC.BRK"} else {"MACC"};
+                        let naming_macc = if rows_brk.contains(&row) {"INT.MACC.BRK"} else {"INT.MACC"};
                         let x = xlut[col + 3];
-                        grid.fill_tile((col + 3, row), "BRAM.S3ADSP", naming_macc, format!("MACC{i}_SMALL{md}_X{x}Y{y}"));
+                        grid.fill_tile((col + 3, row), "INT.BRAM.S3ADSP", naming_macc, format!("MACC{i}_SMALL{md}_X{x}Y{y}"));
                     }
-                    i += 1;
-                    i %= 4;
                 } else {
                     let c = bramclut[col];
                     let r = yt - row.to_idx();
                     grid.fill_tile((col, row), bram_kind, naming, format!("BRAMR{r}C{c}"));
                 }
+                if i == 0 {
+                    let is_bot = matches!(self.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) && row == row_b + 1;
+                    let is_top = matches!(self.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) && (row == row_t - 4 || row == row_t - 8 && col == self.col_clk);
+                    let is_brk = rows_brk.contains(&(row + 3));
+                    let kind = match self.kind {
+                        GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
+                        GridKind::Spartan3 => "BRAM.S3",
+                        GridKind::Spartan3E => "BRAM.S3E",
+                        GridKind::Spartan3A => "BRAM.S3A",
+                        GridKind::Spartan3ADsp => "BRAM.S3ADSP",
+                    };
+                    let naming = if self.kind == GridKind::Spartan3A {
+                        if is_bot {
+                            "BRAM.S3A.BOT"
+                        } else if is_top {
+                            "BRAM.S3A.TOP"
+                        } else {
+                            "BRAM.S3A"
+                        }
+                    } else {
+                        kind
+                    };
+                    let name = if use_xy {
+                        let x = xlut[col] + 1;
+                        let y = row.to_idx();
+                        let m = if self.kind == GridKind::Spartan3ADsp {"_3M"} else {""};
+                        if is_bot {
+                            format!("BRAMSITE2{m}_BOT_X{x}Y{y}")
+                        } else if is_top {
+                            format!("BRAMSITE2{m}_TOP_X{x}Y{y}")
+                        } else if is_brk {
+                            format!("BRAMSITE2{m}_BRK_X{x}Y{y}")
+                        } else {
+                            format!("BRAMSITE2{m}_X{x}Y{y}")
+                        }
+                    } else {
+                        let c = bramclut[col];
+                        let r = yt - row.to_idx();
+                        format!("BMR{r}C{c}")
+                    };
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(naming),
+                        &[
+                            (col, row),
+                            (col, row + 1),
+                            (col, row + 2),
+                            (col, row + 3),
+                        ],
+                    );
+                    let mut sy = (row.to_idx() - 1) / 4;
+                    if let Some((b, _)) = self.rows_ram {
+                        sy = (row.to_idx() - b.to_idx() - 1) / 4;
+                    }
+                    if self.kind == GridKind::Spartan3A && self.dcms == Some(Dcms::Eight) && row >= self.row_mid() {
+                        sy -= 2;
+                    }
+                    node.add_bel(0, format!("RAMB16_X{sx}Y{sy}"));
+                    if self.kind != GridKind::Spartan3ADsp {
+                        node.add_bel(1, format!("MULT18X18_X{sx}Y{sy}"));
+                    } else {
+                        let naming = if is_top {
+                            "DSP.TOP"
+                        } else {
+                            "DSP"
+                        };
+                        let x = xlut[col] + 4;
+                        let y = row.to_idx();
+                        let name = if is_bot {
+                            format!("MACCSITE2_BOT_X{x}Y{y}")
+                        } else if is_top {
+                            format!("MACCSITE2_TOP_X{x}Y{y}")
+                        } else if is_brk {
+                            format!("MACCSITE2_BRK_X{x}Y{y}")
+                        } else {
+                            format!("MACCSITE2_X{x}Y{y}")
+                        };
+                        let node = grid[(col + 3, row)].add_xnode(
+                            db.get_node("DSP"),
+                            &[&name],
+                            db.get_node_naming(naming),
+                            &[
+                                (col + 3, row),
+                                (col + 3, row + 1),
+                                (col + 3, row + 2),
+                                (col + 3, row + 3),
+                            ],
+                        );
+                        node.add_bel(0, format!("DSP48A_X{sx}Y{sy}"));
+                    }
+                }
+                i += 1;
+                i %= 4;
             }
+            sx += 1;
         }
 
         if let Some(dcms) = self.dcms {
+            let mut dcm_tiles = vec![];
             if dcms != Dcms::Two {
+                // col, row, tile_kind, is_horiz
                 grid.nuke_rect(self.col_clk - 4, row_b + 1, 4, 4);
-                let x = xlut[self.col_clk - 1];
-                let y = row_b.to_idx() + 1;
-                grid.fill_tile_special((self.col_clk - 1, row_b + 1), "DCM", "DCM.S3E", format!("DCM_BL_CENTER_X{x}Y{y}"));
+                dcm_tiles.push((self.col_clk - 1, row_b + 1, "DCM_BL_CENTER", false));
             }
             if !(self.kind != GridKind::Spartan3E && dcms == Dcms::Two) {
                 grid.nuke_rect(self.col_clk, row_b + 1, 4, 4);
-                let x = xlut[self.col_clk];
-                let y = row_b.to_idx() + 1;
-                grid.fill_tile_special((self.col_clk, row_b + 1), "DCM", "DCM.S3E", format!("DCM_BR_CENTER_X{x}Y{y}"));
+                dcm_tiles.push((self.col_clk, row_b + 1, "DCM_BR_CENTER", false));
             }
             if !(self.kind == GridKind::Spartan3E && dcms == Dcms::Two) {
                 grid.nuke_rect(self.col_clk - 4, row_t - 4, 4, 4);
-                let x = xlut[self.col_clk - 1];
-                let y = row_t.to_idx() - 1;
-                grid.fill_tile_special((self.col_clk - 1, row_t - 1), "DCM", "DCM.S3E", format!("DCM_TL_CENTER_X{x}Y{y}"));
+                dcm_tiles.push((self.col_clk - 1, row_t - 1, "DCM_TL_CENTER", false));
             }
             {
                 grid.nuke_rect(self.col_clk, row_t - 4, 4, 4);
-                let x = xlut[self.col_clk];
-                let y = row_t.to_idx() - 1;
-                grid.fill_tile_special((self.col_clk, row_t - 1), "DCM", "DCM.S3E", format!("DCM_TR_CENTER_X{x}Y{y}"));
+                dcm_tiles.push((self.col_clk, row_t - 1, "DCM_TR_CENTER", false));
             }
             if self.kind == GridKind::Spartan3E && dcms == Dcms::Two {
                 grid.nuke_rect(self.col_clk - 1, row_b + 1, 1, 4);
                 grid.nuke_rect(self.col_clk - 1, row_t - 4, 1, 4);
                 let x = xlut[self.col_clk - 1];
                 let y = row_b.to_idx() + 1;
-                grid.fill_tile_special((self.col_clk - 1, row_b + 1), "DCM.S3E.DUMMY", "DCM.S3E.DUMMY", format!("DCMAUX_BL_CENTER_X{x}Y{y}"));
+                grid.fill_tile_special((self.col_clk - 1, row_b + 1), "INT.DCM.S3E.DUMMY", "INT.DCM.S3E.DUMMY", format!("DCMAUX_BL_CENTER_X{x}Y{y}"));
                 let y = row_t.to_idx() - 1;
-                grid.fill_tile_special((self.col_clk - 1, row_t - 1), "DCM.S3E.DUMMY", "DCM.S3E.DUMMY", format!("DCMAUX_TL_CENTER_X{x}Y{y}"));
+                grid.fill_tile_special((self.col_clk - 1, row_t - 1), "INT.DCM.S3E.DUMMY", "INT.DCM.S3E.DUMMY", format!("DCMAUX_TL_CENTER_X{x}Y{y}"));
             }
             if dcms == Dcms::Eight {
                 if self.kind == GridKind::Spartan3E {
@@ -1050,63 +2436,92 @@ impl Grid {
                     grid.nuke_rect(col_l + 9, self.row_mid(), 4, 4);
                     grid.nuke_rect(col_r - 12, self.row_mid() - 4, 4, 4);
                     grid.nuke_rect(col_r - 12, self.row_mid(), 4, 4);
-                    let col = col_l + 9;
-                    let x = xlut[col];
-                    let row = self.row_mid();
-                    let y = row.to_idx();
-                    grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_H_TL_CENTER_X{x}Y{y}"));
-                    let row = self.row_mid() - 1;
-                    let y = row.to_idx();
-                    grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_H_BL_CENTER_X{x}Y{y}"));
-                    let col = col_r - 9;
-                    let x = xlut[col];
-                    let row = self.row_mid();
-                    let y = row.to_idx();
-                    grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_H_TR_CENTER_X{x}Y{y}"));
-                    let row = self.row_mid() - 1;
-                    let y = row.to_idx();
-                    grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_H_BR_CENTER_X{x}Y{y}"));
+                    dcm_tiles.push((col_l + 9, self.row_mid(), "DCM_H_TL_CENTER", true));
+                    dcm_tiles.push((col_l + 9, self.row_mid() - 1, "DCM_H_BL_CENTER", true));
+                    dcm_tiles.push((col_r - 9, self.row_mid(), "DCM_H_TR_CENTER", true));
+                    dcm_tiles.push((col_r - 9, self.row_mid() - 1, "DCM_H_BR_CENTER", true));
                 } else {
                     for col in [col_l + 3, col_r - 6] {
                         grid.nuke_rect(col, self.row_mid() - 4, 4, 4);
                         grid.nuke_rect(col, self.row_mid(), 4, 4);
-                        let x = xlut[col];
-                        let row = self.row_mid();
-                        let y = row.to_idx();
-                        grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_SPLY_X{x}Y{y}"));
-                        let row = self.row_mid() - 1;
-                        let y = row.to_idx();
-                        grid.fill_tile_special((col, row), "DCM", "DCM.S3E.H", format!("DCM_BGAP_X{x}Y{y}"));
+                        dcm_tiles.push((col, self.row_mid(), "DCM_SPLY", true));
+                        dcm_tiles.push((col, self.row_mid() - 1, "DCM_BGAP", true));
                     }
                 }
             }
+            let mut dcm_cols: Vec<_> = dcm_tiles.iter().map(|&(col, _, _, _)| col).collect();
+            dcm_cols.sort_unstable();
+            dcm_cols.dedup();
+            let mut dcm_rows: Vec<_> = dcm_tiles.iter().map(|&(_, row, _, _)| row).collect();
+            dcm_rows.sort_unstable();
+            dcm_rows.dedup();
+            for (col, row, tk, is_h) in dcm_tiles {
+                let x = xlut[col];
+                let y = row.to_idx();
+                let name = format!("{tk}_X{x}Y{y}");
+                grid.fill_tile_special((col, row), "INT.DCM", if is_h {"INT.DCM.S3E.H"} else {"INT.DCM.S3E"}, name.clone());
+                let dx = dcm_cols.binary_search(&col).unwrap();
+                let dy = dcm_rows.binary_search(&row).unwrap();
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node("DCM.S3E"),
+                    &[&name],
+                    db.get_node_naming(if is_h {"DCM.S3E.H"} else if col < self.col_clk {"DCM.S3E.L"} else {"DCM.S3E.R"}),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("DCM_X{dx}Y{dy}"));
+            }
         } else {
+            let mut dx = 0;
             for (col, &cd) in self.columns.iter() {
                 if cd.kind != ColumnKind::Bram {
                     continue;
                 }
-                let (kind, naming) = match self.kind {
-                    GridKind::Virtex2 => ("DCM.V2", "BRAM_IOIS"),
-                    GridKind::Virtex2P | GridKind::Virtex2PX => ("DCM.V2P", "ML_BRAM_IOIS"),
+                if self.cols_gt.contains_key(&col) {
+                    continue;
+                }
+                let (kind, naming, dcm) = match self.kind {
+                    GridKind::Virtex2 => ("INT.DCM.V2", "INT.BRAM_IOIS", "DCM.V2"),
+                    GridKind::Virtex2P | GridKind::Virtex2PX => ("INT.DCM.V2P", "INT.ML_BRAM_IOIS", "DCM.V2P"),
                     GridKind::Spartan3 => if col == col_l + 3 || col == col_r - 3 {
-                        ("DCM", "DCM.S3")
+                        ("INT.DCM", "INT.DCM.S3", "DCM.S3")
                     } else {
-                        ("DCM.S3.DUMMY", "DCM.S3.DUMMY")
+                        ("INT.DCM.S3.DUMMY", "INT.DCM.S3.DUMMY", "")
                     }
                     _ => unreachable!(),
                 };
                 let c = bramclut[col];
-                grid.fill_tile((col, row_b), kind, naming, format!("BIOIBRAMC{c}"));
-                grid.fill_tile((col, row_t), kind, naming, format!("TIOIBRAMC{c}"));
+                let name_b = format!("BIOIBRAMC{c}");
+                let name_t = format!("TIOIBRAMC{c}");
+                grid.fill_tile((col, row_b), kind, naming, name_b.clone());
+                grid.fill_tile((col, row_t), kind, naming, name_t.clone());
                 self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", format!("BTERMBRAMC{c}"));
                 self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", format!("TTERMBRAMC{c}"));
+                if dcm.is_empty() {
+                    continue;
+                }
+                let node = grid[(col, row_b)].add_xnode(
+                    db.get_node(dcm),
+                    &[&name_b],
+                    db.get_node_naming(dcm),
+                    &[(col, row_b)],
+                );
+                node.add_bel(0, format!("DCM_X{dx}Y0"));
+                let node = grid[(col, row_t)].add_xnode(
+                    db.get_node(dcm),
+                    &[&name_t],
+                    db.get_node_naming(dcm),
+                    &[(col, row_t)],
+                );
+                node.add_bel(0, format!("DCM_X{dx}Y1"));
+                dx += 1;
             }
         }
 
         for &(bc, br) in &self.holes_ppc {
             grid.nuke_rect(bc, br, 10, 16);
+            let mut ints = vec![];
             // left side
-            for d in 1..15 {
+            for d in 0..16 {
                 let col = bc;
                 let row = br + d;
                 let r = yt - row.to_idx();
@@ -1116,7 +2531,13 @@ impl Grid {
                     14 => "PTERMUL",
                     _ => "",
                 };
-                grid.fill_tile_special((col, row), "PPC", "PPC.L", format!("{pref}R{r}C{c}"));
+                let kind = match d {
+                    0 => "INT.PPC.B",
+                    15 => "INT.PPC.T",
+                    _ => "INT.PPC.L",
+                };
+                grid.fill_tile_special((col, row), "INT.PPC", kind, format!("{pref}R{r}C{c}"));
+                ints.push((col, row));
             }
             // right side
             for d in 0..16 {
@@ -1124,33 +2545,36 @@ impl Grid {
                 let row = br + d;
                 let r = yt - row.to_idx();
                 let c = clut[col];
-                grid.fill_tile_special((col, row), "PPC", "PPC.R", format!("R{r}C{c}"));
+                grid.fill_tile_special((col, row), "INT.PPC", "INT.PPC.R", format!("R{r}C{c}"));
+                ints.push((col, row));
             }
             // bottom
-            for d in 0..9 {
+            for d in 1..9 {
                 let col = bc + d;
                 let row = br;
                 let r = yt - row.to_idx();
                 if self.columns[col].kind == ColumnKind::Clb {
                     let c = clut[col];
-                    grid.fill_tile_special((col, row), "PPC", "PPC.B", format!("R{r}C{c}"));
+                    grid.fill_tile_special((col, row), "INT.PPC", "INT.PPC.B", format!("R{r}C{c}"));
                 } else {
                     let c = bramclut[col];
-                    grid.fill_tile_special((col, row), "PPC", "PPC.B", format!("PPCINTR{r}BRAMC{c}"));
+                    grid.fill_tile_special((col, row), "INT.PPC", "INT.PPC.B", format!("PPCINTR{r}BRAMC{c}"));
                 }
+                ints.push((col, row));
             }
             // top
-            for d in 0..9 {
+            for d in 1..9 {
                 let col = bc + d;
                 let row = br + 15;
                 let r = yt - row.to_idx();
                 if self.columns[col].kind == ColumnKind::Clb {
                     let c = clut[col];
-                    grid.fill_tile_special((col, row), "PPC", "PPC.T", format!("R{r}C{c}"));
+                    grid.fill_tile_special((col, row), "INT.PPC", "INT.PPC.T", format!("R{r}C{c}"));
                 } else {
                     let c = bramclut[col];
-                    grid.fill_tile_special((col, row), "PPC", "PPC.T", format!("PPCINTR{r}BRAMC{c}"));
+                    grid.fill_tile_special((col, row), "INT.PPC", "INT.PPC.T", format!("PPCINTR{r}BRAMC{c}"));
                 }
+                ints.push((col, row));
             }
             // horiz passes
             for d in 1..15 {
@@ -1220,25 +2644,40 @@ impl Grid {
                     tile.add_intf(
                         db.get_intf("PPC"),
                         name,
-                        db.get_intf_naming(nname),
+                        db.get_intf_naming(&nname[4..]),
                     );
                 }
             }
+            let (kind, name, site) = if bc < self.col_clk {
+                ("LBPPC", "PPC_X0Y0", "PPC405_X0Y0")
+            } else if self.holes_ppc.len() == 1 {
+                ("RBPPC", "PPC_X0Y0", "PPC405_X0Y0")
+            } else {
+                ("RBPPC", "PPC_X1Y0", "PPC405_X1Y0")
+            };
+            let node = grid[(bc, br)].add_xnode(
+                db.get_node(kind),
+                &[name],
+                db.get_node_naming(kind),
+                &ints,
+            );
+            node.add_bel(0, site.to_string());
         }
 
-        for &col in self.cols_gt.keys() {
-            let kind_gt = db.get_node("PPC");
-            let kind_gt0 = db.get_node("GT.CLKPAD");
-            let naming_gt = db.get_node_naming("GT");
-            let naming_gt0 = db.get_node_naming("GT.CLKPAD");
+        for (gx, (&col, &(bbank, tbank))) in self.cols_gt.iter().enumerate() {
+            if self.kind == GridKind::Virtex2PX {
+                grid.nuke_rect(col, row_b, 1, 9);
+                grid.nuke_rect(col, row_t - 8, 1, 9);
+            } else {
+                grid.nuke_rect(col, row_b, 1, 5);
+                grid.nuke_rect(col, row_t - 4, 1, 5);
+            }
+            let c = bramclut[col];
             for row in [row_b, row_t] {
-                let tile = &mut grid[(col, row)];
-                let node = &mut tile.nodes[0];
-                node.special = true;
-                node.kind = kind_gt0;
-                node.naming = naming_gt0;
-                let name = node.names[def_rt].clone();
-                tile.add_intf(
+                let bt = if row == row_b {'B'} else {'T'};
+                let name = format!("{bt}IOIBRAMC{c}");
+                grid.fill_tile_special((col, row), "INT.GT.CLKPAD", "INT.GT.CLKPAD", name.clone());
+                grid[(col, row)].add_intf(
                     db.get_intf("GT.CLKPAD"),
                     name,
                     db.get_intf_naming("GT.CLKPAD"),
@@ -1252,19 +2691,93 @@ impl Grid {
             for br in [row_b + 1, row_t - n] {
                 for d in 0..n {
                     let row = br + d;
-                    let tile = &mut grid[(col, row)];
-                    let node = &mut tile.nodes[0];
-                    node.special = true;
-                    node.kind = kind_gt;
-                    node.naming = naming_gt;
-                    let name = node.names[def_rt].clone();
-                    tile.add_intf(
+                    let r = row_t.to_idx() - row.to_idx();
+                    let name = format!("BRAMR{r}C{c}");
+                    grid.fill_tile_special((col, row), "INT.PPC", "INT.GT", name.clone());
+                    grid[(col, row)].add_intf(
                         db.get_intf(if d % 4 == 0 {"GT.0"} else {"GT.123"}),
                         name,
                         db.get_intf_naming("GT"),
                     );
                 }
             }
+            let r = row_t.to_idx() - row_b.to_idx() - 1;
+            let node_b;
+            let node_t;
+            if self.kind == GridKind::Virtex2P {
+                node_b = grid[(col, row_b)].add_xnode(
+                    db.get_node("GIGABIT"),
+                    &[&format!("BMR{r}C{c}")],
+                    db.get_node_naming("GIGABIT.B"),
+                    &[
+                        (col, row_b),
+                        (col, row_b + 1),
+                        (col, row_b + 2),
+                        (col, row_b + 3),
+                        (col, row_b + 4),
+                    ],
+                );
+                node_b.add_bel(0, format!("GT_X{gx}Y0"));
+            } else {
+                node_b = grid[(col, row_b)].add_xnode(
+                    db.get_node("GIGABIT10"),
+                    &[&format!("BMR{r}C{c}")],
+                    db.get_node_naming("GIGABIT10.B"),
+                    &[
+                        (col, row_b),
+                        (col, row_b + 1),
+                        (col, row_b + 2),
+                        (col, row_b + 3),
+                        (col, row_b + 4),
+                        (col, row_b + 5),
+                        (col, row_b + 6),
+                        (col, row_b + 7),
+                        (col, row_b + 8),
+                    ],
+                );
+                node_b.add_bel(0, format!("GT10_X{gx}Y0"));
+            }
+            node_b.add_bel(1, format!("RXPPAD{bbank}"));
+            node_b.add_bel(2, format!("RXNPAD{bbank}"));
+            node_b.add_bel(3, format!("TXPPAD{bbank}"));
+            node_b.add_bel(4, format!("TXNPAD{bbank}"));
+            if self.kind == GridKind::Virtex2P {
+                node_t = grid[(col, row_t)].add_xnode(
+                    db.get_node("GIGABIT"),
+                    &[&format!("BMR4C{c}")],
+                    db.get_node_naming("GIGABIT.T"),
+                    &[
+                        (col, row_t),
+                        (col, row_t - 4),
+                        (col, row_t - 3),
+                        (col, row_t - 2),
+                        (col, row_t - 1),
+                    ],
+                );
+                node_t.add_bel(0, format!("GT_X{gx}Y1"));
+            } else {
+                node_t = grid[(col, row_t)].add_xnode(
+                    db.get_node("GIGABIT10"),
+                    &[&format!("BMR8C{c}")],
+                    db.get_node_naming("GIGABIT10.T"),
+                    &[
+                        (col, row_t),
+                        (col, row_t - 8),
+                        (col, row_t - 7),
+                        (col, row_t - 6),
+                        (col, row_t - 5),
+                        (col, row_t - 4),
+                        (col, row_t - 3),
+                        (col, row_t - 2),
+                        (col, row_t - 1),
+                    ],
+                );
+                node_t.add_bel(0, format!("GT10_X{gx}Y1"));
+            }
+            node_t.add_bel(1, format!("RXPPAD{tbank}"));
+            node_t.add_bel(2, format!("RXNPAD{tbank}"));
+            node_t.add_bel(3, format!("TXPPAD{tbank}"));
+            node_t.add_bel(4, format!("TXNPAD{tbank}"));
         }
 
         if self.has_ll {
@@ -1412,7 +2925,7 @@ impl Grid {
         }
         grid.fill_main_passes();
 
-        if self.is_virtex2() {
+        if self.kind.is_virtex2() {
             for (col, cd) in &self.columns {
                 if !matches!(cd.kind, ColumnKind::Bram) {
                     continue;
@@ -1424,6 +2937,9 @@ impl Grid {
                     if row.to_idx() == 1 {
                         continue;
                     }
+                    if row == row_t {
+                        continue;
+                    }
                     let et = &mut grid[(col, row)];
                     if et.nodes.is_empty() {
                         continue;
@@ -1432,12 +2948,10 @@ impl Grid {
                         continue;
                     }
                     if let Some(ref mut p) = et.terms[int::Dir::S] {
-                        p.naming = Some(db.get_term_naming("BRAM.N"));
-                    } else {
-                        unreachable!();
-                    }
-                    if let Some(ref mut p) = grid[(col, row - 1)].terms[int::Dir::N] {
                         p.naming = Some(db.get_term_naming("BRAM.S"));
+                        let c = bramclut[col];
+                        let r = row_t.to_idx() - row.to_idx();
+                        p.tile = Some(format!("BMR{r}C{c}"));
                     } else {
                         unreachable!();
                     }
@@ -1486,7 +3000,10 @@ impl Grid {
                 if tile.nodes.is_empty() {
                     continue;
                 }
-                if db.nodes.key(tile.nodes[0].kind) == "DCM.S3E.DUMMY" {
+                let x = col.to_idx();
+                let y = row.to_idx();
+                tile.nodes[0].add_bel(0, format!("RLL_X{x}Y{y}"));
+                if db.nodes.key(tile.nodes[0].kind) == "INT.DCM.S3E.DUMMY" {
                     continue;
                 }
                 let mut x = vcc_xlut[col];
@@ -1548,61 +3065,299 @@ impl Grid {
             let vx = vcc_xlut[self.col_clk] - 1;
             let vyb = row_b.to_idx();
             let node = grid[(self.col_clk - 1, row_b)].add_xnode(
-                db.get_node("CLKB"),
+                db.get_node(kind_b),
                 &[kind_b],
-                db.get_node_naming("CLKB"),
+                db.get_node_naming(kind_b),
                 &[(self.col_clk - 1, row_b), (self.col_clk, row_b)],
             );
             node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
+            node.add_bel(0, "BUFGMUX0P".to_string());
+            node.add_bel(1, "BUFGMUX1S".to_string());
+            node.add_bel(2, "BUFGMUX2P".to_string());
+            node.add_bel(3, "BUFGMUX3S".to_string());
+            node.add_bel(4, "BUFGMUX4P".to_string());
+            node.add_bel(5, "BUFGMUX5S".to_string());
+            node.add_bel(6, "BUFGMUX6P".to_string());
+            node.add_bel(7, "BUFGMUX7S".to_string());
             let vyt = if self.kind == GridKind::Virtex2 {1} else {row_t.to_idx()};
             let node = grid[(self.col_clk - 1, row_t)].add_xnode(
-                db.get_node("CLKT"),
+                db.get_node(kind_t),
                 &[kind_t],
-                db.get_node_naming("CLKT"),
+                db.get_node_naming(kind_t),
                 &[(self.col_clk - 1, row_t), (self.col_clk, row_t)],
             );
             node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
-        } else {
-            let kind_b;
-            let kind_t;
-            let tile_b;
-            let tile_t;
+            node.add_bel(0, "BUFGMUX0S".to_string());
+            node.add_bel(1, "BUFGMUX1P".to_string());
+            node.add_bel(2, "BUFGMUX2S".to_string());
+            node.add_bel(3, "BUFGMUX3P".to_string());
+            node.add_bel(4, "BUFGMUX4S".to_string());
+            node.add_bel(5, "BUFGMUX5P".to_string());
+            node.add_bel(6, "BUFGMUX6S".to_string());
+            node.add_bel(7, "BUFGMUX7P".to_string());
+
+            let rt = row_t.to_idx() - self.row_pci.unwrap().to_idx();
+            let rb = row_t.to_idx() - self.row_pci.unwrap().to_idx() + 1;
+            let node = grid[(col_l, self.row_pci.unwrap() - 2)].add_xnode(
+                db.get_node("REG_L"),
+                &[
+                    if self.kind == GridKind::Virtex2 {
+                        "HMLTERM"
+                    } else {
+                        "LTERMCLKH"
+                    },
+                    &format!("LTERMR{rb}"),
+                    &format!("LTERMR{rt}"),
+                ],
+                db.get_node_naming("REG_L"),
+                &[
+                    (col_l, self.row_pci.unwrap() - 2),
+                    (col_l, self.row_pci.unwrap() - 1),
+                    (col_l, self.row_pci.unwrap()),
+                    (col_l, self.row_pci.unwrap() + 1),
+                ]
+            );
+            node.add_bel(0, "PCILOGIC_X0Y0".to_string());
+            let node = grid[(col_r, self.row_pci.unwrap() - 2)].add_xnode(
+                db.get_node("REG_R"),
+                &[
+                    if self.kind == GridKind::Virtex2 {
+                        "HMRTERM"
+                    } else {
+                        "RTERMCLKH"
+                    },
+                    &format!("RTERMR{rb}"),
+                    &format!("RTERMR{rt}"),
+                ],
+                db.get_node_naming("REG_R"),
+                &[
+                    (col_r, self.row_pci.unwrap() - 2),
+                    (col_r, self.row_pci.unwrap() - 1),
+                    (col_r, self.row_pci.unwrap()),
+                    (col_r, self.row_pci.unwrap() + 1),
+                ]
+            );
+            node.add_bel(0, "PCILOGIC_X1Y0".to_string());
+        } else if self.kind == GridKind::Spartan3 {
             let vyb = 0;
             let vyt = vcc_ylut[row_t];
-            if self.kind == GridKind::Spartan3 {
-                kind_b = "CLKB.S3";
-                kind_t = "CLKT.S3";
-                tile_b = format!("CLKB");
-                tile_t = format!("CLKT");
-            } else {
-                kind_b = "CLKB.S3E";
-                kind_t = "CLKT.S3E";
-                let x = xlut[self.col_clk - 1];
-                let yb = row_b.to_idx();
-                let yt = row_t.to_idx();
-                if self.has_ll {
-                    tile_b = format!("CLKB_LL_X{x}Y{yb}");
-                    tile_t = format!("CLKT_LL_X{x}Y{yt}");
-                } else {
-                    tile_b = format!("CLKB_X{x}Y{yb}");
-                    tile_t = format!("CLKT_X{x}Y{yt}");
-                }
-            }
             let vx = vcc_xlut[self.col_clk] - 1;
             let node = grid[(self.col_clk - 1, row_b)].add_xnode(
-                db.get_node(kind_b),
-                &[&tile_b],
-                db.get_node_naming("CLKB"),
+                db.get_node("CLKB.S3"),
+                &["CLKB"],
+                db.get_node_naming("CLKB.S3"),
                 &[(self.col_clk - 1, row_b)]
             );
             node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
+            node.add_bel(0, "BUFGMUX0".to_string());
+            node.add_bel(1, "BUFGMUX1".to_string());
+            node.add_bel(2, "BUFGMUX2".to_string());
+            node.add_bel(3, "BUFGMUX3".to_string());
             let node = grid[(self.col_clk - 1, row_t)].add_xnode(
-                db.get_node(kind_t),
-                &[&tile_t],
-                db.get_node_naming("CLKT"),
+                db.get_node("CLKT.S3"),
+                &["CLKT"],
+                db.get_node_naming("CLKT.S3"),
                 &[(self.col_clk - 1, row_t)]
             );
             node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
+            node.add_bel(0, "BUFGMUX4".to_string());
+            node.add_bel(1, "BUFGMUX5".to_string());
+            node.add_bel(2, "BUFGMUX6".to_string());
+            node.add_bel(3, "BUFGMUX7".to_string());
+        } else {
+            let tile_b;
+            let tile_t;
+            let buf_b;
+            let buf_t;
+            let vyb = 0;
+            let vyt = vcc_ylut[row_t];
+            let x = xlut[self.col_clk - 1];
+            let yb = row_b.to_idx();
+            let ybb = yb + 1;
+            let yt = row_t.to_idx();
+            let ybt = yt - 1;
+            if self.has_ll {
+                tile_b = format!("CLKB_LL_X{x}Y{yb}");
+                tile_t = format!("CLKT_LL_X{x}Y{yt}");
+                buf_b = format!("CLKV_LL_X{x}Y{ybb}");
+                buf_t = format!("CLKV_LL_X{x}Y{ybt}");
+            } else {
+                tile_b = format!("CLKB_X{x}Y{yb}");
+                tile_t = format!("CLKT_X{x}Y{yt}");
+                buf_b = format!("CLKV_X{x}Y{ybb}");
+                buf_t = format!("CLKV_X{x}Y{ybt}");
+            }
+            let vx = vcc_xlut[self.col_clk] - 1;
+            let kind_b = if self.kind == GridKind::Spartan3E {"CLKB.S3E"} else {"CLKB.S3A"};
+            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+                db.get_node(kind_b),
+                &[&tile_b, &buf_b],
+                db.get_node_naming(kind_b),
+                &[(self.col_clk - 1, row_b)]
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
+            node.add_bel(0, "BUFGMUX_X2Y1".to_string());
+            node.add_bel(1, "BUFGMUX_X2Y0".to_string());
+            node.add_bel(2, "BUFGMUX_X1Y1".to_string());
+            node.add_bel(3, "BUFGMUX_X1Y0".to_string());
+            let kind_t = if self.kind == GridKind::Spartan3E {"CLKT.S3E"} else {"CLKT.S3A"};
+            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+                db.get_node(kind_t),
+                &[&tile_t, &buf_t],
+                db.get_node_naming(kind_t),
+                &[(self.col_clk - 1, row_t)]
+            );
+            node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
+            node.add_bel(0, "BUFGMUX_X2Y11".to_string());
+            node.add_bel(1, "BUFGMUX_X2Y10".to_string());
+            node.add_bel(2, "BUFGMUX_X1Y11".to_string());
+            node.add_bel(3, "BUFGMUX_X1Y10".to_string());
+
+            let vy = vcc_ylut[self.row_mid()] - 1;
+            let vxl = 0;
+            let vxr = vcc_xlut[col_r] + 1;
+            let xl = xlut[col_l];
+            let xr = xlut[col_r];
+            let y = self.row_mid().to_idx() - 1;
+            let tile_l = format!("CLKL_X{xl}Y{y}");
+            let tile_r = format!("CLKR_X{xr}Y{y}");
+            let tile_l_ioi;
+            let tile_r_ioi;
+            if self.has_ll {
+                tile_l_ioi = format!("CLKL_IOIS_LL_X{xl}Y{y}");
+                tile_r_ioi = format!("CLKR_IOIS_LL_X{xr}Y{y}");
+            } else if self.cols_clkv.is_none() {
+                tile_l_ioi = format!("CLKL_IOIS_50A_X{xl}Y{y}");
+                tile_r_ioi = format!("CLKR_IOIS_50A_X{xr}Y{y}");
+            } else {
+                tile_l_ioi = format!("CLKL_IOIS_X{xl}Y{y}");
+                tile_r_ioi = format!("CLKR_IOIS_X{xr}Y{y}");
+            }
+            let tiles_l: Vec<&str>;
+            let tiles_r: Vec<&str>;
+            let kind_l;
+            let kind_r;
+            if self.kind == GridKind::Spartan3E {
+                tiles_l = vec![&tile_l];
+                tiles_r = vec![&tile_r];
+                kind_l = "CLKL.S3E";
+                kind_r = "CLKR.S3E";
+            } else {
+                tiles_l = vec![&tile_l, &tile_l_ioi];
+                tiles_r = vec![&tile_r, &tile_r_ioi];
+                kind_l = "CLKL.S3A";
+                kind_r = "CLKR.S3A";
+            }
+            let node = grid[(col_l, self.row_mid() - 1)].add_xnode(
+                db.get_node(kind_l),
+                &tiles_l,
+                db.get_node_naming(kind_l),
+                &[
+                    (col_l, self.row_mid() - 1),
+                    (col_l, self.row_mid()),
+                ]
+            );
+            node.add_bel(0, "BUFGMUX_X0Y2".to_string());
+            node.add_bel(1, "BUFGMUX_X0Y3".to_string());
+            node.add_bel(2, "BUFGMUX_X0Y4".to_string());
+            node.add_bel(3, "BUFGMUX_X0Y5".to_string());
+            node.add_bel(4, "BUFGMUX_X0Y6".to_string());
+            node.add_bel(5, "BUFGMUX_X0Y7".to_string());
+            node.add_bel(6, "BUFGMUX_X0Y8".to_string());
+            node.add_bel(7, "BUFGMUX_X0Y9".to_string());
+            node.add_bel(8, "PCILOGIC_X0Y0".to_string());
+            node.add_bel(9, format!("VCC_X{vxl}Y{vy}"));
+            let node = grid[(col_r, self.row_mid() - 1)].add_xnode(
+                db.get_node(kind_r),
+                &tiles_r,
+                db.get_node_naming(kind_r),
+                &[
+                    (col_r, self.row_mid() - 1),
+                    (col_r, self.row_mid()),
+                ]
+            );
+            node.add_bel(0, "BUFGMUX_X3Y2".to_string());
+            node.add_bel(1, "BUFGMUX_X3Y3".to_string());
+            node.add_bel(2, "BUFGMUX_X3Y4".to_string());
+            node.add_bel(3, "BUFGMUX_X3Y5".to_string());
+            node.add_bel(4, "BUFGMUX_X3Y6".to_string());
+            node.add_bel(5, "BUFGMUX_X3Y7".to_string());
+            node.add_bel(6, "BUFGMUX_X3Y8".to_string());
+            node.add_bel(7, "BUFGMUX_X3Y9".to_string());
+            node.add_bel(8, "PCILOGIC_X1Y0".to_string());
+            node.add_bel(9, format!("VCC_X{vxr}Y{vy}"));
+        }
+
+        if self.kind.is_virtex2() || self.kind == GridKind::Spartan3 {
+            let mut c = 1;
+            for (col, &cd) in self.columns.iter() {
+                if cd.kind != ColumnKind::Bram {
+                    continue;
+                }
+                if self.kind == GridKind::Spartan3 && (col == col_l + 3 || col == col_r - 3) {
+                    c += 1;
+                    continue;
+                }
+                let name_b = format!("BTERMBRAMC{c}");
+                let name_t = format!("TTERMBRAMC{c}");
+                grid[(col, row_b)].add_xnode(
+                    db.get_node("DCMCONN.BOT"),
+                    &[&name_b],
+                    db.get_node_naming("DCMCONN.BOT"),
+                    &[(col, row_b)],
+                );
+                grid[(col, row_t)].add_xnode(
+                    db.get_node("DCMCONN.TOP"),
+                    &[&name_t],
+                    db.get_node_naming("DCMCONN.TOP"),
+                    &[(col, row_t)],
+                );
+                c += 1;
+            }
+        }
+
+        if use_xy {
+            for &(row, _) in &self.rows_hclk {
+                let kind = if row > self.row_mid() {"PCI_CE_N"} else {"PCI_CE_S"};
+                for col in [col_l, col_r] {
+                    let x = xlut[col];
+                    let y = row.to_idx() - 1;
+                    let name = if row == self.row_mid() {
+                        format!("GCLKH_{kind}_50A_X{x}Y{y}")
+                    } else {
+                        format!("GCLKH_{kind}_X{x}Y{y}")
+                    };
+                    grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &[(col, row)],
+                    );
+                }
+            }
+            if self.kind == GridKind::Spartan3A {
+                if let Some((col_l, col_r)) = self.cols_clkv {
+                    for row in [row_b, row_t] {
+                        let x = xlut[col_l] - 1;
+                        let y = row.to_idx();
+                        let name = format!("GCLKV_IOISL_X{x}Y{y}");
+                        grid[(col_l, row)].add_xnode(
+                            db.get_node("PCI_CE_E"),
+                            &[&name],
+                            db.get_node_naming("PCI_CE_E"),
+                            &[(col_l, row)],
+                        );
+                        let x = xlut[col_r] - 1;
+                        let name = format!("GCLKV_IOISR_X{x}Y{y}");
+                        grid[(col_r, row)].add_xnode(
+                            db.get_node("PCI_CE_W"),
+                            &[&name],
+                            db.get_node_naming("PCI_CE_W"),
+                            &[(col_r, row)],
+                        );
+                    }
+                }
+            }
         }
 
         egrid

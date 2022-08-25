@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_xilinx_rawdump::{Part, Coord, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, ColId, RowId, int, int::Dir};
+use prjcombine_xilinx_geom::{self as geom, BondPin, CfgPin, Bond, GtPin, DisabledPart, BelCoord, ColId, RowId, BelId, int, int::Dir};
 use prjcombine_xilinx_geom::spartan6::{self, Column, ColumnKind, ColumnIoKind, Gts, Mcb, McbIo, Row};
 use prjcombine_entity::{EntityVec, EntityId};
 
@@ -160,7 +160,7 @@ fn get_gts(rd: &Part, int: &IntGrid) -> Gts {
 fn get_mcbs(rd: &Part, int: &IntGrid) -> Vec<Mcb> {
     let mut res = Vec::new();
     #[allow(non_snake_case)]
-    let P = |row, bel| McbIo { row, bel };
+    let P = |row, bel| McbIo { row, bel: BelId::from_idx(bel) };
     for r in find_rows(rd, &["MCB_L", "MCB_DUMMY"]) {
         let row_mcb = int.lookup_row(r - 6);
         res.push(Mcb {
@@ -429,27 +429,27 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
                         }
                         "LDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.bel, 0);
+                            assert_eq!(coord.bel.to_idx(), 0);
                         }
                         "LDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.bel, 1);
+                            assert_eq!(coord.bel.to_idx(), 1);
                         }
                         "UDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.bel, 0);
+                            assert_eq!(coord.bel.to_idx(), 0);
                         }
                         "UDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.bel, 1);
+                            assert_eq!(coord.bel.to_idx(), 1);
                         }
                         "CLK" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.bel, 0);
+                            assert_eq!(coord.bel.to_idx(), 0);
                         }
                         "CLKN" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.bel, 1);
+                            assert_eq!(coord.bel.to_idx(), 1);
                         }
                         _ => {
                             if mf.starts_with("A") {
@@ -463,7 +463,7 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
                             } else if mf.starts_with("DQ") {
                                 let i: usize = mf[2..].parse().unwrap();
                                 assert_eq!(coord.row, mcb.iop_dq[i/2]);
-                                assert_eq!(coord.bel, (i % 2) as u32);
+                                assert_eq!(coord.bel.to_idx(), (i % 2));
                             } else {
                                 println!("MCB {}", mf);
                             }

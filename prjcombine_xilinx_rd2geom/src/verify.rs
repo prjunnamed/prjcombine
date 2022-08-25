@@ -1,5 +1,5 @@
 use prjcombine_xilinx_rawdump::{Part, Coord, self as rawdump};
-use prjcombine_xilinx_geom::{int, eint::{self, IntWire}, ColId, RowId, SlrId};
+use prjcombine_xilinx_geom::{int, eint::{self, IntWire}, ColId, RowId, SlrId, BelId};
 use std::collections::{HashMap, HashSet, BTreeSet};
 use bitvec::vec::BitVec;
 use prjcombine_entity::{EntityPartVec, EntityId};
@@ -18,6 +18,7 @@ pub struct Verifier<'a> {
     missing_int_site_wires: HashSet<IntWire>,
 }
 
+#[derive(Debug, Clone)]
 pub struct SitePin<'a> {
     pub dir: SitePinDir,
     pub pin: &'a str,
@@ -32,7 +33,6 @@ enum NodeOrWire {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SitePinDir {
-    #[allow(dead_code)]
     In,
     Out,
     #[allow(dead_code)]
@@ -125,6 +125,25 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn verify_node(&mut self, tiles: &[(Coord, &str)]) {
+        let mut nw = None;
+        for &(crd, wn) in tiles {
+            let tile = &self.rd.tiles[&crd];
+            let tname = &tile.name;
+            if let Some(cnw) = self.lookup_wire(crd, wn) {
+                if let Some(pnw) = nw {
+                    if pnw != cnw {
+                        println!("NODE MISMATCH FOR {tname} {wn}");
+                    }
+                } else {
+                    nw = Some(cnw);
+                }
+            } else {
+                println!("MISSING WIRE {tname} {wn}");
+            }
+        }
+    }
+
     pub fn claim_node(&mut self, tiles: &[(Coord, &str)]) {
         let mut nw = None;
         for &(crd, wn) in tiles {
@@ -144,7 +163,7 @@ impl<'a> Verifier<'a> {
                                 self.claimed_nodes.resize(nidx + 1, false);
                             }
                             if self.claimed_nodes[nidx] {
-                                println!("DOUBLE CLAIMED NODE {tname} {wn}");
+                                println!("DOUBLE CLAIMED NODE {part} {tname} {wn}", part = self.rd.part);
                             }
                             self.claimed_nodes.set(nidx, true);
                         }
@@ -155,7 +174,7 @@ impl<'a> Verifier<'a> {
                                 ctw.resize(widx + 1, false);
                             }
                             if ctw[widx] {
-                                println!("DOUBLE CLAIMED NODE {tname} {wn}");
+                                println!("DOUBLE CLAIMED NODE {part} {tname} {wn}", part = self.rd.part);
                             }
                             ctw.set(widx, true);
                         }
@@ -241,15 +260,25 @@ impl<'a> Verifier<'a> {
         self.tile_lut.get(tname).copied()
     }
 
-    pub fn handle_int_node(&mut self, slr: SlrId, node: &eint::ExpandedTileNode) {
-        let mut crds: EntityPartVec<int::NodeRawTileId, _> = EntityPartVec::new();
+    pub fn get_node_crds(&self, node: &eint::ExpandedTileNode) -> Option<EntityPartVec<int::NodeRawTileId, rawdump::Coord>> {
+        let mut crds = EntityPartVec::new();
         for (k, name) in &node.names {
             if let Some(c) = self.xlat_tile(name) {
                 crds.insert(k, c);
             } else {
                 println!("MISSING INT TILE {} {}", self.rd.part, name);
-                return;
+                return None;
             }
+        }
+        Some(crds)
+    }
+
+    pub fn handle_int_node(&mut self, slr: SlrId, node: &eint::ExpandedTileNode) {
+        let crds;
+        if let Some(c) = self.get_node_crds(node) {
+            crds = c;
+        } else {
+            return;
         }
         let def_rt = int::NodeRawTileId::from_idx(0);
         let mut bh = HashSet::new();
@@ -376,6 +405,36 @@ impl<'a> Verifier<'a> {
                 }
             }
             self.claim_site(crds[def_rt], tn, self.grid.tie_kind.as_ref().unwrap(), &pins);
+        }
+
+        for (id, _, bel) in &kind.bels {
+            let bn = &naming.bels[id];
+            for (k, v) in &bel.pins {
+                let n = &bn.pins[k];
+                let mut crd = crds[bn.tile];
+                let mut wn: &str = &n.name;
+                for pip in &n.pips {
+                    let ncrd = crds[pip.tile];
+                    wn = match v.dir {
+                        int::PinDir::Input => {
+                            self.claim_node(&[(crd, wn), (ncrd, &pip.wire_to)]);
+                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                            &pip.wire_from
+                        }
+                        int::PinDir::Output => {
+                            self.claim_node(&[(crd, wn), (ncrd, &pip.wire_from)]);
+                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                            &pip.wire_to
+                        }
+                    };
+                    crd = ncrd;
+                }
+                if n.pips.is_empty() {
+                    wn = &n.name_far;
+                }
+                let wire = self.grid.resolve_wire_raw((slr, node.tiles[v.wire.0], v.wire.1)).unwrap();
+                self.pin_int_wire(crd, wn, wire);
+            }
         }
     }
 
@@ -578,6 +637,60 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn verify_bel(&mut self, _slr: SlrId, node: &eint::ExpandedTileNode, bid: BelId, kind: &str, name: impl AsRef<str>, extras: &[(&str, SitePinDir)], skip: &[&str]) {
+        let crds;
+        let nk = &self.db.nodes[node.kind];
+        let nn = &self.db.node_namings[node.naming];
+        let bel = &nk.bels[bid];
+        let naming = &nn.bels[bid];
+        if let Some(c) = self.get_node_crds(node) {
+            crds = c;
+        } else {
+            return;
+        }
+        let name = name.as_ref();
+        let mut pins = Vec::new();
+        for (k, v) in &bel.pins {
+            if skip.contains(&&**k) {
+                continue;
+            }
+            let n = &naming.pins[k];
+            pins.push(SitePin {
+                dir: match v.dir {
+                    int::PinDir::Input => SitePinDir::In,
+                    int::PinDir::Output => SitePinDir::Out,
+                },
+                pin: k,
+                wire: Some(&n.name),
+            });
+        }
+        for (pin, dir) in extras.iter().copied() {
+            pins.push(SitePin {
+                dir,
+                pin,
+                wire: Some(&naming.pins[pin].name),
+            });
+        }
+        self.claim_site(crds[naming.tile], name, kind, &pins);
+    }
+
     pub fn finish(self) {
     }
+}
+
+pub fn verify(rd: &rawdump::Part, grid: &eint::ExpandedGrid, bel_handler: impl Fn(&mut Verifier, SlrId, &eint::ExpandedTileNode, BelId)) {
+    let mut vrf = Verifier::new(rd, grid);
+    for slr in grid.slrs() {
+        for col in slr.cols() {
+            for row in slr.rows() {
+                for node in &slr[(col, row)].nodes {
+                    let nk = &grid.db.nodes[node.kind];
+                    for id in nk.bels.ids() {
+                        bel_handler(&mut vrf, slr.slr, node, id);
+                    }
+                }
+            }
+        }
+    }
+    vrf.finish();
 }

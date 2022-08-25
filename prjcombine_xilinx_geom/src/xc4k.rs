@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, ColId, RowId};
+use crate::{CfgPin, BelCoord, ColId, RowId, BelId};
 use prjcombine_entity::EntityId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -43,7 +43,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(c as usize),
                         row: RowId::from_idx(self.rows as usize - 1),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -57,7 +57,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(self.columns as usize - 1),
                         row: RowId::from_idx(r as usize),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -71,7 +71,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(c as usize),
                         row: RowId::from_idx(0),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -85,7 +85,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(0),
                         row: RowId::from_idx(r as usize),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });

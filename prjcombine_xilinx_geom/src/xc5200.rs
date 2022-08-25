@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::{BelCoord, ColId, RowId, eint, int};
+use crate::{BelCoord, ColId, RowId, BelId, eint, int};
 use ndarray::Array2;
 use prjcombine_entity::EntityId;
 
@@ -34,7 +34,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(c as usize),
                         row: RowId::from_idx(self.rows as usize - 1),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -48,7 +48,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(self.columns as usize - 1),
                         row: RowId::from_idx(r as usize),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -62,7 +62,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(c as usize),
                         row: RowId::from_idx(0),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -76,7 +76,7 @@ impl Grid {
                     coord: BelCoord {
                         col: ColId::from_idx(0),
                         row: RowId::from_idx(r as usize),
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });

@@ -137,6 +137,7 @@ impl GridBuilder {
                             }
                             assert_eq!(v.wire_bufs, v2.wire_bufs);
                             assert_eq!(v.ext_pips, v2.ext_pips);
+                            assert_eq!(v.bels, v2.bels);
                         }
                     }
                 }

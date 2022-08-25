@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, int, eint::{self, ExpandedSlrRefMut, Coord}};
+use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, BelId, int, eint::{self, ExpandedSlrRefMut, Coord}};
 use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
@@ -65,7 +65,7 @@ pub enum Gts {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McbIo {
     pub row: RowId,
-    pub bel: u32,
+    pub bel: BelId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -156,7 +156,7 @@ impl Grid {
                         coord: BelCoord {
                             col,
                             row: row_o,
-                            bel,
+                            bel: BelId::from_idx(bel),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -170,7 +170,7 @@ impl Grid {
                         coord: BelCoord {
                             col,
                             row: row_i,
-                            bel,
+                            bel: BelId::from_idx(bel),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -199,7 +199,7 @@ impl Grid {
                     coord: BelCoord {
                         col,
                         row,
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -217,7 +217,7 @@ impl Grid {
                         coord: BelCoord {
                             col,
                             row: row_o,
-                            bel,
+                            bel: BelId::from_idx(bel),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -231,7 +231,7 @@ impl Grid {
                         coord: BelCoord {
                             col,
                             row: row_i,
-                            bel,
+                            bel: BelId::from_idx(bel),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -260,7 +260,7 @@ impl Grid {
                     coord: BelCoord {
                         col,
                         row,
-                        bel,
+                        bel: BelId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
                 });
