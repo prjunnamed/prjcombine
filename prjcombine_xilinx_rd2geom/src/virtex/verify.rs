@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
-use prjcombine_xilinx_geom::virtex::{Grid, GridKind};
-use prjcombine_xilinx_geom::int::NodeTileId;
 use prjcombine_xilinx_geom::eint::ExpandedTileNode;
+use prjcombine_xilinx_geom::int::NodeTileId;
+use prjcombine_xilinx_geom::virtex::{Grid, GridKind};
 use prjcombine_xilinx_geom::{BelId, SlrId};
 
 use crate::verify::{SitePinDir, Verifier};

@@ -1,18 +1,18 @@
-use core::hash::{Hash, BuildHasher};
+use core::hash::{BuildHasher, Hash};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 
 use std::collections::hash_map::RandomState;
 use std::fmt;
 
-use serde::ser::{Serialize, Serializer, SerializeSeq};
-use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use indexmap::map::IndexMap;
 use indexmap::Equivalent;
 
-use crate::{EntityId, EntityVec};
 use crate::id::EntityIds;
+use crate::{EntityId, EntityVec};
 
 #[derive(Clone)]
 pub struct EntityMap<I, K: Hash, V, RS: BuildHasher = RandomState> {
@@ -62,35 +62,40 @@ where
     }
 
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<(I, &V)>
-    where Q: Hash + Equivalent<K>
+    where
+        Q: Hash + Equivalent<K>,
     {
         let (i, _, v) = self.map.get_full(key)?;
         Some((I::from_idx(i), v))
     }
 
     pub fn get_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<(I, &mut V)>
-    where Q: Hash + Equivalent<K>
+    where
+        Q: Hash + Equivalent<K>,
     {
         let (i, _, v) = self.map.get_full_mut(key)?;
         Some((I::from_idx(i), v))
     }
 
     pub fn get_full<Q: ?Sized>(&self, key: &Q) -> Option<(I, &K, &V)>
-    where Q: Hash + Equivalent<K>
+    where
+        Q: Hash + Equivalent<K>,
     {
         let (i, k, v) = self.map.get_full(key)?;
         Some((I::from_idx(i), k, v))
     }
 
     pub fn get_full_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<(I, &K, &mut V)>
-    where Q: Hash + Equivalent<K>
+    where
+        Q: Hash + Equivalent<K>,
     {
         let (i, k, v) = self.map.get_full_mut(key)?;
         Some((I::from_idx(i), k, v))
     }
 
     pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
-    where Q: Hash + Equivalent<K>
+    where
+        Q: Hash + Equivalent<K>,
     {
         self.map.contains_key(key)
     }
@@ -174,7 +179,9 @@ where
     RS: BuildHasher,
 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.debug_map().entries(self.iter().map(|(i, k, v)| (i, (k, v)))).finish()
+        fmt.debug_map()
+            .entries(self.iter().map(|(i, k, v)| (i, (k, v))))
+            .finish()
     }
 }
 
@@ -197,7 +204,8 @@ where
     K: Hash + Eq,
     V: Eq,
     RS: BuildHasher,
-{}
+{
+}
 
 impl<I, K, V, RS> IntoIterator for EntityMap<I, K, V, RS>
 where
@@ -397,7 +405,8 @@ where
     RS: BuildHasher + Default,
 {
     fn from_iter<T>(iter: T) -> Self
-    where T: IntoIterator<Item=(K, V)>
+    where
+        T: IntoIterator<Item = (K, V)>,
     {
         Self {
             map: IndexMap::from_iter(iter),
@@ -406,7 +415,7 @@ where
     }
 }
 
-impl <I, K, V, RS> Serialize for EntityMap<I, K, V, RS>
+impl<I, K, V, RS> Serialize for EntityMap<I, K, V, RS>
 where
     I: EntityId,
     K: Serialize + Hash + Eq,
@@ -414,7 +423,9 @@ where
     RS: BuildHasher,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+    where
+        S: Serializer,
+    {
         let mut seq = serializer.serialize_seq(Some(self.len()))?;
         for (_, k, v) in self {
             seq.serialize_element(&(k, v))?;
@@ -424,7 +435,7 @@ where
 }
 
 struct DeserializeVisitor<I, K: Hash, V, RS: BuildHasher> {
-    marker: PhantomData<fn() -> EntityMap<I, K, V, RS>>
+    marker: PhantomData<fn() -> EntityMap<I, K, V, RS>>,
 }
 
 impl<I, K, V, RS> DeserializeVisitor<I, K, V, RS>
@@ -434,7 +445,7 @@ where
 {
     fn new() -> Self {
         DeserializeVisitor {
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 }
@@ -456,7 +467,10 @@ where
     where
         S: SeqAccess<'de>,
     {
-        let mut res = EntityMap::with_capacity_and_hasher(access.size_hint().unwrap_or(0), Default::default());
+        let mut res = EntityMap::with_capacity_and_hasher(
+            access.size_hint().unwrap_or(0),
+            Default::default(),
+        );
 
         while let Some((key, value)) = access.next_element()? {
             res.insert(key, value);

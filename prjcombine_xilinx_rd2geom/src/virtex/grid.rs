@@ -1,8 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_xilinx_geom::virtex::{Grid, GridKind};
-use prjcombine_xilinx_geom::{
-    CfgPin, ColId, DisabledPart,
-};
+use prjcombine_xilinx_geom::{CfgPin, ColId, DisabledPart};
 use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -45,7 +43,12 @@ fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId, ColId)> {
     cols_brk.insert(int.cols.next_id());
     assert_eq!(cols_clkv.len(), cols_brk.len());
     assert_eq!(cols_clkv.len(), cols_brk_l.len());
-    cols_clkv.into_iter().zip(cols_brk_l.into_iter()).zip(cols_brk.into_iter()).map(|((a, b), c)| (a, b, c)).collect()
+    cols_clkv
+        .into_iter()
+        .zip(cols_brk_l.into_iter())
+        .zip(cols_brk.into_iter())
+        .map(|((a, b), c)| (a, b, c))
+        .collect()
 }
 
 fn add_disabled_dlls(disabled: &mut BTreeSet<DisabledPart>, rd: &Part) {

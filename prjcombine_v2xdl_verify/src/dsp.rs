@@ -1,6 +1,6 @@
-use crate::types::{Test, SrcInst, TgtInst, TestGenCtx};
+use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
 
-use rand::{Rng, seq::SliceRandom};
+use rand::{seq::SliceRandom, Rng};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -16,7 +16,7 @@ pub enum Mode {
 
 fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let sync = ctx.rng.gen();
-    let mut inst = SrcInst::new(ctx, if sync {"MULT18X18S"} else {"MULT18X18"});
+    let mut inst = SrcInst::new(ctx, if sync { "MULT18X18S" } else { "MULT18X18" });
     let hwprim = match mode {
         Mode::Virtex2 => "MULT18X18",
         Mode::Spartan3E => "MULT18X18SIO",
@@ -435,8 +435,12 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
     let mut pcin: Option<Vec<String>> = None;
     let mut carry: Option<String> = None;
     for midx in 0..num {
-        let mut inst = SrcInst::new(ctx, if pk == 6 {"DSP48A1"} else {"DSP48A"});
-        let hwprim = if mode == Mode::Spartan6 {"DSP48A1"} else {"DSP48A"};
+        let mut inst = SrcInst::new(ctx, if pk == 6 { "DSP48A1" } else { "DSP48A" });
+        let hwprim = if mode == Mode::Spartan6 {
+            "DSP48A1"
+        } else {
+            "DSP48A"
+        };
         let mut ti = TgtInst::new(&[hwprim]);
         ti.bel(hwprim, &inst.name, "");
 
@@ -528,16 +532,38 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
         inst.connect("CLK", &clk_v);
         ti.pin_in_inv("CLK", &clk_x, clk_inv);
         for pin in [
-            "CEA", "CEB", "CEC", "CED", "CEM", "CEP", "CECARRYIN", "CEOPMODE",
-            "RSTA", "RSTB", "RSTC", "RSTD", "RSTM", "RSTP", "RSTCARRYIN", "RSTOPMODE",
+            "CEA",
+            "CEB",
+            "CEC",
+            "CED",
+            "CEM",
+            "CEP",
+            "CECARRYIN",
+            "CEOPMODE",
+            "RSTA",
+            "RSTB",
+            "RSTC",
+            "RSTD",
+            "RSTM",
+            "RSTP",
+            "RSTCARRYIN",
+            "RSTOPMODE",
         ] {
             let (pin_v, pin_x, pin_inv) = test.make_in_inv(ctx);
             inst.connect(pin, &pin_v);
             ti.pin_in_inv(pin, &pin_x, pin_inv);
         }
         for p in [
-            "A0REG", "A1REG", "B0REG", "B1REG", "CREG", "DREG", "MREG", "PREG", "OPMODEREG",
-            "CARRYINREG"
+            "A0REG",
+            "A1REG",
+            "B0REG",
+            "B1REG",
+            "CREG",
+            "DREG",
+            "MREG",
+            "PREG",
+            "OPMODEREG",
+            "CARRYINREG",
         ] {
             let v = ctx.rng.gen_range(0..2);
             inst.param_int(p, v);
@@ -550,10 +576,10 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
         } else if mode == Mode::Spartan6 {
             ti.cfg_int("CARRYOUTREG", 0);
         }
-        let v = if ctx.rng.gen() {"SYNC"} else {"ASYNC"};
+        let v = if ctx.rng.gen() { "SYNC" } else { "ASYNC" };
         inst.param_str("RSTTYPE", v);
         ti.cfg("RSTTYPE", v);
-        let v = if ctx.rng.gen() {"CARRYIN"} else {"OPMODE5"};
+        let v = if ctx.rng.gen() { "CARRYIN" } else { "OPMODE5" };
         inst.param_str("CARRYINSEL", v);
         ti.cfg("CARRYINSEL", v);
 
@@ -841,7 +867,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 inst.connect("CEINMODE", &ce);
                 ti.pin_in("CEINMODE", &ce);
 
-                let use_d = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
+                let use_d = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
                 inst.param_str("USE_DPORT", use_d);
                 ti.cfg("USE_DPORT", use_d);
             } else {
@@ -885,22 +911,68 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             ti.pin_in("CEM", &ce);
         }
         if pk == 6 {
-            let use_mult = *["NONE", "MULTIPLY", "DYNAMIC"].choose(&mut ctx.rng).unwrap();
+            let use_mult = *["NONE", "MULTIPLY", "DYNAMIC"]
+                .choose(&mut ctx.rng)
+                .unwrap();
             inst.param_str("USE_MULT", use_mult);
             ti.cfg("USE_MULT", use_mult);
         } else {
             let use_mult = ctx.rng.gen();
             if pk == 4 {
-                inst.param_str("LEGACY_MODE", if use_mult { if mreg == 1 {"MULT18X18S"} else {"MULT18X18"} } else {"NONE"});
+                inst.param_str(
+                    "LEGACY_MODE",
+                    if use_mult {
+                        if mreg == 1 {
+                            "MULT18X18S"
+                        } else {
+                            "MULT18X18"
+                        }
+                    } else {
+                        "NONE"
+                    },
+                );
             } else if pk == 5 {
-                inst.param_str("USE_MULT", if use_mult { if mreg == 1 {"MULT_S"} else {"MULT"} } else {"NONE"});
+                inst.param_str(
+                    "USE_MULT",
+                    if use_mult {
+                        if mreg == 1 {
+                            "MULT_S"
+                        } else {
+                            "MULT"
+                        }
+                    } else {
+                        "NONE"
+                    },
+                );
             }
             if mode == Mode::Virtex4 {
-                ti.cfg("LEGACY_MODE", if use_mult { if mreg == 1 {"MULT18X18S"} else {"MULT18X18"} } else {"NONE"});
+                ti.cfg(
+                    "LEGACY_MODE",
+                    if use_mult {
+                        if mreg == 1 {
+                            "MULT18X18S"
+                        } else {
+                            "MULT18X18"
+                        }
+                    } else {
+                        "NONE"
+                    },
+                );
             } else if mode == Mode::Virtex5 {
-                ti.cfg("USE_MULT", if use_mult { if mreg == 1 {"MULT_S"} else {"MULT"} } else {"NONE"});
+                ti.cfg(
+                    "USE_MULT",
+                    if use_mult {
+                        if mreg == 1 {
+                            "MULT_S"
+                        } else {
+                            "MULT"
+                        }
+                    } else {
+                        "NONE"
+                    },
+                );
             } else {
-                ti.cfg("USE_MULT", if use_mult {"MULTIPLY"} else {"NONE"});
+                ti.cfg("USE_MULT", if use_mult { "MULTIPLY" } else { "NONE" });
             }
         }
 
@@ -1143,18 +1215,13 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                     ti.pin_out(&format!("CARRYOUT{i}"), &co[i]);
                 }
 
-                for p in [
-                    "UNDERFLOW",
-                    "OVERFLOW",
-                    "PATTERNDETECT",
-                    "PATTERNBDETECT",
-                ] {
+                for p in ["UNDERFLOW", "OVERFLOW", "PATTERNDETECT", "PATTERNBDETECT"] {
                     let w = test.make_out(ctx);
                     inst.connect(p, &w);
                     ti.pin_out(p, &w);
                 }
 
-                let use_pat = if ctx.rng.gen() {"PATDET"} else {"NO_PATDET"};
+                let use_pat = if ctx.rng.gen() { "PATDET" } else { "NO_PATDET" };
                 inst.param_str("USE_PATTERN_DETECT", use_pat);
                 ti.cfg("USE_PATTERN_DETECT", use_pat);
 
@@ -1183,37 +1250,47 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                         ti.cfg("SEL_MASK", sel_mask);
                         ti.cfg("SEL_ROUNDING_MASK", srm);
                     } else {
-                        ti.cfg("SEL_MASK", match rm {
-                            0 => sel_mask,
-                            1 => "ROUNDING_MODE1",
-                            2 => "ROUNDING_MODE2",
-                            _ => unreachable!(),
-                        });
+                        ti.cfg(
+                            "SEL_MASK",
+                            match rm {
+                                0 => sel_mask,
+                                1 => "ROUNDING_MODE1",
+                                2 => "ROUNDING_MODE2",
+                                _ => unreachable!(),
+                            },
+                        );
                     }
                 } else {
-                    let sel_mask = *["C", "MASK", "ROUNDING_MODE1", "ROUNDING_MODE2"].choose(&mut ctx.rng).unwrap();
+                    let sel_mask = *["C", "MASK", "ROUNDING_MODE1", "ROUNDING_MODE2"]
+                        .choose(&mut ctx.rng)
+                        .unwrap();
                     inst.param_str("SEL_MASK", sel_mask);
                     ti.cfg("SEL_MASK", sel_mask);
                 }
 
                 if pk == 5 {
-                    let arpd = if ctx.rng.gen() {"TRUE"} else {"FALSE"};
-                    let arpdi = if ctx.rng.gen() {"NOT_MATCH"} else {"MATCH"};
+                    let arpd = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+                    let arpdi = if ctx.rng.gen() { "NOT_MATCH" } else { "MATCH" };
                     inst.param_str("AUTORESET_PATTERN_DETECT", arpd);
                     inst.param_str("AUTORESET_PATTERN_DETECT_OPTINV", arpdi);
                     if mode == Mode::Virtex5 {
                         ti.cfg("AUTORESET_PATTERN_DETECT", arpd);
                         ti.cfg("AUTORESET_PATTERN_DETECT_OPTINV", arpdi);
                     } else {
-                        ti.cfg("AUTORESET_PATDET", match (arpd, arpdi) {
-                            ("FALSE", _) => "NO_RESET",
-                            ("TRUE", "MATCH") => "RESET_MATCH",
-                            ("TRUE", "NOT_MATCH") => "RESET_NOT_MATCH",
-                            _ => unreachable!(),
-                        });
+                        ti.cfg(
+                            "AUTORESET_PATDET",
+                            match (arpd, arpdi) {
+                                ("FALSE", _) => "NO_RESET",
+                                ("TRUE", "MATCH") => "RESET_MATCH",
+                                ("TRUE", "NOT_MATCH") => "RESET_NOT_MATCH",
+                                _ => unreachable!(),
+                            },
+                        );
                     }
                 } else {
-                    let arp = *["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"].choose(&mut ctx.rng).unwrap();
+                    let arp = *["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"]
+                        .choose(&mut ctx.rng)
+                        .unwrap();
                     inst.param_str("AUTORESET_PATDET", arp);
                     ti.cfg("AUTORESET_PATDET", arp);
                 }
@@ -1255,7 +1332,10 @@ pub fn gen_dsp(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
         if mode == Mode::Spartan6 {
             gen_dsp48a(test, ctx, mode, 6, num);
         }
-        if matches!(mode, Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+        if matches!(
+            mode,
+            Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+        ) {
             gen_dsp48(test, ctx, mode, 4, num);
         }
         if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {

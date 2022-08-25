@@ -1,15 +1,13 @@
-use prjcombine_xilinx_geom::{
-    self as geom, int::IntDb,
-};
+use prjcombine_xilinx_geom::{self as geom, int::IntDb};
 use prjcombine_xilinx_rawdump::Part;
 
 use crate::grid::{make_device, PreDevice};
 use crate::verify::verify;
 
+mod bond;
 mod grid;
 mod int;
 mod verify;
-mod bond;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);

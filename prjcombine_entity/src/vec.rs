@@ -4,11 +4,11 @@ use core::ops::{Index, IndexMut};
 
 use std::fmt;
 
-use serde::ser::{Serialize, Serializer, SerializeSeq};
-use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
-use crate::EntityId;
 use crate::id::EntityIds;
+use crate::EntityId;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct EntityVec<I, V> {
@@ -130,7 +130,8 @@ impl<I: EntityId, V> EntityVec<I, V> {
     }
 
     pub fn binary_search(&self, x: &V) -> Result<I, I>
-    where V: Ord
+    where
+        V: Ord,
     {
         match self.vals.binary_search(x) {
             Ok(x) => Ok(I::from_idx(x)),
@@ -211,7 +212,7 @@ pub struct Iter<'a, I, V> {
     ids: PhantomData<I>,
 }
 
-impl <'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
     type Item = (I, &'a V);
     fn next(&mut self) -> Option<(I, &'a V)> {
         let val = self.vals.next()?;
@@ -221,7 +222,7 @@ impl <'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for Iter<'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for Iter<'a, I, V> {
     fn next_back(&mut self) -> Option<(I, &'a V)> {
         let val = self.vals.next_back()?;
         Some((I::from_idx(self.pos + self.vals.len()), val))
@@ -241,7 +242,7 @@ pub struct IterMut<'a, I, V> {
     ids: PhantomData<I>,
 }
 
-impl <'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
     type Item = (I, &'a mut V);
     fn next(&mut self) -> Option<(I, &'a mut V)> {
         let val = self.vals.next()?;
@@ -251,7 +252,7 @@ impl <'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for IterMut <'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for IterMut<'a, I, V> {
     fn next_back(&mut self) -> Option<(I, &'a mut V)> {
         let val = self.vals.next_back()?;
         Some((I::from_idx(self.pos + self.vals.len()), val))
@@ -296,7 +297,8 @@ impl<I: EntityId, V> ExactSizeIterator for IntoIter<I, V> {
 
 impl<I: EntityId, V> FromIterator<V> for EntityVec<I, V> {
     fn from_iter<T>(iter: T) -> Self
-    where T: IntoIterator<Item=V>
+    where
+        T: IntoIterator<Item = V>,
     {
         Self {
             vals: Vec::from_iter(iter),
@@ -307,7 +309,9 @@ impl<I: EntityId, V> FromIterator<V> for EntityVec<I, V> {
 
 impl<I: EntityId, V: Serialize> Serialize for EntityVec<I, V> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+    where
+        S: Serializer,
+    {
         let mut seq = serializer.serialize_seq(Some(self.len()))?;
         for v in self.values() {
             seq.serialize_element(v)?;
@@ -317,13 +321,13 @@ impl<I: EntityId, V: Serialize> Serialize for EntityVec<I, V> {
 }
 
 struct DeserializeVisitor<I, V> {
-    marker: PhantomData<fn() -> EntityVec<I, V>>
+    marker: PhantomData<fn() -> EntityVec<I, V>>,
 }
 
 impl<I, V> DeserializeVisitor<I, V> {
     fn new() -> Self {
         DeserializeVisitor {
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 }

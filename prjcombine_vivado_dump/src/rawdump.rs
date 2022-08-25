@@ -1,17 +1,18 @@
 use super::parts::VivadoPart;
+use indicatif::ProgressBar;
+use prjcombine_entity::{entity_id, EntitySet};
 use prjcombine_toolchain::{Toolchain, ToolchainReader};
 use prjcombine_xilinx_rawdump::{
-    build::{PartBuilder, PbPip, PbSitePin}, Coord, Part, PkgPin, Source, TkPipDirection, TkPipInversion, TkSitePinDir,
+    build::{PartBuilder, PbPip, PbSitePin},
+    Coord, Part, PkgPin, Source, TkPipDirection, TkPipInversion, TkSitePinDir,
 };
+use rayon::prelude::*;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
-use std::io::{BufRead, Write};
 use std::fmt::Write as FmtWrite;
-use prjcombine_entity::{EntitySet, entity_id};
+use std::io::{BufRead, Write};
 use std::sync::Mutex;
-use rayon::prelude::*;
-use indicatif::ProgressBar;
 
 const TILE_BATCH_SIZE: usize = 4000;
 
@@ -59,7 +60,7 @@ fn parse_bool(s: &str) -> bool {
     }
 }
 
-entity_id!{
+entity_id! {
     id NameId u32;
 }
 
@@ -79,7 +80,10 @@ foreach x [get_speed_models] {
 puts $fd "END"
 "#;
 
-fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> (HashMap<String, (u16, u16)>, u16, u16, HashMap<u32, String>) {
+fn list_tiles(
+    tc: &Toolchain,
+    part: &VivadoPart,
+) -> (HashMap<String, (u16, u16)>, u16, u16, HashMap<u32, String>) {
     let mut tts = HashMap::new();
     let mut tile_cnt = 0;
     let mut width: u16 = 0;
@@ -102,7 +106,8 @@ fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> (HashMap<String, (u16, u16)>
             &[],
             "tiles.fifo",
             &[("script.tcl", LIST_TILES_TCL.as_bytes())],
-        ).unwrap();
+        )
+        .unwrap();
         let lines = tr.lines();
         let mut got_end = false;
         for l in lines {
@@ -138,9 +143,7 @@ fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> (HashMap<String, (u16, u16)>
                     if speed_models.contains_key(&idx) {
                         panic!(
                             "double speed model {}: {} {}",
-                            idx,
-                            name,
-                            speed_models[&idx]
+                            idx, name, speed_models[&idx]
                         );
                     }
                     speed_models.insert(idx, name.to_string());
@@ -193,7 +196,11 @@ while { [gets $ifd gx] >= 0 } {
 puts $fd "END"
 "#;
 
-fn dump_tts(tc: &Toolchain, part: &VivadoPart, tts: &HashMap<String, (u16, u16)>) -> HashMap<String, HashMap<String, TtPip>> {
+fn dump_tts(
+    tc: &Toolchain,
+    part: &VivadoPart,
+    tts: &HashMap<String, (u16, u16)>,
+) -> HashMap<String, HashMap<String, TtPip>> {
     let mut res = HashMap::new();
     let mut tlist: Vec<u8> = Vec::new();
     for (gx, gy) in tts.values() {
@@ -219,7 +226,8 @@ fn dump_tts(tc: &Toolchain, part: &VivadoPart, tts: &HashMap<String, (u16, u16)>
             ("script.tcl", DUMP_TTS_TCL.as_bytes()),
             ("tts.list", &tlist),
         ],
-    ).unwrap();
+    )
+    .unwrap();
     let lines = tr.lines();
     let mut got_end = false;
     let mut tile = "".to_string();
@@ -324,7 +332,8 @@ fn dump_pkgpins(tc: &Toolchain, part: &VivadoPart) -> Vec<PkgPin> {
         &[],
         "pkgpins.fifo",
         &[("script.tcl", DUMP_PKGPINS_TCL.as_bytes())],
-    ).unwrap();
+    )
+    .unwrap();
     let lines = tr.lines();
     let mut got_end = false;
     for l in lines {
@@ -401,7 +410,13 @@ pub struct VSitePin<'a> {
     speed: Option<&'a str>,
 }
 
-fn dump_site<'a>(lines: &mut std::io::Lines<impl BufRead>, name: &str, kind: &str, ctx: &'a Context, tile_n2w: &HashMap<String, Vec<String>>) -> Vec<VSitePin<'a>> {
+fn dump_site<'a>(
+    lines: &mut std::io::Lines<impl BufRead>,
+    name: &str,
+    kind: &str,
+    ctx: &'a Context,
+    tile_n2w: &HashMap<String, Vec<String>>,
+) -> Vec<VSitePin<'a>> {
     let spref = format!("{name}/");
     let mut site_pins = Vec::new();
     loop {
@@ -429,7 +444,13 @@ fn dump_site<'a>(lines: &mut std::io::Lines<impl BufRead>, name: &str, kind: &st
                         let mut v = v.clone();
                         if v.len() > 1 {
                             match pin {
-                                "DOUT" | "SYSREF_OUT_NORTH_P" | "SYSREF_OUT_SOUTH_P" | "CLK_DISTR_OUT_NORTH" | "CLK_DISTR_OUT_SOUTH" | "T1_ALLOWED_SOUTH" | "CLK_IN" => {
+                                "DOUT"
+                                | "SYSREF_OUT_NORTH_P"
+                                | "SYSREF_OUT_SOUTH_P"
+                                | "CLK_DISTR_OUT_NORTH"
+                                | "CLK_DISTR_OUT_SOUTH"
+                                | "T1_ALLOWED_SOUTH"
+                                | "CLK_IN" => {
                                     let suffix = format!("_{}", pin);
                                     v.retain(|n| n.ends_with(&suffix));
                                 }
@@ -456,17 +477,19 @@ fn dump_site<'a>(lines: &mut std::io::Lines<impl BufRead>, name: &str, kind: &st
     }
 }
 
-fn dump_tile(lines: &mut std::io::Lines<impl BufRead>, crd: Coord, tile: &str, tt: &str, ctx: &Context) {
+fn dump_tile(
+    lines: &mut std::io::Lines<impl BufRead>,
+    crd: Coord,
+    tile: &str,
+    tt: &str,
+    ctx: &Context,
+) {
     let wpref = format!("{tile}/");
     let ppref = format!("{tile}/{tt}.");
     let tt_pips = &ctx.tt_pips[tt];
     let mut wires: Vec<(String, u32)> = Vec::new();
     let mut pips = Vec::new();
-    let mut sites: Vec<(
-        String,
-        String,
-        Vec<VSitePin<'_>>,
-    )> = Vec::new();
+    let mut sites: Vec<(String, String, Vec<VSitePin<'_>>)> = Vec::new();
     let mut tile_n2w: HashMap<String, Vec<String>> = HashMap::new();
     let mut node_wires = Vec::new();
     loop {
@@ -484,7 +507,10 @@ fn dump_tile(lines: &mut std::io::Lines<impl BufRead>, crd: Coord, tile: &str, t
                 wires.push((name.to_string(), si));
                 if !node.is_empty() {
                     node_wires.push((name.to_string(), node.to_string(), si));
-                    tile_n2w.entry(node.to_string()).or_default().push(name.to_string());
+                    tile_n2w
+                        .entry(node.to_string())
+                        .or_default()
+                        .push(name.to_string());
                 }
             }
             "PIP" => {
@@ -552,14 +578,12 @@ fn dump_tile(lines: &mut std::io::Lines<impl BufRead>, crd: Coord, tile: &str, t
                                 n,
                                 t,
                                 p.iter()
-                                    .map(
-                                        |sp| PbSitePin {
-                                            name: &sp.name,
-                                            dir: sp.dir,
-                                            wire: sp.wire.as_ref().map(|s| &s[..]),
-                                            speed: sp.speed,
-                                        }
-                                    )
+                                    .map(|sp| PbSitePin {
+                                        name: &sp.name,
+                                        dir: sp.dir,
+                                        wire: sp.wire.as_ref().map(|s| &s[..]),
+                                        speed: sp.speed,
+                                    })
                                     .collect::<Vec<_>>(),
                             )
                         })
@@ -575,14 +599,10 @@ fn dump_tile(lines: &mut std::io::Lines<impl BufRead>, crd: Coord, tile: &str, t
                 for (name, node, si) in node_wires {
                     let pos = node.find('/').unwrap();
                     let node_t = mctx.names.get_or_insert(&node[..pos]);
-                    let node_w = mctx.names.get_or_insert(&node[pos+1..]);
+                    let node_w = mctx.names.get_or_insert(&node[pos + 1..]);
                     let nwires = mctx.nodes.entry((node_t, node_w)).or_default();
                     let name = mctx.names.get_or_insert(&name);
-                    nwires.push((
-                        mctx.names.get_or_insert(tile),
-                        name,
-                        si,
-                    ));
+                    nwires.push((mctx.names.get_or_insert(tile), name, si));
                 }
                 ctx.bar.inc(1);
                 return;
@@ -616,7 +636,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         mctx: Mutex::new(MutContext {
             names: EntitySet::new(),
             nodes: HashMap::new(),
-            rd:  PartBuilder::new(
+            rd: PartBuilder::new(
                 fpart.device.clone(),
                 fpart.actual_family.clone(),
                 Source::Vivado,
@@ -652,7 +672,8 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                 ("script.tcl", DUMP_TILES_TCL.as_bytes()),
                 ("crd.list", crdlist.as_bytes()),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let mut lines = tr.lines();
         loop {
             let l = lines.next().unwrap();
@@ -684,11 +705,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         mctx.rd.add_node(
             &v.into_iter()
                 .map(|(t, w, s)| -> (&str, &str, Option<&str>) {
-                    (
-                        &mctx.names[t],
-                        &mctx.names[w],
-                        Some(&ctx.speed_models[&s]),
-                    )
+                    (&mctx.names[t], &mctx.names[w], Some(&ctx.speed_models[&s]))
                 })
                 .collect::<Vec<_>>(),
         );
@@ -701,7 +718,10 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
             packages.insert(part.package.clone(), part);
         }
     }
-    let pkg_pins: Vec<_> = packages.into_par_iter().map(|(pkg, part)| (pkg, dump_pkgpins(tc, part))).collect();
+    let pkg_pins: Vec<_> = packages
+        .into_par_iter()
+        .map(|(pkg, part)| (pkg, dump_pkgpins(tc, part)))
+        .collect();
     for (pkg, pins) in pkg_pins {
         mctx.rd.add_package(pkg, pins);
     }

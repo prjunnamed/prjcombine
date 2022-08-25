@@ -1,7 +1,7 @@
-use std::collections::BTreeSet;
-use serde::{Serialize, Deserialize};
-use super::{GtPin, SysMonPin, CfgPin, ColId, RowId, int, eint};
+use super::{eint, int, CfgPin, ColId, GtPin, RowId, SysMonPin};
 use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -72,9 +72,13 @@ impl Io {
             return None;
         }
         if self.bank == 2 {
-            Some(CfgPin::Data((self.row.to_idx() % 8 * 2 + self.bel as usize) as u8))
+            Some(CfgPin::Data(
+                (self.row.to_idx() % 8 * 2 + self.bel as usize) as u8,
+            ))
         } else {
-            Some(CfgPin::Data((self.row.to_idx() % 8 * 2 + self.bel as usize + 16) as u8))
+            Some(CfgPin::Data(
+                (self.row.to_idx() % 8 * 2 + self.bel as usize + 16) as u8,
+            ))
         }
     }
     pub fn sm_pair(&self, grid: &Grid) -> Option<(u32, u32)> {
@@ -128,16 +132,66 @@ impl Gt {
         let opy = reg * 4;
         let opx = self.gtc;
         vec![
-            (format!("IPAD_X{}Y{}", ipx, ipy), format!("RXPPADB_{}", self.bank), GtPin::RxP, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+1), format!("RXNPADB_{}", self.bank), GtPin::RxN, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+2), format!("MGTCLK_N_{}", self.bank), GtPin::ClkN, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+3), format!("MGTCLK_P_{}", self.bank), GtPin::ClkP, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+4), format!("RXPPADA_{}", self.bank), GtPin::RxP, 1),
-            (format!("IPAD_X{}Y{}", ipx, ipy+5), format!("RXNPADA_{}", self.bank), GtPin::RxN, 1),
-            (format!("OPAD_X{}Y{}", opx, opy), format!("TXPPADB_{}", self.bank), GtPin::TxP, 0),
-            (format!("OPAD_X{}Y{}", opx, opy+1), format!("TXNPADB_{}", self.bank), GtPin::TxN, 0),
-            (format!("OPAD_X{}Y{}", opx, opy+2), format!("TXPPADA_{}", self.bank), GtPin::TxP, 1),
-            (format!("OPAD_X{}Y{}", opx, opy+3), format!("TXNPADA_{}", self.bank), GtPin::TxN, 1),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy),
+                format!("RXPPADB_{}", self.bank),
+                GtPin::RxP,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 1),
+                format!("RXNPADB_{}", self.bank),
+                GtPin::RxN,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 2),
+                format!("MGTCLK_N_{}", self.bank),
+                GtPin::ClkN,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 3),
+                format!("MGTCLK_P_{}", self.bank),
+                GtPin::ClkP,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 4),
+                format!("RXPPADA_{}", self.bank),
+                GtPin::RxP,
+                1,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 5),
+                format!("RXNPADA_{}", self.bank),
+                GtPin::RxN,
+                1,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy),
+                format!("TXPPADB_{}", self.bank),
+                GtPin::TxP,
+                0,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 1),
+                format!("TXNPADB_{}", self.bank),
+                GtPin::TxN,
+                0,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 2),
+                format!("TXPPADA_{}", self.bank),
+                GtPin::TxP,
+                1,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 3),
+                format!("TXNPADA_{}", self.bank),
+                GtPin::TxN,
+                1,
+            ),
         ]
     }
 }
@@ -363,7 +417,7 @@ impl Grid {
             if self.has_top_sysmon {
                 let ipy = self.regs * 3;
                 res.push((format!("IPAD_X1Y{}", ipy), 1, SysMonPin::VP));
-                res.push((format!("IPAD_X1Y{}", ipy+1), 1, SysMonPin::VN));
+                res.push((format!("IPAD_X1Y{}", ipy + 1), 1, SysMonPin::VN));
             }
         } else {
             if self.has_bot_sysmon {
@@ -540,18 +594,35 @@ impl Grid {
             let col_r = bc + 8;
             for dy in 0..22 {
                 let row = br + 1 + dy;
-                let tile = if dy < 11 {&tile_pb} else {&tile_pt};
-                grid.fill_term_pair_buf((col_l, row), (col_r, row), db.get_term("PPC.E"), db.get_term("PPC.W"), tile.clone(), db.get_term_naming(&format!("TERM.PPC.E{dy}")), db.get_term_naming(&format!("TERM.PPC.W{dy}")));
+                let tile = if dy < 11 { &tile_pb } else { &tile_pt };
+                grid.fill_term_pair_buf(
+                    (col_l, row),
+                    (col_r, row),
+                    db.get_term("PPC.E"),
+                    db.get_term("PPC.W"),
+                    tile.clone(),
+                    db.get_term_naming(&format!("TERM.PPC.E{dy}")),
+                    db.get_term_naming(&format!("TERM.PPC.W{dy}")),
+                );
             }
             let row_b = br;
             let row_t = br + 23;
             for dx in 0..7 {
                 let col = bc + 1 + dx;
-                grid.fill_term_pair_dbuf((col, row_b), (col, row_t), db.get_term(if dx < 5 {"PPCA.N"} else {"PPCB.N"}), db.get_term(if dx < 5 {"PPCA.S"} else {"PPCB.S"}), tile_pb.clone(), tile_pt.clone(), db.get_term_naming(&format!("TERM.PPC.N{dx}")), db.get_term_naming(&format!("TERM.PPC.S{dx}")));
+                grid.fill_term_pair_dbuf(
+                    (col, row_b),
+                    (col, row_t),
+                    db.get_term(if dx < 5 { "PPCA.N" } else { "PPCB.N" }),
+                    db.get_term(if dx < 5 { "PPCA.S" } else { "PPCB.S" }),
+                    tile_pb.clone(),
+                    tile_pt.clone(),
+                    db.get_term_naming(&format!("TERM.PPC.N{dx}")),
+                    db.get_term_naming(&format!("TERM.PPC.S{dx}")),
+                );
             }
             for dy in 0..24 {
                 let row = br + dy;
-                let tile = if dy < 12 {&tile_pb} else {&tile_pt};
+                let tile = if dy < 12 { &tile_pb } else { &tile_pt };
                 let tile_l = &mut grid[(col_l, row)];
                 tile_l.intfs.clear();
                 tile_l.add_intf(
@@ -592,8 +663,18 @@ impl Grid {
         let yt = row_t.to_idx();
         for col in grid.cols() {
             let x = col.to_idx();
-            grid.fill_term_tile((col, row_b), "TERM.S", "TERM.S", format!("B_TERM_INT_X{x}Y{yb}"));
-            grid.fill_term_tile((col, row_t), "TERM.N", "TERM.N", format!("T_TERM_INT_X{x}Y{yt}"));
+            grid.fill_term_tile(
+                (col, row_b),
+                "TERM.S",
+                "TERM.S",
+                format!("B_TERM_INT_X{x}Y{yb}"),
+            );
+            grid.fill_term_tile(
+                (col, row_t),
+                "TERM.N",
+                "TERM.N",
+                format!("T_TERM_INT_X{x}Y{yt}"),
+            );
         }
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
@@ -604,30 +685,50 @@ impl Grid {
             if self.columns[col_l] == ColumnKind::Gt {
                 let dy = y % 16;
                 let yy = y - dy + 8;
-                let ab = if y % 32 >= 16 {"A"} else {"B"};
+                let ab = if y % 32 >= 16 { "A" } else { "B" };
                 let tile = format!("MGT_{ab}L_X{xl}Y{yy}");
-                grid.fill_term_tile((col_l, row), "TERM.W", &format!("TERM.W.MGT{dy}"), tile.clone());
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.W",
+                    &format!("TERM.W.MGT{dy}"),
+                    tile.clone(),
+                );
                 grid[(col_l, row)].add_intf(
                     db.get_intf("INTF"),
                     tile,
                     db.get_intf_naming(&format!("MGT.{dy}")),
                 );
             } else {
-                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.W",
+                    "TERM.W",
+                    format!("L_TERM_INT_X{xl}Y{y}"),
+                );
             }
             if self.columns[col_r] == ColumnKind::Gt {
                 let dy = y % 16;
                 let yy = y - dy + 8;
-                let ab = if y % 32 >= 16 {"A"} else {"B"};
+                let ab = if y % 32 >= 16 { "A" } else { "B" };
                 let tile = format!("MGT_{ab}R_X{xr}Y{yy}");
-                grid.fill_term_tile((col_r, row), "TERM.E", &format!("TERM.E.MGT{dy}"), tile.clone());
+                grid.fill_term_tile(
+                    (col_r, row),
+                    "TERM.E",
+                    &format!("TERM.E.MGT{dy}"),
+                    tile.clone(),
+                );
                 grid[(col_r, row)].add_intf(
                     db.get_intf("INTF"),
                     tile,
                     db.get_intf_naming(&format!("MGT.{dy}")),
                 );
             } else {
-                grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile(
+                    (col_r, row),
+                    "TERM.E",
+                    "TERM.E",
+                    format!("R_TERM_INT_X{xr}Y{y}"),
+                );
             }
         }
 
@@ -656,7 +757,15 @@ impl Grid {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let tile = format!("CLB_BUFFER_X{x}Y{y}");
-                grid.fill_term_pair_buf((col, row), (col + 1, row), term_e, term_w, tile, naming_w, naming_e);
+                grid.fill_term_pair_buf(
+                    (col, row),
+                    (col + 1, row),
+                    term_e,
+                    term_w,
+                    tile,
+                    naming_w,
+                    naming_e,
+                );
             }
         }
 

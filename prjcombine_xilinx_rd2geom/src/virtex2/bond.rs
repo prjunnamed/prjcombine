@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashMap};
 
-use prjcombine_xilinx_rawdump::PkgPin;
-use prjcombine_xilinx_geom::{BondPin, CfgPin, Bond, GtPin};
 use prjcombine_xilinx_geom::virtex2::Grid;
+use prjcombine_xilinx_geom::{Bond, BondPin, CfgPin, GtPin};
+use prjcombine_xilinx_rawdump::PkgPin;
 
 use crate::util::split_num;
 
@@ -58,22 +58,24 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                 "SUSPEND" => BondPin::Cfg(CfgPin::Suspend),
                 "DXN" => BondPin::Dxn,
                 "DXP" => BondPin::Dxp,
-                _ => if let Some((n, b)) = split_num(&pin.func) {
-                    match n {
-                        "VCCO_" => BondPin::VccO(b),
-                        "GNDA" => BondPin::GtByBank(b, GtPin::GndA, 0),
-                        "VTRXPAD" => BondPin::GtByBank(b, GtPin::VtRx, 0),
-                        "VTTXPAD" => BondPin::GtByBank(b, GtPin::VtTx, 0),
-                        "AVCCAUXRX" => BondPin::GtByBank(b, GtPin::AVccAuxRx, 0),
-                        "AVCCAUXTX" => BondPin::GtByBank(b, GtPin::AVccAuxTx, 0),
-                        _ => {
-                            println!("UNK FUNC {}", pin.func);
-                            continue;
+                _ => {
+                    if let Some((n, b)) = split_num(&pin.func) {
+                        match n {
+                            "VCCO_" => BondPin::VccO(b),
+                            "GNDA" => BondPin::GtByBank(b, GtPin::GndA, 0),
+                            "VTRXPAD" => BondPin::GtByBank(b, GtPin::VtRx, 0),
+                            "VTTXPAD" => BondPin::GtByBank(b, GtPin::VtTx, 0),
+                            "AVCCAUXRX" => BondPin::GtByBank(b, GtPin::AVccAuxRx, 0),
+                            "AVCCAUXTX" => BondPin::GtByBank(b, GtPin::AVccAuxTx, 0),
+                            _ => {
+                                println!("UNK FUNC {}", pin.func);
+                                continue;
+                            }
                         }
+                    } else {
+                        println!("UNK FUNC {}", pin.func);
+                        continue;
                     }
-                } else {
-                    println!("UNK FUNC {}", pin.func);
-                    continue;
                 }
             }
         };

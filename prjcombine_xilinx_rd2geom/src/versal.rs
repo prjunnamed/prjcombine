@@ -1,12 +1,15 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use prjcombine_xilinx_geom::{self as geom, Bond, DisabledPart, ColId, SlrId, int, int::Dir};
-use prjcombine_xilinx_geom::versal::{self, Column, ColumnKind, HardColumn, HardRowKind, GtRowKind, CpmKind, TopKind, BotKind, expand_grid};
-use prjcombine_xilinx_rawdump::{Part, PkgPin, Coord, self as rawdump};
-use prjcombine_entity::{EntityVec, EntityPartVec, EntityId};
 use crate::verify::Verifier;
 use enum_map::EnumMap;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_xilinx_geom::versal::{
+    self, expand_grid, BotKind, Column, ColumnKind, CpmKind, GtRowKind, HardColumn, HardRowKind,
+    TopKind,
+};
+use prjcombine_xilinx_geom::{self as geom, int, int::Dir, Bond, ColId, DisabledPart, SlrId};
+use prjcombine_xilinx_rawdump::{self as rawdump, Coord, Part, PkgPin};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::grid::{extract_int_slr, find_rows, IntGrid, PreDevice, make_device_multi};
+use crate::grid::{extract_int_slr, find_rows, make_device_multi, IntGrid, PreDevice};
 use crate::intb::IntBuilder;
 
 fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<HardColumn>; 3]) {
@@ -157,10 +160,7 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
                 regs[r] = kind;
             }
         }
-        cols_hard.push(HardColumn {
-            col,
-            regs,
-        });
+        cols_hard.push(HardColumn { col, regs });
     }
     let cols_hard = match cols_hard.len() {
         1 => {
@@ -232,8 +232,17 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<Vec<GtRowKind>> {
     }
 }
 
-fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<DisabledPart>) {
-    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"]).into_iter().map(|r| r as u16).collect();
+fn make_grids(
+    rd: &Part,
+) -> (
+    EntityVec<SlrId, versal::Grid>,
+    SlrId,
+    BTreeSet<DisabledPart>,
+) {
+    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
+        .into_iter()
+        .map(|r| r as u16)
+        .collect();
     rows_slr_split.insert(0);
     rows_slr_split.insert(rd.height);
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
@@ -259,7 +268,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
             regs_gt_left: get_rows_gt_left(&int),
             regs_gt_right: get_rows_gt_right(&int),
             cpm,
-            top: TopKind::Me, // XXX
+            top: TopKind::Me,      // XXX
             bottom: BotKind::Ssit, // XXX
         });
     }
@@ -268,10 +277,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
         let s0 = SlrId::from_idx(0);
         assert_eq!(grids[s0].regs, 7);
         let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
-        for (reg, kind) in [
-            (0, HardRowKind::Mrmac),
-            (6, HardRowKind::Hdio),
-        ] {
+        for (reg, kind) in [(0, HardRowKind::Mrmac), (6, HardRowKind::Hdio)] {
             assert_eq!(col_hard_r.regs[reg], HardRowKind::None);
             col_hard_r.regs[reg] = kind;
             disabled.insert(DisabledPart::VersalHardIp(s0, col_hard_r.col, reg));
@@ -298,13 +304,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
             });
         }
         for i in [
-            36, 37, 38,
-            40, 41,
-            43, 44, 45,
-            47, 48, 49,
-            51, 52, 53,
-            55, 56,
-            58, 59,
+            36, 37, 38, 40, 41, 43, 44, 45, 47, 48, 49, 51, 52, 53, 55, 56, 58, 59,
         ] {
             let col = ColId::from_idx(i);
             grids[s0].columns[col].r = ColumnKind::Cle;
@@ -314,10 +314,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
             grids[s0].columns[col + 1].has_bli_bot_l = true;
             grids[s0].columns[col + 1].has_bli_top_l = true;
         }
-        for i in [
-            39,
-            54,
-        ] {
+        for i in [39, 54] {
             let col = ColId::from_idx(i);
             grids[s0].columns[col].r = ColumnKind::Dsp;
             grids[s0].columns[col + 1].l = ColumnKind::Dsp;
@@ -326,19 +323,11 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
             grids[s0].columns[col + 1].has_bli_bot_l = true;
             grids[s0].columns[col + 1].has_bli_top_l = true;
         }
-        for i in [
-            36,
-            43,
-            58,
-        ] {
+        for i in [36, 43, 58] {
             let col = ColId::from_idx(i);
             grids[s0].columns[col].l = ColumnKind::Bram;
         }
-        for i in [
-            42,
-            50,
-            57,
-        ] {
+        for i in [42, 50, 57] {
             let col = ColId::from_idx(i);
             grids[s0].columns[col].r = ColumnKind::Bram;
         }
@@ -364,7 +353,14 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, versal::Grid>, SlrId, BTreeSet<Dis
     (grids, SlrId::from_idx(0), disabled)
 }
 
-fn make_bond(_rd: &Part, _pkg: &str, _grids: &EntityVec<SlrId, versal::Grid>, _grid_master: SlrId, _disabled: &BTreeSet<DisabledPart>, _pins: &[PkgPin]) -> Bond {
+fn make_bond(
+    _rd: &Part,
+    _pkg: &str,
+    _grids: &EntityVec<SlrId, versal::Grid>,
+    _grid_master: SlrId,
+    _disabled: &BTreeSet<DisabledPart>,
+    _pins: &[PkgPin],
+) -> Bond {
     let bond_pins = BTreeMap::new();
     Bond {
         pins: bond_pins,
@@ -416,36 +412,33 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         for (ih, h) in ['E', 'W'].into_iter().enumerate() {
             for i in 0..32 {
                 match (q, i) {
-                    ('E', 0 | 2) |
-                    ('W', 0 | 2) |
-                    ('N', 0)  => {
+                    ('E', 0 | 2) | ('W', 0 | 2) | ('N', 0) => {
                         let w = builder.mux_out(
                             format!("SDQNODE.{q}.{h}.{i}"),
                             &[format!("OUT_{q}NODE_{h}_{i}")],
                         );
-                        builder.branch(w, Dir::S,
+                        builder.branch(
+                            w,
+                            Dir::S,
                             format!("SDQNODE.{q}.{h}.{i}.S"),
                             &[format!("IN_{q}NODE_{h}_BLS_{i}")],
                         );
                     }
-                    ('E', 29 | 31) |
-                    ('W', 31) |
-                    ('S', 31)  => {
+                    ('E', 29 | 31) | ('W', 31) | ('S', 31) => {
                         let w = builder.mux_out(
                             format!("SDQNODE.{q}.{h}.{i}"),
                             &[format!("OUT_{q}NODE_{h}_{i}")],
                         );
-                        builder.branch(w, Dir::N,
+                        builder.branch(
+                            w,
+                            Dir::N,
                             format!("SDQNODE.{q}.{h}.{i}.N"),
                             &[format!("IN_{q}NODE_{h}_BLN_{i}")],
                         );
                     }
                     _ => {
                         // TODO not the true permutation
-                        let a = [
-                            0, 11, 1, 2, 3, 4, 5, 6,
-                            7, 8, 9, 13, 14, 15, 10, 12,
-                        ][i >> 1];
+                        let a = [0, 11, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 10, 12][i >> 1];
                         let aa = a + ih * 16 + iq * 32;
                         let b = i & 1;
                         builder.mux_out(
@@ -467,16 +460,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     for (fwd, name, l, ll, num) in [
         (Dir::E, "SNG", 1, 1, 16),
         (Dir::N, "SNG", 1, 1, 16),
-
         (Dir::E, "DBL", 1, 2, 8),
         (Dir::N, "DBL", 2, 2, 8),
-
         (Dir::E, "QUAD", 2, 4, 8),
         (Dir::N, "QUAD", 4, 4, 8),
     ] {
         let bwd = !fwd;
         for ew_f in [Dir::E, Dir::W] {
-            let ew_b = if fwd == Dir::E {!ew_f} else {ew_f};
+            let ew_b = if fwd == Dir::E { !ew_f } else { ew_f };
             for i in 0..num {
                 if ll == 1 && fwd == Dir::E && ew_f == Dir::W {
                     continue;
@@ -508,19 +499,16 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     _ => (),
                 }
                 if bwd == Dir::W && i == 0 && ll == 1 {
-                    let w = builder.branch(w_b, Dir::S, format!("{name}.{bwd}.{ew_b}.{i}.0.S"), &[""]);
+                    let w =
+                        builder.branch(w_b, Dir::S, format!("{name}.{bwd}.{ew_b}.{i}.0.S"), &[""]);
                     builder.extra_name_tile_sub("CLE_BC_CORE", "BNODE_TAP0", 1, w);
                     builder.extra_name_tile_sub("SLL", "BNODE_TAP0", 1, w);
                 }
                 for j in 1..l {
-                    let n_f = builder.branch(w_f, fwd,
-                        format!("{name}.{fwd}.{ew_f}.{i}.{j}"),
-                        &[""],
-                    );
-                    let n_b = builder.branch(w_b, bwd,
-                        format!("{name}.{bwd}.{ew_b}.{i}.{j}"),
-                        &[""],
-                    );
+                    let n_f =
+                        builder.branch(w_f, fwd, format!("{name}.{fwd}.{ew_f}.{i}.{j}"), &[""]);
+                    let n_b =
+                        builder.branch(w_b, bwd, format!("{name}.{bwd}.{ew_b}.{i}.{j}"), &[""]);
                     match (fwd, ew_f, ll, j) {
                         (Dir::E, Dir::W, 4, 1) => {
                             let ii = i + 40;
@@ -530,7 +518,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                             builder.extra_name(format!("IF_HBUS_EBUS{ii}"), n_f);
                             builder.extra_name(format!("IF_HBUS_W_EBUS{ii}"), n_f);
                             if i == 0 {
-                                let w = builder.branch(n_f, Dir::S, format!("{name}.{fwd}.{ew_f}.{i}.{j}.S"), &[""]);
+                                let w = builder.branch(
+                                    n_f,
+                                    Dir::S,
+                                    format!("{name}.{fwd}.{ew_f}.{i}.{j}.S"),
+                                    &[""],
+                                );
                                 for (dir, tkn, _, _) in intf_kinds {
                                     if dir == Dir::E {
                                         builder.extra_name_tile(tkn, "IF_LBC_N_BNODE_SOUTHBUS", w);
@@ -561,11 +554,15 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     w_f = n_f;
                     w_b = n_b;
                 }
-                let e_f = builder.branch(w_f, fwd,
+                let e_f = builder.branch(
+                    w_f,
+                    fwd,
                     format!("{name}.{fwd}.{ew_f}.{i}.{l}"),
                     &[format!("IN_{fwd}{fwd}{ll}_{ew_f}_END{i}")],
                 );
-                let e_b = builder.branch(w_b, bwd,
+                let e_b = builder.branch(
+                    w_b,
+                    bwd,
                     format!("{name}.{bwd}.{ew_b}.{i}.{l}"),
                     &[format!("IN_{bwd}{bwd}{ll}_{ew_b}_END{i}")],
                 );
@@ -611,7 +608,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                             }
                         }
                         if i == 0 {
-                            let w = builder.branch(e_f, Dir::S, format!("{name}.{fwd}.{ew_f}.{i}.{l}.S"), &[""]);
+                            let w = builder.branch(
+                                e_f,
+                                Dir::S,
+                                format!("{name}.{fwd}.{ew_f}.{i}.{l}.S"),
+                                &[""],
+                            );
                             for (dir, tkn, _, _) in intf_kinds {
                                 if dir == Dir::W {
                                     builder.extra_name_tile(tkn, "IF_LBC_N_BNODE_SOUTHBUS", w);
@@ -653,37 +655,39 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 &[format!("OUT_{bwd}{bwd}{ll}_BEG{i}")],
             );
             for j in 1..l {
-                let n_f = builder.branch(w_f, fwd,
-                    format!("{name}.{fwd}.{i}.{j}"),
-                    &[""],
-                );
-                let n_b = builder.branch(w_b, bwd,
-                    format!("{name}.{bwd}.{i}.{j}"),
-                    &[""],
-                );
+                let n_f = builder.branch(w_f, fwd, format!("{name}.{fwd}.{i}.{j}"), &[""]);
+                let n_b = builder.branch(w_b, bwd, format!("{name}.{bwd}.{i}.{j}"), &[""]);
                 term_wires[fwd].insert(n_b, int::TermInfo::PassNear(w_f));
                 term_wires[bwd].insert(n_f, int::TermInfo::PassNear(w_b));
                 w_f = n_f;
                 w_b = n_b;
             }
-            let e_f = builder.branch(w_f, fwd,
+            let e_f = builder.branch(
+                w_f,
+                fwd,
                 format!("{name}.{fwd}.{i}.{l}"),
                 &[format!("IN_{fwd}{fwd}{ll}_END{i}")],
             );
-            let e_b = builder.branch(w_b, bwd,
+            let e_b = builder.branch(
+                w_b,
+                bwd,
                 format!("{name}.{bwd}.{i}.{l}"),
                 &[format!("IN_{bwd}{bwd}{ll}_END{i}")],
             );
             term_wires[fwd].insert(e_b, int::TermInfo::PassNear(w_f));
             term_wires[bwd].insert(e_f, int::TermInfo::PassNear(w_b));
             if i == 0 && fwd == Dir::E && ll == 6 {
-                builder.branch(e_f, Dir::S,
+                builder.branch(
+                    e_f,
+                    Dir::S,
                     format!("{name}.{fwd}.{i}.{l}.S"),
                     &[format!("IN_{fwd}{fwd}{ll}_BLS_{i}")],
                 );
             }
             if i == 7 && fwd == Dir::E && ll == 10 {
-                builder.branch(e_f, Dir::N,
+                builder.branch(
+                    e_f,
+                    Dir::N,
                     format!("{name}.{fwd}.{i}.{l}.N"),
                     &[format!("IN_{fwd}{fwd}{ll}_BLN_{i}")],
                 );
@@ -702,20 +706,14 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     for ew in ['E', 'W'] {
         for i in 0..96 {
-            builder.mux_out(
-                format!("IMUX.{ew}.IMUX.{i}"),
-                &[format!("IMUX_B_{ew}{i}")],
-            );
+            builder.mux_out(format!("IMUX.{ew}.IMUX.{i}"), &[format!("IMUX_B_{ew}{i}")]);
         }
     }
 
     let mut bounces = Vec::new();
     for ew in ['E', 'W'] {
         for i in 0..32 {
-            let w = builder.mux_out(
-                format!("IMUX.{ew}.BOUNCE.{i}"),
-                &[""],
-            );
+            let w = builder.mux_out(format!("IMUX.{ew}.BOUNCE.{i}"), &[""]);
             builder.extra_name_tile("INT", format!("BOUNCE_{ew}{i}"), w);
             bounces.push(w);
         }
@@ -742,14 +740,20 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             builder.extra_name_tile("INT", format!("LOGIC_OUTS_{ew}{i}"), w);
             match (ew, i) {
                 (Dir::E, 1 | 4 | 5) | (Dir::W, 4 | 5) => {
-                    builder.branch(w, Dir::S,
+                    builder.branch(
+                        w,
+                        Dir::S,
                         format!("OUT.{ew}.{i}.S"),
                         &[format!("IN_LOGIC_OUTS_{ew}_BLS_{i}")],
                     );
                 }
                 _ => (),
             }
-            let cw = builder.wire(format!("CLE.OUT.{ew}.{i}"), int::WireKind::Branch(ew), &[""]);
+            let cw = builder.wire(
+                format!("CLE.OUT.{ew}.{i}"),
+                int::WireKind::Branch(ew),
+                &[""],
+            );
             builder.extra_name_tile_sub("CLE_BC_CORE", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             builder.extra_name_tile_sub("SLL", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             if ew == Dir::E {
@@ -792,7 +796,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..16 {
-        let w = builder.wire(format!("CLE.GCLK.{i}"), int::WireKind::ClkOut(32 + i), &[""]);
+        let w = builder.wire(
+            format!("CLE.GCLK.{i}"),
+            int::WireKind::ClkOut(32 + i),
+            &[""],
+        );
         builder.extra_name_sub(format!("GCLK_B{i}"), 1, w);
     }
 
@@ -819,7 +827,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 let w = builder.mux_out(format!("INTF.{ew}.IMUX.IRI{i}.CE{j}"), &[""]);
                 for (dir, tkn, _, _) in intf_kinds {
                     if dir == ew {
-                        builder.extra_name_tile(tkn, format!("INTF_IRI_QUADRANT_{rg}_{i}_CE{j}"), w);
+                        builder.extra_name_tile(
+                            tkn,
+                            format!("INTF_IRI_QUADRANT_{rg}_{i}_CE{j}"),
+                            w,
+                        );
                     }
                 }
             }
@@ -841,7 +853,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     for (b, ew) in [Dir::W, Dir::E].into_iter().enumerate() {
         for i in 0..16 {
-            let w = builder.wire(format!("INTF.{ew}.GCLK.{i}"), int::WireKind::ClkOut(b * 16 + i), &[""]);
+            let w = builder.wire(
+                format!("INTF.{ew}.GCLK.{i}"),
+                int::WireKind::ClkOut(b * 16 + i),
+                &[""],
+            );
             for (dir, tkn, _, _) in intf_kinds {
                 if dir == ew {
                     builder.extra_name_tile(tkn, format!("IF_GCLK_GCLK_B{i}"), w);
@@ -924,10 +940,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                         }
                     }
                 }
-                builder.insert_term_merge(tname, int::TermKind {
-                    dir,
-                    wires,
-                });
+                builder.insert_term_merge(tname, int::TermKind { dir, wires });
             }
         }
     }
@@ -936,14 +949,20 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.db.terms.insert("CLE.BLI.W".to_string(), t);
     let t = builder.db.terms.get("CLE.E").unwrap().1.clone();
     builder.db.terms.insert("CLE.BLI.E".to_string(), t);
-    builder.insert_term_merge("CLE.W", int::TermKind {
-        dir: Dir::W,
-        wires: logic_outs_w,
-    });
-    builder.insert_term_merge("CLE.E", int::TermKind {
-        dir: Dir::E,
-        wires: logic_outs_e,
-    });
+    builder.insert_term_merge(
+        "CLE.W",
+        int::TermKind {
+            dir: Dir::W,
+            wires: logic_outs_w,
+        },
+    );
+    builder.insert_term_merge(
+        "CLE.E",
+        int::TermKind {
+            dir: Dir::E,
+            wires: logic_outs_e,
+        },
+    );
 
     for (dir, tkn, name, _) in intf_kinds {
         for &xy in rd.tiles_by_kind_name(tkn) {
@@ -953,10 +972,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     }
 
     for (dir, wires) in term_wires {
-        builder.insert_term_merge(&format!("TERM.{dir}"), int::TermKind {
-            dir,
-            wires,
-        });
+        builder.insert_term_merge(&format!("TERM.{dir}"), int::TermKind { dir, wires });
     }
     builder.extract_term_conn("TERM.W", Dir::W, "INTF_GT_BL_TILE", &[]);
     builder.extract_term_conn("TERM.W", Dir::W, "INTF_GT_TL_TILE", &[]);
@@ -1005,5 +1021,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     let grids = grids.into_map_values(geom::Grid::Versal);
-    (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))
+    (
+        make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled),
+        Some(int_db),
+    )
 }

@@ -3,7 +3,8 @@ use super::xdlrc::{Options, Parser, PipKind, Tile, Wire};
 use indexmap::IndexSet;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_xilinx_rawdump::{
-    build::{PartBuilder, PbPip, PbSitePin}, Coord, Part, Source, TkPipDirection, TkPipInversion,
+    build::{PartBuilder, PbPip, PbSitePin},
+    Coord, Part, Source, TkPipDirection, TkPipInversion,
 };
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;

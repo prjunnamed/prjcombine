@@ -276,7 +276,8 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 stack.pop();
                 stack.push(StackEntry::Val(!v));
             }
-            while let &[.., StackEntry::Val(v1), StackEntry::And, StackEntry::Val(v2)] = &stack[..] {
+            while let &[.., StackEntry::Val(v1), StackEntry::And, StackEntry::Val(v2)] = &stack[..]
+            {
                 stack.pop();
                 stack.pop();
                 stack.pop();
@@ -286,7 +287,8 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 stack.push(StackEntry::And);
                 continue;
             }
-            while let &[.., StackEntry::Val(v1), StackEntry::Xor, StackEntry::Val(v2)] = &stack[..] {
+            while let &[.., StackEntry::Val(v1), StackEntry::Xor, StackEntry::Val(v2)] = &stack[..]
+            {
                 stack.pop();
                 stack.pop();
                 stack.pop();
@@ -330,7 +332,7 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                     } else {
                         return None;
                     }
-                },
+                }
                 _ => return None,
             }
         }

@@ -1,4 +1,4 @@
-use crate::types::{Test, ParamVal, BitVal, SrcInst};
+use crate::types::{BitVal, ParamVal, SrcInst, Test};
 use std::fmt::Write;
 
 fn emit_pval(out: &mut String, val: &ParamVal) {

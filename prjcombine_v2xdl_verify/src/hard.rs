@@ -1,6 +1,6 @@
-use crate::types::{Test, SrcInst, TgtInst, TestGenCtx, BitVal};
-use rand::Rng;
+use crate::types::{BitVal, SrcInst, Test, TestGenCtx, TgtInst};
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum EmacMode {
@@ -15,13 +15,27 @@ fn make_param_bool(ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, n
     ti.cfg_bool(name, val);
 }
 
-fn make_param_hex(ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, num: usize) {
+fn make_param_hex(
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    num: usize,
+) {
     let val = ctx.gen_bits(num);
     inst.param_bits(name, &val);
     ti.cfg_hex(name, &val, true);
 }
 
-fn make_ins(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, msb: usize, lsb: usize) {
+fn make_ins(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    msb: usize,
+    lsb: usize,
+) {
     if msb < lsb {
         let w = test.make_ins(ctx, lsb - msb + 1);
         inst.connect_bus(name, &w);
@@ -37,16 +51,24 @@ fn make_ins(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut 
     }
 }
 
-fn make_ins_inv(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, msb: usize, lsb: usize) {
+fn make_ins_inv(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    msb: usize,
+    lsb: usize,
+) {
     let mut w = Vec::new();
     if msb < lsb {
-        for i in 0..(lsb-msb+1) {
+        for i in 0..(lsb - msb + 1) {
             let (w_v, w_x, w_inv) = test.make_in_inv(ctx);
             ti.pin_in_inv(&format!("{name}{ii}", ii = lsb - i), &w_x, w_inv);
             w.push(w_v);
         }
     } else {
-        for i in 0..(msb-lsb+1) {
+        for i in 0..(msb - lsb + 1) {
             let (w_v, w_x, w_inv) = test.make_in_inv(ctx);
             ti.pin_in_inv(&format!("{name}{ii}", ii = lsb + i), &w_x, w_inv);
             w.push(w_v);
@@ -55,7 +77,15 @@ fn make_ins_inv(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &
     inst.connect_bus(name, &w);
 }
 
-fn make_outs(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, msb: usize, lsb: usize) {
+fn make_outs(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    msb: usize,
+    lsb: usize,
+) {
     if msb < lsb {
         let w = test.make_outs(ctx, lsb - msb + 1);
         inst.connect_bus(name, &w);
@@ -71,25 +101,49 @@ fn make_outs(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut
     }
 }
 
-fn make_in(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_in(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let w = test.make_in(ctx);
     inst.connect(name, &w);
     ti.pin_in(name, &w);
 }
 
-fn make_in_inv_fake(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_in_inv_fake(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let w = test.make_in(ctx);
     inst.connect(name, &w);
     ti.pin_in_inv(name, &w, false);
 }
 
-fn make_in_inv(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_in_inv(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let (w_v, w_x, w_inv) = test.make_in_inv(ctx);
     inst.connect(name, &w_v);
     ti.pin_in_inv(name, &w_x, w_inv);
 }
 
-fn make_out(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_out(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let w = test.make_out(ctx);
     inst.connect(name, &w);
     ti.pin_out(name, &w);
@@ -116,69 +170,343 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
     let mut ti = TgtInst::new(&[prim]);
     ti.bel(prim, &inst.name, "");
 
-    let emacs = if mode == EmacMode::Virtex6 {&["EMAC"][..]} else {&["EMAC0", "EMAC1"][..]};
+    let emacs = if mode == EmacMode::Virtex6 {
+        &["EMAC"][..]
+    } else {
+        &["EMAC0", "EMAC1"][..]
+    };
 
     // CLIENT
     for emac in emacs {
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTANINTERRUPT"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXBADFRAME"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXCLIENTCLKOUT"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXDVLD"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXDVLDMSW"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXFRAMEDROP"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXGOODFRAME"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXSTATSBYTEVLD"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXSTATSVLD"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTANINTERRUPT"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXBADFRAME"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXCLIENTCLKOUT"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXDVLD"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXDVLDMSW"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXFRAMEDROP"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXGOODFRAME"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXSTATSBYTEVLD"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXSTATSVLD"),
+        );
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXACK"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXCLIENTCLKOUT"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXCOLLISION"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXRETRANSMIT"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXSTATS"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXSTATSBYTEVLD"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXSTATSVLD"));
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXSTATS"), 6, 0);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXD"), 15, 0);
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}DCMLOCKED"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}PAUSEREQ"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXCLIENTCLKOUT"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXCOLLISION"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXRETRANSMIT"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXSTATS"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXSTATSBYTEVLD"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTTXSTATSVLD"),
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXSTATS"),
+            6,
+            0,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}CLIENTRXD"),
+            15,
+            0,
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}DCMLOCKED"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}PAUSEREQ"),
+        );
         if mode != EmacMode::Virtex6 {
-            make_in_inv(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}RXCLIENTCLKIN"));
-            make_in_inv(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXCLIENTCLKIN"));
+            make_in_inv(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("CLIENT{emac}RXCLIENTCLKIN"),
+            );
+            make_in_inv(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("CLIENT{emac}TXCLIENTCLKIN"),
+            );
         } else {
-            make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}RXCLIENTCLKIN"));
-            make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXCLIENTCLKIN"));
+            make_in(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("CLIENT{emac}RXCLIENTCLKIN"),
+            );
+            make_in(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("CLIENT{emac}TXCLIENTCLKIN"),
+            );
         }
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXDVLD"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXDVLDMSW"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXFIRSTBYTE"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXUNDERRUN"));
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXD"), 15, 0);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}PAUSEVAL"), 15, 0);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXIFGDELAY"), 7, 0);
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXDVLD"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXDVLDMSW"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXFIRSTBYTE"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXUNDERRUN"),
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXD"),
+            15,
+            0,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}PAUSEVAL"),
+            15,
+            0,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("CLIENT{emac}TXIFGDELAY"),
+            7,
+            0,
+        );
         if mode == EmacMode::Virtex4 {
-            make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTRXDVREG6"));
-            make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}CLIENTTXGMIIMIICLKOUT"));
-            make_in_inv(test, ctx, &mut inst, &mut ti, &format!("CLIENT{emac}TXGMIIMIICLKIN"));
+            make_out(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}CLIENTRXDVREG6"),
+            );
+            make_out(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}CLIENTTXGMIIMIICLKOUT"),
+            );
+            make_in_inv(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("CLIENT{emac}TXGMIIMIICLKIN"),
+            );
         }
     }
 
     // PHY
     for emac in emacs {
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYENCOMMAALIGN"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYLOOPBACKMSB"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYENCOMMAALIGN"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYLOOPBACKMSB"),
+        );
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYMCLKOUT"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYMDOUT"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYMDTRI"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYMGTRXRESET"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYMGTTXRESET"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYPOWERDOWN"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYSYNCACQSTATUS"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXCHARDISPMODE"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXCHARDISPVAL"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXCHARISK"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYMGTRXRESET"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYMGTTXRESET"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYPOWERDOWN"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYSYNCACQSTATUS"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYTXCHARDISPMODE"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYTXCHARDISPVAL"),
+        );
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYTXCHARISK"),
+        );
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXCLK"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXEN"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXER"));
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXD"), 7, 0);
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("{emac}PHYTXD"),
+            7,
+            0,
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}COL"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}CRS"));
         if mode != EmacMode::Virtex6 {
@@ -193,31 +521,137 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
             make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCLK"));
         }
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}MDIN"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCHARISCOMMA"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCHARISK"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXDISPERR"));
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXCHARISCOMMA"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXCHARISK"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXDISPERR"),
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXDV"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXER"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXNOTINTABLE"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXRUNDISP"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}SIGNALDET"));
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXNOTINTABLE"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXRUNDISP"),
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}SIGNALDET"),
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}TXBUFERR"));
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXBUFSTATUS"), 1, 0);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCLKCORCNT"), 2, 0);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}PHYAD"), 4, 0);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXD"), 7, 0);
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXBUFSTATUS"),
+            1,
+            0,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXCLKCORCNT"),
+            2,
+            0,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}PHYAD"),
+            4,
+            0,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PHY{emac}RXD"),
+            7,
+            0,
+        );
         if mode != EmacMode::Virtex6 {
             make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXBUFERR"));
-            make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCHECKINGCRC"));
-            make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXCOMMADET"));
-            make_ins(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}RXLOSSOFSYNC"), 1, 0);
+            make_in(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("PHY{emac}RXCHECKINGCRC"),
+            );
+            make_in(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("PHY{emac}RXCOMMADET"),
+            );
+            make_ins(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("PHY{emac}RXLOSSOFSYNC"),
+                1,
+                0,
+            );
         }
         if mode != EmacMode::Virtex4 {
-            make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}PHYTXGMIIMIICLKOUT"));
+            make_out(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}PHYTXGMIIMIICLKOUT"),
+            );
             if mode != EmacMode::Virtex6 {
-                make_in_inv(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}TXGMIIMIICLKIN"));
+                make_in_inv(
+                    test,
+                    ctx,
+                    &mut inst,
+                    &mut ti,
+                    &format!("PHY{emac}TXGMIIMIICLKIN"),
+                );
             } else {
-                make_in(test, ctx, &mut inst, &mut ti, &format!("PHY{emac}TXGMIIMIICLKIN"));
+                make_in(
+                    test,
+                    ctx,
+                    &mut inst,
+                    &mut ti,
+                    &format!("PHY{emac}TXGMIIMIICLKIN"),
+                );
             }
         }
     }
@@ -257,11 +691,11 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
             inst.connect_bus("DCREMACABUS", &dcr.abus);
             inst.connect_bus("EMACDCRDBUS", &dcr.dbus_r);
             for i in 0..32 {
-                ti.pin_in(&format!("DCREMACDBUS{ii}", ii=31-i), &dcr.dbus_w[i]);
-                ti.pin_out(&format!("EMACDCRDBUS{ii}", ii=31-i), &dcr.dbus_r[i]);
+                ti.pin_in(&format!("DCREMACDBUS{ii}", ii = 31 - i), &dcr.dbus_w[i]);
+                ti.pin_out(&format!("EMACDCRDBUS{ii}", ii = 31 - i), &dcr.dbus_r[i]);
             }
             for i in 0..2 {
-                ti.pin_in(&format!("DCREMACABUS{ii}", ii=9-i), &dcr.abus[i]);
+                ti.pin_in(&format!("DCREMACABUS{ii}", ii = 9 - i), &dcr.abus[i]);
             }
         } else {
             ti.pin_tie("DCREMACENABLE", false);
@@ -287,45 +721,119 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
         make_ins(test, ctx, &mut inst, &mut ti, "TIEEMAC0UNICASTADDR", 47, 0);
         make_ins_inv(test, ctx, &mut inst, &mut ti, "TIEEMAC1UNICASTADDR", 47, 0);
         for i in 0..2 {
-            make_ins(test, ctx, &mut inst, &mut ti, &format!("TIEEMAC{i}CONFIGVEC"), 79, 0);
+            make_ins(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("TIEEMAC{i}CONFIGVEC"),
+                79,
+                0,
+            );
         }
     } else {
         for emac in emacs {
-            make_out(test, ctx, &mut inst, &mut ti, &format!("{emac}SPEEDIS10100"));
+            make_out(
+                test,
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}SPEEDIS10100"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_1000BASEX_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_ADDRFILTER_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_ADDRFILTER_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_BYTEPHY"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_GTLOOPBACK"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_HOST_ENABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_LTCHECK_DISABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_MDIO_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_PHYINITAUTONEG_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_PHYINITAUTONEG_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_PHYISOLATE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_PHYLOOPBACKMSB"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_PHYPOWERDOWN"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_PHYRESET"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RGMII_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RX16BITCLIENT_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXFLOWCTRL_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_RX16BITCLIENT_ENABLE"),
+            );
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_RXFLOWCTRL_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXHALFDUPLEX"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXINBANDFCS_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXJUMBOFRAME_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_RXINBANDFCS_ENABLE"),
+            );
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_RXJUMBOFRAME_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXRESET"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RXVLAN_ENABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_RX_ENABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_SGMII_ENABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_SPEED_LSB"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_SPEED_MSB"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TX16BITCLIENT_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXFLOWCTRL_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_TX16BITCLIENT_ENABLE"),
+            );
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_TXFLOWCTRL_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXHALFDUPLEX"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXIFGADJUST_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXINBANDFCS_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXJUMBOFRAME_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_TXIFGADJUST_ENABLE"),
+            );
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_TXINBANDFCS_ENABLE"),
+            );
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_TXJUMBOFRAME_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXRESET"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TXVLAN_ENABLE"));
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_TX_ENABLE"));
-            make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_UNIDIRECTION_ENABLE"));
+            make_param_bool(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("{emac}_UNIDIRECTION_ENABLE"),
+            );
             make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_USECLKEN"));
             make_param_hex(ctx, &mut inst, &mut ti, &format!("{emac}_DCRBASEADDR"), 8);
             make_param_hex(ctx, &mut inst, &mut ti, &format!("{emac}_UNICASTADDR"), 48);
@@ -337,8 +845,18 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
             if mode != EmacMode::Virtex6 {
                 make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_CONFIGVEC_79"));
             } else {
-                make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_CTRLLENCHECK_DISABLE"));
-                make_param_bool(ctx, &mut inst, &mut ti, &format!("{emac}_MDIO_IGNORE_PHYADZERO"));
+                make_param_bool(
+                    ctx,
+                    &mut inst,
+                    &mut ti,
+                    &format!("{emac}_CTRLLENCHECK_DISABLE"),
+                );
+                make_param_bool(
+                    ctx,
+                    &mut inst,
+                    &mut ti,
+                    &format!("{emac}_MDIO_IGNORE_PHYADZERO"),
+                );
                 ti.cfg("EMAC_CONFIGVEC_79", "TRUE");
             }
         }
@@ -349,7 +867,7 @@ fn make_emac(test: &mut Test, ctx: &mut TestGenCtx, dcr: Option<EmacDcr>, mode: 
 }
 
 pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
-    let prim = if is_adv {"PPC405_ADV"} else {"PPC405"};
+    let prim = if is_adv { "PPC405_ADV" } else { "PPC405" };
     let mut inst = SrcInst::new(ctx, prim);
     let mut ti = TgtInst::new(&[prim]);
     ti.bel(prim, &inst.name, "");
@@ -525,11 +1043,11 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
             inst.connect_bus("DCREMACABUS", &dcr.abus);
             inst.connect_bus("EMACDCRDBUS", &dcr.dbus_r);
             for i in 0..32 {
-                ti.pin_out(&format!("DCREMACDBUS{ii}", ii=31-i), &dcr.dbus_w[i]);
-                ti.pin_in(&format!("EMACDCRDBUS{ii}", ii=31-i), &dcr.dbus_r[i]);
+                ti.pin_out(&format!("DCREMACDBUS{ii}", ii = 31 - i), &dcr.dbus_w[i]);
+                ti.pin_in(&format!("EMACDCRDBUS{ii}", ii = 31 - i), &dcr.dbus_r[i]);
             }
             for i in 0..2 {
-                ti.pin_out(&format!("DCREMACABUS{ii}", ii=9-i), &dcr.abus[i]);
+                ti.pin_out(&format!("DCREMACABUS{ii}", ii = 9 - i), &dcr.abus[i]);
             }
             make_emac(test, ctx, Some(dcr), EmacMode::Virtex4);
         }
@@ -613,11 +1131,35 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
 
     // TRC
     make_out(test, ctx, &mut inst, &mut ti, "C405TRCCYCLE");
-    make_outs(test, ctx, &mut inst, &mut ti, "C405TRCEVENEXECUTIONSTATUS", 0, 1);
-    make_outs(test, ctx, &mut inst, &mut ti, "C405TRCODDEXECUTIONSTATUS", 0, 1);
+    make_outs(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "C405TRCEVENEXECUTIONSTATUS",
+        0,
+        1,
+    );
+    make_outs(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "C405TRCODDEXECUTIONSTATUS",
+        0,
+        1,
+    );
     make_outs(test, ctx, &mut inst, &mut ti, "C405TRCTRACESTATUS", 0, 3);
     make_out(test, ctx, &mut inst, &mut ti, "C405TRCTRIGGEREVENTOUT");
-    make_outs(test, ctx, &mut inst, &mut ti, "C405TRCTRIGGEREVENTTYPE", 0, 10);
+    make_outs(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "C405TRCTRIGGEREVENTTYPE",
+        0,
+        10,
+    );
     make_in(test, ctx, &mut inst, &mut ti, "TRCC405TRACEDISABLE");
     make_in(test, ctx, &mut inst, &mut ti, "TRCC405TRIGGEREVENTIN");
 
@@ -805,7 +1347,11 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
     if !is_adv {
         ti.pin_tie_inv("TESTSELI", true, false);
         for i in 0..32 {
-            ti.pin_tie_inv(&format!("TIEC405PVR{i}"), true, !matches!(i, 2 | 15 | 20 | 26));
+            ti.pin_tie_inv(
+                &format!("TIEC405PVR{i}"),
+                true,
+                !matches!(i, 2 | 15 | 20 | 26),
+            );
         }
         for i in 0..32 {
             ti.pin_tie(&format!("TSTRDDBUSI{i}"), false);
@@ -837,10 +1383,14 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
 
 fn gen_arb_config(ctx: &mut TestGenCtx) -> Vec<BitVal> {
     let mut res = ctx.gen_bits(32);
-    for (i, v) in [0, 1, 2, 3, 4].choose_multiple(&mut ctx.rng, 5).copied().enumerate() {
-        res[4*(i+1)] = if v & 1 != 0 {BitVal::S1} else {BitVal::S0};
-        res[4*(i+1)+1] = if v & 2 != 0 {BitVal::S1} else {BitVal::S0};
-        res[4*(i+1)+2] = if v & 4 != 0 {BitVal::S1} else {BitVal::S0};
+    for (i, v) in [0, 1, 2, 3, 4]
+        .choose_multiple(&mut ctx.rng, 5)
+        .copied()
+        .enumerate()
+    {
+        res[4 * (i + 1)] = if v & 1 != 0 { BitVal::S1 } else { BitVal::S0 };
+        res[4 * (i + 1) + 1] = if v & 2 != 0 { BitVal::S1 } else { BitVal::S0 };
+        res[4 * (i + 1) + 2] = if v & 4 != 0 { BitVal::S1 } else { BitVal::S0 };
     }
     res
 }
@@ -988,7 +1538,10 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
         ti.cfg("PLL_CLKFBOUT2_DT", "000000");
         ti.cfg("PLL_CLKFBOUT2_HT", "000001");
         ti.cfg("PLL_CLKFBOUT2_LT", "000001");
-        ti.cfg("PLL_EN_CNTRL", "001110110000111100100001010110100000101100100000000001001100010111100110100110");
+        ti.cfg(
+            "PLL_EN_CNTRL",
+            "001110110000111100100001010110100000101100100000000001001100010111100110100110",
+        );
         ti.cfg("PLL_FLOCK", "000000");
         ti.cfg("PLL_IN_DLY_SET", "000011101");
         ti.cfg("PLL_LOCK_FB_P1", "01000");
@@ -1092,46 +1645,222 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDBTERM"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDCOMP"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDDACK"));
-        make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBREARBITRATE"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBREARBITRATE"),
+        );
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWAIT"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRBTERM"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRCOMP"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBWRDACK"));
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDDBUS"), 0, 127);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBSSIZE"), 0, 1);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMBUSY"), 0, 3);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMIRQ"), 0, 3);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMRDERR"), 0, 3);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBMWRERR"), 0, 3);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("PPCS{i}PLBRDWDADDR"), 0, 3);
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBRDDBUS"),
+            0,
+            127,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBSSIZE"),
+            0,
+            1,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBMBUSY"),
+            0,
+            3,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBMIRQ"),
+            0,
+            3,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBMRDERR"),
+            0,
+            3,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBMWRERR"),
+            0,
+            3,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PPCS{i}PLBRDWDADDR"),
+            0,
+            3,
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}ABORT"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}BUSLOCK"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}LOCKERR"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}PAVALID"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDBURST"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPENDREQ"));
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}RDPENDREQ"),
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPRIM"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RNW"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}SAVALID"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRBURST"));
-        make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPENDREQ"));
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}WRPENDREQ"),
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPRIM"));
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRDBUS"), 0, 127);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}BE"), 0, 15);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}TATTRIBUTE"), 0, 15);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}MASTERID"), 0, 1);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}MSIZE"), 0, 1);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}RDPENDPRI"), 0, 1);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}REQPRI"), 0, 1);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}WRPENDPRI"), 0, 1);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}TYPE"), 0, 2);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}SIZE"), 0, 3);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}ABUS"), 0, 31);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("PLBPPCS{i}UABUS"), 28, 31);
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}WRDBUS"),
+            0,
+            127,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}BE"),
+            0,
+            15,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}TATTRIBUTE"),
+            0,
+            15,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}MASTERID"),
+            0,
+            1,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}MSIZE"),
+            0,
+            1,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}RDPENDPRI"),
+            0,
+            1,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}REQPRI"),
+            0,
+            1,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}WRPENDPRI"),
+            0,
+            1,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}TYPE"),
+            0,
+            2,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}SIZE"),
+            0,
+            3,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}ABUS"),
+            0,
+            31,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("PLBPPCS{i}UABUS"),
+            28,
+            31,
+        );
         make_param_bool(ctx, &mut inst, &mut ti, &format!("PPCS{i}_WIDTH_128N64"));
         make_param_hex(ctx, &mut inst, &mut ti, &format!("PPCS{i}_CONTROL"), 32);
         for j in 0..4 {
-            make_param_hex(ctx, &mut inst, &mut ti, &format!("PPCS{i}_ADDRMAP_TMPL{j}"), 32);
+            make_param_hex(
+                ctx,
+                &mut inst,
+                &mut ti,
+                &format!("PPCS{i}_ADDRMAP_TMPL{j}"),
+                32,
+            );
         }
     }
     ti.cfg("PLB_TEST", "0");
@@ -1164,7 +1893,13 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
 
     // DMA
     for i in 0..4 {
-        make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLRSTENGINEACK"));
+        make_out(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("DMA{i}LLRSTENGINEACK"),
+        );
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLRXDSTRDYN"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXEOFN"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXEOPN"));
@@ -1173,22 +1908,72 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXSRCRDYN"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}RXIRQ"));
         make_out(test, ctx, &mut inst, &mut ti, &format!("DMA{i}TXIRQ"));
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXD"), 0, 31);
-        make_outs(test, ctx, &mut inst, &mut ti, &format!("DMA{i}LLTXREM"), 0, 3);
-        make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RSTENGINEREQ"));
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("DMA{i}LLTXD"),
+            0,
+            31,
+        );
+        make_outs(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("DMA{i}LLTXREM"),
+            0,
+            3,
+        );
+        make_in(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("LLDMA{i}RSTENGINEREQ"),
+        );
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXEOFN"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXEOPN"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSOFN"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSOPN"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXSRCRDYN"));
         make_in(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}TXDSTRDYN"));
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXD"), 0, 31);
-        make_ins(test, ctx, &mut inst, &mut ti, &format!("LLDMA{i}RXREM"), 0, 3);
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("LLDMA{i}RXD"),
+            0,
+            31,
+        );
+        make_ins(
+            test,
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("LLDMA{i}RXREM"),
+            0,
+            3,
+        );
         make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_CONTROL"), 8);
         make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_RXIRQTIMER"), 10);
         make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_TXIRQTIMER"), 10);
-        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_RXCHANNELCTRL"), 32);
-        make_param_hex(ctx, &mut inst, &mut ti, &format!("DMA{i}_TXCHANNELCTRL"), 32);
+        make_param_hex(
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("DMA{i}_RXCHANNELCTRL"),
+            32,
+        );
+        make_param_hex(
+            ctx,
+            &mut inst,
+            &mut ti,
+            &format!("DMA{i}_TXCHANNELCTRL"),
+            32,
+        );
     }
     ti.cfg("DMA_TEST", "0");
 
@@ -1268,9 +2053,25 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
     // TRC
     make_out(test, ctx, &mut inst, &mut ti, "C440TRCCYCLE");
     make_out(test, ctx, &mut inst, &mut ti, "C440TRCTRIGGEREVENTOUT");
-    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCTRIGGEREVENTTYPE", 0, 13);
+    make_outs(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "C440TRCTRIGGEREVENTTYPE",
+        0,
+        13,
+    );
     make_outs(test, ctx, &mut inst, &mut ti, "C440TRCBRANCHSTATUS", 0, 2);
-    make_outs(test, ctx, &mut inst, &mut ti, "C440TRCEXECUTIONSTATUS", 0, 4);
+    make_outs(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "C440TRCEXECUTIONSTATUS",
+        0,
+        4,
+    );
     make_outs(test, ctx, &mut inst, &mut ti, "C440TRCTRACESTATUS", 0, 6);
     make_in(test, ctx, &mut inst, &mut ti, "TRCC440TRACEDISABLE");
     make_in(test, ctx, &mut inst, &mut ti, "TRCC440TRIGGEREVENTIN");
@@ -1291,16 +2092,96 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
     make_in(test, ctx, &mut inst, &mut ti, "RSTC440RESETCORE");
     make_in(test, ctx, &mut inst, &mut ti, "RSTC440RESETSYSTEM");
     make_in(test, ctx, &mut inst, &mut ti, "TIEC440ENDIANRESET");
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDLDCACHEPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDNONCACHEPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDTOUCHPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCURDURGENTPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRFLUSHPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRSTOREPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440DCUWRURGENTPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDFETCHPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDSPECPLBPRIO", 0, 1);
-    make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ICURDTOUCHPLBPRIO", 0, 1);
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCURDLDCACHEPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCURDNONCACHEPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCURDTOUCHPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCURDURGENTPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCUWRFLUSHPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCUWRSTOREPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440DCUWRURGENTPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440ICURDFETCHPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440ICURDSPECPLBPRIO",
+        0,
+        1,
+    );
+    make_ins(
+        test,
+        ctx,
+        &mut inst,
+        &mut ti,
+        "TIEC440ICURDTOUCHPLBPRIO",
+        0,
+        1,
+    );
     make_ins(test, ctx, &mut inst, &mut ti, "TIEC440ERPNRESET", 0, 3);
     make_ins(test, ctx, &mut inst, &mut ti, "TIEC440USERRESET", 0, 3);
     make_ins(test, ctx, &mut inst, &mut ti, "TIEC440PIR", 28, 31);

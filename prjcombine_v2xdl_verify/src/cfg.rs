@@ -1,6 +1,6 @@
-use crate::types::{Test, SrcInst, TgtInst, TestGenCtx};
-use rand::Rng;
+use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
@@ -18,19 +18,39 @@ pub enum Mode {
     Series7,
 }
 
-fn make_in(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_in(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let w = test.make_in(ctx);
     inst.connect(name, &w);
     ti.pin_in(name, &w);
 }
 
-fn make_in_inv(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_in_inv(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let (w_v, w_x, w_inv) = test.make_in_inv(ctx);
     inst.connect(name, &w_v);
     ti.pin_in_inv(name, &w_x, w_inv);
 }
 
-fn make_ins(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, msb: usize, lsb: usize) {
+fn make_ins(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    msb: usize,
+    lsb: usize,
+) {
     if msb < lsb {
         let w = test.make_ins(ctx, lsb - msb + 1);
         inst.connect_bus(name, &w);
@@ -46,13 +66,27 @@ fn make_ins(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut 
     }
 }
 
-fn make_out(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
+fn make_out(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+) {
     let w = test.make_out(ctx);
     inst.connect(name, &w);
     ti.pin_out(name, &w);
 }
 
-fn make_outs(test: &mut Test, ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str, msb: usize, lsb: usize) {
+fn make_outs(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    inst: &mut SrcInst,
+    ti: &mut TgtInst,
+    name: &str,
+    msb: usize,
+    lsb: usize,
+) {
     if msb < lsb {
         let w = test.make_outs(ctx, lsb - msb + 1);
         inst.connect_bus(name, &w);
@@ -99,11 +133,11 @@ fn gen_bscan_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         let (tdo1_v, tdo1_x, tdo1_inv) = test.make_in_inv(ctx);
         inst.connect("TDO1", &tdo1_v);
         ti.pin_in("TDO1", &tdo1_x);
-        ti.cfg("TDO1MUX", if tdo1_inv {"TDO1_B"} else {"TDO1"});
+        ti.cfg("TDO1MUX", if tdo1_inv { "TDO1_B" } else { "TDO1" });
         let (tdo2_v, tdo2_x, tdo2_inv) = test.make_in_inv(ctx);
         inst.connect("TDO2", &tdo2_v);
         ti.pin_in("TDO2", &tdo2_x);
-        ti.cfg("TDO2MUX", if tdo2_inv {"TDO2_B"} else {"TDO2"});
+        ti.cfg("TDO2MUX", if tdo2_inv { "TDO2_B" } else { "TDO2" });
     } else {
         make_in(test, ctx, &mut inst, &mut ti, "TDO1");
         make_in(test, ctx, &mut inst, &mut ti, "TDO2");
@@ -115,7 +149,11 @@ fn gen_bscan_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         }
         _ => {
             if pk == Mode::Virtex {
-                ti.bel("BSCAN_BLACKBOX", &format!("{}/BSCAN_VIRTEX2", inst.name), "");
+                ti.bel(
+                    "BSCAN_BLACKBOX",
+                    &format!("{}/BSCAN_VIRTEX2", inst.name),
+                    "",
+                );
             } else {
                 ti.bel("BSCAN_BLACKBOX", &inst.name, "");
             }
@@ -193,11 +231,11 @@ fn gen_startup_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     inst.connect("CLK", &clk_v);
     if mode == Mode::Virtex {
         ti.pin_in("GTS", &gts_x);
-        ti.cfg("GTSMUX", if gts_inv {"GTS_B"} else {"GTS"});
+        ti.cfg("GTSMUX", if gts_inv { "GTS_B" } else { "GTS" });
         ti.pin_in("GSR", &gsr_x);
-        ti.cfg("GSRMUX", if gsr_inv {"GSR_B"} else {"GSR"});
+        ti.cfg("GSRMUX", if gsr_inv { "GSR_B" } else { "GSR" });
         ti.pin_in("CLK", &clk_x);
-        ti.cfg("CLKINV", if clk_inv {"0"} else {"1"});
+        ti.cfg("CLKINV", if clk_inv { "0" } else { "1" });
     } else {
         ti.pin_in_inv("GTS", &gts_x, gts_inv);
         ti.pin_in_inv("GSR", &gsr_x, gsr_inv);
@@ -321,7 +359,10 @@ fn gen_capture(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     let oneshot = ctx.rng.gen();
     inst.param_bool("ONESHOT", oneshot);
 
-    if matches!(mode, Mode::Virtex | Mode::Virtex2 | Mode::Virtex2P | Mode::Spartan3 | Mode::Spartan3E) {
+    if matches!(
+        mode,
+        Mode::Virtex | Mode::Virtex2 | Mode::Virtex2P | Mode::Spartan3 | Mode::Spartan3E
+    ) {
         if oneshot {
             ti.cfg("ONESHOT_ATTR", "ONE_SHOT");
         }
@@ -335,17 +376,27 @@ fn gen_capture(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
             let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
             inst.connect("CLK", &clk_v);
             ti.pin_in("CLK", &clk_x);
-            ti.cfg("CLKINV", if clk_inv {"0"} else {"1"});
+            ti.cfg("CLKINV", if clk_inv { "0" } else { "1" });
             let (cap_v, cap_x, cap_inv) = test.make_in_inv(ctx);
             inst.connect("CAP", &cap_v);
             ti.pin_in("CAP", &cap_x);
-            ti.cfg("CAPMUX", if cap_inv {"CAP_B"} else {"CAP"});
+            ti.cfg("CAPMUX", if cap_inv { "CAP_B" } else { "CAP" });
         }
-        Mode::Virtex2 | Mode::Virtex2P | Mode::Spartan3 | Mode::Spartan3E | Mode::Spartan3A | Mode::Spartan3ADsp | Mode::Virtex4 => {
+        Mode::Virtex2
+        | Mode::Virtex2P
+        | Mode::Spartan3
+        | Mode::Spartan3E
+        | Mode::Spartan3A
+        | Mode::Spartan3ADsp
+        | Mode::Virtex4 => {
             if mode == Mode::Virtex4 {
                 ti.bel("CAPTURE", &inst.name, "");
             } else if pk == Mode::Virtex {
-                ti.bel("CAPTURE_BLACKBOX", &format!("{}/CAPTURE_VIRTEX2", inst.name), "");
+                ti.bel(
+                    "CAPTURE_BLACKBOX",
+                    &format!("{}/CAPTURE_VIRTEX2", inst.name),
+                    "",
+                );
             } else {
                 ti.bel("CAPTURE_BLACKBOX", &inst.name, "");
             }
@@ -386,7 +437,10 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     } else {
         ti.bel("ICAP", &inst.name, "");
     }
-    if matches!(mode, Mode::Virtex2 | Mode::Virtex2P | Mode::Spartan3A | Mode::Spartan3ADsp | Mode::Virtex4) {
+    if matches!(
+        mode,
+        Mode::Virtex2 | Mode::Virtex2P | Mode::Spartan3A | Mode::Spartan3ADsp | Mode::Virtex4
+    ) {
         make_in_inv(test, ctx, &mut inst, &mut ti, "CLK");
         make_in_inv(test, ctx, &mut inst, &mut ti, "CE");
         make_in_inv(test, ctx, &mut inst, &mut ti, "WRITE");
@@ -415,12 +469,15 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
             ti.pin_in("WRITE", &write);
         }
     }
-    make_ins(test, ctx, &mut inst, &mut ti, "I", w-1, 0);
-    make_outs(test, ctx, &mut inst, &mut ti, "O", w-1, 0);
+    make_ins(test, ctx, &mut inst, &mut ti, "I", w - 1, 0);
+    make_outs(test, ctx, &mut inst, &mut ti, "O", w - 1, 0);
     if mode != Mode::Series7 {
         make_out(test, ctx, &mut inst, &mut ti, "BUSY");
     }
-    if matches!(mode, Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+    if matches!(
+        mode,
+        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+    ) {
         let width;
         if mode == Mode::Virtex4 {
             width = *["X8", "X32"].choose(&mut ctx.rng).unwrap();
@@ -496,7 +553,7 @@ fn gen_frame_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         } else {
             make_outs(test, ctx, &mut inst, &mut ti, "FAR", 25, 0);
         }
-        let far = if ctx.rng.gen() {"FAR"} else {"EFAR"};
+        let far = if ctx.rng.gen() { "FAR" } else { "EFAR" };
         inst.param_str("FARSRC", &far);
         ti.cfg("FARSRC", &far);
     } else {
@@ -663,7 +720,9 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             } else {
                 gen_bscan_v(test, ctx, mode, Mode::Spartan3A);
             }
-            let pk = *[Mode::Spartan3, Mode::Spartan3E, Mode::Spartan3A].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Spartan3, Mode::Spartan3E, Mode::Spartan3A]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_startup_v(test, ctx, mode, pk);
             if ctx.rng.gen() {
                 gen_capture(test, ctx, mode, Mode::Spartan3);
@@ -709,37 +768,57 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             gen_efuse_usr(test, ctx);
         }
         Mode::Virtex6 => {
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_bscan_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_startup_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
+                .choose(&mut ctx.rng)
+                .unwrap();
             if ctx.rng.gen() {
                 gen_capture(test, ctx, mode, pk);
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);
             }
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_icap(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_usr_access(test, ctx, pk);
             gen_dna_port(test, ctx);
             gen_efuse_usr(test, ctx);
         }
         Mode::Series7 => {
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_bscan_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_startup_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+                .choose(&mut ctx.rng)
+                .unwrap();
             if ctx.rng.gen() {
                 gen_capture(test, ctx, mode, pk);
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);
             }
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_icap(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7].choose(&mut ctx.rng).unwrap();
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+                .choose(&mut ctx.rng)
+                .unwrap();
             gen_usr_access(test, ctx, pk);
             gen_dna_port(test, ctx);
             gen_efuse_usr(test, ctx);

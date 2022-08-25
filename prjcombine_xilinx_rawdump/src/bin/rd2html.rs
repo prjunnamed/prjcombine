@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use ndarray::Array2;
 use prjcombine_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use std::collections::HashMap;
@@ -5,7 +6,6 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use structopt::StructOpt;
-use itertools::Itertools;
 
 #[derive(Copy, Clone)]
 struct TileInfo(
@@ -2029,8 +2029,16 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("DFE_DFE_TILED_FT", (3, 0, 60, 0), &["hardip"]),
     TileInfo("DFE_DFE_TILEF_FT", (3, 0, 60, 0), &["hardip"]),
     TileInfo("DFE_DFE_TILED_RBRK_FT", (3, 0, 0, 0), &["clk-brk"]),
-    TileInfo("DFE_DFE_TILEF_DFE_TILED_RBRK_FT", (3, 0, 0, 0), &["clk-brk"]),
-    TileInfo("DFE_DFE_TILED_DFE_TILEF_RBRK_FT", (3, 0, 0, 0), &["clk-brk"]),
+    TileInfo(
+        "DFE_DFE_TILEF_DFE_TILED_RBRK_FT",
+        (3, 0, 0, 0),
+        &["clk-brk"],
+    ),
+    TileInfo(
+        "DFE_DFE_TILED_DFE_TILEF_RBRK_FT",
+        (3, 0, 0, 0),
+        &["clk-brk"],
+    ),
     TileInfo("DFE_DFE_TILED_TERM_B_FT", (3, 0, 0, 0), &[]),
     TileInfo("DFE_DFE_TILED_TERM_T_FT", (3, 0, 0, 0), &[]),
     // DFE_TILEE
@@ -2358,8 +2366,16 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("CFG_M12BUF_CTR_RIGHT_CFG_OLY_TOP_L_FT", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_CTR_RIGHT_CFG_ALTO_BOT_L_FT", (0, 0, 29, 0), &[]),
     TileInfo("CFG_M12BUF_CTR_RIGHT_CFG_ALTO_TOP_L_FT", (0, 0, 29, 0), &[]),
-    TileInfo("CFG_M12BUF_CTR_RIGHT_CFG_ALTO_TERM_TOP_L_FT", (0, 0, 29, 0), &[]),
-    TileInfo("CFG_M12BUF_CTR_RIGHT_CFG_ALTO_TERM_BOT_L_FT", (0, 0, 29, 0), &[]),
+    TileInfo(
+        "CFG_M12BUF_CTR_RIGHT_CFG_ALTO_TERM_TOP_L_FT",
+        (0, 0, 29, 0),
+        &[],
+    ),
+    TileInfo(
+        "CFG_M12BUF_CTR_RIGHT_CFG_ALTO_TERM_BOT_L_FT",
+        (0, 0, 29, 0),
+        &[],
+    ),
     TileInfo(
         "CFG_M12BUF_CTR_RIGHT_CFG_OLY_DK_BOT_L_FT",
         (0, 0, 29, 0),
@@ -2846,23 +2862,35 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLK_GT_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_GT_SSIT_TOP_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_GT_SSIT_TOP_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLK_GT_SSIT_TOP_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_GT_SSIT_TOP_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("CLK_GT_SSIT_MT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_MT_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_MB_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_GT_SSIT_BOT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_GT_SSIT_HSR_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLK_GT_SSIT_BOT_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_GT_SSIT_HSR_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("AMS_SAT_GT_TOP_TILE", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("AMS_SAT_GT_BOT_TILE", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("NPI_VNPI_TOP_TILE", (0, 0, 5, 0), &["noc"]),
     TileInfo("NPI_VNPI_BOT_TILE", (0, 0, 5, 0), &["noc"]),
     TileInfo("MISC_GT_REBUF_TILE", (0, 0, 9, 0), &["clk-spine-buf"]),
-    TileInfo(
-        "CLK_REBUF_VERT_GT_TILE",
-        (0, 0, 9, 0),
-        &["clk-spine-buf"],
-    ),
+    TileInfo("CLK_REBUF_VERT_GT_TILE", (0, 0, 9, 0), &["clk-spine-buf"]),
     TileInfo(
         "CLK_REBUF_VERT_GT_CBA_TILE",
         (0, 0, 9, 0),
@@ -2953,11 +2981,7 @@ const VERSAL_TILES: &[TileInfo] = &[
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
-    TileInfo(
-        "CLK_VERT_TO_HSR_GT_TILE",
-        (0, 0, 8, 0),
-        &["clk-spine-buf"],
-    ),
+    TileInfo("CLK_VERT_TO_HSR_GT_TILE", (0, 0, 8, 0), &["clk-spine-buf"]),
     TileInfo(
         "CLK_VERT_TO_HSR_GT_OCA_TILE",
         (0, 0, 8, 0),
@@ -3044,23 +3068,71 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLK_VNOC_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_TOP_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_TOP_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_HBM_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_MT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_MT_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_MB_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_BOT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_SSIT_HSR_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLK_VNOC_SSIT_TOP_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_TOP_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_HBM_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_MT_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_MT_BBO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_MB_BBO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_BOT_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_SSIT_HSR_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("CLK_VNOC_PSS_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_AAA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_BBA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_PSS_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_PSS_SSIT_MT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_PSS_SSIT_MB_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_PSS_SSIT_HSR_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLK_VNOC_PSS_SSIT_BOT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLK_VNOC_PSS_SSIT_MT_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_PSS_SSIT_MB_BBO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_PSS_SSIT_HSR_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLK_VNOC_PSS_SSIT_BOT_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("MISR_TILE", (0, 0, 9, 0), &["hardip"]),
     TileInfo("NOC_NSU512_TOP", (1, 0, 8, 0), &["noc"]),
     TileInfo("NOC_NMU512_TOP", (1, 0, 10, 0), &["noc"]),
@@ -3090,11 +3162,7 @@ const VERSAL_TILES: &[TileInfo] = &[
         (1, 0, 9, 0),
         &["clk-spine-buf"],
     ),
-    TileInfo(
-        "CLK_REBUF_VERT_VNOC_TILE",
-        (1, 0, 9, 0),
-        &["clk-spine-buf"],
-    ),
+    TileInfo("CLK_REBUF_VERT_VNOC_TILE", (1, 0, 9, 0), &["clk-spine-buf"]),
     TileInfo(
         "CLK_REBUF_VERT_VNOC_ACA_TILE",
         (1, 0, 9, 0),
@@ -3344,7 +3412,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 let ntk = &rd.tile_kinds[ntile.kind];
                                 let ntkn = rd.tile_kinds.key(ntile.kind);
                                 if need_null {
-                                    if ntkn != "NULL" && ntkn != "PCIE_NULL" && ntkn != "INVALID_0_0" {
+                                    if ntkn != "NULL"
+                                        && ntkn != "PCIE_NULL"
+                                        && ntkn != "INVALID_0_0"
+                                    {
                                         println!(
                                             "Tile {} expanded onto {} which is not NULL",
                                             tile.name, ntile.name
@@ -3423,7 +3494,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 } else {
                     ofile.write_all(format!("<td class=\"{}\">", cls).as_bytes())?;
                 }
-                ofile.write_all(format!("<div>{}<br/>{}", rd.tile_kinds.key(tile.kind), tile.name).as_bytes())?;
+                ofile.write_all(
+                    format!("<div>{}<br/>{}", rd.tile_kinds.key(tile.kind), tile.name).as_bytes(),
+                )?;
                 for (slot, ts, tks) in tk
                     .sites
                     .iter()

@@ -1,23 +1,23 @@
-use structopt::StructOpt;
 use prjcombine_toolchain::Toolchain;
+use rayon::prelude::*;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
-use rayon::prelude::*;
+use structopt::StructOpt;
 
-mod types;
-mod run;
-mod verilog;
-mod verify;
+mod cfg;
 mod clb_lut4;
 mod clb_lut6;
-mod ramb;
+mod clkbuf;
 mod dsp;
 mod hard;
-mod clkbuf;
-mod cfg;
+mod ramb;
+mod run;
+mod types;
+mod verify;
+mod verilog;
 
-use types::{TestGenCtx, Test};
+use types::{Test, TestGenCtx};
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -77,10 +77,30 @@ fn get_spartan3_tests(family: &str) -> Vec<Test> {
     let mut res = Vec::new();
     let mut ctx = TestGenCtx::new();
     let (part, ramb_mode, dsp_mode, cfg_mode) = match family {
-        "spartan3" => ("xc3s2000-4-fg900", ramb::Mode::Virtex2, dsp::Mode::Virtex2, cfg::Mode::Spartan3),
-        "spartan3e" => ("xc3s1600e-4-fg484", ramb::Mode::Virtex2, dsp::Mode::Spartan3E, cfg::Mode::Spartan3E),
-        "spartan3a" => ("xc3s1400an-4-fgg676", ramb::Mode::Spartan3A, dsp::Mode::Spartan3E, cfg::Mode::Spartan3A),
-        "spartan3adsp" => ("xc3sd1800a-4-fg676", ramb::Mode::Spartan3ADsp, dsp::Mode::Spartan3ADsp, cfg::Mode::Spartan3ADsp),
+        "spartan3" => (
+            "xc3s2000-4-fg900",
+            ramb::Mode::Virtex2,
+            dsp::Mode::Virtex2,
+            cfg::Mode::Spartan3,
+        ),
+        "spartan3e" => (
+            "xc3s1600e-4-fg484",
+            ramb::Mode::Virtex2,
+            dsp::Mode::Spartan3E,
+            cfg::Mode::Spartan3E,
+        ),
+        "spartan3a" => (
+            "xc3s1400an-4-fgg676",
+            ramb::Mode::Spartan3A,
+            dsp::Mode::Spartan3E,
+            cfg::Mode::Spartan3A,
+        ),
+        "spartan3adsp" => (
+            "xc3sd1800a-4-fg676",
+            ramb::Mode::Spartan3ADsp,
+            dsp::Mode::Spartan3ADsp,
+            cfg::Mode::Spartan3ADsp,
+        ),
         _ => unreachable!(),
     };
     for i in 0..10 {
@@ -237,11 +257,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("Testing {family} {tn}...");
             let v = verilog::emit(&t);
             match run::run(&tc, &t.part, &v) {
-                Ok(d) => if !verify::verify(&t, &d, &family) {
-                    let mut fv = File::create(format!("fail_{family}_{tn}.v")).unwrap();
-                    write!(fv, "{v}").unwrap();
-                    let mut fx = File::create(format!("fail_{family}_{tn}.xdl")).unwrap();
-                    d.write(&mut fx).unwrap();
+                Ok(d) => {
+                    if !verify::verify(&t, &d, &family) {
+                        let mut fv = File::create(format!("fail_{family}_{tn}.v")).unwrap();
+                        write!(fv, "{v}").unwrap();
+                        let mut fx = File::create(format!("fail_{family}_{tn}.xdl")).unwrap();
+                        d.write(&mut fx).unwrap();
+                    }
                 }
                 Err(e) => {
                     println!("SYNTH FAIL {:?}", e);

@@ -1,34 +1,43 @@
-use std::collections::BTreeMap;
-use prjcombine_xilinx_rawdump::{Part, Coord};
-use prjcombine_xilinx_geom::int::{IntDb, Dir, WireKind, NodeTileId};
 use prjcombine_entity::EntityId;
+use prjcombine_xilinx_geom::int::{Dir, IntDb, NodeTileId, WireKind};
+use prjcombine_xilinx_rawdump::{Coord, Part};
+use std::collections::BTreeMap;
 
 use crate::intb::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> IntDb {
     let mut builder = IntBuilder::new("virtex2", rd);
 
-    builder.wire("PULLUP", WireKind::TiePullup, &[
-        "VCC_PINWIRE",
-        "IOIS_VCC_WIRE",
-        "BRAM_VCC_WIRE",
-        "BRAM_IOIS_VCC_WIRE",
-        "CNR_VCC_WIRE",
-        "GIGABIT_INT_VCC_WIRE",
-        "CLKB_VCC_WIRE",
-        "CLKT_VCC_WIRE",
-    ]);
+    builder.wire(
+        "PULLUP",
+        WireKind::TiePullup,
+        &[
+            "VCC_PINWIRE",
+            "IOIS_VCC_WIRE",
+            "BRAM_VCC_WIRE",
+            "BRAM_IOIS_VCC_WIRE",
+            "CNR_VCC_WIRE",
+            "GIGABIT_INT_VCC_WIRE",
+            "CLKB_VCC_WIRE",
+            "CLKT_VCC_WIRE",
+        ],
+    );
 
     for i in 0..8 {
-        builder.wire(format!("GCLK{i}"), WireKind::ClkOut(i), &[
+        builder.wire(
             format!("GCLK{i}"),
-        ]);
+            WireKind::ClkOut(i),
+            &[format!("GCLK{i}")],
+        );
     }
     for i in 0..8 {
-        builder.logic_out(format!("DCM.CLKPAD{i}"), &[
-            format!("BRAM_IOIS_DLL_CLKPAD{i}"),
-            format!("GIGABIT_INT_DLL_CLKPAD{i}"),
-        ]);
+        builder.logic_out(
+            format!("DCM.CLKPAD{i}"),
+            &[
+                format!("BRAM_IOIS_DLL_CLKPAD{i}"),
+                format!("GIGABIT_INT_DLL_CLKPAD{i}"),
+            ],
+        );
     }
 
     for (i, da1, da2, db, xname) in [
@@ -49,14 +58,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         (14, Dir::W, Some(Dir::N), None, None),
         (15, Dir::N, None, None, Some(3)),
     ] {
-        let omux = builder.mux_out(format!("OMUX{i}"), &[
+        let omux = builder.mux_out(
             format!("OMUX{i}"),
-            format!("LPPC_INT_OMUX{i}"),
-        ]);
-        let omux_da1 = builder.branch(omux, da1, format!("OMUX{i}.{da1}"), &[
-            format!("OMUX_{da1}{i}"),
-            format!("LPPC_INT_OMUX_{da1}{i}"),
-        ]);
+            &[format!("OMUX{i}"), format!("LPPC_INT_OMUX{i}")],
+        );
+        let omux_da1 = builder.branch(
+            omux,
+            da1,
+            format!("OMUX{i}.{da1}"),
+            &[format!("OMUX_{da1}{i}"), format!("LPPC_INT_OMUX_{da1}{i}")],
+        );
         match (xname, da1) {
             (None, _) => (),
             (Some(i), Dir::N) => {
@@ -70,56 +81,80 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             _ => unreachable!(),
         }
         if let Some(da2) = da2 {
-            builder.branch(omux_da1, da2, format!("OMUX{i}.{da1}{da2}"), &[
-                format!("OMUX_{da1}{da2}{i}"),
-                format!("LPPC_INT_OMUX_{da1}{da2}{i}"),
-            ]);
+            builder.branch(
+                omux_da1,
+                da2,
+                format!("OMUX{i}.{da1}{da2}"),
+                &[
+                    format!("OMUX_{da1}{da2}{i}"),
+                    format!("LPPC_INT_OMUX_{da1}{da2}{i}"),
+                ],
+            );
         }
         if let Some(db) = db {
-            builder.branch(omux, db, format!("OMUX{i}.{db}"), &[
-                format!("OMUX_{db}{i}"),
-                format!("LPPC_INT_OMUX_{db}{i}"),
-            ]);
+            builder.branch(
+                omux,
+                db,
+                format!("OMUX{i}.{db}"),
+                &[format!("OMUX_{db}{i}"), format!("LPPC_INT_OMUX_{db}{i}")],
+            );
         }
     }
 
     for dir in Dir::DIRS {
         for i in 0..10 {
-            let beg = builder.mux_out(format!("DBL.{dir}{i}.0"), &[
-                format!("{dir}2BEG{i}"),
-                format!("LPPC_INT_{dir}2BEG{i}"),
-            ]);
-            let mid = builder.branch(beg, dir, format!("DBL.{dir}{i}.1"), &[
-                format!("{dir}2MID{i}"),
-                format!("LPPC_INT_{dir}2MID{i}"),
-            ]);
-            let end = builder.branch(mid, dir, format!("DBL.{dir}{i}.2"), &[
-                format!("{dir}2END{i}"),
-                format!("LPPC_INT_{dir}2END{i}"),
-            ]);
+            let beg = builder.mux_out(
+                format!("DBL.{dir}{i}.0"),
+                &[format!("{dir}2BEG{i}"), format!("LPPC_INT_{dir}2BEG{i}")],
+            );
+            let mid = builder.branch(
+                beg,
+                dir,
+                format!("DBL.{dir}{i}.1"),
+                &[format!("{dir}2MID{i}"), format!("LPPC_INT_{dir}2MID{i}")],
+            );
+            let end = builder.branch(
+                mid,
+                dir,
+                format!("DBL.{dir}{i}.2"),
+                &[format!("{dir}2END{i}"), format!("LPPC_INT_{dir}2END{i}")],
+            );
             if matches!(dir, Dir::E | Dir::S) && i < 2 {
-                builder.branch(end, Dir::S, format!("DBL.{dir}{i}.3"), &[
-                    format!("{dir}2END_S{i}"),
-                    format!("LPPC_INT_{dir}2END_S{i}"),
-                ]);
+                builder.branch(
+                    end,
+                    Dir::S,
+                    format!("DBL.{dir}{i}.3"),
+                    &[
+                        format!("{dir}2END_S{i}"),
+                        format!("LPPC_INT_{dir}2END_S{i}"),
+                    ],
+                );
             }
             if matches!(dir, Dir::W | Dir::N) && i >= 8 {
-                builder.branch(end, Dir::N, format!("DBL.{dir}{i}.3"), &[
-                    format!("{dir}2END_N{i}"),
-                    format!("LPPC_INT_{dir}2END_N{i}"),
-                ]);
+                builder.branch(
+                    end,
+                    Dir::N,
+                    format!("DBL.{dir}{i}.3"),
+                    &[
+                        format!("{dir}2END_N{i}"),
+                        format!("LPPC_INT_{dir}2END_N{i}"),
+                    ],
+                );
             }
         }
     }
 
     for dir in Dir::DIRS {
         for i in 0..10 {
-            let mut last = builder.mux_out(format!("HEX.{dir}{i}.0"), &[
-                format!("{dir}6BEG{i}"),
-                format!("LR_IOIS_{dir}6BEG{i}"),
-                format!("TB_IOIS_{dir}6BEG{i}"),
-                format!("LPPC_INT_{dir}6BEG{i}"),
-            ]);
+            let mut last = builder.mux_out(
+                format!("HEX.{dir}{i}.0"),
+                &[
+                    format!("{dir}6BEG{i}"),
+                    format!("LR_IOIS_{dir}6BEG{i}"),
+                    format!("TB_IOIS_{dir}6BEG{i}"),
+                    format!("LPPC_INT_{dir}6BEG{i}"),
+                ],
+            );
             for (j, seg) in [
                 (1, "A"),
                 (2, "B"),
@@ -128,111 +163,152 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 (5, "D"),
                 (6, "END"),
             ] {
-                last = builder.branch(last, dir, format!("HEX.{dir}{i}.{j}"), &[
-                    format!("{dir}6{seg}{i}"),
-                    format!("LR_IOIS_{dir}6{seg}{i}"),
-                    format!("TB_IOIS_{dir}6{seg}{i}"),
-                    format!("LPPC_INT_{dir}6{seg}{i}"),
-                ]);
+                last = builder.branch(
+                    last,
+                    dir,
+                    format!("HEX.{dir}{i}.{j}"),
+                    &[
+                        format!("{dir}6{seg}{i}"),
+                        format!("LR_IOIS_{dir}6{seg}{i}"),
+                        format!("TB_IOIS_{dir}6{seg}{i}"),
+                        format!("LPPC_INT_{dir}6{seg}{i}"),
+                    ],
+                );
             }
             if matches!(dir, Dir::E | Dir::S) && i < 2 {
-                builder.branch(last, Dir::S, format!("HEX.{dir}{i}.7"), &[
-                    format!("{dir}6END_S{i}"),
-                    format!("LR_IOIS_{dir}6END_S{i}"),
-                    format!("TB_IOIS_{dir}6END_S{i}"),
-                    format!("LPPC_INT_{dir}6END_S{i}"),
-                ]);
+                builder.branch(
+                    last,
+                    Dir::S,
+                    format!("HEX.{dir}{i}.7"),
+                    &[
+                        format!("{dir}6END_S{i}"),
+                        format!("LR_IOIS_{dir}6END_S{i}"),
+                        format!("TB_IOIS_{dir}6END_S{i}"),
+                        format!("LPPC_INT_{dir}6END_S{i}"),
+                    ],
+                );
             }
             if matches!(dir, Dir::W | Dir::N) && i >= 8 {
-                builder.branch(last, Dir::N, format!("HEX.{dir}{i}.7"), &[
-                    format!("{dir}6END_N{i}"),
-                    format!("LR_IOIS_{dir}6END_N{i}"),
-                    format!("TB_IOIS_{dir}6END_N{i}"),
-                    format!("LPPC_INT_{dir}6END_N{i}"),
-                ]);
+                builder.branch(
+                    last,
+                    Dir::N,
+                    format!("HEX.{dir}{i}.7"),
+                    &[
+                        format!("{dir}6END_N{i}"),
+                        format!("LR_IOIS_{dir}6END_N{i}"),
+                        format!("TB_IOIS_{dir}6END_N{i}"),
+                        format!("LPPC_INT_{dir}6END_N{i}"),
+                    ],
+                );
             }
         }
     }
 
-    let lh: Vec<_> = (0..24).map(|i| builder.wire(format!("LH.{i}"), WireKind::MultiBranch(Dir::W), &[
-        format!("LH{i}"),
-        format!("LPPC_INT_LH{i}"),
-    ])).collect();
+    let lh: Vec<_> = (0..24)
+        .map(|i| {
+            builder.wire(
+                format!("LH.{i}"),
+                WireKind::MultiBranch(Dir::W),
+                &[format!("LH{i}"), format!("LPPC_INT_LH{i}")],
+            )
+        })
+        .collect();
     for i in 0..24 {
         builder.conn_branch(lh[i], Dir::E, lh[(i + 1) % 24]);
     }
 
-    let lv: Vec<_> = (0..24).map(|i| builder.wire(format!("LV.{i}"), WireKind::MultiBranch(Dir::S), &[
-        format!("LV{i}"),
-    ])).collect();
+    let lv: Vec<_> = (0..24)
+        .map(|i| {
+            builder.wire(
+                format!("LV.{i}"),
+                WireKind::MultiBranch(Dir::S),
+                &[format!("LV{i}")],
+            )
+        })
+        .collect();
     for i in 0..24 {
         builder.conn_branch(lv[i], Dir::N, lv[(i + 23) % 24]);
     }
 
     for i in 0..4 {
-        builder.mux_out(format!("IMUX.CLK{i}"), &[
-            format!("CLK{i}"),
-            format!("IOIS_CK{j}_B{k}", j = [2, 1, 2, 1][i], k = [1, 1, 3, 3][i]),
-            format!("BRAM_CLK{i}"),
-            ["BRAM_IOIS_CLKFB", "BRAM_IOIS_CLKIN", "BRAM_IOIS_PSCLK", ""][i].to_string(),
-            format!("CNR_CLK{i}"),
-            format!("LRPPC_INT_CLK{i}"),
-            format!("BPPC_INT_CLK{i}"),
-            format!("TPPC_INT_CLK{i}"),
-            format!("GIGABIT_INT_CLK{i}"),
-        ]);
+        builder.mux_out(
+            format!("IMUX.CLK{i}"),
+            &[
+                format!("CLK{i}"),
+                format!("IOIS_CK{j}_B{k}", j = [2, 1, 2, 1][i], k = [1, 1, 3, 3][i]),
+                format!("BRAM_CLK{i}"),
+                ["BRAM_IOIS_CLKFB", "BRAM_IOIS_CLKIN", "BRAM_IOIS_PSCLK", ""][i].to_string(),
+                format!("CNR_CLK{i}"),
+                format!("LRPPC_INT_CLK{i}"),
+                format!("BPPC_INT_CLK{i}"),
+                format!("TPPC_INT_CLK{i}"),
+                format!("GIGABIT_INT_CLK{i}"),
+            ],
+        );
     }
     for i in 0..4 {
-        builder.mux_out(format!("IMUX.SR{i}"), &[
-            format!("SR{i}"),
-            format!("IOIS_SR_B{j}", j = [1, 2, 0, 3][i]),
-            format!("BRAM_SR{i}"),
-            format!("BRAM_IOIS_SR{i}"),
-            format!("CNR_SR{i}"),
-            format!("LRPPC_INT_SR{i}"),
-            format!("BPPC_INT_SR{i}"),
-            format!("TPPC_INT_SR{i}"),
-            format!("GIGABIT_INT_SR{i}"),
-        ]);
+        builder.mux_out(
+            format!("IMUX.SR{i}"),
+            &[
+                format!("SR{i}"),
+                format!("IOIS_SR_B{j}", j = [1, 2, 0, 3][i]),
+                format!("BRAM_SR{i}"),
+                format!("BRAM_IOIS_SR{i}"),
+                format!("CNR_SR{i}"),
+                format!("LRPPC_INT_SR{i}"),
+                format!("BPPC_INT_SR{i}"),
+                format!("TPPC_INT_SR{i}"),
+                format!("GIGABIT_INT_SR{i}"),
+            ],
+        );
     }
     for i in 0..4 {
-        builder.mux_out(format!("IMUX.CE{i}"), &[
-            format!("CE_B{i}"),
-            format!("OCE_B{j}", j = [1, 0, 3, 2][i]),
-            format!("BRAM_CE_B{i}"),
-            // only 2, 3 actually exist
-            format!("BRAM_IOIS_CE_B{i}"),
-            format!("CNR_CE_B{i}"),
-            format!("LRPPC_INT_CE_B{i}"),
-            format!("BPPC_INT_CE_B{i}"),
-            format!("TPPC_INT_CE_B{i}"),
-            format!("GIGABIT_INT_CE_B{i}"),
-        ]);
+        builder.mux_out(
+            format!("IMUX.CE{i}"),
+            &[
+                format!("CE_B{i}"),
+                format!("OCE_B{j}", j = [1, 0, 3, 2][i]),
+                format!("BRAM_CE_B{i}"),
+                // only 2, 3 actually exist
+                format!("BRAM_IOIS_CE_B{i}"),
+                format!("CNR_CE_B{i}"),
+                format!("LRPPC_INT_CE_B{i}"),
+                format!("BPPC_INT_CE_B{i}"),
+                format!("TPPC_INT_CE_B{i}"),
+                format!("GIGABIT_INT_CE_B{i}"),
+            ],
+        );
     }
     for i in 0..2 {
-        builder.mux_out(format!("IMUX.TI{i}"), &[
-            format!("TI{i}"),
-            format!("IOIS_CK{j}_B0", j = [2, 1][i]),
-            format!("BRAM_TI{i}"),
-            format!("BRAM_IOIS_TI{i}"),
-            format!("CNR_TI{i}"),
-            format!("LRPPC_INT_TI{i}"),
-            format!("BPPC_INT_TI{i}"),
-            format!("TPPC_INT_TI{i}"),
-            format!("GIGABIT_INT_TI{i}"),
-        ]);
+        builder.mux_out(
+            format!("IMUX.TI{i}"),
+            &[
+                format!("TI{i}"),
+                format!("IOIS_CK{j}_B0", j = [2, 1][i]),
+                format!("BRAM_TI{i}"),
+                format!("BRAM_IOIS_TI{i}"),
+                format!("CNR_TI{i}"),
+                format!("LRPPC_INT_TI{i}"),
+                format!("BPPC_INT_TI{i}"),
+                format!("TPPC_INT_TI{i}"),
+                format!("GIGABIT_INT_TI{i}"),
+            ],
+        );
     }
     for i in 0..2 {
-        builder.mux_out(format!("IMUX.TS{i}"), &[
-            format!("TS{i}"),
-            format!("IOIS_CK{j}_B2", j = [2, 1][i]),
-            format!("BRAM_TS{i}"),
-            format!("CNR_TS{i}"),
-            format!("LRPPC_INT_TS{i}"),
-            format!("BPPC_INT_TS{i}"),
-            format!("TPPC_INT_TS{i}"),
-            format!("GIGABIT_INT_TS{i}"),
-        ]);
+        builder.mux_out(
+            format!("IMUX.TS{i}"),
+            &[
+                format!("TS{i}"),
+                format!("IOIS_CK{j}_B2", j = [2, 1][i]),
+                format!("BRAM_TS{i}"),
+                format!("CNR_TS{i}"),
+                format!("LRPPC_INT_TS{i}"),
+                format!("BPPC_INT_TS{i}"),
+                format!("TPPC_INT_TS{i}"),
+                format!("GIGABIT_INT_TS{i}"),
+            ],
+        );
     }
     // CLB inputs
     for i in 0..4 {
@@ -249,74 +325,81 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for i in 0..4 {
         for j in 0..2 {
             let ri = 3 - i;
-            builder.mux_out(format!("IMUX.G{i}.FAN{j}"), &[
-                match (i, j) {
-                    (0, 0) => "IOIS_FAN_BX0",
-                    (0, 1) => "IOIS_FAN_BX2",
-                    (1, 0) => "IOIS_FAN_BY0",
-                    (1, 1) => "IOIS_FAN_BY2",
-                    (2, 0) => "IOIS_FAN_BY1",
-                    (2, 1) => "IOIS_FAN_BY3",
-                    (3, 0) => "IOIS_FAN_BX1",
-                    (3, 1) => "IOIS_FAN_BX3",
-                    _ => unreachable!(),
-                }.to_string(),
-                format!("CNR_FAN{ri}{j}"),
-                format!("BRAM_FAN{ri}{j}"),
-                format!("LRPPC_INT_FAN{ri}{j}"),
-                format!("BPPC_INT_FAN{ri}{j}"),
-                format!("TPPC_INT_FAN{ri}{j}"),
-                format!("GIGABIT_INT_FAN{ri}{j}"),
-            ]);
+            builder.mux_out(
+                format!("IMUX.G{i}.FAN{j}"),
+                &[
+                    match (i, j) {
+                        (0, 0) => "IOIS_FAN_BX0",
+                        (0, 1) => "IOIS_FAN_BX2",
+                        (1, 0) => "IOIS_FAN_BY0",
+                        (1, 1) => "IOIS_FAN_BY2",
+                        (2, 0) => "IOIS_FAN_BY1",
+                        (2, 1) => "IOIS_FAN_BY3",
+                        (3, 0) => "IOIS_FAN_BX1",
+                        (3, 1) => "IOIS_FAN_BX3",
+                        _ => unreachable!(),
+                    }
+                    .to_string(),
+                    format!("CNR_FAN{ri}{j}"),
+                    format!("BRAM_FAN{ri}{j}"),
+                    format!("LRPPC_INT_FAN{ri}{j}"),
+                    format!("BPPC_INT_FAN{ri}{j}"),
+                    format!("TPPC_INT_FAN{ri}{j}"),
+                    format!("GIGABIT_INT_FAN{ri}{j}"),
+                ],
+            );
         }
         for j in 0..8 {
-            builder.mux_out(format!("IMUX.G{i}.DATA{j}"), &[
-                match (i, j) {
-                    (_, 5) => format!("IOIS_REV_B{i}"),
-                    (_, 6) => format!("O2_B{i}"),
-                    (_, 7) => format!("O1_B{i}"),
-                    _ => "".to_string(),
-                },
-                format!("DATA_IN{k}", k = i * 8 + j), // CNR
-                match (i, j) {
-                    (0, 2) => "BRAM_DIPB".to_string(),
-                    (0, 3) => "BRAM_DIPA".to_string(),
-                    (2, 2) => "BRAM_MULTINB16".to_string(),
-                    (2, 3) => "BRAM_MULTINB17".to_string(),
-                    (3, 2) => "BRAM_MULTINA16".to_string(),
-                    (3, 3) => "BRAM_MULTINA17".to_string(),
-                    (_, 4) => format!("BRAM_DIB{i}"),
-                    (_, 5) => format!("BRAM_DIB{k}", k = 16 + i),
-                    (_, 6) => format!("BRAM_DIA{i}"),
-                    (_, 7) => format!("BRAM_DIA{k}", k = 16 + i),
-                    _ => "".to_string(),
-                },
-                match (i, j) {
-                    (0, 0) => "BRAM_IOIS_DSSEN".to_string(),
-                    (0, 1) => "BRAM_IOIS_CTLSEL0".to_string(),
-                    (0, 2) => "BRAM_IOIS_CTLSEL1".to_string(),
-                    (0, 3) => "BRAM_IOIS_CTLSEL2".to_string(),
-                    (1, 0) => "BRAM_IOIS_PSEN".to_string(),
-                    (1, 1) => "BRAM_IOIS_CTLOSC2".to_string(),
-                    (1, 2) => "BRAM_IOIS_CTLOSC1".to_string(),
-                    (1, 3) => "BRAM_IOIS_CTLGO".to_string(),
-                    (2, 0) => "BRAM_IOIS_PSINCDEC".to_string(),
-                    (2, 1) => "BRAM_IOIS_CTLMODE".to_string(),
-                    (2, 2) => "BRAM_IOIS_FREEZEDLL".to_string(),
-                    (2, 3) => "BRAM_IOIS_FREEZEDFS".to_string(),
-                    (3, 0) => "BRAM_IOIS_RST".to_string(),
-                    (3, 1) => "BRAM_IOIS_STSADRS0".to_string(),
-                    (3, 2) => "BRAM_IOIS_STSADRS1".to_string(),
-                    (3, 3) => "BRAM_IOIS_STSADRS2".to_string(),
-                    (3, 4) => "BRAM_IOIS_STSADRS3".to_string(),
-                    (3, 5) if rd.family == "virtex2p" => "BRAM_IOIS_STSADRS4".to_string(),
-                    _ => format!("BRAM_IOIS_DATA{k}", k = i * 8 + j),
-                },
-                format!("LRPPC_INT_DATA_IN{k}", k = j * 4 + i),
-                format!("BPPC_INT_DATA_IN{k}", k = j * 4 + i),
-                format!("TPPC_INT_DATA_IN{k}", k = j * 4 + i),
-                format!("GIGABIT_INT_DATA_IN{k}", k = j * 4 + i),
-            ]);
+            builder.mux_out(
+                format!("IMUX.G{i}.DATA{j}"),
+                &[
+                    match (i, j) {
+                        (_, 5) => format!("IOIS_REV_B{i}"),
+                        (_, 6) => format!("O2_B{i}"),
+                        (_, 7) => format!("O1_B{i}"),
+                        _ => "".to_string(),
+                    },
+                    format!("DATA_IN{k}", k = i * 8 + j), // CNR
+                    match (i, j) {
+                        (0, 2) => "BRAM_DIPB".to_string(),
+                        (0, 3) => "BRAM_DIPA".to_string(),
+                        (2, 2) => "BRAM_MULTINB16".to_string(),
+                        (2, 3) => "BRAM_MULTINB17".to_string(),
+                        (3, 2) => "BRAM_MULTINA16".to_string(),
+                        (3, 3) => "BRAM_MULTINA17".to_string(),
+                        (_, 4) => format!("BRAM_DIB{i}"),
+                        (_, 5) => format!("BRAM_DIB{k}", k = 16 + i),
+                        (_, 6) => format!("BRAM_DIA{i}"),
+                        (_, 7) => format!("BRAM_DIA{k}", k = 16 + i),
+                        _ => "".to_string(),
+                    },
+                    match (i, j) {
+                        (0, 0) => "BRAM_IOIS_DSSEN".to_string(),
+                        (0, 1) => "BRAM_IOIS_CTLSEL0".to_string(),
+                        (0, 2) => "BRAM_IOIS_CTLSEL1".to_string(),
+                        (0, 3) => "BRAM_IOIS_CTLSEL2".to_string(),
+                        (1, 0) => "BRAM_IOIS_PSEN".to_string(),
+                        (1, 1) => "BRAM_IOIS_CTLOSC2".to_string(),
+                        (1, 2) => "BRAM_IOIS_CTLOSC1".to_string(),
+                        (1, 3) => "BRAM_IOIS_CTLGO".to_string(),
+                        (2, 0) => "BRAM_IOIS_PSINCDEC".to_string(),
+                        (2, 1) => "BRAM_IOIS_CTLMODE".to_string(),
+                        (2, 2) => "BRAM_IOIS_FREEZEDLL".to_string(),
+                        (2, 3) => "BRAM_IOIS_FREEZEDFS".to_string(),
+                        (3, 0) => "BRAM_IOIS_RST".to_string(),
+                        (3, 1) => "BRAM_IOIS_STSADRS0".to_string(),
+                        (3, 2) => "BRAM_IOIS_STSADRS1".to_string(),
+                        (3, 3) => "BRAM_IOIS_STSADRS2".to_string(),
+                        (3, 4) => "BRAM_IOIS_STSADRS3".to_string(),
+                        (3, 5) if rd.family == "virtex2p" => "BRAM_IOIS_STSADRS4".to_string(),
+                        _ => format!("BRAM_IOIS_DATA{k}", k = i * 8 + j),
+                    },
+                    format!("LRPPC_INT_DATA_IN{k}", k = j * 4 + i),
+                    format!("BPPC_INT_DATA_IN{k}", k = j * 4 + i),
+                    format!("TPPC_INT_DATA_IN{k}", k = j * 4 + i),
+                    format!("GIGABIT_INT_DATA_IN{k}", k = j * 4 + i),
+                ],
+            );
         }
     }
     // IOI special inputs
@@ -339,30 +422,54 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     let mut bram_addr_ppc_b = BTreeMap::new();
     for ab in ['A', 'B'] {
         for i in 0..4 {
-            let root = builder.mux_out(format!("IMUX.BRAM_ADDR{ab}{i}"), &[
-                format!("BRAM_ADDR{ab}_B{i}"),
-            ]);
+            let root = builder.mux_out(
+                format!("IMUX.BRAM_ADDR{ab}{i}"),
+                &[format!("BRAM_ADDR{ab}_B{i}")],
+            );
             for dir in [Dir::S, Dir::N] {
                 let mut last = root;
                 for j in 1..5 {
                     if dir == Dir::N {
-                        builder.name_term_in_far_wire(bram_s, last, format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4));
+                        builder.name_term_in_far_wire(
+                            bram_s,
+                            last,
+                            format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4),
+                        );
                         bram_addr_ppc_t.insert((ab, i + (4 - j) * 4), last);
                     } else {
                         bram_addr_ppc_b.insert((ab, i + (j - 1) * 4), last);
                     }
                     if j == 4 {
-                        last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}4"), &[
-                            format!("BRAM_ADDR{ab}_{dir}END{i}"),
-                        ]);
+                        last = builder.branch(
+                            last,
+                            dir,
+                            format!("IMUX.BRAM_ADDR{ab}{i}.{dir}4"),
+                            &[format!("BRAM_ADDR{ab}_{dir}END{i}")],
+                        );
                     } else {
-                        last = builder.branch(last, dir, format!("IMUX.BRAM_ADDR{ab}{i}.{dir}{j}"), &[""]);
+                        last = builder.branch(
+                            last,
+                            dir,
+                            format!("IMUX.BRAM_ADDR{ab}{i}.{dir}{j}"),
+                            &[""],
+                        );
                     }
                     if dir == Dir::N {
                         if ab == 'A' {
-                            builder.name_term_out_wire(bram_s, last, format!("BRAMSITE_NADDRIN_{ab}{k}", k = 15 - ((i ^ 3) + (j - 1) * 4)));
+                            builder.name_term_out_wire(
+                                bram_s,
+                                last,
+                                format!(
+                                    "BRAMSITE_NADDRIN_{ab}{k}",
+                                    k = 15 - ((i ^ 3) + (j - 1) * 4)
+                                ),
+                            );
                         } else {
-                            builder.name_term_out_wire(bram_s, last, format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4));
+                            builder.name_term_out_wire(
+                                bram_s,
+                                last,
+                                format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4),
+                            );
                         }
                         bram_forbidden.push(last);
                     }
@@ -373,28 +480,31 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     // logic out stuff
     for i in 0..8 {
-        let w = builder.logic_out(format!("OUT.FAN{i}"), &[
-            // In CLBs, used for combinatorial outputs.
-            ["X0", "X1", "X2", "X3", "Y0", "Y1", "Y2", "Y3"][i],
-            // In IOIS, used for combinatorial inputs.  4-7 are unused.
-            ["I0", "I1", "I2", "I3", "", "", "", ""][i],
-            // In BRAM, used for low data outputs.
-            [
-                "BRAM_DOA2",
-                "BRAM_DOA3",
-                "BRAM_DOA0",
-                "BRAM_DOA1",
-                "BRAM_DOB1",
-                "BRAM_DOB0",
-                "BRAM_DOB3",
-                "BRAM_DOB2",
-            ][i],
-            &format!("DOUT_FAN{i}"),
-            &format!("LRPPC_INT_PPC1{i}"),
-            &format!("BPPC_INT_PPC1{i}"),
-            &format!("TPPC_INT_PPC1{i}"),
-            &format!("GIGABIT_INT_PPC1{i}"),
-        ]);
+        let w = builder.logic_out(
+            format!("OUT.FAN{i}"),
+            &[
+                // In CLBs, used for combinatorial outputs.
+                ["X0", "X1", "X2", "X3", "Y0", "Y1", "Y2", "Y3"][i],
+                // In IOIS, used for combinatorial inputs.  4-7 are unused.
+                ["I0", "I1", "I2", "I3", "", "", "", ""][i],
+                // In BRAM, used for low data outputs.
+                [
+                    "BRAM_DOA2",
+                    "BRAM_DOA3",
+                    "BRAM_DOA0",
+                    "BRAM_DOA1",
+                    "BRAM_DOB1",
+                    "BRAM_DOB0",
+                    "BRAM_DOB3",
+                    "BRAM_DOB2",
+                ][i],
+                &format!("DOUT_FAN{i}"),
+                &format!("LRPPC_INT_PPC1{i}"),
+                &format!("BPPC_INT_PPC1{i}"),
+                &format!("TPPC_INT_PPC1{i}"),
+                &format!("GIGABIT_INT_PPC1{i}"),
+            ],
+        );
         if i == 0 {
             builder.extra_name_tile("MK_T_IOIS", "IOIS_BREFCLK_SE", w);
         }
@@ -405,95 +515,100 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     // We call secondary outputs by their OMUX index.
     for i in 2..24 {
-        builder.logic_out(format!("OUT.SEC{i}"), &[
-            [
-                "", "", "", "", "", "", "", "", "YB0", "YB1", "YB3", "YB2", "XB1", "XB2",
-                "XB3", "YQ0", "YQ1", "XB0", "YQ2", "YQ3", "XQ0", "XQ1", "XQ2", "XQ3",
-            ][i],
-            [
-                "", "", "", "", "", "", "", "", "", "I_Q21", "I_Q23", "", "TS_FDBK1",
-                "TS_FDBK2", "TS_FDBK3", "I_Q20", "", "TS_FDBK0", "I_Q22", "", "I_Q10",
-                "I_Q11", "I_Q12", "I_Q13",
-            ][i],
-            [
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "BRAM_DOPA",
-                "BRAM_DOPB",
-                "",
-                "BRAM_MOUT32",
-                "BRAM_MOUT7",
-                "BRAM_MOUT6",
-                "BRAM_MOUT5",
-                "BRAM_MOUT4",
-                "BRAM_MOUT3",
-                "BRAM_MOUT2",
-                "BRAM_MOUT1",
-                "BRAM_MOUT0",
-            ][i],
-            [
-                "",
-                "",
-                "BRAM_IOIS_CLKFX180",
-                "BRAM_IOIS_CLKFX",
-                "BRAM_IOIS_CLKDV",
-                "BRAM_IOIS_CLK2X180",
-                "BRAM_IOIS_CLK2X",
-                "BRAM_IOIS_CLK270",
-                "BRAM_IOIS_CLK180",
-                "BRAM_IOIS_CLK90",
-                "BRAM_IOIS_CLK0",
-                "BRAM_IOIS_CONCUR",
-                "BRAM_IOIS_PSDONE",
-                "BRAM_IOIS_LOCKED",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-            ][i],
-            &if (8..16).contains(&i) {
-                format!("LRPPC_INT_PPC2{k}", k = 15 - i)
-            } else {
-                String::new()
-            },
-            &if (8..16).contains(&i) {
-                format!("BPPC_INT_PPC2{k}", k = 15 - i)
-            } else {
-                String::new()
-            },
-            &if (8..16).contains(&i) {
-                format!("TPPC_INT_PPC2{k}", k = 15 - i)
-            } else {
-                String::new()
-            },
-            &if (8..16).contains(&i) {
-                format!("GIGABIT_INT_PPC2{k}", k = 15 - i)
-            } else {
-                String::new()
-            },
-        ]);
+        builder.logic_out(
+            format!("OUT.SEC{i}"),
+            &[
+                [
+                    "", "", "", "", "", "", "", "", "YB0", "YB1", "YB3", "YB2", "XB1", "XB2",
+                    "XB3", "YQ0", "YQ1", "XB0", "YQ2", "YQ3", "XQ0", "XQ1", "XQ2", "XQ3",
+                ][i],
+                [
+                    "", "", "", "", "", "", "", "", "", "I_Q21", "I_Q23", "", "TS_FDBK1",
+                    "TS_FDBK2", "TS_FDBK3", "I_Q20", "", "TS_FDBK0", "I_Q22", "", "I_Q10", "I_Q11",
+                    "I_Q12", "I_Q13",
+                ][i],
+                [
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "BRAM_DOPA",
+                    "BRAM_DOPB",
+                    "",
+                    "BRAM_MOUT32",
+                    "BRAM_MOUT7",
+                    "BRAM_MOUT6",
+                    "BRAM_MOUT5",
+                    "BRAM_MOUT4",
+                    "BRAM_MOUT3",
+                    "BRAM_MOUT2",
+                    "BRAM_MOUT1",
+                    "BRAM_MOUT0",
+                ][i],
+                [
+                    "",
+                    "",
+                    "BRAM_IOIS_CLKFX180",
+                    "BRAM_IOIS_CLKFX",
+                    "BRAM_IOIS_CLKDV",
+                    "BRAM_IOIS_CLK2X180",
+                    "BRAM_IOIS_CLK2X",
+                    "BRAM_IOIS_CLK270",
+                    "BRAM_IOIS_CLK180",
+                    "BRAM_IOIS_CLK90",
+                    "BRAM_IOIS_CLK0",
+                    "BRAM_IOIS_CONCUR",
+                    "BRAM_IOIS_PSDONE",
+                    "BRAM_IOIS_LOCKED",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ][i],
+                &if (8..16).contains(&i) {
+                    format!("LRPPC_INT_PPC2{k}", k = 15 - i)
+                } else {
+                    String::new()
+                },
+                &if (8..16).contains(&i) {
+                    format!("BPPC_INT_PPC2{k}", k = 15 - i)
+                } else {
+                    String::new()
+                },
+                &if (8..16).contains(&i) {
+                    format!("TPPC_INT_PPC2{k}", k = 15 - i)
+                } else {
+                    String::new()
+                },
+                &if (8..16).contains(&i) {
+                    format!("GIGABIT_INT_PPC2{k}", k = 15 - i)
+                } else {
+                    String::new()
+                },
+            ],
+        );
     }
 
     // Same for tertiary.
     for i in 8..18 {
         for j in 0..2 {
-            builder.logic_out(format!("OUT.HALF{i}.{j}"), &[
+            builder.logic_out(
+                format!("OUT.HALF{i}.{j}"),
+                &[
                     format!("DOUT{k}", k = (17 - i) * 2 + j),
                     match (i, j) {
                         (8, 0) => "BRAM_DOA16",
@@ -513,79 +628,81 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         (16, 1) => "BRAM_IOIS_STATUS6",
                         (17, 1) => "BRAM_IOIS_STATUS7",
                         _ => "",
-                    }.to_string(),
+                    }
+                    .to_string(),
                 ],
             );
         }
     }
 
     for i in 0..16 {
-        builder.logic_out(format!("OUT.TEST{i}"), &[
-            format!("LRPPC_INT_TEST{i}"),
-            format!("BPPC_INT_TEST{i}"),
-            format!("TPPC_INT_TEST{i}"),
-            format!("GIGABIT_INT_TEST{i}"),
-        ]);
+        builder.logic_out(
+            format!("OUT.TEST{i}"),
+            &[
+                format!("LRPPC_INT_TEST{i}"),
+                format!("BPPC_INT_TEST{i}"),
+                format!("TPPC_INT_TEST{i}"),
+                format!("GIGABIT_INT_TEST{i}"),
+            ],
+        );
     }
 
     builder.logic_out("OUT.TBUS", &["TBUS"]);
-    let w = builder.logic_out("OUT.PCI0", &[
-        "LTERM_PCI_OUT_D0",
-        "LTERM_PCI_OUT_U0",
-        "RTERM_PCI_OUT_D0",
-        "RTERM_PCI_OUT_U0",
-    ]);
+    let w = builder.logic_out(
+        "OUT.PCI0",
+        &[
+            "LTERM_PCI_OUT_D0",
+            "LTERM_PCI_OUT_U0",
+            "RTERM_PCI_OUT_D0",
+            "RTERM_PCI_OUT_U0",
+        ],
+    );
     builder.extra_name_sub("REG_R_PCI_OUT_D2", 0, w);
     builder.extra_name_sub("REG_R_PCI_OUT_D0", 1, w);
     builder.extra_name_sub("REG_R_PCI_OUT_U0", 2, w);
     builder.extra_name_sub("REG_R_PCI_OUT_U2", 3, w);
-    let w = builder.logic_out("OUT.PCI1", &[
-        "LTERM_PCI_OUT_D1",
-        "LTERM_PCI_OUT_U1",
-        "RTERM_PCI_OUT_D1",
-        "RTERM_PCI_OUT_U1",
-    ]);
+    let w = builder.logic_out(
+        "OUT.PCI1",
+        &[
+            "LTERM_PCI_OUT_D1",
+            "LTERM_PCI_OUT_U1",
+            "RTERM_PCI_OUT_D1",
+            "RTERM_PCI_OUT_U1",
+        ],
+    );
     builder.extra_name_sub("REG_R_PCI_OUT_D1", 1, w);
     builder.extra_name_sub("REG_R_PCI_OUT_U1", 2, w);
 
     for i in 0..8 {
-        builder.mux_out(format!("CLK.IMUX.SEL{i}"), &[
-            format!("CLKB_SELDUB{i}"),
-            format!("CLKT_SELDUB{i}"),
-        ]);
+        builder.mux_out(
+            format!("CLK.IMUX.SEL{i}"),
+            &[format!("CLKB_SELDUB{i}"), format!("CLKT_SELDUB{i}")],
+        );
     }
     for i in 0..8 {
         let ii = i % 4;
-        let lr = if i < 4 {'R'} else {'L'};
-        builder.mux_out(format!("CLK.IMUX.CLK{i}"), &[
-            format!("CLKB_CLKDUB{lr}{ii}"),
-            format!("CLKT_CLKDUB{lr}{ii}"),
-        ]);
+        let lr = if i < 4 { 'R' } else { 'L' };
+        builder.mux_out(
+            format!("CLK.IMUX.CLK{i}"),
+            &[
+                format!("CLKB_CLKDUB{lr}{ii}"),
+                format!("CLKT_CLKDUB{lr}{ii}"),
+            ],
+        );
     }
     for i in 0..8 {
-        builder.logic_out(format!("CLK.OUT.{i}"), &[
-            format!("CLKB_GCLK_ROOT{i}"),
-            format!("CLKT_GCLK_ROOT{i}"),
-        ]);
+        builder.logic_out(
+            format!("CLK.OUT.{i}"),
+            &[format!("CLKB_GCLK_ROOT{i}"), format!("CLKT_GCLK_ROOT{i}")],
+        );
     }
 
     builder.extract_main_passes();
 
-    let bels_int = [
-        builder.bel_xy("RLL", "RLL", 0, 0),
-    ];
-    let bels_int_sigh = [
-        builder.bel_xy("RLL", "RLL", 0, 0).pins_name_only(&[
-            "LH0",
-            "LH6",
-            "LH12",
-            "LH18",
-            "LV0",
-            "LV6",
-            "LV12",
-            "LV18",
-        ])
-    ];
+    let bels_int = [builder.bel_xy("RLL", "RLL", 0, 0)];
+    let bels_int_sigh = [builder
+        .bel_xy("RLL", "RLL", 0, 0)
+        .pins_name_only(&["LH0", "LH6", "LH12", "LH18", "LV0", "LV6", "LV12", "LV18"])];
     builder.extract_node("CENTER", "INT.CLB", "INT.CLB", &bels_int);
     builder.extract_node("LR_IOIS", "INT.IOI", "INT.IOI.LR", &bels_int);
     builder.extract_node("TB_IOIS", "INT.IOI", "INT.IOI.TB", &bels_int);
@@ -600,7 +717,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("BRAM2", "INT.BRAM", "INT.BRAM", &bels_int);
     builder.extract_node("BRAM3", "INT.BRAM", "INT.BRAM", &bels_int);
     builder.extract_node("BRAM_IOIS", "INT.DCM.V2", "INT.BRAM_IOIS", &bels_int);
-    builder.extract_node("ML_BRAM_IOIS", "INT.DCM.V2P", "INT.ML_BRAM_IOIS", &bels_int_sigh);
+    builder.extract_node(
+        "ML_BRAM_IOIS",
+        "INT.DCM.V2P",
+        "INT.ML_BRAM_IOIS",
+        &bels_int_sigh,
+    );
     builder.extract_node("LL", "INT.CNR", "INT.CNR", &bels_int);
     builder.extract_node("LR", "INT.CNR", "INT.CNR", &bels_int);
     builder.extract_node("UL", "INT.CNR", "INT.CNR", &bels_int);
@@ -623,7 +745,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("BGIGABIT10_INT5", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("BGIGABIT10_INT6", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("BGIGABIT10_INT7", "INT.PPC", "INT.GT", &bels_int);
-    builder.extract_node("BGIGABIT10_INT8", "INT.GT.CLKPAD", "INT.GT.CLKPAD", &bels_int);
+    builder.extract_node(
+        "BGIGABIT10_INT8",
+        "INT.GT.CLKPAD",
+        "INT.GT.CLKPAD",
+        &bels_int,
+    );
     builder.extract_node("TGIGABIT10_INT0", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("TGIGABIT10_INT1", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("TGIGABIT10_INT2", "INT.PPC", "INT.GT", &bels_int);
@@ -632,7 +759,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("TGIGABIT10_INT5", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("TGIGABIT10_INT6", "INT.PPC", "INT.GT", &bels_int);
     builder.extract_node("TGIGABIT10_INT7", "INT.PPC", "INT.GT", &bels_int);
-    builder.extract_node("TGIGABIT10_INT8", "INT.GT.CLKPAD", "INT.GT.CLKPAD", &bels_int);
+    builder.extract_node(
+        "TGIGABIT10_INT8",
+        "INT.GT.CLKPAD",
+        "INT.GT.CLKPAD",
+        &bels_int,
+    );
     builder.extract_node("LPPC_X0Y0_INT", "INT.PPC", "INT.PPC.L", &bels_int);
     builder.extract_node("LPPC_X1Y0_INT", "INT.PPC", "INT.PPC.L", &bels_int);
     builder.extract_node("LLPPC_X0Y0_INT", "INT.PPC", "INT.PPC.L", &bels_int);
@@ -647,50 +779,41 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("TPPC_X1Y0_INT", "INT.PPC", "INT.PPC.T", &bels_int);
 
     let slice_name_only = [
-        "DX",
-        "DY",
-        "FXINA",
-        "FXINB",
-        "F5",
-        "FX",
-        "CIN",
-        "COUT",
-        "SHIFTIN",
-        "SHIFTOUT",
-        "ALTDIG",
-        "DIG",
-        "SLICEWE0",
-        "SLICEWE1",
-        "SLICEWE2",
-        "BXOUT",
-        "BYOUT",
-        "BYINVOUT",
-        "SOPIN",
-        "SOPOUT",
+        "DX", "DY", "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG",
+        "DIG", "SLICEWE0", "SLICEWE1", "SLICEWE2", "BXOUT", "BYOUT", "BYINVOUT", "SOPIN", "SOPOUT",
     ];
 
     let bels_clb = [
-        builder.bel_xy("SLICE0", "SLICE", 0, 0)
+        builder
+            .bel_xy("SLICE0", "SLICE", 0, 0)
             .pins_name_only(&slice_name_only)
             .extra_wire("BYINVOUT_LOCAL", &["BYINVOUT_LOCAL0"]),
-        builder.bel_xy("SLICE1", "SLICE", 0, 1)
+        builder
+            .bel_xy("SLICE1", "SLICE", 0, 1)
             .pins_name_only(&slice_name_only)
             .extra_wire("FX_S", &["FX_S1"])
             .extra_wire("COUT_N", &["COUT_N3"])
             .extra_wire("BYOUT_LOCAL", &["BYOUT_LOCAL1"])
             .extra_wire("BYINVOUT_LOCAL", &["BYINVOUT_LOCAL1"]),
-        builder.bel_xy("SLICE2", "SLICE", 1, 0)
+        builder
+            .bel_xy("SLICE2", "SLICE", 1, 0)
             .pins_name_only(&slice_name_only)
             .extra_wire("SOPOUT_W", &["SOPOUT_W2"]),
-        builder.bel_xy("SLICE3", "SLICE", 1, 1)
+        builder
+            .bel_xy("SLICE3", "SLICE", 1, 1)
             .pins_name_only(&slice_name_only)
             .extra_wire("COUT_N", &["COUT_N1"])
             .extra_wire("DIG_LOCAL", &["DIG_LOCAL3"])
             .extra_wire("DIG_S", &["DIG_S3"])
             .extra_wire("SOPOUT_W", &["SOPOUT_W3"]),
-        builder.bel_indexed("TBUF0", "TBUF", 0).pins_name_only(&["O"]),
-        builder.bel_indexed("TBUF1", "TBUF", 1).pins_name_only(&["O"]),
-        builder.bel_virtual("TBUS")
+        builder
+            .bel_indexed("TBUF0", "TBUF", 0)
+            .pins_name_only(&["O"]),
+        builder
+            .bel_indexed("TBUF1", "TBUF", 1)
+            .pins_name_only(&["O"]),
+        builder
+            .bel_virtual("TBUS")
             .extra_wire("BUS0", &["TBUF0"])
             .extra_wire("BUS1", &["TBUF1"])
             .extra_wire("BUS2", &["TBUF2"])
@@ -700,23 +823,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ];
     builder.extract_node_bels("CENTER", "CLB", "CLB", &bels_clb);
 
-    let ioi_name_only = [
-        "DIFFI_IN",
-        "PADOUT",
-        "DIFFO_IN",
-        "DIFFO_OUT",
-    ];
+    let ioi_name_only = ["DIFFI_IN", "PADOUT", "DIFFO_IN", "DIFFO_OUT"];
     let bels_ioi = [
-        builder.bel_indexed("IOI0", "IOB", 0)
+        builder
+            .bel_indexed("IOI0", "IOB", 0)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF0"),
-        builder.bel_indexed("IOI1", "IOB", 1)
+        builder
+            .bel_indexed("IOI1", "IOB", 1)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF1"),
-        builder.bel_indexed("IOI2", "IOB", 2)
+        builder
+            .bel_indexed("IOI2", "IOB", 2)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF2"),
-        builder.bel_indexed("IOI3", "IOB", 3)
+        builder
+            .bel_indexed("IOI3", "IOB", 3)
             .pins_name_only(&ioi_name_only)
             .extra_wire_force("IBUF", "IOIS_IBUF3"),
     ];
@@ -730,16 +852,28 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let bels_ioi_clk_b = [
             bels_ioi[0].clone(),
             bels_ioi[1].clone(),
-            builder.bel_single("CLK_P", "CLKPPAD2").pin_name_only("I", 1),
-            builder.bel_single("CLK_N", "CLKNPAD2").pin_name_only("I", 1),
-            builder.bel_virtual("BREFCLK_INT").extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
+            builder
+                .bel_single("CLK_P", "CLKPPAD2")
+                .pin_name_only("I", 1),
+            builder
+                .bel_single("CLK_N", "CLKNPAD2")
+                .pin_name_only("I", 1),
+            builder
+                .bel_virtual("BREFCLK_INT")
+                .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
         let bels_ioi_clk_t = [
-            builder.bel_single("CLK_P", "CLKPPAD1").pin_name_only("I", 1),
-            builder.bel_single("CLK_N", "CLKNPAD1").pin_name_only("I", 1),
+            builder
+                .bel_single("CLK_P", "CLKPPAD1")
+                .pin_name_only("I", 1),
+            builder
+                .bel_single("CLK_N", "CLKNPAD1")
+                .pin_name_only("I", 1),
             bels_ioi[2].clone(),
             bels_ioi[3].clone(),
-            builder.bel_virtual("BREFCLK_INT").extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
+            builder
+                .bel_virtual("BREFCLK_INT")
+                .extra_int_out("BREFCLK", &["IOIS_BREFCLK_SE"]),
         ];
         builder.extract_node_bels("MK_B_IOIS", "IOI.CLK_B", "IOI.CLK_B", &bels_ioi_clk_b);
         builder.extract_node_bels("MK_T_IOIS", "IOI.CLK_T", "IOI.CLK_T", &bels_ioi_clk_t);
@@ -764,44 +898,71 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.make_marker_bel(kind, kind, kind, num);
     }
 
-    let bels_dcm = [
-        builder.bel_xy("DCM", "DCM", 0, 0),
-    ];
+    let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];
     builder.extract_node_bels("BRAM_IOIS", "DCM.V2", "DCM.V2", &bels_dcm);
     builder.extract_node_bels("ML_BRAM_IOIS", "DCM.V2P", "DCM.V2P", &bels_dcm);
 
-    builder.extract_node_bels("LL", "DCI", "DCI", &[
-        builder.bel_indexed("DCI0", "DCI", 6),
-        builder.bel_indexed("DCI1", "DCI", 5),
-    ]);
-    builder.extract_node_bels("LR", "DCI", "DCI", &[
-        builder.bel_indexed("DCI0", "DCI", 3),
-        builder.bel_indexed("DCI1", "DCI", 4),
-    ]);
-    builder.extract_node_bels("UL", "DCI", "DCI", &[
-        builder.bel_indexed("DCI0", "DCI", 7),
-        builder.bel_indexed("DCI1", "DCI", 0),
-    ]);
-    builder.extract_node_bels("UR", "DCI", "DCI", &[
-        builder.bel_indexed("DCI0", "DCI", 2),
-        builder.bel_indexed("DCI1", "DCI", 1),
-    ]);
+    builder.extract_node_bels(
+        "LL",
+        "DCI",
+        "DCI",
+        &[
+            builder.bel_indexed("DCI0", "DCI", 6),
+            builder.bel_indexed("DCI1", "DCI", 5),
+        ],
+    );
+    builder.extract_node_bels(
+        "LR",
+        "DCI",
+        "DCI",
+        &[
+            builder.bel_indexed("DCI0", "DCI", 3),
+            builder.bel_indexed("DCI1", "DCI", 4),
+        ],
+    );
+    builder.extract_node_bels(
+        "UL",
+        "DCI",
+        "DCI",
+        &[
+            builder.bel_indexed("DCI0", "DCI", 7),
+            builder.bel_indexed("DCI1", "DCI", 0),
+        ],
+    );
+    builder.extract_node_bels(
+        "UR",
+        "DCI",
+        "DCI",
+        &[
+            builder.bel_indexed("DCI0", "DCI", 2),
+            builder.bel_indexed("DCI1", "DCI", 1),
+        ],
+    );
 
-    builder.extract_node_bels("LR", "LR", "LR", &[
-        builder.bel_single("STARTUP", "STARTUP"),
-        builder.bel_single("CAPTURE", "CAPTURE"),
-        builder.bel_single("ICAP", "ICAP"),
-    ]);
-    builder.extract_node_bels("UL", "PMV", "PMV", &[
-        builder.bel_single("PMV", "PMV"),
-    ]);
-    builder.extract_node_bels("UR", "BSCAN", "BSCAN", &[
-        builder.bel_single("BSCAN", "BSCAN"),
-    ]);
+    builder.extract_node_bels(
+        "LR",
+        "LR",
+        "LR",
+        &[
+            builder.bel_single("STARTUP", "STARTUP"),
+            builder.bel_single("CAPTURE", "CAPTURE"),
+            builder.bel_single("ICAP", "ICAP"),
+        ],
+    );
+    builder.extract_node_bels("UL", "PMV", "PMV", &[builder.bel_single("PMV", "PMV")]);
+    builder.extract_node_bels(
+        "UR",
+        "BSCAN",
+        "BSCAN",
+        &[builder.bel_single("BSCAN", "BSCAN")],
+    );
     if rd.family == "virtex2p" {
-        builder.extract_node_bels("UR", "JTAGPPC", "JTAGPPC", &[
-            builder.bel_single("JTAGPPC", "JTAGPPC"),
-        ]);
+        builder.extract_node_bels(
+            "UR",
+            "JTAGPPC",
+            "JTAGPPC",
+            &[builder.bel_single("JTAGPPC", "JTAGPPC")],
+        );
     }
 
     for (tkn, n) in [
@@ -847,7 +1008,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_term("TERM.S", Some("TERM.S"), Dir::S, tkn, "TERM.S");
     }
     builder.extract_term("TERM.S", Some("TERM.S"), Dir::S, "CNR_BTERM", "TERM.S.CNR");
-    builder.extract_term("TERM.S", Some("TERM.S"), Dir::S, "ML_CNR_BTERM", "TERM.S.CNR");
+    builder.extract_term(
+        "TERM.S",
+        Some("TERM.S"),
+        Dir::S,
+        "ML_CNR_BTERM",
+        "TERM.S.CNR",
+    );
     for tkn in [
         "TTERM321",
         "TTERM010",
@@ -877,15 +1044,55 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         };
         let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
         let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
-        builder.extract_pass_tile("PPC.S", Dir::S, int_n_xy, Some(xy_t), Some(xy_b), Some("PPC.S"), Some(("PPC.S", "PPC.S")), int_s_xy, &[]);
-        builder.extract_pass_tile("PPC.N", Dir::N, int_s_xy, Some(xy_b), Some(xy_t), Some("PPC.N"), Some(("PPC.N", "PPC.N")), int_n_xy, &[]);
+        builder.extract_pass_tile(
+            "PPC.S",
+            Dir::S,
+            int_n_xy,
+            Some(xy_t),
+            Some(xy_b),
+            Some("PPC.S"),
+            Some(("PPC.S", "PPC.S")),
+            int_s_xy,
+            &[],
+        );
+        builder.extract_pass_tile(
+            "PPC.N",
+            Dir::N,
+            int_s_xy,
+            Some(xy_b),
+            Some(xy_t),
+            Some("PPC.N"),
+            Some(("PPC.N", "PPC.N")),
+            int_n_xy,
+            &[],
+        );
     }
     for tkn in ["PTERMR", "PTERMBR", "PTERMTR"] {
         for &xy_r in rd.tiles_by_kind_name(tkn) {
             let int_w_xy = builder.walk_to_int(xy_r, Dir::W).unwrap();
             let int_e_xy = builder.walk_to_int(xy_r, Dir::E).unwrap();
-            builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some(xy_r), Some(int_w_xy), Some("PPC.W"), Some(("PPC.W", "PPC.W")), int_w_xy, &[]);
-            builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some(int_w_xy), Some(xy_r), Some("PPC.E"), Some(("PPC.E", "PPC.E")), int_e_xy, &[]);
+            builder.extract_pass_tile(
+                "PPC.W",
+                Dir::W,
+                int_e_xy,
+                Some(xy_r),
+                Some(int_w_xy),
+                Some("PPC.W"),
+                Some(("PPC.W", "PPC.W")),
+                int_w_xy,
+                &[],
+            );
+            builder.extract_pass_tile(
+                "PPC.E",
+                Dir::E,
+                int_w_xy,
+                Some(int_w_xy),
+                Some(xy_r),
+                Some("PPC.E"),
+                Some(("PPC.E", "PPC.E")),
+                int_e_xy,
+                &[],
+            );
         }
     }
 
@@ -945,7 +1152,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y,
             };
             let mut bels = vec![
-                builder.bel_indexed("BUFGMUX0", "BUFGMUX", 0)
+                builder
+                    .bel_indexed("BUFGMUX0", "BUFGMUX", 0)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR0", "ML_CLKB_CKIR0"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL4"])
@@ -953,7 +1161,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL0"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR0"])
                     .extra_int_in("CLK", &["CLKB_GCLK00"]),
-                builder.bel_indexed("BUFGMUX1", "BUFGMUX", 1)
+                builder
+                    .bel_indexed("BUFGMUX1", "BUFGMUX", 1)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR1"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL5"])
@@ -961,7 +1170,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL1"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR1"])
                     .extra_int_in("CLK", &["CLKB_GCLK01"]),
-                builder.bel_indexed("BUFGMUX2", "BUFGMUX", 2)
+                builder
+                    .bel_indexed("BUFGMUX2", "BUFGMUX", 2)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR2"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL6"])
@@ -969,7 +1179,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL2"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR2"])
                     .extra_int_in("CLK", &["CLKB_GCLK02"]),
-                builder.bel_indexed("BUFGMUX3", "BUFGMUX", 3)
+                builder
+                    .bel_indexed("BUFGMUX3", "BUFGMUX", 3)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIR3"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL7"])
@@ -977,7 +1188,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL3"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR3"])
                     .extra_int_in("CLK", &["CLKB_GCLK03"]),
-                builder.bel_indexed("BUFGMUX4", "BUFGMUX", 4)
+                builder
+                    .bel_indexed("BUFGMUX4", "BUFGMUX", 4)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL0"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL0"])
@@ -985,7 +1197,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL4"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR4"])
                     .extra_int_in("CLK", &["CLKB_GCLK04"]),
-                builder.bel_indexed("BUFGMUX5", "BUFGMUX", 5)
+                builder
+                    .bel_indexed("BUFGMUX5", "BUFGMUX", 5)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL1"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL1"])
@@ -993,7 +1206,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL5"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR5"])
                     .extra_int_in("CLK", &["CLKB_GCLK05"]),
-                builder.bel_indexed("BUFGMUX6", "BUFGMUX", 6)
+                builder
+                    .bel_indexed("BUFGMUX6", "BUFGMUX", 6)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL2", "ML_CLKB_CKIL2"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL2"])
@@ -1001,7 +1215,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL6"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR6"])
                     .extra_int_in("CLK", &["CLKB_GCLK06"]),
-                builder.bel_indexed("BUFGMUX7", "BUFGMUX", 7)
+                builder
+                    .bel_indexed("BUFGMUX7", "BUFGMUX", 7)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKB_CKIL3"])
                     .extra_wire("DCM_PAD_L", &["CLKB_DLL_CLKPADL3"])
@@ -1012,9 +1227,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ];
             if tkn == "ML_CLKB" {
                 bels.push(
-                    builder.bel_virtual("BREFCLK")
+                    builder
+                        .bel_virtual("BREFCLK")
                         .extra_wire("BREFCLK", &["ML_CLKB_BREFCLK"])
-                        .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"])
+                        .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"]),
                 );
             }
             builder.extract_xnode(tkn, xy, &[], &[xy_l, xy_r], tkn, &bels, &[]);
@@ -1031,7 +1247,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y,
             };
             let mut bels = vec![
-                builder.bel_indexed("BUFGMUX0", "BUFGMUX", 0)
+                builder
+                    .bel_indexed("BUFGMUX0", "BUFGMUX", 0)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR0"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL4"])
@@ -1039,7 +1256,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL0"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR0"])
                     .extra_int_in("CLK", &["CLKT_GCLK00"]),
-                builder.bel_indexed("BUFGMUX1", "BUFGMUX", 1)
+                builder
+                    .bel_indexed("BUFGMUX1", "BUFGMUX", 1)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR1"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL5"])
@@ -1047,7 +1265,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL1"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR1"])
                     .extra_int_in("CLK", &["CLKT_GCLK01"]),
-                builder.bel_indexed("BUFGMUX2", "BUFGMUX", 2)
+                builder
+                    .bel_indexed("BUFGMUX2", "BUFGMUX", 2)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR2", "ML_CLKT_CKIR2"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL6"])
@@ -1055,7 +1274,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL2"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR2"])
                     .extra_int_in("CLK", &["CLKT_GCLK02"]),
-                builder.bel_indexed("BUFGMUX3", "BUFGMUX", 3)
+                builder
+                    .bel_indexed("BUFGMUX3", "BUFGMUX", 3)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIR3"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL7"])
@@ -1063,7 +1283,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL3"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR3"])
                     .extra_int_in("CLK", &["CLKT_GCLK03"]),
-                builder.bel_indexed("BUFGMUX4", "BUFGMUX", 4)
+                builder
+                    .bel_indexed("BUFGMUX4", "BUFGMUX", 4)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL0", "ML_CLKT_CKIL0"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL0"])
@@ -1071,7 +1292,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL4"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR4"])
                     .extra_int_in("CLK", &["CLKT_GCLK04"]),
-                builder.bel_indexed("BUFGMUX5", "BUFGMUX", 5)
+                builder
+                    .bel_indexed("BUFGMUX5", "BUFGMUX", 5)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL1"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL1"])
@@ -1079,7 +1301,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL5"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR5"])
                     .extra_int_in("CLK", &["CLKT_GCLK05"]),
-                builder.bel_indexed("BUFGMUX6", "BUFGMUX", 6)
+                builder
+                    .bel_indexed("BUFGMUX6", "BUFGMUX", 6)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL2"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL2"])
@@ -1087,7 +1310,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL6"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR6"])
                     .extra_int_in("CLK", &["CLKT_GCLK06"]),
-                builder.bel_indexed("BUFGMUX7", "BUFGMUX", 7)
+                builder
+                    .bel_indexed("BUFGMUX7", "BUFGMUX", 7)
                     .pins_name_only(&["I0", "I1"])
                     .extra_wire("CKI", &["CLKT_CKIL3"])
                     .extra_wire("DCM_PAD_L", &["CLKT_DLL_CLKPADL3"])
@@ -1098,9 +1322,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ];
             if tkn == "ML_CLKT" {
                 bels.push(
-                    builder.bel_virtual("BREFCLK")
+                    builder
+                        .bel_virtual("BREFCLK")
                         .extra_wire("BREFCLK", &["ML_CLKT_BREFCLK"])
-                        .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"])
+                        .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"]),
                 );
             }
             builder.extract_xnode(tkn, xy, &[], &[xy_l, xy_r], tkn, &bels, &[]);
@@ -1115,23 +1340,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode("BRAM", xy, &[], &int_xy, "BRAM", &[
-            builder.bel_xy("BRAM", "RAMB16", 0, 0),
-            builder.bel_xy("MULT", "MULT18X18", 0, 0),
-        ], &bram_forbidden);
+        builder.extract_xnode(
+            "BRAM",
+            xy,
+            &[],
+            &int_xy,
+            "BRAM",
+            &[
+                builder.bel_xy("BRAM", "RAMB16", 0, 0),
+                builder.bel_xy("MULT", "MULT18X18", 0, 0),
+            ],
+            &bram_forbidden,
+        );
     }
 
-    for (tkn, kind) in [
-        ("BBTERM", "DCMCONN.BOT"),
-        ("BTTERM", "DCMCONN.TOP"),
-    ] {
+    for (tkn, kind) in [("BBTERM", "DCMCONN.BOT"), ("BTTERM", "DCMCONN.TOP")] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = [Coord {
                 x: xy.x,
-                y: if kind == "DCMCONN.BOT" { xy.y + 1 } else { xy.y - 1 },
+                y: if kind == "DCMCONN.BOT" {
+                    xy.y + 1
+                } else {
+                    xy.y - 1
+                },
             }];
-            builder.extract_xnode_bels(kind, xy, &[], &int_xy, kind, &[
-                builder.bel_virtual("DCMCONN")
+            builder.extract_xnode_bels(
+                kind,
+                xy,
+                &[],
+                &int_xy,
+                kind,
+                &[builder
+                    .bel_virtual("DCMCONN")
                     .extra_wire("OUTBUS0", &["BBTERM_CKMUX0", "TTERM_CKMUX0"])
                     .extra_wire("OUTBUS1", &["BBTERM_CKMUX1", "TTERM_CKMUX1"])
                     .extra_wire("OUTBUS2", &["BBTERM_CKMUX2", "TTERM_CKMUX2"])
@@ -1159,8 +1399,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_int_in("OUT0", &["BTERM_OMUX0", "BTTERM_OMUX10"])
                     .extra_int_in("OUT1", &["BTERM_OMUX3", "BTTERM_OMUX11"])
                     .extra_int_in("OUT2", &["BTERM_OMUX4", "BTTERM_OMUX12"])
-                    .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])
-            ]);
+                    .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])],
+            );
         }
     }
 
@@ -1176,23 +1416,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode("GIGABIT", xy, &[], &int_xy, "GIGABIT.B", &[
-            builder.bel_xy("GT", "GT", 0, 0)
-                .pins_name_only(&[
-                    "RXP",
-                    "RXN",
-                    "TXP",
-                    "TXN",
-                    "TST10B8BICRD0",
-                    "TST10B8BICRD1",
-                ])
-                .pin_name_only("BREFCLK", 1)
-                .pin_name_only("BREFCLK2", 1),
-            builder.bel_indexed("IPAD.RXP", "GTIPAD", 0).pin_name_only("I", 0),
-            builder.bel_indexed("IPAD.RXN", "GTIPAD", 1).pin_name_only("I", 0),
-            builder.bel_indexed("OPAD.TXP", "GTOPAD", 0).pin_name_only("O", 0),
-            builder.bel_indexed("OPAD.TXN", "GTOPAD", 1).pin_name_only("O", 0),
-        ], &[]);
+        builder.extract_xnode(
+            "GIGABIT",
+            xy,
+            &[],
+            &int_xy,
+            "GIGABIT.B",
+            &[
+                builder
+                    .bel_xy("GT", "GT", 0, 0)
+                    .pins_name_only(&["RXP", "RXN", "TXP", "TXN", "TST10B8BICRD0", "TST10B8BICRD1"])
+                    .pin_name_only("BREFCLK", 1)
+                    .pin_name_only("BREFCLK2", 1),
+                builder
+                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .pin_name_only("O", 0),
+                builder
+                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .pin_name_only("O", 0),
+            ],
+            &[],
+        );
     }
 
     for &xy in rd.tiles_by_kind_name("TGIGABIT") {
@@ -1207,23 +1457,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode("GIGABIT", xy, &[], &int_xy, "GIGABIT.T", &[
-            builder.bel_xy("GT", "GT", 0, 0)
-                .pins_name_only(&[
-                    "RXP",
-                    "RXN",
-                    "TXP",
-                    "TXN",
-                    "TST10B8BICRD0",
-                    "TST10B8BICRD1",
-                ])
-                .pin_name_only("BREFCLK", 1)
-                .pin_name_only("BREFCLK2", 1),
-            builder.bel_indexed("IPAD.RXP", "GTIPAD", 0).pin_name_only("I", 0),
-            builder.bel_indexed("IPAD.RXN", "GTIPAD", 1).pin_name_only("I", 0),
-            builder.bel_indexed("OPAD.TXP", "GTOPAD", 0).pin_name_only("O", 0),
-            builder.bel_indexed("OPAD.TXN", "GTOPAD", 1).pin_name_only("O", 0),
-        ], &[]);
+        builder.extract_xnode(
+            "GIGABIT",
+            xy,
+            &[],
+            &int_xy,
+            "GIGABIT.T",
+            &[
+                builder
+                    .bel_xy("GT", "GT", 0, 0)
+                    .pins_name_only(&["RXP", "RXN", "TXP", "TXN", "TST10B8BICRD0", "TST10B8BICRD1"])
+                    .pin_name_only("BREFCLK", 1)
+                    .pin_name_only("BREFCLK2", 1),
+                builder
+                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .pin_name_only("O", 0),
+                builder
+                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .pin_name_only("O", 0),
+            ],
+            &[],
+        );
     }
 
     for &xy in rd.tiles_by_kind_name("BGIGABIT10") {
@@ -1238,21 +1498,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode("GIGABIT10", xy, &[], &int_xy, "GIGABIT10.B", &[
-            builder.bel_xy("GT10", "GT10", 0, 0)
-                .pins_name_only(&[
-                    "RXP",
-                    "RXN",
-                    "TXP",
-                    "TXN",
-                ])
-                .pin_name_only("BREFCLKPIN", 1)
-                .pin_name_only("BREFCLKNIN", 1),
-            builder.bel_indexed("IPAD.RXP", "GTIPAD", 0).pin_name_only("I", 0),
-            builder.bel_indexed("IPAD.RXN", "GTIPAD", 1).pin_name_only("I", 0),
-            builder.bel_indexed("OPAD.TXP", "GTOPAD", 0).pin_name_only("O", 0),
-            builder.bel_indexed("OPAD.TXN", "GTOPAD", 1).pin_name_only("O", 0),
-        ], &[]);
+        builder.extract_xnode(
+            "GIGABIT10",
+            xy,
+            &[],
+            &int_xy,
+            "GIGABIT10.B",
+            &[
+                builder
+                    .bel_xy("GT10", "GT10", 0, 0)
+                    .pins_name_only(&["RXP", "RXN", "TXP", "TXN"])
+                    .pin_name_only("BREFCLKPIN", 1)
+                    .pin_name_only("BREFCLKNIN", 1),
+                builder
+                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .pin_name_only("O", 0),
+                builder
+                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .pin_name_only("O", 0),
+            ],
+            &[],
+        );
     }
 
     for &xy in rd.tiles_by_kind_name("TGIGABIT10") {
@@ -1267,21 +1539,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode("GIGABIT10", xy, &[], &int_xy, "GIGABIT10.T", &[
-            builder.bel_xy("GT10", "GT10", 0, 0)
-                .pins_name_only(&[
-                    "RXP",
-                    "RXN",
-                    "TXP",
-                    "TXN",
-                ])
-                .pin_name_only("BREFCLKPIN", 1)
-                .pin_name_only("BREFCLKNIN", 1),
-            builder.bel_indexed("IPAD.RXP", "GTIPAD", 0).pin_name_only("I", 0),
-            builder.bel_indexed("IPAD.RXN", "GTIPAD", 1).pin_name_only("I", 0),
-            builder.bel_indexed("OPAD.TXP", "GTOPAD", 0).pin_name_only("O", 0),
-            builder.bel_indexed("OPAD.TXN", "GTOPAD", 1).pin_name_only("O", 0),
-        ], &[]);
+        builder.extract_xnode(
+            "GIGABIT10",
+            xy,
+            &[],
+            &int_xy,
+            "GIGABIT10.T",
+            &[
+                builder
+                    .bel_xy("GT10", "GT10", 0, 0)
+                    .pins_name_only(&["RXP", "RXN", "TXP", "TXN"])
+                    .pin_name_only("BREFCLKPIN", 1)
+                    .pin_name_only("BREFCLKNIN", 1),
+                builder
+                    .bel_indexed("IPAD.RXP", "GTIPAD", 0)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("IPAD.RXN", "GTIPAD", 1)
+                    .pin_name_only("I", 0),
+                builder
+                    .bel_indexed("OPAD.TXP", "GTOPAD", 0)
+                    .pin_name_only("O", 0),
+                builder
+                    .bel_indexed("OPAD.TXN", "GTOPAD", 1)
+                    .pin_name_only("O", 0),
+            ],
+            &[],
+        );
     }
 
     for tkn in ["LBPPC", "RBPPC"] {
@@ -1329,15 +1613,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 (1, NodeTileId::from_idx(39), 'R'),
             ] {
                 for j in 0..14 {
-                    bel = bel.extra_int_in_force(
-                        format!("ISOCMBRAMWRABUS{jj}.B{lr}", jj = j + 15),
-                        (t, bram_addr_ppc_b[&('A', j)]),
-                        format!("PPC_ADR_B0{i}_{j}"),
-                    ).extra_int_in_force(
-                        format!("ISOCMBRAMRDABUS{jj}.B{lr}", jj = j + 15),
-                        (t, bram_addr_ppc_b[&('B', j)]),
-                        format!("PPC_ADR_B0{i}_{jj}", jj = j + 14),
-                    );
+                    bel = bel
+                        .extra_int_in_force(
+                            format!("ISOCMBRAMWRABUS{jj}.B{lr}", jj = j + 15),
+                            (t, bram_addr_ppc_b[&('A', j)]),
+                            format!("PPC_ADR_B0{i}_{j}"),
+                        )
+                        .extra_int_in_force(
+                            format!("ISOCMBRAMRDABUS{jj}.B{lr}", jj = j + 15),
+                            (t, bram_addr_ppc_b[&('B', j)]),
+                            format!("PPC_ADR_B0{i}_{jj}", jj = j + 14),
+                        );
                 }
             }
             builder.extract_xnode(tkn, xy, &[], &int_xy, tkn, &[bel], &[]);
@@ -1374,9 +1660,15 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: int_n_xy.y,
                 },
             ];
-            builder.extract_xnode(tkn, xy, &buf_xy, &int_xy, tkn, &[
-                builder.bel_xy("PCILOGIC", "PCILOGIC", 0, 0)
-            ], &[]);
+            builder.extract_xnode(
+                tkn,
+                xy,
+                &buf_xy,
+                &int_xy,
+                tkn,
+                &[builder.bel_xy("PCILOGIC", "PCILOGIC", 0, 0)],
+                &[],
+            );
         }
     }
 

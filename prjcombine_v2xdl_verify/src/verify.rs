@@ -1,8 +1,12 @@
 use crate::types::{Test, TgtConfigVal, TgtPinDir};
-use prjcombine_xdl::{Design, parse_lut, NetType};
-use std::collections::{HashSet, HashMap};
+use prjcombine_xdl::{parse_lut, Design, NetType};
+use std::collections::{HashMap, HashSet};
 
-fn recog_lut(cfg_expect: &mut HashMap<String, (String, TgtConfigVal)>, c: &[String], family: &str) -> Option<(String, String)> {
+fn recog_lut(
+    cfg_expect: &mut HashMap<String, (String, TgtConfigVal)>,
+    c: &[String],
+    family: &str,
+) -> Option<(String, String)> {
     let (l, sz) = match &c[0][..] {
         "F" => ("F", 4),
         "G" => ("G", 4),
@@ -26,16 +30,25 @@ fn recog_lut(cfg_expect: &mut HashMap<String, (String, TgtConfigVal)>, c: &[Stri
                 0xff00 => 4,
                 _ => return None,
             };
-            let x = if l == "F" {"X"} else {"Y"};
+            let x = if l == "F" { "X" } else { "Y" };
             cfg_expect.insert(c[0].clone(), (c[1].clone(), TgtConfigVal::Lut(4, v)));
             if family != "virtex4" {
                 if l == "F" {
-                    cfg_expect.insert(format!("FXMUX"), ("".to_string(), TgtConfigVal::Plain("F".to_string())));
+                    cfg_expect.insert(
+                        format!("FXMUX"),
+                        ("".to_string(), TgtConfigVal::Plain("F".to_string())),
+                    );
                 } else {
-                    cfg_expect.insert(format!("GYMUX"), ("".to_string(), TgtConfigVal::Plain("G".to_string())));
+                    cfg_expect.insert(
+                        format!("GYMUX"),
+                        ("".to_string(), TgtConfigVal::Plain("G".to_string())),
+                    );
                 }
             }
-            cfg_expect.insert(format!("{x}USED"), ("".to_string(), TgtConfigVal::Plain("0".to_string())));
+            cfg_expect.insert(
+                format!("{x}USED"),
+                ("".to_string(), TgtConfigVal::Plain("0".to_string())),
+            );
             return Some((x.to_string(), format!("{il}{inum}", il = c[0])));
         }
         5 => {
@@ -49,7 +62,10 @@ fn recog_lut(cfg_expect: &mut HashMap<String, (String, TgtConfigVal)>, c: &[Stri
                 _ => return None,
             };
             cfg_expect.insert(c[0].clone(), (c[1].clone(), TgtConfigVal::Lut(5, v)));
-            cfg_expect.insert(format!("{l}OUTMUX"), ("".to_string(), TgtConfigVal::Plain("O5".to_string())));
+            cfg_expect.insert(
+                format!("{l}OUTMUX"),
+                ("".to_string(), TgtConfigVal::Plain("O5".to_string())),
+            );
             Some((format!("{l}MUX"), format!("{l}{inum}")))
         }
         6 => {
@@ -64,7 +80,10 @@ fn recog_lut(cfg_expect: &mut HashMap<String, (String, TgtConfigVal)>, c: &[Stri
                 _ => return None,
             };
             cfg_expect.insert(c[0].clone(), (c[1].clone(), TgtConfigVal::Lut(6, v)));
-            cfg_expect.insert(format!("{l}USED"), ("".to_string(), TgtConfigVal::Plain("0".to_string())));
+            cfg_expect.insert(
+                format!("{l}USED"),
+                ("".to_string(), TgtConfigVal::Plain("0".to_string())),
+            );
             Some((l.to_string(), format!("{l}{inum}")))
         }
         _ => unreachable!(),
@@ -127,7 +146,10 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ok = false;
                     continue;
                 }
-                wire_map.insert((inst.name.clone(), opin), (format!("_in_{name}"), TgtPinDir::Output));
+                wire_map.insert(
+                    (inst.name.clone(), opin),
+                    (format!("_in_{name}"), TgtPinDir::Output),
+                );
                 wire_tie.insert((inst.name.clone(), ipin), false);
             } else if c[1].starts_with("_ibuf_") {
                 let name = &c[1][6..];
@@ -141,8 +163,14 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ok = false;
                     continue;
                 }
-                wire_map.insert((inst.name.clone(), opin), (name.to_string(), TgtPinDir::Output));
-                wire_map.insert((inst.name.clone(), ipin), (format!("_in_{name}"), TgtPinDir::Input));
+                wire_map.insert(
+                    (inst.name.clone(), opin),
+                    (name.to_string(), TgtPinDir::Output),
+                );
+                wire_map.insert(
+                    (inst.name.clone(), ipin),
+                    (format!("_in_{name}"), TgtPinDir::Input),
+                );
             } else if c[1].starts_with("_obuf_") {
                 let name = &c[1][6..];
                 let lut = recog_lut(&mut cfg_expect, &c, family);
@@ -155,11 +183,17 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ok = false;
                     continue;
                 }
-                wire_map.insert((inst.name.clone(), ipin), (name.to_string(), TgtPinDir::Input));
+                wire_map.insert(
+                    (inst.name.clone(), ipin),
+                    (name.to_string(), TgtPinDir::Input),
+                );
                 dummy_out_wires.insert((inst.name.clone(), opin));
             } else if c[1] == "XIL_ML_PMV" {
                 // Virtex 4 special.
-                cfg_expect.insert(format!("PMV"), (c[1].clone(), TgtConfigVal::Plain(format!(""))));
+                cfg_expect.insert(
+                    format!("PMV"),
+                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                );
                 for (p, v) in [
                     ("A0", false),
                     ("A1", false),
@@ -171,10 +205,16 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 ] {
                     wire_tie.insert((inst.name.clone(), p.to_string()), v);
                 }
-                wire_map.insert((inst.name.clone(), "ODIV4".to_string()), ("PMV_ODIV4".to_string(), TgtPinDir::Output));
+                wire_map.insert(
+                    (inst.name.clone(), "ODIV4".to_string()),
+                    ("PMV_ODIV4".to_string(), TgtPinDir::Output),
+                );
             } else if c[1].starts_with("XIL_ML_UNUSED_DCM_") {
                 // Virtex 4 special.
-                cfg_expect.insert(format!("DCM_ADV"), (c[1].clone(), TgtConfigVal::Plain(format!(""))));
+                cfg_expect.insert(
+                    format!("DCM_ADV"),
+                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                );
                 for (p, v) in [
                     ("BGM_CONFIG_REF_SEL", "CLKIN"),
                     ("BGM_DIVIDE", "16"),
@@ -252,21 +292,36 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ("FACTORY_JF", "F0F0"),
                     ("PHASE_SHIFT", "0"),
                 ] {
-                    cfg_expect.insert(p.to_string(), ("".to_string(), TgtConfigVal::Plain(v.to_string())));
+                    cfg_expect.insert(
+                        p.to_string(),
+                        ("".to_string(), TgtConfigVal::Plain(v.to_string())),
+                    );
                 }
-                for (p, v) in [
-                    ("PSEN", true),
-                    ("CTLMODE", true),
-                ] {
+                for (p, v) in [("PSEN", true), ("CTLMODE", true)] {
                     wire_tie.insert((inst.name.clone(), p.to_string()), v);
                 }
-                wire_map.insert((inst.name.clone(), "CLKFB".to_string()), (format!("{}_CLKFB", c[1]), TgtPinDir::Input));
-                wire_map.insert((inst.name.clone(), "CLK0".to_string()), (format!("{}_CLKFB", c[1]), TgtPinDir::Output));
-                wire_map.insert((inst.name.clone(), "CLKIN".to_string()), ("PMV_ODIV4".to_string(), TgtPinDir::Input));
+                wire_map.insert(
+                    (inst.name.clone(), "CLKFB".to_string()),
+                    (format!("{}_CLKFB", c[1]), TgtPinDir::Input),
+                );
+                wire_map.insert(
+                    (inst.name.clone(), "CLK0".to_string()),
+                    (format!("{}_CLKFB", c[1]), TgtPinDir::Output),
+                );
+                wire_map.insert(
+                    (inst.name.clone(), "CLKIN".to_string()),
+                    ("PMV_ODIV4".to_string(), TgtPinDir::Input),
+                );
             } else if c[1] == "STARTUP_V6_PWRUP_GTXE1_ML_INSERTED" {
                 // Virtex 6 special.
-                cfg_expect.insert(format!("STARTUP"), (c[1].clone(), TgtConfigVal::Plain(format!(""))));
-                cfg_expect.insert("PROG_USR".to_string(), ("".to_string(), TgtConfigVal::Plain("FALSE".to_string())));
+                cfg_expect.insert(
+                    format!("STARTUP"),
+                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                );
+                cfg_expect.insert(
+                    "PROG_USR".to_string(),
+                    ("".to_string(), TgtConfigVal::Plain("FALSE".to_string())),
+                );
                 for (p, v) in [
                     ("CLK", false),
                     ("GSR", false),
@@ -280,9 +335,15 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 ] {
                     wire_tie.insert((inst.name.clone(), p.to_string()), v);
                 }
-                wire_map.insert((inst.name.clone(), "CFGMCLK".to_string()), ("STARTUP_CFGMCLK".to_string(), TgtPinDir::Output));
+                wire_map.insert(
+                    (inst.name.clone(), "CFGMCLK".to_string()),
+                    ("STARTUP_CFGMCLK".to_string(), TgtPinDir::Output),
+                );
             } else if c[1].starts_with("GTXE1_ML_REPLICATED_") {
-                cfg_expect.insert(format!("GTXE1"), (c[1].clone(), TgtConfigVal::Plain(format!(""))));
+                cfg_expect.insert(
+                    format!("GTXE1"),
+                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                );
                 for (p, v) in [
                     ("AC_CAP_DIS", "TRUE"),
                     ("ALIGN_COMMA_WORD", "1"),
@@ -534,7 +595,10 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     ("TX_USRCLK_CFG", "00"),
                     ("USR_CODE_ERR_CLR", "0"),
                 ] {
-                    cfg_expect.insert(p.to_string(), ("".to_string(), TgtConfigVal::Plain(v.to_string())));
+                    cfg_expect.insert(
+                        p.to_string(),
+                        ("".to_string(), TgtConfigVal::Plain(v.to_string())),
+                    );
                 }
                 for (p, v) in [
                     ("DADDR0", false),
@@ -805,20 +869,23 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                     wire_tie.insert((inst.name.clone(), p.to_string()), v);
                 }
                 for p in ["CLKTESTSIG0", "CLKTESTSIG1"] {
-                    wire_map.insert((inst.name.clone(), p.to_string()), ("STARTUP_CFGMCLK".to_string(), TgtPinDir::Input));
+                    wire_map.insert(
+                        (inst.name.clone(), p.to_string()),
+                        ("STARTUP_CFGMCLK".to_string(), TgtPinDir::Input),
+                    );
                 }
             }
         }
         for c in inst.cfg.iter() {
             if let Some((bel, val)) = cfg_expect.remove(&c[0]) {
                 if c[1] != bel && bel != "DUMMY" {
-                    println!("mismatched bel {ina} {c:?} {bel}", ina=inst.name);
+                    println!("mismatched bel {ina} {c:?} {bel}", ina = inst.name);
                     ok = false;
                 }
                 match val {
                     TgtConfigVal::Plain(v) => {
                         if c[2] != v || c.len() != 3 {
-                            println!("mismatched val {ina} {c:?} {v}", ina=inst.name);
+                            println!("mismatched val {ina} {c:?} {v}", ina = inst.name);
                             ok = false;
                         }
                     }
@@ -830,7 +897,10 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                         }
                     }
                     TgtConfigVal::Rom(n, v) => {
-                        if !matches!(&c[2][..], "#ROM" | "#LUT") || c.len() != 4 || parse_lut(n, &c[3]) != Some(v) {
+                        if !matches!(&c[2][..], "#ROM" | "#LUT")
+                            || c.len() != 4
+                            || parse_lut(n, &c[3]) != Some(v)
+                        {
                             println!("mismatched val {c:?} {n} ROM {v:x}");
                             ok = false;
                             continue;
@@ -896,9 +966,11 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                             None => {
                                 nn = Some(nnn);
                             }
-                            Some(cnn) => if &nnn != cnn {
-                                println!("mixed net {} {} {}", net.name, cnn, nnn);
-                                ok = false;
+                            Some(cnn) => {
+                                if &nnn != cnn {
+                                    println!("mixed net {} {} {}", net.name, cnn, nnn);
+                                    ok = false;
+                                }
                             }
                         }
                         if dir != dd {

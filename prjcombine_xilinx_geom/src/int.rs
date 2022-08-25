@@ -1,21 +1,19 @@
-use std::collections::{BTreeSet, BTreeMap};
-use serde::{Serialize, Deserialize};
-use enum_map::Enum;
-use prjcombine_entity::{EntityVec, EntityPartVec, EntityMap, entity_id};
 use crate::BelId;
+use enum_map::Enum;
+use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Enum, Serialize, Deserialize)]
 pub enum Dir {
-    W, E, S, N,
+    W,
+    E,
+    S,
+    N,
 }
 
 impl Dir {
-    pub const DIRS: [Dir; 4] = [
-        Dir::W,
-        Dir::E,
-        Dir::S,
-        Dir::N,
-    ];
+    pub const DIRS: [Dir; 4] = [Dir::W, Dir::E, Dir::S, Dir::N];
 }
 
 impl core::ops::Not for Dir {
@@ -32,12 +30,16 @@ impl core::ops::Not for Dir {
 
 impl std::fmt::Display for Dir {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            Dir::W => "W",
-            Dir::E => "E",
-            Dir::S => "S",
-            Dir::N => "N",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Dir::W => "W",
+                Dir::E => "E",
+                Dir::S => "S",
+                Dir::N => "N",
+            }
+        )
     }
 }
 
@@ -173,7 +175,7 @@ pub struct NodeExtPipNaming {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BelNaming {
     pub tile: NodeRawTileId,
-    pub pins: BTreeMap<String, BelPinNaming>
+    pub pins: BTreeMap<String, BelPinNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]

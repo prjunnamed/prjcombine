@@ -1,9 +1,9 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, int};
 use prjcombine_xilinx_geom::xc4k::{self, GridKind};
+use prjcombine_xilinx_geom::{self as geom, int, Bond, BondPin, CfgPin};
+use prjcombine_xilinx_rawdump::{Part, PkgPin};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::grid::{extract_int, PreDevice, make_device};
+use crate::grid::{extract_int, make_device, PreDevice};
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {
@@ -46,13 +46,7 @@ fn handle_spec_io(rd: &Part, grid: &mut xc4k::Grid) {
 
 fn make_grid(rd: &Part) -> xc4k::Grid {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
-    let int = extract_int(rd, &[
-        "CENTER",
-        "LL",
-        "LR",
-        "UL",
-        "UR",
-    ], &[]);
+    let int = extract_int(rd, &["CENTER", "LL", "LR", "UL", "UR"], &[]);
     let kind = get_kind(rd);
     let mut grid = xc4k::Grid {
         kind,
@@ -119,10 +113,10 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let grid = make_grid(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
-        bonds.push((
-            pkg.clone(),
-            make_bond(&grid, pins),
-        ));
+        bonds.push((pkg.clone(), make_bond(&grid, pins)));
     }
-    (make_device(rd, geom::Grid::Xc4k(grid), bonds, BTreeSet::new()), None)
+    (
+        make_device(rd, geom::Grid::Xc4k(grid), bonds, BTreeSet::new()),
+        None,
+    )
 }

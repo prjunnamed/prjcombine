@@ -1,7 +1,10 @@
-use std::collections::{BTreeSet, BTreeMap};
-use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, BelId, int, eint::{self, ExpandedSlrRefMut, Coord}};
-use prjcombine_entity::{EntityVec, EntityId};
+use crate::{
+    eint::{self, Coord, ExpandedSlrRefMut},
+    int, BelCoord, BelId, CfgPin, ColId, DisabledPart, GtPin, RowId,
+};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -104,14 +107,44 @@ impl Gt {
     pub fn get_pads(&self) -> Vec<(String, String, GtPin, u32)> {
         let mut res = Vec::new();
         for b in 0..2 {
-            res.push((format!("OPAD_X{}Y{}", self.gx, self.gy * 4 + 1 - b), format!("MGTTXP{}_{}", b, self.bank), GtPin::TxP, b));
-            res.push((format!("OPAD_X{}Y{}", self.gx, self.gy * 4 + 3 - b), format!("MGTTXN{}_{}", b, self.bank), GtPin::TxN, b));
-            res.push((format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + b), format!("MGTRXN{}_{}", b, self.bank), GtPin::RxN, b));
-            res.push((format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 2 + b), format!("MGTRXP{}_{}", b, self.bank), GtPin::RxP, b));
+            res.push((
+                format!("OPAD_X{}Y{}", self.gx, self.gy * 4 + 1 - b),
+                format!("MGTTXP{}_{}", b, self.bank),
+                GtPin::TxP,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X{}Y{}", self.gx, self.gy * 4 + 3 - b),
+                format!("MGTTXN{}_{}", b, self.bank),
+                GtPin::TxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + b),
+                format!("MGTRXN{}_{}", b, self.bank),
+                GtPin::RxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 2 + b),
+                format!("MGTRXP{}_{}", b, self.bank),
+                GtPin::RxP,
+                b,
+            ));
         }
         for b in 0..2 {
-            res.push((format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 4 + 2 * b), format!("MGTREFCLK{}N_{}", b, self.bank), GtPin::ClkN, b));
-            res.push((format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 5 + 2 * b), format!("MGTREFCLK{}P_{}", b, self.bank), GtPin::ClkP, b));
+            res.push((
+                format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 4 + 2 * b),
+                format!("MGTREFCLK{}N_{}", b, self.bank),
+                GtPin::ClkN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.gx, self.gy * 8 + 5 + 2 * b),
+                format!("MGTREFCLK{}P_{}", b, self.bank),
+                GtPin::ClkP,
+                b,
+            ));
         }
         res
     }
@@ -121,23 +154,21 @@ fn fill_intf_rterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, nam
     slr.fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
     let tile = &mut slr[crd];
     tile.intfs.clear();
-    tile.add_intf(
-        db.get_intf("INTF"),
-        name,
-        db.get_intf_naming("INTF.RTERM"),
-    );
+    tile.add_intf(db.get_intf("INTF"), name, db.get_intf_naming("INTF.RTERM"));
 }
 
-fn fill_intf_lterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, name: String, is_brk: bool) {
+fn fill_intf_lterm(
+    db: &int::IntDb,
+    slr: &mut ExpandedSlrRefMut,
+    crd: Coord,
+    name: String,
+    is_brk: bool,
+) {
     slr.fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
     let tile = &mut slr[crd];
     tile.intfs.clear();
-    tile.add_intf(
-        db.get_intf("INTF"),
-        name,
-        db.get_intf_naming("INTF.LTERM"),
-    );
-    tile.nodes[0].naming = db.get_node_naming(if is_brk {"INT.TERM.BRK"} else {"INT.TERM"});
+    tile.add_intf(db.get_intf("INTF"), name, db.get_intf_naming("INTF.LTERM"));
+    tile.nodes[0].naming = db.get_node_naming(if is_brk { "INT.TERM.BRK" } else { "INT.TERM" });
 }
 
 impl Grid {
@@ -383,16 +414,37 @@ impl Grid {
                 let y = row.to_idx();
                 let tie_y = y * 2;
                 let mut is_brk = y % 16 == 0;
-                if y == 0 && !matches!(cd.kind, ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus) {
+                if y == 0
+                    && !matches!(
+                        cd.kind,
+                        ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
+                    )
+                {
                     is_brk = false;
                 }
                 if row == self.row_clk() && cd.kind == ColumnKind::Io {
                     is_brk = false;
                 }
-                let bram = if cd.kind == ColumnKind::Bram {if is_brk {"_BRAM_BRK"} else {"_BRAM"}} else {""};
-                grid.fill_tile((col, row), "INT", if is_brk {"INT.BRK"} else {"INT"}, format!("INT{bram}_X{x}Y{y}"));
+                let bram = if cd.kind == ColumnKind::Bram {
+                    if is_brk {
+                        "_BRAM_BRK"
+                    } else {
+                        "_BRAM"
+                    }
+                } else {
+                    ""
+                };
+                grid.fill_tile(
+                    (col, row),
+                    "INT",
+                    if is_brk { "INT.BRK" } else { "INT" },
+                    format!("INT{bram}_X{x}Y{y}"),
+                );
                 grid[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
-                if matches!(cd.kind, ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus) {
+                if matches!(
+                    cd.kind,
+                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
+                ) {
                     grid[(col, row)].add_intf(
                         db.get_intf("INTF"),
                         format!("INT_INTERFACE_X{x}Y{y}"),
@@ -401,7 +453,10 @@ impl Grid {
                 }
             }
             tie_x += 1;
-            if cd.kind == ColumnKind::Io || cd.tio != ColumnIoKind::None || cd.bio != ColumnIoKind::None {
+            if cd.kind == ColumnKind::Io
+                || cd.tio != ColumnIoKind::None
+                || cd.bio != ColumnIoKind::None
+            {
                 tie_x += 1;
             }
             if cd.kind == ColumnKind::CleClk {
@@ -442,7 +497,7 @@ impl Grid {
             let y = row.to_idx();
             let ry = rylut[row];
             let is_brk = y % 16 == 0 && row != self.row_clk();
-            let brk = if is_brk {"_BRK"} else {""};
+            let brk = if is_brk { "_BRK" } else { "" };
             let txtra = if row == self.row_clk() - 2 {
                 "_LOWER_BOT"
             } else if row == self.row_clk() - 1 {
@@ -462,7 +517,7 @@ impl Grid {
                 if !is_brk {
                     node.names[def_rt] = format!("LIOI_INT_X{xl}Y{y}");
                 }
-                node.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
+                node.naming = db.get_node_naming(if is_brk { "IOI.BRK" } else { "IOI" });
                 tile.add_intf(
                     db.get_intf("INTF.IOI"),
                     format!("LIOI{brk}_X{xl}Y{y}"),
@@ -484,7 +539,7 @@ impl Grid {
                         db.get_intf_naming("INTF.CNR"),
                     );
                 } else {
-                    let carry = if is_brk {"_CARRY"} else {""};
+                    let carry = if is_brk { "_CARRY" } else { "" };
                     tile.add_intf(
                         db.get_intf("INTF"),
                         format!("INT_INTERFACE{carry}_X{xl}Y{y}"),
@@ -493,7 +548,12 @@ impl Grid {
                 }
             }
             let rxl = rxlut[col_l] - 1;
-            grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("{ltt}{txtra}_X{rxl}Y{ry}"));
+            grid.fill_term_tile(
+                (col_l, row),
+                "TERM.W",
+                "TERM.W",
+                format!("{ltt}{txtra}_X{rxl}Y{ry}"),
+            );
             let tile = &mut grid[(col_r, row)];
             let mut rtt = "IOI_RTERM";
             if rd.rio {
@@ -502,7 +562,7 @@ impl Grid {
                 if !is_brk {
                     node.names[def_rt] = format!("IOI_INT_X{xr}Y{y}");
                 }
-                node.naming = db.get_node_naming(if is_brk {"IOI.BRK"} else {"IOI"});
+                node.naming = db.get_node_naming(if is_brk { "IOI.BRK" } else { "IOI" });
                 tile.add_intf(
                     db.get_intf("INTF.IOI"),
                     format!("RIOI{brk}_X{xr}Y{y}"),
@@ -528,7 +588,7 @@ impl Grid {
                         db.get_intf_naming("INTF.CNR"),
                     );
                 } else {
-                    let carry = if is_brk {"_CARRY"} else {""};
+                    let carry = if is_brk { "_CARRY" } else { "" };
                     tile.add_intf(
                         db.get_intf("INTF"),
                         format!("INT_INTERFACE{carry}_X{xr}Y{y}"),
@@ -537,7 +597,12 @@ impl Grid {
                 }
             }
             let rxr = rxlut[col_r] + 3;
-            grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("{rtt}{txtra}_X{rxr}Y{ry}"));
+            grid.fill_term_tile(
+                (col_r, row),
+                "TERM.E",
+                "TERM.E",
+                format!("{rtt}{txtra}_X{rxr}Y{ry}"),
+            );
         }
 
         for (col, &cd) in &self.columns {
@@ -550,7 +615,7 @@ impl Grid {
                     let y = row.to_idx();
                     let tile = &mut grid[(col, row)];
                     let node = &mut tile.nodes[0];
-                    let unused = if unused {"_UNUSED"} else {""};
+                    let unused = if unused { "_UNUSED" } else { "" };
                     node.kind = db.get_node("IOI");
                     node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
                     node.naming = db.get_node_naming("IOI");
@@ -569,7 +634,7 @@ impl Grid {
                     let y = row.to_idx();
                     let tile = &mut grid[(col, row)];
                     let node = &mut tile.nodes[0];
-                    let unused = if unused {"_UNUSED"} else {""};
+                    let unused = if unused { "_UNUSED" } else { "" };
                     node.kind = db.get_node("IOI");
                     node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
                     node.naming = db.get_node_naming("IOI");
@@ -640,8 +705,18 @@ impl Grid {
                 for dy in 0..8 {
                     let row = row_to - 7 + dy;
                     let ry = rylut[row];
-                    grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                    grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                    grid.fill_term_tile(
+                        (col_l, row),
+                        "TERM.E",
+                        "TERM.E.INTF",
+                        format!("INT_RTERM_X{rxl}Y{ry}"),
+                    );
+                    grid.fill_term_tile(
+                        (col_r, row),
+                        "TERM.W",
+                        "TERM.W.INTF",
+                        format!("INT_LTERM_X{rxr}Y{ry}"),
+                    );
                 }
                 let col_l = bc - 5;
                 let col_r = bc + 3;
@@ -683,8 +758,18 @@ impl Grid {
                     let ry = rylut[row];
                     let rxl = rxlut[col_l] + 5;
                     let rxr = rxlut[col_r] - 2;
-                    grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                    grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                    grid.fill_term_tile(
+                        (col_l, row),
+                        "TERM.E",
+                        "TERM.E.INTF",
+                        format!("INT_RTERM_X{rxl}Y{ry}"),
+                    );
+                    grid.fill_term_tile(
+                        (col_r, row),
+                        "TERM.W",
+                        "TERM.W.INTF",
+                        format!("INT_LTERM_X{rxr}Y{ry}"),
+                    );
                 }
                 let col_l = bc - 3;
                 let col_r = bc + 6;
@@ -714,8 +799,18 @@ impl Grid {
                 let ry = rylut[row];
                 let rxl = rxlut[col_l] + 6;
                 let rxr = rxlut[col_r] - 1;
-                grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                grid.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
             }
             let col_l = bcl - 5;
             let col_r = bcl + 3;
@@ -736,8 +831,18 @@ impl Grid {
                 let ry = rylut[row];
                 let rxl = rxlut[col_l] + 5;
                 let rxr = rxlut[col_r] - 2;
-                grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                grid.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
             }
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -758,10 +863,19 @@ impl Grid {
                 ColumnKind::Io => ("CNR_BR_BTERM", "CNR_TR_TTERM"),
                 ColumnKind::Bram => ("", "RAMB_TOP_TTERM"),
                 ColumnKind::Dsp | ColumnKind::DspPlus => ("DSP_INT_BTERM", "DSP_INT_TTERM"),
-                _ => if col == self.col_clk + 1 {
-                    ("IOI_BTERM_BUFPLL", "IOI_TTERM_BUFPLL")
-                } else {
-                    (if cd.bio == ColumnIoKind::None {"CLB_INT_BTERM"} else {"IOI_BTERM"}, "IOI_TTERM")
+                _ => {
+                    if col == self.col_clk + 1 {
+                        ("IOI_BTERM_BUFPLL", "IOI_TTERM_BUFPLL")
+                    } else {
+                        (
+                            if cd.bio == ColumnIoKind::None {
+                                "CLB_INT_BTERM"
+                            } else {
+                                "IOI_BTERM"
+                            },
+                            "IOI_TTERM",
+                        )
+                    }
                 }
             };
             let rx = rxlut[col];
@@ -776,9 +890,19 @@ impl Grid {
                 row_t -= 1;
             }
             if !btt.is_empty() {
-                grid.fill_term_tile((col, row_b), "TERM.S", "TERM.S", format!("{btt}_X{rx}Y{ryb}"));
+                grid.fill_term_tile(
+                    (col, row_b),
+                    "TERM.S",
+                    "TERM.S",
+                    format!("{btt}_X{rx}Y{ryb}"),
+                );
             }
-            grid.fill_term_tile((col, row_t), "TERM.N", "TERM.N", format!("{ttt}_X{rx}Y{ryt}"));
+            grid.fill_term_tile(
+                (col, row_t),
+                "TERM.N",
+                "TERM.N",
+                format!("{ttt}_X{rx}Y{ryt}"),
+            );
         }
 
         grid.fill_main_passes();

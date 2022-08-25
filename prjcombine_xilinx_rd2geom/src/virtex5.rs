@@ -1,11 +1,15 @@
+use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_xilinx_geom::virtex5::{self, ColumnKind, HardColumn};
+use prjcombine_xilinx_geom::{
+    self as geom, int, int::Dir, Bond, BondPin, CfgPin, ColId, GtPin, GtRegionPin, RowId, SysMonPin,
+};
+use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, ColId, RowId, int, int::Dir};
-use prjcombine_xilinx_geom::virtex5::{self, ColumnKind, HardColumn};
-use prjcombine_entity::{EntityVec, EntityId};
 
-use crate::grid::{extract_int, find_column, find_columns, find_rows, find_row, IntGrid, PreDevice, make_device};
+use crate::grid::{
+    extract_int, find_column, find_columns, find_row, find_rows, make_device, IntGrid, PreDevice,
+};
 use crate::intb::IntBuilder;
 use crate::verify::Verifier;
 
@@ -56,8 +60,14 @@ fn get_cols_mgt_buf(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
 
 fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
     let col = int.lookup_column(find_column(rd, &["EMAC", "PCIE_B"])? - 2);
-    let rows_emac = find_rows(rd, &["EMAC"]).into_iter().map(|r| int.lookup_row(r)).collect();
-    let rows_pcie = find_rows(rd, &["PCIE_B"]).into_iter().map(|r| int.lookup_row(r) - 10).collect();
+    let rows_emac = find_rows(rd, &["EMAC"])
+        .into_iter()
+        .map(|r| int.lookup_row(r))
+        .collect();
+    let rows_pcie = find_rows(rd, &["PCIE_B"])
+        .into_iter()
+        .map(|r| int.lookup_row(r) - 10)
+        .collect();
     Some(HardColumn {
         col,
         rows_emac,
@@ -66,7 +76,10 @@ fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
 }
 
 fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
-    let v: Vec<_> = columns.iter().filter_map(|(k, &v)| if v == ColumnKind::Io {Some(k)} else {None}).collect();
+    let v: Vec<_> = columns
+        .iter()
+        .filter_map(|(k, &v)| if v == ColumnKind::Io { Some(k) } else { None })
+        .collect();
     if v.len() == 2 {
         [Some(v[0]), Some(v[1]), None]
     } else {
@@ -75,7 +88,9 @@ fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
 }
 
 fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
-    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap()).to_idx() / 20
+    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
+        .to_idx()
+        / 20
 }
 
 fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
@@ -97,14 +112,18 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
 
     for i in 0..10 {
-        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
+        builder.wire(
             format!("GCLK{i}"),
-        ]);
+            int::WireKind::ClkOut(i),
+            &[format!("GCLK{i}")],
+        );
     }
     for i in 0..4 {
-        builder.wire(format!("RCLK{i}"), int::WireKind::ClkOut(10+i), &[
+        builder.wire(
             format!("RCLK{i}"),
-        ]);
+            int::WireKind::ClkOut(10 + i),
+            &[format!("RCLK{i}")],
+        );
     }
 
     for (name, da, db, dbeg, dend, dmid) in [
@@ -133,45 +152,50 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                         format!("DBL.{name}{i}.0.{dbeg}"),
                         &[&format!("{name}2BEG_{dbeg}{i}")],
                     );
-                    beg = builder.branch(beg_x, !dbeg,
+                    beg = builder.branch(
+                        beg_x,
+                        !dbeg,
                         format!("DBL.{name}{i}.0"),
-                        &[format!("{name}2BEG{i}")]
+                        &[format!("{name}2BEG{i}")],
                     );
                 } else {
-                    beg = builder.mux_out(
-                        format!("DBL.{name}{i}.0"),
-                        &[format!("{name}2BEG{i}")]
-                    );
+                    beg = builder.mux_out(format!("DBL.{name}{i}.0"), &[format!("{name}2BEG{i}")]);
                 }
             } else {
-                beg = builder.mux_out(
-                    format!("DBL.{name}{i}.0"),
-                    &[format!("{name}2BEG{i}")]
-                );
+                beg = builder.mux_out(format!("DBL.{name}{i}.0"), &[format!("{name}2BEG{i}")]);
             }
-            let mid = builder.branch(beg, da,
+            let mid = builder.branch(
+                beg,
+                da,
                 format!("DBL.{name}{i}.1"),
                 &[format!("{name}2MID{i}")],
             );
             if let Some((xi, dmid)) = dmid {
                 if xi == i {
-                    let mid_buf = builder.buf(mid,
+                    let mid_buf = builder.buf(
+                        mid,
                         format!("DBL.{name}{i}.1.BUF"),
                         &[format!("{name}2MID_FAKE{i}")],
                     );
-                    builder.branch(mid_buf, dmid,
+                    builder.branch(
+                        mid_buf,
+                        dmid,
                         format!("DBL.{name}{i}.1.{dmid}"),
                         &[format!("{name}2MID_{dmid}{i}")],
                     );
                 }
             }
-            let end = builder.branch(mid, db,
+            let end = builder.branch(
+                mid,
+                db,
                 format!("DBL.{name}{i}.2"),
                 &[format!("{name}2END{i}")],
             );
             if let Some((xi, dend)) = dend {
                 if xi == i {
-                    builder.branch(end, dend,
+                    builder.branch(
+                        end,
+                        dend,
                         format!("DBL.{name}{i}.2.{dend}"),
                         &[format!("{name}2END_{dend}{i}")],
                     );
@@ -206,57 +230,68 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                         format!("PENT.{name}{i}.0.{dbeg}"),
                         &[&format!("{name}5BEG_{dbeg}{i}")],
                     );
-                    beg = builder.branch(beg_x, !dbeg,
+                    beg = builder.branch(
+                        beg_x,
+                        !dbeg,
                         format!("PENT.{name}{i}.0"),
-                        &[format!("{name}5BEG{i}")]
+                        &[format!("{name}5BEG{i}")],
                     );
                 } else {
-                    beg = builder.mux_out(
-                        format!("PENT.{name}{i}.0"),
-                        &[format!("{name}5BEG{i}")]
-                    );
+                    beg = builder.mux_out(format!("PENT.{name}{i}.0"), &[format!("{name}5BEG{i}")]);
                 }
             } else {
-                beg = builder.mux_out(
-                    format!("PENT.{name}{i}.0"),
-                    &[format!("{name}5BEG{i}")]
-                );
+                beg = builder.mux_out(format!("PENT.{name}{i}.0"), &[format!("{name}5BEG{i}")]);
             }
-            let a = builder.branch(beg, da,
+            let a = builder.branch(
+                beg,
+                da,
                 format!("PENT.{name}{i}.1"),
                 &[format!("{name}5A{i}")],
             );
-            let b = builder.branch(a, da,
+            let b = builder.branch(
+                a,
+                da,
                 format!("PENT.{name}{i}.2"),
                 &[format!("{name}5B{i}")],
             );
-            let mid = builder.branch(b, da,
+            let mid = builder.branch(
+                b,
+                da,
                 format!("PENT.{name}{i}.3"),
                 &[format!("{name}5MID{i}")],
             );
             if let Some((xi, dmid)) = dmid {
                 if xi == i {
-                    let mid_buf = builder.buf(mid,
+                    let mid_buf = builder.buf(
+                        mid,
                         format!("PENT.{name}{i}.3.BUF"),
                         &[format!("{name}5MID_FAKE{i}")],
                     );
-                    builder.branch(mid_buf, dmid,
+                    builder.branch(
+                        mid_buf,
+                        dmid,
                         format!("PENT.{name}{i}.3.{dmid}"),
                         &[format!("{name}5MID_{dmid}{i}")],
                     );
                 }
             }
-            let c = builder.branch(mid, db,
+            let c = builder.branch(
+                mid,
+                db,
                 format!("PENT.{name}{i}.4"),
                 &[format!("{name}5C{i}")],
             );
-            let end = builder.branch(c, db,
+            let end = builder.branch(
+                c,
+                db,
                 format!("PENT.{name}{i}.5"),
                 &[format!("{name}5END{i}")],
             );
             if let Some((xi, dend)) = dend {
                 if xi == i {
-                    builder.branch(end, dend,
+                    builder.branch(
+                        end,
+                        dend,
                         format!("PENT.{name}{i}.5.{dend}"),
                         &[format!("{name}5END_{dend}{i}")],
                     );
@@ -296,27 +331,16 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     // The control inputs.
     for i in 0..2 {
-        builder.mux_out(
-            format!("IMUX.GFAN{i}"),
-            &[format!("GFAN{i}")],
-        );
+        builder.mux_out(format!("IMUX.GFAN{i}"), &[format!("GFAN{i}")]);
     }
     for i in 0..2 {
-        builder.mux_out(
-            format!("IMUX.CLK{i}"),
-            &[format!("CLK_B{i}")],
-        );
+        builder.mux_out(format!("IMUX.CLK{i}"), &[format!("CLK_B{i}")]);
     }
     for i in 0..4 {
-        let w = builder.mux_out(
-            format!("IMUX.CTRL{i}"),
-            &[format!("CTRL{i}")],
-        );
-        builder.buf(w,
-            format!("IMUX.CTRL{i}.SITE"),
-            &[format!("CTRL_B{i}")],
-        );
-        let b = builder.buf(w,
+        let w = builder.mux_out(format!("IMUX.CTRL{i}"), &[format!("CTRL{i}")]);
+        builder.buf(w, format!("IMUX.CTRL{i}.SITE"), &[format!("CTRL_B{i}")]);
+        let b = builder.buf(
+            w,
             format!("IMUX.CTRL{i}.BOUNCE"),
             &[format!("CTRL_BOUNCE{i}")],
         );
@@ -325,21 +349,18 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             3 => Dir::N,
             _ => continue,
         };
-        builder.branch(b, dir,
+        builder.branch(
+            b,
+            dir,
             format!("IMUX.CTRL{i}.BOUNCE.{dir}"),
             &[format!("CTRL_BOUNCE_{dir}{i}")],
         );
     }
     for i in 0..8 {
-        let w = builder.mux_out(
-            format!("IMUX.BYP{i}"),
-            &[format!("BYP{i}")],
-        );
-        builder.buf(w,
-            format!("IMUX.BYP{i}.SITE"),
-            &[format!("BYP_B{i}")],
-        );
-        let b = builder.buf(w,
+        let w = builder.mux_out(format!("IMUX.BYP{i}"), &[format!("BYP{i}")]);
+        builder.buf(w, format!("IMUX.BYP{i}.SITE"), &[format!("BYP_B{i}")]);
+        let b = builder.buf(
+            w,
             format!("IMUX.BYP{i}.BOUNCE"),
             &[format!("BYP_BOUNCE{i}")],
         );
@@ -348,21 +369,18 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             3 | 7 => Dir::N,
             _ => continue,
         };
-        builder.branch(b, dir,
+        builder.branch(
+            b,
+            dir,
             format!("IMUX.BYP{i}.BOUNCE.{dir}"),
             &[format!("BYP_BOUNCE_{dir}{i}")],
         );
     }
     for i in 0..8 {
-        let w = builder.mux_out(
-            format!("IMUX.FAN{i}"),
-            &[format!("FAN{i}")],
-        );
-        builder.buf(w,
-            format!("IMUX.FAN{i}.SITE"),
-            &[format!("FAN_B{i}")],
-        );
-        let b = builder.buf(w,
+        let w = builder.mux_out(format!("IMUX.FAN{i}"), &[format!("FAN{i}")]);
+        builder.buf(w, format!("IMUX.FAN{i}.SITE"), &[format!("FAN_B{i}")]);
+        let b = builder.buf(
+            w,
             format!("IMUX.FAN{i}.BOUNCE"),
             &[format!("FAN_BOUNCE{i}")],
         );
@@ -371,45 +389,48 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             7 => Dir::N,
             _ => continue,
         };
-        builder.branch(b, dir,
+        builder.branch(
+            b,
+            dir,
             format!("IMUX.FAN{i}.BOUNCE.{dir}"),
             &[format!("FAN_BOUNCE_{dir}{i}")],
         );
     }
     for i in 0..48 {
-        builder.mux_out(
-            format!("IMUX.IMUX{i}"),
-            &[format!("IMUX_B{i}")],
-        );
+        builder.mux_out(format!("IMUX.IMUX{i}"), &[format!("IMUX_B{i}")]);
     }
 
     for i in 0..24 {
-        let w = builder.logic_out(
-            format!("OUT{i}"),
-            &[format!("LOGIC_OUTS{i}")],
-        );
+        let w = builder.logic_out(format!("OUT{i}"), &[format!("LOGIC_OUTS{i}")]);
         let dir = match i {
             15 | 17 => Dir::N,
             12 | 18 => Dir::S,
             _ => continue,
         };
-        builder.branch(w, dir,
+        builder.branch(
+            w,
+            dir,
             format!("OUT{i}.{dir}.DBL"),
             &[format!("LOGIC_OUTS_{dir}{i}")],
         );
-        builder.branch(w, dir,
+        builder.branch(
+            w,
+            dir,
             format!("OUT{i}.{dir}.PENT"),
             &[format!("LOGIC_OUTS_{dir}1_{i}")],
         );
     }
 
     for i in 0..4 {
-        builder.test_out(format!("TEST{i}"), &[
-            format!("INT_INTERFACE_BLOCK_INPS_B{i}"),
-            format!("PPC_L_INT_INTERFACE_BLOCK_INPS_B{i}"),
-            format!("PPC_R_INT_INTERFACE_BLOCK_INPS_B{i}"),
-            format!("GTX_LEFT_INT_INTERFACE_BLOCK_INPS_B{i}"),
-        ]);
+        builder.test_out(
+            format!("TEST{i}"),
+            &[
+                format!("INT_INTERFACE_BLOCK_INPS_B{i}"),
+                format!("PPC_L_INT_INTERFACE_BLOCK_INPS_B{i}"),
+                format!("PPC_R_INT_INTERFACE_BLOCK_INPS_B{i}"),
+                format!("GTX_LEFT_INT_INTERFACE_BLOCK_INPS_B{i}"),
+            ],
+        );
     }
 
     builder.extract_main_passes();
@@ -423,19 +444,34 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.make_blackhole_term("TERM.S.HOLE", Dir::S, &lv_bh_s);
     builder.make_blackhole_term("TERM.N.HOLE", Dir::N, &lv_bh_n);
     let forced = [
-        (builder.find_wire("PENT.NW2.5.N"), builder.find_wire("PENT.WN0.5")),
-        (builder.find_wire("PENT.WN0.5"), builder.find_wire("PENT.WS2.4")),
+        (
+            builder.find_wire("PENT.NW2.5.N"),
+            builder.find_wire("PENT.WN0.5"),
+        ),
+        (
+            builder.find_wire("PENT.WN0.5"),
+            builder.find_wire("PENT.WS2.4"),
+        ),
     ];
     builder.extract_term_buf("TERM.S.PPC", Dir::S, "PPC_T_TERM", "TERM.S.PPC", &forced);
     let forced = [
-        (builder.find_wire("PENT.NR2.0"), builder.find_wire("PENT.WL0.0.S")),
-        (builder.find_wire("PENT.SL0.1"), builder.find_wire("PENT.NR2.0")),
+        (
+            builder.find_wire("PENT.NR2.0"),
+            builder.find_wire("PENT.WL0.0.S"),
+        ),
+        (
+            builder.find_wire("PENT.SL0.1"),
+            builder.find_wire("PENT.NR2.0"),
+        ),
     ];
     builder.extract_term_buf("TERM.N.PPC", Dir::N, "PPC_B_TERM", "TERM.N.PPC", &forced);
 
     for &xy_l in rd.tiles_by_kind_name("INT_BUFS_L") {
         let mut xy_r = xy_l;
-        while !matches!(&rd.tile_kinds.key(rd.tiles[&xy_r].kind)[..], "INT_BUFS_R" | "INT_BUFS_R_MON") {
+        while !matches!(
+            &rd.tile_kinds.key(rd.tiles[&xy_r].kind)[..],
+            "INT_BUFS_R" | "INT_BUFS_R_MON"
+        ) {
             xy_r.x += 1;
         }
         if xy_l.y < 10 || xy_l.y >= rd.height - 10 {
@@ -444,8 +480,28 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("INT_BUFS.W", Dir::W, int_e_xy, Some(xy_r), Some(xy_l), Some("INT_BUFS.W"), None, int_w_xy, &lh_all);
-        builder.extract_pass_tile("INT_BUFS.E", Dir::E, int_w_xy, Some(xy_l), Some(xy_r), Some("INT_BUFS.E"), None, int_e_xy, &lh_all);
+        builder.extract_pass_tile(
+            "INT_BUFS.W",
+            Dir::W,
+            int_e_xy,
+            Some(xy_r),
+            Some(xy_l),
+            Some("INT_BUFS.W"),
+            None,
+            int_w_xy,
+            &lh_all,
+        );
+        builder.extract_pass_tile(
+            "INT_BUFS.E",
+            Dir::E,
+            int_w_xy,
+            Some(xy_l),
+            Some(xy_r),
+            Some("INT_BUFS.E"),
+            None,
+            int_e_xy,
+            &lh_all,
+        );
     }
     for &xy_l in rd.tiles_by_kind_name("L_TERM_PPC") {
         let mut xy_r = xy_l;
@@ -454,8 +510,28 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         }
         let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
         let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
-        builder.extract_pass_tile("PPC.W", Dir::W, int_e_xy, Some(xy_r), Some(xy_l), Some("PPC.W"), None, int_w_xy, &lh_all);
-        builder.extract_pass_tile("PPC.E", Dir::E, int_w_xy, Some(xy_l), Some(xy_r), Some("PPC.E"), None, int_e_xy, &lh_all);
+        builder.extract_pass_tile(
+            "PPC.W",
+            Dir::W,
+            int_e_xy,
+            Some(xy_r),
+            Some(xy_l),
+            Some("PPC.W"),
+            None,
+            int_w_xy,
+            &lh_all,
+        );
+        builder.extract_pass_tile(
+            "PPC.E",
+            Dir::E,
+            int_w_xy,
+            Some(xy_l),
+            Some(xy_r),
+            Some("PPC.E"),
+            None,
+            int_e_xy,
+            &lh_all,
+        );
     }
 
     builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", true);
@@ -514,16 +590,18 @@ fn make_bond(grid: &virtex5::Grid, pins: &[PkgPin]) -> Bond {
     let gt_lookup: HashMap<_, _> = grid
         .get_gt()
         .into_iter()
-        .flat_map(|gt| gt.get_pads(grid).into_iter().map(move |(name, func, pin, idx)| (name, (func, gt.bank, pin, idx))))
+        .flat_map(|gt| {
+            gt.get_pads(grid)
+                .into_iter()
+                .map(move |(name, func, pin, idx)| (name, (func, gt.bank, pin, idx)))
+        })
         .collect();
-    let sm_lookup: HashMap<_, _> = grid
-        .get_sysmon_pads()
-        .into_iter()
-        .collect();
+    let sm_lookup: HashMap<_, _> = grid.get_sysmon_pads().into_iter().collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
-                let mut exp_func = format!("IO_L{}{}", io.bbel / 2, ['N', 'P'][io.bbel as usize % 2]);
+                let mut exp_func =
+                    format!("IO_L{}{}", io.bbel / 2, ['N', 'P'][io.bbel as usize % 2]);
                 if io.is_cc() {
                     exp_func += "_CC";
                 }
@@ -568,14 +646,14 @@ fn make_bond(grid: &virtex5::Grid, pins: &[PkgPin]) -> Bond {
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
                 if exp_func != pin.func {
-                    println!("pad {pad} {io:?} got {f} exp {exp_func}", f=pin.func);
+                    println!("pad {pad} {io:?} got {f} exp {exp_func}", f = pin.func);
                 }
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 assert_eq!(pin.vcco_bank, Some(io.bank));
                 BondPin::IoByBank(io.bank, io.bbel)
             } else if let Some(&(ref exp_func, bank, gpin, idx)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
-                    println!("pad {pad} got {f} exp {exp_func}", f=pin.func);
+                    println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::GtByBank(bank, gpin, idx)
             } else if let Some(&spin) = sm_lookup.get(pad) {
@@ -585,18 +663,18 @@ fn make_bond(grid: &virtex5::Grid, pins: &[PkgPin]) -> Bond {
                     _ => unreachable!(),
                 };
                 if exp_func != pin.func {
-                    println!("pad {pad} got {f} exp {exp_func}", f=pin.func);
+                    println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::SysMonByBank(0, spin)
             } else {
-                println!("unk iopad {pad} {f}", f=pin.func);
+                println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
             }
         } else {
             match &pin.func[..] {
                 "NC" => BondPin::Nc,
                 "GND" => BondPin::Gnd,
-                "RSVD" => BondPin::Rsvd, // ??? on TXT devices
+                "RSVD" => BondPin::Rsvd,   // ??? on TXT devices
                 "RSVD_0" => BondPin::Rsvd, // actually VFS, R_FUSE
                 "VCCINT" => BondPin::VccInt,
                 "VCCAUX" => BondPin::VccAux,
@@ -626,22 +704,24 @@ fn make_bond(grid: &virtex5::Grid, pins: &[PkgPin]) -> Bond {
                 "MGTAVTTRXC" => BondPin::GtByRegion(1, GtRegionPin::AVttRxC),
                 "MGTAVTTRXC_L" => BondPin::GtByRegion(0, GtRegionPin::AVttRxC),
                 "MGTAVTTRXC_R" => BondPin::GtByRegion(1, GtRegionPin::AVttRxC),
-                _ => if let Some((n, b)) = split_num(&pin.func) {
-                    match n {
-                        "VCCO_" => BondPin::VccO(b),
-                        "MGTAVCC_" => BondPin::GtByBank(b, GtPin::AVcc, 0),
-                        "MGTAVCCPLL_" => BondPin::GtByBank(b, GtPin::AVccPll, 0),
-                        "MGTAVTTRX_" => BondPin::GtByBank(b, GtPin::VtRx, 0),
-                        "MGTAVTTTX_" => BondPin::GtByBank(b, GtPin::VtTx, 0),
-                        "MGTRREF_" => BondPin::GtByBank(b, GtPin::RRef, 0),
-                        _ => {
-                            println!("UNK FUNC {}", pin.func);
-                            continue;
+                _ => {
+                    if let Some((n, b)) = split_num(&pin.func) {
+                        match n {
+                            "VCCO_" => BondPin::VccO(b),
+                            "MGTAVCC_" => BondPin::GtByBank(b, GtPin::AVcc, 0),
+                            "MGTAVCCPLL_" => BondPin::GtByBank(b, GtPin::AVccPll, 0),
+                            "MGTAVTTRX_" => BondPin::GtByBank(b, GtPin::VtRx, 0),
+                            "MGTAVTTTX_" => BondPin::GtByBank(b, GtPin::VtTx, 0),
+                            "MGTRREF_" => BondPin::GtByBank(b, GtPin::RRef, 0),
+                            _ => {
+                                println!("UNK FUNC {}", pin.func);
+                                continue;
+                            }
                         }
+                    } else {
+                        println!("UNK FUNC {}", pin.func);
+                        continue;
                     }
-                } else {
-                    println!("UNK FUNC {}", pin.func);
-                    continue;
                 }
             }
         };
@@ -658,13 +738,13 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let int_db = make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
-        bonds.push((
-            pkg.clone(),
-            make_bond(&grid, pins),
-        ));
+        bonds.push((pkg.clone(), make_bond(&grid, pins)));
     }
     let eint = grid.expand_grid(&int_db);
     let vrf = Verifier::new(rd, &eint);
     vrf.finish();
-    (make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new()), Some(int_db))
+    (
+        make_device(rd, geom::Grid::Virtex5(grid), bonds, BTreeSet::new()),
+        Some(int_db),
+    )
 }

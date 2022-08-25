@@ -4,8 +4,8 @@ use simple_error::{bail, SimpleError};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, Write};
-use std::str::FromStr;
 use std::process::Stdio;
+use std::str::FromStr;
 use tempfile;
 
 #[derive(Debug)]
@@ -193,7 +193,9 @@ impl Parser {
                 let _ = std::io::stderr().write_all(&status.stderr);
                 bail!("non-zero xdl exit status");
             }
-            Parser::new(Box::new(BufReader::new(File::open(dir.path().join("out.xdlrc"))?)))
+            Parser::new(Box::new(BufReader::new(File::open(
+                dir.path().join("out.xdlrc"),
+            )?)))
         } else {
             args.push("fifo.xdlrc");
             Parser::new(Box::new(ToolchainReader::new(

@@ -1,7 +1,7 @@
+use super::{eint, int, CfgPin, ColId, DisabledPart, GtPin, RowId, SysMonPin};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use serde::{Serialize, Deserialize};
-use super::{CfgPin, DisabledPart, SysMonPin, GtPin, ColId, RowId, int, eint};
-use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -58,7 +58,10 @@ impl Io {
         matches!(self.row.to_idx() % 40, 16 | 17 | 22 | 23)
     }
     pub fn is_gc(&self) -> bool {
-        matches!((self.bank, self.row.to_idx() % 40), (24 | 34, 36..=39) | (25 | 35, 0..=3))
+        matches!(
+            (self.bank, self.row.to_idx() % 40),
+            (24 | 34, 36..=39) | (25 | 35, 0..=3)
+        )
     }
     pub fn is_vref(&self) -> bool {
         self.row.to_idx() % 20 == 10
@@ -179,25 +182,85 @@ impl Gt {
             let opy = (grid.reg_gth_start * 32 + gthy * 8) as u32;
             let ipy = (grid.reg_gth_start * 24 + gthy * 12) as u32;
             for b in 0..4 {
-                res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)), format!("MGTTXN{}_{}", b, self.bank), GtPin::TxN, b));
-                res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b) + 1), format!("MGTTXP{}_{}", b, self.bank), GtPin::TxP, b));
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b)), format!("MGTRXN{}_{}", b, self.bank), GtPin::RxN, b));
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b) + 1), format!("MGTRXP{}_{}", b, self.bank), GtPin::RxP, b));
+                res.push((
+                    format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)),
+                    format!("MGTTXN{}_{}", b, self.bank),
+                    GtPin::TxN,
+                    b,
+                ));
+                res.push((
+                    format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b) + 1),
+                    format!("MGTTXP{}_{}", b, self.bank),
+                    GtPin::TxP,
+                    b,
+                ));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b)),
+                    format!("MGTRXN{}_{}", b, self.bank),
+                    GtPin::RxN,
+                    b,
+                ));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b) + 1),
+                    format!("MGTRXP{}_{}", b, self.bank),
+                    GtPin::RxP,
+                    b,
+                ));
             }
-            res.push((format!("IPAD_X{}Y{}", ipx, ipy - 9), format!("MGTREFCLKN_{}", self.bank), GtPin::ClkN, 0));
-            res.push((format!("IPAD_X{}Y{}", ipx, ipy - 8), format!("MGTREFCLKP_{}", self.bank), GtPin::ClkP, 0));
+            res.push((
+                format!("IPAD_X{}Y{}", ipx, ipy - 9),
+                format!("MGTREFCLKN_{}", self.bank),
+                GtPin::ClkN,
+                0,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", ipx, ipy - 8),
+                format!("MGTREFCLKP_{}", self.bank),
+                GtPin::ClkP,
+                0,
+            ));
         } else {
             let opy = self.gy * 8;
             let ipy = self.gy * 24;
             for b in 0..4 {
-                res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * b), format!("MGTTXN{}_{}", b, self.bank), GtPin::TxN, b));
-                res.push((format!("OPAD_X{}Y{}", opx, opy + 2 * b + 1), format!("MGTTXP{}_{}", b, self.bank), GtPin::TxP, b));
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 6 * b), format!("MGTRXN{}_{}", b, self.bank), GtPin::RxN, b));
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 6 * b + 1), format!("MGTRXP{}_{}", b, self.bank), GtPin::RxP, b));
+                res.push((
+                    format!("OPAD_X{}Y{}", opx, opy + 2 * b),
+                    format!("MGTTXN{}_{}", b, self.bank),
+                    GtPin::TxN,
+                    b,
+                ));
+                res.push((
+                    format!("OPAD_X{}Y{}", opx, opy + 2 * b + 1),
+                    format!("MGTTXP{}_{}", b, self.bank),
+                    GtPin::TxP,
+                    b,
+                ));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 6 * b),
+                    format!("MGTRXN{}_{}", b, self.bank),
+                    GtPin::RxN,
+                    b,
+                ));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 6 * b + 1),
+                    format!("MGTRXP{}_{}", b, self.bank),
+                    GtPin::RxP,
+                    b,
+                ));
             }
             for b in 0..2 {
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 10 - 2 * b), format!("MGTREFCLK{}P_{}", b, self.bank), GtPin::ClkP, b));
-                res.push((format!("IPAD_X{}Y{}", ipx, ipy + 11 - 2 * b), format!("MGTREFCLK{}N_{}", b, self.bank), GtPin::ClkN, b));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 10 - 2 * b),
+                    format!("MGTREFCLK{}P_{}", b, self.bank),
+                    GtPin::ClkP,
+                    b,
+                ));
+                res.push((
+                    format!("IPAD_X{}Y{}", ipx, ipy + 11 - 2 * b),
+                    format!("MGTREFCLK{}N_{}", b, self.bank),
+                    GtPin::ClkN,
+                    b,
+                ));
             }
         }
         res
@@ -282,10 +345,10 @@ impl Grid {
             }
             if self.has_left_gt() {
                 res.push((format!("IPAD_X1Y{}", ipy), SysMonPin::VP));
-                res.push((format!("IPAD_X1Y{}", ipy+1), SysMonPin::VN));
+                res.push((format!("IPAD_X1Y{}", ipy + 1), SysMonPin::VN));
             } else {
                 res.push((format!("IPAD_X0Y{}", ipy), SysMonPin::VP));
-                res.push((format!("IPAD_X0Y{}", ipy+1), SysMonPin::VN));
+                res.push((format!("IPAD_X0Y{}", ipy + 1), SysMonPin::VN));
             }
         }
         res

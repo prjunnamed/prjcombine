@@ -1,18 +1,18 @@
-use core::hash::{Hash, BuildHasher};
+use core::hash::{BuildHasher, Hash};
 use core::marker::PhantomData;
 use core::ops::Index;
 
 use std::collections::hash_map::RandomState;
 use std::fmt;
 
-use serde::ser::{Serialize, Serializer, SerializeSeq};
-use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use indexmap::set::IndexSet;
 use indexmap::Equivalent;
 
-use crate::{EntityId, EntityVec};
 use crate::id::EntityIds;
+use crate::{EntityId, EntityVec};
 
 #[derive(Clone)]
 pub struct EntitySet<I, V: Hash, RS: BuildHasher = RandomState> {
@@ -58,14 +58,16 @@ where
     }
 
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<I>
-    where Q: Hash + Equivalent<V>
+    where
+        Q: Hash + Equivalent<V>,
     {
         let (i, _) = self.set.get_full(key)?;
         Some(I::from_idx(i))
     }
 
     pub fn contains<Q: ?Sized>(&self, key: &Q) -> bool
-    where Q: Hash + Equivalent<V>
+    where
+        Q: Hash + Equivalent<V>,
     {
         self.set.contains(key)
     }
@@ -94,10 +96,13 @@ where
         self.into_values().collect()
     }
 
-    pub fn get_or_insert(&mut self, key: &(impl ToOwned<Owned=V> + Hash + Equivalent<V> + ?Sized)) -> I {
+    pub fn get_or_insert(
+        &mut self,
+        key: &(impl ToOwned<Owned = V> + Hash + Equivalent<V> + ?Sized),
+    ) -> I {
         match self.get(key) {
             Some(i) => i,
-            None => self.insert(key.to_owned()).0
+            None => self.insert(key.to_owned()).0,
         }
     }
 }
@@ -160,7 +165,8 @@ where
     I: EntityId,
     V: Hash + Eq,
     RS: BuildHasher,
-{}
+{
+}
 
 impl<I, V, RS> IntoIterator for EntitySet<I, V, RS>
 where
@@ -295,7 +301,8 @@ where
     RS: BuildHasher + Default,
 {
     fn from_iter<T>(iter: T) -> Self
-    where T: IntoIterator<Item=V>
+    where
+        T: IntoIterator<Item = V>,
     {
         Self {
             set: IndexSet::from_iter(iter),
@@ -304,14 +311,16 @@ where
     }
 }
 
-impl <I, V, RS> Serialize for EntitySet<I, V, RS>
+impl<I, V, RS> Serialize for EntitySet<I, V, RS>
 where
     I: EntityId,
     V: Serialize + Hash + Eq,
     RS: BuildHasher,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+    where
+        S: Serializer,
+    {
         let mut seq = serializer.serialize_seq(Some(self.len()))?;
         for v in self.values() {
             seq.serialize_element(v)?;
@@ -321,7 +330,7 @@ where
 }
 
 struct DeserializeVisitor<I, V: Hash, RS: BuildHasher> {
-    marker: PhantomData<fn() -> EntitySet<I, V, RS>>
+    marker: PhantomData<fn() -> EntitySet<I, V, RS>>,
 }
 
 impl<I, V, RS> DeserializeVisitor<I, V, RS>
@@ -331,7 +340,7 @@ where
 {
     fn new() -> Self {
         DeserializeVisitor {
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 }
@@ -352,7 +361,10 @@ where
     where
         S: SeqAccess<'de>,
     {
-        let mut res = EntitySet::with_capacity_and_hasher(access.size_hint().unwrap_or(0), Default::default());
+        let mut res = EntitySet::with_capacity_and_hasher(
+            access.size_hint().unwrap_or(0),
+            Default::default(),
+        );
 
         while let Some(value) = access.next_element()? {
             res.insert(value);

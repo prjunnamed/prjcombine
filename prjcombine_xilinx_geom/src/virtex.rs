@@ -1,7 +1,7 @@
-use std::collections::{BTreeSet, BTreeMap};
-use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, ColId, RowId, BelId, eint, int, DisabledPart};
+use crate::{eint, int, BelCoord, BelId, CfgPin, ColId, DisabledPart, RowId};
 use prjcombine_entity::{EntityId, EntityIds};
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -147,7 +147,11 @@ impl Grid {
         res
     }
 
-    pub fn expand_grid<'a>(&self, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    pub fn expand_grid<'a>(
+        &self,
+        disabled: &BTreeSet<DisabledPart>,
+        db: &'a int::IntDb,
+    ) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         let (_, mut grid) = egrid.add_slr(self.columns, self.rows);
 
@@ -390,11 +394,7 @@ impl Grid {
                 db.get_node("CLKB"),
                 &["BM"],
                 db.get_node_naming("CLKB"),
-                &[
-                    (col_c, row_b),
-                    (col_pl, row_b),
-                    (col_pr, row_b),
-                ],
+                &[(col_c, row_b), (col_pl, row_b), (col_pr, row_b)],
             );
             node.add_bel(0, "GCLKPAD0".to_string());
             node.add_bel(1, "GCLKPAD1".to_string());
@@ -404,11 +404,7 @@ impl Grid {
                 db.get_node("CLKT"),
                 &["TM"],
                 db.get_node_naming("CLKT"),
-                &[
-                    (col_c, row_t),
-                    (col_pl, row_t),
-                    (col_pr, row_t),
-                ],
+                &[(col_c, row_t), (col_pl, row_t), (col_pr, row_t)],
             );
             node.add_bel(0, "GCLKPAD2".to_string());
             node.add_bel(1, "GCLKPAD3".to_string());
@@ -418,44 +414,28 @@ impl Grid {
                 db.get_node("DLL.BOT"),
                 &["LBRAM_BOT", "BM"],
                 db.get_node_naming("DLL.BL"),
-                &[
-                    (col_pl, row_b),
-                    (col_pl - 1, row_b),
-                    (col_c, row_b),
-                ],
+                &[(col_pl, row_b), (col_pl - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, "DLL1".to_string());
             let node = grid[(col_pl, row_t)].add_xnode(
                 db.get_node("DLL.TOP"),
                 &["LBRAM_TOP", "TM"],
                 db.get_node_naming("DLL.TL"),
-                &[
-                    (col_pl, row_t),
-                    (col_pl - 1, row_t),
-                    (col_c, row_t),
-                ],
+                &[(col_pl, row_t), (col_pl - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, "DLL3".to_string());
             let node = grid[(col_pr, row_b)].add_xnode(
                 db.get_node("DLL.BOT"),
                 &["RBRAM_BOT", "BM"],
                 db.get_node_naming("DLL.BR"),
-                &[
-                    (col_pr, row_b),
-                    (col_pr - 1, row_b),
-                    (col_c, row_b),
-                ],
+                &[(col_pr, row_b), (col_pr - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, "DLL0".to_string());
             let node = grid[(col_pr, row_t)].add_xnode(
                 db.get_node("DLL.TOP"),
                 &["RBRAM_TOP", "TM"],
                 db.get_node_naming("DLL.TR"),
-                &[
-                    (col_pr, row_t),
-                    (col_pr - 1, row_t),
-                    (col_c, row_t),
-                ],
+                &[(col_pr, row_t), (col_pr - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, "DLL2".to_string());
         } else {
@@ -517,45 +497,29 @@ impl Grid {
             let node = grid[(col_sl, row_b)].add_xnode(
                 db.get_node("DLLS.BOT"),
                 &[&format!("BRAM_BOTC{c_sl}"), "BM"],
-                db.get_node_naming(if is_s_gclk {"DLLS.BL.GCLK"} else {"DLLS.BL"}),
-                &[
-                    (col_sl, row_b),
-                    (col_sl - 1, row_b),
-                    (col_c, row_b),
-                ],
+                db.get_node_naming(if is_s_gclk { "DLLS.BL.GCLK" } else { "DLLS.BL" }),
+                &[(col_sl, row_b), (col_sl - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, format!("DLL1{s}"));
             let node = grid[(col_sl, row_t)].add_xnode(
                 db.get_node("DLLS.TOP"),
                 &[&format!("BRAM_TOPC{c_sl}"), "TM"],
-                db.get_node_naming(if is_s_gclk {"DLLS.TL.GCLK"} else {"DLLS.TL"}),
-                &[
-                    (col_sl, row_t),
-                    (col_sl - 1, row_t),
-                    (col_c, row_t),
-                ],
+                db.get_node_naming(if is_s_gclk { "DLLS.TL.GCLK" } else { "DLLS.TL" }),
+                &[(col_sl, row_t), (col_sl - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, format!("DLL3{s}"));
             let node = grid[(col_sr, row_b)].add_xnode(
                 db.get_node("DLLS.BOT"),
                 &[&format!("BRAM_BOTC{c_sr}"), "BM"],
-                db.get_node_naming(if is_s_gclk {"DLLS.BR.GCLK"} else {"DLLS.BR"}),
-                &[
-                    (col_sr, row_b),
-                    (col_sr - 1, row_b),
-                    (col_c, row_b),
-                ],
+                db.get_node_naming(if is_s_gclk { "DLLS.BR.GCLK" } else { "DLLS.BR" }),
+                &[(col_sr, row_b), (col_sr - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, format!("DLL0{s}"));
             let node = grid[(col_sr, row_t)].add_xnode(
                 db.get_node("DLLS.TOP"),
                 &[&format!("BRAM_TOPC{c_sr}"), "TM"],
-                db.get_node_naming(if is_s_gclk {"DLLS.TR.GCLK"} else {"DLLS.TR"}),
-                &[
-                    (col_sr, row_t),
-                    (col_sr - 1, row_t),
-                    (col_c, row_t),
-                ],
+                db.get_node_naming(if is_s_gclk { "DLLS.TR.GCLK" } else { "DLLS.TR" }),
+                &[(col_sr, row_t), (col_sr - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, format!("DLL2{s}"));
             if !disabled.contains(&DisabledPart::VirtexPrimaryDlls) {
@@ -634,7 +598,10 @@ impl Grid {
                     let col = ColId::from_idx(c);
                     grid[(col, row)].clkroot = (col_m - 1, row);
                 }
-                if (col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1) && row != self.row_bio() && row != self.row_tio() {
+                if (col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1)
+                    && row != self.row_bio()
+                    && row != self.row_tio()
+                {
                     grid[(col_m, row)].clkroot = (col_m, self.row_clk());
                     for c in (col_m.to_idx() + 1)..col_r.to_idx() {
                         let col = ColId::from_idx(c);

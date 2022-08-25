@@ -1,7 +1,10 @@
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_xilinx_geom::{
+    int, Bond, BondId, ColId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart,
+    ExtraDie, GeomDb, Grid, GridId, RowId, SlrId,
+};
 use prjcombine_xilinx_rawdump::Part;
-use prjcombine_xilinx_geom::{Grid, Bond, DeviceBond, Device, DisabledPart, GeomDb, DeviceCombo, ExtraDie, BondId, GridId, DevBondId, DevSpeedId, ColId, RowId, SlrId, int};
-use prjcombine_entity::{EntityVec, EntitySet, EntityMap};
-use std::collections::{BTreeSet, BTreeMap, btree_map};
+use std::collections::{btree_map, BTreeMap, BTreeSet};
 
 pub struct PreDevice {
     pub name: String,
@@ -14,15 +17,26 @@ pub struct PreDevice {
     pub disabled: BTreeSet<DisabledPart>,
 }
 
-pub fn make_device_multi(rd: &Part, grids: EntityVec<SlrId, Grid>, grid_master: SlrId, extras: Vec<ExtraDie>, mut bonds: Vec<(String, Bond)>, disabled: BTreeSet<DisabledPart>) -> PreDevice {
+pub fn make_device_multi(
+    rd: &Part,
+    grids: EntityVec<SlrId, Grid>,
+    grid_master: SlrId,
+    extras: Vec<ExtraDie>,
+    mut bonds: Vec<(String, Bond)>,
+    disabled: BTreeSet<DisabledPart>,
+) -> PreDevice {
     let mut speeds = EntitySet::new();
     bonds.sort_by(|x, y| x.0.cmp(&y.0));
     let bonds = EntityMap::<DevBondId, _, _>::from_iter(bonds);
-    let combos = rd.combos.iter().map(|c| DeviceCombo {
-        name: c.name.clone(),
-        devbond_idx: bonds.get(&c.package).unwrap().0,
-        speed_idx: speeds.get_or_insert(&c.speed),
-    }).collect();
+    let combos = rd
+        .combos
+        .iter()
+        .map(|c| DeviceCombo {
+            name: c.name.clone(),
+            devbond_idx: bonds.get(&c.package).unwrap().0,
+            speed_idx: speeds.get_or_insert(&c.speed),
+        })
+        .collect();
     PreDevice {
         name: rd.part.clone(),
         grids,
@@ -35,7 +49,12 @@ pub fn make_device_multi(rd: &Part, grids: EntityVec<SlrId, Grid>, grid_master: 
     }
 }
 
-pub fn make_device(rd: &Part, grid: Grid, bonds: Vec<(String, Bond)>, disabled: BTreeSet<DisabledPart>) -> PreDevice {
+pub fn make_device(
+    rd: &Part,
+    grid: Grid,
+    bonds: Vec<(String, Bond)>,
+    disabled: BTreeSet<DisabledPart>,
+) -> PreDevice {
     let mut grids = EntityVec::new();
     let grid_master = grids.push(grid);
     make_device_multi(rd, grids, grid_master, vec![], bonds, disabled)
@@ -78,7 +97,10 @@ impl GridBuilder {
 
     pub fn ingest(&mut self, pre: PreDevice) {
         let grids = pre.grids.into_map_values(|x| self.insert_grid(x));
-        let bonds = pre.bonds.into_map_values(|(name, b)| DeviceBond { name, bond: self.insert_bond(b) });
+        let bonds = pre.bonds.into_map_values(|(name, b)| DeviceBond {
+            name,
+            bond: self.insert_bond(b),
+        });
         self.devices.push(Device {
             name: pre.name,
             grids,
@@ -114,7 +136,7 @@ impl GridBuilder {
                                 }
                             }
                         }
-                    }
+                    };
                 }
                 merge_dicts!(nodes);
                 merge_dicts!(terms);
@@ -163,12 +185,10 @@ impl GridBuilder {
                                     None => {
                                         v2.wires_out.insert(kk, vv);
                                     }
-                                    Some(vv2 @ int::IntfWireOutNaming::Buf(no, _)) => {
-                                        match vv {
-                                            int::IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
-                                            int::IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
-                                        }
-                                    }
+                                    Some(vv2 @ int::IntfWireOutNaming::Buf(no, _)) => match vv {
+                                        int::IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
+                                        int::IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
+                                    },
                                     Some(vv2 @ int::IntfWireOutNaming::Simple(n)) => {
                                         if let int::IntfWireOutNaming::Buf(no, _) = &vv {
                                             assert_eq!(no, n);
@@ -331,7 +351,13 @@ pub fn extract_int<'a>(rd: &'a Part, tts: &[&str], extra_cols: &[ExtraCol]) -> I
     extract_int_slr(rd, tts, extra_cols, 0, rd.height)
 }
 
-pub fn extract_int_slr<'a>(rd: &'a Part, tts: &[&str], extra_cols: &[ExtraCol], slr_start: u16, slr_end: u16) -> IntGrid<'a> {
+pub fn extract_int_slr<'a>(
+    rd: &'a Part,
+    tts: &[&str],
+    extra_cols: &[ExtraCol],
+    slr_start: u16,
+    slr_end: u16,
+) -> IntGrid<'a> {
     let mut res = IntGrid {
         rd,
         cols: EntityVec::new(),
@@ -349,6 +375,9 @@ pub fn extract_int_slr<'a>(rd: &'a Part, tts: &[&str], extra_cols: &[ExtraCol], 
         }
     }
     res.cols = cols.into_iter().collect();
-    res.rows = rows.into_iter().filter(|&x| (slr_start..slr_end).contains(&(x as u16))).collect();
+    res.rows = rows
+        .into_iter()
+        .filter(|&x| (slr_start..slr_end).contains(&(x as u16)))
+        .collect();
     res
 }

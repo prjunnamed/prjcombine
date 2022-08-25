@@ -1,7 +1,7 @@
+use crate::{eint, int, CfgPin, ColId, DisabledPart, RowId, SlrId};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use serde::{Serialize, Deserialize};
-use crate::{CfgPin, DisabledPart, ColId, RowId, SlrId, int, eint};
-use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -247,7 +247,11 @@ impl Io {
                 (65, 22) => Some(CfgPin::Data(27)),
                 (65, 23) => Some(CfgPin::Data(24)),
                 (65, 24) => Some(CfgPin::Data(25)),
-                (65, 25) => Some(if self.grid_kind == GridKind::Ultrascale {CfgPin::PerstN1} else {CfgPin::SmbAlert}),
+                (65, 25) => Some(if self.grid_kind == GridKind::Ultrascale {
+                    CfgPin::PerstN1
+                } else {
+                    CfgPin::SmbAlert
+                }),
                 (65, 26) => Some(CfgPin::Data(22)),
                 (65, 27) => Some(CfgPin::Data(23)),
                 (65, 28) => Some(CfgPin::Data(20)),
@@ -336,7 +340,11 @@ impl Io {
     }
 }
 
-pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>) -> Vec<Io> {
+pub fn get_io(
+    grids: &EntityVec<SlrId, Grid>,
+    grid_master: SlrId,
+    disabled: &BTreeSet<DisabledPart>,
+) -> Vec<Io> {
     let mut res = Vec::new();
     let mut io_has_io: Vec<_> = grids[grid_master].cols_io.iter().map(|_| false).collect();
     let mut hard_has_io = false;
@@ -353,7 +361,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         for (i, c) in grid.cols_io.iter().enumerate() {
             for (j, &kind) in c.regs.iter().enumerate() {
                 if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                    continue
+                    continue;
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
                     io_has_io[i] = true;
@@ -364,7 +372,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         if let Some(ref c) = grid.col_hard {
             for (j, &kind) in c.regs.iter().enumerate() {
                 if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                    continue
+                    continue;
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                     hard_has_io = true;
@@ -374,7 +382,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         }
         for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
             if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                continue
+                continue;
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                 cfg_has_io = true;
@@ -406,11 +414,17 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
     let mut iox = 0;
     let mut prev_col = grids[grid_master].columns.first_id().unwrap();
     for (i, &has_io) in io_has_io.iter().enumerate() {
-        if hard_has_io && grids[grid_master].col_hard.as_ref().unwrap().col > prev_col && grids[grid_master].col_hard.as_ref().unwrap().col < grids[grid_master].cols_io[i].col {
+        if hard_has_io
+            && grids[grid_master].col_hard.as_ref().unwrap().col > prev_col
+            && grids[grid_master].col_hard.as_ref().unwrap().col < grids[grid_master].cols_io[i].col
+        {
             iox_hard = iox;
             iox += 1;
         }
-        if cfg_has_io && grids[grid_master].col_cfg.col > prev_col && grids[grid_master].col_cfg.col < grids[grid_master].cols_io[i].col {
+        if cfg_has_io
+            && grids[grid_master].col_cfg.col > prev_col
+            && grids[grid_master].col_cfg.col < grids[grid_master].cols_io[i].col
+        {
             iox_cfg = iox;
             iox += 1;
         }
@@ -433,7 +447,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             for (j, &kind) in c.regs.iter().enumerate() {
                 let reg = reg_base + j;
                 if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                    continue
+                    continue;
                 }
                 if matches!(kind, IoRowKind::Hpio | IoRowKind::Hrio) {
                     for bel in 0..52 {
@@ -445,7 +459,11 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
                                 bank = 84;
                             }
                         }
-                        if i == 0 && iox_io[i] != iox_spec && grids[grid_master].kind == GridKind::UltrascalePlus && !hard_has_io {
+                        if i == 0
+                            && iox_io[i] != iox_spec
+                            && grids[grid_master].kind == GridKind::UltrascalePlus
+                            && !hard_has_io
+                        {
                             bank -= 20;
                         }
                         res.push(Io {
@@ -474,7 +492,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             for (j, &kind) in c.regs.iter().enumerate() {
                 let reg = reg_base + j;
                 if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                    continue
+                    continue;
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                     let bank = (65 + reg - reg_cfg) as u32 + iox_hard * 20 - iox_spec * 20;
@@ -485,7 +503,11 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
                             reg: reg as u32,
                             bel,
                             iox: iox_hard,
-                            ioy: if bel < 12 { reg_ioy[reg].0 + bel } else { reg_ioy[reg].1 + bel - 12 },
+                            ioy: if bel < 12 {
+                                reg_ioy[reg].0 + bel
+                            } else {
+                                reg_ioy[reg].1 + bel - 12
+                            },
                             bank,
                             kind: IoKind::Hdio,
                             grid_kind: grid.kind,
@@ -499,7 +521,7 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
         for (j, &kind) in grid.col_cfg.regs.iter().enumerate() {
             let reg = reg_base + j;
             if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                continue
+                continue;
             }
             if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
                 let bank = (65 + reg - reg_cfg) as u32 + iox_cfg * 20 - iox_spec * 20;
@@ -510,7 +532,11 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
                         reg: reg as u32,
                         bel,
                         iox: iox_cfg,
-                        ioy: if bel < 12 { reg_ioy[reg].0 + bel } else { reg_ioy[reg].1 + bel - 12 },
+                        ioy: if bel < 12 {
+                            reg_ioy[reg].0 + bel
+                        } else {
+                            reg_ioy[reg].1 + bel - 12
+                        },
                         bank,
                         kind: IoKind::Hdio,
                         grid_kind: grid.kind,
@@ -536,7 +562,11 @@ pub struct Gt {
     pub kind: IoRowKind,
 }
 
-pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
+pub fn get_gt(
+    grids: &EntityVec<SlrId, Grid>,
+    grid_master: SlrId,
+    disabled: &BTreeSet<DisabledPart>,
+) -> Vec<Gt> {
     let mut res = Vec::new();
     for kind in [
         IoRowKind::Gth,
@@ -560,7 +590,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
                 for (j, &rkind) in c.regs.iter().enumerate() {
                     let reg = reg_base + j;
                     if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                        continue
+                        continue;
                     }
                     if kind == rkind {
                         col_has_gt[i] = true;
@@ -571,7 +601,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
             for (j, &rkind) in grid.col_cfg.regs.iter().enumerate() {
                 let reg = reg_base + j;
                 if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                    continue
+                    continue;
                 }
                 if gi == grid_master && rkind == HardRowKind::Cfg {
                     reg_cfg = Some(reg);
@@ -602,10 +632,10 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
                 for (j, &rkind) in c.regs.iter().enumerate() {
                     let reg = reg_base + j;
                     if disabled.contains(&DisabledPart::Region(gi, j as u32)) {
-                        continue
+                        continue;
                     }
                     if kind != rkind {
-                        continue
+                        continue;
                     }
                     let mut bank = (125 + reg - reg_cfg) as u32;
                     if i != 0 {
@@ -628,7 +658,12 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, disabled: &BTr
     res
 }
 
-pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+pub fn expand_grid<'a>(
+    grids: &EntityVec<SlrId, &Grid>,
+    _grid_master: SlrId,
+    disabled: &BTreeSet<DisabledPart>,
+    db: &'a int::IntDb,
+) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     let mut yb = 0;
     for (slrid, grid) in grids {
@@ -663,19 +698,30 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                 };
                 slr.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 if row.to_idx() % 60 == 30 {
-                    let lr = if col < grid.col_cfg.col {'L'} else {'R'};
+                    let lr = if col < grid.col_cfg.col { 'L' } else { 'R' };
                     let name = format!("RCLK_INT_{lr}_X{x}Y{yy}", yy = y - 1);
                     slr[(col, row)].add_xnode(
                         db.get_node("RCLK"),
                         &[&name],
                         db.get_node_naming("RCLK"),
-                        &[(col, row)]
+                        &[(col, row)],
                     );
                 }
                 match cd.l {
-                    ColumnKindLeft::CleL | ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => (),
-                    ColumnKindLeft::Bram | ColumnKindLeft::BramTd | ColumnKindLeft::BramAuxClmp | ColumnKindLeft::BramBramClmp | ColumnKindLeft::Uram => {
-                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_L"} else {"INT_INTF_L"};
+                    ColumnKindLeft::CleL
+                    | ColumnKindLeft::CleM
+                    | ColumnKindLeft::CleMClkBuf
+                    | ColumnKindLeft::CleMLaguna => (),
+                    ColumnKindLeft::Bram
+                    | ColumnKindLeft::BramTd
+                    | ColumnKindLeft::BramAuxClmp
+                    | ColumnKindLeft::BramBramClmp
+                    | ColumnKindLeft::Uram => {
+                        let kind = if grid.kind == GridKind::Ultrascale {
+                            "INT_INTERFACE_L"
+                        } else {
+                            "INT_INTF_L"
+                        };
                         slr[(col, row)].add_intf(
                             db.get_intf("INTF.W"),
                             format!("{kind}_X{x}Y{y}"),
@@ -683,7 +729,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         );
                     }
                     ColumnKindLeft::Gt | ColumnKindLeft::Io => {
-                        let cio = grid.cols_io.iter().find(|x| x.col == col && x.side == ColSide::Left).unwrap();
+                        let cio = grid
+                            .cols_io
+                            .iter()
+                            .find(|x| x.col == col && x.side == ColSide::Left)
+                            .unwrap();
                         let rk = cio.regs[row.to_idx() / 60];
                         match (grid.kind, rk) {
                             (_, IoRowKind::None) => (),
@@ -696,7 +746,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                                 );
                             }
                             (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
-                                let kind = if col.to_idx() == 0 {"INT_INTF_LEFT_TERM_IO_FT"} else if matches!(row.to_idx() % 15, 0 | 1 | 13 | 14) {"INT_INTF_L_CMT"} else {"INT_INTF_L_IO"};
+                                let kind = if col.to_idx() == 0 {
+                                    "INT_INTF_LEFT_TERM_IO_FT"
+                                } else if matches!(row.to_idx() % 15, 0 | 1 | 13 | 14) {
+                                    "INT_INTF_L_CMT"
+                                } else {
+                                    "INT_INTF_L_IO"
+                                };
                                 slr[(col, row)].add_intf(
                                     db.get_intf("INTF.W.IO"),
                                     format!("{kind}_X{x}Y{y}"),
@@ -704,7 +760,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                                 );
                             }
                             _ => {
-                                let kind = if grid.kind == GridKind::Ultrascale {"INT_INT_INTERFACE_GT_LEFT_FT"} else {"INT_INTF_L_TERM_GT"};
+                                let kind = if grid.kind == GridKind::Ultrascale {
+                                    "INT_INT_INTERFACE_GT_LEFT_FT"
+                                } else {
+                                    "INT_INTF_L_TERM_GT"
+                                };
                                 slr[(col, row)].add_intf(
                                     db.get_intf("INTF.W.DELAY"),
                                     format!("{kind}_X{x}Y{y}"),
@@ -713,8 +773,16 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                             }
                         }
                     }
-                    ColumnKindLeft::Hard | ColumnKindLeft::Sdfec | ColumnKindLeft::DfeC | ColumnKindLeft::DfeDF | ColumnKindLeft::DfeE => {
-                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_PCIE_L"} else {"INT_INTF_L_PCIE4"};
+                    ColumnKindLeft::Hard
+                    | ColumnKindLeft::Sdfec
+                    | ColumnKindLeft::DfeC
+                    | ColumnKindLeft::DfeDF
+                    | ColumnKindLeft::DfeE => {
+                        let kind = if grid.kind == GridKind::Ultrascale {
+                            "INT_INTERFACE_PCIE_L"
+                        } else {
+                            "INT_INTF_L_PCIE4"
+                        };
                         slr[(col, row)].add_intf(
                             db.get_intf("INTF.W.DELAY"),
                             format!("{kind}_X{x}Y{y}"),
@@ -725,7 +793,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                 match cd.r {
                     ColumnKindRight::CleL | ColumnKindRight::CleLDcg10 => (),
                     ColumnKindRight::Dsp | ColumnKindRight::DspClkBuf | ColumnKindRight::Uram => {
-                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_R"} else {"INT_INTF_R"};
+                        let kind = if grid.kind == GridKind::Ultrascale {
+                            "INT_INTERFACE_R"
+                        } else {
+                            "INT_INTF_R"
+                        };
                         slr[(col, row)].add_intf(
                             db.get_intf("INTF.E"),
                             format!("{kind}_X{x}Y{y}"),
@@ -733,11 +805,17 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         );
                     }
                     ColumnKindRight::Gt | ColumnKindRight::Io => {
-                        let cio = grid.cols_io.iter().find(|x| x.col == col && x.side == ColSide::Right).unwrap();
+                        let cio = grid
+                            .cols_io
+                            .iter()
+                            .find(|x| x.col == col && x.side == ColSide::Right)
+                            .unwrap();
                         let rk = cio.regs[row.to_idx() / 60];
                         match (grid.kind, rk) {
                             (_, IoRowKind::None) => (),
-                            (GridKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => unreachable!(),
+                            (GridKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => {
+                                unreachable!()
+                            }
                             (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
                                 let kind = "INT_INTF_RIGHT_TERM_IO";
                                 slr[(col, row)].add_intf(
@@ -747,7 +825,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                                 );
                             }
                             _ => {
-                                let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_GT_R"} else {"INT_INTF_R_TERM_GT"};
+                                let kind = if grid.kind == GridKind::Ultrascale {
+                                    "INT_INTERFACE_GT_R"
+                                } else {
+                                    "INT_INTF_R_TERM_GT"
+                                };
                                 slr[(col, row)].add_intf(
                                     db.get_intf("INTF.E.DELAY"),
                                     format!("{kind}_X{x}Y{y}"),
@@ -756,8 +838,16 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                             }
                         }
                     }
-                    ColumnKindRight::Hard | ColumnKindRight::DfeB | ColumnKindRight::DfeC | ColumnKindRight::DfeDF | ColumnKindRight::DfeE => {
-                        let kind = if grid.kind == GridKind::Ultrascale {"INT_INTERFACE_PCIE_R"} else {"INT_INTF_R_PCIE4"};
+                    ColumnKindRight::Hard
+                    | ColumnKindRight::DfeB
+                    | ColumnKindRight::DfeC
+                    | ColumnKindRight::DfeDF
+                    | ColumnKindRight::DfeE => {
+                        let kind = if grid.kind == GridKind::Ultrascale {
+                            "INT_INTERFACE_PCIE_R"
+                        } else {
+                            "INT_INTF_R_PCIE4"
+                        };
                         slr[(col, row)].add_intf(
                             db.get_intf("INTF.E.DELAY"),
                             format!("{kind}_X{x}Y{y}"),
@@ -781,7 +871,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
         }
 
         if let Some(ref ps) = grid.ps {
-            let height = if ps.has_vcu {240} else {180};
+            let height = if ps.has_vcu { 240 } else { 180 };
             let width = ps.col.to_idx();
             slr.nuke_rect(ColId(0), RowId(0), width, height);
             if height != grid.regs * 60 {
@@ -810,7 +900,12 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
         }
 
         slr.nuke_rect(ColId(0), RowId(0), grid.columns.len(), reg_skip_bot * 60);
-        slr.nuke_rect(ColId(0), RowId::from_idx((grid.regs - reg_skip_top) * 60), grid.columns.len(), reg_skip_top * 60);
+        slr.nuke_rect(
+            ColId(0),
+            RowId::from_idx((grid.regs - reg_skip_top) * 60),
+            grid.columns.len(),
+            reg_skip_top * 60,
+        );
 
         let col_l = slr.cols().next().unwrap();
         let col_r = slr.cols().next_back().unwrap();

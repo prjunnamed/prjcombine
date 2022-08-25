@@ -1,10 +1,10 @@
-use prjcombine_xdl::Design;
 use prjcombine_toolchain::Toolchain;
-use std::process::Stdio;
-use std::fs::{File, read_to_string};
-use std::io::Write;
-use tempfile;
+use prjcombine_xdl::Design;
 use simple_error::bail;
+use std::fs::{read_to_string, File};
+use std::io::Write;
+use std::process::Stdio;
+use tempfile;
 
 pub fn run(tc: &Toolchain, part: &str, vlog: &str) -> Result<Design, Box<dyn std::error::Error>> {
     let dir = tempfile::Builder::new()

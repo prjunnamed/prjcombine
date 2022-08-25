@@ -1,21 +1,21 @@
+use prjcombine_entity::{entity_id, EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-use serde::{Serialize, Deserialize};
-use prjcombine_entity::{EntityVec, entity_id, EntityId};
 
-pub mod xc4k;
-pub mod xc5200;
+pub mod series7;
+pub mod spartan6;
+pub mod ultrascale;
+pub mod versal;
 pub mod virtex;
 pub mod virtex2;
 pub mod virtex4;
 pub mod virtex5;
 pub mod virtex6;
-pub mod series7;
-pub mod ultrascale;
-pub mod versal;
-pub mod spartan6;
+pub mod xc4k;
+pub mod xc5200;
 
-pub mod int;
 pub mod eint;
+pub mod int;
 
 entity_id! {
     pub id GridId usize;
@@ -170,13 +170,18 @@ pub struct Device {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum CfgPin {
     // dedicated
-    Tck, Tdi, Tdo, Tms,
+    Tck,
+    Tdi,
+    Tdo,
+    Tms,
     PwrdwnB,
     ProgB,
     Done,
     // multi-function on S3E, S3A, S6; dedicated otherwise
     // M0 is also CMPMISO on s6
-    M0, M1, M2,
+    M0,
+    M1,
+    M2,
     Cclk,
     HswapEn,
     // multi-function on v, v2, s3*; dedicated on v4+
@@ -410,8 +415,11 @@ pub enum BondPin {
     SysMonByBank(u32, SysMonPin),
     Cfg(CfgPin),
     Gnd,
-    VccInt, VccAux, VccBram,
-    VccAuxHpio, VccAuxHdio,
+    VccInt,
+    VccAux,
+    VccBram,
+    VccAuxHpio,
+    VccAuxHdio,
     VccAuxIo(u32),
     VccIntIo,
     VccO(u32),
@@ -419,7 +427,8 @@ pub enum BondPin {
     Nc,
     Rsvd,
     RsvdGnd,
-    Dxp, Dxn,
+    Dxp,
+    Dxn,
     Vfs,
     RFuse,
     // PS7

@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
-use crate::{CfgPin, BelCoord, ColId, RowId, BelId};
+use crate::{BelCoord, BelId, CfgPin, ColId, RowId};
 use prjcombine_entity::EntityId;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {

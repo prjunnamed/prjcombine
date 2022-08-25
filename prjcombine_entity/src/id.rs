@@ -3,13 +3,13 @@ use core::marker::PhantomData;
 
 use std::fmt::Debug;
 
-use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, Error};
+use serde::ser::{Serialize, Serializer};
 
 macro_rules! make_res_type {
     ($t:ident, $b:ty, $i:ty) => {
         #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-        pub struct $t ($b);
+        pub struct $t($b);
 
         impl From<$t> for usize {
             fn from(x: $t) -> usize {
@@ -26,30 +26,35 @@ macro_rules! make_res_type {
         }
 
         impl std::fmt::Debug for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> core::result::Result<(), std::fmt::Error> {
+            fn fmt(
+                &self,
+                f: &mut std::fmt::Formatter<'_>,
+            ) -> core::result::Result<(), std::fmt::Error> {
                 write!(f, "{}", usize::from(*self))
             }
         }
 
-        impl<'de> Deserialize<'de> for $t
-        {
+        impl<'de> Deserialize<'de> for $t {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
                 D: Deserializer<'de>,
             {
-                usize::deserialize(deserializer).and_then(|x| x.try_into().map_err (|_|
-                    D::Error::custom("entity id too large")
-                ))
+                usize::deserialize(deserializer).and_then(|x| {
+                    x.try_into()
+                        .map_err(|_| D::Error::custom("entity id too large"))
+                })
             }
         }
 
         impl Serialize for $t {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where S: Serializer {
+            where
+                S: Serializer,
+            {
                 usize::from(*self).serialize(serializer)
             }
         }
-    }
+    };
 }
 
 make_res_type!(__ReservedU16, core::num::NonZeroU16, u16);
@@ -94,7 +99,20 @@ macro_rules! entity_id {
     () => {};
 }
 
-pub trait EntityId: Debug + Copy + Clone + Send + Sync + Eq + PartialEq + Ord + PartialOrd + Hash + Serialize + for<'de> Deserialize<'de> {
+pub trait EntityId:
+    Debug
+    + Copy
+    + Clone
+    + Send
+    + Sync
+    + Eq
+    + PartialEq
+    + Ord
+    + PartialOrd
+    + Hash
+    + Serialize
+    + for<'de> Deserialize<'de>
+{
     fn from_idx(idx: usize) -> Self;
     fn to_idx(self) -> usize;
 }

@@ -1,16 +1,16 @@
 use std::collections::BTreeSet;
 
+use prjcombine_xilinx_geom::{int::IntDb, Grid};
 use prjcombine_xilinx_rawdump::Part;
-use prjcombine_xilinx_geom::{Grid, int::IntDb};
 
-use crate::grid::{PreDevice, make_device};
+use crate::grid::{make_device, PreDevice};
 use crate::verify::verify;
 
-mod verify;
-mod int_v2;
-mod int_s3;
-mod grid;
 mod bond;
+mod grid;
+mod int_s3;
+mod int_v2;
+mod verify;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
@@ -21,15 +21,15 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     };
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
-        bonds.push((
-            pkg.clone(),
-            bond::make_bond(&grid, pins),
-        ));
+        bonds.push((pkg.clone(), bond::make_bond(&grid, pins)));
     }
     let eint = grid.expand_grid(&int_db);
 
     verify(rd, &eint, |vrf, slr, node, bid| {
         verify::verify_bel(&grid, vrf, slr, node, bid)
     });
-    (make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()), Some(int_db))
+    (
+        make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
+        Some(int_db),
+    )
 }

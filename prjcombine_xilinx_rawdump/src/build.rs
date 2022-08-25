@@ -1,6 +1,6 @@
 use super::rawdump::*;
+use prjcombine_entity::{EntityMap, EntityPartVec, EntitySet, EntityVec};
 use std::collections::{HashMap, HashSet};
-use prjcombine_entity::{EntitySet, EntityVec, EntityPartVec, EntityMap};
 
 pub struct PartBuilder {
     pub part: Part,
@@ -102,11 +102,7 @@ impl PartBuilder {
 
     fn slotify<'a>(
         &mut self,
-        sites: &'a [(
-            &'a str,
-            &'a str,
-            Vec<PbSitePin<'a>>,
-        )],
+        sites: &'a [(&'a str, &'a str, Vec<PbSitePin<'a>>)],
     ) -> HashMap<&'a str, TkSiteSlot> {
         fn from_pinnum(pins: &[PbSitePin<'_>], refpin: &str) -> u8 {
             for pin in pins {
@@ -135,10 +131,9 @@ impl PartBuilder {
         for (i, &(n, k, ref p)) in sites.iter().enumerate() {
             let slot = if self.part.family == "xc3000a" {
                 match k {
-                    "IOB" | "TBUF" | "PULLUP" => TkSiteSlot::Indexed(
-                        self.part.slot_kinds.get_or_insert(k),
-                        i as u8,
-                    ),
+                    "IOB" | "TBUF" | "PULLUP" => {
+                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), i as u8)
+                    }
                     _ => TkSiteSlot::Single(self.part.slot_kinds.get_or_insert(k)),
                 }
             } else if self.part.family == "xc4000e"
@@ -165,8 +160,12 @@ impl PartBuilder {
                         "CIN" | "COUT" | "BUFF" => {
                             TkSiteSlot::Single(self.part.slot_kinds.get_or_insert(k))
                         }
-                        "PRI-CLK" => TkSiteSlot::Single(self.part.slot_kinds.get_or_insert("BUFGP")),
-                        "SEC-CLK" => TkSiteSlot::Single(self.part.slot_kinds.get_or_insert("BUFGS")),
+                        "PRI-CLK" => {
+                            TkSiteSlot::Single(self.part.slot_kinds.get_or_insert("BUFGP"))
+                        }
+                        "SEC-CLK" => {
+                            TkSiteSlot::Single(self.part.slot_kinds.get_or_insert("BUFGS"))
+                        }
                         "BUFG" | "BUFGE" | "BUFGLS" => {
                             let pos = n.find('_').unwrap();
                             TkSiteSlot::Indexed(
@@ -196,10 +195,7 @@ impl PartBuilder {
                         } else {
                             end.parse::<u8>().unwrap()
                         };
-                        TkSiteSlot::Indexed(
-                            self.part.slot_kinds.get_or_insert(&n[..urpos]),
-                            idx
-                        )
+                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(&n[..urpos]), idx)
                     } else {
                         TkSiteSlot::Single(self.part.slot_kinds.get_or_insert(&n[..urpos]))
                     }
@@ -214,22 +210,26 @@ impl PartBuilder {
                 }
             } else if matches!(&self.part.family[..], "virtex" | "virtexe") {
                 match k {
-                    "IOB" | "EMPTYIOB" | "PCIIOB" | "DLLIOB" => {
-                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert("IOB"), from_pinnum(p, "I"))
-                    }
-                    "TBUF" => {
-                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), from_pinnum(p, "O"))
-                    }
-                    "SLICE" => {
-                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), from_pinnum(p, "CIN"))
-                    }
+                    "IOB" | "EMPTYIOB" | "PCIIOB" | "DLLIOB" => TkSiteSlot::Indexed(
+                        self.part.slot_kinds.get_or_insert("IOB"),
+                        from_pinnum(p, "I"),
+                    ),
+                    "TBUF" => TkSiteSlot::Indexed(
+                        self.part.slot_kinds.get_or_insert(k),
+                        from_pinnum(p, "O"),
+                    ),
+                    "SLICE" => TkSiteSlot::Indexed(
+                        self.part.slot_kinds.get_or_insert(k),
+                        from_pinnum(p, "CIN"),
+                    ),
                     "GCLKIOB" => TkSiteSlot::Indexed(
                         self.part.slot_kinds.get_or_insert(k),
                         from_pinnum(p, "GCLKOUT"),
                     ),
-                    "GCLK" => {
-                        TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), from_pinnum(p, "CE"))
-                    }
+                    "GCLK" => TkSiteSlot::Indexed(
+                        self.part.slot_kinds.get_or_insert(k),
+                        from_pinnum(p, "CE"),
+                    ),
                     "DLL" => TkSiteSlot::Indexed(
                         self.part.slot_kinds.get_or_insert(k),
                         match n {
@@ -267,7 +267,10 @@ impl PartBuilder {
                 || self.part.family.starts_with("spartan3"))
                 && (k.starts_with("IOB") || k.starts_with("IBUF") || k.starts_with("DIFF"))
             {
-                TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert("IOB"), from_pinnum(p, "T"))
+                TkSiteSlot::Indexed(
+                    self.part.slot_kinds.get_or_insert("IOB"),
+                    from_pinnum(p, "T"),
+                )
             } else if ((self.part.family.starts_with("virtex2") || self.part.family == "spartan3")
                 && k.starts_with("DCI"))
                 || (self.part.family == "spartan3" && k == "BUFGMUX")
@@ -279,7 +282,10 @@ impl PartBuilder {
                     n[7..8].parse::<u8>().unwrap(),
                 )
             } else if self.part.family == "spartan6" && k.starts_with("IOB") {
-                TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert("IOB"), from_pinnum(p, "PADOUT"))
+                TkSiteSlot::Indexed(
+                    self.part.slot_kinds.get_or_insert("IOB"),
+                    from_pinnum(p, "PADOUT"),
+                )
             } else {
                 TkSiteSlot::Single(self.part.slot_kinds.get_or_insert(n))
             };
@@ -295,11 +301,7 @@ impl PartBuilder {
         coord: Coord,
         name: String,
         kind: String,
-        sites: &[(
-            &str,
-            &str,
-            Vec<PbSitePin<'_>>,
-        )],
+        sites: &[(&str, &str, Vec<PbSitePin<'_>>)],
         wires: &[(&str, Option<&str>)],
         pips: &[PbPip<'_>],
     ) {
@@ -351,14 +353,17 @@ impl PartBuilder {
                     }
                     None => None,
                 };
-                ((wf, wt), TkPip {
-                    is_buf: pip.is_buf,
-                    is_excluded: pip.is_excluded,
-                    is_test: pip.is_test,
-                    inversion: pip.inv,
-                    direction: pip.dir,
-                    speed,
-                })
+                (
+                    (wf, wt),
+                    TkPip {
+                        is_buf: pip.is_buf,
+                        is_excluded: pip.is_excluded,
+                        is_test: pip.is_test,
+                        inversion: pip.inv,
+                        direction: pip.dir,
+                        speed,
+                    },
+                )
             })
             .collect();
         let mut pip_overrides: HashMap<(WireId, WireId), (NodeClassId, NodeClassId)> =
@@ -388,21 +393,24 @@ impl PartBuilder {
                     n,
                     k,
                     p.iter()
-                        .map(|pin| (
-                            pin.name,
-                            TkSitePin {
-                                dir: pin.dir,
-                                wire: pin.wire.map(|w| self.part.wires.get_or_insert(w)),
-                                speed: pin.speed.map(|x| self.part.speeds.get_or_insert(x)),
-                            }
-                        ))
+                        .map(|pin| {
+                            (
+                                pin.name,
+                                TkSitePin {
+                                    dir: pin.dir,
+                                    wire: pin.wire.map(|w| self.part.wires.get_or_insert(w)),
+                                    speed: pin.speed.map(|x| self.part.speeds.get_or_insert(x)),
+                                },
+                            )
+                        })
                         .collect::<Vec<_>>(),
                 )
             })
             .collect();
 
         let mut sites: EntityPartVec<TkSiteId, String> = EntityPartVec::new();
-        let mut pending_wires: EntityPartVec<TkConnWireId, Option<NodeClassId>> = EntityPartVec::new();
+        let mut pending_wires: EntityPartVec<TkConnWireId, Option<NodeClassId>> =
+            EntityPartVec::new();
 
         let tki = match self.part.tile_kinds.get_mut(&kind) {
             Some((tki, tk)) => {
@@ -427,13 +435,20 @@ impl PartBuilder {
                             }
                             id
                         }
-                        None => tk.sites.insert(slot, TkSite {
-                            kind: kind.to_string(),
-                            pins: pins
-                                .iter()
-                                .map(|&(n, tksp)| (n.to_string(), tksp))
-                                .collect(),
-                        }).0
+                        None => {
+                            tk.sites
+                                .insert(
+                                    slot,
+                                    TkSite {
+                                        kind: kind.to_string(),
+                                        pins: pins
+                                            .iter()
+                                            .map(|&(n, tksp)| (n.to_string(), tksp))
+                                            .collect(),
+                                    },
+                                )
+                                .0
+                        }
                     };
                     sites.insert(id, name.to_string());
                 }
@@ -481,16 +496,18 @@ impl PartBuilder {
                         None => {
                             tk.pips.insert(k, pip);
                         }
-                        Some((_, &orig)) => if orig != pip {
-                            panic!(
-                                "pip mismatch {} {} {} {} {:?} {:?}",
-                                name,
-                                kind,
-                                self.part.wires[k.0],
-                                self.part.wires[k.1],
-                                pip,
-                                orig
-                            );
+                        Some((_, &orig)) => {
+                            if orig != pip {
+                                panic!(
+                                    "pip mismatch {} {} {} {} {:?} {:?}",
+                                    name,
+                                    kind,
+                                    self.part.wires[k.0],
+                                    self.part.wires[k.1],
+                                    pip,
+                                    orig
+                                );
+                            }
                         }
                     }
                 }
@@ -503,22 +520,25 @@ impl PartBuilder {
                 let tk = TileKind {
                     sites: sites_raw
                         .iter()
-                        .map(|&(slot, _, kind, ref pins)| (slot, TkSite {
-                            kind: kind.to_string(),
-                            pins: pins
-                                .iter()
-                                .map(|&(n, tksp)| (n.to_string(), tksp))
-                                .collect(),
-                        }))
+                        .map(|&(slot, _, kind, ref pins)| {
+                            (
+                                slot,
+                                TkSite {
+                                    kind: kind.to_string(),
+                                    pins: pins
+                                        .iter()
+                                        .map(|&(n, tksp)| (n.to_string(), tksp))
+                                        .collect(),
+                                },
+                            )
+                        })
                         .collect(),
                     wires: wires
                         .iter()
                         .map(|&(n, s, nc)| (n, TkWire::Internal(s, nc)))
                         .collect(),
                     conn_wires: EntityVec::new(),
-                    pips: pips
-                        .into_iter()
-                        .collect(),
+                    pips: pips.into_iter().collect(),
                     tiles: vec![coord],
                 };
                 for (slot, name, _, _) in sites_raw {
@@ -529,7 +549,10 @@ impl PartBuilder {
             }
         };
         let tk = &self.part.tile_kinds[tki];
-        let pip_overrides = pip_overrides.into_iter().map(|(k, v)| (tk.pips.get(&k).unwrap().0, v)).collect();
+        let pip_overrides = pip_overrides
+            .into_iter()
+            .map(|(k, v)| (tk.pips.get(&k).unwrap().0, v))
+            .collect();
         self.part.tiles.insert(
             coord,
             Tile {
@@ -593,7 +616,7 @@ impl PartBuilder {
             .collect();
         twires.sort();
         let tidx = self.part.templates.insert(twires).0;
-        let ni =self.part.nodes.push(TkNode {
+        let ni = self.part.nodes.push(TkNode {
             base: Coord { x: bx, y: by },
             template: tidx,
         });
@@ -614,9 +637,11 @@ impl PartBuilder {
                 TkWire::Connected(i) => i,
             };
             self.part
-                .tiles.get_mut(&coord)
+                .tiles
+                .get_mut(&coord)
                 .unwrap()
-                .conn_wires.insert(idx, ni);
+                .conn_wires
+                .insert(idx, ni);
             self.pending_wires.get_mut(&coord).unwrap().remove(idx);
         }
     }

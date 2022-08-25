@@ -1,36 +1,46 @@
-use prjcombine_xilinx_rawdump::{Part, Coord};
-use prjcombine_xilinx_geom::int::{IntDb, Dir, WireKind, NodeTileId, NodeRawTileId, NodeExtPipNaming};
 use prjcombine_entity::EntityId;
+use prjcombine_xilinx_geom::int::{
+    Dir, IntDb, NodeExtPipNaming, NodeRawTileId, NodeTileId, WireKind,
+};
+use prjcombine_xilinx_rawdump::{Coord, Part};
 
 use crate::intb::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> IntDb {
     let mut builder = IntBuilder::new("spartan3", rd);
 
-    builder.wire("PULLUP", WireKind::TiePullup, &[
-        "VCC_PINWIRE",
-        "IOIS_VCC_WIRE",
-        "BRAM_VCC_WIRE",
-        "MACC_VCC_WIRE",
-        "BRAM_IOIS_VCC_WIRE",
-        "DCM_VCC_WIRE",
-        "CNR_VCC_WIRE",
-        "CLKB_VCC_WIRE",
-        "CLKT_VCC_WIRE",
-    ]);
+    builder.wire(
+        "PULLUP",
+        WireKind::TiePullup,
+        &[
+            "VCC_PINWIRE",
+            "IOIS_VCC_WIRE",
+            "BRAM_VCC_WIRE",
+            "MACC_VCC_WIRE",
+            "BRAM_IOIS_VCC_WIRE",
+            "DCM_VCC_WIRE",
+            "CNR_VCC_WIRE",
+            "CLKB_VCC_WIRE",
+            "CLKT_VCC_WIRE",
+        ],
+    );
 
     for i in 0..8 {
-        builder.wire(format!("GCLK{i}"), WireKind::ClkOut(i), &[
+        builder.wire(
             format!("GCLK{i}"),
-            format!("GCLK{i}_BRK"),
-        ]);
+            WireKind::ClkOut(i),
+            &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
+        );
     }
     for i in 0..4 {
-        builder.logic_out(format!("DCM.CLKPAD{i}"), &[
-            format!("BRAM_IOIS_DLL_CLKPAD{i}"),
-            format!("DCM_DLL_CLKPAD{i}"),
-            format!("DCM_H_DLL_CLKPAD{i}"),
-        ]);
+        builder.logic_out(
+            format!("DCM.CLKPAD{i}"),
+            &[
+                format!("BRAM_IOIS_DLL_CLKPAD{i}"),
+                format!("DCM_DLL_CLKPAD{i}"),
+                format!("DCM_H_DLL_CLKPAD{i}"),
+            ],
+        );
     }
 
     for (i, da1, da2, db, xname) in [
@@ -51,12 +61,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         (14, Dir::W, Some(Dir::N), None, None),
         (15, Dir::N, None, None, Some(3)),
     ] {
-        let omux = builder.mux_out(format!("OMUX{i}"), &[
-            format!("OMUX{i}"),
-        ]);
-        let omux_da1 = builder.branch(omux, da1, format!("OMUX{i}.{da1}"), &[
-            format!("OMUX_{da1}{i}"),
-        ]);
+        let omux = builder.mux_out(format!("OMUX{i}"), &[format!("OMUX{i}")]);
+        let omux_da1 = builder.branch(
+            omux,
+            da1,
+            format!("OMUX{i}.{da1}"),
+            &[format!("OMUX_{da1}{i}")],
+        );
         match (xname, da1) {
             (None, _) => (),
             (Some(i), Dir::N) => {
@@ -68,46 +79,60 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             _ => unreachable!(),
         }
         if let Some(da2) = da2 {
-            builder.branch(omux_da1, da2, format!("OMUX{i}.{da1}{da2}"), &[
-                format!("OMUX_{da1}{da2}{i}"),
-            ]);
+            builder.branch(
+                omux_da1,
+                da2,
+                format!("OMUX{i}.{da1}{da2}"),
+                &[format!("OMUX_{da1}{da2}{i}")],
+            );
         }
         if let Some(db) = db {
-            builder.branch(omux, db, format!("OMUX{i}.{db}"), &[
-                format!("{db}{da1}_{db}"),
-            ]);
+            builder.branch(
+                omux,
+                db,
+                format!("OMUX{i}.{db}"),
+                &[format!("{db}{da1}_{db}")],
+            );
         }
     }
 
     for dir in Dir::DIRS {
         for i in 0..8 {
-            let beg = builder.mux_out(format!("DBL.{dir}{i}.0"), &[
-                format!("{dir}2BEG{i}"),
-            ]);
-            let mid = builder.branch(beg, dir, format!("DBL.{dir}{i}.1"), &[
-                format!("{dir}2MID{i}"),
-            ]);
-            let end = builder.branch(mid, dir, format!("DBL.{dir}{i}.2"), &[
-                format!("{dir}2END{i}"),
-            ]);
+            let beg = builder.mux_out(format!("DBL.{dir}{i}.0"), &[format!("{dir}2BEG{i}")]);
+            let mid = builder.branch(
+                beg,
+                dir,
+                format!("DBL.{dir}{i}.1"),
+                &[format!("{dir}2MID{i}")],
+            );
+            let end = builder.branch(
+                mid,
+                dir,
+                format!("DBL.{dir}{i}.2"),
+                &[format!("{dir}2END{i}")],
+            );
             if matches!(dir, Dir::E | Dir::S) && i < 2 {
-                builder.branch(end, Dir::S, format!("DBL.{dir}{i}.3"), &[
-                    format!("{dir}2END_S{i}"),
-                ]);
+                builder.branch(
+                    end,
+                    Dir::S,
+                    format!("DBL.{dir}{i}.3"),
+                    &[format!("{dir}2END_S{i}")],
+                );
             }
             if matches!(dir, Dir::W | Dir::N) && i >= 6 {
-                builder.branch(end, Dir::N, format!("DBL.{dir}{i}.3"), &[
-                    format!("{dir}2END_N{i}"),
-                ]);
+                builder.branch(
+                    end,
+                    Dir::N,
+                    format!("DBL.{dir}{i}.3"),
+                    &[format!("{dir}2END_N{i}")],
+                );
             }
         }
     }
 
     for dir in Dir::DIRS {
         for i in 0..8 {
-            let mut last = builder.mux_out(format!("HEX.{dir}{i}.0"), &[
-                format!("{dir}6BEG{i}"),
-            ]);
+            let mut last = builder.mux_out(format!("HEX.{dir}{i}.0"), &[format!("{dir}6BEG{i}")]);
             for (j, seg) in [
                 (1, "A"),
                 (2, "B"),
@@ -116,33 +141,54 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 (5, "D"),
                 (6, "END"),
             ] {
-                last = builder.branch(last, dir, format!("HEX.{dir}{i}.{j}"), &[
-                    format!("{dir}6{seg}{i}"),
-                ]);
+                last = builder.branch(
+                    last,
+                    dir,
+                    format!("HEX.{dir}{i}.{j}"),
+                    &[format!("{dir}6{seg}{i}")],
+                );
             }
             if matches!(dir, Dir::E | Dir::S) && i < 2 {
-                builder.branch(last, Dir::S, format!("HEX.{dir}{i}.7"), &[
-                    format!("{dir}6END_S{i}"),
-                ]);
+                builder.branch(
+                    last,
+                    Dir::S,
+                    format!("HEX.{dir}{i}.7"),
+                    &[format!("{dir}6END_S{i}")],
+                );
             }
             if matches!(dir, Dir::W | Dir::N) && i >= 6 {
-                builder.branch(last, Dir::N, format!("HEX.{dir}{i}.7"), &[
-                    format!("{dir}6END_N{i}"),
-                ]);
+                builder.branch(
+                    last,
+                    Dir::N,
+                    format!("HEX.{dir}{i}.7"),
+                    &[format!("{dir}6END_N{i}")],
+                );
             }
         }
     }
 
-    let lh: Vec<_> = (0..24).map(|i| builder.wire(format!("LH.{i}"), WireKind::MultiBranch(Dir::W), &[
-        format!("LH{i}"),
-    ])).collect();
+    let lh: Vec<_> = (0..24)
+        .map(|i| {
+            builder.wire(
+                format!("LH.{i}"),
+                WireKind::MultiBranch(Dir::W),
+                &[format!("LH{i}")],
+            )
+        })
+        .collect();
     for i in 0..24 {
         builder.conn_branch(lh[i], Dir::E, lh[(i + 1) % 24]);
     }
 
-    let lv: Vec<_> = (0..24).map(|i| builder.wire(format!("LV.{i}"), WireKind::MultiBranch(Dir::S), &[
-        format!("LV{i}"),
-    ])).collect();
+    let lv: Vec<_> = (0..24)
+        .map(|i| {
+            builder.wire(
+                format!("LV.{i}"),
+                WireKind::MultiBranch(Dir::S),
+                &[format!("LV{i}")],
+            )
+        })
+        .collect();
     for i in 0..24 {
         builder.conn_branch(lv[i], Dir::N, lv[(i + 23) % 24]);
     }
@@ -179,10 +225,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for i in 0..8 {
-        builder.mux_out(
-            format!("IMUX.IOCLK{i}"),
-            &[format!("IOIS_CLK{i}")],
-        );
+        builder.mux_out(format!("IMUX.IOCLK{i}"), &[format!("IOIS_CLK{i}")]);
     }
 
     // The clock enables.
@@ -221,11 +264,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             if rd.family == "spartan3adsp" {
                 wires.extend([format!("BRAM_FAN_B{xy}{i}"), format!("MACC_FAN_B{xy}{i}")]);
             }
-            builder.buf(
-                w,
-                format!("IMUX.FAN.B{xy}{i}.BOUNCE"),
-                &wires,
-            );
+            builder.buf(w, format!("IMUX.FAN.B{xy}{i}.BOUNCE"), &wires);
         }
     }
 
@@ -283,7 +322,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "BRAM_DIB_B2",
                     "BRAM_DIB_B17",
                     "BRAM_ADDRB_B2",
-                ][i].to_string(),
+                ][i]
+                    .to_string(),
                 // 3A DSP version
                 [
                     "",
@@ -318,7 +358,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "",
                     "",
                     "",
-                ][i].to_string(),
+                ][i]
+                    .to_string(),
                 [
                     "MACC_DIA_B18",
                     "MACC_MULTINA_B1",
@@ -352,7 +393,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "MACC_DIB_B2",
                     "MACC_DIB_B17",
                     "MACC_ADDRB_B2",
-                ][i].to_string(),
+                ][i]
+                    .to_string(),
                 format!(
                     "BRAM_IOIS_{}{}_B{}",
                     ["F", "G"][i >> 4],
@@ -393,7 +435,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "DCM_CTLOSC2_STUB",
                     "DCM_CTLOSC1_STUB",
                     "DCM_CTLG0_STUB",
-                ][i].to_string(),
+                ][i]
+                    .to_string(),
             ],
         );
         data_in.push(w);
@@ -409,8 +452,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 // In CLBs, used for combinatorial outputs.
                 ["X0", "X1", "X2", "X3", "Y0", "Y1", "Y2", "Y3"][i],
                 [
-                    "IOIS_X0", "IOIS_X1", "IOIS_X2", "IOIS_X3", "IOIS_Y0", "IOIS_Y1",
-                    "IOIS_Y2", "IOIS_Y3",
+                    "IOIS_X0", "IOIS_X1", "IOIS_X2", "IOIS_X3", "IOIS_Y0", "IOIS_Y1", "IOIS_Y2",
+                    "IOIS_Y3",
                 ][i],
                 // In BRAM, used for low data outputs.
                 [
@@ -463,12 +506,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             format!("OUT.SEC{i}"),
             &[
                 [
-                    "XB0", "XB1", "XB2", "XB3", "YB0", "YB1", "YB2", "YB3", "XQ0", "XQ1",
-                    "XQ2", "XQ3", "YQ0", "YQ1", "YQ2", "YQ3",
+                    "XB0", "XB1", "XB2", "XB3", "YB0", "YB1", "YB2", "YB3", "XQ0", "XQ1", "XQ2",
+                    "XQ3", "YQ0", "YQ1", "YQ2", "YQ3",
                 ][i],
                 [
-                    "", "", "", "", "", "", "", "", "IOIS_XQ0", "IOIS_XQ1", "IOIS_XQ2",
-                    "IOIS_XQ3", "IOIS_YQ0", "IOIS_YQ1", "IOIS_YQ2", "IOIS_YQ3",
+                    "", "", "", "", "", "", "", "", "IOIS_XQ0", "IOIS_XQ1", "IOIS_XQ2", "IOIS_XQ3",
+                    "IOIS_YQ0", "IOIS_YQ1", "IOIS_YQ2", "IOIS_YQ3",
                 ][i],
                 // sigh. this does not appear to actually be true.
                 [
@@ -601,60 +644,116 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for i in 0..4 {
-        builder.mux_out(format!("CLK.IMUX.SEL{i}"), &[
-            format!("CLKB_SELDUB{i}"),
-            format!("CLKT_SELDUB{i}"),
-        ]);
+        builder.mux_out(
+            format!("CLK.IMUX.SEL{i}"),
+            &[format!("CLKB_SELDUB{i}"), format!("CLKT_SELDUB{i}")],
+        );
     }
     for i in 0..4 {
-        builder.mux_out(format!("CLK.IMUX.CLK{i}"), &[
-            format!("CLKB_CLKDUB{i}"),
-            format!("CLKT_CLKDUB{i}"),
-        ]);
+        builder.mux_out(
+            format!("CLK.IMUX.CLK{i}"),
+            &[format!("CLKB_CLKDUB{i}"), format!("CLKT_CLKDUB{i}")],
+        );
     }
     for i in 0..4 {
-        builder.logic_out(format!("CLK.OUT.{i}"), &[
-            format!("CLKB_GCLK_MAIN{i}"),
-            format!("CLKT_GCLK_MAIN{i}"),
-        ]);
+        builder.logic_out(
+            format!("CLK.OUT.{i}"),
+            &[format!("CLKB_GCLK_MAIN{i}"), format!("CLKT_GCLK_MAIN{i}")],
+        );
     }
 
     builder.extract_main_passes();
 
-    let bels_int = [
-        builder.bel_xy("RLL", "RLL", 0, 0),
-    ];
+    let bels_int = [builder.bel_xy("RLL", "RLL", 0, 0)];
     let bels_int_dcm = [
         builder.bel_xy("RLL", "RLL", 0, 0),
-        builder.bel_virtual("PTE2OMUX0")
+        builder
+            .bel_virtual("PTE2OMUX0")
             .extra_int_in("CLKFB", &["BRAM_IOIS_CLKFB", "DCM_CLKFB", "DCM_CLKFB_STUB"])
-            .extra_int_in("CTLSEL1", &["BRAM_IOIS_F1_B3", "DCM_F1_B3", "DCM_CTLSEL1_STUB"])
+            .extra_int_in(
+                "CTLSEL1",
+                &["BRAM_IOIS_F1_B3", "DCM_F1_B3", "DCM_CTLSEL1_STUB"],
+            )
             .extra_int_in("RST", &["BRAM_IOIS_G1_B3", "DCM_G1_B3", "DCM_RST_STUB"])
-            .extra_int_in("STSADRS4", &["BRAM_IOIS_G2_B3", "DCM_G2_B3", "DCM_STSADRS4_STUB"])
-            .extra_int_in("STSADRS0", &["BRAM_IOIS_G3_B3", "DCM_G3_B3", "DCM_STSADRS0_STUB"])
+            .extra_int_in(
+                "STSADRS4",
+                &["BRAM_IOIS_G2_B3", "DCM_G2_B3", "DCM_STSADRS4_STUB"],
+            )
+            .extra_int_in(
+                "STSADRS0",
+                &["BRAM_IOIS_G3_B3", "DCM_G3_B3", "DCM_STSADRS0_STUB"],
+            )
             .extra_int_in("CTLGO", &["BRAM_IOIS_G4_B3", "DCM_G4_B3", "DCM_CTLG0_STUB"])
-            .extra_int_out("OUT", &["BRAM_IOIS_PTE2OMUX0", "DCM_PTE2OMUX0", "DCM_PTE2OMUX0_STUB"]),
-        builder.bel_virtual("PTE2OMUX1")
+            .extra_int_out(
+                "OUT",
+                &["BRAM_IOIS_PTE2OMUX0", "DCM_PTE2OMUX0", "DCM_PTE2OMUX0_STUB"],
+            ),
+        builder
+            .bel_virtual("PTE2OMUX1")
             .extra_int_in("CLKIN", &["BRAM_IOIS_CLKIN", "DCM_CLKIN", "DCM_CLKIN_STUB"])
-            .extra_int_in("PSINCDEC", &["BRAM_IOIS_G1_B2", "DCM_G1_B2", "DCM_PSINCDEC_STUB"])
-            .extra_int_in("STSADRS3", &["BRAM_IOIS_G2_B2", "DCM_G2_B2", "DCM_STSADRS3_STUB"])
-            .extra_int_in("FREEZEDFS", &["BRAM_IOIS_G3_B2", "DCM_G3_B2", "DCM_FREEZEDFS_STUB"])
-            .extra_int_in("CTLOSC1", &["BRAM_IOIS_G4_B2", "DCM_G4_B2", "DCM_CTLOSC1_STUB"])
-            .extra_int_out("OUT", &["BRAM_IOIS_PTE2OMUX1", "DCM_PTE2OMUX1", "DCM_PTE2OMUX1_STUB"]),
-        builder.bel_virtual("PTE2OMUX2")
+            .extra_int_in(
+                "PSINCDEC",
+                &["BRAM_IOIS_G1_B2", "DCM_G1_B2", "DCM_PSINCDEC_STUB"],
+            )
+            .extra_int_in(
+                "STSADRS3",
+                &["BRAM_IOIS_G2_B2", "DCM_G2_B2", "DCM_STSADRS3_STUB"],
+            )
+            .extra_int_in(
+                "FREEZEDFS",
+                &["BRAM_IOIS_G3_B2", "DCM_G3_B2", "DCM_FREEZEDFS_STUB"],
+            )
+            .extra_int_in(
+                "CTLOSC1",
+                &["BRAM_IOIS_G4_B2", "DCM_G4_B2", "DCM_CTLOSC1_STUB"],
+            )
+            .extra_int_out(
+                "OUT",
+                &["BRAM_IOIS_PTE2OMUX1", "DCM_PTE2OMUX1", "DCM_PTE2OMUX1_STUB"],
+            ),
+        builder
+            .bel_virtual("PTE2OMUX2")
             .extra_int_in("PSCLK", &["BRAM_IOIS_PSCLK", "DCM_PSCLK", "DCM_PSCLK_STUB"])
-            .extra_int_in("CTLSEL0", &["BRAM_IOIS_F1_B2", "DCM_F1_B2", "DCM_CTLSEL0_STUB"])
+            .extra_int_in(
+                "CTLSEL0",
+                &["BRAM_IOIS_F1_B2", "DCM_F1_B2", "DCM_CTLSEL0_STUB"],
+            )
             .extra_int_in("PSEN", &["BRAM_IOIS_G1_B1", "DCM_G1_B1", "DCM_PSEN_STUB"])
-            .extra_int_in("STSADRS2", &["BRAM_IOIS_G2_B1", "DCM_G2_B1", "DCM_STSADRS2_STUB"])
-            .extra_int_in("FREEZEDLL", &["BRAM_IOIS_G3_B1", "DCM_G3_B1", "DCM_FREEZEDLL_STUB"])
-            .extra_int_in("CTLOSC2", &["BRAM_IOIS_G4_B1", "DCM_G4_B1", "DCM_CTLOSC2_STUB"])
-            .extra_int_out("OUT", &["BRAM_IOIS_PTE2OMUX2", "DCM_PTE2OMUX2", "DCM_PTE2OMUX2_STUB"]),
-        builder.bel_virtual("PTE2OMUX3")
+            .extra_int_in(
+                "STSADRS2",
+                &["BRAM_IOIS_G2_B1", "DCM_G2_B1", "DCM_STSADRS2_STUB"],
+            )
+            .extra_int_in(
+                "FREEZEDLL",
+                &["BRAM_IOIS_G3_B1", "DCM_G3_B1", "DCM_FREEZEDLL_STUB"],
+            )
+            .extra_int_in(
+                "CTLOSC2",
+                &["BRAM_IOIS_G4_B1", "DCM_G4_B1", "DCM_CTLOSC2_STUB"],
+            )
+            .extra_int_out(
+                "OUT",
+                &["BRAM_IOIS_PTE2OMUX2", "DCM_PTE2OMUX2", "DCM_PTE2OMUX2_STUB"],
+            ),
+        builder
+            .bel_virtual("PTE2OMUX3")
             .extra_int_in("DSSEN", &["BRAM_IOIS_G1_B0", "DCM_G1_B0", "DCM_DSSEN_STUB"])
-            .extra_int_in("STSADRS1", &["BRAM_IOIS_G2_B0", "DCM_G2_B0", "DCM_STSADRS1_STUB"])
-            .extra_int_in("CTLMODE", &["BRAM_IOIS_G3_B0", "DCM_G3_B0", "DCM_CTLMODE_STUB"])
-            .extra_int_in("CTLSEL2", &["BRAM_IOIS_G4_B0", "DCM_G4_B0", "DCM_CTLSEL2_STUB"])
-            .extra_int_out("OUT", &["BRAM_IOIS_PTE2OMUX3", "DCM_PTE2OMUX3", "DCM_PTE2OMUX3_STUB"]),
+            .extra_int_in(
+                "STSADRS1",
+                &["BRAM_IOIS_G2_B0", "DCM_G2_B0", "DCM_STSADRS1_STUB"],
+            )
+            .extra_int_in(
+                "CTLMODE",
+                &["BRAM_IOIS_G3_B0", "DCM_G3_B0", "DCM_CTLMODE_STUB"],
+            )
+            .extra_int_in(
+                "CTLSEL2",
+                &["BRAM_IOIS_G4_B0", "DCM_G4_B0", "DCM_CTLSEL2_STUB"],
+            )
+            .extra_int_out(
+                "OUT",
+                &["BRAM_IOIS_PTE2OMUX3", "DCM_PTE2OMUX3", "DCM_PTE2OMUX3_STUB"],
+            ),
     ];
 
     builder.extract_node("CENTER", "INT.CLB", "INT.CLB", &bels_int);
@@ -662,21 +761,61 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("CENTER_SMALL_BRK", "INT.CLB", "INT.CLB.BRK", &bels_int);
     if rd.family.starts_with("spartan3a") {
         builder.extract_node("LIOIS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("LIOIS_BRK", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR.BRK", &bels_int);
+        builder.extract_node(
+            "LIOIS_BRK",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR.BRK",
+            &bels_int,
+        );
         builder.extract_node("LIOIS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("LIOIS_CLK_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("LIOIS_CLK_PCI_BRK", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR.BRK", &bels_int);
+        builder.extract_node(
+            "LIOIS_CLK_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            "LIOIS_CLK_PCI_BRK",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR.BRK",
+            &bels_int,
+        );
         builder.extract_node("LIBUFS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node("LIBUFS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("LIBUFS_CLK_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
+        builder.extract_node(
+            "LIBUFS_CLK_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
         builder.extract_node("RIOIS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
         builder.extract_node("RIOIS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("RIOIS_CLK_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
+        builder.extract_node(
+            "RIOIS_CLK_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
         builder.extract_node("RIBUFS", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("RIBUFS_BRK", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR.BRK", &bels_int);
+        builder.extract_node(
+            "RIBUFS_BRK",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR.BRK",
+            &bels_int,
+        );
         builder.extract_node("RIBUFS_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("RIBUFS_CLK_PCI", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR", &bels_int);
-        builder.extract_node("RIBUFS_CLK_PCI_BRK", "INT.IOI.S3A.LR", "INT.IOI.S3A.LR.BRK", &bels_int);
+        builder.extract_node(
+            "RIBUFS_CLK_PCI",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR",
+            &bels_int,
+        );
+        builder.extract_node(
+            "RIBUFS_CLK_PCI_BRK",
+            "INT.IOI.S3A.LR",
+            "INT.IOI.S3A.LR.BRK",
+            &bels_int,
+        );
         builder.extract_node("BIOIS", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
         builder.extract_node("BIOIB", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
         builder.extract_node("TIOIS", "INT.IOI.S3A.TB", "INT.IOI.S3A.TB", &bels_int);
@@ -711,20 +850,60 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     // - S3/S3E/S3A could be unified by pulling some extra muxes from CLB
     // - S3A/S3ADSP adds VCC input to B[XY] and splits B[XY] to two nodes
     if rd.family == "spartan3adsp" {
-        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM0_SMALL_BOT", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM3_SMALL_TOP", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP", &bels_int);
-        builder.extract_node("BRAM3_SMALL_BRK", "INT.BRAM.S3ADSP", "INT.BRAM.S3ADSP.BRK", &bels_int);
+        builder.extract_node(
+            "BRAM0_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM0_SMALL_BOT",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM1_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM2_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM3_SMALL",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM3_SMALL_TOP",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP",
+            &bels_int,
+        );
+        builder.extract_node(
+            "BRAM3_SMALL_BRK",
+            "INT.BRAM.S3ADSP",
+            "INT.BRAM.S3ADSP.BRK",
+            &bels_int,
+        );
         builder.extract_node("MACC0_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node("MACC0_SMALL_BOT", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node("MACC1_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node("MACC2_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node("MACC3_SMALL", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
         builder.extract_node("MACC3_SMALL_TOP", "INT.BRAM.S3ADSP", "INT.MACC", &bels_int);
-        builder.extract_node("MACC3_SMALL_BRK", "INT.BRAM.S3ADSP", "INT.MACC.BRK", &bels_int);
+        builder.extract_node(
+            "MACC3_SMALL_BRK",
+            "INT.BRAM.S3ADSP",
+            "INT.MACC.BRK",
+            &bels_int,
+        );
     } else if rd.family == "spartan3a" {
         builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
         builder.extract_node("BRAM0_SMALL_BOT", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
@@ -750,9 +929,24 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3", "INT.BRAM", &bels_int);
     }
     builder.extract_node("BRAM_IOIS", "INT.DCM", "INT.DCM.S3", &bels_int_dcm);
-    builder.extract_node("BRAM_IOIS_NODCM", "INT.DCM.S3.DUMMY", "INT.DCM.S3.DUMMY", &bels_int);
-    builder.extract_node("DCMAUX_BL_CENTER", "INT.DCM.S3E.DUMMY", "INT.DCM.S3E.DUMMY", &bels_int_dcm);
-    builder.extract_node("DCMAUX_TL_CENTER", "INT.DCM.S3E.DUMMY", "INT.DCM.S3E.DUMMY", &bels_int_dcm);
+    builder.extract_node(
+        "BRAM_IOIS_NODCM",
+        "INT.DCM.S3.DUMMY",
+        "INT.DCM.S3.DUMMY",
+        &bels_int,
+    );
+    builder.extract_node(
+        "DCMAUX_BL_CENTER",
+        "INT.DCM.S3E.DUMMY",
+        "INT.DCM.S3E.DUMMY",
+        &bels_int_dcm,
+    );
+    builder.extract_node(
+        "DCMAUX_TL_CENTER",
+        "INT.DCM.S3E.DUMMY",
+        "INT.DCM.S3E.DUMMY",
+        &bels_int_dcm,
+    );
     builder.extract_node("DCM_BL_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
     builder.extract_node("DCM_TL_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
     builder.extract_node("DCM_BR_CENTER", "INT.DCM", "INT.DCM.S3E", &bels_int_dcm);
@@ -769,38 +963,24 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("UR", "INT.CLB", "INT.CNR", &bels_int);
 
     let slicem_name_only = [
-        "FXINA",
-        "FXINB",
-        "F5",
-        "FX",
-        "CIN",
-        "COUT",
-        "SHIFTIN",
-        "SHIFTOUT",
-        "ALTDIG",
-        "DIG",
-        "SLICEWE1",
-        "BYOUT",
-        "BYINVOUT",
+        "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG", "DIG",
+        "SLICEWE1", "BYOUT", "BYINVOUT",
     ];
-    let slicel_name_only = [
-        "FXINA",
-        "FXINB",
-        "F5",
-        "FX",
-        "CIN",
-        "COUT",
-    ];
+    let slicel_name_only = ["FXINA", "FXINB", "F5", "FX", "CIN", "COUT"];
     let bels_clb = [
-        builder.bel_xy("SLICE0", "SLICE", 0, 0)
+        builder
+            .bel_xy("SLICE0", "SLICE", 0, 0)
             .pins_name_only(&slicem_name_only),
-        builder.bel_xy("SLICE1", "SLICE", 1, 0)
+        builder
+            .bel_xy("SLICE1", "SLICE", 1, 0)
             .pins_name_only(&slicel_name_only),
-        builder.bel_xy("SLICE2", "SLICE", 0, 1)
+        builder
+            .bel_xy("SLICE2", "SLICE", 0, 1)
             .pins_name_only(&slicem_name_only)
             .extra_wire("COUT_N", &["COUT_N1"])
             .extra_wire("FX_S", &["FX_S2"]),
-        builder.bel_xy("SLICE3", "SLICE", 1, 1)
+        builder
+            .bel_xy("SLICE3", "SLICE", 1, 1)
             .pins_name_only(&slicel_name_only)
             .extra_wire("COUT_N", &["COUT_N3"]),
     ];
@@ -825,13 +1005,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ];
     if rd.family == "spartan3" {
         let bels_ioi = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .extra_wire_force("IBUF", "IOIS_IBUF0")
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .extra_wire_force("IBUF", "IOIS_IBUF1")
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI2", "IOB", 2)
+            builder
+                .bel_indexed("IOI2", "IOB", 2)
                 .pins_name_only(&ioi_name_only),
         ];
         builder.extract_node_bels("LIOIS", "IOI.S3", "IOI.S3.L", &bels_ioi);
@@ -848,45 +1031,54 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     } else if rd.family == "spartan3e" {
         let bels_ioi_tb = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .extra_wire_force("IBUF", "IOIS_IBUF0")
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .extra_wire_force("IBUF", "IOIS_IBUF1")
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI2", "IOB", 2)
+            builder
+                .bel_indexed("IOI2", "IOB", 2)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
         ];
         let bels_ioi_l = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "LIOIS_IBUF1")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_TRDY_IN"),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "LIOIS_IBUF0")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_IRDY_IN"),
-            builder.bel_indexed("IOI2", "IOB", 2)
+            builder
+                .bel_indexed("IOI2", "IOB", 2)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
         ];
         let bels_ioi_r = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only)
                 .extra_wire_force("IBUF", "RIOIS_IBUF1")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_TRDY_IN"),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only)
                 .extra_wire_force("IBUF", "RIOIS_IBUF0")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_IRDY_IN"),
-            builder.bel_indexed("IOI2", "IOB", 2)
+            builder
+                .bel_indexed("IOI2", "IOB", 2)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
         ];
@@ -930,37 +1122,44 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     } else {
         let bels_ioi_tb = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .extra_wire_force("IBUF", "IOIS_IBUF0")
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .extra_wire_force("IBUF", "IOIS_IBUF1")
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
-            builder.bel_indexed("IOI2", "IOB", 2)
+            builder
+                .bel_indexed("IOI2", "IOB", 2)
                 .pin_name_only("PCI_CE", 1)
                 .pins_name_only(&ioi_name_only),
         ];
         let bels_ioi_l = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "LIOIS_IBUF0")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_TRDY_IN"),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "LIOIS_IBUF1")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_IRDY_IN"),
         ];
         let bels_ioi_r = [
-            builder.bel_indexed("IOI0", "IOB", 0)
+            builder
+                .bel_indexed("IOI0", "IOB", 0)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "RIOIS_IBUF1")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_TRDY_IN"),
-            builder.bel_indexed("IOI1", "IOB", 1)
+            builder
+                .bel_indexed("IOI1", "IOB", 1)
                 .pins_name_only(&ioi_name_only)
                 .pin_name_only("PCI_CE", 1)
                 .extra_wire_force("IBUF", "RIOIS_IBUF0")
@@ -1028,16 +1227,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             builder.make_marker_bel(kind, kind, kind, num);
         }
     }
-    let bels_randor_b = [
-        builder.bel_xy("RANDOR", "RANDOR", 0, 0)
-            .pins_name_only(&["CIN0","CIN1", "CPREV", "O"])
-    ];
-    let bels_randor_t = [
-        builder.bel_xy("RANDOR", "RANDOR", 0, 0)
-            .pins_name_only(&["CIN0","CIN1"])
-            .pin_name_only("CPREV", 1)
-            .pin_name_only("O", 1)
-    ];
+    let bels_randor_b = [builder
+        .bel_xy("RANDOR", "RANDOR", 0, 0)
+        .pins_name_only(&["CIN0", "CIN1", "CPREV", "O"])];
+    let bels_randor_t = [builder
+        .bel_xy("RANDOR", "RANDOR", 0, 0)
+        .pins_name_only(&["CIN0", "CIN1"])
+        .pin_name_only("CPREV", 1)
+        .pin_name_only("O", 1)];
     builder.extract_node_bels("BIOIS", "RANDOR", "RANDOR.B", &bels_randor_b);
     builder.extract_node_bels("BIOIB", "RANDOR", "RANDOR.B", &bels_randor_b);
     builder.extract_node_bels("BIBUFS", "RANDOR", "RANDOR.B", &bels_randor_b);
@@ -1046,22 +1243,49 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node_bels("TIBUFS", "RANDOR", "RANDOR.T", &bels_randor_t);
 
     if rd.family == "spartan3" {
-        let bels_dcm = [
-            builder.bel_xy("DCM", "DCM", 0, 0),
-        ];
+        let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];
         builder.extract_node_bels("BRAM_IOIS", "DCM.S3", "DCM.S3", &bels_dcm);
     } else {
         let bels_dcm = [
             builder.bel_xy("DCM", "DCM", 0, 0),
-            builder.bel_virtual("DCMCONN.S3E")
+            builder
+                .bel_virtual("DCMCONN.S3E")
                 .extra_int_out("CLKPAD0", &["DCM_DLL_CLKPAD0", "DCM_H_DLL_CLKPAD0"])
                 .extra_int_out("CLKPAD1", &["DCM_DLL_CLKPAD1", "DCM_H_DLL_CLKPAD1"])
                 .extra_int_out("CLKPAD2", &["DCM_DLL_CLKPAD2", "DCM_H_DLL_CLKPAD2"])
                 .extra_int_out("CLKPAD3", &["DCM_DLL_CLKPAD3", "DCM_H_DLL_CLKPAD3"])
-                .extra_int_in("OUT0", &["DCM_OMUX10_CLKOUT0", "DCM_OMUX10_CLKOUTL0", "DCM_OMUX10_CLKOUTR0"])
-                .extra_int_in("OUT1", &["DCM_OMUX11_CLKOUT1", "DCM_OMUX11_CLKOUTL1", "DCM_OMUX11_CLKOUTR1"])
-                .extra_int_in("OUT2", &["DCM_OMUX12_CLKOUT2", "DCM_OMUX12_CLKOUTL2", "DCM_OMUX12_CLKOUTR2"])
-                .extra_int_in("OUT3", &["DCM_OMUX15_CLKOUT3", "DCM_OMUX15_CLKOUTL3", "DCM_OMUX15_CLKOUTR3"])
+                .extra_int_in(
+                    "OUT0",
+                    &[
+                        "DCM_OMUX10_CLKOUT0",
+                        "DCM_OMUX10_CLKOUTL0",
+                        "DCM_OMUX10_CLKOUTR0",
+                    ],
+                )
+                .extra_int_in(
+                    "OUT1",
+                    &[
+                        "DCM_OMUX11_CLKOUT1",
+                        "DCM_OMUX11_CLKOUTL1",
+                        "DCM_OMUX11_CLKOUTR1",
+                    ],
+                )
+                .extra_int_in(
+                    "OUT2",
+                    &[
+                        "DCM_OMUX12_CLKOUT2",
+                        "DCM_OMUX12_CLKOUTL2",
+                        "DCM_OMUX12_CLKOUTR2",
+                    ],
+                )
+                .extra_int_in(
+                    "OUT3",
+                    &[
+                        "DCM_OMUX15_CLKOUT3",
+                        "DCM_OMUX15_CLKOUTL3",
+                        "DCM_OMUX15_CLKOUTR3",
+                    ],
+                ),
         ];
         builder.extract_node_bels("DCM_BL_CENTER", "DCM.S3E", "DCM.S3E.L", &bels_dcm);
         builder.extract_node_bels("DCM_TL_CENTER", "DCM.S3E", "DCM.S3E.L", &bels_dcm);
@@ -1075,71 +1299,123 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_node_bels("DCM_SPLY", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
     }
 
-
     if rd.family == "spartan3" {
-        builder.extract_node_bels("LL", "DCI", "DCI", &[
-            builder.bel_indexed("DCI0", "DCI", 6),
-            builder.bel_indexed("DCI1", "DCI", 5),
-            builder.bel_indexed("DCIRESET0", "DCIRESET", 6),
-            builder.bel_indexed("DCIRESET1", "DCIRESET", 5),
-        ]);
-        builder.extract_node_bels("LR", "DCI", "DCI", &[
-            builder.bel_indexed("DCI0", "DCI", 3),
-            builder.bel_indexed("DCI1", "DCI", 4),
-            builder.bel_indexed("DCIRESET0", "DCIRESET", 3),
-            builder.bel_indexed("DCIRESET1", "DCIRESET", 4),
-        ]);
-        builder.extract_node_bels("UL", "DCI", "DCI", &[
-            builder.bel_indexed("DCI0", "DCI", 7),
-            builder.bel_indexed("DCI1", "DCI", 0),
-            builder.bel_indexed("DCIRESET0", "DCIRESET", 7),
-            builder.bel_indexed("DCIRESET1", "DCIRESET", 0),
-        ]);
-        builder.extract_node_bels("UR", "DCI.UR", "DCI.UR", &[
-            builder.bel_indexed("DCI0", "DCI", 2),
-            builder.bel_indexed("DCI1", "DCI", 1),
-            builder.bel_indexed("DCIRESET0", "DCIRESET", 2),
-            builder.bel_indexed("DCIRESET1", "DCIRESET", 1),
-        ]);
+        builder.extract_node_bels(
+            "LL",
+            "DCI",
+            "DCI",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 6),
+                builder.bel_indexed("DCI1", "DCI", 5),
+                builder.bel_indexed("DCIRESET0", "DCIRESET", 6),
+                builder.bel_indexed("DCIRESET1", "DCIRESET", 5),
+            ],
+        );
+        builder.extract_node_bels(
+            "LR",
+            "DCI",
+            "DCI",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 3),
+                builder.bel_indexed("DCI1", "DCI", 4),
+                builder.bel_indexed("DCIRESET0", "DCIRESET", 3),
+                builder.bel_indexed("DCIRESET1", "DCIRESET", 4),
+            ],
+        );
+        builder.extract_node_bels(
+            "UL",
+            "DCI",
+            "DCI",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 7),
+                builder.bel_indexed("DCI1", "DCI", 0),
+                builder.bel_indexed("DCIRESET0", "DCIRESET", 7),
+                builder.bel_indexed("DCIRESET1", "DCIRESET", 0),
+            ],
+        );
+        builder.extract_node_bels(
+            "UR",
+            "DCI.UR",
+            "DCI.UR",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 2),
+                builder.bel_indexed("DCI1", "DCI", 1),
+                builder.bel_indexed("DCIRESET0", "DCIRESET", 2),
+                builder.bel_indexed("DCIRESET1", "DCIRESET", 1),
+            ],
+        );
     }
 
     if rd.family == "spartan3" {
-        builder.extract_node_bels("LR", "LR.S3", "LR.S3", &[
-            builder.bel_single("STARTUP", "STARTUP"),
-            builder.bel_single("CAPTURE", "CAPTURE"),
-            builder.bel_single("ICAP", "ICAP"),
-        ]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.S3",
+            "LR.S3",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP"),
+            ],
+        );
     } else if rd.family == "spartan3e" {
-        builder.extract_node_bels("LR", "LR.S3E", "LR.S3E", &[
-            builder.bel_single("STARTUP", "STARTUP"),
-            builder.bel_single("CAPTURE", "CAPTURE"),
-            builder.bel_single("ICAP", "ICAP")
-                .pin_force_int("I2", (NodeTileId::from_idx(0), lr_di2.unwrap()), "CNR_DATA_IN2"),
-        ]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.S3E",
+            "LR.S3E",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP").pin_force_int(
+                    "I2",
+                    (NodeTileId::from_idx(0), lr_di2.unwrap()),
+                    "CNR_DATA_IN2",
+                ),
+            ],
+        );
     } else {
-        builder.extract_node_bels("LR", "LR.S3A", "LR.S3A", &[
-            builder.bel_single("STARTUP", "STARTUP"),
-            builder.bel_single("CAPTURE", "CAPTURE"),
-            builder.bel_single("ICAP", "ICAP"),
-            builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
-        ]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.S3A",
+            "LR.S3A",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP"),
+                builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
+            ],
+        );
     }
-    builder.extract_node_bels("UL", "PMV", "PMV", &[
-        builder.bel_single("PMV", "PMV"),
-    ]);
+    builder.extract_node_bels("UL", "PMV", "PMV", &[builder.bel_single("PMV", "PMV")]);
     if rd.family.starts_with("spartan3a") {
-        builder.extract_node_bels("UL", "DNA_PORT", "DNA_PORT", &[
-            builder.bel_single("DNA_PORT", "DNA_PORT"),
-        ]);
-        builder.extract_node_bels("UR", "UR.S3A", "UR.S3A", &[
-            builder.bel_single("BSCAN", "BSCAN"),
-            builder.bel_virtual("RANDOR_OUT").extra_int_out("O", &["UR_CARRY_IN"]),
-        ]);
+        builder.extract_node_bels(
+            "UL",
+            "DNA_PORT",
+            "DNA_PORT",
+            &[builder.bel_single("DNA_PORT", "DNA_PORT")],
+        );
+        builder.extract_node_bels(
+            "UR",
+            "UR.S3A",
+            "UR.S3A",
+            &[
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
+            ],
+        );
     } else {
-        builder.extract_node_bels("UR", "UR.S3", "UR.S3", &[
-            builder.bel_single("BSCAN", "BSCAN"),
-            builder.bel_virtual("RANDOR_OUT").extra_int_out("O", &["UR_CARRY_IN"]),
-        ]);
+        builder.extract_node_bels(
+            "UR",
+            "UR.S3",
+            "UR.S3",
+            &[
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
+            ],
+        );
     }
 
     for tkn in [
@@ -1222,13 +1498,30 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             };
             let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
             let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
-            builder.extract_pass_tile("TERM.BRAM.S", Dir::S, int_n_xy, Some(xy_t), None, Some("TERM.BRAM.S"), None, int_s_xy, &lv);
-            builder.extract_pass_tile("TERM.BRAM.N", Dir::N, int_s_xy, Some(xy_b), None, Some("TERM.BRAM.N"), None, int_n_xy, &lv);
+            builder.extract_pass_tile(
+                "TERM.BRAM.S",
+                Dir::S,
+                int_n_xy,
+                Some(xy_t),
+                None,
+                Some("TERM.BRAM.S"),
+                None,
+                int_s_xy,
+                &lv,
+            );
+            builder.extract_pass_tile(
+                "TERM.BRAM.N",
+                Dir::N,
+                int_s_xy,
+                Some(xy_b),
+                None,
+                Some("TERM.BRAM.N"),
+                None,
+                int_n_xy,
+                &lv,
+            );
         }
-        for tkn in [
-            "CLKL_IOIS",
-            "CLKR_IOIS",
-        ] {
+        for tkn in ["CLKL_IOIS", "CLKR_IOIS"] {
             builder.extract_pass_simple("CLKLR.S3E", Dir::S, tkn, &[]);
         }
     }
@@ -1252,16 +1545,31 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_fwd_xy = builder.walk_to_int(xy, Dir::S).unwrap();
             let int_bwd_xy = builder.walk_to_int(xy, Dir::N).unwrap();
-            builder.extract_pass_tile(llv_s, Dir::S, int_bwd_xy, Some(xy), None, None, Some(("LLV", naming)), int_fwd_xy, &[]);
-            builder.extract_pass_tile(llv_n, Dir::N, int_fwd_xy, Some(xy), None, None, None, int_bwd_xy, &[]);
+            builder.extract_pass_tile(
+                llv_s,
+                Dir::S,
+                int_bwd_xy,
+                Some(xy),
+                None,
+                None,
+                Some(("LLV", naming)),
+                int_fwd_xy,
+                &[],
+            );
+            builder.extract_pass_tile(
+                llv_n,
+                Dir::N,
+                int_fwd_xy,
+                Some(xy),
+                None,
+                None,
+                None,
+                int_bwd_xy,
+                &[],
+            );
         }
     }
-    for tkn in [
-        "CLKV_DCM_LL",
-        "CLKV_LL",
-        "CLKT_LL",
-        "CLKB_LL",
-    ] {
+    for tkn in ["CLKV_DCM_LL", "CLKV_LL", "CLKT_LL", "CLKB_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let fix_xy = if tkn == "CLKB_LL" {
                 Coord {
@@ -1279,43 +1587,140 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 llh_w = "LLH.DCM.S3ADSP.W";
                 llh_e = "LLH.DCM.S3ADSP.E";
             }
-            builder.extract_pass_tile(llh_w, Dir::W, int_bwd_xy, Some(xy), None, None, Some(("LLH", "LLH")), int_fwd_xy, &[]);
-            builder.extract_pass_tile(llh_e, Dir::E, int_fwd_xy, Some(xy), None, None, None, int_bwd_xy, &[]);
+            builder.extract_pass_tile(
+                llh_w,
+                Dir::W,
+                int_bwd_xy,
+                Some(xy),
+                None,
+                None,
+                Some(("LLH", "LLH")),
+                int_fwd_xy,
+                &[],
+            );
+            builder.extract_pass_tile(
+                llh_e,
+                Dir::E,
+                int_fwd_xy,
+                Some(xy),
+                None,
+                None,
+                None,
+                int_bwd_xy,
+                &[],
+            );
         }
     }
     if rd.family == "spartan3adsp" {
-        for tkn in [
-            "EMPTY_TIOI",
-            "EMPTY_BIOI",
-        ] {
+        for tkn in ["EMPTY_TIOI", "EMPTY_BIOI"] {
             builder.extract_pass_simple("DSPHOLE", Dir::W, tkn, &lh);
         }
         for &xy in rd.tiles_by_kind_name("DCM_BGAP") {
             let mut int_w_xy = xy;
             let mut int_e_xy = xy;
             int_e_xy.x += 5;
-            builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, None, None, int_w_xy, &lh);
-            builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, None, None, int_e_xy, &lh);
+            builder.extract_pass_tile(
+                "DSPHOLE.W",
+                Dir::W,
+                int_e_xy,
+                None,
+                None,
+                None,
+                None,
+                int_w_xy,
+                &lh,
+            );
+            builder.extract_pass_tile(
+                "DSPHOLE.E",
+                Dir::E,
+                int_w_xy,
+                None,
+                None,
+                None,
+                None,
+                int_e_xy,
+                &lh,
+            );
             int_w_xy.x -= 1;
             for _ in 0..3 {
                 int_w_xy.y -= 1;
                 int_e_xy.y -= 1;
-                builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, None, None, int_w_xy, &lh);
-                builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, None, None, int_e_xy, &lh);
+                builder.extract_pass_tile(
+                    "HDCM.W",
+                    Dir::W,
+                    int_e_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_w_xy,
+                    &lh,
+                );
+                builder.extract_pass_tile(
+                    "HDCM.E",
+                    Dir::E,
+                    int_w_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_e_xy,
+                    &lh,
+                );
             }
         }
         for &xy in rd.tiles_by_kind_name("DCM_SPLY") {
             let mut int_w_xy = xy;
             let mut int_e_xy = xy;
             int_e_xy.x += 5;
-            builder.extract_pass_tile("DSPHOLE.W", Dir::W, int_e_xy, None, None, None, None, int_w_xy, &lh);
-            builder.extract_pass_tile("DSPHOLE.E", Dir::E, int_w_xy, None, None, None, None, int_e_xy, &lh);
+            builder.extract_pass_tile(
+                "DSPHOLE.W",
+                Dir::W,
+                int_e_xy,
+                None,
+                None,
+                None,
+                None,
+                int_w_xy,
+                &lh,
+            );
+            builder.extract_pass_tile(
+                "DSPHOLE.E",
+                Dir::E,
+                int_w_xy,
+                None,
+                None,
+                None,
+                None,
+                int_e_xy,
+                &lh,
+            );
             int_w_xy.x -= 1;
             for _ in 0..3 {
                 int_w_xy.y += 1;
                 int_e_xy.y += 1;
-                builder.extract_pass_tile("HDCM.W", Dir::W, int_e_xy, None, None, None, None, int_w_xy, &lh);
-                builder.extract_pass_tile("HDCM.E", Dir::E, int_w_xy, None, None, None, None, int_e_xy, &lh);
+                builder.extract_pass_tile(
+                    "HDCM.W",
+                    Dir::W,
+                    int_e_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_w_xy,
+                    &lh,
+                );
+                builder.extract_pass_tile(
+                    "HDCM.E",
+                    Dir::E,
+                    int_w_xy,
+                    None,
+                    None,
+                    None,
+                    None,
+                    int_e_xy,
+                    &lh,
+                );
             }
         }
     }
@@ -1324,111 +1729,175 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = Coord {
                 x: xy.x - 1,
-                y: if rd.family == "spartan3" {xy.y} else {xy.y + 1},
+                y: if rd.family == "spartan3" {
+                    xy.y
+                } else {
+                    xy.y + 1
+                },
             };
             if rd.family == "spartan3" {
-                builder.extract_xnode("CLKB.S3", xy, &[], &[xy_l], "CLKB.S3", &[
-                    builder.bel_indexed("BUFGMUX0", "BUFGMUX", 0)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKB_CKI0"])
-                        .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD0"])
-                        .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL0"])
-                        .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR0"])
-                        .extra_int_in("CLK", &["CLKB_GCLK0"]),
-                    builder.bel_indexed("BUFGMUX1", "BUFGMUX", 1)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKB_CKI1"])
-                        .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD1"])
-                        .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL1"])
-                        .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR1"])
-                        .extra_int_in("CLK", &["CLKB_GCLK1"]),
-                    builder.bel_indexed("BUFGMUX2", "BUFGMUX", 2)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKB_CKI2"])
-                        .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD2"])
-                        .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL2"])
-                        .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR2"])
-                        .extra_int_in("CLK", &["CLKB_GCLK2"]),
-                    builder.bel_indexed("BUFGMUX3", "BUFGMUX", 3)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKB_CKI3"])
-                        .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD3"])
-                        .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL3"])
-                        .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR3"])
-                        .extra_int_in("CLK", &["CLKB_GCLK3"]),
-                ], &lh);
+                builder.extract_xnode(
+                    "CLKB.S3",
+                    xy,
+                    &[],
+                    &[xy_l],
+                    "CLKB.S3",
+                    &[
+                        builder
+                            .bel_indexed("BUFGMUX0", "BUFGMUX", 0)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKB_CKI0"])
+                            .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD0"])
+                            .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL0"])
+                            .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR0"])
+                            .extra_int_in("CLK", &["CLKB_GCLK0"]),
+                        builder
+                            .bel_indexed("BUFGMUX1", "BUFGMUX", 1)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKB_CKI1"])
+                            .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD1"])
+                            .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL1"])
+                            .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR1"])
+                            .extra_int_in("CLK", &["CLKB_GCLK1"]),
+                        builder
+                            .bel_indexed("BUFGMUX2", "BUFGMUX", 2)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKB_CKI2"])
+                            .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD2"])
+                            .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL2"])
+                            .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR2"])
+                            .extra_int_in("CLK", &["CLKB_GCLK2"]),
+                        builder
+                            .bel_indexed("BUFGMUX3", "BUFGMUX", 3)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKB_CKI3"])
+                            .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD3"])
+                            .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL3"])
+                            .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR3"])
+                            .extra_int_in("CLK", &["CLKB_GCLK3"]),
+                    ],
+                    &lh,
+                );
             } else {
-                let kind = if rd.family == "spartan3e" { "CLKB.S3E" } else { "CLKB.S3A" };
-                builder.extract_xnode(kind, xy, &[], &[xy_l], kind, &[
-                    builder.bel_xy("BUFGMUX0", "BUFGMUX", 1, 1)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKB_CKI0"])
-                        .extra_wire("CKIL", &["CLKB_CKI4"])
-                        .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD7")
-                        .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD0")
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKB_DLL_OUTL0", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL0".to_string(),
-                            wire_from: "CLKV_OMUX10_OUTL0".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKB_DLL_OUTR0", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR0".to_string(),
-                            wire_from: "CLKV_OMUX10_OUTR0".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKB_GCLK0"]),
-                    builder.bel_xy("BUFGMUX1", "BUFGMUX", 1, 0)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKB_CKI1"])
-                        .extra_wire("CKIL", &["CLKB_CKI5"])
-                        .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD6")
-                        .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD1")
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKB_DLL_OUTL1", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL1".to_string(),
-                            wire_from: "CLKV_OMUX11_OUTL1".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKB_DLL_OUTR1", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR1".to_string(),
-                            wire_from: "CLKV_OMUX11_OUTR1".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKB_GCLK1"]),
-                    builder.bel_xy("BUFGMUX2", "BUFGMUX", 0, 1)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKB_CKI2"])
-                        .extra_wire("CKIL", &["CLKB_CKI6"])
-                        .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD5")
-                        .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD2")
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKB_DLL_OUTL2", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL2".to_string(),
-                            wire_from: "CLKV_OMUX12_OUTL2".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKB_DLL_OUTR2", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR2".to_string(),
-                            wire_from: "CLKV_OMUX12_OUTR2".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKB_GCLK2"]),
-                    builder.bel_xy("BUFGMUX3", "BUFGMUX", 0, 0)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKB_CKI3"])
-                        .extra_wire("CKIL", &["CLKB_CKI7"])
-                        .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD4")
-                        .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD3")
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKB_DLL_OUTL3", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL3".to_string(),
-                            wire_from: "CLKV_OMUX15_OUTL3".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKB_DLL_OUTR3", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR3".to_string(),
-                            wire_from: "CLKV_OMUX15_OUTR3".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKB_GCLK3"]),
-                ], &lh);
+                let kind = if rd.family == "spartan3e" {
+                    "CLKB.S3E"
+                } else {
+                    "CLKB.S3A"
+                };
+                builder.extract_xnode(
+                    kind,
+                    xy,
+                    &[],
+                    &[xy_l],
+                    kind,
+                    &[
+                        builder
+                            .bel_xy("BUFGMUX0", "BUFGMUX", 1, 1)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKB_CKI0"])
+                            .extra_wire("CKIL", &["CLKB_CKI4"])
+                            .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD7")
+                            .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD0")
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKB_DLL_OUTL0",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL0".to_string(),
+                                    wire_from: "CLKV_OMUX10_OUTL0".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKB_DLL_OUTR0",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR0".to_string(),
+                                    wire_from: "CLKV_OMUX10_OUTR0".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKB_GCLK0"]),
+                        builder
+                            .bel_xy("BUFGMUX1", "BUFGMUX", 1, 0)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKB_CKI1"])
+                            .extra_wire("CKIL", &["CLKB_CKI5"])
+                            .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD6")
+                            .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD1")
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKB_DLL_OUTL1",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL1".to_string(),
+                                    wire_from: "CLKV_OMUX11_OUTL1".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKB_DLL_OUTR1",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR1".to_string(),
+                                    wire_from: "CLKV_OMUX11_OUTR1".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKB_GCLK1"]),
+                        builder
+                            .bel_xy("BUFGMUX2", "BUFGMUX", 0, 1)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKB_CKI2"])
+                            .extra_wire("CKIL", &["CLKB_CKI6"])
+                            .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD5")
+                            .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD2")
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKB_DLL_OUTL2",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL2".to_string(),
+                                    wire_from: "CLKV_OMUX12_OUTL2".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKB_DLL_OUTR2",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR2".to_string(),
+                                    wire_from: "CLKV_OMUX12_OUTR2".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKB_GCLK2"]),
+                        builder
+                            .bel_xy("BUFGMUX3", "BUFGMUX", 0, 0)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKB_CKI3"])
+                            .extra_wire("CKIL", &["CLKB_CKI7"])
+                            .extra_wire_force("DCM_PAD_L", "CLKB_DLL_CLKPAD4")
+                            .extra_wire_force("DCM_PAD_R", "CLKB_DLL_CLKPAD3")
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKB_DLL_OUTL3",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL3".to_string(),
+                                    wire_from: "CLKV_OMUX15_OUTL3".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKB_DLL_OUTR3",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR3".to_string(),
+                                    wire_from: "CLKV_OMUX15_OUTR3".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKB_GCLK3"]),
+                    ],
+                    &lh,
+                );
             }
         }
     }
@@ -1439,126 +1908,221 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y,
             };
             if rd.family == "spartan3" {
-                builder.extract_xnode("CLKT.S3", xy, &[], &[xy_l], "CLKT.S3", &[
-                    builder.bel_indexed("BUFGMUX0", "BUFGMUX", 4)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKT_CKI0"])
-                        .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD0"])
-                        .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL0"])
-                        .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR0"])
-                        .extra_int_in("CLK", &["CLKT_GCLK0"]),
-                    builder.bel_indexed("BUFGMUX1", "BUFGMUX", 5)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKT_CKI1"])
-                        .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD1"])
-                        .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL1"])
-                        .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR1"])
-                        .extra_int_in("CLK", &["CLKT_GCLK1"]),
-                    builder.bel_indexed("BUFGMUX2", "BUFGMUX", 6)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKT_CKI2"])
-                        .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD2"])
-                        .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL2"])
-                        .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR2"])
-                        .extra_int_in("CLK", &["CLKT_GCLK2"]),
-                    builder.bel_indexed("BUFGMUX3", "BUFGMUX", 7)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKI", &["CLKT_CKI3"])
-                        .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD3"])
-                        .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL3"])
-                        .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR3"])
-                        .extra_int_in("CLK", &["CLKT_GCLK3"]),
-                ], &lh);
+                builder.extract_xnode(
+                    "CLKT.S3",
+                    xy,
+                    &[],
+                    &[xy_l],
+                    "CLKT.S3",
+                    &[
+                        builder
+                            .bel_indexed("BUFGMUX0", "BUFGMUX", 4)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKT_CKI0"])
+                            .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD0"])
+                            .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL0"])
+                            .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR0"])
+                            .extra_int_in("CLK", &["CLKT_GCLK0"]),
+                        builder
+                            .bel_indexed("BUFGMUX1", "BUFGMUX", 5)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKT_CKI1"])
+                            .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD1"])
+                            .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL1"])
+                            .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR1"])
+                            .extra_int_in("CLK", &["CLKT_GCLK1"]),
+                        builder
+                            .bel_indexed("BUFGMUX2", "BUFGMUX", 6)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKT_CKI2"])
+                            .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD2"])
+                            .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL2"])
+                            .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR2"])
+                            .extra_int_in("CLK", &["CLKT_GCLK2"]),
+                        builder
+                            .bel_indexed("BUFGMUX3", "BUFGMUX", 7)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKI", &["CLKT_CKI3"])
+                            .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD3"])
+                            .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL3"])
+                            .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR3"])
+                            .extra_int_in("CLK", &["CLKT_GCLK3"]),
+                    ],
+                    &lh,
+                );
             } else {
-                let kind = if rd.family == "spartan3e" { "CLKT.S3E" } else { "CLKT.S3A" };
-                builder.extract_xnode(kind, xy, &[], &[xy_l], kind, &[
-                    builder.bel_xy("BUFGMUX0", "BUFGMUX", 1, 1)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKT_CKI0"])
-                        .extra_wire("CKIL", &["CLKT_CKI4"])
-                        .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD4")
-                        .extra_wire_force("DCM_PAD_R", if rd.family == "spartan3e" {"CLKT_DLL_CLKPAD0"} else {"CLKT_DLL_CLKPAD2"})
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKT_DLL_OUTL0", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL0".to_string(),
-                            wire_from: "CLKV_OMUX10_OUTL0".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKT_DLL_OUTR0", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR0".to_string(),
-                            wire_from: "CLKV_OMUX10_OUTR0".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKT_GCLK0"]),
-                    builder.bel_xy("BUFGMUX1", "BUFGMUX", 1, 0)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKT_CKI1"])
-                        .extra_wire("CKIL", &["CLKT_CKI5"])
-                        .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD5")
-                        .extra_wire_force("DCM_PAD_R", if rd.family == "spartan3e" {"CLKT_DLL_CLKPAD1"} else {"CLKT_DLL_CLKPAD3"})
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKT_DLL_OUTL1", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL1".to_string(),
-                            wire_from: "CLKV_OMUX11_OUTL1".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKT_DLL_OUTR1", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR1".to_string(),
-                            wire_from: "CLKV_OMUX11_OUTR1".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKT_GCLK1"]),
-                    builder.bel_xy("BUFGMUX2", "BUFGMUX", 0, 1)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKT_CKI2"])
-                        .extra_wire("CKIL", &["CLKT_CKI6"])
-                        .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD6")
-                        .extra_wire_force("DCM_PAD_R", if rd.family == "spartan3e" {"CLKT_DLL_CLKPAD2"} else {"CLKT_DLL_CLKPAD0"})
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKT_DLL_OUTL2", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL2".to_string(),
-                            wire_from: "CLKV_OMUX12_OUTL2".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKT_DLL_OUTR2", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR2".to_string(),
-                            wire_from: "CLKV_OMUX12_OUTR2".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKT_GCLK2"]),
-                    builder.bel_xy("BUFGMUX3", "BUFGMUX", 0, 0)
-                        .pins_name_only(&["I0", "I1"])
-                        .extra_wire("CKIR", &["CLKT_CKI3"])
-                        .extra_wire("CKIL", &["CLKT_CKI7"])
-                        .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD7")
-                        .extra_wire_force("DCM_PAD_R", if rd.family == "spartan3e" {"CLKT_DLL_CLKPAD3"} else {"CLKT_DLL_CLKPAD1"})
-                        .extra_wire_force_pip("DCM_OUT_L", "CLKT_DLL_OUTL3", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTL3".to_string(),
-                            wire_from: "CLKV_OMUX15_OUTL3".to_string(),
-                        })
-                        .extra_wire_force_pip("DCM_OUT_R", "CLKT_DLL_OUTR3", NodeExtPipNaming {
-                            tile: NodeRawTileId::from_idx(1),
-                            wire_to: "CLKV_OUTR3".to_string(),
-                            wire_from: "CLKV_OMUX15_OUTR3".to_string(),
-                        })
-                        .extra_int_in("CLK", &["CLKT_GCLK3"]),
-                ], &lh);
+                let kind = if rd.family == "spartan3e" {
+                    "CLKT.S3E"
+                } else {
+                    "CLKT.S3A"
+                };
+                builder.extract_xnode(
+                    kind,
+                    xy,
+                    &[],
+                    &[xy_l],
+                    kind,
+                    &[
+                        builder
+                            .bel_xy("BUFGMUX0", "BUFGMUX", 1, 1)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKT_CKI0"])
+                            .extra_wire("CKIL", &["CLKT_CKI4"])
+                            .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD4")
+                            .extra_wire_force(
+                                "DCM_PAD_R",
+                                if rd.family == "spartan3e" {
+                                    "CLKT_DLL_CLKPAD0"
+                                } else {
+                                    "CLKT_DLL_CLKPAD2"
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKT_DLL_OUTL0",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL0".to_string(),
+                                    wire_from: "CLKV_OMUX10_OUTL0".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKT_DLL_OUTR0",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR0".to_string(),
+                                    wire_from: "CLKV_OMUX10_OUTR0".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKT_GCLK0"]),
+                        builder
+                            .bel_xy("BUFGMUX1", "BUFGMUX", 1, 0)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKT_CKI1"])
+                            .extra_wire("CKIL", &["CLKT_CKI5"])
+                            .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD5")
+                            .extra_wire_force(
+                                "DCM_PAD_R",
+                                if rd.family == "spartan3e" {
+                                    "CLKT_DLL_CLKPAD1"
+                                } else {
+                                    "CLKT_DLL_CLKPAD3"
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKT_DLL_OUTL1",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL1".to_string(),
+                                    wire_from: "CLKV_OMUX11_OUTL1".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKT_DLL_OUTR1",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR1".to_string(),
+                                    wire_from: "CLKV_OMUX11_OUTR1".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKT_GCLK1"]),
+                        builder
+                            .bel_xy("BUFGMUX2", "BUFGMUX", 0, 1)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKT_CKI2"])
+                            .extra_wire("CKIL", &["CLKT_CKI6"])
+                            .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD6")
+                            .extra_wire_force(
+                                "DCM_PAD_R",
+                                if rd.family == "spartan3e" {
+                                    "CLKT_DLL_CLKPAD2"
+                                } else {
+                                    "CLKT_DLL_CLKPAD0"
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKT_DLL_OUTL2",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL2".to_string(),
+                                    wire_from: "CLKV_OMUX12_OUTL2".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKT_DLL_OUTR2",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR2".to_string(),
+                                    wire_from: "CLKV_OMUX12_OUTR2".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKT_GCLK2"]),
+                        builder
+                            .bel_xy("BUFGMUX3", "BUFGMUX", 0, 0)
+                            .pins_name_only(&["I0", "I1"])
+                            .extra_wire("CKIR", &["CLKT_CKI3"])
+                            .extra_wire("CKIL", &["CLKT_CKI7"])
+                            .extra_wire_force("DCM_PAD_L", "CLKT_DLL_CLKPAD7")
+                            .extra_wire_force(
+                                "DCM_PAD_R",
+                                if rd.family == "spartan3e" {
+                                    "CLKT_DLL_CLKPAD3"
+                                } else {
+                                    "CLKT_DLL_CLKPAD1"
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_L",
+                                "CLKT_DLL_OUTL3",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTL3".to_string(),
+                                    wire_from: "CLKV_OMUX15_OUTL3".to_string(),
+                                },
+                            )
+                            .extra_wire_force_pip(
+                                "DCM_OUT_R",
+                                "CLKT_DLL_OUTR3",
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(1),
+                                    wire_to: "CLKV_OUTR3".to_string(),
+                                    wire_from: "CLKV_OMUX15_OUTR3".to_string(),
+                                },
+                            )
+                            .extra_int_in("CLK", &["CLKT_GCLK3"]),
+                    ],
+                    &lh,
+                );
             }
         }
     }
 
-    for (tkn, kind) in [
-        ("BBTERM", "DCMCONN.BOT"),
-        ("BTTERM", "DCMCONN.TOP"),
-    ] {
+    for (tkn, kind) in [("BBTERM", "DCMCONN.BOT"), ("BTTERM", "DCMCONN.TOP")] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = [Coord {
                 x: xy.x,
-                y: if kind == "DCMCONN.BOT" { xy.y + 1 } else { xy.y - 1 },
+                y: if kind == "DCMCONN.BOT" {
+                    xy.y + 1
+                } else {
+                    xy.y - 1
+                },
             }];
             if rd.tile_kinds.key(rd.tiles[&int_xy[0]].kind) == "BRAM_IOIS_NODCM" {
                 continue;
             }
-            builder.extract_xnode_bels(kind, xy, &[], &int_xy, kind, &[
-                builder.bel_virtual("DCMCONN")
+            builder.extract_xnode_bels(
+                kind,
+                xy,
+                &[],
+                &int_xy,
+                kind,
+                &[builder
+                    .bel_virtual("DCMCONN")
                     .extra_wire("OUTBUS0", &["BBTERM_CKMUX0", "TTERM_CKMUX0"])
                     .extra_wire("OUTBUS1", &["BBTERM_CKMUX1", "TTERM_CKMUX1"])
                     .extra_wire("OUTBUS2", &["BBTERM_CKMUX2", "TTERM_CKMUX2"])
@@ -1574,8 +2138,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_int_in("OUT0", &["BTERM_OMUX0", "BTTERM_OMUX10"])
                     .extra_int_in("OUT1", &["BTERM_OMUX3", "BTTERM_OMUX11"])
                     .extra_int_in("OUT2", &["BTERM_OMUX4", "BTTERM_OMUX12"])
-                    .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])
-            ]);
+                    .extra_int_in("OUT3", &["BTERM_OMUX5", "BTTERM_OMUX15"])],
+            );
         }
     }
 
@@ -1588,58 +2152,65 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 };
                 let int_s_xy = builder.walk_to_int(xy_o, Dir::S).unwrap();
                 let int_n_xy = builder.walk_to_int(xy_o, Dir::N).unwrap();
-                let int_xy = [
-                    int_s_xy,
-                    int_n_xy,
-                ];
+                let int_xy = [int_s_xy, int_n_xy];
                 let kind;
                 let buf_xy;
                 let mut bels = [
-                    builder.bel_xy("BUFGMUX0", "BUFGMUX", 0, 0)
+                    builder
+                        .bel_xy("BUFGMUX0", "BUFGMUX", 0, 0)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI0", "CLKR_CKI0"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTT0", "CLKR_OUTT0"])
                         .extra_int_in("CLK", &["CLKL_GCLK0", "CLKR_GCLK0"]),
-                    builder.bel_xy("BUFGMUX1", "BUFGMUX", 0, 1)
+                    builder
+                        .bel_xy("BUFGMUX1", "BUFGMUX", 0, 1)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI1", "CLKR_CKI1"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTT1", "CLKR_OUTT1"])
                         .extra_int_in("CLK", &["CLKL_GCLK1", "CLKR_GCLK1"]),
-                    builder.bel_xy("BUFGMUX2", "BUFGMUX", 0, 2)
+                    builder
+                        .bel_xy("BUFGMUX2", "BUFGMUX", 0, 2)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI2", "CLKR_CKI2"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTT2", "CLKR_OUTT2"])
                         .extra_int_in("CLK", &["CLKL_GCLK2", "CLKR_GCLK2"]),
-                    builder.bel_xy("BUFGMUX3", "BUFGMUX", 0, 3)
+                    builder
+                        .bel_xy("BUFGMUX3", "BUFGMUX", 0, 3)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI3", "CLKR_CKI3"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTT3", "CLKR_OUTT3"])
                         .extra_int_in("CLK", &["CLKL_GCLK3", "CLKR_GCLK3"]),
-                    builder.bel_xy("BUFGMUX4", "BUFGMUX", 0, 4)
+                    builder
+                        .bel_xy("BUFGMUX4", "BUFGMUX", 0, 4)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI4", "CLKR_CKI4"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTB0", "CLKR_OUTB0"])
                         .extra_int_in("CLK", &["CLKL_GCLK4", "CLKR_GCLK4"]),
-                    builder.bel_xy("BUFGMUX5", "BUFGMUX", 0, 5)
+                    builder
+                        .bel_xy("BUFGMUX5", "BUFGMUX", 0, 5)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI5", "CLKR_CKI5"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTB1", "CLKR_OUTB1"])
                         .extra_int_in("CLK", &["CLKL_GCLK5", "CLKR_GCLK5"]),
-                    builder.bel_xy("BUFGMUX6", "BUFGMUX", 0, 6)
+                    builder
+                        .bel_xy("BUFGMUX6", "BUFGMUX", 0, 6)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI6", "CLKR_CKI6"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTB2", "CLKR_OUTB2"])
                         .extra_int_in("CLK", &["CLKL_GCLK6", "CLKR_GCLK6"]),
-                    builder.bel_xy("BUFGMUX7", "BUFGMUX", 0, 7)
+                    builder
+                        .bel_xy("BUFGMUX7", "BUFGMUX", 0, 7)
                         .pins_name_only(&["I0", "I1"])
                         .extra_wire("CKI", &["CLKL_CKI7", "CLKR_CKI7"])
                         .extra_wire("DCM_OUT", &["CLKL_OUTB3", "CLKR_OUTB3"])
                         .extra_int_in("CLK", &["CLKL_GCLK7", "CLKR_GCLK7"]),
-                    builder.bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
+                    builder
+                        .bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
                         .pin_name_only("PCI_CE", 1)
                         .pin_name_only("IRDY", 1)
                         .pin_name_only("TRDY", 1),
-                    builder.bel_xy("VCC", "VCC", 0, 0)
+                    builder
+                        .bel_xy("VCC", "VCC", 0, 0)
                         .pin_name_only("VCCOUT", 0),
                 ];
                 if rd.family == "spartan3e" {
@@ -1649,7 +2220,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     kind = format!("{tkn}.S3A");
                     buf_xy = vec![xy_o];
                     let mut i = 0;
-                    bels = bels.map(|x|
+                    bels = bels.map(|x| {
                         if x.name.starts_with("BUFGMUX") {
                             let res = x.extra_wire_force("DCM_PAD", format!("{tkn}_CKI{i}_END"));
                             i += 1;
@@ -1657,7 +2228,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         } else {
                             x
                         }
-                    );
+                    });
                 }
                 builder.extract_xnode(&kind, xy, &buf_xy, &int_xy, &kind, &bels, &data_in);
             }
@@ -1665,49 +2236,86 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
         for tkn in ["GCLKH_PCI_CE_N"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
-                builder.extract_xnode("PCI_CE_N", xy, &[], &[xy], "PCI_CE_N", &[
-                    builder.bel_virtual("PCI_CE_N")
+                builder.extract_xnode(
+                    "PCI_CE_N",
+                    xy,
+                    &[],
+                    &[xy],
+                    "PCI_CE_N",
+                    &[builder
+                        .bel_virtual("PCI_CE_N")
                         .extra_wire("I", &["GCLKH_PCI_CE_IN"])
-                        .extra_wire("O", &["GCLKH_PCI_CE_OUT"])
-                ], &[]);
+                        .extra_wire("O", &["GCLKH_PCI_CE_OUT"])],
+                    &[],
+                );
             }
         }
         for tkn in ["GCLKH_PCI_CE_S", "GCLKH_PCI_CE_S_50A"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
-                builder.extract_xnode("PCI_CE_S", xy, &[], &[xy], "PCI_CE_S", &[
-                    builder.bel_virtual("PCI_CE_S")
+                builder.extract_xnode(
+                    "PCI_CE_S",
+                    xy,
+                    &[],
+                    &[xy],
+                    "PCI_CE_S",
+                    &[builder
+                        .bel_virtual("PCI_CE_S")
                         .extra_wire("I", &["GCLKH_PCI_CE_OUT"])
-                        .extra_wire("O", &["GCLKH_PCI_CE_IN"])
-                ], &[]);
+                        .extra_wire("O", &["GCLKH_PCI_CE_IN"])],
+                    &[],
+                );
             }
         }
         for tkn in ["LL", "LR", "UL", "UR"] {
-            builder.extract_node_bels(tkn, "PCI_CE_CNR", "PCI_CE_CNR", &[
-                builder.bel_virtual("PCI_CE_CNR")
+            builder.extract_node_bels(
+                tkn,
+                "PCI_CE_CNR",
+                "PCI_CE_CNR",
+                &[builder
+                    .bel_virtual("PCI_CE_CNR")
                     .extra_wire("I", &["PCI_CE_NS"])
-                    .extra_wire("O", &["PCI_CE_EW"])
-            ]);
+                    .extra_wire("O", &["PCI_CE_EW"])],
+            );
         }
         if rd.family == "spartan3a" {
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISL") {
-                builder.extract_xnode("PCI_CE_E", xy, &[], &[xy], "PCI_CE_E", &[
-                    builder.bel_virtual("PCI_CE_E")
+                builder.extract_xnode(
+                    "PCI_CE_E",
+                    xy,
+                    &[],
+                    &[xy],
+                    "PCI_CE_E",
+                    &[builder
+                        .bel_virtual("PCI_CE_E")
                         .extra_wire("I", &["CLKV_PCI_CE_W"])
-                        .extra_wire("O", &["CLKV_PCI_CE_E"])
-                ], &[]);
+                        .extra_wire("O", &["CLKV_PCI_CE_E"])],
+                    &[],
+                );
             }
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISR") {
-                builder.extract_xnode("PCI_CE_W", xy, &[], &[xy], "PCI_CE_W", &[
-                    builder.bel_virtual("PCI_CE_W")
+                builder.extract_xnode(
+                    "PCI_CE_W",
+                    xy,
+                    &[],
+                    &[xy],
+                    "PCI_CE_W",
+                    &[builder
+                        .bel_virtual("PCI_CE_W")
                         .extra_wire("I", &["CLKV_PCI_CE_E"])
-                        .extra_wire("O", &["CLKV_PCI_CE_W"])
-                ], &[]);
+                        .extra_wire("O", &["CLKV_PCI_CE_W"])],
+                    &[],
+                );
             }
         }
     }
 
     if rd.family == "spartan3adsp" {
-        for tkn in ["BRAMSITE2_3M", "BRAMSITE2_3M_BRK", "BRAMSITE2_3M_BOT", "BRAMSITE2_3M_TOP"] {
+        for tkn in [
+            "BRAMSITE2_3M",
+            "BRAMSITE2_3M_BRK",
+            "BRAMSITE2_3M_BOT",
+            "BRAMSITE2_3M_TOP",
+        ] {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {
@@ -1716,9 +2324,15 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         y: xy.y + dy,
                     });
                 }
-                builder.extract_xnode("BRAM.S3ADSP", xy, &[], &int_xy, "BRAM.S3ADSP", &[
-                    builder.bel_xy("BRAM", "RAMB16", 0, 0),
-                ], &[]);
+                builder.extract_xnode(
+                    "BRAM.S3ADSP",
+                    xy,
+                    &[],
+                    &int_xy,
+                    "BRAM.S3ADSP",
+                    &[builder.bel_xy("BRAM", "RAMB16", 0, 0)],
+                    &[],
+                );
             }
         }
         for (tkn, naming) in [
@@ -1727,12 +2341,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("MACCSITE2_BOT", "DSP"),
             ("MACCSITE2_TOP", "DSP.TOP"),
         ] {
-            let buf_cnt = if naming == "DSP.TOP" {
-                0
-            } else {
-                1
-            };
-            let mut bel_dsp = builder.bel_xy("DSP", "DSP48A", 0, 0)
+            let buf_cnt = if naming == "DSP.TOP" { 0 } else { 1 };
+            let mut bel_dsp = builder
+                .bel_xy("DSP", "DSP48A", 0, 0)
                 .pin_name_only("CARRYIN", 0)
                 .pin_name_only("CARRYOUT", buf_cnt);
             for i in 0..18 {
@@ -1770,19 +2381,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("BRAMSITE2_TOP", "BRAM.S3A.TOP"),
         ] {
             let mut bel_mult = builder.bel_xy("MULT", "MULT18X18", 0, 0);
-            let buf_cnt = if naming == "BRAM.S3A.TOP" {
-                0
-            } else {
-                1
-            };
+            let buf_cnt = if naming == "BRAM.S3A.TOP" { 0 } else { 1 };
             for i in 0..18 {
                 bel_mult = bel_mult.pin_name_only(&format!("BCIN{i}"), 0);
                 bel_mult = bel_mult.pin_name_only(&format!("BCOUT{i}"), buf_cnt);
             }
-            let bels_bram = [
-                builder.bel_xy("BRAM", "RAMB16", 0, 0),
-                bel_mult,
-            ];
+            let bels_bram = [builder.bel_xy("BRAM", "RAMB16", 0, 0), bel_mult];
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {

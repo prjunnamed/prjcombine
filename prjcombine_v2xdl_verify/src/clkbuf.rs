@@ -1,6 +1,6 @@
-use crate::types::{Test, SrcInst, TgtInst, TestGenCtx};
-use rand::Rng;
+use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
@@ -122,7 +122,7 @@ fn gen_bufg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
 fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let dis_attr = ctx.rng.gen();
-    let mut inst = SrcInst::new(ctx, if dis_attr {"BUFGCE_1"} else {"BUFGCE"});
+    let mut inst = SrcInst::new(ctx, if dis_attr { "BUFGCE_1" } else { "BUFGCE" });
     let prim = match mode {
         Mode::Virtex2 | Mode::Spartan3 | Mode::Spartan6 => "BUFGMUX",
         _ => "BUFGCTRL",
@@ -149,7 +149,7 @@ fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_tie("I1", dis_attr);
             ti.pin_in_inv("S", &ce_x, !ce_inv);
             ti.pin_out("O", &o);
-            ti.cfg("DISABLE_ATTR", if dis_attr {"HIGH"} else {"LOW"});
+            ti.cfg("DISABLE_ATTR", if dis_attr { "HIGH" } else { "LOW" });
             ti.cfg("I0_USED", "0");
             ti.cfg("I1_USED", "0");
         }
@@ -159,7 +159,7 @@ fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_tie("I1", dis_attr);
             ti.pin_in_inv("S", &ce_x, !ce_inv);
             ti.pin_out("O", &o);
-            ti.cfg("DISABLE_ATTR", if dis_attr {"HIGH"} else {"LOW"});
+            ti.cfg("DISABLE_ATTR", if dis_attr { "HIGH" } else { "LOW" });
             ti.cfg("CLK_SEL_TYPE", "SYNC");
         }
         _ => {
@@ -172,7 +172,7 @@ fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_tie_inv("S0", true, false);
             ti.pin_tie_inv("S1", false, false);
             ti.pin_out("O", &o);
-            ti.cfg("INIT_OUT", if dis_attr {"1"} else {"0"});
+            ti.cfg("INIT_OUT", if dis_attr { "1" } else { "0" });
             ti.cfg("PRESELECT_I0", "TRUE");
             ti.cfg("PRESELECT_I1", "FALSE");
             ti.cfg("CREATE_EDGE", "TRUE");
@@ -185,8 +185,12 @@ fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
 fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let dis_attr = ctx.rng.gen();
-    let st = if mode != Mode::Spartan6 || ctx.rng.gen() {"SYNC"} else {"ASYNC"};
-    let mut inst = SrcInst::new(ctx, if dis_attr {"BUFGMUX_1"} else {"BUFGMUX"});
+    let st = if mode != Mode::Spartan6 || ctx.rng.gen() {
+        "SYNC"
+    } else {
+        "ASYNC"
+    };
+    let mut inst = SrcInst::new(ctx, if dis_attr { "BUFGMUX_1" } else { "BUFGMUX" });
     let prim = match mode {
         Mode::Virtex2 | Mode::Spartan3 | Mode::Spartan6 => "BUFGMUX",
         _ => "BUFGCTRL",
@@ -213,7 +217,7 @@ fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_in("I1", &i1);
             ti.pin_in_inv("S", &s_x, s_inv);
             ti.pin_out("O", &o);
-            ti.cfg("DISABLE_ATTR", if dis_attr {"HIGH"} else {"LOW"});
+            ti.cfg("DISABLE_ATTR", if dis_attr { "HIGH" } else { "LOW" });
             ti.cfg("I0_USED", "0");
             ti.cfg("I1_USED", "0");
         }
@@ -223,7 +227,7 @@ fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_in("I1", &i1);
             ti.pin_in_inv("S", &s_x, s_inv);
             ti.pin_out("O", &o);
-            ti.cfg("DISABLE_ATTR", if dis_attr {"HIGH"} else {"LOW"});
+            ti.cfg("DISABLE_ATTR", if dis_attr { "HIGH" } else { "LOW" });
             ti.cfg("CLK_SEL_TYPE", st);
         }
         _ => {
@@ -237,7 +241,7 @@ fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_tie_inv("S0", true, false);
             ti.pin_tie_inv("S1", true, false);
             ti.pin_out("O", &o);
-            ti.cfg("INIT_OUT", if dis_attr {"1"} else {"0"});
+            ti.cfg("INIT_OUT", if dis_attr { "1" } else { "0" });
             ti.cfg("PRESELECT_I0", "TRUE");
             ti.cfg("PRESELECT_I1", "FALSE");
             ti.cfg("CREATE_EDGE", "TRUE");
@@ -249,8 +253,12 @@ fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 }
 
 fn gen_bufgmux_ctrl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let prim = if ctx.rng.gen() || mode == Mode::Virtex4 {"BUFGMUX_VIRTEX4"} else {"BUFGMUX_CTRL"};
-    let mut inst = SrcInst::new(ctx, prim); 
+    let prim = if ctx.rng.gen() || mode == Mode::Virtex4 {
+        "BUFGMUX_VIRTEX4"
+    } else {
+        "BUFGMUX_CTRL"
+    };
+    let mut inst = SrcInst::new(ctx, prim);
     let mut ti = TgtInst::new(&["BUFGCTRL"]);
 
     let i0 = test.make_in(ctx);
@@ -304,15 +312,12 @@ fn gen_bufgctrl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     inst.connect("IGNORE1", &ignore1_v);
     inst.connect("O", &o);
     let init_out = ctx.gen_bits(1);
-    let (pre0, pre1) = *[
-        (false, false),
-        (false, true),
-        (true, false),
-    ].choose(&mut ctx.rng).unwrap();
+    let (pre0, pre1) = *[(false, false), (false, true), (true, false)]
+        .choose(&mut ctx.rng)
+        .unwrap();
     inst.param_bits("INIT_OUT", &init_out);
     inst.param_bool("PRESELECT_I0", pre0);
     inst.param_bool("PRESELECT_I1", pre1);
-
 
     ti.bel("BUFGCTRL", &inst.name, "");
     ti.pin_in("I0", &i0);
@@ -344,9 +349,10 @@ fn make_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, i: &str) {
     inst.connect("CE", &ce);
     inst.connect("CLR", &clr);
     inst.connect("O", &o);
-    let div = *["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"].choose(&mut ctx.rng).unwrap();
+    let div = *["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"]
+        .choose(&mut ctx.rng)
+        .unwrap();
     inst.param_str("BUFR_DIVIDE", div);
-
 
     ti.bel("BUFR", &inst.name, "");
     ti.pin_in("I", &i);
@@ -480,7 +486,10 @@ pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         gen_bufgce(test, ctx, mode);
         gen_bufgmux(test, ctx, mode);
     }
-    if matches!(mode, Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+    if matches!(
+        mode,
+        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+    ) {
         gen_bufgmux_ctrl(test, ctx, mode);
         gen_bufgctrl(test, ctx, mode);
         gen_bufr(test, ctx, mode);

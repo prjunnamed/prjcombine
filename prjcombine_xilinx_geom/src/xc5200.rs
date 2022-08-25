@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use crate::{BelCoord, ColId, RowId, BelId, eint, int};
+use crate::{eint, int, BelCoord, BelId, ColId, RowId};
 use prjcombine_entity::EntityId;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -202,4 +202,3 @@ impl Grid {
         egrid
     }
 }
-

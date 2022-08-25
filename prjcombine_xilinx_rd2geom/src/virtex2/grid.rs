@@ -1,21 +1,25 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_xilinx_rawdump::{Part, Coord};
-use prjcombine_xilinx_geom::{CfgPin, ColId, RowId};
-use prjcombine_xilinx_geom::virtex2::{self, GridKind, Column, ColumnKind, ColumnIoKind, RowIoKind, Dcms};
 use prjcombine_entity::EntityVec;
+use prjcombine_xilinx_geom::virtex2::{
+    self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind,
+};
+use prjcombine_xilinx_geom::{CfgPin, ColId, RowId};
+use prjcombine_xilinx_rawdump::{Coord, Part};
 
-use crate::grid::{extract_int, find_columns, find_column, find_rows, find_row, IntGrid};
+use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
 use crate::util::split_num;
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {
         "virtex2" => GridKind::Virtex2,
-        "virtex2p" => if find_columns(rd, &["MK_B_IOIS"]).is_empty() {
-            GridKind::Virtex2P
-        } else {
-            GridKind::Virtex2PX
-        },
+        "virtex2p" => {
+            if find_columns(rd, &["MK_B_IOIS"]).is_empty() {
+                GridKind::Virtex2P
+            } else {
+                GridKind::Virtex2PX
+            }
+        }
         "spartan3" => GridKind::Spartan3,
         "spartan3e" => GridKind::Spartan3E,
         "spartan3a" => GridKind::Spartan3A,
@@ -26,11 +30,20 @@ fn get_kind(rd: &Part) -> GridKind {
 
 fn make_columns(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<ColId, Column> {
     let mut res = EntityVec::new();
-    res.push(Column{kind: ColumnKind::Io, io: ColumnIoKind::None});
+    res.push(Column {
+        kind: ColumnKind::Io,
+        io: ColumnIoKind::None,
+    });
     for _ in 0..(int.cols.len() - 2) {
-        res.push(Column{kind: ColumnKind::Clb, io: ColumnIoKind::None});
+        res.push(Column {
+            kind: ColumnKind::Clb,
+            io: ColumnIoKind::None,
+        });
     }
-    res.push(Column{kind: ColumnKind::Io, io: ColumnIoKind::None});
+    res.push(Column {
+        kind: ColumnKind::Io,
+        io: ColumnIoKind::None,
+    });
     let bram_cont = match kind {
         GridKind::Spartan3E | GridKind::Spartan3A => 4,
         GridKind::Spartan3ADsp => 3,
@@ -192,26 +205,38 @@ fn get_cols_gt(rd: &Part, int: &IntGrid) -> BTreeMap<ColId, (u32, u32)> {
     let mut res = BTreeMap::new();
     for rc in find_columns(rd, &["BGIGABIT_INT0"]) {
         let c = int.lookup_column(rc);
-        let bb = get_gt_bank(rd, Coord {
-            x: (rc + 1) as u16,
-            y: 2,
-        });
-        let bt = get_gt_bank(rd, Coord {
-            x: (rc + 1) as u16,
-            y: rd.height - 6,
-        });
+        let bb = get_gt_bank(
+            rd,
+            Coord {
+                x: (rc + 1) as u16,
+                y: 2,
+            },
+        );
+        let bt = get_gt_bank(
+            rd,
+            Coord {
+                x: (rc + 1) as u16,
+                y: rd.height - 6,
+            },
+        );
         res.insert(c, (bb, bt));
     }
     for rc in find_columns(rd, &["BGIGABIT10_INT0"]) {
         let c = int.lookup_column(rc);
-        let bb = get_gt_bank(rd, Coord {
-            x: (rc + 1) as u16,
-            y: 2,
-        });
-        let bt = get_gt_bank(rd, Coord {
-            x: (rc + 1) as u16,
-            y: rd.height - 11,
-        });
+        let bb = get_gt_bank(
+            rd,
+            Coord {
+                x: (rc + 1) as u16,
+                y: 2,
+            },
+        );
+        let bt = get_gt_bank(
+            rd,
+            Coord {
+                x: (rc + 1) as u16,
+                y: rd.height - 11,
+            },
+        );
         res.insert(c, (bb, bt));
     }
     res
@@ -303,7 +328,12 @@ fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId, RowId)> {
     rows_brk_d.insert(int.rows.first_id().unwrap());
     assert_eq!(rows_hclk.len(), rows_brk.len());
     assert_eq!(rows_hclk.len(), rows_brk_d.len());
-    rows_hclk.into_iter().zip(rows_brk_d.into_iter()).zip(rows_brk.into_iter()).map(|((a, b), c)| (a, b, c)).collect()
+    rows_hclk
+        .into_iter()
+        .zip(rows_brk_d.into_iter())
+        .zip(rows_brk.into_iter())
+        .map(|((a, b), c)| (a, b, c))
+        .collect()
 }
 
 fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<RowId> {
@@ -349,7 +379,7 @@ fn get_dcms(rd: &Part, kind: GridKind) -> Option<Dcms> {
                 Some(Dcms::Two)
             }
         }
-        _ => None
+        _ => None,
     }
 }
 
@@ -391,7 +421,10 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
                         alt_vrp.insert(pin.vref_bank.unwrap(), coord);
                     } else if f.starts_with("ALT_VRN_") {
                         alt_vrn.insert(pin.vref_bank.unwrap(), coord);
-                    } else if f.starts_with("GCLK") || f.starts_with("LHCLK") || f.starts_with("RHCLK") {
+                    } else if f.starts_with("GCLK")
+                        || f.starts_with("LHCLK")
+                        || f.starts_with("RHCLK")
+                    {
                         // ignore
                     } else if f.starts_with("IRDY") || f.starts_with("TRDY") {
                         // ignore
@@ -415,19 +448,24 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
                             "LDC2" => CfgPin::Ldc(2),
                             "HDC" => CfgPin::Hdc,
                             "AWAKE" => CfgPin::Awake,
-                            _ => if let Some((s, n)) = split_num(f) {
-                                match s {
-                                    "VS" => continue,
-                                    "D" => CfgPin::Data(n as u8),
-                                    "A" => CfgPin::Addr(n as u8),
-                                    _ => {
-                                        println!("UNK FUNC {f} {func} {coord:?}", func=pin.func);
-                                        continue;
+                            _ => {
+                                if let Some((s, n)) = split_num(f) {
+                                    match s {
+                                        "VS" => continue,
+                                        "D" => CfgPin::Data(n as u8),
+                                        "A" => CfgPin::Addr(n as u8),
+                                        _ => {
+                                            println!(
+                                                "UNK FUNC {f} {func} {coord:?}",
+                                                func = pin.func
+                                            );
+                                            continue;
+                                        }
                                     }
+                                } else {
+                                    println!("UNK FUNC {f} {func} {coord:?}", func = pin.func);
+                                    continue;
                                 }
-                            } else {
-                                println!("UNK FUNC {f} {func} {coord:?}", func=pin.func);
-                                continue;
                             }
                         };
                         let old = grid.cfg_io.insert(cfg, coord);
@@ -461,20 +499,24 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
 
 pub fn make_grid(rd: &Part) -> virtex2::Grid {
     // This list of int tiles is incomplete, but suffices for the purpose of grid determination
-    let int = extract_int(rd, &[
-        "CENTER",
-        "CENTER_SMALL",
-        "CENTER_SMALL_BRK",
-        "BRAM0",
-        "BRAM0_SMALL",
-        "MACC0_SMALL",
-        "TIOIB",
-        "TIOIS",
-        "LL",
-        "LR",
-        "UL",
-        "UR",
-    ], &[]);
+    let int = extract_int(
+        rd,
+        &[
+            "CENTER",
+            "CENTER_SMALL",
+            "CENTER_SMALL_BRK",
+            "BRAM0",
+            "BRAM0_SMALL",
+            "MACC0_SMALL",
+            "TIOIB",
+            "TIOIS",
+            "LL",
+            "LR",
+            "UL",
+            "UR",
+        ],
+        &[],
+    );
     let kind = get_kind(rd);
     let mut columns = make_columns(rd, &int, kind);
     get_cols_io(rd, &int, kind, &mut columns);

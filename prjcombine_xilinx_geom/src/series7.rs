@@ -1,7 +1,7 @@
+use super::{eint, int, CfgPin, ColId, ExtraDie, GtPin, PsPin, RowId, SlrId, SysMonPin};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
-use serde::{Serialize, Deserialize};
-use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId, RowId, SlrId, int, eint};
-use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -245,9 +245,18 @@ impl Io {
 
 pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId) -> Vec<Io> {
     let mut res = Vec::new();
-    let reg_cfg: usize = grids[grid_master].reg_cfg + grids.iter().filter(|&(k, _)| k < grid_master).map(|(_, x)| x.regs).sum::<usize>();
+    let reg_cfg: usize = grids[grid_master].reg_cfg
+        + grids
+            .iter()
+            .filter(|&(k, _)| k < grid_master)
+            .map(|(_, x)| x.regs)
+            .sum::<usize>();
     for ioc in 0..2 {
-        let iox = if grids[grid_master].cols_io[0].is_none() {0} else {ioc};
+        let iox = if grids[grid_master].cols_io[0].is_none() {
+            0
+        } else {
+            ioc
+        };
         let mut reg_base = 0;
         for (slr, grid) in grids {
             if let Some(ref col) = grid.cols_io[ioc as usize] {
@@ -276,7 +285,11 @@ pub fn get_io(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId) -> Vec<Io> {
     res
 }
 
-fn get_iopad_y(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7k70t: bool) -> Vec<(u32, u32, u32, u32, u32)> {
+fn get_iopad_y(
+    grids: &EntityVec<SlrId, Grid>,
+    extras: &[ExtraDie],
+    is_7k70t: bool,
+) -> Vec<(u32, u32, u32, u32, u32)> {
     let mut res = Vec::new();
     let mut ipy = 0;
     let mut opy = 0;
@@ -295,7 +308,9 @@ fn get_iopad_y(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7k70t: bo
                 has_gt |= col.regs[j].is_some();
             }
             for hole in &grid.holes {
-                if matches!(hole.kind, HoleKind::GtpLeft | HoleKind::GtpRight) && hole.row == RowId::from_idx(j * 50) {
+                if matches!(hole.kind, HoleKind::GtpLeft | HoleKind::GtpRight)
+                    && hole.row == RowId::from_idx(j * 50)
+                {
                     has_gt = true;
                 }
             }
@@ -351,28 +366,78 @@ impl Gt {
             GtKind::Gth => "H",
         };
         for b in 0..4 {
-            res.push((format!("OPAD_X{}Y{}", self.opx, self.opy + 2 * b), format!("MGT{l}TXN{}_{}", b, self.bank), GtPin::TxN, b));
-            res.push((format!("OPAD_X{}Y{}", self.opx, self.opy + 2 * b + 1), format!("MGT{l}TXP{}_{}", b, self.bank), GtPin::TxP, b));
+            res.push((
+                format!("OPAD_X{}Y{}", self.opx, self.opy + 2 * b),
+                format!("MGT{l}TXN{}_{}", b, self.bank),
+                GtPin::TxN,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X{}Y{}", self.opx, self.opy + 2 * b + 1),
+                format!("MGT{l}TXP{}_{}", b, self.bank),
+                GtPin::TxP,
+                b,
+            ));
         }
         for b in 0..2 {
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 6 * b), format!("MGT{l}RXN{}_{}", b, self.bank), GtPin::RxN, b));
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 6 * b + 1), format!("MGT{l}RXP{}_{}", b, self.bank), GtPin::RxP, b));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 6 * b),
+                format!("MGT{l}RXN{}_{}", b, self.bank),
+                GtPin::RxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 6 * b + 1),
+                format!("MGT{l}RXP{}_{}", b, self.bank),
+                GtPin::RxP,
+                b,
+            ));
         }
         for b in 2..4 {
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_h + 6 * (b - 2)), format!("MGT{l}RXN{}_{}", b, self.bank), GtPin::RxN, b));
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_h + 6 * (b - 2) + 1), format!("MGT{l}RXP{}_{}", b, self.bank), GtPin::RxP, b));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_h + 6 * (b - 2)),
+                format!("MGT{l}RXN{}_{}", b, self.bank),
+                GtPin::RxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_h + 6 * (b - 2) + 1),
+                format!("MGT{l}RXP{}_{}", b, self.bank),
+                GtPin::RxP,
+                b,
+            ));
         }
         for b in 0..2 {
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 8 + 2 * b), format!("MGTREFCLK{}P_{}", b, self.bank), GtPin::ClkP, b));
-            res.push((format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 9 + 2 * b), format!("MGTREFCLK{}N_{}", b, self.bank), GtPin::ClkN, b));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 8 + 2 * b),
+                format!("MGTREFCLK{}P_{}", b, self.bank),
+                GtPin::ClkP,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X{}Y{}", self.ipx, self.ipy_l + 9 + 2 * b),
+                format!("MGTREFCLK{}N_{}", b, self.bank),
+                GtPin::ClkN,
+                b,
+            ));
         }
         res
     }
 }
 
-pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, extras: &[ExtraDie], is_7k70t: bool) -> Vec<Gt> {
+pub fn get_gt(
+    grids: &EntityVec<SlrId, Grid>,
+    grid_master: SlrId,
+    extras: &[ExtraDie],
+    is_7k70t: bool,
+) -> Vec<Gt> {
     let iopad_y = get_iopad_y(grids, extras, is_7k70t);
-    let reg_cfg: usize = grids[grid_master].reg_cfg + grids.iter().filter(|&(k, _)| k < grid_master).map(|(_, x)| x.regs).sum::<usize>();
+    let reg_cfg: usize = grids[grid_master].reg_cfg
+        + grids
+            .iter()
+            .filter(|&(k, _)| k < grid_master)
+            .map(|(_, x)| x.regs)
+            .sum::<usize>();
     let mut res = Vec::new();
     let mut reg_base = 0;
     let has_gtz = !extras.is_empty();
@@ -380,8 +445,22 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, extras: &[Extr
         let has_left_gt = grid.cols_gt[0].is_some();
         for gtc in 0..2 {
             let gx: u32 = if has_left_gt { gtc } else { 0 };
-            let opx: u32 = if has_gtz { gtc * 2 } else if has_left_gt { gtc } else { 0 };
-            let ipx: u32 = if has_gtz { gtc * 3 } else if has_left_gt { gtc * 2 } else if !is_7k70t { 1 } else { 0 };
+            let opx: u32 = if has_gtz {
+                gtc * 2
+            } else if has_left_gt {
+                gtc
+            } else {
+                0
+            };
+            let ipx: u32 = if has_gtz {
+                gtc * 3
+            } else if has_left_gt {
+                gtc * 2
+            } else if !is_7k70t {
+                1
+            } else {
+                0
+            };
             if let Some(ref col) = grid.cols_gt[gtc as usize] {
                 for (j, &kind) in col.regs.iter().enumerate() {
                     if let Some(kind) = kind {
@@ -428,7 +507,7 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, extras: &[Extr
             let opx = gtc;
             let ipx = gtc + 1;
             let reg = reg_base + hole.row.to_idx() / 50;
-            let bank = if reg == 0 {13} else {16} + [200, 100][gtc as usize];
+            let bank = if reg == 0 { 13 } else { 16 } + [200, 100][gtc as usize];
             let (gy, opy, ipy_l, ipy_h, _) = iopad_y[reg];
             res.push(Gt {
                 col: hole.col,
@@ -451,7 +530,11 @@ pub fn get_gt(grids: &EntityVec<SlrId, Grid>, grid_master: SlrId, extras: &[Extr
     res
 }
 
-pub fn get_sysmon_pads(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7k70t: bool) -> Vec<(String, u32, SysMonPin)> {
+pub fn get_sysmon_pads(
+    grids: &EntityVec<SlrId, Grid>,
+    extras: &[ExtraDie],
+    is_7k70t: bool,
+) -> Vec<(String, u32, SysMonPin)> {
     let iopad_y = get_iopad_y(grids, extras, is_7k70t);
     let mut res = Vec::new();
     let mut reg_base = 0;
@@ -461,8 +544,16 @@ pub fn get_sysmon_pads(grids: &EntityVec<SlrId, Grid>, extras: &[ExtraDie], is_7
         }
         let ipx = if grid.cols_gt[0].is_some() { 1 } else { 0 };
         let ipy = iopad_y[reg_base + grid.reg_cfg].4;
-        res.push((format!("IPAD_X{}Y{}", ipx, ipy), i.to_idx() as u32, SysMonPin::VP));
-        res.push((format!("IPAD_X{}Y{}", ipx, ipy+1), i.to_idx() as u32, SysMonPin::VN));
+        res.push((
+            format!("IPAD_X{}Y{}", ipx, ipy),
+            i.to_idx() as u32,
+            SysMonPin::VP,
+        ));
+        res.push((
+            format!("IPAD_X{}Y{}", ipx, ipy + 1),
+            i.to_idx() as u32,
+            SysMonPin::VN,
+        ));
         reg_base += grid.regs;
     }
     res
@@ -476,28 +567,100 @@ pub fn get_gtz_pads(extras: &[ExtraDie]) -> Vec<(String, String, u32, GtPin, u32
         let ipy = 0;
         let opy = 0;
         for b in 0..8 {
-            res.push((format!("IPAD_X2Y{}", ipy + 4 + 2 * b), format!("MGTZRXN{b}_400"), 400, GtPin::RxN, b));
-            res.push((format!("IPAD_X2Y{}", ipy + 5 + 2 * b), format!("MGTZRXP{b}_400"), 400, GtPin::RxP, b));
-            res.push((format!("OPAD_X1Y{}", opy + 2 * b), format!("MGTZTXN{b}_400"), 400, GtPin::TxN, b));
-            res.push((format!("OPAD_X1Y{}", opy + 1 + 2 * b), format!("MGTZTXP{b}_400"), 400, GtPin::TxP, b));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 4 + 2 * b),
+                format!("MGTZRXN{b}_400"),
+                400,
+                GtPin::RxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 5 + 2 * b),
+                format!("MGTZRXP{b}_400"),
+                400,
+                GtPin::RxP,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X1Y{}", opy + 2 * b),
+                format!("MGTZTXN{b}_400"),
+                400,
+                GtPin::TxN,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X1Y{}", opy + 1 + 2 * b),
+                format!("MGTZTXP{b}_400"),
+                400,
+                GtPin::TxP,
+                b,
+            ));
         }
         for b in 0..2 {
-            res.push((format!("IPAD_X2Y{}", ipy + 2 * b), format!("MGTZREFCLK{b}N_400"), 400, GtPin::ClkN, b));
-            res.push((format!("IPAD_X2Y{}", ipy + 1 + 2 * b), format!("MGTZREFCLK{b}P_400"), 400, GtPin::ClkP, b));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 2 * b),
+                format!("MGTZREFCLK{b}N_400"),
+                400,
+                GtPin::ClkN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 1 + 2 * b),
+                format!("MGTZREFCLK{b}P_400"),
+                400,
+                GtPin::ClkP,
+                b,
+            ));
         }
     }
     if has_gtz_top {
-        let ipy = if has_gtz_bot {20} else {0};
-        let opy = if has_gtz_bot {16} else {0};
+        let ipy = if has_gtz_bot { 20 } else { 0 };
+        let opy = if has_gtz_bot { 16 } else { 0 };
         for b in 0..8 {
-            res.push((format!("IPAD_X2Y{}", ipy + 4 + 2 * b), format!("MGTZRXN{b}_300"), 300, GtPin::RxN, b));
-            res.push((format!("IPAD_X2Y{}", ipy + 5 + 2 * b), format!("MGTZRXP{b}_300"), 300, GtPin::RxP, b));
-            res.push((format!("OPAD_X1Y{}", opy + 2 * b), format!("MGTZTXN{b}_300"), 300, GtPin::TxN, b));
-            res.push((format!("OPAD_X1Y{}", opy + 1 + 2 * b), format!("MGTZTXP{b}_300"), 300, GtPin::TxP, b));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 4 + 2 * b),
+                format!("MGTZRXN{b}_300"),
+                300,
+                GtPin::RxN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 5 + 2 * b),
+                format!("MGTZRXP{b}_300"),
+                300,
+                GtPin::RxP,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X1Y{}", opy + 2 * b),
+                format!("MGTZTXN{b}_300"),
+                300,
+                GtPin::TxN,
+                b,
+            ));
+            res.push((
+                format!("OPAD_X1Y{}", opy + 1 + 2 * b),
+                format!("MGTZTXP{b}_300"),
+                300,
+                GtPin::TxP,
+                b,
+            ));
         }
         for b in 0..2 {
-            res.push((format!("IPAD_X2Y{}", ipy + 2 * b), format!("MGTZREFCLK{b}N_300"), 300, GtPin::ClkN, b));
-            res.push((format!("IPAD_X2Y{}", ipy + 1 + 2 * b), format!("MGTZREFCLK{b}P_300"), 300, GtPin::ClkP, b));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 2 * b),
+                format!("MGTZREFCLK{b}N_300"),
+                300,
+                GtPin::ClkN,
+                b,
+            ));
+            res.push((
+                format!("IPAD_X2Y{}", ipy + 1 + 2 * b),
+                format!("MGTZREFCLK{b}P_300"),
+                300,
+                GtPin::ClkP,
+                b,
+            ));
         }
     }
     res
@@ -537,7 +700,11 @@ pub fn get_ps_pads(grids: &EntityVec<SlrId, Grid>) -> Vec<(String, u32, PsPin)> 
         }
         res.push(("IOPAD_X1Y72".to_string(), 502, PsPin::DdrDrstB));
         for i in 0..54 {
-            res.push((format!("IOPAD_X1Y{}", 77 + i), if i < 16 {500} else {501}, PsPin::Mio(i)));
+            res.push((
+                format!("IOPAD_X1Y{}", 77 + i),
+                if i < 16 { 500 } else { 501 },
+                PsPin::Mio(i),
+            ));
         }
         res.push(("IOPAD_X1Y131".to_string(), 502, PsPin::DdrOdt(0)));
         res.push(("IOPAD_X1Y132".to_string(), 500, PsPin::PorB));
@@ -547,7 +714,12 @@ pub fn get_ps_pads(grids: &EntityVec<SlrId, Grid>) -> Vec<(String, u32, PsPin)> 
     res
 }
 
-pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, extras: &[ExtraDie], db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+pub fn expand_grid<'a>(
+    grids: &EntityVec<SlrId, &Grid>,
+    _grid_master: SlrId,
+    extras: &[ExtraDie],
+    db: &'a int::IntDb,
+) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());
@@ -577,7 +749,12 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
             for row in slr.rows() {
                 let y = yb + row.to_idx();
                 let tie_y = tie_yb + row.to_idx();
-                slr.fill_tile((col, row), "INT", &format!("INT.{lr}"), format!("INT_{lr}_X{x}Y{y}"));
+                slr.fill_tile(
+                    (col, row),
+                    "INT",
+                    &format!("INT.{lr}"),
+                    format!("INT_{lr}_X{x}Y{y}"),
+                );
                 slr[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
                 match kind {
                     ColumnKind::ClbLL => (),
@@ -890,7 +1067,15 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                 if !slr[(col, row_s)].nodes.is_empty() && !slr[(col, row_n)].nodes.is_empty() {
                     let x = xlut[col];
                     let y = yb + row_s.to_idx();
-                    slr.fill_term_pair_buf((col, row_s), (col, row_n), term_n, term_s, format!("BRKH_INT_X{x}Y{y}"), naming_s, naming_n);
+                    slr.fill_term_pair_buf(
+                        (col, row_s),
+                        (col, row_n),
+                        term_n,
+                        term_s,
+                        format!("BRKH_INT_X{x}Y{y}"),
+                        naming_s,
+                        naming_n,
+                    );
                 }
             }
         }
@@ -901,7 +1086,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
         tie_yb += slr.rows().len();
     }
 
-    let lvb6 = db.wires.iter().find_map(|(k, v)| if v.name == "LVB.6" {Some(k)} else {None}).unwrap();
+    let lvb6 = db
+        .wires
+        .iter()
+        .find_map(|(k, v)| if v.name == "LVB.6" { Some(k) } else { None })
+        .unwrap();
     let mut slr_wires = HashMap::new();
     for i in 1..grids.len() {
         let slrid_s = SlrId::from_idx(i - 1);

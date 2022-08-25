@@ -1,18 +1,25 @@
+use crate::verify::Verifier;
+use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_xilinx_geom::ultrascale::{
+    self, expand_grid, ColSide, Column, ColumnKindLeft, ColumnKindRight, GridKind, Gt, HardColumn,
+    HardRowKind, IoColumn, IoKind, IoRowKind, Ps,
+};
+use prjcombine_xilinx_geom::{
+    self as geom, int, int::Dir, AdcPin, Bond, BondPin, CfgPin, ColId, DacPin, DisabledPart, GtPin,
+    GtRegionPin, HbmPin, PsPin, SlrId, SysMonPin,
+};
+use prjcombine_xilinx_rawdump::{Coord, NodeId, Part, PkgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
-use prjcombine_xilinx_rawdump::{Part, PkgPin, NodeId, Coord};
-use prjcombine_xilinx_geom::{self as geom, CfgPin, Bond, BondPin, GtPin, GtRegionPin, SysMonPin, DisabledPart, PsPin, HbmPin, AdcPin, DacPin, ColId, SlrId, int, int::Dir};
-use prjcombine_xilinx_geom::ultrascale::{self, GridKind, Column, ColumnKindLeft, ColumnKindRight, IoColumn, IoRowKind, HardColumn, HardRowKind, Ps, IoKind, Gt, ColSide, expand_grid};
-use prjcombine_entity::{EntityVec, EntityId};
-use crate::verify::Verifier;
 
 use enum_map::enum_map;
 
-use crate::grid::{extract_int_slr, find_rows, IntGrid, PreDevice, make_device_multi};
+use crate::grid::{extract_int_slr, find_rows, make_device_multi, IntGrid, PreDevice};
 use crate::intb::IntBuilder;
 
 fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
-    let mut res: EntityVec<ColId, (Option<ColumnKindLeft>, Option<ColumnKindRight>)> = int.cols.map_values(|_| (None, None));
+    let mut res: EntityVec<ColId, (Option<ColumnKindLeft>, Option<ColumnKindRight>)> =
+        int.cols.map_values(|_| (None, None));
     for (tkn, delta, kind) in [
         ("CLEL_L", 1, ColumnKindLeft::CleL),
         ("CLE_M", 1, ColumnKindLeft::CleM),
@@ -131,7 +138,10 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
             println!("FAILED TO DETERMINE COLUMN {}.R", i.to_idx());
         }
     }
-    res.into_map_values(|(l, r)| Column {l: l.unwrap(), r: r.unwrap()})
+    res.into_map_values(|(l, r)| Column {
+        l: l.unwrap(),
+        r: r.unwrap(),
+    })
 }
 
 fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
@@ -221,10 +231,7 @@ fn get_cols_hard(int: &IntGrid) -> Vec<HardColumn> {
                 regs[r] = kind;
             }
         }
-        res.push(HardColumn {
-            col,
-            regs,
-        });
+        res.push(HardColumn { col, regs });
     }
     res
 }
@@ -283,11 +290,7 @@ fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
                 regs[r] = kind;
             }
         }
-        res.push(IoColumn {
-            col,
-            side,
-            regs,
-        });
+        res.push(IoColumn { col, side, regs });
     }
     res
 }
@@ -307,9 +310,11 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     builder.wire("GND", int::WireKind::Tie1, &["GND_WIRE"]);
 
     for i in 0..16 {
-        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
-            format!("GCLK_B_0_{i}"),
-        ]);
+        builder.wire(
+            format!("GCLK{i}"),
+            int::WireKind::ClkOut(i),
+            &[format!("GCLK_B_0_{i}")],
+        );
     }
 
     for (iq, q) in ["NE", "NW", "SE", "SW"].into_iter().enumerate() {
@@ -321,7 +326,9 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                             format!("SDND.{q}.{h}.{i}"),
                             &[format!("SDND{q}_{h}_{i}_FTS")],
                         );
-                        builder.branch(w, Dir::S,
+                        builder.branch(
+                            w,
+                            Dir::S,
                             format!("SDND.{q}.{h}.{i}.S"),
                             &[format!("SDND{q}_{h}_BLS_{i}_FTN")],
                         );
@@ -331,19 +338,21 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                             format!("SDND.{q}.{h}.{i}"),
                             &[format!("SDND{q}_{h}_{i}_FTN")],
                         );
-                        builder.branch(w, Dir::N,
+                        builder.branch(
+                            w,
+                            Dir::N,
                             format!("SDND.{q}.{h}.{i}.N"),
                             &[format!("SDND{q}_{h}_BLN_{i}_FTS")],
                         );
                     }
                     _ => {
-                        let xlat = [
-                            0, 7, 8, 9, 10, 11, 12, 13,
-                            14, 15, 1, 2, 3, 4, 5, 6,
-                        ];
+                        let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
                         builder.mux_out(
                             format!("SDND.{q}.{h}.{i}"),
-                            &[format!("INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT", n = iq * 32 + ih * 16 + xlat[i])],
+                            &[format!(
+                                "INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT",
+                                n = iq * 32 + ih * 16 + xlat[i]
+                            )],
                         );
                     }
                 }
@@ -352,16 +361,17 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     }
     // Singles.
     for i in 0..8 {
-        let beg = builder.mux_out(
-            format!("SNG.E.E.{i}.0"),
-            &[format!("EE1_E_BEG{i}")],
-        );
-        let end = builder.branch(beg, Dir::E,
+        let beg = builder.mux_out(format!("SNG.E.E.{i}.0"), &[format!("EE1_E_BEG{i}")]);
+        let end = builder.branch(
+            beg,
+            Dir::E,
             format!("SNG.E.E.{i}.1"),
             &[format!("EE1_E_END{i}")],
         );
         if i == 0 {
-            builder.branch(end, Dir::S,
+            builder.branch(
+                end,
+                Dir::S,
                 format!("SNG.E.E.{i}.1.S"),
                 &[format!("EE1_E_BLS_{i}_FTN")],
             );
@@ -369,11 +379,10 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     }
     for i in 0..8 {
         if i == 0 {
-            let beg = builder.mux_out(
-                format!("SNG.E.W.{i}.0"),
-                &[format!("EE1_W_{i}_FTS")],
-            );
-            builder.branch(beg, Dir::S,
+            let beg = builder.mux_out(format!("SNG.E.W.{i}.0"), &[format!("EE1_W_{i}_FTS")]);
+            builder.branch(
+                beg,
+                Dir::S,
                 format!("SNG.E.W.{i}.0.S"),
                 &[format!("EE1_W_BLS_{i}_FTN")],
             );
@@ -391,11 +400,10 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         );
     }
     for i in 0..8 {
-        let beg = builder.mux_out(
-            format!("SNG.W.W.{i}.0"),
-            &[format!("WW1_W_BEG{i}")],
-        );
-        builder.branch(beg, Dir::W,
+        let beg = builder.mux_out(format!("SNG.W.W.{i}.0"), &[format!("WW1_W_BEG{i}")]);
+        builder.branch(
+            beg,
+            Dir::W,
             format!("SNG.W.W.{i}.1"),
             &[format!("WW1_W_END{i}")],
         );
@@ -407,12 +415,16 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                     format!("SNG.{dir}.{ew}.{i}.0"),
                     &[format!("{dir}{dir}1_{ew}_BEG{i}")],
                 );
-                let end = builder.branch(beg, dir,
+                let end = builder.branch(
+                    beg,
+                    dir,
                     format!("SNG.{dir}.{ew}.{i}.1"),
                     &[format!("{dir}{dir}1_{ew}_END{i}")],
                 );
                 if i == 0 && dir == Dir::S {
-                    builder.branch(end, Dir::S,
+                    builder.branch(
+                        end,
+                        Dir::S,
                         format!("SNG.{dir}.{ew}.{i}.1.S"),
                         &[format!("{dir}{dir}1_{ew}_BLS_{i}_FTN")],
                     );
@@ -428,12 +440,16 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                     format!("DBL.{dir}.{ew}.{i}.0"),
                     &[format!("{dir}{dir}2_{ew}_BEG{i}")],
                 );
-                let end = builder.branch(beg, dir,
+                let end = builder.branch(
+                    beg,
+                    dir,
                     format!("DBL.{dir}.{ew}.{i}.1"),
                     &[format!("{dir}{dir}2_{ew}_END{i}")],
                 );
                 if i == 7 && dir == Dir::E {
-                    builder.branch(end, Dir::N,
+                    builder.branch(
+                        end,
+                        Dir::N,
                         format!("DBL.{dir}.{ew}.{i}.1.N"),
                         &[format!("{dir}{dir}2_{ew}_BLN_{i}_FTS")],
                     );
@@ -449,16 +465,22 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                     format!("DBL.{dir}.{ew}.{i}.0"),
                     &[format!("{dir}{dir}2_{ew}_BEG{i}")],
                 );
-                let a = builder.branch(beg, dir,
+                let a = builder.branch(
+                    beg,
+                    dir,
                     format!("DBL.{dir}.{ew}.{i}.1"),
                     &[format!("{dir}{dir}2_{ew}_A_FT{ftd}{i}")],
                 );
-                let end = builder.branch(a, dir,
+                let end = builder.branch(
+                    a,
+                    dir,
                     format!("DBL.{dir}.{ew}.{i}.2"),
                     &[format!("{dir}{dir}2_{ew}_END{i}")],
                 );
                 if i == 7 && dir == Dir::N {
-                    builder.branch(end, Dir::N,
+                    builder.branch(
+                        end,
+                        Dir::N,
                         format!("DBL.{dir}.{ew}.{i}.2.N"),
                         &[format!("{dir}{dir}2_{ew}_BLN_{i}_FTS")],
                     );
@@ -471,39 +493,38 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         for (ih, h) in ['E', 'W'].into_iter().enumerate() {
             for i in 0..16 {
                 match (q, h, i) {
-                    ("NW", 'E', 0) |
-                    ("SW", 'E', 0) |
-                    ("NW", 'W', 0) |
-                    ("NW", 'W', 1) => {
+                    ("NW", 'E', 0) | ("SW", 'E', 0) | ("NW", 'W', 0) | ("NW", 'W', 1) => {
                         let w = builder.mux_out(
                             format!("QLND.{q}.{h}.{i}"),
                             &[format!("QLND{q}_{h}_{i}_FTS")],
                         );
-                        builder.branch(w, Dir::S,
+                        builder.branch(
+                            w,
+                            Dir::S,
                             format!("QLND.{q}.{h}.{i}.S"),
                             &[format!("QLND{q}_{h}_BLS_{i}_FTN")],
                         );
                     }
-                    ("NW", 'E', 15) |
-                    ("SW", 'E', 15) |
-                    ("SE", 'W', 15) => {
+                    ("NW", 'E', 15) | ("SW", 'E', 15) | ("SE", 'W', 15) => {
                         let w = builder.mux_out(
                             format!("QLND.{q}.{h}.{i}"),
                             &[format!("QLND{q}_{h}_{i}_FTN")],
                         );
-                        builder.branch(w, Dir::N,
+                        builder.branch(
+                            w,
+                            Dir::N,
                             format!("QLND.{q}.{h}.{i}.N"),
                             &[format!("QLND{q}_{h}_BLN_{i}_FTS")],
                         );
                     }
                     _ => {
-                        let xlat = [
-                            0, 7, 8, 9, 10, 11, 12, 13,
-                            14, 15, 1, 2, 3, 4, 5, 6,
-                        ];
+                        let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
                         builder.mux_out(
                             format!("QLND.{q}.{h}.{i}"),
-                            &[format!("INT_NODE_QUAD_LONG_{n}_INT_OUT", n = iq * 32 + ih * 16 + xlat[i])],
+                            &[format!(
+                                "INT_NODE_QUAD_LONG_{n}_INT_OUT",
+                                n = iq * 32 + ih * 16 + xlat[i]
+                            )],
                         );
                     }
                 }
@@ -525,7 +546,11 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         (Dir::S, "LONG.16", 16, 4, false, false),
     ] {
         let ftd = !dir;
-        let ll = if matches!(dir, Dir::E | Dir::W) {l * 2} else {l};
+        let ll = if matches!(dir, Dir::E | Dir::W) {
+            l * 2
+        } else {
+            l
+        };
         for i in 0..n {
             let mut w = builder.mux_out(
                 format!("{name}.{dir}.{i}.0"),
@@ -533,23 +558,31 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
             );
             for j in 1..l {
                 let nn = (b'A' + (j - 1)) as char;
-                w = builder.branch(w, dir,
+                w = builder.branch(
+                    w,
+                    dir,
                     format!("{name}.{dir}.{i}.{j}"),
                     &[format!("{dir}{dir}{ll}_{nn}_FT{ftd}{i}")],
                 );
             }
-            w = builder.branch(w, dir,
+            w = builder.branch(
+                w,
+                dir,
                 format!("{name}.{dir}.{i}.{l}"),
                 &[format!("{dir}{dir}{ll}_END{i}")],
             );
             if i == 0 && fts {
-                builder.branch(w, Dir::S,
+                builder.branch(
+                    w,
+                    Dir::S,
                     format!("{name}.{dir}.{i}.{l}.S"),
                     &[format!("{dir}{dir}{ll}_BLS_{i}_FTN")],
                 );
             }
             if i == (n - 1) && ftn {
-                builder.branch(w, Dir::N,
+                builder.branch(
+                    w,
+                    Dir::N,
                     format!("{name}.{dir}.{i}.{l}.N"),
                     &[format!("{dir}{dir}{ll}_BLN_{i}_FTS")],
                 );
@@ -566,16 +599,10 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         }
     }
     for i in 0..8 {
-        builder.mux_out(
-            format!("IMUX.E.CTRL.{i}"),
-            &[format!("CTRL_E_B{i}")],
-        );
+        builder.mux_out(format!("IMUX.E.CTRL.{i}"), &[format!("CTRL_E_B{i}")]);
     }
     for i in 0..10 {
-        builder.mux_out(
-            format!("IMUX.W.CTRL.{i}"),
-            &[format!("CTRL_W_B{i}")],
-        );
+        builder.mux_out(format!("IMUX.W.CTRL.{i}"), &[format!("CTRL_W_B{i}")]);
     }
 
     for (iq, q) in ["1", "2"].into_iter().enumerate() {
@@ -587,7 +614,9 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                             format!("INODE.{q}.{h}.{i}"),
                             &[format!("INODE_{q}_{h}_{i}_FTS")],
                         );
-                        builder.branch(w, Dir::S,
+                        builder.branch(
+                            w,
+                            Dir::S,
                             format!("INODE.{q}.{h}.{i}.S"),
                             &[format!("INODE_{q}_{h}_BLS_{i}_FTN")],
                         );
@@ -597,20 +626,24 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                             format!("INODE.{q}.{h}.{i}"),
                             &[format!("INODE_{q}_{h}_{i}_FTN")],
                         );
-                        builder.branch(w, Dir::N,
+                        builder.branch(
+                            w,
+                            Dir::N,
                             format!("INODE.{q}.{h}.{i}.N"),
                             &[format!("INODE_{q}_{h}_BLN_{i}_FTS")],
                         );
                     }
                     _ => {
                         let xlat = [
-                            0, 11, 22, 25, 26, 27, 28, 29,
-                            30, 31, 1, 2, 3, 4, 5, 6,
-                            7, 8, 9, 10, 12, 13, 14, 15,
-                            16, 17, 18, 19, 20, 21, 23, 24,
+                            0, 11, 22, 25, 26, 27, 28, 29, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24,
                         ];
                         let w = builder.mux_out(format!("INODE.{q}.{h}.{i}"), &[""]);
-                        builder.extra_name_tile("INT", format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + ih * 32 + xlat[i]), w);
+                        builder.extra_name_tile(
+                            "INT",
+                            format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + ih * 32 + xlat[i]),
+                            w,
+                        );
                     }
                 }
             }
@@ -625,7 +658,9 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                         format!("IMUX.{ew}.BYP.{i}"),
                         &[format!("BOUNCE_{ew}_{i}_FTS")],
                     );
-                    builder.branch(w, Dir::S,
+                    builder.branch(
+                        w,
+                        Dir::S,
                         format!("IMUX.{ew}.BYP.{i}.S"),
                         &[format!("BOUNCE_{ew}_BLS_{i}_FTN")],
                     );
@@ -635,51 +670,48 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
                         format!("IMUX.{ew}.BYP.{i}"),
                         &[format!("BOUNCE_{ew}_{i}_FTN")],
                     );
-                    builder.branch(w, Dir::N,
+                    builder.branch(
+                        w,
+                        Dir::N,
                         format!("IMUX.{ew}.BYP.{i}.N"),
                         &[format!("BOUNCE_{ew}_BLN_{i}_FTS")],
                     );
                 }
                 _ => {
-                    builder.mux_out(
-                        format!("IMUX.{ew}.BYP.{i}"),
-                        &[format!("BYPASS_{ew}{i}")],
-                    );
+                    builder.mux_out(format!("IMUX.{ew}.BYP.{i}"), &[format!("BYPASS_{ew}{i}")]);
                 }
             }
         }
     }
     for ew in ['E', 'W'] {
         for i in 0..48 {
-            builder.mux_out(
-                format!("IMUX.{ew}.IMUX.{i}"),
-                &[format!("IMUX_{ew}{i}")],
-            );
+            builder.mux_out(format!("IMUX.{ew}.IMUX.{i}"), &[format!("IMUX_{ew}{i}")]);
         }
     }
 
     for ew in ['E', 'W'] {
         for i in 0..32 {
-            builder.logic_out(
-                format!("OUT.{ew}.{i}"),
-                &[format!("LOGIC_OUTS_{ew}{i}")],
-            );
+            builder.logic_out(format!("OUT.{ew}.{i}"), &[format!("LOGIC_OUTS_{ew}{i}")]);
         }
     }
 
     for ew in ['E', 'W'] {
         for i in 0..4 {
             let w = builder.test_out(format!("TEST.{ew}.{i}"), &[""]);
-            let tiles: &[&str] = if ew == 'W' {&[
-                "INT_INTERFACE_L",
-                "INT_INT_INTERFACE_XIPHY_FT",
-                "INT_INTERFACE_PCIE_L",
-                "INT_INT_INTERFACE_GT_LEFT_FT",
-            ]} else {&[
-                "INT_INTERFACE_R",
-                "INT_INTERFACE_PCIE_R",
-                "INT_INTERFACE_GT_R",
-            ]};
+            let tiles: &[&str] = if ew == 'W' {
+                &[
+                    "INT_INTERFACE_L",
+                    "INT_INT_INTERFACE_XIPHY_FT",
+                    "INT_INTERFACE_PCIE_L",
+                    "INT_INT_INTERFACE_GT_LEFT_FT",
+                ]
+            } else {
+                &[
+                    "INT_INTERFACE_R",
+                    "INT_INTERFACE_PCIE_R",
+                    "INT_INTERFACE_GT_R",
+                ]
+            };
             for &t in tiles {
                 builder.extra_name_tile(t, format!("BLOCK_OUTS{i}"), w);
             }
@@ -687,22 +719,25 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     }
 
     for i in 0..16 {
-        builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[
-            format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}"),
-        ]);
+        builder.mux_out(
+            format!("RCLK.IMUX.CE.{i}"),
+            &[format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}")],
+        );
     }
     for i in 0..2 {
         for j in 0..4 {
-            builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[
-                format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"),
-            ]);
+            builder.mux_out(
+                format!("RCLK.IMUX.LEFT.{i}.{j}"),
+                &[format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}")],
+            );
         }
     }
     for i in 0..2 {
         for j in 0..4 {
-            builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[
-                format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"),
-            ]);
+            builder.mux_out(
+                format!("RCLK.IMUX.RIGHT.{i}.{j}"),
+                &[format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}")],
+            );
         }
     }
     for i in 0..48 {
@@ -721,10 +756,7 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
     builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_B", &[]);
     builder.extract_term_conn("TERM.N", Dir::N, "INT_TERM_T", &[]);
 
-    for (dir, tkn) in [
-        (Dir::W, "INT_INTERFACE_L"),
-        (Dir::E, "INT_INTERFACE_R"),
-    ] {
+    for (dir, tkn) in [(Dir::W, "INT_INTERFACE_L"), (Dir::E, "INT_INTERFACE_R")] {
         builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), true);
     }
 
@@ -735,7 +767,13 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
         (Dir::W, "GT", "INT_INT_INTERFACE_GT_LEFT_FT"),
         (Dir::E, "GT", "INT_INTERFACE_GT_R"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), true);
+        builder.extract_intf(
+            format!("INTF.{dir}.DELAY"),
+            dir,
+            tkn,
+            format!("INTF.{dir}.{n}"),
+            true,
+        );
     }
 
     for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
@@ -764,9 +802,11 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     builder.wire("VCC", int::WireKind::Tie1, &["VCC_WIRE"]);
 
     for i in 0..16 {
-        builder.wire(format!("GCLK{i}"), int::WireKind::ClkOut(i), &[
-            format!("GCLK_B_0_{i}"),
-        ]);
+        builder.wire(
+            format!("GCLK{i}"),
+            int::WireKind::ClkOut(i),
+            &[format!("GCLK_B_0_{i}")],
+        );
     }
 
     for (ih, h) in ["E", "W"].into_iter().enumerate() {
@@ -777,7 +817,9 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                         format!("SDQNODE.{h}.{i}"),
                         &[format!("SDQNODE_{h}_{i}_FT1")],
                     );
-                    builder.branch(w, Dir::S,
+                    builder.branch(
+                        w,
+                        Dir::S,
                         format!("SDQNODE.{h}.{i}.S"),
                         &[format!("SDQNODE_{h}_BLS_{i}_FT0")],
                     );
@@ -787,7 +829,9 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                         format!("SDQNODE.{h}.{i}"),
                         &[format!("SDQNODE_{h}_{i}_FT0")],
                     );
-                    builder.branch(w, Dir::N,
+                    builder.branch(
+                        w,
+                        Dir::N,
                         format!("SDQNODE.{h}.{i}.N"),
                         &[format!("SDQNODE_{h}_BLN_{i}_FT1")],
                     );
@@ -795,11 +839,8 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                 _ => {
                     // TODO not the true permutation
                     let a = [
-                        0, 11, 22, 33, 44, 1, 2, 3,
-                        4, 5, 6, 7, 8, 9, 10, 12,
-                        13, 14, 15, 16, 17, 18, 19, 20,
-                        21, 23, 24, 25, 26, 27, 28, 29,
-                        30, 31, 32, 34, 35, 36, 37, 38,
+                        0, 11, 22, 33, 44, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17,
+                        18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38,
                         39, 40, 41, 42, 43, 45, 46, 47,
                     ][i >> 1];
                     let aa = a + ih * 48;
@@ -817,12 +858,10 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         (Dir::W, "SNG", 1, 1, false, true),
         (Dir::N, "SNG", 1, 1, false, false),
         (Dir::S, "SNG", 1, 1, false, false),
-
         (Dir::E, "DBL", 1, 2, false, false),
         (Dir::W, "DBL", 1, 2, true, false),
         (Dir::N, "DBL", 2, 2, false, false),
         (Dir::S, "DBL", 2, 2, false, false),
-
         (Dir::E, "QUAD", 2, 4, false, false),
         (Dir::W, "QUAD", 2, 4, false, false),
         (Dir::N, "QUAD", 4, 4, false, true),
@@ -854,7 +893,9 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                                 format!("{name}.{dir}.{ew}.{i}.0"),
                                 &[format!("{dir}{dir}{ll}_{ew}_{i}_FT0")],
                             );
-                            builder.branch(w, Dir::N,
+                            builder.branch(
+                                w,
+                                Dir::N,
                                 format!("{name}.{dir}.{ew}.{i}.{l}.N"),
                                 &[format!("{dir}{dir}{ll}_{ew}_BLN_{i}_FT1")],
                             );
@@ -881,23 +922,31 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                         );
                         for j in 1..l {
                             let nn = (b'A' + (j - 1)) as char;
-                            w = builder.branch(w, dir,
+                            w = builder.branch(
+                                w,
+                                dir,
                                 format!("{name}.{dir}.{ew}.{i}.{j}"),
                                 &[format!("{dir}{dir}{ll}_{ew}_{nn}_FT{ftd}_{i}")],
                             );
                         }
-                        w = builder.branch(w, dir,
+                        w = builder.branch(
+                            w,
+                            dir,
                             format!("{name}.{dir}.{ew}.{i}.{l}"),
                             &[format!("{dir}{dir}{ll}_{ew}_END{i}")],
                         );
                         if i == 0 && fts {
-                            builder.branch(w, Dir::S,
+                            builder.branch(
+                                w,
+                                Dir::S,
                                 format!("{name}.{dir}.{ew}.{i}.{l}.S"),
                                 &[format!("{dir}{dir}{ll}_{ew}_BLS_{i}_FT0")],
                             );
                         }
                         if i == 7 && ftn {
-                            builder.branch(w, Dir::N,
+                            builder.branch(
+                                w,
+                                Dir::N,
                                 format!("{name}.{dir}.{ew}.{i}.{l}.N"),
                                 &[format!("{dir}{dir}{ll}_{ew}_BLN_{i}_FT1")],
                             );
@@ -922,23 +971,31 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
             );
             for j in 1..l {
                 let nn = (b'A' + (j - 1)) as char;
-                w = builder.branch(w, dir,
+                w = builder.branch(
+                    w,
+                    dir,
                     format!("{name}.{dir}.{i}.{j}"),
                     &[format!("{dir}{dir}12_{nn}_FT{ftd}_{i}")],
                 );
             }
-            w = builder.branch(w, dir,
+            w = builder.branch(
+                w,
+                dir,
                 format!("{name}.{dir}.{i}.{l}"),
                 &[format!("{dir}{dir}12_END{i}")],
             );
             if i == 0 && fts {
-                builder.branch(w, Dir::S,
+                builder.branch(
+                    w,
+                    Dir::S,
                     format!("{name}.{dir}.{i}.{l}.S"),
                     &[format!("{dir}{dir}12_BLS_{i}_FT0")],
                 );
             }
             if i == 7 && ftn {
-                builder.branch(w, Dir::N,
+                builder.branch(
+                    w,
+                    Dir::N,
                     format!("{name}.{dir}.{i}.{l}.N"),
                     &[format!("{dir}{dir}12_BLN_{i}_FT1")],
                 );
@@ -955,37 +1012,31 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         }
     }
     for i in 0..8 {
-        builder.mux_out(
-            format!("IMUX.E.CTRL.{i}"),
-            &[format!("CTRL_E{i}")],
-        );
+        builder.mux_out(format!("IMUX.E.CTRL.{i}"), &[format!("CTRL_E{i}")]);
     }
     for i in 0..10 {
-        builder.mux_out(
-            format!("IMUX.W.CTRL.{i}"),
-            &[format!("CTRL_W{i}")],
-        );
+        builder.mux_out(format!("IMUX.W.CTRL.{i}"), &[format!("CTRL_W{i}")]);
     }
 
     for (ih, h) in ['E', 'W'].into_iter().enumerate() {
         for i in 0..64 {
             match i {
                 1 | 3 | 5 | 9 => {
-                    let w = builder.mux_out(
-                        format!("INODE.{h}.{i}"),
-                        &[format!("INODE_{h}_{i}_FT1")],
-                    );
-                    builder.branch(w, Dir::S,
+                    let w =
+                        builder.mux_out(format!("INODE.{h}.{i}"), &[format!("INODE_{h}_{i}_FT1")]);
+                    builder.branch(
+                        w,
+                        Dir::S,
                         format!("INODE.{h}.{i}.S"),
                         &[format!("INODE_{h}_BLS_{i}_FT0")],
                     );
                 }
                 54 | 58 | 60 | 62 => {
-                    let w = builder.mux_out(
-                        format!("INODE.{h}.{i}"),
-                        &[format!("INODE_{h}_{i}_FT0")],
-                    );
-                    builder.branch(w, Dir::N,
+                    let w =
+                        builder.mux_out(format!("INODE.{h}.{i}"), &[format!("INODE_{h}_{i}_FT0")]);
+                    builder.branch(
+                        w,
+                        Dir::N,
                         format!("INODE.{h}.{i}.N"),
                         &[format!("INODE_{h}_BLN_{i}_FT1")],
                     );
@@ -993,10 +1044,8 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                 _ => {
                     // TODO not the true permutation
                     let a = [
-                        0, 11, 22, 30, 31, 1, 2, 3,
-                        4, 5, 6, 7, 8, 9, 10, 12,
-                        13, 14, 15, 16, 17, 18, 19, 20,
-                        21, 23, 24, 25, 26, 27, 28, 29,
+                        0, 11, 22, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17,
+                        18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29,
                     ][i >> 1];
                     let aa = a + ih * 32;
                     let b = i & 1;
@@ -1015,7 +1064,9 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                         format!("IMUX.{ew}.BYP.{i}"),
                         &[format!("BOUNCE_{ew}_{i}_FT1")],
                     );
-                    builder.branch(w, Dir::S,
+                    builder.branch(
+                        w,
+                        Dir::S,
                         format!("IMUX.{ew}.BYP.{i}.S"),
                         &[format!("BOUNCE_{ew}_BLS_{i}_FT0")],
                     );
@@ -1025,57 +1076,53 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
                         format!("IMUX.{ew}.BYP.{i}"),
                         &[format!("BOUNCE_{ew}_{i}_FT0")],
                     );
-                    builder.branch(w, Dir::N,
+                    builder.branch(
+                        w,
+                        Dir::N,
                         format!("IMUX.{ew}.BYP.{i}.N"),
                         &[format!("BOUNCE_{ew}_BLN_{i}_FT1")],
                     );
                 }
                 _ => {
-                    builder.mux_out(
-                        format!("IMUX.{ew}.BYP.{i}"),
-                        &[format!("BYPASS_{ew}{i}")],
-                    );
+                    builder.mux_out(format!("IMUX.{ew}.BYP.{i}"), &[format!("BYPASS_{ew}{i}")]);
                 }
             }
         }
     }
     for ew in ['E', 'W'] {
         for i in 0..48 {
-            builder.mux_out(
-                format!("IMUX.{ew}.IMUX.{i}"),
-                &[format!("IMUX_{ew}{i}")],
-            );
+            builder.mux_out(format!("IMUX.{ew}.IMUX.{i}"), &[format!("IMUX_{ew}{i}")]);
         }
     }
 
     for ew in ['E', 'W'] {
         for i in 0..32 {
-            builder.logic_out(
-                format!("OUT.{ew}.{i}"),
-                &[format!("LOGIC_OUTS_{ew}{i}")],
-            );
+            builder.logic_out(format!("OUT.{ew}.{i}"), &[format!("LOGIC_OUTS_{ew}{i}")]);
         }
     }
 
     for i in 0..32 {
-        builder.mux_out(format!("RCLK.IMUX.CE.{i}"), &[
-            format!("CLK_LEAF_SITES_{i}_CE_INT"),
-        ]);
+        builder.mux_out(
+            format!("RCLK.IMUX.CE.{i}"),
+            &[format!("CLK_LEAF_SITES_{i}_CE_INT")],
+        );
     }
     builder.mux_out("RCLK.IMUX.ENSEL_PROG", &["CLK_LEAF_SITES_0_ENSEL_PROG"]);
     builder.mux_out("RCLK.IMUX.CLK_CASC_IN", &["CLK_LEAF_SITES_0_CLK_CASC_IN"]);
     for i in 0..2 {
         for j in 0..4 {
-            builder.mux_out(format!("RCLK.IMUX.LEFT.{i}.{j}"), &[
-                format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}"),
-            ]);
+            builder.mux_out(
+                format!("RCLK.IMUX.LEFT.{i}.{j}"),
+                &[format!("INT_RCLK_TO_CLK_LEFT_{i}_{j}")],
+            );
         }
     }
     for i in 0..2 {
         for j in 0..3 {
-            builder.mux_out(format!("RCLK.IMUX.RIGHT.{i}.{j}"), &[
-                format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}"),
-            ]);
+            builder.mux_out(
+                format!("RCLK.IMUX.RIGHT.{i}.{j}"),
+                &[format!("INT_RCLK_TO_CLK_RIGHT_{i}_{j}")],
+            );
         }
     }
     for i in 0..2 {
@@ -1105,21 +1152,30 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     builder.extract_term_conn("TERM.S", Dir::S, "INT_INT_TERM_H_FT", &[]);
     builder.extract_term_conn("TERM.N", Dir::N, "INT_TERM_T", &[]);
 
-    for (dir, tkn) in [
-        (Dir::W, "INT_INTF_L"),
-        (Dir::E, "INT_INTF_R"),
-    ] {
+    for (dir, tkn) in [(Dir::W, "INT_INTF_L"), (Dir::E, "INT_INTF_R")] {
         builder.extract_intf(format!("INTF.{dir}"), dir, tkn, format!("INTF.{dir}"), true);
     }
 
-    builder.extract_intf("INTF.W.IO", Dir::W, "INT_INTF_LEFT_TERM_PSS", "INTF.PSS", true);
+    builder.extract_intf(
+        "INTF.W.IO",
+        Dir::W,
+        "INT_INTF_LEFT_TERM_PSS",
+        "INTF.PSS",
+        true,
+    );
     for (dir, tkn) in [
         (Dir::W, "INT_INTF_LEFT_TERM_IO_FT"),
         (Dir::W, "INT_INTF_L_CMT"),
         (Dir::W, "INT_INTF_L_IO"),
         (Dir::E, "INT_INTF_RIGHT_TERM_IO"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.IO"), dir, tkn, format!("INTF.{dir}.IO"), true);
+        builder.extract_intf(
+            format!("INTF.{dir}.IO"),
+            dir,
+            tkn,
+            format!("INTF.{dir}.IO"),
+            true,
+        );
     }
 
     for (dir, n, tkn) in [
@@ -1128,7 +1184,13 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
         (Dir::W, "GT", "INT_INTF_L_TERM_GT"),
         (Dir::E, "GT", "INT_INTF_R_TERM_GT"),
     ] {
-        builder.extract_intf(format!("INTF.{dir}.DELAY"), dir, tkn, format!("INTF.{dir}.{n}"), true);
+        builder.extract_intf(
+            format!("INTF.{dir}.DELAY"),
+            dir,
+            tkn,
+            format!("INTF.{dir}.{n}"),
+            true,
+        );
     }
 
     builder.extract_pass_simple("IO", Dir::W, "INT_IBRK_FSR2IO", &[]);
@@ -1146,13 +1208,26 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
     builder.build()
 }
 
-fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet<DisabledPart>) {
+fn make_grids(
+    rd: &Part,
+) -> (
+    EntityVec<SlrId, ultrascale::Grid>,
+    SlrId,
+    BTreeSet<DisabledPart>,
+) {
     let is_plus = rd.family == "ultrascaleplus";
-    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["INT_TERM_T"]).into_iter().map(|r| (r + 1) as u16).collect();
+    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["INT_TERM_T"])
+        .into_iter()
+        .map(|r| (r + 1) as u16)
+        .collect();
     rows_slr_split.insert(0);
     rows_slr_split.insert(rd.height);
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
-    let kind = if is_plus { GridKind::UltrascalePlus } else { GridKind::Ultrascale };
+    let kind = if is_plus {
+        GridKind::UltrascalePlus
+    } else {
+        GridKind::Ultrascale
+    };
     let mut grids = EntityVec::new();
     for w in rows_slr_split.windows(2) {
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
@@ -1161,7 +1236,13 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
         let cols_fsr_gap = get_cols_fsr_gap(&int);
         let cols_hard = get_cols_hard(&int);
         let cols_io = get_cols_io(&int);
-        let is_alt_cfg = is_plus && int.find_tiles(&["CFG_M12BUF_CTR_RIGHT_CFG_OLY_BOT_L_FT", "CFG_M12BUF_CTR_RIGHT_CFG_OLY_DK_BOT_L_FT"]).is_empty();
+        let is_alt_cfg = is_plus
+            && int
+                .find_tiles(&[
+                    "CFG_M12BUF_CTR_RIGHT_CFG_OLY_BOT_L_FT",
+                    "CFG_M12BUF_CTR_RIGHT_CFG_OLY_DK_BOT_L_FT",
+                ])
+                .is_empty();
 
         let (col_hard, col_cfg) = match cols_hard.len() {
             1 => {
@@ -1234,8 +1315,18 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             grids[s0].regs = 8;
             grids[s0].col_cfg.regs.push(HardRowKind::Hdio);
             grids[s0].col_cfg.regs.push(HardRowKind::Hdio);
-            grids[s0].col_hard.as_mut().unwrap().regs.push(HardRowKind::Cmac);
-            grids[s0].col_hard.as_mut().unwrap().regs.push(HardRowKind::Pcie);
+            grids[s0]
+                .col_hard
+                .as_mut()
+                .unwrap()
+                .regs
+                .push(HardRowKind::Cmac);
+            grids[s0]
+                .col_hard
+                .as_mut()
+                .unwrap()
+                .regs
+                .push(HardRowKind::Pcie);
             grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
             grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
@@ -1264,7 +1355,10 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
         }
     }
     let bterms = find_rows(rd, &["INT_TERM_B"]);
-    if !bterms.contains(&0) && !grids.first().unwrap().has_hbm && grids.first().unwrap().ps.is_none() {
+    if !bterms.contains(&0)
+        && !grids.first().unwrap().has_hbm
+        && grids.first().unwrap().ps.is_none()
+    {
         if rd.part.contains("vu160") {
             let s0 = SlrId::from_idx(0);
             let s1 = SlrId::from_idx(1);
@@ -1276,7 +1370,12 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
             assert_eq!(grids[s0].cols_io.len(), 4);
             grids[s0].regs = 5;
             grids[s0].col_cfg.regs.insert(0, HardRowKind::Pcie);
-            grids[s0].col_hard.as_mut().unwrap().regs.insert(0, HardRowKind::Ilkn);
+            grids[s0]
+                .col_hard
+                .as_mut()
+                .unwrap()
+                .regs
+                .insert(0, HardRowKind::Ilkn);
             grids[s0].cols_io[0].regs.insert(0, IoRowKind::Gty);
             grids[s0].cols_io[1].regs.insert(0, IoRowKind::Hpio);
             grids[s0].cols_io[2].regs.insert(0, IoRowKind::Hrio);
@@ -1294,9 +1393,25 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, ultrascale::Grid>, SlrId, BTreeSet
         for pin in pins {
             if pin.func == "VP" {
                 if is_plus {
-                    grid_master = Some(pin.pad.as_ref().unwrap().strip_prefix("SYSMONE4_X0Y").unwrap().parse().unwrap());
+                    grid_master = Some(
+                        pin.pad
+                            .as_ref()
+                            .unwrap()
+                            .strip_prefix("SYSMONE4_X0Y")
+                            .unwrap()
+                            .parse()
+                            .unwrap(),
+                    );
                 } else {
-                    grid_master = Some(pin.pad.as_ref().unwrap().strip_prefix("SYSMONE1_X0Y").unwrap().parse().unwrap());
+                    grid_master = Some(
+                        pin.pad
+                            .as_ref()
+                            .unwrap()
+                            .strip_prefix("SYSMONE1_X0Y")
+                            .unwrap()
+                            .parse()
+                            .unwrap(),
+                    );
                 }
             }
         }
@@ -1391,63 +1506,70 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
         "ADC_SUB_GND" => return Some(BondPin::DacSubGnd),
         "ADC_AVCC" => return Some(BondPin::DacAVcc),
         "ADC_AVCCAUX" => return Some(BondPin::DacAVccAux),
-        "RSVD" => if let Some(bank) = pin.vcco_bank {
-            return Some(BondPin::Hbm(bank, HbmPin::Rsvd))
-        } else {
-            // disabled DACs
-            if rd.part.contains("zu25dr") {
-                return Some(BondPin::Rsvd)
-            }
-        }
-        "RSVDGND" => if let Some(bank) = pin.vcco_bank {
-            if bank == 0 {
-                return Some(BondPin::Cfg(CfgPin::CfgBvs))
+        "RSVD" => {
+            if let Some(bank) = pin.vcco_bank {
+                return Some(BondPin::Hbm(bank, HbmPin::Rsvd));
             } else {
-                return Some(BondPin::Hbm(bank, HbmPin::RsvdGnd))
-            }
-        } else {
-            for p in ["zu2cg", "zu2eg", "zu3cg", "zu3eg", "zu4cg", "zu4eg", "zu5cg", "zu5eg", "zu7cg", "zu7eg"] {
-                if rd.part.contains(p) {
-                    return Some(BondPin::VccIntVcu)
+                // disabled DACs
+                if rd.part.contains("zu25dr") {
+                    return Some(BondPin::Rsvd);
                 }
             }
-            // disabled DACs
-            if rd.part.contains("zu25dr") {
-                return Some(BondPin::RsvdGnd)
-            }
-            // disabled GT VCCINT
-            if rd.part.contains("ku19p") {
-                return Some(BondPin::RsvdGnd)
+        }
+        "RSVDGND" => {
+            if let Some(bank) = pin.vcco_bank {
+                if bank == 0 {
+                    return Some(BondPin::Cfg(CfgPin::CfgBvs));
+                } else {
+                    return Some(BondPin::Hbm(bank, HbmPin::RsvdGnd));
+                }
+            } else {
+                for p in [
+                    "zu2cg", "zu2eg", "zu3cg", "zu3eg", "zu4cg", "zu4eg", "zu5cg", "zu5eg",
+                    "zu7cg", "zu7eg",
+                ] {
+                    if rd.part.contains(p) {
+                        return Some(BondPin::VccIntVcu);
+                    }
+                }
+                // disabled DACs
+                if rd.part.contains("zu25dr") {
+                    return Some(BondPin::RsvdGnd);
+                }
+                // disabled GT VCCINT
+                if rd.part.contains("ku19p") {
+                    return Some(BondPin::RsvdGnd);
+                }
             }
         }
         _ => (),
     }
     if let Some(b) = pin.func.strip_prefix("VCCO_") {
-        return Some(BondPin::VccO(b.parse().ok()?))
+        return Some(BondPin::VccO(b.parse().ok()?));
     }
     if let Some(b) = pin.func.strip_prefix("VREF_") {
-        return Some(BondPin::IoVref(b.parse().ok()?, 0))
+        return Some(BondPin::IoVref(b.parse().ok()?, 0));
     }
     if let Some(b) = pin.func.strip_prefix("VCC_HBM_") {
-        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::Vcc))
+        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::Vcc));
     }
     if let Some(b) = pin.func.strip_prefix("VCCAUX_HBM_") {
-        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::VccAux))
+        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::VccAux));
     }
     if let Some(b) = pin.func.strip_prefix("VCC_IO_HBM_") {
-        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::VccIo))
+        return Some(BondPin::Hbm(b.parse().ok()?, HbmPin::VccIo));
     }
     if let Some(b) = pin.func.strip_prefix("VCM01_") {
-        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::VCm, 0))
+        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::VCm, 0));
     }
     if let Some(b) = pin.func.strip_prefix("VCM23_") {
-        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::VCm, 2))
+        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::VCm, 2));
     }
     if let Some(b) = pin.func.strip_prefix("ADC_REXT_") {
-        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::RExt, 0))
+        return Some(BondPin::AdcByBank(b.parse().ok()?, AdcPin::RExt, 0));
     }
     if let Some(b) = pin.func.strip_prefix("DAC_REXT_") {
-        return Some(BondPin::DacByBank(b.parse().ok()?, DacPin::RExt, 0))
+        return Some(BondPin::DacByBank(b.parse().ok()?, DacPin::RExt, 0));
     }
     for (suf, region) in [
         ("", 0),
@@ -1469,8 +1591,16 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
                 "MGTAVTT" => return Some(BondPin::GtByRegion(region, GtRegionPin::AVtt)),
                 "MGTAVCC" => return Some(BondPin::GtByRegion(region, GtRegionPin::AVcc)),
                 "MGTVCCAUX" => return Some(BondPin::GtByRegion(region, GtRegionPin::VccAux)),
-                "MGTRREF" => return Some(BondPin::GtByBank(pin.vcco_bank.unwrap(), GtPin::RRef, 0)),
-                "MGTAVTTRCAL" => return Some(BondPin::GtByBank(pin.vcco_bank.unwrap(), GtPin::AVttRCal, 0)),
+                "MGTRREF" => {
+                    return Some(BondPin::GtByBank(pin.vcco_bank.unwrap(), GtPin::RRef, 0))
+                }
+                "MGTAVTTRCAL" => {
+                    return Some(BondPin::GtByBank(
+                        pin.vcco_bank.unwrap(),
+                        GtPin::AVttRCal,
+                        0,
+                    ))
+                }
                 "VCCINT_GT" => return Some(BondPin::GtByRegion(region, GtRegionPin::VccInt)),
                 _ => (),
             }
@@ -1479,11 +1609,15 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
     None
 }
 
-fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func: &str) -> Option<BondPin> {
+fn lookup_gt_pin(
+    gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>,
+    pad: &str,
+    func: &str,
+) -> Option<BondPin> {
     if let Some(p) = pad.strip_prefix("HSADC_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::HsAdc, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1507,7 +1641,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     } else if let Some(p) = pad.strip_prefix("RFADC_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::RfAdc, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1533,7 +1667,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     } else if let Some(p) = pad.strip_prefix("HSDAC_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::HsDac, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1555,7 +1689,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     } else if let Some(p) = pad.strip_prefix("RFDAC_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::RfDac, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1577,7 +1711,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     } else if let Some(p) = pad.strip_prefix("GTM_DUAL_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::Gtm, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1595,7 +1729,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     } else if let Some(p) = pad.strip_prefix("GTM_REFCLK_X") {
         let py = p.find('Y')?;
         let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py+1..].parse().ok()?;
+        let gy: u32 = p[py + 1..].parse().ok()?;
         let gt = gt_lookup.get(&(IoRowKind::Gtm, gx, gy))?;
         let suf = format!("_{}", gt.bank);
         let f = func.strip_suffix(&suf)?;
@@ -1623,12 +1757,12 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
             p = x;
             kind = IoRowKind::Gtf;
         } else {
-            return None
+            return None;
         }
         if let Some(p) = p.strip_prefix("COMMON_X") {
             let py = p.find('Y')?;
             let gx: u32 = p[..py].parse().ok()?;
-            let gy: u32 = p[py+1..].parse().ok()?;
+            let gy: u32 = p[py + 1..].parse().ok()?;
             let gt = gt_lookup.get(&(kind, gx, gy))?;
             let suf = format!("_{}", gt.bank);
             let f = func.strip_suffix(&suf)?;
@@ -1642,7 +1776,7 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
         } else if let Some(p) = p.strip_prefix("CHANNEL_X") {
             let py = p.find('Y')?;
             let gx: u32 = p[..py].parse().ok()?;
-            let y: u32 = p[py+1..].parse().ok()?;
+            let y: u32 = p[py + 1..].parse().ok()?;
             let bel = y % 4;
             let gy = y / 4;
             let gt = gt_lookup.get(&(kind, gx, gy))?;
@@ -1669,7 +1803,14 @@ fn lookup_gt_pin(gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>, pad: &str, func
     }
 }
 
-fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, pins: &[PkgPin]) -> Bond {
+fn make_bond(
+    rd: &Part,
+    pkg: &str,
+    grids: &EntityVec<SlrId, ultrascale::Grid>,
+    grid_master: SlrId,
+    disabled: &BTreeSet<DisabledPart>,
+    pins: &[PkgPin],
+) -> Bond {
     let kind = grids[grid_master].kind;
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
@@ -1687,20 +1828,43 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
             if let Some(&io) = io_lookup.get(pad) {
                 if pin.vcco_bank.unwrap() != io.bank {
                     if pin.vcco_bank != Some(64) && !matches!(io.bank, 84 | 94) {
-                        println!("wrong bank pad {pkg} {pad} {io:?} got {f} exp {b}", f=pin.func, b=io.bank);
+                        println!(
+                            "wrong bank pad {pkg} {pad} {io:?} got {f} exp {b}",
+                            f = pin.func,
+                            b = io.bank
+                        );
                     }
                 }
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 let mut exp_func = "IO".to_string();
                 if io.kind == IoKind::Hdio {
-                    write!(exp_func, "_L{}{}", 1 + io.bel / 2, ['P', 'N'][io.bel as usize % 2]).unwrap();
+                    write!(
+                        exp_func,
+                        "_L{}{}",
+                        1 + io.bel / 2,
+                        ['P', 'N'][io.bel as usize % 2]
+                    )
+                    .unwrap();
                 } else {
                     let group = io.bel / 13;
                     if io.bel % 13 != 12 {
-                        write!(exp_func, "_L{}{}", 1 + group * 6 + io.bel % 13 / 2, ['P', 'N'][io.bel as usize % 13 % 2]).unwrap();
+                        write!(
+                            exp_func,
+                            "_L{}{}",
+                            1 + group * 6 + io.bel % 13 / 2,
+                            ['P', 'N'][io.bel as usize % 13 % 2]
+                        )
+                        .unwrap();
                     }
-                    write!(exp_func, "_T{}{}_N{}", group, if io.bel % 13 < 6 {'L'} else {'U'}, io.bel % 13).unwrap();
+                    write!(
+                        exp_func,
+                        "_T{}{}_N{}",
+                        group,
+                        if io.bel % 13 < 6 { 'L' } else { 'U' },
+                        io.bel % 13
+                    )
+                    .unwrap();
                 }
                 if io.is_gc() {
                     if io.kind == IoKind::Hdio {
@@ -1722,46 +1886,91 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
                     if io.kind == IoKind::Hdio {
                         write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.bel as usize % 2]).unwrap();
                     } else {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.bel as usize % 13 % 2]).unwrap();
+                        write!(
+                            exp_func,
+                            "_AD{}{}",
+                            sm,
+                            ['P', 'N'][io.bel as usize % 13 % 2]
+                        )
+                        .unwrap();
                     }
                 }
                 match io.get_cfg() {
-                    Some(CfgPin::Data(d)) => if !is_zynq {
-                        if d >= 16 {
-                            write!(exp_func, "_A{:02}", d - 16).unwrap();
+                    Some(CfgPin::Data(d)) => {
+                        if !is_zynq {
+                            if d >= 16 {
+                                write!(exp_func, "_A{:02}", d - 16).unwrap();
+                            }
+                            write!(exp_func, "_D{d:02}").unwrap();
                         }
-                        write!(exp_func, "_D{d:02}").unwrap();
                     }
-                    Some(CfgPin::Addr(a)) => if !is_zynq {
-                        write!(exp_func, "_A{a}").unwrap();
+                    Some(CfgPin::Addr(a)) => {
+                        if !is_zynq {
+                            write!(exp_func, "_A{a}").unwrap();
+                        }
                     }
-                    Some(CfgPin::Rs(a)) => if !is_zynq {
-                        write!(exp_func, "_RS{a}").unwrap();
+                    Some(CfgPin::Rs(a)) => {
+                        if !is_zynq {
+                            write!(exp_func, "_RS{a}").unwrap();
+                        }
                     }
-                    Some(CfgPin::UserCclk) => if !is_zynq {exp_func += "_EMCCLK"},
-                    Some(CfgPin::Dout) => if !is_zynq {exp_func += "_DOUT_CSO_B"},
-                    Some(CfgPin::FweB) => if !is_zynq {exp_func += "_FWE_FCS2_B"},
-                    Some(CfgPin::FoeB) => if !is_zynq {exp_func += "_FOE_B"},
-                    Some(CfgPin::CsiB) => if !is_zynq {exp_func += "_CSI_ADV_B"},
+                    Some(CfgPin::UserCclk) => {
+                        if !is_zynq {
+                            exp_func += "_EMCCLK"
+                        }
+                    }
+                    Some(CfgPin::Dout) => {
+                        if !is_zynq {
+                            exp_func += "_DOUT_CSO_B"
+                        }
+                    }
+                    Some(CfgPin::FweB) => {
+                        if !is_zynq {
+                            exp_func += "_FWE_FCS2_B"
+                        }
+                    }
+                    Some(CfgPin::FoeB) => {
+                        if !is_zynq {
+                            exp_func += "_FOE_B"
+                        }
+                    }
+                    Some(CfgPin::CsiB) => {
+                        if !is_zynq {
+                            exp_func += "_CSI_ADV_B"
+                        }
+                    }
                     Some(CfgPin::PerstN0) => exp_func += "_PERSTN0",
                     Some(CfgPin::PerstN1) => exp_func += "_PERSTN1",
                     Some(CfgPin::SmbAlert) => exp_func += "_SMBALERT",
                     Some(CfgPin::I2cSclk) => exp_func += "_I2C_SCLK",
-                    Some(CfgPin::I2cSda) => exp_func += if kind == GridKind::Ultrascale {"_I2C_SDA"} else {"_PERSTN1_I2C_SDA"},
+                    Some(CfgPin::I2cSda) => {
+                        exp_func += if kind == GridKind::Ultrascale {
+                            "_I2C_SDA"
+                        } else {
+                            "_PERSTN1_I2C_SDA"
+                        }
+                    }
                     None => (),
                     _ => unreachable!(),
                 }
                 write!(exp_func, "_{}", io_banks[&io.bank]).unwrap();
                 if exp_func != pin.func {
-                    println!("pad {pkg} {pad} {io:?} got {f} exp {exp_func}", f=pin.func);
+                    println!(
+                        "pad {pkg} {pad} {io:?} got {f} exp {exp_func}",
+                        f = pin.func
+                    );
                 }
                 BondPin::IoByBank(io.bank, io.bel)
             } else if pad.starts_with("GT") || pad.starts_with("RF") || pad.starts_with("HS") {
                 if let Some(pin) = lookup_gt_pin(&gt_lookup, pad, &pin.func) {
                     pin
                 } else {
-                    println!("weird gt iopad {pkg} {p} {pad} {f}", f=pin.func, p=rd.part);
-                    continue
+                    println!(
+                        "weird gt iopad {pkg} {p} {pad} {f}",
+                        f = pin.func,
+                        p = rd.part
+                    );
+                    continue;
                 }
             } else if pad.starts_with("SYSMON") {
                 let exp_site = match kind {
@@ -1769,19 +1978,27 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
                     GridKind::UltrascalePlus => format!("SYSMONE4_X0Y{}", grid_master.to_idx()),
                 };
                 if exp_site != *pad {
-                    println!("weird sysmon iopad {p} {pad} {f}", f=pin.func, p=rd.part);
+                    println!(
+                        "weird sysmon iopad {p} {pad} {f}",
+                        f = pin.func,
+                        p = rd.part
+                    );
                 }
                 match &pin.func[..] {
                     "VP" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::VP),
                     "VN" => BondPin::SysMonByBank(grid_master.to_idx() as u32, SysMonPin::VN),
                     _ => {
-                        println!("weird sysmon iopad {p} {pad} {f}", f=pin.func, p=rd.part);
-                        continue
+                        println!(
+                            "weird sysmon iopad {p} {pad} {f}",
+                            f = pin.func,
+                            p = rd.part
+                        );
+                        continue;
                     }
                 }
             } else if pad == "PS8_X0Y0" {
                 let pos = pin.func.rfind('_').unwrap();
-                let bank: u32 = pin.func[pos+1..].parse().unwrap();
+                let bank: u32 = pin.func[pos + 1..].parse().unwrap();
                 if bank == 505 {
                     let (gtpin, bel) = match &pin.func[..pos] {
                         "PS_MGTRREF" => (GtPin::RRef, 0),
@@ -1793,20 +2010,30 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
                         "PS_MGTREFCLK2N" => (GtPin::ClkN, 2),
                         "PS_MGTREFCLK3P" => (GtPin::ClkP, 3),
                         "PS_MGTREFCLK3N" => (GtPin::ClkN, 3),
-                        x => if let Some((n, b)) = split_num(x) {
-                            match n {
-                                "PS_MGTRTXP" => (GtPin::TxP, b),
-                                "PS_MGTRTXN" => (GtPin::TxN, b),
-                                "PS_MGTRRXP" => (GtPin::RxP, b),
-                                "PS_MGTRRXN" => (GtPin::RxN, b),
-                                _ => {
-                                    println!("weird ps8 iopad {p} {pad} {f}", f=pin.func, p=rd.part);
-                                    continue;
+                        x => {
+                            if let Some((n, b)) = split_num(x) {
+                                match n {
+                                    "PS_MGTRTXP" => (GtPin::TxP, b),
+                                    "PS_MGTRTXN" => (GtPin::TxN, b),
+                                    "PS_MGTRRXP" => (GtPin::RxP, b),
+                                    "PS_MGTRRXN" => (GtPin::RxN, b),
+                                    _ => {
+                                        println!(
+                                            "weird ps8 iopad {p} {pad} {f}",
+                                            f = pin.func,
+                                            p = rd.part
+                                        );
+                                        continue;
+                                    }
                                 }
+                            } else {
+                                println!(
+                                    "weird ps8 iopad {p} {pad} {f}",
+                                    f = pin.func,
+                                    p = rd.part
+                                );
+                                continue;
                             }
-                        } else {
-                            println!("weird ps8 iopad {p} {pad} {f}", f=pin.func, p=rd.part);
-                            continue;
                         }
                     };
                     BondPin::GtByBank(bank, gtpin, bel)
@@ -1831,36 +2058,46 @@ fn make_bond(rd: &Part, pkg: &str, grids: &EntityVec<SlrId, ultrascale::Grid>, g
                         "PS_DDR_PARITY" => PsPin::DdrParity,
                         "PS_DDR_RAM_RST_N" => PsPin::DdrDrstB,
                         "PS_DDR_ZQ" => PsPin::DdrZq,
-                        x => if let Some((n, b)) = split_num(x) {
-                            match n {
-                                "PS_MIO" => PsPin::Mio(b),
-                                "PS_MODE" => PsPin::Mode(b),
-                                "PS_DDR_DQ" => PsPin::DdrDq(b),
-                                "PS_DDR_DM" => PsPin::DdrDm(b),
-                                "PS_DDR_DQS_P" => PsPin::DdrDqsP(b),
-                                "PS_DDR_DQS_N" => PsPin::DdrDqsN(b),
-                                "PS_DDR_A" => PsPin::DdrA(b),
-                                "PS_DDR_BA" => PsPin::DdrBa(b),
-                                "PS_DDR_BG" => PsPin::DdrBg(b),
-                                "PS_DDR_CKE" => PsPin::DdrCke(b),
-                                "PS_DDR_ODT" => PsPin::DdrOdt(b),
-                                "PS_DDR_CS_N" => PsPin::DdrCsB(b),
-                                "PS_DDR_CK" => PsPin::DdrCkP(b),
-                                "PS_DDR_CK_N" => PsPin::DdrCkN(b),
-                                _ => {
-                                    println!("weird ps8 iopad {p} {pad} {f}", f=pin.func, p=rd.part);
-                                    continue;
+                        x => {
+                            if let Some((n, b)) = split_num(x) {
+                                match n {
+                                    "PS_MIO" => PsPin::Mio(b),
+                                    "PS_MODE" => PsPin::Mode(b),
+                                    "PS_DDR_DQ" => PsPin::DdrDq(b),
+                                    "PS_DDR_DM" => PsPin::DdrDm(b),
+                                    "PS_DDR_DQS_P" => PsPin::DdrDqsP(b),
+                                    "PS_DDR_DQS_N" => PsPin::DdrDqsN(b),
+                                    "PS_DDR_A" => PsPin::DdrA(b),
+                                    "PS_DDR_BA" => PsPin::DdrBa(b),
+                                    "PS_DDR_BG" => PsPin::DdrBg(b),
+                                    "PS_DDR_CKE" => PsPin::DdrCke(b),
+                                    "PS_DDR_ODT" => PsPin::DdrOdt(b),
+                                    "PS_DDR_CS_N" => PsPin::DdrCsB(b),
+                                    "PS_DDR_CK" => PsPin::DdrCkP(b),
+                                    "PS_DDR_CK_N" => PsPin::DdrCkN(b),
+                                    _ => {
+                                        println!(
+                                            "weird ps8 iopad {p} {pad} {f}",
+                                            f = pin.func,
+                                            p = rd.part
+                                        );
+                                        continue;
+                                    }
                                 }
+                            } else {
+                                println!(
+                                    "weird ps8 iopad {p} {pad} {f}",
+                                    f = pin.func,
+                                    p = rd.part
+                                );
+                                continue;
                             }
-                        } else {
-                            println!("weird ps8 iopad {p} {pad} {f}", f=pin.func, p=rd.part);
-                            continue;
                         }
                     };
                     BondPin::IoPs(bank, pspin)
                 }
             } else {
-                println!("unk iopad {pad} {f}", f=pin.func);
+                println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
             }
         } else {
@@ -1898,5 +2135,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<int::IntDb>) {
     let vrf = Verifier::new(rd, &eint);
     vrf.finish();
     let grids = grids.into_map_values(geom::Grid::Ultrascale);
-    (make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled), Some(int_db))
+    (
+        make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled),
+        Some(int_db),
+    )
 }

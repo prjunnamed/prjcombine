@@ -1,7 +1,7 @@
+use crate::{eint, int, ColId, DisabledPart, RowId, SlrId};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use serde::{Serialize, Deserialize};
-use crate::{DisabledPart, ColId, RowId, SlrId, int, eint};
-use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -114,7 +114,12 @@ pub enum NocEndpoint {
     TopDmc(usize, usize),
 }
 
-pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+pub fn expand_grid<'a>(
+    grids: &EntityVec<SlrId, &Grid>,
+    _grid_master: SlrId,
+    disabled: &BTreeSet<DisabledPart>,
+    db: &'a int::IntDb,
+) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     let mut yb = 0;
     let x_cfrm = grids.values().map(|x| x.col_cfrm.to_idx()).max().unwrap();
@@ -124,12 +129,21 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
         let col_r = slr.cols().next_back().unwrap();
         let row_b = slr.rows().next().unwrap();
         let row_t = slr.rows().next_back().unwrap();
-        let xlut: EntityVec<ColId, usize> = slr.cols().map(|x| if x < grid.col_cfrm { x.to_idx() } else { x.to_idx() - grid.col_cfrm.to_idx() + x_cfrm }).collect();
+        let xlut: EntityVec<ColId, usize> = slr
+            .cols()
+            .map(|x| {
+                if x < grid.col_cfrm {
+                    x.to_idx()
+                } else {
+                    x.to_idx() - grid.col_cfrm.to_idx() + x_cfrm
+                }
+            })
+            .collect();
         let cle_e = db.get_term("CLE.E");
         let cle_w = db.get_term("CLE.W");
         let cle_bli_e = db.get_term("CLE.BLI.E");
         let cle_bli_w = db.get_term("CLE.BLI.W");
-        let ps_height = match grid.cpm{
+        let ps_height = match grid.cpm {
             CpmKind::Cpm4 => 48 * 3,
             CpmKind::Cpm5 => 48 * 6,
             CpmKind::None => 48 * 2,
@@ -142,7 +156,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
             }
             let x = xlut[col];
             let cle_x_bump_cur;
-            if matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) && col >= grid.col_cfrm && grid.cols_vbrk.contains(&(col + 1)) {
+            if matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna)
+                && col >= grid.col_cfrm
+                && grid.cols_vbrk.contains(&(col + 1))
+            {
                 cle_x_bump_cur = true;
                 cle_x_bump_prev = false;
             } else {
@@ -152,16 +169,20 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                 let reg = row.to_idx() / 48;
                 let y = yb + row.to_idx();
                 slr.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                let bt = if reg == grid.regs - 1 || reg % 2 == 1 {'T'} else {'B'};
+                let bt = if reg == grid.regs - 1 || reg % 2 == 1 {
+                    'T'
+                } else {
+                    'B'
+                };
                 if row.to_idx() % 48 == 0 && bt == 'T' {
-                    let lr = if col < grid.col_cfrm {'L'} else {'R'};
-                    let yy = if reg % 2 == 1 {y - 1} else {y};
+                    let lr = if col < grid.col_cfrm { 'L' } else { 'R' };
+                    let yy = if reg % 2 == 1 { y - 1 } else { y };
                     let name = format!("RCLK_INT_{lr}_FT_X{x}Y{yy}");
                     slr[(col, row)].add_xnode(
                         db.get_node("RCLK"),
                         &[&name],
                         db.get_node_naming("RCLK"),
-                        &[(col, row)]
+                        &[(col, row)],
                     );
                 }
                 let has_bli_r = if row < row_b + 4 {
@@ -172,7 +193,11 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                     false
                 };
                 if matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) {
-                    let tk = if (cd.r == ColumnKind::CleLaguna) && !has_bli_r {"SLL"} else {"CLE_BC_CORE"};
+                    let tk = if (cd.r == ColumnKind::CleLaguna) && !has_bli_r {
+                        "SLL"
+                    } else {
+                        "CLE_BC_CORE"
+                    };
                     let tile;
                     if cle_x_bump_cur {
                         tile = format!("{tk}_X{xx}Y{y}", xx = x + 1);
@@ -193,10 +218,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         slr.fill_term_pair_anon((col, row), (col + 1, row), cle_e, cle_w);
                     }
                 }
-                if !matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna | ColumnKind::None) {
+                if !matches!(
+                    cd.r,
+                    ColumnKind::Cle | ColumnKind::CleLaguna | ColumnKind::None
+                ) {
                     let kind;
                     let tile;
-                    let ocf = if col < grid.col_cfrm {"LOCF"} else {"ROCF"};
+                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
                     match cd.r {
                         ColumnKind::Gt => {
                             kind = "INTF.E.TERM";
@@ -204,7 +232,12 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         }
                         ColumnKind::Hard => {
                             kind = "INTF.E.HB";
-                            let ch = grid.cols_hard.iter().flatten().find(|x| x.col == col + 1).unwrap();
+                            let ch = grid
+                                .cols_hard
+                                .iter()
+                                .flatten()
+                                .find(|x| x.col == col + 1)
+                                .unwrap();
                             match ch.regs[row.to_idx() / 48] {
                                 HardRowKind::Hdio => {
                                     tile = format!("INTF_HDIO_{ocf}_{bt}R_TILE_X{x}Y{y}");
@@ -226,11 +259,18 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         &[(col, row)],
                     );
                 }
-                if !matches!(cd.l, ColumnKind::Cle | ColumnKind::CleLaguna | ColumnKind::None) {
+                if !matches!(
+                    cd.l,
+                    ColumnKind::Cle | ColumnKind::CleLaguna | ColumnKind::None
+                ) {
                     let kind;
                     let tile;
-                    let bt = if reg == grid.regs - 1 || reg % 2 == 1 {'T'} else {'B'};
-                    let ocf = if col < grid.col_cfrm {"LOCF"} else {"ROCF"};
+                    let bt = if reg == grid.regs - 1 || reg % 2 == 1 {
+                        'T'
+                    } else {
+                        'B'
+                    };
+                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
                     match cd.l {
                         ColumnKind::Gt => {
                             kind = "INTF.W.TERM";
@@ -247,7 +287,12 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                         }
                         ColumnKind::Hard => {
                             kind = "INTF.W.HB";
-                            let ch = grid.cols_hard.iter().flatten().find(|x| x.col == col).unwrap();
+                            let ch = grid
+                                .cols_hard
+                                .iter()
+                                .flatten()
+                                .find(|x| x.col == col)
+                                .unwrap();
                             match ch.regs[row.to_idx() / 48] {
                                 HardRowKind::Hdio => {
                                     tile = format!("INTF_HDIO_{ocf}_{bt}L_TILE_X{x}Y{y}");
@@ -307,13 +352,15 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
 
         for col in slr.cols() {
             for row in slr.rows() {
-                let crow = RowId::from_idx(if grid.regs % 2 == 1 && row.to_idx() >= (grid.regs - 1) * 48 {
-                    row.to_idx() / 48 * 48
-                } else if row.to_idx() % 96 < 48 {
-                    row.to_idx() / 96 * 96 + 47
-                } else {
-                    row.to_idx() / 96 * 96 + 48
-                });
+                let crow = RowId::from_idx(
+                    if grid.regs % 2 == 1 && row.to_idx() >= (grid.regs - 1) * 48 {
+                        row.to_idx() / 48 * 48
+                    } else if row.to_idx() % 96 < 48 {
+                        row.to_idx() / 96 * 96 + 47
+                    } else {
+                        row.to_idx() / 96 * 96 + 48
+                    },
+                );
                 slr[(col, row)].clkroot = (col, crow);
             }
         }

@@ -1,7 +1,7 @@
+use super::{eint, int, CfgPin, ColId, GtPin, RowId, SysMonPin};
+use prjcombine_entity::{EntityId, EntityVec};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use serde::{Serialize, Deserialize};
-use super::{GtPin, SysMonPin, CfgPin, ColId, RowId, int, eint};
-use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -166,16 +166,66 @@ impl Gt {
             (1, 0)
         };
         vec![
-            (format!("IPAD_X{}Y{}", ipx, ipy), format!("MGTRXN0_{}", self.bank), GtPin::RxN, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+1), format!("MGTRXP0_{}", self.bank), GtPin::RxP, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+2), format!("MGTRXN1_{}", self.bank), GtPin::RxN, 1),
-            (format!("IPAD_X{}Y{}", ipx, ipy+3), format!("MGTRXP1_{}", self.bank), GtPin::RxP, 1),
-            (format!("IPAD_X{}Y{}", ipx, ipy+4), format!("MGTREFCLKN_{}", self.bank), GtPin::ClkN, 0),
-            (format!("IPAD_X{}Y{}", ipx, ipy+5), format!("MGTREFCLKP_{}", self.bank), GtPin::ClkP, 0),
-            (format!("OPAD_X{}Y{}", opx, opy), format!("MGTTXN0_{}", self.bank), GtPin::TxN, 0),
-            (format!("OPAD_X{}Y{}", opx, opy+1), format!("MGTTXP0_{}", self.bank), GtPin::TxP, 0),
-            (format!("OPAD_X{}Y{}", opx, opy+2), format!("MGTTXN1_{}", self.bank), GtPin::TxN, 1),
-            (format!("OPAD_X{}Y{}", opx, opy+3), format!("MGTTXP1_{}", self.bank), GtPin::TxP, 1),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy),
+                format!("MGTRXN0_{}", self.bank),
+                GtPin::RxN,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 1),
+                format!("MGTRXP0_{}", self.bank),
+                GtPin::RxP,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 2),
+                format!("MGTRXN1_{}", self.bank),
+                GtPin::RxN,
+                1,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 3),
+                format!("MGTRXP1_{}", self.bank),
+                GtPin::RxP,
+                1,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 4),
+                format!("MGTREFCLKN_{}", self.bank),
+                GtPin::ClkN,
+                0,
+            ),
+            (
+                format!("IPAD_X{}Y{}", ipx, ipy + 5),
+                format!("MGTREFCLKP_{}", self.bank),
+                GtPin::ClkP,
+                0,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy),
+                format!("MGTTXN0_{}", self.bank),
+                GtPin::TxN,
+                0,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 1),
+                format!("MGTTXP0_{}", self.bank),
+                GtPin::TxP,
+                0,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 2),
+                format!("MGTTXN1_{}", self.bank),
+                GtPin::TxN,
+                1,
+            ),
+            (
+                format!("OPAD_X{}Y{}", opx, opy + 3),
+                format!("MGTTXP1_{}", self.bank),
+                GtPin::TxP,
+                1,
+            ),
         ]
     }
 }
@@ -332,11 +382,11 @@ impl Grid {
         if self.has_left_gt() {
             let ipy = 6 * self.reg_cfg;
             res.push((format!("IPAD_X1Y{}", ipy), SysMonPin::VP));
-            res.push((format!("IPAD_X1Y{}", ipy+1), SysMonPin::VN));
+            res.push((format!("IPAD_X1Y{}", ipy + 1), SysMonPin::VN));
         } else if self.col_hard.is_some() {
             let ipy = 6 * self.reg_cfg;
             res.push((format!("IPAD_X0Y{}", ipy), SysMonPin::VP));
-            res.push((format!("IPAD_X0Y{}", ipy+1), SysMonPin::VN));
+            res.push((format!("IPAD_X0Y{}", ipy + 1), SysMonPin::VN));
         } else {
             res.push((format!("IPAD_X0Y0"), SysMonPin::VP));
             res.push((format!("IPAD_X0Y1"), SysMonPin::VN));
@@ -432,7 +482,9 @@ impl Grid {
                 let ry = y / 10 * 11 + y % 10 + 1;
                 let tile_l = format!("L_TERM_PPC_X{xl}Y{y}");
                 let tile_r = format!("R_TERM_PPC_X{rxr}Y{ry}");
-                grid.fill_term_pair_dbuf((col_l, row), (col_r, row), 
+                grid.fill_term_pair_dbuf(
+                    (col_l, row),
+                    (col_r, row),
                     db.get_term("PPC.E"),
                     db.get_term("PPC.W"),
                     tile_l,
@@ -462,8 +514,18 @@ impl Grid {
             for dx in 1..13 {
                 let col = bc + dx;
                 let x = col.to_idx();
-                grid.fill_term_tile((col, row_b), "TERM.N.PPC", "TERM.N.PPC", format!("PPC_B_TERM_X{x}Y{yb}"));
-                grid.fill_term_tile((col, row_t), "TERM.S.PPC", "TERM.S.PPC", format!("PPC_T_TERM_X{x}Y{yt}"));
+                grid.fill_term_tile(
+                    (col, row_b),
+                    "TERM.N.PPC",
+                    "TERM.N.PPC",
+                    format!("PPC_B_TERM_X{x}Y{yb}"),
+                );
+                grid.fill_term_tile(
+                    (col, row_t),
+                    "TERM.S.PPC",
+                    "TERM.S.PPC",
+                    format!("PPC_T_TERM_X{x}Y{yt}"),
+                );
             }
         }
 
@@ -483,12 +545,27 @@ impl Grid {
         for row in grid.rows() {
             let y = row.to_idx();
             if self.columns[col_l] == ColumnKind::Gtx {
-                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("GTX_L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.W",
+                    "TERM.W",
+                    format!("GTX_L_TERM_INT_X{xl}Y{y}"),
+                );
             } else {
-                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile(
+                    (col_l, row),
+                    "TERM.W",
+                    "TERM.W",
+                    format!("L_TERM_INT_X{xl}Y{y}"),
+                );
             }
             if matches!(self.columns[col_r], ColumnKind::Gtp | ColumnKind::Gtx) {
-                grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile(
+                    (col_r, row),
+                    "TERM.E",
+                    "TERM.E",
+                    format!("R_TERM_INT_X{xr}Y{y}"),
+                );
             } else {
                 grid.fill_term_anon((col_r, row), "TERM.E.HOLE");
             }
@@ -506,7 +583,11 @@ impl Grid {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let tile_l = format!("INT_BUFS_L_X{x}Y{y}");
-                let mon = if self.columns[col_l] == ColumnKind::Gtx {"_MON"} else {""};
+                let mon = if self.columns[col_l] == ColumnKind::Gtx {
+                    "_MON"
+                } else {
+                    ""
+                };
                 let tile_r = format!("INT_BUFS_R{mon}_X{xx}Y{y}", xx = x + 1);
                 grid.fill_term_pair_dbuf(
                     (col, row),

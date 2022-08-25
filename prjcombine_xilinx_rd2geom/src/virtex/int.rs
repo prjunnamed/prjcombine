@@ -1,5 +1,8 @@
 use prjcombine_entity::EntityId;
-use prjcombine_xilinx_geom::int::{IntDb, Dir, WireKind, NodeTileId, NodeRawTileId, NodeExtPipNaming, BelPin, PinDir, BelNaming, BelPinNaming, BelInfo};
+use prjcombine_xilinx_geom::int::{
+    BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, NodeExtPipNaming, NodeRawTileId,
+    NodeTileId, PinDir, WireKind,
+};
 use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeMap;
 
@@ -521,10 +524,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extra_name_sub(format!("CLKT_{name}L_1"), 3, w);
         builder.extra_name_sub(format!("CLKT_{name}R_1"), 4, w);
         dll_ins.push(w);
-        dll_pins.insert(name.to_string(), BelPin {
-            wire: (NodeTileId::from_idx(0), w),
-            dir: PinDir::Input,
-        });
+        dll_pins.insert(
+            name.to_string(),
+            BelPin {
+                wire: (NodeTileId::from_idx(0), w),
+                dir: PinDir::Input,
+            },
+        );
         bram_bt_forbidden.push(w);
         if name == "CLKIN" {
             clkin = Some(w);
@@ -555,10 +561,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if name == "CLK2X" {
             clk2x = Some(w);
         }
-        dll_pins.insert(name.to_string(), BelPin {
-            wire: (NodeTileId::from_idx(0), w),
-            dir: PinDir::Output,
-        });
+        dll_pins.insert(
+            name.to_string(),
+            BelPin {
+                wire: (NodeTileId::from_idx(0), w),
+                dir: PinDir::Output,
+            },
+        );
     }
     let clk2x = clk2x.unwrap();
 
@@ -890,25 +899,34 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
                 }
             }
-            let pins = dll_pins.keys().map(|k| {
-                let mut name = format!("CLK{bt}_{k}{lr}{xt}");
-                if bt == 'T' && lr == 'L' && mode != '_' && k == "RST" {
-                    if mode == 'S' {
-                        name = "CLKT_RSTL".to_string();
-                    } else {
-                        name = "CLKT_RSTL_1".to_string();
+            let pins = dll_pins
+                .keys()
+                .map(|k| {
+                    let mut name = format!("CLK{bt}_{k}{lr}{xt}");
+                    if bt == 'T' && lr == 'L' && mode != '_' && k == "RST" {
+                        if mode == 'S' {
+                            name = "CLKT_RSTL".to_string();
+                        } else {
+                            name = "CLKT_RSTL_1".to_string();
+                        }
                     }
-                }
-                if bt == 'T' && lr == 'L' && mode == 'S' && k == "LOCKED" {
-                    name = "CLKT_LOCK_TL_1".to_string();
-                }
-                (k.clone(), BelPinNaming {
-                    name: name.clone(),
-                    name_far: name,
-                    pips: Vec::new(),
+                    if bt == 'T' && lr == 'L' && mode == 'S' && k == "LOCKED" {
+                        name = "CLKT_LOCK_TL_1".to_string();
+                    }
+                    (
+                        k.clone(),
+                        BelPinNaming {
+                            name: name.clone(),
+                            name_far: name,
+                            pips: Vec::new(),
+                        },
+                    )
                 })
-            }).collect();
-            naming.bels.push(BelNaming { tile: NodeRawTileId::from_idx(1), pins });
+                .collect();
+            naming.bels.push(BelNaming {
+                tile: NodeRawTileId::from_idx(1),
+                pins,
+            });
         }
     }
     for (node, mode) in [
@@ -962,7 +980,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .insert((t_dll, clk2x));
                 }
             }
-            node.bels.insert("DLL".to_string(), BelInfo { pins: dll_pins.clone() });
+            node.bels.insert(
+                "DLL".to_string(),
+                BelInfo {
+                    pins: dll_pins.clone(),
+                },
+            );
         }
     }
 

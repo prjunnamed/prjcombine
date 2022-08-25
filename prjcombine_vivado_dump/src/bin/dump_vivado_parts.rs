@@ -21,12 +21,7 @@ struct Opt {
     num_threads: usize,
 }
 
-fn dump_part(
-    opt: &Opt,
-    tc: &Toolchain,
-    dev: String,
-    devparts: Vec<VivadoPart>,
-) {
+fn dump_part(opt: &Opt, tc: &Toolchain, dev: String, devparts: Vec<VivadoPart>) {
     let fdir = opt.target_directory.join(&devparts[0].actual_family);
     create_dir_all(&fdir).unwrap();
     let path = fdir.join(dev.clone() + ".zstd");

@@ -4,8 +4,8 @@ use core::ops::{Index, IndexMut};
 
 use std::fmt;
 
-use serde::ser::{Serialize, Serializer, SerializeMap};
-use serde::de::{Deserialize, Deserializer, Visitor, MapAccess};
+use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+use serde::ser::{Serialize, SerializeMap, Serializer};
 
 use crate::EntityId;
 
@@ -67,9 +67,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
     }
 
     pub fn ids(&self) -> Ids<'_, I, V> {
-        Ids {
-            vals: self.iter(),
-        }
+        Ids { vals: self.iter() }
     }
 
     pub fn into_ids(self) -> IntoIds<I, V> {
@@ -95,9 +93,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
     }
 
     pub fn values(&self) -> Values<'_, I, V> {
-        Values {
-            vals: self.iter(),
-        }
+        Values { vals: self.iter() }
     }
 
     pub fn values_mut(&mut self) -> ValuesMut<'_, I, V> {
@@ -177,7 +173,7 @@ pub struct Iter<'a, I, V> {
     ids: PhantomData<I>,
 }
 
-impl <'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
     type Item = (I, &'a V);
     fn next(&mut self) -> Option<(I, &'a V)> {
         loop {
@@ -191,11 +187,11 @@ impl <'a, I: EntityId, V> Iterator for Iter<'a, I, V> {
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for Iter<'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for Iter<'a, I, V> {
     fn next_back(&mut self) -> Option<(I, &'a V)> {
         loop {
             if let Some(val) = self.vals.next_back()? {
-                return Some((I::from_idx(self.pos + self.vals.len()), val))
+                return Some((I::from_idx(self.pos + self.vals.len()), val));
             }
         }
     }
@@ -208,7 +204,7 @@ pub struct IterMut<'a, I, V> {
     ids: PhantomData<I>,
 }
 
-impl <'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
     type Item = (I, &'a mut V);
     fn next(&mut self) -> Option<(I, &'a mut V)> {
         loop {
@@ -222,11 +218,11 @@ impl <'a, I: EntityId, V> Iterator for IterMut<'a, I, V> {
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for IterMut <'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for IterMut<'a, I, V> {
     fn next_back(&mut self) -> Option<(I, &'a mut V)> {
         loop {
             if let Some(val) = self.vals.next_back()? {
-                return Some((I::from_idx(self.pos + self.vals.len()), val))
+                return Some((I::from_idx(self.pos + self.vals.len()), val));
             }
         }
     }
@@ -257,7 +253,7 @@ impl<I: EntityId, V> DoubleEndedIterator for IntoIter<I, V> {
     fn next_back(&mut self) -> Option<(I, V)> {
         loop {
             if let Some(val) = self.vals.next_back()? {
-                return Some((I::from_idx(self.pos + self.vals.len()), val))
+                return Some((I::from_idx(self.pos + self.vals.len()), val));
             }
         }
     }
@@ -265,17 +261,17 @@ impl<I: EntityId, V> DoubleEndedIterator for IntoIter<I, V> {
 
 #[derive(Clone, Debug)]
 pub struct Ids<'a, I, V> {
-    vals: Iter<'a, I, V>
+    vals: Iter<'a, I, V>,
 }
 
-impl <'a, I: EntityId, V> Iterator for Ids<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for Ids<'a, I, V> {
     type Item = I;
     fn next(&mut self) -> Option<I> {
         self.vals.next().map(|x| x.0)
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for Ids<'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for Ids<'a, I, V> {
     fn next_back(&mut self) -> Option<I> {
         self.vals.next_back().map(|x| x.0)
     }
@@ -283,7 +279,7 @@ impl <'a, I: EntityId, V> DoubleEndedIterator for Ids<'a, I, V> {
 
 #[derive(Clone, Debug)]
 pub struct IntoIds<I, V> {
-    vals: IntoIter<I, V>
+    vals: IntoIter<I, V>,
 }
 
 impl<I: EntityId, V> Iterator for IntoIds<I, V> {
@@ -301,17 +297,17 @@ impl<I: EntityId, V> DoubleEndedIterator for IntoIds<I, V> {
 
 #[derive(Clone, Debug)]
 pub struct Values<'a, I, V> {
-    vals: Iter<'a, I, V>
+    vals: Iter<'a, I, V>,
 }
 
-impl <'a, I: EntityId, V> Iterator for Values<'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for Values<'a, I, V> {
     type Item = &'a V;
     fn next(&mut self) -> Option<&'a V> {
         self.vals.next().map(|x| x.1)
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for Values<'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for Values<'a, I, V> {
     fn next_back(&mut self) -> Option<&'a V> {
         self.vals.next_back().map(|x| x.1)
     }
@@ -319,17 +315,17 @@ impl <'a, I: EntityId, V> DoubleEndedIterator for Values<'a, I, V> {
 
 #[derive(Debug)]
 pub struct ValuesMut<'a, I, V> {
-    vals: IterMut<'a, I, V>
+    vals: IterMut<'a, I, V>,
 }
 
-impl <'a, I: EntityId, V> Iterator for ValuesMut <'a, I, V> {
+impl<'a, I: EntityId, V> Iterator for ValuesMut<'a, I, V> {
     type Item = &'a mut V;
     fn next(&mut self) -> Option<&'a mut V> {
         self.vals.next().map(|x| x.1)
     }
 }
 
-impl <'a, I: EntityId, V> DoubleEndedIterator for ValuesMut<'a, I, V> {
+impl<'a, I: EntityId, V> DoubleEndedIterator for ValuesMut<'a, I, V> {
     fn next_back(&mut self) -> Option<&'a mut V> {
         self.vals.next_back().map(|x| x.1)
     }
@@ -337,7 +333,7 @@ impl <'a, I: EntityId, V> DoubleEndedIterator for ValuesMut<'a, I, V> {
 
 #[derive(Clone, Debug)]
 pub struct IntoValues<I, V> {
-    vals: IntoIter<I, V>
+    vals: IntoIter<I, V>,
 }
 
 impl<I: EntityId, V> Iterator for IntoValues<I, V> {
@@ -355,7 +351,9 @@ impl<I: EntityId, V> DoubleEndedIterator for IntoValues<I, V> {
 
 impl<I: EntityId, V: Serialize> Serialize for EntityPartVec<I, V> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+    where
+        S: Serializer,
+    {
         let mut map = serializer.serialize_map(Some(self.iter().count()))?;
         for (k, v) in self {
             map.serialize_entry(&k, v)?;
@@ -366,7 +364,8 @@ impl<I: EntityId, V: Serialize> Serialize for EntityPartVec<I, V> {
 
 impl<I: EntityId, V> FromIterator<(I, V)> for EntityPartVec<I, V> {
     fn from_iter<T>(iter: T) -> Self
-    where T: IntoIterator<Item=(I, V)>
+    where
+        T: IntoIterator<Item = (I, V)>,
     {
         let mut res = Self::new();
         for (k, v) in iter {
@@ -377,13 +376,13 @@ impl<I: EntityId, V> FromIterator<(I, V)> for EntityPartVec<I, V> {
 }
 
 struct DeserializeVisitor<I, V> {
-    marker: PhantomData<fn() -> EntityPartVec<I, V>>
+    marker: PhantomData<fn() -> EntityPartVec<I, V>>,
 }
 
 impl<I, V> DeserializeVisitor<I, V> {
     fn new() -> Self {
         DeserializeVisitor {
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 }

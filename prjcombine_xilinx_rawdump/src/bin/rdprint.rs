@@ -1,7 +1,5 @@
 use itertools::Itertools;
-use prjcombine_xilinx_rawdump::{
-    Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire,
-};
+use prjcombine_xilinx_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
 use std::error::Error;
 use structopt::StructOpt;
 
@@ -145,7 +143,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     for (coord, tile) in rd.tiles.iter().sorted_by_key(|(coord, _)| *coord) {
         let tk = &rd.tile_kinds[tile.kind];
-        println!("TILE {} {} {} {}", coord.x, coord.y, tile.name, rd.tile_kinds.key(tile.kind));
+        println!(
+            "TILE {} {} {} {}",
+            coord.x,
+            coord.y,
+            tile.name,
+            rd.tile_kinds.key(tile.kind)
+        );
         for (slot, ts) in tk
             .sites
             .iter()

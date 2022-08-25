@@ -1,6 +1,6 @@
-use crate::types::{Test, SrcInst, TgtInst, TestGenCtx, BitVal};
+use crate::types::{BitVal, SrcInst, Test, TestGenCtx, TgtInst};
 
-use rand::{Rng, seq::SliceRandom};
+use rand::{seq::SliceRandom, Rng};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -16,7 +16,7 @@ fn gen_lut_init(sz: u8, ctx: &mut TestGenCtx) -> Vec<BitVal> {
         let mut fail = false;
         for i in 0..sz {
             let mut eq = true;
-            for k in 0..(1<<sz) {
+            for k in 0..(1 << sz) {
                 if res[k] != res[k ^ (1 << i)] {
                     eq = false;
                 }
@@ -34,14 +34,21 @@ fn gen_lut_init(sz: u8, ctx: &mut TestGenCtx) -> Vec<BitVal> {
 fn compile_lut(ssz: u8, dsz: u8, init: &[BitVal]) -> u64 {
     let mut val = 0;
     for i in 0..(1 << dsz) {
-        if init[i >> (dsz-ssz)] == BitVal::S1 {
+        if init[i >> (dsz - ssz)] == BitVal::S1 {
             val |= 1 << i;
         }
     }
     val
 }
 
-fn make_lut6(test: &mut Test, ctx: &mut TestGenCtx, ti: &mut TgtInst, c: char, out: &str, uset: Option<&str>) {
+fn make_lut6(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    ti: &mut TgtInst,
+    c: char,
+    out: &str,
+    uset: Option<&str>,
+) {
     let mut inst = SrcInst::new(ctx, "LUT6");
 
     let inp = test.make_ins(ctx, 6);
@@ -66,7 +73,15 @@ fn make_lut6(test: &mut Test, ctx: &mut TestGenCtx, ti: &mut TgtInst, c: char, o
     test.src_insts.push(inst);
 }
 
-fn make_lut5_2(test: &mut Test, ctx: &mut TestGenCtx, ti: &mut TgtInst, c: char, o6: &str, o5: &str, uset: Option<&str>) {
+fn make_lut5_2(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    ti: &mut TgtInst,
+    c: char,
+    o6: &str,
+    o5: &str,
+    uset: Option<&str>,
+) {
     let mut inst5 = SrcInst::new(ctx, "LUT5");
     let mut inst6 = SrcInst::new(ctx, "LUT5");
 
@@ -113,7 +128,16 @@ fn make_lut5_2(test: &mut Test, ctx: &mut TestGenCtx, ti: &mut TgtInst, c: char,
     test.src_insts.push(inst6);
 }
 
-fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst, ffs: &[(char, u8, &str)], clk: Option<&str>, norev: bool, uset: Option<&str>) -> bool {
+fn make_ffs(
+    test: &mut Test,
+    ctx: &mut TestGenCtx,
+    mode: Mode,
+    ti: &mut TgtInst,
+    ffs: &[(char, u8, &str)],
+    clk: Option<&str>,
+    norev: bool,
+    uset: Option<&str>,
+) -> bool {
     let mut latch = clk.is_none() && ctx.rng.gen();
     for &(_, n, _) in ffs {
         if n == 5 {
@@ -123,7 +147,7 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
     let clk_v = match clk {
         None => {
             let (x, clk_x, clk_inv) = test.make_in_inv(ctx);
-            ti.cfg("CLKINV", if clk_inv ^ latch {"CLK_B"} else {"CLK"});
+            ti.cfg("CLKINV", if clk_inv ^ latch { "CLK_B" } else { "CLK" });
             ti.pin_in("CLK", &clk_x);
             x
         }
@@ -162,10 +186,14 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
         None
     };
     let async_ = latch || ctx.rng.gen();
-    ti.cfg("SYNC_ATTR", if async_ {"ASYNC"} else {"SYNC"});
+    ti.cfg("SYNC_ATTR", if async_ { "ASYNC" } else { "SYNC" });
     for &(c, n, d) in ffs {
         let init = ctx.rng.gen();
-        let mut rval = if mode == Mode::Spartan6 { init } else { ctx.rng.gen() };
+        let mut rval = if mode == Mode::Spartan6 {
+            init
+        } else {
+            ctx.rng.gen()
+        };
         if rev.is_some() {
             rval = false;
         }
@@ -185,7 +213,7 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
             inst.attr_str("RLOC", "X0Y0");
             inst.attr_str("U_SET", &uset);
         }
-        inst.param_bits("INIT", &[if init {BitVal::S1} else {BitVal::S0}]);
+        inst.param_bits("INIT", &[if init { BitVal::S1 } else { BitVal::S0 }]);
         let q = test.make_out(ctx);
         let bel = if n == 6 {
             ti.pin_out(&format!("{c}Q"), &q);
@@ -195,7 +223,19 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
             ti.pin_out(&format!("{c}MUX"), &q);
             format!("{c}5FF")
         };
-        ti.bel(&bel, &inst.name, if n == 6 { if latch { "#LATCH" } else {"#FF"} } else { "" });
+        ti.bel(
+            &bel,
+            &inst.name,
+            if n == 6 {
+                if latch {
+                    "#LATCH"
+                } else {
+                    "#FF"
+                }
+            } else {
+                ""
+            },
+        );
         if matches!(mode, Mode::Virtex6 | Mode::Series7) {
             inst.attr_str("BEL", &bel);
         } else {
@@ -204,9 +244,9 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
             }
         }
         inst.connect("D", d);
-        inst.connect(if latch {"G"} else {"C"}, &clk_v);
+        inst.connect(if latch { "G" } else { "C" }, &clk_v);
         if let Some(ref ce) = ce {
-            inst.connect(if latch {"GE"} else {"CE"}, ce);
+            inst.connect(if latch { "GE" } else { "CE" }, ce);
         }
         if let Some(ref sr) = sr {
             inst.connect(rpin, sr);
@@ -216,10 +256,20 @@ fn make_ffs(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, ti: &mut TgtInst,
         }
         inst.connect("Q", &q);
         if mode == Mode::Spartan6 {
-            ti.cfg(&format!("{bel}SRINIT"), if init {"SRINIT1"} else {"SRINIT0"});
+            ti.cfg(
+                &format!("{bel}SRINIT"),
+                if init { "SRINIT1" } else { "SRINIT0" },
+            );
         } else {
-            ti.cfg(&format!("{bel}INIT"), if init {"INIT1"} else {"INIT0"});
-            ti.cfg(&format!("{bel}SR"), if rval && sr.is_some() {"SRHIGH"} else {"SRLOW"});
+            ti.cfg(&format!("{bel}INIT"), if init { "INIT1" } else { "INIT0" });
+            ti.cfg(
+                &format!("{bel}SR"),
+                if rval && sr.is_some() {
+                    "SRHIGH"
+                } else {
+                    "SRLOW"
+                },
+            );
         }
         test.src_insts.push(inst);
     }
@@ -287,14 +337,30 @@ fn gen_lut(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
     inst.param_bits("INIT", &init);
 
     if l == 6 {
-        ti.bel_lut(&format!("{c}6LUT"), &inst.name, 6, compile_lut(sz, 6, &init));
+        ti.bel_lut(
+            &format!("{c}6LUT"),
+            &inst.name,
+            6,
+            compile_lut(sz, 6, &init),
+        );
         for i in 0..(sz as usize) {
-            ti.pin_in(&format!("{c}{ii}", ii = i + 1 + (6 - (sz as usize))), &inp[i]);
+            ti.pin_in(
+                &format!("{c}{ii}", ii = i + 1 + (6 - (sz as usize))),
+                &inp[i],
+            );
         }
     } else {
-        ti.bel_lut(&format!("{c}5LUT"), &inst.name, 5, compile_lut(sz, 5, &init));
+        ti.bel_lut(
+            &format!("{c}5LUT"),
+            &inst.name,
+            5,
+            compile_lut(sz, 5, &init),
+        );
         for i in 0..(sz as usize) {
-            ti.pin_in(&format!("{c}{ii}", ii = i + 1 + (5 - (sz as usize))), &inp[i]);
+            ti.pin_in(
+                &format!("{c}{ii}", ii = i + 1 + (5 - (sz as usize))),
+                &inp[i],
+            );
         }
     }
 
@@ -323,7 +389,16 @@ fn gen_lut6_2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         if matches!(mode, Mode::Virtex6 | Mode::Series7) {
             ti.cfg(&format!("{c}5FFMUX"), "IN_A");
         }
-        make_ffs(test, ctx, mode, &mut ti, &[(c, 5, &o5), (c, 6, &o6)], None, false, None);
+        make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[(c, 5, &o5), (c, 6, &o6)],
+            None,
+            false,
+            None,
+        );
     } else {
         let o5 = test.make_out(ctx);
         let o6 = test.make_out(ctx);
@@ -499,12 +574,7 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
         let mut di = Vec::new();
         let mut s = Vec::new();
-        for (i, l) in [
-            (0, 'A'),
-            (1, 'B'),
-            (2, 'C'),
-            (3, 'D'),
-        ] {
+        for (i, l) in [(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')] {
             let o6 = test.make_wire(ctx);
             if ctx.rng.gen() || (i == 0 && ax_used) {
                 let o5 = test.make_wire(ctx);
@@ -549,12 +619,7 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
                     ti.pin_tie("CE", true);
                 }
                 ti.cfg("SYNC_ATTR", "ASYNC");
-                for (i, l) in [
-                    (0, 'A'),
-                    (1, 'B'),
-                    (2, 'C'),
-                    (3, 'D'),
-                ] {
+                for (i, l) in [(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')] {
                     if mode == Mode::Virtex5 {
                         ti.bel(&format!("{l}FF"), "DUMMY", "#LATCH");
                         ti.cfg(&format!("{l}FFINIT"), "INIT0");
@@ -581,12 +646,7 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             1 => {
                 co = test.make_outs(ctx, 4);
                 let xo = test.make_bus(ctx, 4);
-                for (i, l) in [
-                    (0, 'A'),
-                    (1, 'B'),
-                    (2, 'C'),
-                    (3, 'D'),
-                ] {
+                for (i, l) in [(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')] {
                     ti.cfg(&format!("{l}FFMUX"), "XOR");
                     if i == 3 && cidx != num - 1 {
                         ti.pin_out("COUT", &co[i]);
@@ -595,22 +655,26 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
                         ti.pin_out(&format!("{l}MUX"), &co[i]);
                     }
                 }
-                make_ffs(test, ctx, mode, &mut ti, &[
-                     ('A', 6, &xo[0]),
-                     ('B', 6, &xo[1]),
-                     ('C', 6, &xo[2]),
-                     ('D', 6, &xo[3]),
-                ], None, true, None);
+                make_ffs(
+                    test,
+                    ctx,
+                    mode,
+                    &mut ti,
+                    &[
+                        ('A', 6, &xo[0]),
+                        ('B', 6, &xo[1]),
+                        ('C', 6, &xo[2]),
+                        ('D', 6, &xo[3]),
+                    ],
+                    None,
+                    true,
+                    None,
+                );
                 inst.connect_bus("O", &xo);
             }
             2 => {
                 co = test.make_outs(ctx, 4);
-                for (i, l) in [
-                    (0, 'A'),
-                    (1, 'B'),
-                    (2, 'C'),
-                    (3, 'D'),
-                ] {
+                for (i, l) in [(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')] {
                     if i == 3 && cidx != num - 1 {
                         ti.pin_out("COUT", &co[i]);
                     } else {
@@ -621,30 +685,29 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             }
             3 => {
                 co = test.make_bus(ctx, 4);
-                for l in [
-                    'A',
-                    'B',
-                    'C',
-                    'D',
-                ] {
+                for l in ['A', 'B', 'C', 'D'] {
                     ti.cfg(&format!("{l}FFMUX"), "CY");
                 }
-                make_ffs(test, ctx, mode, &mut ti, &[
-                     ('A', 6, &co[0]),
-                     ('B', 6, &co[1]),
-                     ('C', 6, &co[2]),
-                     ('D', 6, &co[3]),
-                ], None, true, None);
+                make_ffs(
+                    test,
+                    ctx,
+                    mode,
+                    &mut ti,
+                    &[
+                        ('A', 6, &co[0]),
+                        ('B', 6, &co[1]),
+                        ('C', 6, &co[2]),
+                        ('D', 6, &co[3]),
+                    ],
+                    None,
+                    true,
+                    None,
+                );
             }
             4 => {
                 co = test.make_bus(ctx, 4);
                 let xo = test.make_outs(ctx, 4);
-                for (i, l) in [
-                    (0, 'A'),
-                    (1, 'B'),
-                    (2, 'C'),
-                    (3, 'D'),
-                ] {
+                for (i, l) in [(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')] {
                     ti.cfg(&format!("{l}OUTMUX"), "XOR");
                     ti.pin_out(&format!("{l}MUX"), &xo[i]);
                 }
@@ -830,7 +893,12 @@ fn gen_rom128x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val_a |= 1 << i;
         }
     }
-    ti.bel_rom(&format!("{a}6LUT"), &format!("{}/HIGH", inst.name), 6, val_a);
+    ti.bel_rom(
+        &format!("{a}6LUT"),
+        &format!("{}/HIGH", inst.name),
+        6,
+        val_a,
+    );
     ti.bel_rom(&format!("{b}6LUT"), &format!("{}/LOW", inst.name), 6, val_b);
     ti.bel(bel, &format!("{}/F7", inst.name), "");
     for i in 0..6 {
@@ -855,7 +923,16 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     if ctx.rng.gen() {
         out = test.make_wire(ctx);
         ti.cfg(&format!("BFFMUX"), "F8");
-        make_ffs(test, ctx, mode, &mut ti, &[('B', 6, &out)], None, false, None);
+        make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('B', 6, &out)],
+            None,
+            false,
+            None,
+        );
     } else {
         out = test.make_out(ctx);
         ti.cfg(&format!("BOUTMUX"), "F8");
@@ -918,7 +995,12 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     } else {
         None
     };
-    for c in "ABCD".chars().zip(use_abcd.iter().copied()).filter(|&(_, u)| u).map(|(c, _)| c) {
+    for c in "ABCD"
+        .chars()
+        .zip(use_abcd.iter().copied())
+        .filter(|&(_, u)| u)
+        .map(|(c, _)| c)
+    {
         let addr = test.make_ins(ctx, 5);
         inst.connect_bus(&format!("ADDR{c}"), &addr);
         for i in 0..5 {
@@ -958,16 +1040,26 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let mut ram5 = 0;
         let mut ram6 = 0;
         for i in 0..32 {
-            if init[2*i] == BitVal::S1 {
+            if init[2 * i] == BitVal::S1 {
                 ram5 |= 1 << i;
             }
-            if init[2*i+1] == BitVal::S1 {
+            if init[2 * i + 1] == BitVal::S1 {
                 ram6 |= 1 << i;
                 ram6 |= 1 << (32 + i);
             }
         }
-        ti.bel_ram(&format!("{c}5LUT"), &format!("{iname}_RAM{c}", iname = inst.name), 5, ram5);
-        ti.bel_ram(&format!("{c}6LUT"), &format!("{iname}_RAM{c}_D1", iname = inst.name), 6, ram6);
+        ti.bel_ram(
+            &format!("{c}5LUT"),
+            &format!("{iname}_RAM{c}", iname = inst.name),
+            5,
+            ram5,
+        );
+        ti.bel_ram(
+            &format!("{c}6LUT"),
+            &format!("{iname}_RAM{c}_D1", iname = inst.name),
+            6,
+            ram6,
+        );
         if c != 'D' {
             if matches!(mode, Mode::Virtex6 | Mode::Series7) {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}I"));
@@ -991,13 +1083,23 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("DOUTMUX", "O5");
             ti.pin_dumout("DMUX");
         }
-        ti.bel_ram(&format!("D5LUT"), &format!("{iname}_RAMD", iname = inst.name), 5, 0);
-        ti.bel_ram(&format!("D6LUT"), &format!("{iname}_RAMD_D1", iname = inst.name), 6, 0);
+        ti.bel_ram(
+            &format!("D5LUT"),
+            &format!("{iname}_RAMD", iname = inst.name),
+            5,
+            0,
+        );
+        ti.bel_ram(
+            &format!("D6LUT"),
+            &format!("{iname}_RAMD_D1", iname = inst.name),
+            6,
+            0,
+        );
     }
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
 
     let mut ceused = false;
@@ -1007,7 +1109,16 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             stuff.push((c, 5, &do_[0][..]));
             stuff.push((c, 6, &do_[1][..]));
         }
-        ceused = make_ffs(test, ctx, mode, &mut ti, &stuff[..], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &stuff[..],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     }
 
     let we = test.make_in(ctx);
@@ -1038,7 +1149,12 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     } else {
         None
     };
-    for c in "ABCD".chars().zip(use_abcd.iter().copied()).filter(|&(_, u)| u).map(|(c, _)| c) {
+    for c in "ABCD"
+        .chars()
+        .zip(use_abcd.iter().copied())
+        .filter(|&(_, u)| u)
+        .map(|(c, _)| c)
+    {
         let addr = test.make_ins(ctx, 6);
         inst.connect_bus(&format!("ADDR{c}"), &addr);
         for i in 0..6 {
@@ -1072,7 +1188,12 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 ram6 |= 1 << i;
             }
         }
-        ti.bel_ram(&format!("{c}6LUT"), &format!("{iname}_RAM{c}", iname = inst.name), 6, ram6);
+        ti.bel_ram(
+            &format!("{c}6LUT"),
+            &format!("{iname}_RAM{c}", iname = inst.name),
+            6,
+            ram6,
+        );
         if c != 'D' {
             if matches!(mode, Mode::Virtex6 | Mode::Series7) {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}I"));
@@ -1097,12 +1218,17 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("DUSED", "0");
             ti.pin_dumout("D");
         }
-        ti.bel_ram(&format!("D6LUT"), &format!("{iname}_RAMD", iname = inst.name), 6, 0);
+        ti.bel_ram(
+            &format!("D6LUT"),
+            &format!("{iname}_RAMD", iname = inst.name),
+            6,
+            0,
+        );
     }
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
 
     let mut ceused = false;
@@ -1111,7 +1237,16 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         for &(c, ref do_) in &ffs {
             stuff.push((c, 6, &do_[..]));
         }
-        ceused = make_ffs(test, ctx, mode, &mut ti, &stuff[..], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &stuff[..],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     }
 
     let we = test.make_in(ctx);
@@ -1134,7 +1269,7 @@ fn gen_ram32x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
 
@@ -1156,7 +1291,16 @@ fn gen_ram32x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let do_ = test.make_wire(ctx);
         inst.connect("O", &do_);
         ti.cfg("DFFMUX", "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('D', 6, &do_)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('D', 6, &do_)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let do_ = test.make_out(ctx);
         inst.connect("O", &do_);
@@ -1195,7 +1339,7 @@ fn gen_ram64x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
 
@@ -1216,7 +1360,16 @@ fn gen_ram64x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let do_ = test.make_wire(ctx);
         inst.connect("O", &do_);
         ti.cfg("DFFMUX", "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('D', 6, &do_)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('D', 6, &do_)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let do_ = test.make_out(ctx);
         inst.connect("O", &do_);
@@ -1261,7 +1414,7 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
     for inst in &mut insts {
         inst.connect("WCLK", &wclk_v);
     }
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
 
@@ -1307,12 +1460,30 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
             insts[1].connect("O", &do_[1]);
             ti.cfg("CFFMUX", "F7");
             ti.cfg("AFFMUX", "F7");
-            ceused = make_ffs(test, ctx, mode, &mut ti, &[('A', 6, &do_[1]), ('C', 6, &do_[0])], Some(&wclk_v), true, None);
+            ceused = make_ffs(
+                test,
+                ctx,
+                mode,
+                &mut ti,
+                &[('A', 6, &do_[1]), ('C', 6, &do_[0])],
+                Some(&wclk_v),
+                true,
+                None,
+            );
         } else {
             let do_ = test.make_wire(ctx);
             insts[0].connect("O", &do_);
             ti.cfg("CFFMUX", "F7");
-            ceused = make_ffs(test, ctx, mode, &mut ti, &[('C', 6, &do_)], Some(&wclk_v), true, None);
+            ceused = make_ffs(
+                test,
+                ctx,
+                mode,
+                &mut ti,
+                &[('C', 6, &do_)],
+                Some(&wclk_v),
+                true,
+                None,
+            );
         }
     } else {
         let do_ = test.make_out(ctx);
@@ -1359,11 +1530,16 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
             if init[i] == BitVal::S1 {
                 ram_d |= 1 << i;
             }
-            if init[i+64] == BitVal::S1 {
+            if init[i + 64] == BitVal::S1 {
                 ram_c |= 1 << i;
             }
         }
-        ti.bel_ram(&format!("{c}6LUT"), &format!("{}/HIGH", inst.name), 6, ram_c);
+        ti.bel_ram(
+            &format!("{c}6LUT"),
+            &format!("{}/HIGH", inst.name),
+            6,
+            ram_c,
+        );
         ti.bel_ram(&format!("{d}6LUT"), &format!("{}/LOW", inst.name), 6, ram_d);
         ti.bel(["F7BMUX", "F7AMUX"][i], &format!("{}/F7", inst.name), "");
         inst.connect("WE", &we);
@@ -1390,7 +1566,7 @@ fn gen_ram256x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
 
@@ -1417,7 +1593,16 @@ fn gen_ram256x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let do_ = test.make_wire(ctx);
         inst.connect("O", &do_);
         ti.cfg("BFFMUX", "F8");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('B', 6, &do_)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('B', 6, &do_)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let do_ = test.make_out(ctx);
         inst.connect("O", &do_);
@@ -1449,13 +1634,13 @@ fn gen_ram256x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         if init[i] == BitVal::S1 {
             ram_d |= 1 << i;
         }
-        if init[i+64] == BitVal::S1 {
+        if init[i + 64] == BitVal::S1 {
             ram_c |= 1 << i;
         }
-        if init[i+128] == BitVal::S1 {
+        if init[i + 128] == BitVal::S1 {
             ram_b |= 1 << i;
         }
-        if init[i+192] == BitVal::S1 {
+        if init[i + 192] == BitVal::S1 {
             ram_a |= 1 << i;
         }
     }
@@ -1487,10 +1672,14 @@ fn gen_ram32x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
-    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) { 'B' } else { 'C' };
+    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) {
+        'B'
+    } else {
+        'C'
+    };
 
     let addr = test.make_ins(ctx, 5);
     let daddr = test.make_ins(ctx, 5);
@@ -1517,7 +1706,16 @@ fn gen_ram32x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.connect("DPO", &dpo);
         ti.cfg("DFFMUX", "O6");
         ti.cfg(&format!("{c}FFMUX"), "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('D', 6, &spo), (c, 6, &dpo)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('D', 6, &spo), (c, 6, &dpo)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let spo = test.make_out(ctx);
         let dpo = test.make_out(ctx);
@@ -1567,10 +1765,14 @@ fn gen_ram64x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
-    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) { 'B' } else { 'C' };
+    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) {
+        'B'
+    } else {
+        'C'
+    };
 
     let addr = test.make_ins(ctx, 6);
     let daddr = test.make_ins(ctx, 6);
@@ -1595,7 +1797,16 @@ fn gen_ram64x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.connect("DPO", &dpo);
         ti.cfg("DFFMUX", "O6");
         ti.cfg(&format!("{c}FFMUX"), "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('D', 6, &spo), (c, 6, &dpo)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('D', 6, &spo), (c, 6, &dpo)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let spo = test.make_out(ctx);
         let dpo = test.make_out(ctx);
@@ -1645,7 +1856,7 @@ fn gen_ram128x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);
     inst.connect("WCLK", &wclk_v);
-    ti.cfg("CLKINV", if wclk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
 
@@ -1676,7 +1887,16 @@ fn gen_ram128x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.connect("DPO", &dpo);
         ti.cfg("CFFMUX", "F7");
         ti.cfg("AFFMUX", "F7");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[('C', 6, &spo), ('A', 6, &dpo)], Some(&wclk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[('C', 6, &spo), ('A', 6, &dpo)],
+            Some(&wclk_v),
+            true,
+            None,
+        );
     } else {
         let spo = test.make_out(ctx);
         let dpo = test.make_out(ctx);
@@ -1709,7 +1929,7 @@ fn gen_ram128x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         if init[i] == BitVal::S1 {
             ram_d |= 1 << i;
         }
-        if init[i+64] == BitVal::S1 {
+        if init[i + 64] == BitVal::S1 {
             ram_c |= 1 << i;
         }
     }
@@ -1744,7 +1964,7 @@ fn gen_srl16(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let l = *['A', 'B', 'C', 'D'].choose(&mut ctx.rng).unwrap();
 
     let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
-    ti.cfg("CLKINV", if clk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if clk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &clk_x);
     let ce = test.make_in(ctx);
     let mut ceused = false;
@@ -1822,7 +2042,16 @@ fn gen_srl16(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         let o6 = test.make_wire(ctx);
         insts[0].connect("Q", &o6);
         ti.cfg(&format!("{l}FFMUX"), "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[(l, 6, &o6)], Some(&clk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[(l, 6, &o6)],
+            Some(&clk_v),
+            true,
+            None,
+        );
     } else {
         let o6 = test.make_out(ctx);
         insts[0].connect("Q", &o6);
@@ -1857,7 +2086,7 @@ fn gen_srl32(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let l = *['A', 'B', 'C', 'D'].choose(&mut ctx.rng).unwrap();
 
     let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
-    ti.cfg("CLKINV", if clk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if clk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &clk_x);
     let ce = test.make_in(ctx);
     let mut ceused = false;
@@ -1901,7 +2130,16 @@ fn gen_srl32(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let o6 = test.make_wire(ctx);
         inst.connect("Q", &o6);
         ti.cfg(&format!("{l}FFMUX"), "O6");
-        ceused = make_ffs(test, ctx, mode, &mut ti, &[(l, 6, &o6)], Some(&clk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &[(l, 6, &o6)],
+            Some(&clk_v),
+            true,
+            None,
+        );
     } else {
         let o6 = test.make_out(ctx);
         inst.connect("Q", &o6);
@@ -1924,7 +2162,7 @@ fn gen_srl32(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u8) {
     let mut insts = Vec::new();
     for _ in 0..num {
-        let inst = SrcInst::new(ctx, if sz == 16 { "SRLC16E" } else {"SRLC32E"});
+        let inst = SrcInst::new(ctx, if sz == 16 { "SRLC16E" } else { "SRLC32E" });
         insts.push(inst);
     }
     let mut ti = TgtInst::new(&["SLICEM"]);
@@ -1932,7 +2170,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
     let uset = ctx.gen_name();
 
     let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
-    ti.cfg("CLKINV", if clk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if clk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &clk_x);
     let ce = test.make_in(ctx);
     let mut ceused = false;
@@ -1949,15 +2187,15 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
     cd.push(test.make_in(ctx));
     if matches!(mode, Mode::Virtex6 | Mode::Series7) {
         if sz == 16 {
-            ti.pin_in(&format!("{l}X", l=lets[num-1]), &cd[num-1]);
+            ti.pin_in(&format!("{l}X", l = lets[num - 1]), &cd[num - 1]);
         } else {
-            ti.pin_in(&format!("{l}I", l=lets[num-1]), &cd[num-1]);
+            ti.pin_in(&format!("{l}I", l = lets[num - 1]), &cd[num - 1]);
         }
     } else {
         if sz == 16 {
-            ti.pin_in(&format!("{l}I", l=lets[num-1]), &cd[num-1]);
+            ti.pin_in(&format!("{l}I", l = lets[num - 1]), &cd[num - 1]);
         } else {
-            ti.pin_in(&format!("{l}X", l=lets[num-1]), &cd[num-1]);
+            ti.pin_in(&format!("{l}X", l = lets[num - 1]), &cd[num - 1]);
         }
     }
 
@@ -2001,7 +2239,10 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
             }
             ti.bel_ram(&format!("{l}6LUT"), &inst.name, 6, val6);
         }
-        ti.cfg(&format!("{l}6RAMMODE"), if sz == 16 {"SRL16"} else {"SRL32"});
+        ti.cfg(
+            &format!("{l}6RAMMODE"),
+            if sz == 16 { "SRL16" } else { "SRL32" },
+        );
         if i < 3 && sz == 32 {
             if i == num - 1 {
                 if matches!(mode, Mode::Virtex6 | Mode::Series7) {
@@ -2010,13 +2251,13 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
                 }
             } else {
-                let nl = lets[i+1];
+                let nl = lets[i + 1];
                 ti.cfg(&format!("{l}DI1MUX"), &format!("{nl}MC31"));
             }
         }
     }
 
-    let q31 = if sz == 16 {"Q15"} else {"Q31"};
+    let q31 = if sz == 16 { "Q15" } else { "Q31" };
 
     if ctx.rng.gen() {
         let mut o6 = Vec::new();
@@ -2041,7 +2282,16 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
             ti.pin_out("DMUX", &mc31);
             ti.cfg("DOUTMUX", "MC31");
         }
-        ceused = make_ffs(test, ctx, mode, &mut ti, &stuff[..], Some(&clk_v), true, Some(&uset));
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &stuff[..],
+            Some(&clk_v),
+            true,
+            Some(&uset),
+        );
     } else {
         for i in 0..num {
             let l = lets[i];
@@ -2059,7 +2309,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
     for i in 0..num {
         insts[i].connect("D", &cd[i]);
         if i > 0 {
-            insts[i].connect(q31, &cd[i-1]);
+            insts[i].connect(q31, &cd[i - 1]);
         }
     }
 
@@ -2087,7 +2337,7 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let lets = ['A', 'B', 'C', 'D'];
 
     let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
-    ti.cfg("CLKINV", if clk_inv {"CLK_B"} else {"CLK"});
+    ti.cfg("CLKINV", if clk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &clk_x);
     let ce = test.make_in(ctx);
     let mut ceused = false;
@@ -2101,9 +2351,9 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     }
     cd.push(test.make_in(ctx));
     if matches!(mode, Mode::Virtex6 | Mode::Series7) {
-        ti.pin_in(&format!("{l}I", l=lets[num-1]), &cd[num-1]);
+        ti.pin_in(&format!("{l}I", l = lets[num - 1]), &cd[num - 1]);
     } else {
-        ti.pin_in(&format!("{l}X", l=lets[num-1]), &cd[num-1]);
+        ti.pin_in(&format!("{l}X", l = lets[num - 1]), &cd[num - 1]);
     }
 
     for i in 0..num {
@@ -2141,7 +2391,7 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
                 }
             } else {
-                let nl = lets[i+1];
+                let nl = lets[i + 1];
                 ti.cfg(&format!("{l}DI1MUX"), &format!("{nl}MC31"));
             }
         }
@@ -2165,7 +2415,16 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             ti.cfg("DFFMUX", "MC31");
             stuff.push(('D', 6, &mc31[..]));
         }
-        ceused = make_ffs(test, ctx, mode, &mut ti, &stuff[..], Some(&clk_v), true, None);
+        ceused = make_ffs(
+            test,
+            ctx,
+            mode,
+            &mut ti,
+            &stuff[..],
+            Some(&clk_v),
+            true,
+            None,
+        );
     } else {
         for i in 0..num {
             let l = lets[i];
@@ -2193,7 +2452,7 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     for i in 0..num {
         insts[i].connect("CDI", &cd[i]);
         if i > 0 {
-            insts[i].connect("CDO", &cd[i-1]);
+            insts[i].connect("CDO", &cd[i - 1]);
         }
     }
 
@@ -2213,7 +2472,11 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
 fn gen_ff(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let mut ti = TgtInst::new(&["SLICEM", "SLICEL", "SLICEX"]);
-    let num = if mode == Mode::Virtex5 && ctx.rng.gen() {3} else {4};
+    let num = if mode == Mode::Virtex5 && ctx.rng.gen() {
+        3
+    } else {
+        4
+    };
     let inps = test.make_ins(ctx, num);
     let mut stuff = Vec::new();
     let uset = ctx.gen_name();
@@ -2229,7 +2492,16 @@ fn gen_ff(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             stuff.push((l, 6, &inps[i][..]));
         }
     }
-    make_ffs(test, ctx, mode, &mut ti, &stuff, None, num == 4, Some(&uset));
+    make_ffs(
+        test,
+        ctx,
+        mode,
+        &mut ti,
+        &stuff,
+        None,
+        num == 4,
+        Some(&uset),
+    );
     test.tgt_insts.push(ti);
 }
 

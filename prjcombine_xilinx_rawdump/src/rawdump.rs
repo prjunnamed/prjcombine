@@ -1,9 +1,9 @@
+use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntitySet, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use prjcombine_entity::{entity_id, EntitySet, EntityVec, EntityMap, EntityPartVec};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct Coord {
@@ -11,7 +11,7 @@ pub struct Coord {
     pub y: u16,
 }
 
-entity_id!{
+entity_id! {
     pub id WireId u32, reserve 1;
     pub id NodeClassId u32, reserve 1;
     pub id SpeedId u32, reserve 1;
