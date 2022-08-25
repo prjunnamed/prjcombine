@@ -299,7 +299,6 @@ impl<'a> Verifier<'a> {
         }
         for &w in &wires {
             match self.db.wires[w.1].kind {
-                int::WireKind::ClkOut(_) => (),
                 int::WireKind::Tie0 | int::WireKind::Tie1 | int::WireKind::TiePullup => {
                     if let Some(n) = naming.wires.get(&w) {
                         self.claim_node(&[(crds[def_rt], n)]);

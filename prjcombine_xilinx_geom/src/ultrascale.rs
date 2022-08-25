@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
 use crate::{CfgPin, DisabledPart, ColId, RowId, SlrId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -653,8 +652,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
             yb += 1;
         }
         let row_skip = reg_skip_bot * 60;
-        egrid.tiles.push(Array2::default([grid.regs * 60, grid.columns.len()]));
-        let mut slr = egrid.slr_mut(slrid);
+        let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 60);
         for (col, &cd) in &grid.columns {
             let x = col.to_idx();
             for row in slr.rows() {
@@ -790,7 +788,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                 let row_t = RowId::from_idx(height);
                 for dx in 0..width {
                     let col = ColId::from_idx(dx);
-                    slr.fill_term_anon((col, row_t), "S");
+                    slr.fill_term_anon((col, row_t), "TERM.S");
                 }
             }
             let x = ps.col.to_idx();
@@ -801,7 +799,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
                 } else {
                     yb + row.to_idx() - row_skip
                 };
-                slr.fill_term_anon((ps.col, row), "W");
+                slr.fill_term_anon((ps.col, row), "TERM.W");
                 slr[(ps.col, row)].insert_intf(
                     0,
                     db.get_intf("INTF.W.IO"),
@@ -820,22 +818,33 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
         let row_t = slr.rows().next_back().unwrap();
         for col in slr.cols() {
             if !slr[(col, row_b)].nodes.is_empty() {
-                slr.fill_term_anon((col, row_b), "S");
+                slr.fill_term_anon((col, row_b), "TERM.S");
             }
             if !slr[(col, row_t)].nodes.is_empty() {
-                slr.fill_term_anon((col, row_t), "N");
+                slr.fill_term_anon((col, row_t), "TERM.N");
             }
         }
         for row in slr.rows() {
             if !slr[(col_l, row)].nodes.is_empty() {
-                slr.fill_term_anon((col_l, row), "W");
+                slr.fill_term_anon((col_l, row), "TERM.W");
             }
             if !slr[(col_r, row)].nodes.is_empty() {
-                slr.fill_term_anon((col_r, row), "E");
+                slr.fill_term_anon((col_r, row), "TERM.E");
             }
         }
 
         slr.fill_main_passes();
+
+        for col in slr.cols() {
+            for row in slr.rows() {
+                let crow = RowId::from_idx(if row.to_idx() % 60 < 30 {
+                    row.to_idx() / 60 * 60 + 29
+                } else {
+                    row.to_idx() / 60 * 60 + 30
+                });
+                slr[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         yb += slr.rows().len() - reg_skip_bot * 60 - reg_skip_top * 60;
     }

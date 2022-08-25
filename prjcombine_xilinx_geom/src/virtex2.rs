@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
 use crate::{CfgPin, BelCoord, eint, int, SlrId, ColId, RowId, BelId};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -39,8 +38,8 @@ pub struct Grid {
     pub rows: EntityVec<RowId, RowIoKind>,
     // For Spartan 3E: range of rows containing RAMs
     pub rows_ram: Option<(RowId, RowId)>,
-    // (hclk row, end row)
-    pub rows_hclk: Vec<(RowId, RowId)>,
+    // (hclk row, start row, end row)
+    pub rows_hclk: Vec<(RowId, RowId, RowId)>,
     // For Virtex 2
     pub row_pci: Option<RowId>,
     pub holes_ppc: Vec<(ColId, RowId)>,
@@ -890,12 +889,11 @@ impl Grid {
         egrid.tie_kind = Some("VCC".to_string());
         egrid.tie_pin_pullup = Some("VCCOUT".to_string());
 
-        let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns.len(), self.rows.len());
         let def_rt = int::NodeRawTileId::from_idx(0);
 
         let use_xy = matches!(self.kind, GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp);
-        let mut rows_brk: BTreeSet<_> = self.rows_hclk.iter().map(|&(_, r)| r - 1).collect();
+        let mut rows_brk: BTreeSet<_> = self.rows_hclk.iter().map(|&(_, _, r)| r - 1).collect();
         rows_brk.remove(&self.row_top());
         if self.kind != GridKind::Spartan3ADsp {
             rows_brk.remove(&(self.row_mid() - 1));
@@ -3317,7 +3315,7 @@ impl Grid {
         }
 
         if use_xy {
-            for &(row, _) in &self.rows_hclk {
+            for &(row, _, _) in &self.rows_hclk {
                 let kind = if row > self.row_mid() {"PCI_CE_N"} else {"PCI_CE_S"};
                 for col in [col_l, col_r] {
                     let x = xlut[col];
@@ -3356,6 +3354,19 @@ impl Grid {
                             &[(col_r, row)],
                         );
                     }
+                }
+            }
+        }
+
+        for col in grid.cols() {
+            for &(row_m, row_b, row_t) in &self.rows_hclk {
+                for r in row_b.to_idx()..row_m.to_idx() {
+                    let row = RowId::from_idx(r);
+                    grid[(col, row)].clkroot = (col, row_m - 1);
+                }
+                for r in row_m.to_idx()..row_t.to_idx() {
+                    let row = RowId::from_idx(r);
+                    grid[(col, row)].clkroot = (col, row_m);
                 }
             }
         }

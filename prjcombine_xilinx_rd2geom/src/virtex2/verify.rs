@@ -9,7 +9,7 @@ use crate::verify::{Verifier, SitePinDir};
 fn verify_pci_ce(grid: &Grid, vrf: &mut Verifier, slr: SlrId, col: ColId, row: RowId, crd: Coord, wire: &str) {
     if col == grid.col_left() || col == grid.col_right() {
         if row < grid.row_mid() {
-            for &(srow, _) in &grid.rows_hclk {
+            for &(srow, _, _) in &grid.rows_hclk {
                 if srow > grid.row_mid() {
                     break;
                 }
@@ -24,7 +24,7 @@ fn verify_pci_ce(grid: &Grid, vrf: &mut Verifier, slr: SlrId, col: ColId, row: R
                 }
             }
         } else {
-            for &(srow, _) in grid.rows_hclk.iter().rev() {
+            for &(srow, _, _) in grid.rows_hclk.iter().rev() {
                 if srow <= grid.row_mid() {
                     break;
                 }

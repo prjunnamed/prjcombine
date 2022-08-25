@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
 use crate::{CfgPin, BelCoord, GtPin, DisabledPart, ColId, RowId, BelId, int, eint::{self, ExpandedSlrRefMut, Coord}};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -119,7 +118,7 @@ impl Gt {
 }
 
 fn fill_intf_rterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, name: String) {
-    slr.fill_term_tile(crd, "E", "TERM.E.INTF", name.clone());
+    slr.fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
     let tile = &mut slr[crd];
     tile.intfs.clear();
     tile.add_intf(
@@ -130,7 +129,7 @@ fn fill_intf_rterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, nam
 }
 
 fn fill_intf_lterm(db: &int::IntDb, slr: &mut ExpandedSlrRefMut, crd: Coord, name: String, is_brk: bool) {
-    slr.fill_term_tile(crd, "W", "TERM.W.INTF", name.clone());
+    slr.fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
     let tile = &mut slr[crd];
     tile.intfs.clear();
     tile.add_intf(
@@ -372,8 +371,7 @@ impl Grid {
         egrid.tie_pin_pullup = Some("KEEP1".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let slrid = egrid.tiles.push(Array2::default([self.rows.len(), self.columns.len()]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns.len(), self.rows.len());
         let def_rt = int::NodeRawTileId::from_idx(0);
 
         let mut tie_x = 0;
@@ -495,7 +493,7 @@ impl Grid {
                 }
             }
             let rxl = rxlut[col_l] - 1;
-            grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("{ltt}{txtra}_X{rxl}Y{ry}"));
+            grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("{ltt}{txtra}_X{rxl}Y{ry}"));
             let tile = &mut grid[(col_r, row)];
             let mut rtt = "IOI_RTERM";
             if rd.rio {
@@ -539,7 +537,7 @@ impl Grid {
                 }
             }
             let rxr = rxlut[col_r] + 3;
-            grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("{rtt}{txtra}_X{rxr}Y{ry}"));
+            grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("{rtt}{txtra}_X{rxr}Y{ry}"));
         }
 
         for (col, &cd) in &self.columns {
@@ -642,8 +640,8 @@ impl Grid {
                 for dy in 0..8 {
                     let row = row_to - 7 + dy;
                     let ry = rylut[row];
-                    grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                    grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                    grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
+                    grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
                 }
                 let col_l = bc - 5;
                 let col_r = bc + 3;
@@ -685,8 +683,8 @@ impl Grid {
                     let ry = rylut[row];
                     let rxl = rxlut[col_l] + 5;
                     let rxr = rxlut[col_r] - 2;
-                    grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                    grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                    grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
+                    grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
                 }
                 let col_l = bc - 3;
                 let col_r = bc + 6;
@@ -716,8 +714,8 @@ impl Grid {
                 let ry = rylut[row];
                 let rxl = rxlut[col_l] + 6;
                 let rxr = rxlut[col_r] - 1;
-                grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
+                grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
             }
             let col_l = bcl - 5;
             let col_r = bcl + 3;
@@ -738,8 +736,8 @@ impl Grid {
                 let ry = rylut[row];
                 let rxl = rxlut[col_l] + 5;
                 let rxr = rxlut[col_r] - 2;
-                grid.fill_term_tile((col_l, row), "E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
-                grid.fill_term_tile((col_r, row), "W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
+                grid.fill_term_tile((col_l, row), "TERM.E", "TERM.E.INTF", format!("INT_RTERM_X{rxl}Y{ry}"));
+                grid.fill_term_tile((col_r, row), "TERM.W", "TERM.W.INTF", format!("INT_LTERM_X{rxr}Y{ry}"));
             }
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -778,12 +776,23 @@ impl Grid {
                 row_t -= 1;
             }
             if !btt.is_empty() {
-                grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("{btt}_X{rx}Y{ryb}"));
+                grid.fill_term_tile((col, row_b), "TERM.S", "TERM.S", format!("{btt}_X{rx}Y{ryb}"));
             }
-            grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("{ttt}_X{rx}Y{ryt}"));
+            grid.fill_term_tile((col, row_t), "TERM.N", "TERM.N", format!("{ttt}_X{rx}Y{ryt}"));
         }
 
         grid.fill_main_passes();
+
+        for col in grid.cols() {
+            for row in grid.rows() {
+                let crow = RowId::from_idx(if row.to_idx() % 16 < 8 {
+                    row.to_idx() / 16 * 16 + 7
+                } else {
+                    row.to_idx() / 16 * 16 + 8
+                });
+                grid[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         egrid
     }

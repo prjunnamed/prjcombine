@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
 use super::{GtPin, SysMonPin, CfgPin, ColId, RowId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -351,8 +350,7 @@ impl Grid {
         egrid.tie_pin_pullup = Some("KEEP1".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let slrid = egrid.tiles.push(Array2::default([self.regs * 20, self.columns.len()]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns.len(), self.regs * 20);
 
         for (col, &kind) in &self.columns {
             for row in grid.rows() {
@@ -464,8 +462,8 @@ impl Grid {
             for dx in 1..13 {
                 let col = bc + dx;
                 let x = col.to_idx();
-                grid.fill_term_tile((col, row_b), "N.PPC", "TERM.PPC.N", format!("PPC_B_TERM_X{x}Y{yb}"));
-                grid.fill_term_tile((col, row_t), "S.PPC", "TERM.PPC.S", format!("PPC_T_TERM_X{x}Y{yt}"));
+                grid.fill_term_tile((col, row_b), "TERM.N.PPC", "TERM.N.PPC", format!("PPC_B_TERM_X{x}Y{yb}"));
+                grid.fill_term_tile((col, row_t), "TERM.S.PPC", "TERM.S.PPC", format!("PPC_T_TERM_X{x}Y{yt}"));
             }
         }
 
@@ -474,8 +472,8 @@ impl Grid {
         let term_n = db.get_term("MAIN.NHOLE.N");
         let term_s = db.get_term("MAIN.NHOLE.S");
         for col in grid.cols() {
-            grid.fill_term_anon((col, row_b), "S.HOLE");
-            grid.fill_term_anon((col, row_t), "N.HOLE");
+            grid.fill_term_anon((col, row_b), "TERM.S.HOLE");
+            grid.fill_term_anon((col, row_t), "TERM.N.HOLE");
             grid.fill_term_pair_anon((col, row_t - 1), (col, row_t), term_n, term_s);
         }
         let col_l = grid.cols().next().unwrap();
@@ -485,14 +483,14 @@ impl Grid {
         for row in grid.rows() {
             let y = row.to_idx();
             if self.columns[col_l] == ColumnKind::Gtx {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("GTX_L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("GTX_L_TERM_INT_X{xl}Y{y}"));
             } else {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
             }
             if matches!(self.columns[col_r], ColumnKind::Gtp | ColumnKind::Gtx) {
-                grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
             } else {
-                grid.fill_term_anon((col_r, row), "E.HOLE");
+                grid.fill_term_anon((col_r, row), "TERM.E.HOLE");
             }
         }
 
@@ -524,6 +522,13 @@ impl Grid {
         }
 
         grid.fill_main_passes();
+
+        for col in grid.cols() {
+            for row in grid.rows() {
+                let crow = RowId::from_idx(row.to_idx() / 20 * 20 + 10);
+                grid[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         egrid
     }

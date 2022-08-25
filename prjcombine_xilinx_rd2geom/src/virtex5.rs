@@ -416,22 +416,22 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     builder.node_type("INT", "INT", "INT");
 
-    builder.extract_term_buf("W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
-    builder.extract_term_buf("W", Dir::W, "GTX_L_TERM_INT", "TERM.W", &[]);
-    builder.extract_term_buf("E", Dir::E, "R_TERM_INT", "TERM.E", &[]);
-    builder.make_blackhole_term("E.HOLE", Dir::E, &lh_bh_e);
-    builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
-    builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
+    builder.extract_term_buf("TERM.W", Dir::W, "L_TERM_INT", "TERM.W", &[]);
+    builder.extract_term_buf("TERM.W", Dir::W, "GTX_L_TERM_INT", "TERM.W", &[]);
+    builder.extract_term_buf("TERM.E", Dir::E, "R_TERM_INT", "TERM.E", &[]);
+    builder.make_blackhole_term("TERM.E.HOLE", Dir::E, &lh_bh_e);
+    builder.make_blackhole_term("TERM.S.HOLE", Dir::S, &lv_bh_s);
+    builder.make_blackhole_term("TERM.N.HOLE", Dir::N, &lv_bh_n);
     let forced = [
         (builder.find_wire("PENT.NW2.5.N"), builder.find_wire("PENT.WN0.5")),
         (builder.find_wire("PENT.WN0.5"), builder.find_wire("PENT.WS2.4")),
     ];
-    builder.extract_term_buf("S.PPC", Dir::S, "PPC_T_TERM", "TERM.PPC.S", &forced);
+    builder.extract_term_buf("TERM.S.PPC", Dir::S, "PPC_T_TERM", "TERM.S.PPC", &forced);
     let forced = [
         (builder.find_wire("PENT.NR2.0"), builder.find_wire("PENT.WL0.0.S")),
         (builder.find_wire("PENT.SL0.1"), builder.find_wire("PENT.NR2.0")),
     ];
-    builder.extract_term_buf("N.PPC", Dir::N, "PPC_B_TERM", "TERM.PPC.N", &forced);
+    builder.extract_term_buf("TERM.N.PPC", Dir::N, "PPC_B_TERM", "TERM.N.PPC", &forced);
 
     for &xy_l in rd.tiles_by_kind_name("INT_BUFS_L") {
         let mut xy_r = xy_l;

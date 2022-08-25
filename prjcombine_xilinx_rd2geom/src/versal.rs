@@ -973,6 +973,16 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                 x: xy.x,
                 y: xy.y + 1,
             };
+            let mut int_xy_b = Coord {
+                x: xy.x,
+                y: xy.y - 1,
+            };
+            if rd.tile_kinds.key(rd.tiles[&int_xy_b].kind) != "INT" {
+                int_xy_b.y -= 1;
+                if rd.tile_kinds.key(rd.tiles[&int_xy_b].kind) != "INT" {
+                    continue;
+                }
+            }
             builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }

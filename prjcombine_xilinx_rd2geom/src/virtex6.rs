@@ -368,9 +368,9 @@ fn make_int_db(rd: &Part) -> int::IntDb {
 
     builder.node_type("INT", "INT", "INT");
 
-    builder.extract_term_conn("W", Dir::W, "L_TERM_INT", &[]);
-    builder.extract_term_conn("E", Dir::E, "R_TERM_INT", &[]);
-    builder.extract_term_conn("S", Dir::S, "BRKH_T_TERM_INT", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "L_TERM_INT", &[]);
+    builder.extract_term_conn("TERM.E", Dir::E, "R_TERM_INT", &[]);
+    builder.extract_term_conn("TERM.S", Dir::S, "BRKH_T_TERM_INT", &[]);
     for &xy in rd.tiles_by_kind_name("PCIE") {
         let int_xy_a = Coord {
             x: xy.x,
@@ -380,12 +380,12 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             x: xy.x + 2,
             y: xy.y + 11,
         };
-        builder.extract_term_conn_tile("S", Dir::S, int_xy_a, &[]);
-        builder.extract_term_conn_tile("S", Dir::S, int_xy_b, &[]);
+        builder.extract_term_conn_tile("TERM.S", Dir::S, int_xy_a, &[]);
+        builder.extract_term_conn_tile("TERM.S", Dir::S, int_xy_b, &[]);
     }
-    builder.extract_term_conn("N", Dir::N, "BRKH_B_TERM_INT", &[]);
-    builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
-    builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
+    builder.extract_term_conn("TERM.N", Dir::N, "BRKH_B_TERM_INT", &[]);
+    builder.make_blackhole_term("TERM.S.HOLE", Dir::S, &lv_bh_s);
+    builder.make_blackhole_term("TERM.N.HOLE", Dir::N, &lv_bh_n);
 
     builder.extract_intf("INTF", Dir::E, "INT_INTERFACE", "INTF", true);
     builder.extract_intf("INTF", Dir::E, "IOI_L_INT_INTERFACE", "INTF.IOI_L", true);

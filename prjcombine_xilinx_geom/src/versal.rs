@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
 use crate::{DisabledPart, ColId, RowId, SlrId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -120,8 +119,7 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
     let mut yb = 0;
     let x_cfrm = grids.values().map(|x| x.col_cfrm.to_idx()).max().unwrap();
     for (slrid, grid) in grids {
-        egrid.tiles.push(Array2::default([grid.regs * 48, grid.columns.len()]));
-        let mut slr = egrid.slr_mut(slrid);
+        let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 48);
         let col_l = slr.cols().next().unwrap();
         let col_r = slr.cols().next_back().unwrap();
         let row_b = slr.rows().next().unwrap();
@@ -306,6 +304,19 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, dis
         }
 
         slr.fill_main_passes();
+
+        for col in slr.cols() {
+            for row in slr.rows() {
+                let crow = RowId::from_idx(if grid.regs % 2 == 1 && row.to_idx() >= (grid.regs - 1) * 48 {
+                    row.to_idx() / 48 * 48
+                } else if row.to_idx() % 96 < 48 {
+                    row.to_idx() / 96 * 96 + 47
+                } else {
+                    row.to_idx() / 96 * 96 + 48
+                });
+                slr[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         yb += slr.rows().len();
     }

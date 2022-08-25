@@ -283,10 +283,10 @@ fn make_int_db(rd: &Part) -> int::IntDb {
     builder.node_type("INT_SO", "INT", "INT");
     builder.node_type("INT_SO_DCM0", "INT", "INT.DCM0");
 
-    builder.extract_term("W", None, Dir::W, "L_TERM_INT", "TERM.W");
-    builder.extract_term("E", None, Dir::E, "R_TERM_INT", "TERM.E");
-    builder.extract_term("S", None, Dir::S, "B_TERM_INT", "TERM.S");
-    builder.extract_term("N", None, Dir::N, "T_TERM_INT", "TERM.N");
+    builder.extract_term("TERM.W", None, Dir::W, "L_TERM_INT", "TERM.W");
+    builder.extract_term("TERM.E", None, Dir::E, "R_TERM_INT", "TERM.E");
+    builder.extract_term("TERM.S", None, Dir::S, "B_TERM_INT", "TERM.S");
+    builder.extract_term("TERM.N", None, Dir::N, "T_TERM_INT", "TERM.N");
     for tkn in [
         "MGT_AL_BOT",
         "MGT_AL_MID",
@@ -302,7 +302,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: xy.x + 1,
                     y: xy.y - 9 + delta,
                 };
-                builder.extract_term_tile("W", None, Dir::W, xy, format!("TERM.W.MGT{i}"), int_xy);
+                builder.extract_term_tile("TERM.W", None, Dir::W, xy, format!("TERM.W.MGT{i}"), int_xy);
             }
         }
     }
@@ -321,7 +321,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
                     x: xy.x - 1,
                     y: xy.y - 9 + delta,
                 };
-                builder.extract_term_tile("E", None, Dir::E, xy, format!("TERM.E.MGT{i}"), int_xy);
+                builder.extract_term_tile("TERM.E", None, Dir::E, xy, format!("TERM.E.MGT{i}"), int_xy);
             }
         }
     }

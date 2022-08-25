@@ -29,20 +29,23 @@ fn get_cols_bram(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
         .collect()
 }
 
-fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId)> {
-    let mut cols_clkv: Vec<_> = find_columns(rd, &["GCLKV", "CLKV"])
+fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId, ColId)> {
+    let mut cols_clkv: BTreeSet<_> = find_columns(rd, &["GCLKV", "CLKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
         .collect();
-    cols_clkv.insert(0, int.cols.first_id().unwrap() + 2);
-    cols_clkv.push(int.cols.last_id().unwrap() - 1);
-    let mut cols_brk: Vec<_> = find_columns(rd, &["GBRKV"])
+    cols_clkv.insert(int.cols.first_id().unwrap() + 1);
+    cols_clkv.insert(int.cols.last_id().unwrap() - 1);
+    let mut cols_brk: BTreeSet<_> = find_columns(rd, &["GBRKV"])
         .into_iter()
         .map(|r| int.lookup_column_inter(r))
         .collect();
-    cols_brk.push(int.cols.next_id());
+    let mut cols_brk_l = cols_brk.clone();
+    cols_brk_l.insert(int.cols.first_id().unwrap());
+    cols_brk.insert(int.cols.next_id());
     assert_eq!(cols_clkv.len(), cols_brk.len());
-    cols_clkv.into_iter().zip(cols_brk.into_iter()).collect()
+    assert_eq!(cols_clkv.len(), cols_brk_l.len());
+    cols_clkv.into_iter().zip(cols_brk_l.into_iter()).zip(cols_brk.into_iter()).map(|((a, b), c)| (a, b, c)).collect()
 }
 
 fn add_disabled_dlls(disabled: &mut BTreeSet<DisabledPart>, rd: &Part) {

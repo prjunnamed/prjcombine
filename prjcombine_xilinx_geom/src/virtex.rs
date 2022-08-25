@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 use serde::{Serialize, Deserialize};
 use crate::{CfgPin, BelCoord, ColId, RowId, BelId, eint, int, DisabledPart};
-use ndarray::Array2;
 use prjcombine_entity::{EntityId, EntityIds};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -16,7 +15,7 @@ pub struct Grid {
     pub kind: GridKind,
     pub columns: usize,
     pub cols_bram: BTreeSet<ColId>,
-    pub cols_clkv: Vec<(ColId, ColId)>,
+    pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
     pub vref: BTreeSet<BelCoord>,
     pub cfg_io: BTreeMap<CfgPin, BelCoord>,
@@ -150,8 +149,7 @@ impl Grid {
 
     pub fn expand_grid<'a>(&self, disabled: &BTreeSet<DisabledPart>, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
-        let slrid = egrid.tiles.push(Array2::default([self.rows, self.columns]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns, self.rows);
 
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
@@ -629,6 +627,27 @@ impl Grid {
             &[pci_r],
         );
         node.add_bel(0, "RPCILOGIC".to_string());
+
+        for row in grid.rows() {
+            for &(col_m, col_l, col_r) in &self.cols_clkv {
+                for c in col_l.to_idx()..col_m.to_idx() {
+                    let col = ColId::from_idx(c);
+                    grid[(col, row)].clkroot = (col_m - 1, row);
+                }
+                if (col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1) && row != self.row_bio() && row != self.row_tio() {
+                    grid[(col_m, row)].clkroot = (col_m, self.row_clk());
+                    for c in (col_m.to_idx() + 1)..col_r.to_idx() {
+                        let col = ColId::from_idx(c);
+                        grid[(col, row)].clkroot = (col_m + 1, row);
+                    }
+                } else {
+                    for c in col_m.to_idx()..col_r.to_idx() {
+                        let col = ColId::from_idx(c);
+                        grid[(col, row)].clkroot = (col_m, row);
+                    }
+                }
+            }
+        }
 
         egrid
     }

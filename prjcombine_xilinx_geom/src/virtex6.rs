@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
 use super::{CfgPin, DisabledPart, SysMonPin, GtPin, ColId, RowId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -297,8 +296,7 @@ impl Grid {
         egrid.tie_kind = Some("TIEOFF".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let slrid = egrid.tiles.push(Array2::default([self.regs * 40, self.columns.len()]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns.len(), self.regs * 40);
 
         let mut tie_x = 0;
         for (col, &kind) in &self.columns {
@@ -354,10 +352,10 @@ impl Grid {
         for dx in 0..6 {
             let col = self.col_cfg - 6 + dx;
             if row_b.to_idx() != 0 {
-                grid.fill_term_anon((col, row_b - 1), "N");
+                grid.fill_term_anon((col, row_b - 1), "TERM.N");
             }
             if row_t.to_idx() != self.regs * 40 {
-                grid.fill_term_anon((col, row_t), "S");
+                grid.fill_term_anon((col, row_t), "TERM.S");
             }
         }
 
@@ -394,11 +392,11 @@ impl Grid {
                     );
                 }
                 if br.to_idx() != 0 {
-                    grid.fill_term_anon((col - 1, br - 1), "N");
-                    grid.fill_term_anon((col, br - 1), "N");
+                    grid.fill_term_anon((col - 1, br - 1), "TERM.N");
+                    grid.fill_term_anon((col, br - 1), "TERM.N");
                 }
-                grid.fill_term_anon((col - 1, br + 20), "S");
-                grid.fill_term_anon((col, br + 20), "S");
+                grid.fill_term_anon((col - 1, br + 20), "TERM.S");
+                grid.fill_term_anon((col, br + 20), "TERM.S");
             }
         }
 
@@ -406,20 +404,31 @@ impl Grid {
         let row_t = grid.rows().next_back().unwrap();
         for col in grid.cols() {
             if !grid[(col, row_b)].nodes.is_empty() {
-                grid.fill_term_anon((col, row_b), "S.HOLE");
+                grid.fill_term_anon((col, row_b), "TERM.S.HOLE");
             }
             if !grid[(col, row_t)].nodes.is_empty() {
-                grid.fill_term_anon((col, row_t), "N.HOLE");
+                grid.fill_term_anon((col, row_t), "TERM.N.HOLE");
             }
         }
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
         for row in grid.rows() {
-            grid.fill_term_anon((col_l, row), "W");
-            grid.fill_term_anon((col_r, row), "E");
+            grid.fill_term_anon((col_l, row), "TERM.W");
+            grid.fill_term_anon((col_r, row), "TERM.E");
         }
 
         grid.fill_main_passes();
+
+        for col in grid.cols() {
+            for row in grid.rows() {
+                let crow = RowId::from_idx(if row.to_idx() % 40 < 20 {
+                    row.to_idx() / 40 * 40 + 19
+                } else {
+                    row.to_idx() / 40 * 40 + 20
+                });
+                grid[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         egrid
     }

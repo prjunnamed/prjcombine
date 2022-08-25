@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, HashMap};
 use serde::{Serialize, Deserialize};
 use super::{CfgPin, ExtraDie, SysMonPin, GtPin, PsPin, ColId, RowId, SlrId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityVec, EntityId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -558,9 +557,8 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
     if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
         yb += 1;
     }
-    for (slrid, grid) in grids {
-        egrid.tiles.push(Array2::default([grid.regs * 50, grid.columns.len()]));
-        let mut slr = egrid.slr_mut(slrid);
+    for &grid in grids.values() {
+        let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 50);
         let mut x = 0;
         let mut tie_x = 0;
         let mut xlut = EntityVec::new();
@@ -624,10 +622,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
             for dx in 0..6 {
                 let col = grid.col_cfg - 6 + dx;
                 if row_cb.to_idx() != 0 {
-                    slr.fill_term_anon((col, row_cb - 1), "N");
+                    slr.fill_term_anon((col, row_cb - 1), "TERM.N");
                 }
                 if row_ct.to_idx() != grid.regs * 50 {
-                    slr.fill_term_anon((col, row_ct), "S");
+                    slr.fill_term_anon((col, row_ct), "TERM.S");
                 }
             }
         }
@@ -642,13 +640,13 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                 let row = row_t - 100;
                 for dx in 0..18 {
                     let col = col_l + dx;
-                    slr.fill_term_anon((col, row), "N");
+                    slr.fill_term_anon((col, row), "TERM.N");
                 }
             }
             let col = col_l + 18;
             for dy in 0..100 {
                 let row = row_t - 99 + dy;
-                slr.fill_term_anon((col, row), "W");
+                slr.fill_term_anon((col, row), "TERM.W");
                 let y = yb + row.to_idx();
                 let x = xlut[col];
                 slr[(col, row)].add_intf(
@@ -666,9 +664,9 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                     for dx in 1..3 {
                         let col = hole.col + dx;
                         if hole.row.to_idx() != 0 {
-                            slr.fill_term_anon((col, hole.row - 1), "N");
+                            slr.fill_term_anon((col, hole.row - 1), "TERM.N");
                         }
-                        slr.fill_term_anon((col, hole.row + 25), "S");
+                        slr.fill_term_anon((col, hole.row + 25), "TERM.S");
                     }
                     let col_l = hole.col;
                     let col_r = hole.col + 3;
@@ -705,8 +703,8 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                     slr.nuke_rect(hole.col + 1, hole.row, 4, 50);
                     for dx in 1..5 {
                         let col = hole.col + dx;
-                        slr.fill_term_anon((col, hole.row - 1), "N");
-                        slr.fill_term_anon((col, hole.row + 50), "S");
+                        slr.fill_term_anon((col, hole.row - 1), "TERM.N");
+                        slr.fill_term_anon((col, hole.row + 50), "TERM.S");
                     }
                     let col_l = hole.col;
                     let col_r = hole.col + 5;
@@ -736,10 +734,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                     for dx in 1..19 {
                         let col = hole.col + dx;
                         if hole.row.to_idx() != 0 {
-                            slr.fill_term_anon((col, hole.row - 1), "N");
+                            slr.fill_term_anon((col, hole.row - 1), "TERM.N");
                         }
                         if hole.row.to_idx() + 50 != grid.regs * 50 {
-                            slr.fill_term_anon((col, hole.row + 50), "S");
+                            slr.fill_term_anon((col, hole.row + 50), "TERM.S");
                         }
                     }
                     let col_l = hole.col;
@@ -755,8 +753,8 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                             format!("GTP_INT_INTERFACE_R_X{xl}Y{y}"),
                             db.get_intf_naming("INTF.GTP_R"),
                         );
-                        slr.fill_term_anon((col_l, row), "E");
-                        slr.fill_term_anon((col_r, row), "W");
+                        slr.fill_term_anon((col_l, row), "TERM.E");
+                        slr.fill_term_anon((col_r, row), "TERM.W");
                     }
                 }
                 HoleKind::GtpRight => {
@@ -764,10 +762,10 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                     for dx in 1..19 {
                         let col = hole.col - 19 + dx;
                         if hole.row.to_idx() != 0 {
-                            slr.fill_term_anon((col, hole.row - 1), "N");
+                            slr.fill_term_anon((col, hole.row - 1), "TERM.N");
                         }
                         if hole.row.to_idx() + 50 != grid.regs * 50 {
-                            slr.fill_term_anon((col, hole.row + 50), "S");
+                            slr.fill_term_anon((col, hole.row + 50), "TERM.S");
                         }
                     }
                     let col_l = hole.col - 19;
@@ -783,8 +781,8 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                             format!("GTP_INT_INTERFACE_L_X{xr}Y{y}"),
                             db.get_intf_naming("INTF.GTP_L"),
                         );
-                        slr.fill_term_anon((col_l, row), "E");
-                        slr.fill_term_anon((col_r, row), "W");
+                        slr.fill_term_anon((col_l, row), "TERM.E");
+                        slr.fill_term_anon((col_r, row), "TERM.W");
                     }
                 }
             }
@@ -824,16 +822,16 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
                         slr.nuke_rect(gtcol.col + 1, br, 6, 50);
                         if reg != 0 && gtcol.regs[reg - 1].is_none() {
                             for dx in 1..7 {
-                                slr.fill_term_anon((gtcol.col + dx, br - 1), "N");
+                                slr.fill_term_anon((gtcol.col + dx, br - 1), "TERM.N");
                             }
                         }
                         if reg != grid.regs - 1 && gtcol.regs[reg + 1].is_none() {
                             for dx in 1..7 {
-                                slr.fill_term_anon((gtcol.col + dx, br + 50), "S");
+                                slr.fill_term_anon((gtcol.col + dx, br + 50), "TERM.S");
                             }
                         }
                         for dy in 0..50 {
-                            slr.fill_term_anon((gtcol.col, br + dy), "E");
+                            slr.fill_term_anon((gtcol.col, br + dy), "TERM.E");
                         }
                     }
                     let x = xlut[gtcol.col];
@@ -860,25 +858,25 @@ pub fn expand_grid<'a>(grids: &EntityVec<SlrId, &Grid>, _grid_master: SlrId, ext
         for col in slr.cols() {
             if !slr[(col, row_b)].nodes.is_empty() {
                 if grid.has_no_tbuturn {
-                    slr.fill_term_anon((col, row_b), "S.HOLE");
+                    slr.fill_term_anon((col, row_b), "TERM.S.HOLE");
                 } else {
-                    slr.fill_term_anon((col, row_b), "S");
+                    slr.fill_term_anon((col, row_b), "TERM.S");
                 }
             }
             if !slr[(col, row_t)].nodes.is_empty() {
                 if grid.has_no_tbuturn {
-                    slr.fill_term_anon((col, row_t), "N.HOLE");
+                    slr.fill_term_anon((col, row_t), "TERM.N.HOLE");
                 } else {
-                    slr.fill_term_anon((col, row_t), "N");
+                    slr.fill_term_anon((col, row_t), "TERM.N");
                 }
             }
         }
         for row in slr.rows() {
             if !slr[(col_l, row)].nodes.is_empty() {
-                slr.fill_term_anon((col_l, row), "W");
+                slr.fill_term_anon((col_l, row), "TERM.W");
             }
             if !slr[(col_r, row)].nodes.is_empty() {
-                slr.fill_term_anon((col_r, row), "E");
+                slr.fill_term_anon((col_r, row), "TERM.E");
             }
         }
         for reg in 1..grid.regs {

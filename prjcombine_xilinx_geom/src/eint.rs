@@ -43,6 +43,16 @@ impl<'a> ExpandedGrid<'a> {
         }
     }
 
+    pub fn add_slr<'b>(&'b mut self, width: usize, height: usize) -> (SlrId, ExpandedSlrRefMut<'a, 'b>) {
+        let slrid = self.tiles.push(Array2::from_shape_fn([height, width], |(r, c)| ExpandedTile {
+            nodes: Default::default(),
+            intfs: Default::default(),
+            terms: Default::default(),
+            clkroot: (ColId::from_idx(c), RowId::from_idx(r)),
+        }));
+        (slrid, self.slr_mut(slrid))
+    }
+
     pub fn slrs<'b>(&'b self) -> impl Iterator<Item=ExpandedSlrRef<'a, 'b>> {
         self.tiles.ids().map(|slr| self.slr(slr))
     }
@@ -150,7 +160,9 @@ impl ExpandedSlrRefMut<'_, '_> {
     pub fn nuke_rect(&mut self, x: ColId, y: RowId, w: usize, h: usize) {
         for dx in 0..w {
             for dy in 0..h {
-                self[(x + dx, y + dy)] = Default::default();
+                self[(x + dx, y + dy)].nodes.clear();
+                self[(x + dx, y + dy)].intfs.clear();
+                self[(x + dx, y + dy)].terms = Default::default();
             }
         }
     }
@@ -328,6 +340,10 @@ impl ExpandedGrid<'_> {
             let tile = &slr[wire.1];
             let wi = &self.db.wires[wire.2];
             match wi.kind {
+                WireKind::ClkOut(_) => {
+                    wire.1 = tile.clkroot;
+                    break;
+                }
                 WireKind::CondAlias(node, wf) => {
                     if tile.nodes[0].kind != node {
                         break;
@@ -357,7 +373,8 @@ impl ExpandedGrid<'_> {
                                 }
                                 // horrible hack alert
                                 // XXX kill this
-                                if self.db.nodes.key(slr[t.target.unwrap()].nodes[0].kind) == "INT.DCM.S3.DUMMY" &&
+                                let tt = &slr[t.target.unwrap()];
+                                if !tt.nodes.is_empty() && self.db.nodes.key(tt.nodes[0].kind) == "INT.DCM.S3.DUMMY" &&
                                     self.db.wires[wf].name.starts_with("OMUX") &&
                                     matches!(self.db.wires[wf].kind, WireKind::MuxOut) {
                                         break;
@@ -367,7 +384,7 @@ impl ExpandedGrid<'_> {
                             }
                             None => {
                                 // horrible hack alert
-                                if self.db.terms.key(t.kind) == "N.PPC" && self.db.wires[wire.2].name == "IMUX.BYP4.BOUNCE.S" {
+                                if self.db.terms.key(t.kind) == "TERM.N.PPC" && self.db.wires[wire.2].name == "IMUX.BYP4.BOUNCE.S" {
                                     wire.2 = WireId::from_idx(wire.2.to_idx() - 14);
                                     assert_eq!(self.db.wires[wire.2].name, "IMUX.BYP0.BOUNCE.S");
                                 }
@@ -389,11 +406,12 @@ impl ExpandedGrid<'_> {
     }
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
     pub nodes: Vec<ExpandedTileNode>,
     pub intfs: Vec<ExpandedTileIntf>,
     pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
+    pub clkroot: Coord,
 }
 
 impl ExpandedTile {

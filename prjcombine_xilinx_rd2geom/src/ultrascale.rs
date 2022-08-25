@@ -715,11 +715,11 @@ fn make_int_db_u(rd: &Part) -> int::IntDb {
 
     builder.node_type("INT", "INT", "INT");
 
-    builder.extract_term_conn("W", Dir::W, "INT_TERM_L_IO", &[]);
-    builder.extract_term_conn("W", Dir::W, "INT_INT_INTERFACE_GT_LEFT_FT", &[]);
-    builder.extract_term_conn("E", Dir::E, "INT_INTERFACE_GT_R", &[]);
-    builder.extract_term_conn("S", Dir::S, "INT_TERM_B", &[]);
-    builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "INT_TERM_L_IO", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "INT_INT_INTERFACE_GT_LEFT_FT", &[]);
+    builder.extract_term_conn("TERM.E", Dir::E, "INT_INTERFACE_GT_R", &[]);
+    builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_B", &[]);
+    builder.extract_term_conn("TERM.N", Dir::N, "INT_TERM_T", &[]);
 
     for (dir, tkn) in [
         (Dir::W, "INT_INTERFACE_L"),
@@ -1095,15 +1095,15 @@ fn make_int_db_up(rd: &Part) -> int::IntDb {
 
     builder.node_type("INT", "INT", "INT");
 
-    builder.extract_term_conn("W", Dir::W, "INT_INTF_L_TERM_GT", &[]);
-    builder.extract_term_conn("W", Dir::W, "INT_INTF_LEFT_TERM_PSS", &[]);
-    builder.extract_term_conn("W", Dir::W, "INT_INTF_LEFT_TERM_IO_FT", &[]);
-    builder.extract_term_conn("E", Dir::E, "INT_INTF_R_TERM_GT", &[]);
-    builder.extract_term_conn("E", Dir::E, "INT_INTF_RIGHT_TERM_IO", &[]);
-    builder.extract_term_conn("S", Dir::S, "INT_TERM_B", &[]);
-    builder.extract_term_conn("S", Dir::S, "INT_TERM_P", &[]);
-    builder.extract_term_conn("S", Dir::S, "INT_INT_TERM_H_FT", &[]);
-    builder.extract_term_conn("N", Dir::N, "INT_TERM_T", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "INT_INTF_L_TERM_GT", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "INT_INTF_LEFT_TERM_PSS", &[]);
+    builder.extract_term_conn("TERM.W", Dir::W, "INT_INTF_LEFT_TERM_IO_FT", &[]);
+    builder.extract_term_conn("TERM.E", Dir::E, "INT_INTF_R_TERM_GT", &[]);
+    builder.extract_term_conn("TERM.E", Dir::E, "INT_INTF_RIGHT_TERM_IO", &[]);
+    builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_B", &[]);
+    builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_P", &[]);
+    builder.extract_term_conn("TERM.S", Dir::S, "INT_INT_TERM_H_FT", &[]);
+    builder.extract_term_conn("TERM.N", Dir::N, "INT_TERM_T", &[]);
 
     for (dir, tkn) in [
         (Dir::W, "INT_INTF_L"),

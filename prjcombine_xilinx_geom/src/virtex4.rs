@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use serde::{Serialize, Deserialize};
 use super::{GtPin, SysMonPin, CfgPin, ColId, RowId, int, eint};
-use ndarray::Array2;
 use prjcombine_entity::{EntityId, EntityVec};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -385,8 +384,7 @@ impl Grid {
         egrid.tie_pin_pullup = Some("KEEP1".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let slrid = egrid.tiles.push(Array2::default([self.regs * 16, self.columns.len()]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns.len(), self.regs * 16);
 
         for (col, &kind) in &self.columns {
             for row in grid.rows() {
@@ -594,8 +592,8 @@ impl Grid {
         let yt = row_t.to_idx();
         for col in grid.cols() {
             let x = col.to_idx();
-            grid.fill_term_tile((col, row_b), "S", "TERM.S", format!("B_TERM_INT_X{x}Y{yb}"));
-            grid.fill_term_tile((col, row_t), "N", "TERM.N", format!("T_TERM_INT_X{x}Y{yt}"));
+            grid.fill_term_tile((col, row_b), "TERM.S", "TERM.S", format!("B_TERM_INT_X{x}Y{yb}"));
+            grid.fill_term_tile((col, row_t), "TERM.N", "TERM.N", format!("T_TERM_INT_X{x}Y{yt}"));
         }
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
@@ -608,28 +606,28 @@ impl Grid {
                 let yy = y - dy + 8;
                 let ab = if y % 32 >= 16 {"A"} else {"B"};
                 let tile = format!("MGT_{ab}L_X{xl}Y{yy}");
-                grid.fill_term_tile((col_l, row), "W", &format!("TERM.W.MGT{dy}"), tile.clone());
+                grid.fill_term_tile((col_l, row), "TERM.W", &format!("TERM.W.MGT{dy}"), tile.clone());
                 grid[(col_l, row)].add_intf(
                     db.get_intf("INTF"),
                     tile,
                     db.get_intf_naming(&format!("MGT.{dy}")),
                 );
             } else {
-                grid.fill_term_tile((col_l, row), "W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
+                grid.fill_term_tile((col_l, row), "TERM.W", "TERM.W", format!("L_TERM_INT_X{xl}Y{y}"));
             }
             if self.columns[col_r] == ColumnKind::Gt {
                 let dy = y % 16;
                 let yy = y - dy + 8;
                 let ab = if y % 32 >= 16 {"A"} else {"B"};
                 let tile = format!("MGT_{ab}R_X{xr}Y{yy}");
-                grid.fill_term_tile((col_r, row), "E", &format!("TERM.E.MGT{dy}"), tile.clone());
+                grid.fill_term_tile((col_r, row), "TERM.E", &format!("TERM.E.MGT{dy}"), tile.clone());
                 grid[(col_r, row)].add_intf(
                     db.get_intf("INTF"),
                     tile,
                     db.get_intf_naming(&format!("MGT.{dy}")),
                 );
             } else {
-                grid.fill_term_tile((col_r, row), "E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
+                grid.fill_term_tile((col_r, row), "TERM.E", "TERM.E", format!("R_TERM_INT_X{xr}Y{y}"));
             }
         }
 
@@ -663,6 +661,13 @@ impl Grid {
         }
 
         grid.fill_main_passes();
+
+        for col in grid.cols() {
+            for row in grid.rows() {
+                let crow = RowId::from_idx(row.to_idx() / 16 * 16 + 8);
+                grid[(col, row)].clkroot = (col, crow);
+            }
+        }
 
         egrid
     }

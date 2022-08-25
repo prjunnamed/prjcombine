@@ -614,7 +614,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "GTP_INT_INTERFACE_L",
         "GTP_INT_INT_TERM_L",
     ] {
-        builder.extract_term_conn("W", Dir::W, tkn, &forced);
+        builder.extract_term_conn("TERM.W", Dir::W, tkn, &forced);
     }
     let forced: Vec<_> = (0..6).map(|i| (builder.find_wire(format!("LH.{}", 12 - i)), builder.find_wire(format!("LH.{}", i + 1)))).collect();
     for tkn in [
@@ -623,7 +623,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "GTP_INT_INTERFACE_R",
         "GTP_INT_INT_TERM_R",
     ] {
-        builder.extract_term_conn("E", Dir::E, tkn, &forced);
+        builder.extract_term_conn("TERM.E", Dir::E, tkn, &forced);
     }
     let forced = [
         (builder.find_wire("SNG.WL3.2"), builder.find_wire("SNG.WR0.1")),
@@ -640,7 +640,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "HCLK_L_BOT_UTURN",
         "HCLK_R_BOT_UTURN",
     ] {
-        builder.extract_term_conn("S", Dir::S, tkn, &forced);
+        builder.extract_term_conn("TERM.S", Dir::S, tkn, &forced);
     }
     let forced = [
         (builder.find_wire("SNG.EL3.0"), builder.find_wire("SNG.ER0.0.S")),
@@ -656,11 +656,11 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "HCLK_L_TOP_UTURN",
         "HCLK_R_TOP_UTURN",
     ] {
-        builder.extract_term_conn("N", Dir::N, tkn, &forced);
+        builder.extract_term_conn("TERM.N", Dir::N, tkn, &forced);
     }
     // TODO: this enough?
-    builder.make_blackhole_term("S.HOLE", Dir::S, &lv_bh_s);
-    builder.make_blackhole_term("N.HOLE", Dir::N, &lv_bh_n);
+    builder.make_blackhole_term("TERM.S.HOLE", Dir::S, &lv_bh_s);
+    builder.make_blackhole_term("TERM.N.HOLE", Dir::N, &lv_bh_n);
 
     for (dir, n, tkn) in [
         (Dir::W, "L", "INT_INTERFACE_L"),

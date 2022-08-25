@@ -689,9 +689,9 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "IOI_LTERM_UPPER_BOT",
         "IOI_LTERM_UPPER_TOP",
     ] {
-        builder.extract_term_buf("W", Dir::W, tkn, "TERM.W", &[]);
+        builder.extract_term_buf("TERM.W", Dir::W, tkn, "TERM.W", &[]);
     }
-    builder.extract_term_buf("W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
+    builder.extract_term_buf("TERM.W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
 
     for &term_xy in rd.tiles_by_kind_name("INT_LTERM") {
         let int_xy = builder.walk_to_int(term_xy, Dir::E).unwrap();
@@ -699,7 +699,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         if int_xy.x == term_xy.x + 3 {
             continue;
         }
-        builder.extract_term_buf_tile("W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
+        builder.extract_term_buf_tile("TERM.W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
     }
     for tkn in [
         "CNR_TL_RTERM",
@@ -709,13 +709,13 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "IOI_RTERM_UPPER_BOT",
         "IOI_RTERM_UPPER_TOP",
     ] {
-        builder.extract_term_buf("E", Dir::E, tkn, "TERM.E", &[]);
+        builder.extract_term_buf("TERM.E", Dir::E, tkn, "TERM.E", &[]);
     }
     for tkn in [
         "INT_RTERM",
         "INT_INTERFACE_RTERM",
     ] {
-        builder.extract_term_buf("E", Dir::E, tkn, "TERM.E.INTF", &[]);
+        builder.extract_term_buf("TERM.E", Dir::E, tkn, "TERM.E.INTF", &[]);
     }
     for tkn in [
         "CNR_BR_BTERM",
@@ -725,7 +725,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "DSP_INT_BTERM",
         // NOTE: RAMB_BOT_BTERM is *not* a terminator — it's empty
     ] {
-        builder.extract_term_buf("S", Dir::S, tkn, "TERM.S", &[]);
+        builder.extract_term_buf("TERM.S", Dir::S, tkn, "TERM.S", &[]);
     }
     for tkn in [
         "CNR_TR_TTERM",
@@ -734,7 +734,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
         "DSP_INT_TTERM",
         "RAMB_TOP_TTERM",
     ] {
-        builder.extract_term_buf("N", Dir::N, tkn, "TERM.N", &[]);
+        builder.extract_term_buf("TERM.N", Dir::N, tkn, "TERM.N", &[]);
     }
 
     for (dir, tkn, naming) in [

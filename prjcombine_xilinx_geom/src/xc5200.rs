@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
 use crate::{BelCoord, ColId, RowId, BelId, eint, int};
-use ndarray::Array2;
 use prjcombine_entity::EntityId;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -88,8 +87,7 @@ impl Grid {
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
-        let slrid = egrid.tiles.push(Array2::default([self.rows, self.columns]));
-        let mut grid = egrid.slr_mut(slrid);
+        let (_, mut grid) = egrid.add_slr(self.columns, self.rows);
 
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();

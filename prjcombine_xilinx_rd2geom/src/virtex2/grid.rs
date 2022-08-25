@@ -286,7 +286,7 @@ fn get_rows_ram(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<(RowId, RowI
     }
 }
 
-fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId)> {
+fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId, RowId)> {
     let rows_hclk: Vec<_> = find_rows(rd, &["GCLKH"])
         .into_iter()
         .map(|r| int.lookup_row(r - 1) + 1)
@@ -298,10 +298,12 @@ fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId)> {
     for r in find_rows(rd, &["CENTER_SMALL_BRK"]) {
         rows_brk.insert(int.lookup_row(r) + 1);
     }
+    let mut rows_brk_d = rows_brk.clone();
     rows_brk.insert(int.rows.next_id());
-    let rows_brk: Vec<_> = rows_brk.into_iter().collect();
+    rows_brk_d.insert(int.rows.first_id().unwrap());
     assert_eq!(rows_hclk.len(), rows_brk.len());
-    rows_hclk.into_iter().zip(rows_brk.into_iter()).collect()
+    assert_eq!(rows_hclk.len(), rows_brk_d.len());
+    rows_hclk.into_iter().zip(rows_brk_d.into_iter()).zip(rows_brk.into_iter()).map(|((a, b), c)| (a, b, c)).collect()
 }
 
 fn get_row_pci(rd: &Part, int: &IntGrid, kind: GridKind) -> Option<RowId> {
