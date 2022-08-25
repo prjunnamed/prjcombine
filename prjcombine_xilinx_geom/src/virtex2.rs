@@ -1,6 +1,7 @@
 use crate::{eint, int, BelCoord, BelId, CfgPin, ColId, RowId, SlrId};
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -1058,10 +1059,10 @@ impl Grid {
             }
             res
         });
-        xtmp = 1;
+        xtmp = 0;
         let clut = self.columns.map_values(|cd| {
             let res = xtmp;
-            if cd.kind == ColumnKind::Clb {
+            if cd.kind != ColumnKind::Bram {
                 xtmp += 1;
             }
             res
@@ -3323,6 +3324,8 @@ impl Grid {
             node.add_bel(5, "BUFGMUX5S".to_string());
             node.add_bel(6, "BUFGMUX6P".to_string());
             node.add_bel(7, "BUFGMUX7S".to_string());
+            node.add_bel(8, format!("GSIG_X{x}Y0", x = self.col_clk.to_idx()));
+            node.add_bel(9, format!("GSIG_X{x}Y0", x = self.col_clk.to_idx() + 1));
             let vyt = if self.kind == GridKind::Virtex2 {
                 1
             } else {
@@ -3343,6 +3346,8 @@ impl Grid {
             node.add_bel(5, "BUFGMUX5P".to_string());
             node.add_bel(6, "BUFGMUX6S".to_string());
             node.add_bel(7, "BUFGMUX7P".to_string());
+            node.add_bel(8, format!("GSIG_X{x}Y1", x = self.col_clk.to_idx()));
+            node.add_bel(9, format!("GSIG_X{x}Y1", x = self.col_clk.to_idx() + 1));
 
             let rt = row_t.to_idx() - self.row_pci.unwrap().to_idx();
             let rb = row_t.to_idx() - self.row_pci.unwrap().to_idx() + 1;
@@ -3401,6 +3406,7 @@ impl Grid {
             node.add_bel(1, "BUFGMUX1".to_string());
             node.add_bel(2, "BUFGMUX2".to_string());
             node.add_bel(3, "BUFGMUX3".to_string());
+            node.add_bel(4, format!("GSIG_X{x}Y0", x = self.col_clk.to_idx()));
             let node = grid[(self.col_clk - 1, row_t)].add_xnode(
                 db.get_node("CLKT.S3"),
                 &["CLKT"],
@@ -3412,6 +3418,7 @@ impl Grid {
             node.add_bel(1, "BUFGMUX5".to_string());
             node.add_bel(2, "BUFGMUX6".to_string());
             node.add_bel(3, "BUFGMUX7".to_string());
+            node.add_bel(4, format!("GSIG_X{x}Y1", x = self.col_clk.to_idx()));
         } else {
             let tile_b;
             let tile_t;
@@ -3452,6 +3459,7 @@ impl Grid {
             node.add_bel(1, "BUFGMUX_X2Y0".to_string());
             node.add_bel(2, "BUFGMUX_X1Y1".to_string());
             node.add_bel(3, "BUFGMUX_X1Y0".to_string());
+            node.add_bel(4, format!("GLOBALSIG_X{x}Y0", x = xlut[self.col_clk] + 1));
             let kind_t = if self.kind == GridKind::Spartan3E {
                 "CLKT.S3E"
             } else {
@@ -3468,6 +3476,14 @@ impl Grid {
             node.add_bel(1, "BUFGMUX_X2Y10".to_string());
             node.add_bel(2, "BUFGMUX_X1Y11".to_string());
             node.add_bel(3, "BUFGMUX_X1Y10".to_string());
+            node.add_bel(
+                4,
+                format!(
+                    "GLOBALSIG_X{x}Y{y}",
+                    x = xlut[self.col_clk] + 1,
+                    y = self.rows_hclk.len() + 2
+                ),
+            );
 
             let vy = vcc_ylut[self.row_mid()] - 1;
             let vxl = 0;
@@ -3504,6 +3520,7 @@ impl Grid {
                 kind_l = "CLKL.S3A";
                 kind_r = "CLKR.S3A";
             }
+            let gsy = (self.rows_hclk.len() + 1) / 2 + 1;
             let node = grid[(col_l, self.row_mid() - 1)].add_xnode(
                 db.get_node(kind_l),
                 &tiles_l,
@@ -3520,6 +3537,7 @@ impl Grid {
             node.add_bel(7, "BUFGMUX_X0Y9".to_string());
             node.add_bel(8, "PCILOGIC_X0Y0".to_string());
             node.add_bel(9, format!("VCC_X{vxl}Y{vy}"));
+            node.add_bel(10, format!("GLOBALSIG_X0Y{gsy}"));
             let node = grid[(col_r, self.row_mid() - 1)].add_xnode(
                 db.get_node(kind_r),
                 &tiles_r,
@@ -3536,6 +3554,7 @@ impl Grid {
             node.add_bel(7, "BUFGMUX_X3Y9".to_string());
             node.add_bel(8, "PCILOGIC_X1Y0".to_string());
             node.add_bel(9, format!("VCC_X{vxr}Y{vy}"));
+            node.add_bel(10, format!("GLOBALSIG_X{x}Y{gsy}", x = xlut[col_r] + 3));
         }
 
         if self.kind.is_virtex2() || self.kind == GridKind::Spartan3 {
@@ -3615,7 +3634,7 @@ impl Grid {
         }
 
         for col in grid.cols() {
-            for &(row_m, row_b, row_t) in &self.rows_hclk {
+            for (i, &(row_m, row_b, row_t)) in self.rows_hclk.iter().enumerate() {
                 for r in row_b.to_idx()..row_m.to_idx() {
                     let row = RowId::from_idx(r);
                     grid[(col, row)].clkroot = (col, row_m - 1);
@@ -3624,6 +3643,242 @@ impl Grid {
                     let row = RowId::from_idx(r);
                     grid[(col, row)].clkroot = (col, row_m);
                 }
+                let mut kind = "GCLKH";
+                let mut naming = "GCLKH";
+                let name = if self.kind.is_virtex2() || self.kind == GridKind::Spartan3 {
+                    let mut r = self.rows_hclk.len() - i;
+                    if self.columns[col].kind == ColumnKind::Bram {
+                        let c = bramclut[col];
+                        format!("GCLKHR{r}BRAMC{c}")
+                    } else {
+                        // *sigh*.
+                        if self.kind == GridKind::Virtex2 && grid.cols().len() == 12 {
+                            r -= 1;
+                        }
+                        let c = clut[col];
+                        if self.columns[col].kind == ColumnKind::Io && self.kind.is_virtex2p() {
+                            if col == self.col_left() {
+                                format!("LIOICLKR{r}")
+                            } else {
+                                format!("RIOICLKR{r}")
+                            }
+                        } else {
+                            format!("GCLKHR{r}C{c}")
+                        }
+                    }
+                } else {
+                    let tk = match self.columns[col].kind {
+                        ColumnKind::Io => match row_m.cmp(&self.row_mid()) {
+                            Ordering::Less => "GCLKH_PCI_CE_S",
+                            Ordering::Equal => "GCLKH_PCI_CE_S_50A",
+                            Ordering::Greater => "GCLKH_PCI_CE_N",
+                        },
+                        ColumnKind::BramCont(x) => {
+                            if row_m == self.row_mid() {
+                                naming = "GCLKH.BRAM";
+                                [
+                                    "BRAMSITE2_DN_GCLKH",
+                                    "BRAM2_GCLKH_FEEDTHRU",
+                                    "BRAM2_GCLKH_FEEDTHRUA",
+                                ][x as usize - 1]
+                            } else if i == 0 {
+                                kind = "GCLKH.S";
+                                naming = "GCLKH.BRAM.S";
+                                if self.kind == GridKind::Spartan3E {
+                                    [
+                                        "BRAMSITE2_DN_GCLKH",
+                                        "BRAM2_DN_GCLKH_FEEDTHRU",
+                                        "BRAM2_DN_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                } else {
+                                    [
+                                        "BRAMSITE2_DN_GCLKH",
+                                        "BRAM2_GCLKH_FEEDTHRU",
+                                        "BRAM2_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                }
+                            } else if i == self.rows_hclk.len() - 1 {
+                                kind = "GCLKH.N";
+                                naming = "GCLKH.BRAM.N";
+                                if self.kind == GridKind::Spartan3E {
+                                    [
+                                        "BRAMSITE2_UP_GCLKH",
+                                        "BRAM2_UP_GCLKH_FEEDTHRU",
+                                        "BRAM2_UP_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                } else {
+                                    [
+                                        "BRAMSITE2_UP_GCLKH",
+                                        "BRAM2_GCLKH_FEEDTHRU",
+                                        "BRAM2_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                }
+                            } else {
+                                kind = "GCLKH.0";
+                                naming = "GCLKH.0";
+                                if self.kind == GridKind::Spartan3E {
+                                    [
+                                        "BRAMSITE2_MID_GCLKH",
+                                        "BRAM2_MID_GCLKH_FEEDTHRU",
+                                        "BRAM2_MID_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                } else {
+                                    [
+                                        if self.kind != GridKind::Spartan3ADsp {
+                                            "BRAMSITE2_GCLKH"
+                                        } else if row_m < self.row_mid() {
+                                            "BRAMSITE2_DN_GCLKH"
+                                        } else {
+                                            "BRAMSITE2_UP_GCLKH"
+                                        },
+                                        "BRAM2_GCLKH_FEEDTHRU",
+                                        "BRAM2_GCLKH_FEEDTHRUA",
+                                    ][x as usize - 1]
+                                }
+                            }
+                        }
+                        _ => "GCLKH",
+                    };
+                    let x = xlut[col];
+                    let y = row_m.to_idx() - 1;
+                    format!("{tk}_X{x}Y{y}")
+                };
+                let node = grid[(col, row_m - 1)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(naming),
+                    &[(col, row_m - 1), (col, row_m)],
+                );
+                if self.kind.is_virtex2() || self.kind == GridKind::Spartan3 {
+                    let gsx = if col < self.col_clk {
+                        col.to_idx()
+                    } else if self.kind == GridKind::Spartan3 {
+                        col.to_idx() + 1
+                    } else {
+                        col.to_idx() + 2
+                    };
+                    let gsy = i;
+                    node.add_bel(0, format!("GSIG_X{gsx}Y{gsy}"));
+                } else {
+                    let gsx = if col < self.col_clk {
+                        xlut[col] + 1
+                    } else {
+                        xlut[col] + 2
+                    };
+                    let gsy = if row_m <= self.row_mid() {
+                        i + 1
+                    } else {
+                        i + 2
+                    };
+                    node.add_bel(0, format!("GLOBALSIG_X{gsx}Y{gsy}"));
+                    if self.columns[col].kind == ColumnKind::Dsp {
+                        let name = format!(
+                            "MACC2_GCLKH_FEEDTHRUA_X{x}Y{y}",
+                            x = xlut[col] + 1,
+                            y = row_m.to_idx() - 1
+                        );
+                        let node = grid[(col, row_m - 1)].add_xnode(
+                            db.get_node("GCLKH.DSP"),
+                            &[&name],
+                            db.get_node_naming("GCLKH.DSP"),
+                            &[(col, row_m - 1), (col, row_m)],
+                        );
+                        let gsxd = gsx + 1;
+                        node.add_bel(0, format!("GLOBALSIG_X{gsxd}Y{gsy}"));
+                    }
+                }
+            }
+        }
+        for (i, &(row_m, _, _)) in self.rows_hclk.iter().enumerate() {
+            if self.kind.is_virtex2() {
+                let mut r = self.rows_hclk.len() - i;
+                if grid.cols().len() == 12 {
+                    r -= 1;
+                }
+                let name = format!("GCLKCR{r}");
+                grid[(self.col_clk, row_m)].add_xnode(
+                    db.get_node("GCLKC"),
+                    &[&name],
+                    db.get_node_naming("GCLKC"),
+                    &[(self.col_clk, row_m)],
+                );
+            } else if let Some((col_cl, col_cr)) = self.cols_clkv {
+                let r = self.rows_hclk.len() - i;
+                for (lr, col) in [('L', col_cl), ('R', col_cr)] {
+                    let name = if self.kind == GridKind::Spartan3 {
+                        format!("{lr}CLKVCR{r}")
+                    } else {
+                        let x = xlut[col] - 1;
+                        let y = row_m.to_idx() - 1;
+                        format!("GCLKVC_X{x}Y{y}")
+                    };
+                    grid[(col, row_m)].add_xnode(
+                        db.get_node("GCLKVC"),
+                        &[&name],
+                        db.get_node_naming("GCLKVC"),
+                        &[(col, row_m)],
+                    );
+                }
+            }
+        }
+
+        {
+            let kind = if !self.kind.is_virtex2() && self.cols_clkv.is_none() {
+                "CLKC_50A"
+            } else {
+                "CLKC"
+            };
+            let name = if use_xy {
+                let x = xlut[self.col_clk] - 1;
+                let y = self.row_mid().to_idx() - 1;
+                if self.kind == GridKind::Spartan3E && self.has_ll {
+                    format!("{kind}_LL_X{x}Y{y}")
+                } else {
+                    format!("{kind}_X{x}Y{y}")
+                }
+            } else {
+                "M".to_string()
+            };
+            grid[(self.col_clk, self.row_mid())].add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[(self.col_clk, self.row_mid())],
+            );
+        }
+
+        if let Some((col_cl, col_cr)) = self.cols_clkv {
+            if self.kind == GridKind::Spartan3 {
+                grid[(col_cl, self.row_mid())].add_xnode(
+                    db.get_node("GCLKVM.S3"),
+                    &["LGCLKVM"],
+                    db.get_node_naming("GCLKVM.S3"),
+                    &[(col_cl, self.row_mid())],
+                );
+                grid[(col_cr, self.row_mid())].add_xnode(
+                    db.get_node("GCLKVM.S3"),
+                    &["RGCLKVM"],
+                    db.get_node_naming("GCLKVM.S3"),
+                    &[(col_cr, self.row_mid())],
+                );
+            } else {
+                let xl = xlut[col_cl] - 1;
+                let xr = xlut[col_cr] - 1;
+                let y = self.row_mid().to_idx() - 1;
+                let name_l = format!("GCLKVML_X{xl}Y{y}");
+                let name_r = format!("GCLKVMR_X{xr}Y{y}");
+                grid[(col_cl, self.row_mid())].add_xnode(
+                    db.get_node("GCLKVM.S3E"),
+                    &[&name_l],
+                    db.get_node_naming("GCLKVML"),
+                    &[(col_cl, self.row_mid())],
+                );
+                grid[(col_cr, self.row_mid())].add_xnode(
+                    db.get_node("GCLKVM.S3E"),
+                    &[&name_r],
+                    db.get_node_naming("GCLKVMR"),
+                    &[(col_cr, self.row_mid())],
+                );
             }
         }
 

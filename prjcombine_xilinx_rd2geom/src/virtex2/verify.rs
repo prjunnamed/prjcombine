@@ -1481,6 +1481,11 @@ pub fn verify_bel(
         }
         "PCI_CE_N" => {
             vrf.claim_node(&[(crds[naming.tile], &naming.pins["O"].name)]);
+            vrf.claim_pip(
+                crds[naming.tile],
+                &naming.pins["O"].name,
+                &naming.pins["I"].name,
+            );
             verify_pci_ce(
                 grid,
                 vrf,
@@ -1493,6 +1498,11 @@ pub fn verify_bel(
         }
         "PCI_CE_S" => {
             vrf.claim_node(&[(crds[naming.tile], &naming.pins["O"].name)]);
+            vrf.claim_pip(
+                crds[naming.tile],
+                &naming.pins["O"].name,
+                &naming.pins["I"].name,
+            );
             verify_pci_ce(
                 grid,
                 vrf,
@@ -1505,6 +1515,11 @@ pub fn verify_bel(
         }
         "PCI_CE_E" => {
             vrf.claim_node(&[(crds[naming.tile], &naming.pins["O"].name)]);
+            vrf.claim_pip(
+                crds[naming.tile],
+                &naming.pins["O"].name,
+                &naming.pins["I"].name,
+            );
             verify_pci_ce(
                 grid,
                 vrf,
@@ -1517,6 +1532,11 @@ pub fn verify_bel(
         }
         "PCI_CE_W" => {
             vrf.claim_node(&[(crds[naming.tile], &naming.pins["O"].name)]);
+            vrf.claim_pip(
+                crds[naming.tile],
+                &naming.pins["O"].name,
+                &naming.pins["I"].name,
+            );
             verify_pci_ce(
                 grid,
                 vrf,
@@ -1529,6 +1549,11 @@ pub fn verify_bel(
         }
         "PCI_CE_CNR" => {
             vrf.claim_node(&[(crds[naming.tile], &naming.pins["O"].name)]);
+            vrf.claim_pip(
+                crds[naming.tile],
+                &naming.pins["O"].name,
+                &naming.pins["I"].name,
+            );
             verify_pci_ce(
                 grid,
                 vrf,
@@ -1538,6 +1563,273 @@ pub fn verify_bel(
                 crds[naming.tile],
                 &naming.pins["I"].name,
             );
+        }
+        _ if key.starts_with("GCLKH") => {
+            for i in 0..8 {
+                for ud in ["UP", "DN"] {
+                    if matches!((key, ud), ("GCLKH.S", "UP") | ("GCLKH.N", "DN")) {
+                        continue;
+                    }
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{ud}{i}")].name,
+                        &naming.pins[&format!("IN{i}")].name,
+                    );
+                }
+                if grid.kind.is_virtex2() {
+                    let lr = if col < grid.col_clk { 'L' } else { 'R' };
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (grid.col_clk, row + 1), "GCLKC")
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN{i}")].name),
+                        (
+                            ocrds[onaming.tile],
+                            &onaming.pins[&format!("OUT_{lr}{i}")].name,
+                        ),
+                    ]);
+                } else if let Some((col_cl, col_cr)) = grid.cols_clkv {
+                    let scol = if col < grid.col_clk { col_cl } else { col_cr };
+                    let lr = if col < scol { 'L' } else { 'R' };
+                    let (onode, _, _, onaming) =
+                        vrf.grid.find_bel(slr, (scol, row + 1), "GCLKVC").unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN{i}")].name),
+                        (
+                            ocrds[onaming.tile],
+                            &onaming.pins[&format!("OUT_{lr}{i}")].name,
+                        ),
+                    ]);
+                } else {
+                    let lr = if col < grid.col_clk { 'L' } else { 'R' };
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (grid.col_clk, grid.row_mid()), "CLKC_50A")
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN{i}")].name),
+                        (
+                            ocrds[onaming.tile],
+                            &onaming.pins[&format!("OUT_{lr}{i}")].name,
+                        ),
+                    ]);
+                }
+            }
+        }
+        "GCLKC" => {
+            for i in 0..8 {
+                for lr in ['L', 'R'] {
+                    vrf.claim_node(&[(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                    )]);
+                    for bt in ['B', 'T'] {
+                        vrf.claim_pip(
+                            crds[naming.tile],
+                            &naming.pins[&format!("OUT_{lr}{i}")].name,
+                            &naming.pins[&format!("IN_{bt}{i}")].name,
+                        );
+                    }
+                }
+                for bt in ['B', 'T'] {
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (grid.col_clk, grid.row_mid()), "CLKC")
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN_{bt}{i}")].name),
+                        (
+                            ocrds[onaming.tile],
+                            &onaming.pins[&format!("OUT_{bt}{i}")].name,
+                        ),
+                    ]);
+                }
+            }
+        }
+        "CLKC" => {
+            if grid.kind.is_virtex2() {
+                for i in 0..8 {
+                    for bt in ['B', 'T'] {
+                        vrf.claim_node(&[(
+                            crds[naming.tile],
+                            &naming.pins[&format!("OUT_{bt}{i}")].name,
+                        )]);
+                        vrf.claim_pip(
+                            crds[naming.tile],
+                            &naming.pins[&format!("OUT_{bt}{i}")].name,
+                            &naming.pins[&format!("IN_{bt}{i}")].name,
+                        );
+                        let srow = if bt == 'B' {
+                            grid.row_bot()
+                        } else {
+                            grid.row_top()
+                        };
+                        let (onode, _, _, onaming) = vrf
+                            .grid
+                            .find_bel(slr, (grid.col_clk - 1, srow), &format!("BUFGMUX{i}"))
+                            .unwrap();
+                        let ocrds = vrf.get_node_crds(onode).unwrap();
+                        vrf.verify_node(&[
+                            (crds[naming.tile], &naming.pins[&format!("IN_{bt}{i}")].name),
+                            (ocrds[onaming.tile], &onaming.pins["O"].name_far),
+                        ]);
+                    }
+                }
+            } else {
+                for i in 0..8 {
+                    let (bt, j) = if i < 4 { ('B', i) } else { ('T', i - 4) };
+                    vrf.claim_node(&[(crds[naming.tile], &naming.pins[&format!("OUT{i}")].name)]);
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT{i}")].name,
+                        &naming.pins[&format!("IN_{bt}{j}")].name,
+                    );
+                    let srow = if bt == 'B' {
+                        grid.row_bot()
+                    } else {
+                        grid.row_top()
+                    };
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (grid.col_clk - 1, srow), &format!("BUFGMUX{j}"))
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN_{bt}{j}")].name),
+                        (ocrds[onaming.tile], &onaming.pins["O"].name_far),
+                    ]);
+                }
+            }
+        }
+        "CLKC_50A" => {
+            for i in 0..8 {
+                let (bt, j) = if i < 4 { ('B', i) } else { ('T', i - 4) };
+                for lr in ['L', 'R'] {
+                    vrf.claim_node(&[(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                    )]);
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                        &naming.pins[&format!("IN_{bt}{j}")].name,
+                    );
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                        &naming.pins[&format!("IN_{lr}{i}")].name,
+                    );
+                    let scol = if lr == 'L' {
+                        grid.col_left()
+                    } else {
+                        grid.col_right()
+                    };
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (scol, grid.row_mid() - 1), &format!("BUFGMUX{i}"))
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN_{lr}{i}")].name),
+                        (ocrds[onaming.tile], &onaming.pins["O"].name_far),
+                    ]);
+                }
+                let srow = if bt == 'B' {
+                    grid.row_bot()
+                } else {
+                    grid.row_top()
+                };
+                let (onode, _, _, onaming) = vrf
+                    .grid
+                    .find_bel(slr, (grid.col_clk - 1, srow), &format!("BUFGMUX{j}"))
+                    .unwrap();
+                let ocrds = vrf.get_node_crds(onode).unwrap();
+                vrf.verify_node(&[
+                    (crds[naming.tile], &naming.pins[&format!("IN_{bt}{j}")].name),
+                    (ocrds[onaming.tile], &onaming.pins["O"].name_far),
+                ]);
+            }
+        }
+        "GCLKVM" => {
+            for i in 0..8 {
+                for ud in ["UP", "DN"] {
+                    vrf.claim_node(&[(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{ud}{i}")].name,
+                    )]);
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{ud}{i}")].name,
+                        &naming.pins[&format!("IN_CORE{i}")].name,
+                    );
+                    if grid.kind != GridKind::Spartan3 {
+                        vrf.claim_pip(
+                            crds[naming.tile],
+                            &naming.pins[&format!("OUT_{ud}{i}")].name,
+                            &naming.pins[&format!("IN_LR{i}")].name,
+                        );
+                    }
+                }
+                let (onode, _, _, onaming) =
+                    vrf.grid.find_bel(slr, (grid.col_clk, row), "CLKC").unwrap();
+                let ocrds = vrf.get_node_crds(onode).unwrap();
+                vrf.verify_node(&[
+                    (crds[naming.tile], &naming.pins[&format!("IN_CORE{i}")].name),
+                    (ocrds[onaming.tile], &onaming.pins[&format!("OUT{i}")].name),
+                ]);
+                if grid.kind != GridKind::Spartan3 {
+                    let scol = if col < grid.col_clk {
+                        grid.col_left()
+                    } else {
+                        grid.col_right()
+                    };
+                    let (onode, _, _, onaming) = vrf
+                        .grid
+                        .find_bel(slr, (scol, grid.row_mid() - 1), &format!("BUFGMUX{i}"))
+                        .unwrap();
+                    let ocrds = vrf.get_node_crds(onode).unwrap();
+                    vrf.verify_node(&[
+                        (crds[naming.tile], &naming.pins[&format!("IN_LR{i}")].name),
+                        (ocrds[onaming.tile], &onaming.pins["O"].name_far),
+                    ]);
+                }
+            }
+        }
+        "GCLKVC" => {
+            for i in 0..8 {
+                for lr in ['L', 'R'] {
+                    vrf.claim_node(&[(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                    )]);
+                    vrf.claim_pip(
+                        crds[naming.tile],
+                        &naming.pins[&format!("OUT_{lr}{i}")].name,
+                        &naming.pins[&format!("IN{i}")].name,
+                    );
+                }
+                let ud = if row < grid.row_mid() { "DN" } else { "UP" };
+                let (onode, _, _, onaming) = vrf
+                    .grid
+                    .find_bel(slr, (col, grid.row_mid()), "GCLKVM")
+                    .unwrap();
+                let ocrds = vrf.get_node_crds(onode).unwrap();
+                vrf.verify_node(&[
+                    (crds[naming.tile], &naming.pins[&format!("IN{i}")].name),
+                    (
+                        ocrds[onaming.tile],
+                        &onaming.pins[&format!("OUT_{ud}{i}")].name,
+                    ),
+                ]);
+            }
+        }
+        _ if key.starts_with("GLOBALSIG") => {
+            vrf.verify_bel(slr, node, bid, "GLOBALSIG", &node.bels[bid], &[], &[]);
         }
         _ => {
             println!("MEOW {} {:?}", key, node.bels.get(bid));

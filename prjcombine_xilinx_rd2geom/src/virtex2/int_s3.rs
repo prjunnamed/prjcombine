@@ -25,12 +25,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ],
     );
 
+    let mut gclk = vec![];
     for i in 0..8 {
-        builder.wire(
+        let w = builder.wire(
             format!("GCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
         );
+        gclk.push(w);
     }
     for i in 0..4 {
         builder.logic_out(
@@ -1775,6 +1777,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL3"])
                             .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR3"])
                             .extra_int_in("CLK", &["CLKB_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.B"),
                     ],
                     &lh,
                 );
@@ -1895,6 +1898,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                                 },
                             )
                             .extra_int_in("CLK", &["CLKB_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.B"),
                     ],
                     &lh,
                 );
@@ -1947,6 +1951,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL3"])
                             .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR3"])
                             .extra_int_in("CLK", &["CLKT_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.T"),
                     ],
                     &lh,
                 );
@@ -2095,6 +2100,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                                 },
                             )
                             .extra_int_in("CLK", &["CLKT_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.T"),
                     ],
                     &lh,
                 );
@@ -2212,6 +2218,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     builder
                         .bel_xy("VCC", "VCC", 0, 0)
                         .pin_name_only("VCCOUT", 0),
+                    builder.bel_virtual("GLOBALSIG.LR"),
                 ];
                 if rd.family == "spartan3e" {
                     kind = format!("{tkn}.S3E");
@@ -2400,7 +2407,189 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    // XXX
-    // - clock tree
+    for tkn in ["CLKC", "CLKC_LL"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let mut bel = builder.bel_virtual("CLKC");
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("IN_B{i}"), &[format!("CLKC_GCLK_MAIN_B{i}")])
+                    .extra_wire(format!("IN_T{i}"), &[format!("CLKC_GCLK_MAIN_T{i}")])
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(format!("OUT{i}"), &[format!("CLKC_GCLK{i}")]);
+            }
+            builder.extract_xnode_bels("CLKC", xy, &[], &[xy], "CLKC", &[bel]);
+        }
+    }
+
+    for &xy in rd.tiles_by_kind_name("CLKC_50A") {
+        let mut bel = builder.bel_virtual("CLKC_50A");
+        for i in 0..4 {
+            bel = bel
+                .extra_wire(format!("IN_B{i}"), &[format!("CLKC_50A_GCLKB{i}")])
+                .extra_wire(format!("IN_T{i}"), &[format!("CLKC_50A_GCLKT{i}")])
+        }
+        for i in 0..8 {
+            bel = bel
+                .extra_wire(format!("IN_L{i}"), &[format!("CLKC_50A_GCLK_IN_LH{i}")])
+                .extra_wire(format!("IN_R{i}"), &[format!("CLKC_50A_GCLK_IN_RH{i}")])
+                .extra_wire(format!("OUT_L{i}"), &[format!("CLKC_50A_GCLK_OUT_LH{i}")])
+                .extra_wire(format!("OUT_R{i}"), &[format!("CLKC_50A_GCLK_OUT_RH{i}")]);
+        }
+        builder.extract_xnode_bels("CLKC_50A", xy, &[], &[xy], "CLKC_50A", &[bel]);
+    }
+
+    for &xy in rd.tiles_by_kind_name("GCLKVM") {
+        let mut bel = builder.bel_virtual("GCLKVM");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire(format!("IN_CORE{i}"), &[format!("GCLKVM_GCLK{i}")])
+                .extra_wire(format!("OUT_DN{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
+                .extra_wire(format!("OUT_UP{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
+        }
+        builder.extract_xnode_bels("GCLKVM.S3", xy, &[], &[xy], "GCLKVM.S3", &[bel]);
+    }
+
+    for tkn in ["GCLKVML", "GCLKVMR"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let mut bel = builder.bel_virtual("GCLKVM");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(
+                        format!("IN_CORE{i}"),
+                        &[
+                            format!("GCLKVML_GCLKCORE{i}"),
+                            format!("GCLKVMR_GCLKCORE{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("IN_LR{i}"),
+                        &[format!("GCLKVML_GCLKLR{i}"), format!("GCLKVMR_GCLKLR{i}")],
+                    )
+                    .extra_wire(format!("OUT_DN{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
+                    .extra_wire(format!("OUT_UP{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
+            }
+            builder.extract_xnode_bels("GCLKVM.S3E", xy, &[], &[xy], tkn, &[bel]);
+        }
+    }
+
+    for &xy in rd.tiles_by_kind_name("GCLKVC") {
+        let mut bel = builder.bel_virtual("GCLKVC");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire(format!("IN{i}"), &[format!("GCLKC_GCLK{i}")])
+                .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLK_OUT_L{i}")])
+                .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLK_OUT_R{i}")]);
+        }
+        builder.extract_xnode_bels("GCLKVC", xy, &[], &[xy], "GCLKVC", &[bel]);
+    }
+
+    for tkn in [
+        "GCLKH",
+        "GCLKH_PCI_CE_S",
+        "GCLKH_PCI_CE_N",
+        "GCLKH_PCI_CE_S_50A",
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_s_xy = builder.walk_to_int(xy, Dir::S).unwrap();
+            let int_n_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let mut bel = builder.bel_virtual("GCLKH");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK{i}")])
+                    .extra_int_out(format!("OUT_UP{i}"), &[format!("GCLKH_GCLK_UP{i}")])
+                    .extra_int_out(format!("OUT_DN{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
+            }
+            builder.extract_xnode_bels(
+                "GCLKH",
+                xy,
+                &[],
+                &[int_s_xy, int_n_xy],
+                "GCLKH",
+                &[builder.bel_virtual("GLOBALSIG"), bel],
+            );
+        }
+    }
+
+    if rd.family != "spartan3" {
+        let dummy_xy = Coord { x: 0, y: 0 };
+        let bel_globalsig = builder.bel_virtual("GLOBALSIG");
+        let mut bel = builder.bel_virtual("GCLKH");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
+                .extra_int_out_force(
+                    format!("OUT_UP{i}"),
+                    (NodeTileId::from_idx(1), gclk[i]),
+                    format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
+                )
+                .extra_int_out_force(
+                    format!("OUT_DN{i}"),
+                    (NodeTileId::from_idx(0), gclk[i]),
+                    format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
+                );
+        }
+        builder.extract_xnode_bels(
+            "GCLKH",
+            dummy_xy,
+            &[],
+            &[dummy_xy, dummy_xy],
+            "GCLKH.BRAM",
+            &[bel_globalsig.clone(), bel],
+        );
+        let mut bel = builder.bel_virtual("GCLKH.S");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
+                .extra_int_out_force(
+                    format!("OUT_DN{i}"),
+                    (NodeTileId::from_idx(0), gclk[i]),
+                    format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
+                );
+        }
+        builder.extract_xnode_bels(
+            "GCLKH.S",
+            dummy_xy,
+            &[],
+            &[dummy_xy, dummy_xy],
+            "GCLKH.BRAM.S",
+            &[bel_globalsig.clone(), bel],
+        );
+        let mut bel = builder.bel_virtual("GCLKH.N");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
+                .extra_int_out_force(
+                    format!("OUT_UP{i}"),
+                    (NodeTileId::from_idx(1), gclk[i]),
+                    format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
+                )
+        }
+        builder.extract_xnode_bels(
+            "GCLKH.N",
+            dummy_xy,
+            &[],
+            &[dummy_xy, dummy_xy],
+            "GCLKH.BRAM.N",
+            &[bel_globalsig.clone(), bel],
+        );
+        builder.extract_xnode_bels(
+            "GCLKH.0",
+            dummy_xy,
+            &[],
+            &[dummy_xy, dummy_xy],
+            "GCLKH.0",
+            &[bel_globalsig],
+        );
+        builder.extract_xnode_bels(
+            "GCLKH.DSP",
+            dummy_xy,
+            &[],
+            &[dummy_xy, dummy_xy],
+            "GCLKH.DSP",
+            &[builder.bel_virtual("GLOBALSIG.DSP")],
+        );
+    }
+
     builder.build()
 }

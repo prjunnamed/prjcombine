@@ -83,6 +83,19 @@ impl BelInfo {
         self
     }
 
+    pub fn extra_int_out_force(
+        mut self,
+        name: impl Into<String>,
+        wire: int::NodeWireId,
+        wire_name: impl Into<String>,
+    ) -> Self {
+        self.pins.insert(
+            name.into(),
+            BelPinInfo::ExtraIntForce(int::PinDir::Output, wire, wire_name.into()),
+        );
+        self
+    }
+
     pub fn extra_int_in_force(
         mut self,
         name: impl Into<String>,

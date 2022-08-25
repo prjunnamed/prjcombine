@@ -1224,6 +1224,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKB_DLLOUTL7"])
                     .extra_wire("DCM_OUT_R", &["CLKB_DLLOUTR7"])
                     .extra_int_in("CLK", &["CLKB_GCLK07"]),
+                builder.bel_virtual("GLOBALSIG.B0"),
+                builder.bel_virtual("GLOBALSIG.B1"),
             ];
             if tkn == "ML_CLKB" {
                 bels.push(
@@ -1319,6 +1321,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("DCM_OUT_L", &["CLKT_DLLOUTL7"])
                     .extra_wire("DCM_OUT_R", &["CLKT_DLLOUTR7"])
                     .extra_int_in("CLK", &["CLKT_GCLK07"]),
+                builder.bel_virtual("GLOBALSIG.T0"),
+                builder.bel_virtual("GLOBALSIG.T1"),
             ];
             if tkn == "ML_CLKT" {
                 bels.push(
@@ -1329,6 +1333,52 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
             builder.extract_xnode(tkn, xy, &[], &[xy_l, xy_r], tkn, &bels, &[]);
+        }
+    }
+
+    for &xy in rd.tiles_by_kind_name("CLKC") {
+        let mut bel = builder.bel_virtual("CLKC");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire(format!("IN_B{i}"), &[format!("CLKC_GCLKB_IN{i}")])
+                .extra_wire(format!("IN_T{i}"), &[format!("CLKC_GCLKT_IN{i}")])
+                .extra_wire(format!("OUT_B{i}"), &[format!("CLKC_GCLKB{i}")])
+                .extra_wire(format!("OUT_T{i}"), &[format!("CLKC_GCLKT{i}")]);
+        }
+        builder.extract_xnode_bels("CLKC", xy, &[], &[xy], "CLKC", &[bel]);
+    }
+
+    for &xy in rd.tiles_by_kind_name("GCLKC") {
+        let mut bel = builder.bel_virtual("GCLKC");
+        for i in 0..8 {
+            bel = bel
+                .extra_wire(format!("IN_B{i}"), &[format!("GCLKC_GCLKB{i}")])
+                .extra_wire(format!("IN_T{i}"), &[format!("GCLKC_GCLKT{i}")])
+                .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
+                .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
+        }
+        builder.extract_xnode_bels("GCLKC", xy, &[], &[xy], "GCLKC", &[bel]);
+    }
+
+    for tkn in ["GCLKH", "LR_GCLKH"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_s_xy = builder.walk_to_int(xy, Dir::S).unwrap();
+            let int_n_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let mut bel = builder.bel_virtual("GCLKH");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK_B{i}")])
+                    .extra_int_out(format!("OUT_UP{i}"), &[format!("GCLKH_GCLK_UP{i}")])
+                    .extra_int_out(format!("OUT_DN{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
+            }
+            builder.extract_xnode_bels(
+                "GCLKH",
+                xy,
+                &[],
+                &[int_s_xy, int_n_xy],
+                "GCLKH",
+                &[builder.bel_virtual("GLOBALSIG"), bel],
+            );
         }
     }
 
@@ -1672,7 +1722,5 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    // XXX
-    // - clock tree
     builder.build()
 }
