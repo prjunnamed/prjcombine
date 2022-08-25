@@ -1,3 +1,7 @@
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::collapsible_else_if)]
+#![allow(clippy::too_many_arguments)]
+
 use prjcombine_toolchain::Toolchain;
 use rayon::prelude::*;
 use std::error::Error;
@@ -255,10 +259,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         tests.par_iter().for_each(|t| {
             let tn = &t.name;
             println!("Testing {family} {tn}...");
-            let v = verilog::emit(&t);
+            let v = verilog::emit(t);
             match run::run(&tc, &t.part, &v) {
                 Ok(d) => {
-                    if !verify::verify(&t, &d, &family) {
+                    if !verify::verify(t, &d, family) {
                         let mut fv = File::create(format!("fail_{family}_{tn}.v")).unwrap();
                         write!(fv, "{v}").unwrap();
                         let mut fx = File::create(format!("fail_{family}_{tn}.xdl")).unwrap();

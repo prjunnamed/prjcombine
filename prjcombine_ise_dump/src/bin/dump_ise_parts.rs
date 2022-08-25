@@ -37,7 +37,7 @@ fn dump_part(
         println!("skipping {}", part);
     } else {
         println!("dumping {}", part);
-        let rd = get_rawdump(&tc, &pkgs)?;
+        let rd = get_rawdump(tc, &pkgs)?;
         rd.to_file(&path)?;
         println!("dumped {}", part);
     }

@@ -160,7 +160,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             );
         }
         if i == 0 {
-            builder.branch(omux, Dir::S, format!("OMUX0.S.ALT"), &["OUT_S"]);
+            builder.branch(omux, Dir::S, "OMUX0.S.ALT".to_string(), &["OUT_S"]);
         }
     }
 
@@ -556,7 +556,7 @@ fn make_grid(rd: &Part) -> virtex4::Grid {
 }
 
 fn split_num(s: &str) -> Option<(&str, u32)> {
-    let pos = s.find(|c: char| c.is_digit(10))?;
+    let pos = s.find(|c: char| c.is_ascii_digit())?;
     let n = s[pos..].parse().ok()?;
     Some((&s[..pos], n))
 }

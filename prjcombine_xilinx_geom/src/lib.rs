@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_else_if)]
+
 use prjcombine_entity::{entity_id, EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};

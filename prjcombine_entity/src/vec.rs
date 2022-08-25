@@ -140,11 +140,7 @@ impl<I: EntityId, V> EntityVec<I, V> {
     }
 
     pub fn pop(&mut self) -> Option<(I, V)> {
-        if let Some(x) = self.vals.pop() {
-            Some((self.next_id(), x))
-        } else {
-            None
-        }
+        self.vals.pop().map(|x| (self.next_id(), x))
     }
 }
 

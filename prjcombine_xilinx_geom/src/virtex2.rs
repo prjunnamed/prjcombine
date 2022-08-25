@@ -188,13 +188,11 @@ impl Grid {
                     };
                     for &bel in bels {
                         let mut name = format!("PAD{ctr}");
-                        if self.kind == GridKind::Virtex2PX {
-                            if col == self.col_clk - 1 {
-                                match bel {
-                                    0 => name = format!("CLKPPAD1"),
-                                    1 => name = format!("CLKNPAD1"),
-                                    _ => (),
-                                }
+                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
+                            match bel {
+                                0 => name = "CLKPPAD1".to_string(),
+                                1 => name = "CLKNPAD1".to_string(),
+                                _ => (),
                             }
                         }
                         res.push(Io {
@@ -250,13 +248,11 @@ impl Grid {
                     };
                     for &bel in bels {
                         let mut name = format!("PAD{ctr}");
-                        if self.kind == GridKind::Virtex2PX {
-                            if col == self.col_clk - 1 {
-                                match bel {
-                                    2 => name = format!("CLKPPAD2"),
-                                    3 => name = format!("CLKNPAD2"),
-                                    _ => (),
-                                }
+                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
+                            match bel {
+                                2 => name = "CLKPPAD2".to_string(),
+                                3 => name = "CLKNPAD2".to_string(),
+                                _ => (),
                             }
                         }
                         res.push(Io {
@@ -611,10 +607,10 @@ impl Grid {
                         // 3s50a special
                         if self.cols_clkv.is_none() {
                             match ctr {
-                                94 => name = format!("PAD96"),
-                                95 => name = format!("IPAD94"),
-                                96 => name = format!("PAD97"),
-                                97 => name = format!("PAD95"),
+                                94 => name = "PAD96".to_string(),
+                                95 => name = "IPAD94".to_string(),
+                                96 => name = "PAD97".to_string(),
+                                97 => name = "PAD95".to_string(),
                                 _ => (),
                             }
                         }
@@ -803,19 +799,19 @@ impl Grid {
                 }
                 (Edge::Left, 0 | 1) => Some((
                     (self.col_left(), self.row_mid() + 2),
-                    BelId::from_idx(idx % 2 ^ 1),
+                    BelId::from_idx((idx % 2) ^ 1),
                 )),
                 (Edge::Left, 2 | 3) => Some((
                     (self.col_left(), self.row_mid() + 1),
-                    BelId::from_idx(idx % 2 ^ 1),
+                    BelId::from_idx((idx % 2) ^ 1),
                 )),
                 (Edge::Left, 4 | 5) => Some((
                     (self.col_left(), self.row_mid() - 1),
-                    BelId::from_idx(idx % 2 ^ 1),
+                    BelId::from_idx((idx % 2) ^ 1),
                 )),
                 (Edge::Left, 6 | 7) => Some((
                     (self.col_left(), self.row_mid() - 2),
-                    BelId::from_idx(idx % 2 ^ 1),
+                    BelId::from_idx((idx % 2) ^ 1),
                 )),
                 (Edge::Right, 0 | 1) => {
                     Some(((self.col_right(), self.row_mid()), BelId::from_idx(idx % 2)))
@@ -1174,126 +1170,126 @@ impl Grid {
                 format!("CNR_TTERM_X{xr}Y{yt}"),
             );
         } else if self.kind.is_virtex2p() {
-            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", format!("LIOIBIOI"));
-            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", format!("RIOIBIOI"));
-            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", format!("LIOITIOI"));
-            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", format!("RIOITIOI"));
+            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", "LIOIBIOI".to_string());
+            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", "RIOIBIOI".to_string());
+            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", "LIOITIOI".to_string());
+            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", "RIOITIOI".to_string());
             self.fill_term(
                 &mut grid,
                 (col_l, row_b),
                 "TERM.W",
                 "TERM.W",
-                format!("LTERMBIOI"),
+                "LTERMBIOI".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_t),
                 "TERM.W",
                 "TERM.W",
-                format!("LTERMTIOI"),
+                "LTERMTIOI".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_b),
                 "TERM.E",
                 "TERM.E",
-                format!("RTERMBIOI"),
+                "RTERMBIOI".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_t),
                 "TERM.E",
                 "TERM.E",
-                format!("RTERMTIOI"),
+                "RTERMTIOI".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_b),
                 "TERM.S",
                 "TERM.S.CNR",
-                format!("LIOIBTERM"),
+                "LIOIBTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_t),
                 "TERM.N",
                 "TERM.N.CNR",
-                format!("LIOITTERM"),
+                "LIOITTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_b),
                 "TERM.S",
                 "TERM.S.CNR",
-                format!("RIOIBTERM"),
+                "RIOIBTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_t),
                 "TERM.N",
                 "TERM.N.CNR",
-                format!("RIOITTERM"),
+                "RIOITTERM".to_string(),
             );
         } else {
-            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", format!("BL"));
-            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", format!("BR"));
-            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", format!("TL"));
-            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", format!("TR"));
+            grid.fill_tile((col_l, row_b), cnr_kind, "INT.CNR", "BL".to_string());
+            grid.fill_tile((col_r, row_b), cnr_kind, "INT.CNR", "BR".to_string());
+            grid.fill_tile((col_l, row_t), cnr_kind, "INT.CNR", "TL".to_string());
+            grid.fill_tile((col_r, row_t), cnr_kind, "INT.CNR", "TR".to_string());
             self.fill_term(
                 &mut grid,
                 (col_l, row_b),
                 "TERM.W",
                 "TERM.W",
-                format!("LBTERM"),
+                "LBTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_t),
                 "TERM.W",
                 "TERM.W",
-                format!("LTTERM"),
+                "LTTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_b),
                 "TERM.E",
                 "TERM.E",
-                format!("RBTERM"),
+                "RBTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_t),
                 "TERM.E",
                 "TERM.E",
-                format!("RTTERM"),
+                "RTTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_b),
                 "TERM.S",
                 "TERM.S.CNR",
-                format!("BLTERM"),
+                "BLTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_l, row_t),
                 "TERM.N",
                 "TERM.N.CNR",
-                format!("TLTERM"),
+                "TLTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_b),
                 "TERM.S",
                 "TERM.S.CNR",
-                format!("BRTERM"),
+                "BRTERM".to_string(),
             );
             self.fill_term(
                 &mut grid,
                 (col_r, row_t),
                 "TERM.N",
                 "TERM.N.CNR",
-                format!("TRTERM"),
+                "TRTERM".to_string(),
             );
         }
 

@@ -1397,12 +1397,12 @@ fn gen_arb_config(ctx: &mut TestGenCtx) -> Vec<BitVal> {
 
 fn make_bufg(test: &mut Test, ctx: &mut TestGenCtx, i: &str, o: &str) {
     let mut inst = SrcInst::new(ctx, "BUFG");
-    inst.connect("I", &i);
-    inst.connect("O", &o);
+    inst.connect("I", i);
+    inst.connect("O", o);
     let mut ti = TgtInst::new(&["BUFG"]);
     ti.bel("BUFG", &inst.name, "");
-    ti.pin_in("I0", &i);
-    ti.pin_out("O", &o);
+    ti.pin_in("I0", i);
+    ti.pin_out("O", o);
     test.src_insts.push(inst);
     test.tgt_insts.push(ti);
 }

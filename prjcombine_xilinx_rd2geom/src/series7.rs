@@ -883,7 +883,7 @@ fn make_grids(rd: &Part) -> (EntityVec<SlrId, series7::Grid>, SlrId, Vec<ExtraDi
 }
 
 fn split_num(s: &str) -> Option<(&str, u32)> {
-    let pos = s.find(|c: char| c.is_digit(10))?;
+    let pos = s.find(|c: char| c.is_ascii_digit())?;
     let n = s[pos..].parse().ok()?;
     Some((&s[..pos], n))
 }
@@ -930,8 +930,8 @@ fn make_bond(
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
                 let mut exp_func = match io.row.to_idx() % 50 {
-                    0 => format!("IO_25"),
-                    49 => format!("IO_0"),
+                    0 => "IO_25".to_string(),
+                    49 => "IO_0".to_string(),
                     n => format!(
                         "IO_L{}{}_T{}",
                         (50 - n) / 2,

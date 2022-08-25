@@ -106,9 +106,9 @@ fn get_cols_clk_fold(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
         .into_iter()
         .map(|x| int.lookup_column(x - 2))
         .collect();
-    match &v[..] {
-        &[] => None,
-        &[l, r] => Some((l, r)),
+    match v[..] {
+        [] => None,
+        [l, r] => Some((l, r)),
         _ => unreachable!(),
     }
 }
@@ -385,7 +385,7 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
                     f = nf;
                     is_vref = true;
                 }
-                if f.starts_with("M") {
+                if f.starts_with('M') {
                     let (col, mi) = match &f[0..2] {
                         "M1" => (grid.columns.last_id().unwrap(), 0),
                         "M3" => (grid.columns.first_id().unwrap(), 0),
@@ -455,16 +455,16 @@ fn handle_spec_io(rd: &Part, grid: &mut spartan6::Grid) {
                             assert_eq!(coord.bel.to_idx(), 1);
                         }
                         _ => {
-                            if mf.starts_with("A") {
-                                let i: usize = mf[1..].parse().unwrap();
+                            if let Some(i) = mf.strip_prefix('A') {
+                                let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.io_addr[i].row);
                                 assert_eq!(coord.bel, mcb.io_addr[i].bel);
-                            } else if mf.starts_with("BA") {
-                                let i: usize = mf[2..].parse().unwrap();
+                            } else if let Some(i) = mf.strip_prefix("BA") {
+                                let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.io_ba[i].row);
                                 assert_eq!(coord.bel, mcb.io_ba[i].bel);
-                            } else if mf.starts_with("DQ") {
-                                let i: usize = mf[2..].parse().unwrap();
+                            } else if let Some(i) = mf.strip_prefix("DQ") {
+                                let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.iop_dq[i / 2]);
                                 assert_eq!(coord.bel.to_idx(), (i % 2));
                             } else {
@@ -662,7 +662,7 @@ fn make_int_db(rd: &Part) -> int::IntDb {
             &[&format!("LOGICIN_{dir}{i}")],
         );
     }
-    builder.mux_out(&format!("IMUX.LOGICIN63"), &["FAN_B"]);
+    builder.mux_out(&"IMUX.LOGICIN63".to_string(), &["FAN_B"]);
 
     for i in 0..24 {
         builder.logic_out(
@@ -829,7 +829,7 @@ fn make_grid(rd: &Part) -> (spartan6::Grid, BTreeSet<DisabledPart>) {
 }
 
 fn split_num(s: &str) -> Option<(&str, u32)> {
-    let mut pos = s.find(|c: char| c.is_digit(10))?;
+    let mut pos = s.find(|c: char| c.is_ascii_digit())?;
     if let Some(upos) = s.find('_') {
         pos = upos + 1;
     }

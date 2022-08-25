@@ -242,7 +242,7 @@ impl Parser {
                 if l == "\t)" {
                     break;
                 } else if let Some(l) = l.strip_prefix("\t\t(primitive_site ") {
-                    let (l, has_body) = match l.strip_suffix(")") {
+                    let (l, has_body) = match l.strip_suffix(')') {
                         Some(sl) => (sl, false),
                         None => (l, true),
                     };
@@ -257,7 +257,7 @@ impl Parser {
                                 break;
                             } else if let Some(l) = l.strip_prefix("\t\t\t(pinwire ") {
                                 let l = l
-                                    .strip_suffix(")")
+                                    .strip_suffix(')')
                                     .ok_or_else(|| SimpleError::new("missing ) on pinwire"))?;
                                 let l: Vec<_> = l.split(' ').collect();
                                 match l[..] {
@@ -311,7 +311,7 @@ impl Parser {
                         pinwires,
                     });
                 } else if let Some(l) = l.strip_prefix("\t\t(wire ") {
-                    let (l, has_body) = match l.strip_suffix(")") {
+                    let (l, has_body) = match l.strip_suffix(')') {
                         Some(sl) => (sl, false),
                         None => (l, true),
                     };
@@ -326,7 +326,7 @@ impl Parser {
                                 break;
                             } else if let Some(l) = l.strip_prefix("\t\t\t(conn ") {
                                 let l = l
-                                    .strip_suffix(")")
+                                    .strip_suffix(')')
                                     .ok_or_else(|| SimpleError::new("missing ) on conn"))?;
                                 let l: Vec<_> = l.split(' ').collect();
                                 match l[..] {
@@ -349,16 +349,15 @@ impl Parser {
                     wires.push(Wire { name, speed, conns });
                 } else if let Some(l) = l.strip_prefix("\t\t(pip ") {
                     let l = l
-                        .strip_suffix(")")
+                        .strip_suffix(')')
                         .ok_or_else(|| SimpleError::new("missing ) on pip"))?;
-                    let (l, rt) = match l.strip_suffix(")") {
+                    let (l, rt) = match l.strip_suffix(')') {
                         Some(l) => {
-                            let sl: Vec<_>;
-                            if l.contains("_ROUTETHROUGH") {
-                                sl = l.split(" (_ROUTETHROUGH-").collect();
+                            let sl: Vec<_> = if l.contains("_ROUTETHROUGH") {
+                                l.split(" (_ROUTETHROUGH-").collect()
                             } else {
-                                sl = l.split(" (ROUTETHROUGH-").collect();
-                            }
+                                l.split(" (ROUTETHROUGH-").collect()
+                            };
                             if sl.len() != 2 {
                                 bail!("not routethru pip: {:?}", l);
                             }

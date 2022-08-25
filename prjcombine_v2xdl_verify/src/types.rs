@@ -226,7 +226,7 @@ impl TgtInst {
             &if inv {
                 format!("{name}_B")
             } else {
-                format!("{name}")
+                name.to_string()
             },
         );
     }
@@ -244,7 +244,7 @@ impl TgtInst {
             &if inv {
                 format!("{name}_B")
             } else {
-                format!("{name}")
+                name.to_string()
             },
         );
     }

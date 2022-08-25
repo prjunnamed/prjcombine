@@ -334,8 +334,8 @@ impl Grid {
     pub fn get_sysmon_pads(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<(String, SysMonPin)> {
         let mut res = Vec::new();
         if self.col_hard.is_none() {
-            res.push((format!("IPAD_X0Y0"), SysMonPin::VP));
-            res.push((format!("IPAD_X0Y1"), SysMonPin::VN));
+            res.push(("IPAD_X0Y0".to_string(), SysMonPin::VP));
+            res.push(("IPAD_X0Y1".to_string(), SysMonPin::VN));
         } else {
             let mut ipy = 6;
             for i in 0..self.reg_cfg {

@@ -235,7 +235,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
         };
         let mut sl: &str = &l;
         let mut cont = false;
-        if let Some(x) = l.strip_suffix("\\") {
+        if let Some(x) = l.strip_suffix('\\') {
             cont = true;
             sl = x;
         }
@@ -262,7 +262,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
             };
             let mut sl: &str = &l;
             cont = false;
-            if let Some(x) = l.strip_suffix("\\") {
+            if let Some(x) = l.strip_suffix('\\') {
                 cont = true;
                 sl = x;
             }

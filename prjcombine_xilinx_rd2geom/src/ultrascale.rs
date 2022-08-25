@@ -1389,7 +1389,7 @@ fn make_grids(
         }
     }
     let mut grid_master = None;
-    for (_, pins) in &rd.packages {
+    for pins in rd.packages.values() {
         for pin in pins {
             if pin.func == "VP" {
                 if is_plus {
@@ -1434,7 +1434,7 @@ fn make_grids(
 }
 
 fn split_num(s: &str) -> Option<(&str, u32)> {
-    let pos = s.find(|c: char| c.is_digit(10))?;
+    let pos = s.find(|c: char| c.is_ascii_digit())?;
     let n = s[pos..].parse().ok()?;
     Some((&s[..pos], n))
 }
@@ -1826,14 +1826,14 @@ fn make_bond(
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
-                if pin.vcco_bank.unwrap() != io.bank {
-                    if pin.vcco_bank != Some(64) && !matches!(io.bank, 84 | 94) {
-                        println!(
-                            "wrong bank pad {pkg} {pad} {io:?} got {f} exp {b}",
-                            f = pin.func,
-                            b = io.bank
-                        );
-                    }
+                if pin.vcco_bank.unwrap() != io.bank
+                    && (pin.vcco_bank != Some(64) || !matches!(io.bank, 84 | 94))
+                {
+                    println!(
+                        "wrong bank pad {pkg} {pad} {io:?} got {f} exp {b}",
+                        f = pin.func,
+                        b = io.bank
+                    );
                 }
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));

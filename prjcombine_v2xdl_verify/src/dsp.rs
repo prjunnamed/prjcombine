@@ -73,84 +73,98 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.connect("C", &clk_v);
         inst.connect("CE", &ce_v);
         inst.connect("R", &rst_v);
-        if mode == Mode::Virtex2 {
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in_inv("CE", &ce_x, ce_inv);
-            ti.pin_in_inv("RST", &rst_x, rst_inv);
-        } else if mode == Mode::Spartan3E {
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in_inv("CEA", &ce_x, ce_inv);
-            ti.pin_in_inv("CEB", &ce_x, ce_inv);
-            ti.pin_in_inv("CEP", &ce_x, ce_inv);
-            ti.pin_in_inv("RSTA", &rst_x, rst_inv);
-            ti.pin_in_inv("RSTB", &rst_x, rst_inv);
-            ti.pin_in_inv("RSTP", &rst_x, rst_inv);
-            ti.cfg_int("AREG", 0);
-            ti.cfg_int("BREG", 0);
-            ti.cfg_int("PREG", 1);
-            ti.cfg("B_INPUT", "DIRECT");
-            ti.cfg("PREG_CLKINVERSION", "0");
-        } else if matches!(mode, Mode::Spartan3ADsp | Mode::Spartan6) {
-            ti.cfg_int("MREG", 1);
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in_inv("CEM", &ce_x, ce_inv);
-            ti.pin_in_inv("RSTM", &rst_x, rst_inv);
-        } else if mode == Mode::Virtex4 {
-            ti.cfg("LEGACY_MODE", "MULT18X18S");
-            ti.cfg_int("MREG", 1);
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in_inv("CEM", &ce_x, ce_inv);
-            ti.pin_in_inv("RSTM", &rst_x, rst_inv);
-        } else if mode == Mode::Virtex5 {
-            ti.cfg("USE_MULT", "MULT_S");
-            ti.cfg_int("MREG", 1);
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in("CEM", &ce_x);
-            ti.pin_in("RSTM", &rst_x);
-        } else if matches!(mode, Mode::Virtex6 | Mode::Series7) {
-            ti.cfg("USE_MULT", "MULTIPLY");
-            ti.cfg_int("MREG", 1);
-            ti.pin_in_inv("CLK", &clk_x, clk_inv);
-            ti.pin_in("CEM", &ce_x);
-            ti.pin_in("RSTM", &rst_x);
+        match mode {
+            Mode::Virtex2 => {
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in_inv("CE", &ce_x, ce_inv);
+                ti.pin_in_inv("RST", &rst_x, rst_inv);
+            }
+            Mode::Spartan3E => {
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in_inv("CEA", &ce_x, ce_inv);
+                ti.pin_in_inv("CEB", &ce_x, ce_inv);
+                ti.pin_in_inv("CEP", &ce_x, ce_inv);
+                ti.pin_in_inv("RSTA", &rst_x, rst_inv);
+                ti.pin_in_inv("RSTB", &rst_x, rst_inv);
+                ti.pin_in_inv("RSTP", &rst_x, rst_inv);
+                ti.cfg_int("AREG", 0);
+                ti.cfg_int("BREG", 0);
+                ti.cfg_int("PREG", 1);
+                ti.cfg("B_INPUT", "DIRECT");
+                ti.cfg("PREG_CLKINVERSION", "0");
+            }
+            Mode::Spartan3ADsp | Mode::Spartan6 => {
+                ti.cfg_int("MREG", 1);
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in_inv("CEM", &ce_x, ce_inv);
+                ti.pin_in_inv("RSTM", &rst_x, rst_inv);
+            }
+            Mode::Virtex4 => {
+                ti.cfg("LEGACY_MODE", "MULT18X18S");
+                ti.cfg_int("MREG", 1);
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in_inv("CEM", &ce_x, ce_inv);
+                ti.pin_in_inv("RSTM", &rst_x, rst_inv);
+            }
+            Mode::Virtex5 => {
+                ti.cfg("USE_MULT", "MULT_S");
+                ti.cfg_int("MREG", 1);
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in("CEM", &ce_x);
+                ti.pin_in("RSTM", &rst_x);
+            }
+            Mode::Virtex6 | Mode::Series7 => {
+                ti.cfg("USE_MULT", "MULTIPLY");
+                ti.cfg_int("MREG", 1);
+                ti.pin_in_inv("CLK", &clk_x, clk_inv);
+                ti.pin_in("CEM", &ce_x);
+                ti.pin_in("RSTM", &rst_x);
+            }
         }
     } else {
-        if mode == Mode::Spartan3E {
-            ti.pin_tie_inv("CLK", false, false);
-            ti.pin_tie_inv("CEA", false, false);
-            ti.pin_tie_inv("CEB", false, false);
-            ti.pin_tie_inv("CEP", false, false);
-            ti.pin_tie_inv("RSTA", true, false);
-            ti.pin_tie_inv("RSTB", true, false);
-            ti.pin_tie_inv("RSTP", true, false);
-            ti.cfg_int("AREG", 0);
-            ti.cfg_int("BREG", 0);
-            ti.cfg_int("PREG", 0);
-            ti.cfg("B_INPUT", "DIRECT");
-            ti.cfg("PREG_CLKINVERSION", "0");
-        } else if matches!(mode, Mode::Spartan3ADsp | Mode::Spartan6) {
-            ti.cfg_int("MREG", 0);
-            ti.pin_tie_inv("CLK", false, false);
-            ti.pin_tie_inv("CEM", false, false);
-            ti.pin_tie_inv("RSTM", true, false);
-        } else if mode == Mode::Virtex4 {
-            ti.cfg("LEGACY_MODE", "MULT18X18");
-            ti.cfg_int("MREG", 0);
-            ti.pin_tie_inv("CLK", false, false);
-            ti.pin_tie_inv("CEM", false, false);
-            ti.pin_tie_inv("RSTM", true, false);
-        } else if mode == Mode::Virtex5 {
-            ti.cfg("USE_MULT", "MULT");
-            ti.cfg_int("MREG", 0);
-            ti.pin_tie_inv("CLK", false, false);
-            ti.pin_tie("CEM", false);
-            ti.pin_tie("RSTM", tieval_rst);
-        } else if matches!(mode, Mode::Virtex6 | Mode::Series7) {
-            ti.cfg("USE_MULT", "MULTIPLY");
-            ti.cfg_int("MREG", 0);
-            ti.pin_tie_inv("CLK", false, false);
-            ti.pin_tie("CEM", tieval_ce);
-            ti.pin_tie("RSTM", tieval_rst);
+        match mode {
+            Mode::Virtex2 => (),
+            Mode::Spartan3E => {
+                ti.pin_tie_inv("CLK", false, false);
+                ti.pin_tie_inv("CEA", false, false);
+                ti.pin_tie_inv("CEB", false, false);
+                ti.pin_tie_inv("CEP", false, false);
+                ti.pin_tie_inv("RSTA", true, false);
+                ti.pin_tie_inv("RSTB", true, false);
+                ti.pin_tie_inv("RSTP", true, false);
+                ti.cfg_int("AREG", 0);
+                ti.cfg_int("BREG", 0);
+                ti.cfg_int("PREG", 0);
+                ti.cfg("B_INPUT", "DIRECT");
+                ti.cfg("PREG_CLKINVERSION", "0");
+            }
+            Mode::Spartan3ADsp | Mode::Spartan6 => {
+                ti.cfg_int("MREG", 0);
+                ti.pin_tie_inv("CLK", false, false);
+                ti.pin_tie_inv("CEM", false, false);
+                ti.pin_tie_inv("RSTM", true, false);
+            }
+            Mode::Virtex4 => {
+                ti.cfg("LEGACY_MODE", "MULT18X18");
+                ti.cfg_int("MREG", 0);
+                ti.pin_tie_inv("CLK", false, false);
+                ti.pin_tie_inv("CEM", false, false);
+                ti.pin_tie_inv("RSTM", true, false);
+            }
+            Mode::Virtex5 => {
+                ti.cfg("USE_MULT", "MULT");
+                ti.cfg_int("MREG", 0);
+                ti.pin_tie_inv("CLK", false, false);
+                ti.pin_tie("CEM", false);
+                ti.pin_tie("RSTM", tieval_rst);
+            }
+            Mode::Virtex6 | Mode::Series7 => {
+                ti.cfg("USE_MULT", "MULTIPLY");
+                ti.cfg_int("MREG", 0);
+                ti.pin_tie_inv("CLK", false, false);
+                ti.pin_tie("CEM", tieval_ce);
+                ti.pin_tie("RSTM", tieval_rst);
+            }
         }
     }
 

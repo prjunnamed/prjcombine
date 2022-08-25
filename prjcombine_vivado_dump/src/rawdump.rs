@@ -80,10 +80,14 @@ foreach x [get_speed_models] {
 puts $fd "END"
 "#;
 
-fn list_tiles(
-    tc: &Toolchain,
-    part: &VivadoPart,
-) -> (HashMap<String, (u16, u16)>, u16, u16, HashMap<u32, String>) {
+struct TileData {
+    tts: HashMap<String, (u16, u16)>,
+    width: u16,
+    height: u16,
+    speed_models: HashMap<u32, String>,
+}
+
+fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> TileData {
     let mut tts = HashMap::new();
     let mut tile_cnt = 0;
     let mut width: u16 = 0;
@@ -156,7 +160,12 @@ fn list_tiles(
         }
         assert_eq!((width as usize) * (height as usize), tile_cnt);
     }
-    (tts, width, height, speed_models)
+    TileData {
+        tts,
+        width,
+        height,
+        speed_models,
+    }
 }
 
 struct TtPip {
@@ -397,9 +406,22 @@ struct Context {
     bar: ProgressBar,
 }
 
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+struct NodeId {
+    tile: NameId,
+    wire: NameId,
+}
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+struct NodeWire {
+    tile: NameId,
+    wire: NameId,
+    speed: u32,
+}
+
 struct MutContext {
     names: EntitySet<NameId, String>,
-    nodes: HashMap<(NameId, NameId), Vec<(NameId, NameId, u32)>>,
+    nodes: HashMap<NodeId, Vec<NodeWire>>,
     rd: PartBuilder,
 }
 
@@ -598,11 +620,16 @@ fn dump_tile(
                 );
                 for (name, node, si) in node_wires {
                     let pos = node.find('/').unwrap();
-                    let node_t = mctx.names.get_or_insert(&node[..pos]);
-                    let node_w = mctx.names.get_or_insert(&node[pos + 1..]);
-                    let nwires = mctx.nodes.entry((node_t, node_w)).or_default();
-                    let name = mctx.names.get_or_insert(&name);
-                    nwires.push((mctx.names.get_or_insert(tile), name, si));
+                    let node = NodeId {
+                        tile: mctx.names.get_or_insert(&node[..pos]),
+                        wire: mctx.names.get_or_insert(&node[pos + 1..]),
+                    };
+                    let nwires = mctx.nodes.entry(node).or_default();
+                    nwires.push(NodeWire {
+                        tile: mctx.names.get_or_insert(tile),
+                        wire: mctx.names.get_or_insert(&name),
+                        speed: si,
+                    });
                 }
                 ctx.bar.inc(1);
                 return;
@@ -616,23 +643,23 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
     let fpart = &parts[0];
 
     // STEP 1: list tiles, gather list of tile types, get dimensions; also list speed models
-    let (tts, width, height, speed_models) = list_tiles(tc, fpart);
+    let td = list_tiles(tc, fpart);
     println!(
         "{}: {}×{} tiles, {} tts, {} SMs",
         fpart.device,
-        width,
-        height,
-        tts.len(),
-        speed_models.len()
+        td.width,
+        td.height,
+        td.tts.len(),
+        td.speed_models.len()
     );
 
     // STEP 2: dump TTs [pips]
-    let tt_pips = dump_tts(tc, fpart, &tts);
+    let tt_pips = dump_tts(tc, fpart, &td.tts);
 
     // STEP 3: dump tiles [sites, pip speed, wires], STREAM THE MOTHERFUCKER, gather nodes
     let ctx = Context {
         tt_pips,
-        speed_models,
+        speed_models: td.speed_models,
         mctx: Mutex::new(MutContext {
             names: EntitySet::new(),
             nodes: HashMap::new(),
@@ -640,14 +667,14 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                 fpart.device.clone(),
                 fpart.actual_family.clone(),
                 Source::Vivado,
-                width,
-                height,
+                td.width,
+                td.height,
             ),
         }),
-        bar: ProgressBar::new((width as u64) * (height as u64)),
+        bar: ProgressBar::new((td.width as u64) * (td.height as u64)),
     };
-    let gys: Vec<_> = (0..height).collect();
-    let chunks: Vec<_> = gys.chunks(TILE_BATCH_SIZE / (width as usize)).collect();
+    let gys: Vec<_> = (0..td.height).collect();
+    let chunks: Vec<_> = gys.chunks(TILE_BATCH_SIZE / (td.width as usize)).collect();
     chunks.into_par_iter().for_each(|batch| {
         let mut crdlist = String::new();
         for y in batch {
@@ -685,7 +712,7 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
                     }
                     let coord = Coord {
                         x: sl[1].parse().unwrap(),
-                        y: height - 1 - sl[2].parse::<u16>().unwrap(),
+                        y: td.height - 1 - sl[2].parse::<u16>().unwrap(),
                     };
                     dump_tile(&mut lines, coord, sl[3], sl[4], &ctx);
                 }
@@ -701,11 +728,15 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
     let mut mctx = ctx.mctx.into_inner().unwrap();
 
     // STEP 4: stream nodes
-    for (_, v) in mctx.nodes {
+    for v in mctx.nodes.into_values() {
         mctx.rd.add_node(
             &v.into_iter()
-                .map(|(t, w, s)| -> (&str, &str, Option<&str>) {
-                    (&mctx.names[t], &mctx.names[w], Some(&ctx.speed_models[&s]))
+                .map(|w| -> (&str, &str, Option<&str>) {
+                    (
+                        &mctx.names[w.tile],
+                        &mctx.names[w.wire],
+                        Some(&ctx.speed_models[&w.speed]),
+                    )
                 })
                 .collect::<Vec<_>>(),
         );

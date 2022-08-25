@@ -194,8 +194,8 @@ fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Option<(ColId, ColId)> {
 
 fn get_gt_bank(rd: &Part, c: Coord) -> u32 {
     for s in rd.tiles[&c].sites.values() {
-        if s.starts_with("RXNPAD") {
-            return s[6..].parse::<u32>().unwrap();
+        if let Some(b) = s.strip_prefix("RXNPAD") {
+            return b.parse::<u32>().unwrap();
         }
     }
     unreachable!();
@@ -424,12 +424,12 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
                     } else if f.starts_with("GCLK")
                         || f.starts_with("LHCLK")
                         || f.starts_with("RHCLK")
+                        || f.starts_with("IRDY")
+                        || f.starts_with("TRDY")
                     {
                         // ignore
-                    } else if f.starts_with("IRDY") || f.starts_with("TRDY") {
-                        // ignore
                     } else {
-                        let cfg = match &f[..] {
+                        let cfg = match f {
                             "No_Pair" | "DIN" | "BUSY" | "MOSI" | "MISO" => continue,
                             "CS_B" => CfgPin::CsiB,
                             "INIT_B" => CfgPin::InitB,

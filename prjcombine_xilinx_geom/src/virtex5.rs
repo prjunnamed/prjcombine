@@ -388,8 +388,8 @@ impl Grid {
             res.push((format!("IPAD_X0Y{}", ipy), SysMonPin::VP));
             res.push((format!("IPAD_X0Y{}", ipy + 1), SysMonPin::VN));
         } else {
-            res.push((format!("IPAD_X0Y0"), SysMonPin::VP));
-            res.push((format!("IPAD_X0Y1"), SysMonPin::VN));
+            res.push(("IPAD_X0Y0".to_string(), SysMonPin::VP));
+            res.push(("IPAD_X0Y1".to_string(), SysMonPin::VN));
         }
         res
     }

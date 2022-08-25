@@ -42,7 +42,7 @@ fn emit_inst(out: &mut String, inst: &SrcInst) {
             emit_pval(out, v);
             write!(out, ")").unwrap();
         }
-        writeln!(out, "").unwrap();
+        writeln!(out).unwrap();
         write!(out, ")").unwrap();
     }
     writeln!(out, " {n} (", n = inst.name).unwrap();
@@ -66,7 +66,7 @@ fn emit_inst(out: &mut String, inst: &SrcInst) {
         write!(out, ")").unwrap();
     }
     writeln!(out, ");").unwrap();
-    writeln!(out, "").unwrap();
+    writeln!(out).unwrap();
 }
 
 pub fn emit(test: &Test) -> String {
@@ -74,7 +74,7 @@ pub fn emit(test: &Test) -> String {
     writeln!(res, "`default_nettype none").unwrap();
     writeln!(res, "module top(I);").unwrap();
     writeln!(res, "input wire I;").unwrap();
-    writeln!(res, "").unwrap();
+    writeln!(res).unwrap();
     for w in test.src_wires.iter() {
         writeln!(res, "wire {w};").unwrap();
     }
@@ -95,7 +95,7 @@ pub fn emit(test: &Test) -> String {
         writeln!(res, "wire _out_{w};").unwrap();
         writeln!(res, "BUF _obuf_{w} (.I({w}), .O(_out_{w}));").unwrap();
     }
-    writeln!(res, "").unwrap();
+    writeln!(res).unwrap();
     for it in test.src_insts.iter() {
         emit_inst(&mut res, it);
     }

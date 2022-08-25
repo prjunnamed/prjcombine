@@ -345,7 +345,7 @@ fn make_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, i: &str) {
     let o = make_clk_out(test, ctx, mode);
     let ce = test.make_in(ctx);
     let clr = test.make_in(ctx);
-    inst.connect("I", &i);
+    inst.connect("I", i);
     inst.connect("CE", &ce);
     inst.connect("CLR", &clr);
     inst.connect("O", &o);
@@ -355,7 +355,7 @@ fn make_bufr(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, i: &str) {
     inst.param_str("BUFR_DIVIDE", div);
 
     ti.bel("BUFR", &inst.name, "");
-    ti.pin_in("I", &i);
+    ti.pin_in("I", i);
     ti.pin_in("CE", &ce);
     ti.pin_in("CLR", &clr);
     ti.pin_out("O", &o);

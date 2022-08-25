@@ -35,12 +35,12 @@ fn recog_lut(
             if family != "virtex4" {
                 if l == "F" {
                     cfg_expect.insert(
-                        format!("FXMUX"),
+                        "FXMUX".to_string(),
                         ("".to_string(), TgtConfigVal::Plain("F".to_string())),
                     );
                 } else {
                     cfg_expect.insert(
-                        format!("GYMUX"),
+                        "GYMUX".to_string(),
                         ("".to_string(), TgtConfigVal::Plain("G".to_string())),
                     );
                 }
@@ -49,7 +49,7 @@ fn recog_lut(
                 format!("{x}USED"),
                 ("".to_string(), TgtConfigVal::Plain("0".to_string())),
             );
-            return Some((x.to_string(), format!("{il}{inum}", il = c[0])));
+            Some((x.to_string(), format!("{il}{inum}", il = c[0])))
         }
         5 => {
             let v = parse_lut(5, &c[3])?;
@@ -102,7 +102,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
     for ti in test.tgt_insts.iter() {
         let mut bel = None;
         for c in ti.config.iter() {
-            if c.1 != "" && c.1 != "DUMMY" {
+            if !c.1.is_empty() && c.1 != "DUMMY" {
                 bel = Some(c.1.to_string());
                 break;
             }
@@ -136,8 +136,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 }
             } else if c[1].starts_with("_ibuf2_") {
                 let name = &c[1][7..];
-                let lut = recog_lut(&mut cfg_expect, &c, family);
-                if !lut.is_some() {
+                let lut = recog_lut(&mut cfg_expect, c, family);
+                if lut.is_none() {
                     continue;
                 }
                 let (opin, ipin) = lut.unwrap();
@@ -153,8 +153,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 wire_tie.insert((inst.name.clone(), ipin), false);
             } else if c[1].starts_with("_ibuf_") {
                 let name = &c[1][6..];
-                let lut = recog_lut(&mut cfg_expect, &c, family);
-                if !lut.is_some() {
+                let lut = recog_lut(&mut cfg_expect, c, family);
+                if lut.is_none() {
                     continue;
                 }
                 let (opin, ipin) = lut.unwrap();
@@ -173,8 +173,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 );
             } else if c[1].starts_with("_obuf_") {
                 let name = &c[1][6..];
-                let lut = recog_lut(&mut cfg_expect, &c, family);
-                if !lut.is_some() {
+                let lut = recog_lut(&mut cfg_expect, c, family);
+                if lut.is_none() {
                     continue;
                 }
                 let (opin, ipin) = lut.unwrap();
@@ -191,8 +191,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
             } else if c[1] == "XIL_ML_PMV" {
                 // Virtex 4 special.
                 cfg_expect.insert(
-                    format!("PMV"),
-                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                    "PMV".to_string(),
+                    (c[1].clone(), TgtConfigVal::Plain(String::new())),
                 );
                 for (p, v) in [
                     ("A0", false),
@@ -212,8 +212,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
             } else if c[1].starts_with("XIL_ML_UNUSED_DCM_") {
                 // Virtex 4 special.
                 cfg_expect.insert(
-                    format!("DCM_ADV"),
-                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                    "DCM_ADV".to_string(),
+                    (c[1].clone(), TgtConfigVal::Plain(String::new())),
                 );
                 for (p, v) in [
                     ("BGM_CONFIG_REF_SEL", "CLKIN"),
@@ -315,8 +315,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
             } else if c[1] == "STARTUP_V6_PWRUP_GTXE1_ML_INSERTED" {
                 // Virtex 6 special.
                 cfg_expect.insert(
-                    format!("STARTUP"),
-                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                    "STARTUP".to_string(),
+                    (c[1].clone(), TgtConfigVal::Plain(String::new())),
                 );
                 cfg_expect.insert(
                     "PROG_USR".to_string(),
@@ -341,8 +341,8 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 );
             } else if c[1].starts_with("GTXE1_ML_REPLICATED_") {
                 cfg_expect.insert(
-                    format!("GTXE1"),
-                    (c[1].clone(), TgtConfigVal::Plain(format!(""))),
+                    "GTXE1".to_string(),
+                    (c[1].clone(), TgtConfigVal::Plain(String::new())),
                 );
                 for (p, v) in [
                     ("AC_CAP_DIS", "TRUE"),
@@ -914,10 +914,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                         }
                     }
                 }
-            } else if c[0] == "_INST_PROP" {
-            } else if c[0] == "_BEL_PROP" {
-                // skip
-            } else if c[2] == "#OFF" {
+            } else if c[0] == "_INST_PROP" || c[0] == "_BEL_PROP" || c[2] == "#OFF" {
                 // skip
             } else {
                 println!("unexpected cfg {iname} {c:?}", iname = inst.name);

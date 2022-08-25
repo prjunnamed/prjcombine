@@ -720,10 +720,8 @@ impl<'a> Verifier<'a> {
             for col in slr.cols() {
                 for row in slr.rows() {
                     let et = &slr[(col, row)];
-                    for t in et.terms.values() {
-                        if let Some(t) = t {
-                            self.handle_int_term(slr.slr, col, row, t);
-                        }
+                    for t in et.terms.values().flatten() {
+                        self.handle_int_term(slr.slr, col, row, t);
                     }
                     for intf in &et.intfs {
                         self.handle_int_intf(slr.slr, col, row, intf);

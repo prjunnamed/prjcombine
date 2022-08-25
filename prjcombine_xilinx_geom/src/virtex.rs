@@ -299,11 +299,11 @@ impl Grid {
             let rt_t;
             if self.kind == GridKind::Virtex {
                 if col == col_l + 1 {
-                    rt_b = format!("LBRAM_BOT");
-                    rt_t = format!("LBRAM_TOP");
+                    rt_b = "LBRAM_BOT".to_string();
+                    rt_t = "LBRAM_TOP".to_string();
                 } else {
-                    rt_b = format!("RBRAM_BOT");
-                    rt_t = format!("RBRAM_TOP");
+                    rt_b = "RBRAM_BOT".to_string();
+                    rt_t = "RBRAM_TOP".to_string();
                 }
             } else {
                 rt_b = format!("BRAM_BOTC{i}");

@@ -583,6 +583,7 @@ pub fn get_gt(
         let mut reg_base = 0;
         let mut reg_cfg = None;
         for (gi, grid) in grids {
+            #[allow(clippy::same_item_push)]
             for _ in 0..grid.regs {
                 reg_has_gt.push(false);
             }

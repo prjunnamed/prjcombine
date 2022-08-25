@@ -85,11 +85,11 @@ fn get_cols_io(rd: &Part, int: &IntGrid) -> [Option<ColId>; 4] {
         .into_iter()
         .map(|x| int.lookup_column_inter(x))
         .collect();
-    match &lc[..] {
-        &[il] => {
+    match lc[..] {
+        [il] => {
             res[1] = Some(il);
         }
-        &[ol, il] => {
+        [ol, il] => {
             res[0] = Some(ol);
             res[1] = Some(il);
         }
@@ -99,11 +99,11 @@ fn get_cols_io(rd: &Part, int: &IntGrid) -> [Option<ColId>; 4] {
         .into_iter()
         .map(|x| int.lookup_column_inter(x) - 1)
         .collect();
-    match &rc[..] {
-        &[ir] => {
+    match rc[..] {
+        [ir] => {
             res[2] = Some(ir);
         }
-        &[ir, or] => {
+        [ir, or] => {
             res[2] = Some(ir);
             res[3] = Some(or);
         }
@@ -446,7 +446,7 @@ fn make_grid(rd: &Part) -> (virtex6::Grid, BTreeSet<DisabledPart>) {
         col_cfg: get_col_cfg(rd, &int),
         cols_qbuf: get_cols_qbuf(rd, &int),
         col_hard: get_col_hard(rd, &int),
-        cols_io: get_cols_io(&rd, &int),
+        cols_io: get_cols_io(rd, &int),
         regs: int.rows.len() / 40,
         reg_cfg: get_reg_cfg(rd, &int),
         reg_gth_start: get_reg_gth_start(rd, &int),
@@ -455,7 +455,7 @@ fn make_grid(rd: &Part) -> (virtex6::Grid, BTreeSet<DisabledPart>) {
 }
 
 fn split_num(s: &str) -> Option<(&str, u32)> {
-    let pos = s.find(|c: char| c.is_digit(10))?;
+    let pos = s.find(|c: char| c.is_ascii_digit())?;
     let n = s[pos..].parse().ok()?;
     Some((&s[..pos], n))
 }

@@ -1,5 +1,3 @@
-#![allow(clippy::write_with_newline)]
-
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::io::{self, Write};
@@ -101,11 +99,11 @@ fn fmt_cfg(c: &Config) -> FmtCfg<'_> {
 
 impl Display for FmtCfg<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "\"\n")?;
+        writeln!(f, "\"")?;
         let mut first = true;
         for chunk in self.0 {
             if !first {
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
             write!(f, "  ")?;
             first = false;
@@ -212,12 +210,12 @@ impl Design {
             if !net.cfg.is_empty() {
                 write!(f, ", cfg {}", fmt_cfg(&net.cfg))?;
             }
-            write!(f, ",\n")?;
+            writeln!(f, ",")?;
             for pin in &net.outpins {
-                write!(f, "  outpin {} {},\n", fmt_string(&pin.inst_name), pin.pin)?;
+                writeln!(f, "  outpin {} {},", fmt_string(&pin.inst_name), pin.pin)?;
             }
             for pin in &net.inpins {
-                write!(f, "  inpin {} {},\n", fmt_string(&pin.inst_name), pin.pin)?;
+                writeln!(f, "  inpin {} {},", fmt_string(&pin.inst_name), pin.pin)?;
             }
             for pip in &net.pips {
                 let dir = match pip.dir {
@@ -226,9 +224,9 @@ impl Design {
                     PipDirection::BiUniBuf => "=>",
                     PipDirection::UniBuf => "->",
                 };
-                write!(
+                writeln!(
                     f,
-                    " pip {} {} {} {},\n",
+                    " pip {} {} {} {},",
                     pip.tile, pip.wire_from, dir, pip.wire_to
                 )?;
             }
@@ -255,8 +253,8 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
         6 => 0xffffffffffffffff,
         _ => panic!("invalid sz"),
     };
-    if rval.starts_with("0x") {
-        u64::from_str_radix(&rval[2..], 16).ok()
+    if let Some(rv) = rval.strip_prefix("0x") {
+        u64::from_str_radix(rv, 16).ok()
     } else {
         #[derive(Eq, PartialEq, Copy, Clone, Debug)]
         enum StackEntry {
@@ -304,7 +302,7 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
                 stack.pop();
                 stack.push(StackEntry::Val(v1 | v2));
             }
-            if c == None {
+            if c.is_none() {
                 break;
             }
             match c.unwrap() {

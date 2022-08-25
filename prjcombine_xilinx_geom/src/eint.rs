@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use crate::int::*;
 use crate::{BelId, ColId, RowId, SlrId};
 use enum_map::EnumMap;
@@ -368,8 +370,10 @@ impl ExpandedSlrRefMut<'_, '_> {
                 if self[(col, row)].nodes.is_empty() {
                     continue;
                 }
-                if prev.is_some() && self[(col, row)].terms[Dir::W].is_none() {
-                    self.fill_term_pair_anon((prev.unwrap(), row), (col, row), pass_e, pass_w);
+                if let Some(prev) = prev {
+                    if self[(col, row)].terms[Dir::W].is_none() {
+                        self.fill_term_pair_anon((prev, row), (col, row), pass_e, pass_w);
+                    }
                 }
                 if self[(col, row)].terms[Dir::E].is_none() {
                     prev = Some(col);
@@ -385,8 +389,10 @@ impl ExpandedSlrRefMut<'_, '_> {
                 if self[(col, row)].nodes.is_empty() {
                     continue;
                 }
-                if prev.is_some() && self[(col, row)].terms[Dir::S].is_none() {
-                    self.fill_term_pair_anon((col, prev.unwrap()), (col, row), pass_n, pass_s);
+                if let Some(prev) = prev {
+                    if self[(col, row)].terms[Dir::S].is_none() {
+                        self.fill_term_pair_anon((col, prev), (col, row), pass_n, pass_s);
+                    }
                 }
                 if self[(col, row)].terms[Dir::N].is_none() {
                     prev = Some(row);
@@ -506,11 +512,11 @@ impl ExpandedTile {
         naming: NodeNamingId,
         coords: &[Coord],
     ) -> &mut ExpandedTileNode {
-        let names: EntityVec<_, _> = names.into_iter().map(|x| x.to_string()).collect();
+        let names: EntityVec<_, _> = names.iter().map(|x| x.to_string()).collect();
         let names = names.into_iter().collect();
         self.nodes.push(ExpandedTileNode {
             kind,
-            tiles: coords.into_iter().copied().collect(),
+            tiles: coords.iter().copied().collect(),
             names,
             tie_name: None,
             naming,

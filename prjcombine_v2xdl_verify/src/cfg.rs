@@ -478,12 +478,11 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         mode,
         Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
     ) {
-        let width;
-        if mode == Mode::Virtex4 {
-            width = *["X8", "X32"].choose(&mut ctx.rng).unwrap();
+        let width = if mode == Mode::Virtex4 {
+            *["X8", "X32"].choose(&mut ctx.rng).unwrap()
         } else {
-            width = *["X8", "X16", "X32"].choose(&mut ctx.rng).unwrap();
-        }
+            *["X8", "X16", "X32"].choose(&mut ctx.rng).unwrap()
+        };
         inst.param_str("ICAP_WIDTH", width);
         ti.cfg("ICAP_WIDTH", width);
     }
@@ -554,8 +553,8 @@ fn gen_frame_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
             make_outs(test, ctx, &mut inst, &mut ti, "FAR", 25, 0);
         }
         let far = if ctx.rng.gen() { "FAR" } else { "EFAR" };
-        inst.param_str("FARSRC", &far);
-        ti.cfg("FARSRC", &far);
+        inst.param_str("FARSRC", far);
+        ti.cfg("FARSRC", far);
     } else {
         make_outs(test, ctx, &mut inst, &mut ti, "SYNDROME", 11, 0);
     }

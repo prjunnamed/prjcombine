@@ -434,6 +434,7 @@ where
     }
 }
 
+#[allow(clippy::type_complexity)]
 struct DeserializeVisitor<I, K: Hash, V, RS: BuildHasher> {
     marker: PhantomData<fn() -> EntityMap<I, K, V, RS>>,
 }

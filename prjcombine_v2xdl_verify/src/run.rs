@@ -4,7 +4,6 @@ use simple_error::bail;
 use std::fs::{read_to_string, File};
 use std::io::Write;
 use std::process::Stdio;
-use tempfile;
 
 pub fn run(tc: &Toolchain, part: &str, vlog: &str) -> Result<Design, Box<dyn std::error::Error>> {
     let dir = tempfile::Builder::new()
@@ -17,7 +16,7 @@ pub fn run(tc: &Toolchain, part: &str, vlog: &str) -> Result<Design, Box<dyn std
         let mut f_prj = File::create(dir.path().join("t.prj"))?;
         writeln!(f_prj, "verilog work \"t.v\"")?;
         let mut f_v = File::create(dir.path().join("t.v"))?;
-        f_v.write(vlog.as_bytes())?;
+        f_v.write_all(vlog.as_bytes())?;
     }
 
     let mut cmd = tc.command("xst");

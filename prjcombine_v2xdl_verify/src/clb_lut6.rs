@@ -58,7 +58,7 @@ fn make_lut6(
     }
 
     inst.attr_str("BEL", &format!("{c}6LUT"));
-    inst.connect("O", &out);
+    inst.connect("O", out);
 
     let init = gen_lut_init(6, ctx);
     inst.param_bits("INIT", &init);
@@ -67,7 +67,7 @@ fn make_lut6(
 
     if let Some(uset) = uset {
         inst.attr_str("RLOC", "X0Y0");
-        inst.attr_str("U_SET", &uset);
+        inst.attr_str("U_SET", uset);
     }
 
     test.src_insts.push(inst);
@@ -95,8 +95,8 @@ fn make_lut5_2(
 
     inst6.attr_str("BEL", &format!("{c}6LUT"));
     inst5.attr_str("BEL", &format!("{c}5LUT"));
-    inst6.connect("O", &o6);
-    inst5.connect("O", &o5);
+    inst6.connect("O", o6);
+    inst5.connect("O", o5);
 
     let init5 = gen_lut_init(5, ctx);
     let init6 = gen_lut_init(5, ctx);
@@ -119,9 +119,9 @@ fn make_lut5_2(
 
     if let Some(uset) = uset {
         inst5.attr_str("RLOC", "X0Y0");
-        inst5.attr_str("U_SET", &uset);
+        inst5.attr_str("U_SET", uset);
         inst6.attr_str("RLOC", "X0Y0");
-        inst6.attr_str("U_SET", &uset);
+        inst6.attr_str("U_SET", uset);
     }
 
     test.src_insts.push(inst5);
@@ -211,7 +211,7 @@ fn make_ffs(
         let mut inst = SrcInst::new(ctx, prim);
         if let Some(uset) = uset {
             inst.attr_str("RLOC", "X0Y0");
-            inst.attr_str("U_SET", &uset);
+            inst.attr_str("U_SET", uset);
         }
         inst.param_bits("INIT", &[if init { BitVal::S1 } else { BitVal::S0 }]);
         let q = test.make_out(ctx);
@@ -498,7 +498,7 @@ fn gen_muxf8(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     inst_i0.connect("S", &s0);
     inst_i0.connect("O", &i0);
     ti.bel("F7BMUX", &inst_i0.name, "");
-    ti.pin_in(&format!("CX"), &s0);
+    ti.pin_in("CX", &s0);
     test.src_insts.push(inst_i0);
 
     let i10 = test.make_wire(ctx);
@@ -512,7 +512,7 @@ fn gen_muxf8(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     inst_i1.connect("S", &s1);
     inst_i1.connect("O", &i1);
     ti.bel("F7AMUX", &inst_i1.name, "");
-    ti.pin_in(&format!("AX"), &s1);
+    ti.pin_in("AX", &s1);
     test.src_insts.push(inst_i1);
 
     if ctx.rng.gen() {
@@ -528,7 +528,7 @@ fn gen_muxf8(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     }
 
     ti.bel("F8MUX", &inst.name, "");
-    ti.pin_in(&format!("BX"), &s);
+    ti.pin_in("BX", &s);
 
     test.src_insts.push(inst);
     test.tgt_insts.push(ti);
@@ -864,7 +864,7 @@ fn gen_rom128x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let a = 'C';
     let b = 'D';
 
-    inst.attr_str("BEL", &bel);
+    inst.attr_str("BEL", bel);
     let inp = test.make_ins(ctx, 7);
     for i in 0..7 {
         inst.connect(&format!("A{i}"), &inp[i]);
@@ -922,7 +922,7 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let out;
     if ctx.rng.gen() {
         out = test.make_wire(ctx);
-        ti.cfg(&format!("BFFMUX"), "F8");
+        ti.cfg("BFFMUX", "F8");
         make_ffs(
             test,
             ctx,
@@ -935,8 +935,8 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         );
     } else {
         out = test.make_out(ctx);
-        ti.cfg(&format!("BOUTMUX"), "F8");
-        ti.pin_out(&format!("BMUX"), &out);
+        ti.cfg("BOUTMUX", "F8");
+        ti.pin_out("BMUX", &out);
     };
     inst.connect("O", &out);
     let init = ctx.gen_bits(256);
@@ -960,10 +960,10 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             val_a |= 1 << i;
         }
     }
-    ti.bel_rom(&format!("A6LUT"), &format!("{}/A", inst.name), 6, val_a);
-    ti.bel_rom(&format!("B6LUT"), &format!("{}/B", inst.name), 6, val_b);
-    ti.bel_rom(&format!("C6LUT"), &format!("{}/C", inst.name), 6, val_c);
-    ti.bel_rom(&format!("D6LUT"), &format!("{}/D", inst.name), 6, val_d);
+    ti.bel_rom("A6LUT", &format!("{}/A", inst.name), 6, val_a);
+    ti.bel_rom("B6LUT", &format!("{}/B", inst.name), 6, val_b);
+    ti.bel_rom("C6LUT", &format!("{}/C", inst.name), 6, val_c);
+    ti.bel_rom("D6LUT", &format!("{}/D", inst.name), 6, val_d);
     ti.bel("F7AMUX", &format!("{}/F7.A", inst.name), "");
     ti.bel("F7BMUX", &format!("{}/F7.B", inst.name), "");
     ti.bel("F8MUX", &format!("{}/F8", inst.name), "");
@@ -973,9 +973,9 @@ fn gen_rom256x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         ti.pin_in(&format!("C{ii}", ii = i + 1), &inp[i]);
         ti.pin_in(&format!("D{ii}", ii = i + 1), &inp[i]);
     }
-    ti.pin_in(&format!("AX"), &inp[6]);
-    ti.pin_in(&format!("BX"), &inp[7]);
-    ti.pin_in(&format!("CX"), &inp[6]);
+    ti.pin_in("AX", &inp[6]);
+    ti.pin_in("BX", &inp[7]);
+    ti.pin_in("CX", &inp[6]);
 
     test.src_insts.push(inst);
     test.tgt_insts.push(ti);
@@ -1083,14 +1083,9 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("DOUTMUX", "O5");
             ti.pin_dumout("DMUX");
         }
+        ti.bel_ram("D5LUT", &format!("{iname}_RAMD", iname = inst.name), 5, 0);
         ti.bel_ram(
-            &format!("D5LUT"),
-            &format!("{iname}_RAMD", iname = inst.name),
-            5,
-            0,
-        );
-        ti.bel_ram(
-            &format!("D6LUT"),
+            "D6LUT",
             &format!("{iname}_RAMD_D1", iname = inst.name),
             6,
             0,
@@ -1218,12 +1213,7 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("DUSED", "0");
             ti.pin_dumout("D");
         }
-        ti.bel_ram(
-            &format!("D6LUT"),
-            &format!("{iname}_RAMD", iname = inst.name),
-            6,
-            0,
-        );
+        ti.bel_ram("D6LUT", &format!("{iname}_RAMD", iname = inst.name), 6, 0);
     }
 
     let (wclk_v, wclk_x, wclk_inv) = test.make_in_inv(ctx);

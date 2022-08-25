@@ -51,7 +51,7 @@ fn make_lut4(test: &mut Test, ctx: &mut TestGenCtx, ti: &mut TgtInst, c: char, o
     }
 
     inst.attr_str("BEL", &format!("{c}"));
-    inst.connect("O", &out);
+    inst.connect("O", out);
 
     let init = gen_lut_init(4, ctx);
     inst.param_bits("INIT", &init);
@@ -73,14 +73,12 @@ fn make_ffs(
     uset: Option<(&str, &str)>,
     is_byp: bool,
 ) {
-    if !is_byp {
-        if mode == Mode::Virtex2 {
-            for &(c, _) in ffs {
-                ti.cfg(&format!("{c}USED"), "0");
-                let tmp = test.make_wire(ctx);
-                ti.pin_out(&format!("{c}"), &tmp);
-                ti.pin_in(&format!("D{c}"), &tmp);
-            }
+    if !is_byp && mode == Mode::Virtex2 {
+        for &(c, _) in ffs {
+            ti.cfg(&format!("{c}USED"), "0");
+            let tmp = test.make_wire(ctx);
+            ti.pin_out(&format!("{c}"), &tmp);
+            ti.pin_in(&format!("D{c}"), &tmp);
         }
     }
     let latch = clk.is_none() && ctx.rng.gen();
@@ -605,13 +603,13 @@ fn gen_cy(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         }
         ti.bel(&format!("XOR{f}"), &inst_x.name, "");
         ti.bel(&format!("CYMUX{f}"), &inst_m.name, "");
-        ti.bel_lut(&format!("{f}"), &inst_l.name, 4, compile_lut(4, 4, &init));
+        ti.bel_lut(f, &inst_l.name, 4, compile_lut(4, 4, &init));
 
         if mode == Mode::Virtex4 {
             ti.pin_out(&format!("{x}MUX"), &xo);
             ti.cfg(&format!("{x}MUXUSED"), "0");
         } else {
-            ti.pin_out(&format!("{x}"), &xo);
+            ti.pin_out(x, &xo);
             ti.cfg(&format!("{x}USED"), "0");
             ti.cfg(&format!("CYSEL{f}"), f);
         }
@@ -678,7 +676,7 @@ fn gen_orcy(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         inst_m.connect("O", &co);
 
         inst_m.connect("DI", &inp[0]);
-        ti.cfg(&format!("CY0F"), &format!("F1"));
+        ti.cfg("CY0F", "F1");
 
         for i in 0..4 {
             ti.pin_in(&format!("F{ii}", ii = i + 1), &inp[i]);
@@ -873,12 +871,11 @@ fn gen_rom32px1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
             tis[i].pin_in("FXINA", &w1);
         }
         if i % 4 == 2 {
-            let name_f7;
-            if i < 4 {
-                name_f7 = format!("{}/F7.S{}", inst.name, i ^ 3);
+            let name_f7 = if i < 4 {
+                format!("{}/F7.S{}", inst.name, i ^ 3)
             } else {
-                name_f7 = format!("{}/BF7.S{}", inst.name, i ^ 7);
-            }
+                format!("{}/BF7.S{}", inst.name, i ^ 7)
+            };
             tis[i].pin_in("BY", &inp[6]);
             tis[i].cfg("BYINV", "BY");
             tis[i].bel("F6MUX", &name_f7, "");
@@ -999,7 +996,7 @@ fn gen_ram16s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let rloc = if mode == Mode::Virtex {
         format!("R0C0.S{}", ctx.rng.gen_range(0..2))
     } else {
-        format!("X0Y0")
+        "X0Y0".to_string()
     };
 
     let inp = test.make_ins(ctx, 4);
@@ -1200,13 +1197,12 @@ fn gen_ram32ps(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
     }
     for i in 0..(1 << sz) {
         if i % 2 == 1 {
-            let name_f6;
-            match sz {
+            let name_f6 = match sz {
                 1 => {
-                    name_f6 = format!("{}/F6.S{}", inst.name, i ^ 1);
+                    format!("{}/F6.S{}", inst.name, i ^ 1)
                 }
                 2 => {
-                    name_f6 = format!("{}/F6.S{}", inst.name, i ^ 3);
+                    format!("{}/F6.S{}", inst.name, i ^ 3)
                 }
                 _ => unreachable!(),
             };
@@ -1580,7 +1576,7 @@ fn gen_ram16d_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
         let f = ['G', 'F'][i];
 
         inst.attr_str("BEL", &format!("{f}"));
-        inst.attr_str("RLOC", &rloc);
+        inst.attr_str("RLOC", rloc);
         inst.attr_str("U_SET", &uset);
 
         for j in 0..4 {
@@ -1719,7 +1715,7 @@ fn gen_srl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let rloc = if mode == Mode::Virtex {
         format!("R0C0.S{}", ctx.rng.gen_range(0..2))
     } else {
-        format!("X0Y0")
+        "X0Y0".to_string()
     };
 
     for i in 0..num {
@@ -1870,9 +1866,9 @@ fn gen_ram32pd_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
                     name_f5 = format!("{}/F5.{}", inst.name, sd);
                 }
                 1 => {
-                    name_g = format!("{}/G.S{}", inst.name, sdi + i ^ 1);
-                    name_f = format!("{}/F.S{}", inst.name, sdi + i ^ 1);
-                    name_f5 = format!("{}/F5.S{}", inst.name, sdi + i ^ 1);
+                    name_g = format!("{}/G.S{}", inst.name, (sdi + i) ^ 1);
+                    name_f = format!("{}/F.S{}", inst.name, (sdi + i) ^ 1);
+                    name_f5 = format!("{}/F5.S{}", inst.name, (sdi + i) ^ 1);
                 }
                 _ => unreachable!(),
             };
@@ -2039,7 +2035,11 @@ fn gen_ram32pd_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
             ti.pin_in("SR", &ce_x);
             match sz {
                 0 => ti.bel("WSGEN", &format!("{}/{}P.F.WE", inst.name, sd), ""),
-                1 => ti.bel("WSGEN", &format!("{}/F.S{}.WE", inst.name, sdi + i ^ 1), ""),
+                1 => ti.bel(
+                    "WSGEN",
+                    &format!("{}/F.S{}.WE", inst.name, (sdi + i) ^ 1),
+                    "",
+                ),
                 _ => unreachable!(),
             }
         }
@@ -2242,7 +2242,7 @@ fn gen_ff(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let rloc = if mode == Mode::Virtex {
         format!("R0C0.S{}", ctx.rng.gen_range(0..2))
     } else {
-        format!("X0Y0")
+        "X0Y0".to_string()
     };
     let mut inps = Vec::new();
     for i in 0..num {

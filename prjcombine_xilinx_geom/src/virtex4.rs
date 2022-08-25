@@ -411,8 +411,8 @@ impl Grid {
         let has_gt = *self.columns.first().unwrap() == ColumnKind::Gt;
         if has_gt {
             if self.has_bot_sysmon {
-                res.push((format!("IPAD_X1Y0"), 0, SysMonPin::VP));
-                res.push((format!("IPAD_X1Y1"), 0, SysMonPin::VN));
+                res.push(("IPAD_X1Y0".to_string(), 0, SysMonPin::VP));
+                res.push(("IPAD_X1Y1".to_string(), 0, SysMonPin::VN));
             }
             if self.has_top_sysmon {
                 let ipy = self.regs * 3;
@@ -421,12 +421,12 @@ impl Grid {
             }
         } else {
             if self.has_bot_sysmon {
-                res.push((format!("IPAD_X0Y0"), 0, SysMonPin::VP));
-                res.push((format!("IPAD_X0Y1"), 0, SysMonPin::VN));
+                res.push(("IPAD_X0Y0".to_string(), 0, SysMonPin::VP));
+                res.push(("IPAD_X0Y1".to_string(), 0, SysMonPin::VN));
             }
             if self.has_top_sysmon {
-                res.push((format!("IPAD_X0Y2"), 1, SysMonPin::VP));
-                res.push((format!("IPAD_X0Y3"), 1, SysMonPin::VN));
+                res.push(("IPAD_X0Y2".to_string(), 1, SysMonPin::VP));
+                res.push(("IPAD_X0Y3".to_string(), 1, SysMonPin::VN));
             }
         }
         res

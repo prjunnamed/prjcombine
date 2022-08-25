@@ -409,7 +409,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         } else if mode != Mode::Virtex2 {
             for i in 0..8 {
                 if mode == Mode::Virtex5 && !is_36 {
-                    ti.cfg(&format!("INITP_{i:02X}_{ul}"), &ZERO_INIT);
+                    ti.cfg(&format!("INITP_{i:02X}_{ul}"), ZERO_INIT);
                 } else {
                     ti.cfg(&format!("INITP_{i:02X}"), ZERO_INIT);
                 }
@@ -497,17 +497,16 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             }
         } else {
             for i in wlog2..top {
-                let hwi;
-                if mode == Mode::Spartan6 && (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
+                let hwi = if mode == Mode::Spartan6 && (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
                     // TODO: wtf
-                    hwi = match i {
+                    match i {
                         0..=3 => i,
                         4 => 13,
                         _ => i - 1,
-                    };
+                    }
                 } else {
-                    hwi = i;
-                }
+                    i
+                };
                 ti.pin_in(&format!("ADDR{xl}{hwi}"), &addr[i - wlog2]);
             }
             if sz == 4 && mode != Mode::Virtex {
@@ -685,11 +684,11 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 }
             } else {
                 let mut we = Vec::new();
-                for i in 0..(1 << wlog2 - 3) {
+                for i in 0..(1 << (wlog2 - 3)) {
                     let (we_v, we_x, we_inv) = test.make_in_inv(ctx);
                     we.push(we_v);
-                    for j in 0..(1 << 5 - wlog2) {
-                        let ii = i + j * (1 << wlog2 - 3);
+                    for j in 0..(1 << (5 - wlog2)) {
+                        let ii = i + j * (1 << (wlog2 - 3));
                         ti.pin_in_inv(&format!("WE{xl}{ii}"), &we_x, we_inv);
                     }
                 }
@@ -739,11 +738,9 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             }
         }
     }
-    if matches!(mode, Mode::Spartan3A | Mode::Spartan3ADsp | Mode::Spartan6) && !dp {
-        if mode != Mode::Spartan6 {
-            for i in 0..4 {
-                ti.pin_tie_inv(&format!("WEB{i}"), true, true);
-            }
+    if matches!(mode, Mode::Spartan3A | Mode::Spartan3ADsp) && !dp {
+        for i in 0..4 {
+            ti.pin_tie_inv(&format!("WEB{i}"), true, true);
         }
     }
     if !matches!(mode, Mode::Virtex | Mode::Virtex2) && !dp {
@@ -918,24 +915,23 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
                     ti.pin_out(&format!("DO{a}{i}"), &do_[i]);
                 }
                 if wlog2 >= 3 {
-                    for i in 0..(1 << wlog2 - 3) {
+                    for i in 0..(1 << (wlog2 - 3)) {
                         ti.pin_in(&format!("DIP{a}{i}"), &dip[i]);
                         ti.pin_out(&format!("DOP{a}{i}"), &dop[i]);
                     }
                 }
             } else if sz == 16 {
                 for i in 0..14 {
-                    let hwi;
-                    if (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
+                    let hwi = if (awlog2 == 5 || bwlog2 == 5) && wlog2 != 5 {
                         // TODO: wtf
-                        hwi = match i {
+                        match i {
                             0..=3 => i,
                             4 => 13,
                             _ => i - 1,
-                        };
+                        }
                     } else {
-                        hwi = i;
-                    }
+                        i
+                    };
                     ti.pin_in(&format!("ADDR{a}{hwi}"), &addr[i]);
                 }
                 for i in 0..32 {
@@ -1016,18 +1012,17 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
     let clkb_x = test.make_bufg(ctx);
     let clka_inv = ctx.rng.gen();
     let clkb_inv = ctx.rng.gen();
-    let clka_v;
-    let clkb_v;
-    if clka_inv {
-        clka_v = test.make_inv(ctx, &clka_x);
+
+    let clka_v = if clka_inv {
+        test.make_inv(ctx, &clka_x)
     } else {
-        clka_v = clka_x.clone();
-    }
-    if clkb_inv {
-        clkb_v = test.make_inv(ctx, &clkb_x);
+        clka_x.clone()
+    };
+    let clkb_v = if clkb_inv {
+        test.make_inv(ctx, &clkb_x)
     } else {
-        clkb_v = clkb_x.clone();
-    }
+        clkb_x.clone()
+    };
 
     for _ in 0..num {
         let (ar_en, br_en) = *[(true, true), (false, true), (true, false)]
@@ -1085,7 +1080,7 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                     ti.pin_out(&format!("DO{l}{i}"), w);
                 }
                 if rwlog2 >= 3 {
-                    let dop = test.make_outs(ctx, 1 << rwlog2 - 3);
+                    let dop = test.make_outs(ctx, 1 << (rwlog2 - 3));
                     inst.connect_bus(&format!("DOP{l}"), &dop);
                     for (i, w) in dop.iter().enumerate() {
                         ti.pin_out(&format!("DOP{l}{i}"), w);
@@ -1101,7 +1096,7 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                     ti.pin_in(&format!("DI{l}{i}"), &di[i]);
                 }
                 if wwlog2 >= 3 {
-                    for i in 0..(1 << wwlog2 - 3) {
+                    for i in 0..(1 << (wwlog2 - 3)) {
                         ti.pin_in(&format!("DIP{l}{i}"), &dip[i]);
                     }
                 }
@@ -1118,14 +1113,13 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
             ti.cfg_int(&format!("DO{l}_REG"), do_reg);
             ti.cfg(&format!("INVERT_CLK_DO{l}_REG"), invert_do_reg);
 
-            let wmode;
-            if num == 2 {
-                wmode = *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap();
+            let wmode = if num == 2 {
+                *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap()
             } else {
-                wmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
+                *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
                     .choose(&mut ctx.rng)
-                    .unwrap();
-            }
+                    .unwrap()
+            };
             inst.param_str(&format!("WRITE_MODE_{l}"), wmode);
             ti.cfg(&format!("WRITE_MODE_{l}"), wmode);
 
@@ -1588,7 +1582,7 @@ fn gen_ramb18(test: &mut Test, ctx: &mut TestGenCtx) {
                 ti.pin_out(&format!("DO{l}{ul}{i}"), w);
             }
             if rwlog2 >= 3 {
-                let dop = test.make_outs(ctx, 1 << rwlog2 - 3);
+                let dop = test.make_outs(ctx, 1 << (rwlog2 - 3));
                 inst.connect_bus(&format!("DOP{l}"), &dop);
                 for (i, w) in dop.iter().enumerate() {
                     ti.pin_out(&format!("DOP{l}{ul}{i}"), w);
@@ -1605,7 +1599,7 @@ fn gen_ramb18(test: &mut Test, ctx: &mut TestGenCtx) {
                     ti.pin_in(&format!("DI{l}{ul}{i}"), &di[i]);
                 }
                 if wwlog2 >= 3 {
-                    for i in 0..(1 << wwlog2 - 3) {
+                    for i in 0..(1 << (wwlog2 - 3)) {
                         ti.pin_in(&format!("DIP{l}{ul}{i}"), &dip[i]);
                     }
                 }
@@ -1765,7 +1759,7 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                     ti.pin_out(&format!("DO{l}{i}"), w);
                 }
                 if rwlog2 >= 3 {
-                    let dop = test.make_outs(ctx, 1 << rwlog2 - 3);
+                    let dop = test.make_outs(ctx, 1 << (rwlog2 - 3));
                     inst.connect_bus(&format!("DOP{l}"), &dop);
                     for (i, w) in dop.iter().enumerate() {
                         ti.pin_out(&format!("DOP{l}{i}"), w);
@@ -1784,7 +1778,7 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                     ti.pin_in(&format!("DI{l}1"), &di[0]);
                 }
                 if wwlog2 >= 3 {
-                    for i in 0..(1 << wwlog2 - 3) {
+                    for i in 0..(1 << (wwlog2 - 3)) {
                         ti.pin_in(&format!("DIP{l}{i}"), &dip[i]);
                     }
                 }
@@ -2010,7 +2004,7 @@ fn gen_ramb18sdp(test: &mut Test, ctx: &mut TestGenCtx) {
     let invert_do_reg = !is_18 && do_reg == 1 && ctx.rng.gen();
     if !is_18 {
         inst.param_str(
-            &format!("INVERT_CLK_DOB_REG"),
+            "INVERT_CLK_DOB_REG",
             if invert_do_reg { "TRUE" } else { "FALSE" },
         );
     }
@@ -2300,14 +2294,13 @@ fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.param_int(&format!("DO{l}_REG"), do_reg);
         ti.cfg_int(&format!("DO{l}_REG"), do_reg);
 
-        let wmode;
-        if is_sdp {
-            wmode = *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap();
+        let wmode = if is_sdp {
+            *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap()
         } else {
-            wmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
+            *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
                 .choose(&mut ctx.rng)
-                .unwrap();
-        }
+                .unwrap()
+        };
         inst.param_str(&format!("WRITE_MODE_{l}"), wmode);
         ti.cfg(&format!("WRITE_MODE_{l}"), wmode);
 
@@ -2558,14 +2551,13 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             inst.param_int(&format!("DO{l}_REG"), do_reg);
             ti.cfg_int(&format!("DO{l}_REG"), do_reg);
 
-            let wmode;
-            if is_sdp {
-                wmode = *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap();
+            let wmode = if is_sdp {
+                *["WRITE_FIRST", "READ_FIRST"].choose(&mut ctx.rng).unwrap()
             } else {
-                wmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
+                *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
                     .choose(&mut ctx.rng)
-                    .unwrap();
-            }
+                    .unwrap()
+            };
             inst.param_str(&format!("WRITE_MODE_{l}"), wmode);
             ti.cfg(&format!("WRITE_MODE_{l}"), wmode);
 
@@ -2810,7 +2802,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         (Mode::Virtex6 | Mode::Series7, 32, _) => "FIFO36E1",
         _ => unreachable!(),
     };
-    let mut inst = SrcInst::new(ctx, &prim);
+    let mut inst = SrcInst::new(ctx, prim);
     let mut ti = TgtInst::new(&[hwprim]);
 
     if pk != 5 || !is_sdp {
@@ -3276,12 +3268,11 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     inst.param_str("FIRST_WORD_FALL_THROUGH", fwft);
     ti.cfg("FIRST_WORD_FALL_THROUGH", fwft);
 
-    let num_e;
-    if sz == 16 {
-        num_e = 1 << 14 - wlog2;
+    let num_e = if sz == 16 {
+        1 << (14 - wlog2)
     } else {
-        num_e = 1 << 15 - wlog2;
-    }
+        1 << (15 - wlog2)
+    };
     let (ae_off, af_off);
     if en_syn == "FALSE" {
         match mode {
