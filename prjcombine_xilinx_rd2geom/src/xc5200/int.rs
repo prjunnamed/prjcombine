@@ -449,19 +449,140 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     builder.extract_main_passes();
 
-    builder.node_type("CENTER", "CLB", "CLB");
-    builder.node_type("LEFT", "IO.L", "IO.L");
-    builder.node_type("LEFTCLK", "IO.L", "IO.L");
-    builder.node_type("RIGHT", "IO.R", "IO.R");
-    builder.node_type("RIGHTCLK", "IO.R", "IO.R");
-    builder.node_type("BOT", "IO.B", "IO.B");
-    builder.node_type("BOTCLK", "IO.B", "IO.B");
-    builder.node_type("TOP", "IO.T", "IO.T");
-    builder.node_type("TOPCLK", "IO.T", "IO.T");
-    builder.node_type("LL", "CNR.BL", "CNR.BL");
-    builder.node_type("LR", "CNR.BR", "CNR.BR");
-    builder.node_type("UL", "CNR.TL", "CNR.TL");
-    builder.node_type("UR", "CNR.TR", "CNR.TR");
+    builder.extract_node(
+        "CENTER",
+        "CLB",
+        "CLB",
+        &[
+            builder
+                .bel_indexed("LC0", "CLB", 0)
+                .pins_name_only(&["CO", "F5I"])
+                .pin_name_only("CI", 1),
+            builder
+                .bel_indexed("LC1", "CLB", 1)
+                .pins_name_only(&["CI", "CO"]),
+            builder
+                .bel_indexed("LC2", "CLB", 2)
+                .pins_name_only(&["CI", "CO", "F5I"]),
+            builder
+                .bel_indexed("LC3", "CLB", 3)
+                .pins_name_only(&["CI"])
+                .pin_name_only("CO", 1),
+            builder.bel_indexed("TBUF0", "TBUF", 0),
+            builder.bel_indexed("TBUF1", "TBUF", 1),
+            builder.bel_indexed("TBUF2", "TBUF", 2),
+            builder.bel_indexed("TBUF3", "TBUF", 3),
+            builder.bel_single("VCC_GND", "VCC_GND"),
+        ],
+    );
+    let bels_io = [
+        builder
+            .bel_indexed("IOB0", "IOB", 0)
+            .pins_name_only(&["CLKIN"]),
+        builder
+            .bel_indexed("IOB1", "IOB", 1)
+            .pins_name_only(&["CLKIN"]),
+        builder
+            .bel_indexed("IOB2", "IOB", 2)
+            .pins_name_only(&["CLKIN"]),
+        builder
+            .bel_indexed("IOB3", "IOB", 3)
+            .pins_name_only(&["CLKIN"]),
+        builder.bel_indexed("TBUF0", "TBUF", 0),
+        builder.bel_indexed("TBUF1", "TBUF", 1),
+        builder.bel_indexed("TBUF2", "TBUF", 2),
+        builder.bel_indexed("TBUF3", "TBUF", 3),
+        builder
+            .bel_virtual("BUFR")
+            .extra_int_in(
+                "IN",
+                &[
+                    "WIRE_GIN_LEFT",
+                    "WIRE_GIN_RIGHT",
+                    "WIRE_GIN_BOT",
+                    "WIRE_GIN_TOP",
+                ],
+            )
+            .extra_int_out(
+                "OUT",
+                &[
+                    "WIRE_GH0_LEFT",
+                    "WIRE_GH1_RIGHT",
+                    "WIRE_GV0_BOT",
+                    "WIRE_GV1_TOP",
+                ],
+            ),
+    ];
+    let mut bels_io_b = bels_io.to_vec();
+    bels_io_b.push(
+        builder
+            .bel_virtual("BOT_CIN")
+            .extra_int_in("IN", &["WIRE_COUT_BOT"]),
+    );
+    let mut bels_io_t = bels_io.to_vec();
+    bels_io_t.push(
+        builder
+            .bel_virtual("TOP_COUT")
+            .extra_int_in("OUT", &["WIRE_COUT_TOP"]),
+    );
+    builder.extract_node("LEFT", "IO.L", "IO.L", &bels_io);
+    builder.extract_node("LEFTCLK", "IO.L", "IO.L.CLK", &bels_io);
+    builder.extract_node("RIGHT", "IO.R", "IO.R", &bels_io);
+    builder.extract_node("RIGHTCLK", "IO.R", "IO.R.CLK", &bels_io);
+    builder.extract_node("BOT", "IO.B", "IO.B", &bels_io_b);
+    builder.extract_node("BOTCLK", "IO.B", "IO.B.CLK", &bels_io_b);
+    builder.extract_node("TOP", "IO.T", "IO.T", &bels_io_t);
+    builder.extract_node("TOPCLK", "IO.T", "IO.T.CLK", &bels_io_t);
+    builder.extract_node(
+        "LL",
+        "CNR.BL",
+        "CNR.BL",
+        &[
+            builder.bel_single("BUFG", "BUFG_BL"),
+            builder
+                .bel_virtual("CLKIOB")
+                .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BL"]),
+            builder.bel_single("RDBK", "RDBK"),
+        ],
+    );
+    builder.extract_node(
+        "LR",
+        "CNR.BR",
+        "CNR.BR",
+        &[
+            builder.bel_single("BUFG", "BUFG_BR"),
+            builder
+                .bel_virtual("CLKIOB")
+                .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BR"]),
+            builder.bel_single("STARTUP", "STARTUP"),
+        ],
+    );
+    builder.extract_node(
+        "UL",
+        "CNR.TL",
+        "CNR.TL",
+        &[
+            builder.bel_single("BUFG", "BUFG_TL"),
+            builder
+                .bel_virtual("CLKIOB")
+                .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TL"]),
+            builder.bel_single("BSCAN", "BSCAN"),
+        ],
+    );
+    builder.extract_node(
+        "UR",
+        "CNR.TR",
+        "CNR.TR",
+        &[
+            builder.bel_single("BUFG", "BUFG_TR"),
+            builder
+                .bel_virtual("CLKIOB")
+                .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TR"]),
+            builder.bel_single("OSC", "OSC"),
+            builder.bel_single("BYPOSC", "BYPOSC"),
+            builder.bel_single("BSUPD", "BSUPD"),
+        ],
+    );
 
     let node_ll = builder.db.nodes.get("CNR.BL").unwrap().0;
     let node_lr = builder.db.nodes.get("CNR.BR").unwrap().0;

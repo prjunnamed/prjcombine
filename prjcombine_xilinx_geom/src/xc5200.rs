@@ -15,8 +15,24 @@ pub struct Io {
 }
 
 impl Grid {
+    pub fn col_lio(&self) -> ColId {
+        ColId::from_idx(0)
+    }
+
+    pub fn col_rio(&self) -> ColId {
+        ColId::from_idx(self.columns - 1)
+    }
+
     pub fn col_mid(&self) -> ColId {
         ColId::from_idx(self.columns / 2)
+    }
+
+    pub fn row_bio(&self) -> RowId {
+        RowId::from_idx(0)
+    }
+
+    pub fn row_tio(&self) -> RowId {
+        RowId::from_idx(self.rows - 1)
     }
 
     pub fn row_mid(&self) -> RowId {
@@ -87,6 +103,8 @@ impl Grid {
 
     pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
+        egrid.tie_kind = Some("GND".to_string());
+        egrid.tie_pin_gnd = Some("O".to_string());
         let (_, mut grid) = egrid.add_slr(self.columns, self.rows);
 
         let col_l = grid.cols().next().unwrap();
@@ -97,47 +115,121 @@ impl Grid {
             let c = col.to_idx();
             if col == col_l {
                 for row in grid.rows() {
+                    let r = row_t.to_idx() - row.to_idx();
                     if row == row_b {
-                        grid.fill_tile((col, row), "CNR.BL", "CNR.BL", "BL".to_string());
+                        let node = grid.fill_tile((col, row), "CNR.BL", "CNR.BL", "BL".to_string());
+                        node.add_bel(0, "BUFG_BL".to_string());
+                        node.add_bel(2, "RDBK".to_string());
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else if row == row_t {
-                        grid.fill_tile((col, row), "CNR.TL", "CNR.TL", "TL".to_string());
-                    } else if row == row_t - 1 {
-                        grid.fill_tile((col, row), "IO.L", "IO.L", "LCLK".to_string());
+                        let node = grid.fill_tile((col, row), "CNR.TL", "CNR.TL", "TL".to_string());
+                        node.add_bel(0, "BUFG_TL".to_string());
+                        node.add_bel(2, "BSCAN".to_string());
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else {
-                        let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "IO.L", "IO.L", format!("LR{r}"));
+                        let node = if row == row_t - 1 {
+                            grid.fill_tile((col, row), "IO.L", "IO.L.CLK", "LCLK".to_string())
+                        } else {
+                            grid.fill_tile((col, row), "IO.L", "IO.L", format!("LR{r}"))
+                        };
+                        let p = (self.columns - 2) * 8
+                            + (self.rows - 2) * 4
+                            + (row.to_idx() - 1) * 4
+                            + 1;
+                        node.add_bel(0, format!("PAD{}", p));
+                        node.add_bel(1, format!("PAD{}", p + 1));
+                        node.add_bel(2, format!("PAD{}", p + 2));
+                        node.add_bel(3, format!("PAD{}", p + 3));
+                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
+                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
+                        node.add_bel(7, format!("TBUF_R{r}C{c}.3"));
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     }
                 }
             } else if col == col_r {
                 for row in grid.rows() {
+                    let r = row_t.to_idx() - row.to_idx();
                     if row == row_b {
-                        grid.fill_tile((col, row), "CNR.BR", "CNR.BR", "BR".to_string());
+                        let node = grid.fill_tile((col, row), "CNR.BR", "CNR.BR", "BR".to_string());
+                        node.add_bel(0, "BUFG_BR".to_string());
+                        node.add_bel(2, "STARTUP".to_string());
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else if row == row_t {
-                        grid.fill_tile((col, row), "CNR.TR", "CNR.TR", "TR".to_string());
-                    } else if row == row_b + 1 {
-                        grid.fill_tile((col, row), "IO.R", "IO.R", "RCLK".to_string());
+                        let node = grid.fill_tile((col, row), "CNR.TR", "CNR.TR", "TR".to_string());
+                        node.add_bel(0, "BUFG_TR".to_string());
+                        node.add_bel(2, "OSC".to_string());
+                        node.add_bel(3, "BYPOSC".to_string());
+                        node.add_bel(4, "BSUPD".to_string());
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else {
-                        let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "IO.R", "IO.R", format!("RR{r}"));
+                        let node = if row == row_b + 1 {
+                            grid.fill_tile((col, row), "IO.R", "IO.R.CLK", "RCLK".to_string())
+                        } else {
+                            grid.fill_tile((col, row), "IO.R", "IO.R", format!("RR{r}"))
+                        };
+                        let p =
+                            (self.columns - 2) * 4 + (row_t.to_idx() - row.to_idx() - 1) * 4 + 1;
+                        node.add_bel(0, format!("PAD{}", p + 3));
+                        node.add_bel(1, format!("PAD{}", p + 2));
+                        node.add_bel(2, format!("PAD{}", p + 1));
+                        node.add_bel(3, format!("PAD{}", p));
+                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
+                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
+                        node.add_bel(7, format!("TBUF_R{r}C{c}.3"));
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     }
                 }
             } else {
                 for row in grid.rows() {
+                    let r = row_t.to_idx() - row.to_idx();
                     if row == row_b {
-                        if col == col_l + 1 {
-                            grid.fill_tile((col, row), "IO.B", "IO.B", "BCLK".to_string());
+                        let node = if col == col_l + 1 {
+                            grid.fill_tile((col, row), "IO.B", "IO.B.CLK", "BCLK".to_string())
                         } else {
-                            grid.fill_tile((col, row), "IO.B", "IO.B", format!("BC{c}"));
-                        }
+                            grid.fill_tile((col, row), "IO.B", "IO.B", format!("BC{c}"))
+                        };
+                        let p = (self.columns - 2) * 4
+                            + (self.rows - 2) * 4
+                            + (col_r.to_idx() - col.to_idx() - 1) * 4
+                            + 1;
+                        node.add_bel(0, format!("PAD{}", p));
+                        node.add_bel(1, format!("PAD{}", p + 1));
+                        node.add_bel(2, format!("PAD{}", p + 2));
+                        node.add_bel(3, format!("PAD{}", p + 3));
+                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
+                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
+                        node.add_bel(7, format!("TBUF_R{r}C{c}.3"));
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else if row == row_t {
-                        if col == col_r - 2 {
-                            grid.fill_tile((col, row), "IO.T", "IO.T", "TCLK".to_string());
+                        let node = if col == col_r - 2 {
+                            grid.fill_tile((col, row), "IO.T", "IO.T.CLK", "TCLK".to_string())
                         } else {
-                            grid.fill_tile((col, row), "IO.T", "IO.T", format!("TC{c}"));
-                        }
+                            grid.fill_tile((col, row), "IO.T", "IO.T", format!("TC{c}"))
+                        };
+                        let p = (col.to_idx() - 1) * 4 + 1;
+                        node.add_bel(0, format!("PAD{}", p + 3));
+                        node.add_bel(1, format!("PAD{}", p + 2));
+                        node.add_bel(2, format!("PAD{}", p + 1));
+                        node.add_bel(3, format!("PAD{}", p));
+                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
+                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
+                        node.add_bel(7, format!("TBUF_R{r}C{c}.3"));
+                        node.tie_name = Some(format!("GND_R{r}C{c}"));
                     } else {
-                        let r = row_t.to_idx() - row.to_idx();
-                        grid.fill_tile((col, row), "CLB", "CLB", format!("R{r}C{c}"));
+                        let node = grid.fill_tile((col, row), "CLB", "CLB", format!("R{r}C{c}"));
+                        node.add_bel(0, format!("CLB_R{r}C{c}.LC0"));
+                        node.add_bel(1, format!("CLB_R{r}C{c}.LC1"));
+                        node.add_bel(2, format!("CLB_R{r}C{c}.LC2"));
+                        node.add_bel(3, format!("CLB_R{r}C{c}.LC3"));
+                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
+                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
+                        node.add_bel(7, format!("TBUF_R{r}C{c}.3"));
+                        node.add_bel(8, format!("VCC_GND_R{r}C{c}"));
                     }
                 }
             }

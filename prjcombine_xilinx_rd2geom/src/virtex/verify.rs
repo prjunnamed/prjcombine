@@ -21,7 +21,6 @@ pub fn verify_bel(
     }
     let nk = &vrf.db.nodes[node.kind];
     let nn = &vrf.db.node_namings[node.naming];
-    let bel = &nk.bels[bid];
     let naming = &nn.bels[bid];
     let key = &**nk.bels.key(bid);
     let (col, row) = node.tiles[NodeTileId::from_idx(0)];
@@ -129,7 +128,7 @@ pub fn verify_bel(
                 &naming.pins["BUS3"].name,
                 &onaming.pins["O"].name,
             );
-            if bel.pins.contains_key("BUS3_E") {
+            if naming.pins.contains_key("BUS3_E") {
                 let col_r = vrf.grid.slr(slr).cols().next_back().unwrap();
                 if col.to_idx() < col_r.to_idx() - 5 {
                     vrf.claim_node(&[(crds[naming.tile], &naming.pins["BUS3_E"].name)]);
@@ -172,7 +171,7 @@ pub fn verify_bel(
                     }
                 }
             }
-            if bel.pins.contains_key("OUT") {
+            if naming.pins.contains_key("OUT") {
                 vrf.claim_pip(
                     crds[naming.tile],
                     &naming.pins["OUT"].name,
