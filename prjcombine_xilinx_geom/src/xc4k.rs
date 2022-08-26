@@ -1,4 +1,4 @@
-use crate::{BelCoord, BelId, CfgPin, ColId, RowId};
+use crate::{BelCoord, BelId, ColId, RowId};
 use prjcombine_entity::EntityId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -23,7 +23,14 @@ pub struct Grid {
     pub kind: GridKind,
     pub columns: u32,
     pub rows: u32,
-    pub cfg_io: BTreeMap<CfgPin, BelCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, BelCoord>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    Tck,
+    Tdi,
+    Tms,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

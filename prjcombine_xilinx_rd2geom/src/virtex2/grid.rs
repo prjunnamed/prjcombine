@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::EntityVec;
 use prjcombine_xilinx_geom::virtex2::{
-    self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind,
+    self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind, SharedCfgPin,
 };
-use prjcombine_xilinx_geom::{CfgPin, ColId, RowId};
+use prjcombine_xilinx_geom::{ColId, RowId};
 use prjcombine_xilinx_rawdump::{Coord, Part};
 
 use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
@@ -431,29 +431,29 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
                     } else {
                         let cfg = match f {
                             "No_Pair" | "DIN" | "BUSY" | "MOSI" | "MISO" => continue,
-                            "CS_B" => CfgPin::CsiB,
-                            "INIT_B" => CfgPin::InitB,
-                            "RDWR_B" => CfgPin::RdWrB,
-                            "DOUT" => CfgPin::Dout,
+                            "CS_B" => SharedCfgPin::CsiB,
+                            "INIT_B" => SharedCfgPin::InitB,
+                            "RDWR_B" => SharedCfgPin::RdWrB,
+                            "DOUT" => SharedCfgPin::Dout,
                             // Spartan 3E, Spartan 3A only
-                            "M0" => CfgPin::M0,
-                            "M1" => CfgPin::M1,
-                            "M2" => CfgPin::M2,
-                            "CSI_B" => CfgPin::CsiB,
-                            "CSO_B" => CfgPin::CsoB,
-                            "CCLK" => CfgPin::Cclk,
-                            "HSWAP" | "PUDC_B" => CfgPin::HswapEn,
-                            "LDC0" => CfgPin::Ldc(0),
-                            "LDC1" => CfgPin::Ldc(1),
-                            "LDC2" => CfgPin::Ldc(2),
-                            "HDC" => CfgPin::Hdc,
-                            "AWAKE" => CfgPin::Awake,
+                            "M0" => SharedCfgPin::M0,
+                            "M1" => SharedCfgPin::M1,
+                            "M2" => SharedCfgPin::M2,
+                            "CSI_B" => SharedCfgPin::CsiB,
+                            "CSO_B" => SharedCfgPin::CsoB,
+                            "CCLK" => SharedCfgPin::Cclk,
+                            "HSWAP" | "PUDC_B" => SharedCfgPin::HswapEn,
+                            "LDC0" => SharedCfgPin::Ldc0,
+                            "LDC1" => SharedCfgPin::Ldc1,
+                            "LDC2" => SharedCfgPin::Ldc2,
+                            "HDC" => SharedCfgPin::Hdc,
+                            "AWAKE" => SharedCfgPin::Awake,
                             _ => {
                                 if let Some((s, n)) = split_num(f) {
                                     match s {
                                         "VS" => continue,
-                                        "D" => CfgPin::Data(n as u8),
-                                        "A" => CfgPin::Addr(n as u8),
+                                        "D" => SharedCfgPin::Data(n as u8),
+                                        "A" => SharedCfgPin::Addr(n as u8),
                                         _ => {
                                             println!(
                                                 "UNK FUNC {f} {func} {coord:?}",

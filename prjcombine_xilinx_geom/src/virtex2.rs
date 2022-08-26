@@ -1,4 +1,4 @@
-use crate::{eint, int, BelCoord, BelId, CfgPin, ColId, RowId, SlrId};
+use crate::{eint, int, BelCoord, BelId, ColId, RowId, SlrId};
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -27,6 +27,30 @@ impl GridKind {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    Data(u8), // ×8
+    CsiB,     // Called CS_B on Virtex 2 and Spartan 3.
+    InitB,
+    RdWrB,
+    Dout,
+    // Shared on Spartan 3E, Spartan 3A only; dedicated on Virtex 2, Spartan 3.
+    M0,
+    M1,
+    M2,
+    Cclk,
+    HswapEn,
+    // Spartan 3E, Spartan 3A only.
+    CsoB,
+    Ldc0,
+    Ldc1,
+    Ldc2,
+    Hdc,
+    Addr(u8), // ×20 on 3s100e, ×24 on other Spartan 3E, ×26 on Spartan 3A
+    // Spartan 3A only.
+    Awake,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
@@ -49,7 +73,7 @@ pub struct Grid {
     pub has_ll: bool,
     pub has_small_int: bool,
     pub vref: BTreeSet<BelCoord>,
-    pub cfg_io: BTreeMap<CfgPin, BelCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, BelCoord>,
     pub dci_io: BTreeMap<u32, (BelCoord, BelCoord)>,
     pub dci_io_alt: BTreeMap<u32, (BelCoord, BelCoord)>,
 }

@@ -1,4 +1,5 @@
-use super::{eint, int, CfgPin, ColId, GtPin, RowId, SysMonPin};
+use crate::pkg::{GtPin, SysMonPin};
+use crate::{eint, int, ColId, RowId};
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -41,6 +42,19 @@ pub struct Io {
     pub ioc: u32,
     pub bank: u32,
     pub bbel: u32,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    // ×32; high 16 bits are also low 16 bits of Addr
+    // 0-2 double as FS
+    Data(u8),
+    Addr(u8), // ×26 total, but 0-15 are represented as Data(16-31)
+    Rs(u8),   // ×2
+    CsoB,
+    FweB,
+    FoeB, // doubles as MOSI
+    FcsB,
 }
 
 impl Io {
@@ -87,56 +101,56 @@ impl Io {
             _ => None,
         }
     }
-    pub fn get_cfg(&self) -> Option<CfgPin> {
+    pub fn get_cfg(&self) -> Option<SharedCfgPin> {
         match (self.bank, self.row.to_idx() % 20, self.bel) {
-            (4, 16, 0) => Some(CfgPin::Data(8)),
-            (4, 16, 1) => Some(CfgPin::Data(9)),
-            (4, 17, 0) => Some(CfgPin::Data(10)),
-            (4, 17, 1) => Some(CfgPin::Data(11)),
-            (4, 18, 0) => Some(CfgPin::Data(12)),
-            (4, 18, 1) => Some(CfgPin::Data(13)),
-            (4, 19, 0) => Some(CfgPin::Data(14)),
-            (4, 19, 1) => Some(CfgPin::Data(15)),
-            (2, 0, 0) => Some(CfgPin::Data(0)),
-            (2, 0, 1) => Some(CfgPin::Data(1)),
-            (2, 1, 0) => Some(CfgPin::Data(2)),
-            (2, 1, 1) => Some(CfgPin::Data(3)),
-            (2, 2, 0) => Some(CfgPin::Data(4)),
-            (2, 2, 1) => Some(CfgPin::Data(5)),
-            (2, 3, 0) => Some(CfgPin::Data(6)),
-            (2, 3, 1) => Some(CfgPin::Data(7)),
-            (2, 4, 0) => Some(CfgPin::CsoB),
-            (2, 4, 1) => Some(CfgPin::FweB),
-            (2, 5, 0) => Some(CfgPin::FoeB),
-            (2, 5, 1) => Some(CfgPin::FcsB),
-            (2, 6, 0) => Some(CfgPin::Addr(20)),
-            (2, 6, 1) => Some(CfgPin::Addr(21)),
-            (2, 7, 0) => Some(CfgPin::Addr(22)),
-            (2, 7, 1) => Some(CfgPin::Addr(23)),
-            (2, 8, 0) => Some(CfgPin::Addr(24)),
-            (2, 8, 1) => Some(CfgPin::Addr(25)),
-            (2, 9, 0) => Some(CfgPin::Rs(0)),
-            (2, 9, 1) => Some(CfgPin::Rs(1)),
-            (1, 10, 0) => Some(CfgPin::Data(16)),
-            (1, 10, 1) => Some(CfgPin::Data(17)),
-            (1, 11, 0) => Some(CfgPin::Data(18)),
-            (1, 11, 1) => Some(CfgPin::Data(19)),
-            (1, 12, 0) => Some(CfgPin::Data(20)),
-            (1, 12, 1) => Some(CfgPin::Data(21)),
-            (1, 13, 0) => Some(CfgPin::Data(22)),
-            (1, 13, 1) => Some(CfgPin::Data(23)),
-            (1, 14, 0) => Some(CfgPin::Data(24)),
-            (1, 14, 1) => Some(CfgPin::Data(25)),
-            (1, 15, 0) => Some(CfgPin::Data(26)),
-            (1, 15, 1) => Some(CfgPin::Data(27)),
-            (1, 16, 0) => Some(CfgPin::Data(28)),
-            (1, 16, 1) => Some(CfgPin::Data(29)),
-            (1, 17, 0) => Some(CfgPin::Data(30)),
-            (1, 17, 1) => Some(CfgPin::Data(31)),
-            (1, 18, 0) => Some(CfgPin::Addr(16)),
-            (1, 18, 1) => Some(CfgPin::Addr(17)),
-            (1, 19, 0) => Some(CfgPin::Addr(18)),
-            (1, 19, 1) => Some(CfgPin::Addr(19)),
+            (4, 16, 0) => Some(SharedCfgPin::Data(8)),
+            (4, 16, 1) => Some(SharedCfgPin::Data(9)),
+            (4, 17, 0) => Some(SharedCfgPin::Data(10)),
+            (4, 17, 1) => Some(SharedCfgPin::Data(11)),
+            (4, 18, 0) => Some(SharedCfgPin::Data(12)),
+            (4, 18, 1) => Some(SharedCfgPin::Data(13)),
+            (4, 19, 0) => Some(SharedCfgPin::Data(14)),
+            (4, 19, 1) => Some(SharedCfgPin::Data(15)),
+            (2, 0, 0) => Some(SharedCfgPin::Data(0)),
+            (2, 0, 1) => Some(SharedCfgPin::Data(1)),
+            (2, 1, 0) => Some(SharedCfgPin::Data(2)),
+            (2, 1, 1) => Some(SharedCfgPin::Data(3)),
+            (2, 2, 0) => Some(SharedCfgPin::Data(4)),
+            (2, 2, 1) => Some(SharedCfgPin::Data(5)),
+            (2, 3, 0) => Some(SharedCfgPin::Data(6)),
+            (2, 3, 1) => Some(SharedCfgPin::Data(7)),
+            (2, 4, 0) => Some(SharedCfgPin::CsoB),
+            (2, 4, 1) => Some(SharedCfgPin::FweB),
+            (2, 5, 0) => Some(SharedCfgPin::FoeB),
+            (2, 5, 1) => Some(SharedCfgPin::FcsB),
+            (2, 6, 0) => Some(SharedCfgPin::Addr(20)),
+            (2, 6, 1) => Some(SharedCfgPin::Addr(21)),
+            (2, 7, 0) => Some(SharedCfgPin::Addr(22)),
+            (2, 7, 1) => Some(SharedCfgPin::Addr(23)),
+            (2, 8, 0) => Some(SharedCfgPin::Addr(24)),
+            (2, 8, 1) => Some(SharedCfgPin::Addr(25)),
+            (2, 9, 0) => Some(SharedCfgPin::Rs(0)),
+            (2, 9, 1) => Some(SharedCfgPin::Rs(1)),
+            (1, 10, 0) => Some(SharedCfgPin::Data(16)),
+            (1, 10, 1) => Some(SharedCfgPin::Data(17)),
+            (1, 11, 0) => Some(SharedCfgPin::Data(18)),
+            (1, 11, 1) => Some(SharedCfgPin::Data(19)),
+            (1, 12, 0) => Some(SharedCfgPin::Data(20)),
+            (1, 12, 1) => Some(SharedCfgPin::Data(21)),
+            (1, 13, 0) => Some(SharedCfgPin::Data(22)),
+            (1, 13, 1) => Some(SharedCfgPin::Data(23)),
+            (1, 14, 0) => Some(SharedCfgPin::Data(24)),
+            (1, 14, 1) => Some(SharedCfgPin::Data(25)),
+            (1, 15, 0) => Some(SharedCfgPin::Data(26)),
+            (1, 15, 1) => Some(SharedCfgPin::Data(27)),
+            (1, 16, 0) => Some(SharedCfgPin::Data(28)),
+            (1, 16, 1) => Some(SharedCfgPin::Data(29)),
+            (1, 17, 0) => Some(SharedCfgPin::Data(30)),
+            (1, 17, 1) => Some(SharedCfgPin::Data(31)),
+            (1, 18, 0) => Some(SharedCfgPin::Addr(16)),
+            (1, 18, 1) => Some(SharedCfgPin::Addr(17)),
+            (1, 19, 0) => Some(SharedCfgPin::Addr(18)),
+            (1, 19, 1) => Some(SharedCfgPin::Addr(19)),
             _ => None,
         }
     }

@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
-use prjcombine_xilinx_geom::virtex::{Grid, GridKind};
-use prjcombine_xilinx_geom::{CfgPin, ColId, DisabledPart};
+use prjcombine_xilinx_geom::virtex::{Grid, GridKind, SharedCfgPin};
+use prjcombine_xilinx_geom::{ColId, DisabledPart};
 use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -92,18 +92,18 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid) {
                     novref.insert(coord);
                     let cfg = match func {
                         "IO" => continue,
-                        "IO_DIN_D0" => CfgPin::Data(0),
-                        "IO_D1" => CfgPin::Data(1),
-                        "IO_D2" => CfgPin::Data(2),
-                        "IO_D3" => CfgPin::Data(3),
-                        "IO_D4" => CfgPin::Data(4),
-                        "IO_D5" => CfgPin::Data(5),
-                        "IO_D6" => CfgPin::Data(6),
-                        "IO_D7" => CfgPin::Data(7),
-                        "IO_CS" => CfgPin::CsiB,
-                        "IO_INIT" => CfgPin::InitB,
-                        "IO_WRITE" => CfgPin::RdWrB,
-                        "IO_DOUT_BUSY" => CfgPin::Dout,
+                        "IO_DIN_D0" => SharedCfgPin::Data(0),
+                        "IO_D1" => SharedCfgPin::Data(1),
+                        "IO_D2" => SharedCfgPin::Data(2),
+                        "IO_D3" => SharedCfgPin::Data(3),
+                        "IO_D4" => SharedCfgPin::Data(4),
+                        "IO_D5" => SharedCfgPin::Data(5),
+                        "IO_D6" => SharedCfgPin::Data(6),
+                        "IO_D7" => SharedCfgPin::Data(7),
+                        "IO_CS" => SharedCfgPin::CsB,
+                        "IO_INIT" => SharedCfgPin::InitB,
+                        "IO_WRITE" => SharedCfgPin::RdWrB,
+                        "IO_DOUT_BUSY" => SharedCfgPin::Dout,
                         "IO_IRDY" => {
                             assert_eq!(coord.bel.to_idx(), 3);
                             assert_eq!(coord.row, grid.row_mid());

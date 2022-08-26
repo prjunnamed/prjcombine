@@ -1,4 +1,5 @@
-use super::{eint, int, CfgPin, ColId, GtPin, RowId, SysMonPin};
+use crate::pkg::{GtPin, SysMonPin};
+use crate::{eint, int, ColId, RowId};
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -25,6 +26,11 @@ pub enum ColumnKind {
     Dsp,
     Io,
     Gt,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    Data(u8), // ×32
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -64,7 +70,7 @@ impl Io {
             _ => self.row.to_idx() % 32 == 9,
         }
     }
-    pub fn get_cfg(&self) -> Option<CfgPin> {
+    pub fn get_cfg(&self) -> Option<SharedCfgPin> {
         if !matches!(self.bank, 1 | 2) {
             return None;
         }
@@ -72,11 +78,11 @@ impl Io {
             return None;
         }
         if self.bank == 2 {
-            Some(CfgPin::Data(
+            Some(SharedCfgPin::Data(
                 (self.row.to_idx() % 8 * 2 + self.bel as usize) as u8,
             ))
         } else {
-            Some(CfgPin::Data(
+            Some(SharedCfgPin::Data(
                 (self.row.to_idx() % 8 * 2 + self.bel as usize + 16) as u8,
             ))
         }

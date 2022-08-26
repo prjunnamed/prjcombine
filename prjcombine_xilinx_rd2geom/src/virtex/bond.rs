@@ -1,5 +1,5 @@
+use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin};
 use prjcombine_xilinx_geom::virtex::Grid;
-use prjcombine_xilinx_geom::{Bond, BondPin, CfgPin};
 use prjcombine_xilinx_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};
 

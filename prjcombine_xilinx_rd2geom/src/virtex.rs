@@ -1,7 +1,7 @@
-use prjcombine_xilinx_geom::{self as geom, int::IntDb};
+use prjcombine_xilinx_geom::{int::IntDb, Grid};
 use prjcombine_xilinx_rawdump::Part;
 
-use crate::grid::{make_device, PreDevice};
+use crate::db::{make_device, PreDevice};
 use crate::verify::verify;
 
 mod bond;
@@ -21,7 +21,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         verify::verify_bel(&grid, vrf, slr, node, bid)
     });
     (
-        make_device(rd, geom::Grid::Virtex(grid), bonds, disabled),
+        make_device(rd, Grid::Virtex(grid), bonds, disabled),
         Some(int_db),
     )
 }

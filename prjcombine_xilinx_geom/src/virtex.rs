@@ -1,4 +1,4 @@
-use crate::{eint, int, BelCoord, BelId, CfgPin, ColId, DisabledPart, RowId};
+use crate::{eint, int, BelCoord, BelId, ColId, DisabledPart, RowId};
 use prjcombine_entity::{EntityId, EntityIds, EntityPartVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -10,6 +10,15 @@ pub enum GridKind {
     VirtexEM,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    Data(u8), // ×8
+    CsB,
+    InitB,
+    RdWrB,
+    Dout,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
@@ -18,7 +27,7 @@ pub struct Grid {
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
     pub vref: BTreeSet<BelCoord>,
-    pub cfg_io: BTreeMap<CfgPin, BelCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, BelCoord>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

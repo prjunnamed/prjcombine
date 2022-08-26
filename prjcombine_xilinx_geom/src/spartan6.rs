@@ -1,6 +1,7 @@
+use crate::pkg::GtPin;
 use crate::{
     eint::{self, Coord, ExpandedSlrRefMut},
-    int, BelCoord, BelId, CfgPin, ColId, DisabledPart, GtPin, RowId,
+    int, BelCoord, BelId, ColId, DisabledPart, RowId,
 };
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
@@ -20,8 +21,37 @@ pub struct Grid {
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
     pub vref: BTreeSet<BelCoord>,
-    pub cfg_io: BTreeMap<CfgPin, BelCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, BelCoord>,
     pub has_encrypt: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    // ×16
+    // 0 doubles as DIN, MISO, MISO1
+    // 1 doubles as MISO2
+    // 2 doubles as MISO3
+    Data(u8),
+    CsoB,
+    InitB,
+    RdWrB,
+    FcsB,
+    FoeB,
+    FweB,
+    Ldc,
+    Hdc,
+    Addr(u8),
+    Dout, // doubles as BUSY
+    Mosi, // doubles as CSI_B, MISO0
+    M0,   // doubles as CMPMISO
+    M1,
+    Cclk,
+    UserCclk,
+    HswapEn,
+    CmpClk,
+    CmpMosi,
+    Awake,
+    Scp(u8), // ×8
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

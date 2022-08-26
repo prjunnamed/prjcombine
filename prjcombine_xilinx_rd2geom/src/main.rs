@@ -9,6 +9,7 @@ use std::error::Error;
 use std::fs::File;
 use structopt::StructOpt;
 
+mod db;
 mod grid;
 mod intb;
 mod series7;
@@ -40,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if opt.files.is_empty() {
         bail!("no files given");
     }
-    let mut builder = grid::GridBuilder::new();
+    let mut builder = db::DbBuilder::new();
     let pres: Vec<_> = opt
         .files
         .par_iter()
