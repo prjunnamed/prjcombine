@@ -660,7 +660,11 @@ impl Grid {
                             grid[(col_m, row)].add_xnode(
                                 db.get_node("CLKV_BRAM"),
                                 &[&name],
-                                db.get_node_naming(if lr == 'L' {"CLKV_BRAM.L"} else {"CLKV_BRAM.R"}),
+                                db.get_node_naming(if lr == 'L' {
+                                    "CLKV_BRAM.L"
+                                } else {
+                                    "CLKV_BRAM.R"
+                                }),
                                 &[
                                     (col_m, row),
                                     (col_m - 1, row),

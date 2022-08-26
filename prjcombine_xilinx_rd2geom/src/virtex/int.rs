@@ -1067,9 +1067,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![
                 builder.bel_indexed("GCLKIOB0", "GCLKIOB", 0),
                 builder.bel_indexed("GCLKIOB1", "GCLKIOB", 1),
-                builder.bel_indexed("BUFG0", "GCLK", 0)
+                builder
+                    .bel_indexed("BUFG0", "GCLK", 0)
                     .extra_wire("OUT.GLOBAL", &["CLKB_GCLK0", "CLKT_GCLK2"]),
-                builder.bel_indexed("BUFG1", "GCLK", 1)
+                builder
+                    .bel_indexed("BUFG1", "GCLK", 1)
                     .extra_wire("OUT.GLOBAL", &["CLKB_GCLK1", "CLKT_GCLK3"]),
             ];
             if rd.family != "virtex" {
@@ -1117,7 +1119,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[xy],
             "CLKC",
             &[
-                builder.bel_virtual("CLKC")
+                builder
+                    .bel_virtual("CLKC")
                     .extra_wire("IN0", &["CLKC_GCLK0"])
                     .extra_wire("IN1", &["CLKC_GCLK1"])
                     .extra_wire("IN2", &["CLKC_GCLK2"])
@@ -1126,7 +1129,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("OUT1", &["CLKC_HGCLK1"])
                     .extra_wire("OUT2", &["CLKC_HGCLK2"])
                     .extra_wire("OUT3", &["CLKC_HGCLK3"]),
-                builder.bel_virtual("GCLKC")
+                builder
+                    .bel_virtual("GCLKC")
                     .extra_wire("IN0", &["CLKC_HGCLK0"])
                     .extra_wire("IN1", &["CLKC_HGCLK1"])
                     .extra_wire("IN2", &["CLKC_HGCLK2"])
@@ -1146,17 +1150,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[],
             &[xy],
             "GCLKC",
-            &[
-                builder.bel_virtual("GCLKC")
-                    .extra_wire_force("IN0", "GCLKC_HGCLK0")
-                    .extra_wire_force("IN1", "GCLKC_HGCLK1")
-                    .extra_wire_force("IN2", "GCLKC_HGCLK2")
-                    .extra_wire_force("IN3", "GCLKC_HGCLK3")
-                    .extra_wire_force("OUT0", "GCLKC_VGCLK0")
-                    .extra_wire_force("OUT1", "GCLKC_VGCLK1")
-                    .extra_wire_force("OUT2", "GCLKC_VGCLK2")
-                    .extra_wire_force("OUT3", "GCLKC_VGCLK3"),
-            ],
+            &[builder
+                .bel_virtual("GCLKC")
+                .extra_wire_force("IN0", "GCLKC_HGCLK0")
+                .extra_wire_force("IN1", "GCLKC_HGCLK1")
+                .extra_wire_force("IN2", "GCLKC_HGCLK2")
+                .extra_wire_force("IN3", "GCLKC_HGCLK3")
+                .extra_wire_force("OUT0", "GCLKC_VGCLK0")
+                .extra_wire_force("OUT1", "GCLKC_VGCLK1")
+                .extra_wire_force("OUT2", "GCLKC_VGCLK2")
+                .extra_wire_force("OUT3", "GCLKC_VGCLK3")],
         );
     }
 
@@ -1167,17 +1170,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[],
             &[xy],
             "BRAM_CLKH",
-            &[
-                builder.bel_virtual("BRAM_CLKH")
-                    .extra_wire_force("IN0", "BRAM_CLKH_GCLK0")
-                    .extra_wire_force("IN1", "BRAM_CLKH_GCLK1")
-                    .extra_wire_force("IN2", "BRAM_CLKH_GCLK2")
-                    .extra_wire_force("IN3", "BRAM_CLKH_GCLK3")
-                    .extra_int_out_force("OUT0", (NodeTileId::from_idx(0), gclk[0]), "BRAM_CLKH_VGCLK0")
-                    .extra_int_out_force("OUT1", (NodeTileId::from_idx(0), gclk[1]), "BRAM_CLKH_VGCLK1")
-                    .extra_int_out_force("OUT2", (NodeTileId::from_idx(0), gclk[2]), "BRAM_CLKH_VGCLK2")
-                    .extra_int_out_force("OUT3", (NodeTileId::from_idx(0), gclk[3]), "BRAM_CLKH_VGCLK3")
-            ],
+            &[builder
+                .bel_virtual("BRAM_CLKH")
+                .extra_wire_force("IN0", "BRAM_CLKH_GCLK0")
+                .extra_wire_force("IN1", "BRAM_CLKH_GCLK1")
+                .extra_wire_force("IN2", "BRAM_CLKH_GCLK2")
+                .extra_wire_force("IN3", "BRAM_CLKH_GCLK3")
+                .extra_int_out_force(
+                    "OUT0",
+                    (NodeTileId::from_idx(0), gclk[0]),
+                    "BRAM_CLKH_VGCLK0",
+                )
+                .extra_int_out_force(
+                    "OUT1",
+                    (NodeTileId::from_idx(0), gclk[1]),
+                    "BRAM_CLKH_VGCLK1",
+                )
+                .extra_int_out_force(
+                    "OUT2",
+                    (NodeTileId::from_idx(0), gclk[2]),
+                    "BRAM_CLKH_VGCLK2",
+                )
+                .extra_int_out_force(
+                    "OUT3",
+                    (NodeTileId::from_idx(0), gclk[3]),
+                    "BRAM_CLKH_VGCLK3",
+                )],
         );
     }
 
@@ -1198,64 +1216,67 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let int_xy_r = builder.walk_to_int(xy, Dir::E).unwrap();
             let mut bel = builder.bel_virtual("CLKV");
             for i in 0..4 {
-                bel = bel.extra_int_out(format!("OUT_L{i}"), &[
-                    format!("GCLKV_BUFL{i}"),
-                    format!("CLKV_GCLK_BUFL{i}"),
-                    format!("GCLKB_GCLKW{i}"),
-                    format!("GCLKT_GCLKW{i}"),
-                    format!("CLKB_HGCLK_W{i}"),
-                    format!("CLKT_HGCLK_W{i}"),
-                ]);
-                bel = bel.extra_int_out(format!("OUT_R{i}"), &[
-                    format!("GCLKV_BUFR{i}"),
-                    format!("CLKV_GCLK_BUFR{i}"),
-                    format!("GCLKB_GCLKE{i}"),
-                    format!("GCLKT_GCLKE{i}"),
-                    format!("CLKB_HGCLK_E{i}"),
-                    format!("CLKT_HGCLK_E{i}"),
-                ]);
-                bel = bel.extra_wire(format!("IN{i}"), &[
-                    format!("GCLKV_GCLK_B{i}"),
-                    format!("CLKV_VGCLK{i}"),
-                    format!("GCLKB_VGCLK{i}"),
-                    format!("GCLKT_VGCLK{i}"),
-                    format!("CLKB_VGCLK{i}"),
-                    format!("CLKT_VGCLK{i}"),
-                ]);
+                bel = bel.extra_int_out(
+                    format!("OUT_L{i}"),
+                    &[
+                        format!("GCLKV_BUFL{i}"),
+                        format!("CLKV_GCLK_BUFL{i}"),
+                        format!("GCLKB_GCLKW{i}"),
+                        format!("GCLKT_GCLKW{i}"),
+                        format!("CLKB_HGCLK_W{i}"),
+                        format!("CLKT_HGCLK_W{i}"),
+                    ],
+                );
+                bel = bel.extra_int_out(
+                    format!("OUT_R{i}"),
+                    &[
+                        format!("GCLKV_BUFR{i}"),
+                        format!("CLKV_GCLK_BUFR{i}"),
+                        format!("GCLKB_GCLKE{i}"),
+                        format!("GCLKT_GCLKE{i}"),
+                        format!("CLKB_HGCLK_E{i}"),
+                        format!("CLKT_HGCLK_E{i}"),
+                    ],
+                );
+                bel = bel.extra_wire(
+                    format!("IN{i}"),
+                    &[
+                        format!("GCLKV_GCLK_B{i}"),
+                        format!("CLKV_VGCLK{i}"),
+                        format!("GCLKB_VGCLK{i}"),
+                        format!("GCLKT_VGCLK{i}"),
+                        format!("CLKB_VGCLK{i}"),
+                        format!("CLKT_VGCLK{i}"),
+                    ],
+                );
             }
-            builder.extract_xnode_bels(
-                "CLKV",
-                xy,
-                &[],
-                &[int_xy_l, int_xy_r],
-                naming,
-                &[bel],
-            );
+            builder.extract_xnode_bels("CLKV", xy, &[], &[int_xy_l, int_xy_r], naming, &[bel]);
         }
     }
 
-    for (tkn, naming) in [
-        ("LBRAM", "CLKV_BRAM.L"),
-        ("RBRAM", "CLKV_BRAM.R"),
-    ] {
+    for (tkn, naming) in [("LBRAM", "CLKV_BRAM.L"), ("RBRAM", "CLKV_BRAM.R")] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let mut bel = builder.bel_virtual("CLKV_BRAM");
             let mut coords = vec![xy];
             for i in 0..4 {
-                bel = bel.extra_int_in(format!("IN{i}"), &[
-                    format!("BRAM_GCLKIN{i}"),
-                ]);
+                bel = bel.extra_int_in(format!("IN{i}"), &[format!("BRAM_GCLKIN{i}")]);
             }
             for (i, l) in ['D', 'C', 'B', 'A'].into_iter().enumerate() {
                 for j in 0..4 {
-                    bel = bel.extra_int_out(format!("OUT_L{i}_{j}"), &[
-                        format!("LBRAM_GCLK_IOB{l}{j}"),
-                        format!("RBRAM_GCLK_CLB{l}{j}"),
-                    ]);
-                    bel = bel.extra_int_out(format!("OUT_R{i}_{j}"), &[
-                        format!("LBRAM_GCLK_CLB{l}{j}"),
-                        format!("RBRAM_GCLK_IOB{l}{j}"),
-                    ]);
+                    bel = bel.extra_int_out(
+                        format!("OUT_L{i}_{j}"),
+                        &[
+                            format!("LBRAM_GCLK_IOB{l}{j}"),
+                            format!("RBRAM_GCLK_CLB{l}{j}"),
+                        ],
+                    );
+                    bel = bel.extra_int_out(
+                        format!("OUT_R{i}_{j}"),
+                        &[
+                            format!("LBRAM_GCLK_CLB{l}{j}"),
+                            format!("RBRAM_GCLK_IOB{l}{j}"),
+                        ],
+                    );
                 }
             }
             for i in 0..4 {
@@ -1270,14 +1291,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: xy.y + i,
                 });
             }
-            builder.extract_xnode_bels(
-                "CLKV_BRAM",
-                xy,
-                &[],
-                &coords,
-                naming,
-                &[bel],
-            );
+            builder.extract_xnode_bels("CLKV_BRAM", xy, &[], &coords, naming, &[bel]);
         }
     }
 
@@ -1295,28 +1309,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let int_xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
             let mut bel = builder.bel_virtual(kind);
             for i in 0..4 {
-                bel = bel.extra_int_out(format!("OUT_L{i}"), &[
-                    format!("BRAM_BOT_GCLKW{i}"),
-                    format!("BRAM_TOP_GCLKW{i}"),
-                ]);
-                bel = bel.extra_int_out(format!("OUT_R{i}"), &[
-                    format!("BRAM_BOT_GCLKE{i}"),
-                    format!("BRAM_TOP_GCLKE{i}"),
-                ]);
-                bel = bel.extra_int_in(format!("IN{i}"), &[
-                    format!("BRAM_BOT_VGCLK{i}"),
-                    format!("BRAM_TOP_VGCLK{i}"),
-                ]);
+                bel = bel.extra_int_out(
+                    format!("OUT_L{i}"),
+                    &[format!("BRAM_BOT_GCLKW{i}"), format!("BRAM_TOP_GCLKW{i}")],
+                );
+                bel = bel.extra_int_out(
+                    format!("OUT_R{i}"),
+                    &[format!("BRAM_BOT_GCLKE{i}"), format!("BRAM_TOP_GCLKE{i}")],
+                );
+                bel = bel.extra_int_in(
+                    format!("IN{i}"),
+                    &[format!("BRAM_BOT_VGCLK{i}"), format!("BRAM_TOP_VGCLK{i}")],
+                );
             }
             let bram_xy = xy; // dummy position
-            builder.extract_xnode_bels(
-                kind,
-                xy,
-                &[],
-                &[xy, int_xy_l, bram_xy],
-                kind,
-                &[bel],
-            );
+            builder.extract_xnode_bels(kind, xy, &[], &[xy, int_xy_l, bram_xy], kind, &[bel]);
         }
     }
 

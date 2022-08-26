@@ -190,11 +190,16 @@ pub fn verify_bel(
             vrf.verify_bel(slr, node, bid, "GCLKIOB", &node.bels[bid], &[], &[]);
         }
         _ if key.starts_with("BUFG") => {
-            vrf.verify_bel(slr, node, bid, "GCLK", &node.bels[bid], &[], &["OUT.GLOBAL"]);
-            vrf.claim_node(&[(
-                crds[naming.tile],
-                &naming.pins["OUT.GLOBAL"].name,
-            )]);
+            vrf.verify_bel(
+                slr,
+                node,
+                bid,
+                "GCLK",
+                &node.bels[bid],
+                &[],
+                &["OUT.GLOBAL"],
+            );
+            vrf.claim_node(&[(crds[naming.tile], &naming.pins["OUT.GLOBAL"].name)]);
             vrf.claim_pip(
                 crds[naming.tile],
                 &naming.pins["OUT.GLOBAL"].name,
@@ -263,10 +268,7 @@ pub fn verify_bel(
                 ("OUT2", "IN2", grid.row_tio(), "BUFG0"),
                 ("OUT3", "IN3", grid.row_tio(), "BUFG1"),
             ] {
-                vrf.claim_node(&[(
-                    crds[naming.tile],
-                    &naming.pins[opin].name,
-                )]);
+                vrf.claim_node(&[(crds[naming.tile], &naming.pins[opin].name)]);
                 vrf.claim_pip(
                     crds[naming.tile],
                     &naming.pins[opin].name,
@@ -290,10 +292,7 @@ pub fn verify_bel(
                 ("OUT2", "IN2"),
                 ("OUT3", "IN3"),
             ] {
-                vrf.claim_node(&[(
-                    crds[naming.tile],
-                    &naming.pins[opin].name,
-                )]);
+                vrf.claim_node(&[(crds[naming.tile], &naming.pins[opin].name)]);
                 vrf.claim_pip(
                     crds[naming.tile],
                     &naming.pins[opin].name,
