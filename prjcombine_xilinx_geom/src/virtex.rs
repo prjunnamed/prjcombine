@@ -1,5 +1,5 @@
 use crate::{eint, int, BelCoord, BelId, CfgPin, ColId, DisabledPart, RowId};
-use prjcombine_entity::{EntityId, EntityIds};
+use prjcombine_entity::{EntityId, EntityIds, EntityPartVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -154,12 +154,14 @@ impl Grid {
     ) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         let (_, mut grid) = egrid.add_slr(self.columns, self.rows);
+        let mut bramclut = EntityPartVec::new();
 
         let col_l = grid.cols().next().unwrap();
         let col_r = grid.cols().next_back().unwrap();
         let row_b = grid.rows().next().unwrap();
         let row_t = grid.rows().next_back().unwrap();
         let mut c = 0;
+        let mut bramc = 0;
         for col in grid.cols() {
             if col == col_l {
                 for row in grid.rows() {
@@ -193,6 +195,8 @@ impl Grid {
                 }
                 c += 1;
             } else if self.cols_bram.contains(&col) {
+                bramclut.insert(col, bramc);
+                bramc += 1;
                 // skip for now
             } else {
                 for row in grid.rows() {
@@ -592,27 +596,150 @@ impl Grid {
         );
         node.add_bel(0, "RPCILOGIC".to_string());
 
-        for row in grid.rows() {
-            for &(col_m, col_l, col_r) in &self.cols_clkv {
+        let mut cc = 1;
+        for &(col_m, col_l, col_r) in &self.cols_clkv {
+            for row in grid.rows() {
                 for c in col_l.to_idx()..col_m.to_idx() {
                     let col = ColId::from_idx(c);
                     grid[(col, row)].clkroot = (col_m - 1, row);
                 }
-                if (col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1)
-                    && row != self.row_bio()
-                    && row != self.row_tio()
-                {
-                    grid[(col_m, row)].clkroot = (col_m, self.row_clk());
-                    for c in (col_m.to_idx() + 1)..col_r.to_idx() {
-                        let col = ColId::from_idx(c);
-                        grid[(col, row)].clkroot = (col_m + 1, row);
+                if col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1 {
+                    let lr = if col_m == self.col_lio() + 1 {
+                        'L'
+                    } else {
+                        'R'
+                    };
+                    if row == self.row_bio() {
+                        for c in col_m.to_idx()..col_r.to_idx() {
+                            let col = ColId::from_idx(c);
+                            grid[(col, row)].clkroot = (col_m, row);
+                        }
+                        let name = if self.kind == GridKind::Virtex {
+                            format!("{lr}BRAM_BOT")
+                        } else {
+                            let c = bramclut[col_m];
+                            format!("BRAM_BOTC{c}")
+                        };
+                        grid[(col_m, row)].add_xnode(
+                            db.get_node("CLKV_BRAM_BOT"),
+                            &[&name],
+                            db.get_node_naming("CLKV_BRAM_BOT"),
+                            &[(col_m, row), (col_m - 1, row), (col_m, row + 1)],
+                        );
+                    } else if row == self.row_tio() {
+                        for c in col_m.to_idx()..col_r.to_idx() {
+                            let col = ColId::from_idx(c);
+                            grid[(col, row)].clkroot = (col_m, row);
+                        }
+                        let name = if self.kind == GridKind::Virtex {
+                            format!("{lr}BRAM_TOP")
+                        } else {
+                            let c = bramclut[col_m];
+                            format!("BRAM_TOPC{c}")
+                        };
+                        grid[(col_m, row)].add_xnode(
+                            db.get_node("CLKV_BRAM_TOP"),
+                            &[&name],
+                            db.get_node_naming("CLKV_BRAM_TOP"),
+                            &[(col_m, row), (col_m - 1, row), (col_m, row - 4)],
+                        );
+                    } else {
+                        grid[(col_m, row)].clkroot = (col_m, self.row_clk());
+                        for c in (col_m.to_idx() + 1)..col_r.to_idx() {
+                            let col = ColId::from_idx(c);
+                            grid[(col, row)].clkroot = (col_m + 1, row);
+                        }
+                        if row.to_idx() % 4 == 1 {
+                            let r = row_t.to_idx() - row.to_idx();
+                            let name = if self.kind == GridKind::Virtex {
+                                format!("{lr}BRAMR{r}")
+                            } else {
+                                let c = bramclut[col_m];
+                                format!("BRAMR{r}C{c}")
+                            };
+                            grid[(col_m, row)].add_xnode(
+                                db.get_node("CLKV_BRAM"),
+                                &[&name],
+                                db.get_node_naming(if lr == 'L' {"CLKV_BRAM.L"} else {"CLKV_BRAM.R"}),
+                                &[
+                                    (col_m, row),
+                                    (col_m - 1, row),
+                                    (col_m - 1, row + 1),
+                                    (col_m - 1, row + 2),
+                                    (col_m - 1, row + 3),
+                                    (col_m + 1, row),
+                                    (col_m + 1, row + 1),
+                                    (col_m + 1, row + 2),
+                                    (col_m + 1, row + 3),
+                                ],
+                            );
+                        }
                     }
                 } else {
                     for c in col_m.to_idx()..col_r.to_idx() {
                         let col = ColId::from_idx(c);
                         grid[(col, row)].clkroot = (col_m, row);
                     }
+                    let (name, naming) = if col_m == self.col_clk() {
+                        if row == self.row_bio() {
+                            ("BM".to_string(), "CLKV.CLKB")
+                        } else if row == self.row_tio() {
+                            ("TM".to_string(), "CLKV.CLKT")
+                        } else {
+                            let r = row_t.to_idx() - row.to_idx();
+                            (format!("VMR{r}"), "CLKV.CLKV")
+                        }
+                    } else {
+                        if row == self.row_bio() {
+                            (format!("GCLKBC{cc}"), "CLKV.GCLKB")
+                        } else if row == self.row_tio() {
+                            (format!("GCLKTC{cc}"), "CLKV.GCLKT")
+                        } else {
+                            let r = row_t.to_idx() - row.to_idx();
+                            (format!("GCLKVR{r}C{cc}"), "CLKV.GCLKV")
+                        }
+                    };
+                    grid[(col_m - 1, row)].add_xnode(
+                        db.get_node("CLKV"),
+                        &[&name],
+                        db.get_node_naming(naming),
+                        &[(col_m - 1, row), (col_m, row)],
+                    );
                 }
+            }
+            if col_m == self.col_lio() + 1 || col_m == self.col_rio() - 1 {
+                let name = if self.kind == GridKind::Virtex {
+                    if col_m == self.col_lio() + 1 {
+                        "LBRAMM".to_string()
+                    } else {
+                        "RBRAMM".to_string()
+                    }
+                } else {
+                    let c = bramclut[col_m];
+                    format!("BRAMMC{c}")
+                };
+                grid[(col_m, self.row_clk())].add_xnode(
+                    db.get_node("BRAM_CLKH"),
+                    &[&name],
+                    db.get_node_naming("BRAM_CLKH"),
+                    &[(col_m, self.row_clk())],
+                );
+            } else if col_m == self.col_clk() {
+                grid[(col_m, self.row_clk())].add_xnode(
+                    db.get_node("CLKC"),
+                    &["M"],
+                    db.get_node_naming("CLKC"),
+                    &[(col_m, self.row_clk())],
+                );
+            } else {
+                let name = format!("GCLKCC{cc}");
+                grid[(col_m, self.row_clk())].add_xnode(
+                    db.get_node("GCLKC"),
+                    &[&name],
+                    db.get_node_naming("GCLKC"),
+                    &[(col_m, self.row_clk())],
+                );
+                cc += 1;
             }
         }
 

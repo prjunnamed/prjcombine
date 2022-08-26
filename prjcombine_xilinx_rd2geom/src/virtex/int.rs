@@ -41,6 +41,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         builder.extra_name_sub(format!("MBRAM_GCLKD{i}"), 0, w);
         builder.extra_name_sub(format!("MBRAM_GCLKA{i}"), 3, w);
+        builder.extra_name_sub(format!("BRAM_BOT_VGCLK{i}"), 2, w);
+        builder.extra_name_sub(format!("BRAM_TOP_VGCLK{i}"), 2, w);
         gclk.push(w);
         bram_forbidden.push(w);
         bram_bt_forbidden.push(w);
@@ -1065,8 +1067,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![
                 builder.bel_indexed("GCLKIOB0", "GCLKIOB", 0),
                 builder.bel_indexed("GCLKIOB1", "GCLKIOB", 1),
-                builder.bel_indexed("BUFG0", "GCLK", 0),
-                builder.bel_indexed("BUFG1", "GCLK", 1),
+                builder.bel_indexed("BUFG0", "GCLK", 0)
+                    .extra_wire("OUT.GLOBAL", &["CLKB_GCLK0", "CLKT_GCLK2"]),
+                builder.bel_indexed("BUFG1", "GCLK", 1)
+                    .extra_wire("OUT.GLOBAL", &["CLKB_GCLK1", "CLKT_GCLK3"]),
             ];
             if rd.family != "virtex" {
                 bels.push(
@@ -1101,6 +1105,217 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .pin_name_only("IRDY", 1)
                     .pin_name_only("TRDY", 1)],
                 &[pci_ce],
+            );
+        }
+    }
+
+    for &xy in rd.tiles_by_kind_name("CLKC") {
+        builder.extract_xnode_bels(
+            "CLKC",
+            xy,
+            &[],
+            &[xy],
+            "CLKC",
+            &[
+                builder.bel_virtual("CLKC")
+                    .extra_wire("IN0", &["CLKC_GCLK0"])
+                    .extra_wire("IN1", &["CLKC_GCLK1"])
+                    .extra_wire("IN2", &["CLKC_GCLK2"])
+                    .extra_wire("IN3", &["CLKC_GCLK3"])
+                    .extra_wire("OUT0", &["CLKC_HGCLK0"])
+                    .extra_wire("OUT1", &["CLKC_HGCLK1"])
+                    .extra_wire("OUT2", &["CLKC_HGCLK2"])
+                    .extra_wire("OUT3", &["CLKC_HGCLK3"]),
+                builder.bel_virtual("GCLKC")
+                    .extra_wire("IN0", &["CLKC_HGCLK0"])
+                    .extra_wire("IN1", &["CLKC_HGCLK1"])
+                    .extra_wire("IN2", &["CLKC_HGCLK2"])
+                    .extra_wire("IN3", &["CLKC_HGCLK3"])
+                    .extra_wire("OUT0", &["CLKC_VGCLK0"])
+                    .extra_wire("OUT1", &["CLKC_VGCLK1"])
+                    .extra_wire("OUT2", &["CLKC_VGCLK2"])
+                    .extra_wire("OUT3", &["CLKC_VGCLK3"]),
+            ],
+        );
+    }
+
+    for &xy in rd.tiles_by_kind_name("GCLKC") {
+        builder.extract_xnode_bels(
+            "GCLKC",
+            xy,
+            &[],
+            &[xy],
+            "GCLKC",
+            &[
+                builder.bel_virtual("GCLKC")
+                    .extra_wire_force("IN0", "GCLKC_HGCLK0")
+                    .extra_wire_force("IN1", "GCLKC_HGCLK1")
+                    .extra_wire_force("IN2", "GCLKC_HGCLK2")
+                    .extra_wire_force("IN3", "GCLKC_HGCLK3")
+                    .extra_wire_force("OUT0", "GCLKC_VGCLK0")
+                    .extra_wire_force("OUT1", "GCLKC_VGCLK1")
+                    .extra_wire_force("OUT2", "GCLKC_VGCLK2")
+                    .extra_wire_force("OUT3", "GCLKC_VGCLK3"),
+            ],
+        );
+    }
+
+    for &xy in rd.tiles_by_kind_name("BRAM_CLKH") {
+        builder.extract_xnode_bels(
+            "BRAM_CLKH",
+            xy,
+            &[],
+            &[xy],
+            "BRAM_CLKH",
+            &[
+                builder.bel_virtual("BRAM_CLKH")
+                    .extra_wire_force("IN0", "BRAM_CLKH_GCLK0")
+                    .extra_wire_force("IN1", "BRAM_CLKH_GCLK1")
+                    .extra_wire_force("IN2", "BRAM_CLKH_GCLK2")
+                    .extra_wire_force("IN3", "BRAM_CLKH_GCLK3")
+                    .extra_int_out_force("OUT0", (NodeTileId::from_idx(0), gclk[0]), "BRAM_CLKH_VGCLK0")
+                    .extra_int_out_force("OUT1", (NodeTileId::from_idx(0), gclk[1]), "BRAM_CLKH_VGCLK1")
+                    .extra_int_out_force("OUT2", (NodeTileId::from_idx(0), gclk[2]), "BRAM_CLKH_VGCLK2")
+                    .extra_int_out_force("OUT3", (NodeTileId::from_idx(0), gclk[3]), "BRAM_CLKH_VGCLK3")
+            ],
+        );
+    }
+
+    for (tkn, naming) in [
+        ("CLKV", "CLKV.CLKV"),
+        ("CLKB", "CLKV.CLKB"),
+        ("CLKB_4DLL", "CLKV.CLKB"),
+        ("CLKB_2DLL", "CLKV.CLKB"),
+        ("CLKT", "CLKV.CLKT"),
+        ("CLKT_4DLL", "CLKV.CLKT"),
+        ("CLKT_2DLL", "CLKV.CLKT"),
+        ("GCLKV", "CLKV.GCLKV"),
+        ("GCLKB", "CLKV.GCLKB"),
+        ("GCLKT", "CLKV.GCLKT"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
+            let int_xy_r = builder.walk_to_int(xy, Dir::E).unwrap();
+            let mut bel = builder.bel_virtual("CLKV");
+            for i in 0..4 {
+                bel = bel.extra_int_out(format!("OUT_L{i}"), &[
+                    format!("GCLKV_BUFL{i}"),
+                    format!("CLKV_GCLK_BUFL{i}"),
+                    format!("GCLKB_GCLKW{i}"),
+                    format!("GCLKT_GCLKW{i}"),
+                    format!("CLKB_HGCLK_W{i}"),
+                    format!("CLKT_HGCLK_W{i}"),
+                ]);
+                bel = bel.extra_int_out(format!("OUT_R{i}"), &[
+                    format!("GCLKV_BUFR{i}"),
+                    format!("CLKV_GCLK_BUFR{i}"),
+                    format!("GCLKB_GCLKE{i}"),
+                    format!("GCLKT_GCLKE{i}"),
+                    format!("CLKB_HGCLK_E{i}"),
+                    format!("CLKT_HGCLK_E{i}"),
+                ]);
+                bel = bel.extra_wire(format!("IN{i}"), &[
+                    format!("GCLKV_GCLK_B{i}"),
+                    format!("CLKV_VGCLK{i}"),
+                    format!("GCLKB_VGCLK{i}"),
+                    format!("GCLKT_VGCLK{i}"),
+                    format!("CLKB_VGCLK{i}"),
+                    format!("CLKT_VGCLK{i}"),
+                ]);
+            }
+            builder.extract_xnode_bels(
+                "CLKV",
+                xy,
+                &[],
+                &[int_xy_l, int_xy_r],
+                naming,
+                &[bel],
+            );
+        }
+    }
+
+    for (tkn, naming) in [
+        ("LBRAM", "CLKV_BRAM.L"),
+        ("RBRAM", "CLKV_BRAM.R"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let mut bel = builder.bel_virtual("CLKV_BRAM");
+            let mut coords = vec![xy];
+            for i in 0..4 {
+                bel = bel.extra_int_in(format!("IN{i}"), &[
+                    format!("BRAM_GCLKIN{i}"),
+                ]);
+            }
+            for (i, l) in ['D', 'C', 'B', 'A'].into_iter().enumerate() {
+                for j in 0..4 {
+                    bel = bel.extra_int_out(format!("OUT_L{i}_{j}"), &[
+                        format!("LBRAM_GCLK_IOB{l}{j}"),
+                        format!("RBRAM_GCLK_CLB{l}{j}"),
+                    ]);
+                    bel = bel.extra_int_out(format!("OUT_R{i}_{j}"), &[
+                        format!("LBRAM_GCLK_CLB{l}{j}"),
+                        format!("RBRAM_GCLK_IOB{l}{j}"),
+                    ]);
+                }
+            }
+            for i in 0..4 {
+                coords.push(Coord {
+                    x: xy.x - 1,
+                    y: xy.y + i,
+                });
+            }
+            for i in 0..4 {
+                coords.push(Coord {
+                    x: xy.x + 1,
+                    y: xy.y + i,
+                });
+            }
+            builder.extract_xnode_bels(
+                "CLKV_BRAM",
+                xy,
+                &[],
+                &coords,
+                naming,
+                &[bel],
+            );
+        }
+    }
+
+    for (tkn, kind) in [
+        ("BRAM_BOT", "CLKV_BRAM_BOT"),
+        ("BRAM_BOT_GCLK", "CLKV_BRAM_BOT"),
+        ("LBRAM_BOTS_GCLK", "CLKV_BRAM_BOT"),
+        ("RBRAM_BOTS_GCLK", "CLKV_BRAM_BOT"),
+        ("BRAM_TOP", "CLKV_BRAM_TOP"),
+        ("BRAM_TOP_GCLK", "CLKV_BRAM_TOP"),
+        ("LBRAM_TOPS_GCLK", "CLKV_BRAM_TOP"),
+        ("RBRAM_TOPS_GCLK", "CLKV_BRAM_TOP"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
+            let mut bel = builder.bel_virtual(kind);
+            for i in 0..4 {
+                bel = bel.extra_int_out(format!("OUT_L{i}"), &[
+                    format!("BRAM_BOT_GCLKW{i}"),
+                    format!("BRAM_TOP_GCLKW{i}"),
+                ]);
+                bel = bel.extra_int_out(format!("OUT_R{i}"), &[
+                    format!("BRAM_BOT_GCLKE{i}"),
+                    format!("BRAM_TOP_GCLKE{i}"),
+                ]);
+                bel = bel.extra_int_in(format!("IN{i}"), &[
+                    format!("BRAM_BOT_VGCLK{i}"),
+                    format!("BRAM_TOP_VGCLK{i}"),
+                ]);
+            }
+            let bram_xy = xy; // dummy position
+            builder.extract_xnode_bels(
+                kind,
+                xy,
+                &[],
+                &[xy, int_xy_l, bram_xy],
+                kind,
+                &[bel],
             );
         }
     }
