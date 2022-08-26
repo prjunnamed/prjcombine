@@ -1,10 +1,10 @@
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::pkg::Bond;
 use prjcombine_xilinx_geom::{
     int, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie,
     GeomDb, Grid, GridId, SlrId,
 };
-use prjcombine_xilinx_rawdump::Part;
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 
 pub struct PreDevice {

@@ -1,9 +1,9 @@
 use prjcombine_entity::EntityId;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{
     BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, NodeExtPipNaming, NodeRawTileId,
     NodeTileId, PinDir, WireKind,
 };
-use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeMap;
 
 use crate::grid::find_columns;

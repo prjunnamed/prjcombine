@@ -1,8 +1,8 @@
 use crate::verify::Verifier;
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::int::IntDb;
 use prjcombine_xilinx_geom::versal::expand_grid;
 use prjcombine_xilinx_geom::Grid;
-use prjcombine_xilinx_rawdump::Part;
 
 use crate::db::{make_device_multi, PreDevice};
 

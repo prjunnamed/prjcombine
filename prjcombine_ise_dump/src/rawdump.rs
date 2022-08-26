@@ -1,11 +1,9 @@
 use super::partgen::PartgenPkg;
 use super::xdlrc::{Options, Parser, PipKind, Tile, Wire};
 use indexmap::IndexSet;
+use prjcombine_rawdump::{Coord, Part, Source, TkPipDirection, TkPipInversion};
+use prjcombine_rdbuild::{PartBuilder, PbPip, PbSitePin};
 use prjcombine_toolchain::Toolchain;
-use prjcombine_xilinx_rawdump::{
-    build::{PartBuilder, PbPip, PbSitePin},
-    Coord, Part, Source, TkPipDirection, TkPipInversion,
-};
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::error::Error;
@@ -157,7 +155,7 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
     let part = &pkgs[0];
     let device = &part.device;
     let partname = part.device.clone() + &part.package;
-    let pinmap: HashMap<String, String> = part
+    let mut pinmap: HashMap<String, String> = part
         .pins
         .iter()
         .filter_map(|pin| {
@@ -238,6 +236,13 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
     };
 
     while let Some(t) = parser.get_tile()? {
+        if part.family == "xc5200" {
+            for p in &t.prims {
+                if let Some(suf) = p.name.strip_prefix("UNB") {
+                    pinmap.insert(p.name.clone(), format!("PAD{suf}"));
+                }
+            }
+        }
         rd.add_tile(
             Coord {
                 x: t.x as u16,

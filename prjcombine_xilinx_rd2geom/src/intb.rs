@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use prjcombine_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
+use prjcombine_rawdump::{self as rawdump, Coord, Part};
 use prjcombine_xilinx_geom::int;
-use prjcombine_xilinx_rawdump::{self as rawdump, Coord, Part};
 
 use assert_matches::assert_matches;
 

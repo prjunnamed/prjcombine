@@ -1,10 +1,10 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::{NodeId, Part};
 use prjcombine_xilinx_geom::ultrascale::{
     self, ColSide, Column, ColumnKindLeft, ColumnKindRight, GridKind, HardColumn, HardRowKind,
     IoColumn, IoRowKind, Ps,
 };
 use prjcombine_xilinx_geom::{ColId, DisabledPart, SlrId};
-use prjcombine_xilinx_rawdump::{NodeId, Part};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use crate::grid::{extract_int_slr, find_rows, IntGrid};

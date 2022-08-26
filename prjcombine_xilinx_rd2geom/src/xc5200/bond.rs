@@ -1,6 +1,6 @@
+use prjcombine_rawdump::PkgPin;
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin};
 use prjcombine_xilinx_geom::xc5200::Grid;
-use prjcombine_xilinx_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};
 
 pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {

@@ -1,10 +1,10 @@
 use bitvec::vec::BitVec;
 use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_rawdump::{self as rawdump, Coord, Part};
 use prjcombine_xilinx_geom::{
     eint::{self, IntWire},
     int, BelId, ColId, RowId, SlrId,
 };
-use prjcombine_xilinx_rawdump::{self as rawdump, Coord, Part};
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 pub struct Verifier<'a> {

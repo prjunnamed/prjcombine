@@ -1,4 +1,4 @@
-use prjcombine_xilinx_rawdump::{Part, TkWire};
+use prjcombine_rawdump::{Part, TkWire};
 use std::collections::HashMap;
 use std::error::Error;
 use structopt::StructOpt;

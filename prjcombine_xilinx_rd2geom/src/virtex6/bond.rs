@@ -1,8 +1,8 @@
 use prjcombine_entity::EntityId;
+use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin, GtPin, GtRegionPin, SysMonPin};
 use prjcombine_xilinx_geom::virtex6::{Grid, SharedCfgPin};
 use prjcombine_xilinx_geom::DisabledPart;
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 

@@ -3,7 +3,8 @@
 members = [
 	"prjcombine_entity",
 	"prjcombine_toolchain",
-	"prjcombine_xilinx_rawdump",
+	"prjcombine_rawdump",
+	"prjcombine_rdbuild",
 	"prjcombine_ise_dump",
 	"prjcombine_vivado_dump",
 	"prjcombine_xilinx_rd2geom",

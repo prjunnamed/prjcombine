@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, NodeTileId, WireKind};
-use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeMap;
 
 use crate::intb::IntBuilder;

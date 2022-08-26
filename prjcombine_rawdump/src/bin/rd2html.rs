@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use ndarray::Array2;
-use prjcombine_xilinx_rawdump::{Coord, Part, TkSiteSlot};
+use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;

@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 prjcombine_entity = { path = "../prjcombine_entity" }
 prjcombine_xilinx_geom = { path = "../prjcombine_xilinx_geom" }
-prjcombine_xilinx_rawdump = { path = "../prjcombine_xilinx_rawdump" }
+prjcombine_rawdump = { path = "../prjcombine_rawdump" }
 structopt = "0.3"
 simple-error = "0.2"
 serde = { version = "1.0", features = ["derive"] }

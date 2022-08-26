@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashMap};
 
+use prjcombine_rawdump::PkgPin;
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin, GtPin};
 use prjcombine_xilinx_geom::virtex2::Grid;
-use prjcombine_xilinx_rawdump::PkgPin;
 
 use crate::util::split_num;
 

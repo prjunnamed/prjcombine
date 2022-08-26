@@ -1,10 +1,10 @@
 use crate::verify::{SitePinDir, Verifier};
 use prjcombine_entity::EntityId;
+use prjcombine_rawdump::Coord;
 use prjcombine_xilinx_geom::eint::ExpandedTileNode;
 use prjcombine_xilinx_geom::int::{NodeRawTileId, NodeTileId};
 use prjcombine_xilinx_geom::virtex2::{ColumnKind, Dcms, Edge, Grid, GridKind, IoDiffKind};
 use prjcombine_xilinx_geom::{BelId, ColId, RowId, SlrId};
-use prjcombine_xilinx_rawdump::Coord;
 
 fn verify_pci_ce(
     grid: &Grid,

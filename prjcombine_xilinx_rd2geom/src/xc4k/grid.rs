@@ -1,5 +1,5 @@
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::xc4k::{Grid, GridKind, SharedCfgPin};
-use prjcombine_xilinx_rawdump::Part;
 use std::collections::{BTreeMap, HashMap};
 
 use crate::grid::extract_int;

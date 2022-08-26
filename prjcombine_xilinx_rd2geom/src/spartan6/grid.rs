@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::spartan6::{
     Column, ColumnIoKind, ColumnKind, Grid, Gts, Mcb, McbIo, Row, SharedCfgPin,
 };
 use prjcombine_xilinx_geom::{BelCoord, BelId, ColId, DisabledPart, RowId};
-use prjcombine_xilinx_rawdump::{Coord, Part};
 
 use crate::grid::{
     extract_int, find_column, find_columns, find_row, find_rows, find_tiles, IntGrid,

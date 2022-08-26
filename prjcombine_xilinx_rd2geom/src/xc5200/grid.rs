@@ -1,5 +1,5 @@
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::xc5200::Grid;
-use prjcombine_xilinx_rawdump::Part;
 
 use crate::grid::extract_int;
 

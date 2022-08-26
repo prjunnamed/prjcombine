@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityVec;
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{ColId, RowId};
-use prjcombine_xilinx_rawdump::Part;
 use std::collections::BTreeSet;
 
 pub fn find_columns(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {

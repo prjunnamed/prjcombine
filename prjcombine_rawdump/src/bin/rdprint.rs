@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use prjcombine_xilinx_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
+use prjcombine_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
 use std::error::Error;
 use structopt::StructOpt;
 

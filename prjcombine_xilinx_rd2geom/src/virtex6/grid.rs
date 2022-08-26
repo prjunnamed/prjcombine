@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::virtex6::{ColumnKind, Grid, HardColumn};
 use prjcombine_xilinx_geom::{ColId, DisabledPart};
-use prjcombine_xilinx_rawdump::Part;
 use std::collections::BTreeSet;
 
 use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};

@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{int::IntDb, Grid};
-use prjcombine_xilinx_rawdump::Part;
 
 use crate::db::{make_device, PreDevice};
 use crate::verify::verify;

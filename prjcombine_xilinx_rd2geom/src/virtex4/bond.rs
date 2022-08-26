@@ -1,7 +1,7 @@
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin, GtPin, SysMonPin};
 use prjcombine_xilinx_geom::virtex4::{Grid, SharedCfgPin};
 
-use prjcombine_xilinx_rawdump::PkgPin;
+use prjcombine_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 

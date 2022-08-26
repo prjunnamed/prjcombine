@@ -1,8 +1,8 @@
 use prjcombine_entity::EntityVec;
+use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_xilinx_geom::pkg::Bond;
 use prjcombine_xilinx_geom::versal::Grid;
 use prjcombine_xilinx_geom::{DisabledPart, SlrId};
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub fn make_bond(

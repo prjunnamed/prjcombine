@@ -1,12 +1,12 @@
-use prjcombine_xilinx_geom::Grid;
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::int::IntDb;
-use prjcombine_xilinx_rawdump::Part;
+use prjcombine_xilinx_geom::Grid;
 use std::collections::BTreeSet;
 
 use crate::db::{make_device, PreDevice};
 
-mod grid;
 mod bond;
+mod grid;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);

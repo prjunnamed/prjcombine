@@ -1,4 +1,5 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_xilinx_geom::pkg::{
     AdcPin, Bond, BondPin, CfgPin, DacPin, GtPin, GtRegionPin, HbmPin, PsPin, SysMonPin,
 };
@@ -6,7 +7,6 @@ use prjcombine_xilinx_geom::ultrascale::{
     get_gt, get_io, Grid, GridKind, Gt, IoKind, IoRowKind, SharedCfgPin,
 };
 use prjcombine_xilinx_geom::{DisabledPart, SlrId};
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 

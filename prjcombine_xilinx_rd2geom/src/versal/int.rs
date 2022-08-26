@@ -1,7 +1,7 @@
 use enum_map::EnumMap;
 use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_rawdump::{Coord, Part, TkWire};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
-use prjcombine_xilinx_rawdump::{Coord, Part, TkWire};
 use std::collections::HashMap;
 
 use crate::intb::IntBuilder;

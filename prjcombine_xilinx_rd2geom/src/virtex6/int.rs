@@ -1,5 +1,5 @@
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, WireKind};
-use prjcombine_xilinx_rawdump::{Coord, Part};
 
 use crate::intb::IntBuilder;
 

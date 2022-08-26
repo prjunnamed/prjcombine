@@ -1,5 +1,5 @@
-use super::rawdump::*;
 use prjcombine_entity::{EntityMap, EntityPartVec, EntitySet, EntityVec};
+use prjcombine_rawdump::*;
 use std::collections::{HashMap, HashSet};
 
 pub struct PartBuilder {

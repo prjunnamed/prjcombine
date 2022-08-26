@@ -1,10 +1,10 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin, GtPin, GtRegionPin, PsPin, SysMonPin};
 use prjcombine_xilinx_geom::series7::{
     get_gt, get_gtz_pads, get_io, get_ps_pads, get_sysmon_pads, Grid, SharedCfgPin,
 };
 use prjcombine_xilinx_geom::{ExtraDie, SlrId};
-use prjcombine_xilinx_rawdump::{Part, PkgPin};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 

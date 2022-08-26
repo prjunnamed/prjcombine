@@ -1,9 +1,9 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::series7::{
     ColumnKind, Grid, GridKind, GtColumn, GtKind, Hole, HoleKind, IoColumn, IoKind,
 };
 use prjcombine_xilinx_geom::{ColId, ExtraDie, RowId, SlrId};
-use prjcombine_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeSet;
 
 use crate::grid::{extract_int_slr, find_columns, find_row, find_rows, ExtraCol, IntGrid};

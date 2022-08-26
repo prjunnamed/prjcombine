@@ -1,5 +1,5 @@
+use prjcombine_rawdump::TkSitePinDir;
 use prjcombine_toolchain::{Toolchain, ToolchainReader};
-use prjcombine_xilinx_rawdump::TkSitePinDir;
 use simple_error::{bail, SimpleError};
 use std::error::Error;
 use std::fs::File;

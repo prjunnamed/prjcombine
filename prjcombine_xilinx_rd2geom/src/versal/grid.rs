@@ -1,9 +1,9 @@
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::versal::{
     BotKind, Column, ColumnKind, CpmKind, Grid, GtRowKind, HardColumn, HardRowKind, TopKind,
 };
 use prjcombine_xilinx_geom::{ColId, DisabledPart, SlrId};
-use prjcombine_xilinx_rawdump::Part;
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::grid::{extract_int_slr, find_rows, IntGrid};

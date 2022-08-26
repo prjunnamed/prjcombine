@@ -1,5 +1,5 @@
+use prjcombine_rawdump::PkgPin;
 use prjcombine_toolchain::Toolchain;
-use prjcombine_xilinx_rawdump::PkgPin;
 use simple_error::bail;
 use std::error::Error;
 use std::fs::File;

@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::EntityVec;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::virtex2::{
     self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind, SharedCfgPin,
 };
 use prjcombine_xilinx_geom::{ColId, RowId};
-use prjcombine_xilinx_rawdump::{Coord, Part};
 
 use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
 use crate::util::split_num;

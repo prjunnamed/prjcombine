@@ -1,5 +1,5 @@
 [package]
-name = "prjcombine_xilinx_rawdump"
+name = "prjcombine_rawdump"
 version = "0.1.0"
 edition = "2021"
 

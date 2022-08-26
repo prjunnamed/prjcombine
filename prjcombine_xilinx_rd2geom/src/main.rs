@@ -2,7 +2,7 @@
 #![allow(clippy::collapsible_else_if)]
 #![allow(clippy::too_many_arguments)]
 
-use prjcombine_xilinx_rawdump::Part;
+use prjcombine_rawdump::Part;
 use rayon::prelude::*;
 use simple_error::bail;
 use std::error::Error;
