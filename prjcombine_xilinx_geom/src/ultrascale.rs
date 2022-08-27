@@ -116,10 +116,20 @@ pub struct IoColumn {
     pub regs: Vec<IoRowKind>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Ps {
     pub col: ColId,
     pub has_vcu: bool,
+}
+
+impl Ps {
+    pub fn height(self) -> usize {
+        if self.has_vcu {
+            240
+        } else {
+            180
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -891,8 +901,8 @@ pub fn expand_grid<'a>(
             }
         }
 
-        if let Some(ref ps) = grid.ps {
-            let height = if ps.has_vcu { 240 } else { 180 };
+        if let Some(ps) = grid.ps {
+            let height = ps.height();
             let width = ps.col.to_idx();
             slr.nuke_rect(ColId(0), RowId(0), width, height);
             if height != grid.regs * 60 {
@@ -950,6 +960,83 @@ pub fn expand_grid<'a>(
         }
 
         slr.fill_main_passes();
+
+        let mut sx = 0;
+        for (col, &cd) in &grid.columns {
+            let mut found = false;
+            if let Some((kind, tk)) = match cd.l {
+                ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
+                ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => {
+                    Some((
+                        "CLEM",
+                        match (grid.kind, col < grid.col_cfg.col) {
+                            (GridKind::Ultrascale, true) => "CLE_M",
+                            (GridKind::Ultrascale, false) => "CLE_M_R",
+                            (GridKind::UltrascalePlus, true) => "CLEM",
+                            (GridKind::UltrascalePlus, false) => "CLEM_R",
+                        },
+                    ))
+                }
+                _ => None,
+            } {
+                for row in slr.rows() {
+                    if cd.l == ColumnKindLeft::CleMLaguna {
+                        if row.to_idx() / 60 == 0 {
+                            continue;
+                        }
+                        if row.to_idx() / 60 == grid.regs - 1 {
+                            continue;
+                        }
+                    }
+                    let tile = &mut slr[(col, row)];
+                    if let Some(ps) = grid.ps {
+                        if col == ps.col && row.to_idx() < ps.height() {
+                            continue;
+                        }
+                    }
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let y = yb + row.to_idx() - row_skip;
+                    let name = format!("{tk}_X{x}Y{y}");
+                    let node = tile.add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(kind),
+                        &[(col, row)],
+                    );
+                    node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                    found = true;
+                }
+            }
+            if found {
+                sx += 1;
+            }
+            let mut found = false;
+            if matches!(cd.r, ColumnKindRight::CleL | ColumnKindRight::CleLDcg10) {
+                for row in slr.rows() {
+                    let tile = &mut slr[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let y = yb + row.to_idx() - row_skip;
+                    let name = format!("CLEL_R_X{x}Y{y}");
+                    let node = tile.add_xnode(
+                        db.get_node("CLEL_R"),
+                        &[&name],
+                        db.get_node_naming("CLEL_R"),
+                        &[(col, row)],
+                    );
+                    node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                    found = true;
+                }
+            }
+            if found {
+                sx += 1;
+            }
+        }
 
         for col in slr.cols() {
             for row in slr.rows() {

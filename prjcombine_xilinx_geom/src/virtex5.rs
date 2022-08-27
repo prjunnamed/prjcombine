@@ -618,6 +618,33 @@ impl Grid {
 
         grid.fill_main_passes();
 
+        let mut sx = 0;
+        for (col, &cd) in &self.columns {
+            let kind = match cd {
+                ColumnKind::ClbLL => "CLBLL",
+                ColumnKind::ClbLM => "CLBLM",
+                _ => continue,
+            };
+            for row in grid.rows() {
+                let tile = &mut grid[(col, row)];
+                if tile.nodes.is_empty() || !tile.intfs.is_empty() {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
+            }
+            sx += 2;
+        }
+
         for col in grid.cols() {
             for row in grid.rows() {
                 let crow = RowId::from_idx(row.to_idx() / 20 * 20 + 10);

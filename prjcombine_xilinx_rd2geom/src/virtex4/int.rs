@@ -443,7 +443,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "SLICEWE1", "BYOUT", "BYINVOUT",
     ];
     let slicel_name_only = ["FXINA", "FXINB", "F5", "FX", "CIN", "COUT"];
-    for &xy in rd.tiles_by_kind_name("CLB") {
+    if let Some(&xy) = rd.tiles_by_kind_name("CLB").iter().next() {
         let int_xy = Coord {
             x: xy.x - 1,
             y: xy.y,

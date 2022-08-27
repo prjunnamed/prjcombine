@@ -1,4 +1,4 @@
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, WireKind};
 
 use crate::intb::IntBuilder;
@@ -529,6 +529,45 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         .collect();
 
     builder.extract_pass_buf("BRKH", Dir::S, "BRKH_INT", "BRKH", &forced);
+
+    for (tkn, kind) in [
+        ("CLBLL_L", "CLBLL"),
+        ("CLBLL_R", "CLBLL"),
+        ("CLBLM_L", "CLBLM"),
+        ("CLBLM_R", "CLBLM"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = if tkn.ends_with("_L") {
+                Coord {
+                    x: xy.x + 1,
+                    y: xy.y,
+                }
+            } else {
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y,
+                }
+            };
+            builder.extract_xnode(
+                kind,
+                xy,
+                &[],
+                &[int_xy],
+                tkn,
+                &[
+                    builder
+                        .bel_xy("SLICE0", "SLICE", 0, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                    builder
+                        .bel_xy("SLICE1", "SLICE", 1, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                ],
+                &[],
+            );
+        }
+    }
 
     builder.build()
 }

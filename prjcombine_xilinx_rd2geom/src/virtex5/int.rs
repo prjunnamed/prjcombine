@@ -1,4 +1,4 @@
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, TermInfo, WireKind};
 
 use crate::intb::IntBuilder;
@@ -452,6 +452,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         mpn.wires.insert(w, TermInfo::BlackHole);
     }
     builder.db.terms.insert("MAIN.NHOLE.N".to_string(), mpn);
+
+    for tkn in ["CLBLL", "CLBLM"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            builder.extract_xnode(
+                tkn,
+                xy,
+                &[],
+                &[int_xy],
+                tkn,
+                &[
+                    builder
+                        .bel_xy("SLICE0", "SLICE", 0, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                    builder
+                        .bel_xy("SLICE1", "SLICE", 1, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                ],
+                &[],
+            );
+        }
+    }
 
     builder.build()
 }

@@ -273,7 +273,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for tkn in ["CLEXL", "CLEXM"] {
-        for &xy in rd.tiles_by_kind_name(tkn) {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = Coord {
                 x: xy.x - 1,
                 y: xy.y,

@@ -1,14 +1,15 @@
-use crate::verify::Verifier;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::int::IntDb;
 use prjcombine_xilinx_geom::versal::expand_grid;
 use prjcombine_xilinx_geom::Grid;
 
 use crate::db::{make_device_multi, PreDevice};
+use crate::verify::verify;
 
 mod bond;
 mod grid;
 mod int;
+mod verify;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, disabled) = grid::make_grids(rd);
@@ -22,8 +23,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
-    let vrf = Verifier::new(rd, &eint);
-    vrf.finish();
+    verify(rd, &eint, |vrf, bel| verify::verify_bel(&grids, vrf, bel));
     let grids = grids.into_map_values(Grid::Versal);
     (
         make_device_multi(rd, grids, grid_master, Vec::new(), bonds, disabled),

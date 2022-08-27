@@ -2143,6 +2143,17 @@ impl<'a> IntBuilder<'a> {
                                 names.insert(wi, (k, w[0]));
                                 break;
                             }
+                            let fw: Vec<_> = w
+                                .iter()
+                                .copied()
+                                .filter(|&x| {
+                                    !matches!(self.db.wires[x].kind, int::WireKind::Branch(_))
+                                })
+                                .collect();
+                            if fw.len() == 1 {
+                                names.insert(wi, (k, fw[0]));
+                                break;
+                            }
                         }
                     }
                 }

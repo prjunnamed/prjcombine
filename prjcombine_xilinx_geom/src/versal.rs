@@ -122,7 +122,19 @@ pub fn expand_grid<'a>(
 ) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     let mut yb = 0;
+    let mut syb = 0;
     let x_cfrm = grids.values().map(|x| x.col_cfrm.to_idx()).max().unwrap();
+    let sx_cfrm = grids
+        .values()
+        .map(|grid| {
+            grid.columns
+                .iter()
+                .filter(|&(col, &cd)| col < grid.col_cfrm && cd.r == ColumnKind::Cle)
+                .count()
+                * 4
+        })
+        .max()
+        .unwrap();
     for (slrid, grid) in grids {
         let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 48);
         let col_l = slr.cols().next().unwrap();
@@ -365,7 +377,63 @@ pub fn expand_grid<'a>(
             }
         }
 
+        let mut dsy = 4;
+        for (col, &cd) in &grid.columns {
+            if col >= grid.col_cfrm
+                && matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna)
+                && !cd.has_bli_bot_r
+            {
+                dsy = 0;
+            }
+        }
+
+        let mut sx = 0;
+        for (col, &cd) in &grid.columns {
+            if col == grid.col_cfrm {
+                sx = sx_cfrm;
+            }
+            if !matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) {
+                continue;
+            }
+            for row in slr.rows() {
+                if cd.has_bli_bot_r && row.to_idx() < 4 {
+                    continue;
+                }
+                if cd.has_bli_top_r && row.to_idx() >= slr.rows().len() - 4 {
+                    continue;
+                }
+                let tile = &mut slr[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let x = xlut[col];
+                let y = yb + row.to_idx();
+                let name = format!("CLE_W_CORE_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node("CLE_R"),
+                    &[&name],
+                    db.get_node_naming("CLE_R"),
+                    &[(col, row)],
+                );
+                let sy = syb + row.to_idx() - dsy;
+                node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                node.add_bel(1, format!("SLICE_X{sx}Y{sy}", sx = sx + 1));
+                let tile = &mut slr[(col + 1, row)];
+                let name = format!("CLE_E_CORE_X{x}Y{y}", x = x + 1);
+                let node = tile.add_xnode(
+                    db.get_node("CLE_L"),
+                    &[&name],
+                    db.get_node_naming("CLE_L"),
+                    &[(col + 1, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{sy}", sx = sx + 2));
+                node.add_bel(1, format!("SLICE_X{sx}Y{sy}", sx = sx + 3));
+            }
+            sx += 4;
+        }
+
         yb += slr.rows().len();
+        syb += slr.rows().len() - dsy;
     }
 
     egrid

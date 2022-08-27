@@ -1102,6 +1102,39 @@ pub fn expand_grid<'a>(
 
         slr.fill_main_passes();
 
+        let mut sx = 0;
+        for (col, &cd) in &grid.columns {
+            let (kind, naming) = match (cd, col.to_idx() % 2) {
+                (ColumnKind::ClbLL, 0) => ("CLBLL", "CLBLL_L"),
+                (ColumnKind::ClbLL, 1) => ("CLBLL", "CLBLL_R"),
+                (ColumnKind::ClbLM, 0) => ("CLBLM", "CLBLM_L"),
+                (ColumnKind::ClbLM, 1) => ("CLBLM", "CLBLM_R"),
+                _ => continue,
+            };
+            let mut found = false;
+            for row in slr.rows() {
+                let tile = &mut slr[(col, row)];
+                if tile.nodes.is_empty() || !tile.intfs.is_empty() {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = yb + row.to_idx();
+                let name = format!("{naming}_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(naming),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
+                found = true;
+            }
+            if found {
+                sx += 2;
+            }
+        }
+
         yb += slr.rows().len();
         tie_yb += slr.rows().len();
     }

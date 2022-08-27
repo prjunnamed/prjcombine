@@ -426,6 +426,30 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 0..13 {
             let w = builder.mux_out(format!("CLE.IMUX.{ew}.CTRL.{i}"), &[""]);
             builder.extra_name_sub(format!("CTRL_{lr}{i}"), sub, w);
+            builder.extra_name_tile(
+                match ew {
+                    Dir::E => "CLE_W_CORE",
+                    Dir::W => "CLE_E_CORE",
+                    _ => unreachable!(),
+                },
+                match i {
+                    0 => "CLE_SLICEL_TOP_0_CLK",
+                    1 => "CLE_SLICEM_TOP_1_CLK",
+                    2 => "CLE_SLICEL_TOP_0_RST",
+                    3 => "CLE_SLICEM_TOP_1_RST",
+                    4 => "CLE_SLICEL_TOP_0_CKEN1",
+                    5 => "CLE_SLICEL_TOP_0_CKEN2",
+                    6 => "CLE_SLICEL_TOP_0_CKEN3",
+                    7 => "CLE_SLICEL_TOP_0_CKEN4",
+                    8 => "CLE_SLICEM_TOP_1_WE",
+                    9 => "CLE_SLICEM_TOP_1_CKEN1",
+                    10 => "CLE_SLICEM_TOP_1_CKEN2",
+                    11 => "CLE_SLICEM_TOP_1_CKEN3",
+                    12 => "CLE_SLICEM_TOP_1_CKEN4",
+                    _ => unreachable!(),
+                },
+                w,
+            );
         }
     }
 
@@ -630,6 +654,51 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
             }
             builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
+        }
+    }
+
+    for (tkn, kind, key0, key1) in [
+        ("CLE_W_CORE", "CLE_R", "SLICE_L0", "SLICE_L1"),
+        ("CLE_E_CORE", "CLE_L", "SLICE_R0", "SLICE_R1"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = if kind == "CLE_R" {
+                builder.walk_to_int(xy, Dir::W).unwrap()
+            } else {
+                builder.walk_to_int(xy, Dir::E).unwrap()
+            };
+            builder.extract_xnode(
+                kind,
+                xy,
+                &[],
+                &[int_xy],
+                kind,
+                &[
+                    builder
+                        .bel_xy(key0, "SLICE", 0, 0)
+                        .pin_name_only("LAG_W1", 1)
+                        .pin_name_only("LAG_W2", 1)
+                        .pin_name_only("LAG_E1", 1)
+                        .pin_name_only("LAG_E2", 1)
+                        .pin_name_only("LAG_S", 1)
+                        .pin_name_only("LAG_N", 1)
+                        .pin_name_only("CIN", 1)
+                        .pin_name_only("COUT", 1),
+                    builder
+                        .bel_xy(key1, "SLICE", 1, 0)
+                        .pin_name_only("LAG_W1", 1)
+                        .pin_name_only("LAG_W2", 1)
+                        .pin_name_only("LAG_E1", 1)
+                        .pin_name_only("LAG_E2", 1)
+                        .pin_name_only("LAG_S", 1)
+                        .pin_name_only("LAG_N", 1)
+                        .pin_name_only("SRL_IN_B", 1)
+                        .pin_name_only("SRL_OUT_B", 1)
+                        .pin_name_only("CIN", 1)
+                        .pin_name_only("COUT", 1),
+                ],
+                &[],
+            );
         }
     }
 

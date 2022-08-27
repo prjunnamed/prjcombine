@@ -486,5 +486,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for (tkn, kind, key) in [
+        ("CLEL_L", "CLEL_L", "SLICE_L"),
+        ("CLEL_R", "CLEL_R", "SLICE_R"),
+        ("CLE_M", "CLEM", "SLICE_L"),
+        ("CLE_M_R", "CLEM", "SLICE_L"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = if key == "SLICE_L" {
+                Coord {
+                    x: xy.x + 1,
+                    y: xy.y,
+                }
+            } else {
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y,
+                }
+            };
+            builder.extract_xnode(
+                kind,
+                xy,
+                &[],
+                &[int_xy],
+                kind,
+                &[builder
+                    .bel_xy(key, "SLICE", 0, 0)
+                    .pin_name_only("CIN", 1)
+                    .pin_name_only("COUT", 0)],
+                &[],
+            );
+        }
+    }
+
     builder.build()
 }

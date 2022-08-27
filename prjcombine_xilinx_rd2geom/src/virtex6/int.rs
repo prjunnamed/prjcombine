@@ -287,5 +287,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_intf("INTF.DELAY", Dir::E, tkn, format!("INTF.{n}"), true);
     }
 
+    for tkn in ["CLBLL", "CLBLM"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            builder.extract_xnode(
+                tkn,
+                xy,
+                &[],
+                &[int_xy],
+                tkn,
+                &[
+                    builder
+                        .bel_xy("SLICE0", "SLICE", 0, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                    builder
+                        .bel_xy("SLICE1", "SLICE", 1, 0)
+                        .pin_name_only("CIN", 0)
+                        .pin_name_only("COUT", 1),
+                ],
+                &[],
+            );
+        }
+    }
+
     builder.build()
 }
