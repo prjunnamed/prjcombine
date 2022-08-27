@@ -438,5 +438,42 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    let slicem_name_only = [
+        "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG", "DIG",
+        "SLICEWE1", "BYOUT", "BYINVOUT",
+    ];
+    let slicel_name_only = ["FXINA", "FXINB", "F5", "FX", "CIN", "COUT"];
+    for &xy in rd.tiles_by_kind_name("CLB") {
+        let int_xy = Coord {
+            x: xy.x - 1,
+            y: xy.y,
+        };
+        builder.extract_xnode(
+            "CLB",
+            xy,
+            &[],
+            &[int_xy],
+            "CLB",
+            &[
+                builder
+                    .bel_xy("SLICE0", "SLICE", 0, 0)
+                    .pins_name_only(&slicem_name_only),
+                builder
+                    .bel_xy("SLICE1", "SLICE", 1, 0)
+                    .pins_name_only(&slicel_name_only),
+                builder
+                    .bel_xy("SLICE2", "SLICE", 0, 1)
+                    .pins_name_only(&slicem_name_only)
+                    .extra_wire("COUT_N", &["COUT_N1"])
+                    .extra_wire("FX_S", &["FX_S2"]),
+                builder
+                    .bel_xy("SLICE3", "SLICE", 1, 1)
+                    .pins_name_only(&slicel_name_only)
+                    .extra_wire("COUT_N", &["COUT_N3"]),
+            ],
+            &[],
+        );
+    }
+
     builder.build()
 }
