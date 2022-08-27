@@ -1,5 +1,4 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
-use prjcombine_entity::EntityId;
 use prjcombine_xilinx_geom::spartan6::Grid;
 
 pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -16,18 +15,11 @@ pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 &[("CIN", SitePinDir::In), ("COUT", SitePinDir::Out)],
                 &[],
             );
-            let mut srow = bel.row;
-            loop {
-                if srow.to_idx() == 0 {
-                    vrf.claim_node(&[bel.fwire("CIN")]);
-                    break;
-                }
-                srow -= 1;
-                if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, srow), "SLICE0") {
-                    vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
-                    vrf.claim_pip(obel.crd(), obel.wire_far("COUT"), obel.wire("COUT"));
-                    break;
-                }
+            if let Some(obel) = vrf.find_bel_walk(bel, 0, -1, "SLICE0") {
+                vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
+                vrf.claim_pip(obel.crd(), obel.wire_far("COUT"), obel.wire("COUT"));
+            } else {
+                vrf.claim_node(&[bel.fwire("CIN")]);
             }
             vrf.claim_node(&[bel.fwire("COUT")]);
         }

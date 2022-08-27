@@ -1,5 +1,4 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
-use prjcombine_entity::EntityId;
 use prjcombine_xilinx_geom::virtex2::{Grid, GridKind};
 
 mod clb;
@@ -89,12 +88,12 @@ fn verify_gt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     for (pin, okey) in [("RXP", "IPAD.RXP"), ("RXN", "IPAD.RXN")] {
         vrf.claim_node(&[bel.fwire(pin)]);
-        let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), okey).unwrap();
+        let obel = vrf.find_bel_sibling(bel, okey);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("I"));
     }
     for (pin, okey) in [("TXP", "OPAD.TXP"), ("TXN", "OPAD.TXN")] {
         vrf.claim_node(&[bel.fwire(pin)]);
-        let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), okey).unwrap();
+        let obel = vrf.find_bel_sibling(bel, okey);
         vrf.claim_pip(bel.crd(), obel.wire("O"), bel.wire(pin));
     }
 }
@@ -114,18 +113,10 @@ fn verify_mult(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire(o)]);
             vrf.claim_node(&[bel.fwire(i)]);
         }
-        let mut srow = bel.row;
-        loop {
-            if srow.to_idx() < 4 {
-                break;
-            }
-            srow -= 4;
-            if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, srow), "MULT") {
-                for (o, i) in &carry {
-                    vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
-                    vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
-                }
-                break;
+        if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, "MULT") {
+            for (o, i) in &carry {
+                vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+                vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
     } else {
@@ -149,18 +140,10 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(o)]);
         vrf.claim_node(&[bel.fwire(i)]);
     }
-    let mut srow = bel.row;
-    loop {
-        if srow.to_idx() < 4 {
-            break;
-        }
-        srow -= 4;
-        if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, srow), "DSP") {
-            for (o, i) in &carry {
-                vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
-                vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
-            }
-            break;
+    if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, "DSP") {
+        for (o, i) in &carry {
+            vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+            vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
         }
     }
 }
@@ -180,7 +163,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire("O")]);
         }
         "TBUS" => {
-            clb::verify_tbus(grid, vrf, bel);
+            clb::verify_tbus(vrf, bel);
         }
         "RANDOR" => clb::verify_randor(grid, vrf, bel),
         "RANDOR_OUT" => (),
@@ -205,7 +188,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire_far("I"), bel.wire("I"));
         }
         "BREFCLK_INT" => {
-            let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), "CLK_P").unwrap();
+            let obel = vrf.find_bel_sibling(bel, "CLK_P");
             vrf.claim_pip(bel.crd(), bel.wire("BREFCLK"), obel.wire_far("I"));
         }
         "PCILOGICSE" => io::verify_pcilogicse(grid, vrf, bel),

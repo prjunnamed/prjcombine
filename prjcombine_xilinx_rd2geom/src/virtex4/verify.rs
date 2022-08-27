@@ -1,6 +1,5 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
 use prjcombine_xilinx_geom::virtex4::Grid;
-use prjcombine_entity::EntityId;
 
 pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if matches!(bel.key, "SLICE0" | "SLICE2") {
@@ -52,7 +51,7 @@ pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
         if dbel != bel.key {
             continue;
         }
-        let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), sbel).unwrap();
+        let obel = vrf.find_bel_sibling(bel, sbel);
         vrf.claim_pip(bel.crd(), bel.wire(dpin), obel.wire(spin));
         vrf.claim_node(&[bel.fwire(dpin)]);
     }
@@ -61,13 +60,9 @@ pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire("ALTDIG")]);
     }
     if bel.key == "SLICE3" {
-        if bel.row != vrf.grid.slr(bel.slr).rows().next_back().unwrap() {
-            if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, bel.row + 1), "SLICE2") {
-                vrf.claim_node(&[bel.fwire("FXINB"), obel.fwire("FX_S")]);
-                vrf.claim_pip(obel.crd(), obel.wire("FX_S"), obel.wire("FX"));
-            } else {
-                vrf.claim_node(&[bel.fwire("FXINB")]);
-            }
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, "SLICE2") {
+            vrf.claim_node(&[bel.fwire("FXINB"), obel.fwire("FX_S")]);
+            vrf.claim_pip(obel.crd(), obel.wire("FX_S"), obel.wire("FX"));
         } else {
             vrf.claim_node(&[bel.fwire("FXINB")]);
         }
@@ -76,13 +71,9 @@ pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
         if bel.key != dbel {
             continue;
         }
-        if bel.row.to_idx() != 0 {
-            if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, bel.row - 1), sbel) {
-                vrf.claim_node(&[bel.fwire("CIN"), obel.fwire("COUT_N")]);
-                vrf.claim_pip(obel.crd(), obel.wire("COUT_N"), obel.wire("COUT"));
-            } else {
-                vrf.claim_node(&[bel.fwire("CIN")]);
-            }
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, sbel) {
+            vrf.claim_node(&[bel.fwire("CIN"), obel.fwire("COUT_N")]);
+            vrf.claim_pip(obel.crd(), obel.wire("COUT_N"), obel.wire("COUT"));
         } else {
             vrf.claim_node(&[bel.fwire("CIN")]);
         }

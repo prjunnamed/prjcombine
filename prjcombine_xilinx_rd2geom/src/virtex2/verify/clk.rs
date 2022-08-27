@@ -83,14 +83,12 @@ pub fn verify_bufgmux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             let pip = &bel.naming.pins["DCM_OUT_L"].pips[0];
             vrf.claim_node(&[bel.fwire("DCM_OUT_L"), (bel.crds[pip.tile], &pip.wire_to)]);
             vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
-            let srow = match edge {
-                Edge::Bot => bel.row + 1,
-                Edge::Top => bel.row - 1,
+            let dy = match edge {
+                Edge::Bot => 1,
+                Edge::Top => -1,
                 _ => unreachable!(),
             };
-            let obel = vrf
-                .find_bel(bel.slr, (bel.col, srow), "DCMCONN.S3E")
-                .unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
                 (Edge::Top, 0) => ("CLKPAD0", "OUT0"),
                 (Edge::Top, 1) => ("CLKPAD1", "OUT1"),
@@ -115,14 +113,12 @@ pub fn verify_bufgmux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             let pip = &bel.naming.pins["DCM_OUT_R"].pips[0];
             vrf.claim_node(&[bel.fwire("DCM_OUT_R"), (bel.crds[pip.tile], &pip.wire_to)]);
             vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
-            let srow = match edge {
-                Edge::Bot => bel.row + 1,
-                Edge::Top => bel.row - 1,
+            let dy = match edge {
+                Edge::Bot => 1,
+                Edge::Top => -1,
                 _ => unreachable!(),
             };
-            let obel = vrf
-                .find_bel(bel.slr, (bel.col + 1, srow), "DCMCONN.S3E")
-                .unwrap();
+            let obel = vrf.find_bel_delta(bel, 1, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
                 (Edge::Top, 0) => ("CLKPAD2", "OUT0"),
                 (Edge::Top, 1) => ("CLKPAD3", "OUT1"),
@@ -191,7 +187,7 @@ pub fn verify_bufgmux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         } else {
             vrf.claim_node(&[bel.fwire("CKI")]);
         }
-        let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), "VCC").unwrap();
+        let obel = vrf.find_bel_sibling(bel, "VCC");
         vrf.claim_pip(bel.crd(), bel.wire_far("CLK"), obel.wire("VCCOUT"));
         vrf.claim_pip(bel.crd(), bel.wire("S"), obel.wire("VCCOUT"));
     }
@@ -488,22 +484,14 @@ pub fn verify_brefclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("BREFCLK")]);
     vrf.claim_node(&[bel.fwire("BREFCLK2")]);
     if bel.row == grid.row_bot() {
-        let obel = vrf
-            .find_bel(bel.slr, (bel.col, bel.row), "BUFGMUX6")
-            .unwrap();
+        let obel = vrf.find_bel_sibling(bel, "BUFGMUX6");
         vrf.claim_pip(bel.crd(), bel.wire("BREFCLK"), obel.wire_far("CKI"));
-        let obel = vrf
-            .find_bel(bel.slr, (bel.col, bel.row), "BUFGMUX0")
-            .unwrap();
+        let obel = vrf.find_bel_sibling(bel, "BUFGMUX0");
         vrf.claim_pip(bel.crd(), bel.wire("BREFCLK2"), obel.wire_far("CKI"));
     } else {
-        let obel = vrf
-            .find_bel(bel.slr, (bel.col, bel.row), "BUFGMUX4")
-            .unwrap();
+        let obel = vrf.find_bel_sibling(bel, "BUFGMUX4");
         vrf.claim_pip(bel.crd(), bel.wire("BREFCLK"), obel.wire_far("CKI"));
-        let obel = vrf
-            .find_bel(bel.slr, (bel.col, bel.row), "BUFGMUX2")
-            .unwrap();
+        let obel = vrf.find_bel_sibling(bel, "BUFGMUX2");
         vrf.claim_pip(bel.crd(), bel.wire("BREFCLK2"), obel.wire_far("CKI"));
     }
 }

@@ -17,7 +17,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 ],
                 &[],
             );
-            if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, bel.row - 1), bel.key) {
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
                 vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
             } else {
                 vrf.claim_node(&[bel.fwire("CIN")]);
@@ -32,7 +32,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 "SLICE1" => "SLICE0",
                 _ => unreachable!(),
             };
-            let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), okey).unwrap();
+            let obel = vrf.find_bel_sibling(bel, okey);
             vrf.claim_pip(bel.crd(), bel.wire("F5IN"), obel.wire("F5"));
         }
         _ if bel.key.starts_with("IOB") => {
@@ -63,10 +63,10 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire("O")]);
         }
         "TBUS" => {
-            let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), "TBUF0").unwrap();
+            let obel = vrf.find_bel_sibling(bel, "TBUF0");
             vrf.claim_pip(bel.crd(), bel.wire("BUS0"), obel.wire("O"));
             vrf.claim_pip(bel.crd(), bel.wire("BUS2"), obel.wire("O"));
-            let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), "TBUF1").unwrap();
+            let obel = vrf.find_bel_sibling(bel, "TBUF1");
             vrf.claim_pip(bel.crd(), bel.wire("BUS1"), obel.wire("O"));
             vrf.claim_pip(bel.crd(), bel.wire("BUS3"), obel.wire("O"));
             if bel.naming.pins.contains_key("BUS3_E") {
@@ -76,18 +76,11 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 }
                 vrf.claim_pip(bel.crd(), bel.wire("BUS3"), bel.wire("BUS3_E"));
                 vrf.claim_pip(bel.crd(), bel.wire("BUS3_E"), bel.wire("BUS3"));
-                let mut col_r = bel.col + 1;
-                loop {
-                    if let Some(obel) = vrf.find_bel(bel.slr, (col_r, bel.row), "TBUS") {
-                        vrf.verify_node(&[bel.fwire("BUS0"), obel.fwire("BUS1")]);
-                        vrf.verify_node(&[bel.fwire("BUS1"), obel.fwire("BUS2")]);
-                        vrf.verify_node(&[bel.fwire("BUS2"), obel.fwire("BUS3")]);
-                        vrf.verify_node(&[bel.fwire("BUS3_E"), obel.fwire("BUS0")]);
-                        break;
-                    } else {
-                        col_r += 1;
-                    }
-                }
+                let obel = vrf.find_bel_walk(bel, 1, 0, "TBUS").unwrap();
+                vrf.verify_node(&[bel.fwire("BUS0"), obel.fwire("BUS1")]);
+                vrf.verify_node(&[bel.fwire("BUS1"), obel.fwire("BUS2")]);
+                vrf.verify_node(&[bel.fwire("BUS2"), obel.fwire("BUS3")]);
+                vrf.verify_node(&[bel.fwire("BUS3_E"), obel.fwire("BUS0")]);
             }
             if bel.naming.pins.contains_key("OUT") {
                 vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("BUS2"));
@@ -108,13 +101,11 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire("OUT.GLOBAL"), bel.wire("OUT"));
         }
         "IOFB0" => {
-            let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), "IOB2").unwrap();
+            let obel = vrf.find_bel_sibling(bel, "IOB2");
             vrf.verify_node(&[bel.fwire("O"), obel.fwire("DLLFB")]);
         }
         "IOFB1" => {
-            let obel = vrf
-                .find_bel(bel.slr, (bel.col - 1, bel.row), "IOB1")
-                .unwrap();
+            let obel = vrf.find_bel_delta(bel, -1, 0, "IOB1").unwrap();
             vrf.verify_node(&[bel.fwire("O"), obel.fwire("DLLFB")]);
         }
         "PCILOGIC" => {

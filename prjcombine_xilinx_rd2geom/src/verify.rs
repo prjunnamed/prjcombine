@@ -842,6 +842,58 @@ impl<'a> Verifier<'a> {
         None
     }
 
+    pub fn find_bel_delta(
+        &self,
+        bel: &BelContext<'_>,
+        dx: isize,
+        dy: isize,
+        key: &str,
+    ) -> Option<BelContext<'a>> {
+        let nc = bel.col.to_idx() as isize + dx;
+        let nr = bel.row.to_idx() as isize + dy;
+        if nc < 0 || nr < 0 {
+            return None;
+        }
+        let nc = nc as usize;
+        let nr = nr as usize;
+        let slr = self.grid.slr(bel.slr);
+        if nc >= slr.cols().len() || nr >= slr.rows().len() {
+            return None;
+        }
+        self.find_bel(bel.slr, (ColId::from_idx(nc), RowId::from_idx(nr)), key)
+    }
+
+    pub fn find_bel_walk(
+        &self,
+        bel: &BelContext<'_>,
+        dx: isize,
+        dy: isize,
+        key: &str,
+    ) -> Option<BelContext<'a>> {
+        let mut c = bel.col.to_idx();
+        let mut r = bel.row.to_idx();
+        loop {
+            let nc = c as isize + dx;
+            let nr = r as isize + dy;
+            if nc < 0 || nr < 0 {
+                return None;
+            }
+            c = nc as usize;
+            r = nr as usize;
+            let slr = self.grid.slr(bel.slr);
+            if c >= slr.cols().len() || r >= slr.rows().len() {
+                return None;
+            }
+            if let Some(x) = self.find_bel(bel.slr, (ColId::from_idx(c), RowId::from_idx(r)), key) {
+                return Some(x);
+            }
+        }
+    }
+
+    pub fn find_bel_sibling(&self, bel: &BelContext<'_>, key: &str) -> BelContext<'a> {
+        self.find_bel(bel.slr, (bel.col, bel.row), key).unwrap()
+    }
+
     pub fn finish(self) {}
 }
 

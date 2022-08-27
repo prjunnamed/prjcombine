@@ -19,7 +19,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     _ => unreachable!(),
                 };
                 vrf.claim_node(&[bel.fwire("F5I")]);
-                let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), okey).unwrap();
+                let obel = vrf.find_bel_sibling(bel, okey);
                 vrf.claim_pip(bel.crd(), bel.wire("F5I"), obel.wire("X"));
             }
             vrf.verify_bel(bel, kind, &pins, &[]);
@@ -27,12 +27,10 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire("CO")]);
             if bel.key == "LC0" {
                 vrf.claim_pip(bel.crd(), bel.wire("CI"), bel.wire_far("CI"));
-                if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, bel.row - 1), "LC3") {
+                if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, "LC3") {
                     vrf.claim_node(&[bel.fwire_far("CI"), obel.fwire_far("CO")]);
                 } else {
-                    let obel = vrf
-                        .find_bel(bel.slr, (bel.col, bel.row - 1), "BOT_CIN")
-                        .unwrap();
+                    let obel = vrf.find_bel_delta(bel, 0, -1, "BOT_CIN").unwrap();
                     vrf.verify_node(&[bel.fwire_far("CI"), obel.fwire("IN")]);
                 }
             } else {
@@ -42,7 +40,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     "LC3" => "LC2",
                     _ => unreachable!(),
                 };
-                let obel = vrf.find_bel(bel.slr, (bel.col, bel.row), okey).unwrap();
+                let obel = vrf.find_bel_sibling(bel, okey);
                 vrf.claim_pip(bel.crd(), bel.wire("CI"), obel.wire("CO"));
             }
             if bel.key == "LC3" {
@@ -83,9 +81,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("IN"));
         }
         "TOP_COUT" => {
-            let obel = vrf
-                .find_bel(bel.slr, (bel.col, bel.row - 1), "LC3")
-                .unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, -1, "LC3").unwrap();
             vrf.verify_node(&[bel.fwire("OUT"), obel.fwire_far("CO")]);
         }
         "BOT_CIN" => (),
