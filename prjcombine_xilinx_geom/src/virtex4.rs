@@ -589,7 +589,7 @@ impl Grid {
             }
         }
 
-        for &(bc, br) in &self.holes_ppc {
+        for (py, &(bc, br)) in self.holes_ppc.iter().enumerate() {
             grid.nuke_rect(bc + 1, br + 1, 7, 22);
             let x = bc.to_idx();
             let yb = br.to_idx() + 3;
@@ -661,6 +661,27 @@ impl Grid {
                     db.get_intf_naming(&format!("PPC.T{dx}")),
                 );
             }
+            let mut crds = vec![];
+            for dy in 0..24 {
+                crds.push((col_l, br + dy));
+            }
+            for dy in 0..24 {
+                crds.push((col_r, br + dy));
+            }
+            for dx in 1..8 {
+                crds.push((bc + dx, row_b));
+            }
+            for dx in 1..8 {
+                crds.push((bc + dx, row_t));
+            }
+            let node = grid[(bc, br)].add_xnode(
+                db.get_node("PPC"),
+                &[&tile_pb, &tile_pt],
+                db.get_node_naming("PPC"),
+                &crds,
+            );
+            node.add_bel(0, format!("PPC405_ADV_X0Y{py}"));
+            node.add_bel(1, format!("EMAC_X0Y{py}"));
         }
 
         let row_b = grid.rows().next().unwrap();

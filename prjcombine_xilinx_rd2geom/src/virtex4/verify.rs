@@ -130,12 +130,62 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "DSP48", &pins, &[]);
 }
 
+fn verify_ppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut dcr_pins = vec![
+        ("EMACDCRACK".to_string(), SitePinDir::In),
+        ("DCREMACCLK".to_string(), SitePinDir::Out),
+        ("DCREMACREAD".to_string(), SitePinDir::Out),
+        ("DCREMACWRITE".to_string(), SitePinDir::Out),
+    ];
+    for i in 0..32 {
+        dcr_pins.push((format!("EMACDCRDBUS{i}"), SitePinDir::In));
+        dcr_pins.push((format!("DCREMACDBUS{i}"), SitePinDir::Out));
+    }
+    for i in 8..10 {
+        dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::Out));
+    }
+    let pins: Vec<_> = dcr_pins.iter().map(|&(ref pin, dir)| (&pin[..], dir)).collect();
+    vrf.verify_bel(bel, "PPC405_ADV", &pins, &[]);
+    let obel = vrf.find_bel_sibling(bel, "EMAC");
+    for (pin, dir) in dcr_pins {
+        vrf.claim_node(&[bel.fwire(&pin)]);
+        match dir {
+            SitePinDir::In => vrf.claim_pip(bel.crd(), bel.wire(&pin), obel.wire(&pin)),
+            SitePinDir::Out => vrf.claim_pip(bel.crd(), obel.wire(&pin), bel.wire(&pin)),
+            _ => unreachable!(),
+        }
+    }
+}
+
+fn verify_emac(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut dcr_pins = vec![
+        ("EMACDCRACK".to_string(), SitePinDir::Out),
+        ("DCREMACCLK".to_string(), SitePinDir::In),
+        ("DCREMACREAD".to_string(), SitePinDir::In),
+        ("DCREMACWRITE".to_string(), SitePinDir::In),
+    ];
+    for i in 0..32 {
+        dcr_pins.push((format!("EMACDCRDBUS{i}"), SitePinDir::Out));
+        dcr_pins.push((format!("DCREMACDBUS{i}"), SitePinDir::In));
+    }
+    for i in 8..10 {
+        dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::In));
+    }
+    let pins: Vec<_> = dcr_pins.iter().map(|&(ref pin, dir)| (&pin[..], dir)).collect();
+    vrf.verify_bel(bel, "EMAC", &pins, &[]);
+    for (pin, _) in dcr_pins {
+        vrf.claim_node(&[bel.fwire(&pin)]);
+    }
+}
+
 pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
         "BRAM" => verify_bram(vrf, bel),
         "FIFO" => vrf.verify_bel(bel, "FIFO16", &[], &[]),
+        "PPC" => verify_ppc(vrf, bel),
+        "EMAC" => verify_emac(vrf, bel),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

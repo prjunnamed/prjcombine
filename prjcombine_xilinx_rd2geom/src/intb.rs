@@ -29,6 +29,8 @@ pub enum BelPinInfo {
 struct BufInfo {
     bufs: HashMap<rawdump::WireId, (int::PinDir, rawdump::WireId, rawdump::WireId)>,
     int_wires: HashMap<rawdump::WireId, int::NodeWireId>,
+    int_outs: HashMap<rawdump::WireId, Vec<(rawdump::WireId, int::NodeWireId)>>,
+    int_inps: HashMap<rawdump::WireId, (rawdump::WireId, int::NodeWireId)>,
 }
 
 impl BelInfo {
@@ -651,6 +653,49 @@ impl<'a> IntBuilder<'a> {
                                     wire_from: self.rd.wires[wf].clone(),
                                 });
                                 return ([w].into_iter().collect(), wn, pips, BTreeMap::new());
+                            }
+                            if dir == int::PinDir::Output {
+                                if let Some(ws) = bi.int_outs.get(&wo) {
+                                    pips.push(int::NodeExtPipNaming {
+                                        tile: int::NodeRawTileId::from_idx(1 + i),
+                                        wire_to: self.rd.wires[wt].clone(),
+                                        wire_from: self.rd.wires[wf].clone(),
+                                    });
+                                    if ws.len() == 1 {
+                                        pips.push(int::NodeExtPipNaming {
+                                            tile: int::NodeRawTileId::from_idx(1 + i),
+                                            wire_to: self.rd.wires[ws[0].0].clone(),
+                                            wire_from: self.rd.wires[wt].clone(),
+                                        });
+                                        return ([ws[0].1].into_iter().collect(), wn, pips, BTreeMap::new());
+                                    } else {
+                                        let mut int_pips = BTreeMap::new();
+                                        let mut int_wires = BTreeSet::new();
+                                        for &(fwn, fw) in ws {
+                                            int_wires.insert(fw);
+                                            int_pips.insert(fw, int::NodeExtPipNaming {
+                                                tile: int::NodeRawTileId::from_idx(1 + i),
+                                                wire_to: self.rd.wires[fwn].clone(),
+                                                wire_from: self.rd.wires[wt].clone(),
+                                            });
+                                        }
+                                        return (int_wires, wn, pips, int_pips);
+                                    }
+                                }
+                            } else {
+                                if let Some(&(fwn, fw)) = bi.int_inps.get(&wo) {
+                                    pips.push(int::NodeExtPipNaming {
+                                        tile: int::NodeRawTileId::from_idx(1 + i),
+                                        wire_to: self.rd.wires[wt].clone(),
+                                        wire_from: self.rd.wires[wf].clone(),
+                                    });
+                                    pips.push(int::NodeExtPipNaming {
+                                        tile: int::NodeRawTileId::from_idx(1 + i),
+                                        wire_to: self.rd.wires[wf].clone(),
+                                        wire_from: self.rd.wires[fwn].clone(),
+                                    });
+                                    return ([fw].into_iter().collect(), wn, pips, BTreeMap::new());
+                                }
                             }
                         }
                     }
@@ -2236,6 +2281,46 @@ impl<'a> IntBuilder<'a> {
         names
     }
 
+    pub fn extract_int_outs(
+        &self,
+        xy: Coord,
+        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>
+    ) -> HashMap<rawdump::WireId, Vec<(rawdump::WireId, int::NodeWireId)>> {
+        let tile = &self.rd.tiles[&xy];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let mut res = HashMap::new();
+        let mut edges_out: HashMap<_, Vec<_>> = HashMap::new();
+        for &(wfi, wti) in tk.pips.keys() {
+            edges_out.entry(wfi).or_default().push(wti);
+        }
+        for (wf, wts) in edges_out {
+            if wts.iter().all(|x| int_wires.contains_key(x)) {
+                res.insert(wf, wts.into_iter().map(|x| (x, int_wires[&x])).collect());
+            }
+        }
+        res
+    }
+
+    pub fn extract_int_inps(
+        &self,
+        xy: Coord,
+        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>
+    ) -> HashMap<rawdump::WireId, (rawdump::WireId, int::NodeWireId)> {
+        let tile = &self.rd.tiles[&xy];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let mut res = HashMap::new();
+        let mut edges_in: HashMap<_, Vec<_>> = HashMap::new();
+        for &(wfi, wti) in tk.pips.keys() {
+            edges_in.entry(wti).or_default().push(wfi);
+        }
+        for (wt, wfs) in edges_in {
+            if wfs.len() == 1 && int_wires.contains_key(&wfs[0]) {
+                res.insert(wt, (wfs[0], int_wires[&wfs[0]]));
+            }
+        }
+        res
+    }
+
     pub fn extract_xnode(
         &mut self,
         name: &str,
@@ -2293,9 +2378,16 @@ impl<'a> IntBuilder<'a> {
 
         let bufs: Vec<_> = buf_xy
             .iter()
-            .map(|&x| BufInfo {
-                bufs: self.extract_buf_names(xy, x),
-                int_wires: self.extract_names(x, int_xy),
+            .map(|&x| {
+                let int_wires = self.extract_names(x, int_xy);
+                let int_outs = self.extract_int_outs(x, &int_wires);
+                let int_inps = self.extract_int_inps(x, &int_wires);
+                BufInfo {
+                    bufs: self.extract_buf_names(xy, x),
+                    int_outs,
+                    int_inps,
+                    int_wires,
+                }
             })
             .collect();
         self.extract_bels(&mut node, &mut node_naming, bels, tile.kind, &names, &bufs);
@@ -2325,9 +2417,16 @@ impl<'a> IntBuilder<'a> {
 
         let bufs: Vec<_> = buf_xy
             .iter()
-            .map(|&x| BufInfo {
-                bufs: self.extract_buf_names(xy, x),
-                int_wires: self.extract_names(x, int_xy),
+            .map(|&x| {
+                let int_wires = self.extract_names(x, int_xy);
+                let int_outs = self.extract_int_outs(x, &int_wires);
+                let int_inps = self.extract_int_inps(x, &int_wires);
+                BufInfo {
+                    bufs: self.extract_buf_names(xy, x),
+                    int_outs,
+                    int_inps,
+                    int_wires,
+                }
             })
             .collect();
         self.extract_bels(&mut node, &mut node_naming, bels, tile.kind, &names, &bufs);

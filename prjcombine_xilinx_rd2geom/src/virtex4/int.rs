@@ -401,6 +401,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
         }
     }
+
     for &pb_xy in rd.tiles_by_kind_name("PB") {
         let pt_xy = Coord {
             x: pb_xy.x,
@@ -533,6 +534,68 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &int_xy,
             "DSP",
             &bels_dsp,
+        );
+    }
+
+    for &pb_xy in rd.tiles_by_kind_name("PB") {
+        let pt_xy = Coord {
+            x: pb_xy.x,
+            y: pb_xy.y + 18,
+        };
+        let mut int_xy = vec![];
+        for dy in [
+            0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26,
+        ] {
+            int_xy.push(Coord {
+                x: pb_xy.x - 1,
+                y: pb_xy.y - 4 + dy,
+            });
+        }
+        for dy in [
+            0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26,
+        ] {
+            int_xy.push(Coord {
+                x: pb_xy.x + 15,
+                y: pb_xy.y - 4 + dy,
+            });
+        }
+        for dx in [1, 3, 5, 7, 9, 11, 13] {
+            int_xy.push(Coord {
+                x: pb_xy.x + dx,
+                y: pb_xy.y - 4,
+            });
+        }
+        for dx in [1, 3, 5, 7, 9, 11, 13] {
+            int_xy.push(Coord {
+                x: pb_xy.x + dx,
+                y: pb_xy.y + 22,
+            });
+        }
+        let mut dcr_pins = vec![
+            "EMACDCRACK".to_string(),
+            "DCREMACCLK".to_string(),
+            "DCREMACREAD".to_string(),
+            "DCREMACWRITE".to_string(),
+        ];
+        for i in 0..32 {
+            dcr_pins.push(format!("EMACDCRDBUS{i}"));
+            dcr_pins.push(format!("DCREMACDBUS{i}"));
+        }
+        for i in 8..10 {
+            dcr_pins.push(format!("DCREMACABUS{i}"));
+        }
+        builder.extract_xnode_bels(
+            "PPC",
+            pb_xy,
+            &[pt_xy],
+            &int_xy,
+            "PPC",
+            &[
+                builder.bel_xy("PPC", "PPC405_ADV", 0, 0)
+                    .pins_name_only(&dcr_pins),
+                builder.bel_xy("EMAC", "EMAC", 0, 0)
+                    .pins_name_only(&dcr_pins),
+            ],
         );
     }
 

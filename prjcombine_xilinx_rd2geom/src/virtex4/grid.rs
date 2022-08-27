@@ -83,6 +83,7 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
         assert_eq!(y.to_idx() % 16, 12);
         res.push((x, y));
     }
+    res.sort();
     res
 }
 
