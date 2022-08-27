@@ -17,9 +17,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), bond::make_bond(&grid, pins)));
     }
     let eint = grid.expand_grid(&disabled, &int_db);
-    verify(rd, &eint, |vrf, slr, node, bid| {
-        verify::verify_bel(&grid, vrf, slr, node, bid)
-    });
+    verify(rd, &eint, |vrf, ctx| verify::verify_bel(&grid, vrf, ctx));
     (
         make_device(rd, Grid::Virtex(grid), bonds, disabled),
         Some(int_db),

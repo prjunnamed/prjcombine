@@ -25,9 +25,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     }
     let eint = grid.expand_grid(&int_db);
 
-    verify(rd, &eint, |vrf, slr, node, bid| {
-        verify::verify_bel(&grid, vrf, slr, node, bid)
-    });
+    verify(rd, &eint, |vrf, ctx| verify::verify_bel(&grid, vrf, ctx));
     (
         make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
         Some(int_db),

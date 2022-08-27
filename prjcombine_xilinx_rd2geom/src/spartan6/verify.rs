@@ -1,74 +1,41 @@
-use crate::verify::{SitePinDir, Verifier};
+use crate::verify::{BelContext, SitePinDir, Verifier};
 use prjcombine_entity::EntityId;
-use prjcombine_xilinx_geom::eint::ExpandedTileNode;
-use prjcombine_xilinx_geom::int::NodeTileId;
 use prjcombine_xilinx_geom::spartan6::Grid;
-use prjcombine_xilinx_geom::{BelId, SlrId};
 
-pub fn verify_bel(
-    _grid: &Grid,
-    vrf: &mut Verifier,
-    slr: SlrId,
-    node: &ExpandedTileNode,
-    bid: BelId,
-) {
-    let crds;
-    if let Some(c) = vrf.get_node_crds(node) {
-        crds = c;
-    } else {
-        return;
-    }
-    let nk = &vrf.db.nodes[node.kind];
-    let nn = &vrf.db.node_namings[node.naming];
-    let bel = &nk.bels[bid];
-    let naming = &nn.bels[bid];
-    let key = &**nk.bels.key(bid);
-    let (col, row) = node.tiles[NodeTileId::from_idx(0)];
-    match key {
+pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    match bel.key {
         "SLICE0" => {
-            let kind = if bel.pins.contains_key("WE") {
+            let kind = if bel.bel.pins.contains_key("WE") {
                 "SLICEM"
             } else {
                 "SLICEL"
             };
             vrf.verify_bel(
-                slr,
-                node,
-                bid,
+                bel,
                 kind,
-                &node.bels[bid],
                 &[("CIN", SitePinDir::In), ("COUT", SitePinDir::Out)],
                 &[],
             );
-            let mut srow = row;
+            let mut srow = bel.row;
             loop {
                 if srow.to_idx() == 0 {
-                    vrf.claim_node(&[(crds[naming.tile], &naming.pins["CIN"].name)]);
+                    vrf.claim_node(&[bel.fwire("CIN")]);
                     break;
                 }
                 srow -= 1;
-                if let Some((onode, _, _, onaming)) = vrf.grid.find_bel(slr, (col, srow), "SLICE0")
-                {
-                    let ocrds = vrf.get_node_crds(onode).unwrap();
-                    vrf.claim_node(&[
-                        (crds[naming.tile], &naming.pins["CIN"].name),
-                        (ocrds[onaming.tile], &onaming.pins["COUT"].name_far),
-                    ]);
-                    vrf.claim_pip(
-                        ocrds[naming.tile],
-                        &onaming.pins["COUT"].name_far,
-                        &onaming.pins["COUT"].name,
-                    );
+                if let Some(obel) = vrf.find_bel(bel.slr, (bel.col, srow), "SLICE0") {
+                    vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
+                    vrf.claim_pip(obel.crd(), obel.wire_far("COUT"), obel.wire("COUT"));
                     break;
                 }
             }
-            vrf.claim_node(&[(crds[naming.tile], &naming.pins["COUT"].name)]);
+            vrf.claim_node(&[bel.fwire("COUT")]);
         }
         "SLICE1" => {
-            vrf.verify_bel(slr, node, bid, "SLICEX", &node.bels[bid], &[], &[]);
+            vrf.verify_bel(bel, "SLICEX", &[], &[]);
         }
         _ => {
-            println!("MEOW {} {:?}", key, node.bels.get(bid));
+            println!("MEOW {} {:?}", bel.key, bel.name);
         }
     }
 }

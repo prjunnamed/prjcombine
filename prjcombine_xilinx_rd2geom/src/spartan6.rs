@@ -17,9 +17,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), bond::make_bond(&grid, &disabled, pins)));
     }
     let eint = grid.expand_grid(&int_db, &disabled);
-    verify(rd, &eint, |vrf, slr, node, bid| {
-        verify::verify_bel(&grid, vrf, slr, node, bid)
-    });
+    verify(rd, &eint, |vrf, bel| verify::verify_bel(&grid, vrf, bel));
     (
         make_device(rd, Grid::Spartan6(grid), bonds, disabled),
         Some(int_db),

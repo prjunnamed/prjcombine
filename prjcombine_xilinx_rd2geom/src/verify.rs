@@ -7,6 +7,42 @@ use prjcombine_xilinx_geom::{
 };
 use std::collections::{BTreeSet, HashMap, HashSet};
 
+#[derive(Debug)]
+pub struct BelContext<'a> {
+    pub slr: SlrId,
+    pub col: ColId,
+    pub row: RowId,
+    pub node: &'a eint::ExpandedTileNode,
+    pub bid: BelId,
+    pub key: &'a str,
+    pub bel: &'a int::BelInfo,
+    pub naming: &'a int::BelNaming,
+    pub name: Option<&'a str>,
+    pub crds: EntityPartVec<int::NodeRawTileId, Coord>,
+}
+
+impl<'a> BelContext<'a> {
+    pub fn crd(&self) -> Coord {
+        self.crds[self.naming.tile]
+    }
+
+    pub fn wire(&self, name: &str) -> &'a str {
+        &self.naming.pins[name].name
+    }
+
+    pub fn wire_far(&self, name: &str) -> &'a str {
+        &self.naming.pins[name].name_far
+    }
+
+    pub fn fwire(&self, name: &str) -> (Coord, &'a str) {
+        (self.crd(), self.wire(name))
+    }
+
+    pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
+        (self.crd(), self.wire_far(name))
+    }
+}
+
 pub struct Verifier<'a> {
     pub rd: &'a Part,
     pub db: &'a int::IntDb,
@@ -733,31 +769,17 @@ impl<'a> Verifier<'a> {
 
     pub fn verify_bel(
         &mut self,
-        _slr: SlrId,
-        node: &eint::ExpandedTileNode,
-        bid: BelId,
+        bel: &BelContext<'_>,
         kind: &str,
-        name: impl AsRef<str>,
         extras: &[(&str, SitePinDir)],
         skip: &[&str],
     ) {
-        let crds;
-        let nk = &self.db.nodes[node.kind];
-        let nn = &self.db.node_namings[node.naming];
-        let bel = &nk.bels[bid];
-        let naming = &nn.bels[bid];
-        if let Some(c) = self.get_node_crds(node) {
-            crds = c;
-        } else {
-            return;
-        }
-        let name = name.as_ref();
         let mut pins = Vec::new();
-        for (k, v) in &bel.pins {
+        for (k, v) in &bel.bel.pins {
             if skip.contains(&&**k) {
                 continue;
             }
-            let n = &naming.pins[k];
+            let n = &bel.naming.pins[k];
             pins.push(SitePin {
                 dir: match v.dir {
                     int::PinDir::Input => SitePinDir::In,
@@ -771,10 +793,53 @@ impl<'a> Verifier<'a> {
             pins.push(SitePin {
                 dir,
                 pin,
-                wire: Some(&naming.pins[pin].name),
+                wire: Some(&bel.naming.pins[pin].name),
             });
         }
-        self.claim_site(crds[naming.tile], name, kind, &pins);
+        if let Some(name) = bel.name {
+            self.claim_site(bel.crd(), name, kind, &pins);
+        } else {
+            println!("MISSING SITE NAME {:?} {}", bel.node.tiles, bel.key);
+        }
+    }
+
+    pub fn get_bel(
+        &self,
+        slr: SlrId,
+        node: &'a eint::ExpandedTileNode,
+        bid: BelId,
+    ) -> BelContext<'a> {
+        let crds = self.get_node_crds(node).unwrap();
+        let nk = &self.db.nodes[node.kind];
+        let nn = &self.db.node_namings[node.naming];
+        let bel = &nk.bels[bid];
+        let naming = &nn.bels[bid];
+        let key = &**nk.bels.key(bid);
+        let (col, row) = node.tiles[int::NodeTileId::from_idx(0)];
+        BelContext {
+            slr,
+            col,
+            row,
+            node,
+            bid,
+            key,
+            bel,
+            naming,
+            crds,
+            name: node.bels.get(bid).map(|x| &**x),
+        }
+    }
+
+    pub fn find_bel(&self, slr: SlrId, coord: (ColId, RowId), key: &str) -> Option<BelContext<'a>> {
+        let slr = self.grid.slr(slr);
+        let tile = slr.tile(coord);
+        for node in &tile.nodes {
+            let nk = &self.db.nodes[node.kind];
+            if let Some((id, _)) = nk.bels.get(key) {
+                return Some(self.get_bel(slr.slr, node, id));
+            }
+        }
+        None
     }
 
     pub fn finish(self) {}
@@ -783,7 +848,7 @@ impl<'a> Verifier<'a> {
 pub fn verify(
     rd: &rawdump::Part,
     grid: &eint::ExpandedGrid,
-    bel_handler: impl Fn(&mut Verifier, SlrId, &eint::ExpandedTileNode, BelId),
+    bel_handler: impl Fn(&mut Verifier, &BelContext<'_>),
 ) {
     let mut vrf = Verifier::new(rd, grid);
     for slr in grid.slrs() {
@@ -792,7 +857,8 @@ pub fn verify(
                 for node in &slr[(col, row)].nodes {
                     let nk = &grid.db.nodes[node.kind];
                     for id in nk.bels.ids() {
-                        bel_handler(&mut vrf, slr.slr, node, id);
+                        let ctx = vrf.get_bel(slr.slr, node, id);
+                        bel_handler(&mut vrf, &ctx);
                     }
                 }
             }
