@@ -426,7 +426,11 @@ impl Grid {
         res
     }
 
-    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    pub fn expand_grid<'a>(
+        &self,
+        db: &'a int::IntDb,
+        disabled: &BTreeSet<DisabledPart>,
+    ) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         egrid.tie_kind = Some("TIEOFF".to_string());
         egrid.tie_pin_pullup = Some("KEEP1".to_string());
@@ -936,6 +940,60 @@ impl Grid {
         }
 
         grid.fill_main_passes();
+
+        let mut sy_base = 2;
+        for (col, &cd) in &self.columns {
+            if !matches!(
+                cd.kind,
+                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
+            ) {
+                continue;
+            }
+            if disabled.contains(&DisabledPart::Spartan6ClbColumn(col)) {
+                continue;
+            }
+            let tb = &grid[(col, RowId::from_idx(0))];
+            if !tb.nodes.is_empty() && tb.intfs.is_empty() {
+                sy_base = 0;
+                break;
+            }
+        }
+        let mut sx = 0;
+        for (col, &cd) in &self.columns {
+            if !matches!(
+                cd.kind,
+                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
+            ) {
+                continue;
+            }
+            if disabled.contains(&DisabledPart::Spartan6ClbColumn(col)) {
+                continue;
+            }
+            for row in grid.rows() {
+                let tile = &mut grid[(col, row)];
+                if tile.nodes.is_empty() || !tile.intfs.is_empty() {
+                    continue;
+                }
+                let sy = row.to_idx() - sy_base;
+                let kind = if cd.kind == ColumnKind::CleXM {
+                    "CLEXM"
+                } else {
+                    "CLEXL"
+                };
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                node.add_bel(1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
+            }
+            sx += 2;
+        }
 
         for col in grid.cols() {
             for row in grid.rows() {

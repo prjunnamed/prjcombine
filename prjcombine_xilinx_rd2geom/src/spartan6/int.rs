@@ -1,4 +1,4 @@
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::int::{Dir, IntDb, WireKind};
 
 use crate::intb::IntBuilder;
@@ -186,16 +186,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     builder.extract_main_passes();
 
-    builder.node_type("INT", "INT", "INT");
-    builder.node_type("INT_BRK", "INT", "INT.BRK");
-    builder.node_type("INT_BRAM", "INT", "INT");
-    builder.node_type("INT_BRAM_BRK", "INT", "INT.BRK");
-    builder.node_type("INT_GCLK", "INT", "INT");
-    builder.node_type("INT_TERM", "INT", "INT.TERM");
-    builder.node_type("INT_TERM_BRK", "INT", "INT.TERM.BRK");
-    builder.node_type("IOI_INT", "IOI", "IOI");
-    builder.node_type("LIOI_INT", "IOI", "IOI");
-    builder.node_type("LIOI_INT_BRK", "IOI", "IOI.BRK");
+    builder.extract_node("INT", "INT", "INT", &[]);
+    builder.extract_node("INT_BRK", "INT", "INT.BRK", &[]);
+    builder.extract_node("INT_BRAM", "INT", "INT", &[]);
+    builder.extract_node("INT_BRAM_BRK", "INT", "INT.BRK", &[]);
+    builder.extract_node("INT_GCLK", "INT", "INT", &[]);
+    builder.extract_node("INT_TERM", "INT", "INT.TERM", &[]);
+    builder.extract_node("INT_TERM_BRK", "INT", "INT.TERM.BRK", &[]);
+    builder.extract_node("IOI_INT", "IOI", "IOI", &[]);
+    builder.extract_node("LIOI_INT", "IOI", "IOI", &[]);
+    builder.extract_node("LIOI_INT_BRK", "IOI", "IOI.BRK", &[]);
 
     for tkn in [
         "CNR_TL_LTERM",
@@ -270,6 +270,30 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for tkn in ["LIOI", "LIOI_BRK", "RIOI", "RIOI_BRK"] {
         builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", true);
+    }
+
+    for tkn in ["CLEXL", "CLEXM"] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = Coord {
+                x: xy.x - 1,
+                y: xy.y,
+            };
+            builder.extract_xnode(
+                tkn,
+                xy,
+                &[],
+                &[int_xy],
+                tkn,
+                &[
+                    builder
+                        .bel_xy("SLICE0", "SLICE", 0, 0)
+                        .pins_name_only(&["CIN"])
+                        .pin_name_only("COUT", 1),
+                    builder.bel_xy("SLICE1", "SLICE", 1, 0),
+                ],
+                &[],
+            );
+        }
     }
 
     builder.build()
