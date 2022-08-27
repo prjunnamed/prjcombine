@@ -1,7 +1,7 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
 use prjcombine_xilinx_geom::virtex4::Grid;
 
-pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if matches!(bel.key, "SLICE0" | "SLICE2") {
         "SLICEM"
     } else {
@@ -80,9 +80,62 @@ pub fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
+fn verify_bram(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "RAMB16", &[
+        ("CASCADEINA", SitePinDir::In),
+        ("CASCADEINB", SitePinDir::In),
+        ("CASCADEOUTA", SitePinDir::Out),
+        ("CASCADEOUTB", SitePinDir::Out),
+    ], &[]);
+    for (ipin, opin) in [
+        ("CASCADEINA", "CASCADEOUTA"),
+        ("CASCADEINB", "CASCADEOUTB"),
+    ] {
+        vrf.claim_node(&[bel.fwire(opin)]);
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, -4, bel.key) {
+            vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
+            vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
+        } else {
+            vrf.claim_node(&[bel.fwire(ipin)]);
+        }
+    }
+}
+
+fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pairs = vec![];
+    for i in 0..18 {
+        pairs.push((format!("BCIN{i}"), format!("BCOUT{i}")));
+    }
+    for i in 0..48 {
+        pairs.push((format!("PCIN{i}"), format!("PCOUT{i}")));
+    }
+    let mut pins = vec![];
+    for (ipin, opin) in &pairs {
+        pins.push((&ipin[..], SitePinDir::In));
+        pins.push((&opin[..], SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(opin)]);
+        if bel.key == "DSP0" {
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, -4, "DSP1") {
+                vrf.claim_node(&[bel.fwire(ipin), obel.fwire_far(opin)]);
+                vrf.claim_pip(obel.crd(), obel.wire_far(opin), obel.wire(opin));
+            } else {
+                vrf.claim_node(&[bel.fwire(ipin)]);
+            }
+        } else {
+            vrf.claim_node(&[bel.fwire(ipin)]);
+            let obel = vrf.find_bel_sibling(bel, "DSP0");
+            vrf.claim_pip(bel.crd(), bel.wire(ipin), obel.wire(opin));
+        }
+    }
+    vrf.verify_bel(bel, "DSP48", &pins, &[]);
+}
+
 pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
+        _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
+        "BRAM" => verify_bram(vrf, bel),
+        "FIFO" => vrf.verify_bel(bel, "FIFO16", &[], &[]),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

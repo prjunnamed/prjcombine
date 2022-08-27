@@ -600,15 +600,15 @@ impl<'a> IntBuilder<'a> {
             .iter()
             .filter_map(|(&wt, wfs)| {
                 if wfs.len() == 1 {
-                    Some((wt, wfs[0]))
+                    Some((wt, wfs.clone()))
                 } else {
                     let filtered: Vec<_> = wfs
                         .iter()
                         .copied()
                         .filter(|x| names.contains_key(x))
                         .collect();
-                    if filtered.len() == 1 {
-                        Some((wt, filtered[0]))
+                    if !filtered.is_empty() {
+                        Some((wt, filtered))
                     } else {
                         None
                     }
@@ -638,7 +638,7 @@ impl<'a> IntBuilder<'a> {
             let mut pips = Vec::new();
             loop {
                 if let Some(&w) = names.get(&wn) {
-                    return (w, wn, pips);
+                    return ([w].into_iter().collect(), wn, pips, BTreeMap::new());
                 }
                 for (i, bi) in bufs.iter().enumerate() {
                     if let Some(&(d, wt, wf)) = bi.bufs.get(&wn) {
@@ -650,7 +650,7 @@ impl<'a> IntBuilder<'a> {
                                     wire_to: self.rd.wires[wt].clone(),
                                     wire_from: self.rd.wires[wf].clone(),
                                 });
-                                return (w, wn, pips);
+                                return ([w].into_iter().collect(), wn, pips, BTreeMap::new());
                             }
                         }
                     }
@@ -664,31 +664,47 @@ impl<'a> IntBuilder<'a> {
                                 wire_from: self.rd.wires[nwn].clone(),
                             });
                             wn = nwn;
-                        } else {
-                            panic!(
-                                "CANNOT WALK INPUT WIRE {} {} {}",
-                                self.rd.part,
-                                self.rd.tile_kinds.key(tki),
-                                self.rd.wires[wn]
-                            );
+                            continue;
                         }
+                        panic!(
+                            "CANNOT WALK INPUT WIRE {} {} {}",
+                            self.rd.part,
+                            self.rd.tile_kinds.key(tki),
+                            self.rd.wires[wn]
+                        );
                     }
                     int::PinDir::Output => {
-                        if let Some(&nwn) = buf_out.get(&wn) {
-                            pips.push(int::NodeExtPipNaming {
-                                tile: int::NodeRawTileId::from_idx(0),
-                                wire_to: self.rd.wires[nwn].clone(),
-                                wire_from: self.rd.wires[wn].clone(),
-                            });
-                            wn = nwn;
-                        } else {
-                            panic!(
-                                "CANNOT WALK OUTPUT WIRE {} {} {}",
-                                self.rd.part,
-                                self.rd.tile_kinds.key(tki),
-                                self.rd.wires[wn]
-                            );
+                        if let Some(nwn) = buf_out.get(&wn) {
+                            if nwn.len() == 1 {
+                                let nwn = nwn[0];
+                                pips.push(int::NodeExtPipNaming {
+                                    tile: int::NodeRawTileId::from_idx(0),
+                                    wire_to: self.rd.wires[nwn].clone(),
+                                    wire_from: self.rd.wires[wn].clone(),
+                                });
+                                wn = nwn;
+                                continue;
+                            } else if nwn.iter().all(|x| names.contains_key(x)) {
+                                let mut wires = BTreeSet::new();
+                                let mut int_pips = BTreeMap::new();
+                                for &nwn in nwn {
+                                    let w = names[&nwn];
+                                    wires.insert(w);
+                                    int_pips.insert(w, int::NodeExtPipNaming {
+                                        tile: int::NodeRawTileId::from_idx(0),
+                                        wire_to: self.rd.wires[nwn].clone(),
+                                        wire_from: self.rd.wires[wn].clone(),
+                                    });
+                                }
+                                return (wires, wn, pips, int_pips);
+                            }
                         }
+                        panic!(
+                            "CANNOT WALK OUTPUT WIRE {} {} {}",
+                            self.rd.part,
+                            self.rd.tile_kinds.key(tki),
+                            self.rd.wires[wn]
+                        );
                     }
                 }
             }
@@ -710,13 +726,18 @@ impl<'a> IntBuilder<'a> {
                         }
                     }
                     int::PinDir::Output => {
-                        if let Some(&nwn) = buf_out.get(&wn) {
-                            pips.push(int::NodeExtPipNaming {
-                                tile: int::NodeRawTileId::from_idx(0),
-                                wire_to: self.rd.wires[nwn].clone(),
-                                wire_from: self.rd.wires[wn].clone(),
-                            });
-                            Some(nwn)
+                        if let Some(nwn) = buf_out.get(&wn) {
+                            if nwn.len() == 1 {
+                                let nwn = nwn[0];
+                                pips.push(int::NodeExtPipNaming {
+                                    tile: int::NodeRawTileId::from_idx(0),
+                                    wire_to: self.rd.wires[nwn].clone(),
+                                    wire_from: self.rd.wires[wn].clone(),
+                                });
+                                Some(nwn)
+                            } else {
+                                None
+                            }
                         } else {
                             None
                         }
@@ -762,16 +783,17 @@ impl<'a> IntBuilder<'a> {
                                 rawdump::TkSitePinDir::Output => int::PinDir::Output,
                                 _ => panic!("bidir pin {}", name),
                             };
-                            let (wire, wnf, pips) = walk_to_int(dir, tksp.wire.unwrap());
+                            let (wires, wnf, pips, int_pips) = walk_to_int(dir, tksp.wire.unwrap());
                             naming_pins.insert(
                                 name.clone(),
                                 int::BelPinNaming {
                                     name: self.rd.wires[tksp.wire.unwrap()].clone(),
                                     name_far: self.rd.wires[wnf].clone(),
                                     pips,
+                                    int_pips,
                                 },
                             );
-                            pins.insert(name.clone(), int::BelPin { wire, dir });
+                            pins.insert(name.clone(), int::BelPin { wires, dir });
                         }
                         &BelPinInfo::ForceInt(wire, ref wname) => {
                             let dir = match tksp.dir {
@@ -785,9 +807,10 @@ impl<'a> IntBuilder<'a> {
                                     name: self.rd.wires[tksp.wire.unwrap()].clone(),
                                     name_far: wname.clone(),
                                     pips: Vec::new(),
+                                    int_pips: BTreeMap::new(),
                                 },
                             );
-                            pins.insert(name.clone(), int::BelPin { wire, dir });
+                            pins.insert(name.clone(), int::BelPin { wires: [wire].into_iter().collect(), dir });
                         }
                         &BelPinInfo::NameOnly(buf_cnt) => {
                             if buf_cnt == 0 {
@@ -797,6 +820,7 @@ impl<'a> IntBuilder<'a> {
                                         name: self.rd.wires[tksp.wire.unwrap()].clone(),
                                         name_far: self.rd.wires[tksp.wire.unwrap()].clone(),
                                         pips: Vec::new(),
+                                        int_pips: BTreeMap::new(),
                                     },
                                 );
                             } else {
@@ -812,6 +836,7 @@ impl<'a> IntBuilder<'a> {
                                         name: self.rd.wires[tksp.wire.unwrap()].clone(),
                                         name_far: self.rd.wires[wn].clone(),
                                         pips,
+                                        int_pips: BTreeMap::new(),
                                     },
                                 );
                             }
@@ -837,16 +862,17 @@ impl<'a> IntBuilder<'a> {
                             println!("NOT FOUND: {}", name);
                         }
                         let wn = wn.unwrap();
-                        let (wire, wnf, pips) = walk_to_int(dir, wn);
+                        let (wires, wnf, pips, int_pips) = walk_to_int(dir, wn);
                         naming_pins.insert(
                             name.clone(),
                             int::BelPinNaming {
                                 name: self.rd.wires[wn].clone(),
                                 name_far: self.rd.wires[wnf].clone(),
                                 pips,
+                                int_pips,
                             },
                         );
-                        pins.insert(name.clone(), int::BelPin { wire, dir });
+                        pins.insert(name.clone(), int::BelPin { wires, dir });
                     }
                     BelPinInfo::ExtraIntForce(dir, wire, ref wname) => {
                         naming_pins.insert(
@@ -855,9 +881,10 @@ impl<'a> IntBuilder<'a> {
                                 name: wname.clone(),
                                 name_far: wname.clone(),
                                 pips: vec![],
+                                int_pips: BTreeMap::new(),
                             },
                         );
-                        pins.insert(name.clone(), int::BelPin { wire, dir });
+                        pins.insert(name.clone(), int::BelPin { wires: [wire].into_iter().collect(), dir });
                     }
                     BelPinInfo::ExtraWire(ref names) => {
                         let mut wn = None;
@@ -879,6 +906,7 @@ impl<'a> IntBuilder<'a> {
                                 name: self.rd.wires[wn].clone(),
                                 name_far: self.rd.wires[wn].clone(),
                                 pips: Vec::new(),
+                                int_pips: BTreeMap::new(),
                             },
                         );
                     }
@@ -889,6 +917,7 @@ impl<'a> IntBuilder<'a> {
                                 name: wname.clone(),
                                 name_far: wname.clone(),
                                 pips: pips.clone(),
+                                int_pips: BTreeMap::new(),
                             },
                         );
                     }

@@ -804,6 +804,52 @@ impl Grid {
             sx += 2;
         }
 
+        let mut bx = 0;
+        let mut dx = 0;
+        for (col, &cd) in &self.columns {
+            let kind = match cd {
+                ColumnKind::Bram => "BRAM",
+                ColumnKind::Dsp => "DSP",
+                _ => continue,
+            };
+            'a: for row in grid.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                for &(bc, br) in &self.holes_ppc {
+                    if col >= bc && col < bc + 9 && row >= br && row < br + 24 {
+                        continue 'a;
+                    }
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                    ],
+                );
+                if cd == ColumnKind::Bram {
+                    node.add_bel(0, format!("RAMB16_X{bx}Y{sy}", sy = y / 4));
+                    node.add_bel(1, format!("FIFO16_X{bx}Y{sy}", sy = y / 4));
+                } else {
+                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 4 * 2));
+                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 4 * 2 + 1));
+                }
+            }
+            if cd == ColumnKind::Bram {
+                bx += 1;
+            } else {
+                dx += 1;
+            }
+        }
+
         for col in grid.cols() {
             for row in grid.rows() {
                 let crow = RowId::from_idx(row.to_idx() / 16 * 16 + 8);

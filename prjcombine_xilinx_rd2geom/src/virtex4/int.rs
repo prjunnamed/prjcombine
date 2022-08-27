@@ -475,5 +475,66 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
+        let mut int_xy = Vec::new();
+        for dy in 0..4 {
+            int_xy.push(Coord {
+                x: xy.x - 1,
+                y: xy.y + dy,
+            });
+        }
+        builder.extract_xnode_bels(
+            "BRAM",
+            xy,
+            &[],
+            &int_xy,
+            "BRAM",
+            &[
+                builder.bel_xy("BRAM", "RAMB16", 0, 0)
+                    .pins_name_only(&["CASCADEOUTA", "CASCADEOUTB"])
+                    .pin_name_only("CASCADEINA", 1)
+                    .pin_name_only("CASCADEINB", 1),
+                builder.bel_xy("FIFO", "FIFO16", 0, 0),
+            ],
+        );
+    }
+
+    let mut bels_dsp = vec![];
+    for i in 0..2 {
+        let mut bel = builder.bel_xy(format!("DSP{i}"), "DSP48", 0, i);
+        let buf_cnt = match i {
+            0 => 0,
+            1 => 1,
+            _ => unreachable!(),
+        };
+        for j in 0..18 {
+            bel = bel.pin_name_only(&format!("BCIN{j}"), 0);
+            bel = bel.pin_name_only(&format!("BCOUT{j}"), buf_cnt);
+        }
+        for j in 0..48 {
+            bel = bel.pin_name_only(&format!("PCIN{j}"), 0);
+            bel = bel.pin_name_only(&format!("PCOUT{j}"), buf_cnt);
+        }
+        bels_dsp.push(bel);
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
+        let mut int_xy = Vec::new();
+        for dy in 0..4 {
+            int_xy.push(Coord {
+                x: xy.x - 1,
+                y: xy.y + dy,
+            });
+        }
+        builder.extract_xnode_bels(
+            "DSP",
+            xy,
+            &[],
+            &int_xy,
+            "DSP",
+            &bels_dsp,
+        );
+    }
+
     builder.build()
 }

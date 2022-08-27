@@ -529,7 +529,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         dll_pins.insert(
             name.to_string(),
             BelPin {
-                wire: (NodeTileId::from_idx(0), w),
+                wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Input,
             },
         );
@@ -566,7 +566,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         dll_pins.insert(
             name.to_string(),
             BelPin {
-                wire: (NodeTileId::from_idx(0), w),
+                wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Output,
             },
         );
@@ -921,6 +921,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             name: name.clone(),
                             name_far: name,
                             pips: Vec::new(),
+                            int_pips: BTreeMap::new(),
                         },
                     )
                 })

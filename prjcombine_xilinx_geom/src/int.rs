@@ -145,9 +145,9 @@ pub struct BelInfo {
     pub pins: BTreeMap<String, BelPin>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct BelPin {
-    pub wire: NodeWireId,
+    pub wires: BTreeSet<NodeWireId>,
     pub dir: PinDir,
 }
 
@@ -183,6 +183,7 @@ pub struct BelPinNaming {
     pub name: String,
     pub name_far: String,
     pub pips: Vec<NodeExtPipNaming>,
+    pub int_pips: BTreeMap<NodeWireId, NodeExtPipNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

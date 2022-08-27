@@ -524,11 +524,29 @@ impl<'a> Verifier<'a> {
                 if n.pips.is_empty() {
                     wn = &n.name_far;
                 }
-                let wire = self
-                    .grid
-                    .resolve_wire_raw((slr, node.tiles[v.wire.0], v.wire.1))
-                    .unwrap();
-                self.pin_int_wire(crd, wn, wire);
+                let mut claim = true;
+                for &w in &v.wires {
+                    let wire = self
+                        .grid
+                        .resolve_wire_raw((slr, node.tiles[w.0], w.1))
+                        .unwrap();
+                    if let Some(pip) = n.int_pips.get(&w) {
+                        self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                        if v.dir == int::PinDir::Input {
+                            self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
+                            self.pin_int_wire(crds[pip.tile], &pip.wire_from, wire);
+                        } else {
+                            self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
+                            self.pin_int_wire(crds[pip.tile], &pip.wire_to, wire);
+                        }
+                    } else {
+                        self.pin_int_wire(crd, wn, wire);
+                        claim = false;
+                    }
+                }
+                if claim {
+                    self.claim_node(&[(crd, wn)]);
+                }
             }
         }
     }
