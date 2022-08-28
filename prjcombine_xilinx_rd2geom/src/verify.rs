@@ -1,4 +1,4 @@
-use prjcombine_entity::{EntityId, EntityPartVec, EntityBitVec};
+use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec};
 use prjcombine_rawdump::{self as rawdump, Coord, Part};
 use prjcombine_xilinx_geom::{
     eint::{self, IntWire},
@@ -87,9 +87,36 @@ impl<'a> Verifier<'a> {
             grid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
             claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
-            claimed_twires: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].wires.len()))).collect(),
-            claimed_pips: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].pips.len()))).collect(),
-            claimed_sites: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].sites.len()))).collect(),
+            claimed_twires: rd
+                .tiles
+                .iter()
+                .map(|(&k, v)| {
+                    (
+                        k,
+                        EntityBitVec::repeat(false, rd.tile_kinds[v.kind].wires.len()),
+                    )
+                })
+                .collect(),
+            claimed_pips: rd
+                .tiles
+                .iter()
+                .map(|(&k, v)| {
+                    (
+                        k,
+                        EntityBitVec::repeat(false, rd.tile_kinds[v.kind].pips.len()),
+                    )
+                })
+                .collect(),
+            claimed_sites: rd
+                .tiles
+                .iter()
+                .map(|(&k, v)| {
+                    (
+                        k,
+                        EntityBitVec::repeat(false, rd.tile_kinds[v.kind].sites.len()),
+                    )
+                })
+                .collect(),
             int_wires: HashMap::new(),
             int_site_wires: HashMap::new(),
             missing_int_wires: HashSet::new(),

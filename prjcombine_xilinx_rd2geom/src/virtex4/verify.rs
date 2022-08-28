@@ -81,16 +81,18 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bram(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.verify_bel(bel, "RAMB16", &[
-        ("CASCADEINA", SitePinDir::In),
-        ("CASCADEINB", SitePinDir::In),
-        ("CASCADEOUTA", SitePinDir::Out),
-        ("CASCADEOUTB", SitePinDir::Out),
-    ], &[]);
-    for (ipin, opin) in [
-        ("CASCADEINA", "CASCADEOUTA"),
-        ("CASCADEINB", "CASCADEOUTB"),
-    ] {
+    vrf.verify_bel(
+        bel,
+        "RAMB16",
+        &[
+            ("CASCADEINA", SitePinDir::In),
+            ("CASCADEINB", SitePinDir::In),
+            ("CASCADEOUTA", SitePinDir::Out),
+            ("CASCADEOUTB", SitePinDir::Out),
+        ],
+        &[],
+    );
+    for (ipin, opin) in [("CASCADEINA", "CASCADEOUTA"), ("CASCADEINB", "CASCADEOUTB")] {
         vrf.claim_node(&[bel.fwire(opin)]);
         if let Some(obel) = vrf.find_bel_delta(bel, 0, -4, bel.key) {
             vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
@@ -144,7 +146,10 @@ fn verify_ppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 8..10 {
         dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::Out));
     }
-    let pins: Vec<_> = dcr_pins.iter().map(|&(ref pin, dir)| (&pin[..], dir)).collect();
+    let pins: Vec<_> = dcr_pins
+        .iter()
+        .map(|&(ref pin, dir)| (&pin[..], dir))
+        .collect();
     vrf.verify_bel(bel, "PPC405_ADV", &pins, &[]);
     let obel = vrf.find_bel_sibling(bel, "EMAC");
     for (pin, dir) in dcr_pins {
@@ -171,7 +176,10 @@ fn verify_emac(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 8..10 {
         dcr_pins.push((format!("DCREMACABUS{i}"), SitePinDir::In));
     }
-    let pins: Vec<_> = dcr_pins.iter().map(|&(ref pin, dir)| (&pin[..], dir)).collect();
+    let pins: Vec<_> = dcr_pins
+        .iter()
+        .map(|&(ref pin, dir)| (&pin[..], dir))
+        .collect();
     vrf.verify_bel(bel, "EMAC", &pins, &[]);
     for (pin, _) in dcr_pins {
         vrf.claim_node(&[bel.fwire(&pin)]);

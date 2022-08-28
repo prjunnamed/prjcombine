@@ -849,12 +849,7 @@ impl Grid {
                     db.get_node(kind),
                     &[&name],
                     db.get_node_naming(kind),
-                    &[
-                        (col, row),
-                        (col, row + 1),
-                        (col, row + 2),
-                        (col, row + 3),
-                    ],
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
                 );
                 if cd == ColumnKind::Bram {
                     node.add_bel(0, format!("RAMB16_X{bx}Y{sy}", sy = y / 4));

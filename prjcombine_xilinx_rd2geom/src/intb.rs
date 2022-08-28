@@ -667,17 +667,25 @@ impl<'a> IntBuilder<'a> {
                                             wire_to: self.rd.wires[ws[0].0].clone(),
                                             wire_from: self.rd.wires[wt].clone(),
                                         });
-                                        return ([ws[0].1].into_iter().collect(), wn, pips, BTreeMap::new());
+                                        return (
+                                            [ws[0].1].into_iter().collect(),
+                                            wn,
+                                            pips,
+                                            BTreeMap::new(),
+                                        );
                                     } else {
                                         let mut int_pips = BTreeMap::new();
                                         let mut int_wires = BTreeSet::new();
                                         for &(fwn, fw) in ws {
                                             int_wires.insert(fw);
-                                            int_pips.insert(fw, int::NodeExtPipNaming {
-                                                tile: int::NodeRawTileId::from_idx(1 + i),
-                                                wire_to: self.rd.wires[fwn].clone(),
-                                                wire_from: self.rd.wires[wt].clone(),
-                                            });
+                                            int_pips.insert(
+                                                fw,
+                                                int::NodeExtPipNaming {
+                                                    tile: int::NodeRawTileId::from_idx(1 + i),
+                                                    wire_to: self.rd.wires[fwn].clone(),
+                                                    wire_from: self.rd.wires[wt].clone(),
+                                                },
+                                            );
                                         }
                                         return (int_wires, wn, pips, int_pips);
                                     }
@@ -735,11 +743,14 @@ impl<'a> IntBuilder<'a> {
                                 for &nwn in nwn {
                                     let w = names[&nwn];
                                     wires.insert(w);
-                                    int_pips.insert(w, int::NodeExtPipNaming {
-                                        tile: int::NodeRawTileId::from_idx(0),
-                                        wire_to: self.rd.wires[nwn].clone(),
-                                        wire_from: self.rd.wires[wn].clone(),
-                                    });
+                                    int_pips.insert(
+                                        w,
+                                        int::NodeExtPipNaming {
+                                            tile: int::NodeRawTileId::from_idx(0),
+                                            wire_to: self.rd.wires[nwn].clone(),
+                                            wire_from: self.rd.wires[wn].clone(),
+                                        },
+                                    );
                                 }
                                 return (wires, wn, pips, int_pips);
                             }
@@ -855,7 +866,13 @@ impl<'a> IntBuilder<'a> {
                                     int_pips: BTreeMap::new(),
                                 },
                             );
-                            pins.insert(name.clone(), int::BelPin { wires: [wire].into_iter().collect(), dir });
+                            pins.insert(
+                                name.clone(),
+                                int::BelPin {
+                                    wires: [wire].into_iter().collect(),
+                                    dir,
+                                },
+                            );
                         }
                         &BelPinInfo::NameOnly(buf_cnt) => {
                             if buf_cnt == 0 {
@@ -929,7 +946,13 @@ impl<'a> IntBuilder<'a> {
                                 int_pips: BTreeMap::new(),
                             },
                         );
-                        pins.insert(name.clone(), int::BelPin { wires: [wire].into_iter().collect(), dir });
+                        pins.insert(
+                            name.clone(),
+                            int::BelPin {
+                                wires: [wire].into_iter().collect(),
+                                dir,
+                            },
+                        );
                     }
                     BelPinInfo::ExtraWire(ref names) => {
                         let mut wn = None;
@@ -2284,7 +2307,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_int_outs(
         &self,
         xy: Coord,
-        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>
+        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>,
     ) -> HashMap<rawdump::WireId, Vec<(rawdump::WireId, int::NodeWireId)>> {
         let tile = &self.rd.tiles[&xy];
         let tk = &self.rd.tile_kinds[tile.kind];
@@ -2304,7 +2327,7 @@ impl<'a> IntBuilder<'a> {
     pub fn extract_int_inps(
         &self,
         xy: Coord,
-        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>
+        int_wires: &HashMap<rawdump::WireId, int::NodeWireId>,
     ) -> HashMap<rawdump::WireId, (rawdump::WireId, int::NodeWireId)> {
         let tile = &self.rd.tiles[&xy];
         let tk = &self.rd.tile_kinds[tile.kind];

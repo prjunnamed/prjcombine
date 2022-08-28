@@ -10,8 +10,8 @@ use serde::ser::{Serialize, SerializeSeq, Serializer};
 use crate::id::EntityIds;
 use crate::EntityId;
 
-use bitvec::vec::BitVec;
 use bitvec::order::Lsb0;
+use bitvec::vec::BitVec;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct EntityBitVec<I> {
@@ -156,7 +156,10 @@ impl<'a, I: EntityId> IntoIterator for &'a EntityBitVec<I> {
 }
 
 impl<'a, I: EntityId> IntoIterator for &'a mut EntityBitVec<I> {
-    type Item = (I, <bitvec::slice::IterMut<'a, usize, Lsb0> as Iterator>::Item);
+    type Item = (
+        I,
+        <bitvec::slice::IterMut<'a, usize, Lsb0> as Iterator>::Item,
+    );
     type IntoIter = IterMut<'a, I>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
@@ -208,7 +211,10 @@ pub struct IterMut<'a, I> {
 }
 
 impl<'a, I: EntityId> Iterator for IterMut<'a, I> {
-    type Item = (I, <bitvec::slice::IterMut<'a, usize, Lsb0> as Iterator>::Item);
+    type Item = (
+        I,
+        <bitvec::slice::IterMut<'a, usize, Lsb0> as Iterator>::Item,
+    );
     fn next(&mut self) -> Option<Self::Item> {
         let val = self.vals.next()?;
         let id = I::from_idx(self.pos);

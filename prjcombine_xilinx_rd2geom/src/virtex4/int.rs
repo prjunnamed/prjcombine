@@ -491,7 +491,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &int_xy,
             "BRAM",
             &[
-                builder.bel_xy("BRAM", "RAMB16", 0, 0)
+                builder
+                    .bel_xy("BRAM", "RAMB16", 0, 0)
                     .pins_name_only(&["CASCADEOUTA", "CASCADEOUTB"])
                     .pin_name_only("CASCADEINA", 1)
                     .pin_name_only("CASCADEINB", 1),
@@ -527,14 +528,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode_bels(
-            "DSP",
-            xy,
-            &[],
-            &int_xy,
-            "DSP",
-            &bels_dsp,
-        );
+        builder.extract_xnode_bels("DSP", xy, &[], &int_xy, "DSP", &bels_dsp);
     }
 
     for &pb_xy in rd.tiles_by_kind_name("PB") {
@@ -591,9 +585,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &int_xy,
             "PPC",
             &[
-                builder.bel_xy("PPC", "PPC405_ADV", 0, 0)
+                builder
+                    .bel_xy("PPC", "PPC405_ADV", 0, 0)
                     .pins_name_only(&dcr_pins),
-                builder.bel_xy("EMAC", "EMAC", 0, 0)
+                builder
+                    .bel_xy("EMAC", "EMAC", 0, 0)
                     .pins_name_only(&dcr_pins),
             ],
         );
