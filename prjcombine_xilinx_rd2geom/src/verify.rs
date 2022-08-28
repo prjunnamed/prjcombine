@@ -1,5 +1,4 @@
-use bitvec::vec::BitVec;
-use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityBitVec};
 use prjcombine_rawdump::{self as rawdump, Coord, Part};
 use prjcombine_xilinx_geom::{
     eint::{self, IntWire},
@@ -49,9 +48,9 @@ pub struct Verifier<'a> {
     pub db: &'a int::IntDb,
     pub grid: &'a eint::ExpandedGrid<'a>,
     pub tile_lut: HashMap<String, Coord>,
-    claimed_nodes: BitVec,
-    claimed_twires: HashMap<Coord, BitVec>,
-    claimed_pips: HashMap<Coord, BitVec>,
+    claimed_nodes: EntityBitVec<rawdump::NodeId>,
+    claimed_twires: HashMap<Coord, EntityBitVec<rawdump::TkWireId>>,
+    claimed_pips: HashMap<Coord, EntityBitVec<rawdump::TkPipId>>,
     int_wires: HashMap<IntWire, NodeOrWire>,
     int_site_wires: HashMap<IntWire, NodeOrWire>,
     missing_int_wires: HashSet<IntWire>,
@@ -86,9 +85,9 @@ impl<'a> Verifier<'a> {
             db: grid.db,
             grid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
-            claimed_nodes: BitVec::new(),
-            claimed_twires: HashMap::new(),
-            claimed_pips: HashMap::new(),
+            claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
+            claimed_twires: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].wires.len()))).collect(),
+            claimed_pips: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].pips.len()))).collect(),
             int_wires: HashMap::new(),
             int_site_wires: HashMap::new(),
             missing_int_wires: HashSet::new(),
@@ -202,10 +201,6 @@ impl<'a> Verifier<'a> {
                     nw = Some(cnw);
                     match cnw {
                         NodeOrWire::Node(nidx) => {
-                            let nidx = nidx.to_idx();
-                            if nidx >= self.claimed_nodes.len() {
-                                self.claimed_nodes.resize(nidx + 1, false);
-                            }
                             if self.claimed_nodes[nidx] {
                                 println!(
                                     "DOUBLE CLAIMED NODE {part} {tname} {wn}",
@@ -215,11 +210,7 @@ impl<'a> Verifier<'a> {
                             self.claimed_nodes.set(nidx, true);
                         }
                         NodeOrWire::Wire(crd, widx) => {
-                            let widx = widx.to_idx();
-                            let ctw = self.claimed_twires.entry(crd).or_default();
-                            if widx >= ctw.len() {
-                                ctw.resize(widx + 1, false);
-                            }
+                            let ctw = self.claimed_twires.get_mut(&crd).unwrap();
                             if ctw[widx] {
                                 println!(
                                     "DOUBLE CLAIMED NODE {part} {tname} {wn}",
@@ -253,11 +244,7 @@ impl<'a> Verifier<'a> {
             return;
         };
         if let Some((idx, _)) = tk.pips.get(&(wfi, wti)) {
-            let idx = idx.to_idx();
-            let ctp = self.claimed_pips.entry(crd).or_default();
-            if idx >= ctp.len() {
-                ctp.resize(idx + 1, false);
-            }
+            let ctp = self.claimed_pips.get_mut(&crd).unwrap();
             if ctp[idx] {
                 println!("DOUBLE CLAIMED PIP {tname} {wt} <- {wf}");
             }
