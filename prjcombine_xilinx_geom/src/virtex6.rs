@@ -368,7 +368,11 @@ impl Grid {
         res
     }
 
-    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    pub fn expand_grid<'a>(
+        &self,
+        db: &'a int::IntDb,
+        disabled: &BTreeSet<DisabledPart>,
+    ) -> eint::ExpandedGrid<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         egrid.tie_kind = Some("TIEOFF".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
@@ -376,7 +380,9 @@ impl Grid {
         let (_, mut grid) = egrid.add_slr(self.columns.len(), self.regs * 40);
 
         let mut tie_x = 0;
+        let mut tiexlut = EntityVec::new();
         for (col, &kind) in &self.columns {
+            tiexlut.push(tie_x);
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
@@ -521,6 +527,121 @@ impl Grid {
                 node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
             }
             sx += 2;
+        }
+
+        let mut hard_skip = BTreeSet::new();
+        if let Some(ref hard) = self.col_hard {
+            let mut ey = 0;
+            for &row in &hard.rows_emac {
+                hard_skip.insert(row);
+                hard_skip.insert(row + 5);
+                if disabled.contains(&DisabledPart::Virtex6Emac(row)) {
+                    continue;
+                }
+                let x = hard.col.to_idx();
+                let y = row.to_idx();
+                let crds: Vec<_> = (0..10).map(|dy| (hard.col, row + dy)).collect();
+                let name = format!("EMAC_X{x}Y{y}");
+                let node = grid[crds[0]].add_xnode(
+                    db.get_node("EMAC"),
+                    &[&name],
+                    db.get_node_naming("EMAC"),
+                    &crds,
+                );
+                node.add_bel(0, format!("TEMAC_X0Y{ey}"));
+                ey += 1;
+            }
+            for (i, &row) in hard.rows_pcie.iter().enumerate() {
+                for dy in [0, 5, 10, 15] {
+                    hard_skip.insert(row + dy);
+                }
+                let x = hard.col.to_idx() - 2;
+                let y = row.to_idx();
+                let mut crds = vec![];
+                for dy in 0..20 {
+                    crds.push((hard.col - 3, row + dy));
+                }
+                for dy in 0..20 {
+                    crds.push((hard.col - 2, row + dy));
+                }
+                let name = format!("PCIE_X{x}Y{y}", y = y + 10);
+                let node = grid[crds[0]].add_xnode(
+                    db.get_node("PCIE"),
+                    &[&name],
+                    db.get_node_naming("PCIE"),
+                    &crds,
+                );
+                node.add_bel(0, format!("PCIE_X0Y{i}"));
+            }
+        }
+
+        let mut bx = 0;
+        let mut dx = 0;
+        for (col, &cd) in &self.columns {
+            let kind = match cd {
+                ColumnKind::Bram => "BRAM",
+                ColumnKind::Dsp => "DSP",
+                _ => continue,
+            };
+            for row in grid.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                if let Some(ref hard) = self.col_hard {
+                    if hard.col == col && hard_skip.contains(&row) {
+                        continue;
+                    }
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                if cd == ColumnKind::Bram {
+                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = y / 5));
+                    node.add_bel(1, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2));
+                    node.add_bel(2, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2 + 1));
+                } else {
+                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2));
+                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2 + 1));
+                    let tx = tiexlut[col] + 1;
+                    node.add_bel(2, format!("TIEOFF_X{tx}Y{y}"));
+                }
+                if kind == "BRAM" && row.to_idx() % 40 == 20 {
+                    let mut hy = y - 1;
+                    if let Some(ref hard) = self.col_hard {
+                        if hard.col == col && hard.rows_pcie.contains(&(row - 20)) {
+                            hy = y;
+                        }
+                    }
+                    let name_h = format!("HCLK_BRAM_X{x}Y{hy}");
+                    let name_1 = format!("BRAM_X{x}Y{y}", y = y + 5);
+                    let name_2 = format!("BRAM_X{x}Y{y}", y = y + 10);
+                    let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("PMVBRAM"),
+                        &[&name_h, &name, &name_1, &name_2],
+                        db.get_node_naming("PMVBRAM"),
+                        &coords,
+                    );
+                    node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = y / 40));
+                }
+            }
+            if cd == ColumnKind::Bram {
+                bx += 1;
+            } else {
+                dx += 1;
+            }
         }
 
         for col in grid.cols() {

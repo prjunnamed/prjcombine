@@ -314,5 +314,215 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF");
+        for dy in 0..5 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+        let bel_bram_f = builder
+            .bel_xy("BRAM_F", "RAMB36", 0, 0)
+            .pins_name_only(&[
+                "CASCADEINA",
+                "CASCADEINB",
+                "TSTOUT1",
+                "TSTOUT2",
+                "TSTOUT3",
+                "TSTOUT4",
+            ])
+            .pin_name_only("CASCADEOUTA", 1)
+            .pin_name_only("CASCADEOUTB", 1);
+        let bel_bram_h0 = builder.bel_xy("BRAM_H0", "RAMB18", 0, 0);
+        let mut bel_bram_h1 = builder.bel_xy("BRAM_H1", "RAMB18", 0, 1).pins_name_only(&[
+            "FULL",
+            "EMPTY",
+            "ALMOSTFULL",
+            "ALMOSTEMPTY",
+            "WRERR",
+            "RDERR",
+        ]);
+        for i in 0..12 {
+            bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("RDCOUNT{i}"), 0);
+            bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("WRCOUNT{i}"), 0);
+        }
+        builder.extract_xnode_bels_intf(
+            "BRAM",
+            xy,
+            &[],
+            &int_xy,
+            &intf_xy,
+            "BRAM",
+            &[bel_bram_f, bel_bram_h0, bel_bram_h1],
+        );
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF");
+        for dy in 0..15 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y + 1 + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + 1 + dy,
+                },
+                n,
+            ));
+        }
+        let mut bram_xy = Vec::new();
+        for dy in [1, 6, 11] {
+            bram_xy.push(Coord {
+                x: xy.x,
+                y: xy.y + dy,
+            });
+        }
+        builder.extract_xnode_bels_intf(
+            "PMVBRAM",
+            xy,
+            &bram_xy,
+            &int_xy,
+            &intf_xy,
+            "PMVBRAM",
+            &[builder.bel_xy("PMVBRAM", "PMVBRAM", 0, 0)],
+        );
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF");
+        for dy in 0..5 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+
+        let mut bels_dsp = vec![];
+        for i in 0..2 {
+            let mut bel = builder.bel_xy(format!("DSP{i}"), "DSP48", 0, i);
+            let buf_cnt = match i {
+                0 => 0,
+                1 => 1,
+                _ => unreachable!(),
+            };
+            bel = bel.pin_name_only("MULTSIGNIN", 0);
+            bel = bel.pin_name_only("MULTSIGNOUT", buf_cnt);
+            bel = bel.pin_name_only("CARRYCASCIN", 0);
+            bel = bel.pin_name_only("CARRYCASCOUT", buf_cnt);
+            for j in 0..30 {
+                bel = bel.pin_name_only(&format!("ACIN{j}"), 0);
+                bel = bel.pin_name_only(&format!("ACOUT{j}"), buf_cnt);
+            }
+            for j in 0..18 {
+                bel = bel.pin_name_only(&format!("BCIN{j}"), 0);
+                bel = bel.pin_name_only(&format!("BCOUT{j}"), buf_cnt);
+            }
+            for j in 0..48 {
+                bel = bel.pin_name_only(&format!("PCIN{j}"), 0);
+                bel = bel.pin_name_only(&format!("PCOUT{j}"), buf_cnt);
+            }
+            bels_dsp.push(bel);
+        }
+        bels_dsp.push(
+            builder
+                .bel_xy("TIEOFF", "TIEOFF", 0, 0)
+                .pins_name_only(&["HARD0", "HARD1"]),
+        );
+        builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, "DSP", &bels_dsp);
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF.EMAC");
+        for dy in 0..10 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+        builder.extract_xnode_bels_intf(
+            "EMAC",
+            xy,
+            &[],
+            &int_xy,
+            &intf_xy,
+            "EMAC",
+            &[builder.bel_xy("EMAC", "TEMAC", 0, 0)],
+        );
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("PCIE").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let nl = builder.db.get_intf_naming("INTF.PCIE_L");
+        let nr = builder.db.get_intf_naming("INTF.PCIE_R");
+        for dy in 0..20 {
+            int_xy.push(Coord {
+                x: xy.x - 4,
+                y: xy.y - 10 + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 3,
+                    y: xy.y - 10 + dy,
+                },
+                nl,
+            ));
+        }
+        for dy in 0..20 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y - 10 + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y - 10 + dy,
+                },
+                nr,
+            ));
+        }
+        builder.extract_xnode_bels_intf(
+            "PCIE",
+            xy,
+            &[],
+            &int_xy,
+            &intf_xy,
+            "PCIE",
+            &[builder.bel_xy("PCIE", "PCIE", 0, 0)],
+        );
+    }
+
     builder.build()
 }

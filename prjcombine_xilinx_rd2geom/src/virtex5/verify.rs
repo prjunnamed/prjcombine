@@ -97,8 +97,6 @@ pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "EMAC" => vrf.verify_bel(bel, "TEMAC", &[], &[]),
         "PCIE" => vrf.verify_bel(bel, "PCIE", &[], &[]),
         "PPC" => vrf.verify_bel(bel, "PPC440", &[], &[]),
-        _ => {
-            println!("MEOW {} {:?}", bel.key, bel.name);
-        }
+        _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }
