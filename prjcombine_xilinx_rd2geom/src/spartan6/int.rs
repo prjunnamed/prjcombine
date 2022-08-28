@@ -312,6 +312,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "BRAM",
             xy,
             &[],
+            &[],
             &intf_xy,
             "BRAM",
             &[
@@ -346,7 +347,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel_dsp = bel_dsp.pin_name_only(&format!("PCIN{i}"), 0);
             bel_dsp = bel_dsp.pin_name_only(&format!("PCOUT{i}"), 1);
         }
-        builder.extract_xnode_bels_intf("DSP", xy, &[], &intf_xy, "DSP", &[bel_dsp]);
+        builder.extract_xnode_bels_intf("DSP", xy, &[], &[], &intf_xy, "DSP", &[bel_dsp]);
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
@@ -374,6 +375,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_xnode_bels_intf(
             "PCIE",
             xy,
+            &[],
             &[],
             &intf_xy,
             "PCIE",

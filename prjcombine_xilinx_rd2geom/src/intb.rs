@@ -27,6 +27,7 @@ pub enum BelPinInfo {
 }
 
 struct BufInfo {
+    jumps: HashMap<rawdump::WireId, rawdump::WireId>,
     bufs: HashMap<rawdump::WireId, (int::PinDir, rawdump::WireId, rawdump::WireId)>,
     int_wires: HashMap<rawdump::WireId, (IntConnKind, int::NodeWireId)>,
     int_outs: HashMap<rawdump::WireId, (IntConnKind, Vec<(rawdump::WireId, int::NodeWireId)>)>,
@@ -717,6 +718,41 @@ impl<'a> IntBuilder<'a> {
                                         pips,
                                         BTreeMap::new(),
                                     );
+                                }
+                            }
+                        }
+                    }
+                    if let Some(&wo) = bi.jumps.get(&wn) {
+                        if dir == int::PinDir::Output {
+                            if let Some(&(ick, ref ws)) = bi.int_outs.get(&wo) {
+                                if ws.len() == 1 {
+                                    pips.push(int::NodeExtPipNaming {
+                                        tile: int::NodeRawTileId::from_idx(1 + i),
+                                        wire_to: self.rd.wires[ws[0].0].clone(),
+                                        wire_from: self.rd.wires[wo].clone(),
+                                    });
+                                    return (
+                                        ick,
+                                        [ws[0].1].into_iter().collect(),
+                                        wn,
+                                        pips,
+                                        BTreeMap::new(),
+                                    );
+                                } else {
+                                    let mut int_pips = BTreeMap::new();
+                                    let mut int_wires = BTreeSet::new();
+                                    for &(fwn, fw) in ws {
+                                        int_wires.insert(fw);
+                                        int_pips.insert(
+                                            fw,
+                                            int::NodeExtPipNaming {
+                                                tile: int::NodeRawTileId::from_idx(1 + i),
+                                                wire_to: self.rd.wires[fwn].clone(),
+                                                wire_from: self.rd.wires[wo].clone(),
+                                            },
+                                        );
+                                    }
+                                    return (ick, int_wires, wn, pips, int_pips);
                                 }
                             }
                         }
@@ -2315,7 +2351,7 @@ impl<'a> IntBuilder<'a> {
                     int::IntfWireInNaming::Simple(n) | int::IntfWireInNaming::TestBuf(_, n) => {
                         name2wire.insert(&n[..], (IntConnKind::Raw, (tid, k)));
                     }
-                    int::IntfWireInNaming::Delay(n, _, _) => {
+                    int::IntfWireInNaming::Buf(n, _) | int::IntfWireInNaming::Delay(n, _, _) => {
                         name2wire.insert(&n[..], (IntConnKind::IntfIn, (tid, k)));
                     }
                 }
@@ -2363,6 +2399,34 @@ impl<'a> IntBuilder<'a> {
                 if let Some(&nidx) = tile.conn_wires.get(idx) {
                     if let Some(&wd) = node2wire.get(&nidx) {
                         names.insert(wi, wd);
+                    }
+                }
+            }
+        }
+        names
+    }
+
+    pub fn extract_buf_jumps(
+        &self,
+        xy: Coord,
+        buf_xy: Coord,
+    ) -> HashMap<rawdump::WireId, rawdump::WireId> {
+        let mut names = HashMap::new();
+        let buf_tile = &self.rd.tiles[&buf_xy];
+        let buf_tk = &self.rd.tile_kinds[buf_tile.kind];
+        let mut node2wires: HashMap<_, Vec<_>> = HashMap::new();
+        for &w in buf_tk.wires.keys() {
+            if let Some(node) = self.get_node(buf_tile, buf_tk, w) {
+                node2wires.entry(node).or_default().push(w);
+            }
+        }
+        let tile = &self.rd.tiles[&xy];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        for &w in tk.wires.keys() {
+            if let Some(node) = self.get_node(tile, tk, w) {
+                if let Some(ws) = node2wires.get(&node) {
+                    if ws.len() == 1 {
+                        names.insert(w, ws[0]);
                     }
                 }
             }
@@ -2520,7 +2584,9 @@ impl<'a> IntBuilder<'a> {
                 let int_wires = self.extract_names(x, int_xy);
                 let int_outs = self.extract_int_outs(x, &int_wires);
                 let int_inps = self.extract_int_inps(x, &int_wires);
+                let jumps = self.extract_buf_jumps(xy, x);
                 BufInfo {
+                    jumps,
                     bufs: self.extract_buf_names(xy, x),
                     int_outs,
                     int_inps,
@@ -2559,7 +2625,9 @@ impl<'a> IntBuilder<'a> {
                 let int_wires = self.extract_names(x, int_xy);
                 let int_outs = self.extract_int_outs(x, &int_wires);
                 let int_inps = self.extract_int_inps(x, &int_wires);
+                let jumps = self.extract_buf_jumps(xy, x);
                 BufInfo {
+                    jumps,
                     bufs: self.extract_buf_names(xy, x),
                     int_outs,
                     int_inps,
@@ -2578,12 +2646,14 @@ impl<'a> IntBuilder<'a> {
         name: &str,
         xy: Coord,
         buf_xy: &[Coord],
+        int_xy: &[Coord],
         intf_xy: &[(Coord, int::IntfNamingId)],
         naming: &str,
         bels: &[BelInfo],
     ) {
         let tile = &self.rd.tiles[&xy];
-        let names = self.extract_intf_names(xy, intf_xy);
+        let mut names = self.extract_names(xy, int_xy);
+        names.extend(self.extract_intf_names(xy, intf_xy));
 
         let mut node = int::NodeKind {
             tiles: intf_xy.iter().map(|_| ()).collect(),
@@ -2595,10 +2665,13 @@ impl<'a> IntBuilder<'a> {
         let bufs: Vec<_> = buf_xy
             .iter()
             .map(|&x| {
-                let int_wires = self.extract_intf_names(x, intf_xy);
+                let mut int_wires = self.extract_names(x, int_xy);
+                int_wires.extend(self.extract_intf_names(x, intf_xy));
                 let int_outs = self.extract_int_outs(x, &int_wires);
                 let int_inps = self.extract_int_inps(x, &int_wires);
+                let jumps = self.extract_buf_jumps(xy, x);
                 BufInfo {
+                    jumps,
                     bufs: self.extract_buf_names(xy, x),
                     int_outs,
                     int_inps,

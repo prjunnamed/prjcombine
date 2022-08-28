@@ -797,6 +797,10 @@ impl<'a> Verifier<'a> {
                                 self.pin_int_wire(crd, wfn, (slr, (col, row), wf));
                                 self.claim_pip(crd, wtn, wfbn);
                             }
+                            int::IntfWireInNaming::Buf(_, ref wfn) => {
+                                self.pin_int_wire(crd, wfn, (slr, (col, row), wf));
+                                self.claim_pip(crd, wtn, wfn);
+                            }
                             int::IntfWireInNaming::Delay(ref wfon, _, ref wfn) => {
                                 self.pin_int_wire(crd, wfn, (slr, (col, row), wf));
                                 self.claim_pip(crd, wtn, wfon);
@@ -806,10 +810,15 @@ impl<'a> Verifier<'a> {
                 }
             }
         }
-        for (_, iwin) in &naming.wires_in {
+        for (wf, iwin) in &naming.wires_in {
             if let &int::IntfWireInNaming::TestBuf(ref wfbn, ref wfn) = iwin {
                 self.claim_node(&[(crd, wfbn)]);
                 self.claim_pip(crd, wfbn, wfn);
+            }
+            if let &int::IntfWireInNaming::Buf(ref wfbn, ref wfn) = iwin {
+                if self.pin_int_site_wire(crd, wfbn, (slr, (col, row), wf)) {
+                    self.claim_pip(crd, wfbn, wfn);
+                }
             }
         }
     }

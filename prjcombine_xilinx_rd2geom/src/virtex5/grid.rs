@@ -45,7 +45,7 @@ fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
 
 fn get_cols_mgt_buf(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     let mut res = BTreeSet::new();
-    for c in find_columns(rd, &["HCLK_BRAM_MGT, HCLK_BRAM_MGT_LEFT"]) {
+    for c in find_columns(rd, &["HCLK_BRAM_MGT", "HCLK_BRAM_MGT_LEFT"]) {
         res.insert(int.lookup_column(c - 2));
     }
     res
@@ -94,6 +94,7 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
         assert_eq!(y.to_idx() % 20, 0);
         res.push((x, y));
     }
+    res.sort();
     res
 }
 

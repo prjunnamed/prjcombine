@@ -249,4 +249,5 @@ pub enum IntfWireInNaming {
     Simple(String),
     TestBuf(String, String),
     Delay(String, String, String),
+    Buf(String, String),
 }

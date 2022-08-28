@@ -482,7 +482,7 @@ impl Grid {
             }
         }
 
-        for &(bc, br) in &self.holes_ppc {
+        for (py, &(bc, br)) in self.holes_ppc.iter().enumerate() {
             grid.nuke_rect(bc + 1, br, 12, 40);
             let col_l = bc;
             let col_r = bc + 13;
@@ -541,6 +541,24 @@ impl Grid {
                     format!("PPC_T_TERM_X{x}Y{yt}"),
                 );
             }
+            let mut crds = vec![];
+            for dy in 0..40 {
+                crds.push((col_l, br + dy));
+            }
+            for dy in 0..40 {
+                crds.push((col_r, br + dy));
+            }
+            let yb = br.to_idx() / 10 * 11 + 11;
+            let yt = br.to_idx() / 10 * 11 + 33;
+            let tile_pb = format!("PPC_B_X36Y{yb}");
+            let tile_pt = format!("PPC_T_X36Y{yt}");
+            let node = grid[(bc, br)].add_xnode(
+                db.get_node("PPC"),
+                &[&tile_pb, &tile_pt],
+                db.get_node_naming("PPC"),
+                &crds,
+            );
+            node.add_bel(0, format!("PPC440_X0Y{py}"));
         }
 
         let row_b = grid.rows().next().unwrap();
@@ -643,6 +661,118 @@ impl Grid {
                 node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
             }
             sx += 2;
+        }
+
+        let mut hard_skip = BTreeSet::new();
+        if let Some(ref hard) = self.col_hard {
+            for (i, &row) in hard.rows_emac.iter().enumerate() {
+                hard_skip.insert(row);
+                hard_skip.insert(row + 5);
+                let x = hard.col.to_idx();
+                let y = row.to_idx();
+                let crds: Vec<_> = (0..10).map(|dy| (hard.col, row + dy)).collect();
+                let name = format!("EMAC_X{x}Y{y}");
+                let node = grid[crds[0]].add_xnode(
+                    db.get_node("EMAC"),
+                    &[&name],
+                    db.get_node_naming("EMAC"),
+                    &crds,
+                );
+                node.add_bel(0, format!("TEMAC_X0Y{i}"));
+            }
+            for (i, &row) in hard.rows_pcie.iter().enumerate() {
+                for dy in [0, 5, 10, 15, 20, 25, 30, 35] {
+                    hard_skip.insert(row + dy);
+                }
+                let x = hard.col.to_idx();
+                let y = row.to_idx();
+                let crds: Vec<_> = (0..40).map(|dy| (hard.col, row + dy)).collect();
+                let name_b = format!("PCIE_B_X{x}Y{y}", y = y + 10);
+                let name_t = format!("PCIE_T_X{x}Y{y}", y = y + 30);
+                let node = grid[crds[0]].add_xnode(
+                    db.get_node("PCIE"),
+                    &[&name_b, &name_t],
+                    db.get_node_naming("PCIE"),
+                    &crds,
+                );
+                node.add_bel(0, format!("PCIE_X0Y{i}"));
+            }
+        }
+
+        let mut px = 0;
+        let mut bx = 0;
+        let mut dx = 0;
+        for (col, &cd) in &self.columns {
+            let kind = match cd {
+                ColumnKind::Bram => "BRAM",
+                ColumnKind::Dsp => "DSP",
+                _ => continue,
+            };
+            let tk = if let Some(ref hard) = self.col_hard && hard.col == col {
+                "PCIE_BRAM"
+            } else {
+                kind
+            };
+            'a: for row in grid.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                for &(bc, br) in &self.holes_ppc {
+                    if col >= bc && col < bc + 14 && row >= br && row < br + 40 {
+                        continue 'a;
+                    }
+                }
+                if let Some(ref hard) = self.col_hard {
+                    if hard.col == col && hard_skip.contains(&row) {
+                        continue;
+                    }
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{tk}_X{x}Y{y}");
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(kind),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                if cd == ColumnKind::Bram {
+                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = y / 5));
+                } else {
+                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2));
+                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2 + 1));
+                }
+                if kind == "BRAM" && row.to_idx() % 20 == 10 && !self.cols_mgt_buf.contains(&col) {
+                    let name_h = format!("HCLK_{tk}_X{x}Y{y}", y = y - 1);
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("PMVBRAM"),
+                        &[&name_h, &name],
+                        db.get_node_naming("PMVBRAM"),
+                        &[
+                            (col, row),
+                            (col, row + 1),
+                            (col, row + 2),
+                            (col, row + 3),
+                            (col, row + 4),
+                        ],
+                    );
+                    node.add_bel(0, format!("PMVBRAM_X{px}Y{sy}", sy = y / 20));
+                }
+            }
+            if cd == ColumnKind::Bram {
+                bx += 1;
+                if !self.cols_mgt_buf.contains(&col) {
+                    px += 1;
+                }
+            } else {
+                dx += 1;
+            }
         }
 
         for col in grid.cols() {
