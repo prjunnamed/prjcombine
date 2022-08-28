@@ -51,6 +51,7 @@ pub struct Verifier<'a> {
     claimed_nodes: EntityBitVec<rawdump::NodeId>,
     claimed_twires: HashMap<Coord, EntityBitVec<rawdump::TkWireId>>,
     claimed_pips: HashMap<Coord, EntityBitVec<rawdump::TkPipId>>,
+    claimed_sites: HashMap<Coord, EntityBitVec<rawdump::TkSiteId>>,
     int_wires: HashMap<IntWire, NodeOrWire>,
     int_site_wires: HashMap<IntWire, NodeOrWire>,
     missing_int_wires: HashSet<IntWire>,
@@ -88,6 +89,7 @@ impl<'a> Verifier<'a> {
             claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
             claimed_twires: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].wires.len()))).collect(),
             claimed_pips: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].pips.len()))).collect(),
+            claimed_sites: rd.tiles.iter().map(|(&k, v)| (k, EntityBitVec::repeat(false, rd.tile_kinds[v.kind].sites.len()))).collect(),
             int_wires: HashMap::new(),
             int_site_wires: HashMap::new(),
             missing_int_wires: HashSet::new(),
@@ -260,6 +262,11 @@ impl<'a> Verifier<'a> {
         for (i, n) in tile.sites.iter() {
             if n == name {
                 let site = &tk.sites[i];
+                let cts = self.claimed_sites.get_mut(&crd).unwrap();
+                if cts[i] {
+                    println!("DOUBLE CLAIMED SITE {name}");
+                }
+                cts.set(i, true);
                 if site.kind != kind {
                     println!(
                         "MISMATCHED SITE KIND {} {} {} {} {}",
