@@ -778,6 +778,25 @@ impl Grid {
                     fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
                     fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
                 }
+                if !disabled.contains(&DisabledPart::Spartan6Gtp) {
+                    let mut crd = vec![];
+                    for dy in 0..16 {
+                        crd.push((col_l, row_to - 31 + dy));
+                    }
+                    for dy in 0..16 {
+                        crd.push((col_r, row_to - 31 + dy));
+                    }
+                    let x = bc.to_idx();
+                    let y = row_to.to_idx() - 32;
+                    let name = format!("PCIE_TOP_X{x}Y{y}");
+                    let node = grid[crd[0]].add_xnode(
+                        db.get_node("PCIE"),
+                        &[&name],
+                        db.get_node_naming("PCIE"),
+                        &crd,
+                    );
+                    node.add_bel(0, "PCIE_X0Y0".to_string());
+                }
             }
             _ => (),
         }
@@ -993,6 +1012,102 @@ impl Grid {
                 node.add_bel(1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
             }
             sx += 2;
+        }
+
+        let mut bx = 0;
+        let mut bby = 0;
+        'a: for reg in 0..(self.rows.len() as u32 / 16) {
+            for (col, &cd) in &self.columns {
+                if cd.kind == ColumnKind::Bram
+                    && !disabled.contains(&DisabledPart::Spartan6BramRegion(col, reg))
+                {
+                    break 'a;
+                }
+            }
+            bby += 8;
+        }
+        for (col, &cd) in &self.columns {
+            if cd.kind != ColumnKind::Bram {
+                continue;
+            }
+            for row in grid.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                let reg = row.to_idx() as u32 / 16;
+                if disabled.contains(&DisabledPart::Spartan6BramRegion(col, reg)) {
+                    continue;
+                }
+                let tile = &mut grid[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let by = row.to_idx() / 2 - bby;
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("BRAMSITE2_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node("BRAM"),
+                    &[&name],
+                    db.get_node_naming("BRAM"),
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                );
+                node.add_bel(0, format!("RAMB16_X{bx}Y{by}"));
+                node.add_bel(1, format!("RAMB8_X{bx}Y{by}"));
+                node.add_bel(2, format!("RAMB8_X{bx}Y{by}", by = by + 1));
+            }
+            bx += 1;
+        }
+
+        let mut dx = 0;
+        let mut bdy = 0;
+        'a: for reg in 0..(self.rows.len() as u32 / 16) {
+            for (col, &cd) in &self.columns {
+                if matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus)
+                    && !disabled.contains(&DisabledPart::Spartan6DspRegion(col, reg))
+                {
+                    break 'a;
+                }
+            }
+            bdy += 4;
+        }
+        for (col, &cd) in &self.columns {
+            if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
+                continue;
+            }
+            for row in grid.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                let reg = row.to_idx() as u32 / 16;
+                if disabled.contains(&DisabledPart::Spartan6DspRegion(col, reg)) {
+                    continue;
+                }
+                if cd.kind == ColumnKind::DspPlus {
+                    if row.to_idx() >= self.rows.len() - 16 {
+                        continue;
+                    }
+                    if matches!(self.gts, Gts::Quad(_, _)) && row.to_idx() < 16 {
+                        continue;
+                    }
+                }
+                let tile = &mut grid[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let dy = row.to_idx() / 4 - bdy;
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("MACCSITE2_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node("DSP"),
+                    &[&name],
+                    db.get_node_naming("DSP"),
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                );
+                node.add_bel(0, format!("DSP48_X{dx}Y{dy}"));
+            }
+            dx += 1;
         }
 
         for col in grid.cols() {

@@ -531,6 +531,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             BelPin {
                 wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Input,
+                is_intf_in: false,
             },
         );
         bram_bt_forbidden.push(w);
@@ -568,6 +569,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             BelPin {
                 wires: [(NodeTileId::from_idx(0), w)].into_iter().collect(),
                 dir: PinDir::Output,
+                is_intf_in: false,
             },
         );
     }
@@ -922,6 +924,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             name_far: name,
                             pips: Vec::new(),
                             int_pips: BTreeMap::new(),
+                            is_intf_out: false,
                         },
                     )
                 })

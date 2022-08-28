@@ -149,6 +149,7 @@ pub struct BelInfo {
 pub struct BelPin {
     pub wires: BTreeSet<NodeWireId>,
     pub dir: PinDir,
+    pub is_intf_in: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -184,6 +185,7 @@ pub struct BelPinNaming {
     pub name_far: String,
     pub pips: Vec<NodeExtPipNaming>,
     pub int_pips: BTreeMap<NodeWireId, NodeExtPipNaming>,
+    pub is_intf_out: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

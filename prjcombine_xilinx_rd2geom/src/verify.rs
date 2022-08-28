@@ -179,14 +179,34 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_site_wire(&mut self, crd: Coord, wire: &str, iw: IntWire) -> bool {
-        if self.int_site_wires.get(&iw).is_some() {
-            let tname = &self.rd.tiles[&crd].name;
-            println!(
-                "INT SITE NODE DOUBLE PIN FOR {p} {tname} {wire} {iw:?} {wn}",
-                p = self.rd.part,
-                wn = self.db.wires[iw.2].name
-            );
-            true
+        if let Some(&nw) = self.int_site_wires.get(&iw) {
+            if let Some(cnw) = self.lookup_wire(crd, wire) {
+                if nw != cnw {
+                    let tname = &self.rd.tiles[&crd].name;
+                    println!(
+                        "INT SITE NODE MISMATCH FOR {p} {tname} {wire} {iw:?} {wn}",
+                        p = self.rd.part,
+                        wn = self.db.wires[iw.2].name
+                    );
+                }
+                true
+            } else {
+                let tname = &self.rd.tiles[&crd].name;
+                println!("INT SITE NODE PRESENT FOR {tname} {wire} BUT WIRE NOT FOUND");
+                false
+            }
+        } else if self.missing_int_site_wires.contains(&iw) {
+            if let Some(cnw) = self.lookup_wire(crd, wire) {
+                let tname = &self.rd.tiles[&crd].name;
+                println!("INT SITE NODE PRESENT FOR {tname} {wire} BUT WAS MISSING PREVIOUSLY");
+                self.claim_node(&[(crd, wire)]);
+                self.int_site_wires.insert(iw, cnw);
+                true
+            } else {
+                let tname = &self.rd.tiles[&crd].name;
+                println!("INT SITEE WIRE {tname} {wire} MISSING TWICE");
+                false
+            }
         } else if let Some(cnw) = self.lookup_wire(crd, wire) {
             self.claim_node(&[(crd, wire)]);
             self.int_site_wires.insert(iw, cnw);
@@ -551,18 +571,28 @@ impl<'a> Verifier<'a> {
                         .grid
                         .resolve_wire_raw((slr, node.tiles[w.0], w.1))
                         .unwrap();
+                    let wcrd;
+                    let ww: &str;
                     if let Some(pip) = n.int_pips.get(&w) {
                         self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
                         if v.dir == int::PinDir::Input {
                             self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
-                            self.pin_int_wire(crds[pip.tile], &pip.wire_from, wire);
+                            wcrd = crds[pip.tile];
+                            ww = &pip.wire_from;
                         } else {
                             self.verify_node(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
-                            self.pin_int_wire(crds[pip.tile], &pip.wire_to, wire);
+                            wcrd = crds[pip.tile];
+                            ww = &pip.wire_to;
                         }
                     } else {
-                        self.pin_int_wire(crd, wn, wire);
+                        wcrd = crd;
+                        ww = wn;
                         claim = false;
+                    }
+                    if v.is_intf_in || n.is_intf_out {
+                        self.pin_int_site_wire(wcrd, ww, wire);
+                    } else {
+                        self.pin_int_wire(wcrd, ww, wire);
                     }
                 }
                 if claim {

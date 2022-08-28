@@ -296,5 +296,90 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("BRAMSITE2").iter().next() {
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF");
+        for dy in 0..4 {
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+        builder.extract_xnode_bels_intf(
+            "BRAM",
+            xy,
+            &[],
+            &intf_xy,
+            "BRAM",
+            &[
+                builder.bel_xy("BRAM_F", "RAMB16", 0, 0),
+                builder.bel_xy("BRAM_H0", "RAMB8", 0, 0),
+                builder.bel_xy("BRAM_H1", "RAMB8", 0, 1),
+            ],
+        );
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("MACCSITE2").iter().next() {
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF");
+        for dy in 0..4 {
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+        let mut bel_dsp = builder
+            .bel_xy("DSP", "DSP48", 0, 0)
+            .pin_name_only("CARRYIN", 0)
+            .pin_name_only("CARRYOUT", 1);
+        for i in 0..18 {
+            bel_dsp = bel_dsp.pin_name_only(&format!("BCIN{i}"), 0);
+            bel_dsp = bel_dsp.pin_name_only(&format!("BCOUT{i}"), 1);
+        }
+        for i in 0..48 {
+            bel_dsp = bel_dsp.pin_name_only(&format!("PCIN{i}"), 0);
+            bel_dsp = bel_dsp.pin_name_only(&format!("PCOUT{i}"), 1);
+        }
+        builder.extract_xnode_bels_intf("DSP", xy, &[], &intf_xy, "DSP", &[bel_dsp]);
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
+        let mut intf_xy = Vec::new();
+        let nr = builder.db.get_intf_naming("INTF.RTERM");
+        let nl = builder.db.get_intf_naming("INTF.LTERM");
+        for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 5,
+                    y: xy.y - 9 + dy,
+                },
+                nr,
+            ));
+        }
+        for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
+            intf_xy.push((
+                Coord {
+                    x: xy.x + 2,
+                    y: xy.y - 9 + dy,
+                },
+                nl,
+            ));
+        }
+        builder.extract_xnode_bels_intf(
+            "PCIE",
+            xy,
+            &[],
+            &intf_xy,
+            "PCIE",
+            &[builder.bel_xy("PCIE", "PCIE", 0, 0)],
+        );
+    }
+
     builder.build()
 }

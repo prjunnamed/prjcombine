@@ -26,6 +26,32 @@ pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "SLICE1" => {
             vrf.verify_bel(bel, "SLICEX", &[], &[]);
         }
+        "BRAM_F" => vrf.verify_bel(bel, "RAMB16BWER", &[], &[]),
+        _ if bel.key.starts_with("BRAM_H") => vrf.verify_bel(bel, "RAMB8BWER", &[], &[]),
+        "DSP" => {
+            let carry: Vec<_> = (0..18)
+                .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
+                .chain((0..48).map(|x| (format!("PCOUT{x}"), format!("PCIN{x}"))))
+                .chain([("CARRYOUT".to_string(), "CARRYIN".to_string())].into_iter())
+                .collect();
+            let mut pins = vec![];
+            for (o, i) in &carry {
+                pins.push((&**o, SitePinDir::Out));
+                pins.push((&**i, SitePinDir::In));
+            }
+            vrf.verify_bel(bel, "DSP48A1", &pins, &[]);
+            for (o, i) in &carry {
+                vrf.claim_node(&[bel.fwire(o)]);
+                vrf.claim_node(&[bel.fwire(i)]);
+            }
+            if let Some(obel) = vrf.find_bel_walk(bel, 0, -4, "DSP") {
+                for (o, i) in &carry {
+                    vrf.verify_node(&[bel.fwire(i), obel.fwire_far(o)]);
+                    vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
+                }
+            }
+        }
+        "PCIE" => vrf.verify_bel(bel, "PCIE_A1", &[], &[]),
         _ => {
             println!("MEOW {} {:?}", bel.key, bel.name);
         }
