@@ -519,5 +519,164 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF.W");
+        for dy in 0..5 {
+            int_xy.push(Coord {
+                x: xy.x + 2,
+                y: xy.y + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x + 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+        let mut bel_bram_f = builder
+            .bel_xy("BRAM_F", "RAMB36", 0, 0)
+            .pin_name_only("CASINSBITERR", 1)
+            .pin_name_only("CASINDBITERR", 1)
+            .pin_name_only("CASOUTSBITERR", 0)
+            .pin_name_only("CASOUTDBITERR", 0)
+            .pin_name_only("CASPRVEMPTY", 1)
+            .pin_name_only("CASPRVRDEN", 1)
+            .pin_name_only("CASNXTEMPTY", 1)
+            .pin_name_only("CASNXTRDEN", 1)
+            .pin_name_only("CASMBIST12OUT", 0)
+            .pin_name_only("ENABLE_BIST", 1)
+            .pin_name_only("START_RSR_NEXT", 0);
+        let mut bel_bram_h0 = builder
+            .bel_xy("BRAM_H0", "RAMB18", 0, 0)
+            .pin_name_only("CASPRVEMPTY", 0)
+            .pin_name_only("CASPRVRDEN", 0)
+            .pin_name_only("CASNXTEMPTY", 0)
+            .pin_name_only("CASNXTRDEN", 0);
+        let mut bel_bram_h1 = builder.bel_xy("BRAM_H1", "RAMB18", 0, 1);
+        for ab in ['A', 'B'] {
+            for ul in ['U', 'L'] {
+                for i in 0..16 {
+                    bel_bram_f = bel_bram_f.pin_name_only(&format!("CASDI{ab}{ul}{i}"), 1);
+                    bel_bram_f = bel_bram_f.pin_name_only(&format!("CASDO{ab}{ul}{i}"), 1);
+                }
+                for i in 0..2 {
+                    bel_bram_f = bel_bram_f.pin_name_only(&format!("CASDIP{ab}{ul}{i}"), 1);
+                    bel_bram_f = bel_bram_f.pin_name_only(&format!("CASDOP{ab}{ul}{i}"), 1);
+                }
+            }
+            for i in 0..16 {
+                bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("CASDI{ab}L{i}"), 0);
+                bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("CASDO{ab}L{i}"), 0);
+            }
+            for i in 0..2 {
+                bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("CASDIP{ab}L{i}"), 0);
+                bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("CASDOP{ab}L{i}"), 0);
+            }
+            for i in 0..16 {
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDI{ab}U{i}"), 0);
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDO{ab}U{i}"), 0);
+            }
+            for i in 0..2 {
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDIP{ab}U{i}"), 0);
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDOP{ab}U{i}"), 0);
+            }
+        }
+        builder.extract_xnode_bels_intf(
+            "BRAM",
+            xy,
+            &[],
+            &int_xy,
+            &intf_xy,
+            "BRAM",
+            &[bel_bram_f, bel_bram_h0, bel_bram_h1],
+        );
+    }
+
+    for tkn in [
+        "RCLK_BRAM_L",
+        "RCLK_BRAM_R",
+        "RCLK_RCLK_BRAM_L_AUXCLMP_FT",
+        "RCLK_RCLK_BRAM_L_BRAMCLMP_FT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let n = builder.db.get_intf_naming("INTF.W");
+            let int_xy = Coord {
+                x: xy.x + 2,
+                y: xy.y + 1,
+            };
+            let intf_xy = (
+                Coord {
+                    x: xy.x + 1,
+                    y: xy.y + 1,
+                },
+                n,
+            );
+
+            let mut bels = vec![];
+            for (i, x, y) in [(0, 0, 0), (1, 0, 1), (2, 1, 0), (3, 1, 1)] {
+                bels.push(builder.bel_xy(format!("HARD_SYNC{i}"), "HARD_SYNC", x, y));
+            }
+            builder.extract_xnode_bels_intf(
+                "HARD_SYNC",
+                xy,
+                &[],
+                &[int_xy],
+                &[intf_xy],
+                "HARD_SYNC",
+                &bels,
+            );
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let n = builder.db.get_intf_naming("INTF.E");
+        for dy in 0..5 {
+            int_xy.push(Coord {
+                x: xy.x - 2,
+                y: xy.y + dy,
+            });
+            intf_xy.push((
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                },
+                n,
+            ));
+        }
+
+        let mut bels_dsp = vec![];
+        for i in 0..2 {
+            let mut bel = builder.bel_xy(format!("DSP{i}"), "DSP48E2", 0, i);
+            let buf_cnt = match i {
+                0 => 1,
+                1 => 0,
+                _ => unreachable!(),
+            };
+            bel = bel.pin_name_only("MULTSIGNIN", buf_cnt);
+            bel = bel.pin_name_only("MULTSIGNOUT", 0);
+            bel = bel.pin_name_only("CARRYCASCIN", buf_cnt);
+            bel = bel.pin_name_only("CARRYCASCOUT", 0);
+            for j in 0..30 {
+                bel = bel.pin_name_only(&format!("ACIN_B{j}"), buf_cnt);
+                bel = bel.pin_name_only(&format!("ACOUT_B{j}"), 0);
+            }
+            for j in 0..18 {
+                bel = bel.pin_name_only(&format!("BCIN_B{j}"), buf_cnt);
+                bel = bel.pin_name_only(&format!("BCOUT_B{j}"), 0);
+            }
+            for j in 0..48 {
+                bel = bel.pin_name_only(&format!("PCIN{j}"), buf_cnt);
+                bel = bel.pin_name_only(&format!("PCOUT{j}"), 0);
+            }
+            bels_dsp.push(bel);
+        }
+        builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, "DSP", &bels_dsp);
+    }
+
     builder.build()
 }

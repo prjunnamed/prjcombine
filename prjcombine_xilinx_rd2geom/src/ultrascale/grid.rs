@@ -1,8 +1,8 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_rawdump::{NodeId, Part};
 use prjcombine_xilinx_geom::ultrascale::{
-    self, ColSide, Column, ColumnKindLeft, ColumnKindRight, GridKind, HardColumn, HardRowKind,
-    IoColumn, IoRowKind, Ps,
+    self, BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DspKind,
+    GridKind, HardColumn, HardRowKind, IoColumn, IoRowKind, Ps,
 };
 use prjcombine_xilinx_geom::{ColId, DisabledPart, SlrId};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -14,12 +14,16 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         int.cols.map_values(|_| (None, None));
     for (tkn, delta, kind) in [
         ("CLEL_L", 1, ColumnKindLeft::CleL),
-        ("CLE_M", 1, ColumnKindLeft::CleM),
-        ("CLE_M_R", 1, ColumnKindLeft::CleM),
-        ("CLEM", 1, ColumnKindLeft::CleM),
-        ("CLEM_R", 1, ColumnKindLeft::CleM),
-        ("INT_INTF_LEFT_TERM_PSS", 1, ColumnKindLeft::CleM),
-        ("BRAM", 2, ColumnKindLeft::Bram),
+        ("CLE_M", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
+        ("CLE_M_R", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
+        ("CLEM", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
+        ("CLEM_R", 1, ColumnKindLeft::CleM(CleMKind::Plain)),
+        (
+            "INT_INTF_LEFT_TERM_PSS",
+            1,
+            ColumnKindLeft::CleM(CleMKind::Plain),
+        ),
+        ("BRAM", 2, ColumnKindLeft::Bram(BramKind::Plain)),
         ("URAM_URAM_FT", 2, ColumnKindLeft::Uram),
         ("INT_INT_INTERFACE_GT_LEFT_FT", 1, ColumnKindLeft::Gt),
         ("INT_INTF_L_TERM_GT", 1, ColumnKindLeft::Gt),
@@ -32,8 +36,8 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         }
     }
     for (tkn, delta, kind) in [
-        ("CLEL_R", 1, ColumnKindRight::CleL),
-        ("DSP", 2, ColumnKindRight::Dsp),
+        ("CLEL_R", 1, ColumnKindRight::CleL(CleLKind::Plain)),
+        ("DSP", 2, ColumnKindRight::Dsp(DspKind::Plain)),
         ("URAM_URAM_FT", 2, ColumnKindRight::Uram),
         ("INT_INTERFACE_GT_R", 1, ColumnKindRight::Gt),
         ("INT_INTF_R_TERM_GT", 1, ColumnKindRight::Gt),
@@ -82,45 +86,58 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
     }
     for c in int.find_columns(&["RCLK_CLEM_CLKBUF_L"]) {
         let c = int.lookup_column(c + 1);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM));
-        res[c].0 = Some(ColumnKindLeft::CleMClkBuf);
+        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
+        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::ClkBuf));
     }
     for c in int.find_columns(&["LAGUNA_TILE"]) {
         let c = int.lookup_column(c + 1);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM));
-        res[c].0 = Some(ColumnKindLeft::CleMLaguna);
+        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
+        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::Laguna));
     }
     for c in int.find_columns(&["LAG_LAG"]) {
         let c = int.lookup_column(c + 2);
-        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM));
-        res[c].0 = Some(ColumnKindLeft::CleMLaguna);
+        assert_eq!(res[c].0, Some(ColumnKindLeft::CleM(CleMKind::Plain)));
+        res[c].0 = Some(ColumnKindLeft::CleM(CleMKind::Laguna));
     }
     for c in int.find_columns(&["RCLK_CLEL_R_DCG10_R"]) {
         let c = int.lookup_column(c - 1);
-        assert_eq!(res[c].1, Some(ColumnKindRight::CleL));
-        res[c].1 = Some(ColumnKindRight::CleLDcg10);
+        assert_eq!(res[c].1, Some(ColumnKindRight::CleL(CleLKind::Plain)));
+        res[c].1 = Some(ColumnKindRight::CleL(CleLKind::Dcg10));
     }
     for (tkn, kind) in [
-        ("RCLK_RCLK_BRAM_L_AUXCLMP_FT", ColumnKindLeft::BramAuxClmp),
-        ("RCLK_RCLK_BRAM_L_BRAMCLMP_FT", ColumnKindLeft::BramBramClmp),
-        ("RCLK_BRAM_INTF_TD_L", ColumnKindLeft::BramTd),
-        ("RCLK_BRAM_INTF_TD_R", ColumnKindLeft::BramTd),
+        ("RCLK_RCLK_BRAM_L_AUXCLMP_FT", BramKind::AuxClmp),
+        ("RCLK_RCLK_BRAM_L_BRAMCLMP_FT", BramKind::BramClmp),
+        ("RCLK_BRAM_INTF_TD_L", BramKind::Td),
+        ("RCLK_BRAM_INTF_TD_R", BramKind::Td),
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column(c + 2);
-            assert_eq!(res[c].0, Some(ColumnKindLeft::Bram));
-            res[c].0 = Some(kind);
+            assert_eq!(res[c].0, Some(ColumnKindLeft::Bram(BramKind::Plain)));
+            res[c].0 = Some(ColumnKindLeft::Bram(kind));
+        }
+    }
+    for c in int.find_columns(&["RCLK_BRAM_L"]) {
+        let c = int.lookup_column(c + 2);
+        match res[c].0 {
+            Some(ColumnKindLeft::Bram(BramKind::BramClmp)) => {
+                res[c].0 = Some(ColumnKindLeft::Bram(BramKind::BramClmpMaybe))
+            }
+            Some(ColumnKindLeft::Bram(BramKind::AuxClmp)) => {
+                res[c].0 = Some(ColumnKindLeft::Bram(BramKind::AuxClmpMaybe))
+            }
+            Some(ColumnKindLeft::Bram(BramKind::Plain)) => (),
+            _ => unreachable!(),
         }
     }
     for c in int.find_columns(&["RCLK_DSP_CLKBUF_L"]) {
         let c = int.lookup_column(c - 2);
-        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp));
-        res[c].1 = Some(ColumnKindRight::DspClkBuf);
+        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp(DspKind::Plain)));
+        res[c].1 = Some(ColumnKindRight::Dsp(DspKind::ClkBuf));
     }
     for c in int.find_columns(&["RCLK_DSP_INTF_CLKBUF_L"]) {
         let c = int.lookup_column(c - 1);
-        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp));
-        res[c].1 = Some(ColumnKindRight::DspClkBuf);
+        assert_eq!(res[c].1, Some(ColumnKindRight::Dsp(DspKind::Plain)));
+        res[c].1 = Some(ColumnKindRight::Dsp(DspKind::ClkBuf));
     }
     for (i, &(l, r)) in res.iter() {
         if l.is_none() {

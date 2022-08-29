@@ -34,13 +34,8 @@ pub struct Grid {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKindLeft {
     CleL,
-    CleM,
-    CleMClkBuf,
-    CleMLaguna,
-    Bram,
-    BramAuxClmp,
-    BramBramClmp,
-    BramTd,
+    CleM(CleMKind),
+    Bram(BramKind),
     Uram,
     Hard,
     Io,
@@ -52,11 +47,26 @@ pub enum ColumnKindLeft {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum CleMKind {
+    Plain,
+    ClkBuf,
+    Laguna,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum BramKind {
+    Plain,
+    AuxClmp,
+    BramClmp,
+    AuxClmpMaybe,
+    BramClmpMaybe,
+    Td,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKindRight {
-    CleL,
-    CleLDcg10,
-    Dsp,
-    DspClkBuf,
+    CleL(CleLKind),
+    Dsp(DspKind),
     Uram,
     Hard,
     Io,
@@ -65,6 +75,18 @@ pub enum ColumnKindRight {
     DfeC,
     DfeDF,
     DfeE,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum CleLKind {
+    Plain,
+    Dcg10,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DspKind {
+    Plain,
+    ClkBuf,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -697,6 +719,7 @@ pub fn expand_grid<'a>(
 ) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
     let mut yb = 0;
+    let has_hbm = grids.first().unwrap().has_hbm;
     for (slrid, grid) in grids {
         let mut reg_skip_bot = 0;
         let mut reg_skip_top = 0;
@@ -717,6 +740,10 @@ pub fn expand_grid<'a>(
         if grid.kind == GridKind::Ultrascale && reg_skip_bot != 0 {
             yb += 1;
         }
+        let has_laguna = grid
+            .columns
+            .values()
+            .any(|cd| cd.l == ColumnKindLeft::CleM(CleMKind::Laguna));
         let row_skip = reg_skip_bot * 60;
         let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 60);
         for (col, &cd) in &grid.columns {
@@ -739,15 +766,8 @@ pub fn expand_grid<'a>(
                     );
                 }
                 match cd.l {
-                    ColumnKindLeft::CleL
-                    | ColumnKindLeft::CleM
-                    | ColumnKindLeft::CleMClkBuf
-                    | ColumnKindLeft::CleMLaguna => (),
-                    ColumnKindLeft::Bram
-                    | ColumnKindLeft::BramTd
-                    | ColumnKindLeft::BramAuxClmp
-                    | ColumnKindLeft::BramBramClmp
-                    | ColumnKindLeft::Uram => {
+                    ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => (),
+                    ColumnKindLeft::Bram(_) | ColumnKindLeft::Uram => {
                         let kind = if grid.kind == GridKind::Ultrascale {
                             "INT_INTERFACE_L"
                         } else {
@@ -822,8 +842,8 @@ pub fn expand_grid<'a>(
                     }
                 }
                 match cd.r {
-                    ColumnKindRight::CleL | ColumnKindRight::CleLDcg10 => (),
-                    ColumnKindRight::Dsp | ColumnKindRight::DspClkBuf | ColumnKindRight::Uram => {
+                    ColumnKindRight::CleL(_) => (),
+                    ColumnKindRight::Dsp(_) | ColumnKindRight::Uram => {
                         let kind = if grid.kind == GridKind::Ultrascale {
                             "INT_INTERFACE_R"
                         } else {
@@ -966,21 +986,19 @@ pub fn expand_grid<'a>(
             let mut found = false;
             if let Some((kind, tk)) = match cd.l {
                 ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
-                ColumnKindLeft::CleM | ColumnKindLeft::CleMClkBuf | ColumnKindLeft::CleMLaguna => {
-                    Some((
-                        "CLEM",
-                        match (grid.kind, col < grid.col_cfg.col) {
-                            (GridKind::Ultrascale, true) => "CLE_M",
-                            (GridKind::Ultrascale, false) => "CLE_M_R",
-                            (GridKind::UltrascalePlus, true) => "CLEM",
-                            (GridKind::UltrascalePlus, false) => "CLEM_R",
-                        },
-                    ))
-                }
+                ColumnKindLeft::CleM(_) => Some((
+                    "CLEM",
+                    match (grid.kind, col < grid.col_cfg.col) {
+                        (GridKind::Ultrascale, true) => "CLE_M",
+                        (GridKind::Ultrascale, false) => "CLE_M_R",
+                        (GridKind::UltrascalePlus, true) => "CLEM",
+                        (GridKind::UltrascalePlus, false) => "CLEM_R",
+                    },
+                )),
                 _ => None,
             } {
                 for row in slr.rows() {
-                    if cd.l == ColumnKindLeft::CleMLaguna {
+                    if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna) {
                         if row.to_idx() / 60 == 0 {
                             continue;
                         }
@@ -1014,7 +1032,7 @@ pub fn expand_grid<'a>(
                 sx += 1;
             }
             let mut found = false;
-            if matches!(cd.r, ColumnKindRight::CleL | ColumnKindRight::CleLDcg10) {
+            if matches!(cd.r, ColumnKindRight::CleL(_)) {
                 for row in slr.rows() {
                     let tile = &mut slr[(col, row)];
                     if tile.nodes.is_empty() {
@@ -1036,6 +1054,194 @@ pub fn expand_grid<'a>(
             if found {
                 sx += 1;
             }
+        }
+
+        let mut bx = 0;
+        for (col, &cd) in &grid.columns {
+            if !matches!(cd.l, ColumnKindLeft::Bram(_)) {
+                continue;
+            }
+            for row in slr.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                let tile = &mut slr[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = yb + row.to_idx() - row_skip;
+                let name = format!("BRAM_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node("BRAM"),
+                    &[&name],
+                    db.get_node_naming("BRAM"),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                node.add_bel(0, format!("RAMB36_X{bx}Y{y}", y = y / 5));
+                node.add_bel(1, format!("RAMB18_X{bx}Y{y}", y = y / 5 * 2));
+                node.add_bel(2, format!("RAMB18_X{bx}Y{y}", y = y / 5 * 2 + 1));
+                if row.to_idx() % 60 == 30 {
+                    let in_laguna = has_laguna
+                        && (row.to_idx() / 60 == 0 || row.to_idx() / 60 == grid.regs - 1);
+                    let tk = match (grid.kind, cd.l, col < grid.col_cfg.col) {
+                        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), true) => {
+                            "RCLK_BRAM_L"
+                        }
+                        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), false) => {
+                            "RCLK_BRAM_R"
+                        }
+                        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::BramClmp), true) => {
+                            "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
+                        }
+                        (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::AuxClmp), true) => {
+                            "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
+                        }
+                        (
+                            GridKind::Ultrascale,
+                            ColumnKindLeft::Bram(BramKind::BramClmpMaybe),
+                            true,
+                        ) => {
+                            if in_laguna {
+                                "RCLK_BRAM_L"
+                            } else {
+                                "RCLK_RCLK_BRAM_L_BRAMCLMP_FT"
+                            }
+                        }
+                        (
+                            GridKind::Ultrascale,
+                            ColumnKindLeft::Bram(BramKind::AuxClmpMaybe),
+                            true,
+                        ) => {
+                            if in_laguna {
+                                "RCLK_BRAM_L"
+                            } else {
+                                "RCLK_RCLK_BRAM_L_AUXCLMP_FT"
+                            }
+                        }
+                        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), true) => {
+                            "RCLK_BRAM_INTF_L"
+                        }
+                        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), true) => {
+                            "RCLK_BRAM_INTF_TD_L"
+                        }
+                        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), false) => {
+                            "RCLK_BRAM_INTF_TD_R"
+                        }
+                        _ => unreachable!(),
+                    };
+                    let name_h = format!("{tk}_X{x}Y{y}", y = y - 1);
+                    let node = slr[(col, row)].add_xnode(
+                        db.get_node("HARD_SYNC"),
+                        &[&name_h],
+                        db.get_node_naming("HARD_SYNC"),
+                        &[(col, row)],
+                    );
+                    node.add_bel(
+                        0,
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = y / 60 * 2),
+                    );
+                    node.add_bel(
+                        1,
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = y / 60 * 2 + 1),
+                    );
+                    node.add_bel(
+                        2,
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2 + 1, sy = y / 60 * 2),
+                    );
+                    node.add_bel(
+                        3,
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2 + 1, sy = y / 60 * 2 + 1),
+                    );
+                }
+            }
+            bx += 1;
+        }
+
+        let mut dx = 0;
+        for (col, &cd) in &grid.columns {
+            if !matches!(cd.r, ColumnKindRight::Dsp(_)) {
+                continue;
+            }
+            for row in slr.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                if grid.has_hbm && row.to_idx() < 15 {
+                    continue;
+                }
+                let tile = &mut slr[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = yb + row.to_idx() - row_skip;
+                let name = format!("DSP_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    db.get_node("DSP"),
+                    &[&name],
+                    db.get_node_naming("DSP"),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                let dy = if has_hbm { y / 5 - 3 } else { y / 5 };
+                node.add_bel(0, format!("DSP48E2_X{dx}Y{y}", y = dy * 2));
+                node.add_bel(1, format!("DSP48E2_X{dx}Y{y}", y = dy * 2 + 1));
+            }
+            dx += 1;
+        }
+
+        let mut ux = 0;
+        for (col, &cd) in &grid.columns {
+            if cd.r != ColumnKindRight::Uram {
+                continue;
+            }
+            for row in slr.rows() {
+                if row.to_idx() % 15 != 0 {
+                    continue;
+                }
+                let tile = &mut slr[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = yb + row.to_idx() - row_skip;
+                let tk = if row.to_idx() % 60 == 45 {
+                    "URAM_URAM_DELAY_FT"
+                } else {
+                    "URAM_URAM_FT"
+                };
+                let name = format!("{tk}_X{x}Y{y}");
+                let mut crds = vec![];
+                for dy in 0..15 {
+                    crds.push((col, row + dy));
+                }
+                for dy in 0..15 {
+                    crds.push((col + 1, row + dy));
+                }
+                let node = tile.add_xnode(
+                    db.get_node("URAM"),
+                    &[&name],
+                    db.get_node_naming("URAM"),
+                    &crds,
+                );
+                node.add_bel(0, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4));
+                node.add_bel(1, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 1));
+                node.add_bel(2, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 2));
+                node.add_bel(3, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 3));
+            }
+            ux += 1;
         }
 
         for col in slr.cols() {
