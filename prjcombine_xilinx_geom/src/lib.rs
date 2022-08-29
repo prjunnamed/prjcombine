@@ -120,6 +120,7 @@ pub enum DisabledPart {
     Spartan6ClbColumn(ColId),
     Spartan6BramRegion(ColId, u32),
     Spartan6DspRegion(ColId, u32),
+    Series7Gtp,
     Region(SlrId, u32),
     Ps,
     VersalHardIp(SlrId, ColId, usize),
@@ -183,4 +184,12 @@ pub struct GeomDb {
     pub bonds: EntityVec<BondId, pkg::Bond>,
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, int::IntDb>,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct Rect {
+    pub col_l: ColId,
+    pub col_r: ColId,
+    pub row_b: RowId,
+    pub row_t: RowId,
 }

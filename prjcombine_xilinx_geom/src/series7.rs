@@ -1,5 +1,5 @@
 use crate::pkg::{GtPin, PsPin, SysMonPin};
-use crate::{eint, int, ColId, ExtraDie, RowId, SlrId};
+use crate::{eint, int, ColId, DisabledPart, ExtraDie, Rect, RowId, SlrId};
 use prjcombine_entity::{EntityId, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
@@ -738,6 +738,7 @@ pub fn expand_grid<'a>(
     grids: &EntityVec<SlrId, &Grid>,
     _grid_master: SlrId,
     extras: &[ExtraDie],
+    disabled: &BTreeSet<DisabledPart>,
     db: &'a int::IntDb,
 ) -> eint::ExpandedGrid<'a> {
     let mut egrid = eint::ExpandedGrid::new(db);
@@ -745,27 +746,59 @@ pub fn expand_grid<'a>(
     egrid.tie_pin_gnd = Some("HARD0".to_string());
     egrid.tie_pin_vcc = Some("HARD1".to_string());
     let mut yb = 0;
+    let mut ryb = 0;
+    let mut syb = 0;
     let mut tie_yb = 0;
+    let mut pyb = 0;
     if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
-        yb += 1;
+        yb = 1;
+        ryb = 2;
     }
     for &grid in grids.values() {
         let (_, mut slr) = egrid.add_slr(grid.columns.len(), grid.regs * 50);
         let mut x = 0;
         let mut tie_x = 0;
         let mut xlut = EntityVec::new();
+        let mut tiexlut = EntityVec::new();
+        let mut rxlut = EntityVec::new();
+        let mut rx = 0;
         for (col, &kind) in &grid.columns {
             xlut.push(x);
+            if grid.has_ps && grid.regs == 2 && col.to_idx() == 18 {
+                rx -= 19;
+            }
+            if grid.cols_vbrk.contains(&col) {
+                rx += 1;
+            }
+            if kind == ColumnKind::Bram && col.to_idx() == 0 {
+                rx += 1;
+            }
+            rxlut.push(rx);
+            match kind {
+                ColumnKind::ClbLL | ColumnKind::ClbLM => rx += 2,
+                ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Clk | ColumnKind::Cfg => rx += 3,
+                ColumnKind::Io => {
+                    if col == slr.cols().next().unwrap() || col == slr.cols().next_back().unwrap() {
+                        rx += 5;
+                    } else {
+                        rx += 4;
+                    }
+                }
+                ColumnKind::Gt | ColumnKind::Cmt => rx += 4,
+            }
             if grid.regs == 2 && grid.has_ps && col.to_idx() < 18 {
+                tiexlut.push(tie_x);
                 continue;
             }
             if grid.regs <= 2 && col < grid.col_cfg && col >= grid.col_cfg - 6 {
+                tiexlut.push(tie_x);
                 continue;
             }
             let lr = ['L', 'R'][col.to_idx() % 2];
             if lr == 'L' && kind == ColumnKind::Dsp {
                 tie_x += 1;
             }
+            tiexlut.push(tie_x);
             for row in slr.rows() {
                 let y = yb + row.to_idx();
                 let tie_y = tie_yb + row.to_idx();
@@ -810,12 +843,26 @@ pub fn expand_grid<'a>(
             }
         }
 
+        let mut holes = Vec::new();
+
         let row_cb = RowId::from_idx(grid.reg_cfg * 50 - 50);
         let row_ct = RowId::from_idx(grid.reg_cfg * 50 + 50);
         if grid.regs == 1 {
             slr.nuke_rect(grid.col_cfg - 6, row_cb, 6, 50);
+            holes.push(Rect {
+                col_l: grid.col_cfg - 6,
+                col_r: grid.col_cfg,
+                row_b: row_cb,
+                row_t: row_cb + 50,
+            });
         } else {
             slr.nuke_rect(grid.col_cfg - 6, row_cb, 6, 100);
+            holes.push(Rect {
+                col_l: grid.col_cfg - 6,
+                col_r: grid.col_cfg,
+                row_b: row_cb,
+                row_t: row_cb + 100,
+            });
             for dx in 0..6 {
                 let col = grid.col_cfg - 6 + dx;
                 if row_cb.to_idx() != 0 {
@@ -832,7 +879,13 @@ pub fn expand_grid<'a>(
         let row_b = slr.rows().next().unwrap();
         let row_t = slr.rows().next_back().unwrap();
         if grid.has_ps {
-            slr.nuke_rect(grid.columns.first_id().unwrap(), row_t - 99, 18, 100);
+            slr.nuke_rect(col_l, row_t - 99, 18, 100);
+            holes.push(Rect {
+                col_l,
+                col_r: col_l + 19,
+                row_b: row_t - 99,
+                row_t: row_t + 1,
+            });
             if grid.regs != 2 {
                 let row = row_t - 100;
                 for dx in 0..18 {
@@ -854,10 +907,19 @@ pub fn expand_grid<'a>(
             }
         }
 
+        let has_pcie2_left = grid.holes.iter().any(|x| x.kind == HoleKind::Pcie2Left);
+        let mut ply = 0;
+        let mut pry = 0;
         for hole in &grid.holes {
             match hole.kind {
                 HoleKind::Pcie2Left | HoleKind::Pcie2Right => {
                     slr.nuke_rect(hole.col + 1, hole.row, 2, 25);
+                    holes.push(Rect {
+                        col_l: hole.col,
+                        col_r: hole.col + 4,
+                        row_b: hole.row,
+                        row_t: hole.row + 25,
+                    });
                     for dx in 1..3 {
                         let col = hole.col + dx;
                         if hole.row.to_idx() != 0 {
@@ -895,9 +957,60 @@ pub fn expand_grid<'a>(
                             );
                         }
                     }
+                    if disabled.contains(&DisabledPart::Series7Gtp) {
+                        continue;
+                    }
+                    let mut crds = vec![];
+                    for dy in 0..25 {
+                        crds.push((hole.col, hole.row + dy));
+                    }
+                    for dy in 0..25 {
+                        crds.push((hole.col + 3, hole.row + dy));
+                    }
+                    let kind;
+                    let tkb;
+                    let tkt;
+                    let sx;
+                    let sy;
+                    match hole.kind {
+                        HoleKind::Pcie2Left => {
+                            tkb = "PCIE_BOT_LEFT";
+                            tkt = "PCIE_TOP_LEFT";
+                            kind = "PCIE_L";
+                            sy = pyb + ply;
+                            ply += 1;
+                            sx = 0;
+                        }
+                        HoleKind::Pcie2Right => {
+                            tkb = "PCIE_BOT";
+                            tkt = "PCIE_TOP";
+                            kind = "PCIE_R";
+                            sy = pyb + pry;
+                            pry += 1;
+                            sx = if has_pcie2_left { 1 } else { 0 };
+                        }
+                        _ => unreachable!(),
+                    }
+                    let x = rxlut[hole.col] + 2;
+                    let y = ryb + hole.row.to_idx() + hole.row.to_idx() / 25 + 1;
+                    let name_b = format!("{tkb}_X{x}Y{y}", y = y + 10);
+                    let name_t = format!("{tkt}_X{x}Y{y}", y = y + 20);
+                    let node = slr[crds[0]].add_xnode(
+                        db.get_node(kind),
+                        &[&name_b, &name_t],
+                        db.get_node_naming(kind),
+                        &crds,
+                    );
+                    node.add_bel(0, format!("PCIE_X{sx}Y{sy}"));
                 }
                 HoleKind::Pcie3 => {
                     slr.nuke_rect(hole.col + 1, hole.row, 4, 50);
+                    holes.push(Rect {
+                        col_l: hole.col,
+                        col_r: hole.col + 6,
+                        row_b: hole.row,
+                        row_t: hole.row + 50,
+                    });
                     for dx in 1..5 {
                         let col = hole.col + dx;
                         slr.fill_term_anon((col, hole.row - 1), "TERM.N");
@@ -925,9 +1038,35 @@ pub fn expand_grid<'a>(
                             db.get_intf_naming("INTF.PCIE3_L"),
                         );
                     }
+                    let mut crds = vec![];
+                    for dy in 0..50 {
+                        crds.push((hole.col, hole.row + dy));
+                    }
+                    for dy in 0..50 {
+                        crds.push((hole.col + 5, hole.row + dy));
+                    }
+                    let x = rxlut[hole.col] + 2;
+                    let y = ryb + hole.row.to_idx() + hole.row.to_idx() / 25 + 1;
+                    let name_b = format!("PCIE3_BOT_RIGHT_X{x}Y{y}", y = y + 7);
+                    let name = format!("PCIE3_RIGHT_X{x}Y{y}", y = y + 26);
+                    let name_t = format!("PCIE3_TOP_RIGHT_X{x}Y{y}", y = y + 43);
+                    let node = slr[crds[0]].add_xnode(
+                        db.get_node("PCIE3"),
+                        &[&name, &name_b, &name_t],
+                        db.get_node_naming("PCIE3"),
+                        &crds,
+                    );
+                    node.add_bel(0, format!("PCIE3_X0Y{sy}", sy = pyb + pry));
+                    pry += 1;
                 }
                 HoleKind::GtpLeft => {
                     slr.nuke_rect(hole.col + 1, hole.row, 18, 50);
+                    holes.push(Rect {
+                        col_l: hole.col,
+                        col_r: hole.col + 19,
+                        row_b: hole.row,
+                        row_t: hole.row + 50,
+                    });
                     for dx in 1..19 {
                         let col = hole.col + dx;
                         if hole.row.to_idx() != 0 {
@@ -956,6 +1095,12 @@ pub fn expand_grid<'a>(
                 }
                 HoleKind::GtpRight => {
                     slr.nuke_rect(hole.col - 18, hole.row, 18, 50);
+                    holes.push(Rect {
+                        col_l: hole.col - 18,
+                        col_r: hole.col + 1,
+                        row_b: hole.row,
+                        row_t: hole.row + 50,
+                    });
                     for dx in 1..19 {
                         let col = hole.col - 19 + dx;
                         if hole.row.to_idx() != 0 {
@@ -1017,6 +1162,12 @@ pub fn expand_grid<'a>(
                     let br = RowId::from_idx(reg * 50);
                     if need_holes {
                         slr.nuke_rect(gtcol.col + 1, br, 6, 50);
+                        holes.push(Rect {
+                            col_l: gtcol.col,
+                            col_r: gtcol.col + 7,
+                            row_b: br,
+                            row_t: br + 50,
+                        });
                         if reg != 0 && gtcol.regs[reg - 1].is_none() {
                             for dx in 1..7 {
                                 slr.fill_term_anon((gtcol.col + dx, br - 1), "TERM.N");
@@ -1112,13 +1263,20 @@ pub fn expand_grid<'a>(
                 _ => continue,
             };
             let mut found = false;
-            for row in slr.rows() {
+            'a: for row in slr.rows() {
                 let tile = &mut slr[(col, row)];
-                if tile.nodes.is_empty() || !tile.intfs.is_empty() {
-                    continue;
+                for &hole in &holes {
+                    if col >= hole.col_l
+                        && col < hole.col_r
+                        && row >= hole.row_b
+                        && row < hole.row_t
+                    {
+                        continue 'a;
+                    }
                 }
-                let x = col.to_idx();
+                let x = xlut[col];
                 let y = yb + row.to_idx();
+                let sy = syb + row.to_idx();
                 let name = format!("{naming}_X{x}Y{y}");
                 let node = tile.add_xnode(
                     db.get_node(kind),
@@ -1126,8 +1284,8 @@ pub fn expand_grid<'a>(
                     db.get_node_naming(naming),
                     &[(col, row)],
                 );
-                node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
-                node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
+                node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                node.add_bel(1, format!("SLICE_X{sx}Y{sy}", sx = sx + 1));
                 found = true;
             }
             if found {
@@ -1135,8 +1293,97 @@ pub fn expand_grid<'a>(
             }
         }
 
+        let mut bx = 0;
+        let mut dx = 0;
+        for (col, &cd) in &grid.columns {
+            let (kind, naming) = match cd {
+                ColumnKind::Bram => ("BRAM", ["BRAM_L", "BRAM_R"][col.to_idx() % 2]),
+                ColumnKind::Dsp => ("DSP", ["DSP_L", "DSP_R"][col.to_idx() % 2]),
+                _ => continue,
+            };
+            let mut found = false;
+            'a: for row in slr.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                for &hole in &holes {
+                    if col >= hole.col_l
+                        && col < hole.col_r
+                        && row >= hole.row_b
+                        && row < hole.row_t
+                    {
+                        continue 'a;
+                    }
+                }
+                if col.to_idx() == 0 && (row.to_idx() < 5 || row.to_idx() >= slr.rows().len() - 5) {
+                    continue;
+                }
+                found = true;
+                let x = xlut[col];
+                let y = yb + row.to_idx();
+                let sy = (syb + row.to_idx()) / 5;
+                let name = format!("{naming}_X{x}Y{y}");
+                let node = slr[(col, row)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(naming),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                if cd == ColumnKind::Bram {
+                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = sy));
+                    node.add_bel(1, format!("RAMB18_X{bx}Y{sy}", sy = sy * 2));
+                    node.add_bel(2, format!("RAMB18_X{bx}Y{sy}", sy = sy * 2 + 1));
+                } else {
+                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = sy * 2));
+                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = sy * 2 + 1));
+                    let tx = if naming == "DSP_L" {
+                        tiexlut[col] - 1
+                    } else {
+                        tiexlut[col] + 1
+                    };
+                    let ty = tie_yb + row.to_idx();
+                    node.add_bel(2, format!("TIEOFF_X{tx}Y{ty}"));
+                }
+                if kind == "BRAM" && row.to_idx() % 50 == 25 {
+                    let hx = if naming == "BRAM_L" {
+                        rxlut[col]
+                    } else {
+                        rxlut[col] + 2
+                    };
+                    let hy = ryb + row.to_idx() + row.to_idx() / 25;
+                    let name_h = format!("HCLK_BRAM_X{hx}Y{hy}");
+                    let name_1 = format!("{naming}_X{x}Y{y}", y = y + 5);
+                    let name_2 = format!("{naming}_X{x}Y{y}", y = y + 10);
+                    let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
+                    let node = slr[(col, row)].add_xnode(
+                        db.get_node("PMVBRAM"),
+                        &[&name_h, &name, &name_1, &name_2],
+                        db.get_node_naming("PMVBRAM"),
+                        &coords,
+                    );
+                    node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = sy / 10));
+                }
+            }
+            if found {
+                if cd == ColumnKind::Bram {
+                    bx += 1;
+                } else {
+                    dx += 1;
+                }
+            }
+        }
+
         yb += slr.rows().len();
+        syb += slr.rows().len();
+        ryb += slr.rows().len() + grid.regs * 2 + 1;
         tie_yb += slr.rows().len();
+        pyb += pry;
     }
 
     let lvb6 = db

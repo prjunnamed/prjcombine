@@ -3,7 +3,7 @@ use prjcombine_rawdump::{Coord, Part};
 use prjcombine_xilinx_geom::series7::{
     ColumnKind, Grid, GridKind, GtColumn, GtKind, Hole, HoleKind, IoColumn, IoKind,
 };
-use prjcombine_xilinx_geom::{ColId, ExtraDie, RowId, SlrId};
+use prjcombine_xilinx_geom::{ColId, DisabledPart, ExtraDie, RowId, SlrId};
 use std::collections::BTreeSet;
 
 use crate::grid::{extract_int_slr, find_columns, find_row, find_rows, ExtraCol, IntGrid};
@@ -255,7 +255,14 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
     res
 }
 
-pub fn make_grids(rd: &Part) -> (EntityVec<SlrId, Grid>, SlrId, Vec<ExtraDie>) {
+pub fn make_grids(
+    rd: &Part,
+) -> (
+    EntityVec<SlrId, Grid>,
+    SlrId,
+    Vec<ExtraDie>,
+    BTreeSet<DisabledPart>,
+) {
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["B_TERM_INT_SLV"])
         .into_iter()
         .map(|x| x as u16)
@@ -339,5 +346,13 @@ pub fn make_grids(rd: &Part) -> (EntityVec<SlrId, Grid>, SlrId, Vec<ExtraDie>) {
     if find_row(rd, &["GTZ_TOP"]).is_some() {
         extras.push(ExtraDie::GtzTop);
     }
-    (grids, grid_master, extras)
+    let mut disabled = BTreeSet::new();
+    if (rd.part.starts_with("xc7s") || rd.part.starts_with("xa7s"))
+        && grids
+            .values()
+            .any(|x| x.holes.iter().any(|y| y.kind == HoleKind::Pcie2Right))
+    {
+        disabled.insert(DisabledPart::Series7Gtp);
+    }
+    (grids, grid_master, extras, disabled)
 }

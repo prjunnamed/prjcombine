@@ -569,5 +569,382 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for tkn in ["BRAM_L", "BRAM_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut int_xy = Vec::new();
+            let mut intf_xy = Vec::new();
+            let n = builder
+                .db
+                .get_intf_naming(if tkn == "BRAM_L" { "INTF.L" } else { "INTF.R" });
+            for dy in 0..5 {
+                if tkn == "BRAM_L" {
+                    int_xy.push(Coord {
+                        x: xy.x + 2,
+                        y: xy.y + dy,
+                    });
+                    intf_xy.push((
+                        Coord {
+                            x: xy.x + 1,
+                            y: xy.y + dy,
+                        },
+                        n,
+                    ));
+                } else {
+                    int_xy.push(Coord {
+                        x: xy.x - 2,
+                        y: xy.y + dy,
+                    });
+                    intf_xy.push((
+                        Coord {
+                            x: xy.x - 1,
+                            y: xy.y + dy,
+                        },
+                        n,
+                    ));
+                }
+            }
+            let mut bel_bram_f = builder
+                .bel_xy("BRAM_F", "RAMB36", 0, 0)
+                .pins_name_only(&["CASCADEINA", "CASCADEINB"])
+                .pin_name_only("CASCADEOUTA", 1)
+                .pin_name_only("CASCADEOUTB", 1);
+            for ab in ["ARD", "BWR"] {
+                for ul in ['U', 'L'] {
+                    for i in 0..16 {
+                        if i == 15 && ul == 'U' {
+                            continue;
+                        }
+                        bel_bram_f = bel_bram_f.pin_name_only(&format!("ADDR{ab}ADDR{ul}{i}"), 0);
+                    }
+                }
+            }
+            let mut bel_bram_h0 = builder.bel_xy("BRAM_H0", "RAMB18", 0, 0);
+            let mut bel_bram_h1 = builder.bel_xy("BRAM_H1", "RAMB18", 0, 1).pins_name_only(&[
+                "FULL",
+                "EMPTY",
+                "ALMOSTFULL",
+                "ALMOSTEMPTY",
+                "WRERR",
+                "RDERR",
+            ]);
+            for ab in ["ARD", "BWR"] {
+                for i in 0..14 {
+                    bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("ADDR{ab}ADDR{i}"), 0);
+                    bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("ADDR{ab}ADDR{i}"), 0);
+                }
+            }
+            for ab in ['A', 'B'] {
+                for i in 0..2 {
+                    bel_bram_h0 = bel_bram_h0.pin_name_only(&format!("ADDR{ab}TIEHIGH{i}"), 0);
+                    bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("ADDR{ab}TIEHIGH{i}"), 0);
+                }
+            }
+            for i in 0..12 {
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("RDCOUNT{i}"), 0);
+                bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("WRCOUNT{i}"), 0);
+            }
+            let mut bel_bram_addr = builder.bel_virtual("BRAM_ADDR");
+            for i in 0..5 {
+                for j in 0..48 {
+                    bel_bram_addr = bel_bram_addr
+                        .extra_int_in(format!("IMUX_{i}_{j}"), &[&format!("BRAM_IMUX{j}_{i}")])
+                        .extra_int_out(
+                            format!("IMUX_UTURN_{i}_{j}"),
+                            &[&format!("BRAM_IMUX{j}_UTURN_{i}")],
+                        );
+                }
+            }
+            for ab in ["ARD", "BWR"] {
+                for ul in ['U', 'L'] {
+                    for i in 0..15 {
+                        bel_bram_addr = bel_bram_addr
+                            .extra_int_in(
+                                &format!("IMUX_ADDR{ab}ADDR{ul}{i}"),
+                                &[
+                                    &format!("BRAM_IMUX_ADDR{ab}ADDR{ul}{i}"),
+                                    &format!("BRAM_R_IMUX_ADDR{ab}ADDR{ul}{i}"),
+                                ],
+                            )
+                            .extra_wire(
+                                &format!("UTURN_ADDR{ab}ADDR{ul}{i}"),
+                                &[&format!("BRAM_UTURN_ADDR{ab}ADDR{ul}{i}")],
+                            )
+                            .extra_wire(
+                                &format!("ADDR{ab}ADDR{ul}{i}"),
+                                &[&format!("BRAM_ADDR{ab}ADDR{ul}{i}")],
+                            );
+                        if ul == 'U' {
+                            bel_bram_addr = bel_bram_addr
+                                .extra_wire(
+                                    &format!("CASCINBOT_ADDR{ab}ADDR{ul}{i}"),
+                                    &[&format!("BRAM_CASCINBOT_ADDR{ab}ADDR{ul}{i}")],
+                                )
+                                .extra_wire(
+                                    &format!("CASCINTOP_ADDR{ab}ADDR{ul}{i}"),
+                                    &[&format!("BRAM_CASCINTOP_ADDR{ab}ADDR{ul}{i}")],
+                                )
+                                .extra_wire(
+                                    &format!("CASCOUT_ADDR{ab}ADDR{ul}{i}"),
+                                    &[&format!("BRAM_CASCOUT_ADDR{ab}ADDR{ul}{i}")],
+                                );
+                        }
+                    }
+                }
+                bel_bram_addr = bel_bram_addr
+                    .extra_int_in(
+                        &format!("IMUX_ADDR{ab}ADDRL15"),
+                        &[
+                            &format!("BRAM_IMUX_ADDR{ab}ADDRL15"),
+                            &format!("BRAM_IMUX_R_ADDR{ab}ADDRL15"),
+                        ],
+                    )
+                    .extra_wire(
+                        &format!("UTURN_ADDR{ab}ADDRL15"),
+                        &[&format!("BRAM_UTURN_ADDR{ab}ADDRL15")],
+                    );
+            }
+            builder.extract_xnode_bels_intf(
+                "BRAM",
+                xy,
+                &[],
+                &int_xy,
+                &intf_xy,
+                tkn,
+                &[bel_bram_f, bel_bram_h0, bel_bram_h1, bel_bram_addr],
+            );
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
+        let mut bram_xy = Vec::new();
+        for dy in [1, 6, 11] {
+            bram_xy.push(Coord {
+                x: xy.x,
+                y: xy.y + dy,
+            });
+        }
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        if rd.tile_kinds.key(rd.tiles[&bram_xy[0]].kind) == "BRAM_L" {
+            let n = builder.db.get_intf_naming("INTF.L");
+            for dy in 0..15 {
+                int_xy.push(Coord {
+                    x: xy.x + 2,
+                    y: xy.y + 1 + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x + 1,
+                        y: xy.y + 1 + dy,
+                    },
+                    n,
+                ));
+            }
+        } else {
+            let n = builder.db.get_intf_naming("INTF.R");
+            for dy in 0..15 {
+                int_xy.push(Coord {
+                    x: xy.x - 2,
+                    y: xy.y + 1 + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x - 1,
+                        y: xy.y + 1 + dy,
+                    },
+                    n,
+                ));
+            }
+        }
+        builder.extract_xnode_bels_intf(
+            "PMVBRAM",
+            xy,
+            &bram_xy,
+            &int_xy,
+            &intf_xy,
+            "PMVBRAM",
+            &[builder.bel_xy("PMVBRAM", "PMVBRAM", 0, 0)],
+        );
+    }
+
+    for tkn in ["DSP_L", "DSP_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut int_xy = Vec::new();
+            let mut intf_xy = Vec::new();
+            let n = builder
+                .db
+                .get_intf_naming(if tkn == "DSP_L" { "INTF.L" } else { "INTF.R" });
+            for dy in 0..5 {
+                if tkn == "DSP_L" {
+                    int_xy.push(Coord {
+                        x: xy.x + 2,
+                        y: xy.y + dy,
+                    });
+                    intf_xy.push((
+                        Coord {
+                            x: xy.x + 1,
+                            y: xy.y + dy,
+                        },
+                        n,
+                    ));
+                } else {
+                    int_xy.push(Coord {
+                        x: xy.x - 2,
+                        y: xy.y + dy,
+                    });
+                    intf_xy.push((
+                        Coord {
+                            x: xy.x - 1,
+                            y: xy.y + dy,
+                        },
+                        n,
+                    ));
+                }
+            }
+
+            let mut bels_dsp = vec![];
+            for i in 0..2 {
+                let mut bel = builder.bel_xy(format!("DSP{i}"), "DSP48", 0, i);
+                let buf_cnt = match i {
+                    0 => 0,
+                    1 => 1,
+                    _ => unreachable!(),
+                };
+                bel = bel.pin_name_only("MULTSIGNIN", 0);
+                bel = bel.pin_name_only("MULTSIGNOUT", buf_cnt);
+                bel = bel.pin_name_only("CARRYCASCIN", 0);
+                bel = bel.pin_name_only("CARRYCASCOUT", buf_cnt);
+                for j in 0..30 {
+                    bel = bel.pin_name_only(&format!("ACIN{j}"), 0);
+                    bel = bel.pin_name_only(&format!("ACOUT{j}"), buf_cnt);
+                }
+                for j in 0..18 {
+                    bel = bel.pin_name_only(&format!("BCIN{j}"), 0);
+                    bel = bel.pin_name_only(&format!("BCOUT{j}"), buf_cnt);
+                }
+                for j in 0..48 {
+                    bel = bel.pin_name_only(&format!("PCIN{j}"), 0);
+                    bel = bel.pin_name_only(&format!("PCOUT{j}"), buf_cnt);
+                }
+                bels_dsp.push(bel);
+            }
+            bels_dsp.push(
+                builder
+                    .bel_xy("TIEOFF", "TIEOFF", 0, 0)
+                    .pins_name_only(&["HARD0", "HARD1"]),
+            );
+            builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, tkn, &bels_dsp);
+        }
+    }
+
+    for (kind, tkn) in [("PCIE_L", "PCIE_BOT_LEFT"), ("PCIE_R", "PCIE_BOT")] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            if rd.tile_kinds[rd.tiles[&xy].kind].sites.is_empty() {
+                continue;
+            }
+            let mut int_xy = Vec::new();
+            let mut intf_xy = Vec::new();
+            let nl = builder.db.get_intf_naming(if kind == "PCIE_L" {
+                "INTF.PCIE_LEFT_L"
+            } else {
+                "INTF.PCIE_L"
+            });
+            let nr = builder.db.get_intf_naming("INTF.PCIE_R");
+            for dy in 0..25 {
+                int_xy.push(Coord {
+                    x: xy.x - 2,
+                    y: xy.y - 10 + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x - 1,
+                        y: xy.y - 10 + dy,
+                    },
+                    nr,
+                ));
+            }
+            for dy in 0..25 {
+                int_xy.push(Coord {
+                    x: xy.x + 6,
+                    y: xy.y - 10 + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x + 5,
+                        y: xy.y - 10 + dy,
+                    },
+                    nl,
+                ));
+            }
+            let t_xy = Coord {
+                x: xy.x,
+                y: xy.y + 10,
+            };
+            builder.extract_xnode_bels_intf(
+                kind,
+                xy,
+                &[t_xy],
+                &int_xy,
+                &intf_xy,
+                kind,
+                &[builder.bel_xy("PCIE", "PCIE", 0, 0)],
+            );
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("PCIE3_RIGHT").iter().next() {
+        let mut int_xy = Vec::new();
+        let mut intf_xy = Vec::new();
+        let nl = builder.db.get_intf_naming("INTF.PCIE3_L");
+        let nr = builder.db.get_intf_naming("INTF.PCIE3_R");
+        for bdy in [0, 26] {
+            for dy in 0..25 {
+                int_xy.push(Coord {
+                    x: xy.x - 2,
+                    y: xy.y - 26 + bdy + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x - 1,
+                        y: xy.y - 26 + bdy + dy,
+                    },
+                    nr,
+                ));
+            }
+        }
+        for bdy in [0, 26] {
+            for dy in 0..25 {
+                int_xy.push(Coord {
+                    x: xy.x + 11,
+                    y: xy.y - 26 + bdy + dy,
+                });
+                intf_xy.push((
+                    Coord {
+                        x: xy.x + 10,
+                        y: xy.y - 26 + bdy + dy,
+                    },
+                    nl,
+                ));
+            }
+        }
+        let b_xy = Coord {
+            x: xy.x,
+            y: xy.y - 19,
+        };
+        let t_xy = Coord {
+            x: xy.x,
+            y: xy.y + 17,
+        };
+        builder.extract_xnode_bels_intf(
+            "PCIE3",
+            xy,
+            &[b_xy, t_xy],
+            &int_xy,
+            &intf_xy,
+            "PCIE3",
+            &[builder.bel_xy("PCIE3", "PCIE3", 0, 0)],
+        );
+    }
+
     builder.build()
 }
