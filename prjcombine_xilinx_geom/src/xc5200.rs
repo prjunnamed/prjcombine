@@ -1,4 +1,4 @@
-use crate::{eint, int, BelCoord, BelId, ColId, RowId};
+use crate::{eint, int, BelCoord, BelId, ColId, RowId, SlrId};
 use prjcombine_entity::EntityId;
 use serde::{Deserialize, Serialize};
 
@@ -8,10 +8,15 @@ pub struct Grid {
     pub rows: usize,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Io {
+#[derive(Copy, Clone, Debug)]
+pub struct Io<'a> {
     pub coord: BelCoord,
-    pub name: String,
+    pub name: &'a str,
+}
+
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub egrid: eint::ExpandedGrid<'a>,
 }
 
 impl Grid {
@@ -39,69 +44,7 @@ impl Grid {
         RowId::from_idx(self.rows / 2)
     }
 
-    pub fn get_io(&self) -> Vec<Io> {
-        let mut res = Vec::new();
-        let mut ctr = 1;
-        // top
-        for c in 1..(self.columns - 1) {
-            for bel in [3, 2, 1, 0] {
-                res.push(Io {
-                    coord: BelCoord {
-                        col: ColId::from_idx(c as usize),
-                        row: RowId::from_idx(self.rows as usize - 1),
-                        bel: BelId::from_idx(bel),
-                    },
-                    name: format!("PAD{ctr}"),
-                });
-                ctr += 1;
-            }
-        }
-        // right
-        for r in (1..(self.rows - 1)).rev() {
-            for bel in [3, 2, 1, 0] {
-                res.push(Io {
-                    coord: BelCoord {
-                        col: ColId::from_idx(self.columns as usize - 1),
-                        row: RowId::from_idx(r as usize),
-                        bel: BelId::from_idx(bel),
-                    },
-                    name: format!("PAD{ctr}"),
-                });
-                ctr += 1;
-            }
-        }
-        // bottom
-        for c in (1..(self.columns - 1)).rev() {
-            for bel in [0, 1, 2, 3] {
-                res.push(Io {
-                    coord: BelCoord {
-                        col: ColId::from_idx(c as usize),
-                        row: RowId::from_idx(0),
-                        bel: BelId::from_idx(bel),
-                    },
-                    name: format!("PAD{ctr}"),
-                });
-                ctr += 1;
-            }
-        }
-        // left
-        for r in 1..(self.rows - 1) {
-            for bel in [0, 1, 2, 3] {
-                res.push(Io {
-                    coord: BelCoord {
-                        col: ColId::from_idx(0),
-                        row: RowId::from_idx(r as usize),
-                        bel: BelId::from_idx(bel),
-                    },
-                    name: format!("PAD{ctr}"),
-                });
-                ctr += 1;
-            }
-        }
-        res
-    }
-
-    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    pub fn expand_grid<'a>(&'a self, db: &'a int::IntDb) -> ExpandedDevice<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         egrid.tie_kind = Some("GND".to_string());
         egrid.tie_pin_gnd = Some("O".to_string());
@@ -291,6 +234,73 @@ impl Grid {
 
         grid.fill_main_passes();
 
-        egrid
+        ExpandedDevice { grid: self, egrid }
+    }
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn get_io_bel(
+        &'a self,
+        coord: eint::Coord,
+        bel: BelId,
+    ) -> Option<(
+        &'a eint::ExpandedTileNode,
+        &'a int::BelInfo,
+        &'a int::BelNaming,
+        &'a str,
+    )> {
+        let slr = self.egrid.slr(SlrId::from_idx(0));
+        let node = slr.tile(coord).nodes.first()?;
+        let nk = &self.egrid.db.nodes[node.kind];
+        let naming = &self.egrid.db.node_namings[node.naming];
+        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
+    }
+
+    pub fn get_io(&'a self, coord: eint::Coord, bel: BelId) -> Io<'a> {
+        let (_, _, _, name) = self.get_io_bel(coord, bel).unwrap();
+        let coord = BelCoord {
+            col: coord.0,
+            row: coord.1,
+            bel,
+        };
+        Io { coord, name }
+    }
+
+    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+        let mut res = vec![];
+        let slr = self.egrid.slr(SlrId::from_idx(0));
+        for col in slr.cols() {
+            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+                continue;
+            }
+            for bel in [3, 2, 1, 0] {
+                res.push(self.get_io((col, self.grid.row_tio()), BelId::from_idx(bel)));
+            }
+        }
+        for row in slr.rows().rev() {
+            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+                continue;
+            }
+            for bel in [3, 2, 1, 0] {
+                res.push(self.get_io((self.grid.col_rio(), row), BelId::from_idx(bel)));
+            }
+        }
+        for col in slr.cols().rev() {
+            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+                continue;
+            }
+            for bel in [0, 1, 2, 3] {
+                res.push(self.get_io((col, self.grid.row_bio()), BelId::from_idx(bel)));
+            }
+        }
+        for row in slr.rows() {
+            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+                continue;
+            }
+            for bel in [0, 1, 2, 3] {
+                res.push(self.get_io((self.grid.col_lio(), row), BelId::from_idx(bel)));
+            }
+        }
+        res
     }
 }

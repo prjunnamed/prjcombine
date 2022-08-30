@@ -1,8 +1,8 @@
-use prjcombine_xilinx_geom::xc5200::Grid;
+use prjcombine_xilinx_geom::xc5200::ExpandedDevice;
 
 use crate::verify::{BelContext, SitePinDir, Verifier};
 
-pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("LC") => {
             let kind = match bel.key {
@@ -51,14 +51,14 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             let mut pins = vec![];
             let kind = if bel.naming.pins.contains_key("CLKIN") {
                 pins.push(("CLKIN", SitePinDir::Out));
-                let st = if bel.row == grid.row_bio() {
-                    (grid.col_lio(), grid.row_bio())
-                } else if bel.row == grid.row_tio() {
-                    (grid.col_rio(), grid.row_tio())
-                } else if bel.col == grid.col_lio() {
-                    (grid.col_lio(), grid.row_tio())
-                } else if bel.col == grid.col_rio() {
-                    (grid.col_rio(), grid.row_bio())
+                let st = if bel.row == edev.grid.row_bio() {
+                    (edev.grid.col_lio(), edev.grid.row_bio())
+                } else if bel.row == edev.grid.row_tio() {
+                    (edev.grid.col_rio(), edev.grid.row_tio())
+                } else if bel.col == edev.grid.col_lio() {
+                    (edev.grid.col_lio(), edev.grid.row_tio())
+                } else if bel.col == edev.grid.col_rio() {
+                    (edev.grid.col_rio(), edev.grid.row_bio())
                 } else {
                     unreachable!()
                 };

@@ -15,11 +15,13 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
     let int_db = int::make_int_db(rd);
     let mut bonds = Vec::new();
+    let edev = grid.expand_grid(&int_db);
     for (pkg, pins) in rd.packages.iter() {
-        bonds.push((pkg.clone(), bond::make_bond(&grid, pins)));
+        bonds.push((pkg.clone(), bond::make_bond(&edev, pins)));
     }
-    let eint = grid.expand_grid(&int_db);
-    verify(rd, &eint, |vrf, ctx| verify::verify_bel(&grid, vrf, ctx));
+    verify(rd, &edev.egrid, |vrf, ctx| {
+        verify::verify_bel(&edev, vrf, ctx)
+    });
     (
         make_device(rd, Grid::Xc5200(grid), bonds, BTreeSet::new()),
         Some(int_db),
