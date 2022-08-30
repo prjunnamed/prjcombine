@@ -1,8 +1,9 @@
-use prjcombine_entity::EntityId;
-use prjcombine_rawdump::{Coord, Part};
-use prjcombine_xilinx_geom::virtex::{Grid, GridKind, SharedCfgPin};
-use prjcombine_xilinx_geom::{ColId, DisabledPart};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+
+use prjcombine_entity::EntityId;
+use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
+use prjcombine_xilinx_geom::virtex::{Grid, GridKind, SharedCfgPin};
+use prjcombine_xilinx_geom::{BelCoord, BelId, ColId, DisabledPart};
 
 use crate::grid::{extract_int, find_columns, IntGrid};
 
@@ -68,12 +69,25 @@ fn add_disabled_brams(disabled: &mut BTreeSet<DisabledPart>, rd: &Part, int: &In
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid) {
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, io.coord))
-        .collect();
+fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+    let mut io_lookup = HashMap::new();
+    for (&crd, tile) in &rd.tiles {
+        let tk = &rd.tile_kinds[tile.kind];
+        for (k, v) in &tile.sites {
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
+                if rd.slot_kinds[sn] == "IOB" {
+                    io_lookup.insert(
+                        v.clone(),
+                        BelCoord {
+                            col: int.lookup_column(crd.x.into()),
+                            row: int.lookup_row(crd.y.into()),
+                            bel: BelId::from_idx(idx as usize),
+                        },
+                    );
+                }
+            }
+        }
+    }
     let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         for pin in pins {
@@ -149,6 +163,6 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         vref: BTreeSet::new(),
         cfg_io: BTreeMap::new(),
     };
-    handle_spec_io(rd, &mut grid);
+    handle_spec_io(rd, &mut grid, &int);
     (grid, disabled)
 }

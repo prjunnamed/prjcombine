@@ -1,9 +1,9 @@
 use prjcombine_entity::EntityId;
-use prjcombine_xilinx_geom::virtex::{Grid, GridKind};
+use prjcombine_xilinx_geom::virtex::{ExpandedDevice, GridKind};
 
 use crate::verify::{BelContext, SitePinDir, Verifier};
 
-pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => {
             vrf.verify_bel(
@@ -41,17 +41,17 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             if bel.name.unwrap().starts_with("EMPTY") {
                 kind = "EMPTYIOB";
             }
-            if (bel.col == grid.col_lio() || bel.col == grid.col_rio())
-                && ((bel.row == grid.row_mid() && bel.key == "IOB3")
-                    || (bel.row == grid.row_mid() - 1 && bel.key == "IOB1"))
+            if (bel.col == edev.grid.col_lio() || bel.col == edev.grid.col_rio())
+                && ((bel.row == edev.grid.row_mid() && bel.key == "IOB3")
+                    || (bel.row == edev.grid.row_mid() - 1 && bel.key == "IOB1"))
             {
                 kind = "PCIIOB";
                 pins.push(("PCI", SitePinDir::Out));
             }
-            if grid.kind != GridKind::Virtex
-                && (bel.row == grid.row_bio() || bel.row == grid.row_tio())
-                && ((bel.col == grid.col_clk() && bel.key == "IOB2")
-                    || (bel.col == grid.col_clk() - 1 && bel.key == "IOB1"))
+            if edev.grid.kind != GridKind::Virtex
+                && (bel.row == edev.grid.row_bio() || bel.row == edev.grid.row_tio())
+                && ((bel.col == edev.grid.col_clk() && bel.key == "IOB2")
+                    || (bel.col == edev.grid.col_clk() - 1 && bel.key == "IOB1"))
             {
                 kind = "DLLIOB";
                 pins.push(("DLLFB", SitePinDir::Out));
@@ -70,7 +70,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire("BUS1"), obel.wire("O"));
             vrf.claim_pip(bel.crd(), bel.wire("BUS3"), obel.wire("O"));
             if bel.naming.pins.contains_key("BUS3_E") {
-                let col_r = grid.col_rio();
+                let col_r = edev.grid.col_rio();
                 if bel.col.to_idx() < col_r.to_idx() - 5 {
                     vrf.claim_node(&[bel.fwire("BUS3_E")]);
                 }
@@ -123,11 +123,11 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 vrf.claim_node(&[bel.fwire_far(pin)]);
             }
             let obel = vrf
-                .find_bel(bel.slr, (bel.col, grid.row_mid()), "IOB3")
+                .find_bel(bel.slr, (bel.col, edev.grid.row_mid()), "IOB3")
                 .unwrap();
             vrf.verify_node(&[bel.fwire_far("IRDY"), obel.fwire("PCI")]);
             let obel = vrf
-                .find_bel(bel.slr, (bel.col, grid.row_mid() - 1), "IOB1")
+                .find_bel(bel.slr, (bel.col, edev.grid.row_mid() - 1), "IOB1")
                 .unwrap();
             vrf.verify_node(&[bel.fwire_far("TRDY"), obel.fwire("PCI")]);
         }
@@ -136,14 +136,16 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
         "CLKC" => {
             for (opin, ipin, srow, sbel) in [
-                ("OUT0", "IN0", grid.row_bio(), "BUFG0"),
-                ("OUT1", "IN1", grid.row_bio(), "BUFG1"),
-                ("OUT2", "IN2", grid.row_tio(), "BUFG0"),
-                ("OUT3", "IN3", grid.row_tio(), "BUFG1"),
+                ("OUT0", "IN0", edev.grid.row_bio(), "BUFG0"),
+                ("OUT1", "IN1", edev.grid.row_bio(), "BUFG1"),
+                ("OUT2", "IN2", edev.grid.row_tio(), "BUFG0"),
+                ("OUT3", "IN3", edev.grid.row_tio(), "BUFG1"),
             ] {
                 vrf.claim_node(&[bel.fwire(opin)]);
                 vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
-                let obel = vrf.find_bel(bel.slr, (grid.col_clk(), srow), sbel).unwrap();
+                let obel = vrf
+                    .find_bel(bel.slr, (edev.grid.col_clk(), srow), sbel)
+                    .unwrap();
                 vrf.verify_node(&[bel.fwire(ipin), obel.fwire("OUT.GLOBAL")]);
             }
         }
@@ -157,7 +159,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 vrf.claim_node(&[bel.fwire(opin)]);
                 vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
                 let obel = vrf
-                    .find_bel(bel.slr, (grid.col_clk(), bel.row), "CLKC")
+                    .find_bel(bel.slr, (edev.grid.col_clk(), bel.row), "CLKC")
                     .unwrap();
                 vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
             }
@@ -171,7 +173,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             ] {
                 vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
                 let obel = vrf
-                    .find_bel(bel.slr, (grid.col_clk(), bel.row), "CLKC")
+                    .find_bel(bel.slr, (edev.grid.col_clk(), bel.row), "CLKC")
                     .unwrap();
                 vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
             }
@@ -186,7 +188,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 vrf.claim_pip(bel.crd(), bel.wire(opinl), bel.wire(ipin));
                 vrf.claim_pip(bel.crd(), bel.wire(opinr), bel.wire(ipin));
                 let obel = vrf
-                    .find_bel(bel.slr, (bel.col + 1, grid.row_clk()), "GCLKC")
+                    .find_bel(bel.slr, (bel.col + 1, edev.grid.row_clk()), "GCLKC")
                     .unwrap();
                 vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
             }

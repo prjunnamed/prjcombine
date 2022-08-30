@@ -12,12 +12,14 @@ mod verify;
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);
     let int_db = int::make_int_db(rd);
+    let edev = grid.expand_grid(&disabled, &int_db);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
-        bonds.push((pkg.clone(), bond::make_bond(&grid, pins)));
+        bonds.push((pkg.clone(), bond::make_bond(&edev, pins)));
     }
-    let eint = grid.expand_grid(&disabled, &int_db);
-    verify(rd, &eint, |vrf, ctx| verify::verify_bel(&grid, vrf, ctx));
+    verify(rd, &edev.egrid, |vrf, ctx| {
+        verify::verify_bel(&edev, vrf, ctx)
+    });
     (
         make_device(rd, Grid::Virtex(grid), bonds, disabled),
         Some(int_db),

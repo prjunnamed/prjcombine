@@ -3272,10 +3272,7 @@ impl Grid {
 }
 
 impl<'a> ExpandedDevice<'a> {
-    pub fn get_io_node(
-        &'a self,
-        coord: eint::Coord,
-    ) -> Option<&'a eint::ExpandedTileNode> {
+    pub fn get_io_node(&'a self, coord: eint::Coord) -> Option<&'a eint::ExpandedTileNode> {
         self.egrid.find_node(SlrId::from_idx(0), coord, |x| {
             self.egrid.db.nodes.key(x.kind).starts_with("IOI")
         })
@@ -3297,11 +3294,7 @@ impl<'a> ExpandedDevice<'a> {
         Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
     }
 
-    pub fn get_io(
-        &'a self,
-        coord: eint::Coord,
-        bel: BelId,
-    ) -> Io<'a> {
+    pub fn get_io(&'a self, coord: eint::Coord, bel: BelId) -> Io<'a> {
         let (_, _, _, name) = self.get_io_bel(coord, bel).unwrap();
         let bank = match self.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {

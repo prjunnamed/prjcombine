@@ -1,12 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_entity::EntityVec;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_xilinx_geom::virtex2::{
     self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind, SharedCfgPin,
 };
-use prjcombine_xilinx_geom::{ColId, RowId, BelId, BelCoord};
-use prjcombine_entity::EntityId;
+use prjcombine_xilinx_geom::{BelCoord, BelId, ColId, RowId};
 
 use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
 use crate::util::split_num;
@@ -399,11 +398,14 @@ fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid, int: &IntGrid) {
         for (k, v) in &tile.sites {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
-                    io_lookup.insert(v.clone(), BelCoord {
-                        col: int.lookup_column(crd.x.into()),
-                        row: int.lookup_row(crd.y.into()),
-                        bel: BelId::from_idx(idx as usize),
-                    });
+                    io_lookup.insert(
+                        v.clone(),
+                        BelCoord {
+                            col: int.lookup_column(crd.x.into()),
+                            row: int.lookup_row(crd.y.into()),
+                            bel: BelId::from_idx(idx as usize),
+                        },
+                    );
                 }
             }
         }

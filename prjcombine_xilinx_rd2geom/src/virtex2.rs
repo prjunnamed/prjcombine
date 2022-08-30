@@ -25,7 +25,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), bond::make_bond(&edev, pins)));
     }
 
-    verify(rd, &edev.egrid, |vrf, ctx| verify::verify_bel(&edev, vrf, ctx));
+    verify(rd, &edev.egrid, |vrf, ctx| {
+        verify::verify_bel(&edev, vrf, ctx)
+    });
     (
         make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
         Some(int_db),
