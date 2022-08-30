@@ -1,5 +1,5 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
-use prjcombine_xilinx_geom::virtex2::{Grid, GridKind};
+use prjcombine_xilinx_geom::virtex2::{ExpandedDevice, GridKind};
 
 mod clb;
 mod clk;
@@ -36,8 +36,8 @@ fn verify_ppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_gt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if grid.kind == GridKind::Virtex2PX {
+fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if edev.grid.kind == GridKind::Virtex2PX {
         vrf.verify_bel(
             bel,
             "GT10",
@@ -55,7 +55,7 @@ fn verify_gt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
             let obel = vrf
-                .find_bel(bel.slr, (grid.col_clk - 1, bel.row), oname)
+                .find_bel(bel.slr, (edev.grid.col_clk - 1, bel.row), oname)
                 .unwrap();
             vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far("I")]);
         }
@@ -76,7 +76,7 @@ fn verify_gt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             &[],
         );
         let obel = vrf
-            .find_bel(bel.slr, (grid.col_clk - 1, bel.row), "BREFCLK")
+            .find_bel(bel.slr, (edev.grid.col_clk - 1, bel.row), "BREFCLK")
             .unwrap();
         for pin in ["BREFCLK", "BREFCLK2"] {
             vrf.claim_node(&[bel.fwire(pin)]);
@@ -98,8 +98,8 @@ fn verify_gt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_mult(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if matches!(grid.kind, GridKind::Spartan3E | GridKind::Spartan3A) {
+fn verify_mult(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if matches!(edev.grid.kind, GridKind::Spartan3E | GridKind::Spartan3A) {
         let carry: Vec<_> = (0..18)
             .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
             .collect();
@@ -148,12 +148,12 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "RLL" => verify_rll(vrf, bel),
         _ if bel.key.starts_with("SLICE") => {
-            if grid.kind.is_virtex2() {
-                clb::verify_slice_v2(grid, vrf, bel);
+            if edev.grid.kind.is_virtex2() {
+                clb::verify_slice_v2(edev, vrf, bel);
             } else {
                 clb::verify_slice_s3(vrf, bel);
             }
@@ -165,21 +165,21 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "TBUS" => {
             clb::verify_tbus(vrf, bel);
         }
-        "RANDOR" => clb::verify_randor(grid, vrf, bel),
+        "RANDOR" => clb::verify_randor(edev, vrf, bel),
         "RANDOR_OUT" => (),
 
         "BRAM" => {
-            let kind = match grid.kind {
+            let kind = match edev.grid.kind {
                 GridKind::Spartan3A => "RAMB16BWE",
                 GridKind::Spartan3ADsp => "RAMB16BWER",
                 _ => "RAMB16",
             };
             vrf.verify_bel(bel, kind, &[], &[]);
         }
-        "MULT" => verify_mult(grid, vrf, bel),
+        "MULT" => verify_mult(edev, vrf, bel),
         "DSP" => verify_dsp(vrf, bel),
 
-        _ if bel.key.starts_with("IOI") => io::verify_ioi(grid, vrf, bel),
+        _ if bel.key.starts_with("IOI") => io::verify_ioi(edev, vrf, bel),
         _ if bel.key.starts_with("IOBS") => (),
         "CLK_P" | "CLK_N" => {
             vrf.verify_bel(bel, bel.key, &[("I", SitePinDir::Out)], &[]);
@@ -191,32 +191,32 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             let obel = vrf.find_bel_sibling(bel, "CLK_P");
             vrf.claim_pip(bel.crd(), bel.wire("BREFCLK"), obel.wire_far("I"));
         }
-        "PCILOGICSE" => io::verify_pcilogicse(grid, vrf, bel),
-        "PCI_CE_N" => io::verify_pci_ce_n(grid, vrf, bel),
-        "PCI_CE_S" => io::verify_pci_ce_s(grid, vrf, bel),
-        "PCI_CE_E" => io::verify_pci_ce_e(grid, vrf, bel),
-        "PCI_CE_W" => io::verify_pci_ce_w(grid, vrf, bel),
-        "PCI_CE_CNR" => io::verify_pci_ce_cnr(grid, vrf, bel),
+        "PCILOGICSE" => io::verify_pcilogicse(edev, vrf, bel),
+        "PCI_CE_N" => io::verify_pci_ce_n(edev, vrf, bel),
+        "PCI_CE_S" => io::verify_pci_ce_s(edev, vrf, bel),
+        "PCI_CE_E" => io::verify_pci_ce_e(edev, vrf, bel),
+        "PCI_CE_W" => io::verify_pci_ce_w(edev, vrf, bel),
+        "PCI_CE_CNR" => io::verify_pci_ce_cnr(edev, vrf, bel),
 
-        "BREFCLK" => clk::verify_brefclk(grid, vrf, bel),
-        _ if bel.key.starts_with("BUFGMUX") => clk::verify_bufgmux(grid, vrf, bel),
-        _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(grid, vrf, bel),
-        "GCLKC" => clk::verify_gclkc(grid, vrf, bel),
+        "BREFCLK" => clk::verify_brefclk(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFGMUX") => clk::verify_bufgmux(edev, vrf, bel),
+        _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(edev, vrf, bel),
+        "GCLKC" => clk::verify_gclkc(edev, vrf, bel),
         "CLKC" => {
-            if grid.kind.is_virtex2() {
-                clk::verify_clkc_v2(grid, vrf, bel);
+            if edev.grid.kind.is_virtex2() {
+                clk::verify_clkc_v2(edev, vrf, bel);
             } else {
-                clk::verify_clkc_s3(grid, vrf, bel);
+                clk::verify_clkc_s3(edev, vrf, bel);
             }
         }
-        "CLKC_50A" => clk::verify_clkc_50a(grid, vrf, bel),
-        "GCLKVM" => clk::verify_gclkvm(grid, vrf, bel),
-        "GCLKVC" => clk::verify_gclkvc(grid, vrf, bel),
+        "CLKC_50A" => clk::verify_clkc_50a(edev, vrf, bel),
+        "GCLKVM" => clk::verify_gclkvm(edev, vrf, bel),
+        "GCLKVC" => clk::verify_gclkvc(edev, vrf, bel),
         "DCMCONN.S3E" => (),
-        "DCMCONN" => clk::verify_dcmconn(grid, vrf, bel),
+        "DCMCONN" => clk::verify_dcmconn(edev, vrf, bel),
 
         "PPC405" => verify_ppc(vrf, bel),
-        _ if bel.key.starts_with("GT") => verify_gt(grid, vrf, bel),
+        _ if bel.key.starts_with("GT") => verify_gt(edev, vrf, bel),
         _ if bel.key.starts_with("IPAD") => {
             vrf.verify_bel(bel, "GTIPAD", &[("I", SitePinDir::Out)], &[]);
             vrf.claim_node(&[bel.fwire("I")]);

@@ -2,26 +2,26 @@ use std::collections::{BTreeMap, HashMap};
 
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xilinx_geom::pkg::{Bond, BondPin, CfgPin, GtPin};
-use prjcombine_xilinx_geom::virtex2::Grid;
+use prjcombine_xilinx_geom::virtex2::ExpandedDevice;
 
 use crate::util::split_num;
 
-pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
+    let io_lookup: HashMap<_, _> = edev
+        .get_bonded_ios()
         .into_iter()
-        .map(|io| (io.name, (io.coord, io.bank)))
+        .map(|io| (io.name.to_string(), io))
         .collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if pad.starts_with("PAD") || pad.starts_with("IPAD") || pad.starts_with("CLK") {
-                let (coord, bank) = io_lookup[pad];
-                assert_eq!(pin.vref_bank, Some(bank));
-                let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
+                let io = io_lookup[pad];
+                assert_eq!(pin.vref_bank, Some(io.bank));
+                let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
-                BondPin::IoByCoord(coord)
+                BondPin::IoByCoord(io.coord)
             } else if let Some((n, b)) = split_num(pad) {
                 let pk = match n {
                     "RXPPAD" => GtPin::RxP,

@@ -1,7 +1,7 @@
 use crate::verify::{BelContext, SitePinDir, Verifier};
-use prjcombine_xilinx_geom::virtex2::{ColumnKind, Grid};
+use prjcombine_xilinx_geom::virtex2::{ColumnKind, ExpandedDevice};
 
-pub fn verify_slice_v2(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_slice_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
         "SLICE",
@@ -119,7 +119,7 @@ pub fn verify_slice_v2(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             continue;
         }
         let mut scol = bel.col - 1;
-        if grid.columns[scol].kind == ColumnKind::Bram {
+        if edev.grid.columns[scol].kind == ColumnKind::Bram {
             scol -= 1;
         }
         if let Some(obel) = vrf.find_bel(bel.slr, (scol, bel.row), sbel) {
@@ -232,7 +232,7 @@ pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("BUS2"));
 }
 
-pub fn verify_randor(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_randor(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
         "RESERVED_ANDOR",
@@ -244,7 +244,7 @@ pub fn verify_randor(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         ],
         &[],
     );
-    if bel.row == grid.row_bot() {
+    if bel.row == edev.grid.row_bot() {
         for pin in ["CIN0", "CIN1", "CPREV", "O"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }

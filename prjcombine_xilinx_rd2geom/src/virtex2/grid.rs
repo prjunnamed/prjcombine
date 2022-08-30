@@ -1,11 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::EntityVec;
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_xilinx_geom::virtex2::{
     self, Column, ColumnIoKind, ColumnKind, Dcms, GridKind, RowIoKind, SharedCfgPin,
 };
-use prjcombine_xilinx_geom::{ColId, RowId};
+use prjcombine_xilinx_geom::{ColId, RowId, BelId, BelCoord};
+use prjcombine_entity::EntityId;
 
 use crate::grid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
 use crate::util::split_num;
@@ -391,12 +392,22 @@ fn get_has_small_int(rd: &Part) -> bool {
     !find_columns(rd, &["CENTER_SMALL"]).is_empty()
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid) {
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, io.coord))
-        .collect();
+fn handle_spec_io(rd: &Part, grid: &mut virtex2::Grid, int: &IntGrid) {
+    let mut io_lookup = HashMap::new();
+    for (&crd, tile) in &rd.tiles {
+        let tk = &rd.tile_kinds[tile.kind];
+        for (k, v) in &tile.sites {
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
+                if rd.slot_kinds[sn] == "IOB" {
+                    io_lookup.insert(v.clone(), BelCoord {
+                        col: int.lookup_column(crd.x.into()),
+                        row: int.lookup_row(crd.y.into()),
+                        bel: BelId::from_idx(idx as usize),
+                    });
+                }
+            }
+        }
+    }
     let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         let mut vrp = BTreeMap::new();
@@ -539,6 +550,6 @@ pub fn make_grid(rd: &Part) -> virtex2::Grid {
         dci_io: BTreeMap::new(),
         dci_io_alt: BTreeMap::new(),
     };
-    handle_spec_io(rd, &mut grid);
+    handle_spec_io(rd, &mut grid, &int);
     grid
 }

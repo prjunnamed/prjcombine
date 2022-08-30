@@ -129,12 +129,6 @@ pub enum Dcms {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IoKind {
-    Io,
-    Input,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IoDiffKind {
     P(BelId),
     N(BelId),
@@ -157,19 +151,20 @@ pub enum Edge {
     Right,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Io {
-    pub bank: u32,
+#[derive(Clone, Copy, Debug)]
+pub struct Io<'a> {
     pub coord: BelCoord,
-    pub name: String,
-    pub kind: IoKind,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct IoAttr {
     pub bank: u32,
     pub diff: IoDiffKind,
-    pub pad: IoPadKind,
+    pub pad_kind: IoPadKind,
+    pub name: &'a str,
+    pub is_vref: bool,
+}
+
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub egrid: eint::ExpandedGrid<'a>,
+    pub bonded_ios: Vec<((ColId, RowId), BelId)>,
 }
 
 impl Grid {
@@ -191,499 +186,6 @@ impl Grid {
 
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows.len() / 2)
-    }
-
-    pub fn get_io(&self) -> Vec<Io> {
-        let mut res = Vec::new();
-        let mut ctr = 1;
-        match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
-                // top
-                for (col, &cd) in self.columns.iter() {
-                    let row = self.row_top();
-                    let bels: &[usize] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => &[2, 1, 0],
-                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => &[3, 2, 1],
-                        ColumnIoKind::DoubleLeft(0) => &[3, 2, 1, 0],
-                        ColumnIoKind::DoubleLeft(1) => &[1, 0],
-                        ColumnIoKind::DoubleRight(0) => &[3, 2],
-                        ColumnIoKind::DoubleRight(1) => &[3, 2, 1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        let mut name = format!("PAD{ctr}");
-                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
-                            match bel {
-                                0 => name = "CLKPPAD1".to_string(),
-                                1 => name = "CLKNPAD1".to_string(),
-                                _ => (),
-                            }
-                        }
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if col < self.col_clk { 0 } else { 1 },
-                            name,
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // right
-                for (row, &kind) in self.rows.iter().rev() {
-                    let col = self.col_right();
-                    let bels: &[usize] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::DoubleBot(0) => &[3, 2, 1, 0],
-                        RowIoKind::DoubleBot(1) => &[3, 2],
-                        RowIoKind::DoubleTop(0) => &[1, 0],
-                        RowIoKind::DoubleTop(1) => &[3, 2, 1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if row < self.row_mid() { 3 } else { 2 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // bottom
-                for (col, &cd) in self.columns.iter().rev() {
-                    let row = self.row_bot();
-                    let bels: &[usize] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => &[3, 2, 1],
-                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => &[2, 1, 0],
-                        ColumnIoKind::DoubleLeft(0) => &[3, 2, 1, 0],
-                        ColumnIoKind::DoubleLeft(1) => &[3, 2],
-                        ColumnIoKind::DoubleRight(0) => &[1, 0],
-                        ColumnIoKind::DoubleRight(1) => &[3, 2, 1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        let mut name = format!("PAD{ctr}");
-                        if self.kind == GridKind::Virtex2PX && col == self.col_clk - 1 {
-                            match bel {
-                                2 => name = "CLKPPAD2".to_string(),
-                                3 => name = "CLKNPAD2".to_string(),
-                                _ => (),
-                            }
-                        }
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if col < self.col_clk { 5 } else { 4 },
-                            name,
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // left
-                for (row, &kind) in self.rows.iter() {
-                    let col = self.col_left();
-                    let bels: &[usize] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::DoubleBot(0) => &[0, 1, 2, 3],
-                        RowIoKind::DoubleBot(1) => &[2, 3],
-                        RowIoKind::DoubleTop(0) => &[0, 1],
-                        RowIoKind::DoubleTop(1) => &[0, 1, 2, 3],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if row < self.row_mid() { 6 } else { 7 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-            }
-            GridKind::Spartan3 => {
-                // top
-                for (col, &cd) in self.columns.iter() {
-                    let row = self.row_top();
-                    let bels: &[usize] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Double(0) => &[2, 1, 0],
-                        ColumnIoKind::Double(1) => &[1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if col < self.col_clk { 0 } else { 1 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // right
-                for (row, &kind) in self.rows.iter().rev() {
-                    let col = self.col_right();
-                    let bels: &[usize] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Single => &[1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if row < self.row_mid() { 3 } else { 2 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // bottom
-                for (col, &cd) in self.columns.iter().rev() {
-                    let row = self.row_bot();
-                    let bels: &[usize] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Double(0) => &[2, 1, 0],
-                        ColumnIoKind::Double(1) => &[1, 0],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if col < self.col_clk { 5 } else { 4 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // left
-                for (row, &kind) in self.rows.iter() {
-                    let col = self.col_left();
-                    let bels: &[usize] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Single => &[0, 1],
-                        _ => unreachable!(),
-                    };
-                    for &bel in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: if row < self.row_mid() { 6 } else { 7 },
-                            name: format!("PAD{ctr}"),
-                            kind: IoKind::Io,
-                        });
-                        ctr += 1;
-                    }
-                }
-            }
-            GridKind::Spartan3E => {
-                const I: IoKind = IoKind::Input;
-                const IO: IoKind = IoKind::Io;
-                // top
-                for (col, &cd) in self.columns.iter() {
-                    let row = self.row_top();
-                    let bels: &[(usize, IoKind)] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Single => &[(2, IO)],
-                        ColumnIoKind::Double(0) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Double(1) => &[(2, I)],
-                        ColumnIoKind::Triple(0) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Triple(1) => &[(2, I)],
-                        ColumnIoKind::Triple(2) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Quad(0) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Quad(1) => &[(2, IO)],
-                        ColumnIoKind::Quad(2) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Quad(3) => &[(1, I), (0, I)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 0,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // right
-                for (row, &kind) in self.rows.iter().rev() {
-                    let col = self.col_right();
-                    let bels: &[(usize, IoKind)] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Single => &[(2, IO)],
-                        RowIoKind::Double(0) => &[(1, IO), (0, IO)],
-                        RowIoKind::Double(1) => &[],
-                        RowIoKind::Triple(0) => &[(1, IO), (0, IO)],
-                        RowIoKind::Triple(1) => &[(2, IO)],
-                        RowIoKind::Triple(2) => &[(2, I)],
-                        RowIoKind::Quad(0) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(1) => &[],
-                        RowIoKind::Quad(2) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(3) => &[(2, I)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 1,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // bottom
-                for (col, &cd) in self.columns.iter().rev() {
-                    let row = self.row_bot();
-                    let bels: &[(usize, IoKind)] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Single => &[(2, IO)],
-                        ColumnIoKind::Double(0) => &[(2, I)],
-                        ColumnIoKind::Double(1) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Triple(0) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Triple(1) => &[(2, I)],
-                        ColumnIoKind::Triple(2) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Quad(0) => &[(1, I), (0, I)],
-                        ColumnIoKind::Quad(1) => &[(1, IO), (0, IO)],
-                        ColumnIoKind::Quad(2) => &[(2, IO)],
-                        ColumnIoKind::Quad(3) => &[(1, IO), (0, IO)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 2,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // left
-                for (row, &kind) in self.rows.iter() {
-                    let col = self.col_left();
-                    let bels: &[(usize, IoKind)] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Single => &[(2, IO)],
-                        RowIoKind::Double(0) => &[],
-                        RowIoKind::Double(1) => &[(1, IO), (0, IO)],
-                        RowIoKind::Triple(0) => &[(2, I)],
-                        RowIoKind::Triple(1) => &[(2, IO)],
-                        RowIoKind::Triple(2) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(0) => &[(2, I)],
-                        RowIoKind::Quad(1) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(2) => &[],
-                        RowIoKind::Quad(3) => &[(1, IO), (0, IO)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 3,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-            }
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
-                const I: IoKind = IoKind::Input;
-                const IO: IoKind = IoKind::Io;
-                // top
-                for (col, &cd) in self.columns.iter() {
-                    let row = self.row_top();
-                    let bels: &[(usize, IoKind)] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Double(0) => &[(0, IO), (1, IO), (2, I)],
-                        ColumnIoKind::Double(1) => &[(0, IO), (1, IO)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 0,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // right
-                for (row, &kind) in self.rows.iter().rev() {
-                    let col = self.col_right();
-                    let bels: &[(usize, IoKind)] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Quad(0) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(1) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(2) => &[(1, IO), (0, IO)],
-                        RowIoKind::Quad(3) => &[(1, I), (0, I)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 1,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // bottom
-                for (col, &cd) in self.columns.iter().rev() {
-                    let row = self.row_bot();
-                    let bels: &[(usize, IoKind)] = match cd.io {
-                        ColumnIoKind::None => &[],
-                        ColumnIoKind::Double(0) => &[(2, I), (1, IO), (0, IO)],
-                        ColumnIoKind::Double(1) => &[(1, IO), (0, IO)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        let mut name = if kind == IoKind::Io {
-                            format!("PAD{ctr}")
-                        } else {
-                            format!("IPAD{ctr}")
-                        };
-                        // 3s50a special
-                        if self.cols_clkv.is_none() {
-                            match ctr {
-                                94 => name = "PAD96".to_string(),
-                                95 => name = "IPAD94".to_string(),
-                                96 => name = "PAD97".to_string(),
-                                97 => name = "PAD95".to_string(),
-                                _ => (),
-                            }
-                        }
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 2,
-                            name,
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-                // left
-                for (row, &kind) in self.rows.iter() {
-                    let col = self.col_left();
-                    let bels: &[(usize, IoKind)] = match kind {
-                        RowIoKind::None => &[],
-                        RowIoKind::Quad(0) => &[(0, I), (1, I)],
-                        RowIoKind::Quad(1) => &[(0, IO), (1, IO)],
-                        RowIoKind::Quad(2) => &[(0, IO), (1, IO)],
-                        RowIoKind::Quad(3) => &[(0, IO), (1, IO)],
-                        _ => unreachable!(),
-                    };
-                    for &(bel, kind) in bels {
-                        res.push(Io {
-                            coord: BelCoord {
-                                col,
-                                row,
-                                bel: BelId::from_idx(bel),
-                            },
-                            bank: 3,
-                            name: if kind == IoKind::Io {
-                                format!("PAD{ctr}")
-                            } else {
-                                format!("IPAD{ctr}")
-                            },
-                            kind,
-                        });
-                        ctr += 1;
-                    }
-                }
-            }
-        }
-        res
     }
 
     pub fn get_clk_io(&self, edge: Edge, idx: usize) -> Option<(eint::Coord, BelId)> {
@@ -886,160 +388,6 @@ impl Grid {
         }
     }
 
-    pub fn get_io_node<'a>(
-        &self,
-        egrid: &'a eint::ExpandedGrid,
-        coord: eint::Coord,
-    ) -> Option<&'a eint::ExpandedTileNode> {
-        egrid.find_node(SlrId::from_idx(0), coord, |x| {
-            egrid.db.nodes.key(x.kind).starts_with("IOI")
-        })
-    }
-
-    pub fn get_io_bel<'a>(
-        &self,
-        egrid: &'a eint::ExpandedGrid,
-        coord: eint::Coord,
-        bel: BelId,
-    ) -> Option<(
-        &'a eint::ExpandedTileNode,
-        &'a int::BelInfo,
-        &'a int::BelNaming,
-        &'a str,
-    )> {
-        let node = self.get_io_node(egrid, coord)?;
-        let nk = &egrid.db.nodes[node.kind];
-        let naming = &egrid.db.node_namings[node.naming];
-        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
-    }
-
-    pub fn get_io_attr(
-        &self,
-        egrid: &eint::ExpandedGrid,
-        coord: eint::Coord,
-        bel: BelId,
-    ) -> IoAttr {
-        let (_, _, _, name) = self.get_io_bel(egrid, coord, bel).unwrap();
-        let bank = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
-                if coord.1 == self.row_top() {
-                    if coord.0 < self.col_clk {
-                        0
-                    } else {
-                        1
-                    }
-                } else if coord.0 == self.col_right() {
-                    if coord.1 < self.row_mid() {
-                        3
-                    } else {
-                        2
-                    }
-                } else if coord.1 == self.row_bot() {
-                    if coord.0 < self.col_clk {
-                        5
-                    } else {
-                        4
-                    }
-                } else if coord.0 == self.col_left() {
-                    if coord.1 < self.row_mid() {
-                        6
-                    } else {
-                        7
-                    }
-                } else {
-                    unreachable!()
-                }
-            }
-            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
-                if coord.1 == self.row_top() {
-                    0
-                } else if coord.0 == self.col_right() {
-                    1
-                } else if coord.1 == self.row_bot() {
-                    2
-                } else if coord.0 == self.col_left() {
-                    3
-                } else {
-                    unreachable!()
-                }
-            }
-        };
-        let diff = match self.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
-                if matches!(
-                    self.columns[coord.0].io,
-                    ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
-                ) {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::None,
-                        1 => IoDiffKind::P(BelId::from_idx(2)),
-                        2 => IoDiffKind::N(BelId::from_idx(1)),
-                        3 => IoDiffKind::None,
-                        _ => unreachable!(),
-                    }
-                } else {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::P(BelId::from_idx(1)),
-                        1 => IoDiffKind::N(BelId::from_idx(0)),
-                        2 => IoDiffKind::P(BelId::from_idx(3)),
-                        3 => IoDiffKind::N(BelId::from_idx(2)),
-                        _ => unreachable!(),
-                    }
-                }
-            }
-            GridKind::Spartan3 => {
-                if coord.0 == self.col_left() {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::N(BelId::from_idx(1)),
-                        1 => IoDiffKind::P(BelId::from_idx(0)),
-                        2 => IoDiffKind::None,
-                        _ => unreachable!(),
-                    }
-                } else {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::P(BelId::from_idx(1)),
-                        1 => IoDiffKind::N(BelId::from_idx(0)),
-                        2 => IoDiffKind::None,
-                        _ => unreachable!(),
-                    }
-                }
-            }
-            GridKind::Spartan3E => match bel.to_idx() {
-                0 => IoDiffKind::P(BelId::from_idx(1)),
-                1 => IoDiffKind::N(BelId::from_idx(0)),
-                2 => IoDiffKind::None,
-                _ => unreachable!(),
-            },
-            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
-                if coord.1 == self.row_top() || coord.0 == self.col_left() {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::N(BelId::from_idx(1)),
-                        1 => IoDiffKind::P(BelId::from_idx(0)),
-                        2 => IoDiffKind::None,
-                        _ => unreachable!(),
-                    }
-                } else {
-                    match bel.to_idx() {
-                        0 => IoDiffKind::P(BelId::from_idx(1)),
-                        1 => IoDiffKind::N(BelId::from_idx(0)),
-                        2 => IoDiffKind::None,
-                        _ => unreachable!(),
-                    }
-                }
-            }
-        };
-        let pad = if name.starts_with("PAD") {
-            IoPadKind::Io
-        } else if name.starts_with("IPAD") {
-            IoPadKind::Input
-        } else if name.starts_with("CLK") {
-            IoPadKind::Clk
-        } else {
-            IoPadKind::None
-        };
-        IoAttr { bank, diff, pad }
-    }
-
     fn fill_term(
         &self,
         slr: &mut eint::ExpandedSlrRefMut,
@@ -1056,7 +404,7 @@ impl Grid {
         slr.fill_term_tile(coord, kind, naming, name);
     }
 
-    pub fn expand_grid<'a>(&self, db: &'a int::IntDb) -> eint::ExpandedGrid<'a> {
+    pub fn expand_grid<'a>(&'a self, db: &'a int::IntDb) -> ExpandedDevice<'a> {
         let mut egrid = eint::ExpandedGrid::new(db);
         egrid.tie_kind = Some("VCC".to_string());
         egrid.tie_pin_pullup = Some("VCCOUT".to_string());
@@ -1422,6 +770,7 @@ impl Grid {
             }
         }
 
+        let mut bonded_ios = vec![];
         {
             let mut ctr_pad = 1;
             let mut ctr_nopad = if use_xy { 0 } else { 1 };
@@ -1614,6 +963,7 @@ impl Grid {
                 );
                 for &i in iobs {
                     if pads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         match (ioi_kind, i) {
                             ("IOI.CLK_T", 0) => node.add_bel(i, "CLKPPAD1".to_string()),
                             ("IOI.CLK_T", 1) => node.add_bel(i, "CLKNPAD1".to_string()),
@@ -1621,6 +971,7 @@ impl Grid {
                         }
                         ctr_pad += 1;
                     } else if ipads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         node.add_bel(i, format!("IPAD{ctr_pad}"));
                         ctr_pad += 1;
                     } else {
@@ -1839,9 +1190,11 @@ impl Grid {
                 );
                 for &i in iobs {
                     if pads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         node.add_bel(i, format!("PAD{ctr_pad}"));
                         ctr_pad += 1;
                     } else if ipads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         node.add_bel(i, format!("IPAD{ctr_pad}"));
                         ctr_pad += 1;
                     } else {
@@ -2048,6 +1401,7 @@ impl Grid {
                 );
                 for &i in iobs {
                     if pads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         let mut name = format!("PAD{ctr_pad}");
                         if self.kind == GridKind::Spartan3A && self.cols_clkv.is_none() {
                             // 3s50a special
@@ -2066,6 +1420,7 @@ impl Grid {
                         node.add_bel(i, name);
                         ctr_pad += 1;
                     } else if ipads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         let mut name = format!("IPAD{ctr_pad}");
                         if self.kind == GridKind::Spartan3A
                             && self.cols_clkv.is_none()
@@ -2300,9 +1655,11 @@ impl Grid {
                 );
                 for &i in iobs {
                     if pads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         node.add_bel(i, format!("PAD{ctr_pad}"));
                         ctr_pad += 1;
                     } else if ipads.contains(&i) {
+                        bonded_ios.push(((col, row), BelId::from_idx(i)));
                         node.add_bel(i, format!("IPAD{ctr_pad}"));
                         ctr_pad += 1;
                     } else {
@@ -3906,6 +3263,183 @@ impl Grid {
             }
         }
 
-        egrid
+        ExpandedDevice {
+            grid: self,
+            egrid,
+            bonded_ios,
+        }
+    }
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn get_io_node(
+        &'a self,
+        coord: eint::Coord,
+    ) -> Option<&'a eint::ExpandedTileNode> {
+        self.egrid.find_node(SlrId::from_idx(0), coord, |x| {
+            self.egrid.db.nodes.key(x.kind).starts_with("IOI")
+        })
+    }
+
+    pub fn get_io_bel(
+        &'a self,
+        coord: eint::Coord,
+        bel: BelId,
+    ) -> Option<(
+        &'a eint::ExpandedTileNode,
+        &'a int::BelInfo,
+        &'a int::BelNaming,
+        &'a str,
+    )> {
+        let node = self.get_io_node(coord)?;
+        let nk = &self.egrid.db.nodes[node.kind];
+        let naming = &self.egrid.db.node_namings[node.naming];
+        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
+    }
+
+    pub fn get_io(
+        &'a self,
+        coord: eint::Coord,
+        bel: BelId,
+    ) -> Io<'a> {
+        let (_, _, _, name) = self.get_io_bel(coord, bel).unwrap();
+        let bank = match self.grid.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
+                if coord.1 == self.grid.row_top() {
+                    if coord.0 < self.grid.col_clk {
+                        0
+                    } else {
+                        1
+                    }
+                } else if coord.0 == self.grid.col_right() {
+                    if coord.1 < self.grid.row_mid() {
+                        3
+                    } else {
+                        2
+                    }
+                } else if coord.1 == self.grid.row_bot() {
+                    if coord.0 < self.grid.col_clk {
+                        5
+                    } else {
+                        4
+                    }
+                } else if coord.0 == self.grid.col_left() {
+                    if coord.1 < self.grid.row_mid() {
+                        6
+                    } else {
+                        7
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.1 == self.grid.row_top() {
+                    0
+                } else if coord.0 == self.grid.col_right() {
+                    1
+                } else if coord.1 == self.grid.row_bot() {
+                    2
+                } else if coord.0 == self.grid.col_left() {
+                    3
+                } else {
+                    unreachable!()
+                }
+            }
+        };
+        let diff = match self.grid.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                if matches!(
+                    self.grid.columns[coord.0].io,
+                    ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
+                ) {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::None,
+                        1 => IoDiffKind::P(BelId::from_idx(2)),
+                        2 => IoDiffKind::N(BelId::from_idx(1)),
+                        3 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::P(BelId::from_idx(3)),
+                        3 => IoDiffKind::N(BelId::from_idx(2)),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3 => {
+                if coord.0 == self.grid.col_left() {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::N(BelId::from_idx(1)),
+                        1 => IoDiffKind::P(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3E => match bel.to_idx() {
+                0 => IoDiffKind::P(BelId::from_idx(1)),
+                1 => IoDiffKind::N(BelId::from_idx(0)),
+                2 => IoDiffKind::None,
+                _ => unreachable!(),
+            },
+            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.1 == self.grid.row_top() || coord.0 == self.grid.col_left() {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::N(BelId::from_idx(1)),
+                        1 => IoDiffKind::P(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match bel.to_idx() {
+                        0 => IoDiffKind::P(BelId::from_idx(1)),
+                        1 => IoDiffKind::N(BelId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        };
+        let pad_kind = if name.starts_with("PAD") {
+            IoPadKind::Io
+        } else if name.starts_with("IPAD") {
+            IoPadKind::Input
+        } else if name.starts_with("CLK") {
+            IoPadKind::Clk
+        } else {
+            IoPadKind::None
+        };
+        let coord = BelCoord {
+            col: coord.0,
+            row: coord.1,
+            bel,
+        };
+        Io {
+            coord,
+            bank,
+            diff,
+            pad_kind,
+            name,
+            is_vref: self.grid.vref.contains(&coord),
+        }
+    }
+
+    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+        let mut res = vec![];
+        for &(coord, bel) in &self.bonded_ios {
+            res.push(self.get_io(coord, bel));
+        }
+        res
     }
 }
