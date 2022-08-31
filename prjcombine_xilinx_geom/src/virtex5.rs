@@ -708,11 +708,12 @@ impl Grid {
                 ColumnKind::Dsp => "DSP",
                 _ => continue,
             };
-            let tk = if let Some(ref hard) = self.col_hard && hard.col == col {
-                "PCIE_BRAM"
-            } else {
-                kind
-            };
+            let mut tk = kind;
+            if let Some(ref hard) = self.col_hard {
+                if hard.col == col {
+                    tk = "PCIE_BRAM";
+                }
+            }
             'a: for row in grid.rows() {
                 if row.to_idx() % 5 != 0 {
                     continue;
