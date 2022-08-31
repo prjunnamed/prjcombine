@@ -1,6 +1,4 @@
-#![allow(clippy::needless_range_loop)]
 #![allow(clippy::collapsible_else_if)]
-#![allow(clippy::too_many_arguments)]
 
 use prjcombine_rawdump::Part;
 use rayon::prelude::*;
@@ -10,13 +8,9 @@ use std::fs::File;
 use structopt::StructOpt;
 
 mod db;
-mod grid;
-mod intb;
 mod series7;
 mod spartan6;
 mod ultrascale;
-mod util;
-mod verify;
 mod versal;
 mod virtex;
 mod virtex2;

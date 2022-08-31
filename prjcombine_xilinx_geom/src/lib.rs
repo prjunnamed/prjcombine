@@ -1,102 +1,31 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::{entity_id, EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityVec};
+use prjcombine_int::db::IntDb;
+use prjcombine_int::grid::DieId;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-
-pub mod series7;
-pub mod spartan6;
-pub mod ultrascale;
-pub mod versal;
-pub mod virtex;
-pub mod virtex2;
-pub mod virtex4;
-pub mod virtex5;
-pub mod virtex6;
-pub mod xc4k;
-pub mod xc5200;
-
-pub mod eint;
-pub mod int;
-pub mod pkg;
 
 entity_id! {
     pub id GridId usize;
     pub id BondId usize;
     pub id DevBondId usize;
     pub id DevSpeedId usize;
-
-    pub id ColId u16;
-    pub id RowId u16;
-    pub id SlrId u16;
-    pub id BelId u16;
-}
-
-impl core::ops::Add<usize> for ColId {
-    type Output = ColId;
-    fn add(self, x: usize) -> ColId {
-        ColId::from_idx(self.to_idx() + x)
-    }
-}
-
-impl core::ops::AddAssign<usize> for ColId {
-    fn add_assign(&mut self, x: usize) {
-        *self = *self + x;
-    }
-}
-
-impl core::ops::Sub<usize> for ColId {
-    type Output = ColId;
-    fn sub(self, x: usize) -> ColId {
-        ColId::from_idx(self.to_idx() - x)
-    }
-}
-
-impl core::ops::SubAssign<usize> for ColId {
-    fn sub_assign(&mut self, x: usize) {
-        *self = *self - x;
-    }
-}
-
-impl core::ops::Add<usize> for RowId {
-    type Output = RowId;
-    fn add(self, x: usize) -> RowId {
-        RowId::from_idx(self.to_idx() + x)
-    }
-}
-
-impl core::ops::AddAssign<usize> for RowId {
-    fn add_assign(&mut self, x: usize) {
-        *self = *self + x;
-    }
-}
-
-impl core::ops::Sub<usize> for RowId {
-    type Output = RowId;
-    fn sub(self, x: usize) -> RowId {
-        RowId::from_idx(self.to_idx() - x)
-    }
-}
-
-impl core::ops::SubAssign<usize> for RowId {
-    fn sub_assign(&mut self, x: usize) {
-        *self = *self - x;
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
-    Xc4k(xc4k::Grid),
-    Xc5200(xc5200::Grid),
-    Virtex(virtex::Grid),
-    Virtex2(virtex2::Grid),
-    Spartan6(spartan6::Grid),
-    Virtex4(virtex4::Grid),
-    Virtex5(virtex5::Grid),
-    Virtex6(virtex6::Grid),
-    Series7(series7::Grid),
-    Ultrascale(ultrascale::Grid),
-    Versal(versal::Grid),
+    Xc4k(prjcombine_xc4k::Grid),
+    Xc5200(prjcombine_xc5200::Grid),
+    Virtex(prjcombine_virtex::Grid),
+    Virtex2(prjcombine_virtex2::Grid),
+    Spartan6(prjcombine_spartan6::Grid),
+    Virtex4(prjcombine_virtex4::Grid),
+    Virtex5(prjcombine_virtex5::Grid),
+    Virtex6(prjcombine_virtex6::Grid),
+    Series7(prjcombine_series7::Grid),
+    Ultrascale(prjcombine_ultrascale::Grid),
+    Versal(prjcombine_versal::Grid),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -107,42 +36,12 @@ pub struct DeviceBond {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
-    // Virtex-E: primary DLLs are disabled
-    VirtexPrimaryDlls,
-    // Virtex-E: a BRAM column is disabled
-    VirtexBram(ColId),
-    // Virtex 6: disable primitive in given row
-    Virtex6Emac(RowId),
-    Virtex6GtxRow(u32),
-    Virtex6SysMon,
-    Spartan6Gtp,
-    Spartan6Mcb,
-    Spartan6ClbColumn(ColId),
-    Spartan6BramRegion(ColId, u32),
-    Spartan6DspRegion(ColId, u32),
-    Series7Gtp,
-    Region(SlrId, u32),
-    Ps,
-    VersalHardIp(SlrId, ColId, usize),
-    VersalColumn(SlrId, ColId),
-    VersalGtRight(SlrId, usize),
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum PartNamingKey {
-    VersalHdio(SlrId, ColId, usize),
-    VersalGtLeft(SlrId, usize),
-    VersalGtRight(SlrId, usize),
-    VersalVNoc(SlrId, ColId, usize),
-    VersalDdrMcBot(usize),
-    VersalDdrMcTop(usize),
-    VersalXpioBot(usize),
-    VersalXpioTop(usize),
-    VersalHbmTop(usize),
-    // XXX NPS bot
-    // XXX NPS top
-    // XXX NCRB top
-    // XXX ME top
+    Virtex(prjcombine_virtex::DisabledPart),
+    Spartan6(prjcombine_spartan6::DisabledPart),
+    Virtex6(prjcombine_virtex6::DisabledPart),
+    Series7(prjcombine_series7::DisabledPart),
+    Ultrascale(prjcombine_ultrascale::DisabledPart),
+    Versal(prjcombine_versal::DisabledPart),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -154,15 +53,14 @@ pub struct DeviceCombo {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ExtraDie {
-    GtzTop,
-    GtzBottom,
+    Series7(prjcombine_series7::ExtraDie),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
-    pub grids: EntityVec<SlrId, GridId>,
-    pub grid_master: SlrId,
+    pub grids: EntityVec<DieId, GridId>,
+    pub grid_master: DieId,
     pub extras: Vec<ExtraDie>,
     pub bonds: EntityVec<DevBondId, DeviceBond>,
     pub speeds: EntityVec<DevSpeedId, String>,
@@ -171,25 +69,25 @@ pub struct Device {
     pub disabled: BTreeSet<DisabledPart>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub struct BelCoord {
-    pub col: ColId,
-    pub row: RowId,
-    pub bel: BelId,
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Bond {
+    Xc4k(prjcombine_xc4k::Bond),
+    Xc5200(prjcombine_xc5200::Bond),
+    Virtex(prjcombine_virtex::Bond),
+    Virtex2(prjcombine_virtex2::Bond),
+    Spartan6(prjcombine_spartan6::Bond),
+    Virtex4(prjcombine_virtex4::Bond),
+    Virtex5(prjcombine_virtex5::Bond),
+    Virtex6(prjcombine_virtex6::Bond),
+    Series7(prjcombine_series7::Bond),
+    Ultrascale(prjcombine_ultrascale::Bond),
+    Versal(prjcombine_versal::Bond),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
     pub grids: EntityVec<GridId, Grid>,
-    pub bonds: EntityVec<BondId, pkg::Bond>,
+    pub bonds: EntityVec<BondId, Bond>,
     pub devices: Vec<Device>,
-    pub ints: BTreeMap<String, int::IntDb>,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Rect {
-    pub col_l: ColId,
-    pub col_r: ColId,
-    pub row_b: RowId,
-    pub row_t: RowId,
+    pub ints: BTreeMap<String, IntDb>,
 }

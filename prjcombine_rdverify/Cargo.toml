@@ -1,0 +1,12 @@
+[package]
+name = "prjcombine_rdverify"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prjcombine_entity = { path = "../prjcombine_entity" }
+prjcombine_int = { path = "../prjcombine_int" }
+prjcombine_rawdump = { path = "../prjcombine_rawdump" }
+bitvec =  {version = "1.0.0", features = ["serde"] }

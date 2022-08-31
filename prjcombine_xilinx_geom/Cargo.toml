@@ -8,5 +8,15 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 prjcombine_entity = { path = "../prjcombine_entity" }
-enum-map = { version = "2.4.0", features = ["serde"] }
-ndarray = { version = "0.15", features = ["serde"] }
+prjcombine_int = { path = "../prjcombine_int" }
+prjcombine_xc4k = { path = "../prjcombine_xc4k" }
+prjcombine_xc5200 = { path = "../prjcombine_xc5200" }
+prjcombine_virtex = { path = "../prjcombine_virtex" }
+prjcombine_virtex2 = { path = "../prjcombine_virtex2" }
+prjcombine_spartan6 = { path = "../prjcombine_spartan6" }
+prjcombine_virtex4 = { path = "../prjcombine_virtex4" }
+prjcombine_virtex5 = { path = "../prjcombine_virtex5" }
+prjcombine_virtex6 = { path = "../prjcombine_virtex6" }
+prjcombine_series7 = { path = "../prjcombine_series7" }
+prjcombine_ultrascale = { path = "../prjcombine_ultrascale" }
+prjcombine_versal = { path = "../prjcombine_versal" }

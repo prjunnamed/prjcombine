@@ -1,16 +1,17 @@
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_int::db::{IntDb, IntfWireOutNaming};
+use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
-use prjcombine_xilinx_geom::pkg::Bond;
 use prjcombine_xilinx_geom::{
-    int, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie,
-    GeomDb, Grid, GridId, SlrId,
+    BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie, GeomDb,
+    Grid, GridId, Bond
 };
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 
 pub struct PreDevice {
     pub name: String,
-    pub grids: EntityVec<SlrId, Grid>,
-    pub grid_master: SlrId,
+    pub grids: EntityVec<DieId, Grid>,
+    pub grid_master: DieId,
     pub extras: Vec<ExtraDie>,
     pub bonds: EntityVec<DevBondId, (String, Bond)>,
     pub speeds: EntityVec<DevSpeedId, String>,
@@ -20,8 +21,8 @@ pub struct PreDevice {
 
 pub fn make_device_multi(
     rd: &Part,
-    grids: EntityVec<SlrId, Grid>,
-    grid_master: SlrId,
+    grids: EntityVec<DieId, Grid>,
+    grid_master: DieId,
     extras: Vec<ExtraDie>,
     mut bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
@@ -65,7 +66,7 @@ pub struct DbBuilder {
     grids: EntityVec<GridId, Grid>,
     bonds: EntityVec<BondId, Bond>,
     devices: Vec<Device>,
-    ints: BTreeMap<String, int::IntDb>,
+    ints: BTreeMap<String, IntDb>,
 }
 
 impl DbBuilder {
@@ -114,7 +115,7 @@ impl DbBuilder {
         });
     }
 
-    pub fn ingest_int(&mut self, int: int::IntDb) {
+    pub fn ingest_int(&mut self, int: IntDb) {
         match self.ints.entry(int.name.clone()) {
             btree_map::Entry::Vacant(x) => {
                 x.insert(int);
@@ -186,12 +187,12 @@ impl DbBuilder {
                                     None => {
                                         v2.wires_out.insert(kk, vv);
                                     }
-                                    Some(vv2 @ int::IntfWireOutNaming::Buf(no, _)) => match vv {
-                                        int::IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
-                                        int::IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
+                                    Some(vv2 @ IntfWireOutNaming::Buf(no, _)) => match vv {
+                                        IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
+                                        IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
                                     },
-                                    Some(vv2 @ int::IntfWireOutNaming::Simple(n)) => {
-                                        if let int::IntfWireOutNaming::Buf(no, _) = &vv {
+                                    Some(vv2 @ IntfWireOutNaming::Simple(n)) => {
+                                        if let IntfWireOutNaming::Buf(no, _) = &vv {
                                             assert_eq!(no, n);
                                             v2.wires_out.insert(kk, vv);
                                         } else {

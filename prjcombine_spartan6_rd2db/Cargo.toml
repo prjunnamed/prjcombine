@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine_spartan6_rd2db"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prjcombine_entity = { path = "../prjcombine_entity" }
+prjcombine_int = { path = "../prjcombine_int" }
+prjcombine_rdintb = { path = "../prjcombine_rdintb" }
+prjcombine_rdgrid = { path = "../prjcombine_rdgrid" }
+prjcombine_rawdump = { path = "../prjcombine_rawdump" }
+prjcombine_spartan6 = { path = "../prjcombine_spartan6" }
