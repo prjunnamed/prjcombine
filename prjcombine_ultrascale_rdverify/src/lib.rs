@@ -10,12 +10,14 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     } else {
         "SLICEL"
     };
-    vrf.verify_bel(
-        bel,
-        kind,
-        &[("CIN", SitePinDir::In), ("COUT", SitePinDir::Out)],
-        &[],
-    );
+    if bel.name.is_some() {
+        vrf.verify_bel(
+            bel,
+            kind,
+            &[("CIN", SitePinDir::In), ("COUT", SitePinDir::Out)],
+            &[],
+        );
+    }
     vrf.claim_pip(bel.crd(), bel.wire("CIN"), bel.wire_far("CIN"));
     vrf.claim_node(&[bel.fwire("CIN")]);
     if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
@@ -53,7 +55,9 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire(ipin), obel.wire(opin));
         }
     }
-    vrf.verify_bel(bel, "DSP48E2", &pins, &[]);
+    if bel.name.is_some() {
+        vrf.verify_bel(bel, "DSP48E2", &pins, &[]);
+    }
 }
 
 fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {

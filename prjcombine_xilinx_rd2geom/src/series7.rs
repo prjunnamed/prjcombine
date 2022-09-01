@@ -1,5 +1,5 @@
 use prjcombine_int::db::IntDb;
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Part, Source};
 use prjcombine_series7::expand_grid;
 use prjcombine_xilinx_geom::{Bond, DisabledPart, ExtraDie, Grid};
 
@@ -17,8 +17,13 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Series7(bond)));
     }
     let grid_refs = grids.map_values(|x| x);
-    let eint = expand_grid(&grid_refs, grid_master, &extras, &disabled, &int_db);
-    verify(rd, &eint, |vrf, bel| verify_bel(&grids, vrf, bel));
+    let mut edev = expand_grid(&grid_refs, grid_master, &extras, &disabled, &int_db);
+    if rd.source == Source::ISE {
+        edev.adjust_ise();
+    } else {
+        edev.adjust_vivado();
+    }
+    verify(rd, &edev.egrid, |vrf, bel| verify_bel(&edev, vrf, bel));
     let grids = grids.into_map_values(Grid::Series7);
     let extras = extras.into_iter().map(ExtraDie::Series7).collect();
     let disabled = disabled.into_iter().map(DisabledPart::Series7).collect();

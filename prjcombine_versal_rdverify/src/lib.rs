@@ -1,4 +1,4 @@
-use prjcombine_entity::EntityVec;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::DieId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_versal::Grid;
@@ -41,8 +41,12 @@ pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &Bel
             }
             if kind == "SLICEM" {
                 vrf.claim_node(&[bel.fwire_far("SRL_OUT_B")]);
-                if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
-                    vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
+                if bel.row.to_idx() % 48 != 0 {
+                    if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
+                        vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
+                    } else {
+                        vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
+                    }
                 } else {
                     vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
                 }

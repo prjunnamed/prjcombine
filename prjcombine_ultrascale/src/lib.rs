@@ -360,6 +360,7 @@ pub struct Bond {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
     Region(DieId, u32),
+    TopRow(DieId, u32),
     Ps,
 }
 
@@ -927,6 +928,7 @@ pub fn expand_grid<'a>(
 ) -> ExpandedGrid<'a> {
     let mut egrid = ExpandedGrid::new(db);
     let mut yb = 0;
+    let mut syb = 0;
     let has_hbm = grids.first().unwrap().has_hbm;
     for (dieid, grid) in grids {
         let mut reg_skip_bot = 0;
@@ -1237,7 +1239,13 @@ pub fn expand_grid<'a>(
                         db.get_node_naming(kind),
                         &[(col, row)],
                     );
-                    node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                    if row.to_idx() % 60 == 59
+                        && disabled.contains(&DisabledPart::TopRow(dieid, row.to_idx() as u32 / 60))
+                    {
+                        continue;
+                    }
+                    let sy = syb + row.to_idx() - row_skip;
+                    node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     found = true;
                 }
             }
@@ -1260,7 +1268,13 @@ pub fn expand_grid<'a>(
                         db.get_node_naming("CLEL_R"),
                         &[(col, row)],
                     );
-                    node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                    if row.to_idx() % 60 == 59
+                        && disabled.contains(&DisabledPart::TopRow(dieid, row.to_idx() as u32 / 60))
+                    {
+                        continue;
+                    }
+                    let sy = syb + row.to_idx() - row_skip;
+                    node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     found = true;
                 }
             }
@@ -1297,9 +1311,10 @@ pub fn expand_grid<'a>(
                         (col, row + 4),
                     ],
                 );
-                node.add_bel(0, format!("RAMB36_X{bx}Y{y}", y = y / 5));
-                node.add_bel(1, format!("RAMB18_X{bx}Y{y}", y = y / 5 * 2));
-                node.add_bel(2, format!("RAMB18_X{bx}Y{y}", y = y / 5 * 2 + 1));
+                let sy = syb + row.to_idx() - row_skip;
+                node.add_bel(0, format!("RAMB36_X{bx}Y{y}", y = sy / 5));
+                node.add_bel(1, format!("RAMB18_X{bx}Y{y}", y = sy / 5 * 2));
+                node.add_bel(2, format!("RAMB18_X{bx}Y{y}", y = sy / 5 * 2 + 1));
                 if row.to_idx() % 60 == 30 {
                     let in_laguna = has_laguna
                         && (row.to_idx() / 60 == 0 || row.to_idx() / 60 == grid.regs - 1);
@@ -1356,21 +1371,26 @@ pub fn expand_grid<'a>(
                         db.get_node_naming("HARD_SYNC"),
                         &[(col, row)],
                     );
+                    let sy = syb + row.to_idx() - row_skip;
                     node.add_bel(
                         0,
-                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = y / 60 * 2),
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = sy / 60 * 2),
                     );
                     node.add_bel(
                         1,
-                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = y / 60 * 2 + 1),
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2, sy = sy / 60 * 2 + 1),
                     );
                     node.add_bel(
                         2,
-                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2 + 1, sy = y / 60 * 2),
+                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2 + 1, sy = sy / 60 * 2),
                     );
                     node.add_bel(
                         3,
-                        format!("HARD_SYNC_X{sx}Y{sy}", sx = bx * 2 + 1, sy = y / 60 * 2 + 1),
+                        format!(
+                            "HARD_SYNC_X{sx}Y{sy}",
+                            sx = bx * 2 + 1,
+                            sy = sy / 60 * 2 + 1
+                        ),
                     );
                 }
             }
@@ -1408,13 +1428,28 @@ pub fn expand_grid<'a>(
                         (col, row + 4),
                     ],
                 );
-                let dy = if has_hbm { y / 5 - 3 } else { y / 5 };
+                let sy = syb + row.to_idx() - row_skip;
+                let dy = if has_hbm { sy / 5 - 3 } else { sy / 5 };
                 node.add_bel(0, format!("DSP48E2_X{dx}Y{y}", y = dy * 2));
+                if row.to_idx() % 60 == 55
+                    && disabled.contains(&DisabledPart::TopRow(dieid, row.to_idx() as u32 / 60))
+                {
+                    continue;
+                }
                 node.add_bel(1, format!("DSP48E2_X{dx}Y{y}", y = dy * 2 + 1));
             }
             dx += 1;
         }
 
+        let mut uyb = 0;
+        if let Some(ps) = grid.ps {
+            uyb = ps.height();
+            for (col, &cd) in &grid.columns {
+                if cd.r == ColumnKindRight::Uram && col >= ps.col {
+                    uyb = 0;
+                }
+            }
+        }
         let mut ux = 0;
         for (col, &cd) in &grid.columns {
             if cd.r != ColumnKindRight::Uram {
@@ -1449,10 +1484,11 @@ pub fn expand_grid<'a>(
                     db.get_node_naming("URAM"),
                     &crds,
                 );
-                node.add_bel(0, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4));
-                node.add_bel(1, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 1));
-                node.add_bel(2, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 2));
-                node.add_bel(3, format!("URAM288_X{ux}Y{y}", y = y / 15 * 4 + 3));
+                let sy = syb + row.to_idx() - row_skip - uyb;
+                node.add_bel(0, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4));
+                node.add_bel(1, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 1));
+                node.add_bel(2, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 2));
+                node.add_bel(3, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 3));
             }
             ux += 1;
         }
@@ -1469,6 +1505,7 @@ pub fn expand_grid<'a>(
         }
 
         yb += die.rows().len() - reg_skip_bot * 60 - reg_skip_top * 60;
+        syb += die.rows().len() - reg_skip_bot * 60 - reg_skip_top * 60;
     }
 
     egrid

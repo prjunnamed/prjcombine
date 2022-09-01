@@ -431,6 +431,7 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
             grids[s0].cols_io[2].regs.push(IoRowKind::HsDac);
+            disabled.insert(DisabledPart::TopRow(s0, 5));
             disabled.insert(DisabledPart::Region(s0, 6));
             disabled.insert(DisabledPart::Region(s0, 7));
         } else if rd.part.contains("ku19p") {

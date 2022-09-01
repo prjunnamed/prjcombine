@@ -1,11 +1,12 @@
 #![allow(clippy::too_many_arguments)]
+#![allow(clippy::collapsible_else_if)]
 
 use crate::db::*;
 use enum_map::EnumMap;
 use ndarray::Array2;
 use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 entity_id! {
     pub id DieId u16, reserve 1;
@@ -85,6 +86,8 @@ pub struct ExpandedGrid<'a> {
     pub tie_pin_pullup: Option<String>,
     pub tiles: EntityVec<DieId, Array2<ExpandedTile>>,
     pub xdie_wires: HashMap<IntWire, IntWire>,
+    pub blackhole_wires: HashSet<IntWire>,
+    pub cursed_wires: HashSet<IntWire>,
 }
 
 pub struct ExpandedDieRef<'a, 'b> {
@@ -107,6 +110,8 @@ impl<'a> ExpandedGrid<'a> {
             tie_pin_pullup: None,
             tiles: EntityVec::new(),
             xdie_wires: HashMap::new(),
+            blackhole_wires: HashSet::new(),
+            cursed_wires: HashSet::new(),
         }
     }
 
@@ -471,6 +476,7 @@ impl ExpandedDieRefMut<'_, '_> {
 
 impl ExpandedGrid<'_> {
     pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
+        let owire = wire;
         let die = self.die(wire.0);
         loop {
             let tile = &die[wire.1];
@@ -507,29 +513,10 @@ impl ExpandedGrid<'_> {
                                         break;
                                     }
                                 }
-                                // horrible hack alert
-                                // XXX kill this
-                                let tt = &die[t.target.unwrap()];
-                                if !tt.nodes.is_empty()
-                                    && self.db.nodes.key(tt.nodes[0].kind) == "INT.DCM.S3.DUMMY"
-                                    && self.db.wires[wf].name.starts_with("OMUX")
-                                    && matches!(self.db.wires[wf].kind, WireKind::MuxOut)
-                                {
-                                    break;
-                                }
                                 wire.1 = t.target.unwrap();
                                 wire.2 = wf;
                             }
-                            None => {
-                                // horrible hack alert
-                                if self.db.terms.key(t.kind) == "TERM.N.PPC"
-                                    && self.db.wires[wire.2].name == "IMUX.BYP4.BOUNCE.S"
-                                {
-                                    wire.2 = WireId::from_idx(wire.2.to_idx() - 14);
-                                    assert_eq!(self.db.wires[wire.2].name, "IMUX.BYP0.BOUNCE.S");
-                                }
-                                break;
-                            }
+                            None => break,
                         }
                     } else {
                         break;
@@ -538,10 +525,20 @@ impl ExpandedGrid<'_> {
                 _ => break,
             }
         }
-        if let Some(&twire) = self.xdie_wires.get(&wire) {
-            Some(twire)
+        if self.blackhole_wires.contains(&wire) {
+            None
+        } else if let Some(&twire) = self.xdie_wires.get(&wire) {
+            if self.cursed_wires.contains(&twire) {
+                Some(owire)
+            } else {
+                Some(twire)
+            }
         } else {
-            Some(wire)
+            if self.cursed_wires.contains(&wire) {
+                Some(owire)
+            } else {
+                Some(wire)
+            }
         }
     }
 }

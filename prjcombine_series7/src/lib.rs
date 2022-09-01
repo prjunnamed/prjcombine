@@ -4,7 +4,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -846,13 +846,21 @@ pub fn get_ps_pads(grids: &EntityVec<DieId, Grid>) -> Vec<(String, u32, PsPin)> 
     res
 }
 
+pub struct ExpandedDevice<'a> {
+    pub grids: EntityVec<DieId, &'a Grid>,
+    pub grid_master: DieId,
+    pub egrid: ExpandedGrid<'a>,
+    pub disabled: BTreeSet<DisabledPart>,
+    pub extras: Vec<ExtraDie>,
+}
+
 pub fn expand_grid<'a>(
-    grids: &EntityVec<DieId, &Grid>,
-    _grid_master: DieId,
+    grids: &EntityVec<DieId, &'a Grid>,
+    grid_master: DieId,
     extras: &[ExtraDie],
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
-) -> ExpandedGrid<'a> {
+) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());
@@ -1521,5 +1529,62 @@ pub fn expand_grid<'a>(
     }
     egrid.xdie_wires = xdie_wires;
 
-    egrid
+    ExpandedDevice {
+        grids: grids.clone(),
+        grid_master,
+        egrid,
+        extras: extras.to_vec(),
+        disabled: disabled.clone(),
+    }
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn adjust_ise(&mut self) {
+        for (die, &grid) in &self.grids {
+            if grid.has_no_tbuturn {
+                let (w, _) = self
+                    .egrid
+                    .db
+                    .wires
+                    .iter()
+                    .find(|(_, w)| w.name == "LVB.6")
+                    .unwrap();
+                for col in grid.columns.ids() {
+                    for i in 0..6 {
+                        let row = RowId::from_idx(i);
+                        self.egrid.blackhole_wires.insert((die, (col, row), w));
+                    }
+                    for i in 0..6 {
+                        let row = RowId::from_idx(grid.regs * 50 - 6 + i);
+                        self.egrid.blackhole_wires.insert((die, (col, row), w));
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn adjust_vivado(&mut self) {
+        let lvb6 = self
+            .egrid
+            .db
+            .wires
+            .iter()
+            .find_map(|(k, v)| if v.name == "LVB.6" { Some(k) } else { None })
+            .unwrap();
+        let mut cursed_wires = HashSet::new();
+        for i in 1..self.grids.len() {
+            let dieid_s = DieId::from_idx(i - 1);
+            let dieid_n = DieId::from_idx(i);
+            let die_s = self.egrid.die(dieid_s);
+            let die_n = self.egrid.die(dieid_n);
+            for col in die_s.cols() {
+                let row_s = die_s.rows().next_back().unwrap() - 49;
+                let row_n = die_n.rows().next().unwrap() + 1;
+                if !die_s[(col, row_s)].nodes.is_empty() && !die_n[(col, row_n)].nodes.is_empty() {
+                    cursed_wires.insert((dieid_s, (col, row_s), lvb6));
+                }
+            }
+        }
+        self.egrid.cursed_wires = cursed_wires;
+    }
 }

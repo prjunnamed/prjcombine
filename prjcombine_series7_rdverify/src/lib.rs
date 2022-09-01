@@ -1,7 +1,5 @@
-use prjcombine_entity::EntityVec;
-use prjcombine_int::grid::DieId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_series7::Grid;
+use prjcombine_series7::ExpandedDevice;
 use std::collections::HashMap;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -293,7 +291,7 @@ fn verify_bram_addr(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
