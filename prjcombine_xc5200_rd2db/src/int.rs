@@ -523,7 +523,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     bels_io_t.push(
         builder
             .bel_virtual("TOP_COUT")
-            .extra_int_in("OUT", &["WIRE_COUT_TOP"]),
+            .extra_int_out("OUT", &["WIRE_COUT_TOP"]),
     );
     builder.extract_node("LEFT", "IO.L", "IO.L", &bels_io);
     builder.extract_node("LEFTCLK", "IO.L", "IO.L.CLK", &bels_io);

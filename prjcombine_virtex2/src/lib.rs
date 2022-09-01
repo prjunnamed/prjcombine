@@ -3009,7 +3009,7 @@ impl Grid {
                 if cd.kind != ColumnKind::Bram {
                     continue;
                 }
-                if self.kind == GridKind::Spartan3 && (col == col_l + 3 || col == col_r - 3) {
+                if self.kind == GridKind::Spartan3 && !(col == col_l + 3 || col == col_r - 3) {
                     c += 1;
                     continue;
                 }

@@ -123,8 +123,7 @@ pub enum DisabledPart {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Bond {
-}
+pub struct Bond {}
 
 pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &Grid>,

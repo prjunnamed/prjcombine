@@ -1,7 +1,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_versal::expand_grid;
-use prjcombine_xilinx_geom::{DisabledPart, Grid, Bond};
+use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
 use prjcombine_rdverify::verify;
@@ -13,10 +13,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let int_db = int::make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, _) in rd.packages.iter() {
-        bonds.push((
-            pkg.clone(),
-            Bond::Versal(prjcombine_versal::Bond{}),
-        ));
+        bonds.push((pkg.clone(), Bond::Versal(prjcombine_versal::Bond {})));
     }
     let grid_refs = grids.map_values(|x| x);
     let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);

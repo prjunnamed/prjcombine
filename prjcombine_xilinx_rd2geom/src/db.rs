@@ -3,8 +3,8 @@ use prjcombine_int::db::{IntDb, IntfWireOutNaming};
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{
-    BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie, GeomDb,
-    Grid, GridId, Bond
+    Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie,
+    GeomDb, Grid, GridId,
 };
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 

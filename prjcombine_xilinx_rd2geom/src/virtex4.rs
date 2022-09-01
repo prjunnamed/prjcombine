@@ -1,6 +1,6 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
-use prjcombine_xilinx_geom::{Grid, Bond};
+use prjcombine_xilinx_geom::{Bond, Grid};
 use std::collections::BTreeSet;
 
 use crate::db::{make_device, PreDevice};

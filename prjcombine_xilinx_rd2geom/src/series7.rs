@@ -1,7 +1,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_series7::expand_grid;
-use prjcombine_xilinx_geom::{DisabledPart, ExtraDie, Grid, Bond};
+use prjcombine_xilinx_geom::{Bond, DisabledPart, ExtraDie, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
 use prjcombine_rdverify::verify;

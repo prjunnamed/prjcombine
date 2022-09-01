@@ -100,7 +100,7 @@ pub struct WireInfo {
     pub kind: WireKind,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum WireKind {
     Tie0,
     Tie1,
@@ -116,6 +116,12 @@ pub enum WireKind {
     PipBranch(Dir),
     Branch(Dir),
     CondAlias(NodeKindId, WireId),
+}
+
+impl WireKind {
+    pub fn is_tie(self) -> bool {
+        matches!(self, WireKind::Tie0 | WireKind::Tie1 | WireKind::TiePullup)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
