@@ -228,6 +228,23 @@ impl Part {
         let widx = self.wires.get(wire)?;
         self.lookup_wire_raw(crd, widx)
     }
+
+    pub fn lookup_wire_raw_force(&self, crd: Coord, wire: WireId) -> NodeOrWire {
+        let tile = &self.tiles[&crd];
+        let tk = &self.tile_kinds[tile.kind];
+        match tk.wires.get(&wire).unwrap() {
+            (twi, TkWire::Internal(_, _)) => NodeOrWire::Wire(crd, twi),
+            (twi, &TkWire::Connected(idx)) => match tile.conn_wires.get(idx) {
+                Some(&nidx) => NodeOrWire::Node(nidx),
+                _ => NodeOrWire::Wire(crd, twi),
+            },
+        }
+    }
+
+    pub fn lookup_wire_force(&self, crd: Coord, wire: &str) -> NodeOrWire {
+        let widx = self.wires.get(wire).unwrap();
+        self.lookup_wire_raw_force(crd, widx)
+    }
 }
 
 impl Tile {

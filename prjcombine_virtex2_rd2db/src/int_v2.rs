@@ -417,7 +417,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     // BRAM special inputs
     let bram_s = builder.make_term_naming("BRAM.S");
-    let mut bram_forbidden = vec![];
     let mut bram_addr_ppc_t = BTreeMap::new();
     let mut bram_addr_ppc_b = BTreeMap::new();
     for ab in ['A', 'B'] {
@@ -471,7 +470,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                                 format!("BRAMSITE_NADDRIN_{ab}{k}", k = (i ^ 3) + (j - 1) * 4),
                             );
                         }
-                        bram_forbidden.push(last);
                     }
                 }
             }
@@ -1390,7 +1388,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode(
+        builder.extract_xnode_bels(
             "BRAM",
             xy,
             &[],
@@ -1400,7 +1398,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 builder.bel_xy("BRAM", "RAMB16", 0, 0),
                 builder.bel_xy("MULT", "MULT18X18", 0, 0),
             ],
-            &bram_forbidden,
         );
     }
 
@@ -1466,7 +1463,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode(
+        builder.extract_xnode_bels(
             "GIGABIT",
             xy,
             &[],
@@ -1491,7 +1488,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_indexed("OPAD.TXN", "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
-            &[],
         );
     }
 
@@ -1507,7 +1503,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode(
+        builder.extract_xnode_bels(
             "GIGABIT",
             xy,
             &[],
@@ -1532,7 +1528,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_indexed("OPAD.TXN", "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
-            &[],
         );
     }
 
@@ -1548,7 +1543,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode(
+        builder.extract_xnode_bels(
             "GIGABIT10",
             xy,
             &[],
@@ -1573,7 +1568,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_indexed("OPAD.TXN", "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
-            &[],
         );
     }
 
@@ -1589,7 +1583,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + dy,
             });
         }
-        builder.extract_xnode(
+        builder.extract_xnode_bels(
             "GIGABIT10",
             xy,
             &[],
@@ -1614,7 +1608,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_indexed("OPAD.TXN", "GTOPAD", 1)
                     .pin_name_only("O", 0),
             ],
-            &[],
         );
     }
 
@@ -1676,7 +1669,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         );
                 }
             }
-            builder.extract_xnode(tkn, xy, &[], &int_xy, tkn, &[bel], &[]);
+            builder.extract_xnode_bels(tkn, xy, &[], &int_xy, tkn, &[bel]);
         }
     }
 
@@ -1710,14 +1703,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: int_n_xy.y,
                 },
             ];
-            builder.extract_xnode(
+            builder.extract_xnode_bels(
                 tkn,
                 xy,
                 &buf_xy,
                 &int_xy,
                 tkn,
                 &[builder.bel_xy("PCILOGIC", "PCILOGIC", 0, 0)],
-                &[],
             );
         }
     }

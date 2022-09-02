@@ -269,7 +269,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     let mut lr_di2 = None;
-    let mut data_in = vec![];
     for i in 0..32 {
         let w = builder.mux_out(
             format!("IMUX.DATA{i}"),
@@ -439,7 +438,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .to_string(),
             ],
         );
-        data_in.push(w);
         if i == 2 {
             lr_di2 = Some(w);
         }
@@ -2235,13 +2233,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         }
                     });
                 }
-                builder.extract_xnode(&kind, xy, &buf_xy, &int_xy, &kind, &bels, &data_in);
+                builder.extract_xnode_bels(&kind, xy, &buf_xy, &int_xy, &kind, &bels);
             }
         }
 
         for tkn in ["GCLKH_PCI_CE_N"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
-                builder.extract_xnode(
+                builder.extract_xnode_bels(
                     "PCI_CE_N",
                     xy,
                     &[],
@@ -2251,13 +2249,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .bel_virtual("PCI_CE_N")
                         .extra_wire("I", &["GCLKH_PCI_CE_IN"])
                         .extra_wire("O", &["GCLKH_PCI_CE_OUT"])],
-                    &[],
                 );
             }
         }
         for tkn in ["GCLKH_PCI_CE_S", "GCLKH_PCI_CE_S_50A"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
-                builder.extract_xnode(
+                builder.extract_xnode_bels(
                     "PCI_CE_S",
                     xy,
                     &[],
@@ -2267,7 +2264,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .bel_virtual("PCI_CE_S")
                         .extra_wire("I", &["GCLKH_PCI_CE_OUT"])
                         .extra_wire("O", &["GCLKH_PCI_CE_IN"])],
-                    &[],
                 );
             }
         }
@@ -2284,7 +2280,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
         if rd.family == "spartan3a" {
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISL") {
-                builder.extract_xnode(
+                builder.extract_xnode_bels(
                     "PCI_CE_E",
                     xy,
                     &[],
@@ -2294,11 +2290,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .bel_virtual("PCI_CE_E")
                         .extra_wire("I", &["CLKV_PCI_CE_W"])
                         .extra_wire("O", &["CLKV_PCI_CE_E"])],
-                    &[],
                 );
             }
             for &xy in rd.tiles_by_kind_name("GCLKV_IOISR") {
-                builder.extract_xnode(
+                builder.extract_xnode_bels(
                     "PCI_CE_W",
                     xy,
                     &[],
@@ -2308,7 +2303,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .bel_virtual("PCI_CE_W")
                         .extra_wire("I", &["CLKV_PCI_CE_E"])
                         .extra_wire("O", &["CLKV_PCI_CE_W"])],
-                    &[],
                 );
             }
         }
@@ -2329,14 +2323,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         y: xy.y + dy,
                     });
                 }
-                builder.extract_xnode(
+                builder.extract_xnode_bels(
                     "BRAM.S3ADSP",
                     xy,
                     &[],
                     &int_xy,
                     "BRAM.S3ADSP",
                     &[builder.bel_xy("BRAM", "RAMB16", 0, 0)],
-                    &[],
                 );
             }
         }
@@ -2368,7 +2361,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         y: xy.y + dy,
                     });
                 }
-                builder.extract_xnode("DSP", xy, &[], &int_xy, naming, &bels_dsp, &[]);
+                builder.extract_xnode_bels("DSP", xy, &[], &int_xy, naming, &bels_dsp);
                 builder.extract_intf_tile_multi("INTF.DSP", xy, &int_xy, "INTF.DSP", false);
             }
         }
@@ -2401,7 +2394,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         y: xy.y + dy,
                     });
                 }
-                builder.extract_xnode(kind, xy, &[], &int_xy, naming, &bels_bram, &[]);
+                builder.extract_xnode_bels(kind, xy, &[], &int_xy, naming, &bels_bram);
             }
         }
     }

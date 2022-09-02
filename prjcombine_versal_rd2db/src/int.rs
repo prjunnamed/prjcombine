@@ -667,7 +667,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             } else {
                 builder.walk_to_int(xy, Dir::E).unwrap()
             };
-            builder.extract_xnode(
+            builder.extract_xnode_bels(
                 kind,
                 xy,
                 &[],
@@ -697,7 +697,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .pin_name_only("CIN", 1)
                         .pin_name_only("COUT", 1),
                 ],
-                &[],
             );
         }
     }

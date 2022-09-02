@@ -439,7 +439,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: xy.y,
                 }
             };
-            builder.extract_xnode(
+            builder.extract_xnode_bels(
                 kind,
                 xy,
                 &[],
@@ -449,7 +449,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_xy(key, "SLICE", 0, 0)
                     .pin_name_only("CIN", 1)
                     .pin_name_only("COUT", 0)],
-                &[],
             );
         }
     }

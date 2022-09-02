@@ -10,7 +10,7 @@ use prjcombine_int::db::{
     NodeNamingId, NodeRawTileId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, TermNamingId,
     TermWireInFarNaming, TermWireOutNaming, WireId, WireInfo, WireKind,
 };
-use prjcombine_rawdump::{self as rawdump, Coord, Part};
+use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 
 use assert_matches::assert_matches;
 
@@ -21,6 +21,7 @@ pub struct ExtrBelInfo {
     pub name: String,
     pub slot: Option<rawdump::TkSiteSlot>,
     pub pins: HashMap<String, BelPinInfo>,
+    pub raw_tile: usize,
 }
 
 #[derive(Clone, Debug)]
@@ -34,12 +35,31 @@ pub enum BelPinInfo {
     ExtraWireForce(String, Vec<NodeExtPipNaming>),
 }
 
-struct BufInfo {
-    jumps: HashMap<rawdump::WireId, rawdump::WireId>,
-    bufs: HashMap<rawdump::WireId, (PinDir, rawdump::WireId, rawdump::WireId)>,
-    int_wires: HashMap<rawdump::WireId, (IntConnKind, NodeWireId)>,
-    int_outs: HashMap<rawdump::WireId, (IntConnKind, Vec<(rawdump::WireId, NodeWireId)>)>,
-    int_inps: HashMap<rawdump::WireId, (IntConnKind, rawdump::WireId, NodeWireId)>,
+#[derive(Debug)]
+pub struct XNodeRawTile {
+    pub xy: Coord,
+}
+
+#[derive(Debug)]
+pub struct XNodeRef {
+    pub xy: Coord,
+    pub naming: Option<NodeNamingId>,
+    pub tile_map: EntityPartVec<NodeTileId, NodeTileId>,
+}
+
+pub struct XNodeInfo<'a, 'b> {
+    pub builder: &'b mut IntBuilder<'a>,
+    pub kind: String,
+    pub naming: String,
+    pub raw_tiles: Vec<XNodeRawTile>,
+    pub num_tiles: usize,
+    pub refs: Vec<XNodeRef>,
+    pub extract_muxes: bool,
+    pub extract_intfs: bool,
+    pub has_intf_out_bufs: bool,
+    pub skip_muxes: BTreeSet<WireId>,
+    pub optin_muxes: BTreeSet<WireId>,
+    pub bels: Vec<ExtrBelInfo>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -154,6 +174,872 @@ impl ExtrBelInfo {
         );
         self
     }
+
+    pub fn raw_tile(mut self, idx: usize) -> Self {
+        self.raw_tile = idx;
+        self
+    }
+}
+
+impl XNodeInfo<'_, '_> {
+    pub fn raw_tile(mut self, xy: Coord) -> Self {
+        self.raw_tiles.push(XNodeRawTile { xy });
+        self
+    }
+
+    pub fn ref_int(mut self, xy: Coord, slot: usize) -> Self {
+        self.refs.push(XNodeRef {
+            xy,
+            naming: None,
+            tile_map: [(NodeTileId::from_idx(0), NodeTileId::from_idx(slot))]
+                .into_iter()
+                .collect(),
+        });
+        self
+    }
+
+    pub fn ref_single(mut self, xy: Coord, slot: usize, naming: NodeNamingId) -> Self {
+        self.refs.push(XNodeRef {
+            xy,
+            naming: Some(naming),
+            tile_map: [(NodeTileId::from_idx(0), NodeTileId::from_idx(slot))]
+                .into_iter()
+                .collect(),
+        });
+        self
+    }
+
+    pub fn extract_muxes(mut self) -> Self {
+        self.extract_muxes = true;
+        self
+    }
+
+    pub fn extract_intfs(mut self, has_out_bufs: bool) -> Self {
+        self.extract_intfs = true;
+        self.has_intf_out_bufs = has_out_bufs;
+        self
+    }
+
+    pub fn bel(mut self, bel: ExtrBelInfo) -> Self {
+        self.bels.push(bel);
+        self
+    }
+
+    pub fn skip_muxes(mut self, wires: impl IntoIterator<Item = WireId>) -> Self {
+        self.skip_muxes.extend(wires);
+        self
+    }
+
+    pub fn optin_muxes(mut self, wires: impl IntoIterator<Item = WireId>) -> Self {
+        self.optin_muxes.extend(wires);
+        self
+    }
+
+    pub fn num_tiles(mut self, num: usize) -> Self {
+        self.num_tiles = num;
+        self
+    }
+
+    pub fn extract(self) {
+        let rd = self.builder.rd;
+
+        let mut names: HashMap<NodeOrWire, (IntConnKind, NodeWireId)> = HashMap::new();
+
+        let mut edges_in: HashMap<_, Vec<_>> = HashMap::new();
+        let mut edges_out: HashMap<_, Vec<_>> = HashMap::new();
+
+        for (i, rt) in self.raw_tiles.iter().enumerate() {
+            let tile = &rd.tiles[&rt.xy];
+            let tk = &rd.tile_kinds[tile.kind];
+            for &wi in tk.wires.keys() {
+                let nw = rd.lookup_wire_raw_force(rt.xy, wi);
+                if let Some(&w) = self.builder.extra_names.get(&rd.wires[wi]) {
+                    names.entry(nw).or_insert((IntConnKind::Raw, w));
+                    continue;
+                }
+                if let Some(xn) = self.builder.extra_names_tile.get(&tile.kind) {
+                    if let Some(&w) = xn.get(&rd.wires[wi]) {
+                        names.entry(nw).or_insert((IntConnKind::Raw, w));
+                        continue;
+                    }
+                }
+            }
+            for &(wfi, wti) in tk.pips.keys() {
+                let nwf = rd.lookup_wire_raw_force(rt.xy, wfi);
+                let nwt = rd.lookup_wire_raw_force(rt.xy, wti);
+                edges_in.entry(nwt).or_default().push((nwf, i, wti, wfi));
+                edges_out.entry(nwf).or_default().push((nwt, i, wti, wfi));
+            }
+        }
+
+        for round in [0, 1] {
+            for r in &self.refs {
+                let tile = &rd.tiles[&r.xy];
+                let tk = &rd.tile_kinds[tile.kind];
+
+                let naming = if let Some(n) = r.naming {
+                    n
+                } else if let Some(n) = self.builder.get_int_naming(r.xy) {
+                    n
+                } else {
+                    continue;
+                };
+                let naming = &self.builder.db.node_namings[naming];
+                for (&k, v) in &naming.wires {
+                    if round == 0
+                        && matches!(
+                            self.builder.db.wires[k.1].kind,
+                            WireKind::Branch(_) | WireKind::MultiBranch(_) | WireKind::PipBranch(_)
+                        )
+                    {
+                        continue;
+                    }
+                    if let Some(nw) = rd.lookup_wire(r.xy, v) {
+                        names
+                            .entry(nw)
+                            .or_insert((IntConnKind::Raw, (r.tile_map[k.0], k.1)));
+                    }
+                }
+                for (&k, v) in &naming.intf_wires_in {
+                    match v {
+                        IntfWireInNaming::Simple(n) | IntfWireInNaming::TestBuf(_, n) => {
+                            if let Some(nw) = rd.lookup_wire(r.xy, n) {
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::Raw, (r.tile_map[k.0], k.1)));
+                            }
+                        }
+                        IntfWireInNaming::Buf(n, _) | IntfWireInNaming::Delay(n, _, _) => {
+                            if let Some(nw) = rd.lookup_wire(r.xy, n) {
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::IntfIn, (r.tile_map[k.0], k.1)));
+                            }
+                        }
+                    }
+                }
+                for (&k, v) in &naming.intf_wires_out {
+                    match v {
+                        IntfWireOutNaming::Simple(n) => {
+                            if let Some(nw) = rd.lookup_wire(r.xy, n) {
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::Raw, (r.tile_map[k.0], k.1)));
+                            }
+                        }
+                        IntfWireOutNaming::Buf(n, ns) => {
+                            if let Some(nw) = rd.lookup_wire(r.xy, n) {
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::Raw, (r.tile_map[k.0], k.1)));
+                            }
+                            if let Some(nw) = rd.lookup_wire(r.xy, ns) {
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::IntfOut, (r.tile_map[k.0], k.1)));
+                            }
+                        }
+                    }
+                }
+
+                for &wi in tk.wires.keys() {
+                    if let Some(nw) = rd.lookup_wire_raw(r.xy, wi) {
+                        if let Some(&w) = self.builder.extra_names.get(&rd.wires[wi]) {
+                            if round == 0
+                                && matches!(
+                                    self.builder.db.wires[w.1].kind,
+                                    WireKind::Branch(_)
+                                        | WireKind::MultiBranch(_)
+                                        | WireKind::PipBranch(_)
+                                )
+                            {
+                                continue;
+                            }
+                            names
+                                .entry(nw)
+                                .or_insert((IntConnKind::Raw, (r.tile_map[w.0], w.1)));
+                            continue;
+                        }
+                        if let Some(xn) = self.builder.extra_names_tile.get(&tile.kind) {
+                            if let Some(&w) = xn.get(&rd.wires[wi]) {
+                                if round == 0
+                                    && matches!(
+                                        self.builder.db.wires[w.1].kind,
+                                        WireKind::Branch(_)
+                                            | WireKind::MultiBranch(_)
+                                            | WireKind::PipBranch(_)
+                                    )
+                                {
+                                    continue;
+                                }
+                                names
+                                    .entry(nw)
+                                    .or_insert((IntConnKind::Raw, (r.tile_map[w.0], w.1)));
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let buf_out: HashMap<_, _> = edges_out
+            .iter()
+            .filter_map(|(&wt, wfs)| {
+                if wfs.len() == 1 {
+                    Some((wt, wfs[0]))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let int_out: HashMap<_, _> = edges_out
+            .iter()
+            .filter_map(|(&wt, wfs)| {
+                let filtered: Vec<_> = wfs
+                    .iter()
+                    .copied()
+                    .filter_map(|(x, t, wt, wf)| {
+                        if let Some(&(ick, w)) = names.get(&x) {
+                            Some((ick, w, t, wt, wf))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                if !filtered.is_empty() {
+                    Some((wt, filtered))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let buf_in: HashMap<_, _> = edges_in
+            .iter()
+            .filter_map(|(&wt, wfs)| {
+                if wfs.len() == 1 {
+                    Some((wt, wfs[0]))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let int_in: HashMap<_, _> = edges_in
+            .iter()
+            .filter_map(|(&wt, wfs)| {
+                let filtered: Vec<_> = wfs
+                    .iter()
+                    .copied()
+                    .filter_map(|(x, t, wt, wf)| {
+                        if let Some(&(ick, w)) = names.get(&x) {
+                            Some((ick, w, t, wt, wf))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                if filtered.len() == 1 {
+                    Some((wt, filtered[0]))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let mut extractor = XNodeExtractor {
+            rd: self.builder.rd,
+            db: &self.builder.db,
+            xnode: &self,
+            names,
+            buf_out,
+            buf_in,
+            int_out,
+            int_in,
+            node: NodeKind {
+                tiles: (0..self.num_tiles).map(|_| ()).collect(),
+                muxes: Default::default(),
+                bels: Default::default(),
+                intfs: Default::default(),
+            },
+            node_naming: NodeNaming::default(),
+        };
+
+        if self.extract_muxes || !self.optin_muxes.is_empty() {
+            extractor.extract_muxes();
+        }
+
+        if self.extract_intfs {
+            extractor.extract_intfs(self.has_intf_out_bufs);
+        }
+
+        for bel in &self.bels {
+            extractor.extract_bel(bel);
+        }
+
+        let node = extractor.node;
+        let node_naming = extractor.node_naming;
+
+        self.builder.insert_node_merge(&self.kind, node);
+        self.builder.insert_node_naming(&self.naming, node_naming);
+    }
+}
+
+#[allow(clippy::type_complexity)]
+struct XNodeExtractor<'a, 'b, 'c> {
+    rd: &'c Part,
+    db: &'c IntDb,
+    xnode: &'a XNodeInfo<'b, 'c>,
+    names: HashMap<NodeOrWire, (IntConnKind, NodeWireId)>,
+    buf_out: HashMap<NodeOrWire, (NodeOrWire, usize, rawdump::WireId, rawdump::WireId)>,
+    buf_in: HashMap<NodeOrWire, (NodeOrWire, usize, rawdump::WireId, rawdump::WireId)>,
+    int_out: HashMap<
+        NodeOrWire,
+        Vec<(
+            IntConnKind,
+            NodeWireId,
+            usize,
+            rawdump::WireId,
+            rawdump::WireId,
+        )>,
+    >,
+    int_in: HashMap<
+        NodeOrWire,
+        (
+            IntConnKind,
+            NodeWireId,
+            usize,
+            rawdump::WireId,
+            rawdump::WireId,
+        ),
+    >,
+    node: NodeKind,
+    node_naming: NodeNaming,
+}
+
+impl XNodeExtractor<'_, '_, '_> {
+    fn walk_to_int(
+        &self,
+        pin: &str,
+        dir: PinDir,
+        tile: usize,
+        wire: rawdump::WireId,
+    ) -> (
+        IntConnKind,
+        BTreeSet<NodeWireId>,
+        rawdump::WireId,
+        Vec<NodeExtPipNaming>,
+        BTreeMap<NodeWireId, NodeExtPipNaming>,
+    ) {
+        let mut wn = wire;
+        let mut nw = self
+            .rd
+            .lookup_wire_raw_force(self.xnode.raw_tiles[tile].xy, wire);
+        let mut pips = Vec::new();
+        loop {
+            if let Some(&(ick, w)) = self.names.get(&nw) {
+                return (ick, [w].into_iter().collect(), wn, pips, BTreeMap::new());
+            }
+            match dir {
+                PinDir::Input => {
+                    if let Some(&(ick, w, rt, wt, wf)) = self.int_in.get(&nw) {
+                        pips.push(NodeExtPipNaming {
+                            tile: NodeRawTileId::from_idx(rt),
+                            wire_to: self.rd.wires[wt].clone(),
+                            wire_from: self.rd.wires[wf].clone(),
+                        });
+                        if rt == tile {
+                            wn = wf;
+                        }
+                        return (ick, [w].into_iter().collect(), wn, pips, BTreeMap::new());
+                    }
+                    if let Some(&(nnw, rt, wt, wf)) = self.buf_in.get(&nw) {
+                        pips.push(NodeExtPipNaming {
+                            tile: NodeRawTileId::from_idx(rt),
+                            wire_to: self.rd.wires[wt].clone(),
+                            wire_from: self.rd.wires[wf].clone(),
+                        });
+                        if rt == tile {
+                            wn = wf;
+                        }
+                        nw = nnw;
+                        continue;
+                    }
+                    panic!(
+                        "CANNOT WALK INPUT WIRE {} {} {}",
+                        self.rd.part, self.xnode.kind, pin
+                    );
+                }
+                PinDir::Output => {
+                    if let Some(nxt) = self.int_out.get(&nw) {
+                        if nxt.len() == 1 {
+                            let (ick, w, rt, wt, wf) = nxt[0];
+                            pips.push(NodeExtPipNaming {
+                                tile: NodeRawTileId::from_idx(rt),
+                                wire_to: self.rd.wires[wt].clone(),
+                                wire_from: self.rd.wires[wf].clone(),
+                            });
+                            if rt == tile {
+                                wn = wt;
+                            }
+                            return (ick, [w].into_iter().collect(), wn, pips, BTreeMap::new());
+                        } else {
+                            let mut wires = BTreeSet::new();
+                            let mut int_pips = BTreeMap::new();
+                            let mut ick = None;
+                            for &(cick, w, rt, wt, wf) in nxt {
+                                ick = Some(cick);
+                                wires.insert(w);
+                                int_pips.insert(
+                                    w,
+                                    NodeExtPipNaming {
+                                        tile: NodeRawTileId::from_idx(rt),
+                                        wire_to: self.rd.wires[wt].clone(),
+                                        wire_from: self.rd.wires[wf].clone(),
+                                    },
+                                );
+                            }
+                            return (ick.unwrap(), wires, wn, pips, int_pips);
+                        }
+                    }
+                    if let Some(&(nnw, rt, wt, wf)) = self.buf_out.get(&nw) {
+                        pips.push(NodeExtPipNaming {
+                            tile: NodeRawTileId::from_idx(rt),
+                            wire_to: self.rd.wires[wt].clone(),
+                            wire_from: self.rd.wires[wf].clone(),
+                        });
+                        if rt == tile {
+                            wn = wt;
+                        }
+                        nw = nnw;
+                        continue;
+                    }
+                    panic!(
+                        "CANNOT WALK OUTPUT WIRE {} {} {}",
+                        self.rd.part, self.xnode.kind, pin
+                    );
+                }
+            }
+        }
+    }
+
+    fn walk_count(
+        &self,
+        pin: &str,
+        dir: PinDir,
+        cnt: usize,
+        tile: usize,
+        wire: rawdump::WireId,
+    ) -> (rawdump::WireId, Vec<NodeExtPipNaming>) {
+        let mut wn = wire;
+        let mut nw = self
+            .rd
+            .lookup_wire_raw_force(self.xnode.raw_tiles[tile].xy, wire);
+        let mut pips = Vec::new();
+        for _ in 0..cnt {
+            match dir {
+                PinDir::Input => {
+                    if let Some(&(nnw, rt, wt, wf)) = self.buf_in.get(&nw) {
+                        pips.push(NodeExtPipNaming {
+                            tile: NodeRawTileId::from_idx(rt),
+                            wire_to: self.rd.wires[wt].clone(),
+                            wire_from: self.rd.wires[wf].clone(),
+                        });
+                        if rt == tile {
+                            wn = wf;
+                        }
+                        nw = nnw;
+                        continue;
+                    }
+                }
+                PinDir::Output => {
+                    if let Some(&(nnw, rt, wt, wf)) = self.buf_out.get(&nw) {
+                        pips.push(NodeExtPipNaming {
+                            tile: NodeRawTileId::from_idx(rt),
+                            wire_to: self.rd.wires[wt].clone(),
+                            wire_from: self.rd.wires[wf].clone(),
+                        });
+                        if rt == tile {
+                            wn = wt;
+                        }
+                        nw = nnw;
+                        continue;
+                    }
+                }
+            }
+            panic!(
+                "CANNOT WALK WIRE {} {} {}",
+                self.rd.part, self.xnode.kind, pin
+            );
+        }
+        (wn, pips)
+    }
+
+    fn extract_bel(&mut self, bel: &ExtrBelInfo) {
+        let crd = self.xnode.raw_tiles[bel.raw_tile].xy;
+        let tile = &self.rd.tiles[&crd];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let mut pins = BTreeMap::new();
+        let mut naming_pins = BTreeMap::new();
+        if let Some(slot) = bel.slot {
+            let tks = tk.sites.get(&slot).unwrap().1;
+            for (name, tksp) in &tks.pins {
+                match bel.pins.get(name).unwrap_or(&BelPinInfo::Int) {
+                    &BelPinInfo::Int => {
+                        let dir = match tksp.dir {
+                            rawdump::TkSitePinDir::Input => PinDir::Input,
+                            rawdump::TkSitePinDir::Output => PinDir::Output,
+                            _ => panic!("bidir pin {}", name),
+                        };
+                        let (ick, wires, wnf, pips, int_pips) =
+                            self.walk_to_int(name, dir, bel.raw_tile, tksp.wire.unwrap());
+                        naming_pins.insert(
+                            name.clone(),
+                            BelPinNaming {
+                                name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                name_far: self.rd.wires[wnf].clone(),
+                                pips,
+                                int_pips,
+                                is_intf_out: ick == IntConnKind::IntfOut,
+                            },
+                        );
+                        pins.insert(
+                            name.clone(),
+                            BelPin {
+                                wires,
+                                dir,
+                                is_intf_in: ick == IntConnKind::IntfIn,
+                            },
+                        );
+                    }
+                    &BelPinInfo::ForceInt(wire, ref wname) => {
+                        let dir = match tksp.dir {
+                            rawdump::TkSitePinDir::Input => PinDir::Input,
+                            rawdump::TkSitePinDir::Output => PinDir::Output,
+                            _ => panic!("bidir pin {}", name),
+                        };
+                        naming_pins.insert(
+                            name.clone(),
+                            BelPinNaming {
+                                name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                name_far: wname.clone(),
+                                pips: Vec::new(),
+                                int_pips: BTreeMap::new(),
+                                is_intf_out: false,
+                            },
+                        );
+                        pins.insert(
+                            name.clone(),
+                            BelPin {
+                                wires: [wire].into_iter().collect(),
+                                dir,
+                                is_intf_in: false,
+                            },
+                        );
+                    }
+                    &BelPinInfo::NameOnly(buf_cnt) => {
+                        if buf_cnt == 0 {
+                            naming_pins.insert(
+                                name.clone(),
+                                BelPinNaming {
+                                    name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                    name_far: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                    pips: Vec::new(),
+                                    int_pips: BTreeMap::new(),
+                                    is_intf_out: false,
+                                },
+                            );
+                        } else {
+                            let dir = match tksp.dir {
+                                rawdump::TkSitePinDir::Input => PinDir::Input,
+                                rawdump::TkSitePinDir::Output => PinDir::Output,
+                                _ => panic!("bidir pin {}", name),
+                            };
+                            let (wn, pips) = self.walk_count(
+                                name,
+                                dir,
+                                buf_cnt,
+                                bel.raw_tile,
+                                tksp.wire.unwrap(),
+                            );
+                            naming_pins.insert(
+                                name.clone(),
+                                BelPinNaming {
+                                    name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                    name_far: self.rd.wires[wn].clone(),
+                                    pips,
+                                    int_pips: BTreeMap::new(),
+                                    is_intf_out: false,
+                                },
+                            );
+                        }
+                    }
+                    BelPinInfo::ExtraWireForce(_, _) => (),
+                    _ => unreachable!(),
+                }
+            }
+        }
+        for (name, pd) in &bel.pins {
+            match *pd {
+                BelPinInfo::ExtraInt(dir, ref names) => {
+                    let mut wn = None;
+                    for w in names {
+                        if let Some(w) = self.rd.wires.get(w) {
+                            if tk.wires.contains_key(&w) {
+                                assert!(wn.is_none());
+                                wn = Some(w);
+                            }
+                        }
+                    }
+                    if wn.is_none() {
+                        println!("NOT FOUND: {}", name);
+                    }
+                    let wn = wn.unwrap();
+                    let (ick, wires, wnf, pips, int_pips) =
+                        self.walk_to_int(name, dir, bel.raw_tile, wn);
+                    naming_pins.insert(
+                        name.clone(),
+                        BelPinNaming {
+                            name: self.rd.wires[wn].clone(),
+                            name_far: self.rd.wires[wnf].clone(),
+                            pips,
+                            int_pips,
+                            is_intf_out: ick == IntConnKind::IntfOut,
+                        },
+                    );
+                    pins.insert(
+                        name.clone(),
+                        BelPin {
+                            wires,
+                            dir,
+                            is_intf_in: ick == IntConnKind::IntfIn,
+                        },
+                    );
+                }
+                BelPinInfo::ExtraIntForce(dir, wire, ref wname) => {
+                    naming_pins.insert(
+                        name.clone(),
+                        BelPinNaming {
+                            name: wname.clone(),
+                            name_far: wname.clone(),
+                            pips: vec![],
+                            int_pips: BTreeMap::new(),
+                            is_intf_out: false,
+                        },
+                    );
+                    pins.insert(
+                        name.clone(),
+                        BelPin {
+                            wires: [wire].into_iter().collect(),
+                            dir,
+                            is_intf_in: false,
+                        },
+                    );
+                }
+                BelPinInfo::ExtraWire(ref names) => {
+                    let mut wn = None;
+                    for w in names {
+                        if let Some(w) = self.rd.wires.get(w) {
+                            if tk.wires.contains_key(&w) {
+                                assert!(wn.is_none());
+                                wn = Some(w);
+                            }
+                        }
+                    }
+                    if wn.is_none() {
+                        println!("NOT FOUND: {}", name);
+                    }
+                    let wn = wn.unwrap();
+                    naming_pins.insert(
+                        name.clone(),
+                        BelPinNaming {
+                            name: self.rd.wires[wn].clone(),
+                            name_far: self.rd.wires[wn].clone(),
+                            pips: Vec::new(),
+                            int_pips: BTreeMap::new(),
+                            is_intf_out: false,
+                        },
+                    );
+                }
+                BelPinInfo::ExtraWireForce(ref wname, ref pips) => {
+                    naming_pins.insert(
+                        name.clone(),
+                        BelPinNaming {
+                            name: wname.clone(),
+                            name_far: wname.clone(),
+                            pips: pips.clone(),
+                            int_pips: BTreeMap::new(),
+                            is_intf_out: false,
+                        },
+                    );
+                }
+                _ => (),
+            }
+        }
+        self.node.bels.insert(bel.name.clone(), BelInfo { pins });
+        self.node_naming.bels.push(BelNaming {
+            tile: NodeRawTileId::from_idx(0),
+            pins: naming_pins,
+        });
+    }
+
+    fn extract_muxes(&mut self) {
+        for (i, rt) in self.xnode.raw_tiles.iter().enumerate() {
+            let tile = &self.rd.tiles[&rt.xy];
+            let tk = &self.rd.tile_kinds[tile.kind];
+
+            for &(wfi, wti) in tk.pips.keys() {
+                let nwt = self.rd.lookup_wire_raw_force(rt.xy, wti);
+                let nwf = self.rd.lookup_wire_raw_force(rt.xy, wfi);
+                if let Some(&(_, wt)) = self.names.get(&nwt) {
+                    let mut pass = i == 0 && self.xnode.extract_muxes;
+                    if self.xnode.optin_muxes.contains(&wt.1) {
+                        pass = true;
+                    }
+                    if self.xnode.skip_muxes.contains(&wt.1) {
+                        pass = false;
+                    }
+                    if !pass {
+                        continue;
+                    }
+                    if matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
+                        continue;
+                    }
+                    if let Some(&(_, wf)) = self.names.get(&nwf) {
+                        if i == 0 {
+                            self.node_naming
+                                .wires
+                                .insert(wt, self.rd.wires[wti].to_string());
+                            self.node_naming
+                                .wires
+                                .insert(wf, self.rd.wires[wfi].to_string());
+                        } else {
+                            self.node_naming.ext_pips.insert(
+                                (wt, wf),
+                                NodeExtPipNaming {
+                                    tile: NodeRawTileId::from_idx(i),
+                                    wire_to: self.rd.wires[wti].to_string(),
+                                    wire_from: self.rd.wires[wfi].to_string(),
+                                },
+                            );
+                        }
+                        // XXX
+                        let kind = MuxKind::Plain;
+                        let mux = self.node.muxes.entry(wt).or_insert(MuxInfo {
+                            kind,
+                            ins: Default::default(),
+                        });
+                        assert_eq!(mux.kind, kind);
+                        mux.ins.insert(wf);
+                    } else if self.xnode.builder.stub_outs.contains(&self.rd.wires[wfi]) {
+                        // ignore
+                    } else {
+                        println!(
+                            "UNEXPECTED XNODE MUX IN {} {} {} {}",
+                            self.rd.tile_kinds.key(tile.kind),
+                            tile.name,
+                            self.rd.wires[wti],
+                            self.rd.wires[wfi]
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    fn extract_intfs(&mut self, has_out_bufs: bool) {
+        let crd = self.xnode.raw_tiles[0].xy;
+        let tile = &self.rd.tiles[&crd];
+        let tk = &self.rd.tile_kinds[tile.kind];
+        let mut out_muxes: HashMap<NodeWireId, Vec<NodeWireId>> = HashMap::new();
+        let mut delayed = HashMap::new();
+        if has_out_bufs {
+            for &(wfi, wdi) in tk.pips.keys() {
+                let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
+                let nwd = self.rd.lookup_wire_raw_force(crd, wdi);
+                if !self.buf_in.contains_key(&nwd) {
+                    continue;
+                }
+                if let Some(&(_, wf)) = self.names.get(&nwf) {
+                    if !matches!(self.db.wires[wf.1].kind, WireKind::MuxOut) {
+                        continue;
+                    }
+                    if let Some(&(_, rt, wti, bwdi)) = self.buf_out.get(&nwd) {
+                        if rt != 0 {
+                            continue;
+                        }
+                        if tk.pips.contains_key(&(wfi, wti)) {
+                            assert_eq!(bwdi, wdi);
+                            self.node_naming.intf_wires_in.insert(
+                                wf,
+                                IntfWireInNaming::Delay(
+                                    self.rd.wires[wti].clone(),
+                                    self.rd.wires[wdi].clone(),
+                                    self.rd.wires[wfi].clone(),
+                                ),
+                            );
+                            delayed.insert(wti, wf);
+                            self.node.intfs.insert(wf, IntfInfo::InputDelay);
+                        }
+                    }
+                }
+            }
+        }
+        for &(wfi, wti) in tk.pips.keys() {
+            let nwt = self.rd.lookup_wire_raw_force(crd, wti);
+            if let Some(&(_, wt)) = self.names.get(&nwt) {
+                if !matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
+                    continue;
+                }
+                self.node_naming
+                    .intf_wires_out
+                    .entry(wt)
+                    .or_insert_with(|| IntfWireOutNaming::Simple(self.rd.wires[wti].clone()));
+                let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
+                if let Some(&(_, wf)) = self.names.get(&nwf) {
+                    self.node_naming
+                        .intf_wires_in
+                        .insert(wf, IntfWireInNaming::Simple(self.rd.wires[wfi].clone()));
+                    assert!(!self.node.intfs.contains_key(&wf));
+                    out_muxes.entry(wt).or_default().push(wf);
+                } else if let Some(&wf) = delayed.get(&wfi) {
+                    out_muxes.entry(wt).or_default().push(wf);
+                } else if let Some(&(_, wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
+                    if !self.buf_in.contains_key(&nwf) {
+                        assert!(!has_out_bufs);
+                        continue;
+                    }
+                    assert_eq!(rt, 0);
+                    assert_eq!(bwti, wfi);
+                    self.node_naming.intf_wires_in.insert(
+                        wf,
+                        IntfWireInNaming::TestBuf(
+                            self.rd.wires[wfi].clone(),
+                            self.rd.wires[bwfi].clone(),
+                        ),
+                    );
+                    assert!(!self.node.intfs.contains_key(&wf));
+                    out_muxes.entry(wt).or_default().push(wf);
+                } else if has_out_bufs {
+                    out_muxes.entry(wt).or_default();
+                    self.node_naming.intf_wires_out.insert(
+                        wt,
+                        IntfWireOutNaming::Buf(
+                            self.rd.wires[wti].clone(),
+                            self.rd.wires[wfi].clone(),
+                        ),
+                    );
+                }
+            }
+        }
+        for (k, v) in out_muxes {
+            self.node
+                .intfs
+                .insert(k, IntfInfo::OutputTestMux(v.into_iter().collect()));
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -198,6 +1084,7 @@ impl<'a> IntBuilder<'a> {
             name: name.into(),
             slot: None,
             pins: Default::default(),
+            raw_tile: 0,
         }
     }
 
@@ -208,6 +1095,7 @@ impl<'a> IntBuilder<'a> {
                 self.rd.slot_kinds.get(slot).unwrap(),
             )),
             pins: Default::default(),
+            raw_tile: 0,
         }
     }
 
@@ -219,6 +1107,7 @@ impl<'a> IntBuilder<'a> {
                 idx,
             )),
             pins: Default::default(),
+            raw_tile: 0,
         }
     }
 
@@ -231,6 +1120,7 @@ impl<'a> IntBuilder<'a> {
                 y,
             )),
             pins: Default::default(),
+            raw_tile: 0,
         }
     }
 
@@ -519,7 +1409,6 @@ impl<'a> IntBuilder<'a> {
         bels: &[ExtrBelInfo],
         tki: rawdump::TileKindId,
         names: &HashMap<rawdump::WireId, (IntConnKind, NodeWireId)>,
-        bufs: &[BufInfo],
     ) {
         let tk = &self.rd.tile_kinds[tki];
         if bels.is_empty() {
@@ -574,114 +1463,6 @@ impl<'a> IntBuilder<'a> {
             loop {
                 if let Some(&(ick, w)) = names.get(&wn) {
                     return (ick, [w].into_iter().collect(), wn, pips, BTreeMap::new());
-                }
-                for (i, bi) in bufs.iter().enumerate() {
-                    if let Some(&(d, wt, wf)) = bi.bufs.get(&wn) {
-                        if d == dir {
-                            let wo = if d == PinDir::Output { wt } else { wf };
-                            if let Some(&(ick, w)) = bi.int_wires.get(&wo) {
-                                pips.push(NodeExtPipNaming {
-                                    tile: NodeRawTileId::from_idx(1 + i),
-                                    wire_to: self.rd.wires[wt].clone(),
-                                    wire_from: self.rd.wires[wf].clone(),
-                                });
-                                return (ick, [w].into_iter().collect(), wn, pips, BTreeMap::new());
-                            }
-                            if dir == PinDir::Output {
-                                if let Some(&(ick, ref ws)) = bi.int_outs.get(&wo) {
-                                    pips.push(NodeExtPipNaming {
-                                        tile: NodeRawTileId::from_idx(1 + i),
-                                        wire_to: self.rd.wires[wt].clone(),
-                                        wire_from: self.rd.wires[wf].clone(),
-                                    });
-                                    if ws.len() == 1 {
-                                        pips.push(NodeExtPipNaming {
-                                            tile: NodeRawTileId::from_idx(1 + i),
-                                            wire_to: self.rd.wires[ws[0].0].clone(),
-                                            wire_from: self.rd.wires[wt].clone(),
-                                        });
-                                        return (
-                                            ick,
-                                            [ws[0].1].into_iter().collect(),
-                                            wn,
-                                            pips,
-                                            BTreeMap::new(),
-                                        );
-                                    } else {
-                                        let mut int_pips = BTreeMap::new();
-                                        let mut int_wires = BTreeSet::new();
-                                        for &(fwn, fw) in ws {
-                                            int_wires.insert(fw);
-                                            int_pips.insert(
-                                                fw,
-                                                NodeExtPipNaming {
-                                                    tile: NodeRawTileId::from_idx(1 + i),
-                                                    wire_to: self.rd.wires[fwn].clone(),
-                                                    wire_from: self.rd.wires[wt].clone(),
-                                                },
-                                            );
-                                        }
-                                        return (ick, int_wires, wn, pips, int_pips);
-                                    }
-                                }
-                            } else {
-                                if let Some(&(ick, fwn, fw)) = bi.int_inps.get(&wo) {
-                                    pips.push(NodeExtPipNaming {
-                                        tile: NodeRawTileId::from_idx(1 + i),
-                                        wire_to: self.rd.wires[wt].clone(),
-                                        wire_from: self.rd.wires[wf].clone(),
-                                    });
-                                    pips.push(NodeExtPipNaming {
-                                        tile: NodeRawTileId::from_idx(1 + i),
-                                        wire_to: self.rd.wires[wf].clone(),
-                                        wire_from: self.rd.wires[fwn].clone(),
-                                    });
-                                    return (
-                                        ick,
-                                        [fw].into_iter().collect(),
-                                        wn,
-                                        pips,
-                                        BTreeMap::new(),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                    if let Some(&wo) = bi.jumps.get(&wn) {
-                        if dir == PinDir::Output {
-                            if let Some(&(ick, ref ws)) = bi.int_outs.get(&wo) {
-                                if ws.len() == 1 {
-                                    pips.push(NodeExtPipNaming {
-                                        tile: NodeRawTileId::from_idx(1 + i),
-                                        wire_to: self.rd.wires[ws[0].0].clone(),
-                                        wire_from: self.rd.wires[wo].clone(),
-                                    });
-                                    return (
-                                        ick,
-                                        [ws[0].1].into_iter().collect(),
-                                        wn,
-                                        pips,
-                                        BTreeMap::new(),
-                                    );
-                                } else {
-                                    let mut int_pips = BTreeMap::new();
-                                    let mut int_wires = BTreeSet::new();
-                                    for &(fwn, fw) in ws {
-                                        int_wires.insert(fw);
-                                        int_pips.insert(
-                                            fw,
-                                            NodeExtPipNaming {
-                                                tile: NodeRawTileId::from_idx(1 + i),
-                                                wire_to: self.rd.wires[fwn].clone(),
-                                                wire_from: self.rd.wires[wo].clone(),
-                                            },
-                                        );
-                                    }
-                                    return (ick, int_wires, wn, pips, int_pips);
-                                }
-                            }
-                        }
-                    }
                 }
                 match dir {
                     PinDir::Input => {
@@ -744,7 +1525,7 @@ impl<'a> IntBuilder<'a> {
         };
         let walk_count = |dir, mut wn, cnt| {
             let mut pips = Vec::new();
-            for left in (0..cnt).rev() {
+            for _ in 0..cnt {
                 let nwn = match dir {
                     PinDir::Input => {
                         if let Some(&nwn) = buf_in.get(&wn) {
@@ -779,20 +1560,6 @@ impl<'a> IntBuilder<'a> {
                 if let Some(nwn) = nwn {
                     wn = nwn
                 } else {
-                    if left == 0 {
-                        for (i, bi) in bufs.iter().enumerate() {
-                            if let Some(&(d, wt, wf)) = bi.bufs.get(&wn) {
-                                if d == dir {
-                                    pips.push(NodeExtPipNaming {
-                                        tile: NodeRawTileId::from_idx(1 + i),
-                                        wire_to: self.rd.wires[wt].clone(),
-                                        wire_from: self.rd.wires[wf].clone(),
-                                    });
-                                    return (wn, pips);
-                                }
-                            }
-                        }
-                    }
                     panic!(
                         "CANNOT WALK WIRE {} {} {}",
                         self.rd.part,
@@ -1078,7 +1845,7 @@ impl<'a> IntBuilder<'a> {
                 }
             }
 
-            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names, &[]);
+            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
 
             self.insert_node_merge(kind, node);
             let naming = self.insert_node_naming(naming, node_naming);
@@ -1116,7 +1883,7 @@ impl<'a> IntBuilder<'a> {
                 intfs: Default::default(),
             };
             let mut node_naming = NodeNaming::default();
-            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names, &[]);
+            self.extract_bels(&mut node, &mut node_naming, bels, tki, &names);
 
             self.insert_node_merge(kind, node);
             self.insert_node_naming(naming, node_naming);
@@ -2134,42 +2901,6 @@ impl<'a> IntBuilder<'a> {
         };
     }
 
-    /*
-    pub fn name_intf_out_wire(
-        &mut self,
-        naming: IntfNamingId,
-        wire: WireId,
-        name: impl AsRef<str>,
-    ) {
-        let name = name.as_ref();
-        let naming = &mut self.db.intf_namings[naming];
-        if !naming.wires_out.contains_id(wire) {
-            naming
-                .wires_out
-                .insert(wire, IntfWireOutNaming::Simple(name.to_string()));
-        } else {
-            assert_matches!(&naming.wires_out[wire], IntfWireOutNaming::Simple(n) | IntfWireOutNaming::Buf(n, _) if n == name);
-        }
-    }
-
-    pub fn name_intf_out_wire_in(
-        &mut self,
-        naming: IntfNamingId,
-        wire: WireId,
-        name: impl AsRef<str>,
-    ) {
-        let name = name.as_ref();
-        let naming = &mut self.db.intf_namings[naming];
-        match naming.wires_out[wire] {
-            IntfWireOutNaming::Simple(ref n) => {
-                let n = n.clone();
-                naming.wires_out[wire] = IntfWireOutNaming::Buf(n, name.to_string());
-            }
-            IntfWireOutNaming::Buf(_, ref n) => assert_eq!(n, name),
-        }
-    }
-    */
-
     pub fn extract_intf_tile_multi(
         &mut self,
         name: impl AsRef<str>,
@@ -2178,98 +2909,14 @@ impl<'a> IntBuilder<'a> {
         naming: impl AsRef<str>,
         has_out_bufs: bool,
     ) {
-        let names = self.extract_names(xy, int_xy);
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let mut out_muxes: HashMap<NodeWireId, Vec<NodeWireId>> = HashMap::new();
-        let bufs = self.get_bufs(tk);
-        let mut intfs = BTreeMap::new();
-        let mut delayed = HashMap::new();
-        let mut intf_wires_in = BTreeMap::new();
-        let mut intf_wires_out = BTreeMap::new();
-        if has_out_bufs {
-            for (&wdi, &wfi) in &bufs {
-                if let Some(&(_, wf)) = names.get(&wfi) {
-                    if !matches!(self.db.wires[wf.1].kind, WireKind::MuxOut) {
-                        continue;
-                    }
-                    for &wti in tk.wires.keys() {
-                        if tk.pips.contains_key(&(wfi, wti)) && tk.pips.contains_key(&(wdi, wti)) {
-                            intf_wires_in.insert(
-                                wf,
-                                IntfWireInNaming::Delay(
-                                    self.rd.wires[wti].clone(),
-                                    self.rd.wires[wdi].clone(),
-                                    self.rd.wires[wfi].clone(),
-                                ),
-                            );
-                            delayed.insert(wti, wf);
-                            intfs.insert(wf, IntfInfo::InputDelay);
-                        }
-                    }
-                }
-            }
+        let mut x = self
+            .xnode(name.as_ref(), naming.as_ref(), xy)
+            .num_tiles(int_xy.len())
+            .extract_intfs(has_out_bufs);
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
         }
-        for &(wfi, wti) in tk.pips.keys() {
-            if let Some(&(_, wt)) = names.get(&wti) {
-                if !matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
-                    continue;
-                }
-                intf_wires_out
-                    .entry(wt)
-                    .or_insert_with(|| IntfWireOutNaming::Simple(self.rd.wires[wti].clone()));
-                let mut rwfi = wfi;
-                if bufs.contains_key(&wfi) {
-                    rwfi = bufs[&wfi];
-                }
-                if let Some(&(_, wf)) = names.get(&rwfi) {
-                    if rwfi != wfi {
-                        intf_wires_in.insert(
-                            wf,
-                            IntfWireInNaming::TestBuf(
-                                self.rd.wires[wfi].clone(),
-                                self.rd.wires[rwfi].clone(),
-                            ),
-                        );
-                    } else {
-                        intf_wires_in
-                            .insert(wf, IntfWireInNaming::Simple(self.rd.wires[wfi].clone()));
-                    }
-                    assert!(!intfs.contains_key(&wf));
-                    out_muxes.entry(wt).or_default().push(wf);
-                } else if let Some(&wf) = delayed.get(&wfi) {
-                    out_muxes.entry(wt).or_default().push(wf);
-                } else if has_out_bufs {
-                    out_muxes.entry(wt).or_default();
-                    intf_wires_out.insert(
-                        wt,
-                        IntfWireOutNaming::Buf(
-                            self.rd.wires[wti].clone(),
-                            self.rd.wires[wfi].clone(),
-                        ),
-                    );
-                }
-            }
-        }
-        for (k, v) in out_muxes {
-            intfs.insert(k, IntfInfo::OutputTestMux(v.into_iter().collect()));
-        }
-        let node = NodeKind {
-            tiles: [()].into_iter().collect(),
-            muxes: Default::default(),
-            bels: Default::default(),
-            intfs,
-        };
-        self.insert_node_merge(name.as_ref(), node);
-        let node_naming = NodeNaming {
-            wires: Default::default(),
-            wire_bufs: Default::default(),
-            ext_pips: Default::default(),
-            bels: Default::default(),
-            intf_wires_in,
-            intf_wires_out,
-        };
-        self.insert_node_naming(naming.as_ref(), node_naming);
+        x.extract();
     }
 
     pub fn extract_intf_tile(
@@ -2297,242 +2944,6 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_names(
-        &self,
-        xy: Coord,
-        int_xy: &[Coord],
-    ) -> HashMap<rawdump::WireId, (IntConnKind, NodeWireId)> {
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let mut names = HashMap::new();
-        let node2wires: EntityVec<NodeTileId, _> = int_xy
-            .iter()
-            .copied()
-            .map(|x| self.get_int_node2wires(x))
-            .collect();
-        for (_, &wi, &tkw) in tk.wires.iter() {
-            if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
-                names.insert(wi, (IntConnKind::Raw, w));
-                continue;
-            }
-            if let Some(xn) = self.extra_names_tile.get(&tile.kind) {
-                if let Some(&w) = xn.get(&self.rd.wires[wi]) {
-                    names.insert(wi, (IntConnKind::Raw, w));
-                    continue;
-                }
-            }
-            if let rawdump::TkWire::Connected(idx) = tkw {
-                if let Some(&nidx) = tile.conn_wires.get(idx) {
-                    for (k, v) in &node2wires {
-                        if let Some(w) = v.get(&nidx) {
-                            if w.len() == 1 {
-                                names.insert(wi, (IntConnKind::Raw, (k, w[0])));
-                                break;
-                            }
-                            let fw: Vec<_> = w
-                                .iter()
-                                .copied()
-                                .filter(|&x| !matches!(self.db.wires[x].kind, WireKind::Branch(_)))
-                                .collect();
-                            if fw.len() == 1 {
-                                names.insert(wi, (IntConnKind::Raw, (k, fw[0])));
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        names
-    }
-
-    pub fn extract_intf_names(
-        &self,
-        xy: Coord,
-        intf_xy: &[(Coord, NodeNamingId)],
-    ) -> HashMap<rawdump::WireId, (IntConnKind, NodeWireId)> {
-        let mut node2wire = HashMap::new();
-        for (i, &(intf_xy, nid)) in intf_xy.iter().enumerate() {
-            let tid = NodeTileId::from_idx(i);
-            let naming = &self.db.node_namings[nid];
-            let mut name2wire = HashMap::new();
-            for (k, v) in &naming.intf_wires_in {
-                match v {
-                    IntfWireInNaming::Simple(n) | IntfWireInNaming::TestBuf(_, n) => {
-                        name2wire.insert(&n[..], (IntConnKind::Raw, (tid, k.1)));
-                    }
-                    IntfWireInNaming::Buf(n, _) | IntfWireInNaming::Delay(n, _, _) => {
-                        name2wire.insert(&n[..], (IntConnKind::IntfIn, (tid, k.1)));
-                    }
-                }
-            }
-            for (k, v) in &naming.intf_wires_out {
-                match v {
-                    IntfWireOutNaming::Simple(n) => {
-                        name2wire.insert(&n[..], (IntConnKind::Raw, (tid, k.1)));
-                    }
-                    IntfWireOutNaming::Buf(n, ns) => {
-                        name2wire.insert(&n[..], (IntConnKind::Raw, (tid, k.1)));
-                        name2wire.insert(&ns[..], (IntConnKind::IntfOut, (tid, k.1)));
-                    }
-                }
-            }
-            let intf_tile = &self.rd.tiles[&intf_xy];
-            let intf_tk = &self.rd.tile_kinds[intf_tile.kind];
-            for (_, &wi, &tkw) in intf_tk.wires.iter() {
-                if let Some(&wd) = name2wire.get(&&self.rd.wires[wi][..]) {
-                    if let rawdump::TkWire::Connected(idx) = tkw {
-                        if let Some(&nidx) = intf_tile.conn_wires.get(idx) {
-                            node2wire.insert(nidx, wd);
-                        }
-                    }
-                }
-            }
-        }
-
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let mut names = HashMap::new();
-
-        for (_, &wi, &tkw) in tk.wires.iter() {
-            if let Some(&w) = self.extra_names.get(&self.rd.wires[wi]) {
-                names.insert(wi, (IntConnKind::Raw, w));
-                continue;
-            }
-            if let Some(xn) = self.extra_names_tile.get(&tile.kind) {
-                if let Some(&w) = xn.get(&self.rd.wires[wi]) {
-                    names.insert(wi, (IntConnKind::Raw, w));
-                    continue;
-                }
-            }
-            if let rawdump::TkWire::Connected(idx) = tkw {
-                if let Some(&nidx) = tile.conn_wires.get(idx) {
-                    if let Some(&wd) = node2wire.get(&nidx) {
-                        names.insert(wi, wd);
-                    }
-                }
-            }
-        }
-        names
-    }
-
-    pub fn extract_buf_jumps(
-        &self,
-        xy: Coord,
-        buf_xy: Coord,
-    ) -> HashMap<rawdump::WireId, rawdump::WireId> {
-        let mut names = HashMap::new();
-        let buf_tile = &self.rd.tiles[&buf_xy];
-        let buf_tk = &self.rd.tile_kinds[buf_tile.kind];
-        let mut node2wires: HashMap<_, Vec<_>> = HashMap::new();
-        for &w in buf_tk.wires.keys() {
-            if let Some(node) = self.get_node(buf_tile, buf_tk, w) {
-                node2wires.entry(node).or_default().push(w);
-            }
-        }
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        for &w in tk.wires.keys() {
-            if let Some(node) = self.get_node(tile, tk, w) {
-                if let Some(ws) = node2wires.get(&node) {
-                    if ws.len() == 1 {
-                        names.insert(w, ws[0]);
-                    }
-                }
-            }
-        }
-        names
-    }
-
-    pub fn extract_buf_names(
-        &self,
-        xy: Coord,
-        buf_xy: Coord,
-    ) -> HashMap<rawdump::WireId, (PinDir, rawdump::WireId, rawdump::WireId)> {
-        let mut names = HashMap::new();
-        let buf_tile = &self.rd.tiles[&buf_xy];
-        let buf_tk = &self.rd.tile_kinds[buf_tile.kind];
-        let mut edges_in: HashMap<_, Vec<_>> = HashMap::new();
-        let mut edges_out: HashMap<_, Vec<_>> = HashMap::new();
-        for &(wfi, wti) in buf_tk.pips.keys() {
-            edges_in.entry(wti).or_default().push(wfi);
-            edges_out.entry(wfi).or_default().push(wti);
-        }
-        let mut buf_out = HashMap::new();
-        for (wt, wfs) in edges_out {
-            if let Some(node) = self.get_node(buf_tile, buf_tk, wt) {
-                if wfs.len() == 1 {
-                    buf_out.insert(node, (wt, wfs[0]));
-                }
-            }
-        }
-        let mut buf_in = HashMap::new();
-        for (wt, wfs) in edges_in {
-            if let Some(node) = self.get_node(buf_tile, buf_tk, wt) {
-                if wfs.len() == 1 {
-                    buf_in.insert(node, (wt, wfs[0]));
-                }
-            }
-        }
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        for &w in tk.wires.keys() {
-            if let Some(node) = self.get_node(tile, tk, w) {
-                if let Some(&(wf, wt)) = buf_out.get(&node) {
-                    names.insert(w, (PinDir::Output, wt, wf));
-                }
-                if let Some(&(wt, wf)) = buf_in.get(&node) {
-                    names.insert(w, (PinDir::Input, wt, wf));
-                }
-            }
-        }
-        names
-    }
-
-    pub fn extract_int_outs(
-        &self,
-        xy: Coord,
-        int_wires: &HashMap<rawdump::WireId, (IntConnKind, NodeWireId)>,
-    ) -> HashMap<rawdump::WireId, (IntConnKind, Vec<(rawdump::WireId, NodeWireId)>)> {
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let mut res = HashMap::new();
-        let mut edges_out: HashMap<_, Vec<_>> = HashMap::new();
-        for &(wfi, wti) in tk.pips.keys() {
-            edges_out.entry(wfi).or_default().push(wti);
-        }
-        for (wf, wts) in edges_out {
-            if wts.iter().all(|x| int_wires.contains_key(x)) {
-                let ick = int_wires[&wts[0]].0;
-                res.insert(
-                    wf,
-                    (ick, wts.into_iter().map(|x| (x, int_wires[&x].1)).collect()),
-                );
-            }
-        }
-        res
-    }
-
-    pub fn extract_int_inps(
-        &self,
-        xy: Coord,
-        int_wires: &HashMap<rawdump::WireId, (IntConnKind, NodeWireId)>,
-    ) -> HashMap<rawdump::WireId, (IntConnKind, rawdump::WireId, NodeWireId)> {
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let mut res = HashMap::new();
-        let mut edges_in: HashMap<_, Vec<_>> = HashMap::new();
-        for &(wfi, wti) in tk.pips.keys() {
-            edges_in.entry(wti).or_default().push(wfi);
-        }
-        for (wt, wfs) in edges_in {
-            if wfs.len() == 1 && int_wires.contains_key(&wfs[0]) {
-                res.insert(wt, (int_wires[&wfs[0]].0, wfs[0], int_wires[&wfs[0]].1));
-            }
-        }
-        res
-    }
-
     pub fn extract_xnode(
         &mut self,
         name: &str,
@@ -2543,72 +2954,21 @@ impl<'a> IntBuilder<'a> {
         bels: &[ExtrBelInfo],
         skip_wires: &[WireId],
     ) {
-        let tile = &self.rd.tiles[&xy];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let names = self.extract_names(xy, int_xy);
-
-        let mut node = NodeKind {
-            tiles: int_xy.iter().map(|_| ()).collect(),
-            muxes: Default::default(),
-            bels: Default::default(),
-            intfs: Default::default(),
-        };
-        let mut node_naming = NodeNaming::default();
-
-        for &(wfi, wti) in tk.pips.keys() {
-            if let Some(&(_, wt)) = names.get(&wti) {
-                if skip_wires.contains(&wt.1) {
-                    continue;
-                }
-                if matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
-                    continue;
-                }
-                if let Some(&(_, wf)) = names.get(&wfi) {
-                    node_naming.wires.insert(wt, self.rd.wires[wti].to_string());
-                    node_naming.wires.insert(wf, self.rd.wires[wfi].to_string());
-                    // XXX
-                    let kind = MuxKind::Plain;
-                    node.muxes.entry(wt).or_insert(MuxInfo {
-                        kind,
-                        ins: Default::default(),
-                    });
-                    let mux = node.muxes.get_mut(&wt).unwrap();
-                    assert_eq!(mux.kind, kind);
-                    mux.ins.insert(wf);
-                } else if self.stub_outs.contains(&self.rd.wires[wfi]) {
-                    // ignore
-                } else {
-                    println!(
-                        "UNEXPECTED XNODE MUX IN {} {} {} {}",
-                        self.rd.tile_kinds.key(tile.kind),
-                        tile.name,
-                        self.rd.wires[wti],
-                        self.rd.wires[wfi]
-                    );
-                }
-            }
+        let mut x = self
+            .xnode(name, naming, xy)
+            .num_tiles(int_xy.len())
+            .extract_muxes()
+            .skip_muxes(skip_wires.iter().copied());
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
         }
-
-        let bufs: Vec<_> = buf_xy
-            .iter()
-            .map(|&x| {
-                let int_wires = self.extract_names(x, int_xy);
-                let int_outs = self.extract_int_outs(x, &int_wires);
-                let int_inps = self.extract_int_inps(x, &int_wires);
-                let jumps = self.extract_buf_jumps(xy, x);
-                BufInfo {
-                    jumps,
-                    bufs: self.extract_buf_names(xy, x),
-                    int_outs,
-                    int_inps,
-                    int_wires,
-                }
-            })
-            .collect();
-        self.extract_bels(&mut node, &mut node_naming, bels, tile.kind, &names, &bufs);
-
-        self.insert_node_merge(name, node);
-        self.insert_node_naming(naming, node_naming);
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        x.extract();
     }
 
     pub fn extract_xnode_bels(
@@ -2620,37 +2980,17 @@ impl<'a> IntBuilder<'a> {
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
-        let tile = &self.rd.tiles[&xy];
-        let names = self.extract_names(xy, int_xy);
-
-        let mut node = NodeKind {
-            tiles: int_xy.iter().map(|_| ()).collect(),
-            muxes: Default::default(),
-            bels: Default::default(),
-            intfs: Default::default(),
-        };
-        let mut node_naming = NodeNaming::default();
-
-        let bufs: Vec<_> = buf_xy
-            .iter()
-            .map(|&x| {
-                let int_wires = self.extract_names(x, int_xy);
-                let int_outs = self.extract_int_outs(x, &int_wires);
-                let int_inps = self.extract_int_inps(x, &int_wires);
-                let jumps = self.extract_buf_jumps(xy, x);
-                BufInfo {
-                    jumps,
-                    bufs: self.extract_buf_names(xy, x),
-                    int_outs,
-                    int_inps,
-                    int_wires,
-                }
-            })
-            .collect();
-        self.extract_bels(&mut node, &mut node_naming, bels, tile.kind, &names, &bufs);
-
-        self.insert_node_merge(name, node);
-        self.insert_node_naming(naming, node_naming);
+        let mut x = self.xnode(name, naming, xy).num_tiles(int_xy.len());
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        x.extract();
     }
 
     pub fn extract_xnode_bels_intf(
@@ -2663,39 +3003,22 @@ impl<'a> IntBuilder<'a> {
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
-        let tile = &self.rd.tiles[&xy];
-        let mut names = self.extract_names(xy, int_xy);
-        names.extend(self.extract_intf_names(xy, intf_xy));
-
-        let mut node = NodeKind {
-            tiles: intf_xy.iter().map(|_| ()).collect(),
-            muxes: Default::default(),
-            bels: Default::default(),
-            intfs: Default::default(),
-        };
-        let mut node_naming = NodeNaming::default();
-
-        let bufs: Vec<_> = buf_xy
-            .iter()
-            .map(|&x| {
-                let mut int_wires = self.extract_names(x, int_xy);
-                int_wires.extend(self.extract_intf_names(x, intf_xy));
-                let int_outs = self.extract_int_outs(x, &int_wires);
-                let int_inps = self.extract_int_inps(x, &int_wires);
-                let jumps = self.extract_buf_jumps(xy, x);
-                BufInfo {
-                    jumps,
-                    bufs: self.extract_buf_names(xy, x),
-                    int_outs,
-                    int_inps,
-                    int_wires,
-                }
-            })
-            .collect();
-        self.extract_bels(&mut node, &mut node_naming, bels, tile.kind, &names, &bufs);
-
-        self.insert_node_merge(name, node);
-        self.insert_node_naming(naming, node_naming);
+        let mut x = self
+            .xnode(name, naming, xy)
+            .num_tiles(Ord::max(int_xy.len(), intf_xy.len()));
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+            x = x.ref_single(xy, i, naming);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        x.extract();
     }
 
     pub fn make_marker_bel(&mut self, name: &str, naming: &str, bel: &str, ntiles: usize) {
@@ -2727,6 +3050,28 @@ impl<'a> IntBuilder<'a> {
         };
         self.insert_node_merge(name, node);
         self.insert_node_naming(naming, node_naming);
+    }
+
+    pub fn xnode<'b>(
+        &'b mut self,
+        kind: impl Into<String>,
+        naming: impl Into<String>,
+        tile: Coord,
+    ) -> XNodeInfo<'a, 'b> {
+        XNodeInfo {
+            builder: self,
+            kind: kind.into(),
+            naming: naming.into(),
+            raw_tiles: vec![XNodeRawTile { xy: tile }],
+            num_tiles: 1,
+            refs: vec![],
+            extract_muxes: false,
+            extract_intfs: false,
+            has_intf_out_bufs: false,
+            skip_muxes: BTreeSet::new(),
+            optin_muxes: BTreeSet::new(),
+            bels: vec![],
+        }
     }
 
     pub fn build(self) -> IntDb {
