@@ -9,7 +9,7 @@ use prjcombine_int::db::{
 use prjcombine_int::grid::{
     ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, RowId,
 };
-use prjcombine_rawdump::{self as rawdump, Coord, Part};
+use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
@@ -80,12 +80,6 @@ pub struct Verifier<'a> {
     skip_residual: bool,
     stub_outs: HashSet<rawdump::WireId>,
     stub_ins: HashSet<rawdump::WireId>,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-enum NodeOrWire {
-    Node(rawdump::NodeId),
-    Wire(Coord, rawdump::TkWireId),
 }
 
 #[derive(Debug, Default)]
@@ -288,19 +282,6 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    fn lookup_wire(&self, crd: Coord, wire: &str) -> Option<NodeOrWire> {
-        let tile = &self.rd.tiles[&crd];
-        let tk = &self.rd.tile_kinds[tile.kind];
-        let widx = self.rd.wires.get(wire)?;
-        match tk.wires.get(&widx)? {
-            (twi, rawdump::TkWire::Internal(_, _)) => Some(NodeOrWire::Wire(crd, twi)),
-            (_, &rawdump::TkWire::Connected(idx)) => match tile.conn_wires.get(idx) {
-                Some(&nidx) => Some(NodeOrWire::Node(nidx)),
-                _ => None,
-            },
-        }
-    }
-
     fn claim_raw_node(&mut self, nw: NodeOrWire, crd: rawdump::Coord, wn: &str) {
         match nw {
             NodeOrWire::Node(nidx) => {
@@ -328,7 +309,7 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_wire(&mut self, crd: Coord, wire: &str, iw: IntWire) -> bool {
-        if let Some(cnw) = self.lookup_wire(crd, wire) {
+        if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if iwd.used_i && iwd.used_o {
                 if iwd.node.is_none() {
@@ -360,7 +341,7 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn pin_int_intf_wire(&mut self, crd: Coord, wire: &str, iw: IntWire) -> bool {
-        if let Some(cnw) = self.lookup_wire(crd, wire) {
+        if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if let Some(nw) = iwd.intf_node {
                 if nw != cnw {
@@ -401,7 +382,7 @@ impl<'a> Verifier<'a> {
         for &(crd, wn) in tiles {
             let tile = &self.rd.tiles[&crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.lookup_wire(crd, wn) {
+            if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
                 if let Some(pnw) = nw {
                     if pnw != cnw {
                         println!("NODE MISMATCH FOR {p} {tname} {wn}", p = self.rd.part);
@@ -420,7 +401,7 @@ impl<'a> Verifier<'a> {
         for &(crd, wn) in tiles {
             let tile = &self.rd.tiles[&crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.lookup_wire(crd, wn) {
+            if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
                 if let Some(pnw) = nw {
                     if pnw != cnw {
                         println!("NODE MISMATCH FOR {p} {tname} {wn}", p = self.rd.part);
@@ -1166,8 +1147,8 @@ impl<'a> Verifier<'a> {
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
             for &(wf, wt) in tk.pips.keys() {
-                let pip_present = self.lookup_wire(crd, &self.rd.wires[wf]).is_some()
-                    && self.lookup_wire(crd, &self.rd.wires[wt]).is_some();
+                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
+                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
                 if pip_present && (self.stub_outs.contains(&wt) || self.stub_ins.contains(&wf)) {
                     self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
                 }
@@ -1196,8 +1177,8 @@ impl<'a> Verifier<'a> {
             }
             let claimed_pips = &self.claimed_pips[&crd];
             for (i, &(wf, wt), _) in &tk.pips {
-                let pip_present = self.lookup_wire(crd, &self.rd.wires[wf]).is_some()
-                    && self.lookup_wire(crd, &self.rd.wires[wt]).is_some();
+                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
+                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
                 if !claimed_pips[i] && pip_present {
                     println!(
                         "UNCLAIMED PIP {part} {tile} {wt} <- {wf}",

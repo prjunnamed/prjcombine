@@ -161,6 +161,12 @@ pub struct Part {
     pub combos: Vec<PartCombo>,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum NodeOrWire {
+    Node(NodeId),
+    Wire(Coord, TkWireId),
+}
+
 impl Part {
     pub fn post_deserialize(&mut self) {
         for (ni, node) in self.nodes.iter() {
@@ -204,6 +210,23 @@ impl Part {
         } else {
             &[]
         }
+    }
+
+    pub fn lookup_wire_raw(&self, crd: Coord, wire: WireId) -> Option<NodeOrWire> {
+        let tile = &self.tiles[&crd];
+        let tk = &self.tile_kinds[tile.kind];
+        match tk.wires.get(&wire)? {
+            (twi, TkWire::Internal(_, _)) => Some(NodeOrWire::Wire(crd, twi)),
+            (_, &TkWire::Connected(idx)) => match tile.conn_wires.get(idx) {
+                Some(&nidx) => Some(NodeOrWire::Node(nidx)),
+                _ => None,
+            },
+        }
+    }
+
+    pub fn lookup_wire(&self, crd: Coord, wire: &str) -> Option<NodeOrWire> {
+        let widx = self.wires.get(wire)?;
+        self.lookup_wire_raw(crd, widx)
     }
 }
 
