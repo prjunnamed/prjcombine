@@ -186,6 +186,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             vrf.verify_node(&[bel.fwire("DCM_OUT"), obel.fwire(dcm_out_pin)]);
         } else {
             vrf.claim_node(&[bel.fwire("CKI")]);
+            vrf.claim_node(&[bel.fwire("DCM_OUT")]);
         }
         let obel = vrf.find_bel_sibling(bel, "VCC");
         vrf.claim_pip(bel.crd(), bel.wire_far("CLK"), obel.wire("VCCOUT"));

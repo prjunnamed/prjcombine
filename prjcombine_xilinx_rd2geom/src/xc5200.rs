@@ -17,7 +17,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Xc5200(bond)));
     }
-    verify(rd, &edev.egrid, |vrf, ctx| verify_bel(&edev, vrf, ctx));
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, ctx| verify_bel(&edev, vrf, ctx),
+        |_| (),
+    );
     (
         make_device(rd, Grid::Xc5200(grid), bonds, BTreeSet::new()),
         Some(int_db),

@@ -22,7 +22,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
-    verify(rd, &eint, |vrf, bel| verify_bel(&grids, vrf, bel));
+    verify(
+        rd,
+        &eint,
+        |vrf, bel| verify_bel(&grids, vrf, bel),
+        |vrf| vrf.skip_residual(),
+    );
     let grids = grids.into_map_values(Grid::Ultrascale);
     let disabled = disabled.into_iter().map(DisabledPart::Ultrascale).collect();
     (

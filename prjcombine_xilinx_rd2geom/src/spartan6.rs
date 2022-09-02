@@ -16,7 +16,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Spartan6(bond)));
     }
     let eint = grid.expand_grid(&int_db, &disabled);
-    verify(rd, &eint, |vrf, bel| verify_bel(&grid, vrf, bel));
+    verify(
+        rd,
+        &eint,
+        |vrf, bel| verify_bel(&grid, vrf, bel),
+        |vrf| vrf.skip_residual(),
+    );
     let disabled = disabled.into_iter().map(DisabledPart::Spartan6).collect();
     (
         make_device(rd, Grid::Spartan6(grid), bonds, disabled),

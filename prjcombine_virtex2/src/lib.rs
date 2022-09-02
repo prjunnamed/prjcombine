@@ -27,6 +27,9 @@ impl GridKind {
     pub fn is_virtex2p(self) -> bool {
         matches!(self, Self::Virtex2P | Self::Virtex2PX)
     }
+    pub fn is_spartan3ea(self) -> bool {
+        matches!(self, Self::Spartan3E | Self::Spartan3A | Self::Spartan3ADsp)
+    }
     pub fn is_spartan3a(self) -> bool {
         matches!(self, Self::Spartan3A | Self::Spartan3ADsp)
     }
@@ -2122,20 +2125,6 @@ impl Grid {
                 let name_t = format!("TIOIBRAMC{c}");
                 grid.fill_tile((col, row_b), kind, naming, name_b.clone());
                 grid.fill_tile((col, row_t), kind, naming, name_t.clone());
-                self.fill_term(
-                    &mut grid,
-                    (col, row_b),
-                    "TERM.S",
-                    "TERM.S",
-                    format!("BTERMBRAMC{c}"),
-                );
-                self.fill_term(
-                    &mut grid,
-                    (col, row_t),
-                    "TERM.N",
-                    "TERM.N",
-                    format!("TTERMBRAMC{c}"),
-                );
                 if dcm.is_empty() {
                     continue;
                 }
@@ -2153,6 +2142,7 @@ impl Grid {
                     &[(col, row_t)],
                 );
                 node.add_bel(0, format!("DCM_X{dx}Y1"));
+                // terms / dcmconn added later
                 dx += 1;
             }
         }
@@ -3009,12 +2999,14 @@ impl Grid {
                 if cd.kind != ColumnKind::Bram {
                     continue;
                 }
+                let name_b = format!("BTERMBRAMC{c}");
+                let name_t = format!("TTERMBRAMC{c}");
+                self.fill_term(&mut grid, (col, row_b), "TERM.S", "TERM.S", name_b.clone());
+                self.fill_term(&mut grid, (col, row_t), "TERM.N", "TERM.N", name_t.clone());
                 if self.kind == GridKind::Spartan3 && !(col == col_l + 3 || col == col_r - 3) {
                     c += 1;
                     continue;
                 }
-                let name_b = format!("BTERMBRAMC{c}");
-                let name_t = format!("TTERMBRAMC{c}");
                 grid[(col, row_b)].add_xnode(
                     db.get_node("DCMCONN.BOT"),
                     &[&name_b],

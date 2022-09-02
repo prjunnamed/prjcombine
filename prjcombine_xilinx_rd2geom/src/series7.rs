@@ -23,7 +23,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     } else {
         edev.adjust_vivado();
     }
-    verify(rd, &edev.egrid, |vrf, bel| verify_bel(&edev, vrf, bel));
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(&edev, vrf, bel),
+        |vrf| vrf.skip_residual(),
+    );
     let grids = grids.into_map_values(Grid::Series7);
     let extras = extras.into_iter().map(ExtraDie::Series7).collect();
     let disabled = disabled.into_iter().map(DisabledPart::Series7).collect();

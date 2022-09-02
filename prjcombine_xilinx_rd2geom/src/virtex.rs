@@ -16,7 +16,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex(bond)));
     }
-    verify(rd, &edev.egrid, |vrf, ctx| verify_bel(&edev, vrf, ctx));
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, ctx| verify_bel(&edev, vrf, ctx),
+        |_| (),
+    );
     let disabled = disabled.into_iter().map(DisabledPart::Virtex).collect();
     (
         make_device(rd, Grid::Virtex(grid), bonds, disabled),

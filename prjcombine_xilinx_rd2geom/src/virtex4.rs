@@ -17,7 +17,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
     let eint = grid.expand_grid(&int_db);
-    verify(rd, &eint, |vrf, ctx| verify_bel(&grid, vrf, ctx));
+    verify(
+        rd,
+        &eint,
+        |vrf, ctx| verify_bel(&grid, vrf, ctx),
+        |vrf| vrf.skip_residual(),
+    );
     (
         make_device(rd, Grid::Virtex4(grid), bonds, BTreeSet::new()),
         Some(int_db),

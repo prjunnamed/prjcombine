@@ -157,6 +157,14 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ]);
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
+    for pin in ["F5", "FX", "COUT"] {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    if kind == "SLICEM" {
+        for pin in ["SHIFTOUT", "DIG", "BYOUT", "BYINVOUT"] {
+            vrf.claim_node(&[bel.fwire(pin)]);
+        }
+    }
     for (dbel, dpin, sbel, spin) in [
         ("SLICE0", "FXINA", "SLICE0", "F5"),
         ("SLICE0", "FXINB", "SLICE2", "F5"),

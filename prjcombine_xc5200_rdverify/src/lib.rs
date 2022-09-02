@@ -83,8 +83,13 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "TOP_COUT" => {
             let obel = vrf.find_bel_delta(bel, 0, -1, "LC3").unwrap();
             vrf.verify_node(&[bel.fwire("OUT"), obel.fwire_far("CO")]);
+            // artifact of unbuffered pip representation — disregard
+            vrf.claim_pip(bel.crd(), "WIRE_COUT_TOP", "WIRE_M14_TOP");
         }
-        "BOT_CIN" => (),
+        "BOT_CIN" => {
+            // artifact of unbuffered pip representation — disregard
+            vrf.claim_pip(bel.crd(), "WIRE_M14_BOT", "WIRE_COUT_BOT");
+        }
         "RDBK" | "STARTUP" | "BSCAN" | "OSC" | "BYPOSC" | "BSUPD" | "VCC_GND" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
         }

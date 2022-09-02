@@ -121,6 +121,25 @@ fn verify_mult(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'
                 vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
+        if edev.grid.kind == GridKind::Spartan3A {
+            let obel = vrf.find_bel_sibling(bel, "BRAM");
+            for ab in ['A', 'B'] {
+                for i in 0..16 {
+                    vrf.claim_pip(
+                        bel.crd(),
+                        bel.wire(&format!("{ab}{i}")),
+                        obel.wire(&format!("DO{ab}{i}")),
+                    );
+                }
+                for i in 0..2 {
+                    vrf.claim_pip(
+                        bel.crd(),
+                        bel.wire(&format!("{ab}{ii}", ii = i + 16)),
+                        obel.wire(&format!("DOP{ab}{i}")),
+                    );
+                }
+            }
+        }
     } else {
         vrf.verify_bel(bel, "MULT18X18", &[], &[]);
     }
@@ -228,9 +247,24 @@ pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
             vrf.claim_node(&[bel.fwire("O")]);
         }
 
-        "STARTUP" | "CAPTURE" | "ICAP" | "SPI_ACCESS" | "BSCAN" | "JTAGPPC" | "PMV"
-        | "DNA_PORT" | "PCILOGIC" | "DCM" => {
+        "STARTUP" | "CAPTURE" | "SPI_ACCESS" | "BSCAN" | "JTAGPPC" | "PMV" | "DNA_PORT"
+        | "PCILOGIC" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
+        }
+        "DCM" => {
+            vrf.verify_bel(bel, bel.key, &[], &[]);
+            if edev.grid.kind.is_virtex2p() {
+                // just some detritus.
+                vrf.claim_node(&[(bel.crd(), "BRAM_IOIS_DATA29")]);
+                vrf.claim_pip(bel.crd(), "BRAM_IOIS_DATA29", "BRAM_IOIS_VCC_WIRE");
+            }
+        }
+        "ICAP" => {
+            vrf.verify_bel(bel, bel.key, &[], &[]);
+            if edev.grid.kind == GridKind::Spartan3E {
+                // eh.
+                vrf.claim_node(&[bel.fwire("I2")]);
+            }
         }
         _ if bel.key.starts_with("GLOBALSIG") => {
             vrf.verify_bel(bel, "GLOBALSIG", &[], &[]);
@@ -256,5 +290,29 @@ pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
+    }
+}
+
+pub fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
+    if edev.grid.kind.is_spartan3ea() {
+        vrf.kill_stub_out("IOIS_STUB_F1_B3");
+        vrf.kill_stub_out("IOIS_STUB_F2_B3");
+        vrf.kill_stub_out("IOIS_STUB_F3_B3");
+        vrf.kill_stub_out("IOIS_STUB_F4_B3");
+        vrf.kill_stub_out("IOIS_STUB_G1_B3");
+        vrf.kill_stub_out("IOIS_STUB_G2_B3");
+        vrf.kill_stub_out("IOIS_STUB_G3_B3");
+        vrf.kill_stub_out("IOIS_STUB_G4_B3");
+        vrf.kill_stub_out("IOIS_STUB_F4_B0");
+        vrf.kill_stub_out("IOIS_STUB_F4_B1");
+        vrf.kill_stub_out("IOIS_STUB_F4_B2");
+        vrf.kill_stub_in("STUB_IOIS_X3");
+        vrf.kill_stub_in("STUB_IOIS_Y3");
+        vrf.kill_stub_in("STUB_IOIS_XQ3");
+        vrf.kill_stub_in("STUB_IOIS_YQ3");
+    }
+    if edev.grid.kind == GridKind::Spartan3ADsp {
+        // XXX kill me (MACCSITE2 intf)
+        vrf.skip_residual();
     }
 }
