@@ -933,24 +933,27 @@ pub fn expand_grid<'a>(
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Io => {
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF"),
-                            format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF"),
+                            &[&format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}")],
+                            db.get_node_naming(&format!("INTF.{lr}")),
+                            &[(col, row)],
                         );
                     }
                     ColumnKind::Bram => {
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF.BRAM"),
-                            format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF.BRAM"),
+                            &[&format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}")],
+                            db.get_node_naming(&format!("INTF.{lr}")),
+                            &[(col, row)],
                         );
                     }
                     ColumnKind::Dsp | ColumnKind::Cmt | ColumnKind::Cfg | ColumnKind::Clk => {
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF"),
-                            format!("INT_INTERFACE_{lr}_X{x}Y{y}"),
-                            db.get_intf_naming(&format!("INTF.{lr}")),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF"),
+                            &[&format!("INT_INTERFACE_{lr}_X{x}Y{y}")],
+                            db.get_node_naming(&format!("INTF.{lr}")),
+                            &[(col, row)],
                         );
                     }
                     ColumnKind::Gt => (),
@@ -1019,10 +1022,11 @@ pub fn expand_grid<'a>(
                 die.fill_term_anon((col, row), "TERM.W");
                 let y = yb + row.to_idx();
                 let x = xlut[col];
-                die[(col, row)].add_intf(
-                    db.get_intf("INTF"),
-                    format!("INT_INTERFACE_PSS_L_X{x}Y{y}"),
-                    db.get_intf_naming("INTF.PSS"),
+                die[(col, row)].add_xnode(
+                    db.get_node("INTF"),
+                    &[&format!("INT_INTERFACE_PSS_L_X{x}Y{y}")],
+                    db.get_node_naming("INTF.PSS"),
+                    &[(col, row)],
                 );
             }
         }
@@ -1055,25 +1059,28 @@ pub fn expand_grid<'a>(
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
                         let tile_l = &mut die[(col_l, row)];
-                        tile_l.intfs.clear();
-                        tile_l.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}"),
-                            db.get_intf_naming("INTF.PCIE_R"),
+                        tile_l.nodes.truncate(1);
+                        tile_l.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}")],
+                            db.get_node_naming("INTF.PCIE_R"),
+                            &[(col_l, row)],
                         );
                         let tile_r = &mut die[(col_r, row)];
-                        tile_r.intfs.clear();
+                        tile_r.nodes.truncate(1);
                         if hole.kind == HoleKind::Pcie2Left {
-                            tile_r.add_intf(
-                                db.get_intf("INTF.DELAY"),
-                                format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}"),
-                                db.get_intf_naming("INTF.PCIE_LEFT_L"),
+                            tile_r.add_xnode(
+                                db.get_node("INTF.DELAY"),
+                                &[&format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}")],
+                                db.get_node_naming("INTF.PCIE_LEFT_L"),
+                                &[(col_r, row)],
                             );
                         } else {
-                            tile_r.add_intf(
-                                db.get_intf("INTF.DELAY"),
-                                format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}"),
-                                db.get_intf_naming("INTF.PCIE_L"),
+                            tile_r.add_xnode(
+                                db.get_node("INTF.DELAY"),
+                                &[&format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}")],
+                                db.get_node_naming("INTF.PCIE_L"),
+                                &[(col_r, row)],
                             );
                         }
                     }
@@ -1144,18 +1151,20 @@ pub fn expand_grid<'a>(
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
                         let tile_l = &mut die[(col_l, row)];
-                        tile_l.intfs.clear();
-                        tile_l.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}"),
-                            db.get_intf_naming("INTF.PCIE3_R"),
+                        tile_l.nodes.truncate(1);
+                        tile_l.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}")],
+                            db.get_node_naming("INTF.PCIE3_R"),
+                            &[(col_l, row)],
                         );
                         let tile_r = &mut die[(col_r, row)];
-                        tile_r.intfs.clear();
-                        tile_r.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}"),
-                            db.get_intf_naming("INTF.PCIE3_L"),
+                        tile_r.nodes.truncate(1);
+                        tile_r.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}")],
+                            db.get_node_naming("INTF.PCIE3_L"),
+                            &[(col_r, row)],
                         );
                     }
                     let mut crds = vec![];
@@ -1203,11 +1212,12 @@ pub fn expand_grid<'a>(
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
                         let tile = &mut die[(col_l, row)];
-                        tile.intfs.clear();
-                        tile.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("GTP_INT_INTERFACE_R_X{xl}Y{y}"),
-                            db.get_intf_naming("INTF.GTP_R"),
+                        tile.nodes.truncate(1);
+                        tile.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("GTP_INT_INTERFACE_R_X{xl}Y{y}")],
+                            db.get_node_naming("INTF.GTP_R"),
+                            &[(col_l, row)],
                         );
                         die.fill_term_anon((col_l, row), "TERM.E");
                         die.fill_term_anon((col_r, row), "TERM.W");
@@ -1237,11 +1247,12 @@ pub fn expand_grid<'a>(
                         let row = hole.row + dy;
                         let y = yb + row.to_idx();
                         let tile = &mut die[(col_r, row)];
-                        tile.intfs.clear();
-                        tile.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("GTP_INT_INTERFACE_L_X{xr}Y{y}"),
-                            db.get_intf_naming("INTF.GTP_L"),
+                        tile.nodes.truncate(1);
+                        tile.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("GTP_INT_INTERFACE_L_X{xr}Y{y}")],
+                            db.get_node_naming("INTF.GTP_L"),
+                            &[(col_r, row)],
                         );
                         die.fill_term_anon((col_l, row), "TERM.E");
                         die.fill_term_anon((col_r, row), "TERM.W");
@@ -1264,11 +1275,12 @@ pub fn expand_grid<'a>(
                             GtKind::Gth => "GTH",
                         };
                         let tile = &mut die[(gtcol.col, row)];
-                        tile.intfs.clear();
-                        tile.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("{t}_INT_INTERFACE_L_X{x}Y{y}"),
-                            db.get_intf_naming(&format!("INTF.{t}_L")),
+                        tile.nodes.truncate(1);
+                        tile.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("{t}_INT_INTERFACE_L_X{x}Y{y}")],
+                            db.get_node_naming(&format!("INTF.{t}_L")),
+                            &[(gtcol.col, row)],
                         );
                     }
                 }
@@ -1312,11 +1324,12 @@ pub fn expand_grid<'a>(
                             GtKind::Gth => "GTH",
                         };
                         let tile = &mut die[(gtcol.col, row)];
-                        tile.intfs.clear();
-                        tile.add_intf(
-                            db.get_intf("INTF.DELAY"),
-                            format!("{t}_INT_INTERFACE_X{x}Y{y}"),
-                            db.get_intf_naming(&format!("INTF.{t}")),
+                        tile.nodes.truncate(1);
+                        tile.add_xnode(
+                            db.get_node("INTF.DELAY"),
+                            &[&format!("{t}_INT_INTERFACE_X{x}Y{y}")],
+                            db.get_node_naming(&format!("INTF.{t}")),
+                            &[(gtcol.col, row)],
                         );
                     }
                 }

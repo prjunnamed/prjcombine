@@ -2000,6 +2000,17 @@ impl Grid {
                             ],
                         );
                         node.add_bel(0, format!("DSP48A_X{sx}Y{sy}"));
+                        grid[(col + 3, row)].add_xnode(
+                            db.get_node("INTF.DSP"),
+                            &[&name],
+                            db.get_node_naming("INTF.DSP"),
+                            &[
+                                (col + 3, row),
+                                (col + 3, row + 1),
+                                (col + 3, row + 2),
+                                (col + 3, row + 3),
+                            ],
+                        );
                     }
                 }
                 i += 1;
@@ -2299,7 +2310,12 @@ impl Grid {
                     }
                     let name = tile.nodes[0].names[def_rt].clone();
                     let nname = db.node_namings.key(tile.nodes[0].naming);
-                    tile.add_intf(db.get_intf("PPC"), name, db.get_intf_naming(&nname[4..]));
+                    tile.add_xnode(
+                        db.get_node("INTF.PPC"),
+                        &[&name],
+                        db.get_node_naming(&format!("INTF.{}", &nname[4..])),
+                        &[(col, row)],
+                    );
                 }
             }
             let (kind, name, site) = if bc < self.col_clk {
@@ -2331,10 +2347,11 @@ impl Grid {
                 let bt = if row == row_b { 'B' } else { 'T' };
                 let name = format!("{bt}IOIBRAMC{c}");
                 grid.fill_tile_special((col, row), "INT.GT.CLKPAD", "INT.GT.CLKPAD", name.clone());
-                grid[(col, row)].add_intf(
-                    db.get_intf("GT.CLKPAD"),
-                    name,
-                    db.get_intf_naming("GT.CLKPAD"),
+                grid[(col, row)].add_xnode(
+                    db.get_node("INTF.GT.CLKPAD"),
+                    &[&name],
+                    db.get_node_naming("INTF.GT.CLKPAD"),
+                    &[(col, row)],
                 );
             }
             let n = match self.kind {
@@ -2348,10 +2365,15 @@ impl Grid {
                     let r = row_t.to_idx() - row.to_idx();
                     let name = format!("BRAMR{r}C{c}");
                     grid.fill_tile_special((col, row), "INT.PPC", "INT.GT", name.clone());
-                    grid[(col, row)].add_intf(
-                        db.get_intf(if d % 4 == 0 { "GT.0" } else { "GT.123" }),
-                        name,
-                        db.get_intf_naming("GT"),
+                    grid[(col, row)].add_xnode(
+                        db.get_node(if d % 4 == 0 {
+                            "INTF.GT.0"
+                        } else {
+                            "INTF.GT.123"
+                        }),
+                        &[&name],
+                        db.get_node_naming("INTF.GT"),
+                        &[(col, row)],
                     );
                 }
             }

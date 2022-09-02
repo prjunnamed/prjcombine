@@ -1,4 +1,5 @@
-use prjcombine_int::db::{Dir, IntDb, IntfWireInNaming, TermInfo, WireKind};
+use prjcombine_entity::EntityId;
+use prjcombine_int::db::{Dir, IntDb, IntfWireInNaming, NodeTileId, TermInfo, WireKind};
 use prjcombine_rawdump::{Coord, Part};
 
 use prjcombine_rdintb::IntBuilder;
@@ -485,7 +486,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -524,7 +525,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -556,7 +557,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -603,7 +604,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF.EMAC");
+        let n = builder.db.get_node_naming("INTF.EMAC");
         for dy in 0..10 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -631,7 +632,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_B").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF.PCIE");
+        let n = builder.db.get_node_naming("INTF.PCIE");
         for by in [xy.y - 11, xy.y, xy.y + 11, xy.y + 22] {
             for dy in 0..10 {
                 int_xy.push(Coord {
@@ -661,16 +662,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
-    if let Some((_, intf)) = builder.db.intf_namings.get_mut("INTF.PPC_R") {
-        intf.wires_in.insert(
-            clk[0],
+    if let Some((_, intf)) = builder.db.node_namings.get_mut("INTF.PPC_R") {
+        intf.intf_wires_in.insert(
+            (NodeTileId::from_idx(0), clk[0]),
             IntfWireInNaming::Buf(
                 "PPC_R_INT_INTERFACE_FB_CLK_B0".to_string(),
                 "INT_INTERFACE_CLK_B0".to_string(),
             ),
         );
-        intf.wires_in.insert(
-            clk[1],
+        intf.intf_wires_in.insert(
+            (NodeTileId::from_idx(0), clk[1]),
             IntfWireInNaming::Buf(
                 "PPC_R_INT_INTERFACE_FB_CLK_B1".to_string(),
                 "INT_INTERFACE_CLK_B1".to_string(),
@@ -685,8 +686,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         };
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let nl = builder.db.get_intf_naming("INTF.PPC_L");
-        let nr = builder.db.get_intf_naming("INTF.PPC_R");
+        let nl = builder.db.get_node_naming("INTF.PPC_L");
+        let nr = builder.db.get_node_naming("INTF.PPC_R");
         for by in [xy.y - 10, xy.y + 1, xy.y + 12, xy.y + 23] {
             for dy in 0..10 {
                 int_xy.push(Coord {

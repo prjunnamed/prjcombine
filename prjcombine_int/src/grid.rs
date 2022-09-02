@@ -125,7 +125,6 @@ impl<'a> ExpandedGrid<'a> {
             .push(Array2::from_shape_fn([height, width], |(r, c)| {
                 ExpandedTile {
                     nodes: Default::default(),
-                    intfs: Default::default(),
                     terms: Default::default(),
                     clkroot: (ColId::from_idx(c), RowId::from_idx(r)),
                 }
@@ -257,7 +256,6 @@ impl ExpandedDieRefMut<'_, '_> {
         for dx in 0..w {
             for dy in 0..h {
                 self[(x + dx, y + dy)].nodes.clear();
-                self[(x + dx, y + dy)].intfs.clear();
                 self[(x + dx, y + dy)].terms = Default::default();
             }
         }
@@ -546,27 +544,11 @@ impl ExpandedGrid<'_> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
     pub nodes: Vec<ExpandedTileNode>,
-    pub intfs: Vec<ExpandedTileIntf>,
     pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
     pub clkroot: Coord,
 }
 
 impl ExpandedTile {
-    pub fn insert_intf(
-        &mut self,
-        pos: usize,
-        kind: IntfKindId,
-        name: String,
-        naming: IntfNamingId,
-    ) {
-        self.intfs
-            .insert(pos, ExpandedTileIntf { kind, name, naming });
-    }
-
-    pub fn add_intf(&mut self, kind: IntfKindId, name: String, naming: IntfNamingId) {
-        self.intfs.push(ExpandedTileIntf { kind, name, naming });
-    }
-
     pub fn add_xnode(
         &mut self,
         kind: NodeKindId,
@@ -604,13 +586,6 @@ impl ExpandedTileNode {
     pub fn add_bel(&mut self, idx: usize, name: String) {
         self.bels.insert(BelId::from_idx(idx), name);
     }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExpandedTileIntf {
-    pub kind: IntfKindId,
-    pub name: String,
-    pub naming: IntfNamingId,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

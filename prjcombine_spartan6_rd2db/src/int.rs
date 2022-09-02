@@ -298,7 +298,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAMSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((
                 Coord {
@@ -325,7 +325,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("MACCSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((
                 Coord {
@@ -352,8 +352,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
-        let nr = builder.db.get_intf_naming("INTF.RTERM");
-        let nl = builder.db.get_intf_naming("INTF.LTERM");
+        let nr = builder.db.get_node_naming("INTF.RTERM");
+        let nl = builder.db.get_node_naming("INTF.LTERM");
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
             intf_xy.push((
                 Coord {

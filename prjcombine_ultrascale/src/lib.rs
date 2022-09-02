@@ -983,10 +983,11 @@ pub fn expand_grid<'a>(
                         } else {
                             "INT_INTF_L"
                         };
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF.W"),
-                            format!("{kind}_X{x}Y{y}"),
-                            db.get_intf_naming("INTF.W"),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF.W"),
+                            &[&format!("{kind}_X{x}Y{y}")],
+                            db.get_node_naming("INTF.W"),
+                            &[(col, row)],
                         );
                     }
                     ColumnKindLeft::Gt | ColumnKindLeft::Io => {
@@ -1000,10 +1001,11 @@ pub fn expand_grid<'a>(
                             (_, IoRowKind::None) => (),
                             (GridKind::Ultrascale, IoRowKind::Hpio | IoRowKind::Hrio) => {
                                 let kind = "INT_INT_INTERFACE_XIPHY_FT";
-                                die[(col, row)].add_intf(
-                                    db.get_intf("INTF.W.DELAY"),
-                                    format!("{kind}_X{x}Y{y}"),
-                                    db.get_intf_naming("INTF.W.IO"),
+                                die[(col, row)].add_xnode(
+                                    db.get_node("INTF.W.DELAY"),
+                                    &[&format!("{kind}_X{x}Y{y}")],
+                                    db.get_node_naming("INTF.W.IO"),
+                                    &[(col, row)],
                                 );
                             }
                             (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
@@ -1014,10 +1016,11 @@ pub fn expand_grid<'a>(
                                 } else {
                                     "INT_INTF_L_IO"
                                 };
-                                die[(col, row)].add_intf(
-                                    db.get_intf("INTF.W.IO"),
-                                    format!("{kind}_X{x}Y{y}"),
-                                    db.get_intf_naming("INTF.W.IO"),
+                                die[(col, row)].add_xnode(
+                                    db.get_node("INTF.W.IO"),
+                                    &[&format!("{kind}_X{x}Y{y}")],
+                                    db.get_node_naming("INTF.W.IO"),
+                                    &[(col, row)],
                                 );
                             }
                             _ => {
@@ -1026,10 +1029,11 @@ pub fn expand_grid<'a>(
                                 } else {
                                     "INT_INTF_L_TERM_GT"
                                 };
-                                die[(col, row)].add_intf(
-                                    db.get_intf("INTF.W.DELAY"),
-                                    format!("{kind}_X{x}Y{y}"),
-                                    db.get_intf_naming("INTF.W.GT"),
+                                die[(col, row)].add_xnode(
+                                    db.get_node("INTF.W.DELAY"),
+                                    &[&format!("{kind}_X{x}Y{y}")],
+                                    db.get_node_naming("INTF.W.GT"),
+                                    &[(col, row)],
                                 );
                             }
                         }
@@ -1044,10 +1048,11 @@ pub fn expand_grid<'a>(
                         } else {
                             "INT_INTF_L_PCIE4"
                         };
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF.W.DELAY"),
-                            format!("{kind}_X{x}Y{y}"),
-                            db.get_intf_naming("INTF.W.PCIE"),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF.W.DELAY"),
+                            &[&format!("{kind}_X{x}Y{y}")],
+                            db.get_node_naming("INTF.W.PCIE"),
+                            &[(col, row)],
                         );
                     }
                 }
@@ -1059,10 +1064,11 @@ pub fn expand_grid<'a>(
                         } else {
                             "INT_INTF_R"
                         };
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF.E"),
-                            format!("{kind}_X{x}Y{y}"),
-                            db.get_intf_naming("INTF.E"),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF.E"),
+                            &[&format!("{kind}_X{x}Y{y}")],
+                            db.get_node_naming("INTF.E"),
+                            &[(col, row)],
                         );
                     }
                     ColumnKindRight::Gt | ColumnKindRight::Io => {
@@ -1079,10 +1085,11 @@ pub fn expand_grid<'a>(
                             }
                             (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
                                 let kind = "INT_INTF_RIGHT_TERM_IO";
-                                die[(col, row)].add_intf(
-                                    db.get_intf("INTF.E.IO"),
-                                    format!("{kind}_X{x}Y{y}"),
-                                    db.get_intf_naming("INTF.E.IO"),
+                                die[(col, row)].add_xnode(
+                                    db.get_node("INTF.E.IO"),
+                                    &[&format!("{kind}_X{x}Y{y}")],
+                                    db.get_node_naming("INTF.E.IO"),
+                                    &[(col, row)],
                                 );
                             }
                             _ => {
@@ -1091,10 +1098,11 @@ pub fn expand_grid<'a>(
                                 } else {
                                     "INT_INTF_R_TERM_GT"
                                 };
-                                die[(col, row)].add_intf(
-                                    db.get_intf("INTF.E.DELAY"),
-                                    format!("{kind}_X{x}Y{y}"),
-                                    db.get_intf_naming("INTF.E.GT"),
+                                die[(col, row)].add_xnode(
+                                    db.get_node("INTF.E.DELAY"),
+                                    &[&format!("{kind}_X{x}Y{y}")],
+                                    db.get_node_naming("INTF.E.GT"),
+                                    &[(col, row)],
                                 );
                             }
                         }
@@ -1109,10 +1117,11 @@ pub fn expand_grid<'a>(
                         } else {
                             "INT_INTF_R_PCIE4"
                         };
-                        die[(col, row)].add_intf(
-                            db.get_intf("INTF.E.DELAY"),
-                            format!("{kind}_X{x}Y{y}"),
-                            db.get_intf_naming("INTF.E.PCIE"),
+                        die[(col, row)].add_xnode(
+                            db.get_node("INTF.E.DELAY"),
+                            &[&format!("{kind}_X{x}Y{y}")],
+                            db.get_node_naming("INTF.E.PCIE"),
+                            &[(col, row)],
                         );
                     }
                 }
@@ -1151,11 +1160,11 @@ pub fn expand_grid<'a>(
                     yb + row.to_idx() - row_skip
                 };
                 die.fill_term_anon((ps.col, row), "TERM.W");
-                die[(ps.col, row)].insert_intf(
-                    0,
-                    db.get_intf("INTF.W.IO"),
-                    format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}"),
-                    db.get_intf_naming("INTF.PSS"),
+                die[(ps.col, row)].add_xnode(
+                    db.get_node("INTF.W.IO"),
+                    &[&format!("INT_INTF_LEFT_TERM_PSS_X{x}Y{y}")],
+                    db.get_node_naming("INTF.PSS"),
+                    &[(ps.col, row)],
                 );
             }
         }

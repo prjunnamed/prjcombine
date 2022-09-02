@@ -142,7 +142,6 @@ impl DbBuilder {
                 }
                 merge_dicts!(nodes);
                 merge_dicts!(terms);
-                merge_dicts!(intfs);
                 for (_, k, v) in int.node_namings {
                     match x.node_namings.get_mut(&k) {
                         None => {
@@ -162,30 +161,20 @@ impl DbBuilder {
                             assert_eq!(v.wire_bufs, v2.wire_bufs);
                             assert_eq!(v.ext_pips, v2.ext_pips);
                             assert_eq!(v.bels, v2.bels);
-                        }
-                    }
-                }
-                merge_dicts!(term_namings);
-                for (_, k, v) in int.intf_namings {
-                    match x.intf_namings.get_mut(&k) {
-                        None => {
-                            x.intf_namings.insert(k, v);
-                        }
-                        Some((_, v2)) => {
-                            for (kk, vv) in v.wires_in {
-                                match v2.wires_in.get(kk) {
+                            for (kk, vv) in v.intf_wires_in {
+                                match v2.intf_wires_in.get(&kk) {
                                     None => {
-                                        v2.wires_in.insert(kk, vv);
+                                        v2.intf_wires_in.insert(kk, vv);
                                     }
                                     Some(vv2) => {
                                         assert_eq!(&vv, vv2);
                                     }
                                 }
                             }
-                            for (kk, vv) in v.wires_out {
-                                match v2.wires_out.get(kk) {
+                            for (kk, vv) in v.intf_wires_out {
+                                match v2.intf_wires_out.get(&kk) {
                                     None => {
-                                        v2.wires_out.insert(kk, vv);
+                                        v2.intf_wires_out.insert(kk, vv);
                                     }
                                     Some(vv2 @ IntfWireOutNaming::Buf(no, _)) => match vv {
                                         IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
@@ -194,7 +183,7 @@ impl DbBuilder {
                                     Some(vv2 @ IntfWireOutNaming::Simple(n)) => {
                                         if let IntfWireOutNaming::Buf(no, _) = &vv {
                                             assert_eq!(no, n);
-                                            v2.wires_out.insert(kk, vv);
+                                            v2.intf_wires_out.insert(kk, vv);
                                         } else {
                                             assert_eq!(&vv, vv2);
                                         }
@@ -204,6 +193,7 @@ impl DbBuilder {
                         }
                     }
                 }
+                merge_dicts!(term_namings);
             }
         }
     }

@@ -311,8 +311,4 @@ pub fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
         vrf.kill_stub_in("STUB_IOIS_XQ3");
         vrf.kill_stub_in("STUB_IOIS_YQ3");
     }
-    if edev.grid.kind == GridKind::Spartan3ADsp {
-        // XXX kill me (MACCSITE2 intf)
-        vrf.skip_residual();
-    }
 }

@@ -2369,6 +2369,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     });
                 }
                 builder.extract_xnode("DSP", xy, &[], &int_xy, naming, &bels_dsp, &[]);
+                builder.extract_intf_tile_multi("INTF.DSP", xy, &int_xy, "INTF.DSP", false);
             }
         }
     } else {

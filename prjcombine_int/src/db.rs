@@ -46,10 +46,8 @@ entity_id! {
     pub id WireId u16, reserve 1;
     pub id NodeKindId u16, reserve 1;
     pub id TermKindId u16, reserve 1;
-    pub id IntfKindId u16, reserve 1;
     pub id NodeNamingId u16, reserve 1;
     pub id TermNamingId u16, reserve 1;
-    pub id IntfNamingId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeRawTileId u16, reserve 1;
     pub id BelId u16, reserve 1;
@@ -61,10 +59,8 @@ pub struct IntDb {
     pub wires: EntityVec<WireId, WireInfo>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
-    pub intfs: EntityMap<IntfKindId, String, IntfKind>,
     pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub term_namings: EntityMap<TermNamingId, String, TermNaming>,
-    pub intf_namings: EntityMap<IntfNamingId, String, IntfNaming>,
 }
 
 impl IntDb {
@@ -77,20 +73,12 @@ impl IntDb {
         self.terms.get(name).unwrap().0
     }
     #[track_caller]
-    pub fn get_intf(&self, name: &str) -> IntfKindId {
-        self.intfs.get(name).unwrap().0
-    }
-    #[track_caller]
     pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
         self.node_namings.get(name).unwrap().0
     }
     #[track_caller]
     pub fn get_term_naming(&self, name: &str) -> TermNamingId {
         self.term_namings.get(name).unwrap().0
-    }
-    #[track_caller]
-    pub fn get_intf_naming(&self, name: &str) -> IntfNamingId {
-        self.intf_namings.get(name).unwrap().0
     }
 }
 
@@ -128,6 +116,7 @@ impl WireKind {
 pub struct NodeKind {
     pub tiles: EntityVec<NodeTileId, ()>,
     pub muxes: BTreeMap<NodeWireId, MuxInfo>,
+    pub intfs: BTreeMap<NodeWireId, IntfInfo>,
     pub bels: EntityMap<BelId, String, BelInfo>,
 }
 
@@ -164,12 +153,20 @@ pub enum PinDir {
     Output,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IntfInfo {
+    OutputTestMux(BTreeSet<NodeWireId>),
+    InputDelay,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct NodeNaming {
     pub wires: BTreeMap<NodeWireId, String>,
     pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
     pub bels: EntityVec<BelId, BelNaming>,
+    pub intf_wires_out: BTreeMap<NodeWireId, IntfWireOutNaming>,
+    pub intf_wires_in: BTreeMap<NodeWireId, IntfWireInNaming>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -192,6 +189,20 @@ pub struct BelPinNaming {
     pub pips: Vec<NodeExtPipNaming>,
     pub int_pips: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub is_intf_out: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IntfWireOutNaming {
+    Simple(String),
+    Buf(String, String),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IntfWireInNaming {
+    Simple(String),
+    TestBuf(String, String),
+    Delay(String, String, String),
+    Buf(String, String),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -225,35 +236,4 @@ pub enum TermWireInFarNaming {
     Simple(String),
     Buf(String, String),
     BufFar(String, String, String),
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct IntfKind {
-    pub wires: EntityPartVec<WireId, IntfInfo>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IntfInfo {
-    OutputTestMux(BTreeSet<WireId>),
-    InputDelay,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
-pub struct IntfNaming {
-    pub wires_out: EntityPartVec<WireId, IntfWireOutNaming>,
-    pub wires_in: EntityPartVec<WireId, IntfWireInNaming>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IntfWireOutNaming {
-    Simple(String),
-    Buf(String, String),
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IntfWireInNaming {
-    Simple(String),
-    TestBuf(String, String),
-    Delay(String, String, String),
-    Buf(String, String),
 }

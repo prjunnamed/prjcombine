@@ -485,31 +485,35 @@ impl Grid {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Io if col < self.col_cfg => {
-                        tile.add_intf(
-                            db.get_intf("INTF"),
-                            format!("IOI_L_INT_INTERFACE_X{x}Y{y}"),
-                            db.get_intf_naming("INTF.IOI_L"),
+                        tile.add_xnode(
+                            db.get_node("INTF"),
+                            &[&format!("IOI_L_INT_INTERFACE_X{x}Y{y}")],
+                            db.get_node_naming("INTF.IOI_L"),
+                            &[(col, row)],
                         );
                     }
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
-                        tile.add_intf(
-                            db.get_intf("INTF"),
-                            format!("INT_INTERFACE_X{x}Y{y}"),
-                            db.get_intf_naming("INTF"),
+                        tile.add_xnode(
+                            db.get_node("INTF"),
+                            &[&format!("INT_INTERFACE_X{x}Y{y}")],
+                            db.get_node_naming("INTF"),
+                            &[(col, row)],
                         );
                     }
                     ColumnKind::Gt => {
                         if x == 0 {
-                            tile.add_intf(
-                                db.get_intf("INTF.DELAY"),
-                                format!("GT_L_INT_INTERFACE_X{x}Y{y}"),
-                                db.get_intf_naming("INTF.GT_L"),
+                            tile.add_xnode(
+                                db.get_node("INTF.DELAY"),
+                                &[&format!("GT_L_INT_INTERFACE_X{x}Y{y}")],
+                                db.get_node_naming("INTF.GT_L"),
+                                &[(col, row)],
                             );
                         } else {
-                            tile.add_intf(
-                                db.get_intf("INTF.DELAY"),
-                                format!("GTX_INT_INTERFACE_X{x}Y{y}"),
-                                db.get_intf_naming("INTF.GTX"),
+                            tile.add_xnode(
+                                db.get_node("INTF.DELAY"),
+                                &[&format!("GTX_INT_INTERFACE_X{x}Y{y}")],
+                                db.get_node_naming("INTF.GTX"),
+                                &[(col, row)],
                             );
                         }
                     }
@@ -542,11 +546,12 @@ impl Grid {
                     let row = br + dy;
                     let y = row.to_idx();
                     let tile = &mut grid[(col, row)];
-                    tile.intfs.clear();
-                    tile.add_intf(
-                        db.get_intf("INTF.DELAY"),
-                        format!("EMAC_INT_INTERFACE_X{x}Y{y}"),
-                        db.get_intf_naming("INTF.EMAC"),
+                    tile.nodes.truncate(1);
+                    tile.add_xnode(
+                        db.get_node("INTF.DELAY"),
+                        &[&format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
+                        db.get_node_naming("INTF.EMAC"),
+                        &[(col, row)],
                     );
                 }
             }
@@ -555,15 +560,17 @@ impl Grid {
                 for dy in 0..20 {
                     let row = br + dy;
                     let y = row.to_idx();
-                    grid[(col - 3, row)].add_intf(
-                        db.get_intf("INTF.DELAY"),
-                        format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3),
-                        db.get_intf_naming("INTF.PCIE_L"),
+                    grid[(col - 3, row)].add_xnode(
+                        db.get_node("INTF.DELAY"),
+                        &[&format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3)],
+                        db.get_node_naming("INTF.PCIE_L"),
+                        &[(col - 3, row)],
                     );
-                    grid[(col - 2, row)].add_intf(
-                        db.get_intf("INTF.DELAY"),
-                        format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2),
-                        db.get_intf_naming("INTF.PCIE_R"),
+                    grid[(col - 2, row)].add_xnode(
+                        db.get_node("INTF.DELAY"),
+                        &[&format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2)],
+                        db.get_node_naming("INTF.PCIE_R"),
+                        &[(col - 2, row)],
                     );
                 }
                 if br.to_idx() != 0 {
@@ -603,7 +610,7 @@ impl Grid {
             };
             for row in grid.rows() {
                 let tile = &mut grid[(col, row)];
-                if tile.nodes.is_empty() || !tile.intfs.is_empty() {
+                if tile.nodes.len() != 1 {
                     continue;
                 }
                 let x = col.to_idx();

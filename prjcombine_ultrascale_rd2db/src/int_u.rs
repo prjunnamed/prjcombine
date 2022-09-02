@@ -522,7 +522,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF.W");
+        let n = builder.db.get_node_naming("INTF.W");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x + 2,
@@ -602,7 +602,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "RCLK_RCLK_BRAM_L_BRAMCLMP_FT",
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let n = builder.db.get_intf_naming("INTF.W");
+            let n = builder.db.get_node_naming("INTF.W");
             let int_xy = Coord {
                 x: xy.x + 2,
                 y: xy.y + 1,
@@ -634,7 +634,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF.E");
+        let n = builder.db.get_node_naming("INTF.E");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,

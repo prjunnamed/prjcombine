@@ -317,7 +317,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -370,7 +370,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..15 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -405,7 +405,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF");
+        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -457,7 +457,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_intf_naming("INTF.EMAC");
+        let n = builder.db.get_node_naming("INTF.EMAC");
         for dy in 0..10 {
             int_xy.push(Coord {
                 x: xy.x - 2,
@@ -485,8 +485,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let nl = builder.db.get_intf_naming("INTF.PCIE_L");
-        let nr = builder.db.get_intf_naming("INTF.PCIE_R");
+        let nl = builder.db.get_node_naming("INTF.PCIE_L");
+        let nr = builder.db.get_node_naming("INTF.PCIE_R");
         for dy in 0..20 {
             int_xy.push(Coord {
                 x: xy.x - 4,

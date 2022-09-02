@@ -7,8 +7,7 @@ use prjcombine_int::db::{
     TermWireOutNaming, WireId, WireKind,
 };
 use prjcombine_int::grid::{
-    ColId, DieId, ExpandedGrid, ExpandedTileIntf, ExpandedTileNode, ExpandedTileTerm, IntWire,
-    RowId,
+    ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, RowId,
 };
 use prjcombine_rawdump::{self as rawdump, Coord, Part};
 use std::collections::{HashMap, HashSet};
@@ -194,6 +193,8 @@ impl<'a> Verifier<'a> {
                     let et = &die[(col, row)];
                     for node in &et.nodes {
                         let nui = &self.node_used[node.kind];
+                        let nk = &self.db.nodes[node.kind];
+                        let nn = &self.db.node_namings[node.naming];
                         for &w in &nui.used_i {
                             let w = (die.die, node.tiles[w.0], w.1);
                             if let Some(w) = self.grid.resolve_wire_raw(w) {
@@ -225,6 +226,42 @@ impl<'a> Verifier<'a> {
                                 }
                             }
                         }
+                        for (w, ii) in &nk.intfs {
+                            match ii {
+                                IntfInfo::InputDelay => {
+                                    let wf = (die.die, node.tiles[w.0], w.1);
+                                    if let Some(wf) = self.grid.resolve_wire_raw(wf) {
+                                        let iwd = self.int_wire_data.entry(wf).or_default();
+                                        iwd.used_i = true;
+                                        iwd.has_intf_i = true;
+                                    }
+                                }
+                                IntfInfo::OutputTestMux(ref wfs) => {
+                                    let wt = (die.die, node.tiles[w.0], w.1);
+                                    if let Some(wt) = self.grid.resolve_wire_raw(wt) {
+                                        let iwd = self.int_wire_data.entry(wt).or_default();
+                                        iwd.used_o = true;
+                                        iwd.has_intf_o = true;
+                                    }
+                                    for &wf in wfs {
+                                        let wf = (die.die, node.tiles[w.0], wf.1);
+                                        if let Some(wf) = self.grid.resolve_wire_raw(wf) {
+                                            self.int_wire_data.entry(wf).or_default().used_i = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        for (w, ini) in &nn.intf_wires_in {
+                            if let IntfWireInNaming::Buf(_, _) = ini {
+                                let wf = (die.die, node.tiles[w.0], w.1);
+                                if let Some(wf) = self.grid.resolve_wire_raw(wf) {
+                                    let iwd = self.int_wire_data.entry(wf).or_default();
+                                    iwd.used_i = true;
+                                    iwd.has_intf_i = true;
+                                }
+                            }
+                        }
                     }
                     for t in et.terms.values().flatten() {
                         if let Some(tn) = t.naming {
@@ -242,46 +279,6 @@ impl<'a> Verifier<'a> {
                                 };
                                 if let Some(wf) = self.grid.resolve_wire_raw(wf) {
                                     self.int_wire_data.entry(wf).or_default().used_i = true;
-                                }
-                            }
-                        }
-                    }
-                    for intf in &et.intfs {
-                        let ik = &self.db.intfs[intf.kind];
-                        for (w, ii) in &ik.wires {
-                            match ii {
-                                IntfInfo::InputDelay => {
-                                    let wf = (die.die, (col, row), w);
-                                    if let Some(wf) = self.grid.resolve_wire_raw(wf) {
-                                        let iwd = self.int_wire_data.entry(wf).or_default();
-                                        iwd.used_i = true;
-                                        iwd.has_intf_i = true;
-                                    }
-                                }
-                                IntfInfo::OutputTestMux(ref wfs) => {
-                                    let wt = (die.die, (col, row), w);
-                                    if let Some(wt) = self.grid.resolve_wire_raw(wt) {
-                                        let iwd = self.int_wire_data.entry(wt).or_default();
-                                        iwd.used_o = true;
-                                        iwd.has_intf_o = true;
-                                    }
-                                    for &wf in wfs {
-                                        let wf = (die.die, (col, row), wf);
-                                        if let Some(wf) = self.grid.resolve_wire_raw(wf) {
-                                            self.int_wire_data.entry(wf).or_default().used_i = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        let inm = &self.db.intf_namings[intf.naming];
-                        for (w, ini) in &inm.wires_in {
-                            if let IntfWireInNaming::Buf(_, _) = ini {
-                                let wf = (die.die, (col, row), w);
-                                if let Some(wf) = self.grid.resolve_wire_raw(wf) {
-                                    let iwd = self.int_wire_data.entry(wf).or_default();
-                                    iwd.used_i = true;
-                                    iwd.has_intf_i = true;
                                 }
                             }
                         }
@@ -811,6 +808,92 @@ impl<'a> Verifier<'a> {
                 }
             }
         }
+
+        for (&wt, ii) in &kind.intfs {
+            let wti = (die, node.tiles[wt.0], wt.1);
+            match ii {
+                IntfInfo::InputDelay => {
+                    if let IntfWireInNaming::Delay(ref wton, ref wtdn, ref wtn) =
+                        naming.intf_wires_in[&wt]
+                    {
+                        if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                            let tname = &node.names[def_rt];
+                            println!(
+                                "INT NODE MISSING FOR {p} {tname} {wton} {wn}",
+                                p = self.rd.part,
+                                wn = self.print_nw(wt),
+                            );
+                        }
+                        self.pin_int_intf_wire(crds[def_rt], wton, wti);
+                        self.claim_node(&[(crds[def_rt], wtdn)]);
+                        self.claim_pip(crds[def_rt], wtdn, wtn);
+                        self.claim_pip(crds[def_rt], wton, wtn);
+                        self.claim_pip(crds[def_rt], wton, wtdn);
+                    } else {
+                        unreachable!()
+                    }
+                }
+                IntfInfo::OutputTestMux(wfs) => {
+                    let wtn = match naming.intf_wires_out[&wt] {
+                        IntfWireOutNaming::Simple(ref wtn) => wtn,
+                        IntfWireOutNaming::Buf(ref wtn, ref wsn) => {
+                            if self.pin_int_intf_wire(crds[def_rt], wsn, wti) {
+                                self.claim_pip(crds[def_rt], wtn, wsn);
+                            }
+                            wtn
+                        }
+                    };
+                    if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                        let tname = &node.names[def_rt];
+                        println!(
+                            "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
+                            p = self.rd.part,
+                            wn = self.print_nw(wt),
+                        );
+                    }
+                    for &wf in wfs {
+                        let wfi = (die, node.tiles[wf.0], wf.1);
+                        let wfn = match naming.intf_wires_in[&wf] {
+                            IntfWireInNaming::Simple(ref wfn) => {
+                                self.claim_pip(crds[def_rt], wtn, wfn);
+                                wfn
+                            }
+                            IntfWireInNaming::TestBuf(ref wfbn, ref wfn) => {
+                                self.claim_pip(crds[def_rt], wtn, wfbn);
+                                wfn
+                            }
+                            IntfWireInNaming::Buf(_, ref wfn) => {
+                                self.claim_pip(crds[def_rt], wtn, wfn);
+                                wfn
+                            }
+                            IntfWireInNaming::Delay(ref wfon, _, ref wfn) => {
+                                self.claim_pip(crds[def_rt], wtn, wfon);
+                                wfn
+                            }
+                        };
+                        if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                            let tname = &node.names[def_rt];
+                            println!(
+                                "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                p = self.rd.part,
+                                wn = self.print_nw(wf),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        for (wf, iwin) in &naming.intf_wires_in {
+            if let &IntfWireInNaming::TestBuf(ref wfbn, ref wfn) = iwin {
+                self.claim_node(&[(crds[def_rt], wfbn)]);
+                self.claim_pip(crds[def_rt], wfbn, wfn);
+            }
+            if let &IntfWireInNaming::Buf(ref wfbn, ref wfn) = iwin {
+                if self.pin_int_intf_wire(crds[def_rt], wfbn, (die, node.tiles[wf.0], wf.1)) {
+                    self.claim_pip(crds[def_rt], wfbn, wfn);
+                }
+            }
+        }
     }
 
     pub fn handle_int_term(&mut self, die: DieId, col: ColId, row: RowId, term: &ExpandedTileTerm) {
@@ -924,101 +1007,6 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn handle_int_intf(&mut self, die: DieId, col: ColId, row: RowId, intf: &ExpandedTileIntf) {
-        let crd;
-        if let Some(c) = self.xlat_tile(&intf.name) {
-            crd = c;
-        } else {
-            println!("MISSING INTF TILE {} {}", self.rd.part, intf.name);
-            return;
-        }
-        let ik = &self.db.intfs[intf.kind];
-        let naming = &self.db.intf_namings[intf.naming];
-        for (wt, ii) in &ik.wires {
-            match ii {
-                IntfInfo::InputDelay => {
-                    if let IntfWireInNaming::Delay(ref wton, ref wtdn, ref wtn) =
-                        naming.wires_in[wt]
-                    {
-                        if !self.pin_int_wire(crd, wtn, (die, (col, row), wt)) {
-                            let tname = &intf.name;
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wton} {wn}",
-                                p = self.rd.part,
-                                wn = self.db.wires[wt].name
-                            );
-                        }
-                        self.pin_int_intf_wire(crd, wton, (die, (col, row), wt));
-                        self.claim_node(&[(crd, wtdn)]);
-                        self.claim_pip(crd, wtdn, wtn);
-                        self.claim_pip(crd, wton, wtn);
-                        self.claim_pip(crd, wton, wtdn);
-                    } else {
-                        unreachable!()
-                    }
-                }
-                IntfInfo::OutputTestMux(wfs) => {
-                    let wtn = match naming.wires_out[wt] {
-                        IntfWireOutNaming::Simple(ref wtn) => wtn,
-                        IntfWireOutNaming::Buf(ref wtn, ref wsn) => {
-                            if self.pin_int_intf_wire(crd, wsn, (die, (col, row), wt)) {
-                                self.claim_pip(crd, wtn, wsn);
-                            }
-                            wtn
-                        }
-                    };
-                    if !self.pin_int_wire(crd, wtn, (die, (col, row), wt)) {
-                        let tname = &intf.name;
-                        println!(
-                            "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
-                            p = self.rd.part,
-                            wn = self.db.wires[wt].name
-                        );
-                    }
-                    for &wf in wfs {
-                        let wfn = match naming.wires_in[wf] {
-                            IntfWireInNaming::Simple(ref wfn) => {
-                                self.claim_pip(crd, wtn, wfn);
-                                wfn
-                            }
-                            IntfWireInNaming::TestBuf(ref wfbn, ref wfn) => {
-                                self.claim_pip(crd, wtn, wfbn);
-                                wfn
-                            }
-                            IntfWireInNaming::Buf(_, ref wfn) => {
-                                self.claim_pip(crd, wtn, wfn);
-                                wfn
-                            }
-                            IntfWireInNaming::Delay(ref wfon, _, ref wfn) => {
-                                self.claim_pip(crd, wtn, wfon);
-                                wfn
-                            }
-                        };
-                        if !self.pin_int_wire(crd, wfn, (die, (col, row), wf)) {
-                            let tname = &intf.name;
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
-                                p = self.rd.part,
-                                wn = self.db.wires[wf].name
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        for (wf, iwin) in &naming.wires_in {
-            if let &IntfWireInNaming::TestBuf(ref wfbn, ref wfn) = iwin {
-                self.claim_node(&[(crd, wfbn)]);
-                self.claim_pip(crd, wfbn, wfn);
-            }
-            if let &IntfWireInNaming::Buf(ref wfbn, ref wfn) = iwin {
-                if self.pin_int_intf_wire(crd, wfbn, (die, (col, row), wf)) {
-                    self.claim_pip(crd, wfbn, wfn);
-                }
-            }
-        }
-    }
-
     pub fn handle_int(&mut self) {
         for die in self.grid.dies() {
             for col in die.cols() {
@@ -1029,9 +1017,6 @@ impl<'a> Verifier<'a> {
                     }
                     for t in et.terms.values().flatten() {
                         self.handle_int_term(die.die, col, row, t);
-                    }
-                    for intf in &et.intfs {
-                        self.handle_int_intf(die.die, col, row, intf);
                     }
                 }
             }

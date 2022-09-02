@@ -575,7 +575,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut intf_xy = Vec::new();
             let n = builder
                 .db
-                .get_intf_naming(if tkn == "BRAM_L" { "INTF.L" } else { "INTF.R" });
+                .get_node_naming(if tkn == "BRAM_L" { "INTF.L" } else { "INTF.R" });
             for dy in 0..5 {
                 if tkn == "BRAM_L" {
                     int_xy.push(Coord {
@@ -726,7 +726,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
         if rd.tile_kinds.key(rd.tiles[&bram_xy[0]].kind) == "BRAM_L" {
-            let n = builder.db.get_intf_naming("INTF.L");
+            let n = builder.db.get_node_naming("INTF.L");
             for dy in 0..15 {
                 int_xy.push(Coord {
                     x: xy.x + 2,
@@ -741,7 +741,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 ));
             }
         } else {
-            let n = builder.db.get_intf_naming("INTF.R");
+            let n = builder.db.get_node_naming("INTF.R");
             for dy in 0..15 {
                 int_xy.push(Coord {
                     x: xy.x - 2,
@@ -773,7 +773,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut intf_xy = Vec::new();
             let n = builder
                 .db
-                .get_intf_naming(if tkn == "DSP_L" { "INTF.L" } else { "INTF.R" });
+                .get_node_naming(if tkn == "DSP_L" { "INTF.L" } else { "INTF.R" });
             for dy in 0..5 {
                 if tkn == "DSP_L" {
                     int_xy.push(Coord {
@@ -844,12 +844,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
-            let nl = builder.db.get_intf_naming(if kind == "PCIE_L" {
+            let nl = builder.db.get_node_naming(if kind == "PCIE_L" {
                 "INTF.PCIE_LEFT_L"
             } else {
                 "INTF.PCIE_L"
             });
-            let nr = builder.db.get_intf_naming("INTF.PCIE_R");
+            let nr = builder.db.get_node_naming("INTF.PCIE_R");
             for dy in 0..25 {
                 int_xy.push(Coord {
                     x: xy.x - 2,
@@ -895,8 +895,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE3_RIGHT").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let nl = builder.db.get_intf_naming("INTF.PCIE3_L");
-        let nr = builder.db.get_intf_naming("INTF.PCIE3_R");
+        let nl = builder.db.get_node_naming("INTF.PCIE3_L");
+        let nr = builder.db.get_node_naming("INTF.PCIE3_R");
         for bdy in [0, 26] {
             for dy in 0..25 {
                 int_xy.push(Coord {
