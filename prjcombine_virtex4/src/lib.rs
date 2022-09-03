@@ -782,17 +782,19 @@ impl Grid {
                 );
                 if row.to_idx() % 4 == 0 {
                     let crds: [_; 4] = core::array::from_fn(|i| (col, row + i));
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node(kind),
+                        &[&name],
+                        db.get_node_naming(tk),
+                        &crds,
+                    );
                     if kind == "DCM" {
-                        let node = grid[(col, row)].add_xnode(
-                            db.get_node(kind),
-                            &[&name],
-                            db.get_node_naming(tk),
-                            &crds,
-                        );
                         node.add_bel(0, format!("DCM_ADV_X0Y{dcmy}"));
                         dcmy += 1;
                     } else {
-                        // XXX
+                        node.add_bel(0, format!("PMCD_X0Y{y}", y = ccmy * 2));
+                        node.add_bel(1, format!("PMCD_X0Y{y}", y = ccmy * 2 + 1));
+                        node.add_bel(2, format!("DPM_X0Y{ccmy}"));
                         ccmy += 1;
                     }
                 }

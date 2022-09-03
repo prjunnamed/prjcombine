@@ -217,10 +217,34 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 _ => unreachable!(),
             }],
         );
-        if i == 0 {
-            builder.extra_name_sub("MONITOR_CONVST_TEST", 4, w);
-            builder.extra_name_sub("DCM_ADV_CLKIN_TEST", 3, w);
-            builder.extra_name_sub("DCM_ADV_CLKFB_TEST", 2, w);
+        match i {
+            0 => {
+                builder.extra_name_sub("MONITOR_CONVST_TEST", 4, w);
+
+                builder.extra_name_sub("DCM_ADV_CLKFB_TEST", 2, w);
+                builder.extra_name_sub("DCM_ADV_CLKIN_TEST", 3, w);
+
+                builder.extra_name_sub("DPM_REFCLK_TEST", 0, w);
+                builder.extra_name_sub("PMCD_0_CLKB_TEST", 1, w);
+                builder.extra_name_sub("DPM_TESTCLK1_TEST", 2, w);
+                builder.extra_name_sub("PMCD_0_CLKD_TEST", 3, w);
+            }
+            1 => {
+                builder.extra_name_sub("PMCD_0_CLKA_TEST", 1, w);
+                builder.extra_name_sub("DPM_TESTCLK2_TEST", 2, w);
+                builder.extra_name_sub("PMCD_0_CLKC_TEST", 3, w);
+            }
+            2 => {
+                builder.extra_name_sub("PMCD_1_REL_TEST", 0, w);
+                builder.extra_name_sub("PMCD_1_CLKB_TEST", 1, w);
+                builder.extra_name_sub("PMCD_1_CLKD_TEST", 3, w);
+            }
+            3 => {
+                builder.extra_name_sub("PMCD_0_REL_TEST", 0, w);
+                builder.extra_name_sub("PMCD_1_CLKA_TEST", 1, w);
+                builder.extra_name_sub("PMCD_1_CLKC_TEST", 3, w);
+            }
+            _ => unreachable!(),
         }
         for j in 0..16 {
             builder.extra_name_sub(format!("LOGIC_CREATED_INPUT_B{i}_INT{j}"), j, w);
@@ -1413,6 +1437,101 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             builder.extract_xnode_bels("DCM", xy, &[], &int_xy, tkn, &[bel]);
         }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CCM").iter().next() {
+        let mut int_xy = Vec::new();
+        for dy in 0..4 {
+            int_xy.push(Coord {
+                x: xy.x - 1,
+                y: xy.y + dy,
+            });
+        }
+        let mut bels = vec![];
+        for i in 0..2 {
+            let mut bel = builder
+                .bel_xy(format!("PMCD{i}"), "PMCD", 0, i)
+                .pins_name_only(&[
+                    "CLKA", "CLKB", "CLKC", "CLKD", "REL", "CLKA1", "CLKA1D2", "CLKA1D4",
+                    "CLKA1D8", "CLKB1", "CLKC1", "CLKD1",
+                ])
+                .extra_int_out("CLKA_TEST", &[format!("PMCD_{i}_CLKA_TEST")])
+                .extra_int_out("CLKB_TEST", &[format!("PMCD_{i}_CLKB_TEST")])
+                .extra_int_out("CLKC_TEST", &[format!("PMCD_{i}_CLKC_TEST")])
+                .extra_int_out("CLKD_TEST", &[format!("PMCD_{i}_CLKD_TEST")])
+                .extra_int_out("REL_TEST", &[format!("PMCD_{i}_REL_TEST")])
+                .extra_int_in("CKINTC0", &["CLK_B0_INT1"])
+                .extra_int_in("CKINTC1", &["CLK_B1_INT1"])
+                .extra_int_in("CKINTC2", &["IMUX_B8_INT1"])
+                .extra_int_in("CKINTC3", &["IMUX_B9_INT1"]);
+            if i == 0 {
+                bel = bel
+                    .extra_int_in("CKINTA0", &["CLK_B2_INT2"])
+                    .extra_int_in("CKINTA1", &["CLK_B3_INT2"])
+                    .extra_int_in("CKINTA2", &["IMUX_B10_INT2"])
+                    .extra_int_in("CKINTA3", &["IMUX_B11_INT2"])
+                    .extra_int_in("CKINTB0", &["CLK_B0_INT2"])
+                    .extra_int_in("CKINTB1", &["CLK_B1_INT2"])
+                    .extra_int_in("CKINTB2", &["IMUX_B8_INT2"])
+                    .extra_int_in("CKINTB3", &["IMUX_B9_INT2"])
+                    .extra_int_in("REL_INT", &["IMUX_B0_INT0"]);
+            } else {
+                bel = bel
+                    .extra_int_in("CKINTA0", &["CLK_B2_INT3"])
+                    .extra_int_in("CKINTA1", &["CLK_B3_INT3"])
+                    .extra_int_in("CKINTA2", &["IMUX_B10_INT3"])
+                    .extra_int_in("CKINTA3", &["IMUX_B11_INT3"])
+                    .extra_int_in("CKINTB0", &["CLK_B0_INT3"])
+                    .extra_int_in("CKINTB1", &["CLK_B1_INT3"])
+                    .extra_int_in("CKINTB2", &["IMUX_B8_INT3"])
+                    .extra_int_in("CKINTB3", &["IMUX_B9_INT3"])
+                    .extra_int_in("REL_INT", &["IMUX_B0_INT1"]);
+            }
+            bels.push(bel);
+        }
+        bels.push(
+            builder
+                .bel_xy("DPM", "DPM", 0, 0)
+                .pins_name_only(&[
+                    "REFCLK",
+                    "TESTCLK1",
+                    "TESTCLK2",
+                    "OSCOUT1",
+                    "OSCOUT2",
+                    "REFCLKOUT",
+                ])
+                .extra_int_in("CKINTA0", &["CLK_B0_INT0"])
+                .extra_int_in("CKINTA1", &["CLK_B1_INT0"])
+                .extra_int_in("CKINTA2", &["IMUX_B8_INT0"])
+                .extra_int_in("CKINTA3", &["IMUX_B9_INT0"])
+                .extra_int_in("CKINTB0", &["CLK_B2_INT1"])
+                .extra_int_in("CKINTB1", &["CLK_B3_INT1"])
+                .extra_int_in("CKINTB2", &["IMUX_B10_INT1"])
+                .extra_int_in("CKINTB3", &["IMUX_B11_INT1"])
+                .extra_int_out("REFCLK_TEST", &["DPM_REFCLK_TEST"])
+                .extra_int_out("TESTCLK1_TEST", &["DPM_TESTCLK1_TEST"])
+                .extra_int_out("TESTCLK2_TEST", &["DPM_TESTCLK2_TEST"]),
+        );
+        let mut bel = builder
+            .bel_virtual("CCM")
+            .extra_int_in("CKINT", &["IMUX_B8_INT3"]);
+        for i in 0..12 {
+            bel = bel.extra_int_out(format!("TO_BUFG{i}"), &[format!("CCM_TO_BUFG{i}")]);
+        }
+        for i in 0..24 {
+            bel = bel.extra_wire(format!("BUSIN{i}"), &[format!("CCM_DCM{i}")]);
+        }
+        for i in 0..8 {
+            bel = bel.extra_wire(format!("GCLK{i}"), &[format!("CCM_BUFG{i}")]);
+        }
+        for i in 0..16 {
+            bel = bel.extra_wire(format!("GIOB{i}"), &[format!("CCM_GIOB{i}")]);
+        }
+        for i in 0..4 {
+            bel = bel.extra_wire(format!("MGT{i}"), &[format!("CCM_MGT{i}")]);
+        }
+        bels.push(bel);
+        builder.extract_xnode_bels("CCM", xy, &[], &int_xy, "CCM", &bels);
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("SYS_MON").iter().next() {
