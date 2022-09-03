@@ -521,7 +521,7 @@ impl Grid {
                         tile.add_xnode(
                             db.get_node("INTF"),
                             &[&format!("BRAM_X{x}Y{dy}")],
-                            db.get_node_naming(&format!("BRAM.{yy}")),
+                            db.get_node_naming(&format!("INTF.BRAM.{yy}")),
                             &[(col, row)],
                         );
                     }
@@ -531,7 +531,7 @@ impl Grid {
                         tile.add_xnode(
                             db.get_node("INTF"),
                             &[&format!("DSP_X{x}Y{dy}")],
-                            db.get_node_naming(&format!("DSP.{yy}")),
+                            db.get_node_naming(&format!("INTF.DSP.{yy}")),
                             &[(col, row)],
                         );
                     }
@@ -552,7 +552,7 @@ impl Grid {
                 grid[(col, row)].add_xnode(
                     db.get_node("INTF"),
                     &[&format!("IOIS_{c}{l}_X{x}Y{y}")],
-                    db.get_node_naming("IOIS"),
+                    db.get_node_naming("INTF.IOIS"),
                     &[(col, row)],
                 );
             }
@@ -576,21 +576,62 @@ impl Grid {
                 grid[(self.cols_io[1], row + dy)].add_xnode(
                     db.get_node("INTF"),
                     &[&format!("SYS_MON_X{x}Y{y}")],
-                    db.get_node_naming(&format!("SYSMON.{dy}")),
+                    db.get_node_naming(&format!("INTF.SYSMON.{dy}")),
                     &[(self.cols_io[1], row + dy)],
                 );
             }
         }
-        for dy in 0..16 {
+        {
             let x = self.cols_io[1].to_idx();
-            let y = self.reg_cfg * 16 - 1;
-            let row = RowId::from_idx(self.reg_cfg * 16 - 8 + dy);
-            grid[(self.cols_io[1], row)].add_xnode(
-                db.get_node("INTF"),
-                &[&format!("CFG_CENTER_X{x}Y{y}")],
-                db.get_node_naming(&format!("CFG_CENTER.{dy}")),
-                &[(self.cols_io[1], row)],
+            let y = self.reg_cfg * 16 - 8;
+            let name = format!("CFG_CENTER_X{x}Y{y}", y = y + 7);
+            let br = RowId::from_idx(self.reg_cfg * 16 - 8);
+            for dy in 0..16 {
+                let row = br + dy;
+                grid[(self.cols_io[1], row)].add_xnode(
+                    db.get_node("INTF"),
+                    &[&name],
+                    db.get_node_naming(&format!("INTF.CFG.{dy}")),
+                    &[(self.cols_io[1], row)],
+                );
+            }
+            let name_bufg_b = format!("CLK_BUFGCTRL_B_X{x}Y{y}");
+            let name_bufg_t = format!("CLK_BUFGCTRL_T_X{x}Y{y}", y = y + 8);
+            let name_hrow_b = format!("CLK_HROW_X{x}Y{y}", y = y - 1);
+            let name_hrow_t = format!("CLK_HROW_X{x}Y{y}", y = y + 15);
+            let name_hclk_b = format!("HCLK_CENTER_X{x}Y{y}", y = y - 1);
+            let name_hclk_t = format!("HCLK_CENTER_ABOVE_CFG_X{x}Y{y}", y = y + 15);
+            let crds: [_; 16] = core::array::from_fn(|i| (self.cols_io[1], br + i));
+            let node = grid[(self.cols_io[1], br)].add_xnode(
+                db.get_node("CFG"),
+                &[
+                    &name,
+                    &name_bufg_b,
+                    &name_bufg_t,
+                    &name_hrow_b,
+                    &name_hrow_t,
+                    &name_hclk_b,
+                    &name_hclk_t,
+                ],
+                db.get_node_naming("CFG"),
+                &crds,
             );
+            for i in 0..32 {
+                node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
+            }
+            for i in 0..4 {
+                node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
+            }
+            for i in 0..2 {
+                node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
+            }
+            node.add_bel(38, "PMV".to_string());
+            node.add_bel(39, "STARTUP".to_string());
+            node.add_bel(40, "JTAGPPC".to_string());
+            node.add_bel(41, "FRAME_ECC".to_string());
+            node.add_bel(42, "DCIRESET".to_string());
+            node.add_bel(43, "CAPTURE".to_string());
+            node.add_bel(44, "USR_ACCESS_SITE".to_string());
         }
         for dy in 0..(self.regs_cfg_io * 16) {
             let row = RowId::from_idx(self.reg_cfg * 16 + 8 + dy);
@@ -599,7 +640,7 @@ impl Grid {
             grid[(self.cols_io[1], row)].add_xnode(
                 db.get_node("INTF"),
                 &[&format!("IOIS_LC_X{x}Y{y}")],
-                db.get_node_naming("IOIS"),
+                db.get_node_naming("INTF.IOIS"),
                 &[(self.cols_io[1], row)],
             );
         }
@@ -610,7 +651,7 @@ impl Grid {
             grid[(self.cols_io[1], row)].add_xnode(
                 db.get_node("INTF"),
                 &[&format!("IOIS_LC_X{x}Y{y}")],
-                db.get_node_naming("IOIS"),
+                db.get_node_naming("INTF.IOIS"),
                 &[(self.cols_io[1], row)],
             );
         }
@@ -630,7 +671,7 @@ impl Grid {
                 grid[(self.cols_io[1], row + dy)].add_xnode(
                     db.get_node("INTF"),
                     &[&format!("{t}_X{x}Y{y}")],
-                    db.get_node_naming(&format!("{t}.{dy}")),
+                    db.get_node_naming(&format!("INTF.{t}.{dy}")),
                     &[(self.cols_io[1], row + dy)],
                 );
             }
@@ -653,7 +694,7 @@ impl Grid {
                 grid[(self.cols_io[1], row + dy)].add_xnode(
                     db.get_node("INTF"),
                     &[&format!("{tt}_X{x}Y{y}")],
-                    db.get_node_naming(&format!("{t}.{dy}")),
+                    db.get_node_naming(&format!("INTF.{t}.{dy}")),
                     &[(self.cols_io[1], row + dy)],
                 );
             }
@@ -704,7 +745,7 @@ impl Grid {
                 tile_l.add_xnode(
                     db.get_node("INTF"),
                     &[tile],
-                    db.get_node_naming(&format!("PPC.L{dy}")),
+                    db.get_node_naming(&format!("INTF.PPC.L{dy}")),
                     &[(col_l, row)],
                 );
                 let tile_r = &mut grid[(col_r, row)];
@@ -712,7 +753,7 @@ impl Grid {
                 tile_r.add_xnode(
                     db.get_node("INTF"),
                     &[tile],
-                    db.get_node_naming(&format!("PPC.R{dy}")),
+                    db.get_node_naming(&format!("INTF.PPC.R{dy}")),
                     &[(col_r, row)],
                 );
             }
@@ -723,7 +764,7 @@ impl Grid {
                 tile_b.add_xnode(
                     db.get_node("INTF"),
                     &[&tile_pb],
-                    db.get_node_naming(&format!("PPC.B{dx}")),
+                    db.get_node_naming(&format!("INTF.PPC.B{dx}")),
                     &[(col, row_b)],
                 );
                 let tile_t = &mut grid[(col, row_t)];
@@ -731,7 +772,7 @@ impl Grid {
                 tile_t.add_xnode(
                     db.get_node("INTF"),
                     &[&tile_pt],
-                    db.get_node_naming(&format!("PPC.T{dx}")),
+                    db.get_node_naming(&format!("INTF.PPC.T{dx}")),
                     &[(col, row_t)],
                 );
             }
@@ -797,7 +838,7 @@ impl Grid {
                 grid[(col_l, row)].add_xnode(
                     db.get_node("INTF"),
                     &[&tile],
-                    db.get_node_naming(&format!("MGT.{dy}")),
+                    db.get_node_naming(&format!("INTF.MGT.{dy}")),
                     &[(col_l, row)],
                 );
             } else {
@@ -822,7 +863,7 @@ impl Grid {
                 grid[(col_r, row)].add_xnode(
                     db.get_node("INTF"),
                     &[&tile],
-                    db.get_node_naming(&format!("MGT.{dy}")),
+                    db.get_node_naming(&format!("INTF.MGT.{dy}")),
                     &[(col_r, row)],
                 );
             } else {

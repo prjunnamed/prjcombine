@@ -206,6 +206,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.logic_out(format!("OUT.HALF.TOP{i}"), &[format!("HALF_OMUX_TOP{i}")]);
     }
 
+    for i in 0..4 {
+        let w = builder.test_out(
+            format!("TEST{i}"),
+            &[match i {
+                0 => "IOIS_OCLKP_1",
+                1 => "IOIS_ICLKP_1",
+                2 => "IOIS_OCLKP_0",
+                3 => "IOIS_ICLKP_0",
+                _ => unreachable!(),
+            }],
+        );
+        for j in 0..16 {
+            builder.extra_name_sub(format!("LOGIC_CREATED_INPUT_B{i}_INT{j}"), j, w);
+        }
+    }
+
     builder.extract_main_passes();
 
     builder.node_type("INT", "INT", "INT");
@@ -361,12 +377,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     x: xy.x - 1,
                     y: xy.y + i,
                 };
-                builder.extract_intf_tile("INTF", xy, int_xy, format!("{n}.{i}"), false);
+                builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.{n}.{i}"), false);
             }
         }
     }
     for tkn in ["IOIS_LC", "IOIS_NC"] {
-        builder.extract_intf("INTF", Dir::E, tkn, "IOIS", false);
+        builder.extract_intf("INTF", Dir::E, tkn, "INTF.IOIS", false);
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
         for i in 0..16 {
@@ -378,7 +394,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     xy.y + 1 + i - 8
                 },
             };
-            builder.extract_intf_tile("INTF", xy, int_xy, format!("CFG_CENTER.{i}"), false);
+            builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.CFG.{i}"), false);
         }
     }
     for (dir, tkn) in [
@@ -397,7 +413,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     x: if dir == Dir::E { xy.x - 1 } else { xy.x + 1 },
                     y: if i < 8 { xy.y - 9 + i } else { xy.y + i - 8 },
                 };
-                builder.extract_intf_tile("INTF", xy, int_xy, format!("MGT.{i}"), false);
+                builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.MGT.{i}"), false);
             }
         }
     }
@@ -422,8 +438,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: pb_xy.y - 4 + delta,
             };
             let xy = if i < 12 { pb_xy } else { pt_xy };
-            builder.extract_intf_tile("INTF", xy, int_w_xy, format!("PPC.L{i}"), false);
-            builder.extract_intf_tile("INTF", xy, int_e_xy, format!("PPC.R{i}"), false);
+            builder.extract_intf_tile("INTF", xy, int_w_xy, format!("INTF.PPC.L{i}"), false);
+            builder.extract_intf_tile("INTF", xy, int_e_xy, format!("INTF.PPC.R{i}"), false);
         }
         for (i, delta) in [1, 3, 5, 7, 9, 11, 13].into_iter().enumerate() {
             let int_s_xy = Coord {
@@ -434,8 +450,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 x: pb_xy.x + delta,
                 y: pb_xy.y + 22,
             };
-            builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("PPC.B{i}"), false);
-            builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("PPC.T{i}"), false);
+            builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("INTF.PPC.B{i}"), false);
+            builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("INTF.PPC.T{i}"), false);
         }
     }
 
@@ -528,6 +544,184 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             });
         }
         builder.extract_xnode_bels("DSP", xy, &[], &int_xy, "DSP", &bels_dsp);
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CFG_CENTER").iter().next() {
+        let mut bels = vec![];
+        for i in 0..16 {
+            bels.push(
+                builder
+                    .bel_xy(format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
+                    .raw_tile(1)
+                    .pins_name_only(&["I0", "I1", "O"])
+                    .extra_wire("GCLK", &[format!("CLK_BUFGCTRL_GCLKP{i}")])
+                    .extra_wire("GFB", &[format!("CLK_BUFGCTRL_GFB_P{i}")])
+                    .extra_int_out("I0MUX", &[format!("CLK_BUFGCTRL_I0P{i}")])
+                    .extra_int_out("I1MUX", &[format!("CLK_BUFGCTRL_I1P{i}")])
+                    .extra_int_in("CKINT0", &[format!("CLK_BUFGCTRL_CKINT0{i}")])
+                    .extra_int_in("CKINT1", &[format!("CLK_BUFGCTRL_CKINT1{i}")])
+                    .extra_wire(
+                        "MUXBUS0",
+                        &[format!("CLK_BUFGCTRL_MUXED_CLK{ii}", ii = i * 2)],
+                    )
+                    .extra_wire(
+                        "MUXBUS1",
+                        &[format!("CLK_BUFGCTRL_MUXED_CLK{ii}", ii = i * 2 + 1)],
+                    ),
+            );
+        }
+        for i in 0..16 {
+            bels.push(
+                builder
+                    .bel_xy(format!("BUFGCTRL{ii}", ii = i + 16), "BUFGCTRL", 0, i)
+                    .raw_tile(2)
+                    .pins_name_only(&["I0", "I1", "O"])
+                    .extra_wire("GCLK", &[format!("CLK_BUFGCTRL_GCLKP{ii}", ii = i + 16)])
+                    .extra_wire("GFB", &[format!("CLK_BUFGCTRL_GFB_P{i}")])
+                    .extra_int_out("I0MUX", &[format!("CLK_BUFGCTRL_I0P{i}")])
+                    .extra_int_out("I1MUX", &[format!("CLK_BUFGCTRL_I1P{i}")])
+                    .extra_int_in("CKINT0", &[format!("CLK_BUFGCTRL_CKINT0{ii}", ii = 15 - i)])
+                    .extra_int_in("CKINT1", &[format!("CLK_BUFGCTRL_CKINT1{ii}", ii = 15 - i)])
+                    .extra_wire(
+                        "MUXBUS0",
+                        &[format!("CLK_BUFGCTRL_MUXED_CLK{ii}", ii = i * 2)],
+                    )
+                    .extra_wire(
+                        "MUXBUS1",
+                        &[format!("CLK_BUFGCTRL_MUXED_CLK{ii}", ii = i * 2 + 1)],
+                    ),
+            );
+        }
+        bels.extend([
+            builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
+            builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
+            builder.bel_xy("BSCAN2", "BSCAN", 0, 2),
+            builder.bel_xy("BSCAN3", "BSCAN", 0, 3),
+            builder.bel_xy("ICAP0", "ICAP", 0, 0),
+            builder.bel_xy("ICAP1", "ICAP", 0, 1),
+            builder.bel_single("PMV", "PMV"),
+            builder.bel_single("STARTUP", "STARTUP"),
+            builder
+                .bel_single("JTAGPPC", "JTAGPPC")
+                .pin_name_only("TDOTSPPC", 0),
+            builder.bel_single("FRAME_ECC", "FRAME_ECC"),
+            builder.bel_single("DCIRESET", "DCIRESET"),
+            builder.bel_single("CAPTURE", "CAPTURE"),
+            builder.bel_single("USR_ACCESS", "USR_ACCESS_SITE"),
+            builder
+                .bel_virtual("BUFG_MGTCLK_B")
+                .raw_tile(1)
+                .extra_wire("MGT_L0", &["CLK_BUFGCTRL_MGT_L0"])
+                .extra_wire("MGT_L1", &["CLK_BUFGCTRL_MGT_L1"])
+                .extra_wire("MGT_R0", &["CLK_BUFGCTRL_MGT_R0"])
+                .extra_wire("MGT_R1", &["CLK_BUFGCTRL_MGT_R1"]),
+            builder
+                .bel_virtual("BUFG_MGTCLK_T")
+                .raw_tile(2)
+                .extra_wire("MGT_L0", &["CLK_BUFGCTRL_MGT_L0"])
+                .extra_wire("MGT_L1", &["CLK_BUFGCTRL_MGT_L1"])
+                .extra_wire("MGT_R0", &["CLK_BUFGCTRL_MGT_R0"])
+                .extra_wire("MGT_R1", &["CLK_BUFGCTRL_MGT_R1"]),
+            builder
+                .bel_virtual("BUFG_MGTCLK_B_HROW")
+                .raw_tile(3)
+                .extra_wire_force("MGT_L0_I", "CLK_HROW_H_MGT_L0")
+                .extra_wire_force("MGT_L1_I", "CLK_HROW_H_MGT_L1")
+                .extra_wire_force("MGT_R0_I", "CLK_HROW_H_MGT_R0")
+                .extra_wire_force("MGT_R1_I", "CLK_HROW_H_MGT_R1")
+                .extra_wire_force("MGT_L0_O", "CLK_HROW_V_MGT_L0")
+                .extra_wire_force("MGT_L1_O", "CLK_HROW_V_MGT_L1")
+                .extra_wire_force("MGT_R0_O", "CLK_HROW_V_MGT_R0")
+                .extra_wire_force("MGT_R1_O", "CLK_HROW_V_MGT_R1"),
+            builder
+                .bel_virtual("BUFG_MGTCLK_T_HROW")
+                .raw_tile(4)
+                .extra_wire_force("MGT_L0_I", "CLK_HROW_H_MGT_L0")
+                .extra_wire_force("MGT_L1_I", "CLK_HROW_H_MGT_L1")
+                .extra_wire_force("MGT_R0_I", "CLK_HROW_H_MGT_R0")
+                .extra_wire_force("MGT_R1_I", "CLK_HROW_H_MGT_R1")
+                .extra_wire_force("MGT_L0_O", "CLK_HROW_V_MGT_L0")
+                .extra_wire_force("MGT_L1_O", "CLK_HROW_V_MGT_L1")
+                .extra_wire_force("MGT_R0_O", "CLK_HROW_V_MGT_R0")
+                .extra_wire_force("MGT_R1_O", "CLK_HROW_V_MGT_R1"),
+            builder
+                .bel_virtual("BUFG_MGTCLK_B_HCLK")
+                .raw_tile(5)
+                .extra_wire_force("MGT_L0_I", "HCLK_MGT_CLKL0")
+                .extra_wire_force("MGT_L1_I", "HCLK_MGT_CLKL1")
+                .extra_wire_force("MGT_R0_I", "HCLK_MGT_CLKR0")
+                .extra_wire_force("MGT_R1_I", "HCLK_MGT_CLKR1")
+                .extra_wire_force("MGT_L0_O", "HCLK_CENTER_MGT0")
+                .extra_wire_force("MGT_L1_O", "HCLK_CENTER_MGT1")
+                .extra_wire_force("MGT_R0_O", "HCLK_CENTER_MGT2")
+                .extra_wire_force("MGT_R1_O", "HCLK_CENTER_MGT3"),
+            builder
+                .bel_virtual("BUFG_MGTCLK_T_HCLK")
+                .raw_tile(6)
+                .extra_wire_force("MGT_L0_I", "HCLK_MGT_CLKL0")
+                .extra_wire_force("MGT_L1_I", "HCLK_MGT_CLKL1")
+                .extra_wire_force("MGT_R0_I", "HCLK_MGT_CLKR0")
+                .extra_wire_force("MGT_R1_I", "HCLK_MGT_CLKR1")
+                .extra_wire_force("MGT_L0_O", "HCLK_CENTER_MGT0")
+                .extra_wire_force("MGT_L1_O", "HCLK_CENTER_MGT1")
+                .extra_wire_force("MGT_R0_O", "HCLK_CENTER_MGT2")
+                .extra_wire_force("MGT_R1_O", "HCLK_CENTER_MGT3"),
+        ]);
+        let xy_bufg_b = Coord {
+            x: xy.x + 1,
+            y: xy.y - 8,
+        };
+        let xy_bufg_t = Coord {
+            x: xy.x + 1,
+            y: xy.y + 1,
+        };
+        let xy_hrow_b = Coord {
+            x: xy.x + 1,
+            y: xy.y - 9,
+        };
+        let xy_hrow_t = Coord {
+            x: xy.x + 1,
+            y: xy.y + 9,
+        };
+        let xy_hclk_b = Coord {
+            x: xy.x,
+            y: xy.y - 9,
+        };
+        let xy_hclk_t = Coord {
+            x: xy.x,
+            y: xy.y + 9,
+        };
+        let mut xn = builder
+            .xnode("CFG", "CFG", xy)
+            .raw_tile(xy_bufg_b)
+            .raw_tile(xy_bufg_t)
+            .raw_tile(xy_hrow_b)
+            .raw_tile(xy_hrow_t)
+            .raw_tile(xy_hclk_b)
+            .raw_tile(xy_hclk_t)
+            .num_tiles(16);
+        for i in 0..8 {
+            xn = xn.ref_int(
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y - 8 + (i as u16),
+                },
+                i,
+            );
+        }
+        for i in 0..8 {
+            xn = xn.ref_int(
+                Coord {
+                    x: xy.x - 1,
+                    y: xy.y + 1 + (i as u16),
+                },
+                i + 8,
+            );
+        }
+        for bel in bels {
+            xn = xn.bel(bel);
+        }
+        xn.extract();
     }
 
     for &pb_xy in rd.tiles_by_kind_name("PB") {

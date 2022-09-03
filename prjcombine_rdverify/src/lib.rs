@@ -834,31 +834,43 @@ impl<'a> Verifier<'a> {
                     }
                     for &wf in wfs {
                         let wfi = (die, node.tiles[wf.0], wf.1);
-                        let wfn = match naming.intf_wires_in[&wf] {
-                            IntfWireInNaming::Simple(ref wfn) => {
-                                self.claim_pip(crds[def_rt], wtn, wfn);
-                                wfn
+                        if let Some(iwi) = naming.intf_wires_in.get(&wf) {
+                            let wfn = match *iwi {
+                                IntfWireInNaming::Simple(ref wfn) => {
+                                    self.claim_pip(crds[def_rt], wtn, wfn);
+                                    wfn
+                                }
+                                IntfWireInNaming::TestBuf(ref wfbn, ref wfn) => {
+                                    self.claim_pip(crds[def_rt], wtn, wfbn);
+                                    wfn
+                                }
+                                IntfWireInNaming::Buf(_, ref wfn) => {
+                                    self.claim_pip(crds[def_rt], wtn, wfn);
+                                    wfn
+                                }
+                                IntfWireInNaming::Delay(ref wfon, _, ref wfn) => {
+                                    self.claim_pip(crds[def_rt], wtn, wfon);
+                                    wfn
+                                }
+                            };
+                            if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                                let tname = &node.names[def_rt];
+                                println!(
+                                    "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                    p = self.rd.part,
+                                    wn = self.print_nw(wf),
+                                );
                             }
-                            IntfWireInNaming::TestBuf(ref wfbn, ref wfn) => {
-                                self.claim_pip(crds[def_rt], wtn, wfbn);
-                                wfn
+                        } else {
+                            let iwd = &self.int_wire_data[&wfi];
+                            if iwd.used_o {
+                                let tname = &node.names[def_rt];
+                                println!(
+                                    "INTF INPUT MISSING FOR {p} {tname} {wn}",
+                                    p = self.rd.part,
+                                    wn = self.print_nw(wf),
+                                );
                             }
-                            IntfWireInNaming::Buf(_, ref wfn) => {
-                                self.claim_pip(crds[def_rt], wtn, wfn);
-                                wfn
-                            }
-                            IntfWireInNaming::Delay(ref wfon, _, ref wfn) => {
-                                self.claim_pip(crds[def_rt], wtn, wfon);
-                                wfn
-                            }
-                        };
-                        if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
-                            let tname = &node.names[def_rt];
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
-                                p = self.rd.part,
-                                wn = self.print_nw(wf),
-                            );
                         }
                     }
                 }

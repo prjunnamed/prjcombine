@@ -1,5 +1,7 @@
+use prjcombine_entity::EntityId;
+use prjcombine_int::db::BelId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex4::Grid;
+use prjcombine_virtex4::{ColumnKind, Grid};
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if matches!(bel.key, "SLICE0" | "SLICE2") {
@@ -186,7 +188,127 @@ fn verify_emac(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "BUFGCTRL",
+        &[
+            ("I0", SitePinDir::In),
+            ("I1", SitePinDir::In),
+            ("O", SitePinDir::Out),
+        ],
+        &["I0MUX", "I1MUX", "CKINT0", "CKINT1"],
+    );
+    let is_b = bel.bid.to_idx() < 16;
+    vrf.claim_node(&[bel.fwire("I0")]);
+    vrf.claim_node(&[bel.fwire("I1")]);
+    vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("I0MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1"), bel.wire("I1MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("I0MUX"), bel.wire("CKINT0"));
+    vrf.claim_pip(bel.crd(), bel.wire("I0MUX"), bel.wire("CKINT1"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1MUX"), bel.wire("CKINT0"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1MUX"), bel.wire("CKINT1"));
+    vrf.claim_pip(bel.crd(), bel.wire("I0MUX"), bel.wire("MUXBUS0"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1MUX"), bel.wire("MUXBUS1"));
+    for i in 0..16 {
+        let obid = if is_b {
+            BelId::from_idx(i)
+        } else {
+            BelId::from_idx(i + 16)
+        };
+        let obel = vrf.get_bel(bel.die, bel.node, obid);
+        vrf.claim_pip(bel.crd(), bel.wire("I0MUX"), obel.wire("GFB"));
+        vrf.claim_pip(bel.crd(), bel.wire("I1MUX"), obel.wire("GFB"));
+    }
+    let obel = vrf.find_bel_sibling(
+        bel,
+        if is_b {
+            "BUFG_MGTCLK_B"
+        } else {
+            "BUFG_MGTCLK_T"
+        },
+    );
+    for pin in ["MGT_L0", "MGT_L1", "MGT_R0", "MGT_R1"] {
+        vrf.claim_pip(bel.crd(), bel.wire("I0MUX"), obel.wire(pin));
+        vrf.claim_pip(bel.crd(), bel.wire("I1MUX"), obel.wire(pin));
+    }
+    vrf.claim_node(&[bel.fwire("O")]);
+    vrf.claim_node(&[bel.fwire("GCLK")]);
+    vrf.claim_node(&[bel.fwire("GFB")]);
+    vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
+    vrf.claim_pip(bel.crd(), bel.wire("GFB"), bel.wire("O"));
+    // XXX source MUXBUS
+}
+
+fn verify_bufg_mgtclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if *grid.columns.first().unwrap() == ColumnKind::Gt {
+        let obel = vrf.find_bel_sibling(
+            bel,
+            match bel.key {
+                "BUFG_MGTCLK_B" => "BUFG_MGTCLK_B_HROW",
+                "BUFG_MGTCLK_T" => "BUFG_MGTCLK_T_HROW",
+                _ => unreachable!(),
+            },
+        );
+        for (pin, pin_o) in [
+            ("MGT_L0", "MGT_L0_O"),
+            ("MGT_L1", "MGT_L1_O"),
+            ("MGT_R0", "MGT_R0_O"),
+            ("MGT_R1", "MGT_R1_O"),
+        ] {
+            vrf.verify_node(&[bel.fwire(pin), obel.fwire(pin_o)]);
+        }
+    } else {
+        for pin in ["MGT_L0", "MGT_L1", "MGT_R0", "MGT_R1"] {
+            vrf.claim_node(&[bel.fwire(pin)]);
+        }
+    }
+}
+
+fn verify_bufg_mgtclk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if *grid.columns.first().unwrap() == ColumnKind::Gt {
+        let obel = vrf.find_bel_sibling(
+            bel,
+            match bel.key {
+                "BUFG_MGTCLK_B_HROW" => "BUFG_MGTCLK_B_HCLK",
+                "BUFG_MGTCLK_T_HROW" => "BUFG_MGTCLK_T_HCLK",
+                _ => unreachable!(),
+            },
+        );
+        for (pin_i, pin_o) in [
+            ("MGT_L0_I", "MGT_L0_O"),
+            ("MGT_L1_I", "MGT_L1_O"),
+            ("MGT_R0_I", "MGT_R0_O"),
+            ("MGT_R1_I", "MGT_R1_O"),
+        ] {
+            vrf.verify_node(&[bel.fwire(pin_i), obel.fwire(pin_o)]);
+            vrf.claim_node(&[bel.fwire(pin_o)]);
+            vrf.claim_pip(bel.crd(), bel.wire(pin_o), bel.wire(pin_i));
+        }
+    }
+}
+
+fn verify_bufg_mgtclk_hclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if *grid.columns.first().unwrap() == ColumnKind::Gt {
+        for (pin_i, pin_o) in [
+            ("MGT_L0_I", "MGT_L0_O"),
+            ("MGT_L1_I", "MGT_L1_O"),
+            ("MGT_R0_I", "MGT_R0_O"),
+            ("MGT_R1_I", "MGT_R1_O"),
+        ] {
+            vrf.claim_node(&[bel.fwire(pin_o)]);
+            vrf.claim_pip(bel.crd(), bel.wire(pin_o), bel.wire(pin_i));
+        }
+        // XXX source from MGT
+    }
+}
+
+fn verify_jtagppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "JTAGPPC", &[("TDOTSPPC", SitePinDir::In)], &[]);
+    vrf.claim_node(&[bel.fwire("TDOTSPPC")]);
+}
+
+pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
@@ -194,6 +316,17 @@ pub fn verify_bel(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "FIFO" => vrf.verify_bel(bel, "FIFO16", &[], &[]),
         "PPC" => verify_ppc(vrf, bel),
         "EMAC" => verify_emac(vrf, bel),
+
+        _ if bel.key.starts_with("BUFGCTRL") => verify_bufgctrl(vrf, bel),
+        _ if bel.key.starts_with("BSCAN") => vrf.verify_bel(bel, "BSCAN", &[], &[]),
+        _ if bel.key.starts_with("ICAP") => vrf.verify_bel(bel, "ICAP", &[], &[]),
+        "PMV" | "STARTUP" | "FRAME_ECC" | "DCIRESET" | "CAPTURE" | "USR_ACCESS" => {
+            vrf.verify_bel(bel, bel.key, &[], &[])
+        }
+        "JTAGPPC" => verify_jtagppc(vrf, bel),
+        "BUFG_MGTCLK_B" | "BUFG_MGTCLK_T" => verify_bufg_mgtclk(grid, vrf, bel),
+        "BUFG_MGTCLK_B_HROW" | "BUFG_MGTCLK_T_HROW" => verify_bufg_mgtclk_hrow(grid, vrf, bel),
+        "BUFG_MGTCLK_B_HCLK" | "BUFG_MGTCLK_T_HCLK" => verify_bufg_mgtclk_hclk(grid, vrf, bel),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

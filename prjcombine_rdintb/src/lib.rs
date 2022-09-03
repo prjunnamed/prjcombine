@@ -254,12 +254,24 @@ impl XNodeInfo<'_, '_> {
             for &wi in tk.wires.keys() {
                 let nw = rd.lookup_wire_raw_force(rt.xy, wi);
                 if let Some(&w) = self.builder.extra_names.get(&rd.wires[wi]) {
-                    names.entry(nw).or_insert((IntConnKind::Raw, w));
+                    if self.num_tiles == 1 {
+                        names
+                            .entry(nw)
+                            .or_insert((IntConnKind::Raw, (NodeTileId::from_idx(0), w.1)));
+                    } else {
+                        names.entry(nw).or_insert((IntConnKind::Raw, w));
+                    }
                     continue;
                 }
                 if let Some(xn) = self.builder.extra_names_tile.get(&tile.kind) {
                     if let Some(&w) = xn.get(&rd.wires[wi]) {
-                        names.entry(nw).or_insert((IntConnKind::Raw, w));
+                        if self.num_tiles == 1 {
+                            names
+                                .entry(nw)
+                                .or_insert((IntConnKind::Raw, (NodeTileId::from_idx(0), w.1)));
+                        } else {
+                            names.entry(nw).or_insert((IntConnKind::Raw, w));
+                        }
                         continue;
                     }
                 }
@@ -880,7 +892,7 @@ impl XNodeExtractor<'_, '_, '_> {
         }
         self.node.bels.insert(bel.name.clone(), BelInfo { pins });
         self.node_naming.bels.push(BelNaming {
-            tile: NodeRawTileId::from_idx(0),
+            tile: NodeRawTileId::from_idx(bel.raw_tile),
             pins: naming_pins,
         });
     }
