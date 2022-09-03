@@ -823,6 +823,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK").iter().next() {
+        let bel_gsig = builder.bel_xy("GLOBALSIG", "GLOBALSIG", 0, 0);
         let mut bel = builder.bel_virtual("HCLK");
         for i in 0..8 {
             bel = bel
@@ -843,6 +844,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 },
                 0,
             )
+            .bel(bel_gsig)
             .bel(bel)
             .extract();
     }
@@ -915,17 +917,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bels = vec![
                 builder
-                    .bel_xy("BUFR0", "BUFR", 0, 0)
+                    .bel_xy("BUFR0", "BUFR", 0, 1)
                     .pins_name_only(&["O", "I"]),
                 builder
-                    .bel_xy("BUFR1", "BUFR", 0, 1)
+                    .bel_xy("BUFR1", "BUFR", 0, 0)
                     .pins_name_only(&["O", "I"]),
                 builder
-                    .bel_xy("BUFIO0", "BUFIO", 0, 0)
+                    .bel_xy("BUFIO0", "BUFIO", 0, 1)
                     .pins_name_only(&["O", "I"])
                     .extra_wire("PAD", &["HCLK_IOIS_I2IOCLK_TOP_P"]),
                 builder
-                    .bel_xy("BUFIO1", "BUFIO", 0, 1)
+                    .bel_xy("BUFIO1", "BUFIO", 0, 0)
                     .pins_name_only(&["O", "I"])
                     .extra_wire("PAD", &["HCLK_IOIS_I2IOCLK_BOT_P"]),
                 builder
@@ -1044,11 +1046,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             let mut bels = vec![
                 builder
-                    .bel_xy("BUFIO0", "BUFIO", 0, 0)
+                    .bel_xy("BUFIO0", "BUFIO", 0, 1)
                     .pins_name_only(&["O", "I"])
                     .extra_wire_force("PAD", "HCLK_IOIS_I2IOCLK_TOP_P"),
                 builder
-                    .bel_xy("BUFIO1", "BUFIO", 0, 1)
+                    .bel_xy("BUFIO1", "BUFIO", 0, 0)
                     .pins_name_only(&["O", "I"])
                     .extra_wire_force("PAD", "HCLK_IOIS_I2IOCLK_BOT_P"),
                 builder
@@ -1224,6 +1226,139 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .bel(bel)
             .bel(bel_hclk_dcm_hrow.raw_tile(1))
             .extract();
+    }
+
+    for (tkn, naming) in [
+        ("IOIS_LC", "IOIS_LC"),
+        ("IOIS_LC_L", "IOIS_LC"),
+        ("IOIS_NC", "IOIS_NC"),
+        ("IOIS_NC_L", "IOIS_NC"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            builder.extract_xnode_bels(
+                "IOIS",
+                xy,
+                &[],
+                &[Coord {
+                    x: xy.x - 1,
+                    y: xy.y,
+                }],
+                naming,
+                &[
+                    builder
+                        .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
+                        .pins_name_only(&[
+                            "OFB",
+                            "TFB",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "D",
+                            "CLK",
+                            "OCLK",
+                        ])
+                        .extra_int_out("CLKMUX", &["IOIS_ICLKP_0"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B1_INT"])
+                        .extra_wire_force("CLKOUT", "IOIS_I_2GCLK0"),
+                    builder
+                        .bel_xy("ILOGIC1", "ILOGIC", 0, 0)
+                        .pins_name_only(&[
+                            "OFB",
+                            "TFB",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "D",
+                            "CLK",
+                            "OCLK",
+                        ])
+                        .extra_int_out("CLKMUX", &["IOIS_ICLKP_1"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B3_INT"]),
+                    builder
+                        .bel_xy("OLOGIC0", "OLOGIC", 0, 1)
+                        .pins_name_only(&[
+                            "OQ",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "CLK",
+                        ])
+                        .extra_int_out("CLKMUX", &["IOIS_OCLKP_0"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B5_INT"]),
+                    builder
+                        .bel_xy("OLOGIC1", "OLOGIC", 0, 0)
+                        .pins_name_only(&[
+                            "OQ",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "CLK",
+                        ])
+                        .extra_int_out("CLKMUX", &["IOIS_OCLKP_1"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B6_INT"]),
+                    builder
+                        .bel_xy("IOB0", "IOB", 0, 1)
+                        .pins_name_only(&[
+                            "I",
+                            "O",
+                            "T",
+                            "PADOUT",
+                            "DIFFI_IN",
+                            "DIFFO_OUT",
+                            "DIFFO_IN",
+                        ])
+                        .extra_wire_force(
+                            "MONITOR",
+                            if naming == "IOIS_LC" {
+                                "IOIS_LC_MONITOR_P"
+                            } else {
+                                "IOIS_MONITOR_P"
+                            },
+                        ),
+                    builder
+                        .bel_xy("IOB1", "IOB", 0, 0)
+                        .pins_name_only(&[
+                            "I",
+                            "O",
+                            "T",
+                            "PADOUT",
+                            "DIFFI_IN",
+                            "DIFFO_OUT",
+                            "DIFFO_IN",
+                        ])
+                        .extra_wire_force(
+                            "MONITOR",
+                            if naming == "IOIS_LC" {
+                                "IOIS_LC_MONITOR_N"
+                            } else {
+                                "IOIS_MONITOR_N"
+                            },
+                        ),
+                    builder
+                        .bel_virtual("IOIS_CLK")
+                        .extra_wire("GCLK0", &["IOIS_GCLKP0"])
+                        .extra_wire("GCLK1", &["IOIS_GCLKP1"])
+                        .extra_wire("GCLK2", &["IOIS_GCLKP2"])
+                        .extra_wire("GCLK3", &["IOIS_GCLKP3"])
+                        .extra_wire("GCLK4", &["IOIS_GCLKP4"])
+                        .extra_wire("GCLK5", &["IOIS_GCLKP5"])
+                        .extra_wire("GCLK6", &["IOIS_GCLKP6"])
+                        .extra_wire("GCLK7", &["IOIS_GCLKP7"])
+                        .extra_wire("RCLK0", &["IOIS_RCLK_FORIO_P0"])
+                        .extra_wire("RCLK1", &["IOIS_RCLK_FORIO_P1"])
+                        .extra_wire("IOCLK0", &["IOIS_IOCLKP0"])
+                        .extra_wire("IOCLK1", &["IOIS_IOCLKP1"])
+                        .extra_wire("IOCLK_N0", &["IOIS_IOCLKP_N0"])
+                        .extra_wire("IOCLK_N1", &["IOIS_IOCLKP_N1"])
+                        .extra_wire("IOCLK_S0", &["IOIS_IOCLKP_S0"])
+                        .extra_wire("IOCLK_S1", &["IOIS_IOCLKP_S1"]),
+                ],
+            );
+        }
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("SYS_MON").iter().next() {

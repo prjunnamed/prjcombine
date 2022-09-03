@@ -28,6 +28,14 @@ impl Grid {
         RowId::from_idx(self.reg_cfg * 16 + self.regs_cfg_io * 16 + 8)
     }
 
+    pub fn row_cfg_below(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 16 - 8)
+    }
+
+    pub fn row_cfg_above(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 16 + 8)
+    }
+
     pub fn has_mgt(&self) -> bool {
         *self.columns.first().unwrap() == ColumnKind::Gt
     }
@@ -568,17 +576,29 @@ impl Grid {
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let c = match y % 16 {
-                    7 | 8 => "LC",
-                    _ => "NC",
+                let naming = match y % 16 {
+                    7 | 8 => "IOIS_LC",
+                    _ => "IOIS_NC",
                 };
                 let l = if col.to_idx() == 0 { "_L" } else { "" };
                 grid[(col, row)].add_xnode(
                     db.get_node("INTF"),
-                    &[&format!("IOIS_{c}{l}_X{x}Y{y}")],
+                    &[&format!("{naming}{l}_X{x}Y{y}")],
                     db.get_node_naming("INTF.IOIS"),
                     &[(col, row)],
                 );
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node("IOIS"),
+                    &[&format!("{naming}{l}_X{x}Y{y}")],
+                    db.get_node_naming(naming),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("ILOGIC_X{biox}Y{y}", y = 2 * y + 1));
+                node.add_bel(1, format!("ILOGIC_X{biox}Y{y}", y = 2 * y));
+                node.add_bel(2, format!("OLOGIC_X{biox}Y{y}", y = 2 * y + 1));
+                node.add_bel(3, format!("OLOGIC_X{biox}Y{y}", y = 2 * y));
+                node.add_bel(4, format!("IOB_X{biox}Y{y}", y = 2 * y + 1));
+                node.add_bel(5, format!("IOB_X{biox}Y{y}", y = 2 * y));
 
                 if row.to_idx() % 32 == 8 {
                     let name = format!("HCLK_IOIS_DCI_X{x}Y{y}", y = y - 1);
@@ -592,10 +612,10 @@ impl Grid {
                         &[(col, row - 2), (col, row - 1), (col, row)],
                     );
                     let reg = row.to_idx() / 16;
-                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
-                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
-                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2));
+                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
                     node.add_bel(4, format!("IDELAYCTRL_X{biox}Y{reg}"));
                     node.add_bel(5, format!("DCI_X{biox}Y{y}", y = dciylut[reg]));
                 } else if row.to_idx() % 32 == 24 {
@@ -610,10 +630,10 @@ impl Grid {
                         &[(col, row - 2), (col, row - 1), (col, row)],
                     );
                     let reg = row.to_idx() / 16;
-                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
-                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
-                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2));
+                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
                     node.add_bel(4, format!("IDELAYCTRL_X{biox}Y{reg}"));
                 }
             }
@@ -625,9 +645,7 @@ impl Grid {
             let x = col.to_idx();
             let y = row.to_idx();
             if row >= self.row_dcmiob() && row < self.row_iobdcm() {
-                if row >= RowId::from_idx(self.reg_cfg * 16 - 8)
-                    && row < RowId::from_idx(self.reg_cfg * 16 + 8)
-                {
+                if row >= self.row_cfg_below() && row < self.row_cfg_above() {
                     // CFG
                     let dy = row.to_idx() - (self.reg_cfg * 16 - 8);
                     let y = y - dy;
@@ -685,6 +703,18 @@ impl Grid {
                         db.get_node_naming("INTF.IOIS"),
                         &[(col, row)],
                     );
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("IOIS"),
+                        &[&format!("IOIS_LC_X{x}Y{y}")],
+                        db.get_node_naming("IOIS_LC"),
+                        &[(col, row)],
+                    );
+                    node.add_bel(0, format!("ILOGIC_X1Y{y}", y = 2 * y + 1));
+                    node.add_bel(1, format!("ILOGIC_X1Y{y}", y = 2 * y));
+                    node.add_bel(2, format!("OLOGIC_X1Y{y}", y = 2 * y + 1));
+                    node.add_bel(3, format!("OLOGIC_X1Y{y}", y = 2 * y));
+                    node.add_bel(4, format!("IOB_X1Y{y}", y = 2 * y + 1));
+                    node.add_bel(5, format!("IOB_X1Y{y}", y = 2 * y));
                 }
             } else if (self.has_bot_sysmon && row < RowId::from_idx(8))
                 || (self.has_top_sysmon && row >= RowId::from_idx(self.regs * 16 - 8))
@@ -777,8 +807,8 @@ impl Grid {
                         db.get_node_naming("HCLK_DCMIOB"),
                         &[(col, row), (col, row + 1)],
                     );
-                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2));
                     node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
                     node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
                 } else if row == self.row_iobdcm() {
@@ -791,11 +821,11 @@ impl Grid {
                         db.get_node_naming("HCLK_IOBDCM"),
                         &[(col, row - 2), (col, row - 1)],
                     );
-                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2));
                     node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
                     node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
-                } else if row == RowId::from_idx(self.reg_cfg * 16 + 8) {
+                } else if row == self.row_cfg_above() {
                     let name = format!("HCLK_CENTER_ABOVE_CFG_X{x}Y{y}", y = y - 1);
                     let name_io0 = format!("IOIS_LC_X{x}Y{y}");
                     let name_io1 = format!("IOIS_LC_X{x}Y{y}", y = y + 1);
@@ -805,8 +835,8 @@ impl Grid {
                         db.get_node_naming("HCLK_CENTER_ABOVE_CFG"),
                         &[(col, row), (col, row + 1)],
                     );
-                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2));
                     node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
                     node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
                 } else {
@@ -819,8 +849,8 @@ impl Grid {
                         db.get_node_naming("HCLK_CENTER"),
                         &[(col, row - 2), (col, row - 1)],
                     );
-                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
-                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2));
                     node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
                     node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
                 }
@@ -1148,12 +1178,13 @@ impl Grid {
                     let x = col.to_idx();
                     let y = row.to_idx();
                     let name = format!("HCLK_X{x}Y{y}", y = y - 1);
-                    grid[(col, row)].add_xnode(
+                    let node = grid[(col, row)].add_xnode(
                         db.get_node("HCLK"),
                         &[&name],
                         db.get_node_naming("HCLK"),
                         &[(col, row)],
                     );
+                    node.add_bel(0, format!("GLOBALSIG_X{x}Y{y}", y = y / 16));
                 }
             }
         }
