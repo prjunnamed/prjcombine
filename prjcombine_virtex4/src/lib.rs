@@ -640,6 +640,8 @@ impl Grid {
         }
 
         // Center column.
+        let mut dcmy = 0;
+        let mut ccmy = 0;
         for row in grid.rows() {
             let col = self.cols_io[1];
             let x = col.to_idx();
@@ -771,12 +773,29 @@ impl Grid {
                 if kind == "DCM" && dy == 0 {
                     grid[(col, row)].nodes[0].naming = db.get_node_naming("INT.DCM0");
                 }
+                let name = format!("{tk}_X{x}Y{y}");
                 grid[(col, row)].add_xnode(
                     db.get_node("INTF"),
-                    &[&format!("{tk}_X{x}Y{y}")],
+                    &[&name],
                     db.get_node_naming(&format!("INTF.{kind}.{dy}")),
                     &[(col, row)],
                 );
+                if row.to_idx() % 4 == 0 {
+                    let crds: [_; 4] = core::array::from_fn(|i| (col, row + i));
+                    if kind == "DCM" {
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node(kind),
+                            &[&name],
+                            db.get_node_naming(tk),
+                            &crds,
+                        );
+                        node.add_bel(0, format!("DCM_ADV_X0Y{dcmy}"));
+                        dcmy += 1;
+                    } else {
+                        // XXX
+                        ccmy += 1;
+                    }
+                }
             }
 
             if row.to_idx() % 16 == 8 {

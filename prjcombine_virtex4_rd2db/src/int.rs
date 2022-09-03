@@ -219,6 +219,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         if i == 0 {
             builder.extra_name_sub("MONITOR_CONVST_TEST", 4, w);
+            builder.extra_name_sub("DCM_ADV_CLKIN_TEST", 3, w);
+            builder.extra_name_sub("DCM_ADV_CLKFB_TEST", 2, w);
         }
         for j in 0..16 {
             builder.extra_name_sub(format!("LOGIC_CREATED_INPUT_B{i}_INT{j}"), j, w);
@@ -1358,6 +1360,58 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire("IOCLK_S1", &["IOIS_IOCLKP_S1"]),
                 ],
             );
+        }
+    }
+
+    for tkn in ["DCM", "DCM_BOT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut int_xy = Vec::new();
+            for dy in 0..4 {
+                int_xy.push(Coord {
+                    x: xy.x - 1,
+                    y: xy.y + dy,
+                });
+            }
+            let mut bel = builder
+                .bel_xy("DCM", "DCM_ADV", 0, 0)
+                .pins_name_only(&["CLKIN", "CLKFB"])
+                .extra_int_out("CLKIN_TEST", &["DCM_ADV_CLKIN_TEST"])
+                .extra_int_out("CLKFB_TEST", &["DCM_ADV_CLKFB_TEST"])
+                .extra_int_in("CKINT0", &["CLK_B0_INT0_DCM0"])
+                .extra_int_in("CKINT1", &["CLK_B1_INT0"])
+                .extra_int_in("CKINT2", &["CLK_B2_INT0"])
+                .extra_int_in("CKINT3", &["CLK_B3_INT0"])
+                .extra_int_in("CLK_IN0", &["DCM_CLK_IN0"]);
+            for pin in [
+                "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
+                "CLKFX180", "CONCUR", "LOCKED",
+            ] {
+                bel = bel.extra_wire(format!("{pin}_BUF"), &[format!("DCM_{pin}")]);
+            }
+            for i in 0..12 {
+                bel = bel.extra_wire(format!("TO_BUFG{i}"), &[format!("DCM_TO_BUFG{i}")]);
+            }
+            for i in 0..24 {
+                bel = bel
+                    .extra_wire(
+                        format!("BUSOUT{i}"),
+                        &[format!("DCM_OUT{i}"), format!("DCM_BOT_OUT{i}")],
+                    )
+                    .extra_wire(
+                        format!("BUSIN{i}"),
+                        &[format!("DCM_IN{i}"), format!("DCM_BOT_IN{i}")],
+                    );
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(format!("GCLK{i}"), &[format!("DCM_BUFG{i}")]);
+            }
+            for i in 0..16 {
+                bel = bel.extra_wire(format!("GIOB{i}"), &[format!("DCM_GIOB{i}")]);
+            }
+            for i in 0..4 {
+                bel = bel.extra_wire(format!("MGT{i}"), &[format!("DCM_MGT{i}")]);
+            }
+            builder.extract_xnode_bels("DCM", xy, &[], &int_xy, tkn, &[bel]);
         }
     }
 

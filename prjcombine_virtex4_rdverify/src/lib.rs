@@ -729,6 +729,153 @@ fn verify_hclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
+fn verify_dcm(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "DCM_ADV",
+        &[("CLKIN", SitePinDir::In), ("CLKFB", SitePinDir::In)],
+        &[
+            "CLKIN_TEST",
+            "CLKFB_TEST",
+            "CKINT0",
+            "CKINT1",
+            "CKINT2",
+            "CKINT3",
+            "CLK_IN0",
+        ],
+    );
+    vrf.claim_node(&[bel.fwire("CLKIN")]);
+    vrf.claim_node(&[bel.fwire("CLKFB")]);
+    for pin in ["CLKIN", "CLKIN_TEST", "CLKFB", "CLKFB_TEST"] {
+        for ipin in [
+            "CKINT0",
+            "CKINT1",
+            "CKINT2",
+            "CKINT3",
+            "BUSOUT0",
+            "BUSOUT1",
+            "GCLK0",
+            "GCLK1",
+            "GCLK2",
+            "GCLK3",
+            "GCLK4",
+            "GCLK5",
+            "GCLK6",
+            "GCLK7",
+            "GIOB0",
+            "GIOB1",
+            "GIOB2",
+            "GIOB3",
+            "GIOB4",
+            "GIOB5",
+            "GIOB6",
+            "GIOB7",
+            "GIOB8",
+            "GIOB9",
+            "GIOB10",
+            "GIOB11",
+            "GIOB12",
+            "GIOB13",
+            "GIOB14",
+            "GIOB15",
+            "MGT0",
+            "MGT1",
+            "MGT2",
+            "MGT3",
+        ] {
+            vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire(ipin));
+        }
+    }
+    for i in 0..24 {
+        let opin = format!("BUSOUT{i}");
+        let ipin = format!("BUSIN{i}");
+        vrf.claim_node(&[bel.fwire(&opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(&opin), bel.wire(&ipin));
+        for pin in [
+            "CLK0_BUF",
+            "CLK90_BUF",
+            "CLK180_BUF",
+            "CLK270_BUF",
+            "CLK2X_BUF",
+            "CLK2X180_BUF",
+            "CLKDV_BUF",
+            "CLKFX_BUF",
+            "CLKFX180_BUF",
+            "CONCUR_BUF",
+            "LOCKED_BUF",
+        ] {
+            vrf.claim_pip(bel.crd(), bel.wire(&opin), bel.wire(pin));
+        }
+    }
+    for (pin, bpin, opin) in [
+        ("CONCUR", "CONCUR_BUF", "TO_BUFG1"),
+        ("CLKFX", "CLKFX_BUF", "TO_BUFG2"),
+        ("CLKFX180", "CLKFX180_BUF", "TO_BUFG3"),
+        ("CLK0", "CLK0_BUF", "TO_BUFG4"),
+        ("CLK180", "CLK180_BUF", "TO_BUFG5"),
+        ("CLK90", "CLK90_BUF", "TO_BUFG6"),
+        ("CLK270", "CLK270_BUF", "TO_BUFG7"),
+        ("CLK2X180", "CLK2X180_BUF", "TO_BUFG8"),
+        ("CLK2X", "CLK2X_BUF", "TO_BUFG9"),
+        ("CLKDV", "CLKDV_BUF", "TO_BUFG10"),
+    ] {
+        vrf.claim_node(&[bel.fwire(bpin)]);
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(bpin), bel.wire(pin));
+        vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(pin));
+    }
+    vrf.claim_node(&[bel.fwire("TO_BUFG0")]);
+    vrf.claim_node(&[bel.fwire("TO_BUFG11")]);
+    vrf.claim_node(&[bel.fwire("LOCKED_BUF")]);
+    vrf.claim_pip(bel.crd(), bel.wire("LOCKED_BUF"), bel.wire("LOCKED"));
+    let dy = if bel.row < grid.row_dcmiob() {-4} else {4};
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, dy, "DCM") {
+        for i in 0..24 {
+            let opin = format!("BUSOUT{i}");
+            let ipin = format!("BUSIN{i}");
+            vrf.verify_node(&[
+                bel.fwire(&ipin),
+                obel.fwire(&opin),
+            ]);
+        }
+    } else {
+        for i in 0..24 {
+            let ipin = format!("BUSIN{i}");
+            vrf.claim_node(&[
+                bel.fwire(&ipin),
+            ]);
+        }
+    }
+    let srow = RowId::from_idx(bel.row.to_idx() / 16 * 16 + 8);
+    let obel = vrf
+        .find_bel(bel.die, (bel.col, srow), "HCLK_DCM")
+        .or_else(|| vrf.find_bel(bel.die, (bel.col, srow), "HCLK_DCM_S"))
+        .or_else(|| vrf.find_bel(bel.die, (bel.col, srow), "HCLK_DCM_N"))
+        .unwrap();
+    let ud = if bel.row.to_idx() % 16 < 8 { 'D' } else { 'U' };
+    for i in 0..16 {
+        vrf.verify_node(&[
+            bel.fwire(&format!("GIOB{i}")),
+            obel.fwire(&format!("GIOB_O_{ud}{i}")),
+        ]);
+    }
+    for i in 0..8 {
+        vrf.verify_node(&[
+            bel.fwire(&format!("GCLK{i}")),
+            obel.fwire(&format!("GCLK_O_{ud}{i}")),
+        ]);
+    }
+    if grid.has_mgt() {
+        for i in 0..4 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGT{i}")),
+                obel.fwire(&format!("MGT_O_{ud}{i}")),
+            ]);
+        }
+    }
+    // XXX verify MGT
+}
+
 fn verify_sysmon(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
@@ -1022,6 +1169,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ if bel.key.starts_with("IOB") => verify_iob(grid, vrf, bel),
         "IOIS_CLK" => verify_iois_clk(grid, vrf, bel),
 
+        "DCM" => verify_dcm(grid, vrf, bel),
         "SYSMON" => verify_sysmon(grid, vrf, bel),
         _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
 
