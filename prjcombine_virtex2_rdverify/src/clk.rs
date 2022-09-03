@@ -14,7 +14,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     vrf.claim_node(&[bel.fwire("I1")]);
     vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("CLK"));
     let obid = BelId::from_idx(bel.bid.to_idx() ^ 1);
-    let obel = vrf.get_bel(bel.die, bel.node, obid);
+    let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
     vrf.claim_pip(bel.crd(), bel.wire("I1"), obel.wire("CLK"));
     let edge = if bel.row == edev.grid.row_bot() {
         Edge::Bot
@@ -30,7 +30,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     if edev.grid.kind.is_virtex2() || edev.grid.kind == GridKind::Spartan3 {
         if let Some((crd, obid)) = edev.grid.get_clk_io(edge, bel.bid.to_idx()) {
             let onode = edev.get_io_node(crd).unwrap();
-            let obel = vrf.get_bel(bel.die, onode, obid);
+            let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
             vrf.claim_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
             vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         } else {
@@ -53,12 +53,12 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     } else if matches!(edge, Edge::Bot | Edge::Top) {
         let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
         let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, onode, obid);
+        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
         vrf.claim_node(&[bel.fwire("CKIR"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx() + 4).unwrap();
         let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, onode, obid);
+        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
         vrf.claim_node(&[bel.fwire("CKIL"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKIL"));
@@ -141,7 +141,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     } else {
         let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
         let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, onode, obid);
+        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
         vrf.verify_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKI"));

@@ -19,6 +19,20 @@ pub struct Grid {
     pub has_bram_fx: bool,
 }
 
+impl Grid {
+    pub fn row_dcmiob(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 16 - self.regs_cfg_io * 16 - 8)
+    }
+
+    pub fn row_iobdcm(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 16 + self.regs_cfg_io * 16 + 8)
+    }
+
+    pub fn has_mgt(&self) -> bool {
+        *self.columns.first().unwrap() == ColumnKind::Gt
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKind {
     Clb,
@@ -540,7 +554,17 @@ impl Grid {
             }
         }
 
-        for col in [self.cols_io[0], self.cols_io[2]] {
+        let mut dciylut = vec![];
+        let mut dciy = 0;
+        for i in 0..self.regs {
+            dciylut.push(dciy);
+            let row = RowId::from_idx(i * 16 + 8);
+            if i % 2 == 0 || (row >= self.row_dcmiob() && row <= self.row_iobdcm()) {
+                dciy += 1;
+            }
+        }
+
+        for (brx, biox, col) in [(0, 0, self.cols_io[0]), (1, 2, self.cols_io[2])] {
             for row in grid.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
@@ -555,149 +579,279 @@ impl Grid {
                     db.get_node_naming("INTF.IOIS"),
                     &[(col, row)],
                 );
+
+                if row.to_idx() % 32 == 8 {
+                    let name = format!("HCLK_IOIS_DCI_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_NC{l}_X{x}Y{y}", y = y - 2);
+                    let name_io1 = format!("IOIS_LC{l}_X{x}Y{y}", y = y - 1);
+                    let name_io2 = format!("IOIS_LC{l}_X{x}Y{y}");
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_IOIS_DCI"),
+                        &[&name, &name_io0, &name_io1, &name_io2],
+                        db.get_node_naming("HCLK_IOIS_DCI"),
+                        &[(col, row - 2), (col, row - 1), (col, row)],
+                    );
+                    let reg = row.to_idx() / 16;
+                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
+                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(4, format!("IDELAYCTRL_X{biox}Y{reg}"));
+                    node.add_bel(5, format!("DCI_X{biox}Y{y}", y = dciylut[reg]));
+                } else if row.to_idx() % 32 == 24 {
+                    let name = format!("HCLK_IOIS_LVDS_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_NC{l}_X{x}Y{y}", y = y - 2);
+                    let name_io1 = format!("IOIS_LC{l}_X{x}Y{y}", y = y - 1);
+                    let name_io2 = format!("IOIS_LC{l}_X{x}Y{y}");
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_IOIS_LVDS"),
+                        &[&name, &name_io0, &name_io1, &name_io2],
+                        db.get_node_naming("HCLK_IOIS_LVDS"),
+                        &[(col, row - 2), (col, row - 1), (col, row)],
+                    );
+                    let reg = row.to_idx() / 16;
+                    node.add_bel(0, format!("BUFR_X{brx}Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFR_X{brx}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("BUFIO_X{biox}Y{y}", y = reg * 2));
+                    node.add_bel(3, format!("BUFIO_X{biox}Y{y}", y = reg * 2 + 1));
+                    node.add_bel(4, format!("IDELAYCTRL_X{biox}Y{reg}"));
+                }
             }
         }
 
-        let mut row_b = grid.rows().next().unwrap();
-        let mut row_t = grid.rows().next_back().unwrap() + 1;
-        let mut sysmons = vec![];
-        if self.has_bot_sysmon {
-            sysmons.push(row_b);
-            row_b += 8;
-        }
-        if self.has_top_sysmon {
-            sysmons.push(row_t - 8);
-            row_t -= 8;
-        }
-        for row in sysmons {
-            for dy in 0..8 {
-                let x = self.cols_io[1].to_idx();
-                let y = row.to_idx();
-                grid[(self.cols_io[1], row + dy)].add_xnode(
-                    db.get_node("INTF"),
-                    &[&format!("SYS_MON_X{x}Y{y}")],
-                    db.get_node_naming(&format!("INTF.SYSMON.{dy}")),
-                    &[(self.cols_io[1], row + dy)],
-                );
-            }
-        }
-        {
-            let x = self.cols_io[1].to_idx();
-            let y = self.reg_cfg * 16 - 8;
-            let name = format!("CFG_CENTER_X{x}Y{y}", y = y + 7);
-            let br = RowId::from_idx(self.reg_cfg * 16 - 8);
-            for dy in 0..16 {
-                let row = br + dy;
-                grid[(self.cols_io[1], row)].add_xnode(
+        // Center column.
+        for row in grid.rows() {
+            let col = self.cols_io[1];
+            let x = col.to_idx();
+            let y = row.to_idx();
+            if row >= self.row_dcmiob() && row < self.row_iobdcm() {
+                if row >= RowId::from_idx(self.reg_cfg * 16 - 8)
+                    && row < RowId::from_idx(self.reg_cfg * 16 + 8)
+                {
+                    // CFG
+                    let dy = row.to_idx() - (self.reg_cfg * 16 - 8);
+                    let y = y - dy;
+                    let name = format!("CFG_CENTER_X{x}Y{y}", y = y + 7);
+                    grid[(col, row)].add_xnode(
+                        db.get_node("INTF"),
+                        &[&name],
+                        db.get_node_naming(&format!("INTF.CFG.{dy}")),
+                        &[(col, row)],
+                    );
+                    if dy == 0 {
+                        let name_bufg_b = format!("CLK_BUFGCTRL_B_X{x}Y{y}");
+                        let name_bufg_t = format!("CLK_BUFGCTRL_T_X{x}Y{y}", y = y + 8);
+                        let name_hrow_b = format!("CLK_HROW_X{x}Y{y}", y = y - 1);
+                        let name_hrow_t = format!("CLK_HROW_X{x}Y{y}", y = y + 15);
+                        let name_hclk_b = format!("HCLK_CENTER_X{x}Y{y}", y = y - 1);
+                        let name_hclk_t = format!("HCLK_CENTER_ABOVE_CFG_X{x}Y{y}", y = y + 15);
+                        let crds: [_; 16] = core::array::from_fn(|i| (col, row + i));
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node("CFG"),
+                            &[
+                                &name,
+                                &name_bufg_b,
+                                &name_bufg_t,
+                                &name_hrow_b,
+                                &name_hrow_t,
+                                &name_hclk_b,
+                                &name_hclk_t,
+                            ],
+                            db.get_node_naming("CFG"),
+                            &crds,
+                        );
+                        for i in 0..32 {
+                            node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
+                        }
+                        for i in 0..4 {
+                            node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
+                        }
+                        for i in 0..2 {
+                            node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
+                        }
+                        node.add_bel(38, "PMV".to_string());
+                        node.add_bel(39, "STARTUP".to_string());
+                        node.add_bel(40, "JTAGPPC".to_string());
+                        node.add_bel(41, "FRAME_ECC".to_string());
+                        node.add_bel(42, "DCIRESET".to_string());
+                        node.add_bel(43, "CAPTURE".to_string());
+                        node.add_bel(44, "USR_ACCESS_SITE".to_string());
+                    }
+                } else {
+                    // IO
+                    grid[(col, row)].add_xnode(
+                        db.get_node("INTF"),
+                        &[&format!("IOIS_LC_X{x}Y{y}")],
+                        db.get_node_naming("INTF.IOIS"),
+                        &[(col, row)],
+                    );
+                }
+            } else if (self.has_bot_sysmon && row < RowId::from_idx(8))
+                || (self.has_top_sysmon && row >= RowId::from_idx(self.regs * 16 - 8))
+            {
+                // SYS_MON
+                let dy = row.to_idx() % 8;
+                let y = y - dy;
+                let name = format!("SYS_MON_X{x}Y{y}");
+                grid[(col, row)].add_xnode(
                     db.get_node("INTF"),
                     &[&name],
-                    db.get_node_naming(&format!("INTF.CFG.{dy}")),
-                    &[(self.cols_io[1], row)],
+                    db.get_node_naming(&format!("INTF.SYSMON.{dy}")),
+                    &[(col, row)],
                 );
-            }
-            let name_bufg_b = format!("CLK_BUFGCTRL_B_X{x}Y{y}");
-            let name_bufg_t = format!("CLK_BUFGCTRL_T_X{x}Y{y}", y = y + 8);
-            let name_hrow_b = format!("CLK_HROW_X{x}Y{y}", y = y - 1);
-            let name_hrow_t = format!("CLK_HROW_X{x}Y{y}", y = y + 15);
-            let name_hclk_b = format!("HCLK_CENTER_X{x}Y{y}", y = y - 1);
-            let name_hclk_t = format!("HCLK_CENTER_ABOVE_CFG_X{x}Y{y}", y = y + 15);
-            let crds: [_; 16] = core::array::from_fn(|i| (self.cols_io[1], br + i));
-            let node = grid[(self.cols_io[1], br)].add_xnode(
-                db.get_node("CFG"),
-                &[
-                    &name,
-                    &name_bufg_b,
-                    &name_bufg_t,
-                    &name_hrow_b,
-                    &name_hrow_t,
-                    &name_hclk_b,
-                    &name_hclk_t,
-                ],
-                db.get_node_naming("CFG"),
-                &crds,
-            );
-            for i in 0..32 {
-                node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
-            }
-            for i in 0..4 {
-                node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
-            }
-            for i in 0..2 {
-                node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
-            }
-            node.add_bel(38, "PMV".to_string());
-            node.add_bel(39, "STARTUP".to_string());
-            node.add_bel(40, "JTAGPPC".to_string());
-            node.add_bel(41, "FRAME_ECC".to_string());
-            node.add_bel(42, "DCIRESET".to_string());
-            node.add_bel(43, "CAPTURE".to_string());
-            node.add_bel(44, "USR_ACCESS_SITE".to_string());
-        }
-        for dy in 0..(self.regs_cfg_io * 16) {
-            let row = RowId::from_idx(self.reg_cfg * 16 + 8 + dy);
-            let x = self.cols_io[1].to_idx();
-            let y = row.to_idx();
-            grid[(self.cols_io[1], row)].add_xnode(
-                db.get_node("INTF"),
-                &[&format!("IOIS_LC_X{x}Y{y}")],
-                db.get_node_naming("INTF.IOIS"),
-                &[(self.cols_io[1], row)],
-            );
-        }
-        for dy in 0..(self.regs_cfg_io * 16) {
-            let row = RowId::from_idx(self.reg_cfg * 16 - 8 - self.regs_cfg_io * 16 + dy);
-            let x = self.cols_io[1].to_idx();
-            let y = row.to_idx();
-            grid[(self.cols_io[1], row)].add_xnode(
-                db.get_node("INTF"),
-                &[&format!("IOIS_LC_X{x}Y{y}")],
-                db.get_node_naming("INTF.IOIS"),
-                &[(self.cols_io[1], row)],
-            );
-        }
-        let mut row = RowId::from_idx(self.reg_cfg * 16 + 8 + self.regs_cfg_io * 16);
-        let mut ccms = self.ccm;
-        while row != row_t {
-            let t = if ccms != 0 {
-                ccms -= 1;
-                "CCM"
+                if dy == 0 {
+                    let crds: [_; 8] = core::array::from_fn(|i| (col, row + i));
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("SYSMON"),
+                        &[&name],
+                        db.get_node_naming("SYSMON"),
+                        &crds,
+                    );
+                    let my = if row.to_idx() == 0 { 0 } else { 1 };
+                    let ipx = if self.columns.first().unwrap() == &ColumnKind::Gt {
+                        1
+                    } else {
+                        0
+                    };
+                    let ipy = if row.to_idx() == 0 {
+                        0
+                    } else if self.columns.first().unwrap() == &ColumnKind::Gt {
+                        self.regs * 3
+                    } else {
+                        2
+                    };
+                    node.add_bel(0, format!("MONITOR_X0Y{my}"));
+                    node.add_bel(1, format!("IPAD_X{ipx}Y{ipy}"));
+                    node.add_bel(2, format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1));
+                }
             } else {
-                grid[(self.cols_io[1], row)].nodes[0].naming = db.get_node_naming("INT.DCM0");
-                "DCM"
-            };
-            let x = self.cols_io[1].to_idx();
-            let y = row.to_idx();
-            for dy in 0..4 {
-                grid[(self.cols_io[1], row + dy)].add_xnode(
+                // DCM or CCM
+                let dy = row.to_idx() % 4;
+                let y = y - dy;
+                let (kind, tk) = if (row < self.row_dcmiob()
+                    && row >= self.row_dcmiob() - self.ccm * 4)
+                    || (row >= self.row_iobdcm() && row < self.row_iobdcm() + self.ccm * 4)
+                {
+                    ("CCM", "CCM")
+                } else if row < self.row_dcmiob() {
+                    ("DCM", "DCM_BOT")
+                } else {
+                    ("DCM", "DCM")
+                };
+                if kind == "DCM" && dy == 0 {
+                    grid[(col, row)].nodes[0].naming = db.get_node_naming("INT.DCM0");
+                }
+                grid[(col, row)].add_xnode(
                     db.get_node("INTF"),
-                    &[&format!("{t}_X{x}Y{y}")],
-                    db.get_node_naming(&format!("INTF.{t}.{dy}")),
-                    &[(self.cols_io[1], row + dy)],
+                    &[&format!("{tk}_X{x}Y{y}")],
+                    db.get_node_naming(&format!("INTF.{kind}.{dy}")),
+                    &[(col, row)],
                 );
             }
-            row += 4;
+
+            if row.to_idx() % 16 == 8 {
+                let name_hrow = format!("CLK_HROW_X{x}Y{y}", y = y - 1);
+                grid[(col, row)].add_xnode(
+                    db.get_node("CLK_HROW"),
+                    &[&name_hrow],
+                    db.get_node_naming("CLK_HROW"),
+                    &[(col, row)],
+                );
+
+                let reg = row.to_idx() / 16;
+                if row < self.row_dcmiob() || row > self.row_iobdcm() {
+                    let name = format!("HCLK_DCM_X{x}Y{y}", y = y - 1);
+                    grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_DCM"),
+                        &[&name, &name_hrow],
+                        db.get_node_naming("HCLK_DCM"),
+                        &[(col, row)],
+                    );
+                } else if row == self.row_dcmiob() {
+                    let name = format!("HCLK_DCMIOB_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_LC_X{x}Y{y}");
+                    let name_io1 = format!("IOIS_LC_X{x}Y{y}", y = y + 1);
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_DCMIOB"),
+                        &[&name, &name_io0, &name_io1, &name_hrow],
+                        db.get_node_naming("HCLK_DCMIOB"),
+                        &[(col, row), (col, row + 1)],
+                    );
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
+                    node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
+                } else if row == self.row_iobdcm() {
+                    let name = format!("HCLK_IOBDCM_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_LC_X{x}Y{y}", y = y - 2);
+                    let name_io1 = format!("IOIS_LC_X{x}Y{y}", y = y - 1);
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_IOBDCM"),
+                        &[&name, &name_io0, &name_io1, &name_hrow],
+                        db.get_node_naming("HCLK_IOBDCM"),
+                        &[(col, row - 2), (col, row - 1)],
+                    );
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
+                    node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
+                } else if row == RowId::from_idx(self.reg_cfg * 16 + 8) {
+                    let name = format!("HCLK_CENTER_ABOVE_CFG_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_LC_X{x}Y{y}");
+                    let name_io1 = format!("IOIS_LC_X{x}Y{y}", y = y + 1);
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_CENTER_ABOVE_CFG"),
+                        &[&name, &name_io0, &name_io1],
+                        db.get_node_naming("HCLK_CENTER_ABOVE_CFG"),
+                        &[(col, row), (col, row + 1)],
+                    );
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
+                    node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
+                } else {
+                    let name = format!("HCLK_CENTER_X{x}Y{y}", y = y - 1);
+                    let name_io0 = format!("IOIS_LC_X{x}Y{y}", y = y - 2);
+                    let name_io1 = format!("IOIS_LC_X{x}Y{y}", y = y - 1);
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK_CENTER"),
+                        &[&name, &name_io0, &name_io1],
+                        db.get_node_naming("HCLK_CENTER"),
+                        &[(col, row - 2), (col, row - 1)],
+                    );
+                    node.add_bel(0, format!("BUFIO_X1Y{y}", y = reg * 2));
+                    node.add_bel(1, format!("BUFIO_X1Y{y}", y = reg * 2 + 1));
+                    node.add_bel(2, format!("IDELAYCTRL_X1Y{reg}"));
+                    node.add_bel(3, format!("DCI_X1Y{y}", y = dciylut[reg]));
+                }
+            }
         }
-        let mut row = RowId::from_idx(self.reg_cfg * 16 - 8 - self.regs_cfg_io * 16);
-        let mut ccms = self.ccm;
-        while row != row_b {
-            row -= 4;
-            let x = self.cols_io[1].to_idx();
+
+        {
+            let col = self.cols_io[1];
+            let row = self.row_dcmiob();
+            let x = col.to_idx();
             let y = row.to_idx();
-            let (t, tt) = if ccms != 0 {
-                ccms -= 1;
-                ("CCM", "CCM")
-            } else {
-                grid[(self.cols_io[1], row)].nodes[0].naming = db.get_node_naming("INT.DCM0");
-                ("DCM", "DCM_BOT")
-            };
-            for dy in 0..4 {
-                grid[(self.cols_io[1], row + dy)].add_xnode(
-                    db.get_node("INTF"),
-                    &[&format!("{tt}_X{x}Y{y}")],
-                    db.get_node_naming(&format!("INTF.{t}.{dy}")),
-                    &[(self.cols_io[1], row + dy)],
-                );
-            }
+            let name = format!("CLK_IOB_B_X{x}Y{y}", y = y + 7);
+            grid[(col, row)].add_xnode(
+                db.get_node("CLK_IOB"),
+                &[&name],
+                db.get_node_naming("CLK_IOB"),
+                &[(col, row)],
+            );
+        }
+        {
+            let col = self.cols_io[1];
+            let row = self.row_iobdcm() - 16;
+            let x = col.to_idx();
+            let y = row.to_idx();
+            let name = format!("CLK_IOB_T_X{x}Y{y}", y = y + 7);
+            grid[(col, row)].add_xnode(
+                db.get_node("CLK_IOB"),
+                &[&name],
+                db.get_node_naming("CLK_IOB"),
+                &[(col, row)],
+            );
         }
 
         for (py, &(bc, br)) in self.holes_ppc.iter().enumerate() {
@@ -987,6 +1141,20 @@ impl Grid {
             for row in grid.rows() {
                 let crow = RowId::from_idx(row.to_idx() / 16 * 16 + 8);
                 grid[(col, row)].clkroot = (col, crow);
+                if row.to_idx() % 16 == 8 {
+                    if grid[(col, row)].nodes.is_empty() {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let y = row.to_idx();
+                    let name = format!("HCLK_X{x}Y{y}", y = y - 1);
+                    grid[(col, row)].add_xnode(
+                        db.get_node("HCLK"),
+                        &[&name],
+                        db.get_node_naming("HCLK"),
+                        &[(col, row)],
+                    );
+                }
             }
         }
 

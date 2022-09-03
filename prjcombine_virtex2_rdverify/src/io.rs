@@ -136,11 +136,11 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
         match io.diff {
             IoDiffKind::P(obid) => {
-                let obel = vrf.get_bel(bel.die, bel.node, obid);
+                let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
             }
             IoDiffKind::N(obid) => {
-                let obel = vrf.get_bel(bel.die, bel.node, obid);
+                let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
             }
@@ -158,7 +158,7 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
         // ODDR, IDDR
         if let IoDiffKind::P(obid) | IoDiffKind::N(obid) = io.diff {
-            let obel = vrf.get_bel(bel.die, bel.node, obid);
+            let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
             vrf.claim_pip(bel.crd(), bel.wire("ODDRIN1"), obel.wire("ODDROUT2"));
             vrf.claim_pip(bel.crd(), bel.wire("ODDRIN2"), obel.wire("ODDROUT1"));
             vrf.claim_pip(bel.crd(), bel.wire("IDDRIN1"), obel.wire("IQ1"));
@@ -205,7 +205,7 @@ pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &Be
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
         let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, onode, obid);
+        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
         vrf.claim_node(&[bel.fwire_far(pin), obel.fwire("PCI_RDY_IN")]);
         vrf.claim_pip(obel.crd(), obel.wire("PCI_RDY_IN"), obel.wire("PCI_RDY"));
     }

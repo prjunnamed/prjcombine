@@ -3,8 +3,8 @@
 use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{
     BelId, BelInfo, BelNaming, IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, NodeKindId,
-    NodeRawTileId, NodeTileId, NodeWireId, PinDir, TermInfo, TermWireInFarNaming,
-    TermWireOutNaming, WireId, WireKind,
+    NodeRawTileId, NodeWireId, PinDir, TermInfo, TermWireInFarNaming, TermWireOutNaming, WireId,
+    WireKind,
 };
 use prjcombine_int::grid::{
     ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, RowId,
@@ -391,7 +391,7 @@ impl<'a> Verifier<'a> {
                     nw = Some(cnw);
                 }
             } else {
-                println!("MISSING WIRE {tname} {wn}");
+                println!("MISSING WIRE {part} {tname} {wn}", part = self.rd.part);
             }
         }
     }
@@ -411,7 +411,7 @@ impl<'a> Verifier<'a> {
                     self.claim_raw_node(cnw, crd, wn);
                 }
             } else {
-                println!("MISSING WIRE {tname} {wn}");
+                println!("MISSING NODE WIRE {part} {tname} {wn}", part = self.rd.part);
             }
         }
     }
@@ -1052,14 +1052,20 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn get_bel(&self, die: DieId, node: &'a ExpandedTileNode, bid: BelId) -> BelContext<'a> {
+    pub fn get_bel(
+        &self,
+        die: DieId,
+        col: ColId,
+        row: RowId,
+        node: &'a ExpandedTileNode,
+        bid: BelId,
+    ) -> BelContext<'a> {
         let crds = self.get_node_crds(node).unwrap();
         let nk = &self.db.nodes[node.kind];
         let nn = &self.db.node_namings[node.naming];
         let bel = &nk.bels[bid];
         let naming = &nn.bels[bid];
         let key = &**nk.bels.key(bid);
-        let (col, row) = node.tiles[NodeTileId::from_idx(0)];
         BelContext {
             die,
             col,
@@ -1081,7 +1087,7 @@ impl<'a> Verifier<'a> {
         for node in &tile.nodes {
             let nk = &self.db.nodes[node.kind];
             if let Some((id, _)) = nk.bels.get(key) {
-                return Some(self.get_bel(die.die, node, id));
+                return Some(self.get_bel(die.die, coord.0, coord.1, node, id));
             }
         }
         None
@@ -1248,7 +1254,7 @@ pub fn verify(
                 for node in &die[(col, row)].nodes {
                     let nk = &grid.db.nodes[node.kind];
                     for id in nk.bels.ids() {
-                        let ctx = vrf.get_bel(die.die, node, id);
+                        let ctx = vrf.get_bel(die.die, col, row, node, id);
                         bel_handler(&mut vrf, &ctx);
                     }
                 }
