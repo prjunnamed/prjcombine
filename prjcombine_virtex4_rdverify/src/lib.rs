@@ -349,7 +349,7 @@ fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_clk_iob(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_clk_iob(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..16 {
         vrf.claim_node(&[bel.fwire(&format!("PAD_BUF{i}"))]);
         vrf.claim_node(&[bel.fwire(&format!("GIOB{i}"))]);
@@ -371,6 +371,12 @@ fn verify_clk_iob(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(obel.crd(), obel.wire("CLKOUT"), obel.wire("O"));
         }
     }
+    let dy = if bel.row < grid.row_cfg_below() {
+        -8
+    } else {
+        16
+    };
+    let obel = vrf.find_bel_delta(bel, 0, dy, "CLK_DCM").unwrap();
     for i in 0..32 {
         vrf.claim_node(&[bel.fwire(&format!("MUXBUS_O{i}"))]);
         vrf.claim_pip(
@@ -378,6 +384,10 @@ fn verify_clk_iob(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             bel.wire(&format!("MUXBUS_O{i}")),
             bel.wire(&format!("MUXBUS_I{i}")),
         );
+        vrf.verify_node(&[
+            bel.fwire(&format!("MUXBUS_I{i}")),
+            obel.fwire(&format!("MUXBUS_O{i}")),
+        ]);
         for j in 0..16 {
             vrf.claim_pip(
                 bel.crd(),
@@ -385,7 +395,54 @@ fn verify_clk_iob(_grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.wire(&format!("PAD_BUF{j}")),
             );
         }
-        // XXX source MUXBUS_I
+    }
+}
+
+fn verify_clk_dcm(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    for i in 0..2 {
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, bel.row + i * 4), "DCM")
+            .or_else(|| vrf.find_bel(bel.die, (bel.col, bel.row + i * 4), "CCM"))
+            .unwrap();
+        for j in 0..12 {
+            vrf.claim_node(&[bel.fwire(&format!("DCM{k}", k = j + i * 12))]);
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("DCM{k}", k = j + i * 12)),
+                bel.wire(&format!("DCM{i}_{j}")),
+            );
+            vrf.verify_node(&[
+                bel.fwire(&format!("DCM{i}_{j}")),
+                obel.fwire(&format!("TO_BUFG{j}")),
+            ]);
+        }
+    }
+    let dy = if bel.row < grid.row_cfg_below() {
+        -8
+    } else {
+        8
+    };
+    let obel = vrf.find_bel_delta(bel, 0, dy, "CLK_DCM");
+    for i in 0..32 {
+        vrf.claim_node(&[bel.fwire(&format!("MUXBUS_O{i}"))]);
+        if let Some(ref obel) = obel {
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("MUXBUS_O{i}")),
+                bel.wire(&format!("MUXBUS_I{i}")),
+            );
+            vrf.verify_node(&[
+                bel.fwire(&format!("MUXBUS_I{i}")),
+                obel.fwire(&format!("MUXBUS_O{i}")),
+            ]);
+        }
+        for j in 0..24 {
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("MUXBUS_O{i}")),
+                bel.wire(&format!("DCM{j}")),
+            );
+        }
     }
 }
 
@@ -1337,6 +1394,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
 
         "CLK_HROW" => verify_clk_hrow(grid, vrf, bel),
         "CLK_IOB" => verify_clk_iob(grid, vrf, bel),
+        "CLK_DCM" => verify_clk_dcm(grid, vrf, bel),
 
         _ if bel.key.starts_with("BUFR") => verify_bufr(vrf, bel),
         _ if bel.key.starts_with("BUFIO") => verify_bufio(vrf, bel),

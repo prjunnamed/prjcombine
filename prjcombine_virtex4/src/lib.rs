@@ -798,6 +798,16 @@ impl Grid {
                         ccmy += 1;
                     }
                 }
+                if row.to_idx() % 8 == 0 {
+                    let bt = if row < self.row_dcmiob() { 'B' } else { 'T' };
+                    let name = format!("CLKV_DCM_{bt}_X{x}Y{y}");
+                    grid[(col, row)].add_xnode(
+                        db.get_node("CLK_DCM"),
+                        &[&name],
+                        db.get_node_naming("CLK_DCM"),
+                        &[(col, row)],
+                    );
+                }
             }
 
             if row.to_idx() % 16 == 8 {

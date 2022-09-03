@@ -848,6 +848,29 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for tkn in ["CLKV_DCM_B", "CLKV_DCM_T"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CLK_DCM");
+            for i in 0..12 {
+                bel = bel
+                    .extra_wire(format!("DCM0_{i}"), &[format!("CLKV_DCM_DCM0_CLKP{i}")])
+                    .extra_wire(format!("DCM1_{i}"), &[format!("CLKV_DCM_DCM1_CLKP{i}")]);
+            }
+            for i in 0..24 {
+                bel = bel.extra_wire(format!("DCM{i}"), &[format!("CLKV_DCM_DCM_OUTCLKP{i}")]);
+            }
+            for i in 0..32 {
+                bel = bel
+                    .extra_wire_force(format!("MUXBUS_I{i}"), &format!("CLK_IOB_MUXED_CLKP_IN{i}"));
+                bel = bel.extra_wire(
+                    format!("MUXBUS_O{i}"),
+                    &[format!("CLKV_DCM_MUXED_CLKP_OUT{i}")],
+                );
+            }
+            builder.xnode("CLK_DCM", "CLK_DCM", xy).bel(bel).extract();
+        }
+    }
+
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK").iter().next() {
         let bel_gsig = builder.bel_xy("GLOBALSIG", "GLOBALSIG", 0, 0);
         let mut bel = builder.bel_virtual("HCLK");
