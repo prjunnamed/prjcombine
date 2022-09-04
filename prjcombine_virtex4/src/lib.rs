@@ -36,6 +36,14 @@ impl Grid {
         RowId::from_idx(self.reg_cfg * 16 + 8)
     }
 
+    pub fn col_lgt(&self) -> ColId {
+        self.columns.first_id().unwrap()
+    }
+
+    pub fn col_rgt(&self) -> ColId {
+        self.columns.last_id().unwrap()
+    }
+
     pub fn has_mgt(&self) -> bool {
         *self.columns.first().unwrap() == ColumnKind::Gt
     }
@@ -1195,6 +1203,59 @@ impl Grid {
                 bx += 1;
             } else {
                 dx += 1;
+            }
+        }
+
+        for (col, &cd) in &self.columns {
+            if cd != ColumnKind::Gt {
+                continue;
+            }
+            let x = col.to_idx();
+            let lr = if col.to_idx() == 0 { 'L' } else { 'R' };
+            let gtx = if col.to_idx() == 0 { 0 } else { 1 };
+            let ipx = if col.to_idx() == 0 {
+                0
+            } else if self.has_bot_sysmon {
+                2
+            } else {
+                1
+            };
+            let mut ipy = 0;
+            if self.has_bot_sysmon {
+                ipy = 2;
+            }
+            for row in grid.rows() {
+                let y = row.to_idx();
+                if row.to_idx() % 32 == 16 {
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("MGTCLK"),
+                        &[&format!("BRKH_MGT11CLK_{lr}_X{x}Y{y}", y = y - 1)],
+                        db.get_node_naming(&format!("BRKH_MGT11CLK_{lr}")),
+                        &[],
+                    );
+                    let gty = y / 32;
+                    node.add_bel(0, format!("GT11CLK_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1));
+                    node.add_bel(2, format!("IPAD_X{ipx}Y{ipy}"));
+                    ipy += 2;
+                }
+                if row.to_idx() % 16 == 0 {
+                    let ab = if row.to_idx() % 32 == 0 { 'B' } else { 'A' };
+                    let crds: [_; 16] = core::array::from_fn(|i| (col, row + i));
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("MGT"),
+                        &[&format!("MGT_{ab}{lr}_X{x}Y{y}", y = y + 8)],
+                        db.get_node_naming(&format!("MGT_{ab}{lr}")),
+                        &crds,
+                    );
+                    let gty = y / 16;
+                    node.add_bel(0, format!("GT11_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IPAD_X{ipx}Y{ipy}"));
+                    node.add_bel(2, format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1));
+                    node.add_bel(3, format!("OPAD_X{gtx}Y{opy}", opy = gty * 2));
+                    node.add_bel(4, format!("OPAD_X{gtx}Y{opy}", opy = gty * 2 + 1));
+                    ipy += 2;
+                }
             }
         }
 

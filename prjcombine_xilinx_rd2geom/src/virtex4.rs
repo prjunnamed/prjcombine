@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use crate::db::{make_device, PreDevice};
 use prjcombine_rdverify::verify;
 use prjcombine_virtex4_rd2db::{bond, grid, int};
-use prjcombine_virtex4_rdverify::verify_bel;
+use prjcombine_virtex4_rdverify::{verify_bel, verify_extra};
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
@@ -21,7 +21,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         rd,
         &eint,
         |vrf, ctx| verify_bel(&grid, vrf, ctx),
-        |vrf| vrf.skip_residual(),
+        |vrf| verify_extra(&grid, vrf),
     );
     (
         make_device(rd, Grid::Virtex4(grid), bonds, BTreeSet::new()),

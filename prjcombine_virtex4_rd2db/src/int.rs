@@ -1587,10 +1587,224 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "SYSMON",
             &[
                 bel,
-                builder.bel_xy("IPAD0", "IPAD", 0, 0).pins_name_only(&["O"]),
-                builder.bel_xy("IPAD1", "IPAD", 0, 1).pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_SYSMON_0", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_SYSMON_1", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
             ],
         );
+    }
+
+    for (tkn, naming) in [
+        ("MGT_AL", "MGT_AL"),
+        ("MGT_AL_BOT", "MGT_AL"),
+        ("MGT_AL_MID", "MGT_AL"),
+        ("MGT_BL", "MGT_BL"),
+        ("MGT_AR", "MGT_AR"),
+        ("MGT_AR_BOT", "MGT_AR"),
+        ("MGT_AR_MID", "MGT_AR"),
+        ("MGT_BR", "MGT_BR"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_x = if xy.x == 0 { xy.x + 1 } else { xy.x - 1 };
+            let mut int_xy = Vec::new();
+            for dy in 0..17 {
+                if dy == 8 {
+                    continue;
+                }
+                int_xy.push(Coord {
+                    x: int_x,
+                    y: xy.y - 9 + dy,
+                });
+            }
+            let mut bel = builder
+                .bel_xy("GT11", "GT11", 0, 0)
+                .pins_name_only(&["TX1P", "TX1N", "RX1P", "RX1N", "RXMCLK"])
+                .pin_name_only("REFCLK1", 1)
+                .pin_name_only("REFCLK2", 1)
+                .pin_name_only("GREFCLK", 1)
+                .pin_name_only("TXPCSHCLKOUT", 1)
+                .pin_name_only("RXPCSHCLKOUT", 1)
+                .extra_wire("REFCLK", &["MGT_REFCLK"])
+                .extra_wire("PMACLK", &["MGT_PMACLK_OUT"])
+                .extra_wire("MGT0", &["MGT_MGT0"])
+                .extra_wire("MGT1", &["MGT_MGT1"])
+                .extra_wire("SYNCLK_OUT", &["MGT_SYNCLK_OUT"])
+                .extra_wire(
+                    "SYNCLK1_OUT",
+                    &["MGT_SYNCLK1_OUT", "MGT_SYNCLK1_LB", "MGT_SYNCLK1_RB"],
+                )
+                .extra_wire(
+                    "SYNCLK2_OUT",
+                    &["MGT_SYNCLK2_OUT", "MGT_SYNCLK2_LB", "MGT_SYNCLK2_RB"],
+                )
+                .extra_wire(
+                    "FWDCLK0_OUT",
+                    &[
+                        "MGT_FWDCLK0A_L",
+                        "MGT_FWDCLK0A_R",
+                        "MGT_FWDCLK0B_L",
+                        "MGT_FWDCLK0B_R",
+                    ],
+                )
+                .extra_wire(
+                    "FWDCLK1_OUT",
+                    &[
+                        "MGT_FWDCLK1A_L",
+                        "MGT_FWDCLK1A_R",
+                        "MGT_FWDCLK1B_L",
+                        "MGT_FWDCLK1B_R",
+                    ],
+                )
+                .extra_wire("FWDCLK1_B", &["MGT_FWDCLK1_B"])
+                .extra_wire("FWDCLK2_B", &["MGT_FWDCLK2_B"])
+                .extra_wire("FWDCLK3_B", &["MGT_FWDCLK3_B"])
+                .extra_wire("FWDCLK4_B", &["MGT_FWDCLK4_B"])
+                .extra_wire("FWDCLK1_T", &["MGT_FWDCLK1_T"])
+                .extra_wire("FWDCLK2_T", &["MGT_FWDCLK2_T"])
+                .extra_wire("FWDCLK3_T", &["MGT_FWDCLK3_T"])
+                .extra_wire("FWDCLK4_T", &["MGT_FWDCLK4_T"]);
+            for i in 0..16 {
+                bel = bel.pins_name_only(&[format!("COMBUSIN{i}"), format!("COMBUSOUT{i}")]);
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(format!("GCLK{i}"), &[format!("MGT_G_HCLKP{i}")]);
+            }
+            if naming.starts_with("MGT_B") {
+                bel = bel.pin_name_only("RXMCLK", 1);
+            }
+            builder.extract_xnode_bels(
+                "MGT",
+                xy,
+                &[],
+                &int_xy,
+                naming,
+                &[
+                    bel,
+                    builder
+                        .bel_xy("IPAD_GT_0", "IPAD", 0, 0)
+                        .pins_name_only(&["O"]),
+                    builder
+                        .bel_xy("IPAD_GT_1", "IPAD", 0, 1)
+                        .pins_name_only(&["O"]),
+                    builder
+                        .bel_xy("OPAD_GT_0", "OPAD", 0, 0)
+                        .pins_name_only(&["I"]),
+                    builder
+                        .bel_xy("OPAD_GT_1", "OPAD", 0, 1)
+                        .pins_name_only(&["I"]),
+                ],
+            );
+        }
+    }
+
+    for tkn in ["BRKH_MGT11CLK_L", "BRKH_MGT11CLK_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder
+                .bel_xy("GT11CLK", "GT11CLK", 0, 0)
+                .pins_name_only(&[
+                    "SYNCLK1IN",
+                    "SYNCLK2IN",
+                    "SYNCLK1OUT",
+                    "SYNCLK2OUT",
+                    "RXBCLK",
+                    "REFCLK",
+                    "MGTCLKP",
+                    "MGTCLKN",
+                ])
+                .extra_wire("PMACLK", &["GT11CLK_PMACLK_L", "GT11CLK_PMACLK_R"])
+                .extra_wire("PMACLKA", &["GT11CLK_PMACLKA"])
+                .extra_wire("PMACLKB", &["GT11CLK_PMACLKB"])
+                .extra_wire("REFCLKA", &["GT11CLK_REFCLKA"])
+                .extra_wire("REFCLKB", &["GT11CLK_REFCLKB"])
+                .extra_wire(
+                    "SYNCLK1_N",
+                    &["GT11CLK_SYNCLK1OUT_L", "GT11CLK_SYNCLK1OUT_R"],
+                )
+                .extra_wire(
+                    "SYNCLK2_N",
+                    &["GT11CLK_SYNCLK2OUT_L", "GT11CLK_SYNCLK2OUT_R"],
+                )
+                .extra_wire("SYNCLK1_S", &["GT11CLK_SYNCLK1IN"])
+                .extra_wire("SYNCLK2_S", &["GT11CLK_SYNCLK2IN"])
+                .extra_wire("NFWDCLK1", &["GT11CLK_NFWDCLK1"])
+                .extra_wire("NFWDCLK2", &["GT11CLK_NFWDCLK2"])
+                .extra_wire("NFWDCLK3", &["GT11CLK_NFWDCLK3"])
+                .extra_wire("NFWDCLK4", &["GT11CLK_NFWDCLK4"])
+                .extra_wire("SFWDCLK1", &["GT11CLK_SFWDCLK1"])
+                .extra_wire("SFWDCLK2", &["GT11CLK_SFWDCLK2"])
+                .extra_wire("SFWDCLK3", &["GT11CLK_SFWDCLK3"])
+                .extra_wire("SFWDCLK4", &["GT11CLK_SFWDCLK4"])
+                .extra_wire(
+                    "FWDCLK0A_OUT",
+                    &["GT11CLK_FWDCLK0A_L", "GT11CLK_FWDCLK0A_R"],
+                )
+                .extra_wire(
+                    "FWDCLK1A_OUT",
+                    &["GT11CLK_FWDCLK1A_L", "GT11CLK_FWDCLK1A_R"],
+                )
+                .extra_wire(
+                    "FWDCLK0B_OUT",
+                    &["GT11CLK_FWDCLK0B_L", "GT11CLK_FWDCLK0B_R"],
+                )
+                .extra_wire(
+                    "FWDCLK1B_OUT",
+                    &["GT11CLK_FWDCLK1B_L", "GT11CLK_FWDCLK1B_R"],
+                )
+                .extra_wire("RXPCSHCLKOUTA", &["GT11CLK_RXPCSHCLKOUTA"])
+                .extra_wire("RXPCSHCLKOUTB", &["GT11CLK_RXPCSHCLKOUTB"])
+                .extra_wire("TXPCSHCLKOUTA", &["GT11CLK_TXPCSHCLKOUTA"])
+                .extra_wire("TXPCSHCLKOUTB", &["GT11CLK_TXPCSHCLKOUTB"]);
+            for i in 0..16 {
+                bel = bel
+                    .extra_wire(
+                        format!("COMBUSIN_A{i}"),
+                        &[
+                            format!("GT11_COMBUS_LCLK_IN_AL{i}"),
+                            format!("GT11_COMBUS_RCLK_IN_AR{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("COMBUSIN_B{i}"),
+                        &[
+                            format!("GT11_COMBUS_LCLK_IN_BL{i}"),
+                            format!("GT11_COMBUS_RCLK_IN_BR{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("COMBUSOUT_A{i}"),
+                        &[
+                            format!("GT11_COMBUS_LCLK_OUT_AL{i}"),
+                            format!("GT11_COMBUS_RCLK_OUT_AR{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("COMBUSOUT_B{i}"),
+                        &[
+                            format!("GT11_COMBUS_LCLK_OUT_BL{i}"),
+                            format!("GT11_COMBUS_RCLK_OUT_BR{i}"),
+                        ],
+                    );
+            }
+            builder.extract_xnode_bels(
+                "MGTCLK",
+                xy,
+                &[],
+                &[],
+                tkn,
+                &[
+                    bel,
+                    builder
+                        .bel_xy("IPAD_GTCLK_0", "IPAD", 0, 1)
+                        .pins_name_only(&["O"]),
+                    builder
+                        .bel_xy("IPAD_GTCLK_1", "IPAD", 0, 0)
+                        .pins_name_only(&["O"]),
+                ],
+            );
+        }
     }
 
     builder.build()
