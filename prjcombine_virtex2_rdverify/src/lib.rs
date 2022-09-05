@@ -18,26 +18,6 @@ fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "RESERVED_LL", &pins, &[]);
 }
 
-fn verify_ppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let mut skip_pins = vec![];
-    for i in 15..29 {
-        skip_pins.push(format!("ISOCMBRAMWRABUS{i}.BL"));
-        skip_pins.push(format!("ISOCMBRAMWRABUS{i}.BR"));
-        skip_pins.push(format!("ISOCMBRAMRDABUS{i}.BL"));
-        skip_pins.push(format!("ISOCMBRAMRDABUS{i}.BR"));
-    }
-    for i in 16..30 {
-        skip_pins.push(format!("DSOCMBRAMABUS{i}.TL"));
-        skip_pins.push(format!("DSOCMBRAMABUS{i}.TR"));
-    }
-    let skip_pins_ref: Vec<_> = skip_pins.iter().map(|x| &**x).collect();
-    vrf.verify_bel(bel, bel.key, &[], &skip_pins_ref);
-    for pin in skip_pins {
-        let spin = &pin[..pin.find('.').unwrap()];
-        vrf.claim_pip(bel.crd(), bel.wire(&pin), bel.wire(spin));
-    }
-}
-
 fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     if edev.grid.kind == GridKind::Virtex2PX {
         vrf.verify_bel(
@@ -236,7 +216,6 @@ pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         "DCMCONN.S3E" => (),
         "DCMCONN" => clk::verify_dcmconn(edev, vrf, bel),
 
-        "PPC405" => verify_ppc(vrf, bel),
         _ if bel.key.starts_with("GT") => verify_gt(edev, vrf, bel),
         _ if bel.key.starts_with("IPAD") => {
             vrf.verify_bel(bel, "GTIPAD", &[("I", SitePinDir::Out)], &[]);
@@ -248,7 +227,7 @@ pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
 
         "STARTUP" | "CAPTURE" | "SPI_ACCESS" | "BSCAN" | "JTAGPPC" | "PMV" | "DNA_PORT"
-        | "PCILOGIC" => {
+        | "PCILOGIC" | "PPC405" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
         }
         "DCM" => {

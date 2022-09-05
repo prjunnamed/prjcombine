@@ -1,7 +1,5 @@
-use prjcombine_entity::EntityId;
-use prjcombine_int::db::{Dir, IntDb, NodeTileId, WireKind};
+use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::{Coord, Part};
-use std::collections::BTreeMap;
 
 use prjcombine_rdintb::IntBuilder;
 
@@ -417,8 +415,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     // BRAM special inputs
     let bram_s = builder.make_term_naming("BRAM.S");
-    let mut bram_addr_ppc_t = BTreeMap::new();
-    let mut bram_addr_ppc_b = BTreeMap::new();
     for ab in ['A', 'B'] {
         for i in 0..4 {
             let root = builder.mux_out(
@@ -434,9 +430,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             last,
                             format!("BRAMSITE_NADDRIN_{ab}_S{k}", k = (i ^ 3) + (j - 1) * 4),
                         );
-                        bram_addr_ppc_t.insert((ab, i + (4 - j) * 4), last);
+                        let idx = i + (4 - j) * 4;
+                        if ab == 'A' && idx < 14 {
+                            builder.extra_name_sub(format!("PPC_ADR_T00_{idx}"), 40, last);
+                            builder.extra_name_sub(format!("PPC_ADR_T01_{idx}"), 47, last);
+                        }
                     } else {
-                        bram_addr_ppc_b.insert((ab, i + (j - 1) * 4), last);
+                        let idx = i + (j - 1) * 4;
+                        if ab == 'A' && idx < 14 {
+                            builder.extra_name_sub(format!("PPC_ADR_B00_{idx}"), 32, last);
+                            builder.extra_name_sub(format!("PPC_ADR_B01_{idx}"), 39, last);
+                        }
+                        if ab == 'B' && idx < 14 {
+                            builder.extra_name_sub(format!("PPC_ADR_B00_{idx}", idx = idx + 14), 32, last);
+                            builder.extra_name_sub(format!("PPC_ADR_B01_{idx}", idx = idx + 14), 39, last);
+                        }
                     }
                     if j == 4 {
                         last = builder.branch(
@@ -1638,38 +1646,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: xy.y + 7,
                 });
             }
-            let mut bel = builder.bel_xy("PPC405", "PPC405", 0, 0);
-            for (i, t, lr) in [
-                (0, NodeTileId::from_idx(40), 'L'),
-                (1, NodeTileId::from_idx(47), 'R'),
-            ] {
-                for j in 0..14 {
-                    bel = bel.extra_int_in_force(
-                        format!("DSOCMBRAMABUS{jj}.T{lr}", jj = j + 16),
-                        (t, bram_addr_ppc_t[&('A', j)]),
-                        format!("PPC_ADR_T0{i}_{j}"),
-                    );
-                }
-            }
-            for (i, t, lr) in [
-                (0, NodeTileId::from_idx(32), 'L'),
-                (1, NodeTileId::from_idx(39), 'R'),
-            ] {
-                for j in 0..14 {
-                    bel = bel
-                        .extra_int_in_force(
-                            format!("ISOCMBRAMWRABUS{jj}.B{lr}", jj = j + 15),
-                            (t, bram_addr_ppc_b[&('A', j)]),
-                            format!("PPC_ADR_B0{i}_{j}"),
-                        )
-                        .extra_int_in_force(
-                            format!("ISOCMBRAMRDABUS{jj}.B{lr}", jj = j + 15),
-                            (t, bram_addr_ppc_b[&('B', j)]),
-                            format!("PPC_ADR_B0{i}_{jj}", jj = j + 14),
-                        );
-                }
-            }
-            builder.extract_xnode_bels(tkn, xy, &[], &int_xy, tkn, &[bel]);
+            builder.extract_xnode_bels(tkn, xy, &[], &int_xy, tkn, &[
+            builder.bel_xy("PPC405", "PPC405", 0, 0)
+            ]);
         }
     }
 
