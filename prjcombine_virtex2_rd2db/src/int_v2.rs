@@ -442,8 +442,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             builder.extra_name_sub(format!("PPC_ADR_B01_{idx}"), 39, last);
                         }
                         if ab == 'B' && idx < 14 {
-                            builder.extra_name_sub(format!("PPC_ADR_B00_{idx}", idx = idx + 14), 32, last);
-                            builder.extra_name_sub(format!("PPC_ADR_B01_{idx}", idx = idx + 14), 39, last);
+                            builder.extra_name_sub(
+                                format!("PPC_ADR_B00_{idx}", idx = idx + 14),
+                                32,
+                                last,
+                            );
+                            builder.extra_name_sub(
+                                format!("PPC_ADR_B01_{idx}", idx = idx + 14),
+                                39,
+                                last,
+                            );
                         }
                     }
                     if j == 4 {
@@ -1646,9 +1654,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     y: xy.y + 7,
                 });
             }
-            builder.extract_xnode_bels(tkn, xy, &[], &int_xy, tkn, &[
-            builder.bel_xy("PPC405", "PPC405", 0, 0)
-            ]);
+            builder.extract_xnode_bels(
+                tkn,
+                xy,
+                &[],
+                &int_xy,
+                tkn,
+                &[builder.bel_xy("PPC405", "PPC405", 0, 0)],
+            );
         }
     }
 
