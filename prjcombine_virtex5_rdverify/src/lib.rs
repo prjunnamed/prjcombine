@@ -204,10 +204,10 @@ fn verify_sysmon(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "SYSMON", &pin_refs, &[]);
 
     vrf.claim_node(&[bel.fwire("VP")]);
-    let obel = vrf.find_bel_sibling(bel, "IPAD_SYSMON_0");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VP");
     vrf.claim_pip(bel.crd(), bel.wire("VP"), obel.wire("O"));
     vrf.claim_node(&[bel.fwire("VN")]);
-    let obel = vrf.find_bel_sibling(bel, "IPAD_SYSMON_1");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
     vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
 
     let vaux_dy = [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19];
@@ -877,19 +877,19 @@ fn verify_gt(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 
     for (pin, key) in [
-        ("RXP0", "IPAD_GT_0"),
-        ("RXN0", "IPAD_GT_1"),
-        ("RXP1", "IPAD_GT_2"),
-        ("RXN1", "IPAD_GT_3"),
+        ("RXP0", "IPAD.RXP0"),
+        ("RXN0", "IPAD.RXN0"),
+        ("RXP1", "IPAD.RXP1"),
+        ("RXN1", "IPAD.RXN1"),
     ] {
         let obel = vrf.find_bel_sibling(bel, key);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
     }
     for (pin, key) in [
-        ("TXP0", "OPAD_GT_0"),
-        ("TXN0", "OPAD_GT_1"),
-        ("TXP1", "OPAD_GT_2"),
-        ("TXN1", "OPAD_GT_3"),
+        ("TXP0", "OPAD.TXP0"),
+        ("TXN0", "OPAD.TXN0"),
+        ("TXP1", "OPAD.TXP1"),
+        ("TXN1", "OPAD.TXN1"),
     ] {
         let obel = vrf.find_bel_sibling(bel, key);
         vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire(pin));
@@ -947,7 +947,7 @@ fn verify_bufds(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    for (pin, key) in [("IP", "IPAD_GTCLK_0"), ("IN", "IPAD_GTCLK_1")] {
+    for (pin, key) in [("IP", "IPAD.CLKP"), ("IN", "IPAD.CLKN")] {
         let obel = vrf.find_bel_sibling(bel, key);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
     }

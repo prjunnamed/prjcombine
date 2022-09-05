@@ -1259,10 +1259,10 @@ fn verify_sysmon(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         ]);
     }
     vrf.claim_node(&[bel.fwire("VP")]);
-    let obel = vrf.find_bel_sibling(bel, "IPAD_SYSMON_0");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VP");
     vrf.claim_pip(bel.crd(), bel.wire("VP"), obel.wire("O"));
     vrf.claim_node(&[bel.fwire("VN")]);
-    let obel = vrf.find_bel_sibling(bel, "IPAD_SYSMON_1");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
     vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
     for (i, dy) in [(1, 0), (2, 1), (3, 2), (4, 3), (5, 5), (6, 6), (7, 7)] {
         vrf.claim_node(&[bel.fwire(&format!("VP{i}"))]);
@@ -1470,13 +1470,13 @@ fn verify_gt11(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
 
-    let obel = vrf.find_bel_sibling(bel, "IPAD_GT_0");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.RXP");
     vrf.claim_pip(bel.crd(), bel.wire("RX1P"), obel.wire("O"));
-    let obel = vrf.find_bel_sibling(bel, "IPAD_GT_1");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.RXN");
     vrf.claim_pip(bel.crd(), bel.wire("RX1N"), obel.wire("O"));
-    let obel = vrf.find_bel_sibling(bel, "OPAD_GT_0");
+    let obel = vrf.find_bel_sibling(bel, "OPAD.TXP");
     vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire("TX1P"));
-    let obel = vrf.find_bel_sibling(bel, "OPAD_GT_1");
+    let obel = vrf.find_bel_sibling(bel, "OPAD.TXN");
     vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire("TX1N"));
 
     if bel.row.to_idx() % 32 == 0 {
@@ -1592,9 +1592,9 @@ fn verify_gt11clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    let obel = vrf.find_bel_sibling(bel, "IPAD_GTCLK_0");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.CLKP");
     vrf.claim_pip(bel.crd(), bel.wire("MGTCLKP"), obel.wire("O"));
-    let obel = vrf.find_bel_sibling(bel, "IPAD_GTCLK_1");
+    let obel = vrf.find_bel_sibling(bel, "IPAD.CLKN");
     vrf.claim_pip(bel.crd(), bel.wire("MGTCLKN"), obel.wire("O"));
     let obel_a = vrf.find_bel_delta(bel, 0, 0, "GT11").unwrap();
     let obel_b = vrf.find_bel_delta(bel, 0, -16, "GT11").unwrap();

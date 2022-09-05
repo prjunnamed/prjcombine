@@ -1601,10 +1601,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[
                 bel,
                 builder
-                    .bel_xy("IPAD_SYSMON_0", "IPAD", 0, 0)
+                    .bel_xy("IPAD.VP", "IPAD", 0, 0)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_SYSMON_1", "IPAD", 0, 1)
+                    .bel_xy("IPAD.VN", "IPAD", 0, 1)
                     .pins_name_only(&["O"]),
             ],
         );
@@ -1697,16 +1697,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 &[
                     bel,
                     builder
-                        .bel_xy("IPAD_GT_0", "IPAD", 0, 0)
+                        .bel_xy("IPAD.RXP", "IPAD", 0, 0)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy("IPAD_GT_1", "IPAD", 0, 1)
+                        .bel_xy("IPAD.RXN", "IPAD", 0, 1)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy("OPAD_GT_0", "OPAD", 0, 0)
+                        .bel_xy("OPAD.TXP", "OPAD", 0, 0)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_xy("OPAD_GT_1", "OPAD", 0, 1)
+                        .bel_xy("OPAD.TXN", "OPAD", 0, 1)
                         .pins_name_only(&["I"]),
                 ],
             );
@@ -1810,10 +1810,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 &[
                     bel,
                     builder
-                        .bel_xy("IPAD_GTCLK_0", "IPAD", 0, 1)
+                        .bel_xy("IPAD.CLKP", "IPAD", 0, 1)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy("IPAD_GTCLK_1", "IPAD", 0, 0)
+                        .bel_xy("IPAD.CLKN", "IPAD", 0, 0)
                         .pins_name_only(&["O"]),
                 ],
             );

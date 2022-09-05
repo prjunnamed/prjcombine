@@ -833,10 +833,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             builder.bel_single("EFUSE_USR", "EFUSE_USR"),
             bel_sysmon,
             builder
-                .bel_xy("IPAD_SYSMON_0", "IPAD", 0, 0)
+                .bel_xy("IPAD.VP", "IPAD", 0, 0)
                 .pins_name_only(&["O"]),
             builder
-                .bel_xy("IPAD_SYSMON_1", "IPAD", 0, 1)
+                .bel_xy("IPAD.VN", "IPAD", 0, 1)
                 .pins_name_only(&["O"]),
             bel_mgtclk_b,
             bel_mgtclk_t,
@@ -1674,34 +1674,34 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 builder.bel_xy("CRC32_2", "CRC32", 0, 2),
                 builder.bel_xy("CRC32_3", "CRC32", 0, 3),
                 builder
-                    .bel_xy("IPAD_GT_0", "IPAD", 0, 1)
+                    .bel_xy("IPAD.RXP0", "IPAD", 0, 1)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_GT_1", "IPAD", 0, 0)
+                    .bel_xy("IPAD.RXN0", "IPAD", 0, 0)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_GT_2", "IPAD", 0, 3)
+                    .bel_xy("IPAD.RXP1", "IPAD", 0, 3)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_GT_3", "IPAD", 0, 2)
+                    .bel_xy("IPAD.RXN1", "IPAD", 0, 2)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_GTCLK_0", "IPAD", 0, 5)
+                    .bel_xy("IPAD.CLKP", "IPAD", 0, 5)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("IPAD_GTCLK_1", "IPAD", 0, 4)
+                    .bel_xy("IPAD.CLKN", "IPAD", 0, 4)
                     .pins_name_only(&["O"]),
                 builder
-                    .bel_xy("OPAD_GT_0", "OPAD", 0, 1)
+                    .bel_xy("OPAD.TXP0", "OPAD", 0, 1)
                     .pins_name_only(&["I"]),
                 builder
-                    .bel_xy("OPAD_GT_1", "OPAD", 0, 0)
+                    .bel_xy("OPAD.TXN0", "OPAD", 0, 0)
                     .pins_name_only(&["I"]),
                 builder
-                    .bel_xy("OPAD_GT_2", "OPAD", 0, 3)
+                    .bel_xy("OPAD.TXP1", "OPAD", 0, 3)
                     .pins_name_only(&["I"]),
                 builder
-                    .bel_xy("OPAD_GT_3", "OPAD", 0, 2)
+                    .bel_xy("OPAD.TXN1", "OPAD", 0, 2)
                     .pins_name_only(&["I"]),
             ];
 
