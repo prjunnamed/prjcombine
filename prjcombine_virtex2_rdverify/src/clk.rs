@@ -88,7 +88,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
                 Edge::Top => -1,
                 _ => unreachable!(),
             };
-            let obel = vrf.find_bel_delta(bel, 0, dy, "DCMCONN.S3E").unwrap();
+            let obel = vrf.find_bel_delta(bel, -1, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
                 (Edge::Top, 0) => ("CLKPAD0", "OUT0"),
                 (Edge::Top, 1) => ("CLKPAD1", "OUT1"),
@@ -118,7 +118,7 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
                 Edge::Top => -1,
                 _ => unreachable!(),
             };
-            let obel = vrf.find_bel_delta(bel, 1, dy, "DCMCONN.S3E").unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
                 (Edge::Top, 0) => ("CLKPAD2", "OUT0"),
                 (Edge::Top, 1) => ("CLKPAD3", "OUT1"),
@@ -213,7 +213,7 @@ pub fn verify_gclkh(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
                 'R'
             };
             let obel = vrf
-                .find_bel(bel.die, (edev.grid.col_clk, bel.row + 1), "GCLKC")
+                .find_bel(bel.die, (edev.grid.col_clk, bel.row), "GCLKC")
                 .unwrap();
             vrf.verify_node(&[
                 bel.fwire(&format!("IN{i}")),
@@ -226,9 +226,7 @@ pub fn verify_gclkh(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCont
                 col_cr
             };
             let lr = if bel.col < scol { 'L' } else { 'R' };
-            let obel = vrf
-                .find_bel(bel.die, (scol, bel.row + 1), "GCLKVC")
-                .unwrap();
+            let obel = vrf.find_bel(bel.die, (scol, bel.row), "GCLKVC").unwrap();
             vrf.verify_node(&[
                 bel.fwire(&format!("IN{i}")),
                 obel.fwire(&format!("OUT_{lr}{i}")),
@@ -293,11 +291,7 @@ pub fn verify_clkc_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
                 edev.grid.row_top()
             };
             let obel = vrf
-                .find_bel(
-                    bel.die,
-                    (edev.grid.col_clk - 1, srow),
-                    &format!("BUFGMUX{i}"),
-                )
+                .find_bel(bel.die, (edev.grid.col_clk, srow), &format!("BUFGMUX{i}"))
                 .unwrap();
             vrf.verify_node(&[bel.fwire(&format!("IN_{bt}{i}")), obel.fwire_far("O")]);
         }
@@ -319,11 +313,7 @@ pub fn verify_clkc_s3(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             edev.grid.row_top()
         };
         let obel = vrf
-            .find_bel(
-                bel.die,
-                (edev.grid.col_clk - 1, srow),
-                &format!("BUFGMUX{j}"),
-            )
+            .find_bel(bel.die, (edev.grid.col_clk, srow), &format!("BUFGMUX{j}"))
             .unwrap();
         vrf.verify_node(&[bel.fwire(&format!("IN_{bt}{j}")), obel.fwire_far("O")]);
     }
@@ -350,11 +340,7 @@ pub fn verify_clkc_50a(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
                 edev.grid.col_right()
             };
             let obel = vrf
-                .find_bel(
-                    bel.die,
-                    (scol, edev.grid.row_mid() - 1),
-                    &format!("BUFGMUX{i}"),
-                )
+                .find_bel(bel.die, (scol, edev.grid.row_mid()), &format!("BUFGMUX{i}"))
                 .unwrap();
             vrf.verify_node(&[bel.fwire(&format!("IN_{lr}{i}")), obel.fwire_far("O")]);
         }
@@ -364,11 +350,7 @@ pub fn verify_clkc_50a(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
             edev.grid.row_top()
         };
         let obel = vrf
-            .find_bel(
-                bel.die,
-                (edev.grid.col_clk - 1, srow),
-                &format!("BUFGMUX{j}"),
-            )
+            .find_bel(bel.die, (edev.grid.col_clk, srow), &format!("BUFGMUX{j}"))
             .unwrap();
         vrf.verify_node(&[bel.fwire(&format!("IN_{bt}{j}")), obel.fwire_far("O")]);
     }
@@ -405,11 +387,7 @@ pub fn verify_gclkvm(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
                 edev.grid.col_right()
             };
             let obel = vrf
-                .find_bel(
-                    bel.die,
-                    (scol, edev.grid.row_mid() - 1),
-                    &format!("BUFGMUX{i}"),
-                )
+                .find_bel(bel.die, (scol, edev.grid.row_mid()), &format!("BUFGMUX{i}"))
                 .unwrap();
             vrf.verify_node(&[bel.fwire(&format!("IN_LR{i}")), obel.fwire_far("O")]);
         }
@@ -504,14 +482,14 @@ pub fn verify_dcmconn(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     for &(pin_o, pin_i, obk) in pins_out {
         vrf.claim_pip(bel.crd(), bel.wire(pin_o), bel.wire(pin_i));
         let obel = vrf
-            .find_bel(bel.die, (edev.grid.col_clk - 1, bel.row), obk)
+            .find_bel(bel.die, (edev.grid.col_clk, bel.row), obk)
             .unwrap();
         vrf.verify_node(&[bel.fwire(pin_o), obel.fwire(opin_out)]);
     }
     for &(pin_o, pin_i, obk) in pins_pad {
         vrf.claim_pip(bel.crd(), bel.wire(pin_o), bel.wire(pin_i));
         let obel = vrf
-            .find_bel(bel.die, (edev.grid.col_clk - 1, bel.row), obk)
+            .find_bel(bel.die, (edev.grid.col_clk, bel.row), obk)
             .unwrap();
         vrf.verify_node(&[bel.fwire(pin_i), obel.fwire(opin_pad)]);
     }

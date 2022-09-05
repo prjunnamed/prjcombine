@@ -188,7 +188,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 vrf.claim_pip(bel.crd(), bel.wire(opinl), bel.wire(ipin));
                 vrf.claim_pip(bel.crd(), bel.wire(opinr), bel.wire(ipin));
                 let obel = vrf
-                    .find_bel(bel.die, (bel.col + 1, edev.grid.row_clk()), "GCLKC")
+                    .find_bel(bel.die, (bel.col, edev.grid.row_clk()), "GCLKC")
                     .unwrap();
                 vrf.verify_node(&[bel.fwire(ipin), obel.fwire(opin)]);
             }

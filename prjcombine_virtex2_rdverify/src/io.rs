@@ -39,7 +39,7 @@ fn verify_pci_ce(
             }
         }
         let obel = vrf
-            .find_bel(die, (col, edev.grid.row_mid() - 1), "PCILOGICSE")
+            .find_bel(die, (col, edev.grid.row_mid()), "PCILOGICSE")
             .unwrap();
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);

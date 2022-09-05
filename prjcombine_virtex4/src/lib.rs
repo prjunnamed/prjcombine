@@ -813,7 +813,7 @@ impl Grid {
                         db.get_node("CLK_DCM"),
                         &[&name],
                         db.get_node_naming("CLK_DCM"),
-                        &[(col, row)],
+                        &[],
                     );
                 }
             }
@@ -824,7 +824,7 @@ impl Grid {
                     db.get_node("CLK_HROW"),
                     &[&name_hrow],
                     db.get_node_naming("CLK_HROW"),
-                    &[(col, row)],
+                    &[],
                 );
 
                 let reg = row.to_idx() / 16;
@@ -834,7 +834,7 @@ impl Grid {
                         db.get_node("HCLK_DCM"),
                         &[&name, &name_hrow],
                         db.get_node_naming("HCLK_DCM"),
-                        &[(col, row)],
+                        &[],
                     );
                 } else if row == self.row_dcmiob() {
                     let name = format!("HCLK_DCMIOB_X{x}Y{y}", y = y - 1);
@@ -906,7 +906,7 @@ impl Grid {
                 db.get_node("CLK_IOB"),
                 &[&name],
                 db.get_node_naming("CLK_IOB"),
-                &[(col, row)],
+                &[],
             );
         }
         {
@@ -919,7 +919,7 @@ impl Grid {
                 db.get_node("CLK_IOB"),
                 &[&name],
                 db.get_node_naming("CLK_IOB"),
-                &[(col, row)],
+                &[],
             );
         }
 

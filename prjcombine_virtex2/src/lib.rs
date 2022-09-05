@@ -770,7 +770,7 @@ impl Grid {
                     db.get_node("PCI_CE_CNR"),
                     &[&name],
                     db.get_node_naming("PCI_CE_CNR"),
-                    &[c],
+                    &[],
                 );
             }
         }
@@ -1061,7 +1061,7 @@ impl Grid {
                         db.get_node("RANDOR"),
                         &[&name],
                         db.get_node_naming("RANDOR.T"),
-                        &[(col, row)],
+                        &[],
                     );
                     let x = if self.kind == GridKind::Spartan3 {
                         (clut[col] - 1) * 2
@@ -2767,7 +2767,7 @@ impl Grid {
             };
             let vx = vcc_xlut[self.col_clk] - 1;
             let vyb = row_b.to_idx();
-            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+            let node = grid[(self.col_clk, row_b)].add_xnode(
                 db.get_node(kind_b),
                 &[kind_b],
                 db.get_node_naming(kind_b),
@@ -2789,7 +2789,7 @@ impl Grid {
             } else {
                 row_t.to_idx()
             };
-            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+            let node = grid[(self.col_clk, row_t)].add_xnode(
                 db.get_node(kind_t),
                 &[kind_t],
                 db.get_node_naming(kind_t),
@@ -2809,7 +2809,7 @@ impl Grid {
 
             let rt = row_t.to_idx() - self.row_pci.unwrap().to_idx();
             let rb = row_t.to_idx() - self.row_pci.unwrap().to_idx() + 1;
-            let node = grid[(col_l, self.row_pci.unwrap() - 2)].add_xnode(
+            let node = grid[(col_l, self.row_pci.unwrap())].add_xnode(
                 db.get_node("REG_L"),
                 &[
                     if self.kind == GridKind::Virtex2 {
@@ -2829,7 +2829,7 @@ impl Grid {
                 ],
             );
             node.add_bel(0, "PCILOGIC_X0Y0".to_string());
-            let node = grid[(col_r, self.row_pci.unwrap() - 2)].add_xnode(
+            let node = grid[(col_r, self.row_pci.unwrap())].add_xnode(
                 db.get_node("REG_R"),
                 &[
                     if self.kind == GridKind::Virtex2 {
@@ -2853,7 +2853,7 @@ impl Grid {
             let vyb = 0;
             let vyt = vcc_ylut[row_t];
             let vx = vcc_xlut[self.col_clk] - 1;
-            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+            let node = grid[(self.col_clk, row_b)].add_xnode(
                 db.get_node("CLKB.S3"),
                 &["CLKB"],
                 db.get_node_naming("CLKB.S3"),
@@ -2865,7 +2865,7 @@ impl Grid {
             node.add_bel(2, "BUFGMUX2".to_string());
             node.add_bel(3, "BUFGMUX3".to_string());
             node.add_bel(4, format!("GSIG_X{x}Y0", x = self.col_clk.to_idx()));
-            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+            let node = grid[(self.col_clk, row_t)].add_xnode(
                 db.get_node("CLKT.S3"),
                 &["CLKT"],
                 db.get_node_naming("CLKT.S3"),
@@ -2906,7 +2906,7 @@ impl Grid {
             } else {
                 "CLKB.S3A"
             };
-            let node = grid[(self.col_clk - 1, row_b)].add_xnode(
+            let node = grid[(self.col_clk, row_b)].add_xnode(
                 db.get_node(kind_b),
                 &[&tile_b, &buf_b],
                 db.get_node_naming(kind_b),
@@ -2923,7 +2923,7 @@ impl Grid {
             } else {
                 "CLKT.S3A"
             };
-            let node = grid[(self.col_clk - 1, row_t)].add_xnode(
+            let node = grid[(self.col_clk, row_t)].add_xnode(
                 db.get_node(kind_t),
                 &[&tile_t, &buf_t],
                 db.get_node_naming(kind_t),
@@ -2979,7 +2979,7 @@ impl Grid {
                 kind_r = "CLKR.S3A";
             }
             let gsy = (self.rows_hclk.len() + 1) / 2 + 1;
-            let node = grid[(col_l, self.row_mid() - 1)].add_xnode(
+            let node = grid[(col_l, self.row_mid())].add_xnode(
                 db.get_node(kind_l),
                 &tiles_l,
                 db.get_node_naming(kind_l),
@@ -2996,7 +2996,7 @@ impl Grid {
             node.add_bel(8, "PCILOGIC_X0Y0".to_string());
             node.add_bel(9, format!("VCC_X{vxl}Y{vy}"));
             node.add_bel(10, format!("GLOBALSIG_X0Y{gsy}"));
-            let node = grid[(col_r, self.row_mid() - 1)].add_xnode(
+            let node = grid[(col_r, self.row_mid())].add_xnode(
                 db.get_node(kind_r),
                 &tiles_r,
                 db.get_node_naming(kind_r),
@@ -3064,7 +3064,7 @@ impl Grid {
                         db.get_node(kind),
                         &[&name],
                         db.get_node_naming(kind),
-                        &[(col, row)],
+                        &[],
                     );
                 }
             }
@@ -3078,7 +3078,7 @@ impl Grid {
                             db.get_node("PCI_CE_E"),
                             &[&name],
                             db.get_node_naming("PCI_CE_E"),
-                            &[(col_l, row)],
+                            &[],
                         );
                         let x = xlut[col_r] - 1;
                         let name = format!("GCLKV_IOISR_X{x}Y{y}");
@@ -3086,7 +3086,7 @@ impl Grid {
                             db.get_node("PCI_CE_W"),
                             &[&name],
                             db.get_node_naming("PCI_CE_W"),
-                            &[(col_r, row)],
+                            &[],
                         );
                     }
                 }
@@ -3203,7 +3203,7 @@ impl Grid {
                     let y = row_m.to_idx() - 1;
                     format!("{tk}_X{x}Y{y}")
                 };
-                let node = grid[(col, row_m - 1)].add_xnode(
+                let node = grid[(col, row_m)].add_xnode(
                     db.get_node(kind),
                     &[&name],
                     db.get_node_naming(naming),
@@ -3237,11 +3237,11 @@ impl Grid {
                             x = xlut[col] + 1,
                             y = row_m.to_idx() - 1
                         );
-                        let node = grid[(col, row_m - 1)].add_xnode(
+                        let node = grid[(col, row_m)].add_xnode(
                             db.get_node("GCLKH.DSP"),
                             &[&name],
                             db.get_node_naming("GCLKH.DSP"),
-                            &[(col, row_m - 1), (col, row_m)],
+                            &[],
                         );
                         let gsxd = gsx + 1;
                         node.add_bel(0, format!("GLOBALSIG_X{gsxd}Y{gsy}"));
@@ -3260,7 +3260,7 @@ impl Grid {
                     db.get_node("GCLKC"),
                     &[&name],
                     db.get_node_naming("GCLKC"),
-                    &[(self.col_clk, row_m)],
+                    &[],
                 );
             } else if let Some((col_cl, col_cr)) = self.cols_clkv {
                 let r = self.rows_hclk.len() - i;
@@ -3276,7 +3276,7 @@ impl Grid {
                         db.get_node("GCLKVC"),
                         &[&name],
                         db.get_node_naming("GCLKVC"),
-                        &[(col, row_m)],
+                        &[],
                     );
                 }
             }
@@ -3303,7 +3303,7 @@ impl Grid {
                 db.get_node(kind),
                 &[&name],
                 db.get_node_naming(kind),
-                &[(self.col_clk, self.row_mid())],
+                &[],
             );
         }
 
@@ -3313,13 +3313,13 @@ impl Grid {
                     db.get_node("GCLKVM.S3"),
                     &["LGCLKVM"],
                     db.get_node_naming("GCLKVM.S3"),
-                    &[(col_cl, self.row_mid())],
+                    &[],
                 );
                 grid[(col_cr, self.row_mid())].add_xnode(
                     db.get_node("GCLKVM.S3"),
                     &["RGCLKVM"],
                     db.get_node_naming("GCLKVM.S3"),
-                    &[(col_cr, self.row_mid())],
+                    &[],
                 );
             } else {
                 let xl = xlut[col_cl] - 1;
@@ -3331,13 +3331,13 @@ impl Grid {
                     db.get_node("GCLKVM.S3E"),
                     &[&name_l],
                     db.get_node_naming("GCLKVML"),
-                    &[(col_cl, self.row_mid())],
+                    &[],
                 );
                 grid[(col_cr, self.row_mid())].add_xnode(
                     db.get_node("GCLKVM.S3E"),
                     &[&name_r],
                     db.get_node_naming("GCLKVMR"),
-                    &[(col_cr, self.row_mid())],
+                    &[],
                 );
             }
         }

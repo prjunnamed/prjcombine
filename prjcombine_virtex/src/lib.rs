@@ -705,7 +705,7 @@ impl Grid {
                             (format!("GCLKVR{r}C{cc}"), "CLKV.GCLKV")
                         }
                     };
-                    grid[(col_m - 1, row)].add_xnode(
+                    grid[(col_m, row)].add_xnode(
                         db.get_node("CLKV"),
                         &[&name],
                         db.get_node_naming(naming),
@@ -735,7 +735,7 @@ impl Grid {
                     db.get_node("CLKC"),
                     &["M"],
                     db.get_node_naming("CLKC"),
-                    &[(col_m, self.row_clk())],
+                    &[],
                 );
             } else {
                 let name = format!("GCLKCC{cc}");
@@ -743,7 +743,7 @@ impl Grid {
                     db.get_node("GCLKC"),
                     &[&name],
                     db.get_node_naming("GCLKC"),
-                    &[(col_m, self.row_clk())],
+                    &[],
                 );
                 cc += 1;
             }

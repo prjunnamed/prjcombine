@@ -826,7 +826,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel = bel.extra_wire(format!("GCLK_O_L{i}"), &[format!("CLK_HROW_HCLK_LP{i}")]);
             bel = bel.extra_wire(format!("GCLK_O_R{i}"), &[format!("CLK_HROW_HCLK_RP{i}")]);
         }
-        builder.xnode("CLK_HROW", "CLK_HROW", xy).bel(bel).extract();
+        builder
+            .xnode("CLK_HROW", "CLK_HROW", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .extract();
     }
 
     for tkn in ["CLK_IOB_B", "CLK_IOB_T"] {
@@ -844,7 +848,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
                 bel = bel.extra_wire(format!("MUXBUS_O{i}"), &[format!("CLK_IOB_MUXED_CLKP{i}")]);
             }
-            builder.xnode("CLK_IOB", "CLK_IOB", xy).bel(bel).extract();
+            builder
+                .xnode("CLK_IOB", "CLK_IOB", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
         }
     }
 
@@ -867,7 +875,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     &[format!("CLKV_DCM_MUXED_CLKP_OUT{i}")],
                 );
             }
-            builder.xnode("CLK_DCM", "CLK_DCM", xy).bel(bel).extract();
+            builder
+                .xnode("CLK_DCM", "CLK_DCM", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
         }
     }
 
@@ -1268,6 +1280,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .extra_wire_force("MGT_I3", "HCLK_MGT_CLKR1");
         builder
             .xnode("HCLK_DCM", "HCLK_DCM", xy)
+            .num_tiles(0)
             .raw_tile(Coord {
                 x: xy.x + 1,
                 y: xy.y,

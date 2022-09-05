@@ -78,7 +78,7 @@ fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>
             &[],
         );
         let obel = vrf
-            .find_bel(bel.die, (edev.grid.col_clk - 1, bel.row), "BREFCLK")
+            .find_bel(bel.die, (edev.grid.col_clk, bel.row), "BREFCLK")
             .unwrap();
         for pin in ["BREFCLK", "BREFCLK2"] {
             vrf.claim_node(&[bel.fwire(pin)]);
