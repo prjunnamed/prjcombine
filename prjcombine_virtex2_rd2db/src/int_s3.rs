@@ -1569,14 +1569,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for tkn in ["CLKV_DCM_LL", "CLKV_LL", "CLKT_LL", "CLKB_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let fix_xy = if tkn == "CLKB_LL" {
-                Coord {
-                    x: xy.x,
-                    y: xy.y + 1,
-                }
-            } else {
-                xy
-            };
+            let fix_xy = if tkn == "CLKB_LL" { xy.delta(0, 1) } else { xy };
             let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W).unwrap();
             let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E).unwrap();
             let mut llh_w = "LLH.W";
@@ -1725,14 +1718,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLKB", "CLKB_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let xy_l = Coord {
-                x: xy.x - 1,
-                y: if rd.family == "spartan3" {
-                    xy.y
-                } else {
-                    xy.y + 1
-                },
-            };
+            let xy_l = xy.delta(-1, if rd.family == "spartan3" { 0 } else { 1 });
             if rd.family == "spartan3" {
                 builder.extract_xnode(
                     "CLKB.S3",
@@ -1903,10 +1889,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for tkn in ["CLKT", "CLKT_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let xy_l = Coord {
-                x: xy.x - 1,
-                y: xy.y,
-            };
+            let xy_l = xy.delta(-1, 0);
             if rd.family == "spartan3" {
                 builder.extract_xnode(
                     "CLKT.S3",
@@ -2106,14 +2089,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for (tkn, kind) in [("BBTERM", "DCMCONN.BOT"), ("BTTERM", "DCMCONN.TOP")] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = [Coord {
-                x: xy.x,
-                y: if kind == "DCMCONN.BOT" {
-                    xy.y + 1
-                } else {
-                    xy.y - 1
-                },
-            }];
+            let int_xy = [xy.delta(0, if kind == "DCMCONN.BOT" { 1 } else { -1 })];
             if rd.tile_kinds.key(rd.tiles[&int_xy[0]].kind) == "BRAM_IOIS_NODCM" {
                 continue;
             }
@@ -2148,10 +2124,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if rd.family != "spartan3" {
         for tkn in ["CLKL", "CLKR"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
-                let xy_o = Coord {
-                    x: if xy.x == 0 { xy.x + 1 } else { xy.x - 1 },
-                    y: xy.y,
-                };
+                let xy_o = xy.delta(if xy.x == 0 { 1 } else { -1 }, 0);
                 let int_s_xy = builder.walk_to_int(xy_o, Dir::S).unwrap();
                 let int_n_xy = builder.walk_to_int(xy_o, Dir::N).unwrap();
                 let int_xy = [int_s_xy, int_n_xy];
@@ -2318,10 +2291,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {
-                    int_xy.push(Coord {
-                        x: xy.x - 1,
-                        y: xy.y + dy,
-                    });
+                    int_xy.push(xy.delta(-1, dy));
                 }
                 builder.extract_xnode_bels(
                     "BRAM.S3ADSP",
@@ -2356,10 +2326,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {
-                    int_xy.push(Coord {
-                        x: xy.x - 1,
-                        y: xy.y + dy,
-                    });
+                    int_xy.push(xy.delta(-1, dy));
                 }
                 builder.extract_xnode_bels("DSP", xy, &[], &int_xy, naming, &bels_dsp);
                 builder.extract_intf_tile_multi("INTF.DSP", xy, &int_xy, "INTF.DSP", false);
@@ -2389,10 +2356,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {
-                    int_xy.push(Coord {
-                        x: xy.x - 1,
-                        y: xy.y + dy,
-                    });
+                    int_xy.push(xy.delta(-1, dy));
                 }
                 builder.extract_xnode_bels(kind, xy, &[], &int_xy, naming, &bels_bram);
             }

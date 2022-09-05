@@ -710,19 +710,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["LBRAM", "RBRAM", "MBRAM"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let mut x = xy.x - 1;
-            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
-                x -= 1;
+            let mut dx = -1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&((xy.x - 1) as i32)) {
+                dx -= 1;
             }
             let mut coords = Vec::new();
             for dy in 0..4 {
-                coords.push(Coord {
-                    x: xy.x,
-                    y: xy.y + dy,
-                });
+                coords.push(xy.delta(0, dy));
             }
             for dy in 0..4 {
-                coords.push(Coord { x, y: xy.y + dy });
+                coords.push(xy.delta(dx, dy));
             }
             builder.extract_xnode(
                 tkn,
@@ -767,11 +764,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("RBRAM_TOPP", "BRAM_TOP", "BRAM_TOP.TOPP"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let mut x = xy.x - 1;
-            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
-                x -= 1;
+            let mut dx = -1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&((xy.x - 1) as i32)) {
+                dx -= 1;
             }
-            let coords = [xy, Coord { x, y: xy.y }];
+            let coords = [xy, xy.delta(dx, 0)];
             builder.extract_xnode(node, xy, &[], &coords, naming, &[], &bram_bt_forbidden);
         }
     }
@@ -812,11 +809,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     _ => unreachable!(),
                 };
             }
-            let mut x = xy.x - 1;
-            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&(x as i32)) {
-                x -= 1;
+            let mut dx = -1;
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&((xy.x - 1) as i32)) {
+                dx -= 1;
             }
-            let coords = [xy, Coord { x, y: xy.y }];
+            let coords = [xy, xy.delta(dx, 0)];
             builder.extract_xnode(node, xy, &[], &coords, naming, &[], &dll_forbidden);
         }
     }
@@ -1009,10 +1006,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "CLKT_2DLL",
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = Coord {
-                x: xy.x + 1,
-                y: xy.y,
-            };
+            let int_xy = xy.delta(1, 0);
             let coords = if rd.family == "virtex" {
                 vec![
                     int_xy,
@@ -1096,15 +1090,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLKL", "CLKR"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = Coord {
-                x: xy.x,
-                y: xy.y + 1,
-            };
             builder.extract_xnode(
                 tkn,
                 xy,
                 &[],
-                &[int_xy],
+                &[xy.delta(0, 1)],
                 tkn,
                 &[builder
                     .bel_single("PCILOGIC", "PCILOGIC")
@@ -1284,16 +1274,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
             }
             for i in 0..4 {
-                coords.push(Coord {
-                    x: xy.x - 1,
-                    y: xy.y + i,
-                });
+                coords.push(xy.delta(-1, i));
             }
             for i in 0..4 {
-                coords.push(Coord {
-                    x: xy.x + 1,
-                    y: xy.y + i,
-                });
+                coords.push(xy.delta(1, i));
             }
             builder.extract_xnode_bels("CLKV_BRAM", xy, &[], &coords, naming, &[bel]);
         }

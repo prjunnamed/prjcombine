@@ -1,5 +1,5 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;
 
@@ -274,15 +274,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLEXL", "CLEXM"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_xy = Coord {
-                x: xy.x - 1,
-                y: xy.y,
-            };
             builder.extract_xnode_bels(
                 tkn,
                 xy,
                 &[],
-                &[int_xy],
+                &[xy.delta(-1, 0)],
                 tkn,
                 &[
                     builder
@@ -299,13 +295,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut intf_xy = Vec::new();
         let n = builder.db.get_node_naming("INTF");
         for dy in 0..4 {
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            intf_xy.push((xy.delta(-1, dy), n));
         }
         builder.extract_xnode_bels_intf(
             "BRAM",
@@ -326,13 +316,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut intf_xy = Vec::new();
         let n = builder.db.get_node_naming("INTF");
         for dy in 0..4 {
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            intf_xy.push((xy.delta(-1, dy), n));
         }
         let mut bel_dsp = builder
             .bel_xy("DSP", "DSP48", 0, 0)
@@ -354,22 +338,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let nr = builder.db.get_node_naming("INTF.RTERM");
         let nl = builder.db.get_node_naming("INTF.LTERM");
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 5,
-                    y: xy.y - 9 + dy,
-                },
-                nr,
-            ));
+            intf_xy.push((xy.delta(-5, -9 + dy), nr));
         }
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
-            intf_xy.push((
-                Coord {
-                    x: xy.x + 2,
-                    y: xy.y - 9 + dy,
-                },
-                nl,
-            ));
+            intf_xy.push((xy.delta(2, -9 + dy), nl));
         }
         builder.extract_xnode_bels_intf(
             "PCIE",

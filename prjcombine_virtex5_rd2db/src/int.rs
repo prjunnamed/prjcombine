@@ -458,10 +458,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLBLL", "CLBLM"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_xy = Coord {
-                x: xy.x - 1,
-                y: xy.y,
-            };
+            let int_xy = xy.delta(-1, 0);
             builder.extract_xnode_bels(
                 tkn,
                 xy,
@@ -482,22 +479,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    let intf = builder.db.get_node_naming("INTF");
+
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
-            int_xy.push(Coord {
-                x: xy.x - 2,
-                y: xy.y + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(-2, dy));
+            intf_xy.push((xy.delta(-1, dy), intf));
         }
         builder.extract_xnode_bels_intf(
             "BRAM",
@@ -524,24 +513,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("HCLK_BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
-            int_xy.push(Coord {
-                x: xy.x - 2,
-                y: xy.y + 1 + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + 1 + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(-2, 1 + dy));
+            intf_xy.push((xy.delta(-1, 1 + dy), intf));
         }
-        let bram_xy = Coord {
-            x: xy.x,
-            y: xy.y + 1,
-        };
+        let bram_xy = xy.delta(0, 1);
         builder.extract_xnode_bels_intf(
             "PMVBRAM",
             xy,
@@ -556,19 +532,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF");
         for dy in 0..5 {
-            int_xy.push(Coord {
-                x: xy.x - 2,
-                y: xy.y + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(-2, dy));
+            intf_xy.push((xy.delta(-1, dy), intf));
         }
 
         let mut bels_dsp = vec![];
@@ -603,19 +569,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF.EMAC");
+        let intf_emac = builder.db.get_node_naming("INTF.EMAC");
         for dy in 0..10 {
-            int_xy.push(Coord {
-                x: xy.x - 2,
-                y: xy.y + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(-2, dy));
+            intf_xy.push((xy.delta(-1, dy), intf_emac));
         }
         builder.extract_xnode_bels_intf(
             "EMAC",
@@ -631,29 +588,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_B").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF.PCIE");
-        for by in [xy.y - 11, xy.y, xy.y + 11, xy.y + 22] {
+        let intf_pcie = builder.db.get_node_naming("INTF.PCIE");
+        for by in [-11, 0, 11, 22] {
             for dy in 0..10 {
-                int_xy.push(Coord {
-                    x: xy.x - 2,
-                    y: by + dy,
-                });
-                intf_xy.push((
-                    Coord {
-                        x: xy.x - 1,
-                        y: by + dy,
-                    },
-                    n,
-                ));
+                int_xy.push(xy.delta(-2, by + dy));
+                intf_xy.push((xy.delta(-1, by + dy), intf_pcie));
             }
         }
         builder.extract_xnode_bels_intf(
             "PCIE",
             xy,
-            &[Coord {
-                x: xy.x,
-                y: xy.y + 22,
-            }],
+            &[xy.delta(0, 22)],
             &int_xy,
             &intf_xy,
             "PCIE",
@@ -679,42 +624,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PPC_B").iter().next() {
-        let ppc_t_xy = Coord {
-            x: xy.x,
-            y: xy.y + 22,
-        };
+        let ppc_t_xy = xy.delta(0, 22);
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let nl = builder.db.get_node_naming("INTF.PPC_L");
-        let nr = builder.db.get_node_naming("INTF.PPC_R");
-        for by in [xy.y - 10, xy.y + 1, xy.y + 12, xy.y + 23] {
+        let intf_ppc_l = builder.db.get_node_naming("INTF.PPC_L");
+        let intf_ppc_r = builder.db.get_node_naming("INTF.PPC_R");
+        for by in [-10, 1, 12, 23] {
             for dy in 0..10 {
-                int_xy.push(Coord {
-                    x: xy.x - 11,
-                    y: by + dy,
-                });
-                intf_xy.push((
-                    Coord {
-                        x: xy.x - 10,
-                        y: by + dy,
-                    },
-                    nl,
-                ));
+                int_xy.push(xy.delta(-11, by + dy));
+                intf_xy.push((xy.delta(-10, by + dy), intf_ppc_l));
             }
         }
-        for by in [xy.y - 10, xy.y + 1, xy.y + 12, xy.y + 23] {
+        for by in [-10, 1, 12, 23] {
             for dy in 0..10 {
-                int_xy.push(Coord {
-                    x: xy.x + 20,
-                    y: by + dy,
-                });
-                intf_xy.push((
-                    Coord {
-                        x: xy.x + 21,
-                        y: by + dy,
-                    },
-                    nr,
-                ));
+                int_xy.push(xy.delta(20, by + dy));
+                intf_xy.push((xy.delta(21, by + dy), intf_ppc_r));
             }
         }
 
@@ -728,8 +652,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[builder.bel_xy("PPC", "PPC440", 0, 0)],
         );
     }
-
-    let intf = builder.db.get_node_naming("INTF");
 
     if let Some(&xy) = rd.tiles_by_kind_name("CFG_CENTER").iter().next() {
         let mut bels = vec![];
@@ -841,47 +763,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel_mgtclk_b,
             bel_mgtclk_t,
         ]);
-        let xy_bufg = Coord {
-            x: xy.x + 1,
-            y: xy.y,
-        };
         let mut xn = builder
             .xnode("CFG", "CFG", xy)
-            .raw_tile(xy_bufg)
+            .raw_tile(xy.delta(1, 0))
             .num_tiles(20);
         for i in 0..10 {
-            xn = xn.ref_int(
-                Coord {
-                    x: xy.x - 4,
-                    y: xy.y - 10 + (i as u16),
-                },
-                i,
-            );
-            xn = xn.ref_single(
-                Coord {
-                    x: xy.x - 3,
-                    y: xy.y - 10 + (i as u16),
-                },
-                i,
-                intf,
-            );
+            xn = xn.ref_int(xy.delta(-4, -10 + (i as i32)), i);
+            xn = xn.ref_single(xy.delta(-3, -10 + (i as i32)), i, intf);
         }
         for i in 0..10 {
-            xn = xn.ref_int(
-                Coord {
-                    x: xy.x - 4,
-                    y: xy.y + 1 + (i as u16),
-                },
-                i + 10,
-            );
-            xn = xn.ref_single(
-                Coord {
-                    x: xy.x - 3,
-                    y: xy.y + 1 + (i as u16),
-                },
-                i + 10,
-                intf,
-            );
+            xn = xn.ref_int(xy.delta(-4, 1 + (i as i32)), i + 10);
+            xn = xn.ref_single(xy.delta(-3, 1 + (i as i32)), i + 10, intf);
         }
         for bel in bels {
             xn = xn.bel(bel);
@@ -891,10 +783,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("IOI").iter().next() {
         let int_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-        let intf_xy = Coord {
-            x: int_xy.x + 1,
-            y: int_xy.y,
-        };
+        let intf_xy = int_xy.delta(1, 0);
         let bel_ilogic0 = builder
             .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
             .pins_name_only(&[
@@ -1143,21 +1032,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bels.push(bel);
             let mut xn = builder.xnode("CMT", tkn, xy).num_tiles(10);
             for i in 0..10 {
-                xn = xn.ref_int(
-                    Coord {
-                        x: xy.x - 3,
-                        y: xy.y + (i as u16),
-                    },
-                    i,
-                );
-                xn = xn.ref_single(
-                    Coord {
-                        x: xy.x - 2,
-                        y: xy.y + (i as u16),
-                    },
-                    i,
-                    intf,
-                );
+                xn = xn.ref_int(xy.delta(-3, i as i32), i);
+                xn = xn.ref_single(xy.delta(-2, i as i32), i, intf);
             }
             for bel in bels {
                 xn = xn.bel(bel);
@@ -1207,13 +1083,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let bel_gsig = builder.bel_xy("GLOBALSIG", "GLOBALSIG", 0, 0);
             builder
                 .xnode("HCLK", "HCLK", xy)
-                .ref_int(
-                    Coord {
-                        x: xy.x,
-                        y: xy.y + 1,
-                    },
-                    0,
-                )
+                .ref_int(xy.delta(0, 1), 0)
                 .bel(bel_gsig)
                 .bel(bel)
                 .extract();
@@ -1274,16 +1144,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_x = builder
-                .walk_to_int(
-                    Coord {
-                        x: xy.x,
-                        y: xy.y - 1,
-                    },
-                    Dir::W,
-                )
-                .unwrap()
-                .x;
+            let int_x = builder.walk_to_int(xy.delta(0, -1), Dir::W).unwrap().x;
             let mut bels = vec![];
             if has_io_n {
                 for i in 0..2 {
@@ -1370,10 +1231,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut t = 0;
             if has_io_s {
                 xn = xn
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y - 2,
-                    })
+                    .raw_tile(xy.delta(0, -2))
                     .ref_int(
                         Coord {
                             x: int_x,
@@ -1389,10 +1247,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         0,
                         intf,
                     )
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y - 1,
-                    })
+                    .raw_tile(xy.delta(0, -1))
                     .ref_int(
                         Coord {
                             x: int_x,
@@ -1412,10 +1267,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             if has_io_n {
                 xn = xn
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y + 1,
-                    })
+                    .raw_tile(xy.delta(0, 1))
                     .ref_int(
                         Coord {
                             x: int_x,
@@ -1433,10 +1285,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
                 if !has_io_s || has_bufr {
                     xn = xn
-                        .raw_tile(Coord {
-                            x: xy.x,
-                            y: xy.y + 2,
-                        })
+                        .raw_tile(xy.delta(0, 2))
                         .ref_int(
                             Coord {
                                 x: int_x,
@@ -1488,10 +1337,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             builder
                 .xnode("HCLK_CMT", "HCLK_CMT", xy)
                 .num_tiles(0)
-                .raw_tile(Coord {
-                    x: xy.x + 1,
-                    y: xy.y,
-                })
+                .raw_tile(xy.delta(1, 0))
                 .bel(bel_gclk)
                 .bel(bel_giob)
                 .extract();
@@ -1630,11 +1476,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for (tkn, kind) in [("GT3", "GTP"), ("GTX", "GTX"), ("GTX_LEFT", "GTX")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_x = if tkn == "GTX_LEFT" {
-                xy.x + 2
-            } else {
-                xy.x - 3
-            };
+            let int_dx = if tkn == "GTX_LEFT" { 2 } else { -3 };
             let intf_gt = builder.db.get_node_naming(if tkn == "GTX_LEFT" {
                 "INTF.GTX_LEFT"
             } else {
@@ -1707,40 +1549,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
             let mut xn = builder.xnode(kind, tkn, xy).num_tiles(20);
             for i in 0..10 {
-                xn = xn
-                    .ref_int(
-                        Coord {
-                            x: int_x,
-                            y: xy.y - 10 + i as u16,
-                        },
-                        i,
-                    )
-                    .ref_single(
-                        Coord {
-                            x: int_x + 1,
-                            y: xy.y - 10 + i as u16,
-                        },
-                        i,
-                        intf_gt,
-                    );
+                xn = xn.ref_int(xy.delta(int_dx, -10 + i as i32), i).ref_single(
+                    xy.delta(int_dx + 1, -10 + i as i32),
+                    i,
+                    intf_gt,
+                );
             }
             for i in 0..10 {
                 xn = xn
-                    .ref_int(
-                        Coord {
-                            x: int_x,
-                            y: xy.y + 1 + i as u16,
-                        },
-                        i + 10,
-                    )
-                    .ref_single(
-                        Coord {
-                            x: int_x + 1,
-                            y: xy.y + 1 + i as u16,
-                        },
-                        i + 10,
-                        intf_gt,
-                    );
+                    .ref_int(xy.delta(int_dx, 1 + i as i32), i + 10)
+                    .ref_single(xy.delta(int_dx + 1, 1 + i as i32), i + 10, intf_gt);
             }
             for bel in bels {
                 xn = xn.bel(bel);

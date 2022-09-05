@@ -1,5 +1,5 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;
 
@@ -267,10 +267,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .into_iter()
                 .enumerate()
             {
-                let int_xy = Coord {
-                    x: xy.x + 1,
-                    y: xy.y - 9 + delta,
-                };
+                let int_xy = xy.delta(1, -9 + delta);
                 builder.extract_term_tile(
                     "TERM.W",
                     None,
@@ -288,10 +285,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .into_iter()
                 .enumerate()
             {
-                let int_xy = Coord {
-                    x: xy.x - 1,
-                    y: xy.y - 9 + delta,
-                };
+                let int_xy = xy.delta(-1, -9 + delta);
                 builder.extract_term_tile(
                     "TERM.E",
                     None,
@@ -311,24 +305,15 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.stub_out("PB_OMUX11_B6");
 
     for &pb_xy in rd.tiles_by_kind_name("PB") {
-        let pt_xy = Coord {
-            x: pb_xy.x,
-            y: pb_xy.y + 18,
-        };
+        let pt_xy = pb_xy.delta(0, 18);
         for (i, delta) in [
             0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24,
         ]
         .into_iter()
         .enumerate()
         {
-            let int_w_xy = Coord {
-                x: pb_xy.x - 1,
-                y: pb_xy.y - 3 + delta,
-            };
-            let int_e_xy = Coord {
-                x: pb_xy.x + 15,
-                y: pb_xy.y - 3 + delta,
-            };
+            let int_w_xy = pb_xy.delta(-1, -3 + delta);
+            let int_e_xy = pb_xy.delta(15, -3 + delta);
             let naming_w = format!("TERM.PPC.W{i}");
             let naming_e = format!("TERM.PPC.E{i}");
             let xy = if i < 11 { pb_xy } else { pt_xy };
@@ -356,14 +341,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             );
         }
         for (i, delta) in [1, 3, 5, 7, 9, 11, 13].into_iter().enumerate() {
-            let int_s_xy = Coord {
-                x: pb_xy.x + delta,
-                y: pb_xy.y - 4,
-            };
-            let int_n_xy = Coord {
-                x: pb_xy.x + delta,
-                y: pb_xy.y + 22,
-            };
+            let int_s_xy = pb_xy.delta(delta, -4);
+            let int_n_xy = pb_xy.delta(delta, 22);
             let ab = if i < 5 { 'A' } else { 'B' };
             let naming_s = format!("TERM.PPC.S{i}");
             let naming_n = format!("TERM.PPC.N{i}");
@@ -402,10 +381,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             for i in 0..height {
-                let int_xy = Coord {
-                    x: xy.x - 1,
-                    y: xy.y + i,
-                };
+                let int_xy = xy.delta(-1, i);
                 builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.{n}.{i}"), false);
             }
         }
@@ -415,14 +391,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
         for i in 0..16 {
-            let int_xy = Coord {
-                x: xy.x - 1,
-                y: if i < 8 {
-                    xy.y - 8 + i
-                } else {
-                    xy.y + 1 + i - 8
-                },
-            };
+            let int_xy = xy.delta(-1, if i < 8 { -8 + i } else { -8 + i + 1 });
             builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.CFG.{i}"), false);
         }
     }
@@ -438,47 +407,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             for i in 0..16 {
-                let int_xy = Coord {
-                    x: if dir == Dir::E { xy.x - 1 } else { xy.x + 1 },
-                    y: if i < 8 { xy.y - 9 + i } else { xy.y + i - 8 },
-                };
+                let int_xy = xy.delta(
+                    if dir == Dir::E { -1 } else { 1 },
+                    if i < 8 { -9 + i } else { i - 8 },
+                );
                 builder.extract_intf_tile("INTF", xy, int_xy, format!("INTF.MGT.{i}"), false);
             }
         }
     }
 
     for &pb_xy in rd.tiles_by_kind_name("PB") {
-        let pt_xy = Coord {
-            x: pb_xy.x,
-            y: pb_xy.y + 18,
-        };
+        let pt_xy = pb_xy.delta(0, 18);
         for (i, delta) in [
             0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26,
         ]
         .into_iter()
         .enumerate()
         {
-            let int_w_xy = Coord {
-                x: pb_xy.x - 1,
-                y: pb_xy.y - 4 + delta,
-            };
-            let int_e_xy = Coord {
-                x: pb_xy.x + 15,
-                y: pb_xy.y - 4 + delta,
-            };
+            let int_w_xy = pb_xy.delta(-1, -4 + delta);
+            let int_e_xy = pb_xy.delta(15, -4 + delta);
             let xy = if i < 12 { pb_xy } else { pt_xy };
             builder.extract_intf_tile("INTF", xy, int_w_xy, format!("INTF.PPC.L{i}"), false);
             builder.extract_intf_tile("INTF", xy, int_e_xy, format!("INTF.PPC.R{i}"), false);
         }
         for (i, delta) in [1, 3, 5, 7, 9, 11, 13].into_iter().enumerate() {
-            let int_s_xy = Coord {
-                x: pb_xy.x + delta,
-                y: pb_xy.y - 4,
-            };
-            let int_n_xy = Coord {
-                x: pb_xy.x + delta,
-                y: pb_xy.y + 22,
-            };
+            let int_s_xy = pb_xy.delta(delta, -4);
+            let int_n_xy = pb_xy.delta(delta, 22);
             builder.extract_intf_tile("INTF", pb_xy, int_s_xy, format!("INTF.PPC.B{i}"), false);
             builder.extract_intf_tile("INTF", pt_xy, int_n_xy, format!("INTF.PPC.T{i}"), false);
         }
@@ -490,10 +444,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ];
     let slicel_name_only = ["FXINA", "FXINB", "F5", "FX", "CIN", "COUT"];
     if let Some(&xy) = rd.tiles_by_kind_name("CLB").iter().next() {
-        let int_xy = Coord {
-            x: xy.x - 1,
-            y: xy.y,
-        };
+        let int_xy = xy.delta(-1, 0);
         builder.extract_xnode_bels(
             "CLB",
             xy,
@@ -523,10 +474,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         for dy in 0..4 {
-            int_xy.push(Coord {
-                x: xy.x - 1,
-                y: xy.y + dy,
-            });
+            int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels(
             "BRAM",
@@ -567,10 +515,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         for dy in 0..4 {
-            int_xy.push(Coord {
-                x: xy.x - 1,
-                y: xy.y + dy,
-            });
+            int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels("DSP", xy, &[], &int_xy, "DSP", &bels_dsp);
     }
@@ -696,56 +641,20 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extra_wire_force("MGT_R0_O", "HCLK_CENTER_MGT2")
                 .extra_wire_force("MGT_R1_O", "HCLK_CENTER_MGT3"),
         ]);
-        let xy_bufg_b = Coord {
-            x: xy.x + 1,
-            y: xy.y - 8,
-        };
-        let xy_bufg_t = Coord {
-            x: xy.x + 1,
-            y: xy.y + 1,
-        };
-        let xy_hrow_b = Coord {
-            x: xy.x + 1,
-            y: xy.y - 9,
-        };
-        let xy_hrow_t = Coord {
-            x: xy.x + 1,
-            y: xy.y + 9,
-        };
-        let xy_hclk_b = Coord {
-            x: xy.x,
-            y: xy.y - 9,
-        };
-        let xy_hclk_t = Coord {
-            x: xy.x,
-            y: xy.y + 9,
-        };
         let mut xn = builder
             .xnode("CFG", "CFG", xy)
-            .raw_tile(xy_bufg_b)
-            .raw_tile(xy_bufg_t)
-            .raw_tile(xy_hrow_b)
-            .raw_tile(xy_hrow_t)
-            .raw_tile(xy_hclk_b)
-            .raw_tile(xy_hclk_t)
+            .raw_tile(xy.delta(1, -8))
+            .raw_tile(xy.delta(1, 1))
+            .raw_tile(xy.delta(1, -9))
+            .raw_tile(xy.delta(1, 9))
+            .raw_tile(xy.delta(0, -9))
+            .raw_tile(xy.delta(0, 9))
             .num_tiles(16);
         for i in 0..8 {
-            xn = xn.ref_int(
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y - 8 + (i as u16),
-                },
-                i,
-            );
+            xn = xn.ref_int(xy.delta(-1, -8 + (i as i32)), i);
         }
         for i in 0..8 {
-            xn = xn.ref_int(
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + 1 + (i as u16),
-                },
-                i + 8,
-            );
+            xn = xn.ref_int(xy.delta(-1, 1 + (i as i32)), i + 8);
         }
         for bel in bels {
             xn = xn.bel(bel);
@@ -754,38 +663,23 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for &pb_xy in rd.tiles_by_kind_name("PB") {
-        let pt_xy = Coord {
-            x: pb_xy.x,
-            y: pb_xy.y + 18,
-        };
+        let pt_xy = pb_xy.delta(0, 18);
         let mut int_xy = vec![];
         for dy in [
             0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26,
         ] {
-            int_xy.push(Coord {
-                x: pb_xy.x - 1,
-                y: pb_xy.y - 4 + dy,
-            });
+            int_xy.push(pb_xy.delta(-1, -4 + dy));
         }
         for dy in [
             0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26,
         ] {
-            int_xy.push(Coord {
-                x: pb_xy.x + 15,
-                y: pb_xy.y - 4 + dy,
-            });
+            int_xy.push(pb_xy.delta(15, -4 + dy));
         }
         for dx in [1, 3, 5, 7, 9, 11, 13] {
-            int_xy.push(Coord {
-                x: pb_xy.x + dx,
-                y: pb_xy.y - 4,
-            });
+            int_xy.push(pb_xy.delta(dx, -4));
         }
         for dx in [1, 3, 5, 7, 9, 11, 13] {
-            int_xy.push(Coord {
-                x: pb_xy.x + dx,
-                y: pb_xy.y + 22,
-            });
+            int_xy.push(pb_xy.delta(dx, 22));
         }
         let mut dcr_pins = vec![
             "EMACDCRACK".to_string(),
@@ -898,13 +792,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
         builder
             .xnode("HCLK", "HCLK", xy)
-            .ref_int(
-                Coord {
-                    x: xy.x,
-                    y: xy.y + 1,
-                },
-                0,
-            )
+            .ref_int(xy.delta(0, 1), 0)
             .bel(bel_gsig)
             .bel(bel)
             .extract();
@@ -1016,39 +904,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut xn = builder
                 .xnode(tkn, tkn, xy)
                 .num_tiles(3)
-                .raw_tile(Coord {
-                    x: xy.x,
-                    y: xy.y - 2,
-                })
-                .raw_tile(Coord {
-                    x: xy.x,
-                    y: xy.y - 1,
-                })
-                .raw_tile(Coord {
-                    x: xy.x,
-                    y: xy.y + 1,
-                })
-                .ref_int(
-                    Coord {
-                        x: xy.x - 1,
-                        y: xy.y - 2,
-                    },
-                    0,
-                )
-                .ref_int(
-                    Coord {
-                        x: xy.x - 1,
-                        y: xy.y - 1,
-                    },
-                    1,
-                )
-                .ref_int(
-                    Coord {
-                        x: xy.x - 1,
-                        y: xy.y + 1,
-                    },
-                    2,
-                );
+                .raw_tile(xy.delta(0, -2))
+                .raw_tile(xy.delta(0, -1))
+                .raw_tile(xy.delta(0, 1))
+                .ref_int(xy.delta(-1, -2), 0)
+                .ref_int(xy.delta(-1, -1), 1)
+                .ref_int(xy.delta(-1, 1), 2);
             for bel in bels {
                 xn = xn.bel(bel);
             }
@@ -1182,58 +1043,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut xn = builder.xnode(tkn, tkn, xy).num_tiles(2);
             if ioloc == 'S' {
                 xn = xn
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y - 2,
-                    })
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y - 1,
-                    })
-                    .ref_int(
-                        Coord {
-                            x: xy.x - 1,
-                            y: xy.y - 2,
-                        },
-                        0,
-                    )
-                    .ref_int(
-                        Coord {
-                            x: xy.x - 1,
-                            y: xy.y - 1,
-                        },
-                        1,
-                    );
+                    .raw_tile(xy.delta(0, -2))
+                    .raw_tile(xy.delta(0, -1))
+                    .ref_int(xy.delta(-1, -2), 0)
+                    .ref_int(xy.delta(-1, -1), 1);
             } else {
                 xn = xn
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y + 1,
-                    })
-                    .raw_tile(Coord {
-                        x: xy.x,
-                        y: xy.y + 2,
-                    })
-                    .ref_int(
-                        Coord {
-                            x: xy.x - 1,
-                            y: xy.y + 1,
-                        },
-                        0,
-                    )
-                    .ref_int(
-                        Coord {
-                            x: xy.x - 1,
-                            y: xy.y + 2,
-                        },
-                        1,
-                    );
+                    .raw_tile(xy.delta(0, 1))
+                    .raw_tile(xy.delta(0, 2))
+                    .ref_int(xy.delta(-1, 1), 0)
+                    .ref_int(xy.delta(-1, 2), 1);
             }
             if dcmloc != '_' {
-                xn = xn.raw_tile(Coord {
-                    x: xy.x + 1,
-                    y: xy.y,
-                });
+                xn = xn.raw_tile(xy.delta(1, 0));
             }
             for bel in bels {
                 xn = xn.bel(bel);
@@ -1281,10 +1103,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder
             .xnode("HCLK_DCM", "HCLK_DCM", xy)
             .num_tiles(0)
-            .raw_tile(Coord {
-                x: xy.x + 1,
-                y: xy.y,
-            })
+            .raw_tile(xy.delta(1, 0))
             .bel(bel)
             .bel(bel_hclk_dcm_hrow.raw_tile(1))
             .extract();
@@ -1301,10 +1120,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 "IOIS",
                 xy,
                 &[],
-                &[Coord {
-                    x: xy.x - 1,
-                    y: xy.y,
-                }],
+                &[xy.delta(-1, 0)],
                 naming,
                 &[
                     builder
@@ -1427,10 +1243,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
             for dy in 0..4 {
-                int_xy.push(Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                });
+                int_xy.push(xy.delta(-1, dy));
             }
             let mut bel = builder
                 .bel_xy("DCM", "DCM_ADV", 0, 0)
@@ -1478,10 +1291,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("CCM").iter().next() {
         let mut int_xy = Vec::new();
         for dy in 0..4 {
-            int_xy.push(Coord {
-                x: xy.x - 1,
-                y: xy.y + dy,
-            });
+            int_xy.push(xy.delta(-1, dy));
         }
         let mut bels = vec![];
         for i in 0..2 {
@@ -1573,10 +1383,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("SYS_MON").iter().next() {
         let mut int_xy = Vec::new();
         for dy in 0..8 {
-            int_xy.push(Coord {
-                x: xy.x - 1,
-                y: xy.y + dy,
-            });
+            int_xy.push(xy.delta(-1, dy));
         }
         let mut bel = builder
             .bel_xy("SYSMON", "MONITOR", 0, 0)
@@ -1621,16 +1428,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("MGT_BR", "MGT_BR"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_x = if xy.x == 0 { xy.x + 1 } else { xy.x - 1 };
             let mut int_xy = Vec::new();
             for dy in 0..17 {
                 if dy == 8 {
                     continue;
                 }
-                int_xy.push(Coord {
-                    x: int_x,
-                    y: xy.y - 9 + dy,
-                });
+                int_xy.push(xy.delta(if xy.x == 0 { 1 } else { -1 }, -9 + dy));
             }
             let mut bel = builder
                 .bel_xy("GT11", "GT11", 0, 0)

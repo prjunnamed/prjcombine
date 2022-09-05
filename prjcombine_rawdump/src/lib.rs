@@ -11,6 +11,15 @@ pub struct Coord {
     pub y: u16,
 }
 
+impl Coord {
+    pub fn delta(self, dx: i32, dy: i32) -> Coord {
+        Coord {
+            x: (self.x as i32 + dx) as u16,
+            y: (self.y as i32 + dy) as u16,
+        }
+    }
+}
+
 entity_id! {
     pub id WireId u32, reserve 1;
     pub id NodeClassId u32, reserve 1;
