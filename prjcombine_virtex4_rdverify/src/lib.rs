@@ -362,18 +362,18 @@ fn verify_jtagppc(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
-        vrf.claim_node(&[bel.fwire(&format!("OUT_L{i}"))]);
-        vrf.claim_node(&[bel.fwire(&format!("OUT_R{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("GCLK_O_L{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("GCLK_O_R{i}"))]);
         for j in 0..32 {
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_L{i}")),
-                bel.wire(&format!("GCLK{j}")),
+                bel.wire(&format!("GCLK_O_L{i}")),
+                bel.wire(&format!("GCLK_I{j}")),
             );
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_R{i}")),
-                bel.wire(&format!("GCLK{j}")),
+                bel.wire(&format!("GCLK_O_R{i}")),
+                bel.wire(&format!("GCLK_I{j}")),
             );
         }
     }
@@ -382,7 +382,7 @@ fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
-        vrf.verify_node(&[bel.fwire(&format!("GCLK{i}")), obel.fwire("GCLK")]);
+        vrf.verify_node(&[bel.fwire(&format!("GCLK_I{i}")), obel.fwire("GCLK")]);
     }
 }
 
@@ -530,7 +530,7 @@ fn verify_idelayctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(
             bel.crd(),
             bel.wire("REFCLK"),
-            obel.wire(&format!("GCLK_OUT{i}")),
+            obel.wire(&format!("GCLK_O{i}")),
         );
     }
 }
@@ -576,15 +576,15 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         .unwrap();
     let lr = if bel.col <= grid.cols_io[1] { 'L' } else { 'R' };
     for i in 0..8 {
-        vrf.claim_node(&[bel.fwire(&format!("GCLK_OUT{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("GCLK_O{i}"))]);
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("GCLK_OUT{i}")),
-            bel.wire(&format!("GCLK_IN{i}")),
+            bel.wire(&format!("GCLK_O{i}")),
+            bel.wire(&format!("GCLK_I{i}")),
         );
         vrf.verify_node(&[
-            bel.fwire(&format!("GCLK_IN{i}")),
-            obel.fwire(&format!("OUT_{lr}{i}")),
+            bel.fwire(&format!("GCLK_I{i}")),
+            obel.fwire(&format!("GCLK_O_{lr}{i}")),
         ]);
     }
 
@@ -595,14 +595,14 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "RCLK").unwrap();
     for i in 0..2 {
-        vrf.claim_node(&[bel.fwire(&format!("RCLK_OUT{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("RCLK_O{i}"))]);
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("RCLK_OUT{i}")),
-            bel.wire(&format!("RCLK_IN{i}")),
+            bel.wire(&format!("RCLK_O{i}")),
+            bel.wire(&format!("RCLK_I{i}")),
         );
         vrf.verify_node(&[
-            bel.fwire(&format!("RCLK_IN{i}")),
+            bel.fwire(&format!("RCLK_I{i}")),
             obel.fwire(&format!("RCLK{i}")),
         ]);
     }
@@ -718,7 +718,7 @@ fn verify_hclk_dcm(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
         vrf.verify_node(&[
             bel.fwire(&format!("GCLK_I{i}")),
-            obel.fwire(&format!("OUT_L{i}")),
+            obel.fwire(&format!("GCLK_O_L{i}")),
         ]);
         if bel.key != "HCLK_DCM_S" && !has_sysmon_n {
             vrf.claim_node(&[bel.fwire(&format!("GCLK_O_U{i}"))]);
@@ -876,7 +876,7 @@ fn verify_hclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
         vrf.verify_node(&[
             bel.fwire(&format!("GCLK_I{i}")),
-            obel.fwire(&format!("OUT_{lr}{i}")),
+            obel.fwire(&format!("GCLK_O_{lr}{i}")),
         ]);
     }
     let scol = if bel.col <= grid.cols_io[1] {
@@ -1432,13 +1432,13 @@ fn verify_iois_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
         vrf.verify_node(&[
             bel.fwire(&format!("GCLK{i}")),
-            obel.fwire(&format!("GCLK_OUT{i}")),
+            obel.fwire(&format!("GCLK_O{i}")),
         ]);
     }
     for i in 0..2 {
         vrf.verify_node(&[
             bel.fwire(&format!("RCLK{i}")),
-            obel.fwire(&format!("RCLK_OUT{i}")),
+            obel.fwire(&format!("RCLK_O{i}")),
         ]);
     }
     // IOCLK verfied by hclk
@@ -1496,7 +1496,7 @@ fn verify_gt11(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
         vrf.verify_node(&[
             bel.fwire(&format!("GCLK{i}")),
-            obel.fwire(&format!("OUT_{lr}{i}")),
+            obel.fwire(&format!("GCLK_O_{lr}{i}")),
         ]);
     }
 

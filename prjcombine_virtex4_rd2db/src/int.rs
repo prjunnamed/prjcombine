@@ -820,11 +820,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("CLK_HROW").iter().next() {
         let mut bel = builder.bel_virtual("CLK_HROW");
         for i in 0..32 {
-            bel = bel.extra_wire(format!("GCLK{i}"), &[format!("CLK_HROW_GCLK_BUFP{i}")]);
+            bel = bel.extra_wire(format!("GCLK_I{i}"), &[format!("CLK_HROW_GCLK_BUFP{i}")]);
         }
         for i in 0..8 {
-            bel = bel.extra_wire(format!("OUT_L{i}"), &[format!("CLK_HROW_HCLK_LP{i}")]);
-            bel = bel.extra_wire(format!("OUT_R{i}"), &[format!("CLK_HROW_HCLK_RP{i}")]);
+            bel = bel.extra_wire(format!("GCLK_O_L{i}"), &[format!("CLK_HROW_HCLK_LP{i}")]);
+            bel = bel.extra_wire(format!("GCLK_O_R{i}"), &[format!("CLK_HROW_HCLK_RP{i}")]);
         }
         builder.xnode("CLK_HROW", "CLK_HROW", xy).bel(bel).extract();
     }
@@ -912,54 +912,54 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         .extra_wire_force("VIOCLK_N1", "HCLK_IOIS_VIOCLKP_N1")
         .extra_wire_force("VIOCLK_S0", "HCLK_IOIS_VIOCLKP_S0")
         .extra_wire_force("VIOCLK_S1", "HCLK_IOIS_VIOCLKP_S1")
-        .extra_wire("GCLK_IN0", &["HCLK_IOIS_G_HCLKP0", "HCLK_DCM_G_HCLKP0"])
-        .extra_wire("GCLK_IN1", &["HCLK_IOIS_G_HCLKP1", "HCLK_DCM_G_HCLKP1"])
-        .extra_wire("GCLK_IN2", &["HCLK_IOIS_G_HCLKP2", "HCLK_DCM_G_HCLKP2"])
-        .extra_wire("GCLK_IN3", &["HCLK_IOIS_G_HCLKP3", "HCLK_DCM_G_HCLKP3"])
-        .extra_wire("GCLK_IN4", &["HCLK_IOIS_G_HCLKP4", "HCLK_DCM_G_HCLKP4"])
-        .extra_wire("GCLK_IN5", &["HCLK_IOIS_G_HCLKP5", "HCLK_DCM_G_HCLKP5"])
-        .extra_wire("GCLK_IN6", &["HCLK_IOIS_G_HCLKP6", "HCLK_DCM_G_HCLKP6"])
-        .extra_wire("GCLK_IN7", &["HCLK_IOIS_G_HCLKP7", "HCLK_DCM_G_HCLKP7"])
+        .extra_wire("GCLK_I0", &["HCLK_IOIS_G_HCLKP0", "HCLK_DCM_G_HCLKP0"])
+        .extra_wire("GCLK_I1", &["HCLK_IOIS_G_HCLKP1", "HCLK_DCM_G_HCLKP1"])
+        .extra_wire("GCLK_I2", &["HCLK_IOIS_G_HCLKP2", "HCLK_DCM_G_HCLKP2"])
+        .extra_wire("GCLK_I3", &["HCLK_IOIS_G_HCLKP3", "HCLK_DCM_G_HCLKP3"])
+        .extra_wire("GCLK_I4", &["HCLK_IOIS_G_HCLKP4", "HCLK_DCM_G_HCLKP4"])
+        .extra_wire("GCLK_I5", &["HCLK_IOIS_G_HCLKP5", "HCLK_DCM_G_HCLKP5"])
+        .extra_wire("GCLK_I6", &["HCLK_IOIS_G_HCLKP6", "HCLK_DCM_G_HCLKP6"])
+        .extra_wire("GCLK_I7", &["HCLK_IOIS_G_HCLKP7", "HCLK_DCM_G_HCLKP7"])
         .extra_wire(
-            "GCLK_OUT0",
+            "GCLK_O0",
             &["HCLK_IOIS_LEAF_GCLK_P0", "HCLK_DCM_LEAF_GCLK_P0"],
         )
         .extra_wire(
-            "GCLK_OUT1",
+            "GCLK_O1",
             &["HCLK_IOIS_LEAF_GCLK_P1", "HCLK_DCM_LEAF_GCLK_P1"],
         )
         .extra_wire(
-            "GCLK_OUT2",
+            "GCLK_O2",
             &["HCLK_IOIS_LEAF_GCLK_P2", "HCLK_DCM_LEAF_GCLK_P2"],
         )
         .extra_wire(
-            "GCLK_OUT3",
+            "GCLK_O3",
             &["HCLK_IOIS_LEAF_GCLK_P3", "HCLK_DCM_LEAF_GCLK_P3"],
         )
         .extra_wire(
-            "GCLK_OUT4",
+            "GCLK_O4",
             &["HCLK_IOIS_LEAF_GCLK_P4", "HCLK_DCM_LEAF_GCLK_P4"],
         )
         .extra_wire(
-            "GCLK_OUT5",
+            "GCLK_O5",
             &["HCLK_IOIS_LEAF_GCLK_P5", "HCLK_DCM_LEAF_GCLK_P5"],
         )
         .extra_wire(
-            "GCLK_OUT6",
+            "GCLK_O6",
             &["HCLK_IOIS_LEAF_GCLK_P6", "HCLK_DCM_LEAF_GCLK_P6"],
         )
         .extra_wire(
-            "GCLK_OUT7",
+            "GCLK_O7",
             &["HCLK_IOIS_LEAF_GCLK_P7", "HCLK_DCM_LEAF_GCLK_P7"],
         )
-        .extra_wire("RCLK_IN0", &["HCLK_IOIS_RCLK0", "HCLK_DCM_RCLK0"])
-        .extra_wire("RCLK_IN1", &["HCLK_IOIS_RCLK1", "HCLK_DCM_RCLK1"])
+        .extra_wire("RCLK_I0", &["HCLK_IOIS_RCLK0", "HCLK_DCM_RCLK0"])
+        .extra_wire("RCLK_I1", &["HCLK_IOIS_RCLK1", "HCLK_DCM_RCLK1"])
         .extra_wire(
-            "RCLK_OUT0",
+            "RCLK_O0",
             &["HCLK_IOIS_RCLK_FORIO_P0", "HCLK_DCM_RCLK_FORIO_P0"],
         )
         .extra_wire(
-            "RCLK_OUT1",
+            "RCLK_O1",
             &["HCLK_IOIS_RCLK_FORIO_P1", "HCLK_DCM_RCLK_FORIO_P1"],
         );
     for tkn in ["HCLK_IOIS_DCI", "HCLK_IOIS_LVDS"] {

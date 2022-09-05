@@ -32,18 +32,22 @@ impl<'a> BelContext<'a> {
         self.crds[self.naming.tile]
     }
 
+    #[track_caller]
     pub fn wire(&self, name: &str) -> &'a str {
         &self.naming.pins[name].name
     }
 
+    #[track_caller]
     pub fn wire_far(&self, name: &str) -> &'a str {
         &self.naming.pins[name].name_far
     }
 
+    #[track_caller]
     pub fn fwire(&self, name: &str) -> (Coord, &'a str) {
         (self.crd(), self.wire(name))
     }
 
+    #[track_caller]
     pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
         (self.crd(), self.wire_far(name))
     }

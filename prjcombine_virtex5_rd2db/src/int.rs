@@ -729,5 +729,1025 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
+    let intf = builder.db.get_node_naming("INTF");
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CFG_CENTER").iter().next() {
+        let mut bels = vec![];
+        for i in 0..32 {
+            bels.push(
+                builder
+                    .bel_xy(format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
+                    .raw_tile(1)
+                    .pins_name_only(&["I0", "I1", "O"])
+                    .extra_wire("GCLK", &[format!("CLK_BUFGMUX_GCLKP{i}")])
+                    .extra_wire(
+                        "GFB",
+                        &[if i < 16 {
+                            format!("CLK_BUFGMUX_GFB_BOT_{i}")
+                        } else {
+                            format!("CLK_BUFGMUX_GFB_TOP_{i}", i = i - 16)
+                        }],
+                    )
+                    .extra_int_out("I0MUX", &[format!("CLK_BUFGMUX_PREMUX0_CLK{i}")])
+                    .extra_int_out("I1MUX", &[format!("CLK_BUFGMUX_PREMUX1_CLK{i}")])
+                    .extra_int_in(
+                        "CKINT0",
+                        &[format!(
+                            "CLK_BUFGMUX_CKINT0_{ii}",
+                            ii = if i < 16 { i } else { i ^ 15 }
+                        )],
+                    )
+                    .extra_int_in(
+                        "CKINT1",
+                        &[format!(
+                            "CLK_BUFGMUX_CKINT1_{ii}",
+                            ii = if i < 16 { i } else { i ^ 15 }
+                        )],
+                    )
+                    .extra_wire(
+                        "MUXBUS0",
+                        &[if i < 16 {
+                            format!("CLK_BUFGMUX_MUXED_IN_CLKB_P{ii}", ii = i * 2)
+                        } else {
+                            format!("CLK_BUFGMUX_MUXED_IN_CLKT_P{ii}", ii = i * 2 - 32)
+                        }],
+                    )
+                    .extra_wire(
+                        "MUXBUS1",
+                        &[if i < 16 {
+                            format!("CLK_BUFGMUX_MUXED_IN_CLKB_P{ii}", ii = i * 2 + 1)
+                        } else {
+                            format!("CLK_BUFGMUX_MUXED_IN_CLKT_P{ii}", ii = i * 2 - 32 + 1)
+                        }],
+                    ),
+            );
+        }
+        let mut bel_mgtclk_b = builder.bel_virtual("BUFG_MGTCLK_B").raw_tile(1);
+        let mut bel_mgtclk_t = builder.bel_virtual("BUFG_MGTCLK_T").raw_tile(1);
+        for i in 0..5 {
+            for lr in ['L', 'R'] {
+                let ii = if lr == 'L' { 4 - i } else { i };
+                bel_mgtclk_b = bel_mgtclk_b
+                    .extra_wire(
+                        format!("MGT_O_{lr}{i}"),
+                        &[format!("CLK_BUFGMUX_{lr}MGT_CLK_BOT{ii}")],
+                    )
+                    .extra_wire_force(
+                        format!("MGT_I_{lr}{i}"),
+                        format!("CLK_BUFGMUX_MGT_CLKP_{lr}BOT{ii}"),
+                    );
+                bel_mgtclk_t = bel_mgtclk_t
+                    .extra_wire(
+                        format!("MGT_O_{lr}{i}"),
+                        &[format!("CLK_BUFGMUX_{lr}MGT_CLK_TOP{ii}")],
+                    )
+                    .extra_wire_force(
+                        format!("MGT_I_{lr}{i}"),
+                        format!("CLK_BUFGMUX_MGT_CLKP_{lr}TOP{ii}"),
+                    );
+            }
+        }
+        let mut bel_sysmon = builder
+            .bel_xy("SYSMON", "SYSMON", 0, 0)
+            .pins_name_only(&["VP", "VN"]);
+        for i in 0..16 {
+            bel_sysmon = bel_sysmon
+                .pin_name_only(&format!("VAUXP{i}"), 1)
+                .pin_name_only(&format!("VAUXN{i}"), 1);
+        }
+        bels.extend([
+            builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
+            builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
+            builder.bel_xy("BSCAN2", "BSCAN", 0, 2),
+            builder.bel_xy("BSCAN3", "BSCAN", 0, 3),
+            builder.bel_xy("ICAP0", "ICAP", 0, 0),
+            builder.bel_xy("ICAP1", "ICAP", 0, 1),
+            builder.bel_single("PMV", "PMV"),
+            builder.bel_single("STARTUP", "STARTUP"),
+            builder.bel_single("JTAGPPC", "JTAGPPC"),
+            builder.bel_single("FRAME_ECC", "FRAME_ECC"),
+            builder.bel_single("DCIRESET", "DCIRESET"),
+            builder.bel_single("CAPTURE", "CAPTURE"),
+            builder.bel_single("USR_ACCESS", "USR_ACCESS_SITE"),
+            builder.bel_single("KEY_CLEAR", "KEY_CLEAR"),
+            builder.bel_single("EFUSE_USR", "EFUSE_USR"),
+            bel_sysmon,
+            builder
+                .bel_xy("IPAD_SYSMON_0", "IPAD", 0, 0)
+                .pins_name_only(&["O"]),
+            builder
+                .bel_xy("IPAD_SYSMON_1", "IPAD", 0, 1)
+                .pins_name_only(&["O"]),
+            bel_mgtclk_b,
+            bel_mgtclk_t,
+        ]);
+        let xy_bufg = Coord {
+            x: xy.x + 1,
+            y: xy.y,
+        };
+        let mut xn = builder
+            .xnode("CFG", "CFG", xy)
+            .raw_tile(xy_bufg)
+            .num_tiles(20);
+        for i in 0..10 {
+            xn = xn.ref_int(
+                Coord {
+                    x: xy.x - 4,
+                    y: xy.y - 10 + (i as u16),
+                },
+                i,
+            );
+            xn = xn.ref_single(
+                Coord {
+                    x: xy.x - 3,
+                    y: xy.y - 10 + (i as u16),
+                },
+                i,
+                intf,
+            );
+        }
+        for i in 0..10 {
+            xn = xn.ref_int(
+                Coord {
+                    x: xy.x - 4,
+                    y: xy.y + 1 + (i as u16),
+                },
+                i + 10,
+            );
+            xn = xn.ref_single(
+                Coord {
+                    x: xy.x - 3,
+                    y: xy.y + 1 + (i as u16),
+                },
+                i + 10,
+                intf,
+            );
+        }
+        for bel in bels {
+            xn = xn.bel(bel);
+        }
+        xn.extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("IOI").iter().next() {
+        let int_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+        let intf_xy = Coord {
+            x: int_xy.x + 1,
+            y: int_xy.y,
+        };
+        let bel_ilogic0 = builder
+            .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
+            .pins_name_only(&[
+                "SHIFTIN1",
+                "SHIFTIN2",
+                "SHIFTOUT1",
+                "SHIFTOUT2",
+                "D",
+                "DDLY",
+                "TFB",
+                "OFB",
+                "CLK",
+                "CLKB",
+                "OCLK",
+            ])
+            .extra_wire("I_IOB", &["IOI_IBUF0"])
+            .extra_wire_force("CLKOUT", "IOI_I_2GCLK0");
+        let bel_ilogic1 = builder
+            .bel_xy("ILOGIC1", "ILOGIC", 0, 0)
+            .pins_name_only(&[
+                "SHIFTIN1",
+                "SHIFTIN2",
+                "SHIFTOUT1",
+                "SHIFTOUT2",
+                "D",
+                "DDLY",
+                "TFB",
+                "OFB",
+                "CLK",
+                "CLKB",
+                "OCLK",
+            ])
+            .extra_wire("I_IOB", &["IOI_IBUF1"]);
+        let bel_ologic0 = builder
+            .bel_xy("OLOGIC0", "OLOGIC", 0, 1)
+            .pins_name_only(&[
+                "SHIFTIN1",
+                "SHIFTIN2",
+                "SHIFTOUT1",
+                "SHIFTOUT2",
+                "CLK",
+                "CLKDIV",
+                "OQ",
+            ])
+            .extra_wire("T_IOB", &["IOI_T0"])
+            .extra_wire("O_IOB", &["IOI_O0"])
+            .extra_int_out("CLKMUX", &["IOI_OCLKP_0"])
+            .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV0"])
+            .extra_int_in("CKINT", &["IOI_IMUX_B10"])
+            .extra_int_in("CKINT_DIV", &["IOI_IMUX_B7"]);
+        let bel_ologic1 = builder
+            .bel_xy("OLOGIC1", "OLOGIC", 0, 0)
+            .pins_name_only(&[
+                "SHIFTIN1",
+                "SHIFTIN2",
+                "SHIFTOUT1",
+                "SHIFTOUT2",
+                "CLK",
+                "CLKDIV",
+                "OQ",
+            ])
+            .extra_wire("T_IOB", &["IOI_T1"])
+            .extra_wire("O_IOB", &["IOI_O1"])
+            .extra_int_out("CLKMUX", &["IOI_OCLKP_1"])
+            .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV1"])
+            .extra_int_in("CKINT", &["IOI_IMUX_B4"])
+            .extra_int_in("CKINT_DIV", &["IOI_IMUX_B1"]);
+        let bel_iodelay0 = builder
+            .bel_xy("IODELAY0", "IODELAY", 0, 1)
+            .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+        let bel_iodelay1 = builder
+            .bel_xy("IODELAY1", "IODELAY", 0, 0)
+            .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+        let mut bel_ioi_clk = builder
+            .bel_virtual("IOI_CLK")
+            .extra_int_in("CKINT0", &["IOI_IMUX_B5"])
+            .extra_int_in("CKINT1", &["IOI_IMUX_B11"])
+            .extra_wire("ICLK0", &["IOI_ICLKP_0"])
+            .extra_wire("ICLK1", &["IOI_ICLKP_1"]);
+        for i in 0..4 {
+            bel_ioi_clk = bel_ioi_clk.extra_wire(format!("IOCLK{i}"), &[format!("IOI_IOCLKP{i}")]);
+        }
+        for i in 0..4 {
+            bel_ioi_clk =
+                bel_ioi_clk.extra_wire(format!("RCLK{i}"), &[format!("IOI_RCLK_FORIO_P{i}")]);
+        }
+        for i in 0..10 {
+            bel_ioi_clk =
+                bel_ioi_clk.extra_wire(format!("GCLK{i}"), &[format!("IOI_LEAF_GCLK_P{i}")]);
+        }
+        builder
+            .xnode("IOI", "IOI", xy)
+            .ref_int(int_xy, 0)
+            .ref_single(intf_xy, 0, intf)
+            .bel(bel_ilogic0)
+            .bel(bel_ilogic1)
+            .bel(bel_ologic0)
+            .bel(bel_ologic1)
+            .bel(bel_iodelay0)
+            .bel(bel_iodelay1)
+            .bel(bel_ioi_clk)
+            .extract();
+    }
+
+    for tkn in ["LIOB", "LIOB_MON", "CIOB", "RIOB"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel0 = builder.bel_xy("IOB0", "IOB", 0, 1).pins_name_only(&[
+                "I",
+                "O",
+                "T",
+                "PADOUT",
+                "DIFFI_IN",
+                "DIFFO_OUT",
+                "DIFFO_IN",
+            ]);
+            let mut bel1 = builder.bel_xy("IOB1", "IOB", 0, 0).pins_name_only(&[
+                "I",
+                "O",
+                "T",
+                "PADOUT",
+                "DIFFI_IN",
+                "DIFFO_OUT",
+                "DIFFO_IN",
+            ]);
+            match tkn {
+                "LIOB" => {
+                    bel0 = bel0.extra_wire_force("MONITOR", "LIOB_MONITOR_P");
+                    bel1 = bel1.extra_wire_force("MONITOR", "LIOB_MONITOR_N");
+                }
+                "LIOB_MON" => {
+                    bel0 = bel0.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_P");
+                    bel1 = bel1.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_N");
+                }
+                _ => (),
+            }
+            builder
+                .xnode("IOB", tkn, xy)
+                .num_tiles(0)
+                .bel(bel0)
+                .bel(bel1)
+                .extract();
+        }
+    }
+
+    for tkn in ["CMT_BOT", "CMT_TOP"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("DCM{i}"), "DCM_ADV", 0, i)
+                        .pins_name_only(&[
+                            "CLK0",
+                            "CLK90",
+                            "CLK180",
+                            "CLK270",
+                            "CLK2X",
+                            "CLK2X180",
+                            "CLKDV",
+                            "CLKFX",
+                            "CLKFX180",
+                            "CONCUR",
+                            "CLKIN",
+                            "CLKFB",
+                            "SKEWCLKIN1",
+                            "SKEWCLKIN2",
+                        ])
+                        .extra_int_in("CKINT0", &[format!("CMT_DCM_{i}_SE_CLK_IN0")])
+                        .extra_int_in("CKINT1", &[format!("CMT_DCM_{i}_SE_CLK_IN1")])
+                        .extra_int_in("CKINT2", &[format!("CMT_DCM_{i}_SE_CLK_IN2")])
+                        .extra_wire("CLKIN_TEST", &[format!("CMT_DCM_{i}_CLKIN_TEST")])
+                        .extra_wire("CLKFB_TEST", &[format!("CMT_DCM_{i}_CLKFB_TEST")])
+                        .extra_wire("MUXED_CLK", &[format!("CMT_DCM_{i}_MUXED_CLK")]),
+                );
+            }
+            bels.push(
+                builder
+                    .bel_xy("PLL", "PLL_ADV", 0, 0)
+                    .pins_name_only(&[
+                        "CLKIN1",
+                        "CLKIN2",
+                        "CLKFBIN",
+                        "SKEWCLKIN1",
+                        "SKEWCLKIN2",
+                        "CLKOUT0",
+                        "CLKOUT1",
+                        "CLKOUT2",
+                        "CLKOUT3",
+                        "CLKOUT4",
+                        "CLKOUT5",
+                        "CLKFBOUT",
+                        "CLKOUTDCM0",
+                        "CLKOUTDCM1",
+                        "CLKOUTDCM2",
+                        "CLKOUTDCM3",
+                        "CLKOUTDCM4",
+                        "CLKOUTDCM5",
+                        "CLKFBDCM",
+                    ])
+                    .extra_int_in("CKINT0", &["CMT_PLL_SE_CLK_IN0"])
+                    .extra_int_in("CKINT1", &["CMT_PLL_SE_CLK_IN1"])
+                    .extra_wire("CLKIN1_TEST", &["CMT_PLL_CLKIN1_TEST"])
+                    .extra_wire("CLKINFB_TEST", &["CMT_PLL_CLKINFB_TEST"])
+                    .extra_wire("CLKFBDCM_TEST", &["CMT_PLL_CLKFBDCM_TEST"])
+                    .extra_wire("CLK_DCM_MUX", &["CMT_PLL_CLK_DCM_MUX"])
+                    .extra_wire("CLK_FB_FROM_DCM", &["CMT_PLL_CLK_FB_FROM_DCM"])
+                    .extra_wire("CLK_TO_DCM0", &["CMT_PLL_CLK_TO_DCM0"])
+                    .extra_wire("CLK_TO_DCM1", &["CMT_PLL_CLK_TO_DCM1"]),
+            );
+            let mut bel = builder.bel_virtual("CMT");
+            for i in 0..10 {
+                bel = bel
+                    .extra_wire(format!("GIOB{i}"), &[format!("CMT_GIOB{i}")])
+                    .extra_wire(
+                        format!("GCLK{i}"),
+                        &[
+                            format!("CMT_BUFG{i}"),
+                            format!("CMT_BUFG{i}_BOT"),
+                            format!("CMT_BUFG{i}_TOP"),
+                        ],
+                    );
+                if i < 5 {
+                    continue;
+                }
+                if i == 5 && tkn == "CMT_BOT" {
+                    continue;
+                }
+                if i == 6 && tkn == "CMT_TOP" {
+                    continue;
+                }
+                bel = bel.extra_wire(
+                    format!("GCLK{i}_TO_CLKIN2"),
+                    &[format!("CMT_BUFG{i}_TO_CLKIN2")],
+                );
+            }
+            for i in 0..28 {
+                if i == 10 {
+                    bel = bel.extra_int_out(format!("OUT{i}"), &[format!("CMT_CLK_{i:02}")]);
+                } else {
+                    bel = bel.extra_wire(format!("OUT{i}"), &[format!("CMT_CLK_{i:02}")]);
+                }
+                if !(10..18).contains(&i) {
+                    bel = bel.extra_wire(format!("OUT{i}_TEST"), &[format!("CMT_CLK_{i:02}_TEST")]);
+                }
+            }
+            bels.push(bel);
+            let mut xn = builder.xnode("CMT", tkn, xy).num_tiles(10);
+            for i in 0..10 {
+                xn = xn.ref_int(
+                    Coord {
+                        x: xy.x - 3,
+                        y: xy.y + (i as u16),
+                    },
+                    i,
+                );
+                xn = xn.ref_single(
+                    Coord {
+                        x: xy.x - 2,
+                        y: xy.y + (i as u16),
+                    },
+                    i,
+                    intf,
+                );
+            }
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
+    }
+
+    for tkn in ["CLK_HROW", "CLK_HROW_MGT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CLK_HROW");
+            for i in 0..32 {
+                bel = bel.extra_wire(format!("GCLK_I{i}"), &[format!("CLK_HROW_GCLK_BUF{i}")]);
+            }
+            for i in 0..10 {
+                bel = bel.extra_wire(format!("GCLK_O_L{i}"), &[format!("CLK_HROW_HCLKL_P{i}")]);
+                bel = bel.extra_wire(format!("GCLK_O_R{i}"), &[format!("CLK_HROW_HCLKR_P{i}")]);
+            }
+            for i in 0..5 {
+                bel = bel
+                    .extra_wire_force(format!("MGT_I_L{i}"), format!("CLK_HROW_MGT_CLK_P{i}_LEFT"))
+                    .extra_wire_force(format!("MGT_I_R{i}"), format!("CLK_HROW_MGT_CLK_P{i}"))
+                    .extra_wire_force(format!("MGT_O_L{i}"), format!("CLK_HROW_MGT_CLKV{i}_LEFT"))
+                    .extra_wire_force(format!("MGT_O_R{i}"), format!("CLK_HROW_MGT_CLKV{i}"));
+            }
+            builder
+                .xnode("CLK_HROW", "CLK_HROW", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in ["HCLK", "HCLK_GT3", "HCLK_GTX", "HCLK_GTX_LEFT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("HCLK");
+            for i in 0..10 {
+                bel = bel
+                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_G_HCLK_P{i}")])
+                    .extra_int_out(format!("GCLK_O{i}"), &[format!("HCLK_LEAF_GCLK{i}")]);
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("RCLK_I{i}"), &[format!("HCLK_RCLK{i}")])
+                    .extra_int_out(format!("RCLK_O{i}"), &[format!("HCLK_LEAF_RCLK{i}")]);
+            }
+            let bel_gsig = builder.bel_xy("GLOBALSIG", "GLOBALSIG", 0, 0);
+            builder
+                .xnode("HCLK", "HCLK", xy)
+                .ref_int(
+                    Coord {
+                        x: xy.x,
+                        y: xy.y + 1,
+                    },
+                    0,
+                )
+                .bel(bel_gsig)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, kind, has_bufr, has_io_s, has_io_n, has_rclk) in [
+        ("HCLK_IOI", "HCLK_IOI", true, true, true, true),
+        (
+            "HCLK_IOI_CENTER",
+            "HCLK_IOI_CENTER",
+            false,
+            true,
+            true,
+            true,
+        ),
+        ("HCLK_CMT_IOI", "HCLK_CMT_IOI", false, true, false, true),
+        (
+            "HCLK_IOI_BOTCEN",
+            "HCLK_IOI_BOTCEN",
+            false,
+            true,
+            false,
+            false,
+        ),
+        (
+            "HCLK_IOI_BOTCEN_MGT",
+            "HCLK_IOI_BOTCEN",
+            false,
+            true,
+            false,
+            false,
+        ),
+        ("HCLK_IOI_CMT", "HCLK_IOI_CMT", false, false, true, false),
+        (
+            "HCLK_IOI_CMT_MGT",
+            "HCLK_IOI_CMT",
+            false,
+            false,
+            true,
+            false,
+        ),
+        (
+            "HCLK_IOI_TOPCEN",
+            "HCLK_IOI_TOPCEN",
+            false,
+            false,
+            true,
+            false,
+        ),
+        (
+            "HCLK_IOI_TOPCEN_MGT",
+            "HCLK_IOI_TOPCEN",
+            false,
+            false,
+            true,
+            false,
+        ),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_x = builder
+                .walk_to_int(
+                    Coord {
+                        x: xy.x,
+                        y: xy.y - 1,
+                    },
+                    Dir::W,
+                )
+                .unwrap()
+                .x;
+            let mut bels = vec![];
+            if has_io_n {
+                for i in 0..2 {
+                    bels.push(
+                        builder
+                            .bel_xy(
+                                format!("BUFIO{i}"),
+                                "BUFIO",
+                                0,
+                                if has_io_s { i ^ 2 } else { i },
+                            )
+                            .pin_name_only("I", 1)
+                            .pins_name_only(&["O"]),
+                    )
+                }
+            }
+            if has_io_s {
+                for i in 2..4 {
+                    bels.push(
+                        builder
+                            .bel_xy(format!("BUFIO{i}"), "BUFIO", 0, i ^ 3)
+                            .pin_name_only("I", 1)
+                            .pins_name_only(&["O"]),
+                    )
+                }
+            }
+            if has_bufr {
+                for i in 0..2 {
+                    bels.push(
+                        builder
+                            .bel_xy(format!("BUFR{i}"), "BUFR", 0, i)
+                            .pins_name_only(&["O", "I"]),
+                    )
+                }
+            }
+            bels.push(
+                builder
+                    .bel_xy("IDELAYCTRL", "IDELAYCTRL", 0, 0)
+                    .pins_name_only(&["REFCLK"]),
+            );
+            bels.push(builder.bel_xy("DCI", "DCI", 0, 0));
+            let mut bel_ioclk = builder.bel_virtual("IOCLK");
+            for i in 0..4 {
+                bel_ioclk = bel_ioclk
+                    .extra_wire(format!("RCLK_I{i}"), &[format!("HCLK_IOI_RCLK{i}")])
+                    .extra_wire(format!("RCLK_O{i}"), &[format!("HCLK_IOI_RCLK_FORIO_P{i}")]);
+            }
+            for i in 0..4 {
+                if (has_io_s && i >= 2) || (has_io_n && i < 2) {
+                    bel_ioclk =
+                        bel_ioclk.extra_wire(format!("IOCLK{i}"), &[format!("HCLK_IOI_IOCLKP{i}")]);
+                }
+            }
+            for i in 0..10 {
+                bel_ioclk = bel_ioclk
+                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_IOI_G_HCLK_P{i}")])
+                    .extra_wire(format!("GCLK_O{i}"), &[format!("HCLK_IOI_LEAF_GCLK_P{i}")]);
+            }
+            if has_rclk {
+                bel_ioclk = bel_ioclk
+                    .extra_wire("VRCLK0", &["HCLK_IOI_VRCLK0"])
+                    .extra_wire("VRCLK1", &["HCLK_IOI_VRCLK1"])
+                    .extra_wire("VRCLK_S0", &["HCLK_IOI_VRCLK_S0"])
+                    .extra_wire("VRCLK_S1", &["HCLK_IOI_VRCLK_S1"])
+                    .extra_wire("VRCLK_N0", &["HCLK_IOI_VRCLK_N0"])
+                    .extra_wire("VRCLK_N1", &["HCLK_IOI_VRCLK_N1"]);
+            }
+            bels.push(bel_ioclk);
+            if has_bufr {
+                bels.push(
+                    builder
+                        .bel_virtual("RCLK")
+                        .extra_wire("MGT0", &["HCLK_IOI_MGT_CLK_P0"])
+                        .extra_wire("MGT1", &["HCLK_IOI_MGT_CLK_P1"])
+                        .extra_wire("MGT2", &["HCLK_IOI_MGT_CLK_P2"])
+                        .extra_wire("MGT3", &["HCLK_IOI_MGT_CLK_P3"])
+                        .extra_wire("MGT4", &["HCLK_IOI_MGT_CLK_P4"])
+                        .extra_int_in("CKINT0", &["HCLK_IOI_INT_RCLKMUX_B_N"])
+                        .extra_int_in("CKINT1", &["HCLK_IOI_INT_RCLKMUX_B_S"]),
+                );
+            }
+
+            let mut xn = builder.xnode(kind, kind, xy);
+            let mut t = 0;
+            if has_io_s {
+                xn = xn
+                    .raw_tile(Coord {
+                        x: xy.x,
+                        y: xy.y - 2,
+                    })
+                    .ref_int(
+                        Coord {
+                            x: int_x,
+                            y: xy.y - 2,
+                        },
+                        0,
+                    )
+                    .ref_single(
+                        Coord {
+                            x: int_x + 1,
+                            y: xy.y - 2,
+                        },
+                        0,
+                        intf,
+                    )
+                    .raw_tile(Coord {
+                        x: xy.x,
+                        y: xy.y - 1,
+                    })
+                    .ref_int(
+                        Coord {
+                            x: int_x,
+                            y: xy.y - 1,
+                        },
+                        1,
+                    )
+                    .ref_single(
+                        Coord {
+                            x: int_x + 1,
+                            y: xy.y - 1,
+                        },
+                        1,
+                        intf,
+                    );
+                t = 2;
+            }
+            if has_io_n {
+                xn = xn
+                    .raw_tile(Coord {
+                        x: xy.x,
+                        y: xy.y + 1,
+                    })
+                    .ref_int(
+                        Coord {
+                            x: int_x,
+                            y: xy.y + 1,
+                        },
+                        t,
+                    )
+                    .ref_single(
+                        Coord {
+                            x: int_x + 1,
+                            y: xy.y + 1,
+                        },
+                        t,
+                        intf,
+                    );
+                if !has_io_s || has_bufr {
+                    xn = xn
+                        .raw_tile(Coord {
+                            x: xy.x,
+                            y: xy.y + 2,
+                        })
+                        .ref_int(
+                            Coord {
+                                x: int_x,
+                                y: xy.y + 2,
+                            },
+                            t + 1,
+                        )
+                        .ref_single(
+                            Coord {
+                                x: int_x + 1,
+                                y: xy.y + 2,
+                            },
+                            t + 1,
+                            intf,
+                        );
+                }
+            }
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
+    }
+
+    for tkn in [
+        "HCLK_IOB_CMT_BOT",
+        "HCLK_IOB_CMT_BOT_MGT",
+        "HCLK_IOB_CMT_MID",
+        "HCLK_IOB_CMT_MID_MGT",
+        "HCLK_IOB_CMT_TOP",
+        "HCLK_IOB_CMT_TOP_MGT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel_gclk = builder.bel_virtual("HCLK_CMT_GCLK");
+            for i in 0..10 {
+                bel_gclk = bel_gclk
+                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_IOB_CMT_GCLK_B{i}")])
+                    .extra_wire(format!("GCLK_O{i}"), &[format!("HCLK_IOB_CMT_BUFG{i}")]);
+            }
+            let mut bel_giob = builder.bel_virtual("HCLK_CMT_GIOB").raw_tile(1);
+            for i in 0..10 {
+                bel_giob = bel_giob
+                    .extra_wire(format!("GIOB_I{i}"), &[format!("CLK_HROW_CLK_METAL9_{i}")])
+                    .extra_wire(
+                        format!("GIOB_O{i}"),
+                        &[format!("CLK_HROW_CLK_H_METAL9_{i}")],
+                    );
+            }
+            builder
+                .xnode("HCLK_CMT", "HCLK_CMT", xy)
+                .num_tiles(0)
+                .raw_tile(Coord {
+                    x: xy.x + 1,
+                    y: xy.y,
+                })
+                .bel(bel_gclk)
+                .bel(bel_giob)
+                .extract();
+        }
+    }
+
+    for tkn in ["CLK_IOB_B", "CLK_IOB_T"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CLK_IOB");
+            for i in 0..10 {
+                bel = bel.extra_wire(format!("PAD{i}"), &[format!("CLK_IOB_PAD_CLK{i}")]);
+                bel = bel.extra_wire(format!("PAD_BUF{i}"), &[format!("CLK_IOB_CLK_BUF{i}")]);
+                bel = bel.extra_wire(format!("GIOB{i}"), &[format!("CLK_IOB_IOB_CLKP{i}")]);
+            }
+            for i in 0..5 {
+                bel = bel.extra_wire(
+                    format!("MGT_L{i}"),
+                    &[
+                        format!("CLK_IOB_B_CLK_BUF{ii}", ii = 15 + i),
+                        format!("CLK_IOB_T_CLK_BUF{ii}", ii = 15 + i),
+                    ],
+                );
+                bel = bel.extra_wire(
+                    format!("MGT_R{i}"),
+                    &[
+                        format!("CLK_IOB_B_CLK_BUF{ii}", ii = 14 - i),
+                        format!("CLK_IOB_T_CLK_BUF{ii}", ii = 14 - i),
+                    ],
+                );
+            }
+            for i in 0..32 {
+                bel = bel.extra_wire(format!("MUXBUS_I{i}"), &[format!("CLK_IOB_MUXED_CLKIN{i}")]);
+                bel = bel.extra_wire(
+                    format!("MUXBUS_O{i}"),
+                    &[format!("CLK_IOB_MUXED_CLKOUT{i}")],
+                );
+            }
+            builder
+                .xnode("CLK_IOB", tkn, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, naming) in [
+        ("CLK_CMT_BOT", "CLK_CMT_BOT"),
+        ("CLK_CMT_BOT_MGT", "CLK_CMT_BOT"),
+        ("CLK_CMT_TOP", "CLK_CMT_TOP"),
+        ("CLK_CMT_TOP_MGT", "CLK_CMT_TOP"),
+    ] {
+        let bt = if naming == "CLK_CMT_BOT" { 'B' } else { 'T' };
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CLK_CMT");
+            for i in 0..28 {
+                bel = bel.extra_wire(format!("CMT_CLK{i}"), &[format!("CLK_CMT_CMT_CLK_{i:02}")]);
+            }
+            for i in 0..5 {
+                bel = bel.extra_wire_force(
+                    format!("MGT_L{i}"),
+                    format!("CLK_IOB_{bt}_CLK_BUF{ii}", ii = 15 + i),
+                );
+                bel = bel.extra_wire(
+                    format!("MGT_R{i}"),
+                    &[
+                        format!("CLK_IOB_B_CLK_BUF{ii}", ii = 14 - i),
+                        format!("CLK_IOB_T_CLK_BUF{ii}", ii = 14 - i),
+                    ],
+                );
+            }
+            for i in 0..32 {
+                bel = bel.extra_wire(format!("MUXBUS_I{i}"), &[format!("CLK_IOB_MUXED_CLKIN{i}")]);
+                bel = bel.extra_wire(
+                    format!("MUXBUS_O{i}"),
+                    &[format!("CLK_IOB_MUXED_CLKOUT{i}")],
+                );
+            }
+            builder
+                .xnode("CLK_CMT", naming, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, naming) in [
+        ("CLK_MGT_BOT", "CLK_MGT_BOT"),
+        ("CLK_MGT_BOT_MGT", "CLK_MGT_BOT"),
+        ("CLK_MGT_TOP", "CLK_MGT_TOP"),
+        ("CLK_MGT_TOP_MGT", "CLK_MGT_TOP"),
+    ] {
+        let bt = if naming == "CLK_MGT_BOT" { 'B' } else { 'T' };
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CLK_MGT");
+            for i in 0..5 {
+                bel =
+                    bel.extra_wire_force(format!("MGT_L{i}"), format!("CLK_MGT_{bt}_CLK{i}_LEFT"));
+                bel = bel.extra_wire(
+                    format!("MGT_R{i}"),
+                    &[format!("CLK_MGT_B_CLK{i}"), format!("CLK_MGT_T_CLK{i}")],
+                );
+            }
+            for i in 0..32 {
+                bel = bel.extra_wire(format!("MUXBUS_I{i}"), &[format!("CLK_IOB_MUXED_CLKIN{i}")]);
+                bel = bel.extra_wire(
+                    format!("MUXBUS_O{i}"),
+                    &[format!("CLK_IOB_MUXED_CLKOUT{i}")],
+                );
+            }
+            builder
+                .xnode("CLK_MGT", naming, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in ["HCLK_BRAM_MGT", "HCLK_BRAM_MGT_LEFT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("HCLK_BRAM_MGT");
+            for i in 0..5 {
+                bel = bel
+                    .extra_wire(format!("MGT_I{i}"), &[format!("HCLK_BRAM_MGT_CLK_IN_P{i}")])
+                    .extra_wire(
+                        format!("MGT_O{i}"),
+                        &[format!("HCLK_BRAM_MGT_CLK_OUT_P{i}")],
+                    );
+            }
+            builder
+                .xnode("HCLK_BRAM_MGT", "HCLK_BRAM_MGT", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, kind) in [("GT3", "GTP"), ("GTX", "GTX"), ("GTX_LEFT", "GTX")] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_x = if tkn == "GTX_LEFT" {
+                xy.x + 2
+            } else {
+                xy.x - 3
+            };
+            let intf_gt = builder.db.get_node_naming(if tkn == "GTX_LEFT" {
+                "INTF.GTX_LEFT"
+            } else {
+                "INTF.GTP"
+            });
+            let gtkind = if kind == "GTP" {
+                "GTP_DUAL"
+            } else {
+                "GTX_DUAL"
+            };
+            let bels = [
+                builder
+                    .bel_xy(gtkind, gtkind, 0, 0)
+                    .pins_name_only(&[
+                        "RXP0", "RXN0", "RXP1", "RXN1", "TXP0", "TXN0", "TXP1", "TXN1", "CLKIN",
+                    ])
+                    .extra_wire("CLKOUT_NORTH_S", &["GT3_CLKOUT_NORTH"])
+                    .extra_wire("CLKOUT_NORTH", &["GT3_CLKOUT_NORTH_N"])
+                    .extra_wire("CLKOUT_SOUTH", &["GT3_CLKOUT_SOUTH"])
+                    .extra_wire("CLKOUT_SOUTH_N", &["GT3_CLKOUT_SOUTH_N"])
+                    .extra_wire("MGT0", &["GT3_MGT_CLK_P0"])
+                    .extra_wire("MGT1", &["GT3_MGT_CLK_P1"])
+                    .extra_wire("MGT2", &["GT3_MGT_CLK_P2"])
+                    .extra_wire("MGT3", &["GT3_MGT_CLK_P3"])
+                    .extra_wire("MGT4", &["GT3_MGT_CLK_P4"])
+                    .extra_int_in(
+                        "GREFCLK",
+                        &["GT3_GREFCLK", "GTX_GREFCLK", "GTX_LEFT_GREFCLK"],
+                    ),
+                builder
+                    .bel_xy("BUFDS", "BUFDS", 0, 0)
+                    .pins_name_only(&["IP", "IN", "O"]),
+                builder.bel_xy("CRC64_0", "CRC64", 0, 0),
+                builder.bel_xy("CRC64_1", "CRC64", 0, 1),
+                builder.bel_xy("CRC32_0", "CRC32", 0, 0),
+                builder.bel_xy("CRC32_1", "CRC32", 0, 1),
+                builder.bel_xy("CRC32_2", "CRC32", 0, 2),
+                builder.bel_xy("CRC32_3", "CRC32", 0, 3),
+                builder
+                    .bel_xy("IPAD_GT_0", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_GT_1", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_GT_2", "IPAD", 0, 3)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_GT_3", "IPAD", 0, 2)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_GTCLK_0", "IPAD", 0, 5)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD_GTCLK_1", "IPAD", 0, 4)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("OPAD_GT_0", "OPAD", 0, 1)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("OPAD_GT_1", "OPAD", 0, 0)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("OPAD_GT_2", "OPAD", 0, 3)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("OPAD_GT_3", "OPAD", 0, 2)
+                    .pins_name_only(&["I"]),
+            ];
+
+            let mut xn = builder.xnode(kind, tkn, xy).num_tiles(20);
+            for i in 0..10 {
+                xn = xn
+                    .ref_int(
+                        Coord {
+                            x: int_x,
+                            y: xy.y - 10 + i as u16,
+                        },
+                        i,
+                    )
+                    .ref_single(
+                        Coord {
+                            x: int_x + 1,
+                            y: xy.y - 10 + i as u16,
+                        },
+                        i,
+                        intf_gt,
+                    );
+            }
+            for i in 0..10 {
+                xn = xn
+                    .ref_int(
+                        Coord {
+                            x: int_x,
+                            y: xy.y + 1 + i as u16,
+                        },
+                        i + 10,
+                    )
+                    .ref_single(
+                        Coord {
+                            x: int_x + 1,
+                            y: xy.y + 1 + i as u16,
+                        },
+                        i + 10,
+                        intf_gt,
+                    );
+            }
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
+    }
+
     builder.build()
 }

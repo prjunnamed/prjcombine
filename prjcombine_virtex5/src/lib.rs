@@ -16,6 +16,48 @@ pub struct Grid {
     pub holes_ppc: Vec<(ColId, RowId)>,
 }
 
+impl Grid {
+    pub fn row_botcen(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 20 - 10)
+    }
+
+    pub fn row_topcen(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 20 + 10)
+    }
+
+    pub fn row_ioi_cmt(&self) -> RowId {
+        if self.reg_cfg == 1 {
+            RowId::from_idx(0)
+        } else {
+            RowId::from_idx(self.reg_cfg * 20 - 30)
+        }
+    }
+
+    pub fn row_cmt_ioi(&self) -> RowId {
+        if self.reg_cfg == self.regs - 1 {
+            RowId::from_idx(self.regs * 20)
+        } else {
+            RowId::from_idx(self.reg_cfg * 20 + 30)
+        }
+    }
+
+    pub fn row_bot_cmt(&self) -> RowId {
+        if self.reg_cfg < 3 {
+            RowId::from_idx(0)
+        } else {
+            RowId::from_idx(self.reg_cfg * 20 - 60)
+        }
+    }
+
+    pub fn row_top_cmt(&self) -> RowId {
+        if (self.regs - self.reg_cfg) < 3 {
+            RowId::from_idx(self.regs * 20)
+        } else {
+            RowId::from_idx(self.reg_cfg * 20 + 60)
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKind {
     ClbLL,
@@ -462,6 +504,13 @@ impl Grid {
         *self.columns.first().unwrap() == ColumnKind::Gtx
     }
 
+    pub fn has_gt(&self) -> bool {
+        matches!(
+            *self.columns.last().unwrap(),
+            ColumnKind::Gtx | ColumnKind::Gtp
+        )
+    }
+
     pub fn get_sysmon_pads(&self) -> Vec<(String, SysMonPin)> {
         let mut res = Vec::new();
         if self.has_left_gt() {
@@ -486,6 +535,29 @@ impl Grid {
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
         let (_, mut grid) = egrid.add_die(self.columns.len(), self.regs * 20);
+
+        let mut rxlut = EntityVec::new();
+        let mut rx = 0;
+        for (col, &kind) in &self.columns {
+            if self.cols_vbrk.contains(&col) {
+                rx += 1;
+            }
+            rxlut.push(rx);
+            rx += match kind {
+                ColumnKind::ClbLL | ColumnKind::ClbLM => 2,
+                ColumnKind::Bram | ColumnKind::Dsp => 3,
+                ColumnKind::Io => {
+                    if col.to_idx() == 0 {
+                        5
+                    } else if col == self.cols_io[1].unwrap() {
+                        7
+                    } else {
+                        6
+                    }
+                }
+                ColumnKind::Gtp | ColumnKind::Gtx => 4,
+            };
+        }
 
         for (col, &kind) in &self.columns {
             for row in grid.rows() {
@@ -827,21 +899,36 @@ impl Grid {
                     node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2));
                     node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2 + 1));
                 }
-                if kind == "BRAM" && row.to_idx() % 20 == 10 && !self.cols_mgt_buf.contains(&col) {
-                    let name_h = format!("HCLK_{tk}_X{x}Y{y}", y = y - 1);
-                    let node = grid[(col, row)].add_xnode(
-                        db.get_node("PMVBRAM"),
-                        &[&name_h, &name],
-                        db.get_node_naming("PMVBRAM"),
-                        &[
-                            (col, row),
-                            (col, row + 1),
-                            (col, row + 2),
-                            (col, row + 3),
-                            (col, row + 4),
-                        ],
-                    );
-                    node.add_bel(0, format!("PMVBRAM_X{px}Y{sy}", sy = y / 20));
+                if kind == "BRAM" && row.to_idx() % 20 == 10 {
+                    if self.cols_mgt_buf.contains(&col) {
+                        let l = if col < self.cols_io[1].unwrap() {
+                            "_LEFT"
+                        } else {
+                            ""
+                        };
+                        let name_h = format!("HCLK_BRAM_MGT{l}_X{x}Y{y}", y = y - 1);
+                        grid[(col, row)].add_xnode(
+                            db.get_node("HCLK_BRAM_MGT"),
+                            &[&name_h],
+                            db.get_node_naming("HCLK_BRAM_MGT"),
+                            &[],
+                        );
+                    } else {
+                        let name_h = format!("HCLK_{tk}_X{x}Y{y}", y = y - 1);
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node("PMVBRAM"),
+                            &[&name_h, &name],
+                            db.get_node_naming("PMVBRAM"),
+                            &[
+                                (col, row),
+                                (col, row + 1),
+                                (col, row + 2),
+                                (col, row + 3),
+                                (col, row + 4),
+                            ],
+                        );
+                        node.add_bel(0, format!("PMVBRAM_X{px}Y{sy}", sy = y / 20));
+                    }
                 }
             }
             if cd == ColumnKind::Bram {
@@ -854,10 +941,382 @@ impl Grid {
             }
         }
 
+        for (iox, col) in self.cols_io.iter().enumerate() {
+            let mgt = if self.has_left_gt() { "_MGT" } else { "" };
+            let col = if let &Some(c) = col { c } else { continue };
+            let x = col.to_idx();
+            let mut cmty = 0;
+            for row in grid.rows() {
+                let y = row.to_idx();
+                let is_cfg = col == self.cols_io[1].unwrap();
+                if is_cfg && row >= self.row_botcen() && row < self.row_topcen() {
+                    if row.to_idx() % 20 == 10 {
+                        let rx = rxlut[col] + 3;
+                        let ry = self.reg_cfg * 22;
+                        let name = format!("CFG_CENTER_X{rx}Y{ry}");
+                        let name_bufg = format!("CLK_BUFGMUX_X{rx}Y{ry}");
+                        let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node("CFG"),
+                            &[&name, &name_bufg],
+                            db.get_node_naming("CFG"),
+                            &crds,
+                        );
+                        for i in 0..32 {
+                            node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
+                        }
+                        for i in 0..4 {
+                            node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
+                        }
+                        for i in 0..2 {
+                            node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
+                        }
+                        node.add_bel(38, "PMV".to_string());
+                        node.add_bel(39, "STARTUP".to_string());
+                        node.add_bel(40, "JTAGPPC".to_string());
+                        node.add_bel(41, "FRAME_ECC".to_string());
+                        node.add_bel(42, "DCIRESET".to_string());
+                        node.add_bel(43, "CAPTURE".to_string());
+                        node.add_bel(44, "USR_ACCESS_SITE".to_string());
+                        node.add_bel(45, "KEY_CLEAR".to_string());
+                        node.add_bel(46, "EFUSE_USR".to_string());
+                        node.add_bel(47, "SYSMON_X0Y0".to_string());
+                        let ipx = if self.has_left_gt() { 1 } else { 0 };
+                        let ipy = if self.has_gt() { self.reg_cfg * 6 } else { 0 };
+                        node.add_bel(48, format!("IPAD_X{ipx}Y{ipy}"));
+                        node.add_bel(49, format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1));
+                    }
+                } else if is_cfg
+                    && ((row >= self.row_bot_cmt() && row < self.row_ioi_cmt())
+                        || (row >= self.row_cmt_ioi() && row < self.row_top_cmt()))
+                {
+                    if row.to_idx() % 10 == 0 {
+                        let naming = if row.to_idx() % 20 == 0 {
+                            "CMT_BOT"
+                        } else {
+                            "CMT_TOP"
+                        };
+                        let name = format!("CMT_X{x}Y{y}");
+                        let crds: [_; 10] = core::array::from_fn(|i| (col, row + i));
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node("CMT"),
+                            &[&name],
+                            db.get_node_naming(naming),
+                            &crds,
+                        );
+                        node.add_bel(0, format!("DCM_ADV_X0Y{y}", y = cmty * 2));
+                        node.add_bel(1, format!("DCM_ADV_X0Y{y}", y = cmty * 2 + 1));
+                        node.add_bel(2, format!("PLL_ADV_X0Y{cmty}"));
+                        cmty += 1;
+
+                        let rx = rxlut[col] + 4;
+                        let ry = y / 10 * 11 + 1;
+                        let naming = if row < self.row_botcen() {
+                            "CLK_CMT_BOT"
+                        } else {
+                            "CLK_CMT_TOP"
+                        };
+                        let name = format!("{naming}{mgt}_X{rx}Y{ry}");
+                        grid[(col, row)].add_xnode(
+                            db.get_node("CLK_CMT"),
+                            &[&name],
+                            db.get_node_naming(naming),
+                            &[],
+                        );
+                    }
+                } else {
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("IOI"),
+                        &[&format!("IOI_X{x}Y{y}")],
+                        db.get_node_naming("IOI"),
+                        &[(col, row)],
+                    );
+                    node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = y * 2 + 1));
+                    node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = y * 2));
+                    node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = y * 2 + 1));
+                    node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = y * 2));
+                    node.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = y * 2 + 1));
+                    node.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = y * 2));
+                    let naming = match iox {
+                        0 => {
+                            if col.to_idx() == 0 {
+                                "LIOB"
+                            } else if row >= self.row_topcen() && row < self.row_topcen() + 10 {
+                                "RIOB"
+                            } else {
+                                "LIOB_MON"
+                            }
+                        }
+                        1 => "CIOB",
+                        2 => "RIOB",
+                        _ => unreachable!(),
+                    };
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("IOB"),
+                        &[&format!("{naming}_X{x}Y{y}")],
+                        db.get_node_naming(naming),
+                        &[],
+                    );
+                    node.add_bel(0, format!("IOB_X{iox}Y{y}", y = y * 2 + 1));
+                    node.add_bel(1, format!("IOB_X{iox}Y{y}", y = y * 2));
+                }
+
+                if row.to_idx() % 20 == 10 {
+                    let ry = y / 20;
+                    if is_cfg {
+                        let kind = if self.has_left_gt() {
+                            "CLK_HROW_MGT"
+                        } else {
+                            "CLK_HROW"
+                        };
+                        let name_hrow = format!("{kind}_X{x}Y{y}", y = y - 1);
+                        grid[(col, row)].add_xnode(
+                            db.get_node("CLK_HROW"),
+                            &[&name_hrow],
+                            db.get_node_naming("CLK_HROW"),
+                            &[],
+                        );
+
+                        if row == self.row_botcen() {
+                            let name = format!("HCLK_IOI_BOTCEN{mgt}_X{x}Y{y}", y = y - 1);
+                            let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
+                            let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
+                            let node = grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_IOI_BOTCEN"),
+                                &[&name, &name_i0, &name_i1],
+                                db.get_node_naming("HCLK_IOI_BOTCEN"),
+                                &[(col, row - 2), (col, row - 1)],
+                            );
+                            node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 1));
+                            node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4));
+                            node.add_bel(2, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                            node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
+                        } else if row == self.row_topcen() {
+                            let name = format!("HCLK_IOI_TOPCEN{mgt}_X{x}Y{y}", y = y - 1);
+                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
+                            let node = grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_IOI_TOPCEN"),
+                                &[&name, &name_i2, &name_i3],
+                                db.get_node_naming("HCLK_IOI_TOPCEN"),
+                                &[(col, row), (col, row + 1)],
+                            );
+                            node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 2));
+                            node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 3));
+                            node.add_bel(2, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                            node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
+                        } else if row == self.row_ioi_cmt() {
+                            let name = format!("HCLK_IOI_CMT{mgt}_X{x}Y{y}", y = y - 1);
+                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
+                            let node = grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_IOI_CMT"),
+                                &[&name, &name_i2, &name_i3],
+                                db.get_node_naming("HCLK_IOI_CMT"),
+                                &[(col, row), (col, row + 1)],
+                            );
+                            node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 2));
+                            node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 3));
+                            node.add_bel(2, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                            node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
+
+                            let name = format!("HCLK_IOB_CMT_BOT{mgt}_X{x}Y{y}", y = y - 1);
+                            grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_CMT"),
+                                &[&name, &name_hrow],
+                                db.get_node_naming("HCLK_CMT"),
+                                &[],
+                            );
+
+                            let name = format!("CLK_IOB_B_X{x}Y{y}");
+                            grid[(col, row)].add_xnode(
+                                db.get_node("CLK_IOB"),
+                                &[&name],
+                                db.get_node_naming("CLK_IOB_B"),
+                                &[],
+                            );
+                        } else if row == self.row_cmt_ioi() {
+                            let name = format!("HCLK_CMT_IOI_X{x}Y{y}", y = y - 1);
+                            let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
+                            let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
+                            let node = grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_CMT_IOI"),
+                                &[&name, &name_i0, &name_i1],
+                                db.get_node_naming("HCLK_CMT_IOI"),
+                                &[(col, row - 2), (col, row - 1)],
+                            );
+                            node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 1));
+                            node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4));
+                            node.add_bel(2, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                            node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
+
+                            let name = format!("HCLK_IOB_CMT_TOP{mgt}_X{x}Y{y}", y = y - 1);
+                            grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_CMT"),
+                                &[&name, &name_hrow],
+                                db.get_node_naming("HCLK_CMT"),
+                                &[],
+                            );
+
+                            let name = format!("CLK_IOB_T_X{x}Y{y}", y = y - 10);
+                            grid[(col, row - 10)].add_xnode(
+                                db.get_node("CLK_IOB"),
+                                &[&name],
+                                db.get_node_naming("CLK_IOB_T"),
+                                &[],
+                            );
+                        } else if (row >= self.row_bot_cmt() && row < self.row_ioi_cmt())
+                            || (row >= self.row_cmt_ioi() && row < self.row_top_cmt())
+                        {
+                            let name = format!("HCLK_IOB_CMT_MID{mgt}_X{x}Y{y}", y = y - 1);
+                            grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_CMT"),
+                                &[&name, &name_hrow],
+                                db.get_node_naming("HCLK_CMT"),
+                                &[],
+                            );
+                        } else {
+                            let name = format!("HCLK_IOI_CENTER_X{x}Y{y}", y = y - 1);
+                            let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
+                            let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
+                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let node = grid[(col, row)].add_xnode(
+                                db.get_node("HCLK_IOI_CENTER"),
+                                &[&name, &name_i0, &name_i1, &name_i2],
+                                db.get_node_naming("HCLK_IOI_CENTER"),
+                                &[(col, row - 2), (col, row - 1), (col, row)],
+                            );
+                            node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 2));
+                            node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 3));
+                            node.add_bel(2, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 1));
+                            node.add_bel(3, format!("BUFIO_X{iox}Y{y}", y = ry * 4));
+                            node.add_bel(4, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                            node.add_bel(5, format!("DCI_X{iox}Y{ry}"));
+
+                            if row < self.row_botcen() {
+                                let name = format!("CLK_MGT_BOT{mgt}_X{x}Y{y}");
+                                grid[(col, row)].add_xnode(
+                                    db.get_node("CLK_MGT"),
+                                    &[&name],
+                                    db.get_node_naming("CLK_MGT_BOT"),
+                                    &[],
+                                );
+                            } else {
+                                let name = format!("CLK_MGT_TOP{mgt}_X{x}Y{y}", y = y - 10);
+                                grid[(col, row - 10)].add_xnode(
+                                    db.get_node("CLK_MGT"),
+                                    &[&name],
+                                    db.get_node_naming("CLK_MGT_TOP"),
+                                    &[],
+                                );
+                            }
+                        }
+                    } else {
+                        let name = format!("HCLK_IOI_X{x}Y{y}", y = y - 1);
+                        let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
+                        let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
+                        let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                        let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
+                        let node = grid[(col, row)].add_xnode(
+                            db.get_node("HCLK_IOI"),
+                            &[&name, &name_i0, &name_i1, &name_i2, &name_i3],
+                            db.get_node_naming("HCLK_IOI"),
+                            &[(col, row - 2), (col, row - 1), (col, row), (col, row + 1)],
+                        );
+                        node.add_bel(0, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 2));
+                        node.add_bel(1, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 3));
+                        node.add_bel(2, format!("BUFIO_X{iox}Y{y}", y = ry * 4 + 1));
+                        node.add_bel(3, format!("BUFIO_X{iox}Y{y}", y = ry * 4));
+                        node.add_bel(4, format!("BUFR_X{x}Y{y}", x = iox / 2, y = ry * 2));
+                        node.add_bel(5, format!("BUFR_X{x}Y{y}", x = iox / 2, y = ry * 2 + 1));
+                        node.add_bel(6, format!("IDELAYCTRL_X{iox}Y{ry}"));
+                        node.add_bel(7, format!("DCI_X{iox}Y{ry}"));
+                    }
+                }
+            }
+        }
+
+        let mut gtx = 0;
+        for (col, &cd) in &self.columns {
+            let (kind, naming) = match cd {
+                ColumnKind::Gtp => ("GTP", "GT3"),
+                ColumnKind::Gtx => ("GTX", if col.to_idx() == 0 { "GTX_LEFT" } else { "GTX" }),
+                _ => continue,
+            };
+            let ipx = if col.to_idx() == 0 { 0 } else { gtx + 1 };
+            for row in grid.rows() {
+                if row.to_idx() % 20 != 0 {
+                    continue;
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
+                let name = format!("{naming}_X{x}Y{y}", y = y + 9);
+                let node = grid[(col, row)].add_xnode(
+                    db.get_node(kind),
+                    &[&name],
+                    db.get_node_naming(naming),
+                    &crds,
+                );
+                let gty = row.to_idx() / 20;
+                let ipy = if gty < self.reg_cfg {
+                    gty * 6
+                } else {
+                    gty * 6 + 6
+                };
+                node.add_bel(0, format!("{kind}_DUAL_X{gtx}Y{gty}"));
+                node.add_bel(1, format!("BUFDS_X{gtx}Y{gty}"));
+                node.add_bel(2, format!("CRC64_X{gtx}Y{y}", y = gty * 2));
+                node.add_bel(3, format!("CRC64_X{gtx}Y{y}", y = gty * 2 + 1));
+                node.add_bel(4, format!("CRC32_X{gtx}Y{y}", y = gty * 4));
+                node.add_bel(5, format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 1));
+                node.add_bel(6, format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 2));
+                node.add_bel(7, format!("CRC32_X{gtx}Y{y}", y = gty * 4 + 3));
+                node.add_bel(8, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
+                node.add_bel(9, format!("IPAD_X{ipx}Y{y}", y = ipy));
+                node.add_bel(10, format!("IPAD_X{ipx}Y{y}", y = ipy + 3));
+                node.add_bel(11, format!("IPAD_X{ipx}Y{y}", y = ipy + 2));
+                node.add_bel(12, format!("IPAD_X{ipx}Y{y}", y = ipy + 5));
+                node.add_bel(13, format!("IPAD_X{ipx}Y{y}", y = ipy + 4));
+                node.add_bel(14, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1));
+                node.add_bel(15, format!("OPAD_X{gtx}Y{y}", y = gty * 4));
+                node.add_bel(16, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3));
+                node.add_bel(17, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2));
+            }
+            gtx += 1;
+        }
+
         for col in grid.cols() {
             for row in grid.rows() {
                 let crow = RowId::from_idx(row.to_idx() / 20 * 20 + 10);
                 grid[(col, row)].clkroot = (col, crow);
+
+                if row.to_idx() % 20 == 10 {
+                    if grid[(col, row)].nodes.is_empty() {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let y = row.to_idx() - 1;
+                    let kind = match self.columns[col] {
+                        ColumnKind::Gtp => "HCLK_GT3",
+                        ColumnKind::Gtx => {
+                            if x == 0 {
+                                "HCLK_GTX_LEFT"
+                            } else {
+                                "HCLK_GTX"
+                            }
+                        }
+                        _ => "HCLK",
+                    };
+                    let name = format!("{kind}_X{x}Y{y}");
+                    let node = grid[(col, row)].add_xnode(
+                        db.get_node("HCLK"),
+                        &[&name],
+                        db.get_node_naming("HCLK"),
+                        &[(col, row)],
+                    );
+                    node.add_bel(0, format!("GLOBALSIG_X{x}Y{y}", y = y / 20));
+                }
             }
         }
 
