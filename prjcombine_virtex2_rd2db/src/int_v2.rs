@@ -918,38 +918,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     builder.extract_node_bels(
         "LL",
-        "DCI",
-        "DCI",
+        "LL",
+        "LL",
         &[
             builder.bel_indexed("DCI0", "DCI", 6),
             builder.bel_indexed("DCI1", "DCI", 5),
-        ],
-    );
-    builder.extract_node_bels(
-        "LR",
-        "DCI",
-        "DCI",
-        &[
-            builder.bel_indexed("DCI0", "DCI", 3),
-            builder.bel_indexed("DCI1", "DCI", 4),
-        ],
-    );
-    builder.extract_node_bels(
-        "UL",
-        "DCI",
-        "DCI",
-        &[
-            builder.bel_indexed("DCI0", "DCI", 7),
-            builder.bel_indexed("DCI1", "DCI", 0),
-        ],
-    );
-    builder.extract_node_bels(
-        "UR",
-        "DCI",
-        "DCI",
-        &[
-            builder.bel_indexed("DCI0", "DCI", 2),
-            builder.bel_indexed("DCI1", "DCI", 1),
         ],
     );
 
@@ -958,24 +931,45 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "LR",
         "LR",
         &[
+            builder.bel_indexed("DCI0", "DCI", 3),
+            builder.bel_indexed("DCI1", "DCI", 4),
             builder.bel_single("STARTUP", "STARTUP"),
             builder.bel_single("CAPTURE", "CAPTURE"),
             builder.bel_single("ICAP", "ICAP"),
         ],
     );
-    builder.extract_node_bels("UL", "PMV", "PMV", &[builder.bel_single("PMV", "PMV")]);
     builder.extract_node_bels(
-        "UR",
-        "BSCAN",
-        "BSCAN",
-        &[builder.bel_single("BSCAN", "BSCAN")],
+        "UL",
+        "UL",
+        "UL",
+        &[
+            builder.bel_indexed("DCI0", "DCI", 7),
+            builder.bel_indexed("DCI1", "DCI", 0),
+            builder.bel_single("PMV", "PMV"),
+        ],
     );
     if rd.family == "virtex2p" {
         builder.extract_node_bels(
             "UR",
-            "JTAGPPC",
-            "JTAGPPC",
-            &[builder.bel_single("JTAGPPC", "JTAGPPC")],
+            "UR.V2P",
+            "UR.V2P",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 2),
+                builder.bel_indexed("DCI1", "DCI", 1),
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder.bel_single("JTAGPPC", "JTAGPPC"),
+            ],
+        );
+    } else {
+        builder.extract_node_bels(
+            "UR",
+            "UR.V2",
+            "UR.V2",
+            &[
+                builder.bel_indexed("DCI0", "DCI", 2),
+                builder.bel_indexed("DCI1", "DCI", 1),
+                builder.bel_single("BSCAN", "BSCAN"),
+            ],
         );
     }
 

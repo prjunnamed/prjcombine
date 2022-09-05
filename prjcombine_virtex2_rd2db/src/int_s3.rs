@@ -1300,8 +1300,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if rd.family == "spartan3" {
         builder.extract_node_bels(
             "LL",
-            "DCI",
-            "DCI",
+            "LL.S3",
+            "LL.S3",
             &[
                 builder.bel_indexed("DCI0", "DCI", 6),
                 builder.bel_indexed("DCI1", "DCI", 5),
@@ -1311,109 +1311,114 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         builder.extract_node_bels(
             "LR",
-            "DCI",
-            "DCI",
+            "LR.S3",
+            "LR.S3",
             &[
                 builder.bel_indexed("DCI0", "DCI", 3),
                 builder.bel_indexed("DCI1", "DCI", 4),
                 builder.bel_indexed("DCIRESET0", "DCIRESET", 3),
                 builder.bel_indexed("DCIRESET1", "DCIRESET", 4),
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP"),
             ],
         );
         builder.extract_node_bels(
             "UL",
-            "DCI",
-            "DCI",
+            "UL.S3",
+            "UL.S3",
             &[
                 builder.bel_indexed("DCI0", "DCI", 7),
                 builder.bel_indexed("DCI1", "DCI", 0),
                 builder.bel_indexed("DCIRESET0", "DCIRESET", 7),
                 builder.bel_indexed("DCIRESET1", "DCIRESET", 0),
+                builder.bel_single("PMV", "PMV"),
             ],
         );
         builder.extract_node_bels(
             "UR",
-            "DCI.UR",
-            "DCI.UR",
+            "UR.S3",
+            "UR.S3",
             &[
                 builder.bel_indexed("DCI0", "DCI", 2),
                 builder.bel_indexed("DCI1", "DCI", 1),
                 builder.bel_indexed("DCIRESET0", "DCIRESET", 2),
                 builder.bel_indexed("DCIRESET1", "DCIRESET", 1),
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
             ],
         );
-    }
+    } else {
+        // XXX LL
+        builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
 
-    if rd.family == "spartan3" {
-        builder.extract_node_bels(
-            "LR",
-            "LR.S3",
-            "LR.S3",
-            &[
-                builder.bel_single("STARTUP", "STARTUP"),
-                builder.bel_single("CAPTURE", "CAPTURE"),
-                builder.bel_single("ICAP", "ICAP"),
-            ],
-        );
-    } else if rd.family == "spartan3e" {
-        builder.extract_node_bels(
-            "LR",
-            "LR.S3E",
-            "LR.S3E",
-            &[
-                builder.bel_single("STARTUP", "STARTUP"),
-                builder.bel_single("CAPTURE", "CAPTURE"),
-                builder.bel_single("ICAP", "ICAP").pin_force_int(
-                    "I2",
-                    (NodeTileId::from_idx(0), lr_di2.unwrap()),
-                    "CNR_DATA_IN2",
-                ),
-            ],
-        );
-    } else {
-        builder.extract_node_bels(
-            "LR",
-            "LR.S3A",
-            "LR.S3A",
-            &[
-                builder.bel_single("STARTUP", "STARTUP"),
-                builder.bel_single("CAPTURE", "CAPTURE"),
-                builder.bel_single("ICAP", "ICAP"),
-                builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
-            ],
-        );
-    }
-    builder.extract_node_bels("UL", "PMV", "PMV", &[builder.bel_single("PMV", "PMV")]);
-    if rd.family.starts_with("spartan3a") {
-        builder.extract_node_bels(
-            "UL",
-            "DNA_PORT",
-            "DNA_PORT",
-            &[builder.bel_single("DNA_PORT", "DNA_PORT")],
-        );
-        builder.extract_node_bels(
-            "UR",
-            "UR.S3A",
-            "UR.S3A",
-            &[
-                builder.bel_single("BSCAN", "BSCAN"),
-                builder
-                    .bel_virtual("RANDOR_OUT")
-                    .extra_int_out("O", &["UR_CARRY_IN"]),
-            ],
-        );
-    } else {
-        builder.extract_node_bels(
-            "UR",
-            "UR.S3",
-            "UR.S3",
-            &[
-                builder.bel_single("BSCAN", "BSCAN"),
-                builder
-                    .bel_virtual("RANDOR_OUT")
-                    .extra_int_out("O", &["UR_CARRY_IN"]),
-            ],
-        );
+        if rd.family == "spartan3e" {
+            builder.extract_node_bels(
+                "LR",
+                "LR.S3E",
+                "LR.S3E",
+                &[
+                    builder.bel_single("STARTUP", "STARTUP"),
+                    builder.bel_single("CAPTURE", "CAPTURE"),
+                    builder.bel_single("ICAP", "ICAP").pin_force_int(
+                        "I2",
+                        (NodeTileId::from_idx(0), lr_di2.unwrap()),
+                        "CNR_DATA_IN2",
+                    ),
+                ],
+            );
+            builder.extract_node_bels(
+                "UL",
+                "UL.S3E",
+                "UL.S3E",
+                &[builder.bel_single("PMV", "PMV")],
+            );
+            builder.extract_node_bels(
+                "UR",
+                "UR.S3E",
+                "UR.S3E",
+                &[
+                    builder.bel_single("BSCAN", "BSCAN"),
+                    builder
+                        .bel_virtual("RANDOR_OUT")
+                        .extra_int_out("O", &["UR_CARRY_IN"]),
+                ],
+            );
+        } else {
+            builder.extract_node_bels(
+                "LR",
+                "LR.S3A",
+                "LR.S3A",
+                &[
+                    builder.bel_single("STARTUP", "STARTUP"),
+                    builder.bel_single("CAPTURE", "CAPTURE"),
+                    builder.bel_single("ICAP", "ICAP"),
+                    builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
+                ],
+            );
+            builder.extract_node_bels(
+                "UL",
+                "UL.S3A",
+                "UL.S3A",
+                &[
+                    builder.bel_single("PMV", "PMV"),
+                    builder.bel_single("DNA_PORT", "DNA_PORT"),
+                ],
+            );
+            builder.extract_node_bels(
+                "UR",
+                "UR.S3A",
+                "UR.S3A",
+                &[
+                    builder.bel_single("BSCAN", "BSCAN"),
+                    builder
+                        .bel_virtual("RANDOR_OUT")
+                        .extra_int_out("O", &["UR_CARRY_IN"]),
+                ],
+            );
+        }
     }
 
     for tkn in [

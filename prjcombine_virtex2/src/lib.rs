@@ -734,30 +734,138 @@ impl Grid {
             );
         }
 
-        if !use_xy {
-            for (c, b0, b1) in [
-                ((col_l, row_b), 6, 5),
-                ((col_r, row_b), 3, 4),
-                ((col_l, row_t), 7, 0),
-                ((col_r, row_t), 2, 1),
-            ] {
-                let tile = &mut grid[c];
-                let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
-                let kind = if self.kind == GridKind::Spartan3 && b0 == 2 {
-                    "DCI.UR"
-                } else {
-                    "DCI"
-                };
-                let node =
-                    tile.add_xnode(db.get_node(kind), &[&name], db.get_node_naming(kind), &[c]);
-                node.add_bel(0, format!("DCI{b0}"));
-                node.add_bel(1, format!("DCI{b1}"));
-                if self.kind == GridKind::Spartan3 {
-                    node.add_bel(2, format!("DCIRESET{b0}"));
-                    node.add_bel(3, format!("DCIRESET{b1}"));
+        {
+            let kind = match self.kind {
+                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LL",
+                GridKind::Spartan3 => "LL.S3",
+                GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3E",
+            };
+            let tile = &mut grid[(col_l, row_b)];
+            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[(col_l, row_b)],
+            );
+            if self.kind.is_virtex2() {
+                node.add_bel(0, "DCI6".to_string());
+                node.add_bel(1, "DCI5".to_string());
+            } else if self.kind == GridKind::Spartan3 {
+                node.add_bel(0, "DCI6".to_string());
+                node.add_bel(1, "DCI5".to_string());
+                node.add_bel(2, "DCIRESET6".to_string());
+                node.add_bel(3, "DCIRESET5".to_string());
+            }
+        }
+
+        {
+            let kind = match self.kind {
+                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LR",
+                GridKind::Spartan3 => "LR.S3",
+                GridKind::Spartan3E => "LR.S3E",
+                GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
+            };
+            let tile = &mut grid[(col_r, row_b)];
+            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[(col_r, row_b)],
+            );
+            if self.kind.is_virtex2() {
+                node.add_bel(0, "DCI3".to_string());
+                node.add_bel(1, "DCI4".to_string());
+                node.add_bel(2, "STARTUP".to_string());
+                node.add_bel(3, "CAPTURE".to_string());
+                node.add_bel(4, "ICAP".to_string());
+            } else if self.kind == GridKind::Spartan3 {
+                node.add_bel(0, "DCI3".to_string());
+                node.add_bel(1, "DCI4".to_string());
+                node.add_bel(2, "DCIRESET3".to_string());
+                node.add_bel(3, "DCIRESET4".to_string());
+                node.add_bel(4, "STARTUP".to_string());
+                node.add_bel(5, "CAPTURE".to_string());
+                node.add_bel(6, "ICAP".to_string());
+            } else {
+                node.add_bel(0, "STARTUP".to_string());
+                node.add_bel(1, "CAPTURE".to_string());
+                node.add_bel(2, "ICAP".to_string());
+                if self.kind.is_spartan3a() {
+                    node.add_bel(3, "SPI_ACCESS".to_string());
                 }
             }
-        } else {
+        }
+
+        {
+            let kind = match self.kind {
+                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "UL",
+                GridKind::Spartan3 => "UL.S3",
+                GridKind::Spartan3E => "UL.S3E",
+                GridKind::Spartan3A | GridKind::Spartan3ADsp => "UL.S3A",
+            };
+            let tile = &mut grid[(col_l, row_t)];
+            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[(col_l, row_t)],
+            );
+            if self.kind.is_virtex2() {
+                node.add_bel(0, "DCI7".to_string());
+                node.add_bel(1, "DCI0".to_string());
+                node.add_bel(2, "PMV".to_string());
+            } else if self.kind == GridKind::Spartan3 {
+                node.add_bel(0, "DCI7".to_string());
+                node.add_bel(1, "DCI0".to_string());
+                node.add_bel(2, "DCIRESET7".to_string());
+                node.add_bel(3, "DCIRESET0".to_string());
+                node.add_bel(4, "PMV".to_string());
+            } else {
+                node.add_bel(0, "PMV".to_string());
+                if self.kind.is_spartan3a() {
+                    node.add_bel(1, "DNA_PORT".to_string());
+                }
+            }
+        }
+
+        {
+            let kind = match self.kind {
+                GridKind::Virtex2 => "UR.V2",
+                GridKind::Virtex2P | GridKind::Virtex2PX => "UR.V2P",
+                GridKind::Spartan3 => "UR.S3",
+                GridKind::Spartan3E => "UR.S3E",
+                GridKind::Spartan3A | GridKind::Spartan3ADsp => "UR.S3A",
+            };
+            let tile = &mut grid[(col_r, row_t)];
+            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+            let node = tile.add_xnode(
+                db.get_node(kind),
+                &[&name],
+                db.get_node_naming(kind),
+                &[(col_r, row_t)],
+            );
+            if self.kind.is_virtex2() {
+                node.add_bel(0, "DCI2".to_string());
+                node.add_bel(1, "DCI1".to_string());
+                node.add_bel(2, "BSCAN".to_string());
+                if self.kind.is_virtex2p() {
+                    node.add_bel(3, "JTAGPPC".to_string());
+                }
+            } else if self.kind == GridKind::Spartan3 {
+                node.add_bel(0, "DCI2".to_string());
+                node.add_bel(1, "DCI1".to_string());
+                node.add_bel(2, "DCIRESET2".to_string());
+                node.add_bel(3, "DCIRESET1".to_string());
+                node.add_bel(4, "BSCAN".to_string());
+            } else {
+                node.add_bel(0, "BSCAN".to_string());
+            }
+        }
+
+        if self.kind.is_spartan3ea() {
             for c in [
                 (col_l, row_b),
                 (col_r, row_b),
@@ -772,69 +880,6 @@ impl Grid {
                     db.get_node_naming("PCI_CE_CNR"),
                     &[],
                 );
-            }
-        }
-
-        {
-            let c = (col_r, row_b);
-            let tile = &mut grid[c];
-            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
-            let kind = match self.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LR",
-                GridKind::Spartan3 => "LR.S3",
-                GridKind::Spartan3E => "LR.S3E",
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
-            };
-            let node = tile.add_xnode(db.get_node(kind), &[&name], db.get_node_naming(kind), &[c]);
-            node.add_bel(0, "STARTUP".to_string());
-            node.add_bel(1, "CAPTURE".to_string());
-            node.add_bel(2, "ICAP".to_string());
-            if self.kind.is_spartan3a() {
-                node.add_bel(3, "SPI_ACCESS".to_string());
-            }
-        }
-
-        {
-            let c = (col_l, row_t);
-            let tile = &mut grid[c];
-            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
-            let node = tile.add_xnode(
-                db.get_node("PMV"),
-                &[&name],
-                db.get_node_naming("PMV"),
-                &[c],
-            );
-            node.add_bel(0, "PMV".to_string());
-            if self.kind.is_spartan3a() {
-                let node = tile.add_xnode(
-                    db.get_node("DNA_PORT"),
-                    &[&name],
-                    db.get_node_naming("DNA_PORT"),
-                    &[c],
-                );
-                node.add_bel(0, "DNA_PORT".to_string());
-            }
-        }
-
-        {
-            let c = (col_r, row_t);
-            let tile = &mut grid[c];
-            let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
-            let kind = match self.kind {
-                GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BSCAN",
-                GridKind::Spartan3 | GridKind::Spartan3E => "UR.S3",
-                GridKind::Spartan3A | GridKind::Spartan3ADsp => "UR.S3A",
-            };
-            let node = tile.add_xnode(db.get_node(kind), &[&name], db.get_node_naming(kind), &[c]);
-            node.add_bel(0, "BSCAN".to_string());
-            if self.kind.is_virtex2p() {
-                let node = tile.add_xnode(
-                    db.get_node("JTAGPPC"),
-                    &[&name],
-                    db.get_node_naming("JTAGPPC"),
-                    &[c],
-                );
-                node.add_bel(0, "JTAGPPC".to_string());
             }
         }
 
