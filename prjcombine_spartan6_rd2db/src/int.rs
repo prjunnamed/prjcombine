@@ -1,3 +1,5 @@
+#![allow(clippy::needless_range_loop)]
+
 use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::Part;
 
@@ -193,9 +195,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_node("INT_GCLK", "INT", "INT", &[]);
     builder.extract_node("INT_TERM", "INT", "INT.TERM", &[]);
     builder.extract_node("INT_TERM_BRK", "INT", "INT.TERM.BRK", &[]);
-    builder.extract_node("IOI_INT", "IOI", "IOI", &[]);
-    builder.extract_node("LIOI_INT", "IOI", "IOI", &[]);
-    builder.extract_node("LIOI_INT_BRK", "IOI", "IOI.BRK", &[]);
+    builder.extract_node("IOI_INT", "INT.IOI", "INT.IOI", &[]);
+    builder.extract_node("LIOI_INT", "INT.IOI", "INT.IOI", &[]);
+    builder.extract_node("LIOI_INT_BRK", "INT.IOI", "INT.IOI.BRK", &[]);
 
     for tkn in [
         "CNR_TL_LTERM",
@@ -331,6 +333,364 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel_dsp = bel_dsp.pin_name_only(&format!("PCOUT{i}"), 1);
         }
         builder.extract_xnode_bels_intf("DSP", xy, &[], &[], &intf_xy, "DSP", &[bel_dsp]);
+    }
+
+    let intf_cnr = builder.db.get_node_naming("INTF.CNR");
+    for (tkn, bels) in [
+        (
+            "LL",
+            vec![
+                builder.bel_xy("OCT_CAL0", "OCT_CAL", 0, 0),
+                builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 1),
+            ],
+        ),
+        (
+            "LR_LOWER",
+            vec![
+                builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+                builder.bel_xy("ICAP", "ICAP", 0, 0),
+                builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
+            ],
+        ),
+        (
+            "LR_UPPER",
+            vec![
+                builder.bel_single("SUSPEND_SYNC", "SUSPEND_SYNC"),
+                builder.bel_single("POST_CRC_INTERNAL", "POST_CRC_INTERNAL"),
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("SLAVE_SPI", "SLAVE_SPI"),
+            ],
+        ),
+        (
+            "UL",
+            vec![
+                builder.bel_xy("OCT_CAL0", "OCT_CAL", 0, 0),
+                builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 1),
+                builder.bel_single("PMV", "PMV"),
+                builder.bel_single("DNA_PORT", "DNA_PORT"),
+            ],
+        ),
+        (
+            "UR_LOWER",
+            vec![
+                builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+                builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
+                builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
+            ],
+        ),
+        (
+            "UR_UPPER",
+            vec![
+                builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
+                builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
+            ],
+        ),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut xn = builder.xnode(tkn, tkn, xy).ref_single(xy, 0, intf_cnr);
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
+    }
+
+    let intf_ioi = builder.db.get_node_naming("INTF.IOI");
+    for (tkn, naming) in [
+        ("LIOI", "LIOI"),
+        ("LIOI_BRK", "LIOI"),
+        ("RIOI", "RIOI"),
+        ("RIOI_BRK", "RIOI"),
+        ("BIOI_INNER", "BIOI_INNER"),
+        ("BIOI_OUTER", "BIOI_OUTER"),
+        ("TIOI_INNER", "TIOI_INNER"),
+        ("TIOI_OUTER", "TIOI_OUTER"),
+        ("BIOI_INNER_UNUSED", "BIOI_INNER_UNUSED"),
+        ("BIOI_OUTER_UNUSED", "BIOI_OUTER_UNUSED"),
+        ("TIOI_INNER_UNUSED", "TIOI_INNER_UNUSED"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let unused = tkn.contains("UNUSED");
+            let mut bels = vec![];
+            for i in 0..2 {
+                let ms = match i {
+                    0 => 'M',
+                    1 => 'S',
+                    _ => unreachable!(),
+                };
+                let mut bel = builder
+                    .bel_xy(&format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
+                    .pins_name_only(&[
+                        "D", "DDLY", "DDLY2", "CLK0", "CLK1", "IOCE", "DFB", "CFB0", "CFB1", "OFB",
+                        "TFB", "SHIFTIN", "SHIFTOUT", "SR",
+                    ])
+                    .extra_int_in(
+                        "SR_INT",
+                        &[if i == 0 {
+                            "IOI_LOGICINB36"
+                        } else {
+                            "IOI_LOGICINB20"
+                        }],
+                    )
+                    .extra_wire("MCB_FABRICOUT", &[format!("IOI_MCB_INBYP_{ms}")])
+                    .extra_wire(
+                        "IOB_I",
+                        &[
+                            format!("BIOI_INNER_IBUF{i}"),
+                            format!("BIOI_OUTER_IBUF{i}"),
+                            format!("TIOI_INNER_IBUF{i}"),
+                            format!("TIOI_OUTER_IBUF{i}"),
+                            format!("LIOI_IOB_IBUF{i}"),
+                            format!("RIOI_IOB_IBUF{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        "D_MUX",
+                        &[
+                            if i == 0 {
+                                "D_ILOGIC_IDATAIN_IODELAY"
+                            } else {
+                                "D_ILOGIC_IDATAIN_IODELAY_S"
+                            },
+                            if i == 0 {
+                                "D_ILOGIC_IDATAIN_IODELAY_UNUSED"
+                            } else {
+                                "D_ILOGIC_IDATAIN_IODELAY_UNUSED_S"
+                            },
+                        ],
+                    );
+                if i == 1 {
+                    bel = bel.pins_name_only(&["INCDEC", "VALID"]);
+                }
+                if !unused {
+                    bel = bel
+                        .extra_wire_force("CFB0_OUT", format!("{naming}_CFB_{ms}"))
+                        .extra_wire_force("CFB1_OUT", format!("{naming}_CFB1_{ms}"))
+                        .extra_wire_force("DFB_OUT", format!("{naming}_DFB_{ms}"));
+                }
+                bels.push(bel);
+            }
+            for i in 0..2 {
+                let ms = match i {
+                    0 => 'M',
+                    1 => 'S',
+                    _ => unreachable!(),
+                };
+                let bel = builder
+                    .bel_xy(&format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
+                    .pins_name_only(&[
+                        "CLK0",
+                        "CLK1",
+                        "IOCE",
+                        "SHIFTIN1",
+                        "SHIFTIN2",
+                        "SHIFTIN3",
+                        "SHIFTIN4",
+                        "SHIFTOUT1",
+                        "SHIFTOUT2",
+                        "SHIFTOUT3",
+                        "SHIFTOUT4",
+                        "OQ",
+                        "TQ",
+                    ])
+                    .extra_wire(
+                        "IOB_O",
+                        &[
+                            format!("BIOI_INNER_O{i}"),
+                            format!("BIOI_OUTER_O{i}"),
+                            format!("TIOI_INNER_O{i}"),
+                            format!("TIOI_OUTER_O{i}"),
+                            format!("LIOI_IOB_O{i}"),
+                            format!("RIOI_IOB_O{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        "IOB_T",
+                        &[
+                            format!("BIOI_INNER_T{i}"),
+                            format!("BIOI_OUTER_T{i}"),
+                            format!("TIOI_INNER_T{i}"),
+                            format!("TIOI_OUTER_T{i}"),
+                            format!("LIOI_IOB_T{i}"),
+                            format!("RIOI_IOB_T{i}"),
+                        ],
+                    )
+                    .extra_wire("MCB_T", &[format!("IOI_MCB_DQIEN_{ms}")])
+                    .extra_wire("MCB_D1", &[format!("IOI_MCB_OUTP_{ms}")])
+                    .extra_wire("MCB_D2", &[format!("IOI_MCB_OUTN_{ms}")]);
+                bels.push(bel);
+            }
+            for i in 0..2 {
+                let ms = match i {
+                    0 => 'M',
+                    1 => 'S',
+                    _ => unreachable!(),
+                };
+                let mut bel = builder
+                    .bel_xy(&format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
+                    .pins_name_only(&[
+                        "IOCLK0",
+                        "IOCLK1",
+                        "IDATAIN",
+                        "ODATAIN",
+                        "T",
+                        "TOUT",
+                        "DOUT",
+                        "DATAOUT",
+                        "DATAOUT2",
+                        "DQSOUTP",
+                        "DQSOUTN",
+                        "AUXSDO",
+                        "AUXSDOIN",
+                        "AUXADDR0",
+                        "AUXADDR1",
+                        "AUXADDR2",
+                        "AUXADDR3",
+                        "AUXADDR4",
+                        "READEN",
+                        "MEMUPDATE",
+                    ])
+                    .extra_wire("MCB_DQSOUTP", &[format!("IOI_MCB_IN_{ms}")]);
+                if !unused && i == 0 {
+                    bel = bel
+                        .extra_wire_force("DQSOUTP_OUT", format!("{naming}_OUTP"))
+                        .extra_wire_force("DQSOUTN_OUT", format!("{naming}_OUTN"));
+                }
+                bels.push(bel);
+            }
+            bels.push(
+                builder
+                    .bel_xy("TIEOFF", "TIEOFF", 0, 0)
+                    .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
+            );
+            for i in 0..2 {
+                let ms = match i {
+                    0 => 'M',
+                    1 => 'S',
+                    _ => unreachable!(),
+                };
+                let bel = builder
+                    .bel_virtual(&format!("IOICLK{i}"))
+                    .extra_wire("CLK0INTER", &[format!("IOI_CLK0INTER_{ms}")])
+                    .extra_wire("CLK1INTER", &[format!("IOI_CLK1INTER_{ms}")])
+                    .extra_wire("CLK2INTER", &[format!("IOI_CLK2INTER_{ms}")])
+                    .extra_int_in("CKINT0", &[format!("IOI_CLK{i}")])
+                    .extra_int_in("CKINT1", &[format!("IOI_GFAN{i}")])
+                    .extra_wire("CLK0_ILOGIC", &[format!("IOI_CLKDIST_CLK0_ILOGIC_{ms}")])
+                    .extra_wire("CLK0_OLOGIC", &[format!("IOI_CLKDIST_CLK0_OLOGIC_{ms}")])
+                    .extra_wire("CLK1", &[format!("IOI_CLKDIST_CLK1_{ms}")])
+                    .extra_wire("IOCE0", &[format!("IOI_CLKDIST_IOCE0_{ms}")])
+                    .extra_wire("IOCE1", &[format!("IOI_CLKDIST_IOCE1_{ms}")]);
+                bels.push(bel);
+            }
+            let mut bel_ioi = builder
+                .bel_virtual("IOI")
+                .extra_wire("MCB_DRPADD", &["IOI_MCB_DRPADD"])
+                .extra_wire("MCB_DRPBROADCAST", &["IOI_MCB_DRPBROADCAST"])
+                .extra_wire("MCB_DRPCLK", &["IOI_MCB_DRPCLK"])
+                .extra_wire("MCB_DRPCS", &["IOI_MCB_DRPCS"])
+                .extra_wire("MCB_DRPSDI", &["IOI_MCB_DRPSDI"])
+                .extra_wire("MCB_DRPSDO", &["IOI_MCB_DRPSDO"])
+                .extra_wire("MCB_DRPTRAIN", &["IOI_MCB_DRPTRAIN"])
+                .extra_wire("PCI_CE", &["IOI_PCI_CE"]);
+            for i in 0..4 {
+                bel_ioi = bel_ioi
+                    .extra_wire(
+                        format!("IOCLK{i}"),
+                        &[
+                            format!("BIOI_INNER_IOCLK{i}"),
+                            format!("TIOI_INNER_IOCLK{i}"),
+                            format!("TIOI_IOCLK{i}"),
+                            format!("IOI_IOCLK{i}"),
+                            format!("IOI_IOCLK{i}_BRK"),
+                            format!("RIOI_IOCLK{i}"),
+                            format!("RIOI_IOCLK{i}_BRK"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("IOCE{i}"),
+                        &[
+                            format!("BIOI_INNER_IOCE{i}"),
+                            format!("TIOI_INNER_IOCE{i}"),
+                            format!("TIOI_IOCE{i}"),
+                            format!("IOI_IOCE{i}"),
+                            format!("IOI_IOCE{i}_BRK"),
+                            format!("RIOI_IOCE{i}"),
+                            format!("RIOI_IOCE{i}_BRK"),
+                        ],
+                    );
+            }
+            for i in 0..2 {
+                bel_ioi = bel_ioi
+                    .extra_wire(
+                        format!("PLLCLK{i}"),
+                        &[
+                            format!("BIOI_INNER_PLLCLK{i}"),
+                            format!("TIOI_INNER_PLLCLK{i}"),
+                            format!("TIOI_PLLCLK{i}"),
+                            format!("IOI_PLLCLK{i}"),
+                            format!("IOI_PLLCLK{i}_BRK"),
+                            format!("RIOI_PLLCLK{i}"),
+                            format!("RIOI_PLLCLK{i}_BRK"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("PLLCE{i}"),
+                        &[
+                            format!("BIOI_INNER_PLLCE{i}"),
+                            format!("TIOI_INNER_PLLCE{i}"),
+                            format!("TIOI_PLLCE{i}"),
+                            format!("IOI_PLLCE{i}"),
+                            format!("IOI_PLLCE{i}_BRK"),
+                            format!("RIOI_PLLCE{i}"),
+                            format!("RIOI_PLLCE{i}_BRK"),
+                        ],
+                    );
+            }
+            bels.push(bel_ioi);
+            let mut xn = builder.xnode("IOI", tkn, xy).ref_single(xy, 0, intf_ioi);
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
+    }
+
+    for (tkn, naming, idx) in [
+        ("LIOB", "LIOB", [0, 1]),
+        ("LIOB_RDY", "LIOB_RDY", [0, 1]),
+        ("LIOB_PCI", "LIOB_PCI", [0, 1]),
+        ("RIOB", "RIOB", [0, 1]),
+        ("RIOB_RDY", "RIOB_RDY", [0, 1]),
+        ("RIOB_PCI", "RIOB_PCI", [0, 1]),
+        ("BIOB", "BIOB_OUTER", [3, 2]),
+        ("BIOB_SINGLE_ALT", "BIOB_OUTER", [3, 2]),
+        ("BIOB", "BIOB_INNER", [0, 1]),
+        ("BIOB_SINGLE", "BIOB_INNER", [0, 1]),
+        ("TIOB", "TIOB_OUTER", [0, 1]),
+        ("TIOB_SINGLE", "TIOB_OUTER", [0, 1]),
+        ("TIOB", "TIOB_INNER", [2, 3]),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_indexed(&format!("IOB{i}"), "IOB", idx[i])
+                    .pins_name_only(&["PADOUT", "DIFFI_IN", "DIFFO_OUT", "DIFFO_IN", "PCI_RDY"])
+                    .pin_name_only("I", 1)
+                    .pin_name_only("O", 1)
+                    .pin_name_only("T", 1);
+                if (tkn.ends_with("RDY") && i == 0) || (tkn.ends_with("PCI") && i == 1) {
+                    bel = bel.pin_name_only("PCI_RDY", 1);
+                }
+                bels.push(bel);
+            }
+            let mut xn = builder.xnode("IOB", naming, xy).num_tiles(0);
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
+        }
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {

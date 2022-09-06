@@ -237,38 +237,920 @@ impl Gt {
     }
 }
 
-fn fill_intf_rterm(db: &IntDb, die: &mut ExpandedDieRefMut, crd: Coord, name: String) {
-    die.fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
-    let tile = &mut die[crd];
-    tile.nodes.truncate(1);
-    tile.add_xnode(
-        db.get_node("INTF"),
-        &[&name],
-        db.get_node_naming("INTF.RTERM"),
-        &[crd],
-    );
+struct Expander<'a, 'b> {
+    grid: &'b Grid,
+    db: &'a IntDb,
+    disabled: &'b BTreeSet<DisabledPart>,
+    die: ExpandedDieRefMut<'a, 'b>,
+    tiexlut: EntityVec<ColId, usize>,
+    rxlut: EntityVec<ColId, usize>,
+    rylut: EntityVec<RowId, usize>,
+    ioxlut: EntityVec<ColId, usize>,
+    ioylut: EntityVec<RowId, usize>,
+    pad_cnt: usize,
+    bonded_ios: Vec<((ColId, RowId), BelId)>,
 }
 
-fn fill_intf_lterm(
-    db: &IntDb,
-    die: &mut ExpandedDieRefMut,
-    crd: Coord,
-    name: String,
-    is_brk: bool,
-) {
-    die.fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
-    let tile = &mut die[crd];
-    tile.nodes.truncate(1);
-    tile.nodes[0].naming = db.get_node_naming(if is_brk { "INT.TERM.BRK" } else { "INT.TERM" });
-    tile.add_xnode(
-        db.get_node("INTF"),
-        &[&name],
-        db.get_node_naming("INTF.LTERM"),
-        &[crd],
-    );
+impl<'a, 'b> Expander<'a, 'b> {
+    fn fill_int(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            for row in self.die.rows() {
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let tie_y = y * 2;
+                let mut is_brk = y % 16 == 0;
+                if y == 0
+                    && !matches!(
+                        cd.kind,
+                        ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
+                    )
+                {
+                    is_brk = false;
+                }
+                if row == self.grid.row_clk() && cd.kind == ColumnKind::Io {
+                    is_brk = false;
+                }
+                let bram = if cd.kind == ColumnKind::Bram {
+                    if is_brk {
+                        "_BRAM_BRK"
+                    } else {
+                        "_BRAM"
+                    }
+                } else {
+                    ""
+                };
+                self.die.fill_tile(
+                    (col, row),
+                    "INT",
+                    if is_brk { "INT.BRK" } else { "INT" },
+                    format!("INT{bram}_X{x}Y{y}"),
+                );
+                let tie_x = self.tiexlut[col];
+                self.die[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                if matches!(
+                    cd.kind,
+                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
+                ) {
+                    self.die[(col, row)].add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&format!("INT_INTERFACE_X{x}Y{y}")],
+                        self.db.get_node_naming("INTF"),
+                        &[(col, row)],
+                    );
+                }
+            }
+        }
+    }
+
+    fn fill_lio(&mut self) {
+        for (row, &rd) in &self.grid.rows {
+            let y = row.to_idx();
+            let ry = self.rylut[row];
+            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
+            let txtra = if row == self.grid.row_clk() - 2 {
+                "_LOWER_BOT"
+            } else if row == self.grid.row_clk() - 1 {
+                "_LOWER_TOP"
+            } else if row == self.grid.row_clk() + 2 {
+                "_UPPER_BOT"
+            } else if row == self.grid.row_clk() + 3 {
+                "_UPPER_TOP"
+            } else {
+                ""
+            };
+
+            let col = self.grid.col_lio();
+            let x = col.to_idx();
+            let tile = &mut self.die[(col, row)];
+            let mut ltt = "IOI_LTERM";
+            if rd.lio {
+                self.fill_ioi((col, row), if is_brk { "LIOI_BRK" } else { "LIOI" });
+                let mut tk = "LIOB";
+                if row == self.grid.row_clk() - 1 {
+                    tk = "LIOB_RDY";
+                }
+                if row == self.grid.row_clk() + 2 {
+                    tk = "LIOB_PCI";
+                }
+                self.fill_iob((col, row), tk, tk);
+            } else {
+                let cnr = if row == self.grid.row_bio_outer() {
+                    Some("LL")
+                } else if row == self.grid.row_tio_outer() {
+                    Some("UL")
+                } else {
+                    None
+                };
+                if let Some(cnr) = cnr {
+                    ltt = "CNR_TL_LTERM";
+                    let name = format!("{cnr}_X{x}Y{y}");
+                    tile.add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&name],
+                        self.db.get_node_naming("INTF.CNR"),
+                        &[(col, row)],
+                    );
+                    let node = tile.add_xnode(
+                        self.db.get_node(cnr),
+                        &[&name],
+                        self.db.get_node_naming(cnr),
+                        &[(col, row)],
+                    );
+                    match cnr {
+                        "LL" => {
+                            node.add_bel(0, "OCT_CAL_X0Y0".to_string());
+                            node.add_bel(1, "OCT_CAL_X0Y1".to_string());
+                        }
+                        "UL" => {
+                            node.add_bel(0, "OCT_CAL_X0Y2".to_string());
+                            node.add_bel(1, "OCT_CAL_X0Y3".to_string());
+                            node.add_bel(2, "PMV".to_string());
+                            node.add_bel(3, "DNA_PORT".to_string());
+                        }
+                        _ => unreachable!(),
+                    }
+                } else {
+                    let carry = if is_brk { "_CARRY" } else { "" };
+                    tile.add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&format!("INT_INTERFACE{carry}_X{x}Y{y}")],
+                        self.db.get_node_naming("INTF"),
+                        &[(col, row)],
+                    );
+                }
+            }
+            let rx = self.rxlut[col] - 1;
+            self.die.fill_term_tile(
+                (col, row),
+                "TERM.W",
+                "TERM.W",
+                format!("{ltt}{txtra}_X{rx}Y{ry}"),
+            );
+        }
+    }
+
+    fn fill_rio(&mut self) {
+        for (row, &rd) in self.grid.rows.iter().rev() {
+            let y = row.to_idx();
+            let ry = self.rylut[row];
+            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
+            let txtra = if row == self.grid.row_clk() - 2 {
+                "_LOWER_BOT"
+            } else if row == self.grid.row_clk() - 1 {
+                "_LOWER_TOP"
+            } else if row == self.grid.row_clk() + 2 {
+                "_UPPER_BOT"
+            } else if row == self.grid.row_clk() + 3 {
+                "_UPPER_TOP"
+            } else {
+                ""
+            };
+
+            let col = self.grid.col_rio();
+            let x = col.to_idx();
+            let tile = &mut self.die[(col, row)];
+            let mut rtt = "IOI_RTERM";
+            if rd.rio {
+                self.fill_ioi((col, row), if is_brk { "RIOI_BRK" } else { "RIOI" });
+                let mut tk = "RIOB";
+                if row == self.grid.row_clk() - 1 {
+                    tk = "RIOB_PCI";
+                }
+                if row == self.grid.row_clk() + 2 {
+                    tk = "RIOB_RDY";
+                }
+                self.fill_iob((col, row), tk, tk);
+            } else {
+                let cnr = if row == self.grid.row_bio_outer() {
+                    Some("LR_LOWER")
+                } else if row == self.grid.row_bio_inner() {
+                    Some("LR_UPPER")
+                } else if row == self.grid.row_tio_inner() {
+                    Some("UR_LOWER")
+                } else if row == self.grid.row_tio_outer() {
+                    Some("UR_UPPER")
+                } else {
+                    None
+                };
+                if let Some(cnr) = cnr {
+                    rtt = "CNR_TR_RTERM";
+                    let name = format!("{cnr}_X{x}Y{y}");
+                    tile.add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&name],
+                        self.db.get_node_naming("INTF.CNR"),
+                        &[(col, row)],
+                    );
+                    let node = tile.add_xnode(
+                        self.db.get_node(cnr),
+                        &[&name],
+                        self.db.get_node_naming(cnr),
+                        &[(col, row)],
+                    );
+                    match cnr {
+                        "LR_LOWER" => {
+                            node.add_bel(0, "OCT_CAL_X1Y0".to_string());
+                            node.add_bel(1, "ICAP_X0Y0".to_string());
+                            node.add_bel(2, "SPI_ACCESS".to_string());
+                        }
+                        "LR_UPPER" => {
+                            node.add_bel(0, "SUSPEND_SYNC".to_string());
+                            node.add_bel(1, "POST_CRC_INTERNAL".to_string());
+                            node.add_bel(2, "STARTUP".to_string());
+                            node.add_bel(3, "SLAVE_SPI".to_string());
+                        }
+                        "UR_LOWER" => {
+                            node.add_bel(0, "OCT_CAL_X1Y1".to_string());
+                            node.add_bel(1, "BSCAN_X0Y2".to_string());
+                            node.add_bel(2, "BSCAN_X0Y3".to_string());
+                        }
+                        "UR_UPPER" => {
+                            node.add_bel(0, "BSCAN_X0Y0".to_string());
+                            node.add_bel(1, "BSCAN_X0Y1".to_string());
+                        }
+                        _ => unreachable!(),
+                    }
+                } else {
+                    let carry = if is_brk { "_CARRY" } else { "" };
+                    tile.add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&format!("INT_INTERFACE{carry}_X{x}Y{y}")],
+                        self.db.get_node_naming("INTF"),
+                        &[(col, row)],
+                    );
+                }
+            }
+            let rx = self.rxlut[col] + 3;
+            self.die.fill_term_tile(
+                (col, row),
+                "TERM.E",
+                "TERM.E",
+                format!("{rtt}{txtra}_X{rx}Y{ry}"),
+            );
+        }
+    }
+
+    fn fill_tio(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            let iob_tk = match cd.tio {
+                ColumnIoKind::None => continue,
+                ColumnIoKind::Inner => unreachable!(),
+                ColumnIoKind::Outer => "TIOB_SINGLE",
+                ColumnIoKind::Both => "TIOB",
+            };
+            for (row, io, unused) in [
+                (
+                    self.grid.row_tio_outer(),
+                    "OUTER",
+                    cd.tio == ColumnIoKind::Inner,
+                ),
+                (
+                    self.grid.row_tio_inner(),
+                    "INNER",
+                    cd.tio == ColumnIoKind::Outer,
+                ),
+            ] {
+                let u = if unused { "_UNUSED" } else { "" };
+                let naming = format!("TIOI_{io}{u}");
+                self.fill_ioi((col, row), &naming);
+                let naming = format!("TIOB_{io}");
+                if !unused {
+                    self.fill_iob((col, row), iob_tk, &naming);
+                }
+            }
+        }
+    }
+
+    fn fill_bio(&mut self) {
+        for (col, &cd) in self.grid.columns.iter().rev() {
+            let iob_tk = match cd.bio {
+                ColumnIoKind::None => continue,
+                ColumnIoKind::Inner => "BIOB_SINGLE",
+                ColumnIoKind::Outer => "BIOB_SINGLE_ALT",
+                ColumnIoKind::Both => "BIOB",
+            };
+            for (row, io, unused) in [
+                (
+                    self.grid.row_bio_outer(),
+                    "OUTER",
+                    cd.bio == ColumnIoKind::Inner,
+                ),
+                (
+                    self.grid.row_bio_inner(),
+                    "INNER",
+                    cd.bio == ColumnIoKind::Outer,
+                ),
+            ] {
+                let u = if unused { "_UNUSED" } else { "" };
+                let naming = format!("BIOI_{io}{u}");
+                self.fill_ioi((col, row), &naming);
+                let naming = format!("BIOB_{io}");
+                if !unused {
+                    self.fill_iob((col, row), iob_tk, &naming);
+                }
+            }
+        }
+    }
+
+    fn fill_clkc(&mut self) {
+        let col = self.grid.col_clk;
+        let row = self.grid.row_clk();
+        let x = col.to_idx();
+        let y = row.to_idx();
+        self.die[(col, row)].add_xnode(
+            self.db.get_node("INTF"),
+            &[&format!("INT_INTERFACE_REGC_X{x}Y{y}")],
+            self.db.get_node_naming("INTF.REGC"),
+            &[(col, row)],
+        );
+    }
+
+    fn fill_dcms(&mut self) {
+        let col = self.grid.col_clk;
+        let x = col.to_idx();
+        let def_rt = NodeRawTileId::from_idx(0);
+        for br in self.grid.get_dcms() {
+            for row in [br + 7, br + 8] {
+                let y = row.to_idx();
+                let tile = &mut self.die[(col, row)];
+                let node = &mut tile.nodes[0];
+                node.kind = self.db.get_node("INT.IOI");
+                node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
+                node.naming = self.db.get_node_naming("INT.IOI");
+                tile.add_xnode(
+                    self.db.get_node("INTF.IOI"),
+                    &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
+                    self.db.get_node_naming("INTF"),
+                    &[(col, row)],
+                );
+            }
+        }
+    }
+
+    fn fill_plls(&mut self) {
+        let col = self.grid.col_clk;
+        let x = col.to_idx();
+        let def_rt = NodeRawTileId::from_idx(0);
+        for br in self.grid.get_plls() {
+            let row = br + 7;
+            let y = row.to_idx();
+            let tile = &mut self.die[(col, row)];
+            tile.add_xnode(
+                self.db.get_node("INTF"),
+                &[&format!("INT_INTERFACE_CARRY_X{x}Y{y}")],
+                self.db.get_node_naming("INTF"),
+                &[(col, row)],
+            );
+            let row = br + 8;
+            let y = row.to_idx();
+            let tile = &mut self.die[(col, row)];
+            let node = &mut tile.nodes[0];
+            node.kind = self.db.get_node("INT.IOI");
+            node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
+            node.naming = self.db.get_node_naming("INT.IOI");
+            tile.add_xnode(
+                self.db.get_node("INTF.IOI"),
+                &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
+                self.db.get_node_naming("INTF"),
+                &[(col, row)],
+            );
+        }
+    }
+
+    fn fill_gts(&mut self) {
+        match self.grid.gts {
+            Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
+                let row_gt_mid = RowId::from_idx(self.grid.rows.len() - 8);
+                let row_gt_bot = row_gt_mid - 8;
+                let row_pcie_bot = row_gt_bot - 16;
+                self.die.nuke_rect(bc - 6, row_gt_mid, 11, 8);
+                self.die.nuke_rect(bc - 4, row_gt_bot, 7, 8);
+                self.die.nuke_rect(bc - 1, row_pcie_bot, 3, 16);
+                let col_l = bc - 7;
+                let col_r = bc + 5;
+                let rxl = self.rxlut[col_l] + 6;
+                let rxr = self.rxlut[col_r] - 1;
+                for dy in 0..8 {
+                    let row = self.grid.row_tio_outer() - 7 + dy;
+                    let ry = self.rylut[row];
+                    self.die.fill_term_tile(
+                        (col_l, row),
+                        "TERM.E",
+                        "TERM.E.INTF",
+                        format!("INT_RTERM_X{rxl}Y{ry}"),
+                    );
+                    self.die.fill_term_tile(
+                        (col_r, row),
+                        "TERM.W",
+                        "TERM.W.INTF",
+                        format!("INT_LTERM_X{rxr}Y{ry}"),
+                    );
+                }
+                let col_l = bc - 5;
+                let col_r = bc + 3;
+                for dy in 0..8 {
+                    let row = row_gt_bot + dy;
+                    let ry = self.rylut[row];
+                    let rxl = self.rxlut[col_l] + 1;
+                    let rxr = self.rxlut[col_r] - 1;
+                    let is_brk = dy == 0;
+                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                    self.fill_intf_rterm((col_l, row), tile_l);
+                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
+                }
+                let col_l = bc - 2;
+                let col_r = bc + 2;
+                for dy in 0..16 {
+                    let row = row_pcie_bot + dy;
+                    let ry = self.rylut[row];
+                    let rxl = self.rxlut[col_l] + 1;
+                    let rxr = self.rxlut[col_r] - 1;
+                    let is_brk = dy == 0;
+                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                    self.fill_intf_rterm((col_l, row), tile_l);
+                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
+                }
+                if !self.disabled.contains(&DisabledPart::Gtp) {
+                    let mut crd = vec![];
+                    for dy in 0..16 {
+                        crd.push((col_l, row_pcie_bot + dy));
+                    }
+                    for dy in 0..16 {
+                        crd.push((col_r, row_pcie_bot + dy));
+                    }
+                    let x = bc.to_idx();
+                    let y = row_pcie_bot.to_idx() - 1;
+                    let name = format!("PCIE_TOP_X{x}Y{y}");
+                    let node = self.die[crd[0]].add_xnode(
+                        self.db.get_node("PCIE"),
+                        &[&name],
+                        self.db.get_node_naming("PCIE"),
+                        &crd,
+                    );
+                    node.add_bel(0, "PCIE_X0Y0".to_string());
+                }
+            }
+            _ => (),
+        }
+        match self.grid.gts {
+            Gts::Double(_, bc) | Gts::Quad(_, bc) => {
+                let row_gt_mid = RowId::from_idx(self.grid.rows.len() - 8);
+                let row_gt_bot = row_gt_mid - 8;
+                self.die.nuke_rect(bc - 4, row_gt_mid, 11, 8);
+                self.die.nuke_rect(bc - 2, row_gt_bot, 8, 8);
+                let col_l = bc - 5;
+                let col_r = bc + 7;
+                for dy in 0..8 {
+                    let row = row_gt_mid + dy;
+                    let ry = self.rylut[row];
+                    let rxl = self.rxlut[col_l] + 5;
+                    let rxr = self.rxlut[col_r] - 2;
+                    self.die.fill_term_tile(
+                        (col_l, row),
+                        "TERM.E",
+                        "TERM.E.INTF",
+                        format!("INT_RTERM_X{rxl}Y{ry}"),
+                    );
+                    self.die.fill_term_tile(
+                        (col_r, row),
+                        "TERM.W",
+                        "TERM.W.INTF",
+                        format!("INT_LTERM_X{rxr}Y{ry}"),
+                    );
+                }
+                let col_l = bc - 3;
+                let col_r = bc + 6;
+                for dy in 0..8 {
+                    let row = row_gt_bot + dy;
+                    let ry = self.rylut[row];
+                    let rxl = self.rxlut[col_l] + 1;
+                    let rxr = self.rxlut[col_r] - 1;
+                    let is_brk = dy == 0;
+                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                    self.fill_intf_rterm((col_l, row), tile_l);
+                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
+                }
+            }
+            _ => (),
+        }
+        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+            let row_gt_bot = RowId::from_idx(0);
+            let row_gt_mid = RowId::from_idx(8);
+            self.die.nuke_rect(bcl - 6, row_gt_bot, 11, 8);
+            self.die.nuke_rect(bcl - 4, row_gt_mid, 7, 8);
+            self.die.nuke_rect(bcr - 4, row_gt_bot, 11, 8);
+            self.die.nuke_rect(bcr - 2, row_gt_mid, 8, 8);
+            let col_l = bcl - 7;
+            let col_r = bcl + 5;
+            for dy in 0..8 {
+                let row = row_gt_bot + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 6;
+                let rxr = self.rxlut[col_r] - 1;
+                self.die.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                self.die.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
+            }
+            let col_l = bcl - 5;
+            let col_r = bcl + 3;
+            for dy in 0..8 {
+                let row = row_gt_mid + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 1;
+                let rxr = self.rxlut[col_r] - 1;
+                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                self.fill_intf_rterm((col_l, row), tile_l);
+                self.fill_intf_lterm((col_r, row), tile_r, false);
+            }
+            let col_l = bcr - 5;
+            let col_r = bcr + 7;
+            for dy in 0..8 {
+                let row = row_gt_bot + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 5;
+                let rxr = self.rxlut[col_r] - 2;
+                self.die.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                self.die.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
+            }
+            let col_l = bcr - 3;
+            let col_r = bcr + 6;
+            for dy in 0..8 {
+                let row = row_gt_mid + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 1;
+                let rxr = self.rxlut[col_r] - 1;
+                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                self.fill_intf_rterm((col_l, row), tile_l);
+                self.fill_intf_lterm((col_r, row), tile_r, false);
+            }
+        }
+    }
+
+    fn fill_btterm(&mut self) {
+        for (col, &cd) in &self.grid.columns {
+            let (btt, ttt) = match cd.kind {
+                ColumnKind::Io => ("CNR_BR_BTERM", "CNR_TR_TTERM"),
+                ColumnKind::Bram => ("", "RAMB_TOP_TTERM"),
+                ColumnKind::Dsp | ColumnKind::DspPlus => ("DSP_INT_BTERM", "DSP_INT_TTERM"),
+                _ => {
+                    if col == self.grid.col_clk + 1 {
+                        ("IOI_BTERM_BUFPLL", "IOI_TTERM_BUFPLL")
+                    } else {
+                        (
+                            if cd.bio == ColumnIoKind::None {
+                                "CLB_INT_BTERM"
+                            } else {
+                                "IOI_BTERM"
+                            },
+                            "IOI_TTERM",
+                        )
+                    }
+                }
+            };
+            let rx = self.rxlut[col];
+            let ryb = self.rylut[self.grid.row_bio_outer()] - 1;
+            let mut row_b = self.grid.row_bio_outer();
+            while self.die[(col, row_b)].nodes.is_empty() {
+                row_b += 1;
+            }
+            if !btt.is_empty() {
+                self.die.fill_term_tile(
+                    (col, row_b),
+                    "TERM.S",
+                    "TERM.S",
+                    format!("{btt}_X{rx}Y{ryb}"),
+                );
+            }
+
+            let ryt = self.rylut[self.grid.row_tio_outer()] + 1;
+            let mut row_t = self.grid.row_tio_outer();
+            while self.die[(col, row_t)].nodes.is_empty() {
+                row_t -= 1;
+            }
+            self.die.fill_term_tile(
+                (col, row_t),
+                "TERM.N",
+                "TERM.N",
+                format!("{ttt}_X{rx}Y{ryt}"),
+            );
+        }
+    }
+
+    fn fill_cle(&mut self) {
+        let mut sy_base = 2;
+        for (col, &cd) in &self.grid.columns {
+            if !matches!(
+                cd.kind,
+                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
+            ) {
+                continue;
+            }
+            if self.disabled.contains(&DisabledPart::ClbColumn(col)) {
+                continue;
+            }
+            let tb = &self.die[(col, RowId::from_idx(0))];
+            if !tb.nodes.is_empty() && cd.bio == ColumnIoKind::None {
+                sy_base = 0;
+                break;
+            }
+        }
+        let mut sx = 0;
+        for (col, &cd) in &self.grid.columns {
+            if !matches!(
+                cd.kind,
+                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
+            ) {
+                continue;
+            }
+            if self.disabled.contains(&DisabledPart::ClbColumn(col)) {
+                continue;
+            }
+            for row in self.die.rows() {
+                let tile = &mut self.die[(col, row)];
+                if tile.nodes.len() != 1 {
+                    continue;
+                }
+                let sy = row.to_idx() - sy_base;
+                let kind = if cd.kind == ColumnKind::CleXM {
+                    "CLEXM"
+                } else {
+                    "CLEXL"
+                };
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    self.db.get_node(kind),
+                    &[&name],
+                    self.db.get_node_naming(kind),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                node.add_bel(1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
+            }
+            sx += 2;
+        }
+    }
+
+    fn fill_bram(&mut self) {
+        let mut bx = 0;
+        let mut bby = 0;
+        'a: for reg in 0..(self.grid.rows.len() as u32 / 16) {
+            for (col, &cd) in &self.grid.columns {
+                if cd.kind == ColumnKind::Bram
+                    && !self.disabled.contains(&DisabledPart::BramRegion(col, reg))
+                {
+                    break 'a;
+                }
+            }
+            bby += 8;
+        }
+        for (col, &cd) in &self.grid.columns {
+            if cd.kind != ColumnKind::Bram {
+                continue;
+            }
+            for row in self.die.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                let reg = row.to_idx() as u32 / 16;
+                if self.disabled.contains(&DisabledPart::BramRegion(col, reg)) {
+                    continue;
+                }
+                let tile = &mut self.die[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let by = row.to_idx() / 2 - bby;
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("BRAMSITE2_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    self.db.get_node("BRAM"),
+                    &[&name],
+                    self.db.get_node_naming("BRAM"),
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                );
+                node.add_bel(0, format!("RAMB16_X{bx}Y{by}"));
+                node.add_bel(1, format!("RAMB8_X{bx}Y{by}"));
+                node.add_bel(2, format!("RAMB8_X{bx}Y{by}", by = by + 1));
+            }
+            bx += 1;
+        }
+    }
+
+    fn fill_dsp(&mut self) {
+        let mut dx = 0;
+        let mut bdy = 0;
+        'a: for reg in 0..(self.grid.rows.len() as u32 / 16) {
+            for (col, &cd) in &self.grid.columns {
+                if matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus)
+                    && !self.disabled.contains(&DisabledPart::DspRegion(col, reg))
+                {
+                    break 'a;
+                }
+            }
+            bdy += 4;
+        }
+        for (col, &cd) in &self.grid.columns {
+            if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
+                continue;
+            }
+            for row in self.die.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                let reg = row.to_idx() as u32 / 16;
+                if self.disabled.contains(&DisabledPart::DspRegion(col, reg)) {
+                    continue;
+                }
+                if cd.kind == ColumnKind::DspPlus {
+                    if row.to_idx() >= self.grid.rows.len() - 16 {
+                        continue;
+                    }
+                    if matches!(self.grid.gts, Gts::Quad(_, _)) && row.to_idx() < 16 {
+                        continue;
+                    }
+                }
+                let tile = &mut self.die[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                let dy = row.to_idx() / 4 - bdy;
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("MACCSITE2_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    self.db.get_node("DSP"),
+                    &[&name],
+                    self.db.get_node_naming("DSP"),
+                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                );
+                node.add_bel(0, format!("DSP48_X{dx}Y{dy}"));
+            }
+            dx += 1;
+        }
+    }
+
+    fn fill_hclk(&mut self) {
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                let crow = RowId::from_idx(if row.to_idx() % 16 < 8 {
+                    row.to_idx() / 16 * 16 + 7
+                } else {
+                    row.to_idx() / 16 * 16 + 8
+                });
+                self.die[(col, row)].clkroot = (col, crow);
+            }
+        }
+    }
+
+    fn fill_ioi(&mut self, crd: Coord, naming: &str) {
+        let x = crd.0.to_idx();
+        let y = crd.1.to_idx();
+        let tile = &mut self.die[crd];
+        let node = &mut tile.nodes[0];
+        let def_rt = NodeRawTileId::from_idx(0);
+        node.kind = self.db.get_node("INT.IOI");
+        let is_brk = y % 16 == 0 && crd.1 != self.grid.row_clk() && y != 0;
+        if !is_brk {
+            if crd.0 == self.grid.col_lio() {
+                node.names[def_rt] = format!("LIOI_INT_X{x}Y{y}");
+            } else {
+                node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
+            }
+        }
+        node.naming = self
+            .db
+            .get_node_naming(if is_brk { "INT.IOI.BRK" } else { "INT.IOI" });
+        let name = format!("{naming}_X{x}Y{y}");
+        tile.add_xnode(
+            self.db.get_node("INTF.IOI"),
+            &[&name],
+            self.db.get_node_naming("INTF.IOI"),
+            &[crd],
+        );
+        let node = tile.add_xnode(
+            self.db.get_node("IOI"),
+            &[&name],
+            self.db.get_node_naming(naming),
+            &[crd],
+        );
+        let iox = self.ioxlut[crd.0];
+        let ioy = self.ioylut[crd.1];
+        let tiex = self.tiexlut[crd.0] + 1;
+        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
+        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
+        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1));
+        node.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(6, format!("TIEOFF_X{tiex}Y{y}", y = y * 2));
+    }
+
+    fn fill_iob(&mut self, crd: Coord, tk: &str, naming: &str) {
+        let x = crd.0.to_idx();
+        let mut y = crd.1.to_idx();
+        if tk.starts_with('T') {
+            y = self.grid.row_tio_outer().to_idx();
+        }
+        if tk.starts_with('B') {
+            y = 0;
+        }
+        let tile = &mut self.die[crd];
+        let name = format!("{tk}_X{x}Y{y}");
+        let node = tile.add_xnode(
+            self.db.get_node("IOB"),
+            &[&name],
+            self.db.get_node_naming(naming),
+            &[],
+        );
+        node.add_bel(0, format!("PAD{i}", i = self.pad_cnt));
+        node.add_bel(1, format!("PAD{i}", i = self.pad_cnt + 1));
+        self.pad_cnt += 2;
+        self.bonded_ios.push((crd, BelId::from_idx(0)));
+        self.bonded_ios.push((crd, BelId::from_idx(1)));
+    }
+
+    fn fill_intf_rterm(&mut self, crd: Coord, name: String) {
+        self.die
+            .fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
+        let tile = &mut self.die[crd];
+        tile.nodes.truncate(1);
+        tile.add_xnode(
+            self.db.get_node("INTF"),
+            &[&name],
+            self.db.get_node_naming("INTF.RTERM"),
+            &[crd],
+        );
+    }
+
+    fn fill_intf_lterm(&mut self, crd: Coord, name: String, is_brk: bool) {
+        self.die
+            .fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
+        let tile = &mut self.die[crd];
+        tile.nodes.truncate(1);
+        tile.nodes[0].naming =
+            self.db
+                .get_node_naming(if is_brk { "INT.TERM.BRK" } else { "INT.TERM" });
+        tile.add_xnode(
+            self.db.get_node("INTF"),
+            &[&name],
+            self.db.get_node_naming("INTF.LTERM"),
+            &[crd],
+        );
+    }
 }
 
 impl Grid {
+    pub fn col_lio(&self) -> ColId {
+        ColId::from_idx(0)
+    }
+
+    pub fn col_rio(&self) -> ColId {
+        ColId::from_idx(self.columns.len() - 1)
+    }
+
+    pub fn row_bio_outer(&self) -> RowId {
+        RowId::from_idx(0)
+    }
+
+    pub fn row_bio_inner(&self) -> RowId {
+        RowId::from_idx(1)
+    }
+
+    pub fn row_tio_outer(&self) -> RowId {
+        RowId::from_idx(self.rows.len() - 1)
+    }
+
+    pub fn row_tio_inner(&self) -> RowId {
+        RowId::from_idx(self.rows.len() - 2)
+    }
+
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut ctr = 1;
@@ -493,67 +1375,44 @@ impl Grid {
         res
     }
 
-    pub fn expand_grid<'a>(
-        &self,
-        db: &'a IntDb,
-        disabled: &BTreeSet<DisabledPart>,
-    ) -> ExpandedGrid<'a> {
-        let mut egrid = ExpandedGrid::new(db);
-        egrid.tie_kind = Some("TIEOFF".to_string());
-        egrid.tie_pin_pullup = Some("KEEP1".to_string());
-        egrid.tie_pin_gnd = Some("HARD0".to_string());
-        egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let (_, mut grid) = egrid.add_die(self.columns.len(), self.rows.len());
-        let def_rt = NodeRawTileId::from_idx(0);
-
-        let mut tie_x = 0;
-        let mut rxlut = EntityVec::new();
-        let mut rx = 2;
-        for (col, &cd) in &self.columns {
-            for row in grid.rows() {
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let tie_y = y * 2;
-                let mut is_brk = y % 16 == 0;
-                if y == 0
-                    && !matches!(
-                        cd.kind,
-                        ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
-                    )
-                {
-                    is_brk = false;
-                }
-                if row == self.row_clk() && cd.kind == ColumnKind::Io {
-                    is_brk = false;
-                }
-                let bram = if cd.kind == ColumnKind::Bram {
-                    if is_brk {
-                        "_BRAM_BRK"
-                    } else {
-                        "_BRAM"
-                    }
-                } else {
-                    ""
-                };
-                grid.fill_tile(
-                    (col, row),
-                    "INT",
-                    if is_brk { "INT.BRK" } else { "INT" },
-                    format!("INT{bram}_X{x}Y{y}"),
-                );
-                grid[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
-                if matches!(
-                    cd.kind,
-                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
-                ) {
-                    grid[(col, row)].add_xnode(
-                        db.get_node("INTF"),
-                        &[&format!("INT_INTERFACE_X{x}Y{y}")],
-                        db.get_node_naming("INTF"),
-                        &[(col, row)],
-                    );
-                }
+    fn make_ioxlut(&self) -> EntityVec<ColId, usize> {
+        let mut res = EntityVec::new();
+        let mut iox = 0;
+        for &cd in self.columns.values() {
+            res.push(iox);
+            if cd.kind == ColumnKind::Io
+                || cd.bio != ColumnIoKind::None
+                || cd.tio != ColumnIoKind::None
+            {
+                iox += 1;
             }
+        }
+        res
+    }
+
+    fn make_ioylut(&self) -> EntityVec<RowId, usize> {
+        let mut res = EntityVec::new();
+        let mut ioy = 0;
+        for (row, &rd) in &self.rows {
+            res.push(ioy);
+            if row == self.row_bio_outer()
+                || row == self.row_bio_inner()
+                || row == self.row_tio_inner()
+                || row == self.row_tio_outer()
+                || rd.lio
+                || rd.rio
+            {
+                ioy += 1;
+            }
+        }
+        res
+    }
+
+    fn make_tiexlut(&self) -> EntityVec<ColId, usize> {
+        let mut res = EntityVec::new();
+        let mut tie_x = 0;
+        for &cd in self.columns.values() {
+            res.push(tie_x);
             tie_x += 1;
             if cd.kind == ColumnKind::Io
                 || cd.tio != ColumnIoKind::None
@@ -564,25 +1423,26 @@ impl Grid {
             if cd.kind == ColumnKind::CleClk {
                 tie_x += 1;
             }
-            rxlut.push(rx);
+        }
+        res
+    }
+
+    fn make_rxlut(&self) -> EntityVec<ColId, usize> {
+        let mut res = EntityVec::new();
+        let mut rx = 2;
+        for &cd in self.columns.values() {
+            res.push(rx);
             match cd.kind {
                 ColumnKind::CleXL | ColumnKind::CleXM => rx += 2,
                 ColumnKind::CleClk => rx += 4,
                 _ => rx += 3,
             }
         }
+        res
+    }
 
-        let col_l = self.columns.first_id().unwrap();
-        let col_r = self.columns.last_id().unwrap();
-        let xl = col_l.to_idx();
-        let xc = self.col_clk.to_idx();
-        let xr = col_r.to_idx();
-        let row_bo = self.rows.first_id().unwrap();
-        let row_bi = row_bo + 1;
-        let row_to = self.rows.last_id().unwrap();
-        let row_ti = row_to - 1;
-
-        let mut rylut = EntityVec::new();
+    fn make_rylut(&self) -> EntityVec<RowId, usize> {
+        let mut res = EntityVec::new();
         let mut ry = 2;
         for row in self.rows.ids() {
             if row == self.row_clk() {
@@ -591,615 +1451,53 @@ impl Grid {
             if row.to_idx() % 16 == 8 {
                 ry += 1;
             }
-            rylut.push(ry);
+            res.push(ry);
             ry += 1;
         }
+        res
+    }
 
-        for (row, &rd) in &self.rows {
-            let y = row.to_idx();
-            let ry = rylut[row];
-            let is_brk = y % 16 == 0 && row != self.row_clk();
-            let brk = if is_brk { "_BRK" } else { "" };
-            let txtra = if row == self.row_clk() - 2 {
-                "_LOWER_BOT"
-            } else if row == self.row_clk() - 1 {
-                "_LOWER_TOP"
-            } else if row == self.row_clk() + 2 {
-                "_UPPER_BOT"
-            } else if row == self.row_clk() + 3 {
-                "_UPPER_TOP"
-            } else {
-                ""
-            };
-            let tile = &mut grid[(col_l, row)];
-            let mut ltt = "IOI_LTERM";
-            if rd.lio {
-                let node = &mut tile.nodes[0];
-                node.kind = db.get_node("IOI");
-                if !is_brk {
-                    node.names[def_rt] = format!("LIOI_INT_X{xl}Y{y}");
-                }
-                node.naming = db.get_node_naming(if is_brk { "IOI.BRK" } else { "IOI" });
-                tile.add_xnode(
-                    db.get_node("INTF.IOI"),
-                    &[&format!("LIOI{brk}_X{xl}Y{y}")],
-                    db.get_node_naming("INTF.IOI"),
-                    &[(col_l, row)],
-                );
-            } else {
-                let cnr = if row == row_bo {
-                    Some("LL")
-                } else if row == row_to {
-                    Some("UL")
-                } else {
-                    None
-                };
-                if let Some(cnr) = cnr {
-                    ltt = "CNR_TL_LTERM";
-                    tile.add_xnode(
-                        db.get_node("INTF"),
-                        &[&format!("{cnr}_X{xl}Y{y}")],
-                        db.get_node_naming("INTF.CNR"),
-                        &[(col_l, row)],
-                    );
-                } else {
-                    let carry = if is_brk { "_CARRY" } else { "" };
-                    tile.add_xnode(
-                        db.get_node("INTF"),
-                        &[&format!("INT_INTERFACE{carry}_X{xl}Y{y}")],
-                        db.get_node_naming("INTF"),
-                        &[(col_l, row)],
-                    );
-                }
-            }
-            let rxl = rxlut[col_l] - 1;
-            grid.fill_term_tile(
-                (col_l, row),
-                "TERM.W",
-                "TERM.W",
-                format!("{ltt}{txtra}_X{rxl}Y{ry}"),
-            );
-            let tile = &mut grid[(col_r, row)];
-            let mut rtt = "IOI_RTERM";
-            if rd.rio {
-                let node = &mut tile.nodes[0];
-                node.kind = db.get_node("IOI");
-                if !is_brk {
-                    node.names[def_rt] = format!("IOI_INT_X{xr}Y{y}");
-                }
-                node.naming = db.get_node_naming(if is_brk { "IOI.BRK" } else { "IOI" });
-                tile.add_xnode(
-                    db.get_node("INTF.IOI"),
-                    &[&format!("RIOI{brk}_X{xr}Y{y}")],
-                    db.get_node_naming("INTF.IOI"),
-                    &[(col_r, row)],
-                );
-            } else {
-                let cnr = if row == row_bo {
-                    Some("LR_LOWER")
-                } else if row == row_bi {
-                    Some("LR_UPPER")
-                } else if row == row_ti {
-                    Some("UR_LOWER")
-                } else if row == row_to {
-                    Some("UR_UPPER")
-                } else {
-                    None
-                };
-                if let Some(cnr) = cnr {
-                    rtt = "CNR_TR_RTERM";
-                    tile.add_xnode(
-                        db.get_node("INTF"),
-                        &[&format!("{cnr}_X{xr}Y{y}")],
-                        db.get_node_naming("INTF.CNR"),
-                        &[(col_r, row)],
-                    );
-                } else {
-                    let carry = if is_brk { "_CARRY" } else { "" };
-                    tile.add_xnode(
-                        db.get_node("INTF"),
-                        &[&format!("INT_INTERFACE{carry}_X{xr}Y{y}")],
-                        db.get_node_naming("INTF"),
-                        &[(col_r, row)],
-                    );
-                }
-            }
-            let rxr = rxlut[col_r] + 3;
-            grid.fill_term_tile(
-                (col_r, row),
-                "TERM.E",
-                "TERM.E",
-                format!("{rtt}{txtra}_X{rxr}Y{ry}"),
-            );
-        }
+    pub fn expand_grid<'a>(
+        &self,
+        db: &'a IntDb,
+        disabled: &BTreeSet<DisabledPart>,
+    ) -> ExpandedGrid<'a> {
+        let mut egrid = ExpandedGrid::new(db);
+        egrid.tie_kind = Some("TIEOFF".to_string());
+        egrid.tie_pin_pullup = Some("KEEP1".to_string());
+        egrid.tie_pin_gnd = Some("HARD0".to_string());
+        egrid.tie_pin_vcc = Some("HARD1".to_string());
+        let (_, die) = egrid.add_die(self.columns.len(), self.rows.len());
 
-        for (col, &cd) in &self.columns {
-            let x = col.to_idx();
-            if cd.bio != ColumnIoKind::None {
-                for (row, io, unused) in [
-                    (row_bo, "OUTER", cd.bio == ColumnIoKind::Inner),
-                    (row_bi, "INNER", cd.bio == ColumnIoKind::Outer),
-                ] {
-                    let y = row.to_idx();
-                    let tile = &mut grid[(col, row)];
-                    let node = &mut tile.nodes[0];
-                    let unused = if unused { "_UNUSED" } else { "" };
-                    node.kind = db.get_node("IOI");
-                    node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
-                    node.naming = db.get_node_naming("IOI");
-                    tile.add_xnode(
-                        db.get_node("INTF.IOI"),
-                        &[&format!("BIOI_{io}{unused}_X{x}Y{y}")],
-                        db.get_node_naming("INTF.IOI"),
-                        &[(col, row)],
-                    );
-                }
-            }
-            if cd.tio != ColumnIoKind::None {
-                for (row, io, unused) in [
-                    (row_to, "OUTER", cd.tio == ColumnIoKind::Inner),
-                    (row_ti, "INNER", cd.tio == ColumnIoKind::Outer),
-                ] {
-                    let y = row.to_idx();
-                    let tile = &mut grid[(col, row)];
-                    let node = &mut tile.nodes[0];
-                    let unused = if unused { "_UNUSED" } else { "" };
-                    node.kind = db.get_node("IOI");
-                    node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
-                    node.naming = db.get_node_naming("IOI");
-                    tile.add_xnode(
-                        db.get_node("INTF.IOI"),
-                        &[&format!("TIOI_{io}{unused}_X{x}Y{y}")],
-                        db.get_node_naming("INTF.IOI"),
-                        &[(col, row)],
-                    );
-                }
-            }
-        }
+        let mut expander = Expander {
+            grid: self,
+            db,
+            disabled,
+            die,
+            rxlut: self.make_rxlut(),
+            rylut: self.make_rylut(),
+            tiexlut: self.make_tiexlut(),
+            ioxlut: self.make_ioxlut(),
+            ioylut: self.make_ioylut(),
+            pad_cnt: 1,
+            bonded_ios: vec![],
+        };
 
-        let yc = self.row_clk().to_idx();
-        grid[(self.col_clk, self.row_clk())].add_xnode(
-            db.get_node("INTF"),
-            &[&format!("INT_INTERFACE_REGC_X{xc}Y{yc}")],
-            db.get_node_naming("INTF.REGC"),
-            &[(self.col_clk, self.row_clk())],
-        );
-
-        for br in self.get_dcms() {
-            for row in [br + 7, br + 8] {
-                let y = row.to_idx();
-                let tile = &mut grid[(self.col_clk, row)];
-                let node = &mut tile.nodes[0];
-                node.kind = db.get_node("IOI");
-                node.names[def_rt] = format!("IOI_INT_X{xc}Y{y}");
-                node.naming = db.get_node_naming("IOI");
-                tile.add_xnode(
-                    db.get_node("INTF.IOI"),
-                    &[&format!("INT_INTERFACE_IOI_X{xc}Y{y}")],
-                    db.get_node_naming("INTF"),
-                    &[(self.col_clk, row)],
-                );
-            }
-        }
-
-        for br in self.get_plls() {
-            let row = br + 7;
-            let y = row.to_idx();
-            let tile = &mut grid[(self.col_clk, row)];
-            tile.add_xnode(
-                db.get_node("INTF"),
-                &[&format!("INT_INTERFACE_CARRY_X{xc}Y{y}")],
-                db.get_node_naming("INTF"),
-                &[(self.col_clk, row)],
-            );
-            let row = br + 8;
-            let y = row.to_idx();
-            let tile = &mut grid[(self.col_clk, row)];
-            let node = &mut tile.nodes[0];
-            node.kind = db.get_node("IOI");
-            node.names[def_rt] = format!("IOI_INT_X{xc}Y{y}");
-            node.naming = db.get_node_naming("IOI");
-            tile.add_xnode(
-                db.get_node("INTF.IOI"),
-                &[&format!("INT_INTERFACE_IOI_X{xc}Y{y}")],
-                db.get_node_naming("INTF"),
-                &[(self.col_clk, row)],
-            );
-        }
-
-        match self.gts {
-            Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
-                grid.nuke_rect(bc - 6, row_to - 7, 11, 8);
-                grid.nuke_rect(bc - 4, row_to - 15, 7, 8);
-                grid.nuke_rect(bc - 1, row_to - 31, 3, 16);
-                let col_l = bc - 7;
-                let col_r = bc + 5;
-                let rxl = rxlut[col_l] + 6;
-                let rxr = rxlut[col_r] - 1;
-                for dy in 0..8 {
-                    let row = row_to - 7 + dy;
-                    let ry = rylut[row];
-                    grid.fill_term_tile(
-                        (col_l, row),
-                        "TERM.E",
-                        "TERM.E.INTF",
-                        format!("INT_RTERM_X{rxl}Y{ry}"),
-                    );
-                    grid.fill_term_tile(
-                        (col_r, row),
-                        "TERM.W",
-                        "TERM.W.INTF",
-                        format!("INT_LTERM_X{rxr}Y{ry}"),
-                    );
-                }
-                let col_l = bc - 5;
-                let col_r = bc + 3;
-                for dy in 0..8 {
-                    let row = row_to - 15 + dy;
-                    let ry = rylut[row];
-                    let rxl = rxlut[col_l] + 1;
-                    let rxr = rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
-                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
-                }
-                let col_l = bc - 2;
-                let col_r = bc + 2;
-                for dy in 0..16 {
-                    let row = row_to - 31 + dy;
-                    let ry = rylut[row];
-                    let rxl = rxlut[col_l] + 1;
-                    let rxr = rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
-                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
-                }
-                if !disabled.contains(&DisabledPart::Gtp) {
-                    let mut crd = vec![];
-                    for dy in 0..16 {
-                        crd.push((col_l, row_to - 31 + dy));
-                    }
-                    for dy in 0..16 {
-                        crd.push((col_r, row_to - 31 + dy));
-                    }
-                    let x = bc.to_idx();
-                    let y = row_to.to_idx() - 32;
-                    let name = format!("PCIE_TOP_X{x}Y{y}");
-                    let node = grid[crd[0]].add_xnode(
-                        db.get_node("PCIE"),
-                        &[&name],
-                        db.get_node_naming("PCIE"),
-                        &crd,
-                    );
-                    node.add_bel(0, "PCIE_X0Y0".to_string());
-                }
-            }
-            _ => (),
-        }
-        match self.gts {
-            Gts::Double(_, bc) | Gts::Quad(_, bc) => {
-                grid.nuke_rect(bc - 4, row_to - 7, 11, 8);
-                grid.nuke_rect(bc - 2, row_to - 15, 8, 8);
-                let col_l = bc - 5;
-                let col_r = bc + 7;
-                for dy in 0..8 {
-                    let row = row_to - 7 + dy;
-                    let ry = rylut[row];
-                    let rxl = rxlut[col_l] + 5;
-                    let rxr = rxlut[col_r] - 2;
-                    grid.fill_term_tile(
-                        (col_l, row),
-                        "TERM.E",
-                        "TERM.E.INTF",
-                        format!("INT_RTERM_X{rxl}Y{ry}"),
-                    );
-                    grid.fill_term_tile(
-                        (col_r, row),
-                        "TERM.W",
-                        "TERM.W.INTF",
-                        format!("INT_LTERM_X{rxr}Y{ry}"),
-                    );
-                }
-                let col_l = bc - 3;
-                let col_r = bc + 6;
-                for dy in 0..8 {
-                    let row = row_to - 15 + dy;
-                    let ry = rylut[row];
-                    let rxl = rxlut[col_l] + 1;
-                    let rxr = rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
-                    fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, is_brk);
-                }
-            }
-            _ => (),
-        }
-        if let Gts::Quad(bcl, bcr) = self.gts {
-            grid.nuke_rect(bcl - 6, row_bo, 11, 8);
-            grid.nuke_rect(bcl - 4, row_bo + 8, 7, 8);
-            grid.nuke_rect(bcr - 4, row_bo, 11, 8);
-            grid.nuke_rect(bcr - 2, row_bo + 8, 8, 8);
-            let col_l = bcl - 7;
-            let col_r = bcl + 5;
-            for dy in 0..8 {
-                let row = row_bo + dy;
-                let ry = rylut[row];
-                let rxl = rxlut[col_l] + 6;
-                let rxr = rxlut[col_r] - 1;
-                grid.fill_term_tile(
-                    (col_l, row),
-                    "TERM.E",
-                    "TERM.E.INTF",
-                    format!("INT_RTERM_X{rxl}Y{ry}"),
-                );
-                grid.fill_term_tile(
-                    (col_r, row),
-                    "TERM.W",
-                    "TERM.W.INTF",
-                    format!("INT_LTERM_X{rxr}Y{ry}"),
-                );
-            }
-            let col_l = bcl - 5;
-            let col_r = bcl + 3;
-            for dy in 0..8 {
-                let row = row_bo + 8 + dy;
-                let ry = rylut[row];
-                let rxl = rxlut[col_l] + 1;
-                let rxr = rxlut[col_r] - 1;
-                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
-                fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, false);
-            }
-            let col_l = bcr - 5;
-            let col_r = bcr + 7;
-            for dy in 0..8 {
-                let row = row_bo + dy;
-                let ry = rylut[row];
-                let rxl = rxlut[col_l] + 5;
-                let rxr = rxlut[col_r] - 2;
-                grid.fill_term_tile(
-                    (col_l, row),
-                    "TERM.E",
-                    "TERM.E.INTF",
-                    format!("INT_RTERM_X{rxl}Y{ry}"),
-                );
-                grid.fill_term_tile(
-                    (col_r, row),
-                    "TERM.W",
-                    "TERM.W.INTF",
-                    format!("INT_LTERM_X{rxr}Y{ry}"),
-                );
-            }
-            let col_l = bcr - 3;
-            let col_r = bcr + 6;
-            for dy in 0..8 {
-                let row = row_bo + 8 + dy;
-                let ry = rylut[row];
-                let rxl = rxlut[col_l] + 1;
-                let rxr = rxlut[col_r] - 1;
-                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                fill_intf_rterm(db, &mut grid, (col_l, row), tile_l);
-                fill_intf_lterm(db, &mut grid, (col_r, row), tile_r, false);
-            }
-        }
-
-        for (col, &cd) in &self.columns {
-            let (btt, ttt) = match cd.kind {
-                ColumnKind::Io => ("CNR_BR_BTERM", "CNR_TR_TTERM"),
-                ColumnKind::Bram => ("", "RAMB_TOP_TTERM"),
-                ColumnKind::Dsp | ColumnKind::DspPlus => ("DSP_INT_BTERM", "DSP_INT_TTERM"),
-                _ => {
-                    if col == self.col_clk + 1 {
-                        ("IOI_BTERM_BUFPLL", "IOI_TTERM_BUFPLL")
-                    } else {
-                        (
-                            if cd.bio == ColumnIoKind::None {
-                                "CLB_INT_BTERM"
-                            } else {
-                                "IOI_BTERM"
-                            },
-                            "IOI_TTERM",
-                        )
-                    }
-                }
-            };
-            let rx = rxlut[col];
-            let ryb = rylut[row_bo] - 1;
-            let ryt = rylut[row_to] + 1;
-            let mut row_b = row_bo;
-            let mut row_t = row_to;
-            while grid[(col, row_b)].nodes.is_empty() {
-                row_b += 1;
-            }
-            while grid[(col, row_t)].nodes.is_empty() {
-                row_t -= 1;
-            }
-            if !btt.is_empty() {
-                grid.fill_term_tile(
-                    (col, row_b),
-                    "TERM.S",
-                    "TERM.S",
-                    format!("{btt}_X{rx}Y{ryb}"),
-                );
-            }
-            grid.fill_term_tile(
-                (col, row_t),
-                "TERM.N",
-                "TERM.N",
-                format!("{ttt}_X{rx}Y{ryt}"),
-            );
-        }
-
-        grid.fill_main_passes();
-
-        let mut sy_base = 2;
-        for (col, &cd) in &self.columns {
-            if !matches!(
-                cd.kind,
-                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
-            ) {
-                continue;
-            }
-            if disabled.contains(&DisabledPart::ClbColumn(col)) {
-                continue;
-            }
-            let tb = &grid[(col, RowId::from_idx(0))];
-            if !tb.nodes.is_empty() && cd.bio == ColumnIoKind::None {
-                sy_base = 0;
-                break;
-            }
-        }
-        let mut sx = 0;
-        for (col, &cd) in &self.columns {
-            if !matches!(
-                cd.kind,
-                ColumnKind::CleXL | ColumnKind::CleXM | ColumnKind::CleClk
-            ) {
-                continue;
-            }
-            if disabled.contains(&DisabledPart::ClbColumn(col)) {
-                continue;
-            }
-            for row in grid.rows() {
-                let tile = &mut grid[(col, row)];
-                if tile.nodes.len() != 1 {
-                    continue;
-                }
-                let sy = row.to_idx() - sy_base;
-                let kind = if cd.kind == ColumnKind::CleXM {
-                    "CLEXM"
-                } else {
-                    "CLEXL"
-                };
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let name = format!("{kind}_X{x}Y{y}");
-                let node = tile.add_xnode(
-                    db.get_node(kind),
-                    &[&name],
-                    db.get_node_naming(kind),
-                    &[(col, row)],
-                );
-                node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                node.add_bel(1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
-            }
-            sx += 2;
-        }
-
-        let mut bx = 0;
-        let mut bby = 0;
-        'a: for reg in 0..(self.rows.len() as u32 / 16) {
-            for (col, &cd) in &self.columns {
-                if cd.kind == ColumnKind::Bram
-                    && !disabled.contains(&DisabledPart::BramRegion(col, reg))
-                {
-                    break 'a;
-                }
-            }
-            bby += 8;
-        }
-        for (col, &cd) in &self.columns {
-            if cd.kind != ColumnKind::Bram {
-                continue;
-            }
-            for row in grid.rows() {
-                if row.to_idx() % 4 != 0 {
-                    continue;
-                }
-                let reg = row.to_idx() as u32 / 16;
-                if disabled.contains(&DisabledPart::BramRegion(col, reg)) {
-                    continue;
-                }
-                let tile = &mut grid[(col, row)];
-                if tile.nodes.is_empty() {
-                    continue;
-                }
-                let by = row.to_idx() / 2 - bby;
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let name = format!("BRAMSITE2_X{x}Y{y}");
-                let node = tile.add_xnode(
-                    db.get_node("BRAM"),
-                    &[&name],
-                    db.get_node_naming("BRAM"),
-                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
-                );
-                node.add_bel(0, format!("RAMB16_X{bx}Y{by}"));
-                node.add_bel(1, format!("RAMB8_X{bx}Y{by}"));
-                node.add_bel(2, format!("RAMB8_X{bx}Y{by}", by = by + 1));
-            }
-            bx += 1;
-        }
-
-        let mut dx = 0;
-        let mut bdy = 0;
-        'a: for reg in 0..(self.rows.len() as u32 / 16) {
-            for (col, &cd) in &self.columns {
-                if matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus)
-                    && !disabled.contains(&DisabledPart::DspRegion(col, reg))
-                {
-                    break 'a;
-                }
-            }
-            bdy += 4;
-        }
-        for (col, &cd) in &self.columns {
-            if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
-                continue;
-            }
-            for row in grid.rows() {
-                if row.to_idx() % 4 != 0 {
-                    continue;
-                }
-                let reg = row.to_idx() as u32 / 16;
-                if disabled.contains(&DisabledPart::DspRegion(col, reg)) {
-                    continue;
-                }
-                if cd.kind == ColumnKind::DspPlus {
-                    if row.to_idx() >= self.rows.len() - 16 {
-                        continue;
-                    }
-                    if matches!(self.gts, Gts::Quad(_, _)) && row.to_idx() < 16 {
-                        continue;
-                    }
-                }
-                let tile = &mut grid[(col, row)];
-                if tile.nodes.is_empty() {
-                    continue;
-                }
-                let dy = row.to_idx() / 4 - bdy;
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let name = format!("MACCSITE2_X{x}Y{y}");
-                let node = tile.add_xnode(
-                    db.get_node("DSP"),
-                    &[&name],
-                    db.get_node_naming("DSP"),
-                    &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
-                );
-                node.add_bel(0, format!("DSP48_X{dx}Y{dy}"));
-            }
-            dx += 1;
-        }
-
-        for col in grid.cols() {
-            for row in grid.rows() {
-                let crow = RowId::from_idx(if row.to_idx() % 16 < 8 {
-                    row.to_idx() / 16 * 16 + 7
-                } else {
-                    row.to_idx() / 16 * 16 + 8
-                });
-                grid[(col, row)].clkroot = (col, crow);
-            }
-        }
+        expander.fill_int();
+        expander.fill_tio();
+        expander.fill_rio();
+        expander.fill_bio();
+        expander.fill_lio();
+        expander.fill_clkc();
+        expander.fill_dcms();
+        expander.fill_plls();
+        expander.fill_gts();
+        expander.fill_btterm();
+        expander.fill_cle();
+        expander.fill_bram();
+        expander.fill_dsp();
+        expander.fill_hclk();
+        expander.die.fill_main_passes();
 
         egrid
     }
