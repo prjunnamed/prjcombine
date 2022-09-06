@@ -149,7 +149,11 @@ fn get_rows_bank_split(rd: &Part, int: &IntGrid) -> Option<(RowId, RowId)> {
     }
 }
 
-fn get_rows_bufio_split(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
+fn get_row_mcb_split(rd: &Part, int: &IntGrid) -> Option<RowId> {
+    find_row(rd, &["MCB_CAP_INT_BRK"]).map(|x| int.lookup_row(x))
+}
+
+fn get_rows_pci_ce_split(rd: &Part, int: &IntGrid) -> (RowId, RowId) {
     let b = int.lookup_row_inter(find_row(rd, &["HCLK_IOIL_BOT_SPLIT"]).unwrap());
     let t = int.lookup_row_inter(find_row(rd, &["HCLK_IOIL_TOP_SPLIT"]).unwrap());
     (b, t)
@@ -541,7 +545,8 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         rows_midbuf: get_rows_midbuf(rd, &int),
         rows_hclkbuf: get_rows_hclkbuf(rd, &int),
         rows_bank_split: get_rows_bank_split(rd, &int),
-        rows_bufio_split: get_rows_bufio_split(rd, &int),
+        rows_pci_ce_split: get_rows_pci_ce_split(rd, &int),
+        row_mcb_split: get_row_mcb_split(rd, &int),
         gts: get_gts(rd, &int),
         mcbs: get_mcbs(rd, &int),
         vref: BTreeSet::new(),

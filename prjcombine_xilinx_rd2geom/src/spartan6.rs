@@ -5,7 +5,7 @@ use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
 use crate::db::{make_device, PreDevice};
 use prjcombine_rdverify::verify;
 use prjcombine_spartan6_rd2db::{bond, grid, int};
-use prjcombine_spartan6_rdverify::verify_bel;
+use prjcombine_spartan6_rdverify::{verify_bel, verify_extra};
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);
@@ -15,12 +15,12 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&grid, &disabled, pins);
         bonds.push((pkg.clone(), Bond::Spartan6(bond)));
     }
-    let eint = grid.expand_grid(&int_db, &disabled);
+    let edev = grid.expand_grid(&int_db, &disabled);
     verify(
         rd,
-        &eint,
-        |vrf, bel| verify_bel(&grid, vrf, bel),
-        |vrf| vrf.skip_residual(),
+        &edev.egrid,
+        |vrf, bel| verify_bel(&edev, vrf, bel),
+        |vrf| verify_extra(&edev, vrf),
     );
     let disabled = disabled.into_iter().map(DisabledPart::Spartan6).collect();
     (

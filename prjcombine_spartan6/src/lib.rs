@@ -14,8 +14,9 @@ pub struct Grid {
     pub rows: EntityVec<RowId, Row>,
     pub rows_midbuf: (RowId, RowId),
     pub rows_hclkbuf: (RowId, RowId),
-    pub rows_bufio_split: (RowId, RowId),
+    pub rows_pci_ce_split: (RowId, RowId),
     pub rows_bank_split: Option<(RowId, RowId)>,
+    pub row_mcb_split: Option<RowId>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
     pub vref: BTreeSet<IoCoord>,
@@ -180,6 +181,13 @@ pub struct IoCoord {
     pub col: ColId,
     pub row: RowId,
     pub bel: BelId,
+}
+
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub disabled: &'a BTreeSet<DisabledPart>,
+    pub egrid: ExpandedGrid<'a>,
+    pub bonded_ios: Vec<((ColId, RowId), BelId)>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -394,7 +402,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let trunk_naming;
                 let v_naming;
                 if row <= self.grid.row_clk() {
-                    match row.cmp(&self.grid.rows_bufio_split.0) {
+                    match row.cmp(&self.grid.rows_pci_ce_split.0) {
                         Ordering::Less => {
                             kind = "HCLK_IOIL_BOT_DN";
                             v_naming = "PCI_CE_V_BUF_DN";
@@ -413,7 +421,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                     trunk_naming = "PCI_CE_TRUNK_BUF_BOT";
                 } else {
-                    match row.cmp(&self.grid.rows_bufio_split.1) {
+                    match row.cmp(&self.grid.rows_pci_ce_split.1) {
                         Ordering::Less => {
                             kind = "HCLK_IOIL_TOP_DN";
                             v_naming = "PCI_CE_V_BUF_DN";
@@ -596,7 +604,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let trunk_naming;
                 let v_naming;
                 if row <= self.grid.row_clk() {
-                    match row.cmp(&self.grid.rows_bufio_split.0) {
+                    match row.cmp(&self.grid.rows_pci_ce_split.0) {
                         Ordering::Less => {
                             kind = "HCLK_IOIR_BOT_DN";
                             v_naming = "PCI_CE_V_BUF_DN";
@@ -615,7 +623,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                     trunk_naming = "PCI_CE_TRUNK_BUF_BOT";
                 } else {
-                    match row.cmp(&self.grid.rows_bufio_split.1) {
+                    match row.cmp(&self.grid.rows_pci_ce_split.1) {
                         Ordering::Less => {
                             kind = "HCLK_IOIR_TOP_DN";
                             v_naming = "PCI_CE_V_BUF_DN";
@@ -780,6 +788,97 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("BIOI_CLK"),
                 &[],
             );
+        }
+    }
+
+    fn fill_mcb(&mut self) {
+        if self.disabled.contains(&DisabledPart::Mcb) {
+            return;
+        }
+        let mut mx = 0;
+        for (col, &cd) in &self.grid.columns {
+            if cd.kind != ColumnKind::Io {
+                continue;
+            }
+            let x = col.to_idx();
+            let mut my = 1;
+            for mcb in &self.grid.mcbs {
+                let row = mcb.row_mcb;
+                let mut crds = vec![];
+                for dy in 0..12 {
+                    crds.push((col, row + dy));
+                }
+                for urow in mcb.row_mui {
+                    for dy in 0..2 {
+                        crds.push((col, urow + dy));
+                    }
+                }
+                let tk = if self.grid.rows.len() % 32 == 16 {
+                    "MCB_L_BOT"
+                } else {
+                    "MCB_L"
+                };
+                let name = format!("{tk}_X{x}Y{y}", y = row.to_idx() + 6);
+                let name_hclk = format!("MCB_HCLK_X{x}Y{y}", y = row.to_idx() - 1);
+                let name_clkpn = format!("MCB_CAP_CLKPN_X{x}Y{y}", y = mcb.iop_clk.to_idx());
+                let name_ldqs = format!("MCB_INT_DQI_X{x}Y{y}", y = mcb.iop_dqs[0].to_idx());
+                let name_udqs = format!("MCB_INT_DQI_X{x}Y{y}", y = mcb.iop_dqs[1].to_idx());
+                let name_mui0r = format!("MCB_MUI0R_X{x}Y{y}", y = mcb.row_mui[0].to_idx());
+                let name_mui0w = format!("MCB_MUI0W_X{x}Y{y}", y = mcb.row_mui[1].to_idx());
+                let name_mui1r = format!("MCB_MUI1R_X{x}Y{y}", y = mcb.row_mui[2].to_idx());
+                let name_mui1w = format!("MCB_MUI1W_X{x}Y{y}", y = mcb.row_mui[3].to_idx());
+                let name_mui2 = format!("MCB_MUI2_X{x}Y{y}", y = mcb.row_mui[4].to_idx());
+                let name_mui3 = format!("MCB_MUI3_X{x}Y{y}", y = mcb.row_mui[5].to_idx());
+                let name_mui4 = format!("MCB_MUI4_X{x}Y{y}", y = mcb.row_mui[6].to_idx());
+                let name_mui5 = format!("MCB_MUI5_X{x}Y{y}", y = mcb.row_mui[7].to_idx());
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("MCB"),
+                    &[
+                        &name,
+                        &name_hclk,
+                        &name_clkpn,
+                        &name_ldqs,
+                        &name_udqs,
+                        &name_mui0r,
+                        &name_mui0w,
+                        &name_mui1r,
+                        &name_mui1w,
+                        &name_mui2,
+                        &name_mui3,
+                        &name_mui4,
+                        &name_mui5,
+                    ],
+                    self.db.get_node_naming(tk),
+                    &crds,
+                );
+                node.add_bel(0, format!("MCB_X{mx}Y{my}"));
+                node.add_bel(
+                    1,
+                    format!(
+                        "TIEOFF_X{x}Y{y}",
+                        x = self.tiexlut[col] + 1,
+                        y = mcb.iop_clk.to_idx() * 2 + 1
+                    ),
+                );
+                node.add_bel(
+                    2,
+                    format!(
+                        "TIEOFF_X{x}Y{y}",
+                        x = self.tiexlut[col] + 1,
+                        y = mcb.iop_dqs[0].to_idx() * 2 + 1
+                    ),
+                );
+                node.add_bel(
+                    3,
+                    format!(
+                        "TIEOFF_X{x}Y{y}",
+                        x = self.tiexlut[col] + 1,
+                        y = mcb.iop_dqs[1].to_idx() * 2 + 1
+                    ),
+                );
+                my += 2;
+            }
+            mx += 1;
         }
     }
 
@@ -1474,6 +1573,15 @@ impl Grid {
         RowId::from_idx(self.rows.len() - 2)
     }
 
+    pub fn get_mcb(&self, row: RowId) -> &Mcb {
+        for mcb in &self.mcbs {
+            if mcb.row_mcb == row {
+                return mcb;
+            }
+        }
+        unreachable!()
+    }
+
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut ctr = 1;
@@ -1781,10 +1889,10 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(
-        &self,
+        &'a self,
         db: &'a IntDb,
-        disabled: &BTreeSet<DisabledPart>,
-    ) -> ExpandedGrid<'a> {
+        disabled: &'a BTreeSet<DisabledPart>,
+    ) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
         egrid.tie_kind = Some("TIEOFF".to_string());
         egrid.tie_pin_pullup = Some("KEEP1".to_string());
@@ -1811,6 +1919,7 @@ impl Grid {
         expander.fill_rio();
         expander.fill_bio();
         expander.fill_lio();
+        expander.fill_mcb();
         expander.fill_pcilogic();
         expander.fill_clkc();
         expander.fill_dcms();
@@ -1823,6 +1932,13 @@ impl Grid {
         expander.fill_dsp();
         expander.fill_hclk();
 
-        egrid
+        let bonded_ios = expander.bonded_ios;
+
+        ExpandedDevice {
+            grid: self,
+            disabled,
+            egrid,
+            bonded_ios,
+        }
     }
 }

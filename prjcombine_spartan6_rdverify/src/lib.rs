@@ -1,7 +1,9 @@
 use prjcombine_entity::EntityId;
+use prjcombine_int::db::BelId;
 use prjcombine_int::grid::RowId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_spartan6::{ColumnKind, Grid};
+use prjcombine_spartan6::{ColumnKind, DisabledPart, ExpandedDevice};
+use std::collections::BTreeSet;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {
@@ -121,6 +123,7 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     } else {
         vrf.claim_node(&[bel.fwire("IOB_I")]);
     }
+    vrf.claim_node(&[bel.fwire("MCB_FABRICOUT")]);
 
     let okey = match bel.key {
         "ILOGIC0" => "ILOGIC1",
@@ -195,11 +198,8 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
         vrf.claim_pip(bel.crd(), bel.wire("D1"), bel.wire("MCB_D1"));
         vrf.claim_pip(bel.crd(), bel.wire("D2"), bel.wire("MCB_D2"));
-        if bel.key == "OLOGIC0" {
-            vrf.claim_pip(bel.crd(), bel.wire("T2"), bel.wire("MCB_T"));
-        } else {
-            vrf.claim_pip(bel.crd(), bel.wire("T1"), bel.wire("MCB_T"));
-        }
+        vrf.claim_pip(bel.crd(), bel.wire("T1"), obel_ioi.wire("MCB_T1"));
+        vrf.claim_pip(bel.crd(), bel.wire("T2"), obel_ioi.wire("MCB_T2"));
         vrf.claim_pip(bel.crd(), bel.wire("TRAIN"), obel_ioi.wire("MCB_DRPTRAIN"));
     } else {
         vrf.claim_node(&[bel.fwire("IOB_T")]);
@@ -221,7 +221,7 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_iodelay(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_iodelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins = [
         ("IOCLK0", SitePinDir::In),
         ("IOCLK1", SitePinDir::In),
@@ -282,6 +282,7 @@ fn verify_iodelay(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "IODELAY1" => "IOB1",
         _ => unreachable!(),
     };
+    vrf.claim_node(&[bel.fwire("MCB_DQSOUTP")]);
     if vrf.find_bel_delta(bel, 0, 0, okey).is_some() {
         vrf.claim_pip(bel.crd(), bel.wire("MCB_DQSOUTP"), bel.wire("DQSOUTP"));
         vrf.claim_pip(bel.crd(), bel.wire("CAL"), obel_ioi.wire("MCB_DRPADD"));
@@ -294,8 +295,6 @@ fn verify_iodelay(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             obel_ioi.wire("MCB_DRPBROADCAST"),
         );
     }
-
-    // XXX AUX*, MEMUPDATE [LR only!]
 }
 
 fn verify_ioiclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -343,10 +342,9 @@ fn verify_ioiclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("IOCE1"), obel.wire("PLLCE1"));
 }
 
-fn verify_ioi(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    // XXX source MCB stuff, incl. I/O LOGIC
-    if bel.col == grid.col_lio() || bel.col == grid.col_rio() {
-        verify_pci_ce_v_src(grid, vrf, bel, true, "PCI_CE");
+fn verify_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if bel.col == edev.grid.col_lio() || bel.col == edev.grid.col_rio() {
+        verify_pci_ce_v_src(edev, vrf, bel, true, "PCI_CE");
         let srow = RowId::from_idx(bel.row.to_idx() / 16 * 16 + 8);
         let ud = if bel.row < srow { 'D' } else { 'U' };
         let obel = vrf.find_bel(bel.die, (bel.col, srow), "LRIOI_CLK").unwrap();
@@ -371,10 +369,10 @@ fn verify_ioi(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             ]);
         }
     } else {
-        let srow = if bel.row < grid.row_clk() {
-            grid.row_bio_outer()
+        let srow = if bel.row < edev.grid.row_clk() {
+            edev.grid.row_bio_outer()
         } else {
-            grid.row_tio_outer()
+            edev.grid.row_tio_outer()
         };
         let obel = vrf.find_bel(bel.die, (bel.col, srow), "BTIOI_CLK").unwrap();
         vrf.verify_node(&[bel.fwire("PCI_CE"), obel.fwire("PCI_CE_O")]);
@@ -398,6 +396,30 @@ fn verify_ioi(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 obel.fwire(&format!("PLLCE{i}_O")),
             ]);
         }
+    }
+
+    vrf.claim_node(&[bel.fwire("MCB_DRPSDI")]);
+    if edev.disabled.contains(&DisabledPart::Mcb)
+        || edev.grid.columns[bel.col].kind != ColumnKind::Io
+    {
+        for pin in [
+            "MCB_DRPADD",
+            "MCB_DRPBROADCAST",
+            "MCB_DRPCLK",
+            "MCB_DRPCS",
+            "MCB_DRPSDO",
+            "MCB_DRPTRAIN",
+            "MCB_T1",
+            "MCB_T2",
+        ] {
+            vrf.claim_node(&[bel.fwire(pin)]);
+        }
+        for key in ["OLOGIC0", "OLOGIC1"] {
+            let obel = vrf.find_bel_sibling(bel, key);
+            vrf.claim_node(&[obel.fwire("MCB_D1")]);
+            vrf.claim_node(&[obel.fwire("MCB_D2")]);
+        }
+        // in other cases, nodes will be verified by MCB code
     }
 }
 
@@ -456,7 +478,7 @@ fn verify_tieoff(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_pcilogicse(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pcilogicse(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
         "PCILOGICSE",
@@ -471,7 +493,7 @@ fn verify_pcilogicse(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.pip_owire("PCI_CE", 0)]);
     let (pcrd, po, pi) = bel.pip("PCI_CE", 0);
     vrf.claim_pip(pcrd, po, pi);
-    let rdy = if bel.col == grid.col_lio() {
+    let rdy = if bel.col == edev.grid.col_lio() {
         [("IRDY", 2, "IOB1"), ("TRDY", -1, "IOB0")]
     } else {
         [("IRDY", 2, "IOB0"), ("TRDY", -1, "IOB1")]
@@ -486,19 +508,317 @@ fn verify_pcilogicse(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_pci_ce_trunk_src(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn bel_to_ologic(bel: BelId) -> &'static str {
+    match bel.to_idx() {
+        0 => "OLOGIC0",
+        1 => "OLOGIC1",
+        _ => unreachable!(),
+    }
+}
+
+fn bel_to_iodelay(bel: BelId) -> &'static str {
+    match bel.to_idx() {
+        0 => "IODELAY0",
+        1 => "IODELAY1",
+        _ => unreachable!(),
+    }
+}
+
+fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mcb = edev.grid.get_mcb(bel.row);
+    let mut pins_out = vec![
+        ("WE".to_string(), mcb.io_we),
+        ("CAS".to_string(), mcb.io_cas),
+        ("RAS".to_string(), mcb.io_ras),
+        ("RST".to_string(), mcb.io_reset),
+        ("CKE".to_string(), mcb.io_cke),
+        ("ODT".to_string(), mcb.io_odt),
+    ];
+    for i in 0..3 {
+        pins_out.push((format!("BA{i}"), mcb.io_ba[i]));
+    }
+    for i in 0..15 {
+        pins_out.push((format!("ADDR{i}"), mcb.io_addr[i]));
+    }
+    let mut pins_dq = vec![];
+    for i in 0..16 {
+        pins_dq.push((
+            format!("DQI{i}"),
+            format!("DQOP{i}"),
+            format!("DQON{i}"),
+            mcb.iop_dq[i / 2],
+            i % 2,
+        ));
+    }
+    let pins_dm = [
+        ("LDMP", "LDMN", mcb.io_dm[0]),
+        ("UDMP", "UDMN", mcb.io_dm[1]),
+    ];
+    let pins_dqs = [
+        ("DQSIOIP", "DQSIOIN", mcb.iop_dqs[0]),
+        ("UDQSIOIP", "UDQSIOIN", mcb.iop_dqs[1]),
+    ];
+    let mut pins_ref = vec![
+        ("PLLCE0", SitePinDir::In),
+        ("PLLCE1", SitePinDir::In),
+        ("PLLCLK0", SitePinDir::In),
+        ("PLLCLK1", SitePinDir::In),
+        ("IOIDRPCLK", SitePinDir::Out),
+        ("IOIDRPCS", SitePinDir::Out),
+        ("IOIDRPADD", SitePinDir::Out),
+        ("IOIDRPADDR0", SitePinDir::Out),
+        ("IOIDRPADDR1", SitePinDir::Out),
+        ("IOIDRPADDR2", SitePinDir::Out),
+        ("IOIDRPADDR3", SitePinDir::Out),
+        ("IOIDRPADDR4", SitePinDir::Out),
+        ("IOIDRPBROADCAST", SitePinDir::Out),
+        ("IOIDRPUPDATE", SitePinDir::Out),
+        ("IOIDRPSDO", SitePinDir::Out),
+        ("IOIDRPSDI", SitePinDir::In),
+        ("IOIDRPTRAIN", SitePinDir::Out),
+        ("DQIOWEN0", SitePinDir::Out),
+        ("DQSIOWEN90P", SitePinDir::Out),
+        ("DQSIOWEN90N", SitePinDir::Out),
+    ];
+    for (pin, _) in &pins_out {
+        pins_ref.push((pin, SitePinDir::Out));
+    }
+    for (i, op, on, _, _) in &pins_dq {
+        pins_ref.push((i, SitePinDir::In));
+        pins_ref.push((op, SitePinDir::Out));
+        pins_ref.push((on, SitePinDir::Out));
+    }
+    for &(op, on, _) in &pins_dm {
+        pins_ref.push((op, SitePinDir::Out));
+        pins_ref.push((on, SitePinDir::Out));
+    }
+    for &(pp, pn, _) in &pins_dqs {
+        pins_ref.push((pp, SitePinDir::In));
+        pins_ref.push((pn, SitePinDir::In));
+    }
+    vrf.verify_bel(bel, "MCB", &pins_ref, &[]);
+    for (pin, dir) in pins_ref {
+        if dir == SitePinDir::In {
+            vrf.claim_node(&[bel.fwire(pin), bel.pip_owire(pin, 0)]);
+        } else {
+            vrf.claim_node(&[bel.fwire(pin), bel.pip_iwire(pin, 0)]);
+        }
+        let (pc, po, pi) = bel.pip(pin, 0);
+        vrf.claim_pip(pc, po, pi);
+    }
+
+    let obel = vrf.find_bel_sibling(bel, "LRIOI_CLK_TERM");
+    vrf.verify_node(&[bel.pip_iwire("PLLCE0", 0), obel.fwire("PLLCE0_O")]);
+    vrf.verify_node(&[bel.pip_iwire("PLLCE1", 0), obel.fwire("PLLCE1_O")]);
+    vrf.verify_node(&[bel.pip_iwire("PLLCLK0", 0), obel.fwire("PLLCLK0_O")]);
+    vrf.verify_node(&[bel.pip_iwire("PLLCLK1", 0), obel.fwire("PLLCLK1_O")]);
+
+    let mut rows_handled = BTreeSet::new();
+    {
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, mcb.iop_clk), "IOI")
+            .unwrap();
+        vrf.claim_node(&[obel.fwire("MCB_T1")]);
+        vrf.claim_node(&[obel.fwire("MCB_T2")]);
+        rows_handled.insert(mcb.iop_clk);
+    }
+
+    let mut rows_out_handled = BTreeSet::new();
+    for (pin, io) in pins_out {
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, io.row), bel_to_ologic(io.bel))
+            .unwrap();
+        vrf.claim_node(&[
+            bel.fwire_far(&pin),
+            obel.fwire("MCB_D1"),
+            obel.fwire("MCB_D2"),
+        ]);
+        if !rows_out_handled.contains(&io.row) {
+            let obel = vrf.find_bel(bel.die, (bel.col, io.row), "IOI").unwrap();
+            vrf.claim_node(&[obel.fwire("MCB_T1")]);
+            vrf.claim_node(&[obel.fwire("MCB_T2")]);
+        }
+        rows_handled.insert(io.row);
+        rows_out_handled.insert(io.row);
+    }
+    vrf.claim_node(&[bel.fwire_far("DQIOWEN0")]);
+    for (i, op, on, row, bi) in pins_dq {
+        rows_handled.insert(row);
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, row), bel_to_ologic(BelId::from_idx(bi)))
+            .unwrap();
+        vrf.claim_node(&[bel.fwire_far(&op), obel.fwire("MCB_D1")]);
+        vrf.claim_node(&[bel.fwire_far(&on), obel.fwire("MCB_D2")]);
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, row), bel_to_iodelay(BelId::from_idx(bi)))
+            .unwrap();
+        vrf.verify_node(&[bel.fwire_far(&i), obel.fwire("MCB_DQSOUTP")]);
+        let obel = vrf.find_bel(bel.die, (bel.col, row), "IOI").unwrap();
+        vrf.verify_node(&[
+            bel.fwire_far("DQIOWEN0"),
+            obel.fwire("MCB_T1"),
+            obel.fwire("MCB_T2"),
+        ]);
+    }
+    for (op, on, io) in pins_dm {
+        rows_handled.insert(io.row);
+        let obel = vrf
+            .find_bel(bel.die, (bel.col, io.row), bel_to_ologic(io.bel))
+            .unwrap();
+        vrf.claim_node(&[bel.fwire_far(op), obel.fwire("MCB_D1")]);
+        vrf.claim_node(&[bel.fwire_far(on), obel.fwire("MCB_D2")]);
+        let obel = vrf.find_bel(bel.die, (bel.col, io.row), "IOI").unwrap();
+        vrf.verify_node(&[
+            bel.fwire_far("DQIOWEN0"),
+            obel.fwire("MCB_T1"),
+            obel.fwire("MCB_T2"),
+        ]);
+    }
+    vrf.claim_node(&[bel.fwire_far("DQSIOWEN90P")]);
+    vrf.claim_node(&[bel.fwire_far("DQSIOWEN90N")]);
+    for (pp, pn, row) in pins_dqs {
+        rows_handled.insert(row);
+        let obel = vrf.find_bel(bel.die, (bel.col, row), "IOI").unwrap();
+        vrf.verify_node(&[bel.fwire_far("DQSIOWEN90N"), obel.fwire("MCB_T1")]);
+        vrf.verify_node(&[bel.fwire_far("DQSIOWEN90P"), obel.fwire("MCB_T2")]);
+        let obel = vrf.find_bel(bel.die, (bel.col, row), "IODELAY0").unwrap();
+        vrf.verify_node(&[bel.fwire_far(pp), obel.fwire("MCB_DQSOUTP")]);
+        let obel = vrf.find_bel(bel.die, (bel.col, row), "IODELAY1").unwrap();
+        vrf.verify_node(&[bel.fwire_far(pn), obel.fwire("MCB_DQSOUTP")]);
+    }
+
+    for pin in [
+        "IOIDRPCLK",
+        "IOIDRPCS",
+        "IOIDRPADD",
+        "IOIDRPADDR0",
+        "IOIDRPADDR1",
+        "IOIDRPADDR2",
+        "IOIDRPADDR3",
+        "IOIDRPADDR4",
+        "IOIDRPBROADCAST",
+        "IOIDRPUPDATE",
+        "IOIDRPSDO",
+        "IOIDRPTRAIN",
+    ] {
+        vrf.claim_node(&[bel.fwire_far(pin)]);
+    }
+
+    for row in edev.grid.rows.ids() {
+        if let Some(split) = edev.grid.row_mcb_split {
+            if bel.row < split && row >= split {
+                continue;
+            }
+            if bel.row >= split && row < split {
+                continue;
+            }
+        }
+        if let Some(obel) = vrf.find_bel(bel.die, (bel.col, row), "IOI") {
+            for (pin, opin) in [
+                ("IOIDRPCLK", "MCB_DRPCLK"),
+                ("IOIDRPCS", "MCB_DRPCS"),
+                ("IOIDRPADD", "MCB_DRPADD"),
+                ("IOIDRPBROADCAST", "MCB_DRPBROADCAST"),
+                ("IOIDRPSDO", "MCB_DRPSDO"),
+                ("IOIDRPTRAIN", "MCB_DRPTRAIN"),
+            ] {
+                vrf.verify_node(&[bel.fwire_far(pin), obel.fwire(opin)]);
+            }
+            for key in ["IODELAY0", "IODELAY1"] {
+                let oobel = vrf.find_bel_sibling(&obel, key);
+                for (pin, opin, dpin) in [
+                    ("IOIDRPADDR0", "MCB_AUXADDR0", "AUXADDR0"),
+                    ("IOIDRPADDR1", "MCB_AUXADDR1", "AUXADDR1"),
+                    ("IOIDRPADDR2", "MCB_AUXADDR2", "AUXADDR2"),
+                    ("IOIDRPADDR3", "MCB_AUXADDR3", "AUXADDR3"),
+                    ("IOIDRPADDR4", "MCB_AUXADDR4", "AUXADDR4"),
+                    ("IOIDRPUPDATE", "MCB_MEMUPDATE", "MEMUPDATE"),
+                ] {
+                    vrf.verify_node(&[bel.fwire_far(pin), oobel.fwire(opin)]);
+                    vrf.claim_pip(oobel.crd(), oobel.wire(dpin), oobel.wire(opin));
+                }
+            }
+            if !rows_handled.contains(&row) {
+                vrf.claim_node(&[obel.fwire("MCB_T1")]);
+                vrf.claim_node(&[obel.fwire("MCB_T2")]);
+                for key in ["OLOGIC0", "OLOGIC1"] {
+                    let oobel = vrf.find_bel_sibling(&obel, key);
+                    vrf.claim_node(&[oobel.fwire("MCB_D1")]);
+                    vrf.claim_node(&[oobel.fwire("MCB_D2")]);
+                }
+            }
+        }
+    }
+    let mut last = bel.fwire_far("IOIDRPSDI");
+    for row in [
+        mcb.io_dm[0].row,
+        mcb.iop_dq[2],
+        mcb.iop_dq[3],
+        mcb.iop_dqs[0],
+        mcb.iop_dq[1],
+        mcb.iop_dq[0],
+        mcb.iop_dq[4],
+        mcb.iop_dq[5],
+        mcb.iop_dqs[1],
+        mcb.iop_dq[6],
+        mcb.iop_dq[7],
+    ] {
+        for key in ["IODELAY0", "IODELAY1"] {
+            let bel = vrf.find_bel(bel.die, (bel.col, row), key).unwrap();
+            vrf.claim_node(&[last, bel.fwire("MCB_AUXSDO")]);
+            vrf.claim_pip(bel.crd(), bel.wire("MCB_AUXSDO"), bel.wire("AUXSDO"));
+            vrf.claim_pip(bel.crd(), bel.wire("AUXSDOIN"), bel.wire("MCB_AUXSDOIN"));
+            last = bel.fwire("MCB_AUXSDOIN");
+        }
+    }
+    // XXX SDI thread
+    // DM
+    // DQ 2
+    // DQ 3
+    // DQS 0
+    // DQ 1
+    // DQ 0
+    // DQ 4
+    // DQ 5
+    // DQS 1
+    // DQ 6
+    // DQ 7
+}
+
+fn verify_mcb_tie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mcb = edev.grid.get_mcb(bel.row);
+    let (okey, row) = match bel.key {
+        "MCB_TIE.CLK" => ("TIEOFF.CLK", mcb.iop_clk),
+        "MCB_TIE.DQS0" => ("TIEOFF.DQS0", mcb.iop_dqs[0]),
+        "MCB_TIE.DQS1" => ("TIEOFF.DQS1", mcb.iop_dqs[1]),
+        _ => unreachable!(),
+    };
+    let obel = vrf.find_bel_sibling(bel, okey);
+    vrf.claim_pip(bel.crd(), bel.wire("OUTP0"), obel.wire("HARD0"));
+    vrf.claim_pip(bel.crd(), bel.wire("OUTN0"), obel.wire("HARD1"));
+    vrf.claim_pip(bel.crd(), bel.wire("OUTP1"), obel.wire("HARD1"));
+    vrf.claim_pip(bel.crd(), bel.wire("OUTN1"), obel.wire("HARD0"));
+    let o0 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC0").unwrap();
+    vrf.claim_node(&[bel.fwire("OUTP0"), o0.fwire("MCB_D1")]);
+    vrf.claim_node(&[bel.fwire("OUTN0"), o0.fwire("MCB_D2")]);
+    let o1 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC1").unwrap();
+    vrf.claim_node(&[bel.fwire("OUTP1"), o1.fwire("MCB_D1")]);
+    vrf.claim_node(&[bel.fwire("OUTN1"), o1.fwire("MCB_D2")]);
+}
+
+fn verify_pci_ce_trunk_src(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut obel;
-    if bel.row <= grid.row_clk() {
+    if bel.row <= edev.grid.row_clk() {
         obel = vrf.find_bel_walk(bel, 0, 1, "PCI_CE_TRUNK_BUF");
         if let Some(ref ob) = obel {
-            if ob.row > grid.row_clk() {
+            if ob.row > edev.grid.row_clk() {
                 obel = None;
             }
         }
     } else {
         obel = vrf.find_bel_walk(bel, 0, -1, "PCI_CE_TRUNK_BUF");
         if let Some(ref ob) = obel {
-            if ob.row <= grid.row_clk() {
+            if ob.row <= edev.grid.row_clk() {
                 obel = None;
             }
         }
@@ -507,35 +827,35 @@ fn verify_pci_ce_trunk_src(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.verify_node(&[bel.fwire("PCI_CE_I"), obel.fwire("PCI_CE_O")]);
     } else {
         let obel = vrf
-            .find_bel(bel.die, (bel.col, grid.row_clk()), "PCILOGICSE")
+            .find_bel(bel.die, (bel.col, edev.grid.row_clk()), "PCILOGICSE")
             .unwrap();
         vrf.verify_node(&[bel.fwire("PCI_CE_I"), obel.pip_owire("PCI_CE", 0)]);
     }
 }
 
-fn verify_pci_ce_trunk_buf(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pci_ce_trunk_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
-    verify_pci_ce_trunk_src(grid, vrf, bel);
+    verify_pci_ce_trunk_src(edev, vrf, bel);
 }
 
-fn verify_pci_ce_split(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pci_ce_split(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
-    verify_pci_ce_trunk_src(grid, vrf, bel);
+    verify_pci_ce_trunk_src(edev, vrf, bel);
 }
 
 fn verify_pci_ce_v_src(
-    grid: &Grid,
+    edev: &ExpandedDevice,
     vrf: &mut Verifier,
     bel: &BelContext<'_>,
     is_ioi: bool,
     ipin: &str,
 ) {
-    let split_row = if bel.row <= grid.row_clk() {
-        grid.rows_bufio_split.0
+    let split_row = if bel.row <= edev.grid.row_clk() {
+        edev.grid.rows_pci_ce_split.0
     } else {
-        grid.rows_bufio_split.1
+        edev.grid.rows_pci_ce_split.1
     };
     let mut obel;
     if bel.row < split_row {
@@ -566,14 +886,19 @@ fn verify_pci_ce_v_src(
     vrf.verify_node(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
 }
 
-fn verify_pci_ce_v_buf(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pci_ce_v_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
-    verify_pci_ce_v_src(grid, vrf, bel, false, "PCI_CE_I");
+    verify_pci_ce_v_src(edev, vrf, bel, false, "PCI_CE_I");
 }
 
-fn verify_pci_ce_h_src(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>, ipin: &str) {
-    let obel = if bel.col <= grid.col_clk {
+fn verify_pci_ce_h_src(
+    edev: &ExpandedDevice,
+    vrf: &mut Verifier,
+    bel: &BelContext<'_>,
+    ipin: &str,
+) {
+    let obel = if bel.col <= edev.grid.col_clk {
         vrf.find_bel_walk(bel, -1, 0, "PCI_CE_H_BUF").unwrap()
     } else {
         vrf.find_bel_walk(bel, 1, 0, "PCI_CE_H_BUF").unwrap()
@@ -581,20 +906,20 @@ fn verify_pci_ce_h_src(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>, ip
     vrf.verify_node(&[bel.fwire(ipin), obel.fwire("PCI_CE_O")]);
 }
 
-fn verify_pci_ce_h_buf(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pci_ce_h_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
-    if grid.columns[bel.col].kind == ColumnKind::Io {
-        verify_pci_ce_trunk_src(grid, vrf, bel);
+    if edev.grid.columns[bel.col].kind == ColumnKind::Io {
+        verify_pci_ce_trunk_src(edev, vrf, bel);
     } else {
-        verify_pci_ce_h_src(grid, vrf, bel, "PCI_CE_I");
+        verify_pci_ce_h_src(edev, vrf, bel, "PCI_CE_I");
     }
 }
 
-fn verify_btioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_btioi_clk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("PCI_CE_O")]);
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
-    verify_pci_ce_h_src(grid, vrf, bel, "PCI_CE_I");
+    verify_pci_ce_h_src(edev, vrf, bel, "PCI_CE_I");
     for i in 0..4 {
         vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O"))]);
         vrf.claim_node(&[bel.fwire(&format!("IOCE{i}_O"))]);
@@ -626,17 +951,17 @@ fn verify_btioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     // XXX source IOCLK/IOCE/PLLCLK/PLLCE
 }
 
-fn verify_lrioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_lrioi_clk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_sibling(bel, "LRIOI_CLK_TERM");
     for ud in ['U', 'D'] {
         let by = if ud == 'D' { bel.row - 8 } else { bel.row };
         let mut found = false;
         for i in 0..8 {
             let row = by + i;
-            if bel.col == grid.col_lio() {
-                found |= grid.rows[row].lio;
+            if bel.col == edev.grid.col_lio() {
+                found |= edev.grid.rows[row].lio;
             } else {
-                found |= grid.rows[row].rio;
+                found |= edev.grid.rows[row].rio;
             }
         }
         if !found {
@@ -689,14 +1014,14 @@ fn verify_lrioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_lrioi_clk_term(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_lrioi_clk_term(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut found = false;
     for i in 0..16 {
         let row = bel.row - 8 + i;
-        if bel.col == grid.col_lio() {
-            found |= grid.rows[row].lio;
+        if bel.col == edev.grid.col_lio() {
+            found |= edev.grid.rows[row].lio;
         } else {
-            found |= grid.rows[row].rio;
+            found |= edev.grid.rows[row].rio;
         }
     }
     if !found {
@@ -733,7 +1058,7 @@ fn verify_lrioi_clk_term(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) 
     // XXX source IOCLK/IOCE/PLLCLK/PLLCE
 }
 
-pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE0" => verify_sliceml(vrf, bel),
         "SLICE1" => vrf.verify_bel(bel, "SLICEX", &[], &[]),
@@ -749,21 +1074,32 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
 
         "ILOGIC0" | "ILOGIC1" => verify_ilogic(vrf, bel),
         "OLOGIC0" | "OLOGIC1" => verify_ologic(vrf, bel),
-        "IODELAY0" | "IODELAY1" => verify_iodelay(grid, vrf, bel),
+        "IODELAY0" | "IODELAY1" => verify_iodelay(vrf, bel),
         "IOICLK0" | "IOICLK1" => verify_ioiclk(vrf, bel),
-        "IOI" => verify_ioi(grid, vrf, bel),
+        "IOI" => verify_ioi(edev, vrf, bel),
         "IOB0" | "IOB1" => verify_iob(vrf, bel),
-        "TIEOFF" => verify_tieoff(vrf, bel),
+        _ if bel.key.starts_with("TIEOFF") => verify_tieoff(vrf, bel),
 
-        "PCILOGICSE" => verify_pcilogicse(grid, vrf, bel),
-        "BTIOI_CLK" => verify_btioi_clk(grid, vrf, bel),
-        "LRIOI_CLK" => verify_lrioi_clk(grid, vrf, bel),
-        "LRIOI_CLK_TERM" => verify_lrioi_clk_term(grid, vrf, bel),
-        "PCI_CE_TRUNK_BUF" => verify_pci_ce_trunk_buf(grid, vrf, bel),
-        "PCI_CE_SPLIT" => verify_pci_ce_split(grid, vrf, bel),
-        "PCI_CE_V_BUF" => verify_pci_ce_v_buf(grid, vrf, bel),
-        "PCI_CE_H_BUF" => verify_pci_ce_h_buf(grid, vrf, bel),
+        "PCILOGICSE" => verify_pcilogicse(edev, vrf, bel),
+        "MCB" => verify_mcb(edev, vrf, bel),
+        _ if bel.key.starts_with("MCB_TIE") => verify_mcb_tie(edev, vrf, bel),
+
+        "BTIOI_CLK" => verify_btioi_clk(edev, vrf, bel),
+        "LRIOI_CLK" => verify_lrioi_clk(edev, vrf, bel),
+        "LRIOI_CLK_TERM" => verify_lrioi_clk_term(edev, vrf, bel),
+        "PCI_CE_TRUNK_BUF" => verify_pci_ce_trunk_buf(edev, vrf, bel),
+        "PCI_CE_SPLIT" => verify_pci_ce_split(edev, vrf, bel),
+        "PCI_CE_V_BUF" => verify_pci_ce_v_buf(edev, vrf, bel),
+        "PCI_CE_H_BUF" => verify_pci_ce_h_buf(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
+}
+
+pub fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+    vrf.kill_stub_out("INT_IOI_LOGICIN_B4");
+    vrf.kill_stub_out("INT_IOI_LOGICIN_B10");
+    vrf.kill_stub_out("FAN");
+    // XXX
+    vrf.skip_residual();
 }

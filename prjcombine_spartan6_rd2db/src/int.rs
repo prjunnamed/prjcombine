@@ -515,7 +515,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             format!("RIOI_IOB_T{i}"),
                         ],
                     )
-                    .extra_wire("MCB_T", &[format!("IOI_MCB_DQIEN_{ms}")])
                     .extra_wire("MCB_D1", &[format!("IOI_MCB_OUTP_{ms}")])
                     .extra_wire("MCB_D2", &[format!("IOI_MCB_OUTN_{ms}")]);
                 bels.push(bel);
@@ -550,7 +549,15 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         "READEN",
                         "MEMUPDATE",
                     ])
-                    .extra_wire("MCB_DQSOUTP", &[format!("IOI_MCB_IN_{ms}")]);
+                    .extra_wire("MCB_DQSOUTP", &[format!("IOI_MCB_IN_{ms}")])
+                    .extra_wire_force("MCB_AUXADDR0", format!("AUXADDR0_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXADDR1", format!("AUXADDR1_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXADDR2", format!("AUXADDR2_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXADDR3", format!("AUXADDR3_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXADDR4", format!("AUXADDR4_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXSDOIN", format!("AUXSDOIN_MCBTOIO_{ms}"))
+                    .extra_wire_force("MCB_AUXSDO", format!("AUXSDO_IOTOMCB_{ms}"))
+                    .extra_wire_force("MCB_MEMUPDATE", format!("MEMUPDATE_MCBTOIO_{ms}"));
                 if !unused && i == 0 {
                     bel = bel
                         .extra_wire_force("DQSOUTP_OUT", format!("{naming}_OUTP"))
@@ -592,6 +599,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extra_wire("MCB_DRPSDI", &["IOI_MCB_DRPSDI"])
                 .extra_wire("MCB_DRPSDO", &["IOI_MCB_DRPSDO"])
                 .extra_wire("MCB_DRPTRAIN", &["IOI_MCB_DRPTRAIN"])
+                .extra_wire("MCB_T1", &["IOI_MCB_DQIEN_S"])
+                .extra_wire("MCB_T2", &["IOI_MCB_DQIEN_M"])
                 .extra_wire("PCI_CE", &["IOI_PCI_CE"]);
             for i in 0..4 {
                 bel_ioi = bel_ioi
@@ -1080,6 +1089,132 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
+        }
+    }
+
+    for tkn in ["MCB_L", "MCB_L_BOT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf = builder.db.get_node_naming("INTF");
+            let mut bels = vec![];
+            let mut bel = builder
+                .bel_xy("MCB", "MCB", 0, 0)
+                .pin_name_only("IOIDRPSDI", 1)
+                .pin_name_only("IOIDRPSDO", 1)
+                .pin_name_only("IOIDRPTRAIN", 1)
+                .pin_name_only("IOIDRPCS", 1)
+                .pin_name_only("IOIDRPCLK", 1)
+                .pin_name_only("IOIDRPBROADCAST", 1)
+                .pin_name_only("IOIDRPADD", 1)
+                .pin_name_only("IOIDRPUPDATE", 1)
+                .pin_name_only("IOIDRPADDR0", 1)
+                .pin_name_only("IOIDRPADDR1", 1)
+                .pin_name_only("IOIDRPADDR2", 1)
+                .pin_name_only("IOIDRPADDR3", 1)
+                .pin_name_only("IOIDRPADDR4", 1)
+                .pin_name_only("LDMN", 1)
+                .pin_name_only("LDMP", 1)
+                .pin_name_only("UDMN", 1)
+                .pin_name_only("UDMP", 1)
+                .pin_name_only("CAS", 1)
+                .pin_name_only("RAS", 1)
+                .pin_name_only("WE", 1)
+                .pin_name_only("RST", 1)
+                .pin_name_only("CKE", 1)
+                .pin_name_only("ODT", 1)
+                .pin_name_only("DQSIOIP", 1)
+                .pin_name_only("DQSIOIN", 1)
+                .pin_name_only("UDQSIOIP", 1)
+                .pin_name_only("UDQSIOIN", 1)
+                .pin_name_only("DQIOWEN0", 1)
+                .pin_name_only("DQSIOWEN90P", 1)
+                .pin_name_only("DQSIOWEN90N", 1)
+                .pin_name_only("PLLCLK0", 1)
+                .pin_name_only("PLLCLK1", 1)
+                .pin_name_only("PLLCE0", 1)
+                .pin_name_only("PLLCE1", 1);
+            for i in 0..15 {
+                bel = bel.pin_name_only(&format!("ADDR{i}"), 1);
+            }
+            for i in 0..16 {
+                bel = bel.pin_name_only(&format!("DQOP{i}"), 1);
+                bel = bel.pin_name_only(&format!("DQON{i}"), 1);
+                bel = bel.pin_name_only(&format!("DQI{i}"), 1);
+            }
+            for i in 0..3 {
+                bel = bel.pin_name_only(&format!("BA{i}"), 1);
+            }
+            bels.push(bel);
+            bels.extend([
+                builder
+                    .bel_xy("TIEOFF.CLK", "TIEOFF", 0, 0)
+                    .raw_tile(2)
+                    .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
+                builder
+                    .bel_xy("TIEOFF.DQS0", "TIEOFF", 0, 0)
+                    .raw_tile(3)
+                    .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
+                builder
+                    .bel_xy("TIEOFF.DQS1", "TIEOFF", 0, 0)
+                    .raw_tile(4)
+                    .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
+                builder
+                    .bel_virtual("MCB_TIE.CLK")
+                    .raw_tile(2)
+                    .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
+                    .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
+                    .extra_wire("OUTP1", &["MCB_BOT_SOUTP_VCC"])
+                    .extra_wire("OUTN1", &["MCB_BOT_SOUTN_GND"]),
+                builder
+                    .bel_virtual("MCB_TIE.DQS0")
+                    .raw_tile(3)
+                    .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
+                    .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
+                    .extra_wire("OUTP1", &["MCB_BOT_SOUTP_VCC"])
+                    .extra_wire("OUTN1", &["MCB_BOT_SOUTN_GND"]),
+                builder
+                    .bel_virtual("MCB_TIE.DQS1")
+                    .raw_tile(4)
+                    .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
+                    .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
+                    .extra_wire("OUTP1", &["MCB_BOT_SOUTP_VCC"])
+                    .extra_wire("OUTN1", &["MCB_BOT_SOUTN_GND"]),
+            ]);
+            let mut muis = vec![];
+            let mut mui_xy = xy;
+            let mut clk_xy = None;
+            for _ in 0..8 {
+                loop {
+                    mui_xy = mui_xy.delta(0, -1);
+                    let tile = &rd.tiles[&mui_xy];
+                    if rd.tile_kinds.key(tile.kind) == "MCB_CAP_CLKPN" {
+                        clk_xy = Some(mui_xy);
+                    }
+                    if rd.tile_kinds.key(tile.kind).starts_with("MCB_MUI") {
+                        break;
+                    }
+                }
+                muis.push(mui_xy);
+            }
+            let mut xn = builder
+                .xnode("MCB", tkn, xy)
+                .num_tiles(28)
+                .raw_tile(xy.delta(0, -7))
+                .raw_tile(clk_xy.unwrap())
+                .raw_tile(muis[5].delta(0, -1))
+                .raw_tile(muis[0].delta(0, -1));
+            for i in 0..12 {
+                xn = xn.ref_single(xy.delta(-1, -6 + i as i32), i, intf);
+            }
+            for (i, &mxy) in muis.iter().enumerate() {
+                xn = xn.raw_tile(mxy);
+                for j in 0..2 {
+                    xn = xn.ref_single(mxy.delta(-1, j as i32), 12 + i * 2 + j, intf);
+                }
+            }
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
         }
     }
 
