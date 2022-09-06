@@ -1273,7 +1273,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["DSP_HCLK_GCLK_FOLD", "GTPDUAL_DSP_FEEDTHRU"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual("HCLK_FOLD_BUF");
+            let mut bel = builder.bel_virtual("HCLK_H_MIDBUF");
             for i in 0..16 {
                 bel = bel
                     .extra_wire(
@@ -1299,7 +1299,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
             }
             builder
-                .xnode("HCLK_FOLD_BUF", tkn, xy)
+                .xnode("HCLK_H_MIDBUF", tkn, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1319,18 +1319,35 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
         }
-        let mut bel = builder.bel_virtual("HCLK_ROOT");
+        let mut bel = builder.bel_virtual("HCLK_ROW");
         for i in 0..16 {
             bel = bel
                 .extra_wire(format!("BUFG{i}"), &[format!("CLKV_GCLKH_MAIN{i}_FOLD")])
                 .extra_wire(format!("CMT{i}"), &[format!("REGV_PLL_HCLK{i}")]);
         }
         bels.push(bel);
-        let mut xn = builder.xnode("HCLK_ROOT", "HCLK_ROOT", xy).num_tiles(0);
+        let mut xn = builder.xnode("HCLK_ROW", "HCLK_ROW", xy).num_tiles(0);
         for bel in bels {
             xn = xn.bel(bel);
         }
         xn.extract();
+    }
+
+    for tkn in ["REG_V_HCLKBUF_BOT", "REG_V_HCLKBUF_TOP"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("HCLK_V_MIDBUF");
+            for i in 0..16 {
+                bel = bel
+                    .extra_wire(format!("GCLK{i}_O"), &[format!("CLKV_GCLK_MAIN{i}_BUF")])
+                    .extra_wire(format!("GCLK{i}_M"), &[format!("CLKV_MIDBUF_GCLK{i}")])
+                    .extra_wire(format!("GCLK{i}_I"), &[format!("CLKV_GCLK_MAIN{i}")])
+            }
+            builder
+                .xnode("HCLK_V_MIDBUF", "HCLK_V_MIDBUF", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {

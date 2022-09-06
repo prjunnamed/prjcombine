@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::{BelId, IntDb, NodeRawTileId};
-use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -258,6 +258,7 @@ struct Expander<'a, 'b> {
     ioylut: EntityVec<RowId, usize>,
     pad_cnt: usize,
     bonded_ios: Vec<((ColId, RowId), BelId)>,
+    holes: Vec<Rect>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -942,6 +943,19 @@ impl<'a, 'b> Expander<'a, 'b> {
             &[(col, row)],
         );
 
+        for (row, tk) in [
+            (self.grid.rows_hclkbuf.0, "REG_V_HCLKBUF_BOT"),
+            (self.grid.rows_hclkbuf.1, "REG_V_HCLKBUF_TOP"),
+        ] {
+            let y = row.to_idx();
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("HCLK_V_MIDBUF"),
+                &[&format!("{tk}_X{x}Y{y}")],
+                self.db.get_node_naming("HCLK_V_MIDBUF"),
+                &[],
+            );
+        }
+
         let mut hy = 0;
         for row in self.die.rows() {
             if row.to_idx() % 16 == 8 {
@@ -953,9 +967,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                     format!("REG_V_HCLK_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1)
                 };
                 let node = self.die[(col, row)].add_xnode(
-                    self.db.get_node("HCLK_ROOT"),
+                    self.db.get_node("HCLK_ROW"),
                     &[&name],
-                    self.db.get_node_naming("HCLK_ROOT"),
+                    self.db.get_node_naming("HCLK_ROW"),
                     &[],
                 );
                 for i in 0..16 {
@@ -1035,7 +1049,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let rxl = self.rxlut[col_l] + 6;
                 let rxr = self.rxlut[col_r] - 1;
                 for dy in 0..8 {
-                    let row = self.grid.row_tio_outer() - 7 + dy;
+                    let row = row_gt_mid + dy;
                     let ry = self.rylut[row];
                     self.die.fill_term_tile(
                         (col_l, row),
@@ -1050,6 +1064,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                         format!("INT_LTERM_X{rxr}Y{ry}"),
                     );
                 }
+                self.holes.push(Rect {
+                    col_l: col_l + 1,
+                    col_r,
+                    row_b: row_gt_mid,
+                    row_t: row_gt_mid + 8,
+                });
                 let col_l = bc - 5;
                 let col_r = bc + 3;
                 for dy in 0..8 {
@@ -1063,6 +1083,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.fill_intf_rterm((col_l, row), tile_l);
                     self.fill_intf_lterm((col_r, row), tile_r, is_brk);
                 }
+                self.holes.push(Rect {
+                    col_l,
+                    col_r: col_r + 1,
+                    row_b: row_gt_bot,
+                    row_t: row_gt_mid,
+                });
                 let col_l = bc - 2;
                 let col_r = bc + 2;
                 for dy in 0..16 {
@@ -1076,6 +1102,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.fill_intf_rterm((col_l, row), tile_l);
                     self.fill_intf_lterm((col_r, row), tile_r, is_brk);
                 }
+                self.holes.push(Rect {
+                    col_l,
+                    col_r: col_r + 1,
+                    row_b: row_pcie_bot,
+                    row_t: row_gt_bot,
+                });
                 if !self.disabled.contains(&DisabledPart::Gtp) {
                     let mut crd = vec![];
                     for dy in 0..16 {
@@ -1124,6 +1156,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                         format!("INT_LTERM_X{rxr}Y{ry}"),
                     );
                 }
+                self.holes.push(Rect {
+                    col_l: col_l + 1,
+                    col_r,
+                    row_b: row_gt_mid,
+                    row_t: row_gt_mid + 8,
+                });
                 let col_l = bc - 3;
                 let col_r = bc + 6;
                 for dy in 0..8 {
@@ -1137,6 +1175,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.fill_intf_rterm((col_l, row), tile_l);
                     self.fill_intf_lterm((col_r, row), tile_r, is_brk);
                 }
+                self.holes.push(Rect {
+                    col_l,
+                    col_r: col_r + 1,
+                    row_b: row_gt_bot,
+                    row_t: row_gt_mid,
+                });
             }
             _ => (),
         }
@@ -1167,6 +1211,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     format!("INT_LTERM_X{rxr}Y{ry}"),
                 );
             }
+            self.holes.push(Rect {
+                col_l: col_l + 1,
+                col_r,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
             let col_l = bcl - 5;
             let col_r = bcl + 3;
             for dy in 0..8 {
@@ -1179,6 +1229,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_intf_rterm((col_l, row), tile_l);
                 self.fill_intf_lterm((col_r, row), tile_r, false);
             }
+            self.holes.push(Rect {
+                col_l,
+                col_r: col_r + 1,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
             let col_l = bcr - 5;
             let col_r = bcr + 7;
             for dy in 0..8 {
@@ -1199,6 +1255,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     format!("INT_LTERM_X{rxr}Y{ry}"),
                 );
             }
+            self.holes.push(Rect {
+                col_l: col_l + 1,
+                col_r,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
             let col_l = bcr - 3;
             let col_r = bcr + 6;
             for dy in 0..8 {
@@ -1211,6 +1273,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_intf_rterm((col_l, row), tile_l);
                 self.fill_intf_lterm((col_r, row), tile_r, false);
             }
+            self.holes.push(Rect {
+                col_l,
+                col_r: col_r + 1,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
         }
     }
 
@@ -1293,10 +1361,30 @@ impl<'a, 'b> Expander<'a, 'b> {
             if self.disabled.contains(&DisabledPart::ClbColumn(col)) {
                 continue;
             }
-            for row in self.die.rows() {
+            'a: for row in self.die.rows() {
                 let tile = &mut self.die[(col, row)];
-                if tile.nodes.len() != 1 {
+                if (row == self.grid.row_bio_outer() || row == self.grid.row_bio_inner())
+                    && cd.bio != ColumnIoKind::None
+                {
                     continue;
+                }
+                if (row == self.grid.row_tio_outer() || row == self.grid.row_tio_inner())
+                    && cd.tio != ColumnIoKind::None
+                {
+                    continue;
+                }
+                if cd.kind == ColumnKind::CleClk {
+                    if row == self.grid.row_clk() {
+                        continue;
+                    }
+                    if matches!(row.to_idx() % 16, 7 | 8) && row != self.grid.row_clk() - 1 {
+                        continue;
+                    }
+                }
+                for hole in &self.holes {
+                    if hole.contains(col, row) {
+                        continue 'a;
+                    }
                 }
                 let sy = row.to_idx() - sy_base;
                 let kind = if cd.kind == ColumnKind::CleXM {
@@ -1495,7 +1583,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         }
                     }
                     self.die[(col, row)].add_xnode(
-                        self.db.get_node("HCLK_FOLD_BUF"),
+                        self.db.get_node("HCLK_H_MIDBUF"),
                         &[&name],
                         self.db.get_node_naming(naming),
                         &[],
@@ -2052,6 +2140,7 @@ impl Grid {
             ioylut: self.make_ioylut(),
             pad_cnt: 1,
             bonded_ios: vec![],
+            holes: vec![],
         };
 
         expander.fill_int();

@@ -77,6 +77,12 @@ pub struct Rect {
     pub row_t: RowId,
 }
 
+impl Rect {
+    pub fn contains(&self, col: ColId, row: RowId) -> bool {
+        col >= self.col_l && col < self.col_r && row >= self.row_b && row < self.row_t
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ExpandedGrid<'a> {
     pub db: &'a IntDb,
