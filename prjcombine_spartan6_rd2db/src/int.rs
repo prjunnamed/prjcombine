@@ -1218,6 +1218,121 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for (tkn, naming) in [
+        ("HCLK_CLB_XL_INT", "HCLK"),
+        ("HCLK_CLB_XM_INT", "HCLK"),
+        ("HCLK_CLB_XL_INT_FOLD", "HCLK_FOLD"),
+        ("HCLK_CLB_XM_INT_FOLD", "HCLK_FOLD"),
+        ("DSP_INT_HCLK_FEEDTHRU", "HCLK"),
+        ("DSP_INT_HCLK_FEEDTHRU_FOLD", "HCLK_FOLD"),
+        ("BRAM_HCLK_FEEDTHRU", "HCLK"),
+        ("BRAM_HCLK_FEEDTHRU_FOLD", "HCLK_FOLD"),
+        ("HCLK_IOIL_INT", "HCLK"),
+        ("HCLK_IOIR_INT", "HCLK"),
+        ("HCLK_IOIL_INT_FOLD", "HCLK_FOLD"),
+        ("HCLK_IOIR_INT_FOLD", "HCLK_FOLD"),
+    ] {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let xy_s = xy.delta(0, -1);
+            let xy_n = xy.delta(0, 1);
+            if !rd.tile_kinds.key(rd.tiles[&xy_s].kind).starts_with("INT") {
+                continue;
+            }
+            if !rd.tile_kinds.key(rd.tiles[&xy_n].kind).starts_with("INT") {
+                continue;
+            }
+            let mut bel = builder.bel_virtual("HCLK");
+            for i in 0..16 {
+                bel = bel
+                    .extra_int_out(
+                        format!("GCLK{i}_O_D"),
+                        &[format!("HCLK_GCLK{i}"), format!("HCLK_GCLK{i}_FOLD")],
+                    )
+                    .extra_int_out(
+                        format!("GCLK{i}_O_U"),
+                        &[format!("HCLK_GCLK_UP{i}"), format!("HCLK_GCLK_UP{i}_FOLD")],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_I"),
+                        &[
+                            format!("HCLK_GCLK{i}_INT"),
+                            format!("HCLK_GCLK{i}_INT_FOLD"),
+                        ],
+                    );
+            }
+            builder
+                .xnode("HCLK", naming, xy)
+                .num_tiles(2)
+                .ref_int(xy.delta(0, -1), 0)
+                .ref_int(xy.delta(0, 1), 1)
+                .bel(bel)
+                .extract();
+            break;
+        }
+    }
+
+    for tkn in ["DSP_HCLK_GCLK_FOLD", "GTPDUAL_DSP_FEEDTHRU"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("HCLK_FOLD_BUF");
+            for i in 0..16 {
+                bel = bel
+                    .extra_wire(
+                        format!("GCLK{i}_I"),
+                        &[
+                            format!("HCLK_GCLK{i}_DSP_NOFOLD"),
+                            format!("GTP_DSP_FEEDTHRU_HCLK_GCLK{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_M"),
+                        &[
+                            format!("HCLK_MIDBUF_GCLK{i}"),
+                            format!("GTP_MIDBUF_GCLK{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_O"),
+                        &[
+                            format!("HCLK_GCLK{i}_DSP_FOLD"),
+                            format!("HCLK_GCLK{i}_GTPDSP_FOLD"),
+                        ],
+                    );
+            }
+            builder
+                .xnode("HCLK_FOLD_BUF", tkn, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("REG_V_HCLK").iter().next() {
+        let mut bels = vec![];
+        for i in 0..2 {
+            let lr = if i == 0 { 'L' } else { 'R' };
+            for j in 0..16 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("BUFH_{lr}{j}"), "BUFH", i * 3, (1 - i) * 16 + j)
+                        .pin_name_only("I", 1)
+                        .pin_name_only("O", 1),
+                );
+            }
+        }
+        let mut bel = builder.bel_virtual("HCLK_ROOT");
+        for i in 0..16 {
+            bel = bel
+                .extra_wire(format!("BUFG{i}"), &[format!("CLKV_GCLKH_MAIN{i}_FOLD")])
+                .extra_wire(format!("CMT{i}"), &[format!("REGV_PLL_HCLK{i}")]);
+        }
+        bels.push(bel);
+        let mut xn = builder.xnode("HCLK_ROOT", "HCLK_ROOT", xy).num_tiles(0);
+        for bel in bels {
+            xn = xn.bel(bel);
+        }
+        xn.extract();
+    }
+
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
         let nr = builder.db.get_node_naming("INTF.RTERM");

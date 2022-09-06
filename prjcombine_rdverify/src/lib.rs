@@ -1163,6 +1163,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    #[track_caller]
     pub fn find_bel_sibling(&self, bel: &BelContext<'_>, key: &str) -> BelContext<'a> {
         self.find_bel(bel.die, (bel.col, bel.row), key).unwrap()
     }

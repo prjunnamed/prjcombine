@@ -771,18 +771,6 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             last = bel.fwire("MCB_AUXSDOIN");
         }
     }
-    // XXX SDI thread
-    // DM
-    // DQ 2
-    // DQ 3
-    // DQS 0
-    // DQ 1
-    // DQ 0
-    // DQ 4
-    // DQ 5
-    // DQS 1
-    // DQ 6
-    // DQ 7
 }
 
 fn verify_mcb_tie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -1058,6 +1046,117 @@ fn verify_lrioi_clk_term(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
     // XXX source IOCLK/IOCE/PLLCLK/PLLCE
 }
 
+fn verify_bufh(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "BUFH",
+        &[("I", SitePinDir::In), ("O", SitePinDir::Out)],
+        &[],
+    );
+    vrf.claim_node(&[bel.fwire("I")]);
+    vrf.claim_node(&[bel.fwire("O")]);
+    vrf.claim_node(&[bel.fwire_far("I")]);
+    vrf.claim_node(&[bel.fwire_far("O")]);
+    vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
+    vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
+    let idx = bel.bid.to_idx() % 16;
+    let obel = vrf.find_bel_sibling(bel, "HCLK_ROOT");
+    vrf.claim_pip(
+        bel.crd(),
+        bel.wire_far("I"),
+        obel.wire(&format!("BUFG{idx}")),
+    );
+    if bel.row != edev.grid.row_clk() {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire_far("I"),
+            obel.wire(&format!("CMT{idx}")),
+        );
+    }
+}
+
+fn verify_hclk_root(_edev: &ExpandedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
+    // XXX source BUFG
+    // XXX source CMT
+}
+
+fn verify_hclk_fold_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let lr = if bel.col < edev.grid.col_clk {
+        'L'
+    } else {
+        'R'
+    };
+    for i in 0..16 {
+        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O"))]);
+        vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_M"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GCLK{i}_O")),
+            bel.wire(&format!("GCLK{i}_M")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GCLK{i}_M")),
+            bel.wire(&format!("GCLK{i}_I")),
+        );
+        let obel = vrf
+            .find_bel(
+                bel.die,
+                (edev.grid.col_clk, bel.row),
+                &format!("BUFH_{lr}{i}"),
+            )
+            .unwrap();
+        vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
+    }
+}
+
+fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    for i in 0..16 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GCLK{i}_O_D")),
+            bel.wire(&format!("GCLK{i}_I")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GCLK{i}_O_U")),
+            bel.wire(&format!("GCLK{i}_I")),
+        );
+    }
+    if let Some((col_l, col_r)) = edev.grid.cols_clk_fold {
+        let col = if bel.col <= edev.grid.col_clk {
+            col_l
+        } else {
+            col_r
+        };
+        let obel = vrf
+            .find_bel(bel.die, (col, bel.row), "HCLK_FOLD_BUF")
+            .unwrap();
+        for i in 0..16 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GCLK{i}_I")),
+                obel.fwire(&format!("GCLK{i}_O")),
+            ]);
+        }
+    } else {
+        let lr = if bel.col <= edev.grid.col_clk {
+            'L'
+        } else {
+            'R'
+        };
+        for i in 0..16 {
+            let obel = vrf
+                .find_bel(
+                    bel.die,
+                    (edev.grid.col_clk, bel.row),
+                    &format!("BUFH_{lr}{i}"),
+                )
+                .unwrap();
+            vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
+        }
+    }
+}
+
 pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE0" => verify_sliceml(vrf, bel),
@@ -1091,6 +1190,11 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "PCI_CE_SPLIT" => verify_pci_ce_split(edev, vrf, bel),
         "PCI_CE_V_BUF" => verify_pci_ce_v_buf(edev, vrf, bel),
         "PCI_CE_H_BUF" => verify_pci_ce_h_buf(edev, vrf, bel),
+
+        _ if bel.key.starts_with("BUFH") => verify_bufh(edev, vrf, bel),
+        "HCLK_ROOT" => verify_hclk_root(edev, vrf, bel),
+        "HCLK_FOLD_BUF" => verify_hclk_fold_buf(edev, vrf, bel),
+        "HCLK" => verify_hclk(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

@@ -928,10 +928,12 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(0, "PCILOGIC_X1Y0".to_string());
     }
 
-    fn fill_clkc(&mut self) {
+    fn fill_spine(&mut self) {
         let col = self.grid.col_clk;
-        let row = self.grid.row_clk();
         let x = col.to_idx();
+        let rx = self.rxlut[col];
+
+        let row = self.grid.row_clk();
         let y = row.to_idx();
         self.die[(col, row)].add_xnode(
             self.db.get_node("INTF"),
@@ -939,6 +941,32 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.db.get_node_naming("INTF.REGC"),
             &[(col, row)],
         );
+
+        let mut hy = 0;
+        for row in self.die.rows() {
+            if row.to_idx() % 16 == 8 {
+                let y = row.to_idx();
+                let ry = self.rylut[row];
+                let name = if row == self.grid.row_clk() {
+                    format!("REG_V_HCLK_BOT25_X{x}Y{y}", y = y - 1)
+                } else {
+                    format!("REG_V_HCLK_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1)
+                };
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("HCLK_ROOT"),
+                    &[&name],
+                    self.db.get_node_naming("HCLK_ROOT"),
+                    &[],
+                );
+                for i in 0..16 {
+                    node.add_bel(i, format!("BUFH_X0Y{y}", y = 16 + 32 * hy + i));
+                }
+                for i in 0..16 {
+                    node.add_bel(16 + i, format!("BUFH_X3Y{y}", y = 32 * hy + i));
+                }
+                hy += 1;
+            }
+        }
     }
 
     fn fill_dcms(&mut self) {
@@ -1438,7 +1466,56 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_hclk_fold(&mut self) {
+        if let Some((col_l, col_r)) = self.grid.cols_clk_fold {
+            for col in [col_l, col_r] {
+                for row in self.die.rows() {
+                    if row.to_idx() % 16 != 8 {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let rx = self.rxlut[col];
+                    let y = row.to_idx();
+                    let ry = self.rylut[row];
+                    let mut name = format!("DSP_HCLK_GCLK_FOLD_X{x}Y{y}", y = y - 1);
+                    let mut naming = "DSP_HCLK_GCLK_FOLD";
+                    if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.grid.gts {
+                        if col == cr + 6 && row == self.grid.row_tio_outer() - 7 {
+                            name = format!("GTPDUAL_DSP_FEEDTHRU_X{rx}Y{ry}", rx = rx + 1);
+                            naming = "GTPDUAL_DSP_FEEDTHRU";
+                        }
+                    }
+                    if let Gts::Quad(cl, cr) = self.grid.gts {
+                        if col == cl - 6 && row == self.grid.row_bio_outer() + 8 {
+                            name = format!("DSP_HCLK_GCLK_FOLD_X{x}Y{y}");
+                        }
+                        if col == cr + 6 && row == self.grid.row_bio_outer() + 8 {
+                            name = format!("GTPDUAL_DSP_FEEDTHRU_X{x}Y{y}");
+                            naming = "GTPDUAL_DSP_FEEDTHRU";
+                        }
+                    }
+                    self.die[(col, row)].add_xnode(
+                        self.db.get_node("HCLK_FOLD_BUF"),
+                        &[&name],
+                        self.db.get_node_naming(naming),
+                        &[],
+                    );
+                }
+            }
+        }
+    }
+
     fn fill_hclk(&mut self) {
+        let fold = if self.grid.cols_clk_fold.is_some() {
+            "_FOLD"
+        } else {
+            ""
+        };
+        let naming = if self.grid.cols_clk_fold.is_some() {
+            "HCLK_FOLD"
+        } else {
+            "HCLK"
+        };
         for col in self.die.cols() {
             for row in self.die.rows() {
                 let crow = RowId::from_idx(if row.to_idx() % 16 < 8 {
@@ -1447,6 +1524,69 @@ impl<'a, 'b> Expander<'a, 'b> {
                     row.to_idx() / 16 * 16 + 8
                 });
                 self.die[(col, row)].clkroot = (col, crow);
+
+                if row.to_idx() % 16 == 8 {
+                    let x = col.to_idx();
+                    let y = row.to_idx();
+                    let mut name = match self.grid.columns[col].kind {
+                        ColumnKind::CleXL | ColumnKind::CleClk => {
+                            format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1)
+                        }
+                        ColumnKind::CleXM => format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}", y = y - 1),
+                        ColumnKind::Bram => format!("BRAM_HCLK_FEEDTHRU{fold}_X{x}Y{y}", y = y - 1),
+                        ColumnKind::Dsp | ColumnKind::DspPlus => {
+                            format!("DSP_INT_HCLK_FEEDTHRU{fold}_X{x}Y{y}", y = y - 1)
+                        }
+                        ColumnKind::Io => {
+                            if col == self.grid.col_lio() {
+                                format!("HCLK_IOIL_INT{fold}_X{x}Y{y}", y = y - 1)
+                            } else {
+                                format!("HCLK_IOIR_INT{fold}_X{x}Y{y}", y = y - 1)
+                            }
+                        }
+                    };
+                    if self.die[(col, row)].nodes.is_empty()
+                        && self.die[(col, row - 1)].nodes.is_empty()
+                    {
+                        continue;
+                    }
+                    if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.grid.gts {
+                        if col == cl + 2 && row == self.grid.row_tio_outer() - 23 {
+                            name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}", y = y - 1);
+                        }
+                        if col == cl + 3 && row == self.grid.row_tio_outer() - 7 {
+                            name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
+                        }
+                    }
+                    if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.grid.gts {
+                        if col == cr + 6 && row == self.grid.row_tio_outer() - 7 {
+                            name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
+                        }
+                    }
+                    if let Gts::Quad(cl, cr) = self.grid.gts {
+                        if col == cl - 6 && row == self.grid.row_bio_outer() + 8 {
+                            name = format!("DSP_INT_HCLK_FEEDTHRU{fold}_X{x}Y{y}");
+                        }
+                        if (col == cl - 5
+                            || col == cl + 3
+                            || col == cl + 4
+                            || col == cr - 3
+                            || col == cr + 6)
+                            && row == self.grid.row_bio_outer() + 8
+                        {
+                            name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}");
+                        }
+                        if col == cr - 4 && row == self.grid.row_bio_outer() + 8 {
+                            name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}");
+                        }
+                    }
+                    self.die[(col, row)].add_xnode(
+                        self.db.get_node("HCLK"),
+                        &[&name],
+                        self.db.get_node_naming(naming),
+                        &[(col, row - 1), (col, row)],
+                    );
+                }
             }
         }
     }
@@ -1921,15 +2061,16 @@ impl Grid {
         expander.fill_lio();
         expander.fill_mcb();
         expander.fill_pcilogic();
-        expander.fill_clkc();
+        expander.fill_spine();
         expander.fill_dcms();
         expander.fill_plls();
         expander.fill_gts();
         expander.fill_btterm();
         expander.die.fill_main_passes();
-        expander.fill_cle();
         expander.fill_bram();
         expander.fill_dsp();
+        expander.fill_cle();
+        expander.fill_hclk_fold();
         expander.fill_hclk();
 
         let bonded_ios = expander.bonded_ios;

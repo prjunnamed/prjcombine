@@ -696,7 +696,7 @@ impl XNodeExtractor<'_, '_, '_> {
         let mut pins = BTreeMap::new();
         let mut naming_pins = BTreeMap::new();
         if let Some(slot) = bel.slot {
-            let tks = tk.sites.get(&slot).unwrap().1;
+            let tks = tk.sites.get(&slot).expect("missing site slot in tk").1;
             for (name, tksp) in &tks.pins {
                 match bel.pins.get(name).unwrap_or(&BelPinInfo::Int) {
                     &BelPinInfo::Int => {
