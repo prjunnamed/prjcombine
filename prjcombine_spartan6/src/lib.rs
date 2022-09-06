@@ -434,6 +434,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let name = format!("{kind}_X{x}Y{y}", y = y - 1);
                 let tile = &mut self.die[(col, row)];
+                tile.add_xnode(
+                    self.db.get_node("LRIOI_CLK"),
+                    &[&name],
+                    self.db.get_node_naming("LRIOI_CLK"),
+                    &[],
+                );
                 if split {
                     tile.add_xnode(
                         self.db.get_node("PCI_CE_SPLIT"),
@@ -625,6 +631,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let name = format!("{kind}_X{x}Y{y}", y = y - 1);
                 let tile = &mut self.die[(col, row)];
+                tile.add_xnode(
+                    self.db.get_node("LRIOI_CLK"),
+                    &[&name],
+                    self.db.get_node_naming("LRIOI_CLK"),
+                    &[],
+                );
                 if split {
                     tile.add_xnode(
                         self.db.get_node("PCI_CE_SPLIT"),
@@ -1216,7 +1228,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             bx += 1;
 
-            let lr = if col < self.grid.col_clk {'L'} else {'R'};
+            let lr = if col < self.grid.col_clk { 'L' } else { 'R' };
             let rx = self.rxlut[col];
 
             let row = self.grid.row_bio_outer();
@@ -1292,7 +1304,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             dx += 1;
 
-            let lr = if col < self.grid.col_clk {'L'} else {'R'};
+            let lr = if col < self.grid.col_clk { 'L' } else { 'R' };
             let rx = self.rxlut[col];
 
             let row = self.grid.row_bio_outer();

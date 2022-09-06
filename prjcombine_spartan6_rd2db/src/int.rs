@@ -807,14 +807,62 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for (tkn, trunk_naming, is_trunk_b, v_naming, is_v_dn) in [
-        ("HCLK_IOIL_BOT_DN", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_DN", true),
-        ("HCLK_IOIL_BOT_UP", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_UP", false),
-        ("HCLK_IOIL_TOP_DN", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_DN", true),
-        ("HCLK_IOIL_TOP_UP", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_UP", false),
-        ("HCLK_IOIR_BOT_DN", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_DN", true),
-        ("HCLK_IOIR_BOT_UP", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_UP", false),
-        ("HCLK_IOIR_TOP_DN", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_DN", true),
-        ("HCLK_IOIR_TOP_UP", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_UP", false),
+        (
+            "HCLK_IOIL_BOT_DN",
+            "PCI_CE_TRUNK_BUF_BOT",
+            true,
+            "PCI_CE_V_BUF_DN",
+            true,
+        ),
+        (
+            "HCLK_IOIL_BOT_UP",
+            "PCI_CE_TRUNK_BUF_BOT",
+            true,
+            "PCI_CE_V_BUF_UP",
+            false,
+        ),
+        (
+            "HCLK_IOIL_TOP_DN",
+            "PCI_CE_TRUNK_BUF_TOP",
+            false,
+            "PCI_CE_V_BUF_DN",
+            true,
+        ),
+        (
+            "HCLK_IOIL_TOP_UP",
+            "PCI_CE_TRUNK_BUF_TOP",
+            false,
+            "PCI_CE_V_BUF_UP",
+            false,
+        ),
+        (
+            "HCLK_IOIR_BOT_DN",
+            "PCI_CE_TRUNK_BUF_BOT",
+            true,
+            "PCI_CE_V_BUF_DN",
+            true,
+        ),
+        (
+            "HCLK_IOIR_BOT_UP",
+            "PCI_CE_TRUNK_BUF_BOT",
+            true,
+            "PCI_CE_V_BUF_UP",
+            false,
+        ),
+        (
+            "HCLK_IOIR_TOP_DN",
+            "PCI_CE_TRUNK_BUF_TOP",
+            false,
+            "PCI_CE_V_BUF_DN",
+            true,
+        ),
+        (
+            "HCLK_IOIR_TOP_UP",
+            "PCI_CE_TRUNK_BUF_TOP",
+            false,
+            "PCI_CE_V_BUF_UP",
+            false,
+        ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
@@ -875,16 +923,55 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
                 .bel_virtual("PCI_CE_SPLIT")
-                .extra_wire(
-                    "PCI_CE_I",
-                    &["HCLK_PCI_CE_SPLIT"],
-                )
-                .extra_wire(
-                    "PCI_CE_O",
-                    &["HCLK_PCI_CE_INOUT"],
-                );
+                .extra_wire("PCI_CE_I", &["HCLK_PCI_CE_SPLIT"])
+                .extra_wire("PCI_CE_O", &["HCLK_PCI_CE_INOUT"]);
             builder
                 .xnode("PCI_CE_SPLIT", "PCI_CE_SPLIT", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in [
+        "HCLK_IOIL_BOT_DN",
+        "HCLK_IOIL_BOT_SPLIT",
+        "HCLK_IOIL_BOT_UP",
+        "HCLK_IOIL_TOP_DN",
+        "HCLK_IOIL_TOP_SPLIT",
+        "HCLK_IOIL_TOP_UP",
+        "HCLK_IOIR_BOT_DN",
+        "HCLK_IOIR_BOT_SPLIT",
+        "HCLK_IOIR_BOT_UP",
+        "HCLK_IOIR_TOP_DN",
+        "HCLK_IOIR_TOP_SPLIT",
+        "HCLK_IOIR_TOP_UP",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("LRIOI_CLK");
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire_force(format!("IOCLK{i}_I"), format!("HCLK_IOIL_IOCLK{i}"))
+                    .extra_wire_force(format!("IOCLK{i}_O_D"), format!("HCLK_IOIL_IOCLK{i}_DOWN"))
+                    .extra_wire_force(format!("IOCLK{i}_O_U"), format!("HCLK_IOIL_IOCLK{i}_UP"))
+                    .extra_wire_force(format!("IOCE{i}_I"), format!("HCLK_IOIL_IOCE{i}"))
+                    .extra_wire_force(format!("IOCE{i}_O_D"), format!("HCLK_IOIL_IOCE{i}_DOWN"))
+                    .extra_wire_force(format!("IOCE{i}_O_U"), format!("HCLK_IOIL_IOCE{i}_UP"));
+            }
+            for i in 0..2 {
+                bel = bel
+                    .extra_wire_force(format!("PLLCLK{i}_I"), format!("HCLK_IOIL_PLLCLK{i}"))
+                    .extra_wire_force(
+                        format!("PLLCLK{i}_O_D"),
+                        format!("HCLK_IOIL_PLLCLK{i}_DOWN"),
+                    )
+                    .extra_wire_force(format!("PLLCLK{i}_O_U"), format!("HCLK_IOIL_PLLCLK{i}_UP"))
+                    .extra_wire_force(format!("PLLCE{i}_I"), format!("HCLK_IOIL_PLLCE{i}"))
+                    .extra_wire_force(format!("PLLCE{i}_O_D"), format!("HCLK_IOIL_PLLCE{i}_DOWN"))
+                    .extra_wire_force(format!("PLLCE{i}_O_U"), format!("HCLK_IOIL_PLLCE{i}_UP"));
+            }
+            builder
+                .xnode("LRIOI_CLK", "LRIOI_CLK", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
