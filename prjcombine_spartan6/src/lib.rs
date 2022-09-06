@@ -1,3 +1,4 @@
+use core::cmp::Ordering;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::{BelId, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId};
@@ -303,24 +304,11 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_lio(&mut self) {
+        let col = self.grid.col_lio();
         for (row, &rd) in &self.grid.rows {
-            let y = row.to_idx();
-            let ry = self.rylut[row];
-            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
-            let txtra = if row == self.grid.row_clk() - 2 {
-                "_LOWER_BOT"
-            } else if row == self.grid.row_clk() - 1 {
-                "_LOWER_TOP"
-            } else if row == self.grid.row_clk() + 2 {
-                "_UPPER_BOT"
-            } else if row == self.grid.row_clk() + 3 {
-                "_UPPER_TOP"
-            } else {
-                ""
-            };
-
-            let col = self.grid.col_lio();
             let x = col.to_idx();
+            let y = row.to_idx();
+            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
             let tile = &mut self.die[(col, row)];
             let mut ltt = "IOI_LTERM";
             if rd.lio {
@@ -379,21 +367,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                     );
                 }
             }
-            let rx = self.rxlut[col] - 1;
-            self.die.fill_term_tile(
-                (col, row),
-                "TERM.W",
-                "TERM.W",
-                format!("{ltt}{txtra}_X{rx}Y{ry}"),
-            );
-        }
-    }
 
-    fn fill_rio(&mut self) {
-        for (row, &rd) in self.grid.rows.iter().rev() {
-            let y = row.to_idx();
+            let rx = self.rxlut[col];
             let ry = self.rylut[row];
-            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
             let txtra = if row == self.grid.row_clk() - 2 {
                 "_LOWER_BOT"
             } else if row == self.grid.row_clk() - 1 {
@@ -405,9 +381,111 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 ""
             };
+            self.die.fill_term_tile(
+                (col, row),
+                "TERM.W",
+                "TERM.W",
+                format!("{ltt}{txtra}_X{rx}Y{ry}", rx = rx - 1),
+            );
 
-            let col = self.grid.col_rio();
+            if row.to_idx() % 16 == 8 {
+                let kind;
+                let split;
+                let trunk_naming;
+                let v_naming;
+                if row <= self.grid.row_clk() {
+                    match row.cmp(&self.grid.rows_bufio_split.0) {
+                        Ordering::Less => {
+                            kind = "HCLK_IOIL_BOT_DN";
+                            v_naming = "PCI_CE_V_BUF_DN";
+                            split = false;
+                        }
+                        Ordering::Equal => {
+                            kind = "HCLK_IOIL_BOT_SPLIT";
+                            v_naming = "";
+                            split = true;
+                        }
+                        Ordering::Greater => {
+                            kind = "HCLK_IOIL_BOT_UP";
+                            v_naming = "PCI_CE_V_BUF_UP";
+                            split = false;
+                        }
+                    }
+                    trunk_naming = "PCI_CE_TRUNK_BUF_BOT";
+                } else {
+                    match row.cmp(&self.grid.rows_bufio_split.1) {
+                        Ordering::Less => {
+                            kind = "HCLK_IOIL_TOP_DN";
+                            v_naming = "PCI_CE_V_BUF_DN";
+                            split = false;
+                        }
+                        Ordering::Equal => {
+                            kind = "HCLK_IOIL_TOP_SPLIT";
+                            v_naming = "";
+                            split = true;
+                        }
+                        Ordering::Greater => {
+                            kind = "HCLK_IOIL_TOP_UP";
+                            v_naming = "PCI_CE_V_BUF_UP";
+                            split = false;
+                        }
+                    }
+                    trunk_naming = "PCI_CE_TRUNK_BUF_TOP";
+                }
+                let name = format!("{kind}_X{x}Y{y}", y = y - 1);
+                let tile = &mut self.die[(col, row)];
+                if split {
+                    tile.add_xnode(
+                        self.db.get_node("PCI_CE_SPLIT"),
+                        &[&name],
+                        self.db.get_node_naming("PCI_CE_SPLIT"),
+                        &[],
+                    );
+                } else {
+                    tile.add_xnode(
+                        self.db.get_node("PCI_CE_TRUNK_BUF"),
+                        &[&name],
+                        self.db.get_node_naming(trunk_naming),
+                        &[],
+                    );
+                    if row != self.grid.row_clk() {
+                        tile.add_xnode(
+                            self.db.get_node("PCI_CE_V_BUF"),
+                            &[&name],
+                            self.db.get_node_naming(v_naming),
+                            &[],
+                        );
+                    }
+                }
+            }
+
+            if row == self.grid.row_bio_outer() {
+                let name = format!("IOI_PCI_CE_LEFT_X{rx}Y{ry}", ry = ry - 1);
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("PCI_CE_H_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
+                    &[],
+                );
+            }
+            if row == self.grid.row_tio_outer() {
+                let name = format!("IOI_PCI_CE_LEFT_X{rx}Y{ry}", ry = ry + 1);
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("PCI_CE_H_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
+                    &[],
+                );
+            }
+        }
+    }
+
+    fn fill_rio(&mut self) {
+        let col = self.grid.col_rio();
+        for (row, &rd) in self.grid.rows.iter().rev() {
             let x = col.to_idx();
+            let y = row.to_idx();
+            let is_brk = y % 16 == 0 && row != self.grid.row_clk();
             let tile = &mut self.die[(col, row)];
             let mut rtt = "IOI_RTERM";
             if rd.rio {
@@ -480,13 +558,116 @@ impl<'a, 'b> Expander<'a, 'b> {
                     );
                 }
             }
-            let rx = self.rxlut[col] + 3;
+
+            let rx = self.rxlut[col];
+            let ry = self.rylut[row];
+            let txtra = if row == self.grid.row_clk() - 2 {
+                "_LOWER_BOT"
+            } else if row == self.grid.row_clk() - 1 {
+                "_LOWER_TOP"
+            } else if row == self.grid.row_clk() + 2 {
+                "_UPPER_BOT"
+            } else if row == self.grid.row_clk() + 3 {
+                "_UPPER_TOP"
+            } else {
+                ""
+            };
             self.die.fill_term_tile(
                 (col, row),
                 "TERM.E",
                 "TERM.E",
-                format!("{rtt}{txtra}_X{rx}Y{ry}"),
+                format!("{rtt}{txtra}_X{rx}Y{ry}", rx = rx + 3),
             );
+
+            if row.to_idx() % 16 == 8 {
+                let kind;
+                let split;
+                let trunk_naming;
+                let v_naming;
+                if row <= self.grid.row_clk() {
+                    match row.cmp(&self.grid.rows_bufio_split.0) {
+                        Ordering::Less => {
+                            kind = "HCLK_IOIR_BOT_DN";
+                            v_naming = "PCI_CE_V_BUF_DN";
+                            split = false;
+                        }
+                        Ordering::Equal => {
+                            kind = "HCLK_IOIR_BOT_SPLIT";
+                            v_naming = "";
+                            split = true;
+                        }
+                        Ordering::Greater => {
+                            kind = "HCLK_IOIR_BOT_UP";
+                            v_naming = "PCI_CE_V_BUF_UP";
+                            split = false;
+                        }
+                    }
+                    trunk_naming = "PCI_CE_TRUNK_BUF_BOT";
+                } else {
+                    match row.cmp(&self.grid.rows_bufio_split.1) {
+                        Ordering::Less => {
+                            kind = "HCLK_IOIR_TOP_DN";
+                            v_naming = "PCI_CE_V_BUF_DN";
+                            split = false;
+                        }
+                        Ordering::Equal => {
+                            kind = "HCLK_IOIR_TOP_SPLIT";
+                            v_naming = "";
+                            split = true;
+                        }
+                        Ordering::Greater => {
+                            kind = "HCLK_IOIR_TOP_UP";
+                            v_naming = "PCI_CE_V_BUF_UP";
+                            split = false;
+                        }
+                    }
+                    trunk_naming = "PCI_CE_TRUNK_BUF_TOP";
+                }
+                let name = format!("{kind}_X{x}Y{y}", y = y - 1);
+                let tile = &mut self.die[(col, row)];
+                if split {
+                    tile.add_xnode(
+                        self.db.get_node("PCI_CE_SPLIT"),
+                        &[&name],
+                        self.db.get_node_naming("PCI_CE_SPLIT"),
+                        &[],
+                    );
+                } else {
+                    tile.add_xnode(
+                        self.db.get_node("PCI_CE_TRUNK_BUF"),
+                        &[&name],
+                        self.db.get_node_naming(trunk_naming),
+                        &[],
+                    );
+                    if row != self.grid.row_clk() && !(self.grid.has_encrypt && row.to_idx() == 8) {
+                        tile.add_xnode(
+                            self.db.get_node("PCI_CE_V_BUF"),
+                            &[&name],
+                            self.db.get_node_naming(v_naming),
+                            &[],
+                        );
+                    }
+                }
+            }
+
+            if row == self.grid.row_bio_outer() {
+                let name = format!("IOI_PCI_CE_RIGHT_X{rx}Y{ry}", ry = ry - 1);
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("PCI_CE_H_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
+                    &[],
+                );
+            }
+            if row == self.grid.row_tio_outer() {
+                let name = format!("IOI_PCI_CE_RIGHT_X{rx}Y{ry}", ry = ry + 1);
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("PCI_CE_H_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
+                    &[],
+                );
+            }
         }
     }
 
@@ -518,6 +699,20 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.fill_iob((col, row), iob_tk, &naming);
                 }
             }
+            let row = self.grid.row_tio_outer();
+            let rx = self.rxlut[col] + 1;
+            let ry = self.rylut[row] + 1;
+            let name = if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
+                format!("IOI_TTERM_REGT_X{rx}Y{ry}")
+            } else {
+                format!("IOI_TTERM_CLB_X{rx}Y{ry}")
+            };
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("BTIOI_CLK"),
+                &[&name],
+                self.db.get_node_naming("TIOI_CLK"),
+                &[],
+            );
         }
     }
 
@@ -549,6 +744,20 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.fill_iob((col, row), iob_tk, &naming);
                 }
             }
+            let row = self.grid.row_bio_outer();
+            let rx = self.rxlut[col] + 1;
+            let ry = self.rylut[row] - 1;
+            let name = if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
+                format!("IOI_BTERM_REGB_X{rx}Y{ry}")
+            } else {
+                format!("IOI_BTERM_CLB_X{rx}Y{ry}")
+            };
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("BTIOI_CLK"),
+                &[&name],
+                self.db.get_node_naming("BIOI_CLK"),
+                &[],
+            );
         }
     }
 
@@ -582,8 +791,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_rio();
         let rx = self.rxlut[col] + 3;
         let x = col.to_idx();
-        let name = 
-        if self.grid.rows.len() % 32 == 16 {
+        let name = if self.grid.rows.len() % 32 == 16 {
             format!("REGH_RIOI_BOT25_X{x}Y{y}")
         } else {
             format!("REGH_RIOI_X{x}Y{y}", y = y - 1)
@@ -1007,6 +1215,29 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.add_bel(2, format!("RAMB8_X{bx}Y{by}", by = by + 1));
             }
             bx += 1;
+
+            let lr = if col < self.grid.col_clk {'L'} else {'R'};
+            let rx = self.rxlut[col];
+
+            let row = self.grid.row_bio_outer();
+            let ry = self.rylut[row];
+            let name = format!("BRAM_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1);
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("PCI_CE_H_BUF"),
+                &[&name],
+                self.db.get_node_naming("PCI_CE_H_BUF_BRAM"),
+                &[],
+            );
+
+            let row = self.grid.row_tio_outer();
+            let ry = self.rylut[row];
+            let name = format!("BRAM_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1);
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("PCI_CE_H_BUF"),
+                &[&name],
+                self.db.get_node_naming("PCI_CE_H_BUF_BRAM"),
+                &[],
+            );
         }
     }
 
@@ -1060,6 +1291,29 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.add_bel(0, format!("DSP48_X{dx}Y{dy}"));
             }
             dx += 1;
+
+            let lr = if col < self.grid.col_clk {'L'} else {'R'};
+            let rx = self.rxlut[col];
+
+            let row = self.grid.row_bio_outer();
+            let ry = self.rylut[row];
+            let name = format!("DSP_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1);
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("PCI_CE_H_BUF"),
+                &[&name],
+                self.db.get_node_naming("PCI_CE_H_BUF_DSP"),
+                &[],
+            );
+
+            let row = self.grid.row_tio_outer();
+            let ry = self.rylut[row];
+            let name = format!("DSP_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1);
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("PCI_CE_H_BUF"),
+                &[&name],
+                self.db.get_node_naming("PCI_CE_H_BUF_DSP"),
+                &[],
+            );
         }
     }
 
@@ -1541,11 +1795,11 @@ impl Grid {
         expander.fill_plls();
         expander.fill_gts();
         expander.fill_btterm();
+        expander.die.fill_main_passes();
         expander.fill_cle();
         expander.fill_bram();
         expander.fill_dsp();
         expander.fill_hclk();
-        expander.die.fill_main_passes();
 
         egrid
     }

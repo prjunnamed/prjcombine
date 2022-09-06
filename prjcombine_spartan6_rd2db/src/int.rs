@@ -699,8 +699,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
                 .pin_name_only("PCI_CE", 1)
                 .pin_name_only("IRDY", 1)
-                .pin_name_only("TRDY", 1)
-                ;
+                .pin_name_only("TRDY", 1);
             builder
                 .xnode("PCILOGICSE", "PCILOGICSE_L", xy)
                 .raw_tile(xy.delta(-2, 0))
@@ -718,13 +717,214 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
                 .pin_name_only("PCI_CE", 1)
                 .pin_name_only("IRDY", 1)
-                .pin_name_only("TRDY", 1)
-                ;
+                .pin_name_only("TRDY", 1);
             builder
                 .xnode("PCILOGICSE", "PCILOGICSE_R", xy)
                 .raw_tile(xy.delta(3, 0))
                 .raw_tile(xy.delta(-1, 1))
                 .ref_int(xy.delta(-1, 1), 0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, naming) in [
+        ("IOI_BTERM_CLB", "BIOI_CLK"),
+        ("IOI_BTERM_REGB", "BIOI_CLK"),
+        ("IOI_TTERM_CLB", "TIOI_CLK"),
+        ("IOI_TTERM_REGT", "TIOI_CLK"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder
+                .bel_virtual("BTIOI_CLK")
+                .extra_wire("PCI_CE_I", &["BTERM_CLB_PCICE", "TTERM_CLB_PCICE"])
+                .extra_wire("PCI_CE_O", &["BTERM_CLB_PCICE_N", "TTERM_CLB_PCICE_S"]);
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("IOCLK{i}_I"),
+                        &[
+                            format!("BTERM_CLB_CLKOUT{i}"),
+                            format!("TTERM_CLB_IOCLK{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("IOCLK{i}_O"),
+                        &[
+                            format!("BTERM_CLB_CLKOUT{i}_N"),
+                            format!("TTERM_CLB_IOCLK{i}_S"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("IOCE{i}_I"),
+                        &[format!("BTERM_CLB_CEOUT{i}"), format!("TTERM_CLB_IOCE{i}")],
+                    )
+                    .extra_wire(
+                        format!("IOCE{i}_O"),
+                        &[
+                            format!("BTERM_CLB_CEOUT{i}_N"),
+                            format!("TTERM_CLB_IOCE{i}_S"),
+                        ],
+                    );
+            }
+            for i in 0..2 {
+                bel = bel
+                    .extra_wire(
+                        format!("PLLCLK{i}_I"),
+                        &[
+                            format!("BTERM_CLB_PLLCLKOUT{i}"),
+                            format!("TTERM_CLB_PLLCLK{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("PLLCLK{i}_O"),
+                        &[
+                            format!("BTERM_CLB_PLLCLKOUT{i}_N"),
+                            format!("TTERM_CLB_PLLCLK{i}_S"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("PLLCE{i}_I"),
+                        &[
+                            format!("BTERM_CLB_PLLCEOUT{i}"),
+                            format!("TTERM_CLB_PLLCE{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("PLLCE{i}_O"),
+                        &[
+                            format!("BTERM_CLB_PLLCEOUT{i}_N"),
+                            format!("TTERM_CLB_PLLCE{i}_S"),
+                        ],
+                    );
+            }
+            builder
+                .xnode("BTIOI_CLK", naming, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, trunk_naming, is_trunk_b, v_naming, is_v_dn) in [
+        ("HCLK_IOIL_BOT_DN", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_DN", true),
+        ("HCLK_IOIL_BOT_UP", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_UP", false),
+        ("HCLK_IOIL_TOP_DN", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_DN", true),
+        ("HCLK_IOIL_TOP_UP", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_UP", false),
+        ("HCLK_IOIR_BOT_DN", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_DN", true),
+        ("HCLK_IOIR_BOT_UP", "PCI_CE_TRUNK_BUF_BOT", true, "PCI_CE_V_BUF_UP", false),
+        ("HCLK_IOIR_TOP_DN", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_DN", true),
+        ("HCLK_IOIR_TOP_UP", "PCI_CE_TRUNK_BUF_TOP", false, "PCI_CE_V_BUF_UP", false),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder
+                .bel_virtual("PCI_CE_TRUNK_BUF")
+                .extra_wire(
+                    "PCI_CE_I",
+                    &[if is_trunk_b {
+                        "HCLK_PCI_CE_TRUNK_OUT"
+                    } else {
+                        "HCLK_PCI_CE_TRUNK_IN"
+                    }],
+                )
+                .extra_wire(
+                    "PCI_CE_O",
+                    &[if is_trunk_b {
+                        "HCLK_PCI_CE_TRUNK_IN"
+                    } else {
+                        "HCLK_PCI_CE_TRUNK_OUT"
+                    }],
+                );
+            builder
+                .xnode("PCI_CE_TRUNK_BUF", trunk_naming, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+            let bel = builder
+                .bel_virtual("PCI_CE_V_BUF")
+                .extra_wire(
+                    "PCI_CE_I",
+                    &[if is_v_dn {
+                        "HCLK_PCI_CE_OUT"
+                    } else {
+                        "HCLK_PCI_CE_IN"
+                    }],
+                )
+                .extra_wire(
+                    "PCI_CE_O",
+                    &[if is_v_dn {
+                        "HCLK_PCI_CE_IN"
+                    } else {
+                        "HCLK_PCI_CE_OUT"
+                    }],
+                );
+            builder
+                .xnode("PCI_CE_V_BUF", v_naming, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in [
+        "HCLK_IOIL_BOT_SPLIT",
+        "HCLK_IOIL_TOP_SPLIT",
+        "HCLK_IOIR_BOT_SPLIT",
+        "HCLK_IOIR_TOP_SPLIT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder
+                .bel_virtual("PCI_CE_SPLIT")
+                .extra_wire(
+                    "PCI_CE_I",
+                    &["HCLK_PCI_CE_SPLIT"],
+                )
+                .extra_wire(
+                    "PCI_CE_O",
+                    &["HCLK_PCI_CE_INOUT"],
+                );
+            builder
+                .xnode("PCI_CE_SPLIT", "PCI_CE_SPLIT", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for (tkn, naming) in [
+        ("IOI_PCI_CE_LEFT", "PCI_CE_H_BUF_CNR"),
+        ("IOI_PCI_CE_RIGHT", "PCI_CE_H_BUF_CNR"),
+        ("BRAM_BOT_BTERM_L", "PCI_CE_H_BUF_BRAM"),
+        ("BRAM_BOT_BTERM_R", "PCI_CE_H_BUF_BRAM"),
+        ("BRAM_TOP_TTERM_L", "PCI_CE_H_BUF_BRAM"),
+        ("BRAM_TOP_TTERM_R", "PCI_CE_H_BUF_BRAM"),
+        ("DSP_BOT_BTERM_L", "PCI_CE_H_BUF_DSP"),
+        ("DSP_BOT_BTERM_R", "PCI_CE_H_BUF_DSP"),
+        ("DSP_TOP_TTERM_L", "PCI_CE_H_BUF_DSP"),
+        ("DSP_TOP_TTERM_R", "PCI_CE_H_BUF_DSP"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder
+                .bel_virtual("PCI_CE_H_BUF")
+                .extra_wire(
+                    "PCI_CE_I",
+                    &[
+                        "IOI_PCICE_TB",
+                        "BRAM_TTERM_PCICE_IN",
+                        "MACCSITE2_TTERM_PCICE_IN",
+                    ],
+                )
+                .extra_wire(
+                    "PCI_CE_O",
+                    &[
+                        "IOI_PCICE_EW",
+                        "BRAM_TTERM_PCICE_OUT",
+                        "MACCSITE2_TTERM_PCICE_OUT",
+                    ],
+                );
+            builder
+                .xnode("PCI_CE_H_BUF", naming, xy)
+                .num_tiles(0)
                 .bel(bel)
                 .extract();
         }

@@ -51,6 +51,24 @@ impl<'a> BelContext<'a> {
     pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
         (self.crd(), self.wire_far(name))
     }
+
+    #[track_caller]
+    pub fn pip(&self, pin: &str, idx: usize) -> (Coord, &'a str, &'a str) {
+        let pip = &self.naming.pins[pin].pips[idx];
+        (self.crds[pip.tile], &pip.wire_to, &pip.wire_from)
+    }
+
+    #[track_caller]
+    pub fn pip_owire(&self, pin: &str, idx: usize) -> (Coord, &'a str) {
+        let (crd, wire, _) = self.pip(pin, idx);
+        (crd, wire)
+    }
+
+    #[track_caller]
+    pub fn pip_iwire(&self, pin: &str, idx: usize) -> (Coord, &'a str) {
+        let (crd, _, wire) = self.pip(pin, idx);
+        (crd, wire)
+    }
 }
 
 #[derive(Debug, Clone)]
