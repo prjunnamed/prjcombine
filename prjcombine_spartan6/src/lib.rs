@@ -434,10 +434,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let name = format!("{kind}_X{x}Y{y}", y = y - 1);
                 let tile = &mut self.die[(col, row)];
+                let name_term = if row == self.grid.row_clk() {
+                    format!("HCLK_IOI_LTERM_BOT25_X{rx}Y{ry}", rx = rx - 1, ry = ry - 2)
+                } else {
+                    format!("HCLK_IOI_LTERM_X{rx}Y{ry}", rx = rx - 1, ry = ry - 1)
+                };
                 tile.add_xnode(
                     self.db.get_node("LRIOI_CLK"),
-                    &[&name],
-                    self.db.get_node_naming("LRIOI_CLK"),
+                    &[&name, &name_term],
+                    self.db.get_node_naming("LRIOI_CLK.L"),
                     &[],
                 );
                 if split {
@@ -630,11 +635,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     trunk_naming = "PCI_CE_TRUNK_BUF_TOP";
                 }
                 let name = format!("{kind}_X{x}Y{y}", y = y - 1);
+                let name_term = if row == self.grid.row_clk() {
+                    format!("HCLK_IOI_RTERM_BOT25_X{rx}Y{ry}", rx = rx + 3, ry = ry - 2)
+                } else {
+                    format!("HCLK_IOI_RTERM_X{rx}Y{ry}", rx = rx + 3, ry = ry - 1)
+                };
                 let tile = &mut self.die[(col, row)];
                 tile.add_xnode(
                     self.db.get_node("LRIOI_CLK"),
-                    &[&name],
-                    self.db.get_node_naming("LRIOI_CLK"),
+                    &[&name, &name_term],
+                    self.db.get_node_naming("LRIOI_CLK.R"),
                     &[],
                 );
                 if split {

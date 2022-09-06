@@ -933,19 +933,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    for tkn in [
-        "HCLK_IOIL_BOT_DN",
-        "HCLK_IOIL_BOT_SPLIT",
-        "HCLK_IOIL_BOT_UP",
-        "HCLK_IOIL_TOP_DN",
-        "HCLK_IOIL_TOP_SPLIT",
-        "HCLK_IOIL_TOP_UP",
-        "HCLK_IOIR_BOT_DN",
-        "HCLK_IOIR_BOT_SPLIT",
-        "HCLK_IOIR_BOT_UP",
-        "HCLK_IOIR_TOP_DN",
-        "HCLK_IOIR_TOP_SPLIT",
-        "HCLK_IOIR_TOP_UP",
+    for (tkn, naming, lr) in [
+        ("HCLK_IOIL_BOT_DN", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIL_BOT_SPLIT", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIL_BOT_UP", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIL_TOP_DN", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIL_TOP_SPLIT", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIL_TOP_UP", "LRIOI_CLK.L", 'L'),
+        ("HCLK_IOIR_BOT_DN", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIR_BOT_SPLIT", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIR_BOT_UP", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIR_TOP_DN", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIR_TOP_SPLIT", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIR_TOP_UP", "LRIOI_CLK.R", 'R'),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("LRIOI_CLK");
@@ -970,10 +970,76 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire_force(format!("PLLCE{i}_O_D"), format!("HCLK_IOIL_PLLCE{i}_DOWN"))
                     .extra_wire_force(format!("PLLCE{i}_O_U"), format!("HCLK_IOIL_PLLCE{i}_UP"));
             }
+            let mut bel_term = builder.bel_virtual("LRIOI_CLK_TERM").raw_tile(1);
+            for i in 0..4 {
+                if lr == 'L' {
+                    bel_term = bel_term
+                        .extra_wire_force(format!("IOCLK{i}_I"), format!("HCLK_IOI_LTERM_IOCLK{i}"))
+                        .extra_wire_force(
+                            format!("IOCLK{i}_O"),
+                            format!("HCLK_IOI_LTERM_IOCLK{i}_E"),
+                        )
+                        .extra_wire_force(format!("IOCE{i}_I"), format!("HCLK_IOI_LTERM_IOCE{i}"))
+                        .extra_wire_force(
+                            format!("IOCE{i}_O"),
+                            format!("HCLK_IOI_LTERM_IOCE{i}_E"),
+                        );
+                } else {
+                    bel_term = bel_term
+                        .extra_wire_force(format!("IOCLK{i}_I"), format!("HCLK_IOI_RTERM_IOCLK{i}"))
+                        .extra_wire_force(
+                            format!("IOCLK{i}_O"),
+                            format!("HCLK_IOI_RTERM_IOCLK{ii}_W", ii = i ^ 3),
+                        )
+                        .extra_wire_force(format!("IOCE{i}_I"), format!("HCLK_IOI_RTERM_IOCE{i}"))
+                        .extra_wire_force(
+                            format!("IOCE{i}_O"),
+                            format!("HCLK_IOI_RTERM_IOCE{ii}_W", ii = i ^ 3),
+                        );
+                }
+            }
+            for i in 0..2 {
+                if lr == 'L' {
+                    bel_term = bel_term
+                        .extra_wire_force(
+                            format!("PLLCLK{i}_I"),
+                            format!("HCLK_IOI_LTERM_PLLCLK{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("PLLCLK{i}_O"),
+                            format!("HCLK_IOI_LTERM_PLLCLK{i}_E"),
+                        )
+                        .extra_wire_force(format!("PLLCE{i}_I"), format!("HCLK_IOI_LTERM_PLLCE{i}"))
+                        .extra_wire_force(
+                            format!("PLLCE{i}_O"),
+                            format!("HCLK_IOI_LTERM_PLLCE{i}_E"),
+                        );
+                } else {
+                    bel_term = bel_term
+                        .extra_wire_force(
+                            format!("PLLCLK{i}_I"),
+                            format!("HCLK_IOI_RTERM_PLLCLKOUT{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("PLLCLK{i}_O"),
+                            format!("HCLK_IOI_RTERM_PLLCLKOUT{i}_W"),
+                        )
+                        .extra_wire_force(
+                            format!("PLLCE{i}_I"),
+                            format!("HCLK_IOI_RTERM_PLLCEOUT{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("PLLCE{i}_O"),
+                            format!("HCLK_IOI_RTERM_PLLCEOUT{i}_W"),
+                        );
+                }
+            }
             builder
-                .xnode("LRIOI_CLK", "LRIOI_CLK", xy)
+                .xnode("LRIOI_CLK", naming, xy)
+                .raw_tile(xy) // dummy
                 .num_tiles(0)
                 .bel(bel)
+                .bel(bel_term)
                 .extract();
         }
     }

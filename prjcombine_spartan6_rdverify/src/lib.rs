@@ -627,6 +627,7 @@ fn verify_btioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_lrioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "LRIOI_CLK_TERM");
     for ud in ['U', 'D'] {
         let by = if ud == 'D' { bel.row - 8 } else { bel.row };
         let mut found = false;
@@ -654,6 +655,14 @@ fn verify_lrioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.wire(&format!("IOCE{i}_O_{ud}")),
                 bel.wire(&format!("IOCE{i}_I")),
             );
+            vrf.verify_node(&[
+                bel.fwire(&format!("IOCLK{i}_I")),
+                obel.fwire(&format!("IOCLK{i}_O")),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("IOCE{i}_I")),
+                obel.fwire(&format!("IOCE{i}_O")),
+            ]);
         }
         for i in 0..2 {
             vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O_{ud}"))]);
@@ -668,7 +677,58 @@ fn verify_lrioi_clk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.wire(&format!("PLLCE{i}_O_{ud}")),
                 bel.wire(&format!("PLLCE{i}_I")),
             );
+            vrf.verify_node(&[
+                bel.fwire(&format!("PLLCLK{i}_I")),
+                obel.fwire(&format!("PLLCLK{i}_O")),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("PLLCE{i}_I")),
+                obel.fwire(&format!("PLLCE{i}_O")),
+            ]);
         }
+    }
+}
+
+fn verify_lrioi_clk_term(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut found = false;
+    for i in 0..16 {
+        let row = bel.row - 8 + i;
+        if bel.col == grid.col_lio() {
+            found |= grid.rows[row].lio;
+        } else {
+            found |= grid.rows[row].rio;
+        }
+    }
+    if !found {
+        return;
+    }
+    for i in 0..4 {
+        vrf.claim_node(&[bel.fwire(&format!("IOCLK{i}_O"))]);
+        vrf.claim_node(&[bel.fwire(&format!("IOCE{i}_O"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("IOCLK{i}_O")),
+            bel.wire(&format!("IOCLK{i}_I")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("IOCE{i}_O")),
+            bel.wire(&format!("IOCE{i}_I")),
+        );
+    }
+    for i in 0..2 {
+        vrf.claim_node(&[bel.fwire(&format!("PLLCLK{i}_O"))]);
+        vrf.claim_node(&[bel.fwire(&format!("PLLCE{i}_O"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("PLLCLK{i}_O")),
+            bel.wire(&format!("PLLCLK{i}_I")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("PLLCE{i}_O")),
+            bel.wire(&format!("PLLCE{i}_I")),
+        );
     }
     // XXX source IOCLK/IOCE/PLLCLK/PLLCE
 }
@@ -698,6 +758,7 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "PCILOGICSE" => verify_pcilogicse(grid, vrf, bel),
         "BTIOI_CLK" => verify_btioi_clk(grid, vrf, bel),
         "LRIOI_CLK" => verify_lrioi_clk(grid, vrf, bel),
+        "LRIOI_CLK_TERM" => verify_lrioi_clk_term(grid, vrf, bel),
         "PCI_CE_TRUNK_BUF" => verify_pci_ce_trunk_buf(grid, vrf, bel),
         "PCI_CE_SPLIT" => verify_pci_ce_split(grid, vrf, bel),
         "PCI_CE_V_BUF" => verify_pci_ce_v_buf(grid, vrf, bel),
