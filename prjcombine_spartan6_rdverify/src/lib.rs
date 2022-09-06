@@ -46,7 +46,7 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_ilogic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pins = vec![
         ("TFB", SitePinDir::In),
         ("OFB", SitePinDir::In),
@@ -113,16 +113,11 @@ fn verify_ilogic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ => unreachable!(),
     };
     if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, okey) {
-        vrf.verify_node(&[
-            bel.fwire("IOB_I"),
-            obel.fwire_far("I"),
-        ]);
+        vrf.verify_node(&[bel.fwire("IOB_I"), obel.fwire_far("I")]);
 
         vrf.claim_pip(bel.crd(), bel.wire("MCB_FABRICOUT"), bel.wire("FABRICOUT"));
     } else {
-        vrf.claim_node(&[
-            bel.fwire("IOB_I"),
-        ]);
+        vrf.claim_node(&[bel.fwire("IOB_I")]);
     }
 
     let okey = match bel.key {
@@ -137,7 +132,7 @@ fn verify_ilogic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_ologic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins = [
         ("CLK0", SitePinDir::In),
         ("CLK1", SitePinDir::In),
@@ -193,14 +188,8 @@ fn verify_ologic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ => unreachable!(),
     };
     if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, okey) {
-        vrf.verify_node(&[
-            bel.fwire("IOB_O"),
-            obel.fwire_far("O"),
-        ]);
-        vrf.verify_node(&[
-            bel.fwire("IOB_T"),
-            obel.fwire_far("T"),
-        ]);
+        vrf.verify_node(&[bel.fwire("IOB_O"), obel.fwire_far("O")]);
+        vrf.verify_node(&[bel.fwire("IOB_T"), obel.fwire_far("T")]);
 
         vrf.claim_pip(bel.crd(), bel.wire("D1"), bel.wire("MCB_D1"));
         vrf.claim_pip(bel.crd(), bel.wire("D2"), bel.wire("MCB_D2"));
@@ -211,12 +200,8 @@ fn verify_ologic(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
         vrf.claim_pip(bel.crd(), bel.wire("TRAIN"), obel_ioi.wire("MCB_DRPTRAIN"));
     } else {
-        vrf.claim_node(&[
-            bel.fwire("IOB_T"),
-        ]);
-        vrf.claim_node(&[
-            bel.fwire("IOB_O"),
-        ]);
+        vrf.claim_node(&[bel.fwire("IOB_T")]);
+        vrf.claim_node(&[bel.fwire("IOB_O")]);
     }
 
     let okey = match bel.key {
@@ -301,7 +286,11 @@ fn verify_iodelay(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire("CE"), obel_ioi.wire("MCB_DRPSDO"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), obel_ioi.wire("MCB_DRPCLK"));
         vrf.claim_pip(bel.crd(), bel.wire("INC"), obel_ioi.wire("MCB_DRPCS"));
-        vrf.claim_pip(bel.crd(), bel.wire("RST"), obel_ioi.wire("MCB_DRPBROADCAST"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("RST"),
+            obel_ioi.wire("MCB_DRPBROADCAST"),
+        );
     }
 
     // XXX AUX*, MEMUPDATE [LR only!]
@@ -395,7 +384,6 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     if bel.key == "IOB1" {
         vrf.claim_pip(bel.crd(), bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
     }
-    // XXX PCI_RDY
 }
 
 fn verify_tieoff(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -414,6 +402,48 @@ fn verify_tieoff(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
+fn verify_pcilogicse(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "PCILOGICSE",
+        &[
+            ("PCI_CE", SitePinDir::Out),
+            ("IRDY", SitePinDir::In),
+            ("TRDY", SitePinDir::In),
+        ],
+        &[],
+    );
+    let pip = &bel.naming.pins["PCI_CE"].pips[0];
+    vrf.claim_node(&[bel.fwire("PCI_CE"), (bel.crds[pip.tile], &pip.wire_from)]);
+    vrf.claim_node(&[(bel.crds[pip.tile], &pip.wire_to)]);
+    vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
+    let rdy = if bel.col == grid.col_lio() {
+        [
+            ("IRDY", 2, "IOB1"),
+            ("TRDY", -1, "IOB0"),
+        ]
+    } else {
+        [
+            ("IRDY", 2, "IOB0"),
+            ("TRDY", -1, "IOB1"),
+        ]
+    };
+    for (pin, dy, key) in rdy {
+        let pip = &bel.naming.pins[pin].pips[0];
+        vrf.claim_node(&[
+            bel.fwire(pin),
+            (bel.crds[pip.tile], &pip.wire_to),
+        ]);
+        vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
+        let obel = vrf.find_bel_delta(bel, 0, dy, key).unwrap();
+        vrf.claim_node(&[
+            (bel.crds[pip.tile], &pip.wire_from),
+            obel.fwire_far("PCI_RDY"),
+        ]);
+        vrf.claim_pip(obel.crd(), obel.wire_far("PCI_RDY"), obel.wire("PCI_RDY"));
+    }
+}
+
 pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE0" => verify_sliceml(vrf, bel),
@@ -428,13 +458,14 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "PMV" | "DNA_PORT" | "ICAP" | "SPI_ACCESS" | "SUSPEND_SYNC" | "POST_CRC_INTERNAL"
         | "STARTUP" | "SLAVE_SPI" => vrf.verify_bel(bel, bel.key, &[], &[]),
 
-        "ILOGIC0" | "ILOGIC1" => verify_ilogic(grid, vrf, bel),
-        "OLOGIC0" | "OLOGIC1" => verify_ologic(grid, vrf, bel),
+        "ILOGIC0" | "ILOGIC1" => verify_ilogic(vrf, bel),
+        "OLOGIC0" | "OLOGIC1" => verify_ologic(vrf, bel),
         "IODELAY0" | "IODELAY1" => verify_iodelay(grid, vrf, bel),
         "IOICLK0" | "IOICLK1" => verify_ioiclk(vrf, bel),
         "IOI" => verify_ioi(grid, vrf, bel),
         "IOB0" | "IOB1" => verify_iob(vrf, bel),
         "TIEOFF" => verify_tieoff(vrf, bel),
+        "PCILOGICSE" => verify_pcilogicse(grid, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

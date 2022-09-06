@@ -552,6 +552,53 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_pcilogic(&mut self) {
+        let row = self.grid.row_clk();
+        let y = row.to_idx();
+        let ry = self.rylut[row] - 1;
+
+        let col = self.grid.col_lio();
+        let x = col.to_idx();
+        let name;
+        let name_ioi;
+        let rx = self.rxlut[col] - 2;
+        if self.grid.rows.len() % 32 == 16 {
+            name = format!("REGH_LIOI_INT_BOT25_X{x}Y{y}");
+            name_ioi = format!("REGH_IOI_BOT25_X{x}Y{y}");
+        } else {
+            name = format!("REGH_LIOI_INT_X{x}Y{y}", y = y - 1);
+            name_ioi = format!("REGH_IOI_X{x}Y{y}", y = y - 1);
+        }
+        let name_reg = format!("REG_L_X{rx}Y{ry}");
+        let name_int = format!("INT_X{x}Y{y}");
+        let node = self.die[(col, row)].add_xnode(
+            self.db.get_node("PCILOGICSE"),
+            &[&name, &name_reg, &name_ioi, &name_int],
+            self.db.get_node_naming("PCILOGICSE_L"),
+            &[(col, row)],
+        );
+        node.add_bel(0, "PCILOGIC_X0Y0".to_string());
+
+        let col = self.grid.col_rio();
+        let rx = self.rxlut[col] + 3;
+        let x = col.to_idx();
+        let name = 
+        if self.grid.rows.len() % 32 == 16 {
+            format!("REGH_RIOI_BOT25_X{x}Y{y}")
+        } else {
+            format!("REGH_RIOI_X{x}Y{y}", y = y - 1)
+        };
+        let name_reg = format!("REG_R_X{rx}Y{ry}");
+        let name_int = format!("INT_X{x}Y{y}");
+        let node = self.die[(col, row)].add_xnode(
+            self.db.get_node("PCILOGICSE"),
+            &[&name, &name_reg, &name_int],
+            self.db.get_node_naming("PCILOGICSE_R"),
+            &[(col, row)],
+        );
+        node.add_bel(0, "PCILOGIC_X1Y0".to_string());
+    }
+
     fn fill_clkc(&mut self) {
         let col = self.grid.col_clk;
         let row = self.grid.row_clk();
@@ -1488,6 +1535,7 @@ impl Grid {
         expander.fill_rio();
         expander.fill_bio();
         expander.fill_lio();
+        expander.fill_pcilogic();
         expander.fill_clkc();
         expander.fill_dcms();
         expander.fill_plls();

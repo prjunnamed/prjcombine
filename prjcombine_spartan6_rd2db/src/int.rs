@@ -693,6 +693,43 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for tkn in ["REGH_LIOI_INT", "REGH_LIOI_INT_BOT25"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder
+                .bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
+                .pin_name_only("PCI_CE", 1)
+                .pin_name_only("IRDY", 1)
+                .pin_name_only("TRDY", 1)
+                ;
+            builder
+                .xnode("PCILOGICSE", "PCILOGICSE_L", xy)
+                .raw_tile(xy.delta(-2, 0))
+                .raw_tile(xy.delta(1, 0))
+                .raw_tile(xy.delta(0, 1))
+                .ref_int(xy.delta(0, 1), 0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in ["REGH_RIOI", "REGH_RIOI_BOT25"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder
+                .bel_xy("PCILOGICSE", "PCILOGIC", 0, 0)
+                .pin_name_only("PCI_CE", 1)
+                .pin_name_only("IRDY", 1)
+                .pin_name_only("TRDY", 1)
+                ;
+            builder
+                .xnode("PCILOGICSE", "PCILOGICSE_R", xy)
+                .raw_tile(xy.delta(3, 0))
+                .raw_tile(xy.delta(-1, 1))
+                .ref_int(xy.delta(-1, 1), 0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
         let nr = builder.db.get_node_naming("INTF.RTERM");
