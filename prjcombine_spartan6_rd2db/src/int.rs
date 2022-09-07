@@ -1379,6 +1379,57 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .extract();
     }
 
+    for tkn in ["REG_V_MIDBUF_BOT", "REG_V_MIDBUF_TOP"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CKPIN_V_MIDBUF");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(
+                        format!("CKPIN{i}_O"),
+                        &[
+                            format!("CLKV_CKPIN_BOT_BUF{i}"),
+                            format!("CLKV_MIDBUF_TOP_CKPIN{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("CKPIN{i}_I"),
+                        &[
+                            format!("CLKV_CKPIN_BUF{i}"),
+                            format!("CLKV_MIDBUF_BOT_CKPIN{i}"),
+                        ],
+                    )
+            }
+            builder
+                .xnode("CKPIN_V_MIDBUF", tkn, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in [
+        "REGH_DSP_L",
+        "REGH_DSP_R",
+        "REGH_CLEXL_INT_CLK",
+        "REGH_CLEXM_INT_GCLKL",
+        "REGH_BRAM_FEEDTHRU_L_GCLK",
+        "REGH_BRAM_FEEDTHRU_R_GCLK",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("CKPIN_H_MIDBUF");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(format!("CKPIN{i}_O"), &[format!("REGH_DSP_OUT_CKPIN{i}")])
+                    .extra_wire(format!("CKPIN{i}_I"), &[format!("REGH_DSP_IN_CKPIN{i}")])
+            }
+            builder
+                .xnode("CKPIN_H_MIDBUF", "CKPIN_H_MIDBUF", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
         let nr = builder.db.get_node_naming("INTF.RTERM");

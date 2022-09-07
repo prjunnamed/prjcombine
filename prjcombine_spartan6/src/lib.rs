@@ -814,7 +814,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         crds.push((col, urow + dy));
                     }
                 }
-                let tk = if self.grid.rows.len() % 32 == 16 {
+                let tk = if self.grid.is_25() {
                     "MCB_L_BOT"
                 } else {
                     "MCB_L"
@@ -893,7 +893,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let name;
         let name_ioi;
         let rx = self.rxlut[col] - 2;
-        if self.grid.rows.len() % 32 == 16 {
+        if self.grid.is_25() {
             name = format!("REGH_LIOI_INT_BOT25_X{x}Y{y}");
             name_ioi = format!("REGH_IOI_BOT25_X{x}Y{y}");
         } else {
@@ -913,7 +913,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_rio();
         let rx = self.rxlut[col] + 3;
         let x = col.to_idx();
-        let name = if self.grid.rows.len() % 32 == 16 {
+        let name = if self.grid.is_25() {
             format!("REGH_RIOI_BOT25_X{x}Y{y}")
         } else {
             format!("REGH_RIOI_X{x}Y{y}", y = y - 1)
@@ -946,11 +946,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.db.get_node("CLKC"),
             &[&format!(
                 "CLKC_X{x}Y{y}",
-                y = if self.grid.row_clk().to_idx() % 16 == 8 {
-                    y
-                } else {
-                    y - 1
-                }
+                y = if self.grid.is_25() { y } else { y - 1 }
             )],
             self.db.get_node_naming("CLKC"),
             &[(col, row)],
@@ -979,6 +975,19 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
 
+        for (row, tk) in [
+            (self.grid.rows_midbuf.0, "REG_V_MIDBUF_BOT"),
+            (self.grid.rows_midbuf.1, "REG_V_MIDBUF_TOP"),
+        ] {
+            let y = row.to_idx();
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("CKPIN_V_MIDBUF"),
+                &[&format!("{tk}_X{x}Y{y}")],
+                self.db.get_node_naming(tk),
+                &[],
+            );
+        }
+
         let mut hy = 0;
         for row in self.die.rows() {
             if row.to_idx() % 16 == 8 {
@@ -1003,6 +1012,35 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 hy += 1;
             }
+        }
+
+        let row = self.grid.row_clk();
+        for (col, lr) in [
+            (self.grid.cols_reg_buf.0, 'L'),
+            (self.grid.cols_reg_buf.1, 'R'),
+        ] {
+            let x = col.to_idx();
+            let y = row.to_idx();
+            let tk = match (lr, self.grid.columns[col].kind) {
+                ('L', ColumnKind::Dsp) => "REGH_DSP_L",
+                ('R', ColumnKind::Dsp | ColumnKind::DspPlus) => "REGH_DSP_R",
+                ('L', ColumnKind::Bram) => "REGH_BRAM_FEEDTHRU_L_GCLK",
+                ('R', ColumnKind::Bram) => "REGH_BRAM_FEEDTHRU_R_GCLK",
+                ('L', ColumnKind::CleXM) => "REGH_CLEXM_INT_GCLKL",
+                ('R', ColumnKind::CleXM | ColumnKind::CleXL) => "REGH_CLEXL_INT_CLK",
+                _ => unreachable!(),
+            };
+            let name = if self.grid.is_25() {
+                format!("{tk}_X{x}Y{y}")
+            } else {
+                format!("{tk}_X{x}Y{y}", y = y - 1)
+            };
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("CKPIN_H_MIDBUF"),
+                &[&name],
+                self.db.get_node_naming("CKPIN_H_MIDBUF"),
+                &[],
+            );
         }
     }
 
@@ -1629,11 +1667,11 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         for col in self.die.cols() {
             for row in self.die.rows() {
-                let crow = RowId::from_idx(if row.to_idx() % 16 < 8 {
-                    row.to_idx() / 16 * 16 + 7
+                let crow = if row.to_idx() % 16 < 8 {
+                    self.grid.row_hclk(row) - 1
                 } else {
-                    row.to_idx() / 16 * 16 + 8
-                });
+                    self.grid.row_hclk(row)
+                };
                 self.die[(col, row)].clkroot = (col, crow);
 
                 if row.to_idx() % 16 == 8 {
@@ -2023,6 +2061,14 @@ impl Grid {
         RowId::from_idx(self.rows.len() / 2)
     }
 
+    pub fn row_hclk(&self, row: RowId) -> RowId {
+        RowId::from_idx(row.to_idx() / 16 * 16 + 8)
+    }
+
+    pub fn is_25(&self) -> bool {
+        self.rows.len() % 32 == 16
+    }
+
     pub fn get_plls(&self) -> Vec<RowId> {
         let mut res = Vec::new();
         let mut row = self.rows.first_id().unwrap();
@@ -2030,7 +2076,7 @@ impl Grid {
             res.push(row + 16);
             row += 32;
         }
-        if self.row_clk().to_idx() % 16 == 8 {
+        if self.is_25() {
             row += 16;
         }
         while row + 32 <= self.rows.next_id() {
@@ -2047,7 +2093,7 @@ impl Grid {
             res.push(row);
             row += 32;
         }
-        if self.row_clk().to_idx() % 16 == 8 {
+        if self.is_25() {
             row += 16;
         }
         while row + 32 <= self.rows.next_id() {

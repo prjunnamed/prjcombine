@@ -1,6 +1,5 @@
 use prjcombine_entity::EntityId;
 use prjcombine_int::db::BelId;
-use prjcombine_int::grid::RowId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_spartan6::{ColumnKind, DisabledPart, ExpandedDevice};
 use std::collections::BTreeSet;
@@ -345,7 +344,7 @@ fn verify_ioiclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     if bel.col == edev.grid.col_lio() || bel.col == edev.grid.col_rio() {
         verify_pci_ce_v_src(edev, vrf, bel, true, "PCI_CE");
-        let srow = RowId::from_idx(bel.row.to_idx() / 16 * 16 + 8);
+        let srow = edev.grid.row_hclk(bel.row);
         let ud = if bel.row < srow { 'D' } else { 'U' };
         let obel = vrf.find_bel(bel.die, (bel.col, srow), "LRIOI_CLK").unwrap();
         for i in 0..4 {
@@ -1219,7 +1218,35 @@ fn verify_bufgmux(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("I1"), obel.wire(&format!("MUX{i1}")));
 }
 
-fn verify_clkc(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_clkc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel_ckpin_l = vrf
+        .find_bel(
+            bel.die,
+            (edev.grid.cols_reg_buf.0, bel.row),
+            "CKPIN_H_MIDBUF",
+        )
+        .unwrap();
+    let obel_ckpin_r = vrf
+        .find_bel(
+            bel.die,
+            (edev.grid.cols_reg_buf.1, bel.row),
+            "CKPIN_H_MIDBUF",
+        )
+        .unwrap();
+    let obel_ckpin_b = vrf
+        .find_bel(
+            bel.die,
+            (bel.col, edev.grid.rows_midbuf.0),
+            "CKPIN_V_MIDBUF",
+        )
+        .unwrap();
+    let obel_ckpin_t = vrf
+        .find_bel(
+            bel.die,
+            (bel.col, edev.grid.rows_midbuf.1),
+            "CKPIN_V_MIDBUF",
+        )
+        .unwrap();
     for i in 0..16 {
         vrf.claim_node(&[bel.fwire(&format!("MUX{i}"))]);
         vrf.claim_pip(
@@ -1232,6 +1259,25 @@ fn verify_clkc(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
             bel.wire(&format!("MUX{i}")),
             bel.wire(&format!("CKPIN_V{i}")),
         );
+        if i < 8 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("CKPIN_H{i}")),
+                obel_ckpin_r.fwire(&format!("CKPIN{i}_O")),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("CKPIN_V{i}")),
+                obel_ckpin_t.fwire(&format!("CKPIN{i}_O")),
+            ]);
+        } else {
+            vrf.verify_node(&[
+                bel.fwire(&format!("CKPIN_H{i}")),
+                obel_ckpin_l.fwire(&format!("CKPIN{ii}_O", ii = i - 8)),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("CKPIN_V{i}")),
+                obel_ckpin_b.fwire(&format!("CKPIN{ii}_O", ii = i - 8)),
+            ]);
+        }
         vrf.claim_pip(
             bel.crd(),
             bel.wire(&format!("MUX{i}")),
@@ -1243,8 +1289,31 @@ fn verify_clkc(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
             bel.wire(&format!("CMT_D{i}")),
         );
     }
-    // XXX source CKPIN
     // XXX source CMT
+}
+
+fn verify_ckpin_v_midbuf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    for i in 0..8 {
+        vrf.claim_node(&[bel.fwire(&format!("CKPIN{i}_O"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("CKPIN{i}_O")),
+            bel.wire(&format!("CKPIN{i}_I")),
+        );
+    }
+    // XXX source CKPIN
+}
+
+fn verify_ckpin_h_midbuf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    for i in 0..8 {
+        vrf.claim_node(&[bel.fwire(&format!("CKPIN{i}_O"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("CKPIN{i}_O")),
+            bel.wire(&format!("CKPIN{i}_I")),
+        );
+    }
+    // XXX source CKPIN
 }
 
 pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -1288,6 +1357,9 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "HCLK" => verify_hclk(edev, vrf, bel),
         _ if bel.key.starts_with("BUFGMUX") => verify_bufgmux(vrf, bel),
         "CLKC" => verify_clkc(edev, vrf, bel),
+
+        "CKPIN_V_MIDBUF" => verify_ckpin_v_midbuf(edev, vrf, bel),
+        "CKPIN_H_MIDBUF" => verify_ckpin_h_midbuf(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
