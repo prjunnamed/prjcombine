@@ -1093,8 +1093,7 @@ fn verify_hclk_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 }
 
-fn verify_hclk_v_midbuf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    // XXX source GCLK
+fn verify_hclk_v_midbuf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..16 {
         vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O"))]);
         vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_M"))]);
@@ -1108,6 +1107,14 @@ fn verify_hclk_v_midbuf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
             bel.wire(&format!("GCLK{i}_M")),
             bel.wire(&format!("GCLK{i}_I")),
         );
+        let obel = vrf
+            .find_bel(
+                bel.die,
+                (bel.col, edev.grid.row_clk()),
+                &format!("BUFGMUX{i}"),
+            )
+            .unwrap();
+        vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire_far("O")]);
     }
 }
 
@@ -1188,6 +1195,58 @@ fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     }
 }
 
+fn verify_bufgmux(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "BUFGMUX",
+        &[
+            ("I0", SitePinDir::In),
+            ("I1", SitePinDir::In),
+            ("O", SitePinDir::Out),
+        ],
+        &[],
+    );
+    vrf.claim_node(&[bel.fwire("I0")]);
+    vrf.claim_node(&[bel.fwire("I1")]);
+    vrf.claim_node(&[bel.fwire("O")]);
+    vrf.claim_node(&[bel.fwire_far("O")]);
+    vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
+    let obel = vrf.find_bel_sibling(bel, "CLKC");
+    let swz = [0, 1, 2, 4, 3, 5, 6, 7, 8, 9, 10, 12, 11, 13, 14, 15];
+    let i0 = swz[bel.bid.to_idx()];
+    let i1 = swz[bel.bid.to_idx() ^ 1];
+    vrf.claim_pip(bel.crd(), bel.wire("I0"), obel.wire(&format!("MUX{i0}")));
+    vrf.claim_pip(bel.crd(), bel.wire("I1"), obel.wire(&format!("MUX{i1}")));
+}
+
+fn verify_clkc(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    for i in 0..16 {
+        vrf.claim_node(&[bel.fwire(&format!("MUX{i}"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MUX{i}")),
+            bel.wire(&format!("CKPIN_H{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MUX{i}")),
+            bel.wire(&format!("CKPIN_V{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MUX{i}")),
+            bel.wire(&format!("CMT_U{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MUX{i}")),
+            bel.wire(&format!("CMT_D{i}")),
+        );
+    }
+    // XXX source CKPIN
+    // XXX source CMT
+}
+
 pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE0" => verify_sliceml(vrf, bel),
@@ -1227,6 +1286,8 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "HCLK_ROW" => verify_hclk_row(edev, vrf, bel),
         "HCLK_H_MIDBUF" => verify_hclk_h_midbuf(edev, vrf, bel),
         "HCLK" => verify_hclk(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFGMUX") => verify_bufgmux(vrf, bel),
+        "CLKC" => verify_clkc(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

@@ -225,6 +225,13 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
+    pub fn bels(mut self, bels: impl IntoIterator<Item = ExtrBelInfo>) -> Self {
+        for bel in bels {
+            self.bels.push(bel);
+        }
+        self
+    }
+
     pub fn skip_muxes(mut self, wires: impl IntoIterator<Item = WireId>) -> Self {
         self.skip_muxes.extend(wires);
         self

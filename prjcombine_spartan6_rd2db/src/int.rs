@@ -387,11 +387,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut xn = builder.xnode(tkn, tkn, xy).ref_single(xy, 0, intf_cnr);
-            for bel in bels {
-                xn = xn.bel(bel);
-            }
-            xn.extract();
+            builder
+                .xnode(tkn, tkn, xy)
+                .ref_single(xy, 0, intf_cnr)
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -657,11 +657,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
             }
             bels.push(bel_ioi);
-            let mut xn = builder.xnode("IOI", tkn, xy).ref_single(xy, 0, intf_ioi);
-            for bel in bels {
-                xn = xn.bel(bel);
-            }
-            xn.extract();
+            builder
+                .xnode("IOI", tkn, xy)
+                .ref_single(xy, 0, intf_ioi)
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -694,11 +694,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
                 bels.push(bel);
             }
-            let mut xn = builder.xnode("IOB", naming, xy).num_tiles(0);
-            for bel in bels {
-                xn = xn.bel(bel);
-            }
-            xn.extract();
+            builder
+                .xnode("IOB", naming, xy)
+                .num_tiles(0)
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -1211,10 +1211,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     xn = xn.ref_single(mxy.delta(-1, j as i32), 12 + i * 2 + j, intf);
                 }
             }
-            for bel in bels {
-                xn = xn.bel(bel);
-            }
-            xn.extract();
+            xn.bels(bels).extract();
         }
     }
 
@@ -1326,11 +1323,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extra_wire(format!("CMT{i}"), &[format!("REGV_PLL_HCLK{i}")]);
         }
         bels.push(bel);
-        let mut xn = builder.xnode("HCLK_ROW", "HCLK_ROW", xy).num_tiles(0);
-        for bel in bels {
-            xn = xn.bel(bel);
-        }
-        xn.extract();
+        builder
+            .xnode("HCLK_ROW", "HCLK_ROW", xy)
+            .num_tiles(0)
+            .bels(bels)
+            .extract();
     }
 
     for tkn in ["REG_V_HCLKBUF_BOT", "REG_V_HCLKBUF_TOP"] {
@@ -1348,6 +1345,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel(bel)
                 .extract();
         }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CLKC").iter().next() {
+        let mut bels = vec![];
+        for i in 0..16 {
+            bels.push(
+                builder
+                    .bel_xy(
+                        format!("BUFGMUX{i}"),
+                        "BUFGMUX",
+                        if (i & 4) != 0 { 1 } else { 0 },
+                        i,
+                    )
+                    .pin_name_only("O", 1)
+                    .pins_name_only(&["I0", "I1"]),
+            );
+        }
+        let mut bel = builder.bel_virtual("CLKC");
+        for i in 0..16 {
+            bel = bel
+                .extra_wire(format!("MUX{i}"), &[format!("CLKC_GCLK{i}")])
+                .extra_wire(format!("CKPIN_H{i}"), &[format!("CLKC_CKLR{i}")])
+                .extra_wire(format!("CKPIN_V{i}"), &[format!("CLKC_CKTB{i}")])
+                .extra_wire(format!("CMT_U{i}"), &[format!("CLKC_PLL_U{i}")])
+                .extra_wire(format!("CMT_D{i}"), &[format!("CLKC_PLL_L{i}")]);
+        }
+        bels.push(bel);
+        builder
+            .xnode("CLKC", "CLKC", xy)
+            .ref_int(xy.delta(-3, 1), 0)
+            .bels(bels)
+            .extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {

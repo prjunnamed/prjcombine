@@ -942,6 +942,29 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.db.get_node_naming("INTF.REGC"),
             &[(col, row)],
         );
+        let node = self.die[(col, row)].add_xnode(
+            self.db.get_node("CLKC"),
+            &[&format!(
+                "CLKC_X{x}Y{y}",
+                y = if self.grid.row_clk().to_idx() % 16 == 8 {
+                    y
+                } else {
+                    y - 1
+                }
+            )],
+            self.db.get_node_naming("CLKC"),
+            &[(col, row)],
+        );
+        for i in 0..16 {
+            node.add_bel(
+                i,
+                format!(
+                    "BUFGMUX_X{x}Y{y}",
+                    x = if (i & 4) != 0 { 3 } else { 2 },
+                    y = i + 1
+                ),
+            );
+        }
 
         for (row, tk) in [
             (self.grid.rows_hclkbuf.0, "REG_V_HCLKBUF_BOT"),
