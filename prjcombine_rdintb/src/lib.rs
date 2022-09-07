@@ -38,6 +38,7 @@ pub enum BelPinInfo {
 #[derive(Debug)]
 pub struct XNodeRawTile {
     pub xy: Coord,
+    pub tile_map: Option<EntityPartVec<NodeTileId, NodeTileId>>,
 }
 
 #[derive(Debug)]
@@ -183,7 +184,19 @@ impl ExtrBelInfo {
 
 impl XNodeInfo<'_, '_> {
     pub fn raw_tile(mut self, xy: Coord) -> Self {
-        self.raw_tiles.push(XNodeRawTile { xy });
+        self.raw_tiles.push(XNodeRawTile { xy, tile_map: None });
+        self
+    }
+
+    pub fn raw_tile_single(mut self, xy: Coord, slot: usize) -> Self {
+        self.raw_tiles.push(XNodeRawTile {
+            xy,
+            tile_map: Some(
+                [(NodeTileId::from_idx(0), NodeTileId::from_idx(slot))]
+                    .into_iter()
+                    .collect(),
+            ),
+        });
         self
     }
 
@@ -232,13 +245,13 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
-    pub fn skip_muxes(mut self, wires: impl IntoIterator<Item = WireId>) -> Self {
-        self.skip_muxes.extend(wires);
+    pub fn skip_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireId>) -> Self {
+        self.skip_muxes.extend(wires.into_iter().copied());
         self
     }
 
-    pub fn optin_muxes(mut self, wires: impl IntoIterator<Item = WireId>) -> Self {
-        self.optin_muxes.extend(wires);
+    pub fn optin_muxes<'a>(mut self, wires: impl IntoIterator<Item = &'a WireId>) -> Self {
+        self.optin_muxes.extend(wires.into_iter().copied());
         self
     }
 
@@ -261,24 +274,24 @@ impl XNodeInfo<'_, '_> {
             for &wi in tk.wires.keys() {
                 let nw = rd.lookup_wire_raw_force(rt.xy, wi);
                 if let Some(&w) = self.builder.extra_names.get(&rd.wires[wi]) {
-                    if self.num_tiles == 1 {
-                        names
-                            .entry(nw)
-                            .or_insert((IntConnKind::Raw, (NodeTileId::from_idx(0), w.1)));
-                    } else {
-                        names.entry(nw).or_insert((IntConnKind::Raw, w));
+                    let mut w = w;
+                    if let Some(ref tile_map) = rt.tile_map {
+                        w.0 = tile_map[w.0];
+                    } else if self.num_tiles == 1 {
+                        w.0 = NodeTileId::from_idx(0);
                     }
+                    names.entry(nw).or_insert((IntConnKind::Raw, w));
                     continue;
                 }
                 if let Some(xn) = self.builder.extra_names_tile.get(&tile.kind) {
                     if let Some(&w) = xn.get(&rd.wires[wi]) {
-                        if self.num_tiles == 1 {
-                            names
-                                .entry(nw)
-                                .or_insert((IntConnKind::Raw, (NodeTileId::from_idx(0), w.1)));
-                        } else {
-                            names.entry(nw).or_insert((IntConnKind::Raw, w));
+                        let mut w = w;
+                        if let Some(ref tile_map) = rt.tile_map {
+                            w.0 = tile_map[w.0];
+                        } else if self.num_tiles == 1 {
+                            w.0 = NodeTileId::from_idx(0);
                         }
+                        names.entry(nw).or_insert((IntConnKind::Raw, w));
                         continue;
                     }
                 }
@@ -862,6 +875,13 @@ impl XNodeExtractor<'_, '_, '_> {
                     for w in names {
                         if let Some(w) = self.rd.wires.get(w) {
                             if tk.wires.contains_key(&w) {
+                                if let Some(wn) = wn {
+                                    println!(
+                                        "COLLISION {wn} {w}",
+                                        wn = self.rd.wires[wn],
+                                        w = self.rd.wires[w]
+                                    );
+                                }
                                 assert!(wn.is_none());
                                 wn = Some(w);
                             }
@@ -2977,7 +2997,7 @@ impl<'a> IntBuilder<'a> {
             .xnode(name, naming, xy)
             .num_tiles(int_xy.len())
             .extract_muxes()
-            .skip_muxes(skip_wires.iter().copied());
+            .skip_muxes(skip_wires);
         for &xy in buf_xy {
             x = x.raw_tile(xy);
         }
@@ -3081,7 +3101,10 @@ impl<'a> IntBuilder<'a> {
             builder: self,
             kind: kind.into(),
             naming: naming.into(),
-            raw_tiles: vec![XNodeRawTile { xy: tile }],
+            raw_tiles: vec![XNodeRawTile {
+                xy: tile,
+                tile_map: None,
+            }],
             num_tiles: 1,
             refs: vec![],
             extract_muxes: false,

@@ -379,23 +379,28 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
-            let txtra = if row == self.grid.row_clk() - 2 {
-                "_LOWER_BOT"
+            let (txtra, naming) = if row == self.grid.row_clk() - 2 {
+                ("_LOWER_BOT", Some("CLKPIN_BUF.L.BOT"))
             } else if row == self.grid.row_clk() - 1 {
-                "_LOWER_TOP"
+                ("_LOWER_TOP", Some("CLKPIN_BUF.L.TOP"))
             } else if row == self.grid.row_clk() + 2 {
-                "_UPPER_BOT"
+                ("_UPPER_BOT", Some("CLKPIN_BUF.L.BOT"))
             } else if row == self.grid.row_clk() + 3 {
-                "_UPPER_TOP"
+                ("_UPPER_TOP", Some("CLKPIN_BUF.L.TOP"))
             } else {
-                ""
+                ("", None)
             };
-            self.die.fill_term_tile(
-                (col, row),
-                "TERM.W",
-                "TERM.W",
-                format!("{ltt}{txtra}_X{rx}Y{ry}", rx = rx - 1),
-            );
+            let name = format!("{ltt}{txtra}_X{rx}Y{ry}", rx = rx - 1);
+            if let Some(naming) = naming {
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming(naming),
+                    &[],
+                );
+            }
+            self.die
+                .fill_term_tile((col, row), "TERM.W", "TERM.W", name);
 
             if row.to_idx() % 16 == 8 {
                 let kind;
@@ -581,23 +586,28 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
-            let txtra = if row == self.grid.row_clk() - 2 {
-                "_LOWER_BOT"
+            let (txtra, naming) = if row == self.grid.row_clk() - 2 {
+                ("_LOWER_BOT", Some("CLKPIN_BUF.R.BOT"))
             } else if row == self.grid.row_clk() - 1 {
-                "_LOWER_TOP"
+                ("_LOWER_TOP", Some("CLKPIN_BUF.R.TOP"))
             } else if row == self.grid.row_clk() + 2 {
-                "_UPPER_BOT"
+                ("_UPPER_BOT", Some("CLKPIN_BUF.R.BOT"))
             } else if row == self.grid.row_clk() + 3 {
-                "_UPPER_TOP"
+                ("_UPPER_TOP", Some("CLKPIN_BUF.R.TOP"))
             } else {
-                ""
+                ("", None)
             };
-            self.die.fill_term_tile(
-                (col, row),
-                "TERM.E",
-                "TERM.E",
-                format!("{rtt}{txtra}_X{rx}Y{ry}", rx = rx + 3),
-            );
+            let name = format!("{rtt}{txtra}_X{rx}Y{ry}", rx = rx + 3);
+            if let Some(naming) = naming {
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming(naming),
+                    &[],
+                );
+            }
+            self.die
+                .fill_term_tile((col, row), "TERM.E", "TERM.E", name);
 
             if row.to_idx() % 16 == 8 {
                 let kind;
@@ -733,7 +743,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_tio_outer();
             let rx = self.rxlut[col] + 1;
             let ry = self.rylut[row] + 1;
-            let name = if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
+            let is_clk = col == self.grid.col_clk || col == self.grid.col_clk + 1;
+            let name = if is_clk {
                 format!("IOI_TTERM_REGT_X{rx}Y{ry}")
             } else {
                 format!("IOI_TTERM_CLB_X{rx}Y{ry}")
@@ -744,6 +755,20 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("TIOI_CLK"),
                 &[],
             );
+            if is_clk {
+                self.die[(col, row - 1)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("CLKPIN_BUF.T.BOT"),
+                    &[],
+                );
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("CLKPIN_BUF.T.TOP"),
+                    &[],
+                );
+            }
         }
     }
 
@@ -778,7 +803,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_bio_outer();
             let rx = self.rxlut[col] + 1;
             let ry = self.rylut[row] - 1;
-            let name = if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
+            let is_clk = col == self.grid.col_clk || col == self.grid.col_clk + 1;
+            let name = if is_clk {
                 format!("IOI_BTERM_REGB_X{rx}Y{ry}")
             } else {
                 format!("IOI_BTERM_CLB_X{rx}Y{ry}")
@@ -789,6 +815,20 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("BIOI_CLK"),
                 &[],
             );
+            if is_clk {
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("CLKPIN_BUF.B.BOT"),
+                    &[],
+                );
+                self.die[(col, row + 1)].add_xnode(
+                    self.db.get_node("CLKPIN_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("CLKPIN_BUF.B.TOP"),
+                    &[],
+                );
+            }
         }
     }
 
@@ -988,6 +1028,108 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
 
+        {
+            let row = self.grid.row_bio_outer();
+            let name = format!("REG_B_X{rx}Y{ry}", rx = rx + 1, ry = self.rylut[row] - 2);
+            let name_term = format!(
+                "REG_B_BTERM_X{rx}Y{ry}",
+                rx = rx + 2,
+                ry = self.rylut[row] - 1
+            );
+            let name_bufpll = format!(
+                "IOI_BTERM_BUFPLL_X{rx}Y{ry}",
+                rx = rx + 4,
+                ry = self.rylut[row] - 1
+            );
+            let name_int = format!(
+                "IOI_INT_X{x}Y{y}",
+                x = col.to_idx() + 1,
+                y = row.to_idx() + 1
+            );
+            let node = self.die[(col, row)].add_xnode(
+                self.db.get_node("REG_B"),
+                &[&name, &name_term, &name_bufpll, &name_int],
+                self.db.get_node_naming("REG_B"),
+                &[(col + 1, row + 1)],
+            );
+            node.add_bel(0, "BUFIO2_X3Y0".to_string());
+            node.add_bel(1, "BUFIO2_X3Y1".to_string());
+            node.add_bel(2, "BUFIO2_X3Y6".to_string());
+            node.add_bel(3, "BUFIO2_X3Y7".to_string());
+            node.add_bel(4, "BUFIO2_X1Y0".to_string());
+            node.add_bel(5, "BUFIO2_X1Y1".to_string());
+            node.add_bel(6, "BUFIO2_X1Y6".to_string());
+            node.add_bel(7, "BUFIO2_X1Y7".to_string());
+            node.add_bel(8, "BUFIO2FB_X3Y0".to_string());
+            node.add_bel(9, "BUFIO2FB_X3Y1".to_string());
+            node.add_bel(10, "BUFIO2FB_X3Y6".to_string());
+            node.add_bel(11, "BUFIO2FB_X3Y7".to_string());
+            node.add_bel(12, "BUFIO2FB_X1Y0".to_string());
+            node.add_bel(13, "BUFIO2FB_X1Y1".to_string());
+            node.add_bel(14, "BUFIO2FB_X1Y6".to_string());
+            node.add_bel(15, "BUFIO2FB_X1Y7".to_string());
+            node.add_bel(16, "BUFPLL_X1Y0".to_string());
+            node.add_bel(17, "BUFPLL_X1Y1".to_string());
+            node.add_bel(18, "BUFPLL_MCB_X1Y5".to_string());
+            node.add_bel(
+                19,
+                format!(
+                    "TIEOFF_X{x}Y{y}",
+                    x = self.tiexlut[col] + 4,
+                    y = row.to_idx() * 2 + 1
+                ),
+            );
+        }
+
+        {
+            let row = self.grid.row_tio_outer();
+            let name = format!("REG_T_X{rx}Y{ry}", rx = rx + 1, ry = self.rylut[row] + 2);
+            let name_term = format!(
+                "REG_T_TTERM_X{rx}Y{ry}",
+                rx = rx + 2,
+                ry = self.rylut[row] + 1
+            );
+            let name_bufpll = format!(
+                "IOI_TTERM_BUFPLL_X{rx}Y{ry}",
+                rx = rx + 4,
+                ry = self.rylut[row] + 1
+            );
+            let name_int = format!("IOI_INT_X{x}Y{y}", x = col.to_idx() + 1, y = row.to_idx());
+            let node = self.die[(col, row)].add_xnode(
+                self.db.get_node("REG_T"),
+                &[&name, &name_term, &name_bufpll, &name_int],
+                self.db.get_node_naming("REG_T"),
+                &[(col + 1, row)],
+            );
+            node.add_bel(0, "BUFIO2_X2Y28".to_string());
+            node.add_bel(1, "BUFIO2_X2Y29".to_string());
+            node.add_bel(2, "BUFIO2_X2Y26".to_string());
+            node.add_bel(3, "BUFIO2_X2Y27".to_string());
+            node.add_bel(4, "BUFIO2_X4Y28".to_string());
+            node.add_bel(5, "BUFIO2_X4Y29".to_string());
+            node.add_bel(6, "BUFIO2_X4Y26".to_string());
+            node.add_bel(7, "BUFIO2_X4Y27".to_string());
+            node.add_bel(8, "BUFIO2FB_X2Y28".to_string());
+            node.add_bel(9, "BUFIO2FB_X2Y29".to_string());
+            node.add_bel(10, "BUFIO2FB_X2Y26".to_string());
+            node.add_bel(11, "BUFIO2FB_X2Y27".to_string());
+            node.add_bel(12, "BUFIO2FB_X4Y28".to_string());
+            node.add_bel(13, "BUFIO2FB_X4Y29".to_string());
+            node.add_bel(14, "BUFIO2FB_X4Y26".to_string());
+            node.add_bel(15, "BUFIO2FB_X4Y27".to_string());
+            node.add_bel(16, "BUFPLL_X1Y5".to_string());
+            node.add_bel(17, "BUFPLL_X1Y4".to_string());
+            node.add_bel(18, "BUFPLL_MCB_X1Y9".to_string());
+            node.add_bel(
+                19,
+                format!(
+                    "TIEOFF_X{x}Y{y}",
+                    x = self.tiexlut[col] + 1,
+                    y = row.to_idx() * 2 + 1
+                ),
+            );
+        }
+
         let mut hy = 0;
         for row in self.die.rows() {
             if row.to_idx() % 16 == 8 {
@@ -1040,6 +1182,92 @@ impl<'a, 'b> Expander<'a, 'b> {
                 &[&name],
                 self.db.get_node_naming("CKPIN_H_MIDBUF"),
                 &[],
+            );
+        }
+
+        {
+            let col = self.grid.col_lio();
+            let rx = self.rxlut[col];
+            let ry = self.rylut[row];
+            let name = format!("REG_L_X{rx}Y{ry}", rx = rx - 2, ry = ry - 1);
+            let name_term = format!("REGH_IOI_LTERM_X{rx}Y{ry}", rx = rx - 1, ry = ry - 1);
+            let name_int0 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+            let name_int1 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1);
+            let node = self.die[(col, row)].add_xnode(
+                self.db.get_node("REG_L"),
+                &[&name, &name_term, &name_int0, &name_int1],
+                self.db.get_node_naming("REG_L"),
+                &[(col, row), (col, row + 1)],
+            );
+            node.add_bel(0, "BUFIO2_X1Y8".to_string());
+            node.add_bel(1, "BUFIO2_X1Y9".to_string());
+            node.add_bel(2, "BUFIO2_X1Y14".to_string());
+            node.add_bel(3, "BUFIO2_X1Y15".to_string());
+            node.add_bel(4, "BUFIO2_X0Y16".to_string());
+            node.add_bel(5, "BUFIO2_X0Y17".to_string());
+            node.add_bel(6, "BUFIO2_X0Y22".to_string());
+            node.add_bel(7, "BUFIO2_X0Y23".to_string());
+            node.add_bel(8, "BUFIO2FB_X1Y8".to_string());
+            node.add_bel(9, "BUFIO2FB_X1Y9".to_string());
+            node.add_bel(10, "BUFIO2FB_X1Y14".to_string());
+            node.add_bel(11, "BUFIO2FB_X1Y15".to_string());
+            node.add_bel(12, "BUFIO2FB_X0Y16".to_string());
+            node.add_bel(13, "BUFIO2FB_X0Y17".to_string());
+            node.add_bel(14, "BUFIO2FB_X0Y22".to_string());
+            node.add_bel(15, "BUFIO2FB_X0Y23".to_string());
+            node.add_bel(16, "BUFPLL_X0Y3".to_string());
+            node.add_bel(17, "BUFPLL_X0Y2".to_string());
+            node.add_bel(18, "BUFPLL_MCB_X0Y5".to_string());
+            node.add_bel(
+                19,
+                format!(
+                    "TIEOFF_X{x}Y{y}",
+                    x = self.tiexlut[col] + 1,
+                    y = row.to_idx() * 2 - 1
+                ),
+            );
+        }
+
+        {
+            let col = self.grid.col_rio();
+            let rx = self.rxlut[col];
+            let ry = self.rylut[row];
+            let name = format!("REG_R_X{rx}Y{ry}", rx = rx + 3, ry = ry - 1);
+            let name_term = format!("REGH_IOI_RTERM_X{rx}Y{ry}", rx = rx + 3, ry = ry - 1);
+            let name_int0 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+            let name_int1 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1);
+            let node = self.die[(col, row)].add_xnode(
+                self.db.get_node("REG_R"),
+                &[&name, &name_term, &name_int0, &name_int1],
+                self.db.get_node_naming("REG_R"),
+                &[(col, row), (col, row + 1)],
+            );
+            node.add_bel(0, "BUFIO2_X4Y20".to_string());
+            node.add_bel(1, "BUFIO2_X4Y21".to_string());
+            node.add_bel(2, "BUFIO2_X4Y18".to_string());
+            node.add_bel(3, "BUFIO2_X4Y19".to_string());
+            node.add_bel(4, "BUFIO2_X3Y12".to_string());
+            node.add_bel(5, "BUFIO2_X3Y13".to_string());
+            node.add_bel(6, "BUFIO2_X3Y10".to_string());
+            node.add_bel(7, "BUFIO2_X3Y11".to_string());
+            node.add_bel(8, "BUFIO2FB_X4Y20".to_string());
+            node.add_bel(9, "BUFIO2FB_X4Y21".to_string());
+            node.add_bel(10, "BUFIO2FB_X4Y18".to_string());
+            node.add_bel(11, "BUFIO2FB_X4Y19".to_string());
+            node.add_bel(12, "BUFIO2FB_X3Y12".to_string());
+            node.add_bel(13, "BUFIO2FB_X3Y13".to_string());
+            node.add_bel(14, "BUFIO2FB_X3Y10".to_string());
+            node.add_bel(15, "BUFIO2FB_X3Y11".to_string());
+            node.add_bel(16, "BUFPLL_X2Y3".to_string());
+            node.add_bel(17, "BUFPLL_X2Y2".to_string());
+            node.add_bel(18, "BUFPLL_MCB_X2Y5".to_string());
+            node.add_bel(
+                19,
+                format!(
+                    "TIEOFF_X{x}Y{y}",
+                    x = self.tiexlut[col] + 1,
+                    y = row.to_idx() * 2 - 1
+                ),
             );
         }
     }
