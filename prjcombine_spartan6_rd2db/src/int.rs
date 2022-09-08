@@ -1756,7 +1756,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             "REGB_PLLCLK1",
                             "REGT_PLLCLK1",
                         ],
-                    ),
+                    )
+                    .extra_int_out("LOCK0", &[format!("REG{e}_LOCK0")])
+                    .extra_int_out("LOCK1", &[format!("REG{e}_LOCK1")]),
             );
             if matches!(e, 'L' | 'R') {
                 bels.push(
@@ -1764,8 +1766,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .bel_virtual("BUFPLL_INS_LR")
                         .extra_int_in("GCLK0", &[format!("REG{e}_GCLK0")])
                         .extra_int_in("GCLK1", &[format!("REG{e}_GCLK1")])
-                        .extra_int_out("LOCK0", &[format!("REG{e}_LOCK0")])
-                        .extra_int_out("LOCK1", &[format!("REG{e}_LOCK1")])
                         .extra_int_in("PLLIN0_GCLK", &[format!("REG{e}_GCLK2")])
                         .extra_int_in("PLLIN1_GCLK", &[format!("REG{e}_GCLK3")])
                         .extra_wire("PLLIN0_CMT", &[format!("REG{e}_CLKPLL0")])
@@ -1777,9 +1777,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 let mut bel = builder
                     .bel_virtual("BUFPLL_INS_BT")
                     .extra_int_in("GCLK0", &[format!("REG{e}_GCLK0")])
-                    .extra_int_in("GCLK1", &[format!("REG{e}_GCLK1")])
-                    .extra_int_out("LOCK0", &[format!("REG{e}_LOCK0")])
-                    .extra_int_out("LOCK1", &[format!("REG{e}_LOCK1")]);
+                    .extra_int_in("GCLK1", &[format!("REG{e}_GCLK1")]);
                 for i in 0..6 {
                     bel = bel.extra_wire(
                         format!("PLLIN{i}"),
@@ -2068,6 +2066,336 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel(bel)
                 .extract();
         }
+    }
+
+    let intf = builder.db.get_node_naming("INTF");
+    for (tkn, bt, bkind, d0, d1, d2) in [
+        ("CMT_DCM_BOT", 'B', "DCM_BUFPLL_BUF_BOT", 'D', 'D', 'D'),
+        ("CMT_DCM2_BOT", 'B', "DCM_BUFPLL_BUF_BOT_MID", 'D', 'U', 'D'),
+        ("CMT_DCM_TOP", 'T', "DCM_BUFPLL_BUF_TOP", 'D', 'D', 'U'),
+        ("CMT_DCM2_TOP", 'T', "DCM_BUFPLL_BUF_TOP_MID", 'U', 'D', 'U'),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..2 {
+                let ii = 2 - i;
+                let mut bel = builder
+                    .bel_xy(&format!("DCM{i}"), "DCM", 0, i)
+                    .pins_name_only(&["CLKIN", "CLKFB", "SKEWCLKIN1", "SKEWCLKIN2"])
+                    .extra_int_in("CLKFB_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG0")])
+                    .extra_int_in("CLKIN_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG1")])
+                    .extra_int_in("CLKFB_CKINT1", &[format!("DCM{ii}_SE_CLK_IN0")])
+                    .extra_int_in("CLKIN_CKINT1", &[format!("DCM{ii}_SE_CLK_IN1")])
+                    .extra_wire("CLKIN_TEST", &[format!("DCM{ii}_CLKIN_TOPLL")])
+                    .extra_wire("CLKFB_TEST", &[format!("DCM{ii}_CLKFB_TOPLL")])
+                    .extra_wire("CLK_TO_PLL", &[format!("DCM{ii}_CLK_TO_PLL")])
+                    .extra_wire("CLK_FROM_PLL", &[format!("DCM{ii}_CLK_FROM_PLL")]);
+                for (j, pin) in [
+                    "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
+                    "CLKFX180", "CONCUR",
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    bel = bel
+                        .pin_name_only(pin, 0)
+                        .extra_wire(format!("{pin}_TEST"), &[format!("DCM{ii}_{pin}_TEST")])
+                        .extra_wire(format!("{pin}_OUT"), &[format!("DCM{ii}_CLKOUT{j}")]);
+                }
+                bels.push(bel);
+            }
+            let mut bel = builder.bel_virtual("CMT");
+            for i in 0..16 {
+                bel = bel
+                    .extra_int_in(format!("HCLK{i}_CKINT"), &[format!("DCM_FABRIC_CLK{i}")])
+                    .extra_wire(format!("HCLK{i}"), &[format!("DCM_HCLK{i}")])
+                    .extra_wire(format!("HCLK{i}_BUF"), &[format!("DCM_HCLK{i}_N")]);
+                if bt == 'B' {
+                    bel = bel
+                        .extra_wire(format!("CASC{i}_O"), &[format!("PLL_CLK_CASC_TOP{i}")])
+                        .extra_wire(format!("CASC{i}_I"), &[format!("PLL_CLK_CASC_BOT{i}")]);
+                } else {
+                    bel = bel
+                        .extra_wire(format!("CASC{i}_O"), &[format!("PLL_CLK_CASC_BOT{i}")])
+                        .extra_wire(format!("CASC{i}_I"), &[format!("PLL_CLK_CASC_TOP{i}")]);
+                }
+            }
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(
+                        format!("BUFIO2_BOT{i}"),
+                        &[
+                            format!("DCM_CLK_INDIRECT_TB_BOT{i}"),
+                            format!("DCM2_CLK_INDIRECT_TB_BOT{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2_TOP{i}"),
+                        &[
+                            format!("DCM_CLK_INDIRECT_LR_TOP{i}"),
+                            format!("DCM2_CLK_INDIRECT_LR_TOP{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2FB_BOT{i}"),
+                        &[
+                            format!("DCM_CLK_FEEDBACK_TB_BOT{i}"),
+                            format!("DCM2_CLK_FEEDBACK_TB_BOT{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2FB_TOP{i}"),
+                        &[
+                            format!("DCM_CLK_FEEDBACK_LR_TOP{i}"),
+                            format!("DCM2_CLK_FEEDBACK_LR_TOP{i}"),
+                        ],
+                    );
+            }
+            bels.push(bel);
+            builder
+                .xnode("CMT_DCM", tkn, xy)
+                .num_tiles(2)
+                .ref_single(xy.delta(-1, -2), 0, intf)
+                .ref_single(xy.delta(-1, 0), 1, intf)
+                .bels(bels)
+                .extract();
+
+            let mut bel = builder.bel_virtual(bkind);
+            if d0 == 'D' {
+                bel = bel
+                    .extra_wire("PLL0_LOCKED_O", &["CMT_DCM_LOCK_DN0"])
+                    .extra_wire("PLL0_LOCKED_I", &["CMT_DCM_LOCK_UP0"])
+                    .extra_wire("PLL0_CLKOUT0_O", &["DCM_IOCLK_DOWN0"])
+                    .extra_wire("PLL0_CLKOUT1_O", &["DCM_IOCLK_DOWN1"])
+                    .extra_wire("PLL0_CLKOUT0_I", &["DCM_IOCLK_UP0"])
+                    .extra_wire("PLL0_CLKOUT1_I", &["DCM_IOCLK_UP1"]);
+            } else {
+                bel = bel
+                    .extra_wire("PLL0_LOCKED_O", &["CMT_DCM_LOCK_UP0"])
+                    .extra_wire("PLL0_LOCKED_I", &["CMT_DCM_LOCK_DN0"])
+                    .extra_wire("PLL0_CLKOUT0_O", &["DCM_IOCLK_UP0"])
+                    .extra_wire("PLL0_CLKOUT1_O", &["DCM_IOCLK_UP1"])
+                    .extra_wire("PLL0_CLKOUT0_I", &["DCM_IOCLK_DOWN0"])
+                    .extra_wire("PLL0_CLKOUT1_I", &["DCM_IOCLK_DOWN1"]);
+            }
+            if d1 == 'D' {
+                bel = bel
+                    .extra_wire("PLL1_LOCKED_O", &["CMT_DCM_LOCK_DN1"])
+                    .extra_wire("PLL1_LOCKED_I", &["CMT_DCM_LOCK_UP1"])
+                    .extra_wire("PLL1_CLKOUT0_O", &["DCM_IOCLK_DOWN2"])
+                    .extra_wire("PLL1_CLKOUT1_O", &["DCM_IOCLK_DOWN3"])
+                    .extra_wire("PLL1_CLKOUT0_I", &["DCM_IOCLK_UP2"])
+                    .extra_wire("PLL1_CLKOUT1_I", &["DCM_IOCLK_UP3"]);
+            } else {
+                bel = bel
+                    .extra_wire("PLL1_LOCKED_O", &["CMT_DCM_LOCK_UP1"])
+                    .extra_wire("PLL1_LOCKED_I", &["CMT_DCM_LOCK_DN1"])
+                    .extra_wire("PLL1_CLKOUT0_O", &["DCM_IOCLK_UP2"])
+                    .extra_wire("PLL1_CLKOUT1_O", &["DCM_IOCLK_UP3"])
+                    .extra_wire("PLL1_CLKOUT0_I", &["DCM_IOCLK_DOWN2"])
+                    .extra_wire("PLL1_CLKOUT1_I", &["DCM_IOCLK_DOWN3"]);
+            }
+            if d2 == 'D' {
+                bel = bel
+                    .extra_wire("CLKC_LOCKED_O", &["CMT_DCM_LOCK_DN2"])
+                    .extra_wire("CLKC_LOCKED_I", &["CMT_DCM_LOCK_UP2"])
+                    .extra_wire("CLKC_CLKOUT0_O", &["DCM_IOCLK_DOWN4"])
+                    .extra_wire("CLKC_CLKOUT1_O", &["DCM_IOCLK_DOWN5"])
+                    .extra_wire("CLKC_CLKOUT0_I", &["DCM_IOCLK_UP4"])
+                    .extra_wire("CLKC_CLKOUT1_I", &["DCM_IOCLK_UP5"]);
+            } else {
+                bel = bel
+                    .extra_wire("CLKC_LOCKED_O", &["CMT_DCM_LOCK_UP2"])
+                    .extra_wire("CLKC_LOCKED_I", &["CMT_DCM_LOCK_DN2"])
+                    .extra_wire("CLKC_CLKOUT0_O", &["DCM_IOCLK_UP4"])
+                    .extra_wire("CLKC_CLKOUT1_O", &["DCM_IOCLK_UP5"])
+                    .extra_wire("CLKC_CLKOUT0_I", &["DCM_IOCLK_DOWN4"])
+                    .extra_wire("CLKC_CLKOUT1_I", &["DCM_IOCLK_DOWN5"]);
+            }
+
+            builder
+                .xnode(bkind, bkind, xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+    for (tkn, bt, out) in [
+        ("CMT_PLL_BOT", 'B', Some(1)),
+        ("CMT_PLL1_BOT", 'B', Some(1)),
+        ("CMT_PLL2_BOT", 'B', Some(0)),
+        ("CMT_PLL3_BOT", 'B', None),
+        ("CMT_PLL_TOP", 'T', Some(1)),
+        ("CMT_PLL2_TOP", 'T', Some(0)),
+        ("CMT_PLL3_TOP", 'T', None),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel_pll = builder
+                .bel_xy("PLL", "PLL_ADV", 0, 0)
+                .pins_name_only(&[
+                    "REL",
+                    "SKEWCLKIN1",
+                    "SKEWCLKIN2",
+                    "CLKOUT0",
+                    "CLKOUT1",
+                    "CLKOUT2",
+                    "CLKOUT3",
+                    "CLKOUT4",
+                    "CLKOUT5",
+                    "CLKFBDCM",
+                    "CLKOUTDCM0",
+                    "CLKOUTDCM1",
+                    "CLKOUTDCM2",
+                    "CLKOUTDCM3",
+                    "CLKOUTDCM4",
+                    "CLKOUTDCM5",
+                ])
+                .pin_name_only("CLKFBOUT", 1)
+                .pin_name_only("CLKIN1", 1)
+                .pin_name_only("CLKIN2", 1)
+                .pin_name_only("CLKFBIN", 1)
+                .extra_int_in("CLKIN1_CKINT0", &["CMT_CLK_FROM_BUFG0"])
+                .extra_int_in("CLKIN2_CKINT0", &["CMT_CLK_FROM_BUFG1"])
+                .extra_int_in("CLKIN2_CKINT1", &["CMT_SE_CLKIN0"])
+                .extra_int_in("CLKFBIN_CKINT0", &["CMT_CLK_FROM_BUFG2"])
+                .extra_int_in("CLKFBIN_CKINT1", &["CMT_SE_CLKIN1"])
+                .extra_wire("CLK_TO_DCM0", &["CMT_CLK_TO_DCM2"])
+                .extra_wire("CLK_TO_DCM1", &["CMT_CLK_TO_DCM1"])
+                .extra_wire("CLK_FROM_DCM0", &["CMT_CLK_FROM_DCM2"])
+                .extra_wire("CLK_FROM_DCM1", &["CMT_CLK_FROM_DCM1"])
+                .extra_wire("CLKIN1_TEST", &["CMT_CLKMUX_CLKREF_TEST"])
+                .extra_wire("CLKFBIN_TEST", &["CMT_CLKMUX_CLKFB_TEST"])
+                .extra_wire("CLKFBDCM_TEST", &["CMT_PLL_CLKFBDCM_TEST"])
+                .extra_int_out("TEST_CLK", &["CMT_TEST_CLK"])
+                .extra_wire("TEST_CLK_OUT", &["CMT_SE_CLK_OUT"])
+                .extra_wire("DCM0_CLKIN_TEST", &["CMT_DCM2_CLKIN"])
+                .extra_wire("DCM0_CLKFB_TEST", &["CMT_DCM2_CLKFB"])
+                .extra_wire("DCM1_CLKIN_TEST", &["CMT_DCM1_CLKIN"])
+                .extra_wire("DCM1_CLKFB_TEST", &["CMT_DCM1_CLKFB"]);
+            let bel_tie = builder
+                .bel_xy("TIEOFF.PLL", "TIEOFF", 0, 0)
+                .pins_name_only(&["HARD0", "HARD1", "KEEP1"]);
+            let mut bel = builder.bel_virtual("CMT");
+            for i in 0..16 {
+                bel = bel
+                    .extra_int_in(format!("HCLK{i}_CKINT"), &[format!("CMT_FABRIC_CLK{i}")])
+                    .extra_wire(format!("HCLK{i}"), &[format!("CMT_PLL_HCLK{i}")])
+                    .extra_wire(format!("HCLK{i}_BUF"), &[format!("CMT_PLL_HCLK{i}_E")]);
+                if bt == 'B' {
+                    bel = bel
+                        .extra_wire(format!("CASC{i}_O"), &[format!("PLL_CLK_CASC_IN{i}")])
+                        .extra_wire(format!("CASC{i}_I"), &[format!("CLK_PLLCASC_OUT{i}")]);
+                } else {
+                    bel = bel
+                        .extra_wire(format!("CASC{i}_O"), &[format!("CLK_PLLCASC_OUT{i}")])
+                        .extra_wire(format!("CASC{i}_I"), &[format!("PLL_CLK_CASC_IN{i}")]);
+                }
+            }
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(
+                        format!("BUFIO2_BOT{i}"),
+                        &[
+                            format!("CMT_PLL_CLK_INDIRECT_LRBOT{i}"),
+                            format!("CMT_PLL2_CLK_INDIRECT_LRBOT{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2_TOP{i}"),
+                        &[format!("PLL_CLK_INDIRECT_TB{i}")],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2FB_BOT{i}"),
+                        &[
+                            format!("CMT_PLL_CLK_FEEDBACK_LRBOT{i}"),
+                            format!("CMT_PLL2_CLK_FEEDBACK_LRBOT{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("BUFIO2FB_TOP{i}"),
+                        &[format!("PLL_CLK_FEEDBACK_TB{i}")],
+                    );
+            }
+            builder
+                .xnode("CMT_PLL", tkn, xy)
+                .num_tiles(2)
+                .ref_single(xy.delta(-1, -2), 0, intf)
+                .ref_single(xy.delta(-1, 0), 1, intf)
+                .bel(bel_pll)
+                .bel(bel_tie)
+                .bel(bel)
+                .extract();
+            if let Some(out) = out {
+                let naming = match out {
+                    0 => "PLL_BUFPLL_OUT0",
+                    1 => "PLL_BUFPLL_OUT1",
+                    _ => unreachable!(),
+                };
+                let mut bel = builder
+                    .bel_virtual("PLL_BUFPLL_OUT")
+                    .extra_wire("CLKOUT0", &["PLLCASC_CLKOUT0"])
+                    .extra_wire("CLKOUT1", &["PLLCASC_CLKOUT1"])
+                    .extra_wire("LOCKED", &["CMT_PLL_LOCKED"]);
+                if out == 0 {
+                    bel = bel
+                        .extra_wire("CLKOUT0_D", &["PLL2_IOCLK_DN0"])
+                        .extra_wire("CLKOUT1_D", &["PLL2_IOCLK_DN1"])
+                        .extra_wire("CLKOUT0_U", &["PLL2_IOCLK_UP0"])
+                        .extra_wire("CLKOUT1_U", &["PLL2_IOCLK_UP1"])
+                        .extra_wire("LOCKED_D", &["CMT_PLL2_LOCK_DN0"])
+                        .extra_wire("LOCKED_U", &["CMT_PLL2_LOCK_UP0"]);
+                } else {
+                    bel = bel
+                        .extra_wire("CLKOUT0_D", &["PLL_IOCLK_DN2"])
+                        .extra_wire("CLKOUT1_D", &["PLL_IOCLK_DN3"])
+                        .extra_wire("CLKOUT0_U", &["PLL_IOCLK_UP2"])
+                        .extra_wire("CLKOUT1_U", &["PLL_IOCLK_UP3"])
+                        .extra_wire("LOCKED_D", &["CMT_PLL_LOCK_DN1"])
+                        .extra_wire("LOCKED_U", &["CMT_PLL_LOCK_UP1"]);
+                }
+                builder
+                    .xnode("PLL_BUFPLL_OUT", naming, xy)
+                    .num_tiles(0)
+                    .bel(bel)
+                    .extract();
+            }
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("REG_C_CMT").iter().next() {
+        let bel = builder
+            .bel_virtual("CLKC_BUFPLL")
+            .extra_wire("PLL0D_CLKOUT0", &["REGC_PLLCLK_DN_IN0"])
+            .extra_wire("PLL0D_CLKOUT1", &["REGC_PLLCLK_DN_IN1"])
+            .extra_wire("PLL1D_CLKOUT0", &["REGC_PLLCLK_DN_IN2"])
+            .extra_wire("PLL1D_CLKOUT1", &["REGC_PLLCLK_DN_IN3"])
+            .extra_wire("PLL0U_CLKOUT0", &["REGC_PLLCLK_UP_IN0"])
+            .extra_wire("PLL0U_CLKOUT1", &["REGC_PLLCLK_UP_IN1"])
+            .extra_wire("PLL1U_CLKOUT0", &["REGC_PLLCLK_UP_IN2"])
+            .extra_wire("PLL1U_CLKOUT1", &["REGC_PLLCLK_UP_IN3"])
+            .extra_wire("OUTD_CLKOUT0", &["REGC_PLLCLK_DN_OUT0"])
+            .extra_wire("OUTD_CLKOUT1", &["REGC_PLLCLK_DN_OUT1"])
+            .extra_wire("OUTU_CLKOUT0", &["REGC_PLLCLK_UP_OUT0"])
+            .extra_wire("OUTU_CLKOUT1", &["REGC_PLLCLK_UP_OUT1"])
+            .extra_wire("OUTL_CLKOUT0", &["REGC_CLKPLL_IO_LT0"])
+            .extra_wire("OUTL_CLKOUT1", &["REGC_CLKPLL_IO_LT1"])
+            .extra_wire("OUTR_CLKOUT0", &["REGC_CLKPLL_IO_RT0"])
+            .extra_wire("OUTR_CLKOUT1", &["REGC_CLKPLL_IO_RT1"])
+            .extra_wire("PLL0D_LOCKED", &["PLL_LOCK_BOT0"])
+            .extra_wire("PLL1D_LOCKED", &["PLL_LOCK_BOT1"])
+            .extra_wire("PLL0U_LOCKED", &["PLL_LOCK_TOP0"])
+            .extra_wire("PLL1U_LOCKED", &["PLL_LOCK_TOP1"])
+            .extra_wire("OUTD_LOCKED", &["PLL_LOCK_BOT2"])
+            .extra_wire("OUTU_LOCKED", &["PLL_LOCK_TOP2"])
+            .extra_wire("OUTL_LOCKED0", &["CLK_PLL_LOCK_LT0"])
+            .extra_wire("OUTL_LOCKED1", &["CLK_PLL_LOCK_LT1"])
+            .extra_wire("OUTR_LOCKED0", &["CLK_PLL_LOCK_RT0"])
+            .extra_wire("OUTR_LOCKED1", &["CLK_PLL_LOCK_RT1"]);
+        builder
+            .xnode("CLKC_BUFPLL", "CLKC_BUFPLL", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {

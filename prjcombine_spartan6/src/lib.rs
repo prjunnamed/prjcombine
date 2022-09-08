@@ -1002,6 +1002,16 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
 
+        self.die[(col, row)].add_xnode(
+            self.db.get_node("CLKC_BUFPLL"),
+            &[&format!(
+                "REG_C_CMT_X{x}Y{y}",
+                y = if self.grid.is_25() { y } else { y - 1 }
+            )],
+            self.db.get_node_naming("CLKC_BUFPLL"),
+            &[],
+        );
+
         for (row, tk) in [
             (self.grid.rows_hclkbuf.0, "REG_V_HCLKBUF_BOT"),
             (self.grid.rows_hclkbuf.1, "REG_V_HCLKBUF_TOP"),
@@ -1272,12 +1282,137 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
-    fn fill_dcms(&mut self) {
+    fn fill_cmts(&mut self) {
         let col = self.grid.col_clk;
         let x = col.to_idx();
         let def_rt = NodeRawTileId::from_idx(0);
-        for br in self.grid.get_dcms() {
-            for row in [br + 7, br + 8] {
+
+        let plls;
+        let dcms;
+        match self.grid.rows.len() {
+            64 | 80 => {
+                plls = vec![
+                    (
+                        self.grid.row_bot() + 24,
+                        "CMT_PLL_BOT",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                    (
+                        self.grid.row_top() - 8,
+                        "CMT_PLL_TOP",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                ];
+                dcms = vec![
+                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
+                    (
+                        self.grid.row_top() - 24,
+                        "CMT_DCM_TOP",
+                        "DCM_BUFPLL_BUF_TOP",
+                    ),
+                ];
+            }
+            128 => {
+                plls = vec![
+                    (
+                        self.grid.row_bot() + 24,
+                        "CMT_PLL1_BOT",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                    (
+                        self.grid.row_bot() + 56,
+                        "CMT_PLL2_BOT",
+                        Some("PLL_BUFPLL_OUT0"),
+                    ),
+                    (
+                        self.grid.row_top() - 40,
+                        "CMT_PLL2_TOP",
+                        Some("PLL_BUFPLL_OUT0"),
+                    ),
+                    (
+                        self.grid.row_top() - 8,
+                        "CMT_PLL_TOP",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                ];
+                dcms = vec![
+                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
+                    (
+                        self.grid.row_bot() + 40,
+                        "CMT_DCM2_BOT",
+                        "DCM_BUFPLL_BUF_BOT_MID",
+                    ),
+                    (
+                        self.grid.row_top() - 56,
+                        "CMT_DCM_TOP",
+                        "DCM_BUFPLL_BUF_TOP",
+                    ),
+                    (
+                        self.grid.row_top() - 24,
+                        "CMT_DCM2_TOP",
+                        "DCM_BUFPLL_BUF_TOP_MID",
+                    ),
+                ];
+            }
+            192 => {
+                plls = vec![
+                    (
+                        self.grid.row_bot() + 24,
+                        "CMT_PLL1_BOT",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                    (self.grid.row_bot() + 56, "CMT_PLL3_BOT", None),
+                    (
+                        self.grid.row_bot() + 88,
+                        "CMT_PLL2_BOT",
+                        Some("PLL_BUFPLL_OUT0"),
+                    ),
+                    (
+                        self.grid.row_top() - 72,
+                        "CMT_PLL2_TOP",
+                        Some("PLL_BUFPLL_OUT0"),
+                    ),
+                    (self.grid.row_top() - 40, "CMT_PLL3_TOP", None),
+                    (
+                        self.grid.row_top() - 8,
+                        "CMT_PLL_TOP",
+                        Some("PLL_BUFPLL_OUT1"),
+                    ),
+                ];
+                dcms = vec![
+                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
+                    (
+                        self.grid.row_bot() + 40,
+                        "CMT_DCM2_BOT",
+                        "DCM_BUFPLL_BUF_BOT_MID",
+                    ),
+                    (
+                        self.grid.row_bot() + 72,
+                        "CMT_DCM2_BOT",
+                        "DCM_BUFPLL_BUF_BOT_MID",
+                    ),
+                    (
+                        self.grid.row_top() - 88,
+                        "CMT_DCM_TOP",
+                        "DCM_BUFPLL_BUF_TOP",
+                    ),
+                    (
+                        self.grid.row_top() - 56,
+                        "CMT_DCM2_TOP",
+                        "DCM_BUFPLL_BUF_TOP_MID",
+                    ),
+                    (
+                        self.grid.row_top() - 24,
+                        "CMT_DCM2_TOP",
+                        "DCM_BUFPLL_BUF_TOP_MID",
+                    ),
+                ];
+            }
+            _ => unreachable!(),
+        }
+
+        for (dy, (br, tk, bk)) in dcms.into_iter().enumerate() {
+            for row in [br - 1, br] {
                 let y = row.to_idx();
                 let tile = &mut self.die[(col, row)];
                 let node = &mut tile.nodes[0];
@@ -1291,15 +1426,25 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[(col, row)],
                 );
             }
+            let name = format!("{tk}_X{x}Y{y}", y = br.to_idx());
+            let node = self.die[(col, br)].add_xnode(
+                self.db.get_node("CMT_DCM"),
+                &[&name],
+                self.db.get_node_naming(tk),
+                &[(col, br - 1), (col, br)],
+            );
+            node.add_bel(0, format!("DCM_X0Y{y}", y = dy * 2));
+            node.add_bel(1, format!("DCM_X0Y{y}", y = dy * 2 + 1));
+            self.die[(col, br)].add_xnode(
+                self.db.get_node(bk),
+                &[&name],
+                self.db.get_node_naming(bk),
+                &[],
+            );
         }
-    }
 
-    fn fill_plls(&mut self) {
-        let col = self.grid.col_clk;
-        let x = col.to_idx();
-        let def_rt = NodeRawTileId::from_idx(0);
-        for br in self.grid.get_plls() {
-            let row = br + 7;
+        for (py, (br, tk, out)) in plls.into_iter().enumerate() {
+            let row = br - 1;
             let y = row.to_idx();
             let tile = &mut self.die[(col, row)];
             tile.add_xnode(
@@ -1308,7 +1453,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("INTF"),
                 &[(col, row)],
             );
-            let row = br + 8;
+            let row = br;
             let y = row.to_idx();
             let tile = &mut self.die[(col, row)];
             let node = &mut tile.nodes[0];
@@ -1321,13 +1466,38 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("INTF"),
                 &[(col, row)],
             );
+
+            let name = format!("{tk}_X{x}Y{y}", y = br.to_idx());
+            let node = self.die[(col, br)].add_xnode(
+                self.db.get_node("CMT_PLL"),
+                &[&name],
+                self.db.get_node_naming(tk),
+                &[(col, br - 1), (col, br)],
+            );
+            node.add_bel(0, format!("PLL_ADV_X0Y{py}"));
+            node.add_bel(
+                1,
+                format!(
+                    "TIEOFF_X{x}Y{y}",
+                    x = self.tiexlut[col] + 2,
+                    y = br.to_idx() * 2 + 1
+                ),
+            );
+            if let Some(out) = out {
+                self.die[(col, br)].add_xnode(
+                    self.db.get_node("PLL_BUFPLL_OUT"),
+                    &[&name],
+                    self.db.get_node_naming(out),
+                    &[],
+                );
+            }
         }
     }
 
     fn fill_gts(&mut self) {
         match self.grid.gts {
             Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
-                let row_gt_mid = RowId::from_idx(self.grid.rows.len() - 8);
+                let row_gt_mid = self.grid.row_top() - 8;
                 let row_gt_bot = row_gt_mid - 8;
                 let row_pcie_bot = row_gt_bot - 16;
                 self.die.nuke_rect(bc - 6, row_gt_mid, 11, 8);
@@ -1421,7 +1591,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
         match self.grid.gts {
             Gts::Double(_, bc) | Gts::Quad(_, bc) => {
-                let row_gt_mid = RowId::from_idx(self.grid.rows.len() - 8);
+                let row_gt_mid = self.grid.row_top() - 8;
                 let row_gt_bot = row_gt_mid - 8;
                 self.die.nuke_rect(bc - 4, row_gt_mid, 11, 8);
                 self.die.nuke_rect(bc - 2, row_gt_bot, 8, 8);
@@ -1857,7 +2027,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let mut name = format!("DSP_HCLK_GCLK_FOLD_X{x}Y{y}", y = y - 1);
                     let mut naming = "DSP_HCLK_GCLK_FOLD";
                     if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.grid.gts {
-                        if col == cr + 6 && row == self.grid.row_tio_outer() - 7 {
+                        if col == cr + 6 && row == self.grid.row_top() - 8 {
                             name = format!("GTPDUAL_DSP_FEEDTHRU_X{rx}Y{ry}", rx = rx + 1);
                             naming = "GTPDUAL_DSP_FEEDTHRU";
                         }
@@ -1928,15 +2098,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                         continue;
                     }
                     if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.grid.gts {
-                        if col == cl + 2 && row == self.grid.row_tio_outer() - 23 {
+                        if col == cl + 2 && row == self.grid.row_top() - 24 {
                             name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}", y = y - 1);
                         }
-                        if col == cl + 3 && row == self.grid.row_tio_outer() - 7 {
+                        if col == cl + 3 && row == self.grid.row_top() - 8 {
                             name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                         }
                     }
                     if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.grid.gts {
-                        if col == cr + 6 && row == self.grid.row_tio_outer() - 7 {
+                        if col == cr + 6 && row == self.grid.row_top() - 8 {
                             name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                         }
                     }
@@ -2072,6 +2242,14 @@ impl Grid {
 
     pub fn col_rio(&self) -> ColId {
         ColId::from_idx(self.columns.len() - 1)
+    }
+
+    pub fn row_bot(&self) -> RowId {
+        RowId::from_idx(0)
+    }
+
+    pub fn row_top(&self) -> RowId {
+        self.rows.next_id()
     }
 
     pub fn row_bio_outer(&self) -> RowId {
@@ -2448,8 +2626,7 @@ impl Grid {
         expander.fill_mcb();
         expander.fill_pcilogic();
         expander.fill_spine();
-        expander.fill_dcms();
-        expander.fill_plls();
+        expander.fill_cmts();
         expander.fill_gts();
         expander.fill_btterm();
         expander.die.fill_main_passes();
