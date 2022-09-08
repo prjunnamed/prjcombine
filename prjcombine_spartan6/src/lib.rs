@@ -1,7 +1,9 @@
 use core::cmp::Ordering;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::{BelId, IntDb, NodeRawTileId};
-use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{
+    ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -1494,7 +1496,28 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
-    fn fill_gts(&mut self) {
+    fn fill_gt_bels(node: &mut ExpandedTileNode, gtx: usize, gty: usize) {
+        node.add_bel(0, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 2));
+        node.add_bel(1, format!("IPAD_X{gtx}Y{y}", y = gty * 8));
+        node.add_bel(2, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 3));
+        node.add_bel(3, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 1));
+        node.add_bel(4, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 5));
+        node.add_bel(5, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 4));
+        node.add_bel(6, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 7));
+        node.add_bel(7, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 6));
+        node.add_bel(8, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1));
+        node.add_bel(9, format!("OPAD_X{gtx}Y{y}", y = gty * 4));
+        node.add_bel(10, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3));
+        node.add_bel(11, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2));
+        node.add_bel(12, format!("BUFDS_X{x}Y{y}", x = gtx + 1, y = 2 + gty * 2));
+        node.add_bel(
+            13,
+            format!("BUFDS_X{x}Y{y}", x = gtx + 1, y = 2 + gty * 2 + 1),
+        );
+        node.add_bel(14, format!("GTPA1_DUAL_X{gtx}Y{gty}"));
+    }
+
+    fn fill_gts_holes(&mut self) {
         match self.grid.gts {
             Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
                 let row_gt_mid = self.grid.row_top() - 8;
@@ -1548,6 +1571,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     row_b: row_gt_bot,
                     row_t: row_gt_mid,
                 });
+
                 let col_l = bc - 2;
                 let col_r = bc + 2;
                 for dy in 0..16 {
@@ -1567,25 +1591,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     row_b: row_pcie_bot,
                     row_t: row_gt_bot,
                 });
-                if !self.disabled.contains(&DisabledPart::Gtp) {
-                    let mut crd = vec![];
-                    for dy in 0..16 {
-                        crd.push((col_l, row_pcie_bot + dy));
-                    }
-                    for dy in 0..16 {
-                        crd.push((col_r, row_pcie_bot + dy));
-                    }
-                    let x = bc.to_idx();
-                    let y = row_pcie_bot.to_idx() - 1;
-                    let name = format!("PCIE_TOP_X{x}Y{y}");
-                    let node = self.die[crd[0]].add_xnode(
-                        self.db.get_node("PCIE"),
-                        &[&name],
-                        self.db.get_node_naming("PCIE"),
-                        &crd,
-                    );
-                    node.add_bel(0, "PCIE_X0Y0".to_string());
-                }
             }
             _ => (),
         }
@@ -1694,6 +1699,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 row_b: row_gt_mid,
                 row_t: row_gt_mid + 8,
             });
+
             let col_l = bcr - 5;
             let col_r = bcr + 7;
             for dy in 0..8 {
@@ -1741,6 +1747,161 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_gts(&mut self) {
+        if self.disabled.contains(&DisabledPart::Gtp) {
+            return;
+        }
+        match self.grid.gts {
+            Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
+                let row_gt_mid = self.grid.row_top() - 8;
+                let row_gt_bot = row_gt_mid - 8;
+                let row_pcie_bot = row_gt_bot - 16;
+
+                let col_l = bc - 5;
+                let col_r = bc + 3;
+                let mut crd = vec![];
+                for dy in 0..8 {
+                    crd.push((col_l, row_gt_bot + dy));
+                }
+                for dy in 0..8 {
+                    crd.push((col_r, row_gt_bot + dy));
+                }
+                let x = bc.to_idx();
+                let y = row_pcie_bot.to_idx() - 1;
+                let name = format!("GTPDUAL_TOP_X{x}Y{y}");
+                let name_buf = format!(
+                    "BRAM_TOP_TTERM_L_X{x}Y{y}",
+                    x = self.rxlut[bc] + 2,
+                    y = self.rylut[row_gt_mid + 7] + 1
+                );
+                let node = self.die[(bc, self.grid.row_tio_outer())].add_xnode(
+                    self.db.get_node("GTP"),
+                    &[&name, &name_buf],
+                    self.db.get_node_naming("GTPDUAL_TOP"),
+                    &crd,
+                );
+                let gty = if matches!(self.grid.gts, Gts::Quad(_, _)) {
+                    1
+                } else {
+                    0
+                };
+                Self::fill_gt_bels(node, 0, gty);
+
+                let col_l = bc - 2;
+                let col_r = bc + 2;
+                let mut crd = vec![];
+                for dy in 0..16 {
+                    crd.push((col_l, row_pcie_bot + dy));
+                }
+                for dy in 0..16 {
+                    crd.push((col_r, row_pcie_bot + dy));
+                }
+                let x = bc.to_idx();
+                let y = row_pcie_bot.to_idx() - 1;
+                let name = format!("PCIE_TOP_X{x}Y{y}");
+                let node = self.die[crd[0]].add_xnode(
+                    self.db.get_node("PCIE"),
+                    &[&name],
+                    self.db.get_node_naming("PCIE"),
+                    &crd,
+                );
+                node.add_bel(0, "PCIE_X0Y0".to_string());
+            }
+            _ => (),
+        }
+        match self.grid.gts {
+            Gts::Double(_, bc) | Gts::Quad(_, bc) => {
+                let row_gt_mid = self.grid.row_top() - 8;
+                let row_gt_bot = row_gt_mid - 8;
+
+                let col_l = bc - 3;
+                let col_r = bc + 6;
+                let mut crd = vec![];
+                for dy in 0..8 {
+                    crd.push((col_l, row_gt_bot + dy));
+                }
+                for dy in 0..8 {
+                    crd.push((col_r, row_gt_bot + dy));
+                }
+                let x = bc.to_idx();
+                let y = row_gt_bot.to_idx() - 1;
+                let name = format!("GTPDUAL_TOP_X{x}Y{y}");
+                let name_buf = format!(
+                    "BRAM_TOP_TTERM_R_X{x}Y{y}",
+                    x = self.rxlut[bc] + 2,
+                    y = self.rylut[row_gt_mid + 7] + 1
+                );
+                let node = self.die[(bc, self.grid.row_tio_outer())].add_xnode(
+                    self.db.get_node("GTP"),
+                    &[&name, &name_buf],
+                    self.db.get_node_naming("GTPDUAL_TOP"),
+                    &crd,
+                );
+                let gty = if matches!(self.grid.gts, Gts::Quad(_, _)) {
+                    1
+                } else {
+                    0
+                };
+                Self::fill_gt_bels(node, 1, gty);
+            }
+            _ => (),
+        }
+        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+            let row_gt_bot = RowId::from_idx(0);
+            let row_gt_mid = RowId::from_idx(8);
+
+            let col_l = bcl - 5;
+            let col_r = bcl + 3;
+            let mut crd = vec![];
+            for dy in 0..8 {
+                crd.push((col_l, row_gt_mid + dy));
+            }
+            for dy in 0..8 {
+                crd.push((col_r, row_gt_mid + dy));
+            }
+            let x = bcl.to_idx();
+            let y = row_gt_mid.to_idx() + 8;
+            let name = format!("GTPDUAL_BOT_X{x}Y{y}");
+            let name_buf = format!(
+                "BRAM_BOT_BTERM_L_X{x}Y{y}",
+                x = self.rxlut[bcl] + 2,
+                y = self.rylut[row_gt_bot] - 1
+            );
+            let node = self.die[(bcl, self.grid.row_bio_outer())].add_xnode(
+                self.db.get_node("GTP"),
+                &[&name, &name_buf],
+                self.db.get_node_naming("GTPDUAL_BOT"),
+                &crd,
+            );
+            Self::fill_gt_bels(node, 0, 0);
+
+            let col_l = bcr - 3;
+            let col_r = bcr + 6;
+            let mut crd = vec![];
+            for dy in 0..8 {
+                crd.push((col_l, row_gt_mid + dy));
+            }
+            for dy in 0..8 {
+                crd.push((col_r, row_gt_mid + dy));
+            }
+            let x = bcr.to_idx();
+            let y = row_gt_mid.to_idx() + 8;
+            let name = format!("GTPDUAL_BOT_X{x}Y{y}");
+            let name_buf = format!(
+                "BRAM_BOT_BTERM_R_X{x}Y{y}",
+                x = self.rxlut[bcr] + 2,
+                y = self.rylut[row_gt_bot] - 1
+            );
+            let node = self.die[(bcr, self.grid.row_bio_outer())].add_xnode(
+                self.db.get_node("GTP"),
+                &[&name, &name_buf],
+                self.db.get_node_naming("GTPDUAL_BOT"),
+                &crd,
+            );
+            Self::fill_gt_bels(node, 1, 0);
+        }
+    }
+
     fn fill_btterm(&mut self) {
         for (col, &cd) in &self.grid.columns {
             let (btt, ttt) = match cd.kind {
@@ -1765,7 +1926,11 @@ impl<'a, 'b> Expander<'a, 'b> {
             let rx = self.rxlut[col];
             let ryb = self.rylut[self.grid.row_bio_outer()] - 1;
             let mut row_b = self.grid.row_bio_outer();
-            while self.die[(col, row_b)].nodes.is_empty() {
+            while !self.die[(col, row_b)]
+                .nodes
+                .iter()
+                .any(|x| self.db.nodes.key(x.kind).starts_with("INT"))
+            {
                 row_b += 1;
             }
             if !btt.is_empty() {
@@ -1779,7 +1944,11 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             let ryt = self.rylut[self.grid.row_tio_outer()] + 1;
             let mut row_t = self.grid.row_tio_outer();
-            while self.die[(col, row_t)].nodes.is_empty() {
+            while !self.die[(col, row_t)]
+                .nodes
+                .iter()
+                .any(|x| self.db.nodes.key(x.kind).starts_with("INT"))
+            {
                 row_t -= 1;
             }
             self.die.fill_term_tile(
@@ -1884,7 +2053,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if cd.kind != ColumnKind::Bram {
                 continue;
             }
-            for row in self.die.rows() {
+            'a: for row in self.die.rows() {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
@@ -1893,8 +2062,10 @@ impl<'a, 'b> Expander<'a, 'b> {
                     continue;
                 }
                 let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
-                    continue;
+                for hole in &self.holes {
+                    if hole.contains(col, row) {
+                        continue 'a;
+                    }
                 }
                 let by = row.to_idx() / 2 - bby;
                 let x = col.to_idx();
@@ -1954,7 +2125,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
                 continue;
             }
-            for row in self.die.rows() {
+            'a: for row in self.die.rows() {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
@@ -1971,8 +2142,10 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                 }
                 let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
-                    continue;
+                for hole in &self.holes {
+                    if hole.contains(col, row) {
+                        continue 'a;
+                    }
                 }
                 let dy = row.to_idx() / 4 - bdy;
                 let x = col.to_idx();
@@ -2627,9 +2800,10 @@ impl Grid {
         expander.fill_pcilogic();
         expander.fill_spine();
         expander.fill_cmts();
-        expander.fill_gts();
+        expander.fill_gts_holes();
         expander.fill_btterm();
         expander.die.fill_main_passes();
+        expander.fill_gts();
         expander.fill_bram();
         expander.fill_dsp();
         expander.fill_cle();

@@ -1791,6 +1791,52 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     bel = bel.extra_wire(format!("LOCKED{i}"), &[format!("REG{e}_LOCKIN{i}")]);
                 }
                 bels.push(bel);
+                let mut bel = builder
+                    .bel_virtual("GTP_H_BUF")
+                    .raw_tile(1)
+                    .extra_wire("CLKINEAST_L", &[format!("REG{e}_{e}TERM_GTP_CLKINEAST0")])
+                    .extra_wire("CLKINWEST_L", &[format!("REG{e}_{e}TERM_GTP_CLKINWEST0")])
+                    .extra_wire(
+                        "CLKINEAST_R",
+                        &[format!("REG{e}_{e}TERM_ALTGTP_CLKINEAST0")],
+                    )
+                    .extra_wire(
+                        "CLKINWEST_R",
+                        &[format!("REG{e}_{e}TERM_ALTGTP_CLKINWEST0")],
+                    )
+                    .extra_wire("CLKOUT_EW_L", &[format!("REG{e}_{e}TERM_GTP_CLKOUTEW0")])
+                    .extra_wire("CLKOUT_EW_R", &[format!("REG{e}_{e}TERM_ALTGTP_CLKOUTEW0")]);
+                for i in 0..3 {
+                    bel = bel
+                        .extra_wire_force(
+                            format!("RXCHBONDI{i}_L"),
+                            format!("REG{e}_{e}TERM_GTP_RXCHBONDO{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("RXCHBONDO{i}_L"),
+                            format!("REG{e}_{e}TERM_GTP_RXCHBONDI{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("RXCHBONDI{i}_R"),
+                            format!("REG{e}_{e}TERM_ALTGTP_RXCHBONDO{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("RXCHBONDO{i}_R"),
+                            format!("REG{e}_{e}TERM_ALTGTP_RXCHBONDI{i}"),
+                        );
+                }
+                for i in 0..5 {
+                    bel = bel
+                        .extra_wire_force(
+                            format!("RCALOUTEAST{i}_L"),
+                            format!("REG{e}_{e}TERM_GTP_RCALOUTEAST{i}"),
+                        )
+                        .extra_wire_force(
+                            format!("RCALINEAST{i}_R"),
+                            format!("REG{e}_{e}TERM_ALTGTP_RCALINEAST{i}"),
+                        );
+                }
+                bels.push(bel);
             }
             let mut xn = builder.xnode(tkn, tkn, xy);
             match tkn {
@@ -2417,6 +2463,295 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "PCIE",
             &[builder.bel_xy("PCIE", "PCIE", 0, 0)],
         );
+    }
+
+    for tkn in ["GTPDUAL_BOT", "GTPDUAL_TOP"] {
+        let is_b = tkn == "GTPDUAL_BOT";
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf_rterm = builder.db.get_node_naming("INTF.RTERM");
+            let intf_lterm = builder.db.get_node_naming("INTF.LTERM");
+            let by = if is_b { 0 } else { -9 };
+            let intfs_l: [_; 8] = core::array::from_fn(|i| {
+                builder
+                    .walk_to_int(xy.delta(0, by + i as i32), Dir::W)
+                    .unwrap()
+                    .delta(1, 0)
+            });
+            let intfs_r: [_; 8] = core::array::from_fn(|i| {
+                builder
+                    .walk_to_int(xy.delta(0, by + i as i32), Dir::E)
+                    .unwrap()
+                    .delta(-1, 0)
+            });
+            let mut bels = vec![];
+            for (i, key) in [
+                (2, "IPAD.RXP0"),
+                (0, "IPAD.RXN0"),
+                (3, "IPAD.RXP1"),
+                (1, "IPAD.RXN1"),
+                (5, "IPAD.CLKP0"),
+                (4, "IPAD.CLKN0"),
+                (7, "IPAD.CLKP1"),
+                (6, "IPAD.CLKN1"),
+            ] {
+                bels.push(builder.bel_xy(key, "IPAD", 0, i).pins_name_only(&["O"]));
+            }
+            for (i, key) in [
+                (1, "OPAD.TXP0"),
+                (0, "OPAD.TXP1"),
+                (3, "OPAD.TXN0"),
+                (2, "OPAD.TXN1"),
+            ] {
+                bels.push(builder.bel_xy(key, "OPAD", 0, i).pins_name_only(&["I"]));
+            }
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFDS{i}"), "BUFDS", 0, i)
+                        .pins_name_only(&["I", "IB", "O"]),
+                );
+            }
+            let mut bel = builder
+                .bel_xy("GTP", "GTPA1_DUAL", 0, 0)
+                .pins_name_only(&[
+                    "RXP0",
+                    "RXN0",
+                    "RXP1",
+                    "RXN1",
+                    "TXP0",
+                    "TXN0",
+                    "TXP1",
+                    "TXN1",
+                    "CLK00",
+                    "CLK01",
+                    "CLK10",
+                    "CLK11",
+                    "PLLCLK00",
+                    "PLLCLK01",
+                    "PLLCLK10",
+                    "PLLCLK11",
+                    "REFCLKPLL0",
+                    "REFCLKPLL1",
+                    "CLKINEAST0",
+                    "CLKINEAST1",
+                    "CLKINWEST0",
+                    "CLKINWEST1",
+                ])
+                .pin_name_only("GTPCLKOUT00", 1)
+                .pin_name_only("GTPCLKOUT01", 1)
+                .pin_name_only("GTPCLKOUT10", 1)
+                .pin_name_only("GTPCLKOUT11", 1)
+                .pin_name_only("GTPCLKFBEAST0", 1)
+                .pin_name_only("GTPCLKFBEAST1", 1)
+                .pin_name_only("GTPCLKFBWEST0", 1)
+                .pin_name_only("GTPCLKFBWEST1", 1)
+                .pin_name_only("RXCHBONDI0", 1)
+                .pin_name_only("RXCHBONDI1", 1)
+                .pin_name_only("RXCHBONDI2", 1)
+                .pin_name_only("RXCHBONDO0", 1)
+                .pin_name_only("RXCHBONDO1", 1)
+                .pin_name_only("RXCHBONDO2", 1)
+                .extra_wire("PLLCLK0", &["GTPDUAL_PLLCLK0", "GTPDUAL_BOT_PLLCLK0"])
+                .extra_wire("PLLCLK1", &["GTPDUAL_PLLCLK1", "GTPDUAL_BOT_PLLCLK1"])
+                .extra_wire("CLKOUT_EW", &["GTP_CLKOUT_EW0", "GTP_BOT_CLKOUT_EW0"])
+                .extra_wire(
+                    "CLKINEAST",
+                    &["GTP_ALT_CLKOUTEAST0", "GTP_BOT_ALT_CLKOUTEAST0"],
+                )
+                .extra_wire(
+                    "CLKINWEST",
+                    &["GTP_ALT_CLKOUTWEST0", "GTP_BOT_ALT_CLKOUTWEST0"],
+                );
+            for i in 0..5 {
+                bel = bel
+                    .pins_name_only(&[
+                        format!("RCALINEAST{i}"),
+                        format!("RCALINWEST{i}"),
+                        format!("RCALOUTEAST{i}"),
+                        format!("RCALOUTWEST{i}"),
+                    ])
+                    .extra_wire_force(
+                        format!("RCALOUTEAST{i}_BUF"),
+                        if is_b {
+                            format!("GTPDUAL_BOT_RCALOUTEAST{i}")
+                        } else {
+                            format!("GTPDUAL_RCALOUTEAST{i}")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RCALINEAST{i}_BUF"),
+                        if is_b {
+                            format!("GTPDUAL_BOT_RCALINEAST{i}")
+                        } else {
+                            format!("GTPDUAL_RCALINEAST{i}")
+                        },
+                    );
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_virtual("GTP_BUF")
+                .raw_tile(1)
+                .extra_wire(
+                    "PLLCLK0_O",
+                    &["BRAM_BTERM_PLLCLK0_S", "BRAM_TTERM_PLLCLK0_N"],
+                )
+                .extra_wire(
+                    "PLLCLK1_O",
+                    &["BRAM_BTERM_PLLCLK1_S", "BRAM_TTERM_PLLCLK1_N"],
+                )
+                .extra_wire("PLLCLK0_I", &["IOI_BTERM_PLLCLKOUT0", "BRAM_TTERM_PLLCLK0"])
+                .extra_wire("PLLCLK1_I", &["IOI_BTERM_PLLCLKOUT1", "BRAM_TTERM_PLLCLK1"])
+                .extra_wire(
+                    "CLKINEAST_O",
+                    &["BRAM_BTERM_CLKOUTEAST0_S", "BRAM_TTERM_CLKOUTEAST0_N"],
+                )
+                .extra_wire(
+                    "CLKINEAST_I",
+                    &["IOI_BTERM_CLKOUTEAST0", "BRAM_TTERM_CLKOUTEAST0"],
+                )
+                .extra_wire(
+                    "CLKINWEST_O",
+                    &["BRAM_BTERM_CLKOUTWEST0_S", "BRAM_TTERM_CLKOUTWEST0_N"],
+                )
+                .extra_wire(
+                    "CLKINWEST_I",
+                    &["IOI_BTERM_CLKOUTWEST0", "BRAM_TTERM_CLKOUTWEST0"],
+                )
+                .extra_wire(
+                    "CLKOUT_EW_O",
+                    &["IOI_BTERM_CLKOUT_EW0", "BRAM_TTERM_CLKOUT_EW0"],
+                )
+                .extra_wire(
+                    "CLKOUT_EW_I",
+                    &["BRAM_BTERM_CLKOUT_EW0_S", "BRAM_TTERM_CLKOUT_EW0_N"],
+                );
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("GTPCLK{i}_I"),
+                        &[
+                            format!("BRAM_BTERM_GTPCLK{i}_S"),
+                            format!("BRAM_TTERM_GTPCLK{i}_N"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GTPCLK{i}_O"),
+                        &[
+                            format!("IOI_BTERM_GTPCLK{i}"),
+                            format!("BRAM_TTERM_GTPCLK{ii}", ii = i + 4),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GTPFB{i}_I"),
+                        &[
+                            format!("BRAM_BTERM_GTPFB{i}_S"),
+                            format!("BRAM_TTERM_GTPCLKFB{i}_N"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GTPFB{i}_O"),
+                        &[
+                            format!("IOI_BTERM_GTPFB{i}"),
+                            format!("BRAM_TTERM_GTPFB{ii}", ii = i + 4),
+                        ],
+                    )
+            }
+            for i in 0..3 {
+                bel = bel
+                    .extra_wire_force(
+                        format!("RXCHBONDO{i}_I"),
+                        if is_b {
+                            format!("BRAM_BTERM_RXCHBONDI{i}_S")
+                        } else {
+                            format!("BRAM_TTERM_RXCHBONDI{i}_N")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RXCHBONDO{i}_O"),
+                        if is_b {
+                            format!("IOI_BTERM_RXCHBONDI{i}")
+                        } else {
+                            format!("BRAM_TTERM_RXCHBONDI{i}")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RXCHBONDI{i}_I"),
+                        if is_b {
+                            format!("IOI_BTERM_RXCHBONDO{i}")
+                        } else {
+                            format!("BRAM_TTERM_RXCHBONDO{i}")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RXCHBONDI{i}_O"),
+                        if is_b {
+                            // I FUCKING HATE SPARTAN 6 IT IS A PIECE OF SHIT
+                            if i == 0 {
+                                format!("BRAM_BTERM_RXCHBONDO{i}_S")
+                            } else {
+                                format!("BRAM_BTERM_RXCHBOND0{i}_S")
+                            }
+                        } else {
+                            format!("BRAM_TTERM_RXCHBONDO{i}_N")
+                        },
+                    )
+            }
+            for i in 0..5 {
+                bel = bel
+                    .extra_wire_force(
+                        format!("RCALINEAST{i}_I"),
+                        if is_b {
+                            format!("IOI_BTERM_RCALINEAST{i}")
+                        } else {
+                            format!("BRAM_TTERM_RCALINEAST{i}")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RCALINEAST{i}_O"),
+                        if is_b {
+                            format!("BRAM_BTERM_RCALINEAST{i}_S")
+                        } else {
+                            format!("BRAM_TTERM_RCALINEAST{i}_N")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RCALOUTEAST{i}_I"),
+                        if is_b {
+                            format!("BRAM_BTERM_RCALOUTEAST{i}_S")
+                        } else {
+                            format!("BRAM_TTERM_RCALOUTEAST{i}_N")
+                        },
+                    )
+                    .extra_wire_force(
+                        format!("RCALOUTEAST{i}_O"),
+                        if is_b {
+                            format!("IOI_BTERM_RCALOUTEAST{i}")
+                        } else {
+                            format!("BRAM_TTERM_RCALOUTEAST{i}")
+                        },
+                    )
+            }
+            bels.push(bel);
+            let mut xn = builder
+                .xnode("GTP", tkn, xy)
+                .num_tiles(8)
+                .raw_tile(xy.delta(
+                    0,
+                    match tkn {
+                        "GTPDUAL_BOT" => -10,
+                        "GTPDUAL_TOP" => 8,
+                        _ => unreachable!(),
+                    },
+                ));
+            for i in 0..8 {
+                xn = xn.ref_single(intfs_l[i], i, intf_rterm).ref_single(
+                    intfs_r[i],
+                    8 + i,
+                    intf_lterm,
+                );
+            }
+            xn.bels(bels).extract();
+        }
     }
 
     builder.build()
