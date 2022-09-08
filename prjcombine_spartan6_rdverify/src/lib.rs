@@ -5,7 +5,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::db::BelId;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_spartan6::{ColumnKind, DisabledPart, ExpandedDevice};
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {
@@ -643,7 +643,7 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_node(&[bel.pip_iwire("PLLCLK0", 0), obel.fwire("PLLCLK0_O")]);
     vrf.verify_node(&[bel.pip_iwire("PLLCLK1", 0), obel.fwire("PLLCLK1_O")]);
 
-    let mut rows_handled = BTreeSet::new();
+    let mut rows_handled = HashSet::new();
     {
         let obel = vrf
             .find_bel(bel.die, (bel.col, mcb.iop_clk), "IOI")
@@ -653,7 +653,7 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         rows_handled.insert(mcb.iop_clk);
     }
 
-    let mut rows_out_handled = BTreeSet::new();
+    let mut rows_out_handled = HashSet::new();
     for (pin, io) in pins_out {
         let obel = vrf
             .find_bel(bel.die, (bel.col, io.row), bel_to_ologic(io.bel))
@@ -2671,6 +2671,54 @@ pub fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("INT_IOI_LOGICIN_B4");
     vrf.kill_stub_out("INT_IOI_LOGICIN_B10");
     vrf.kill_stub_out("FAN");
+    let mut dummy_terms = HashSet::new();
+    for &crd in vrf.rd.tiles_by_kind_name("INT_LTERM") {
+        let tile = &vrf.rd.tiles[&crd];
+        let otile = &vrf.rd.tiles[&crd.delta(2, 0)];
+        if tile.kind == otile.kind {
+            let tk = &vrf.rd.tile_kinds[tile.kind];
+            for &(wi, wo) in tk.pips.keys() {
+                vrf.claim_node(&[(crd, &vrf.rd.wires[wo])]);
+                vrf.claim_node(&[(crd, &vrf.rd.wires[wi])]);
+                vrf.claim_pip(crd, &vrf.rd.wires[wo], &vrf.rd.wires[wi]);
+            }
+            dummy_terms.insert(crd);
+        }
+    }
+    let wrong_term_pips: Vec<_> = [
+        ("LTERM_NW4M0", "LTERM_NE4C0"),
+        ("LTERM_NW4M1", "LTERM_NE4C1"),
+        ("LTERM_NW4M2", "LTERM_NE4C2"),
+        ("LTERM_NW4M3", "LTERM_NE4C3"),
+        ("INT_INTERFACE_LTERM_NW4M0", "INT_INTERFACE_LTERM_NE4C0"),
+        ("INT_INTERFACE_LTERM_NW4M1", "INT_INTERFACE_LTERM_NE4C1"),
+        ("INT_INTERFACE_LTERM_NW4M2", "INT_INTERFACE_LTERM_NE4C2"),
+        ("INT_INTERFACE_LTERM_NW4M3", "INT_INTERFACE_LTERM_NE4C3"),
+        ("IOI_BTERM_SL1B0", "IOI_BTERM_NL1E0"),
+        ("IOI_BTERM_SL1B1", "IOI_BTERM_NL1E1"),
+        ("IOI_BTERM_SL1B2", "IOI_BTERM_NL1E2"),
+        ("IOI_BTERM_SL1B3", "IOI_BTERM_NL1E3"),
+    ]
+    .into_iter()
+    .filter_map(|(a, b)| {
+        if let (Some(a), Some(b)) = (vrf.rd.wires.get(a), vrf.rd.wires.get(b)) {
+            Some((b, a))
+        } else {
+            None
+        }
+    })
+    .collect();
+    for (&crd, tile) in &vrf.rd.tiles {
+        if dummy_terms.contains(&crd) {
+            continue;
+        }
+        let tk = &vrf.rd.tile_kinds[tile.kind];
+        for &key in &wrong_term_pips {
+            if tk.pips.contains_key(&key) {
+                vrf.claim_pip(crd, &vrf.rd.wires[key.1], &vrf.rd.wires[key.0]);
+            }
+        }
+    }
     // XXX
     vrf.skip_residual();
 }
