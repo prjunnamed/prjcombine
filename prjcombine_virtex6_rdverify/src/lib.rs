@@ -836,6 +836,77 @@ fn verify_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
+fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pins = vec![];
+    for i in 0..16 {
+        pins.push(format!("VAUXP{i}"));
+        pins.push(format!("VAUXN{i}"));
+    }
+    pins.push("VP".to_string());
+    pins.push("VN".to_string());
+    let mut pin_refs = vec![];
+    for pin in &pins {
+        pin_refs.push((&pin[..], SitePinDir::In));
+    }
+    vrf.verify_bel(bel, "SYSMON", &pin_refs, &[]);
+
+    vrf.claim_node(&[bel.fwire("VP")]);
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VP");
+    vrf.claim_pip(bel.crd(), bel.wire("VP"), obel.wire("O"));
+    vrf.claim_node(&[bel.fwire("VN")]);
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
+    vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
+
+    let cl = edev.grid.cols_io[0].unwrap_or_else(|| edev.grid.cols_io[1].unwrap());
+    let cr = edev.grid.cols_io[2].unwrap();
+
+    for (i, (col, dy)) in [
+        (cr, 34),
+        (cr, 32),
+        (cr, 28),
+        (cr, 26),
+        (cr, 24),
+        (cr, 14),
+        (cr, 12),
+        (cr, 8),
+        (cl, 34),
+        (cl, 32),
+        (cl, 28),
+        (cl, 26),
+        (cl, 24),
+        (cl, 14),
+        (cl, 12),
+        (cl, 8),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let vauxp = format!("VAUXP{i}");
+        let vauxn = format!("VAUXN{i}");
+        vrf.claim_node(&[bel.fwire(&vauxp)]);
+        vrf.claim_node(&[bel.fwire(&vauxn)]);
+        vrf.claim_pip(bel.crd(), bel.wire(&vauxp), bel.wire_far(&vauxp));
+        vrf.claim_pip(bel.crd(), bel.wire(&vauxn), bel.wire_far(&vauxn));
+        let srow = bel.row + dy;
+        let obel = vrf.find_bel(bel.die, (col, srow), "IOB0").unwrap();
+        vrf.claim_node(&[bel.fwire_far(&vauxp), obel.fwire("MONITOR")]);
+        vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
+        let obel = vrf.find_bel(bel.die, (col, srow), "IOB1").unwrap();
+        vrf.claim_node(&[bel.fwire_far(&vauxn), obel.fwire("MONITOR")]);
+        vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
+    }
+}
+
+fn verify_ipad(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
+    vrf.claim_node(&[bel.fwire("O")]);
+}
+
+fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
+    vrf.claim_node(&[bel.fwire("I")]);
+}
+
 pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
@@ -863,6 +934,15 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         _ if bel.key.starts_with("IODELAY") => verify_iodelay(vrf, bel),
         _ if bel.key.starts_with("IOB") => verify_iob(vrf, bel),
         "IOI" => verify_ioi(edev, vrf, bel),
+
+        _ if bel.key.starts_with("BSCAN") => vrf.verify_bel(bel, "BSCAN", &[], &[]),
+        _ if bel.key.starts_with("ICAP") => vrf.verify_bel(bel, "ICAP", &[], &[]),
+        _ if bel.key.starts_with("PMV") => vrf.verify_bel(bel, "PMV", &[], &[]),
+        "STARTUP" | "CAPTURE" | "FRAME_ECC" | "EFUSE_USR" | "USR_ACCESS" | "DNA_PORT"
+        | "DCIRESET" | "CFG_IO_ACCESS" => vrf.verify_bel(bel, bel.key, &[], &[]),
+        "SYSMON" => verify_sysmon(edev, vrf, bel),
+        _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
+        _ if bel.key.starts_with("OPAD") => verify_opad(vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

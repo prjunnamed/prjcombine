@@ -385,16 +385,50 @@ struct Expander<'a, 'b> {
     disabled: &'b BTreeSet<DisabledPart>,
     die: ExpandedDieRefMut<'a, 'b>,
     tiexlut: EntityVec<ColId, usize>,
+    rxlut: EntityVec<ColId, usize>,
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     hard_skip: BTreeSet<RowId>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
-    fn fill_int(&mut self) {
-        let mut tie_x = 0;
+    fn fill_rxlut(&mut self) {
+        let mut rx = 0;
         for (col, &kind) in &self.grid.columns {
+            if self.grid.cols_vbrk.contains(&col) {
+                rx += 1;
+            }
+            self.rxlut.push(rx);
+            match kind {
+                ColumnKind::ClbLL | ColumnKind::ClbLM => rx += 2,
+                ColumnKind::Bram | ColumnKind::Dsp => rx += 3,
+                ColumnKind::Io => {
+                    if col.to_idx() == 0 {
+                        rx += 5;
+                    } else {
+                        rx += 4;
+                    }
+                }
+                ColumnKind::Gt => rx += 4,
+                ColumnKind::Cmt => rx += 4,
+            }
+        }
+    }
+
+    fn fill_tiexlut(&mut self) {
+        let mut tie_x = 0;
+        for &kind in self.grid.columns.values() {
             self.tiexlut.push(tie_x);
+            tie_x += 1;
+            if kind == ColumnKind::Dsp {
+                tie_x += 1;
+            }
+        }
+    }
+
+    fn fill_int(&mut self) {
+        for (col, &kind) in &self.grid.columns {
+            let tie_x = self.tiexlut[col];
             for row in self.die.rows() {
                 let x = col.to_idx();
                 let y = row.to_idx();
@@ -440,10 +474,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                 }
             }
-            tie_x += 1;
-            if kind == ColumnKind::Dsp {
-                tie_x += 1;
-            }
         }
     }
 
@@ -472,6 +502,49 @@ impl<'a, 'b> Expander<'a, 'b> {
             row_b,
             row_t,
         });
+        let crds: [_; 80] = core::array::from_fn(|dy| (self.grid.col_cfg, row_b + dy));
+        let ry = row_b.to_idx() + 11 + row_b.to_idx() / 20;
+        let rx = self.rxlut[self.grid.col_cfg] - 2;
+        let name0 = format!("CFG_CENTER_0_X{rx}Y{ry}");
+        let name1 = format!("CFG_CENTER_1_X{rx}Y{ry}", ry = ry + 21);
+        let name2 = format!("CFG_CENTER_2_X{rx}Y{ry}", ry = ry + 42);
+        let name3 = format!("CFG_CENTER_3_X{rx}Y{ry}", ry = ry + 63);
+        let node = self.die[crds[40]].add_xnode(
+            self.db.get_node("CFG"),
+            &[&name0, &name1, &name2, &name3],
+            self.db.get_node_naming("CFG"),
+            &crds,
+        );
+        node.add_bel(0, "BSCAN_X0Y0".to_string());
+        node.add_bel(1, "BSCAN_X0Y1".to_string());
+        node.add_bel(2, "BSCAN_X0Y2".to_string());
+        node.add_bel(3, "BSCAN_X0Y3".to_string());
+        node.add_bel(4, "ICAP_X0Y0".to_string());
+        node.add_bel(5, "ICAP_X0Y1".to_string());
+        node.add_bel(6, "PMV_X0Y0".to_string());
+        node.add_bel(7, "PMV_X0Y1".to_string());
+        node.add_bel(8, "STARTUP_X0Y0".to_string());
+        node.add_bel(9, "CAPTURE_X0Y0".to_string());
+        node.add_bel(10, "FRAME_ECC".to_string());
+        node.add_bel(11, "EFUSE_USR_X0Y0".to_string());
+        node.add_bel(12, "USR_ACCESS_X0Y0".to_string());
+        node.add_bel(13, "DNA_PORT_X0Y0".to_string());
+        node.add_bel(14, "DCIRESET_X0Y0".to_string());
+        node.add_bel(15, "CFG_IO_ACCESS_X0Y0".to_string());
+        node.add_bel(16, "SYSMON_X0Y0".to_string());
+        let ipx = if self.grid.has_left_gt() { 1 } else { 0 };
+        let mut ipy = if self.grid.has_gt() {
+            self.grid.reg_cfg * 24 + 6
+        } else {
+            0
+        };
+        for i in 0..self.grid.reg_cfg {
+            if self.disabled.contains(&DisabledPart::GtxRow(i as u32)) {
+                ipy -= 24;
+            }
+        }
+        node.add_bel(17, format!("IPAD_X{ipx}Y{y}", y = ipy));
+        node.add_bel(18, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
     }
 
     fn fill_btterm(&mut self) {
@@ -549,7 +622,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let x = hard.col.to_idx();
                 let y = br.to_idx();
-                let crds: Vec<_> = (0..10).map(|dy| (hard.col, br + dy)).collect();
+                let crds: [_; 10] = core::array::from_fn(|dy| (hard.col, br + dy));
                 let name = format!("EMAC_X{x}Y{y}");
                 let node = self.die[crds[0]].add_xnode(
                     self.db.get_node("EMAC"),
@@ -904,6 +977,10 @@ impl Grid {
         res
     }
 
+    pub fn has_gt(&self) -> bool {
+        self.columns.values().any(|&x| x == ColumnKind::Gt)
+    }
+
     pub fn has_left_gt(&self) -> bool {
         *self.columns.first().unwrap() == ColumnKind::Gt
     }
@@ -948,11 +1025,14 @@ impl Grid {
             disabled,
             die,
             tiexlut: EntityVec::new(),
+            rxlut: EntityVec::new(),
             int_holes: vec![],
             site_holes: vec![],
             hard_skip: BTreeSet::new(),
         };
 
+        expander.fill_tiexlut();
+        expander.fill_rxlut();
         expander.fill_int();
         expander.fill_cfg();
         expander.fill_hard();

@@ -885,5 +885,59 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("CFG_CENTER_0").iter().next() {
+        let intf = builder.db.get_node_naming("INTF");
+        let mut bel_sysmon = builder
+            .bel_xy("SYSMON", "SYSMON", 0, 0)
+            .raw_tile(2)
+            .pins_name_only(&["VP", "VN"]);
+        for i in 0..16 {
+            bel_sysmon = bel_sysmon
+                .pin_name_only(&format!("VAUXP{i}"), 1)
+                .pin_name_only(&format!("VAUXN{i}"), 1);
+        }
+        let bels = [
+            builder.bel_xy("BSCAN0", "BSCAN", 0, 0).raw_tile(1),
+            builder.bel_xy("BSCAN1", "BSCAN", 0, 1).raw_tile(1),
+            builder.bel_xy("BSCAN2", "BSCAN", 0, 0).raw_tile(2),
+            builder.bel_xy("BSCAN3", "BSCAN", 0, 1).raw_tile(2),
+            builder.bel_xy("ICAP0", "ICAP", 0, 0).raw_tile(1),
+            builder.bel_xy("ICAP1", "ICAP", 0, 0).raw_tile(2),
+            builder.bel_xy("PMV0", "PMV", 0, 0).raw_tile(0),
+            builder.bel_xy("PMV1", "PMV", 0, 0).raw_tile(3),
+            builder.bel_xy("STARTUP", "STARTUP", 0, 0).raw_tile(1),
+            builder.bel_xy("CAPTURE", "CAPTURE", 0, 0).raw_tile(1),
+            builder.bel_single("FRAME_ECC", "FRAME_ECC").raw_tile(1),
+            builder.bel_xy("EFUSE_USR", "EFUSE_USR", 0, 0).raw_tile(1),
+            builder.bel_xy("USR_ACCESS", "USR_ACCESS", 0, 0).raw_tile(1),
+            builder.bel_xy("DNA_PORT", "DNA_PORT", 0, 0).raw_tile(1),
+            builder.bel_xy("DCIRESET", "DCIRESET", 0, 0).raw_tile(1),
+            builder
+                .bel_xy("CFG_IO_ACCESS", "CFG_IO_ACCESS", 0, 0)
+                .raw_tile(1),
+            bel_sysmon,
+            builder
+                .bel_xy("IPAD.VP", "IPAD", 0, 0)
+                .raw_tile(2)
+                .pins_name_only(&["O"]),
+            builder
+                .bel_xy("IPAD.VN", "IPAD", 0, 1)
+                .raw_tile(2)
+                .pins_name_only(&["O"]),
+        ];
+        let mut xn = builder
+            .xnode("CFG", "CFG", xy)
+            .raw_tile(xy.delta(0, 21))
+            .raw_tile(xy.delta(0, 42))
+            .raw_tile(xy.delta(0, 63));
+        for i in 0..80 {
+            let int_xy = xy.delta(2, -10 + (i + i / 20) as i32);
+            xn = xn
+                .ref_int(int_xy, i)
+                .ref_single(int_xy.delta(1, 0), i, intf);
+        }
+        xn.bels(bels).extract();
+    }
+
     builder.build()
 }
