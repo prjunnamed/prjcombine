@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -373,7 +373,478 @@ impl Gt {
     }
 }
 
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub disabled: &'a BTreeSet<DisabledPart>,
+    pub egrid: ExpandedGrid<'a>,
+}
+
+struct Expander<'a, 'b> {
+    grid: &'b Grid,
+    db: &'a IntDb,
+    disabled: &'b BTreeSet<DisabledPart>,
+    die: ExpandedDieRefMut<'a, 'b>,
+    tiexlut: EntityVec<ColId, usize>,
+    site_holes: Vec<Rect>,
+    int_holes: Vec<Rect>,
+    hard_skip: BTreeSet<RowId>,
+}
+
+impl<'a, 'b> Expander<'a, 'b> {
+    fn fill_int(&mut self) {
+        let mut tie_x = 0;
+        for (col, &kind) in &self.grid.columns {
+            self.tiexlut.push(tie_x);
+            for row in self.die.rows() {
+                let x = col.to_idx();
+                let y = row.to_idx();
+                self.die
+                    .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
+                let tile = &mut self.die[(col, row)];
+                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
+                match kind {
+                    ColumnKind::ClbLL => (),
+                    ColumnKind::ClbLM => (),
+                    ColumnKind::Io if col < self.grid.col_cfg => {
+                        tile.add_xnode(
+                            self.db.get_node("INTF"),
+                            &[&format!("IOI_L_INT_INTERFACE_X{x}Y{y}")],
+                            self.db.get_node_naming("INTF.IOI_L"),
+                            &[(col, row)],
+                        );
+                    }
+                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
+                        tile.add_xnode(
+                            self.db.get_node("INTF"),
+                            &[&format!("INT_INTERFACE_X{x}Y{y}")],
+                            self.db.get_node_naming("INTF"),
+                            &[(col, row)],
+                        );
+                    }
+                    ColumnKind::Gt => {
+                        if x == 0 {
+                            tile.add_xnode(
+                                self.db.get_node("INTF.DELAY"),
+                                &[&format!("GT_L_INT_INTERFACE_X{x}Y{y}")],
+                                self.db.get_node_naming("INTF.GT_L"),
+                                &[(col, row)],
+                            );
+                        } else {
+                            tile.add_xnode(
+                                self.db.get_node("INTF.DELAY"),
+                                &[&format!("GTX_INT_INTERFACE_X{x}Y{y}")],
+                                self.db.get_node_naming("INTF.GTX"),
+                                &[(col, row)],
+                            );
+                        }
+                    }
+                }
+            }
+            tie_x += 1;
+            if kind == ColumnKind::Dsp {
+                tie_x += 1;
+            }
+        }
+    }
+
+    fn fill_cfg(&mut self) {
+        let row_b = RowId::from_idx(self.grid.reg_cfg * 40 - 40);
+        let row_t = RowId::from_idx(self.grid.reg_cfg * 40 + 40);
+        self.die.nuke_rect(self.grid.col_cfg - 6, row_b, 6, 80);
+        for dx in 0..6 {
+            let col = self.grid.col_cfg - 6 + dx;
+            if row_b.to_idx() != 0 {
+                self.die.fill_term_anon((col, row_b - 1), "TERM.N");
+            }
+            if row_t.to_idx() != self.grid.regs * 40 {
+                self.die.fill_term_anon((col, row_t), "TERM.S");
+            }
+        }
+        self.site_holes.push(Rect {
+            col_l: self.grid.col_cfg - 6,
+            col_r: self.grid.col_cfg,
+            row_b,
+            row_t,
+        });
+        self.int_holes.push(Rect {
+            col_l: self.grid.col_cfg - 6,
+            col_r: self.grid.col_cfg,
+            row_b,
+            row_t,
+        });
+    }
+
+    fn fill_btterm(&mut self) {
+        let row_b = self.die.rows().next().unwrap();
+        let row_t = self.die.rows().next_back().unwrap();
+        for col in self.die.cols() {
+            if !self.die[(col, row_b)].nodes.is_empty() {
+                self.die.fill_term_anon((col, row_b), "TERM.S.HOLE");
+            }
+            if !self.die[(col, row_t)].nodes.is_empty() {
+                self.die.fill_term_anon((col, row_t), "TERM.N.HOLE");
+            }
+        }
+        let col_l = self.die.cols().next().unwrap();
+        let col_r = self.die.cols().next_back().unwrap();
+        for row in self.die.rows() {
+            self.die.fill_term_anon((col_l, row), "TERM.W");
+            self.die.fill_term_anon((col_r, row), "TERM.E");
+        }
+    }
+
+    fn fill_clb(&mut self) {
+        let mut sx = 0;
+        for (col, &cd) in &self.grid.columns {
+            let kind = match cd {
+                ColumnKind::ClbLL => "CLBLL",
+                ColumnKind::ClbLM => "CLBLM",
+                _ => continue,
+            };
+            'a: for row in self.die.rows() {
+                let tile = &mut self.die[(col, row)];
+                for hole in &self.site_holes {
+                    if hole.contains(col, row) {
+                        continue 'a;
+                    }
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = tile.add_xnode(
+                    self.db.get_node(kind),
+                    &[&name],
+                    self.db.get_node_naming(kind),
+                    &[(col, row)],
+                );
+                node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
+                node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
+            }
+            sx += 2;
+        }
+    }
+
+    fn fill_hard(&mut self) {
+        if let Some(ref hard) = self.grid.col_hard {
+            let col = hard.col;
+            let x = col.to_idx();
+            let mut ey = 0;
+            for &br in &hard.rows_emac {
+                for dy in 0..10 {
+                    let row = br + dy;
+                    let y = row.to_idx();
+                    let tile = &mut self.die[(col, row)];
+                    tile.nodes.truncate(1);
+                    tile.add_xnode(
+                        self.db.get_node("INTF.DELAY"),
+                        &[&format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
+                        self.db.get_node_naming("INTF.EMAC"),
+                        &[(col, row)],
+                    );
+                }
+                self.hard_skip.insert(br);
+                self.hard_skip.insert(br + 5);
+                if self.disabled.contains(&DisabledPart::Emac(br)) {
+                    continue;
+                }
+                let x = hard.col.to_idx();
+                let y = br.to_idx();
+                let crds: Vec<_> = (0..10).map(|dy| (hard.col, br + dy)).collect();
+                let name = format!("EMAC_X{x}Y{y}");
+                let node = self.die[crds[0]].add_xnode(
+                    self.db.get_node("EMAC"),
+                    &[&name],
+                    self.db.get_node_naming("EMAC"),
+                    &crds,
+                );
+                node.add_bel(0, format!("TEMAC_X0Y{ey}"));
+                ey += 1;
+            }
+
+            for (py, &br) in hard.rows_pcie.iter().enumerate() {
+                self.die.nuke_rect(col - 1, br, 2, 20);
+                self.site_holes.push(Rect {
+                    col_l: col - 3,
+                    col_r: col + 1,
+                    row_b: br,
+                    row_t: br + 20,
+                });
+                self.int_holes.push(Rect {
+                    col_l: col - 1,
+                    col_r: col + 1,
+                    row_b: br,
+                    row_t: br + 20,
+                });
+                for dy in 0..20 {
+                    let row = br + dy;
+                    let y = row.to_idx();
+                    self.die[(col - 3, row)].add_xnode(
+                        self.db.get_node("INTF.DELAY"),
+                        &[&format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3)],
+                        self.db.get_node_naming("INTF.PCIE_L"),
+                        &[(col - 3, row)],
+                    );
+                    self.die[(col - 2, row)].add_xnode(
+                        self.db.get_node("INTF.DELAY"),
+                        &[&format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2)],
+                        self.db.get_node_naming("INTF.PCIE_R"),
+                        &[(col - 2, row)],
+                    );
+                }
+                if br.to_idx() != 0 {
+                    self.die.fill_term_anon((col - 1, br - 1), "TERM.N");
+                    self.die.fill_term_anon((col, br - 1), "TERM.N");
+                }
+                self.die.fill_term_anon((col - 1, br + 20), "TERM.S");
+                self.die.fill_term_anon((col, br + 20), "TERM.S");
+
+                for dy in [0, 5, 10, 15] {
+                    self.hard_skip.insert(br + dy);
+                }
+                let x = hard.col.to_idx() - 2;
+                let y = br.to_idx();
+                let mut crds = vec![];
+                for dy in 0..20 {
+                    crds.push((hard.col - 3, br + dy));
+                }
+                for dy in 0..20 {
+                    crds.push((hard.col - 2, br + dy));
+                }
+                let name = format!("PCIE_X{x}Y{y}", y = y + 10);
+                let node = self.die[crds[0]].add_xnode(
+                    self.db.get_node("PCIE"),
+                    &[&name],
+                    self.db.get_node_naming("PCIE"),
+                    &crds,
+                );
+                node.add_bel(0, format!("PCIE_X0Y{py}"));
+            }
+        }
+    }
+
+    fn fill_bram_dsp(&mut self) {
+        let mut bx = 0;
+        let mut dx = 0;
+        for (col, &cd) in &self.grid.columns {
+            let kind = match cd {
+                ColumnKind::Bram => "BRAM",
+                ColumnKind::Dsp => "DSP",
+                _ => continue,
+            };
+            for row in self.die.rows() {
+                if row.to_idx() % 5 != 0 {
+                    continue;
+                }
+                if let Some(ref hard) = self.grid.col_hard {
+                    if hard.col == col && self.hard_skip.contains(&row) {
+                        continue;
+                    }
+                }
+                let x = col.to_idx();
+                let y = row.to_idx();
+                let name = format!("{kind}_X{x}Y{y}");
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node(kind),
+                    &[&name],
+                    self.db.get_node_naming(kind),
+                    &[
+                        (col, row),
+                        (col, row + 1),
+                        (col, row + 2),
+                        (col, row + 3),
+                        (col, row + 4),
+                    ],
+                );
+                if cd == ColumnKind::Bram {
+                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = y / 5));
+                    node.add_bel(1, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2));
+                    node.add_bel(2, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2 + 1));
+                } else {
+                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2));
+                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2 + 1));
+                    let tx = self.tiexlut[col] + 1;
+                    node.add_bel(2, format!("TIEOFF_X{tx}Y{y}"));
+                }
+                if kind == "BRAM" && row.to_idx() % 40 == 20 {
+                    let mut hy = y - 1;
+                    if let Some(ref hard) = self.grid.col_hard {
+                        if hard.col == col && hard.rows_pcie.contains(&(row - 20)) {
+                            hy = y;
+                        }
+                    }
+                    let name_h = format!("HCLK_BRAM_X{x}Y{hy}");
+                    let name_1 = format!("BRAM_X{x}Y{y}", y = y + 5);
+                    let name_2 = format!("BRAM_X{x}Y{y}", y = y + 10);
+                    let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
+                    let node = self.die[(col, row)].add_xnode(
+                        self.db.get_node("PMVBRAM"),
+                        &[&name_h, &name, &name_1, &name_2],
+                        self.db.get_node_naming("PMVBRAM"),
+                        &coords,
+                    );
+                    node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = y / 40));
+                }
+            }
+            if cd == ColumnKind::Bram {
+                bx += 1;
+            } else {
+                dx += 1;
+            }
+        }
+    }
+
+    fn fill_io(&mut self) {
+        let mut iox = 0;
+        for (i, &col) in self.grid.cols_io.iter().enumerate() {
+            let hclk_tk = match i {
+                0 | 3 => "HCLK_OUTER_IOI",
+                1 | 2 => "HCLK_INNER_IOI",
+                _ => unreachable!(),
+            };
+            let hclk_naming = match i {
+                0 => "HCLK_IOI.OL",
+                1 => "HCLK_IOI.IL",
+                2 => "HCLK_IOI.IR",
+                3 => "HCLK_IOI.OR",
+                _ => unreachable!(),
+            };
+            let ioi_tk = match i {
+                0 | 1 => "LIOI",
+                2 | 3 => "RIOI",
+                _ => unreachable!(),
+            };
+            let iob_tk = match i {
+                0 => "LIOB",
+                1 => {
+                    if self.grid.cols_io[0].is_none() {
+                        "LIOB"
+                    } else {
+                        "LIOB_FT"
+                    }
+                }
+                2 | 3 => "RIOB",
+                _ => unreachable!(),
+            };
+            if let Some(col) = col {
+                for row in self.die.rows() {
+                    if row.to_idx() % 2 == 0 {
+                        let name_ioi =
+                            format!("{ioi_tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                        let name_iob =
+                            format!("{iob_tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("IO"),
+                            &[&name_ioi, &name_iob],
+                            self.db.get_node_naming(ioi_tk),
+                            &[(col, row), (col, row + 1)],
+                        );
+                        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = row.to_idx() + 1));
+                        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = row.to_idx()));
+                        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = row.to_idx() + 1));
+                        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = row.to_idx()));
+                        node.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = row.to_idx() + 1));
+                        node.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = row.to_idx()));
+                        node.add_bel(6, format!("IOB_X{iox}Y{y}", y = row.to_idx() + 1));
+                        node.add_bel(7, format!("IOB_X{iox}Y{y}", y = row.to_idx()));
+                    }
+
+                    if row.to_idx() % 40 == 20 {
+                        let hx = if i < 2 && col.to_idx() != 0 {
+                            col.to_idx() - 1
+                        } else {
+                            col.to_idx()
+                        };
+                        let name = format!("{hclk_tk}_X{hx}Y{y}", y = row.to_idx() - 1);
+                        let name_ioi_s =
+                            format!("{ioi_tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 2);
+                        let name_ioi_n =
+                            format!("{ioi_tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("HCLK_IOI"),
+                            &[&name, &name_ioi_s, &name_ioi_n],
+                            self.db.get_node_naming(hclk_naming),
+                            &[(col, row - 1), (col, row)],
+                        );
+                        let hy = row.to_idx() / 40;
+                        node.add_bel(0, format!("BUFIODQS_X{iox}Y{y}", y = hy * 4 + 2));
+                        node.add_bel(1, format!("BUFIODQS_X{iox}Y{y}", y = hy * 4 + 3));
+                        node.add_bel(2, format!("BUFIODQS_X{iox}Y{y}", y = hy * 4));
+                        node.add_bel(3, format!("BUFIODQS_X{iox}Y{y}", y = hy * 4 + 1));
+                        node.add_bel(4, format!("BUFR_X{iox}Y{y}", y = hy * 2 + 1));
+                        node.add_bel(5, format!("BUFR_X{iox}Y{y}", y = hy * 2));
+                        node.add_bel(6, format!("BUFO_X{iox}Y{y}", y = hy * 2 + 1));
+                        node.add_bel(7, format!("BUFO_X{iox}Y{y}", y = hy * 2));
+                        node.add_bel(8, format!("IDELAYCTRL_X{iox}Y{hy}"));
+                        node.add_bel(9, format!("DCI_X{iox}Y{hy}"));
+                    }
+                }
+                iox += 1;
+            }
+        }
+    }
+
+    fn fill_hclk(&mut self) {
+        for col in self.die.cols() {
+            for row in self.die.rows() {
+                let crow = RowId::from_idx(if row.to_idx() % 40 < 20 {
+                    row.to_idx() / 40 * 40 + 19
+                } else {
+                    row.to_idx() / 40 * 40 + 20
+                });
+                self.die[(col, row)].clkroot = (col, crow);
+                if row.to_idx() % 40 == 20 {
+                    let mut skip_b = false;
+                    let mut skip_t = false;
+                    for hole in &self.int_holes {
+                        if hole.contains(col, row) {
+                            skip_t = true;
+                        }
+                        if hole.contains(col, row - 1) {
+                            skip_b = true;
+                        }
+                    }
+                    if skip_t && skip_b {
+                        continue;
+                    }
+                    let mut naming = "HCLK";
+                    let mut name = format!("HCLK_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 1);
+                    if col == self.grid.cols_qbuf.0 || col == self.grid.cols_qbuf.1 {
+                        naming = "HCLK.QBUF";
+                        name =
+                            format!("HCLK_QBUF_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 1);
+                    }
+                    if skip_b {
+                        name = format!("HCLK_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                    }
+                    self.die[(col, row)].add_xnode(
+                        self.db.get_node("HCLK"),
+                        &[&name],
+                        self.db.get_node_naming(naming),
+                        &[(col, row - 1), (col, row)],
+                    );
+                    if naming == "HCLK.QBUF" {
+                        self.die[(col, row)].add_xnode(
+                            self.db.get_node("HCLK_QBUF"),
+                            &[&name],
+                            self.db.get_node_naming("HCLK_QBUF"),
+                            &[],
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
 impl Grid {
+    pub fn row_hclk(&self, row: RowId) -> RowId {
+        RowId::from_idx(row.to_idx() / 40 * 40 + 20)
+    }
+
+    pub fn row_bufg(&self) -> RowId {
+        RowId::from_idx(self.reg_cfg * 40)
+    }
+
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut iox = 0;
@@ -461,299 +932,41 @@ impl Grid {
     }
 
     pub fn expand_grid<'a>(
-        &self,
+        &'a self,
         db: &'a IntDb,
-        disabled: &BTreeSet<DisabledPart>,
-    ) -> ExpandedGrid<'a> {
+        disabled: &'a BTreeSet<DisabledPart>,
+    ) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
         egrid.tie_kind = Some("TIEOFF".to_string());
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
-        let (_, mut grid) = egrid.add_die(self.columns.len(), self.regs * 40);
+        let (_, die) = egrid.add_die(self.columns.len(), self.regs * 40);
 
-        let mut tie_x = 0;
-        let mut tiexlut = EntityVec::new();
-        for (col, &kind) in &self.columns {
-            tiexlut.push(tie_x);
-            for row in grid.rows() {
-                let x = col.to_idx();
-                let y = row.to_idx();
-                grid.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                let tile = &mut grid[(col, row)];
-                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{y}"));
-                match kind {
-                    ColumnKind::ClbLL => (),
-                    ColumnKind::ClbLM => (),
-                    ColumnKind::Io if col < self.col_cfg => {
-                        tile.add_xnode(
-                            db.get_node("INTF"),
-                            &[&format!("IOI_L_INT_INTERFACE_X{x}Y{y}")],
-                            db.get_node_naming("INTF.IOI_L"),
-                            &[(col, row)],
-                        );
-                    }
-                    ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cmt => {
-                        tile.add_xnode(
-                            db.get_node("INTF"),
-                            &[&format!("INT_INTERFACE_X{x}Y{y}")],
-                            db.get_node_naming("INTF"),
-                            &[(col, row)],
-                        );
-                    }
-                    ColumnKind::Gt => {
-                        if x == 0 {
-                            tile.add_xnode(
-                                db.get_node("INTF.DELAY"),
-                                &[&format!("GT_L_INT_INTERFACE_X{x}Y{y}")],
-                                db.get_node_naming("INTF.GT_L"),
-                                &[(col, row)],
-                            );
-                        } else {
-                            tile.add_xnode(
-                                db.get_node("INTF.DELAY"),
-                                &[&format!("GTX_INT_INTERFACE_X{x}Y{y}")],
-                                db.get_node_naming("INTF.GTX"),
-                                &[(col, row)],
-                            );
-                        }
-                    }
-                }
-            }
-            tie_x += 1;
-            if kind == ColumnKind::Dsp {
-                tie_x += 1;
-            }
+        let mut expander = Expander {
+            grid: self,
+            db,
+            disabled,
+            die,
+            tiexlut: EntityVec::new(),
+            int_holes: vec![],
+            site_holes: vec![],
+            hard_skip: BTreeSet::new(),
+        };
+
+        expander.fill_int();
+        expander.fill_cfg();
+        expander.fill_hard();
+        expander.fill_btterm();
+        expander.die.fill_main_passes();
+        expander.fill_clb();
+        expander.fill_bram_dsp();
+        expander.fill_io();
+        expander.fill_hclk();
+
+        ExpandedDevice {
+            grid: self,
+            disabled,
+            egrid,
         }
-
-        let row_b = RowId::from_idx(self.reg_cfg * 40 - 40);
-        let row_t = RowId::from_idx(self.reg_cfg * 40 + 40);
-        grid.nuke_rect(self.col_cfg - 6, row_b, 6, 80);
-        for dx in 0..6 {
-            let col = self.col_cfg - 6 + dx;
-            if row_b.to_idx() != 0 {
-                grid.fill_term_anon((col, row_b - 1), "TERM.N");
-            }
-            if row_t.to_idx() != self.regs * 40 {
-                grid.fill_term_anon((col, row_t), "TERM.S");
-            }
-        }
-
-        if let Some(ref col_hard) = self.col_hard {
-            let col = col_hard.col;
-            let x = col.to_idx();
-            for &br in &col_hard.rows_emac {
-                for dy in 0..10 {
-                    let row = br + dy;
-                    let y = row.to_idx();
-                    let tile = &mut grid[(col, row)];
-                    tile.nodes.truncate(1);
-                    tile.add_xnode(
-                        db.get_node("INTF.DELAY"),
-                        &[&format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
-                        db.get_node_naming("INTF.EMAC"),
-                        &[(col, row)],
-                    );
-                }
-            }
-            for &br in &col_hard.rows_pcie {
-                grid.nuke_rect(col - 1, br, 2, 20);
-                for dy in 0..20 {
-                    let row = br + dy;
-                    let y = row.to_idx();
-                    grid[(col - 3, row)].add_xnode(
-                        db.get_node("INTF.DELAY"),
-                        &[&format!("PCIE_INT_INTERFACE_L_X{xx}Y{y}", xx = x - 3)],
-                        db.get_node_naming("INTF.PCIE_L"),
-                        &[(col - 3, row)],
-                    );
-                    grid[(col - 2, row)].add_xnode(
-                        db.get_node("INTF.DELAY"),
-                        &[&format!("PCIE_INT_INTERFACE_R_X{xx}Y{y}", xx = x - 2)],
-                        db.get_node_naming("INTF.PCIE_R"),
-                        &[(col - 2, row)],
-                    );
-                }
-                if br.to_idx() != 0 {
-                    grid.fill_term_anon((col - 1, br - 1), "TERM.N");
-                    grid.fill_term_anon((col, br - 1), "TERM.N");
-                }
-                grid.fill_term_anon((col - 1, br + 20), "TERM.S");
-                grid.fill_term_anon((col, br + 20), "TERM.S");
-            }
-        }
-
-        let row_b = grid.rows().next().unwrap();
-        let row_t = grid.rows().next_back().unwrap();
-        for col in grid.cols() {
-            if !grid[(col, row_b)].nodes.is_empty() {
-                grid.fill_term_anon((col, row_b), "TERM.S.HOLE");
-            }
-            if !grid[(col, row_t)].nodes.is_empty() {
-                grid.fill_term_anon((col, row_t), "TERM.N.HOLE");
-            }
-        }
-        let col_l = grid.cols().next().unwrap();
-        let col_r = grid.cols().next_back().unwrap();
-        for row in grid.rows() {
-            grid.fill_term_anon((col_l, row), "TERM.W");
-            grid.fill_term_anon((col_r, row), "TERM.E");
-        }
-
-        grid.fill_main_passes();
-
-        let mut sx = 0;
-        for (col, &cd) in &self.columns {
-            let kind = match cd {
-                ColumnKind::ClbLL => "CLBLL",
-                ColumnKind::ClbLM => "CLBLM",
-                _ => continue,
-            };
-            for row in grid.rows() {
-                let tile = &mut grid[(col, row)];
-                if tile.nodes.len() != 1 {
-                    continue;
-                }
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let name = format!("{kind}_X{x}Y{y}");
-                let node = tile.add_xnode(
-                    db.get_node(kind),
-                    &[&name],
-                    db.get_node_naming(kind),
-                    &[(col, row)],
-                );
-                node.add_bel(0, format!("SLICE_X{sx}Y{y}"));
-                node.add_bel(1, format!("SLICE_X{sx}Y{y}", sx = sx + 1));
-            }
-            sx += 2;
-        }
-
-        let mut hard_skip = BTreeSet::new();
-        if let Some(ref hard) = self.col_hard {
-            let mut ey = 0;
-            for &row in &hard.rows_emac {
-                hard_skip.insert(row);
-                hard_skip.insert(row + 5);
-                if disabled.contains(&DisabledPart::Emac(row)) {
-                    continue;
-                }
-                let x = hard.col.to_idx();
-                let y = row.to_idx();
-                let crds: Vec<_> = (0..10).map(|dy| (hard.col, row + dy)).collect();
-                let name = format!("EMAC_X{x}Y{y}");
-                let node = grid[crds[0]].add_xnode(
-                    db.get_node("EMAC"),
-                    &[&name],
-                    db.get_node_naming("EMAC"),
-                    &crds,
-                );
-                node.add_bel(0, format!("TEMAC_X0Y{ey}"));
-                ey += 1;
-            }
-            for (i, &row) in hard.rows_pcie.iter().enumerate() {
-                for dy in [0, 5, 10, 15] {
-                    hard_skip.insert(row + dy);
-                }
-                let x = hard.col.to_idx() - 2;
-                let y = row.to_idx();
-                let mut crds = vec![];
-                for dy in 0..20 {
-                    crds.push((hard.col - 3, row + dy));
-                }
-                for dy in 0..20 {
-                    crds.push((hard.col - 2, row + dy));
-                }
-                let name = format!("PCIE_X{x}Y{y}", y = y + 10);
-                let node = grid[crds[0]].add_xnode(
-                    db.get_node("PCIE"),
-                    &[&name],
-                    db.get_node_naming("PCIE"),
-                    &crds,
-                );
-                node.add_bel(0, format!("PCIE_X0Y{i}"));
-            }
-        }
-
-        let mut bx = 0;
-        let mut dx = 0;
-        for (col, &cd) in &self.columns {
-            let kind = match cd {
-                ColumnKind::Bram => "BRAM",
-                ColumnKind::Dsp => "DSP",
-                _ => continue,
-            };
-            for row in grid.rows() {
-                if row.to_idx() % 5 != 0 {
-                    continue;
-                }
-                if let Some(ref hard) = self.col_hard {
-                    if hard.col == col && hard_skip.contains(&row) {
-                        continue;
-                    }
-                }
-                let x = col.to_idx();
-                let y = row.to_idx();
-                let name = format!("{kind}_X{x}Y{y}");
-                let node = grid[(col, row)].add_xnode(
-                    db.get_node(kind),
-                    &[&name],
-                    db.get_node_naming(kind),
-                    &[
-                        (col, row),
-                        (col, row + 1),
-                        (col, row + 2),
-                        (col, row + 3),
-                        (col, row + 4),
-                    ],
-                );
-                if cd == ColumnKind::Bram {
-                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = y / 5));
-                    node.add_bel(1, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2));
-                    node.add_bel(2, format!("RAMB18_X{bx}Y{sy}", sy = y / 5 * 2 + 1));
-                } else {
-                    node.add_bel(0, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2));
-                    node.add_bel(1, format!("DSP48_X{dx}Y{sy}", sy = y / 5 * 2 + 1));
-                    let tx = tiexlut[col] + 1;
-                    node.add_bel(2, format!("TIEOFF_X{tx}Y{y}"));
-                }
-                if kind == "BRAM" && row.to_idx() % 40 == 20 {
-                    let mut hy = y - 1;
-                    if let Some(ref hard) = self.col_hard {
-                        if hard.col == col && hard.rows_pcie.contains(&(row - 20)) {
-                            hy = y;
-                        }
-                    }
-                    let name_h = format!("HCLK_BRAM_X{x}Y{hy}");
-                    let name_1 = format!("BRAM_X{x}Y{y}", y = y + 5);
-                    let name_2 = format!("BRAM_X{x}Y{y}", y = y + 10);
-                    let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
-                    let node = grid[(col, row)].add_xnode(
-                        db.get_node("PMVBRAM"),
-                        &[&name_h, &name, &name_1, &name_2],
-                        db.get_node_naming("PMVBRAM"),
-                        &coords,
-                    );
-                    node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = y / 40));
-                }
-            }
-            if cd == ColumnKind::Bram {
-                bx += 1;
-            } else {
-                dx += 1;
-            }
-        }
-
-        for col in grid.cols() {
-            for row in grid.rows() {
-                let crow = RowId::from_idx(if row.to_idx() % 40 < 20 {
-                    row.to_idx() / 40 * 40 + 19
-                } else {
-                    row.to_idx() / 40 * 40 + 20
-                });
-                grid[(col, row)].clkroot = (col, crow);
-            }
-        }
-
-        egrid
     }
 }

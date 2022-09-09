@@ -809,6 +809,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         }
                     }
                     BelPinInfo::ExtraWireForce(_, _) => (),
+                    BelPinInfo::ExtraInt(_, _) => (),
                     _ => unreachable!(),
                 }
             }

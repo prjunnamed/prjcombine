@@ -49,5 +49,6 @@ members = [
 	"prjcombine_v2xdl_verify",
 ]
 
-[profile.release]
+[profile.dev]
+opt-level = 2
 debug = 2
