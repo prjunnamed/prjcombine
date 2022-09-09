@@ -1,3 +1,5 @@
+#![allow(clippy::comparison_chain)]
+
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
@@ -39,7 +41,7 @@ pub struct HardColumn {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
     Emac(RowId),
-    GtxRow(u32),
+    GtxRow(usize),
     SysMon,
 }
 
@@ -539,7 +541,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             0
         };
         for i in 0..self.grid.reg_cfg {
-            if self.disabled.contains(&DisabledPart::GtxRow(i as u32)) {
+            if self.disabled.contains(&DisabledPart::GtxRow(i)) {
                 ipy -= 24;
             }
         }
@@ -856,6 +858,91 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_cmt(&mut self) {
+        let col = self.grid.col_cfg;
+        let x = col.to_idx();
+        let mut pmvy = 0;
+        for reg in 0..self.grid.regs {
+            let row_hclk = RowId::from_idx(reg * 40 + 20);
+            let crds: [_; 40] = core::array::from_fn(|dy| (col, row_hclk - 20 + dy));
+            let name_b = format!("CMT_X{x}Y{y}", y = row_hclk.to_idx() - 9);
+            let name_t = format!("CMT_X{x}Y{y}", y = row_hclk.to_idx() + 9);
+            let bt = if reg < self.grid.reg_cfg {
+                "BOT"
+            } else {
+                "TOP"
+            };
+            let name_h = format!("HCLK_CMT_{bt}_X{x}Y{y}", y = row_hclk.to_idx() - 1);
+            let node = self.die[(col, row_hclk)].add_xnode(
+                self.db.get_node("CMT"),
+                &[&name_b, &name_t, &name_h],
+                self.db.get_node_naming(if reg < self.grid.reg_cfg {
+                    "CMT.BOT"
+                } else {
+                    "CMT.TOP"
+                }),
+                &crds,
+            );
+            for i in 0..2 {
+                for j in 0..12 {
+                    node.add_bel(i * 12 + j, format!("BUFHCE_X{i}Y{y}", y = reg * 12 + j));
+                }
+            }
+            node.add_bel(24, format!("MMCM_ADV_X0Y{y}", y = reg * 2));
+            node.add_bel(25, format!("MMCM_ADV_X0Y{y}", y = reg * 2 + 1));
+            node.add_bel(26, format!("PPR_FRAME_X0Y{reg}"));
+
+            let row = row_hclk - 20;
+            let y = row.to_idx();
+            if reg < self.grid.reg_cfg - 1 {
+                let name = format!("CMT_PMVA_BELOW_X{x}Y{y}");
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("PMVIOB"),
+                    &[&name],
+                    self.db.get_node_naming("CMT_PMVA_BELOW"),
+                    &[(col, row), (col, row + 1)],
+                );
+                node.add_bel(0, format!("PMVIOB_X0Y{pmvy}"));
+                pmvy += 1;
+            } else if reg == self.grid.reg_cfg - 1 || reg == self.grid.reg_cfg {
+                // cfg bottom: CMT_PMVB, empty
+                // cfg mid: top part of BUFG, handled below
+            } else {
+                let name = format!("CMT_PMVB_BUF_ABOVE_X{x}Y{y}");
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("GCLK_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("GCLK_BUF"),
+                    &[],
+                );
+            }
+
+            let row = row_hclk + 18;
+            let y = row.to_idx();
+            if reg < self.grid.reg_cfg - 1 {
+                let name = format!("CMT_PMVB_BUF_BELOW_X{x}Y{y}");
+                self.die[(col, row + 2)].add_xnode(
+                    self.db.get_node("GCLK_BUF"),
+                    &[&name],
+                    self.db.get_node_naming("GCLK_BUF"),
+                    &[],
+                );
+            } else if reg == self.grid.reg_cfg - 1 {
+                // XXX fill BUFG
+            } else {
+                let name = format!("CMT_PMVA_X{x}Y{y}");
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("PMVIOB"),
+                    &[&name],
+                    self.db.get_node_naming("CMT_PMVA"),
+                    &[(col, row), (col, row + 1)],
+                );
+                node.add_bel(0, format!("PMVIOB_X0Y{pmvy}"));
+                pmvy += 1;
+            }
+        }
+    }
+
     fn fill_hclk(&mut self) {
         for col in self.die.cols() {
             for row in self.die.rows() {
@@ -946,7 +1033,7 @@ impl Grid {
         let mut res = Vec::new();
         let mut gy = 0;
         for i in 0..self.regs {
-            if disabled.contains(&DisabledPart::GtxRow(i as u32)) {
+            if disabled.contains(&DisabledPart::GtxRow(i)) {
                 continue;
             }
             let is_gth = i >= self.reg_gth_start;
@@ -993,7 +1080,7 @@ impl Grid {
         } else {
             let mut ipy = 6;
             for i in 0..self.reg_cfg {
-                if !disabled.contains(&DisabledPart::GtxRow(i as u32)) {
+                if !disabled.contains(&DisabledPart::GtxRow(i)) {
                     ipy += 24;
                 }
             }
@@ -1041,6 +1128,7 @@ impl Grid {
         expander.fill_clb();
         expander.fill_bram_dsp();
         expander.fill_io();
+        expander.fill_cmt();
         expander.fill_hclk();
 
         ExpandedDevice {

@@ -939,5 +939,307 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         xn.bels(bels).extract();
     }
 
+    for (tkn, naming) in [("HCLK_CMT_BOT", "CMT.BOT"), ("HCLK_CMT_TOP", "CMT.TOP")] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf = builder.db.get_node_naming("INTF");
+            let xy_bot = xy.delta(0, -9);
+            let xy_top = xy.delta(0, 10);
+            let mut bels = vec![];
+            for i in 0..2 {
+                let lr = ['L', 'R'][i as usize];
+                for j in 0..12 {
+                    bels.push(
+                        builder
+                            .bel_xy(&format!("BUFHCE_{lr}{j}"), "BUFHCE", i, j)
+                            .raw_tile(2)
+                            .pins_name_only(&["I", "O"]),
+                    );
+                }
+            }
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_xy(&format!("MMCM{i}"), "MMCM_ADV", 0, 0)
+                    .raw_tile(i)
+                    .pins_name_only(&[
+                        "CLKIN1",
+                        "CLKIN2",
+                        "CLKFBIN",
+                        "CLKOUT0",
+                        "CLKOUT0B",
+                        "CLKOUT1",
+                        "CLKOUT1B",
+                        "CLKOUT2",
+                        "CLKOUT2B",
+                        "CLKOUT3",
+                        "CLKOUT3B",
+                        "CLKOUT4",
+                        "CLKOUT5",
+                        "CLKOUT6",
+                        "CLKFBOUT",
+                        "CLKFBOUTB",
+                        "TMUXOUT",
+                    ])
+                    .extra_wire("CLKIN1_HCLK", &["CMT_CLKIN1_HCLK"])
+                    .extra_wire("CLKIN1_IO", &["CMT_CLKIN1_IO"])
+                    .extra_wire("CLKIN1_MGT", &["CMT_CLKIN1_MGT"])
+                    .extra_int_in("CLKIN1_CKINT", &["CMT_MMCM_IMUX_CLKIN1"])
+                    .extra_wire("CLKIN2_HCLK", &["CMT_CLKIN2_HCLK"])
+                    .extra_wire("CLKIN2_IO", &["CMT_CLKIN2_IO"])
+                    .extra_wire("CLKIN2_MGT", &["CMT_CLKIN2_MGT"])
+                    .extra_int_in("CLKIN2_CKINT", &["CMT_MMCM_IMUX_CLKIN2"])
+                    .extra_wire("CLKFBIN_HCLK", &["CMT_CLKFB_HCLK"])
+                    .extra_wire("CLKFBIN_IO", &["CMT_CLKFB_IO"])
+                    .extra_int_in("CLKFBIN_CKINT", &["CMT_MMCM_IMUX_CLKFB"])
+                    .extra_wire("CLKFB", &["CMT_MMCM_CLKFB"])
+                    .extra_wire("CASC_IN", &["CMT_MMCM_CASC_IN"])
+                    .extra_wire("CASC_OUT", &["CMT_MMCM_CASC_OUT"]);
+                for i in 0..14 {
+                    bel = bel.extra_wire(format!("CMT_OUT{i}"), &[format!("CMT_CK_MMCM_{i}")]);
+                }
+                for i in 0..4 {
+                    bel = bel
+                        .extra_wire(format!("PERF{i}"), &[format!("CMT_PERF_CLK_BOUNCE{i}")])
+                        .extra_wire(format!("PERF{i}_OL"), &[format!("CMT_CK_PERF_OUTER_L{i}")])
+                        .extra_wire(format!("PERF{i}_IL"), &[format!("CMT_CK_PERF_INNER_L{i}")])
+                        .extra_wire(format!("PERF{i}_IR"), &[format!("CMT_CK_PERF_INNER_R{i}")])
+                        .extra_wire(format!("PERF{i}_OR"), &[format!("CMT_CK_PERF_OUTER_R{i}")]);
+                }
+                bels.push(bel);
+            }
+            bels.push(builder.bel_xy("PPR_FRAME", "PPR_FRAME", 0, 0).raw_tile(1));
+            let mut bel = builder
+                .bel_virtual("CMT")
+                .raw_tile(2)
+                .extra_wire("BUFH_TEST_L_PRE", &["HCLK_CMT_CK_BUFH_TEST_OUT_L"])
+                .extra_wire("BUFH_TEST_L_INV", &["HCLK_CMT_CK_BUFH_TEST_INV_L"])
+                .extra_wire("BUFH_TEST_L_NOINV", &["HCLK_CMT_CK_BUFH_TEST_NOINV_L"])
+                .extra_wire("BUFH_TEST_L", &["HCLK_CMT_CK_BUFH_TEST_L"])
+                .extra_wire("BUFH_TEST_R_PRE", &["HCLK_CMT_CK_BUFH_TEST_OUT_R"])
+                .extra_wire("BUFH_TEST_R_INV", &["HCLK_CMT_CK_BUFH_TEST_INV_R"])
+                .extra_wire("BUFH_TEST_R_NOINV", &["HCLK_CMT_CK_BUFH_TEST_NOINV_R"])
+                .extra_wire("BUFH_TEST_R", &["HCLK_CMT_CK_BUFH_TEST_R"])
+                .extra_int_in("BUFHCE_L_CKINT0", &["HCLK_CMT_CLK_0_B0"])
+                .extra_int_in("BUFHCE_L_CKINT1", &["HCLK_CMT_CLK_0_B1"])
+                .extra_int_in("BUFHCE_R_CKINT0", &["HCLK_CMT_CLK_1_B0"])
+                .extra_int_in("BUFHCE_R_CKINT1", &["HCLK_CMT_CLK_1_B1"])
+                .extra_wire("MMCM0_CLKIN1_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_L2"])
+                .extra_wire("MMCM0_CLKIN1_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_EXT_R2"])
+                .extra_wire("MMCM1_CLKIN1_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_EXT_L2"])
+                .extra_wire("MMCM1_CLKIN1_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_R2"])
+                .extra_wire("MMCM0_CLKIN2_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_L1"])
+                .extra_wire("MMCM0_CLKIN2_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_EXT_R1"])
+                .extra_wire("MMCM1_CLKIN2_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_EXT_L1"])
+                .extra_wire("MMCM1_CLKIN2_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_R1"])
+                .extra_wire("MMCM0_CLKFBIN_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_L0"])
+                .extra_wire("MMCM0_CLKFBIN_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_EXT_R0"])
+                .extra_wire("MMCM1_CLKFBIN_HCLK_L", &["HCLK_CMT_CK_OUT2CMT_EXT_L0"])
+                .extra_wire("MMCM1_CLKFBIN_HCLK_R", &["HCLK_CMT_CK_OUT2CMT_R0"]);
+            for i in 0..32 {
+                bel = bel
+                    .extra_wire(format!("GCLK{i}"), &[format!("HCLK_CMT_CK_GCLK{i}")])
+                    .extra_wire(
+                        format!("GCLK{i}_INV"),
+                        &[format!("HCLK_CMT_CK_GCLK_INV_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_NOINV"),
+                        &[format!("HCLK_CMT_CK_GCLK_NOINV_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_TEST"),
+                        &[format!("HCLK_CMT_CK_GCLK_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("CASCO{i}"),
+                        &[
+                            format!("HCLK_CMT_BOT_CK_BUFG_CASCO{i}"),
+                            format!("HCLK_CMT_TOP_CK_BUFG_CASCO{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("CASCI{i}"),
+                        &[
+                            format!("HCLK_CMT_BOT_CK_BUFG_CASCIN{i}"),
+                            format!("HCLK_CMT_TOP_CK_BUFG_CASCIN{i}"),
+                        ],
+                    );
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("CCIO{i}_L"), &[format!("HCLK_CMT_CK_CCIO_L{i}")])
+                    .extra_wire(format!("CCIO{i}_R"), &[format!("HCLK_CMT_CK_CCIO_R{i}")]);
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(format!("GIO{i}"), &[format!("HCLK_CMT_CK_IO_TO_CMT{i}")]);
+            }
+            for i in 0..12 {
+                bel = bel
+                    .extra_wire(
+                        format!("HCLK{i}_L_O"),
+                        &[format!("HCLK_CMT_CK_BUFH2QBUF_L{i}")],
+                    )
+                    .extra_wire(
+                        format!("HCLK{i}_R_O"),
+                        &[format!("HCLK_CMT_CK_BUFH2QBUF_R{i}")],
+                    )
+                    .extra_wire(format!("HCLK{i}_L_I"), &[format!("HCLK_CMT_CK_HCLK_L{i}")])
+                    .extra_wire(format!("HCLK{i}_R_I"), &[format!("HCLK_CMT_CK_HCLK_R{i}")]);
+            }
+            for i in 0..6 {
+                bel = bel
+                    .extra_wire(format!("RCLK{i}_L_I"), &[format!("HCLK_CMT_CK_RCLK_L{i}")])
+                    .extra_wire(format!("RCLK{i}_R_I"), &[format!("HCLK_CMT_CK_RCLK_R{i}")]);
+            }
+            for i in 0..10 {
+                bel = bel
+                    .extra_wire(format!("MGT{i}_L"), &[format!("HCLK_CMT_CK_MGT_L{i}")])
+                    .extra_wire(format!("MGT{i}_R"), &[format!("HCLK_CMT_CK_MGT_R{i}")]);
+            }
+            for (bt, key) in [('B', "MMCM0"), ('T', "MMCM1")] {
+                bel = bel
+                    .extra_wire(
+                        format!("{key}_CLKIN1_HCLK"),
+                        &[format!("HCLK_CMT_CLKIN1_HCLK_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKIN1_IO"),
+                        &[format!("HCLK_CMT_CLKIN1_IO_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKIN1_MGT"),
+                        &[format!("HCLK_CMT_CLKIN1_MGT_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKIN2_HCLK"),
+                        &[format!("HCLK_CMT_CLKIN2_HCLK_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKIN2_IO"),
+                        &[format!("HCLK_CMT_CLKIN2_IO_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKIN2_MGT"),
+                        &[format!("HCLK_CMT_CLKIN2_MGT_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKFBIN_HCLK"),
+                        &[format!("HCLK_CMT_CLKFB_HCLK_{bt}")],
+                    )
+                    .extra_wire(
+                        format!("{key}_CLKFBIN_IO"),
+                        &[format!("HCLK_CMT_CLKFB_IO_{bt}")],
+                    );
+            }
+            for i in 0..14 {
+                bel = bel
+                    .extra_wire(
+                        format!("MMCM0_OUT{i}"),
+                        &[format!("HCLK_CMT_CK_CMT_BOT{i}")],
+                    )
+                    .extra_wire(
+                        format!("MMCM1_OUT{i}"),
+                        &[format!("HCLK_CMT_CK_CMT_TOP{i}")],
+                    );
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("PERF{i}_OL_I"),
+                        &[format!("HCLK_CMT_CK_PERF_OUTER_L{i}")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_IL_I"),
+                        &[format!("HCLK_CMT_CK_PERF_INNER_L{i}")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_IR_I"),
+                        &[format!("HCLK_CMT_CK_PERF_INNER_R{i}")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_OR_I"),
+                        &[format!("HCLK_CMT_CK_PERF_OUTER_R{i}")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_OL_O"),
+                        &[format!("HCLK_CMT_CK_PERF_OUTER_L{i}_LEFT")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_IL_O"),
+                        &[format!("HCLK_CMT_CK_PERF_INNER_L{i}_LEFT")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_IR_O"),
+                        &[format!("HCLK_CMT_CK_PERF_INNER_R{i}_RIGHT")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}_OR_O"),
+                        &[format!("HCLK_CMT_CK_PERF_OUTER_R{i}_RIGHT")],
+                    );
+            }
+            bels.push(bel);
+            let mut xn = builder
+                .xnode("CMT", naming, xy_bot)
+                .num_tiles(40)
+                .raw_tile(xy_top)
+                .raw_tile(xy);
+            for i in 0..20 {
+                xn = xn.ref_int(xy_bot.delta(-2, -11 + i as i32), i).ref_single(
+                    xy_bot.delta(-1, -11 + i as i32),
+                    i,
+                    intf,
+                )
+            }
+            for i in 0..20 {
+                xn = xn
+                    .ref_int(xy_top.delta(-2, -9 + i as i32), i + 20)
+                    .ref_single(xy_top.delta(-1, -9 + i as i32), i + 20, intf)
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in ["CMT_PMVA", "CMT_PMVA_BELOW"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf = builder.db.get_node_naming("INTF");
+            let bel = builder.bel_xy("PMVIOB", "PMVIOB", 0, 0);
+            builder
+                .xnode("PMVIOB", tkn, xy)
+                .num_tiles(2)
+                .ref_int(xy.delta(-2, 0), 0)
+                .ref_int(xy.delta(-2, 1), 1)
+                .ref_single(xy.delta(-1, 0), 0, intf)
+                .ref_single(xy.delta(-1, 1), 1, intf)
+                .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in ["CMT_PMVB_BUF_BELOW", "CMT_PMVB_BUF_ABOVE"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("GCLK_BUF");
+            for i in 0..32 {
+                bel = bel
+                    .extra_wire(format!("GCLK{i}_I"), &[format!("CMT_PMVB_CK_GCLK{i}_IN")])
+                    .extra_wire(format!("GCLK{i}_O"), &[format!("CMT_PMVB_CK_GCLK{i}_OUT")]);
+            }
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(
+                        format!("GIO{i}_I"),
+                        &[format!("CMT_PMVB_CK_IO_TO_CMT{i}_IN")],
+                    )
+                    .extra_wire(
+                        format!("GIO{i}_O"),
+                        &[format!("CMT_PMVB_CK_IO_TO_CMT{i}_OUT")],
+                    );
+            }
+            builder
+                .xnode("GCLK_BUF", "GCLK_BUF", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .extract();
+        }
+    }
+
     builder.build()
 }

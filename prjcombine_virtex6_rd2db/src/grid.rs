@@ -140,7 +140,7 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         disabled.insert(DisabledPart::Emac(int.lookup_row(r)));
     }
     for r in find_rows(rd, &["GTX_DUMMY"]) {
-        disabled.insert(DisabledPart::GtxRow(int.lookup_row(r).to_idx() as u32 / 40));
+        disabled.insert(DisabledPart::GtxRow(int.lookup_row(r).to_idx() / 40));
     }
     let grid = Grid {
         columns,
