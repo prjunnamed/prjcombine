@@ -647,8 +647,8 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_node(&[bel.fwire("CLKOUT")]);
         vrf.claim_pip(bel.crd(), bel.wire("CLKOUT"), bel.wire("O"));
         if is_inner {
-            vrf.claim_node(&[bel.fwire("CLKOUT_GCLK")]);
-            vrf.claim_pip(bel.crd(), bel.wire("CLKOUT_GCLK"), bel.wire("CLKOUT"));
+            vrf.claim_node(&[bel.fwire("CLKOUT_CMT")]);
+            vrf.claim_pip(bel.crd(), bel.wire("CLKOUT_CMT"), bel.wire("CLKOUT"));
         }
     }
 }
@@ -1408,17 +1408,56 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 .unwrap();
             vrf.verify_node(&[
                 bel.fwire(&format!("CCIO{i}_{lr}")),
-                obel.fwire("CLKOUT_GCLK"),
+                obel.fwire("CLKOUT_CMT"),
             ]);
         }
     }
 
-    // XXX source GCLK      [GCLK_BUF]
-    // XXX source GIO      [GCLK_BUF]
     // XXX source MGT       [GTX/GTH]
+
+    let dy = if bel.row < edev.grid.row_bufg() {
+        20
+    } else {
+        -20
+    };
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, dy, "GCLK_BUF") {
+        for i in 0..32 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GCLK{i}")),
+                obel.fwire(&format!("GCLK{i}_O")),
+            ]);
+        }
+        for i in 0..8 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}")),
+                obel.fwire(&format!("GIO{i}_O")),
+            ]);
+        }
+    } else {
+        for i in 0..32 {
+            let obel = vrf
+                .find_bel_delta(bel, 0, dy, &format!("BUFGCTRL{i}"))
+                .unwrap();
+            vrf.verify_node(&[bel.fwire(&format!("GCLK{i}")), obel.fwire("GCLK")]);
+        }
+        let obel = vrf.find_bel_delta(bel, 0, dy, "GIO_BOT").unwrap();
+        for i in 0..4 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}")),
+                obel.fwire(&format!("GIO{i}_CMT")),
+            ]);
+        }
+        let obel = vrf.find_bel_delta(bel, 0, dy, "GIO_TOP").unwrap();
+        for i in 4..8 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}")),
+                obel.fwire(&format!("GIO{i}_CMT")),
+            ]);
+        }
+    }
 }
 
-pub fn verify_gclk_buf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_gclk_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..32 {
         vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O"))]);
         vrf.claim_pip(
@@ -1435,8 +1474,151 @@ pub fn verify_gclk_buf(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCont
             bel.wire(&format!("GIO{i}_I")),
         );
     }
-    // XXX source GCLK
-    // XXX source GIO
+    let dy = if bel.row < edev.grid.row_bufg() {
+        40
+    } else {
+        -40
+    };
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, dy, "GCLK_BUF") {
+        for i in 0..32 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GCLK{i}_I")),
+                obel.fwire(&format!("GCLK{i}_O")),
+            ]);
+        }
+        for i in 0..8 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}_I")),
+                obel.fwire(&format!("GIO{i}_O")),
+            ]);
+        }
+    } else {
+        for i in 0..32 {
+            let obel = vrf
+                .find_bel_delta(bel, 0, dy, &format!("BUFGCTRL{i}"))
+                .unwrap();
+            vrf.verify_node(&[bel.fwire(&format!("GCLK{i}_I")), obel.fwire("GCLK")]);
+        }
+        let obel = vrf.find_bel_delta(bel, 0, dy, "GIO_BOT").unwrap();
+        for i in 0..4 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}_I")),
+                obel.fwire(&format!("GIO{i}_CMT")),
+            ]);
+        }
+        let obel = vrf.find_bel_delta(bel, 0, dy, "GIO_TOP").unwrap();
+        for i in 4..8 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("GIO{i}_I")),
+                obel.fwire(&format!("GIO{i}_CMT")),
+            ]);
+        }
+    }
+}
+
+pub fn verify_bufgctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "BUFGCTRL",
+        &[
+            ("I0", SitePinDir::In),
+            ("I1", SitePinDir::In),
+            ("O", SitePinDir::Out),
+        ],
+        &["I0_CKINT", "I1_CKINT", "I0_FB_TEST", "I1_FB_TEST"],
+    );
+
+    let is_b = bel.node_kind == "CMT_BUFG_BOT";
+    let obel_gio = vrf.find_bel_sibling(bel, if is_b { "GIO_BOT" } else { "GIO_TOP" });
+    vrf.claim_node(&[bel.fwire("I0")]);
+    vrf.claim_node(&[bel.fwire("I1")]);
+    vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("I0_CKINT"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1"), bel.wire("I1_CKINT"));
+    vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("I0_CASCI"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1"), bel.wire("I1_CASCI"));
+    vrf.claim_pip(bel.crd(), bel.wire("I0"), bel.wire("I0_FB_TEST"));
+    vrf.claim_pip(bel.crd(), bel.wire("I1"), bel.wire("I1_FB_TEST"));
+    for i in 0..8 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("I0"),
+            obel_gio.wire(&format!("GIO{i}_BUFG")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("I1"),
+            obel_gio.wire(&format!("GIO{i}_BUFG")),
+        );
+    }
+    let idx = bel.bid.to_idx();
+    for oi in [(idx + 1) % 16, (idx + 15) % 16] {
+        let obi = if is_b { oi } else { oi + 16 };
+        let obel = vrf.find_bel_sibling(bel, &format!("BUFGCTRL{obi}"));
+        vrf.claim_pip(bel.crd(), bel.wire("I0"), obel.wire("FB"));
+        vrf.claim_pip(bel.crd(), bel.wire("I1"), obel.wire("FB"));
+    }
+
+    vrf.claim_node(&[bel.fwire("O")]);
+    vrf.claim_node(&[bel.fwire("FB")]);
+    vrf.claim_node(&[bel.fwire("GCLK")]);
+    vrf.claim_pip(bel.crd(), bel.wire("FB"), bel.wire("O"));
+    vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
+}
+
+pub fn verify_gio_bot(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "GIO_TOP");
+    for (i, col, row) in [
+        (0, edev.grid.cols_io[1].unwrap(), bel.row - 4),
+        (1, edev.grid.cols_io[2].unwrap(), bel.row - 4),
+        (2, edev.grid.cols_io[1].unwrap(), bel.row - 2),
+        (3, edev.grid.cols_io[2].unwrap(), bel.row - 2),
+    ] {
+        vrf.claim_node(&[
+            bel.fwire(&format!("GIO{i}_BUFG")),
+            obel.fwire(&format!("GIO{i}_BUFG")),
+        ]);
+        vrf.claim_node(&[bel.fwire(&format!("GIO{i}_CMT"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GIO{i}_BUFG")),
+            bel.wire(&format!("GIO{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GIO{i}_CMT")),
+            bel.wire(&format!("GIO{i}")),
+        );
+        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC0").unwrap();
+        vrf.verify_node(&[bel.fwire(&format!("GIO{i}")), obel_io.fwire("CLKOUT_CMT")]);
+    }
+}
+
+pub fn verify_gio_top(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "GIO_BOT");
+    for (i, col, row) in [
+        (4, edev.grid.cols_io[1].unwrap(), bel.row),
+        (5, edev.grid.cols_io[2].unwrap(), bel.row),
+        (6, edev.grid.cols_io[1].unwrap(), bel.row + 2),
+        (7, edev.grid.cols_io[2].unwrap(), bel.row + 2),
+    ] {
+        vrf.claim_node(&[
+            bel.fwire(&format!("GIO{i}_BUFG")),
+            obel.fwire(&format!("GIO{i}_BUFG")),
+        ]);
+        vrf.claim_node(&[bel.fwire(&format!("GIO{i}_CMT"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GIO{i}_BUFG")),
+            bel.wire(&format!("GIO{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("GIO{i}_CMT")),
+            bel.wire(&format!("GIO{i}")),
+        );
+        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC0").unwrap();
+        vrf.verify_node(&[bel.fwire(&format!("GIO{i}")), obel_io.fwire("CLKOUT_CMT")]);
+    }
 }
 
 pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -1482,6 +1664,9 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "MMCM0" | "MMCM1" => verify_mmcm(vrf, bel),
         "CMT" => verify_cmt(edev, vrf, bel),
         "GCLK_BUF" => verify_gclk_buf(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFGCTRL") => verify_bufgctrl(vrf, bel),
+        "GIO_BOT" => verify_gio_bot(edev, vrf, bel),
+        "GIO_TOP" => verify_gio_top(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

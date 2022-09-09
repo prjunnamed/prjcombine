@@ -904,9 +904,19 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
                 node.add_bel(0, format!("PMVIOB_X0Y{pmvy}"));
                 pmvy += 1;
-            } else if reg == self.grid.reg_cfg - 1 || reg == self.grid.reg_cfg {
-                // cfg bottom: CMT_PMVB, empty
-                // cfg mid: top part of BUFG, handled below
+            } else if reg == self.grid.reg_cfg - 1 {
+                // CMT_PMVB, empty
+            } else if reg == self.grid.reg_cfg {
+                let name = format!("CMT_BUFG_TOP_X{x}Y{y}");
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("CMT_BUFG_TOP"),
+                    &[&name, &name_b],
+                    self.db.get_node_naming("CMT_BUFG_TOP"),
+                    &[(col, row), (col, row + 1), (col, row + 2)],
+                );
+                for i in 0..16 {
+                    node.add_bel(i, format!("BUFGCTRL_X0Y{y}", y = i + 16));
+                }
             } else {
                 let name = format!("CMT_PMVB_BUF_ABOVE_X{x}Y{y}");
                 self.die[(col, row)].add_xnode(
@@ -928,7 +938,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[],
                 );
             } else if reg == self.grid.reg_cfg - 1 {
-                // XXX fill BUFG
+                let name = format!("CMT_BUFG_BOT_X{x}Y{y}");
+                let node = self.die[(col, row + 2)].add_xnode(
+                    self.db.get_node("CMT_BUFG_BOT"),
+                    &[&name, &name_t],
+                    self.db.get_node_naming("CMT_BUFG_BOT"),
+                    &[(col, row - 1), (col, row), (col, row + 1)],
+                );
+                for i in 0..16 {
+                    node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
+                }
             } else {
                 let name = format!("CMT_PMVA_X{x}Y{y}");
                 let node = self.die[(col, row)].add_xnode(

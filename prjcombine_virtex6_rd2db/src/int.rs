@@ -779,7 +779,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 if i == 0 {
                     bel = bel
                         .extra_wire_force("CLKOUT", format!("{lr}IOI_I_2IOCLK_BOT1"))
-                        .extra_wire_force("CLKOUT_GCLK", format!("{lr}IOI_I_2IOCLK_BOT1_I2GCLK"));
+                        .extra_wire_force("CLKOUT_CMT", format!("{lr}IOI_I_2IOCLK_BOT1_I2GCLK"));
                 }
                 bels.push(bel);
             }
@@ -1237,6 +1237,166 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .xnode("GCLK_BUF", "GCLK_BUF", xy)
                 .num_tiles(0)
                 .bel(bel)
+                .extract();
+        }
+    }
+
+    for tkn in ["CMT_BUFG_BOT", "CMT_BUFG_TOP"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf = builder.db.get_node_naming("INTF");
+            let mut bels = vec![];
+            let is_b = tkn == "CMT_BUFG_BOT";
+            let bi = if is_b { 0 } else { 16 };
+            let int_xy = xy.delta(-2, if is_b { -1 } else { 0 });
+            let cmt_xy = xy.delta(0, if is_b { -9 } else { 11 });
+            for i in 0..16 {
+                let ii = bi + i;
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFGCTRL{ii}"), "BUFGCTRL", 0, i)
+                        .pins_name_only(&["I0", "I1", "O"])
+                        .extra_int_in(
+                            "I0_CKINT",
+                            &[[
+                                "CMT_BUFG_BORROWED_IMUX38",
+                                "CMT_BUFG_BORROWED_IMUX25",
+                                "CMT_BUFG_BORROWED_IMUX22",
+                                "CMT_BUFG_BORROWED_IMUX9",
+                                "CMT_BUFG_BORROWED_IMUX6",
+                                "CMT_BUFG_IMUX_B1_0",
+                                "CMT_BUFG_IMUX_B25_0",
+                                "CMT_BUFG_IMUX_B35_0",
+                                "CMT_BUFG_IMUX_B12_0",
+                                "CMT_BUFG_IMUX_B38_0",
+                                "CMT_BUFG_IMUX_B23_0",
+                                "CMT_BUFG_IMUX_B33_1",
+                                "CMT_BUFG_IMUX_B10_1",
+                                "CMT_BUFG_IMUX_B20_1",
+                                "CMT_BUFG_IMUX_B5_1",
+                                "CMT_BUFG_IMUX_B31_1",
+                                "CMT_BUFG_IMUX_B8_0",
+                                "CMT_BUFG_IMUX_B18_0",
+                                "CMT_BUFG_IMUX_B42_0",
+                                "CMT_BUFG_IMUX_B13_0",
+                                "CMT_BUFG_IMUX_B37_0",
+                                "CMT_BUFG_IMUX_B16_1",
+                                "CMT_BUFG_IMUX_B40_1",
+                                "CMT_BUFG_IMUX_B3_1",
+                                "CMT_BUFG_IMUX_B27_1",
+                                "CMT_BUFG_IMUX_B6_1",
+                                "CMT_BUFG_IMUX_B30_1",
+                                "CMT_BUFG_BORROWED_IMUX6",
+                                "CMT_BUFG_BORROWED_IMUX9",
+                                "CMT_BUFG_BORROWED_IMUX22",
+                                "CMT_BUFG_BORROWED_IMUX25",
+                                "CMT_BUFG_BORROWED_IMUX38",
+                            ][ii as usize]],
+                        )
+                        .extra_int_in(
+                            "I1_CKINT",
+                            &[[
+                                "CMT_BUFG_BORROWED_IMUX39",
+                                "CMT_BUFG_BORROWED_IMUX24",
+                                "CMT_BUFG_BORROWED_IMUX23",
+                                "CMT_BUFG_BORROWED_IMUX8",
+                                "CMT_BUFG_BORROWED_IMUX7",
+                                "CMT_BUFG_IMUX_B9_0",
+                                "CMT_BUFG_IMUX_B17_0",
+                                "CMT_BUFG_IMUX_B43_0",
+                                "CMT_BUFG_IMUX_B4_0",
+                                "CMT_BUFG_IMUX_B7_0",
+                                "CMT_BUFG_IMUX_B15_0",
+                                "CMT_BUFG_IMUX_B41_1",
+                                "CMT_BUFG_IMUX_B2_1",
+                                "CMT_BUFG_IMUX_B28_1",
+                                "CMT_BUFG_IMUX_B36_1",
+                                "CMT_BUFG_IMUX_B39_1",
+                                "CMT_BUFG_IMUX_B0_0",
+                                "CMT_BUFG_IMUX_B26_0",
+                                "CMT_BUFG_IMUX_B34_0",
+                                "CMT_BUFG_IMUX_B21_0",
+                                "CMT_BUFG_IMUX_B29_0",
+                                "CMT_BUFG_IMUX_B24_1",
+                                "CMT_BUFG_IMUX_B32_1",
+                                "CMT_BUFG_IMUX_B11_1",
+                                "CMT_BUFG_IMUX_B19_1",
+                                "CMT_BUFG_IMUX_B14_1",
+                                "CMT_BUFG_IMUX_B22_1",
+                                "CMT_BUFG_BORROWED_IMUX7",
+                                "CMT_BUFG_BORROWED_IMUX8",
+                                "CMT_BUFG_BORROWED_IMUX23",
+                                "CMT_BUFG_BORROWED_IMUX24",
+                                "CMT_BUFG_BORROWED_IMUX39",
+                            ][ii as usize]],
+                        )
+                        .extra_wire("GCLK", &[format!("CMT_BUFG_CK_GCLK{ii}")])
+                        .extra_wire("FB", &[format!("CMT_BUFG_FBG_OUT{i}")])
+                        .extra_wire(
+                            "I0_CASCI",
+                            &[
+                                format!("CMT_BUFG_BOT_CK_MUXED{iii}", iii = i * 2),
+                                format!("CMT_BUFG_TOP_CK_MUXED{iii}", iii = i * 2),
+                            ],
+                        )
+                        .extra_wire(
+                            "I1_CASCI",
+                            &[
+                                format!("CMT_BUFG_BOT_CK_MUXED{iii}", iii = i * 2 + 1),
+                                format!("CMT_BUFG_TOP_CK_MUXED{iii}", iii = i * 2 + 1),
+                            ],
+                        )
+                        .extra_int_in("I0_FB_TEST", &[format!("CMT_BUFG_CK_FB_TEST0_{i}")])
+                        .extra_int_in("I1_FB_TEST", &[format!("CMT_BUFG_CK_FB_TEST1_{i}")]),
+                );
+            }
+            let mut bel = builder.bel_virtual(if is_b { "GIO_BOT" } else { "GIO_TOP" });
+            for i in 0..8 {
+                bel = bel.extra_wire(
+                    format!("GIO{i}_BUFG"),
+                    &[
+                        format!("CMT_BUFG_BOT_CK_IO_TO_BUFG{i}"),
+                        format!("CMT_BUFG_TOP_CK_IO_TO_BUFG{i}"),
+                    ],
+                );
+            }
+            if is_b {
+                for i in 0..4 {
+                    bel = bel
+                        .extra_wire(format!("GIO{i}"), &[format!("CMT_BUFG_BOT_CK_PADIN{i}")])
+                        .extra_wire(
+                            format!("GIO{i}_CMT"),
+                            &[
+                                format!("CMT_BUFG_BOT_CK_IO_TO_CMT{i}"),
+                                format!("CMT_BUFG_TOP_CK_IO_TO_CMT{i}"),
+                            ],
+                        );
+                }
+            } else {
+                for i in 4..8 {
+                    bel = bel
+                        .extra_wire(format!("GIO{i}"), &[format!("CMT_BUFG_TOP_CK_PADIN{i}")])
+                        .extra_wire(
+                            format!("GIO{i}_CMT"),
+                            &[
+                                format!("CMT_BUFG_BOT_CK_IO_TO_CMT{i}"),
+                                format!("CMT_BUFG_TOP_CK_IO_TO_CMT{i}"),
+                            ],
+                        );
+                }
+            }
+            // XXX GIO bel
+            bels.push(bel);
+            builder
+                .xnode(tkn, tkn, xy)
+                .raw_tile(cmt_xy)
+                .num_tiles(3)
+                .ref_int(int_xy, 0)
+                .ref_int(int_xy.delta(0, 1), 1)
+                .ref_int(int_xy.delta(0, 2), 2)
+                .ref_single(int_xy.delta(1, 0), 0, intf)
+                .ref_single(int_xy.delta(1, 1), 1, intf)
+                .ref_single(int_xy.delta(1, 2), 2, intf)
+                .bels(bels)
                 .extract();
         }
     }
