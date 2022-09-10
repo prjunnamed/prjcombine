@@ -102,6 +102,7 @@ pub struct Verifier<'a> {
     skip_residual: bool,
     stub_outs: HashSet<rawdump::WireId>,
     stub_ins: HashSet<rawdump::WireId>,
+    cond_stub_outs: HashSet<rawdump::WireId>,
 }
 
 #[derive(Debug, Default)]
@@ -199,6 +200,7 @@ impl<'a> Verifier<'a> {
             skip_residual: false,
             stub_outs: HashSet::new(),
             stub_ins: HashSet::new(),
+            cond_stub_outs: HashSet::new(),
         }
     }
 
@@ -415,6 +417,21 @@ impl<'a> Verifier<'a> {
             } else {
                 println!("MISSING WIRE {part} {tname} {wn}", part = self.rd.part);
             }
+        }
+    }
+
+    pub fn is_claimed_raw(&mut self, crd: Coord, wire: rawdump::WireId) -> bool {
+        let tile = &self.rd.tiles[&crd];
+        if let Some(nw) = self.rd.lookup_wire_raw(crd, wire) {
+            match nw {
+                NodeOrWire::Node(nidx) => self.claimed_nodes[nidx],
+                NodeOrWire::Wire(crd, widx) => self.claimed_twires.get_mut(&crd).unwrap()[widx],
+            }
+        } else {
+            let tname = &tile.name;
+            let wn = &self.rd.wires[wire];
+            println!("MISSING NODE WIRE {part} {tname} {wn}", part = self.rd.part);
+            false
         }
     }
 
@@ -1178,6 +1195,12 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn kill_stub_out_cond(&mut self, name: &str) {
+        if let Some(wi) = self.rd.wires.get(name) {
+            self.cond_stub_outs.insert(wi);
+        }
+    }
+
     pub fn kill_stub_in(&mut self, name: &str) {
         if let Some(wi) = self.rd.wires.get(name) {
             self.stub_ins.insert(wi);
@@ -1187,16 +1210,25 @@ impl<'a> Verifier<'a> {
     fn finish(mut self) {
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
-            for &(wf, wt) in tk.pips.keys() {
-                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
-                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
-                if pip_present && (self.stub_outs.contains(&wt) || self.stub_ins.contains(&wf)) {
-                    self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
-                }
-            }
+            let mut cond_stub_outs = HashSet::new();
             for &w in tk.wires.keys() {
                 if self.stub_outs.contains(&w) || self.stub_ins.contains(&w) {
                     self.claim_node(&[(crd, &self.rd.wires[w])]);
+                }
+                if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {
+                    cond_stub_outs.insert(w);
+                    self.claim_node(&[(crd, &self.rd.wires[w])]);
+                }
+            }
+            for &(wf, wt) in tk.pips.keys() {
+                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
+                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
+                if pip_present
+                    && (self.stub_outs.contains(&wt)
+                        || self.stub_ins.contains(&wf)
+                        || cond_stub_outs.contains(&wt))
+                {
+                    self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
                 }
             }
         }

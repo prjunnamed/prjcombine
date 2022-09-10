@@ -1296,17 +1296,6 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             for i in 0..4 {
                 wires[i].push(obel.fwire(&format!("IOCLK{i}")));
             }
-            for j in [0, 2, 3, 6] {
-                match (bel.node_kind, dy) {
-                    (_, -1) => continue,
-                    ("HCLK_IOI_TOPCEN" | "HCLK_IOI_CMT", 0) => continue,
-                    _ => (),
-                }
-                let iois_byp = format!("IOI_BYP_INT_B{j}");
-                let int_byp = format!("IOI_BYP_B{j}");
-                vrf.claim_node(&[(obel.crd(), &iois_byp)]);
-                vrf.claim_pip(obel.crd(), &iois_byp, &int_byp);
-            }
         }
     }
     for i in 0..4 {
@@ -1432,4 +1421,8 @@ pub fn verify_extra(grid: &Grid, vrf: &mut Verifier) {
             .unwrap();
         vrf.claim_node(&[(crd, "ER2BEG0")]);
     }
+    vrf.kill_stub_out_cond("IOI_BYP_INT_B0");
+    vrf.kill_stub_out_cond("IOI_BYP_INT_B2");
+    vrf.kill_stub_out_cond("IOI_BYP_INT_B3");
+    vrf.kill_stub_out_cond("IOI_BYP_INT_B6");
 }

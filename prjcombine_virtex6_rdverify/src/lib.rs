@@ -1,4 +1,5 @@
 use prjcombine_entity::EntityId;
+use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex6::{DisabledPart, ExpandedDevice};
 
@@ -549,7 +550,57 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         vrf.claim_pip(bel.crd(), bel.wire(&format!("OCLK{i}")), obel.wire("O"));
     }
 
-    // XXX source MGT
+    if matches!(which, "OL" | "OR") {
+        let scol = if which == "OL" {
+            edev.grid.columns.first_id().unwrap()
+        } else {
+            edev.grid.columns.last_id().unwrap()
+        };
+        if let Some(obel) = vrf
+            .find_bel(bel.die, (scol, bel.row), "HCLK_GTX")
+            .or_else(|| vrf.find_bel(bel.die, (scol, bel.row), "HCLK_GTH"))
+        {
+            for i in 0..10 {
+                vrf.verify_node(&[
+                    bel.fwire(&format!("MGT{i}")),
+                    obel.fwire(&format!("MGT{i}")),
+                ]);
+            }
+        } else {
+            for i in 0..10 {
+                vrf.claim_node(&[bel.fwire(&format!("MGT{i}"))]);
+            }
+        }
+    } else {
+        let reg = bel.row.to_idx() / 40;
+        if which == "IR"
+            && edev.disabled.contains(&DisabledPart::GtxRow(reg))
+            && edev.grid.cols_io[3].is_none()
+        {
+            for i in 0..10 {
+                vrf.claim_node(&[bel.fwire(&format!("MGT{i}"))]);
+            }
+        } else {
+            let dx = if which == "IL" { -1 } else { 1 };
+            if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "MGT_BUF") {
+                for i in 0..10 {
+                    vrf.verify_node(&[
+                        bel.fwire(&format!("MGT{i}")),
+                        obel.fwire(&format!("MGT{i}_O")),
+                    ]);
+                }
+            } else {
+                let scol = edev.grid.cols_io[if which == "IL" { 0 } else { 3 }].unwrap();
+                let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK_IOI").unwrap();
+                for i in 0..10 {
+                    vrf.verify_node(&[
+                        bel.fwire(&format!("MGT{i}")),
+                        obel.fwire(&format!("MGT{i}")),
+                    ]);
+                }
+            }
+        }
+    }
 }
 
 fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -1411,9 +1462,16 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 obel.fwire("CLKOUT_CMT"),
             ]);
         }
-    }
 
-    // XXX source MGT       [GTX/GTH]
+        // HCLK_IOI is not the true source, but it already did the job for us.
+        let obel = vrf.find_bel(bel.die, (col, bel.row), "HCLK_IOI").unwrap();
+        for i in 0..4 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGT{i}_{lr}")),
+                obel.fwire(&format!("MGT{i}")),
+            ]);
+        }
+    }
 
     let dy = if bel.row < edev.grid.row_bufg() {
         20
@@ -1621,7 +1679,363 @@ pub fn verify_gio_top(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     }
 }
 
-pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = [
+        ("RXP", SitePinDir::In),
+        ("RXN", SitePinDir::In),
+        ("TXP", SitePinDir::Out),
+        ("TXN", SitePinDir::Out),
+        ("PERFCLKRX", SitePinDir::In),
+        ("PERFCLKTX", SitePinDir::In),
+        ("RXRECCLK", SitePinDir::Out),
+        ("TXOUTCLK", SitePinDir::Out),
+        ("MGTREFCLKRX0", SitePinDir::In),
+        ("MGTREFCLKRX1", SitePinDir::In),
+        ("MGTREFCLKTX0", SitePinDir::In),
+        ("MGTREFCLKTX1", SitePinDir::In),
+        ("NORTHREFCLKRX0", SitePinDir::In),
+        ("NORTHREFCLKRX1", SitePinDir::In),
+        ("NORTHREFCLKTX0", SitePinDir::In),
+        ("NORTHREFCLKTX1", SitePinDir::In),
+        ("SOUTHREFCLKRX0", SitePinDir::In),
+        ("SOUTHREFCLKRX1", SitePinDir::In),
+        ("SOUTHREFCLKTX0", SitePinDir::In),
+        ("SOUTHREFCLKTX1", SitePinDir::In),
+    ];
+    vrf.verify_bel(bel, "GTXE1", &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    for (pin, key) in [("RXP", "IPAD.RXP"), ("RXN", "IPAD.RXN")] {
+        let obel = vrf.find_bel_sibling(bel, key);
+        vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
+    }
+    for (pin, key) in [("TXP", "OPAD.TXP"), ("TXN", "OPAD.TXN")] {
+        let obel = vrf.find_bel_sibling(bel, key);
+        vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire(pin));
+    }
+
+    for pin in ["RXRECCLK", "TXOUTCLK"] {
+        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
+    }
+
+    let obel = vrf
+        .find_bel(bel.die, (bel.col, edev.grid.row_hclk(bel.row)), "HCLK_GTX")
+        .unwrap();
+    for (orx, otx, pin) in [
+        ("PERFCLKRX", "PERFCLKTX", "PERFCLK"),
+        ("MGTREFCLKRX0", "MGTREFCLKTX0", "MGTREFCLKOUT0"),
+        ("MGTREFCLKRX1", "MGTREFCLKTX1", "MGTREFCLKOUT1"),
+        ("SOUTHREFCLKRX0", "SOUTHREFCLKTX0", "SOUTHREFCLKOUT0"),
+        ("SOUTHREFCLKRX1", "SOUTHREFCLKTX1", "SOUTHREFCLKOUT1"),
+        ("NORTHREFCLKRX0", "NORTHREFCLKTX0", "NORTHREFCLKIN0"),
+        ("NORTHREFCLKRX1", "NORTHREFCLKTX1", "NORTHREFCLKIN1"),
+    ] {
+        vrf.verify_node(&[bel.fwire(pin), obel.fwire(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(orx), bel.wire(pin));
+        vrf.claim_pip(bel.crd(), bel.wire(otx), bel.wire(pin));
+    }
+}
+
+pub fn verify_ibufds_gtx(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = [
+        ("I", SitePinDir::In),
+        ("IB", SitePinDir::In),
+        ("O", SitePinDir::Out),
+        ("ODIV2", SitePinDir::Out),
+        ("CLKTESTSIG", SitePinDir::In),
+    ];
+    vrf.verify_bel(bel, "IBUFDS_GTXE1", &pins, &["CLKTESTSIG_INT"]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    for (key, pin, okey) in [
+        ("IBUFDS_GTX0", "I", "IPAD.CLKP0"),
+        ("IBUFDS_GTX0", "IB", "IPAD.CLKN0"),
+        ("IBUFDS_GTX1", "I", "IPAD.CLKP1"),
+        ("IBUFDS_GTX1", "IB", "IPAD.CLKN1"),
+    ] {
+        if bel.key != key {
+            continue;
+        }
+        let obel = vrf.find_bel_sibling(bel, okey);
+        vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
+    }
+
+    vrf.claim_pip(
+        bel.crd(),
+        bel.wire("CLKTESTSIG"),
+        bel.wire("CLKTESTSIG_INT"),
+    );
+
+    vrf.claim_node(&[bel.fwire("HCLK_OUT")]);
+    vrf.claim_pip(bel.crd(), bel.wire("HCLK_OUT"), bel.wire("O"));
+    vrf.claim_pip(bel.crd(), bel.wire("HCLK_OUT"), bel.wire("ODIV2"));
+    vrf.claim_pip(bel.crd(), bel.wire("HCLK_OUT"), bel.wire("CLKTESTSIG_INT"));
+}
+
+pub fn verify_hclk_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.claim_node(&[bel.fwire("PERFCLK")]);
+    let obel_cmt = vrf
+        .find_bel(bel.die, (edev.grid.col_cfg, bel.row), "CMT")
+        .unwrap();
+    let which = if bel.col.to_idx() == 0 { "OL" } else { "OR" };
+    for i in 0..4 {
+        vrf.verify_node(&[
+            bel.fwire(&format!("PERF{i}")),
+            obel_cmt.fwire(&format!("PERF{i}_{which}_O")),
+        ]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("PERFCLK"),
+            bel.wire(&format!("PERF{i}")),
+        );
+    }
+
+    for (i, dy, key, pin, lpin) in [
+        (0, -20, "GTX", "RXRECCLK", Some("RXRECCLK0")),
+        (1, -10, "GTX", "RXRECCLK", Some("RXRECCLK1")),
+        (2, -20, "GTX", "TXOUTCLK", Some("TXOUTCLK0")),
+        (3, -10, "GTX", "TXOUTCLK", Some("TXOUTCLK1")),
+        (4, 0, "IBUFDS_GTX0", "HCLK_OUT", None),
+        (5, 0, "IBUFDS_GTX1", "HCLK_OUT", None),
+        (6, 0, "GTX", "RXRECCLK", Some("RXRECCLK2")),
+        (7, 10, "GTX", "RXRECCLK", Some("RXRECCLK3")),
+        (8, 0, "GTX", "TXOUTCLK", Some("TXOUTCLK2")),
+        (9, 10, "GTX", "TXOUTCLK", Some("TXOUTCLK3")),
+    ] {
+        let mpin = format!("MGT{i}");
+        vrf.claim_node(&[bel.fwire(&mpin)]);
+        let obel = vrf.find_bel_delta(bel, 0, dy, key).unwrap();
+        if let Some(lpin) = lpin {
+            vrf.verify_node(&[bel.fwire(lpin), obel.fwire_far(pin)]);
+            vrf.claim_pip(bel.crd(), bel.wire(&mpin), bel.wire(lpin));
+        } else {
+            vrf.claim_pip(bel.crd(), bel.wire(&mpin), obel.wire(pin));
+        }
+    }
+
+    for i in 0..2 {
+        vrf.claim_node(&[bel.fwire(&format!("MGTREFCLKOUT{i}"))]);
+        let obel = vrf.find_bel_sibling(bel, &format!("IBUFDS_GTX{i}"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MGTREFCLKOUT{i}")),
+            obel.wire("O"),
+        );
+
+        vrf.claim_node(&[bel.fwire(&format!("SOUTHREFCLKOUT{i}"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("SOUTHREFCLKOUT{i}")),
+            bel.wire("MGTREFCLKIN0"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("SOUTHREFCLKOUT{i}")),
+            bel.wire("MGTREFCLKIN1"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("SOUTHREFCLKOUT{i}")),
+            bel.wire(&format!("SOUTHREFCLKIN{i}")),
+        );
+        vrf.claim_node(&[bel.fwire(&format!("NORTHREFCLKOUT{i}"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("NORTHREFCLKOUT{i}")),
+            bel.wire("MGTREFCLKOUT0"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("NORTHREFCLKOUT{i}")),
+            bel.wire("MGTREFCLKOUT1"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("NORTHREFCLKOUT{i}")),
+            bel.wire(&format!("NORTHREFCLKIN{i}")),
+        );
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, -40, "HCLK_GTX") {
+            vrf.verify_node(&[
+                bel.fwire(&format!("NORTHREFCLKIN{i}")),
+                obel.fwire(&format!("NORTHREFCLKOUT{i}")),
+            ]);
+        } else {
+            vrf.claim_node(&[bel.fwire(&format!("NORTHREFCLKIN{i}"))]);
+        }
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 40, "HCLK_GTX") {
+            vrf.verify_node(&[
+                bel.fwire(&format!("SOUTHREFCLKIN{i}")),
+                obel.fwire(&format!("SOUTHREFCLKOUT{i}")),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGTREFCLKIN{i}")),
+                obel.fwire(&format!("MGTREFCLKOUT{i}")),
+            ]);
+        } else {
+            vrf.claim_node(&[bel.fwire(&format!("SOUTHREFCLKIN{i}"))]);
+            vrf.claim_node(&[bel.fwire(&format!("MGTREFCLKIN{i}"))]);
+        }
+    }
+}
+
+pub fn verify_gth(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pins = vec![];
+    for i in 0..4 {
+        pins.extend([
+            (format!("RXP{i}"), SitePinDir::In),
+            (format!("RXN{i}"), SitePinDir::In),
+            (format!("TXP{i}"), SitePinDir::Out),
+            (format!("TXN{i}"), SitePinDir::Out),
+            (format!("RXUSERCLKOUT{i}"), SitePinDir::Out),
+            (format!("TXUSERCLKOUT{i}"), SitePinDir::Out),
+        ]);
+    }
+    pins.extend([
+        ("REFCLK".to_string(), SitePinDir::In),
+        ("TSTPATH".to_string(), SitePinDir::Out),
+        ("TSTREFCLKOUT".to_string(), SitePinDir::Out),
+    ]);
+    let pin_refs: Vec<_> = pins.iter().map(|&(ref p, d)| (&p[..], d)).collect();
+    vrf.verify_bel(bel, "GTHE1_QUAD", &pin_refs, &["GREFCLK"]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(&pin)]);
+    }
+    for i in 0..4 {
+        for pn in ['P', 'N'] {
+            let obel = vrf.find_bel_sibling(bel, &format!("IPAD.RX{pn}{i}"));
+            vrf.claim_pip(bel.crd(), bel.wire(&format!("RX{pn}{i}")), obel.wire("O"));
+            let obel = vrf.find_bel_sibling(bel, &format!("OPAD.TX{pn}{i}"));
+            vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire(&format!("TX{pn}{i}")));
+        }
+    }
+
+    vrf.claim_node(&[bel.fwire_far("REFCLK")]);
+    vrf.claim_pip(bel.crd(), bel.wire("REFCLK"), bel.wire_far("REFCLK"));
+    vrf.claim_pip(bel.crd(), bel.wire_far("REFCLK"), bel.wire("GREFCLK"));
+    vrf.claim_pip(bel.crd(), bel.wire_far("REFCLK"), bel.wire("REFCLK_IN"));
+    vrf.claim_pip(bel.crd(), bel.wire_far("REFCLK"), bel.wire("REFCLK_SOUTH"));
+    vrf.claim_pip(bel.crd(), bel.wire_far("REFCLK"), bel.wire("REFCLK_NORTH"));
+    let obel = vrf.find_bel_sibling(bel, "IBUFDS_GTH");
+    vrf.verify_node(&[bel.fwire("REFCLK_IN"), obel.fwire_far("O")]);
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, 40, "GTH") {
+        vrf.claim_node(&[bel.fwire_far("REFCLK_UP")]);
+        vrf.claim_pip(bel.crd(), bel.wire("REFCLK_UP"), bel.wire_far("REFCLK"));
+        vrf.verify_node(&[bel.fwire("REFCLK_SOUTH"), obel.fwire("REFCLK_DN")]);
+    } else {
+        vrf.claim_node(&[bel.fwire("REFCLK_SOUTH")]);
+    }
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, -40, "GTH") {
+        vrf.claim_node(&[bel.fwire_far("REFCLK_DN")]);
+        vrf.claim_pip(bel.crd(), bel.wire("REFCLK_DN"), bel.wire_far("REFCLK"));
+        vrf.verify_node(&[bel.fwire("REFCLK_NORTH"), obel.fwire("REFCLK_UP")]);
+    } else {
+        vrf.claim_node(&[bel.fwire("REFCLK_NORTH")]);
+    }
+    for (opin, ipin) in [
+        ("MGT0", "RXUSERCLKOUT0"),
+        ("MGT1", "RXUSERCLKOUT1"),
+        ("MGT2", "TXUSERCLKOUT0"),
+        ("MGT3", "TXUSERCLKOUT1"),
+        ("MGT4", "TSTPATH"),
+        ("MGT5", "TSTREFCLKOUT"),
+        ("MGT6", "RXUSERCLKOUT2"),
+        ("MGT7", "RXUSERCLKOUT3"),
+        ("MGT8", "TXUSERCLKOUT2"),
+        ("MGT9", "TXUSERCLKOUT3"),
+    ] {
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
+    }
+}
+
+pub fn verify_ibufds_gth(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = [
+        ("I", SitePinDir::In),
+        ("IB", SitePinDir::In),
+        ("O", SitePinDir::Out),
+    ];
+    vrf.verify_bel(bel, "IBUFDS_GTHE1", &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    for (pin, okey) in [("I", "IPAD.CLKP"), ("IB", "IPAD.CLKN")] {
+        let obel = vrf.find_bel_sibling(bel, okey);
+        vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
+    }
+
+    vrf.claim_node(&[bel.fwire_far("O")]);
+    vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
+}
+
+pub fn verify_hclk_gth(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "GTH");
+    for i in 0..10 {
+        vrf.claim_node(&[bel.fwire(&format!("MGT{i}"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MGT{i}")),
+            bel.wire(&format!("MGT{i}_I")),
+        );
+        vrf.verify_node(&[
+            bel.fwire(&format!("MGT{i}_I")),
+            obel.fwire(&format!("MGT{i}")),
+        ]);
+    }
+}
+
+pub fn verify_mgt_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let reg = bel.row.to_idx() / 40;
+    if edev.disabled.contains(&DisabledPart::GtxRow(reg)) && edev.grid.cols_io[3].is_none() {
+        return;
+    }
+    for i in 0..10 {
+        vrf.claim_node(&[bel.fwire(&format!("MGT{i}_O"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("MGT{i}_O")),
+            bel.wire(&format!("MGT{i}_I")),
+        );
+    }
+    let is_l = bel.col < edev.grid.col_cfg;
+    let dx = if is_l { -1 } else { 1 };
+    let gtcol = if is_l {
+        edev.grid.columns.first_id().unwrap()
+    } else {
+        edev.grid.columns.last_id().unwrap()
+    };
+    if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "MGT_BUF") {
+        for i in 0..10 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGT{i}_I")),
+                obel.fwire(&format!("MGT{i}_O")),
+            ]);
+        }
+    } else if let Some(obel) = vrf
+        .find_bel(bel.die, (gtcol, bel.row), "HCLK_GTX")
+        .or_else(|| vrf.find_bel(bel.die, (gtcol, bel.row), "HCLK_GTH"))
+    {
+        for i in 0..10 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGT{i}_I")),
+                obel.fwire(&format!("MGT{i}")),
+            ]);
+        }
+    } else {
+        let scol = edev.grid.cols_io[if is_l { 0 } else { 3 }].unwrap();
+        let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK_IOI").unwrap();
+        for i in 0..10 {
+            vrf.verify_node(&[
+                bel.fwire(&format!("MGT{i}_I")),
+                obel.fwire(&format!("MGT{i}")),
+            ]);
+        }
+    }
+}
+
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
@@ -1653,7 +2067,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         _ if bel.key.starts_with("ICAP") => vrf.verify_bel(bel, "ICAP", &[], &[]),
         "PMV0" | "PMV1" => vrf.verify_bel(bel, "PMV", &[], &[]),
         "STARTUP" | "CAPTURE" | "FRAME_ECC" | "EFUSE_USR" | "USR_ACCESS" | "DNA_PORT"
-        | "DCIRESET" | "CFG_IO_ACCESS" | "PMVIOB" | "PPR_FRAME" => {
+        | "DCIRESET" | "CFG_IO_ACCESS" | "PMVIOB" | "PPR_FRAME" | "GLOBALSIG" => {
             vrf.verify_bel(bel, bel.key, &[], &[])
         }
         "SYSMON" => verify_sysmon(edev, vrf, bel),
@@ -1668,6 +2082,60 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         "GIO_BOT" => verify_gio_bot(edev, vrf, bel),
         "GIO_TOP" => verify_gio_top(edev, vrf, bel),
 
+        "GTX" => verify_gtx(edev, vrf, bel),
+        "IBUFDS_GTX0" | "IBUFDS_GTX1" => verify_ibufds_gtx(vrf, bel),
+        "HCLK_GTX" => verify_hclk_gtx(edev, vrf, bel),
+        "GTH" => verify_gth(vrf, bel),
+        "IBUFDS_GTH" => verify_ibufds_gth(vrf, bel),
+        "HCLK_GTH" => verify_hclk_gth(vrf, bel),
+        "MGT_BUF" => verify_mgt_buf(edev, vrf, bel),
+
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
+}
+
+fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+    vrf.kill_stub_out_cond("IOI_PREAMBLE_DGLITCH0");
+    vrf.kill_stub_out_cond("IOI_PREAMBLE_DGLITCH1");
+    vrf.kill_stub_out_cond("IOI_PREAMBLE_DGLITCH2");
+    vrf.kill_stub_out_cond("IOI_PREAMBLE_DGLITCH3");
+    vrf.kill_stub_out_cond("IOI_INT_BUFR_CLR_B_S");
+    vrf.kill_stub_out_cond("IOI_INT_BUFR_CLR_B_N");
+    vrf.kill_stub_out_cond("IOI_INT_BUFR_CE_B_S");
+    vrf.kill_stub_out_cond("IOI_INT_BUFR_CE_B_N");
+    vrf.kill_stub_out_cond("IOI_INT_RCLKMUX_B_S");
+    vrf.kill_stub_out_cond("IOI_INT_RCLKMUX_B_N");
+    for i in 0..40 {
+        vrf.kill_stub_out_cond(&format!("CMT_TOP_IMUX_B_2_BUFG{i}"));
+        vrf.kill_stub_out_cond(&format!("CMT_BOT_IMUX_B_2_BUFG{i}"));
+    }
+    vrf.kill_stub_out_cond("GTX_IBUFDSMGTCEB0");
+    vrf.kill_stub_out_cond("GTX_IBUFDSMGTCEB1");
+    vrf.kill_stub_out_cond("GTX_CLKTESTSIG2");
+    vrf.kill_stub_out_cond("GTX_CLKTESTSIG3");
+    vrf.kill_stub_out_cond("GTX_LEFT_IBUFDSMGTCEB0");
+    vrf.kill_stub_out_cond("GTX_LEFT_IBUFDSMGTCEB1");
+    vrf.kill_stub_out_cond("GTX_LEFT_CLKTESTSIG2");
+    vrf.kill_stub_out_cond("GTX_LEFT_CLKTESTSIG3");
+    for &crd in vrf.rd.tiles_by_kind_name("T_TERM_INT") {
+        let tile = &vrf.rd.tiles[&crd];
+        let otile = &vrf.rd.tiles[&crd.delta(0, -1)];
+        if vrf.rd.tile_kinds.key(otile.kind) == "CENTER_SPACE2" {
+            let tk = &vrf.rd.tile_kinds[tile.kind];
+            for &w in tk.wires.keys() {
+                if vrf.rd.lookup_wire_raw(crd, w).is_some() {
+                    vrf.claim_node(&[(crd, &vrf.rd.wires[w])]);
+                }
+            }
+        }
+    }
+}
+
+pub fn verify(edev: &ExpandedDevice, rd: &Part) {
+    prjcombine_rdverify::verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

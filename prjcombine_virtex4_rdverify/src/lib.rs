@@ -659,25 +659,6 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             wires_s1.push(obel.fwire("IOCLK_S1"));
             wires_n0.push(obel.fwire("IOCLK_N0"));
             wires_n1.push(obel.fwire("IOCLK_N1"));
-            for j in [0, 2, 4, 7] {
-                match (bel.node_kind, i, j) {
-                    // DCI
-                    ("HCLK_IOIS_DCI" | "HCLK_IOBDCM" | "HCLK_CENTER", 6, _) => continue,
-                    ("HCLK_DCMIOB" | "HCLK_CENTER_ABOVE_CFG", 9, _) => continue,
-                    // IDELAYCTRL
-                    ("HCLK_IOIS_DCI" | "HCLK_IOIS_LVDS" | "HCLK_IOBDCM" | "HCLK_CENTER", 7, 7) => {
-                        continue
-                    }
-                    ("HCLK_DCMIOB" | "HCLK_CENTER_ABOVE_CFG", 8, 7) => continue,
-                    // RCLK
-                    ("HCLK_IOIS_DCI" | "HCLK_IOIS_LVDS", 7 | 8, 0 | 2 | 4) => continue,
-                    _ => (),
-                }
-                let iois_byp = format!("IOIS_BYP_INT_B{j}");
-                let int_byp = format!("BYP_INT_B{j}_INT");
-                vrf.claim_node(&[(obel.crd(), &iois_byp)]);
-                vrf.claim_pip(obel.crd(), &iois_byp, &int_byp);
-            }
         }
     }
     vrf.claim_node(&wires0);
@@ -1797,4 +1778,9 @@ pub fn verify_extra(_grid: &Grid, vrf: &mut Verifier) {
     vrf.kill_stub_out("PB_OMUX_S5_B6");
     vrf.kill_stub_out("PB_OMUX_WS1_B5");
     vrf.kill_stub_out("PB_OMUX_WS1_B6");
+
+    vrf.kill_stub_out_cond("IOIS_BYP_INT_B0");
+    vrf.kill_stub_out_cond("IOIS_BYP_INT_B2");
+    vrf.kill_stub_out_cond("IOIS_BYP_INT_B4");
+    vrf.kill_stub_out_cond("IOIS_BYP_INT_B7");
 }

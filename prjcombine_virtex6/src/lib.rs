@@ -962,6 +962,136 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_gt(&mut self) {
+        let mut gx = 0;
+        for (col, &cd) in &self.grid.columns {
+            if cd != ColumnKind::Gt {
+                continue;
+            }
+            let is_l = col.to_idx() == 0;
+            let ipx = if is_l { 0 } else { 1 + gx };
+
+            let mut gy = 0;
+            let mut gthy = 0;
+            let mut hy = 0;
+            for row in self.die.rows() {
+                let reg = row.to_idx() / 40;
+                if reg >= self.grid.reg_gth_start {
+                    if row.to_idx() % 40 == 20 {
+                        let name_b = if is_l {
+                            format!(
+                                "GTH_L_BOT_X{x}Y{y}",
+                                x = col.to_idx(),
+                                y = row.to_idx() - 10
+                            )
+                        } else {
+                            format!("GTH_BOT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 10)
+                        };
+                        let name_t = if is_l {
+                            format!(
+                                "GTH_L_TOP_X{x}Y{y}",
+                                x = col.to_idx(),
+                                y = row.to_idx() + 10
+                            )
+                        } else {
+                            format!("GTH_TOP_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 10)
+                        };
+                        let name_h = if is_l {
+                            format!(
+                                "HCLK_GTH_LEFT_X{x}Y{y}",
+                                x = col.to_idx(),
+                                y = row.to_idx() - 1
+                            )
+                        } else {
+                            format!(
+                                "HCLK_GTH_X{x}Y{y}",
+                                x = self.rxlut[col] + 2,
+                                y = row.to_idx() + row.to_idx() / 20
+                            )
+                        };
+                        let crds: [_; 40] = core::array::from_fn(|dy| (col, row - 20 + dy));
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("GTH"),
+                            &[&name_b, &name_t, &name_h],
+                            self.db
+                                .get_node_naming(if is_l { "GTH.L" } else { "GTH.R" }),
+                            &crds,
+                        );
+                        for i in 0..8 {
+                            node.add_bel(
+                                i,
+                                format!("IPAD_X{ipx}Y{y}", y = gy * 6 + gthy * 12 + 6 + (7 - i)),
+                            );
+                        }
+                        for i in 0..8 {
+                            node.add_bel(
+                                8 + i,
+                                format!("OPAD_X{gx}Y{y}", y = (gy + gthy) * 8 + (7 - i)),
+                            );
+                        }
+                        node.add_bel(16, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 8 + gthy * 12));
+                        node.add_bel(17, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 9 + gthy * 12));
+                        node.add_bel(18, format!("GTHE1_QUAD_X{gx}Y{gthy}"));
+                        node.add_bel(19, format!("IBUFDS_GTHE1_X{gx}Y{y}", y = gthy * 2 + 1));
+                        gthy += 1;
+                    }
+                } else {
+                    if self.disabled.contains(&DisabledPart::GtxRow(reg)) {
+                        continue;
+                    }
+                    if row.to_idx() % 40 == 20 {
+                        let crds: [_; 10] = core::array::from_fn(|dy| (col, row - 10 + dy));
+                        let tk = if is_l { "HCLK_GTX_LEFT" } else { "HCLK_GTX" };
+                        let name = if is_l {
+                            format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 1)
+                        } else {
+                            format!(
+                                "{tk}_X{x}Y{y}",
+                                x = self.rxlut[col] + 2,
+                                y = row.to_idx() + row.to_idx() / 20
+                            )
+                        };
+                        let tk_gt = if is_l { "GTX_LEFT" } else { "GTX" };
+                        let name_gt =
+                            format!("{tk_gt}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 10);
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("HCLK_GTX"),
+                            &[&name, &name_gt],
+                            self.db.get_node_naming(tk),
+                            &crds,
+                        );
+                        node.add_bel(0, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 2));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 1));
+                        node.add_bel(2, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 4));
+                        node.add_bel(3, format!("IPAD_X{ipx}Y{y}", y = gy * 6 - 3));
+                        node.add_bel(4, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = hy * 2));
+                        node.add_bel(5, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = hy * 2 + 1));
+                        hy += 1;
+                    }
+                    if row.to_idx() % 10 == 0 {
+                        let crds: [_; 10] = core::array::from_fn(|dy| (col, row + dy));
+                        let tk = if is_l { "GTX_LEFT" } else { "GTX" };
+                        let name = format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("GTX"),
+                            &[&name],
+                            self.db.get_node_naming(tk),
+                            &crds,
+                        );
+                        node.add_bel(0, format!("IPAD_X{ipx}Y{y}", y = gy * 6 + 1));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = gy * 6));
+                        node.add_bel(2, format!("OPAD_X{gx}Y{y}", y = gy * 2 + 1));
+                        node.add_bel(3, format!("OPAD_X{gx}Y{y}", y = gy * 2));
+                        node.add_bel(4, format!("GTXE1_X{gx}Y{gy}"));
+                        gy += 1;
+                    }
+                }
+            }
+
+            gx += 1;
+        }
+    }
+
     fn fill_hclk(&mut self) {
         for col in self.die.cols() {
             for row in self.die.rows() {
@@ -995,17 +1125,41 @@ impl<'a, 'b> Expander<'a, 'b> {
                     if skip_b {
                         name = format!("HCLK_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
                     }
-                    self.die[(col, row)].add_xnode(
+                    let node = self.die[(col, row)].add_xnode(
                         self.db.get_node("HCLK"),
                         &[&name],
                         self.db.get_node_naming(naming),
                         &[(col, row - 1), (col, row)],
+                    );
+                    node.add_bel(
+                        0,
+                        format!(
+                            "GLOBALSIG_X{x}Y{y}",
+                            x = col.to_idx(),
+                            y = row.to_idx() / 40
+                        ),
                     );
                     if naming == "HCLK.QBUF" {
                         self.die[(col, row)].add_xnode(
                             self.db.get_node("HCLK_QBUF"),
                             &[&name],
                             self.db.get_node_naming("HCLK_QBUF"),
+                            &[],
+                        );
+                    }
+                    if self.grid.cols_mgt_buf.contains(&col) {
+                        let is_l = col < self.grid.col_cfg;
+                        let tk = if is_l {
+                            "HCLK_CLBLM_MGT_LEFT"
+                        } else {
+                            "HCLK_CLB"
+                        };
+                        let name = format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 1);
+                        self.die[(col, row)].add_xnode(
+                            self.db.get_node("MGT_BUF"),
+                            &[&name],
+                            self.db
+                                .get_node_naming(if is_l { "MGT_BUF.L" } else { "MGT_BUF.R" }),
                             &[],
                         );
                     }
@@ -1148,6 +1302,7 @@ impl Grid {
         expander.fill_bram_dsp();
         expander.fill_io();
         expander.fill_cmt();
+        expander.fill_gt();
         expander.fill_hclk();
 
         ExpandedDevice {

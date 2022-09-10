@@ -531,6 +531,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("HCLK_QBUF_R", "HCLK.QBUF"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel_gsig = builder.bel_xy("GLOBALSIG", "GLOBALSIG", 0, 0);
             let mut bel = builder.bel_virtual("HCLK");
             for i in 0..8 {
                 bel = bel
@@ -560,6 +561,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .num_tiles(2)
                 .ref_int(xy.delta(0, -1), 0)
                 .ref_int(xy.delta(0, 1), 1)
+                .bel(bel_gsig)
                 .bel(bel)
                 .extract();
             if naming == "HCLK.QBUF" {
@@ -1384,7 +1386,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         );
                 }
             }
-            // XXX GIO bel
             bels.push(bel);
             builder
                 .xnode(tkn, tkn, xy)
@@ -1397,6 +1398,399 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .ref_single(int_xy.delta(1, 1), 1, intf)
                 .ref_single(int_xy.delta(1, 2), 2, intf)
                 .bels(bels)
+                .extract();
+        }
+    }
+
+    for tkn in ["GTX", "GTX_LEFT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = tkn == "GTX_LEFT";
+            let int_xy = xy.delta(if is_l { 2 } else { -3 }, 0);
+            let intf_gt = builder
+                .db
+                .get_node_naming(if is_l { "INTF.GT_L" } else { "INTF.GTX" });
+            let bels = [
+                builder
+                    .bel_xy("IPAD.RXP", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.RXN", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("OPAD.TXP", "OPAD", 0, 1)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("OPAD.TXN", "OPAD", 0, 0)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("GTX", "GTXE1", 0, 0)
+                    .pins_name_only(&[
+                        "RXP",
+                        "RXN",
+                        "TXP",
+                        "TXN",
+                        "PERFCLKRX",
+                        "PERFCLKTX",
+                        "MGTREFCLKRX0",
+                        "MGTREFCLKRX1",
+                        "MGTREFCLKTX0",
+                        "MGTREFCLKTX1",
+                        "NORTHREFCLKRX0",
+                        "NORTHREFCLKRX1",
+                        "NORTHREFCLKTX0",
+                        "NORTHREFCLKTX1",
+                        "SOUTHREFCLKRX0",
+                        "SOUTHREFCLKRX1",
+                        "SOUTHREFCLKTX0",
+                        "SOUTHREFCLKTX1",
+                    ])
+                    .pin_name_only("TXOUTCLK", 1)
+                    .pin_name_only("RXRECCLK", 1)
+                    .extra_wire("PERFCLK", &["GTX_PERFCLK", "GTX_LEFT_PERCLK"])
+                    .extra_wire(
+                        "MGTREFCLKOUT0",
+                        &["GTX_MGTREFCLKOUT0", "GTX_LEFT_MGTREFCLKOUT0"],
+                    )
+                    .extra_wire(
+                        "MGTREFCLKOUT1",
+                        &["GTX_MGTREFCLKOUT1", "GTX_LEFT_MGTREFCLKOUT1"],
+                    )
+                    .extra_wire(
+                        "NORTHREFCLKIN0",
+                        &["GTX_NORTHREFCLKIN0", "GTX_LEFT_NORTHREFCLKIN0"],
+                    )
+                    .extra_wire(
+                        "NORTHREFCLKIN1",
+                        &["GTX_NORTHREFCLKIN1", "GTX_LEFT_NORTHREFCLKIN1"],
+                    )
+                    .extra_wire(
+                        "SOUTHREFCLKOUT0",
+                        &["GTX_SOUTHREFCLKOUT0", "GTX_LEFT_SOUTHREFCLKOUT0"],
+                    )
+                    .extra_wire(
+                        "SOUTHREFCLKOUT1",
+                        &["GTX_SOUTHREFCLKOUT1", "GTX_LEFT_SOUTHREFCLKOUT1"],
+                    ),
+            ];
+            let mut xn = builder.xnode("GTX", tkn, xy).num_tiles(10);
+            for i in 0..10 {
+                xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
+                    int_xy.delta(1, i as i32),
+                    i,
+                    intf_gt,
+                );
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in ["HCLK_GTX", "HCLK_GTX_LEFT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = tkn == "HCLK_GTX_LEFT";
+            let int_xy = xy.delta(if is_l { 2 } else { -3 }, -10);
+            let intf_gt = builder
+                .db
+                .get_node_naming(if is_l { "INTF.GT_L" } else { "INTF.GTX" });
+            let mut bel_hclk_gtx = builder
+                .bel_virtual("HCLK_GTX")
+                .extra_wire("PERFCLK", &["HCLK_GTX_PERFCLK", "HCLK_GTX_LEFT_PERFCLK"])
+                .extra_wire(
+                    "MGTREFCLKOUT0",
+                    &["HCLK_GTX_MGTREFCLKOUT0", "HCLK_GTX_LEFT_MGTREFCLKOUT0"],
+                )
+                .extra_wire(
+                    "MGTREFCLKOUT1",
+                    &["HCLK_GTX_MGTREFCLKOUT1", "HCLK_GTX_LEFT_MGTREFCLKOUT1"],
+                )
+                .extra_wire(
+                    "MGTREFCLKIN0",
+                    &["HCLK_GTX_MGTREFCLKIN0", "HCLK_GTX_LEFT_MGTREFCLKIN0"],
+                )
+                .extra_wire(
+                    "MGTREFCLKIN1",
+                    &["HCLK_GTX_MGTREFCLKIN1", "HCLK_GTX_LEFT_MGTREFCLKIN1"],
+                )
+                .extra_wire(
+                    "SOUTHREFCLKIN0",
+                    &["HCLK_GTX_SOUTHREFCLKIN0", "HCLK_GTX_LEFT_SOUTHREFCLKIN0"],
+                )
+                .extra_wire(
+                    "SOUTHREFCLKIN1",
+                    &["HCLK_GTX_SOUTHREFCLKIN1", "HCLK_GTX_LEFT_SOUTHREFCLKIN1"],
+                )
+                .extra_wire(
+                    "NORTHREFCLKIN0",
+                    &["HCLK_GTX_NORTHREFCLKIN0", "HCLK_GTX_LEFT_NORTHREFCLKIN0"],
+                )
+                .extra_wire(
+                    "NORTHREFCLKIN1",
+                    &["HCLK_GTX_NORTHREFCLKIN1", "HCLK_GTX_LEFT_NORTHREFCLKIN1"],
+                )
+                .extra_wire(
+                    "SOUTHREFCLKOUT0",
+                    &["HCLK_GTX_SOUTHREFCLKOUT0", "HCLK_GTX_LEFT_SOUTHREFCLKOUT0"],
+                )
+                .extra_wire(
+                    "SOUTHREFCLKOUT1",
+                    &["HCLK_GTX_SOUTHREFCLKOUT1", "HCLK_GTX_LEFT_SOUTHREFCLKOUT1"],
+                )
+                .extra_wire(
+                    "NORTHREFCLKOUT0",
+                    &["HCLK_GTX_NORTHREFCLKOUT0", "HCLK_GTX_LEFT_NORTHREFCLKOUT0"],
+                )
+                .extra_wire(
+                    "NORTHREFCLKOUT1",
+                    &["HCLK_GTX_NORTHREFCLKOUT1", "HCLK_GTX_LEFT_NORTHREFCLKOUT1"],
+                );
+            for i in 0..10 {
+                bel_hclk_gtx = bel_hclk_gtx.extra_wire(
+                    format!("MGT{i}"),
+                    &[format!("HCLK_GTX_MGT{i}"), format!("HCLK_GTX_LEFT_MGT{i}")],
+                );
+            }
+            for i in 0..4 {
+                bel_hclk_gtx = bel_hclk_gtx.extra_wire(
+                    format!("PERF{i}"),
+                    &[
+                        format!("HCLK_GTX_PERF_OUTER{i}"),
+                        format!("HCLK_GTX_LEFT_PERF_OUTER{i}"),
+                    ],
+                );
+            }
+            for i in 0..4 {
+                bel_hclk_gtx = bel_hclk_gtx
+                    .extra_wire(
+                        format!("RXRECCLK{i}"),
+                        &[
+                            format!("HCLK_GTX_RXRECCLK{i}"),
+                            format!("HCLK_GTX_LEFT_RXRECCLK{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("TXOUTCLK{i}"),
+                        &[
+                            format!("HCLK_GTX_TXOUTCLK{i}"),
+                            format!("HCLK_GTX_LEFT_TXOUTCLK{i}"),
+                        ],
+                    );
+            }
+            let bels = [
+                builder
+                    .bel_xy("IPAD.CLKP0", "IPAD", 0, 2)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN0", "IPAD", 0, 3)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKP1", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN1", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IBUFDS_GTX0", "IBUFDS_GTXE1", 0, 0)
+                    .pins_name_only(&["O", "ODIV2", "I", "IB", "CLKTESTSIG"])
+                    .extra_wire(
+                        "HCLK_OUT",
+                        &["HCLK_GTX_REFCLKHROW0", "HCLK_GTX_LEFT_REFCLKHROW0"],
+                    )
+                    .extra_int_in(
+                        "CLKTESTSIG_INT",
+                        &[
+                            "IBUFDS_GTXE1_0_CLKTESTSIG_SEG",
+                            // sigh. that is an O.
+                            "IBUFDS_GTXE1_LEFT_O_CLKTESTSIG_SEG",
+                        ],
+                    ),
+                builder
+                    .bel_xy("IBUFDS_GTX1", "IBUFDS_GTXE1", 0, 1)
+                    .pins_name_only(&["O", "ODIV2", "I", "IB", "CLKTESTSIG"])
+                    .extra_wire(
+                        "HCLK_OUT",
+                        &["HCLK_GTX_REFCLKHROW1", "HCLK_GTX_LEFT_REFCLKHROW1"],
+                    )
+                    .extra_int_in(
+                        "CLKTESTSIG_INT",
+                        &[
+                            "IBUFDS_GTXE1_1_CLKTESTSIG_SEG",
+                            "IBUFDS_GTXE1_LEFT_1_CLKTESTSIG_SEG",
+                        ],
+                    ),
+                bel_hclk_gtx,
+            ];
+            let mut xn = builder
+                .xnode("HCLK_GTX", tkn, xy)
+                .num_tiles(10)
+                .raw_tile(xy.delta(0, -10));
+            for i in 0..10 {
+                xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
+                    int_xy.delta(1, i as i32),
+                    i,
+                    intf_gt,
+                );
+            }
+            xn.bels(bels).extract();
+        }
+    }
+    for tkn in ["HCLK_GTH_LEFT", "HCLK_GTH"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = tkn == "HCLK_GTH_LEFT";
+            let int_xy = xy.delta(if is_l { 2 } else { -3 }, 0);
+            let intf_gt = builder
+                .db
+                .get_node_naming(if is_l { "INTF.GT_L" } else { "INTF.GTX" });
+            let xy_bot = xy.delta(0, -10);
+            let xy_top = xy.delta(0, 11);
+            let mut bels = vec![];
+            for i in 0..4 {
+                bels.extend([
+                    builder
+                        .bel_xy(&format!("IPAD.RXP{i}"), "IPAD", 0, (3 - i) * 2 + 1)
+                        .raw_tile(1)
+                        .pins_name_only(&["O"]),
+                    builder
+                        .bel_xy(&format!("IPAD.RXN{i}"), "IPAD", 0, (3 - i) * 2)
+                        .raw_tile(1)
+                        .pins_name_only(&["O"]),
+                ]);
+            }
+            for i in 0..4 {
+                bels.extend([
+                    builder
+                        .bel_xy(&format!("OPAD.TXP{i}"), "OPAD", 0, (3 - i) * 2 + 1)
+                        .raw_tile(1)
+                        .pins_name_only(&["I"]),
+                    builder
+                        .bel_xy(&format!("OPAD.TXN{i}"), "OPAD", 0, (3 - i) * 2)
+                        .raw_tile(1)
+                        .pins_name_only(&["I"]),
+                ]);
+            }
+            bels.extend([
+                builder
+                    .bel_xy("IPAD.CLKP", "IPAD", 0, 1)
+                    .raw_tile(2)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN", "IPAD", 0, 0)
+                    .raw_tile(2)
+                    .pins_name_only(&["O"]),
+            ]);
+            let mut bel_gt = builder
+                .bel_xy("GTH", "GTHE1_QUAD", 0, 0)
+                .raw_tile(1)
+                .pins_name_only(&["TSTPATH", "TSTREFCLKOUT"])
+                .pin_name_only("REFCLK", 1)
+                .extra_int_in("GREFCLK", &["GTH_LEFT_GREFCLK", "GTHE1_RIGHT_GREFCLK"])
+                .extra_wire(
+                    "REFCLK_IN",
+                    &["GTH_LEFT_IBUF_OUTCLK", "GTHE1_RIGHT_IBUF_OUTCLK"],
+                )
+                .extra_wire(
+                    "REFCLK_SOUTH",
+                    &["GTH_LEFT_REFCLKSOUTHIN", "GTHE1_RIGHT_REFCLKSOUTHIN"],
+                )
+                .extra_wire(
+                    "REFCLK_NORTH",
+                    &["GTH_LEFT_REFCLKNORTHIN", "GTHE1_RIGHT_REFCLKNORTHIN"],
+                )
+                .extra_wire("REFCLK_UP", &["GTH_TOP_REFCLKUP", "GTH_LEFT_REFCLK_NORTH"])
+                .extra_wire("REFCLK_DN", &["GTH_TOP_REFCLKDN", "GTH_LEFT_REFCLK_SOUTH"]);
+            for i in 0..4 {
+                bel_gt = bel_gt.pins_name_only(&[
+                    format!("RXP{i}"),
+                    format!("RXN{i}"),
+                    format!("TXP{i}"),
+                    format!("TXN{i}"),
+                    format!("TXUSERCLKOUT{i}"),
+                    format!("RXUSERCLKOUT{i}"),
+                ]);
+            }
+            for i in 0..10 {
+                bel_gt = bel_gt.extra_wire(
+                    format!("MGT{i}"),
+                    &[
+                        format!("GTH_LEFT_MGTCLK{i}"),
+                        format!("GTHE1_RIGHT_MGTCLK{i}"),
+                    ],
+                );
+            }
+            bels.push(bel_gt);
+            bels.push(
+                builder
+                    .bel_xy("IBUFDS_GTH", "IBUFDS_GTHE1", 0, 0)
+                    .raw_tile(2)
+                    .pins_name_only(&["I", "IB"])
+                    .pin_name_only("O", 1),
+            );
+            let mut bel = builder.bel_virtual("HCLK_GTH").raw_tile(2);
+            for i in 0..10 {
+                bel = bel
+                    .extra_wire(
+                        format!("MGT{i}"),
+                        &[
+                            format!("HCLK_GTH_LEFT_MGT{i}"),
+                            format!("HCLK_GTH_RIGHT_MGT{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("MGT{i}_I"),
+                        &[
+                            format!("HCLK_GTH_LEFT_MGTCLK{i}"),
+                            format!("HCLK_GTH_RIGHT_MGTCLK{i}"),
+                        ],
+                    );
+            }
+            bels.push(bel);
+
+            let mut xn = builder
+                .xnode("GTH", if is_l { "GTH.L" } else { "GTH.R" }, xy_bot)
+                .num_tiles(40)
+                .raw_tile(xy_top)
+                .raw_tile(xy);
+            for i in 0..20 {
+                xn = xn.ref_int(int_xy.delta(0, -20 + i as i32), i).ref_single(
+                    int_xy.delta(1, -20 + i as i32),
+                    i,
+                    intf_gt,
+                )
+            }
+            for i in 0..20 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, 1 + i as i32), i + 20)
+                    .ref_single(int_xy.delta(1, 1 + i as i32), i + 20, intf_gt)
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for (tkn, naming) in [
+        ("HCLK_CLBLM_MGT_LEFT", "MGT_BUF.L"),
+        ("HCLK_CLBLM_MGT", "MGT_BUF.R"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("MGT_BUF");
+            for i in 0..10 {
+                if naming == "MGT_BUF.L" {
+                    bel = bel
+                        .extra_wire(format!("MGT{i}_O"), &[format!("HCLK_CLB_MGT_CK_IN_MGT{i}")])
+                        .extra_wire(
+                            format!("MGT{i}_I"),
+                            &[format!("HCLK_CLB_MGT_CK_OUT_MGT{i}")],
+                        );
+                } else {
+                    bel = bel
+                        .extra_wire(
+                            format!("MGT{i}_O"),
+                            &[format!("HCLK_CLB_MGT_CK_OUT_MGT{i}")],
+                        )
+                        .extra_wire(format!("MGT{i}_I"), &[format!("HCLK_CLB_MGT_CK_IN_MGT{i}")]);
+                }
+            }
+            builder
+                .xnode("MGT_BUF", naming, xy)
+                .num_tiles(0)
+                .bel(bel)
                 .extract();
         }
     }
