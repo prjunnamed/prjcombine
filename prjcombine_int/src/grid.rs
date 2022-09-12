@@ -66,6 +66,32 @@ impl core::ops::SubAssign<usize> for RowId {
     }
 }
 
+impl core::ops::Add<usize> for DieId {
+    type Output = DieId;
+    fn add(self, x: usize) -> DieId {
+        DieId::from_idx(self.to_idx() + x)
+    }
+}
+
+impl core::ops::AddAssign<usize> for DieId {
+    fn add_assign(&mut self, x: usize) {
+        *self = *self + x;
+    }
+}
+
+impl core::ops::Sub<usize> for DieId {
+    type Output = DieId;
+    fn sub(self, x: usize) -> DieId {
+        DieId::from_idx(self.to_idx() - x)
+    }
+}
+
+impl core::ops::SubAssign<usize> for DieId {
+    fn sub_assign(&mut self, x: usize) {
+        *self = *self - x;
+    }
+}
+
 pub type Coord = (ColId, RowId);
 pub type IntWire = (DieId, Coord, WireId);
 

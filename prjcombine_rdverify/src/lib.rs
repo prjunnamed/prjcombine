@@ -364,6 +364,16 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn claim_dummy_in(&mut self, wire: (Coord, &str)) {
+        let (crd, wn) = wire;
+        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+            if !self.dummy_in_nodes.contains(&cnw) {
+                self.dummy_in_nodes.insert(cnw);
+                self.claim_raw_node(cnw, crd, wn);
+            }
+        }
+    }
+
     pub fn pin_int_intf_wire(&mut self, crd: Coord, wire: &str, iw: IntWire) -> bool {
         if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();

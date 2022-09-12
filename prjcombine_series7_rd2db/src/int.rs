@@ -945,5 +945,352 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("INT_L").iter().next() {
+        let mut bel_l = builder.bel_virtual("INT_GCLK_L");
+        let mut bel_r = builder.bel_virtual("INT_GCLK_R").raw_tile(1);
+        for i in 6..12 {
+            bel_l = bel_l
+                .extra_wire(format!("GCLK{i}_I"), &[format!("GCLK_L_B{i}")])
+                .extra_int_out(format!("GCLK{i}_O_L"), &[format!("GCLK_L_B{i}_WEST")])
+                .extra_int_out(format!("GCLK{i}_O_R"), &[format!("GCLK_L_B{i}_EAST")]);
+        }
+        for i in 0..6 {
+            bel_r = bel_r
+                .extra_wire(format!("GCLK{i}_I"), &[format!("GCLK_B{i}")])
+                .extra_int_out(format!("GCLK{i}_O_L"), &[format!("GCLK_B{i}_WEST")])
+                .extra_int_out(format!("GCLK{i}_O_R"), &[format!("GCLK_B{i}_EAST")]);
+        }
+        builder
+            .xnode("INT_GCLK", "INT_GCLK", xy)
+            .raw_tile_single(xy.delta(1, 0), 1)
+            .num_tiles(2)
+            .bel(bel_l)
+            .bel(bel_r)
+            .extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("HCLK_L").iter().next() {
+        let mut bel_l = builder.bel_virtual("HCLK_L");
+        let mut bel_r = builder.bel_virtual("HCLK_R").raw_tile(1);
+        for i in 6..12 {
+            bel_l = bel_l
+                .extra_wire(
+                    format!("GCLK{i}_O_D"),
+                    &[format!("HCLK_LEAF_CLK_B_BOTL{ii}", ii = i - 6)],
+                )
+                .extra_wire(
+                    format!("GCLK{i}_O_U"),
+                    &[format!("HCLK_LEAF_CLK_B_TOPL{ii}", ii = i - 6)],
+                );
+        }
+        for i in 0..6 {
+            bel_r = bel_r
+                .extra_wire(format!("GCLK{i}_O_D"), &[format!("HCLK_LEAF_CLK_B_BOT{i}")])
+                .extra_wire(format!("GCLK{i}_O_U"), &[format!("HCLK_LEAF_CLK_B_TOP{i}")]);
+        }
+        for i in 0..8 {
+            bel_r = bel_r
+                .extra_wire(format!("HCLK{i}"), &[format!("HCLK_CK_BUFHCLK{i}")])
+                .extra_wire(format!("HCLK{i}_O"), &[format!("HCLK_CK_INOUT_R{i}")]);
+            bel_l = bel_l.extra_wire(format!("HCLK{i}_I"), &[format!("HCLK_CK_OUTIN_L{i}")]);
+        }
+        for i in 8..12 {
+            bel_l = bel_l
+                .extra_wire(format!("HCLK{i}"), &[format!("HCLK_CK_BUFHCLK{i}")])
+                .extra_wire(
+                    format!("HCLK{i}_O"),
+                    &[format!("HCLK_CK_INOUT_L{ii}", ii = i - 8)],
+                );
+            bel_r = bel_r.extra_wire(
+                format!("HCLK{i}_I"),
+                &[format!("HCLK_CK_OUTIN_R{ii}", ii = i - 4)],
+            );
+        }
+        for i in 0..4 {
+            bel_l = bel_l
+                .extra_wire(format!("RCLK{i}"), &[format!("HCLK_CK_BUFRCLK{i}")])
+                .extra_wire(
+                    format!("RCLK{i}_O"),
+                    &[format!("HCLK_CK_INOUT_L{ii}", ii = i + 4)],
+                );
+            bel_r = bel_r.extra_wire(format!("RCLK{i}_I"), &[format!("HCLK_CK_OUTIN_R{i}")]);
+        }
+        builder
+            .xnode("HCLK", "HCLK", xy)
+            .raw_tile(xy.delta(1, 0))
+            .num_tiles(0)
+            .bel(bel_l)
+            .bel(bel_r)
+            .extract();
+    }
+
+    for tkn in [
+        "CLK_BUFG_REBUF",
+        "CLK_BALI_REBUF",
+        "CLK_BALI_REBUF_GTZ_TOP",
+        "CLK_BALI_REBUF_GTZ_BOT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            let (naming, bkd, bku, xd, xu, swz) = match tkn {
+                "CLK_BUFG_REBUF" => (
+                    "CLK_BUFG_REBUF",
+                    "GCLK_TEST_BUF",
+                    "GCLK_TEST_BUF",
+                    0,
+                    1,
+                    false,
+                ),
+                "CLK_BALI_REBUF" => (
+                    "CLK_BALI_REBUF",
+                    "GCLK_TEST_BUF",
+                    "GCLK_TEST_BUF",
+                    0,
+                    2,
+                    true,
+                ),
+                "CLK_BALI_REBUF_GTZ_BOT" => {
+                    ("CLK_BALI_REBUF", "GCLK_TEST_BUF", "BUFG_LB", 0, 0, true)
+                }
+                "CLK_BALI_REBUF_GTZ_TOP" => {
+                    ("CLK_BALI_REBUF", "BUFG_LB", "GCLK_TEST_BUF", 0, 0, true)
+                }
+                _ => unreachable!(),
+            };
+            for i in 0..16 {
+                let y = if swz {
+                    (i & 3) << 2 | (i & 4) >> 1 | (i & 8) >> 3
+                } else {
+                    i
+                };
+                bels.push(
+                    builder
+                        .bel_xy(format!("GCLK_TEST_BUF.REBUF_D{i}"), bkd, xd, y)
+                        .pins_name_only(&["CLKIN", "CLKOUT"]),
+                );
+            }
+            for i in 0..16 {
+                let y = if swz {
+                    (i & 3) << 2 | (i & 4) >> 1 | (i & 8) >> 3
+                } else {
+                    i
+                };
+                bels.push(
+                    builder
+                        .bel_xy(format!("GCLK_TEST_BUF.REBUF_U{i}"), bku, xu, y)
+                        .pins_name_only(&["CLKIN", "CLKOUT"]),
+                );
+            }
+            let mut bel = builder.bel_virtual("CLK_REBUF");
+            for i in 0..32 {
+                bel = bel
+                    .extra_wire(
+                        format!("GCLK{i}_D"),
+                        &[
+                            format!("CLK_BUFG_REBUF_R_CK_GCLK{i}_BOT"),
+                            format!("CLK_BALI_REBUF_R_GCLK{i}_BOT"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_U"),
+                        &[
+                            format!("CLK_BUFG_REBUF_R_CK_GCLK{i}_TOP"),
+                            format!("CLK_BALI_REBUF_R_GCLK{i}_TOP"),
+                        ],
+                    );
+            }
+            bels.push(bel);
+            builder
+                .xnode("CLK_REBUF", naming, xy)
+                .num_tiles(0)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for tkn in ["CLK_HROW_BOT_R", "CLK_HROW_TOP_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..32 {
+                bels.push(
+                    builder
+                        .bel_xy(
+                            format!("GCLK_TEST_BUF.HROW_GCLK{i}"),
+                            "GCLK_TEST_BUF",
+                            i >> 4,
+                            i & 0xf ^ 0xf,
+                        )
+                        .pins_name_only(&["CLKIN", "CLKOUT"]),
+                );
+            }
+            for i in 0..12 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("BUFHCE_L{i}"), "BUFHCE", 0, i)
+                        .pins_name_only(&["I", "O"]),
+                );
+            }
+            for i in 0..12 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("BUFHCE_R{i}"), "BUFHCE", 1, i)
+                        .pins_name_only(&["I", "O"]),
+                );
+            }
+            bels.extend([
+                builder
+                    .bel_xy("GCLK_TEST_BUF.HROW_BUFH_L", "GCLK_TEST_BUF", 3, 1)
+                    .pins_name_only(&["CLKIN", "CLKOUT"]),
+                builder
+                    .bel_xy("GCLK_TEST_BUF.HROW_BUFH_R", "GCLK_TEST_BUF", 3, 0)
+                    .pins_name_only(&["CLKIN", "CLKOUT"]),
+            ]);
+            let mut bel = builder
+                .bel_virtual("CLK_HROW")
+                .extra_wire("HCLK_TEST_IN_L", &["CLK_HROW_CK_IN_L_TEST_IN"])
+                .extra_wire("HCLK_TEST_IN_R", &["CLK_HROW_CK_IN_R_TEST_IN"])
+                .extra_wire("HCLK_TEST_OUT_L", &["CLK_HROW_CK_IN_L_TEST_OUT"])
+                .extra_wire("HCLK_TEST_OUT_R", &["CLK_HROW_CK_IN_R_TEST_OUT"])
+                .extra_int_in("BUFHCE_CKINT0", &["CLK_HROW_CK_INT_0_0"])
+                .extra_int_in("BUFHCE_CKINT1", &["CLK_HROW_CK_INT_0_1"])
+                .extra_int_in("BUFHCE_CKINT2", &["CLK_HROW_CK_INT_1_0"])
+                .extra_int_in("BUFHCE_CKINT3", &["CLK_HROW_CK_INT_1_1"]);
+            for i in 0..32 {
+                bel = bel
+                    .extra_wire(format!("GCLK{i}"), &[format!("CLK_HROW_R_CK_GCLK{i}")])
+                    .extra_wire(
+                        format!("GCLK{i}_TEST_IN"),
+                        &[format!("CLK_HROW_CK_GCLK_IN_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("GCLK{i}_TEST_OUT"),
+                        &[format!("CLK_HROW_CK_GCLK_OUT_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("GCLK_TEST{i}"),
+                        &[format!("CLK_HROW_CK_GCLK_TEST{i}")],
+                    )
+                    .extra_wire(
+                        format!("CASCO{i}"),
+                        &[
+                            format!("CLK_HROW_BOT_R_CK_BUFG_CASCO{i}"),
+                            format!("CLK_HROW_TOP_R_CK_BUFG_CASCO{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("CASCI{i}"),
+                        &[
+                            format!("CLK_HROW_BOT_R_CK_BUFG_CASCIN{i}"),
+                            format!("CLK_HROW_TOP_R_CK_BUFG_CASCIN{i}"),
+                        ],
+                    );
+            }
+            for lr in ['L', 'R'] {
+                for i in 0..12 {
+                    bel = bel.extra_wire(
+                        format!("HCLK{i}_{lr}"),
+                        &[format!("CLK_HROW_CK_BUFHCLK_{lr}{i}")],
+                    );
+                }
+                for i in 0..4 {
+                    bel = bel.extra_wire(
+                        format!("RCLK{i}_{lr}"),
+                        &[format!("CLK_HROW_CK_BUFRCLK_{lr}{i}")],
+                    );
+                }
+                for i in 0..14 {
+                    bel =
+                        bel.extra_wire(format!("IN{i}_{lr}"), &[format!("CLK_HROW_CK_IN_{lr}{i}")]);
+                }
+            }
+            bels.push(bel);
+            builder
+                .xnode("CLK_HROW", tkn, xy)
+                .num_tiles(2)
+                .ref_int(xy.delta(-2, -1), 0)
+                .ref_int(xy.delta(-2, 1), 1)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for tkn in ["CLK_BUFG_BOT_R", "CLK_BUFG_TOP_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..16 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
+                        .pins_name_only(&["I0", "I1", "O"])
+                        .extra_wire(
+                            "CASCI0",
+                            &[
+                                format!("CLK_BUFG_BOT_R_CK_MUXED{ii}", ii = i * 2),
+                                format!("CLK_BUFG_TOP_R_CK_MUXED{ii}", ii = i * 2),
+                            ],
+                        )
+                        .extra_wire(
+                            "CASCI1",
+                            &[
+                                format!("CLK_BUFG_BOT_R_CK_MUXED{ii}", ii = i * 2 + 1),
+                                format!("CLK_BUFG_TOP_R_CK_MUXED{ii}", ii = i * 2 + 1),
+                            ],
+                        )
+                        .extra_int_in(
+                            "CKINT0",
+                            &[format!("CLK_BUFG_IMUX{j}_{k}", j = 24 + (i % 4), k = i / 4)],
+                        )
+                        .extra_int_in(
+                            "CKINT1",
+                            &[format!("CLK_BUFG_IMUX{j}_{k}", j = 28 + (i % 4), k = i / 4)],
+                        )
+                        .extra_wire("FB", &[format!("CLK_BUFG_R_FBG_OUT{i}")])
+                        .extra_wire(
+                            "GCLK",
+                            &[format!(
+                                "CLK_BUFG_CK_GCLK{ii}",
+                                ii = if tkn == "CLK_BUFG_TOP_R" { i + 16 } else { i }
+                            )],
+                        )
+                        .extra_int_out("FB_TEST0", &[format!("CLK_BUFG_R_CK_FB_TEST0_{i}")])
+                        .extra_int_out("FB_TEST1", &[format!("CLK_BUFG_R_CK_FB_TEST1_{i}")]),
+                );
+            }
+            let intf = builder.db.get_node_naming("INTF.R");
+            builder
+                .xnode("CLK_BUFG", tkn, xy)
+                .num_tiles(4)
+                .ref_int(xy.delta(-2, 0), 0)
+                .ref_single(xy.delta(-1, 0), 0, intf)
+                .ref_int(xy.delta(-2, 1), 1)
+                .ref_single(xy.delta(-1, 1), 1, intf)
+                .ref_int(xy.delta(-2, 2), 2)
+                .ref_single(xy.delta(-1, 2), 2, intf)
+                .ref_int(xy.delta(-2, 3), 3)
+                .ref_single(xy.delta(-1, 3), 3, intf)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for (tkn, bk, slot, dy) in [
+        ("CLK_PMV", "PMV", "PMV", 3),
+        ("CLK_PMVIOB", "PMVIOB", "PMVIOB", 0),
+        ("CLK_PMV2_SVT", "PMV2_SVT", "PMV", 0),
+        ("CLK_PMV2", "PMV2", "PMV", 0),
+        ("CLK_MTBF2", "MTBF2", "MTBF2", 0),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder.bel_xy(bk, slot, 0, 0);
+            let intf = builder.db.get_node_naming("INTF.R");
+            builder
+                .xnode(tkn, tkn, xy)
+                .ref_int(xy.delta(-2, dy), 0)
+                .ref_single(xy.delta(-1, dy), 0, intf)
+                .bel(bel)
+                .extract();
+        }
+    }
+
     builder.build()
 }

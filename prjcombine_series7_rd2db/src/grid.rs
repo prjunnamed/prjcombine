@@ -2,8 +2,8 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_series7::{
-    ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, Hole, HoleKind, IoColumn,
-    IoKind,
+    ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind, Pcie2,
+    Pcie2Kind,
 };
 use std::collections::BTreeSet;
 
@@ -113,14 +113,14 @@ fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_holes(int: &IntGrid) -> Vec<Hole> {
+fn get_pcie2(int: &IntGrid) -> Vec<Pcie2> {
     let mut res = Vec::new();
     for (x, y) in int.find_tiles(&["PCIE_BOT"]) {
         let col = int.lookup_column(x - 2);
         let row = int.lookup_row(y - 10);
         assert_eq!(row.to_idx() % 50, 0);
-        res.push(Hole {
-            kind: HoleKind::Pcie2Right,
+        res.push(Pcie2 {
+            kind: Pcie2Kind::Right,
             col,
             row,
         });
@@ -129,41 +129,22 @@ fn get_holes(int: &IntGrid) -> Vec<Hole> {
         let col = int.lookup_column(x - 2);
         let row = int.lookup_row(y - 10);
         assert_eq!(row.to_idx() % 50, 0);
-        res.push(Hole {
-            kind: HoleKind::Pcie2Left,
+        res.push(Pcie2 {
+            kind: Pcie2Kind::Left,
             col,
             row,
         });
     }
+    res
+}
+
+fn get_pcie3(int: &IntGrid) -> Vec<(ColId, RowId)> {
+    let mut res = vec![];
     for (x, y) in int.find_tiles(&["PCIE3_BOT_RIGHT"]) {
         let col = int.lookup_column(x - 2);
         let row = int.lookup_row(y - 7);
         assert_eq!(row.to_idx() % 50, 25);
-        res.push(Hole {
-            kind: HoleKind::Pcie3,
-            col,
-            row,
-        });
-    }
-    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_LEFT"]) {
-        let col = int.lookup_column(x - 14);
-        let row = int.lookup_row(y - 5);
-        assert_eq!(row.to_idx() % 50, 0);
-        res.push(Hole {
-            kind: HoleKind::GtpLeft,
-            col,
-            row,
-        });
-    }
-    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_RIGHT"]) {
-        let col = int.lookup_column(x + 19);
-        let row = int.lookup_row(y - 5);
-        assert_eq!(row.to_idx() % 50, 0);
-        res.push(Hole {
-            kind: HoleKind::GtpRight,
-            col,
-            row,
-        });
+        res.push((col, row));
     }
     res
 }
@@ -256,6 +237,37 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
     res
 }
 
+fn get_cols_gtp_mid(int: &IntGrid) -> Option<(GtColumn, GtColumn)> {
+    let mut lcol = None;
+    let mut lrows = vec![None; int.rows.len() / 50];
+    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_LEFT"]) {
+        lcol = Some(int.lookup_column(x - 14));
+        let row = int.lookup_row(y - 5);
+        assert_eq!(row.to_idx() % 50, 0);
+        lrows[row.to_idx() / 50] = Some(GtKind::Gtp);
+    }
+    let mut rcol = None;
+    let mut rrows = vec![None; int.rows.len() / 50];
+    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_RIGHT"]) {
+        rcol = Some(int.lookup_column(x + 19));
+        let row = int.lookup_row(y - 5);
+        assert_eq!(row.to_idx() % 50, 0);
+        rrows[row.to_idx() / 50] = Some(GtKind::Gtp);
+    }
+    lcol.map(|lcol| {
+        (
+            GtColumn {
+                col: lcol,
+                regs: lrows,
+            },
+            GtColumn {
+                col: rcol.unwrap(),
+                regs: rrows,
+            },
+        )
+    })
+}
+
 pub fn make_grids(
     rd: &Part,
 ) -> (
@@ -330,7 +342,9 @@ pub fn make_grids(
             regs: int.rows.len() / 50,
             reg_cfg: row_cfg.to_idx() / 50,
             reg_clk: row_clk.to_idx() / 50,
-            holes: get_holes(&int),
+            pcie2: get_pcie2(&int),
+            pcie3: get_pcie3(&int),
+            cols_gtp_mid: get_cols_gtp_mid(&int),
             has_ps,
             has_slr,
             has_no_tbuturn,
@@ -349,9 +363,7 @@ pub fn make_grids(
     }
     let mut disabled = BTreeSet::new();
     if (rd.part.starts_with("xc7s") || rd.part.starts_with("xa7s"))
-        && grids
-            .values()
-            .any(|x| x.holes.iter().any(|y| y.kind == HoleKind::Pcie2Right))
+        && grids.values().any(|x| !x.pcie2.is_empty())
     {
         disabled.insert(DisabledPart::Gtp);
     }
