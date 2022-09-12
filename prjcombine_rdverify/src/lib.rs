@@ -1,4 +1,5 @@
 #![allow(clippy::collapsible_else_if)]
+#![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{
@@ -525,7 +526,9 @@ impl<'a> Verifier<'a> {
                             );
                         }
                         let act_wire = tkp.wire.map(|x| &*self.rd.wires[x]);
-                        if pin.wire != act_wire {
+                        if act_wire.is_some() && pin.wire.is_none() {
+                            self.claim_node(&[(crd, act_wire.unwrap())]);
+                        } else if pin.wire != act_wire {
                             println!(
                                 "PIN WIRE MISMATCH {} {} {} {} {} {:?} {:?}",
                                 self.rd.part, tile.name, name, kind, pin.pin, act_wire, pin.wire
@@ -1065,12 +1068,13 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_bel(
+    pub fn verify_bel_dummies(
         &mut self,
         bel: &BelContext<'_>,
         kind: &str,
         extras: &[(&str, SitePinDir)],
         skip: &[&str],
+        dummies: &[&str],
     ) {
         let mut pins = Vec::new();
         for (k, v) in &bel.bel.pins {
@@ -1088,17 +1092,35 @@ impl<'a> Verifier<'a> {
             });
         }
         for (pin, dir) in extras.iter().copied() {
-            pins.push(SitePin {
-                dir,
-                pin,
-                wire: Some(&bel.naming.pins[pin].name),
-            });
+            if dummies.contains(&pin) {
+                pins.push(SitePin {
+                    dir,
+                    pin,
+                    wire: None,
+                });
+            } else {
+                pins.push(SitePin {
+                    dir,
+                    pin,
+                    wire: Some(&bel.naming.pins[pin].name),
+                });
+            }
         }
         if let Some(name) = bel.name {
             self.claim_site(bel.crd(), name, kind, &pins);
         } else {
             println!("MISSING SITE NAME {:?} {}", bel.node.tiles, bel.key);
         }
+    }
+
+    pub fn verify_bel(
+        &mut self,
+        bel: &BelContext<'_>,
+        kind: &str,
+        extras: &[(&str, SitePinDir)],
+        skip: &[&str],
+    ) {
+        self.verify_bel_dummies(bel, kind, extras, skip, &[]);
     }
 
     pub fn get_bel(
@@ -1225,7 +1247,10 @@ impl<'a> Verifier<'a> {
                 if self.stub_outs.contains(&w) || self.stub_ins.contains(&w) {
                     self.claim_node(&[(crd, &self.rd.wires[w])]);
                 }
-                if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {
+                if self.cond_stub_outs.contains(&w)
+                    && self.rd.lookup_wire_raw(crd, w).is_some()
+                    && !self.is_claimed_raw(crd, w)
+                {
                     cond_stub_outs.insert(w);
                     self.claim_node(&[(crd, &self.rd.wires[w])]);
                 }

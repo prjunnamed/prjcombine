@@ -863,6 +863,7 @@ struct DieExpander<'a, 'b> {
     ylut: EntityVec<RowId, usize>,
     rylut: EntityVec<RowId, usize>,
     tieylut: EntityVec<RowId, usize>,
+    dciylut: EntityVec<RowId, usize>,
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     has_slr_d: bool,
@@ -900,6 +901,23 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             y += 1;
         }
         y
+    }
+
+    fn fill_dciylut(&mut self, mut dciy: usize) -> usize {
+        for row in self.die.rows() {
+            self.dciylut.push(dciy);
+            if row.to_idx() % 50 == 25
+                && self
+                    .grid
+                    .cols_io
+                    .iter()
+                    .flatten()
+                    .any(|x| x.regs[row.to_idx() / 50] == Some(IoKind::Hpio))
+            {
+                dciy += 1;
+            }
+        }
+        dciy
     }
 
     fn fill_xlut(&mut self) {
@@ -1634,6 +1652,223 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_io(&mut self) {
+        let mut iox = 0;
+        let mut dcix = 0;
+        for iocol in self.grid.cols_io.iter().flatten() {
+            let col = iocol.col;
+            let is_l = col < self.grid.col_clk;
+            let is_term = if is_l {
+                col == self.grid.columns.first_id().unwrap()
+            } else {
+                col == self.grid.columns.last_id().unwrap()
+            };
+            let mut found = false;
+            let mut found_hp = false;
+            for row in self.die.rows() {
+                if let Some(kind) = iocol.regs[row.to_idx() / 50] {
+                    found = true;
+                    if kind == IoKind::Hpio {
+                        found_hp = true;
+                    }
+                    let tk = match kind {
+                        IoKind::Hpio => {
+                            if is_l {
+                                "LIOI"
+                            } else {
+                                "RIOI"
+                            }
+                        }
+                        IoKind::Hrio => {
+                            if is_l {
+                                "LIOI3"
+                            } else {
+                                "RIOI3"
+                            }
+                        }
+                    };
+                    let iob_tk = match kind {
+                        IoKind::Hpio => {
+                            if is_l {
+                                "LIOB18"
+                            } else {
+                                "RIOB18"
+                            }
+                        }
+                        IoKind::Hrio => {
+                            if is_l {
+                                "LIOB33"
+                            } else {
+                                "RIOB33"
+                            }
+                        }
+                    };
+                    let rx = self.rxlut[col]
+                        + if is_l {
+                            1
+                        } else if is_term {
+                            3
+                        } else {
+                            2
+                        };
+                    let rxiob = if is_l { rx - 1 } else { rx + 1 };
+
+                    if matches!(row.to_idx() % 50, 0 | 49) {
+                        let name;
+                        let name_iob;
+                        if is_term {
+                            name = format!(
+                                "{tk}_SING_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row]
+                            );
+                            name_iob = format!(
+                                "{iob_tk}_SING_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row]
+                            );
+                        } else {
+                            name = format!("{tk}_SING_X{rx}Y{y}", y = self.rylut[row]);
+                            name_iob = format!("{iob_tk}_SING_X{rxiob}Y{y}", y = self.rylut[row]);
+                        }
+                        let naming = format!("{tk}_SING");
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node(if kind == IoKind::Hpio {
+                                "IOS_HP"
+                            } else {
+                                "IOS_HR"
+                            }),
+                            &[&name, &name_iob],
+                            self.db.get_node_naming(&naming),
+                            &[(col, row)],
+                        );
+                        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(1, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(2, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row]));
+                        if kind == IoKind::Hpio {
+                            node.add_bel(3, format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row]));
+                            node.add_bel(4, format!("IOB_X{iox}Y{y}", y = self.tieylut[row]));
+                        } else {
+                            node.add_bel(3, format!("IOB_X{iox}Y{y}", y = self.tieylut[row]));
+                        }
+                    } else if row.to_idx() % 2 == 1 {
+                        let suf = match row.to_idx() % 50 {
+                            7 | 19 | 31 | 43 => "_TBYTESRC",
+                            13 | 37 => "_TBYTETERM",
+                            _ => "",
+                        };
+                        let name;
+                        let name_iob;
+                        if is_term {
+                            name = format!(
+                                "{tk}{suf}_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row]
+                            );
+                            name_iob = format!(
+                                "{iob_tk}_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row]
+                            );
+                        } else {
+                            name = format!("{tk}{suf}_X{rx}Y{y}", y = self.rylut[row]);
+                            name_iob = format!("{iob_tk}_X{rxiob}Y{y}", y = self.rylut[row]);
+                        }
+                        let naming = format!("{tk}{suf}");
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node(if kind == IoKind::Hpio {
+                                "IOP_HP"
+                            } else {
+                                "IOP_HR"
+                            }),
+                            &[&name, &name_iob],
+                            self.db.get_node_naming(&naming),
+                            &[(col, row), (col, row + 1)],
+                        );
+                        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(4, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                        node.add_bel(5, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row]));
+                        if kind == IoKind::Hpio {
+                            node.add_bel(
+                                6,
+                                format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row] + 1),
+                            );
+                            node.add_bel(7, format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row]));
+                            node.add_bel(8, format!("IOB_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                            node.add_bel(9, format!("IOB_X{iox}Y{y}", y = self.tieylut[row]));
+                        } else {
+                            node.add_bel(6, format!("IOB_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                            node.add_bel(7, format!("IOB_X{iox}Y{y}", y = self.tieylut[row]));
+                        }
+                    }
+
+                    if row.to_idx() % 50 == 25 {
+                        let htk = match kind {
+                            IoKind::Hpio => "HCLK_IOI",
+                            IoKind::Hrio => "HCLK_IOI3",
+                        };
+                        let name = format!("{htk}_X{rx}Y{y}", y = self.rylut[row] - 1);
+                        let name_b0;
+                        let name_b1;
+                        let name_t0;
+                        let name_t1;
+                        if is_term {
+                            name_b0 = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row - 4]
+                            );
+                            name_b1 = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row - 2]
+                            );
+                            name_t0 =
+                                format!("{tk}_X{x}Y{y}", x = self.xlut[col], y = self.ylut[row]);
+                            name_t1 = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = self.xlut[col],
+                                y = self.ylut[row + 2]
+                            );
+                        } else {
+                            name_b0 = format!("{tk}_X{rx}Y{y}", y = self.rylut[row - 4]);
+                            name_b1 = format!("{tk}_X{rx}Y{y}", y = self.rylut[row - 2]);
+                            name_t0 = format!("{tk}_X{rx}Y{y}", y = self.rylut[row]);
+                            name_t1 = format!("{tk}_X{rx}Y{y}", y = self.rylut[row + 2]);
+                        }
+                        let crds: [_; 8] = core::array::from_fn(|dy| (col, row - 4 + dy));
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node(htk),
+                            &[&name, &name_b0, &name_b1, &name_t0, &name_t1],
+                            self.db.get_node_naming(htk),
+                            &crds,
+                        );
+                        let hy = self.tieylut[row] / 50;
+                        for i in 0..4 {
+                            node.add_bel(i, format!("BUFIO_X{iox}Y{y}", y = hy * 4 + (i ^ 2)));
+                        }
+                        for i in 0..4 {
+                            node.add_bel(i + 4, format!("BUFR_X{iox}Y{y}", y = hy * 4 + (i ^ 2)));
+                        }
+                        node.add_bel(8, format!("IDELAYCTRL_X{iox}Y{hy}"));
+                        if kind == IoKind::Hpio {
+                            node.add_bel(9, format!("DCI_X{dcix}Y{y}", y = self.dciylut[row]));
+                        }
+                    }
+                }
+            }
+            if found {
+                iox += 1;
+            }
+            if found_hp {
+                dcix += 1;
+            }
+        }
+    }
+
     fn fill_clk(&mut self, mut bglb_y: usize) -> usize {
         let col = self.grid.col_clk;
         for reg in 0..self.grid.regs {
@@ -1978,6 +2213,7 @@ pub fn expand_grid<'a>(
     let mut pcie2_y = 0;
     let mut pcie3_y = 0;
     let mut bglb_y = 0;
+    let mut dci_y = 0;
     if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
         yb = 1;
         ryb = 2;
@@ -1996,6 +2232,7 @@ pub fn expand_grid<'a>(
             ylut: EntityVec::new(),
             rylut: EntityVec::new(),
             tieylut: EntityVec::new(),
+            dciylut: EntityVec::new(),
             site_holes: Vec::new(),
             int_holes: Vec::new(),
             has_slr_d: did != grids.first_id().unwrap(),
@@ -2010,6 +2247,7 @@ pub fn expand_grid<'a>(
         yb = de.fill_ylut(yb);
         ryb = de.fill_rylut(ryb);
         tie_yb = de.fill_tieylut(tie_yb);
+        dci_y = de.fill_dciylut(dci_y);
         de.fill_int();
         de.fill_cfg();
         de.fill_ps();
@@ -2022,6 +2260,7 @@ pub fn expand_grid<'a>(
         de.die.fill_main_passes();
         de.fill_clb();
         de.fill_bram_dsp();
+        de.fill_io();
         bglb_y = de.fill_clk(bglb_y);
         de.fill_hclk();
     }

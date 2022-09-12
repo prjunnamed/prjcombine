@@ -33,6 +33,7 @@ pub enum BelPinInfo {
     ExtraIntForce(PinDir, NodeWireId, String),
     ExtraWire(Vec<String>),
     ExtraWireForce(String, Vec<NodeExtPipNaming>),
+    Dummy,
 }
 
 #[derive(Debug)]
@@ -82,6 +83,11 @@ impl ExtrBelInfo {
     pub fn pin_name_only(mut self, name: &str, buf_cnt: usize) -> Self {
         self.pins
             .insert(name.to_string(), BelPinInfo::NameOnly(buf_cnt));
+        self
+    }
+
+    pub fn pin_dummy(mut self, name: impl Into<String>) -> Self {
+        self.pins.insert(name.into(), BelPinInfo::Dummy);
         self
     }
 
@@ -808,6 +814,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             );
                         }
                     }
+                    BelPinInfo::Dummy => (),
                     BelPinInfo::ExtraWireForce(_, _) => (),
                     BelPinInfo::ExtraInt(_, _) => (),
                     _ => unreachable!(),
