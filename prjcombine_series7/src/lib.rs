@@ -1869,6 +1869,85 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_cmt(&mut self) {
+        let mut cmtx = 0;
+        for (col, &cd) in &self.grid.columns {
+            if cd != ColumnKind::Cmt {
+                continue;
+            }
+            let is_l = col.to_idx() % 2 == 0;
+            let lr = if is_l { 'L' } else { 'R' };
+            let rx = if is_l {
+                self.rxlut[col]
+            } else {
+                self.rxlut[col] + 3
+            };
+            let mut found = false;
+            'a: for reg in 0..self.grid.regs {
+                let row = RowId::from_idx(reg * 50 + 25);
+                for hole in &self.site_holes {
+                    if hole.contains(col, row) {
+                        continue 'a;
+                    }
+                }
+                found = true;
+                let crds: [_; 50] = core::array::from_fn(|dy| (col, row - 25 + dy));
+                let name0 = format!("CMT_TOP_{lr}_LOWER_B_X{rx}Y{y}", y = self.rylut[row - 17]);
+                let name1 = format!("CMT_TOP_{lr}_LOWER_T_X{rx}Y{y}", y = self.rylut[row - 8]);
+                let name2 = format!("CMT_TOP_{lr}_UPPER_B_X{rx}Y{y}", y = self.rylut[row + 4]);
+                let name3 = format!("CMT_TOP_{lr}_UPPER_T_X{rx}Y{y}", y = self.rylut[row + 17]);
+                let name_h = if is_l {
+                    format!("HCLK_CMT_L_X{rx}Y{y}", y = self.rylut[row] - 1)
+                } else {
+                    format!("HCLK_CMT_X{rx}Y{y}", y = self.rylut[row] - 1)
+                };
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("CMT"),
+                    &[&name0, &name1, &name2, &name3, &name_h],
+                    self.db
+                        .get_node_naming(if is_l { "CMT.L" } else { "CMT.R" }),
+                    &crds,
+                );
+                let hy = self.tieylut[row] / 50;
+                for i in 0..4 {
+                    node.add_bel(i, format!("PHASER_IN_PHY_X{cmtx}Y{y}", y = hy * 4 + i));
+                }
+                for i in 0..4 {
+                    node.add_bel(4 + i, format!("PHASER_OUT_PHY_X{cmtx}Y{y}", y = hy * 4 + i));
+                }
+                node.add_bel(8, format!("PHASER_REF_X{cmtx}Y{hy}"));
+                node.add_bel(9, format!("PHY_CONTROL_X{cmtx}Y{hy}"));
+                node.add_bel(10, format!("MMCME2_ADV_X{cmtx}Y{hy}"));
+                node.add_bel(11, format!("PLLE2_ADV_X{cmtx}Y{hy}"));
+                for i in 0..2 {
+                    node.add_bel(12 + i, format!("BUFMRCE_X{cmtx}Y{y}", y = hy * 2 + i));
+                }
+
+                for (i, row) in [row - 24, row - 12, row, row + 12].into_iter().enumerate() {
+                    let tkn = if is_l { "CMT_FIFO_L" } else { "CMT_FIFO_R" };
+                    let crds: [_; 12] = core::array::from_fn(|dy| (col, row + dy));
+                    let rx = if is_l {
+                        self.rxlut[col] + 1
+                    } else {
+                        self.rxlut[col] + 2
+                    };
+                    let name = format!("{tkn}_X{rx}Y{y}", y = self.rylut[row + 6]);
+                    let node = self.die[(col, row)].add_xnode(
+                        self.db.get_node("CMT_FIFO"),
+                        &[&name],
+                        self.db.get_node_naming(tkn),
+                        &crds,
+                    );
+                    node.add_bel(0, format!("IN_FIFO_X{cmtx}Y{y}", y = hy * 4 + i));
+                    node.add_bel(1, format!("OUT_FIFO_X{cmtx}Y{y}", y = hy * 4 + i));
+                }
+            }
+            if found {
+                cmtx += 1;
+            }
+        }
+    }
+
     fn fill_clk(&mut self, mut bglb_y: usize) -> usize {
         let col = self.grid.col_clk;
         for reg in 0..self.grid.regs {
@@ -2261,6 +2340,7 @@ pub fn expand_grid<'a>(
         de.fill_clb();
         de.fill_bram_dsp();
         de.fill_io();
+        de.fill_cmt();
         bglb_y = de.fill_clk(bglb_y);
         de.fill_hclk();
     }

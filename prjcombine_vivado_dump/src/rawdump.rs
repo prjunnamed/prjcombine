@@ -526,8 +526,8 @@ fn dump_tile(
                 let name = sl[1].strip_prefix(&wpref).unwrap();
                 let si = sl[2].parse::<u32>().unwrap();
                 let node = &sl[3][1..];
-                wires.push((name.to_string(), si));
                 if !node.is_empty() {
+                    wires.push((name.to_string(), si));
                     node_wires.push((name.to_string(), node.to_string(), si));
                     tile_n2w
                         .entry(node.to_string())

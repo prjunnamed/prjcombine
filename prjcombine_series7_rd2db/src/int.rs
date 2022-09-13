@@ -1378,7 +1378,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     )
                     .extra_wire(format!("IOCLK_IN{i}_BUFR"), &[format!("HCLK_IOI_RCLK{i}")])
                     .extra_wire(
-                        format!("IOCLK_IN{i}_PLL"),
+                        format!("IOCLK_IN{i}_PERF"),
                         &[format!("HCLK_IOI_IOCLK_PLL{i}")],
                     )
                     .extra_wire(
@@ -1496,7 +1496,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_int_in("CKINT0", &[format!("IOI_IMUX20_{ii}", ii = i ^ ix)])
                     .extra_int_in("CKINT1", &[format!("IOI_IMUX22_{ii}", ii = i ^ ix)])
                     .extra_wire(
-                        "PHASER_TO_ICLK",
+                        "PHASER_ICLK",
                         &[if is_sing || i == 1 {
                             "IOI_PHASER_TO_IO_ICLK"
                         } else {
@@ -1504,7 +1504,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         }],
                     )
                     .extra_wire(
-                        "PHASER_TO_ICLKDIV",
+                        "PHASER_ICLKDIV",
                         &[if is_sing || i == 1 {
                             "IOI_PHASER_TO_IO_ICLKDIV"
                         } else {
@@ -1564,7 +1564,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("IOB_O", &[format!("LIOI_O{i}"), format!("RIOI_O{i}")])
                     .extra_wire("IOB_T", &[format!("LIOI_T{i}"), format!("RIOI_T{i}")])
                     .extra_wire(
-                        "PHASER_TO_OCLK",
+                        "PHASER_OCLK",
                         &[if is_sing || i == 1 {
                             "IOI_PHASER_TO_IO_OCLK"
                         } else {
@@ -1572,7 +1572,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         }],
                     )
                     .extra_wire(
-                        "PHASER_TO_OCLK1X_90",
+                        "PHASER_OCLK90",
                         &[if is_sing || i == 1 {
                             "IOI_PHASER_TO_IO_OCLK1X_90"
                         } else {
@@ -1580,7 +1580,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         }],
                     )
                     .extra_wire(
-                        "PHASER_TO_OCLKDIV",
+                        "PHASER_OCLKDIV",
                         &[if is_sing || i == 1 {
                             "IOI_PHASER_TO_IO_OCLKDIV"
                         } else {
@@ -1716,6 +1716,621 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bels(bels)
                     .extract();
             }
+        }
+    }
+
+    for tkn in ["CMT_TOP_L_LOWER_B", "CMT_TOP_R_LOWER_B"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = tkn == "CMT_TOP_L_LOWER_B";
+            let int_xy = xy.delta(if is_l { 3 } else { -3 }, -8);
+            let intf_xy = xy.delta(if is_l { 2 } else { -2 }, -8);
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+            let mut bels = vec![];
+            for i in 0..4 {
+                let abcd = ['A', 'B', 'C', 'D'][i as usize];
+                let mut bel = builder
+                    .bel_xy(&format!("PHASER_IN{i}"), "PHASER_IN_PHY", 0, i % 2)
+                    .raw_tile(1 + i as usize / 2)
+                    .pins_name_only(&[
+                        "MEMREFCLK",
+                        "FREQREFCLK",
+                        "SYNCIN",
+                        "ICLK",
+                        "ICLKDIV",
+                        "WRENABLE",
+                    ])
+                    .extra_wire(
+                        "DQS_PAD",
+                        &[[
+                            "CMT_PHASER_DOWN_DQS_TO_PHASER_A",
+                            "CMT_PHASER_DOWN_DQS_TO_PHASER_B",
+                            "CMT_PHASER_UP_DQS_TO_PHASER_C",
+                            "CMT_PHASER_UP_DQS_TO_PHASER_D",
+                        ][i as usize]],
+                    )
+                    .extra_wire("IO_ICLK", &[format!("CMT_PHASER_IN_{abcd}_ICLK")])
+                    .extra_wire("IO_ICLKDIV", &[format!("CMT_PHASER_IN_{abcd}_ICLKDIV")])
+                    .extra_wire(
+                        "FIFO_WRCLK",
+                        &[
+                            format!("CMT_PHASER_IN_{abcd}_WRCLK_TOFIFO"),
+                            format!("CMT_R_PHASER_IN_{abcd}_WRCLK_TOFIFO"),
+                            format!("CMT_R_PHASER_IN_{abcd}_WRCLK_FIFO"),
+                        ],
+                    )
+                    .extra_wire(
+                        "FIFO_WREN",
+                        &[
+                            format!("CMT_PHASER_IN_{abcd}_WREN_TOFIFO"),
+                            format!("CMT_PHASER_IN_{abcd}_WRENABLE_FIFO"),
+                        ],
+                    );
+                for pin in [
+                    "ENCALIBPHY0",
+                    "ENCALIBPHY1",
+                    "RANKSELPHY0",
+                    "RANKSELPHY1",
+                    "BURSTPENDINGPHY",
+                    "PHASEREFCLK",
+                    "RCLK",
+                ] {
+                    bel = bel.pin_name_only(pin, 1);
+                }
+                bels.push(bel);
+            }
+            for i in 0..4 {
+                let abcd = ['A', 'B', 'C', 'D'][i as usize];
+                let mut bel = builder
+                    .bel_xy(&format!("PHASER_OUT{i}"), "PHASER_OUT_PHY", 0, i % 2)
+                    .raw_tile(1 + i as usize / 2)
+                    .pins_name_only(&[
+                        "MEMREFCLK",
+                        "FREQREFCLK",
+                        "SYNCIN",
+                        "OCLK",
+                        "OCLKDELAYED",
+                        "OCLKDIV",
+                        "RDENABLE",
+                    ])
+                    .extra_wire("IO_OCLK", &[format!("CMT_PHASER_OUT_{abcd}_OCLK")])
+                    .extra_wire("IO_OCLK90", &[format!("CMT_PHASER_OUT_{abcd}_OCLK1X_90")])
+                    .extra_wire("IO_OCLKDIV", &[format!("CMT_PHASER_OUT_{abcd}_OCLKDIV")])
+                    .extra_wire(
+                        "FIFO_RDCLK",
+                        &[
+                            format!("CMT_PHASER_OUT_{abcd}_RDCLK_TOFIFO"),
+                            format!("CMT_R_PHASER_OUT_{abcd}_RDCLK_TOFIFO"),
+                            format!("CMT_R_PHASER_OUT_{abcd}_RDCLK_FIFO"),
+                        ],
+                    )
+                    .extra_wire(
+                        "FIFO_RDEN",
+                        &[
+                            format!("CMT_PHASER_OUT_{abcd}_RDEN_TOFIFO"),
+                            format!("CMT_PHASER_OUT_{abcd}_RDENABLE_TOFIFO"),
+                            format!("CMT_R_PHASER_OUT_{abcd}_RDENABLE_TOFIFO"),
+                            format!("CMT_R_PHASER_OUT_{abcd}_RDENABLE_FIFO"),
+                        ],
+                    );
+                for pin in [
+                    "ENCALIBPHY0",
+                    "ENCALIBPHY1",
+                    "BURSTPENDINGPHY",
+                    "PHASEREFCLK",
+                ] {
+                    bel = bel.pin_name_only(pin, 1);
+                }
+                bels.push(bel);
+            }
+            bels.push(
+                builder
+                    .bel_xy("PHASER_REF", "PHASER_REF", 0, 0)
+                    .raw_tile(2)
+                    .pins_name_only(&["CLKIN"])
+                    .pin_name_only("CLKOUT", 1)
+                    .pin_name_only("TMUXOUT", 1),
+            );
+            let mut bel_pc = builder
+                .bel_xy("PHY_CONTROL", "PHY_CONTROL", 0, 0)
+                .raw_tile(2)
+                .pins_name_only(&["MEMREFCLK", "SYNCIN"])
+                .extra_wire("SYNC_BB", &["CMT_PHASER_TOP_SYNC_BB"]);
+            for pin in [
+                "INRANKA0",
+                "INRANKA1",
+                "INRANKB0",
+                "INRANKB1",
+                "INRANKC0",
+                "INRANKC1",
+                "INRANKD0",
+                "INRANKD1",
+                "PCENABLECALIB0",
+                "PCENABLECALIB1",
+                "INBURSTPENDING0",
+                "INBURSTPENDING1",
+                "INBURSTPENDING2",
+                "INBURSTPENDING3",
+                "OUTBURSTPENDING0",
+                "OUTBURSTPENDING1",
+                "OUTBURSTPENDING2",
+                "OUTBURSTPENDING3",
+                "PHYCTLEMPTY",
+                "PHYCTLMSTREMPTY",
+            ] {
+                bel_pc = bel_pc.pin_name_only(pin, 1);
+            }
+            bels.push(bel_pc);
+            let mut bel_mmcm = builder
+                .bel_xy("MMCM", "MMCME2_ADV", 0, 0)
+                .raw_tile(0)
+                .pins_name_only(&[
+                    "CLKIN1",
+                    "CLKIN2",
+                    "CLKFBIN",
+                    "CLKFBOUT",
+                    "CLKFBOUTB",
+                    "CLKOUT0",
+                    "CLKOUT0B",
+                    "CLKOUT1",
+                    "CLKOUT1B",
+                    "CLKOUT2",
+                    "CLKOUT2B",
+                    "CLKOUT3",
+                    "CLKOUT3B",
+                    "CLKOUT3",
+                    "CLKOUT4",
+                    "CLKOUT5",
+                    "CLKOUT6",
+                    "TMUXOUT",
+                ])
+                .extra_wire("CLKFB", &["CMT_LR_LOWER_B_CLKFBOUT2IN"])
+                .extra_wire(
+                    "CLKIN1_HCLK",
+                    &["CMT_L_LOWER_B_CLK_IN1_HCLK", "CMT_R_LOWER_B_CLK_IN1_HCLK"],
+                )
+                .extra_int_in(
+                    "CLKIN1_CKINT",
+                    &["CMT_L_LOWER_B_CLK_IN1_INT", "CMT_R_LOWER_B_CLK_IN1_INT"],
+                )
+                .extra_wire(
+                    "CLKIN2_HCLK",
+                    &["CMT_L_LOWER_B_CLK_IN2_HCLK", "CMT_R_LOWER_B_CLK_IN2_HCLK"],
+                )
+                .extra_int_in(
+                    "CLKIN2_CKINT",
+                    &["CMT_L_LOWER_B_CLK_IN2_INT", "CMT_R_LOWER_B_CLK_IN2_INT"],
+                )
+                .extra_wire(
+                    "CLKFBIN_HCLK",
+                    &["CMT_L_LOWER_B_CLK_IN3_HCLK", "CMT_R_LOWER_B_CLK_IN3_HCLK"],
+                )
+                .extra_int_in(
+                    "CLKFBIN_CKINT",
+                    &["CMT_L_LOWER_B_CLK_IN3_INT", "CMT_R_LOWER_B_CLK_IN3_INT"],
+                );
+            for i in 0..4 {
+                bel_mmcm = bel_mmcm
+                    .extra_wire(
+                        format!("PERF{i}"),
+                        &[
+                            format!("CMT_L_LOWER_B_CLK_PERF{i}"),
+                            format!("CMT_R_LOWER_B_CLK_PERF{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB{i}_IN"),
+                        &[
+                            format!("CMT_L_LOWER_B_CLK_FREQ_BB{ii}", ii = i ^ 3),
+                            format!("CMT_R_LOWER_B_CLK_FREQ_BB{ii}", ii = i ^ 3),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB_OUT{i}"),
+                        &[format!("MMCMOUT_CLK_FREQ_BB_{i}")],
+                    );
+            }
+            for i in 0..14 {
+                bel_mmcm = bel_mmcm.extra_wire(
+                    format!("OUT{i}"),
+                    &[
+                        format!("CMT_L_LOWER_B_CLK_MMCM{i}"),
+                        format!("CMT_R_LOWER_B_CLK_MMCM{i}"),
+                    ],
+                );
+            }
+            bels.push(bel_mmcm);
+            let mut bel_pll = builder
+                .bel_xy("PLL", "PLLE2_ADV", 0, 0)
+                .raw_tile(3)
+                .pins_name_only(&[
+                    "CLKIN1", "CLKIN2", "CLKFBIN", "CLKFBOUT", "CLKOUT0", "CLKOUT1", "CLKOUT2",
+                    "CLKOUT3", "CLKOUT4", "CLKOUT5", "TMUXOUT",
+                ])
+                .extra_wire("CLKFB", &["CMT_TOP_L_CLKFBOUT2IN", "CMT_TOP_R_CLKFBOUT2IN"])
+                .extra_wire(
+                    "CLKIN1_HCLK",
+                    &["CMT_TOP_L_UPPER_T_CLKIN1", "CMT_TOP_R_UPPER_T_CLKIN1"],
+                )
+                .extra_int_in(
+                    "CLKIN1_CKINT",
+                    &[
+                        "CMT_TOP_L_UPPER_T_PLLE2_CLK_IN1_INT",
+                        "CMT_TOP_R_UPPER_T_PLLE2_CLK_IN1_INT",
+                    ],
+                )
+                .extra_wire(
+                    "CLKIN2_HCLK",
+                    &["CMT_TOP_L_UPPER_T_CLKIN2", "CMT_TOP_R_UPPER_T_CLKIN2"],
+                )
+                .extra_int_in(
+                    "CLKIN2_CKINT",
+                    &[
+                        "CMT_TOP_L_UPPER_T_PLLE2_CLK_IN2_INT",
+                        "CMT_TOP_R_UPPER_T_PLLE2_CLK_IN2_INT",
+                    ],
+                )
+                .extra_wire(
+                    "CLKFBIN_HCLK",
+                    &["CMT_TOP_L_UPPER_T_CLKFBIN", "CMT_TOP_R_UPPER_T_CLKFBIN"],
+                )
+                .extra_int_in(
+                    "CLKFBIN_CKINT",
+                    &[
+                        "CMT_TOP_L_UPPER_T_PLLE2_CLK_FB_INT",
+                        "CMT_TOP_R_UPPER_T_PLLE2_CLK_FB_INT",
+                    ],
+                );
+            for i in 0..4 {
+                bel_pll = bel_pll
+                    .extra_wire(
+                        format!("FREQ_BB{i}_IN"),
+                        &[
+                            format!("CMT_TOP_L_UPPER_T_FREQ_BB{i}"),
+                            format!("CMT_TOP_R_UPPER_T_FREQ_BB{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB_OUT{i}"),
+                        &[format!("PLLOUT_CLK_FREQ_BB_{i}")],
+                    );
+            }
+            for i in 0..8 {
+                bel_pll = bel_pll.extra_wire(
+                    format!("OUT{i}"),
+                    &[
+                        format!("CMT_TOP_L_UPPER_T_CLKPLL{i}"),
+                        format!("CMT_TOP_R_UPPER_T_CLKPLL{i}"),
+                    ],
+                );
+            }
+            bels.push(bel_pll);
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFMRCE{i}"), "BUFMRCE", 0, i)
+                        .raw_tile(4)
+                        .pins_name_only(&["I", "O"]),
+                );
+            }
+            let mut bel = builder
+                .bel_virtual("CMT_A")
+                .raw_tile(0)
+                .extra_wire("SYNC_BB", &["CMT_MMCM_PHYCTRL_SYNC_BB_UP"])
+                .extra_wire("SYNC_BB_S", &["CMT_MMCM_PHYCTRL_SYNC_BB_DN"])
+                .extra_wire("IO8_OCLK90", &["CMT_TOP_OCLK1X_90_8"])
+                .extra_wire("PHASER_A_ICLK", &["CMT_MMCM_PHASER_IN_A_ICLK"])
+                .extra_wire("PHASER_A_ICLKDIV", &["CMT_MMCM_PHASER_IN_A_ICLKDIV"])
+                .extra_wire("PHASER_A_OCLK", &["CMT_MMCM_PHASER_OUT_A_OCLK"])
+                .extra_wire("PHASER_A_OCLK90", &["CMT_MMCM_PHASER_OUT_A_OCLK1X_90"])
+                .extra_wire("PHASER_A_OCLKDIV", &["CMT_MMCM_PHASER_OUT_A_OCLKDIV"])
+                .extra_wire("PHASER_A_ICLK_BUF", &["CMT_PHASER_A_ICLK_TOIOI"])
+                .extra_wire("PHASER_A_ICLKDIV_BUF", &["CMT_PHASER_A_ICLKDIV_TOIOI"])
+                .extra_wire("PHASER_A_OCLK_BUF", &["CMT_PHASER_A_OCLK_TOIOI"])
+                .extra_wire("PHASER_A_OCLK90_BUF", &["CMT_PHASER_A_OCLK90_TOIOI"])
+                .extra_wire("PHASER_A_OCLKDIV_BUF", &["CMT_PHASER_A_OCLKDIV_TOIOI"])
+                .extra_wire("PHASER_B_ICLK", &["CMT_MMCM_PHASER_IN_B_ICLK"])
+                .extra_wire("PHASER_B_ICLKDIV", &["CMT_MMCM_PHASER_IN_B_ICLKDIV"])
+                .extra_wire("PHASER_B_OCLK", &["CMT_MMCM_PHASER_OUT_B_OCLK"])
+                .extra_wire("PHASER_B_OCLKDIV", &["CMT_MMCM_PHASER_OUT_B_OCLKDIV"]);
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("FREQ_BB{i}"), &[format!("MMCM_CLK_FREQ_BB_NS{i}")])
+                    .extra_wire(
+                        format!("FREQ_BB{i}_S"),
+                        &[format!("MMCM_CLK_FREQ_BB_REBUF{i}_NS")],
+                    );
+            }
+            for i in 0..16 {
+                bel = bel
+                    .extra_wire(format!("IO{i}_ICLK"), &[format!("CMT_TOP_ICLK_{i}")])
+                    .extra_wire(format!("IO{i}_ICLKDIV"), &[format!("CMT_TOP_ICLKDIV_{i}")])
+                    .extra_wire(format!("IO{i}_OCLK"), &[format!("CMT_TOP_OCLK_{i}")])
+                    .extra_wire(format!("IO{i}_OCLKDIV"), &[format!("CMT_TOP_OCLKDIV_{i}")])
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_virtual("CMT_B")
+                .raw_tile(1)
+                .extra_wire("FREQREFCLK", &["CMT_PHASER_BOT_REFMUX_0"])
+                .extra_wire("MEMREFCLK", &["CMT_PHASER_BOT_REFMUX_1"])
+                .extra_wire("SYNCIN", &["CMT_PHASER_BOT_REFMUX_2"])
+                .extra_wire("IO20_OCLK90", &["CMT_TOP_OCLK1X_90_4"])
+                .extra_wire("PHASER_B_ICLK_BUF", &["CMT_PHASER_B_ICLK_TOIOI"])
+                .extra_wire("PHASER_B_ICLKDIV_BUF", &["CMT_PHASER_B_ICLKDIV_TOIOI"])
+                .extra_wire("PHASER_B_OCLK_BUF", &["CMT_PHASER_B_OCLK_TOIOI"])
+                .extra_wire("PHASER_B_OCLK90_BUF", &["CMT_PHASER_B_OCLK90_TOIOI"])
+                .extra_wire("PHASER_B_OCLKDIV_BUF", &["CMT_PHASER_B_OCLKDIV_TOIOI"])
+                .extra_wire("PHASER_B_ICLK_A", &["CMT_PHASER_B_TOMMCM_ICLK"])
+                .extra_wire("PHASER_B_ICLKDIV_A", &["CMT_PHASER_B_TOMMCM_ICLKDIV"])
+                .extra_wire("PHASER_B_OCLK_A", &["CMT_PHASER_B_TOMMCM_OCLK"])
+                .extra_wire("PHASER_B_OCLKDIV_A", &["CMT_PHASER_B_TOMMCM_OCLKDIV"]);
+            for i in 0..2 {
+                bel = bel
+                    .extra_wire(
+                        format!("MRCLK{i}"),
+                        &[format!("CMT_PHASER_DOWN_PHASERREF{i}")],
+                    )
+                    .extra_wire(
+                        format!("MRCLK{i}_S"),
+                        &[format!("CMT_PHASER_DOWN_PHASERREF_ABOVE{i}")],
+                    )
+                    .extra_wire(
+                        format!("MRCLK{i}_N"),
+                        &[format!("CMT_PHASER_DOWN_PHASERREF_BELOW{i}")],
+                    );
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("FREQ_BB{i}"),
+                        &[format!("MMCM_CLK_FREQBB_REBUFOUT{i}")],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB{i}_MUX"),
+                        &[format!("MMCMOUT_CLK_FREQ_BB_REBUFOUT{i}")],
+                    )
+                    .extra_wire(
+                        format!("MMCM_FREQ_BB{i}"),
+                        &[format!("MMCMOUT_CLK_FREQ_BB_REBUFIN{i}")],
+                    );
+            }
+            for i in 16..25 {
+                let ii = i - 16;
+                bel = bel
+                    .extra_wire(format!("IO{i}_ICLK"), &[format!("CMT_TOP_ICLK_{ii}")])
+                    .extra_wire(format!("IO{i}_ICLKDIV"), &[format!("CMT_TOP_ICLKDIV_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLK"), &[format!("CMT_TOP_OCLK_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLKDIV"), &[format!("CMT_TOP_OCLKDIV_{ii}")])
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_virtual("CMT_C")
+                .raw_tile(2)
+                .extra_wire("FREQREFCLK", &["CMT_FREQ_PHASER_REFMUX_0"])
+                .extra_wire("MEMREFCLK", &["CMT_FREQ_PHASER_REFMUX_1"])
+                .extra_wire("SYNCIN", &["CMT_FREQ_PHASER_REFMUX_2"])
+                .extra_wire("IO32_OCLK90", &["CMT_TOP_OCLK1X_90_7"])
+                .extra_wire("PHASER_C_ICLK_BUF", &["CMT_PHASER_C_ICLK_TOIOI"])
+                .extra_wire("PHASER_C_ICLKDIV_BUF", &["CMT_PHASER_C_ICLKDIV_TOIOI"])
+                .extra_wire("PHASER_C_OCLK_BUF", &["CMT_PHASER_C_OCLK_TOIOI"])
+                .extra_wire("PHASER_C_OCLK90_BUF", &["CMT_PHASER_C_OCLK90_TOIOI"])
+                .extra_wire("PHASER_C_OCLKDIV_BUF", &["CMT_PHASER_C_OCLKDIV_TOIOI"]);
+            for i in 0..2 {
+                bel = bel
+                    .extra_wire(
+                        format!("MRCLK{i}"),
+                        &[format!("CMT_PHASER_UP_PHASERREF{i}")],
+                    )
+                    .extra_wire(
+                        format!("MRCLK{i}_S"),
+                        &[format!("CMT_PHASER_UP_PHASERREF_ABOVE{i}")],
+                    )
+                    .extra_wire(
+                        format!("MRCLK{i}_N"),
+                        &[format!("CMT_PHASER_UP_PHASERREF_BELOW{i}")],
+                    );
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("FREQ_BB{i}"),
+                        &[format!("PLL_CLK_FREQBB_REBUFOUT{i}")],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB{i}_MUX"),
+                        &[format!("PLLOUT_CLK_FREQ_BB_REBUFOUT{i}")],
+                    )
+                    .extra_wire(
+                        format!("FREQ_BB{i}_REF"),
+                        &[format!("CMT_FREQ_BB_PREF_IN{i}")],
+                    )
+                    .extra_wire(
+                        format!("PLL_FREQ_BB{i}"),
+                        &[format!("PLLOUT_CLK_FREQ_BB_REBUFIN{i}")],
+                    );
+            }
+            for i in 25..37 {
+                let ii = i - 25;
+                bel = bel
+                    .extra_wire(format!("IO{i}_ICLK"), &[format!("CMT_TOP_ICLK_{ii}")])
+                    .extra_wire(format!("IO{i}_ICLKDIV"), &[format!("CMT_TOP_ICLKDIV_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLK"), &[format!("CMT_TOP_OCLK_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLKDIV"), &[format!("CMT_TOP_OCLKDIV_{ii}")])
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_virtual("CMT_D")
+                .raw_tile(3)
+                .extra_wire("SYNC_BB", &["CMT_PLL_PHYCTRL_SYNC_BB_DN"])
+                .extra_wire("SYNC_BB_N", &["CMT_PLL_PHYCTRL_SYNC_BB_UP"])
+                .extra_wire("IO44_OCLK90", &["CMT_TOP_OCLK1X_90_7"])
+                .extra_wire("PHASER_D_ICLK_BUF", &["CMT_PHASER_D_ICLK_TOIOI"])
+                .extra_wire("PHASER_D_ICLKDIV_BUF", &["CMT_PHASER_D_ICLKDIV_TOIOI"])
+                .extra_wire("PHASER_D_OCLK_BUF", &["CMT_PHASER_D_OCLK_TOIOI"])
+                .extra_wire("PHASER_D_OCLK90_BUF", &["CMT_PHASER_D_OCLK90_TOIOI"])
+                .extra_wire("PHASER_D_OCLKDIV_BUF", &["CMT_PHASER_D_OCLKDIV_TOIOI"])
+                .extra_wire("PHASER_D_ICLK", &["CMT_PLL_PHASER_IN_D_ICLK"])
+                .extra_wire("PHASER_D_ICLKDIV", &["CMT_PLL_PHASER_IN_D_ICLKDIV"])
+                .extra_wire("PHASER_D_OCLK", &["CMT_PLL_PHASER_OUT_D_OCLK"])
+                .extra_wire("PHASER_D_OCLK90", &["CMT_PLL_PHASER_OUT_D_OCLK1X_90"])
+                .extra_wire("PHASER_D_OCLKDIV", &["CMT_PLL_PHASER_OUT_D_OCLKDIV"]);
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("FREQ_BB{i}"), &[format!("PLL_CLK_FREQ_BB{i}_NS")])
+                    .extra_wire(
+                        format!("FREQ_BB{i}_N"),
+                        &[format!("PLL_CLK_FREQ_BB_BUFOUT_NS{i}")],
+                    );
+            }
+            for i in 37..50 {
+                let ii = i - 37;
+                bel = bel
+                    .extra_wire(format!("IO{i}_ICLK"), &[format!("CMT_TOP_ICLK_{ii}")])
+                    .extra_wire(format!("IO{i}_ICLKDIV"), &[format!("CMT_TOP_ICLKDIV_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLK"), &[format!("CMT_TOP_OCLK_{ii}")])
+                    .extra_wire(format!("IO{i}_OCLKDIV"), &[format!("CMT_TOP_OCLKDIV_{ii}")])
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_virtual("HCLK_CMT")
+                .raw_tile(4)
+                .extra_wire("MMCM_CLKIN1", &["HCLK_CMT_MUX_MMCM_CLKIN1"])
+                .extra_wire("MMCM_CLKIN2", &["HCLK_CMT_MUX_MMCM_CLKIN2"])
+                .extra_wire("MMCM_CLKFBIN", &["HCLK_CMT_MUX_MMCM_CLKFBIN"])
+                .extra_wire("PLL_CLKIN1", &["HCLK_CMT_MUX_PLLE2_CLKIN1"])
+                .extra_wire("PLL_CLKIN2", &["HCLK_CMT_MUX_PLLE2_CLKIN2"])
+                .extra_wire("PLL_CLKFBIN", &["HCLK_CMT_MUX_PLLE2_CLKFBIN"])
+                .extra_wire("PHASER_REF_CLKOUT", &["HCLK_CMT_PREF_CLKOUT"])
+                .extra_wire("PHASER_REF_TMUXOUT", &["HCLK_CMT_PREF_TMUXOUT"]);
+            for i in 0..12 {
+                bel = bel.extra_wire(format!("HCLK{i}"), &[format!("HCLK_CMT_CK_BUFHCLK{i}")]);
+            }
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(format!("RCLK{i}"), &[format!("HCLK_CMT_CK_BUFRCLK{i}")])
+                    .extra_wire(format!("CCIO{i}"), &[format!("HCLK_CMT_CCIO{i}")])
+                    .extra_wire(format!("FREQ_BB{i}"), &[format!("HCLK_CMT_FREQ_REF_NS{i}")])
+                    .extra_wire(
+                        format!("FREQ_BB{i}_MUX"),
+                        &[format!("HCLK_CMT_MUX_OUT_FREQ_REF{i}")],
+                    )
+                    .extra_int_in(format!("CKINT{i}"), &[format!("HCLK_CMT_MUX_CLKINT_{i}")])
+                    .extra_wire(
+                        format!("PHASER_IN_RCLK{i}"),
+                        &[format!("HCLK_CMT_PHASERIN_RCLK{i}")],
+                    )
+                    .extra_wire(
+                        format!("PERF{i}"),
+                        &[format!("HCLK_CMT_MUX_PHSR_PERFCLK{i}")],
+                    )
+                    .extra_wire(
+                        format!("MMCM_PERF{i}"),
+                        &[format!("HCLK_CMT_MUX_MMCM_MUXED{i}")],
+                    )
+                    .extra_wire(
+                        format!("PHASER_REF_BOUNCE{i}"),
+                        &[format!("HCLK_CMT_PREF_BOUNCE{i}")],
+                    );
+            }
+            for i in 0..2 {
+                bel = bel.extra_wire(
+                    format!("MRCLK{i}"),
+                    &[format!("HCLK_CMT_BUFMR_PHASEREF{i}")],
+                );
+            }
+            for i in 0..14 {
+                bel = bel.extra_wire(
+                    format!("HOUT{i}"),
+                    &[if is_l {
+                        format!("HCLK_CMT_CK_IN{i}")
+                    } else {
+                        format!("HCLK_CMT_MUX_CLK_{i}")
+                    }],
+                );
+            }
+            for i in 4..14 {
+                bel = bel.extra_wire_force(
+                    format!("HIN{i}"),
+                    if is_l {
+                        format!("HCLK_CMT_MUX_CLK_{i}")
+                    } else {
+                        format!("HCLK_CMT_CK_IN{i}")
+                    },
+                );
+            }
+            for i in 0..2 {
+                bel = bel
+                    .extra_wire(
+                        format!("HCLK_CMT_D{i}"),
+                        &[format!("HCLK_CMT_MUX_CLK_LEAF_DN{i}")],
+                    )
+                    .extra_wire(
+                        format!("HCLK_CMT_U{i}"),
+                        &[format!("HCLK_CMT_MUX_CLK_LEAF_UP{i}")],
+                    );
+            }
+            for i in 0..14 {
+                bel = bel.extra_wire(
+                    format!("MMCM_OUT{i}"),
+                    &[format!("HCLK_CMT_MUX_CLK_MMCM{i}")],
+                )
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(format!("PLL_OUT{i}"), &[format!("HCLK_CMT_MUX_CLK_PLL{i}")])
+            }
+            bels.push(bel);
+            let mut xn = builder
+                .xnode("CMT", if is_l { "CMT.L" } else { "CMT.R" }, xy)
+                .num_tiles(50)
+                .raw_tile(xy.delta(0, 9))
+                .raw_tile(xy.delta(0, 22))
+                .raw_tile(xy.delta(0, 35))
+                .raw_tile(xy.delta(0, 17));
+            for i in 0..25 {
+                xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
+                    intf_xy.delta(0, i as i32),
+                    i,
+                    intf,
+                );
+            }
+            for i in 0..25 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, i as i32 + 26), i + 25)
+                    .ref_single(intf_xy.delta(0, i as i32 + 26), i + 25, intf);
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in ["CMT_FIFO_L", "CMT_FIFO_R"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = tkn == "CMT_FIFO_L";
+            let int_xy = xy.delta(if is_l { 2 } else { -2 }, -6);
+            let intf_xy = xy.delta(if is_l { 1 } else { -1 }, -6);
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
+            let bels = [
+                builder
+                    .bel_xy("IN_FIFO", "IN_FIFO", 0, 0)
+                    .extra_wire("PHASER_WRCLK", &["CMT_FIFO_L_PHASER_WRCLK"])
+                    .extra_wire("PHASER_WREN", &["CMT_FIFO_L_PHASER_WRENABLE"]),
+                builder
+                    .bel_xy("OUT_FIFO", "OUT_FIFO", 0, 0)
+                    .extra_wire("PHASER_RDCLK", &["CMT_FIFO_L_PHASER_RDCLK"])
+                    .extra_wire("PHASER_RDEN", &["CMT_FIFO_L_PHASER_RDENABLE"]),
+            ];
+            let mut xn = builder.xnode("CMT_FIFO", tkn, xy).num_tiles(12);
+            for i in 0..12 {
+                xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
+                    intf_xy.delta(0, i as i32),
+                    i,
+                    intf,
+                );
+            }
+            xn.bels(bels).extract();
         }
     }
 
