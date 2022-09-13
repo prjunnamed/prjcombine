@@ -1241,29 +1241,29 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         if self.grid.has_ps {
             let col_l = self.die.cols().next().unwrap();
             let row_t = self.die.rows().next_back().unwrap();
-            self.die.nuke_rect(col_l, row_t - 99, 18, 100);
+            let row_pb = row_t - 99;
+            self.die.nuke_rect(col_l, row_pb, 18, 100);
             self.int_holes.push(Rect {
                 col_l,
                 col_r: col_l + 18,
-                row_b: row_t - 99,
-                row_t: row_t + 1,
+                row_b: row_pb,
+                row_t: row_pb + 100,
             });
             self.site_holes.push(Rect {
                 col_l,
                 col_r: col_l + 19,
-                row_b: row_t - 99,
-                row_t: row_t + 1,
+                row_b: row_pb,
+                row_t: row_pb + 100,
             });
             if self.grid.regs != 2 {
-                let row = row_t - 100;
                 for dx in 0..18 {
                     let col = col_l + dx;
-                    self.die.fill_term_anon((col, row), "TERM.N");
+                    self.die.fill_term_anon((col, row_pb - 1), "TERM.N");
                 }
             }
             let col = col_l + 18;
             for dy in 0..100 {
-                let row = row_t - 99 + dy;
+                let row = row_pb + dy;
                 self.die.fill_term_anon((col, row), "TERM.W");
                 let y = self.ylut[row];
                 let x = self.xlut[col];
@@ -1273,6 +1273,27 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     self.db.get_node_naming("INTF.PSS"),
                     &[(col, row)],
                 );
+            }
+
+            let crds: [_; 100] = core::array::from_fn(|dy| (col, row_pb + dy));
+            let rx = self.rxlut[col] - 18;
+            let name_pss0 = format!("PSS0_X{rx}Y{y}", y = self.rylut[row_pb + 10]);
+            let name_pss1 = format!("PSS1_X{rx}Y{y}", y = self.rylut[row_pb + 30]);
+            let name_pss2 = format!("PSS2_X{rx}Y{y}", y = self.rylut[row_pb + 50]);
+            let name_pss3 = format!("PSS3_X{rx}Y{y}", y = self.rylut[row_pb + 70]);
+            let name_pss4 = format!("PSS4_X{rx}Y{y}", y = self.rylut[row_pb + 90]);
+            let node = self.die[(col, row_pb + 50)].add_xnode(
+                self.db.get_node("PS"),
+                &[&name_pss0, &name_pss1, &name_pss2, &name_pss3, &name_pss4],
+                self.db.get_node_naming("PS"),
+                &crds,
+            );
+            node.add_bel(0, "PS7_X0Y0".to_string());
+            for i in 1..73 {
+                node.add_bel(i, format!("IOPAD_X1Y{i}"));
+            }
+            for i in 77..135 {
+                node.add_bel(i - 4, format!("IOPAD_X1Y{i}"));
             }
         }
     }

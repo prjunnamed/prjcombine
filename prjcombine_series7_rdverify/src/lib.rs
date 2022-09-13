@@ -2507,6 +2507,11 @@ fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("I")]);
 }
 
+fn verify_iopad(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "IOPAD", &[("IO", SitePinDir::Inout)], &[]);
+    vrf.claim_node(&[bel.fwire("IO")]);
+}
+
 fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let grid = edev.grids[bel.die];
     let mut pins = vec![];
@@ -2624,6 +2629,146 @@ fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     }
 }
 
+fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut iopins = vec![];
+    iopins.push("DDRWEB".to_string());
+    iopins.push("DDRVRN".to_string());
+    iopins.push("DDRVRP".to_string());
+    for i in 0..15 {
+        iopins.push(format!("DDRA{i}"));
+    }
+    for i in 0..3 {
+        iopins.push(format!("DDRBA{i}"));
+    }
+    iopins.push("DDRCASB".to_string());
+    iopins.push("DDRCKE".to_string());
+    iopins.push("DDRCKN".to_string());
+    iopins.push("DDRCKP".to_string());
+    iopins.push("PSCLK".to_string());
+    iopins.push("DDRCSB".to_string());
+    for i in 0..4 {
+        iopins.push(format!("DDRDM{i}"));
+    }
+    for i in 0..32 {
+        iopins.push(format!("DDRDQ{i}"));
+    }
+    for i in 0..4 {
+        iopins.push(format!("DDRDQSN{i}"));
+    }
+    for i in 0..4 {
+        iopins.push(format!("DDRDQSP{i}"));
+    }
+    iopins.push("DDRDRSTB".to_string());
+    for i in 0..54 {
+        iopins.push(format!("MIO{i}"));
+    }
+    iopins.push("DDRODT".to_string());
+    iopins.push("PSPORB".to_string());
+    iopins.push("DDRRASB".to_string());
+    iopins.push("PSSRSTB".to_string());
+    let mut pin_refs: Vec<_> = iopins.iter().map(|x| (&x[..], SitePinDir::Inout)).collect();
+    pin_refs.extend([
+        ("FCLKCLK0", SitePinDir::Out),
+        ("FCLKCLK1", SitePinDir::Out),
+        ("FCLKCLK2", SitePinDir::Out),
+        ("FCLKCLK3", SitePinDir::Out),
+        ("TESTPLLNEWCLK0", SitePinDir::Out),
+        ("TESTPLLNEWCLK1", SitePinDir::Out),
+        ("TESTPLLNEWCLK2", SitePinDir::Out),
+        ("TESTPLLCLKOUT0", SitePinDir::Out),
+        ("TESTPLLCLKOUT1", SitePinDir::Out),
+        ("TESTPLLCLKOUT2", SitePinDir::Out),
+    ]);
+    vrf.verify_bel(
+        bel,
+        "PS7",
+        &pin_refs,
+        &[
+            "FCLKCLK0_INT",
+            "FCLKCLK1_INT",
+            "FCLKCLK2_INT",
+            "FCLKCLK3_INT",
+        ],
+    );
+
+    for pin in [
+        "TESTPLLNEWCLK0",
+        "TESTPLLNEWCLK1",
+        "TESTPLLNEWCLK2",
+        "TESTPLLCLKOUT0",
+        "TESTPLLCLKOUT1",
+        "TESTPLLCLKOUT2",
+    ] {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
+    }
+
+    for i in 0..4 {
+        vrf.claim_node(&[bel.fwire(&format!("FCLKCLK{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("FCLKCLK{i}_HOUT"))]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("FCLKCLK{i}_HOUT")),
+            bel.wire(&format!("FCLKCLK{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("FCLKCLK{i}_INT")),
+            bel.wire(&format!("FCLKCLK{i}")),
+        );
+    }
+
+    for pin in &iopins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        let obel = vrf.find_bel_sibling(bel, &format!("IOPAD.{pin}"));
+        vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("IO"));
+        vrf.claim_pip(bel.crd(), obel.wire("IO"), bel.wire(pin));
+    }
+}
+
+fn verify_hclk_ps_lo(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "PS");
+    for i in 0..4 {
+        vrf.claim_node(&[bel.fwire(&format!("HOUT{i}"))]);
+        vrf.verify_node(&[
+            bel.fwire(&format!("FCLKCLK{i}")),
+            obel.fwire(&format!("FCLKCLK{i}_HOUT")),
+        ]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HOUT{i}")),
+            bel.wire(&format!("FCLKCLK{i}")),
+        );
+    }
+}
+
+fn verify_hclk_ps_hi(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = vrf.find_bel_sibling(bel, "PS");
+    for i in 0..3 {
+        vrf.claim_node(&[bel.fwire(&format!("HOUT{i}"))]);
+        vrf.verify_node(&[
+            bel.fwire(&format!("TESTPLLNEWCLK{i}")),
+            obel.fwire_far(&format!("TESTPLLNEWCLK{i}")),
+        ]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HOUT{i}")),
+            bel.wire(&format!("TESTPLLNEWCLK{i}")),
+        );
+        vrf.claim_node(&[bel.fwire(&format!("HOUT{ii}", ii = i + 3))]);
+        vrf.verify_node(&[
+            bel.fwire(&format!("TESTPLLCLKOUT{i}")),
+            obel.fwire_far(&format!("TESTPLLCLKOUT{i}")),
+        ]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HOUT{ii}", ii = i + 3)),
+            bel.wire(&format!("TESTPLLCLKOUT{i}")),
+        );
+    }
+}
+
 fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
@@ -2684,6 +2829,10 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "XADC" => verify_xadc(edev, vrf, bel),
         _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
         _ if bel.key.starts_with("OPAD") => verify_opad(vrf, bel),
+        _ if bel.key.starts_with("IOPAD") => verify_iopad(vrf, bel),
+        "PS" => verify_ps(vrf, bel),
+        "HCLK_PS_LO" => verify_hclk_ps_lo(vrf, bel),
+        "HCLK_PS_HI" => verify_hclk_ps_hi(vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

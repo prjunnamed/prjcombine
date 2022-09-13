@@ -2433,5 +2433,125 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    if let Some(&xy_pss0) = rd.tiles_by_kind_name("PSS0").iter().next() {
+        let int_xy = xy_pss0.delta(19, -10);
+        let xy_pss1 = xy_pss0.delta(0, 21);
+        let xy_pss2 = xy_pss0.delta(0, 42);
+        let xy_pss3 = xy_pss0.delta(0, 62);
+        let xy_pss4 = xy_pss0.delta(0, 83);
+        let intf = builder.db.get_node_naming("INTF.PSS");
+        let mut pins = vec![];
+        pins.push(("DDRWEB".to_string(), 1));
+        pins.push(("DDRVRN".to_string(), 2));
+        pins.push(("DDRVRP".to_string(), 3));
+        for i in 0..13 {
+            pins.push((format!("DDRA{i}"), 4 + i));
+        }
+        pins.push(("DDRA14".to_string(), 17));
+        pins.push(("DDRA13".to_string(), 18));
+        for i in 0..3 {
+            pins.push((format!("DDRBA{i}"), 19 + i));
+        }
+        pins.push(("DDRCASB".to_string(), 22));
+        pins.push(("DDRCKE".to_string(), 23));
+        pins.push(("DDRCKN".to_string(), 24));
+        pins.push(("DDRCKP".to_string(), 25));
+        pins.push(("PSCLK".to_string(), 26));
+        pins.push(("DDRCSB".to_string(), 27));
+        for i in 0..4 {
+            pins.push((format!("DDRDM{i}"), 28 + i));
+        }
+        for i in 0..32 {
+            pins.push((format!("DDRDQ{i}"), 32 + i));
+        }
+        for i in 0..4 {
+            pins.push((format!("DDRDQSN{i}"), 64 + i));
+        }
+        for i in 0..4 {
+            pins.push((format!("DDRDQSP{i}"), 68 + i));
+        }
+        pins.push(("DDRDRSTB".to_string(), 72));
+        for i in 0..54 {
+            pins.push((format!("MIO{i}"), 77 + i));
+        }
+        pins.push(("DDRODT".to_string(), 131));
+        pins.push(("PSPORB".to_string(), 132));
+        pins.push(("DDRRASB".to_string(), 133));
+        pins.push(("PSSRSTB".to_string(), 134));
+        let mut bel_ps = builder
+            .bel_xy("PS", "PS7", 0, 0)
+            .raw_tile(2)
+            .pins_name_only(&["FCLKCLK0", "FCLKCLK1", "FCLKCLK2", "FCLKCLK3"])
+            .extra_int_out("FCLKCLK0_INT", &["PSS1_LOGIC_OUTS1_39"])
+            .extra_int_out("FCLKCLK1_INT", &["PSS1_LOGIC_OUTS2_39"])
+            .extra_int_out("FCLKCLK2_INT", &["PSS2_LOGIC_OUTS0_61"])
+            .extra_int_out("FCLKCLK3_INT", &["PSS2_LOGIC_OUTS1_61"])
+            .extra_wire("FCLKCLK0_HOUT", &["PSS_FCLKCLK0"])
+            .extra_wire("FCLKCLK1_HOUT", &["PSS_FCLKCLK1"])
+            .extra_wire("FCLKCLK2_HOUT", &["PSS2_FCLKCLK2"])
+            .extra_wire("FCLKCLK3_HOUT", &["PSS2_FCLKCLK3"]);
+        for pin in [
+            "TESTPLLNEWCLK0",
+            "TESTPLLNEWCLK1",
+            "TESTPLLNEWCLK2",
+            "TESTPLLCLKOUT0",
+            "TESTPLLCLKOUT1",
+            "TESTPLLCLKOUT2",
+        ] {
+            bel_ps = bel_ps.pin_name_only(pin, 1);
+        }
+        for (pin, _) in &pins {
+            bel_ps = bel_ps.pins_name_only(&[pin]);
+        }
+        let mut bels = vec![bel_ps];
+        for &(ref pin, y) in &pins {
+            bels.push(
+                builder
+                    .bel_xy(&format!("IOPAD.{pin}"), "IOPAD", 0, y - 1)
+                    .raw_tile(2)
+                    .pins_name_only(&["IO"]),
+            );
+        }
+        let mut bel_lo = builder.bel_virtual("HCLK_PS_LO").raw_tile(1);
+        for i in 0..4 {
+            bel_lo = bel_lo
+                .extra_wire(format!("FCLKCLK{i}"), &[format!("PSS_FCLKCLK{i}")])
+                .extra_wire(format!("HOUT{i}"), &[format!("PSS_HCLK_CK_IN{i}")])
+        }
+        let mut bel_hi = builder.bel_virtual("HCLK_PS_HI").raw_tile(3);
+        for i in 0..3 {
+            bel_hi = bel_hi
+                .extra_wire(
+                    format!("TESTPLLNEWCLK{i}"),
+                    &[format!("PSS3_TESTPLLNEWCLK{i}_IN")],
+                )
+                .extra_wire(format!("HOUT{i}"), &[format!("PSS3_TESTPLLNEWCLK{i}_OUT")])
+                .extra_wire(
+                    format!("TESTPLLCLKOUT{i}"),
+                    &[format!("PSS3_TESTPLLCLKOUT{i}_IN")],
+                )
+                .extra_wire(
+                    format!("HOUT{ii}", ii = i + 3),
+                    &[format!("PSS3_TESTPLLCLKOUT{i}_OUT")],
+                )
+        }
+        bels.extend([bel_lo, bel_hi]);
+        let mut xn = builder
+            .xnode("PS", "PS", xy_pss0)
+            .raw_tile(xy_pss1)
+            .raw_tile(xy_pss2)
+            .raw_tile(xy_pss3)
+            .raw_tile(xy_pss4)
+            .num_tiles(100);
+        for i in 0..4 {
+            for j in 0..25 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i * 26 + j) as i32), i * 25 + j)
+                    .ref_single(int_xy.delta(-1, (i * 26 + j) as i32), i * 25 + j, intf);
+            }
+        }
+        xn.bels(bels).extract();
+    }
+
     builder.build()
 }
