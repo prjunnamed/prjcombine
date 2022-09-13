@@ -1754,6 +1754,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_gt_left(&mut self) {
         if let Some(ref gtcol) = self.grid.cols_gt[0] {
+            let gtx = 0;
+            let ipx = self.ipxlut[gtcol.col];
+            let opx = self.opxlut[gtcol.col];
+
             for (reg, &kind) in gtcol.regs.iter().enumerate() {
                 if let Some(kind) = kind {
                     let br = RowId::from_idx(reg * 50);
@@ -1773,6 +1777,70 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             &[&format!("{t}_INT_INTERFACE_L_X{x}Y{y}")],
                             self.db.get_node_naming(&format!("INTF.{t}_L")),
                             &[(gtcol.col, row)],
+                        );
+                    }
+                    // XXX
+                    let gty = self.gtylut[br];
+                    let sk = match kind {
+                        GtKind::Gtp => "GTP",
+                        GtKind::Gtx => "GTX",
+                        GtKind::Gth => "GTH",
+                    };
+                    for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
+                        let row = br + dy;
+                        let name = format!(
+                            "{sk}_CHANNEL_{i}_X{x}Y{y}",
+                            x = self.rxlut[gtcol.col],
+                            y = self.rylut[row + 5]
+                        );
+                        let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
+                        let node = self.die[(gtcol.col, row)].add_xnode(
+                            self.db.get_node(&format!("{sk}_CHANNEL")),
+                            &[&name],
+                            self.db.get_node_naming(&format!("{sk}_CHANNEL_{i}")),
+                            &crds,
+                        );
+                        let ipy = self.ipylut[row];
+                        let opy = self.opylut[row];
+                        node.add_bel(0, format!("{sk}E2_CHANNEL_X{gtx}Y{y}", y = gty * 4 + i));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
+                        node.add_bel(2, format!("IPAD_X{ipx}Y{y}", y = ipy));
+                        node.add_bel(3, format!("OPAD_X{opx}Y{y}", y = opy + 1));
+                        node.add_bel(4, format!("OPAD_X{opx}Y{y}", y = opy));
+                    }
+                    let row = br + 22;
+                    let name = format!(
+                        "{sk}_COMMON_X{x}Y{y}",
+                        x = self.rxlut[gtcol.col],
+                        y = self.rylut[row]
+                    );
+                    let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
+                    let node = self.die[(gtcol.col, row + 3)].add_xnode(
+                        self.db.get_node(&format!("{sk}_COMMON")),
+                        &[&name],
+                        self.db.get_node_naming(&format!("{sk}_COMMON")),
+                        &crds,
+                    );
+                    let ipy = self.ipylut[row];
+                    node.add_bel(0, format!("{sk}E2_COMMON_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2));
+                    node.add_bel(2, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1));
+                    node.add_bel(3, format!("IPAD_X{ipx}Y{y}", y = ipy - 4));
+                    node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
+                    node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
+                    node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
+
+                    if br.to_idx() != 0 {
+                        let name = format!(
+                            "BRKH_GTX_X{x}Y{y}",
+                            x = self.rxlut[gtcol.col],
+                            y = self.rylut[br] - 1
+                        );
+                        self.die[(gtcol.col, br)].add_xnode(
+                            self.db.get_node("BRKH_GTX"),
+                            &[&name],
+                            self.db.get_node_naming("BRKH_GTX"),
+                            &[],
                         );
                     }
                 }
@@ -1839,10 +1907,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if self.disabled.contains(&DisabledPart::Gtp) {
                         continue;
                     }
-                    // XXX
-                    if kind != GtKind::Gtp {
-                        continue;
-                    }
                     let gty = self.gtylut[br];
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -1892,6 +1956,28 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
                     node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
                     node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
+
+                    if br.to_idx() != 0 && kind != GtKind::Gtp {
+                        let name = if gtcol.regs[reg - 1].is_none() {
+                            format!(
+                                "BRKH_GTX_X{x}Y{y}",
+                                x = self.xlut[gtcol.col] + 1,
+                                y = self.ylut[br] - 1
+                            )
+                        } else {
+                            format!(
+                                "BRKH_GTX_X{x}Y{y}",
+                                x = self.rxlut[gtcol.col] + 4,
+                                y = self.rylut[br] - 1
+                            )
+                        };
+                        self.die[(gtcol.col, br)].add_xnode(
+                            self.db.get_node("BRKH_GTX"),
+                            &[&name],
+                            self.db.get_node_naming("BRKH_GTX"),
+                            &[],
+                        );
+                    }
                 }
             }
         }
@@ -2697,6 +2783,11 @@ impl Grid {
     }
     pub fn row_bufg(&self) -> RowId {
         RowId::from_idx(self.reg_clk * 50)
+    }
+
+    pub fn col_ps(&self) -> ColId {
+        assert!(self.has_ps);
+        ColId::from_idx(18)
     }
 }
 

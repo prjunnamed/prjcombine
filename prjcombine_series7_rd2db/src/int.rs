@@ -1201,8 +1201,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
                 }
                 for i in 0..14 {
-                    bel =
-                        bel.extra_wire(format!("IN{i}_{lr}"), &[format!("CLK_HROW_CK_IN_{lr}{i}")]);
+                    bel = bel
+                        .extra_wire(format!("HIN{i}_{lr}"), &[format!("CLK_HROW_CK_IN_{lr}{i}")]);
                 }
             }
             bels.push(bel);
@@ -2710,7 +2710,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_xy("IPAD.CLKN1", "IPAD", 0, 3)
                     .pins_name_only(&["O"]),
             ];
-            let mut xn = builder.xnode("GTP_COMMON", tkn, xy).num_tiles(11);
+            let mut xn = builder.xnode("GTP_COMMON", tkn, xy).num_tiles(6);
             for i in 0..3 {
                 xn = xn.ref_int(xy.delta(int_dx, i as i32), i).ref_single(
                     xy.delta(intf_dx, i as i32),
@@ -2725,6 +2725,231 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             xn.bels(bels).extract();
         }
+    }
+
+    for (tkn, kind, bslot, intf_l_kind, intf_r_kind) in [
+        (
+            "GTX_CHANNEL_0",
+            "GTX_CHANNEL",
+            "GTXE2_CHANNEL",
+            "INTF.GTX_L",
+            "INTF.GTX",
+        ),
+        (
+            "GTX_CHANNEL_1",
+            "GTX_CHANNEL",
+            "GTXE2_CHANNEL",
+            "INTF.GTX_L",
+            "INTF.GTX",
+        ),
+        (
+            "GTX_CHANNEL_2",
+            "GTX_CHANNEL",
+            "GTXE2_CHANNEL",
+            "INTF.GTX_L",
+            "INTF.GTX",
+        ),
+        (
+            "GTX_CHANNEL_3",
+            "GTX_CHANNEL",
+            "GTXE2_CHANNEL",
+            "INTF.GTX_L",
+            "INTF.GTX",
+        ),
+        (
+            "GTH_CHANNEL_0",
+            "GTH_CHANNEL",
+            "GTHE2_CHANNEL",
+            "INTF.GTH_L",
+            "INTF.GTH",
+        ),
+        (
+            "GTH_CHANNEL_1",
+            "GTH_CHANNEL",
+            "GTHE2_CHANNEL",
+            "INTF.GTH_L",
+            "INTF.GTH",
+        ),
+        (
+            "GTH_CHANNEL_2",
+            "GTH_CHANNEL",
+            "GTHE2_CHANNEL",
+            "INTF.GTH_L",
+            "INTF.GTH",
+        ),
+        (
+            "GTH_CHANNEL_3",
+            "GTH_CHANNEL",
+            "GTHE2_CHANNEL",
+            "INTF.GTH_L",
+            "INTF.GTH",
+        ),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_gtx = kind == "GTX_CHANNEL";
+            let is_l = xy.x == 0;
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { intf_l_kind } else { intf_r_kind });
+            let bels = [
+                builder
+                    .bel_xy(kind, bslot, 0, 0)
+                    .pins_name_only(&if is_gtx {
+                        ["GTXRXP", "GTXRXN", "GTXTXP", "GTXTXN"]
+                    } else {
+                        ["GTHRXP", "GTHRXN", "GTHTXP", "GTHTXN"]
+                    })
+                    .pin_name_only("GTREFCLK0", 1)
+                    .pin_name_only("GTREFCLK1", 1)
+                    .pin_name_only("GTNORTHREFCLK0", 1)
+                    .pin_name_only("GTNORTHREFCLK1", 1)
+                    .pin_name_only("GTSOUTHREFCLK0", 1)
+                    .pin_name_only("GTSOUTHREFCLK1", 1)
+                    .pin_name_only("QPLLCLK", 1)
+                    .pin_name_only("QPLLREFCLK", 1)
+                    .pin_name_only("RXOUTCLK", 1)
+                    .pin_name_only("TXOUTCLK", 1),
+                builder
+                    .bel_xy("IPAD.RXP", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.RXN", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("OPAD.TXP", "OPAD", 0, 1)
+                    .pins_name_only(&["I"]),
+                builder
+                    .bel_xy("OPAD.TXN", "OPAD", 0, 0)
+                    .pins_name_only(&["I"]),
+            ];
+            let mut xn = builder.xnode(kind, tkn, xy).num_tiles(11);
+            let int_dx = if is_l { 3 } else { -4 };
+            let intf_dx = if is_l { 2 } else { -3 };
+            for i in 0..11 {
+                xn = xn.ref_int(xy.delta(int_dx, -5 + i as i32), i).ref_single(
+                    xy.delta(intf_dx, -5 + i as i32),
+                    i,
+                    intf,
+                );
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for (tkn, bslot, intf_l_kind, intf_r_kind) in [
+        ("GTX_COMMON", "GTXE2_COMMON", "INTF.GTX_L", "INTF.GTX"),
+        ("GTH_COMMON", "GTHE2_COMMON", "INTF.GTH_L", "INTF.GTH"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_l = xy.x == 0;
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { intf_l_kind } else { intf_r_kind });
+            let mut bel = builder
+                .bel_xy(tkn, bslot, 0, 0)
+                .pin_name_only("QPLLOUTCLK", 1)
+                .pin_name_only("QPLLOUTREFCLK", 1)
+                .pin_name_only("GTREFCLK0", 1)
+                .pin_name_only("GTREFCLK1", 1)
+                .pin_name_only("GTNORTHREFCLK0", 1)
+                .pin_name_only("GTNORTHREFCLK1", 1)
+                .pin_name_only("GTSOUTHREFCLK0", 1)
+                .pin_name_only("GTSOUTHREFCLK1", 1);
+            for i in 0..4 {
+                bel = bel
+                    .extra_wire(
+                        format!("RXOUTCLK{i}"),
+                        &[
+                            format!("GTXE2_COMMON_RXOUTCLK_{i}"),
+                            format!("GTHE2_COMMON_RXOUTCLK_{i}"),
+                        ],
+                    )
+                    .extra_wire(
+                        format!("TXOUTCLK{i}"),
+                        &[
+                            format!("GTXE2_COMMON_TXOUTCLK_{i}"),
+                            format!("GTHE2_COMMON_TXOUTCLK_{i}"),
+                        ],
+                    );
+            }
+            for i in 0..10 {
+                bel = bel.extra_wire(
+                    format!("HOUT{ii}", ii = i + 4),
+                    &[
+                        format!("GTXE2_COMMON_MGT_CLK{i}"),
+                        format!("GTHE2_COMMON_MGT_CLK{i}"),
+                    ],
+                );
+            }
+
+            let bels = [
+                bel,
+                builder
+                    .bel_xy("IBUFDS0", "IBUFDS_GTE2", 0, 0)
+                    .pins_name_only(&["I", "IB", "O", "ODIV2"])
+                    .extra_wire(
+                        "MGTCLKOUT",
+                        &["IBUFDS_GTE2_0_MGTCLKOUT", "IBUFDS_GTHE2_0_MGTCLKOUT"],
+                    ),
+                builder
+                    .bel_xy("IBUFDS1", "IBUFDS_GTE2", 0, 1)
+                    .pins_name_only(&["I", "IB", "O", "ODIV2"])
+                    .extra_wire(
+                        "MGTCLKOUT",
+                        &["IBUFDS_GTE2_1_MGTCLKOUT", "IBUFDS_GTHE2_1_MGTCLKOUT"],
+                    ),
+                builder
+                    .bel_xy("IPAD.CLKP0", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN0", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKP1", "IPAD", 0, 2)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN1", "IPAD", 0, 3)
+                    .pins_name_only(&["O"]),
+            ];
+            let mut xn = builder.xnode(tkn, tkn, xy).num_tiles(6);
+            let int_dx = if is_l { 3 } else { -4 };
+            let intf_dx = if is_l { 2 } else { -3 };
+            for i in 0..3 {
+                xn = xn.ref_int(xy.delta(int_dx, i as i32), i).ref_single(
+                    xy.delta(intf_dx, i as i32),
+                    i,
+                    intf,
+                );
+            }
+            for i in 0..3 {
+                xn = xn
+                    .ref_int(xy.delta(int_dx, 4 + i as i32), i + 3)
+                    .ref_single(xy.delta(intf_dx, 4 + i as i32), i + 3, intf);
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("BRKH_GTX").iter().next() {
+        let bel = builder
+            .bel_virtual("BRKH_GTX")
+            .extra_wire("REFCLK0_D", &["BRKH_GTX_REFCLK0_LOWER"])
+            .extra_wire("REFCLK1_D", &["BRKH_GTX_REFCLK1_LOWER"])
+            .extra_wire("REFCLK0_U", &["BRKH_GTX_REFCLK0_UPPER"])
+            .extra_wire("REFCLK1_U", &["BRKH_GTX_REFCLK1_UPPER"])
+            .extra_wire("NORTHREFCLK0_D", &["BRKH_GTX_NORTHREFCLK0_LOWER"])
+            .extra_wire("NORTHREFCLK1_D", &["BRKH_GTX_NORTHREFCLK1_LOWER"])
+            .extra_wire("NORTHREFCLK0_U", &["BRKH_GTX_NORTHREFCLK0_UPPER"])
+            .extra_wire("NORTHREFCLK1_U", &["BRKH_GTX_NORTHREFCLK1_UPPER"])
+            .extra_wire("SOUTHREFCLK0_D", &["BRKH_GTX_SOUTHREFCLK0_LOWER"])
+            .extra_wire("SOUTHREFCLK1_D", &["BRKH_GTX_SOUTHREFCLK1_LOWER"])
+            .extra_wire("SOUTHREFCLK0_U", &["BRKH_GTX_SOUTHREFCLK0_UPPER"])
+            .extra_wire("SOUTHREFCLK1_U", &["BRKH_GTX_SOUTHREFCLK1_UPPER"]);
+        builder
+            .xnode("BRKH_GTX", "BRKH_GTX", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .extract();
     }
 
     builder.build()
