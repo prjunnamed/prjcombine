@@ -729,8 +729,11 @@ impl XNodeExtractor<'_, '_, '_> {
                         let dir = match tksp.dir {
                             rawdump::TkSitePinDir::Input => PinDir::Input,
                             rawdump::TkSitePinDir::Output => PinDir::Output,
-                            _ => panic!("bidir pin {}", name),
+                            _ => panic!("bidir pin {name}"),
                         };
+                        if tksp.wire.is_none() {
+                            panic!("missing site wire for pin {name}");
+                        }
                         let (ick, wires, wnf, pips, int_pips) =
                             self.walk_to_int(name, dir, bel.raw_tile, tksp.wire.unwrap());
                         naming_pins.insert(

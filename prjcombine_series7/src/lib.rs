@@ -869,11 +869,14 @@ struct DieExpander<'a, 'b> {
     rxlut: EntityVec<ColId, usize>,
     tiexlut: EntityVec<ColId, usize>,
     ipxlut: EntityVec<ColId, usize>,
+    opxlut: EntityVec<ColId, usize>,
     ylut: EntityVec<RowId, usize>,
     rylut: EntityVec<RowId, usize>,
     tieylut: EntityVec<RowId, usize>,
     dciylut: EntityVec<RowId, usize>,
     ipylut: EntityVec<RowId, usize>,
+    opylut: EntityVec<RowId, usize>,
+    gtylut: EntityVec<RowId, usize>,
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     has_slr_d: bool,
@@ -958,6 +961,54 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             self.ipylut[RowId::from_idx(self.grid.reg_cfg * 50 + 25)] = ipy + 6;
         }
         ipy
+    }
+
+    fn fill_opylut(&mut self, mut opy: usize) -> usize {
+        for row in self.die.rows() {
+            let reg = row.to_idx() / 50;
+            self.opylut.push(opy);
+            if matches!(row.to_idx() % 50, 0 | 11 | 28 | 39) {
+                let mut has_gt = false;
+                for gtcol in self.grid.cols_gt.iter().flatten() {
+                    if gtcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
+                    if lcol.regs[reg].is_some() || rcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if has_gt {
+                    opy += 2;
+                }
+            }
+        }
+        opy
+    }
+
+    fn fill_gtylut(&mut self, mut gty: usize) -> usize {
+        for row in self.die.rows() {
+            let reg = row.to_idx() / 50;
+            self.gtylut.push(gty);
+            if row.to_idx() % 50 == 0 {
+                let mut has_gt = false;
+                for gtcol in self.grid.cols_gt.iter().flatten() {
+                    if gtcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
+                    if lcol.regs[reg].is_some() || rcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if has_gt {
+                    gty += 1;
+                }
+            }
+        }
+        gty
     }
 
     fn fill_xlut(&mut self) {
@@ -1046,6 +1097,26 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
             if kind == ColumnKind::Clk && has_gtz {
                 ipx += 1;
+            }
+        }
+    }
+
+    fn fill_opxlut(&mut self, has_gtz: bool) {
+        let mut opx = 0;
+        for (col, &kind) in &self.grid.columns {
+            self.opxlut.push(opx);
+            for gtcol in self.grid.cols_gt.iter().flatten() {
+                if gtcol.col == col {
+                    opx += 1;
+                }
+            }
+            if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
+                if lcol.col == col || rcol.col == col {
+                    opx += 1;
+                }
+            }
+            if kind == ColumnKind::Clk && has_gtz {
+                opx += 1;
             }
         }
     }
@@ -1475,6 +1546,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
     fn fill_gt_mid(&mut self) {
         if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
             for (reg, &kind) in lcol.regs.iter().enumerate() {
+                let gtx = 0;
+                let ipx = self.ipxlut[lcol.col];
+                let opx = self.opxlut[lcol.col];
                 if let Some(kind) = kind {
                     assert_eq!(kind, GtKind::Gtp);
                     let br = RowId::from_idx(reg * 50);
@@ -1517,9 +1591,66 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         self.die.fill_term_anon((col_l, row), "TERM.E");
                         self.die.fill_term_anon((col_r, row), "TERM.W");
                     }
+
+                    if self.disabled.contains(&DisabledPart::Gtp) {
+                        continue;
+                    }
+                    let gty = self.gtylut[br];
+                    let sk = match kind {
+                        GtKind::Gtp => "GTP",
+                        GtKind::Gtx => "GTX",
+                        GtKind::Gth => "GTH",
+                    };
+                    for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
+                        let row = br + dy;
+                        let name = format!(
+                            "{sk}_CHANNEL_{i}_MID_LEFT_X{x}Y{y}",
+                            x = self.rxlut[lcol.col] + 14,
+                            y = self.rylut[row + 5]
+                        );
+                        let crds: [_; 11] = core::array::from_fn(|dy| (lcol.col, row + dy));
+                        let node = self.die[(lcol.col, row)].add_xnode(
+                            self.db.get_node(&format!("{sk}_CHANNEL")),
+                            &[&name],
+                            self.db
+                                .get_node_naming(&format!("{sk}_CHANNEL_{i}_MID_LEFT")),
+                            &crds,
+                        );
+                        let ipy = self.ipylut[row];
+                        let opy = self.opylut[row];
+                        node.add_bel(0, format!("{sk}E2_CHANNEL_X{gtx}Y{y}", y = gty * 4 + i));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
+                        node.add_bel(2, format!("IPAD_X{ipx}Y{y}", y = ipy));
+                        node.add_bel(3, format!("OPAD_X{opx}Y{y}", y = opy + 1));
+                        node.add_bel(4, format!("OPAD_X{opx}Y{y}", y = opy));
+                    }
+                    let row = br + 22;
+                    let name = format!(
+                        "{sk}_COMMON_MID_LEFT_X{x}Y{y}",
+                        x = self.rxlut[lcol.col] + 14,
+                        y = self.rylut[row]
+                    );
+                    let crds: [_; 6] = core::array::from_fn(|dy| (lcol.col, row + dy));
+                    let node = self.die[(lcol.col, row + 3)].add_xnode(
+                        self.db.get_node(&format!("{sk}_COMMON")),
+                        &[&name],
+                        self.db.get_node_naming(&format!("{sk}_COMMON_MID_LEFT")),
+                        &crds,
+                    );
+                    let ipy = self.ipylut[row];
+                    node.add_bel(0, format!("{sk}E2_COMMON_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2));
+                    node.add_bel(2, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1));
+                    node.add_bel(3, format!("IPAD_X{ipx}Y{y}", y = ipy - 4));
+                    node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
+                    node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
+                    node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
                 }
             }
             for (reg, &kind) in rcol.regs.iter().enumerate() {
+                let gtx = 1;
+                let ipx = self.ipxlut[rcol.col];
+                let opx = self.opxlut[rcol.col];
                 if let Some(kind) = kind {
                     assert_eq!(kind, GtKind::Gtp);
                     let br = RowId::from_idx(reg * 50);
@@ -1562,6 +1693,60 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         self.die.fill_term_anon((col_l, row), "TERM.E");
                         self.die.fill_term_anon((col_r, row), "TERM.W");
                     }
+
+                    if self.disabled.contains(&DisabledPart::Gtp) {
+                        continue;
+                    }
+                    let gty = self.gtylut[br];
+                    let sk = match kind {
+                        GtKind::Gtp => "GTP",
+                        GtKind::Gtx => "GTX",
+                        GtKind::Gth => "GTH",
+                    };
+                    for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
+                        let row = br + dy;
+                        let name = format!(
+                            "{sk}_CHANNEL_{i}_MID_RIGHT_X{x}Y{y}",
+                            x = self.rxlut[rcol.col] - 18,
+                            y = self.rylut[row + 5]
+                        );
+                        let crds: [_; 11] = core::array::from_fn(|dy| (rcol.col, row + dy));
+                        let node = self.die[(rcol.col, row)].add_xnode(
+                            self.db.get_node(&format!("{sk}_CHANNEL")),
+                            &[&name],
+                            self.db
+                                .get_node_naming(&format!("{sk}_CHANNEL_{i}_MID_RIGHT")),
+                            &crds,
+                        );
+                        let ipy = self.ipylut[row];
+                        let opy = self.opylut[row];
+                        node.add_bel(0, format!("{sk}E2_CHANNEL_X{gtx}Y{y}", y = gty * 4 + i));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
+                        node.add_bel(2, format!("IPAD_X{ipx}Y{y}", y = ipy));
+                        node.add_bel(3, format!("OPAD_X{opx}Y{y}", y = opy + 1));
+                        node.add_bel(4, format!("OPAD_X{opx}Y{y}", y = opy));
+                    }
+                    let row = br + 22;
+                    let name = format!(
+                        "{sk}_COMMON_MID_RIGHT_X{x}Y{y}",
+                        x = self.rxlut[rcol.col] - 18,
+                        y = self.rylut[row]
+                    );
+                    let crds: [_; 6] = core::array::from_fn(|dy| (rcol.col, row + dy));
+                    let node = self.die[(rcol.col, row + 3)].add_xnode(
+                        self.db.get_node(&format!("{sk}_COMMON")),
+                        &[&name],
+                        self.db.get_node_naming(&format!("{sk}_COMMON_MID_RIGHT")),
+                        &crds,
+                    );
+                    let ipy = self.ipylut[row];
+                    node.add_bel(0, format!("{sk}E2_COMMON_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2));
+                    node.add_bel(2, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1));
+                    node.add_bel(3, format!("IPAD_X{ipx}Y{y}", y = ipy - 4));
+                    node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
+                    node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
+                    node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
                 }
             }
         }
@@ -1597,6 +1782,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_gt_right(&mut self) {
         if let Some(ref gtcol) = self.grid.cols_gt[1] {
+            let gtx = if self.grid.cols_gt[0].is_some() { 1 } else { 0 };
+            let ipx = self.ipxlut[gtcol.col];
+            let opx = self.opxlut[gtcol.col];
             let need_holes = self.grid.columns[gtcol.col] != ColumnKind::Gt;
             for (reg, &kind) in gtcol.regs.iter().enumerate() {
                 if let Some(kind) = kind {
@@ -1647,6 +1835,63 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             &[(gtcol.col, row)],
                         );
                     }
+
+                    if self.disabled.contains(&DisabledPart::Gtp) {
+                        continue;
+                    }
+                    // XXX
+                    if kind != GtKind::Gtp {
+                        continue;
+                    }
+                    let gty = self.gtylut[br];
+                    let sk = match kind {
+                        GtKind::Gtp => "GTP",
+                        GtKind::Gtx => "GTX",
+                        GtKind::Gth => "GTH",
+                    };
+                    for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
+                        let row = br + dy;
+                        let name = format!(
+                            "{sk}_CHANNEL_{i}_X{x}Y{y}",
+                            x = self.rxlut[gtcol.col] + 4,
+                            y = self.rylut[row + 5]
+                        );
+                        let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
+                        let node = self.die[(gtcol.col, row)].add_xnode(
+                            self.db.get_node(&format!("{sk}_CHANNEL")),
+                            &[&name],
+                            self.db.get_node_naming(&format!("{sk}_CHANNEL_{i}")),
+                            &crds,
+                        );
+                        let ipy = self.ipylut[row];
+                        let opy = self.opylut[row];
+                        node.add_bel(0, format!("{sk}E2_CHANNEL_X{gtx}Y{y}", y = gty * 4 + i));
+                        node.add_bel(1, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
+                        node.add_bel(2, format!("IPAD_X{ipx}Y{y}", y = ipy));
+                        node.add_bel(3, format!("OPAD_X{opx}Y{y}", y = opy + 1));
+                        node.add_bel(4, format!("OPAD_X{opx}Y{y}", y = opy));
+                    }
+                    let row = br + 22;
+                    let name = format!(
+                        "{sk}_COMMON_X{x}Y{y}",
+                        x = self.rxlut[gtcol.col] + 4,
+                        y = self.rylut[row]
+                    );
+                    let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
+                    let node = self.die[(gtcol.col, row + 3)].add_xnode(
+                        self.db.get_node(&format!("{sk}_COMMON")),
+                        &[&name],
+                        self.db.get_node_naming(&format!("{sk}_COMMON")),
+                        &crds,
+                    );
+                    let ipy = self.ipylut[row];
+                    node.add_bel(0, format!("{sk}E2_COMMON_X{gtx}Y{gty}"));
+                    node.add_bel(1, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2));
+                    node.add_bel(2, format!("IBUFDS_GTE2_X{gtx}Y{y}", y = gty * 2 + 1));
+                    node.add_bel(3, format!("IPAD_X{ipx}Y{y}", y = ipy - 4));
+                    node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
+                    node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
+                    node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
                 }
             }
         }
@@ -2474,10 +2719,13 @@ pub fn expand_grid<'a>(
     let mut bglb_y = 0;
     let mut dci_y = 0;
     let mut ipy = 0;
+    let mut opy = 0;
+    let mut gty = 0;
     if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
         yb = 1;
         ryb = 2;
         ipy = 6;
+        opy = 2;
     }
     for &grid in grids.values() {
         let is_7k70t = grid.kind == GridKind::Kintex && grid.regs == 4 && !grid.has_ps;
@@ -2492,11 +2740,14 @@ pub fn expand_grid<'a>(
             rxlut: EntityVec::new(),
             tiexlut: EntityVec::new(),
             ipxlut: EntityVec::new(),
+            opxlut: EntityVec::new(),
             ylut: EntityVec::new(),
             rylut: EntityVec::new(),
             tieylut: EntityVec::new(),
             dciylut: EntityVec::new(),
             ipylut: EntityVec::new(),
+            opylut: EntityVec::new(),
+            gtylut: EntityVec::new(),
             site_holes: Vec::new(),
             int_holes: Vec::new(),
             has_slr_d: did != grids.first_id().unwrap(),
@@ -2509,11 +2760,14 @@ pub fn expand_grid<'a>(
         de.fill_rxlut();
         de.fill_tiexlut();
         de.fill_ipxlut(!extras.is_empty(), is_7k70t);
+        de.fill_opxlut(!extras.is_empty());
         yb = de.fill_ylut(yb);
         ryb = de.fill_rylut(ryb);
         tie_yb = de.fill_tieylut(tie_yb);
         dci_y = de.fill_dciylut(dci_y);
         ipy = de.fill_ipylut(ipy, is_7k70t);
+        opy = de.fill_opylut(opy);
+        gty = de.fill_gtylut(gty);
         de.fill_int();
         de.fill_cfg(de.die.die == grid_master);
         de.fill_ps();
