@@ -104,6 +104,7 @@ pub struct Verifier<'a> {
     stub_outs: HashSet<rawdump::WireId>,
     stub_ins: HashSet<rawdump::WireId>,
     cond_stub_outs: HashSet<rawdump::WireId>,
+    cond_stub_ins: HashSet<rawdump::WireId>,
 }
 
 #[derive(Debug, Default)]
@@ -202,6 +203,7 @@ impl<'a> Verifier<'a> {
             stub_outs: HashSet::new(),
             stub_ins: HashSet::new(),
             cond_stub_outs: HashSet::new(),
+            cond_stub_ins: HashSet::new(),
         }
     }
 
@@ -1239,31 +1241,50 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn kill_stub_in_cond(&mut self, name: &str) {
+        if let Some(wi) = self.rd.wires.get(name) {
+            self.cond_stub_ins.insert(wi);
+        }
+    }
+
     fn finish(mut self) {
+        let mut cond_stub_outs = HashMap::new();
+        let mut cond_stub_ins = HashMap::new();
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
-            let mut cond_stub_outs = HashSet::new();
             for &w in tk.wires.keys() {
                 if self.stub_outs.contains(&w) || self.stub_ins.contains(&w) {
                     self.claim_node(&[(crd, &self.rd.wires[w])]);
                 }
-                if self.cond_stub_outs.contains(&w)
-                    && self.rd.lookup_wire_raw(crd, w).is_some()
-                    && !self.is_claimed_raw(crd, w)
-                {
-                    cond_stub_outs.insert(w);
-                    self.claim_node(&[(crd, &self.rd.wires[w])]);
+                if let Some(nw) = self.rd.lookup_wire_raw(crd, w) {
+                    if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {
+                        cond_stub_outs.insert(nw, (crd, w));
+                    }
+                    if self.cond_stub_ins.contains(&w) && !self.is_claimed_raw(crd, w) {
+                        cond_stub_ins.insert(nw, (crd, w));
+                    }
                 }
             }
+        }
+        for (&nw, &(crd, w)) in &cond_stub_outs {
+            self.claim_raw_node(nw, crd, &self.rd.wires[w]);
+        }
+        for (&nw, &(crd, w)) in &cond_stub_ins {
+            self.claim_raw_node(nw, crd, &self.rd.wires[w]);
+        }
+        for (&crd, tile) in &self.rd.tiles {
+            let tk = &self.rd.tile_kinds[tile.kind];
             for &(wf, wt) in tk.pips.keys() {
-                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
-                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
-                if pip_present
-                    && (self.stub_outs.contains(&wt)
-                        || self.stub_ins.contains(&wf)
-                        || cond_stub_outs.contains(&wt))
-                {
-                    self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
+                if let Some(nwf) = self.rd.lookup_wire(crd, &self.rd.wires[wf]) {
+                    if let Some(nwt) = self.rd.lookup_wire(crd, &self.rd.wires[wt]) {
+                        if self.stub_outs.contains(&wt)
+                            || self.stub_ins.contains(&wf)
+                            || cond_stub_outs.contains_key(&nwt)
+                            || cond_stub_ins.contains_key(&nwf)
+                        {
+                            self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
+                        }
+                    }
                 }
             }
         }

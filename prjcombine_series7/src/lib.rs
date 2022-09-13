@@ -1779,7 +1779,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             &[(gtcol.col, row)],
                         );
                     }
-                    // XXX
                     let gty = self.gtylut[br];
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -1855,8 +1854,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             let opx = self.opxlut[gtcol.col];
             let need_holes = self.grid.columns[gtcol.col] != ColumnKind::Gt;
             for (reg, &kind) in gtcol.regs.iter().enumerate() {
+                let br = RowId::from_idx(reg * 50);
                 if let Some(kind) = kind {
-                    let br = RowId::from_idx(reg * 50);
                     if need_holes {
                         self.die.nuke_rect(gtcol.col + 1, br, 6, 50);
                         self.site_holes.push(Rect {
@@ -1956,28 +1955,27 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     node.add_bel(4, format!("IPAD_X{ipx}Y{y}", y = ipy - 3));
                     node.add_bel(5, format!("IPAD_X{ipx}Y{y}", y = ipy - 2));
                     node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
-
-                    if br.to_idx() != 0 && kind != GtKind::Gtp {
-                        let name = if gtcol.regs[reg - 1].is_none() {
-                            format!(
-                                "BRKH_GTX_X{x}Y{y}",
-                                x = self.xlut[gtcol.col] + 1,
-                                y = self.ylut[br] - 1
-                            )
-                        } else {
-                            format!(
-                                "BRKH_GTX_X{x}Y{y}",
-                                x = self.rxlut[gtcol.col] + 4,
-                                y = self.rylut[br] - 1
-                            )
-                        };
-                        self.die[(gtcol.col, br)].add_xnode(
-                            self.db.get_node("BRKH_GTX"),
-                            &[&name],
-                            self.db.get_node_naming("BRKH_GTX"),
-                            &[],
-                        );
-                    }
+                }
+                if br.to_idx() != 0 && (kind.is_some() || gtcol.regs[reg - 1].is_some()) {
+                    let name = if gtcol.regs[reg - 1].is_none() {
+                        format!(
+                            "BRKH_GTX_X{x}Y{y}",
+                            x = self.xlut[gtcol.col] + 1,
+                            y = self.ylut[br] - 1
+                        )
+                    } else {
+                        format!(
+                            "BRKH_GTX_X{x}Y{y}",
+                            x = self.rxlut[gtcol.col] + 4,
+                            y = self.rylut[br] - 1
+                        )
+                    };
+                    self.die[(gtcol.col, br)].add_xnode(
+                        self.db.get_node("BRKH_GTX"),
+                        &[&name],
+                        self.db.get_node_naming("BRKH_GTX"),
+                        &[],
+                    );
                 }
             }
         }
@@ -2151,6 +2149,39 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         &coords,
                     );
                     node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = sy / 10));
+                }
+            }
+            if cd == ColumnKind::Bram {
+                'a: for row in self.die.rows() {
+                    if row.to_idx() % 50 != 25 {
+                        continue;
+                    }
+                    let mut is_hole_up = false;
+                    for &hole in &self.site_holes {
+                        if hole.contains(col, row - 1) {
+                            continue 'a;
+                        }
+                        if hole.contains(col, row) {
+                            is_hole_up = true;
+                        }
+                    }
+                    if !is_hole_up {
+                        continue;
+                    }
+                    let hx = if naming == "BRAM_L" {
+                        self.rxlut[col]
+                    } else {
+                        self.rxlut[col] + 2
+                    };
+                    let hy = self.rylut[row] - 1;
+                    let name_h = format!("HCLK_BRAM_X{hx}Y{hy}");
+                    let node = self.die[(col, row)].add_xnode(
+                        self.db.get_node("PMVBRAM_NC"),
+                        &[&name_h],
+                        self.db.get_node_naming("PMVBRAM_NC"),
+                        &[],
+                    );
+                    node.add_bel(0, format!("PMVBRAM_X{bx}Y{sy}", sy = self.tieylut[row] / 50));
                 }
             }
             if found {
