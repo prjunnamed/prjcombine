@@ -1,8 +1,8 @@
 use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Part, Source};
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_series7::ExpandedDevice;
+use prjcombine_series7::{ExpandedDevice, XadcKind};
 use std::collections::HashMap;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -2063,17 +2063,17 @@ fn verify_cmt_a(vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.fwire(&format!("FREQ_BB{i}_S")),
                 obel_s.fwire(&format!("FREQ_BB{i}_N")),
             ]);
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}")),
+                bel.wire(&format!("FREQ_BB{i}_S")),
+            );
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}_S")),
+                bel.wire(&format!("FREQ_BB{i}")),
+            );
         }
-        vrf.claim_pip(
-            bel.crd(),
-            bel.wire(&format!("FREQ_BB{i}")),
-            bel.wire(&format!("FREQ_BB{i}_S")),
-        );
-        vrf.claim_pip(
-            bel.crd(),
-            bel.wire(&format!("FREQ_BB{i}_S")),
-            bel.wire(&format!("FREQ_BB{i}")),
-        );
     }
 
     for i in 0..13 {
@@ -2406,21 +2406,32 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_N"), bel.wire("SYNC_BB"));
         vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_N"));
     }
+    let obel_n = vrf.find_bel_walk(bel, 0, 50, "CMT_A").or_else(|| {
+        if bel.die.to_idx() != vrf.grid.tiles.len() - 1 {
+            let odie = bel.die + 1;
+            let srow = vrf.grid.die(odie).rows().next().unwrap() + 25;
+            vrf.find_bel(odie, (bel.col, srow), "CMT_A")
+        } else {
+            None
+        }
+    });
     for i in 0..4 {
         vrf.verify_node(&[
             bel.fwire(&format!("FREQ_BB{i}")),
             obel_hclk.fwire(&format!("FREQ_BB{i}")),
         ]);
-        vrf.claim_pip(
-            bel.crd(),
-            bel.wire(&format!("FREQ_BB{i}")),
-            bel.wire(&format!("FREQ_BB{i}_N")),
-        );
-        vrf.claim_pip(
-            bel.crd(),
-            bel.wire(&format!("FREQ_BB{i}_N")),
-            bel.wire(&format!("FREQ_BB{i}")),
-        );
+        if obel_n.is_some() {
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}")),
+                bel.wire(&format!("FREQ_BB{i}_N")),
+            );
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}_N")),
+                bel.wire(&format!("FREQ_BB{i}")),
+            );
+        }
     }
 
     for i in 37..50 {
@@ -2486,6 +2497,133 @@ fn verify_out_fifo(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     vrf.verify_node(&[bel.fwire("PHASER_RDEN"), obel.fwire("FIFO_RDEN")]);
 }
 
+fn verify_ipad(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
+    vrf.claim_node(&[bel.fwire("O")]);
+}
+
+fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
+    vrf.claim_node(&[bel.fwire("I")]);
+}
+
+fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = edev.grids[bel.die];
+    let mut pins = vec![];
+    for i in 0..16 {
+        pins.push(format!("VAUXP{i}"));
+        pins.push(format!("VAUXN{i}"));
+    }
+    let mut dummies: &[&str] = &[];
+    if grid.xadc_kind == XadcKind::Left {
+        dummies = &[
+            "VAUXP6", "VAUXN6", "VAUXP7", "VAUXN7", "VAUXP13", "VAUXN13", "VAUXP14", "VAUXN14",
+            "VAUXP15", "VAUXN15",
+        ];
+    }
+    pins.push("VP".to_string());
+    pins.push("VN".to_string());
+    let mut pin_refs = vec![];
+    for pin in &pins {
+        pin_refs.push((&pin[..], SitePinDir::In));
+    }
+    if bel.die == edev.grid_master || vrf.rd.source != Source::Vivado {
+        vrf.verify_bel_dummies(bel, "XADC", &pin_refs, &[], dummies);
+    }
+
+    vrf.claim_node(&[bel.fwire("VP")]);
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VP");
+    vrf.claim_pip(bel.crd(), bel.wire("VP"), obel.wire("O"));
+    vrf.claim_node(&[bel.fwire("VN")]);
+    let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
+    vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
+
+    let ios = match grid.xadc_kind {
+        XadcKind::Left => {
+            let cl = grid.cols_io[0].as_ref().unwrap().col;
+            vec![
+                (0, cl, 47),
+                (1, cl, 43),
+                (2, cl, 39),
+                (3, cl, 33),
+                (4, cl, 29),
+                (5, cl, 25),
+                (8, cl, 45),
+                (9, cl, 41),
+                (10, cl, 35),
+                (11, cl, 31),
+                (12, cl, 27),
+            ]
+        }
+        XadcKind::Right => {
+            let cr = grid.cols_io[1].as_ref().unwrap().col;
+            vec![
+                (0, cr, 47),
+                (1, cr, 43),
+                (2, cr, 35),
+                (3, cr, 31),
+                (4, cr, 21),
+                (5, cr, 15),
+                (6, cr, 9),
+                (7, cr, 5),
+                (8, cr, 45),
+                (9, cr, 39),
+                (10, cr, 33),
+                (11, cr, 29),
+                (12, cr, 19),
+                (13, cr, 13),
+                (14, cr, 7),
+                (15, cr, 1),
+            ]
+        }
+        XadcKind::Both => {
+            let cl = grid.cols_io[0].as_ref().unwrap().col;
+            let cr = grid.cols_io[1].as_ref().unwrap().col;
+            vec![
+                (0, cl, 47),
+                (1, cl, 43),
+                (2, cl, 35),
+                (3, cl, 31),
+                (4, cr, 47),
+                (5, cr, 43),
+                (6, cr, 35),
+                (7, cr, 31),
+                (8, cl, 45),
+                (9, cl, 39),
+                (10, cl, 33),
+                (11, cl, 29),
+                (12, cr, 45),
+                (13, cr, 39),
+                (14, cr, 33),
+                (15, cr, 29),
+            ]
+        }
+    };
+    for (i, col, dy) in ios {
+        let vauxp = format!("VAUXP{i}");
+        let vauxn = format!("VAUXN{i}");
+        vrf.claim_node(&[bel.fwire(&vauxp)]);
+        vrf.claim_node(&[bel.fwire(&vauxn)]);
+        let (c0p, ow0p, iw0p) = bel.pip(&vauxp, 0);
+        let (c1p, ow1p, iw1p) = bel.pip(&vauxp, 1);
+        let (c0n, ow0n, iw0n) = bel.pip(&vauxn, 0);
+        let (c1n, ow1n, iw1n) = bel.pip(&vauxn, 1);
+        vrf.claim_pip(c0p, ow0p, iw0p);
+        vrf.claim_pip(c1p, ow1p, iw1p);
+        vrf.claim_pip(c0n, ow0n, iw0n);
+        vrf.claim_pip(c1n, ow1n, iw1n);
+        vrf.claim_node(&[(c0p, iw0p), (c1p, ow1p)]);
+        vrf.claim_node(&[(c0n, iw0n), (c1n, ow1n)]);
+        let srow = bel.row - 25 + dy;
+        let obel = vrf.find_bel(bel.die, (col, srow), "IOB0").unwrap();
+        vrf.claim_node(&[(c1p, iw1p), obel.fwire("MONITOR")]);
+        vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
+        let obel = vrf.find_bel(bel.die, (col, srow), "IOB1").unwrap();
+        vrf.claim_node(&[(c1n, iw1n), obel.fwire("MONITOR")]);
+        vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
+    }
+}
+
 fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
@@ -2496,9 +2634,15 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BRAM_ADDR" => verify_bram_addr(vrf, bel),
         "PCIE" => vrf.verify_bel(bel, "PCIE_2_1", &[], &[]),
         "PCIE3" => vrf.verify_bel(bel, "PCIE_3_0", &[], &[]),
-        "PMVBRAM" | "PMV" | "PMV2" | "PMV2_SVT" | "PMVIOB" | "MTBF2" => {
-            vrf.verify_bel(bel, bel.key, &[], &[])
+        "PMVBRAM" | "PMV" | "PMV2" | "PMV2_SVT" | "PMVIOB" | "MTBF2" | "STARTUP" | "CAPTURE"
+        | "FRAME_ECC" | "USR_ACCESS" | "CFG_IO_ACCESS" => vrf.verify_bel(bel, bel.key, &[], &[]),
+        "DCIRESET" | "DNA_PORT" | "EFUSE_USR" => {
+            if bel.die == edev.grid_master || vrf.rd.source != Source::Vivado {
+                vrf.verify_bel(bel, bel.key, &[], &[])
+            }
         }
+        "BSCAN0" | "BSCAN1" | "BSCAN2" | "BSCAN3" => vrf.verify_bel(bel, "BSCAN", &[], &[]),
+        "ICAP0" | "ICAP1" => vrf.verify_bel(bel, "ICAP", &[], &[]),
 
         "INT_GCLK_L" | "INT_GCLK_R" => verify_int_gclk(edev, vrf, bel),
         "HCLK_L" => verify_hclk_l(edev, vrf, bel),
@@ -2536,6 +2680,10 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "CMT_D" => verify_cmt_d(vrf, bel),
         "IN_FIFO" => verify_in_fifo(edev, vrf, bel),
         "OUT_FIFO" => verify_out_fifo(edev, vrf, bel),
+
+        "XADC" => verify_xadc(edev, vrf, bel),
+        _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
+        _ if bel.key.starts_with("OPAD") => verify_opad(vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

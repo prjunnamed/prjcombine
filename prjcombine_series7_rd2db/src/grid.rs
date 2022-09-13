@@ -3,7 +3,7 @@ use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_series7::{
     ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind, Pcie2,
-    Pcie2Kind,
+    Pcie2Kind, XadcKind,
 };
 use std::collections::BTreeSet;
 
@@ -16,6 +16,16 @@ fn get_kind(rd: &Part) -> GridKind {
         GridKind::Kintex
     } else {
         GridKind::Virtex
+    }
+}
+
+fn get_xadc_kind(rd: &Part) -> XadcKind {
+    if !find_columns(rd, &["MONITOR_BOT_PELE1"]).is_empty() {
+        XadcKind::Right
+    } else if !find_columns(rd, &["MONITOR_BOT_FUJI2"]).is_empty() {
+        XadcKind::Left
+    } else {
+        XadcKind::Both
     }
 }
 
@@ -333,6 +343,7 @@ pub fn make_grids(
         assert_eq!(int.rows.len() % 50, 0);
         let slr = grids.push(Grid {
             kind,
+            xadc_kind: get_xadc_kind(rd),
             columns: columns.clone(),
             cols_vbrk: cols_vbrk.clone(),
             col_cfg,

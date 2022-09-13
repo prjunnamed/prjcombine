@@ -2017,8 +2017,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bel = builder
                 .bel_virtual("CMT_A")
                 .raw_tile(0)
-                .extra_wire("SYNC_BB", &["CMT_MMCM_PHYCTRL_SYNC_BB_UP"])
-                .extra_wire("SYNC_BB_S", &["CMT_MMCM_PHYCTRL_SYNC_BB_DN"])
+                .extra_wire_force("SYNC_BB", "CMT_MMCM_PHYCTRL_SYNC_BB_UP")
+                .extra_wire_force("SYNC_BB_S", "CMT_MMCM_PHYCTRL_SYNC_BB_DN")
                 .extra_wire("IO8_OCLK90", &["CMT_TOP_OCLK1X_90_8"])
                 .extra_wire("PHASER_A_ICLK", &["CMT_MMCM_PHASER_IN_A_ICLK"])
                 .extra_wire("PHASER_A_ICLKDIV", &["CMT_MMCM_PHASER_IN_A_ICLKDIV"])
@@ -2037,9 +2037,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bel = bel
                     .extra_wire(format!("FREQ_BB{i}"), &[format!("MMCM_CLK_FREQ_BB_NS{i}")])
-                    .extra_wire(
+                    .extra_wire_force(
                         format!("FREQ_BB{i}_S"),
-                        &[format!("MMCM_CLK_FREQ_BB_REBUF{i}_NS")],
+                        format!("MMCM_CLK_FREQ_BB_REBUF{i}_NS"),
                     );
             }
             for i in 0..16 {
@@ -2163,8 +2163,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bel = builder
                 .bel_virtual("CMT_D")
                 .raw_tile(3)
-                .extra_wire("SYNC_BB", &["CMT_PLL_PHYCTRL_SYNC_BB_DN"])
-                .extra_wire("SYNC_BB_N", &["CMT_PLL_PHYCTRL_SYNC_BB_UP"])
+                .extra_wire_force("SYNC_BB", "CMT_PLL_PHYCTRL_SYNC_BB_DN")
+                .extra_wire_force("SYNC_BB_N", "CMT_PLL_PHYCTRL_SYNC_BB_UP")
                 .extra_wire("IO44_OCLK90", &["CMT_TOP_OCLK1X_90_7"])
                 .extra_wire("PHASER_D_ICLK_BUF", &["CMT_PHASER_D_ICLK_TOIOI"])
                 .extra_wire("PHASER_D_ICLKDIV_BUF", &["CMT_PHASER_D_ICLKDIV_TOIOI"])
@@ -2179,9 +2179,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bel = bel
                     .extra_wire(format!("FREQ_BB{i}"), &[format!("PLL_CLK_FREQ_BB{i}_NS")])
-                    .extra_wire(
+                    .extra_wire_force(
                         format!("FREQ_BB{i}_N"),
-                        &[format!("PLL_CLK_FREQ_BB_BUFOUT_NS{i}")],
+                        format!("PLL_CLK_FREQ_BB_BUFOUT_NS{i}"),
                     );
             }
             for i in 37..50 {
@@ -2326,6 +2326,105 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..12 {
                 xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
                     intf_xy.delta(0, i as i32),
+                    i,
+                    intf,
+                );
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    if let Some(&xy_m) = rd.tiles_by_kind_name("CFG_CENTER_MID").iter().next() {
+        let xy_b = xy_m.delta(0, -21);
+        let xy_t = xy_m.delta(0, 10);
+        let intf = builder.db.get_node_naming("INTF.L");
+        let bels = [
+            builder.bel_xy("BSCAN0", "BSCAN", 0, 0).raw_tile(1),
+            builder.bel_xy("BSCAN1", "BSCAN", 0, 1).raw_tile(1),
+            builder.bel_xy("BSCAN2", "BSCAN", 0, 2).raw_tile(1),
+            builder.bel_xy("BSCAN3", "BSCAN", 0, 3).raw_tile(1),
+            builder.bel_xy("ICAP0", "ICAP", 0, 0).raw_tile(1),
+            builder.bel_xy("ICAP1", "ICAP", 0, 1).raw_tile(1),
+            builder.bel_xy("STARTUP", "STARTUP", 0, 0).raw_tile(1),
+            builder.bel_xy("CAPTURE", "CAPTURE", 0, 0).raw_tile(1),
+            builder.bel_xy("FRAME_ECC", "FRAME_ECC", 0, 0).raw_tile(1),
+            builder.bel_xy("USR_ACCESS", "USR_ACCESS", 0, 0).raw_tile(1),
+            builder
+                .bel_xy("CFG_IO_ACCESS", "CFG_IO_ACCESS", 0, 0)
+                .raw_tile(1),
+            builder.bel_xy("PMVIOB", "PMVIOB", 0, 0).raw_tile(1),
+            builder.bel_xy("DCIRESET", "DCIRESET", 0, 0).raw_tile(1),
+            builder.bel_xy("DNA_PORT", "DNA_PORT", 0, 0).raw_tile(2),
+            builder.bel_xy("EFUSE_USR", "EFUSE_USR", 0, 0).raw_tile(2),
+        ];
+        let mut xn = builder
+            .xnode("CFG", "CFG", xy_b)
+            .raw_tile(xy_m)
+            .raw_tile(xy_t)
+            .num_tiles(50);
+        for i in 0..25 {
+            xn = xn.ref_int(xy_b.delta(3, -10 + i as i32), i).ref_single(
+                xy_b.delta(2, -10 + i as i32),
+                i,
+                intf,
+            );
+        }
+        for i in 0..25 {
+            xn = xn.ref_int(xy_b.delta(3, i as i32 + 16), i + 25).ref_single(
+                xy_b.delta(2, i as i32 + 16),
+                i + 25,
+                intf,
+            );
+        }
+        xn.bels(bels).extract();
+    }
+
+    for (tkn, naming) in [
+        ("MONITOR_BOT", "XADC.LR"),
+        ("MONITOR_BOT_FUJI2", "XADC.L"),
+        ("MONITOR_BOT_PELE1", "XADC.R"),
+    ] {
+        if let Some(&xy_b) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let xy_m = xy_b.delta(0, 10);
+            let xy_t = xy_b.delta(0, 20);
+            let intf = builder.db.get_node_naming("INTF.L");
+            let mut bel_xadc = builder
+                .bel_xy("XADC", "XADC", 0, 0)
+                .pins_name_only(&["VP", "VN"]);
+            for i in 0..16 {
+                if naming == "XADC.L" && matches!(i, 6 | 7 | 13 | 14 | 15) {
+                    bel_xadc = bel_xadc
+                        .pin_dummy(format!("VAUXP{i}"))
+                        .pin_dummy(format!("VAUXN{i}"));
+                } else {
+                    bel_xadc = bel_xadc
+                        .pin_name_only(&format!("VAUXP{i}"), 2)
+                        .pin_name_only(&format!("VAUXN{i}"), 2);
+                }
+            }
+            let bels = [
+                builder
+                    .bel_xy("IPAD.VP", "IPAD", 0, 0)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.VN", "IPAD", 0, 1)
+                    .pins_name_only(&["O"]),
+                bel_xadc,
+            ];
+            let mut xn = builder
+                .xnode("XADC", naming, xy_b)
+                .raw_tile(xy_m)
+                .raw_tile(xy_t)
+                .num_tiles(25);
+            if naming == "XADC.R" {
+                xn = xn
+                    .raw_tile(xy_b.delta(0, -26))
+                    .raw_tile(xy_b.delta(0, -16))
+                    .raw_tile(xy_b.delta(0, -6))
+            }
+            for i in 0..25 {
+                xn = xn.ref_int(xy_b.delta(3, i as i32), i).ref_single(
+                    xy_b.delta(2, i as i32),
                     i,
                     intf,
                 );

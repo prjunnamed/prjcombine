@@ -13,9 +13,17 @@ pub enum GridKind {
     Virtex,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum XadcKind {
+    Left,
+    Right,
+    Both,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
+    pub xadc_kind: XadcKind,
     pub columns: EntityVec<ColId, ColumnKind>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub col_cfg: ColId,
@@ -860,10 +868,12 @@ struct DieExpander<'a, 'b> {
     xlut: EntityVec<ColId, usize>,
     rxlut: EntityVec<ColId, usize>,
     tiexlut: EntityVec<ColId, usize>,
+    ipxlut: EntityVec<ColId, usize>,
     ylut: EntityVec<RowId, usize>,
     rylut: EntityVec<RowId, usize>,
     tieylut: EntityVec<RowId, usize>,
     dciylut: EntityVec<RowId, usize>,
+    ipylut: EntityVec<RowId, usize>,
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     has_slr_d: bool,
@@ -918,6 +928,36 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
         }
         dciy
+    }
+
+    fn fill_ipylut(&mut self, mut ipy: usize, is_7k70t: bool) -> usize {
+        for row in self.die.rows() {
+            let reg = row.to_idx() / 50;
+            self.ipylut.push(ipy);
+            if matches!(row.to_idx() % 50, 0 | 11 | 22 | 28 | 39) {
+                let mut has_gt = false;
+                for gtcol in self.grid.cols_gt.iter().flatten() {
+                    if gtcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
+                    if lcol.regs[reg].is_some() || rcol.regs[reg].is_some() {
+                        has_gt = true;
+                    }
+                }
+                if has_gt {
+                    ipy += 6;
+                }
+            }
+            if !is_7k70t && row == RowId::from_idx(self.grid.reg_cfg * 50 + 25) {
+                ipy += 6;
+            }
+        }
+        if is_7k70t {
+            self.ipylut[RowId::from_idx(self.grid.reg_cfg * 50 + 25)] = ipy + 6;
+        }
+        ipy
     }
 
     fn fill_xlut(&mut self) {
@@ -987,6 +1027,29 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_ipxlut(&mut self, has_gtz: bool, is_7k70t: bool) {
+        let mut ipx = 0;
+        for (col, &kind) in &self.grid.columns {
+            self.ipxlut.push(ipx);
+            for gtcol in self.grid.cols_gt.iter().flatten() {
+                if gtcol.col == col {
+                    ipx += 1;
+                }
+            }
+            if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
+                if lcol.col == col || rcol.col == col {
+                    ipx += 1;
+                }
+            }
+            if kind == ColumnKind::Cfg && !is_7k70t {
+                ipx += 1;
+            }
+            if kind == ColumnKind::Clk && has_gtz {
+                ipx += 1;
+            }
+        }
+    }
+
     fn fill_int(&mut self) {
         for (col, &kind) in &self.grid.columns {
             let x = self.xlut[col];
@@ -1035,9 +1098,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
-    fn fill_cfg(&mut self) {
-        let row_cb = RowId::from_idx(self.grid.reg_cfg * 50 - 50);
-        let row_ct = RowId::from_idx(self.grid.reg_cfg * 50 + 50);
+    fn fill_cfg(&mut self, is_master: bool) {
+        let row_cm = RowId::from_idx(self.grid.reg_cfg * 50);
+        let row_cb = row_cm - 50;
+        let row_ct = row_cm + 50;
         if self.grid.regs == 1 {
             self.die.nuke_rect(self.grid.col_cfg - 6, row_cb, 6, 50);
             self.int_holes.push(Rect {
@@ -1075,6 +1139,101 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     self.die.fill_term_anon((col, row_ct), "TERM.S");
                 }
             }
+        }
+
+        let slv = if is_master { "" } else { "_SLAVE" };
+        let rx = self.rxlut[self.grid.col_cfg] - 1;
+        let name_b = format!("CFG_CENTER_BOT_X{rx}Y{y}", y = self.rylut[row_cb + 10]);
+        let name_m = format!("CFG_CENTER_MID{slv}_X{rx}Y{y}", y = self.rylut[row_cb + 30]);
+        let name_t = format!("CFG_CENTER_TOP{slv}_X{rx}Y{y}", y = self.rylut[row_cb + 40]);
+        let crds: [_; 50] = core::array::from_fn(|dy| (self.grid.col_cfg, row_cb + dy));
+        let di = self.die.die.to_idx();
+        let node = self.die[(self.grid.col_cfg, row_cb)].add_xnode(
+            self.db.get_node("CFG"),
+            &[&name_b, &name_m, &name_t],
+            self.db.get_node_naming("CFG"),
+            &crds,
+        );
+        node.add_bel(0, format!("BSCAN_X0Y{y}", y = di * 4));
+        node.add_bel(1, format!("BSCAN_X0Y{y}", y = di * 4 + 1));
+        node.add_bel(2, format!("BSCAN_X0Y{y}", y = di * 4 + 2));
+        node.add_bel(3, format!("BSCAN_X0Y{y}", y = di * 4 + 3));
+        node.add_bel(4, format!("ICAP_X0Y{y}", y = di * 2));
+        node.add_bel(5, format!("ICAP_X0Y{y}", y = di * 2 + 1));
+        node.add_bel(6, format!("STARTUP_X0Y{di}"));
+        node.add_bel(7, format!("CAPTURE_X0Y{di}"));
+        node.add_bel(8, format!("FRAME_ECC_X0Y{di}"));
+        node.add_bel(9, format!("USR_ACCESS_X0Y{di}"));
+        node.add_bel(10, format!("CFG_IO_ACCESS_X0Y{di}"));
+        let pix = if self.grid.col_cfg < self.grid.col_clk {
+            0
+        } else {
+            1
+        };
+        let piy = if self.grid.reg_cfg < self.grid.reg_clk {
+            di * 2
+        } else {
+            di * 2 + 1
+        };
+        node.add_bel(11, format!("PMVIOB_X{pix}Y{piy}"));
+        node.add_bel(12, format!("DCIRESET_X0Y{di}"));
+        node.add_bel(13, format!("DNA_PORT_X0Y{di}"));
+        node.add_bel(14, format!("EFUSE_USR_X0Y{di}"));
+
+        if self.grid.regs != 1 {
+            let row_m = row_cm + 25;
+            let kind = match self.grid.xadc_kind {
+                XadcKind::Right => "XADC.R",
+                XadcKind::Left => "XADC.L",
+                XadcKind::Both => "XADC.LR",
+            };
+            let suf = match kind {
+                "XADC.LR" => "",
+                "XADC.L" => "_FUJI2",
+                "XADC.R" => "_PELE1",
+                _ => unreachable!(),
+            };
+            let name_b = format!("MONITOR_BOT{suf}{slv}_X{rx}Y{y}", y = self.rylut[row_m]);
+            let name_m = format!("MONITOR_MID{suf}_X{rx}Y{y}", y = self.rylut[row_m + 10]);
+            let name_t = format!("MONITOR_TOP{suf}_X{rx}Y{y}", y = self.rylut[row_m + 20]);
+            let name_bs = format!("CFG_SECURITY_BOT_PELE1_X{rx}Y{y}", y = self.rylut[row_cm]);
+            let name_ms = format!(
+                "CFG_SECURITY_MID_PELE1_X{rx}Y{y}",
+                y = self.rylut[row_cm + 10]
+            );
+            let name_ts = format!(
+                "CFG_SECURITY_TOP_PELE1_X{rx}Y{y}",
+                y = self.rylut[row_cm + 20]
+            );
+            let crds: [_; 25] = core::array::from_fn(|dy| (self.grid.col_cfg, row_m + dy));
+            let di = self.die.die.to_idx();
+            let mut names = vec![&name_b[..], &name_m[..], &name_t[..]];
+            if self.grid.xadc_kind == XadcKind::Right {
+                names.extend([&name_bs[..], &name_ms[..], &name_ts[..]]);
+            }
+            let node = self.die[(self.grid.col_cfg, row_m)].add_xnode(
+                self.db.get_node("XADC"),
+                &names,
+                self.db.get_node_naming(kind),
+                &crds,
+            );
+            node.add_bel(
+                0,
+                format!(
+                    "IPAD_X{x}Y{y}",
+                    x = self.ipxlut[self.grid.col_cfg],
+                    y = self.ipylut[row_m],
+                ),
+            );
+            node.add_bel(
+                1,
+                format!(
+                    "IPAD_X{x}Y{y}",
+                    x = self.ipxlut[self.grid.col_cfg],
+                    y = self.ipylut[row_m] + 1,
+                ),
+            );
+            node.add_bel(2, format!("XADC_X0Y{di}"));
         }
     }
 
@@ -2293,11 +2452,14 @@ pub fn expand_grid<'a>(
     let mut pcie3_y = 0;
     let mut bglb_y = 0;
     let mut dci_y = 0;
+    let mut ipy = 0;
     if extras.iter().any(|&x| x == ExtraDie::GtzBottom) {
         yb = 1;
         ryb = 2;
+        ipy = 6;
     }
     for &grid in grids.values() {
+        let is_7k70t = grid.kind == GridKind::Kintex && grid.regs == 4 && !grid.has_ps;
         let (did, die) = egrid.add_die(grid.columns.len(), grid.regs * 50);
 
         let mut de = DieExpander {
@@ -2308,10 +2470,12 @@ pub fn expand_grid<'a>(
             xlut: EntityVec::new(),
             rxlut: EntityVec::new(),
             tiexlut: EntityVec::new(),
+            ipxlut: EntityVec::new(),
             ylut: EntityVec::new(),
             rylut: EntityVec::new(),
             tieylut: EntityVec::new(),
             dciylut: EntityVec::new(),
+            ipylut: EntityVec::new(),
             site_holes: Vec::new(),
             int_holes: Vec::new(),
             has_slr_d: did != grids.first_id().unwrap(),
@@ -2323,12 +2487,14 @@ pub fn expand_grid<'a>(
         de.fill_xlut();
         de.fill_rxlut();
         de.fill_tiexlut();
+        de.fill_ipxlut(!extras.is_empty(), is_7k70t);
         yb = de.fill_ylut(yb);
         ryb = de.fill_rylut(ryb);
         tie_yb = de.fill_tieylut(tie_yb);
         dci_y = de.fill_dciylut(dci_y);
+        ipy = de.fill_ipylut(ipy, is_7k70t);
         de.fill_int();
-        de.fill_cfg();
+        de.fill_cfg(de.die.die == grid_master);
         de.fill_ps();
         pcie2_y = de.fill_pcie2(pcie2_y);
         pcie3_y = de.fill_pcie3(pcie3_y);
