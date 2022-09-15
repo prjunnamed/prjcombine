@@ -11,6 +11,26 @@ use crate::{
     Grid, GridKind, HardRowKind, IoRowKind, RegId,
 };
 
+// XXX
+#[allow(dead_code)]
+struct Asx {
+    gt: usize,
+    io: usize,
+    cfg: usize,
+    hbm: usize,
+}
+
+// XXX
+#[allow(dead_code)]
+struct Asy {
+    hdio: usize,
+    hpio: usize,
+    hrio: usize,
+    cmt: usize,
+    cfg: usize,
+    gt: usize,
+}
+
 struct DieExpander<'a, 'b> {
     grid: &'b Grid,
     db: &'a IntDb,
@@ -18,11 +38,164 @@ struct DieExpander<'a, 'b> {
     die: ExpandedDieRefMut<'a, 'b>,
     ylut: EntityVec<RowId, usize>,
     sylut: EntityVec<RowId, usize>,
+    asxlut: EntityVec<ColId, Asx>,
+    asylut: EntityVec<RegId, Asy>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
 }
 
 impl<'a, 'b> DieExpander<'a, 'b> {
+    fn fill_asxlut(&mut self) {
+        let mut asx = 0;
+        for &cd in self.grid.columns.values() {
+            let cfg = asx;
+            let gt = asx;
+            let mut io = asx;
+            let mut hbm = asx;
+            match cd.l {
+                ColumnKindLeft::Gt(idx) | ColumnKindLeft::Io(idx) => {
+                    let regs = &self.grid.cols_io[idx].regs;
+                    let has_hpio = regs.values().any(|&x| x == IoRowKind::Hpio);
+                    let has_hrio = regs.values().any(|&x| x == IoRowKind::Hrio);
+                    let has_gt = regs.values().any(|&x| {
+                        !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio)
+                    });
+                    if has_gt {
+                        asx += 1;
+                    }
+                    io = asx;
+                    if has_hrio {
+                        asx += 8;
+                    } else if has_hpio {
+                        match self.grid.kind {
+                            GridKind::Ultrascale => asx += 5,
+                            GridKind::UltrascalePlus => asx += 8,
+                        }
+                    }
+                }
+                ColumnKindLeft::Hard(idx) => {
+                    let regs = &self.grid.cols_hard[idx].regs;
+                    let has_hdio = regs
+                        .values()
+                        .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms));
+                    let has_cfg = regs.values().any(|&x| x == HardRowKind::Cfg);
+                    if has_cfg {
+                        io += 1;
+                        hbm += 1;
+                        asx += 1;
+                        if self.dev_has_hbm {
+                            asx += 4;
+                        }
+                    }
+                    if has_hdio {
+                        asx += 4;
+                    }
+                }
+                _ => (),
+            }
+            match cd.r {
+                ColumnKindRight::Gt(idx) | ColumnKindRight::Io(idx) => {
+                    let regs = &self.grid.cols_io[idx].regs;
+                    let has_hpio = regs.values().any(|&x| x == IoRowKind::Hpio);
+                    let has_hrio = regs.values().any(|&x| x == IoRowKind::Hrio);
+                    let has_gt = regs.values().any(|&x| {
+                        !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio)
+                    });
+                    if has_hrio {
+                        asx += 8;
+                    } else if has_hpio {
+                        match self.grid.kind {
+                            GridKind::Ultrascale => asx += 5,
+                            GridKind::UltrascalePlus => asx += 8,
+                        }
+                    } else if has_gt {
+                        asx += 1;
+                    }
+                }
+                _ => (),
+            }
+            self.asxlut.push(Asx { gt, io, cfg, hbm });
+        }
+    }
+
+    fn fill_asylut(&mut self, mut asy: usize) -> usize {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            let has_hdio = self
+                .grid
+                .cols_hard
+                .iter()
+                .any(|x| matches!(x.regs[reg], HardRowKind::Hdio | HardRowKind::HdioAms))
+                && !skip;
+            let has_cfg = self
+                .grid
+                .cols_hard
+                .iter()
+                .any(|x| x.regs[reg] == HardRowKind::Cfg)
+                && !skip;
+            let has_hpio = self
+                .grid
+                .cols_io
+                .iter()
+                .any(|x| x.regs[reg] == IoRowKind::Hpio)
+                && !skip;
+            let has_hrio = self
+                .grid
+                .cols_io
+                .iter()
+                .any(|x| x.regs[reg] == IoRowKind::Hrio)
+                && !skip;
+            let has_gt = self.grid.cols_io.iter().any(|x| {
+                !matches!(
+                    x.regs[reg],
+                    IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio
+                )
+            }) && !skip;
+
+            let cfg = asy;
+            let mut cmt = asy;
+            if has_cfg || (self.grid.kind == GridKind::UltrascalePlus && has_hpio) {
+                asy += 1;
+            }
+            let gt = asy;
+            if has_gt {
+                asy += match self.grid.kind {
+                    GridKind::Ultrascale => 4,
+                    GridKind::UltrascalePlus => 5,
+                };
+            }
+            if self.grid.kind == GridKind::Ultrascale {
+                cmt = asy;
+                if has_hpio | has_hrio {
+                    asy += 1;
+                }
+            }
+            let hrio = asy;
+            if has_hrio {
+                asy += 1;
+            }
+            let hdio = asy;
+            let mut hpio = asy;
+            if has_hdio {
+                hpio += 1;
+                asy += 2;
+            } else if has_hpio {
+                asy += 1;
+            }
+            self.asylut.push(Asy {
+                gt,
+                hdio,
+                hpio,
+                hrio,
+                cmt,
+                cfg,
+            });
+        }
+        asy
+    }
+
     fn fill_ylut(&mut self, mut y: usize) -> usize {
         if self.grid.kind == GridKind::Ultrascale
             && self
@@ -67,11 +240,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 self.hylut[k].push(*v);
                 let mut found = false;
                 if !skip {
-                    if self.grid.col_cfg.regs[reg] == k {
-                        found = true;
-                    }
-                    if let Some(ref hard) = self.grid.col_hard {
-                        if hard.regs[reg] == k {
+                    for hc in &self.grid.cols_hard {
+                        if hc.regs[reg] == k {
                             found = true;
                         }
                     }
@@ -91,11 +261,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 self.die
                     .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                 if row.to_idx() % 60 == 30 && y != 0 {
-                    let lr = if col < self.grid.col_cfg.col {
-                        'L'
-                    } else {
-                        'R'
-                    };
+                    let lr = if col < self.grid.col_cfg() { 'L' } else { 'R' };
                     let name = format!("RCLK_INT_{lr}_X{x}Y{yy}", yy = y - 1);
                     self.die[(col, row)].add_xnode(
                         self.db.get_node("RCLK"),
@@ -119,7 +285,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             &[(col, row)],
                         );
                     }
-                    ColumnKindLeft::Gt | ColumnKindLeft::Io => {
+                    ColumnKindLeft::Gt(_) | ColumnKindLeft::Io(_) => {
                         let cio = self
                             .grid
                             .cols_io
@@ -168,7 +334,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             }
                         }
                     }
-                    ColumnKindLeft::Hard
+                    ColumnKindLeft::Hard(_)
                     | ColumnKindLeft::Sdfec
                     | ColumnKindLeft::DfeC
                     | ColumnKindLeft::DfeDF
@@ -201,7 +367,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             &[(col, row)],
                         );
                     }
-                    ColumnKindRight::Gt | ColumnKindRight::Io => {
+                    ColumnKindRight::Gt(_) | ColumnKindRight::Io(_) => {
                         let cio = self
                             .grid
                             .cols_io
@@ -238,7 +404,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             }
                         }
                     }
-                    ColumnKindRight::Hard
+                    ColumnKindRight::Hard(_)
                     | ColumnKindRight::DfeB
                     | ColumnKindRight::DfeC
                     | ColumnKindRight::DfeDF
@@ -263,7 +429,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
     fn fill_io_pass(&mut self) {
         if self.grid.kind == GridKind::UltrascalePlus {
             for (col, &cd) in &self.grid.columns {
-                if cd.l == ColumnKindLeft::Io && col.to_idx() != 0 {
+                if matches!(cd.l, ColumnKindLeft::Io(_)) && col.to_idx() != 0 {
                     let term_e = self.db.get_term("IO.E");
                     let term_w = self.db.get_term("IO.W");
                     for row in self.die.rows() {
@@ -377,7 +543,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
                 ColumnKindLeft::CleM(_) => Some((
                     "CLEM",
-                    match (self.grid.kind, col < self.grid.col_cfg.col) {
+                    match (self.grid.kind, col < self.grid.col_cfg()) {
                         (GridKind::Ultrascale, true) => "CLE_M",
                         (GridKind::Ultrascale, false) => "CLE_M_R",
                         (GridKind::UltrascalePlus, true) => "CLEM",
@@ -499,7 +665,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 node.add_bel(2, format!("RAMB18_X{bx}Y{y}", y = sy / 5 * 2 + 1));
                 if row.to_idx() % 60 == 30 {
                     let in_laguna = has_laguna && self.grid.is_laguna_row(row);
-                    let tk = match (self.grid.kind, cd.l, col < self.grid.col_cfg.col) {
+                    let tk = match (self.grid.kind, cd.l, col < self.grid.col_cfg()) {
                         (GridKind::Ultrascale, ColumnKindLeft::Bram(BramKind::Plain), true) => {
                             "RCLK_BRAM_L"
                         }
@@ -590,38 +756,57 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     continue;
                 }
                 if self.grid.has_hbm && row.to_idx() < 15 {
-                    continue;
+                    if row.to_idx() != 0 {
+                        continue;
+                    }
+                    if dx < 16 && self.disabled.contains(&DisabledPart::HbmLeft) {
+                        continue;
+                    }
+                    let tile = &mut self.die[(col, row)];
+                    let x = col.to_idx();
+                    let y = self.ylut[row];
+                    let name = format!("BLI_BLI_FT_X{x}Y{y}");
+                    let crds: [_; 15] = core::array::from_fn(|i| (col, row + i));
+                    let node = tile.add_xnode(
+                        self.db.get_node("BLI"),
+                        &[&name],
+                        self.db.get_node_naming("BLI"),
+                        &crds,
+                    );
+                    node.add_bel(0, format!("BLI_HBM_APB_INTF_X{dx}Y0"));
+                    node.add_bel(1, format!("BLI_HBM_AXI_INTF_X{dx}Y0"));
+                } else {
+                    let tile = &mut self.die[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    let x = col.to_idx();
+                    let y = self.ylut[row];
+                    let name = format!("DSP_X{x}Y{y}");
+                    let node = tile.add_xnode(
+                        self.db.get_node("DSP"),
+                        &[&name],
+                        self.db.get_node_naming("DSP"),
+                        &[
+                            (col, row),
+                            (col, row + 1),
+                            (col, row + 2),
+                            (col, row + 3),
+                            (col, row + 4),
+                        ],
+                    );
+                    let sy = self.ylut[row];
+                    let dy = if self.dev_has_hbm { sy / 5 - 3 } else { sy / 5 };
+                    node.add_bel(0, format!("DSP48E2_X{dx}Y{y}", y = dy * 2));
+                    if row.to_idx() % 60 == 55
+                        && self
+                            .disabled
+                            .contains(&DisabledPart::TopRow(dieid, self.grid.row_to_reg(row)))
+                    {
+                        continue;
+                    }
+                    node.add_bel(1, format!("DSP48E2_X{dx}Y{y}", y = dy * 2 + 1));
                 }
-                let tile = &mut self.die[(col, row)];
-                if tile.nodes.is_empty() {
-                    continue;
-                }
-                let x = col.to_idx();
-                let y = self.ylut[row];
-                let name = format!("DSP_X{x}Y{y}");
-                let node = tile.add_xnode(
-                    self.db.get_node("DSP"),
-                    &[&name],
-                    self.db.get_node_naming("DSP"),
-                    &[
-                        (col, row),
-                        (col, row + 1),
-                        (col, row + 2),
-                        (col, row + 3),
-                        (col, row + 4),
-                    ],
-                );
-                let sy = self.ylut[row];
-                let dy = if self.dev_has_hbm { sy / 5 - 3 } else { sy / 5 };
-                node.add_bel(0, format!("DSP48E2_X{dx}Y{y}", y = dy * 2));
-                if row.to_idx() % 60 == 55
-                    && self
-                        .disabled
-                        .contains(&DisabledPart::TopRow(dieid, self.grid.row_to_reg(row)))
-                {
-                    continue;
-                }
-                node.add_bel(1, format!("DSP48E2_X{dx}Y{y}", y = dy * 2 + 1));
             }
             dx += 1;
         }
@@ -681,7 +866,14 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
-    fn fill_hard_single(&mut self, col: ColId, reg: RegId, kind: HardRowKind, sx: usize) {
+    fn fill_hard_single(
+        &mut self,
+        col: ColId,
+        reg: RegId,
+        kind: HardRowKind,
+        sx: usize,
+        hdio_cfg_only: bool,
+    ) {
         let sy = self.hylut[kind][reg];
         let row = self.grid.row_reg_bot(reg);
         if self
@@ -690,6 +882,19 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         {
             return;
         }
+        let mut x = col.to_idx() - 1;
+        if self.grid.kind == GridKind::Ultrascale
+            && kind == HardRowKind::Cmac
+            && col != self.grid.col_cfg()
+        {
+            x = col.to_idx();
+        }
+        if self.grid.kind == GridKind::UltrascalePlus
+            && matches!(kind, HardRowKind::Cfg | HardRowKind::Ams)
+            && !hdio_cfg_only
+        {
+            x = col.to_idx();
+        }
         let (nk, tk, bk) = match kind {
             HardRowKind::None => return,
             HardRowKind::Hdio | HardRowKind::HdioAms => {
@@ -697,11 +902,60 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 return;
             }
             HardRowKind::Cfg => {
-                // XXX CFG
-                return;
+                if self.grid.kind == GridKind::Ultrascale {
+                    ("CFG", "CFG_CFG", "CONFIG_SITE")
+                } else {
+                    ("CFG", "CFG_CONFIG", "CONFIG_SITE")
+                }
             }
             HardRowKind::Ams => {
-                // XXX CFG
+                let tk = if self.grid.kind == GridKind::Ultrascale {
+                    "CFGIO_IOB"
+                } else {
+                    "CFGIO_IOB20"
+                };
+                let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
+                let crds: [_; 60] = core::array::from_fn(|i| {
+                    if i < 30 {
+                        (col - 1, row + i)
+                    } else {
+                        (col, row + (i - 30))
+                    }
+                });
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("CFGIO"),
+                    &[&name],
+                    self.db.get_node_naming("CFGIO"),
+                    &crds,
+                );
+                node.add_bel(0, format!("PMV_X{sx}Y{sy}"));
+                node.add_bel(1, format!("PMV2_X{sx}Y{sy}"));
+                node.add_bel(2, format!("PMVIOB_X{sx}Y{sy}"));
+                node.add_bel(3, format!("MTBF3_X{sx}Y{sy}"));
+                if self.grid.kind == GridKind::UltrascalePlus {
+                    node.add_bel(4, format!("CFGIO_SITE_X{sx}Y{sy}"));
+                }
+                let row = row + 30;
+                let name = format!("AMS_X{x}Y{y}", y = self.ylut[row]);
+                let crds: [_; 60] = core::array::from_fn(|i| {
+                    if i < 30 {
+                        (col - 1, row + i)
+                    } else {
+                        (col, row + (i - 30))
+                    }
+                });
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("AMS"),
+                    &[&name],
+                    self.db.get_node_naming("AMS"),
+                    &crds,
+                );
+                let bk = if self.grid.kind == GridKind::Ultrascale {
+                    "SYSMONE1"
+                } else {
+                    "SYSMONE4"
+                };
+                node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
                 return;
             }
             HardRowKind::Pcie => {
@@ -729,13 +983,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             HardRowKind::DfeA => ("DFE_A", "DFE_DFE_TILEA_FT", "DFE_A"),
             HardRowKind::DfeG => ("DFE_G", "DFE_DFE_TILEG_FT", "DFE_G"),
         };
-        let mut x = col.to_idx() - 1;
-        if self.grid.kind == GridKind::Ultrascale
-            && kind == HardRowKind::Cmac
-            && col != self.grid.col_cfg.col
-        {
-            x = col.to_idx();
-        }
         let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
         let crds: [_; 120] = core::array::from_fn(|i| {
             if i < 60 {
@@ -760,17 +1007,26 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             &crds,
         );
         node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+        if kind == HardRowKind::Cfg {
+            let asx = self.asxlut[col].cfg;
+            let asy = self.asylut[reg].cfg;
+            node.add_bel(1, format!("ABUS_SWITCH_X{asx}Y{asy}"));
+        }
     }
 
     fn fill_hard(&mut self, hcx: &EnumMap<HardRowKind, usize>) {
-        if let Some(ref hard) = self.grid.col_hard {
+        for (i, hc) in self.grid.cols_hard.iter().enumerate() {
+            let hdio_cfg_only = hc.regs.values().all(|x| {
+                matches!(
+                    x,
+                    HardRowKind::Cfg | HardRowKind::Ams | HardRowKind::Hdio | HardRowKind::HdioAms
+                )
+            });
             for reg in self.grid.regs() {
-                self.fill_hard_single(hard.col, reg, hard.regs[reg], 0);
+                let kind = hc.regs[reg];
+                let sx = if i == 0 { 0 } else { hcx[kind] };
+                self.fill_hard_single(hc.col, reg, kind, sx, hdio_cfg_only);
             }
-        }
-        for reg in self.grid.regs() {
-            let kind = self.grid.col_cfg.regs[reg];
-            self.fill_hard_single(self.grid.col_cfg.col, reg, kind, hcx[kind]);
         }
     }
 
@@ -882,13 +1138,11 @@ pub fn expand_grid<'a>(
     let mut y = 0;
     let mut sy = 0;
     let mut hy = EnumMap::default();
+    let dev_has_hbm = grids.first().unwrap().has_hbm;
+    let mut asy = if dev_has_hbm { 2 } else { 0 };
     let hcx = enum_map! {
         k => if grids.values().any(|grid| {
-             if let Some(ref hard) = grid.col_hard {
-                 hard.regs.values().any(|&x| x == k)
-             } else {
-                 false
-             }
+            grid.cols_hard[0].regs.values().any(|&x| x == k)
         }) {
             1
         } else {
@@ -905,13 +1159,17 @@ pub fn expand_grid<'a>(
             db,
             ylut: EntityVec::new(),
             sylut: EntityVec::new(),
-            dev_has_hbm: grids.first().unwrap().has_hbm,
+            asxlut: EntityVec::new(),
+            asylut: EntityVec::new(),
+            dev_has_hbm,
             hylut: EnumMap::default(),
         };
 
         y = expander.fill_ylut(y);
         sy = expander.fill_sylut(sy);
         expander.fill_hylut(&mut hy);
+        expander.fill_asxlut();
+        asy = expander.fill_asylut(asy);
 
         expander.fill_int();
         expander.fill_io_pass();

@@ -25,11 +25,11 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         ),
         ("BRAM", 2, ColumnKindLeft::Bram(BramKind::Plain)),
         ("URAM_URAM_FT", 2, ColumnKindLeft::Uram),
-        ("INT_INT_INTERFACE_GT_LEFT_FT", 1, ColumnKindLeft::Gt),
-        ("INT_INTF_L_TERM_GT", 1, ColumnKindLeft::Gt),
-        ("INT_INT_INTERFACE_XIPHY_FT", 1, ColumnKindLeft::Io),
-        ("INT_INTF_LEFT_TERM_IO_FT", 1, ColumnKindLeft::Io),
-        ("INT_INTF_L_IO", 1, ColumnKindLeft::Io),
+        ("INT_INT_INTERFACE_GT_LEFT_FT", 1, ColumnKindLeft::Gt(0)),
+        ("INT_INTF_L_TERM_GT", 1, ColumnKindLeft::Gt(0)),
+        ("INT_INT_INTERFACE_XIPHY_FT", 1, ColumnKindLeft::Io(0)),
+        ("INT_INTF_LEFT_TERM_IO_FT", 1, ColumnKindLeft::Io(0)),
+        ("INT_INTF_L_IO", 1, ColumnKindLeft::Io(0)),
     ] {
         for c in int.find_columns(&[tkn]) {
             res[int.lookup_column(c + delta)].0 = Some(kind);
@@ -39,9 +39,9 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         ("CLEL_R", 1, ColumnKindRight::CleL(CleLKind::Plain)),
         ("DSP", 2, ColumnKindRight::Dsp(DspKind::Plain)),
         ("URAM_URAM_FT", 2, ColumnKindRight::Uram),
-        ("INT_INTERFACE_GT_R", 1, ColumnKindRight::Gt),
-        ("INT_INTF_R_TERM_GT", 1, ColumnKindRight::Gt),
-        ("INT_INTF_RIGHT_TERM_IO", 1, ColumnKindRight::Io),
+        ("INT_INTERFACE_GT_R", 1, ColumnKindRight::Gt(0)),
+        ("INT_INTF_R_TERM_GT", 1, ColumnKindRight::Gt(0)),
+        ("INT_INTF_RIGHT_TERM_IO", 1, ColumnKindRight::Io(0)),
     ] {
         for c in int.find_columns(&[tkn]) {
             res[int.lookup_column(c - delta)].1 = Some(kind);
@@ -63,8 +63,8 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         "DFE_DFE_TILEA_FT",
         "DFE_DFE_TILEG_FT",
     ]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::Hard);
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Hard);
+        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::Hard(0));
+        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Hard(0));
     }
     for c in int.find_columns(&["FE_FE_FT"]) {
         res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Sdfec);
@@ -346,11 +346,29 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
     let mut dieid = DieId::from_idx(0);
     for w in rows_slr_split.windows(2) {
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
-        let columns = make_columns(&int);
+        let mut columns = make_columns(&int);
         let cols_vbrk = get_cols_vbrk(&int);
         let cols_fsr_gap = get_cols_fsr_gap(&int);
         let cols_hard = get_cols_hard(&int, dieid, &mut disabled);
         let cols_io = get_cols_io(&int);
+        for (i, hc) in cols_hard.iter().enumerate() {
+            assert_eq!(columns[hc.col - 1].r, ColumnKindRight::Hard(0));
+            assert_eq!(columns[hc.col].l, ColumnKindLeft::Hard(0));
+            columns[hc.col - 1].r = ColumnKindRight::Hard(i);
+            columns[hc.col].l = ColumnKindLeft::Hard(i);
+        }
+        for (i, ioc) in cols_io.iter().enumerate() {
+            match ioc.side {
+                ColSide::Left => match columns[ioc.col].l {
+                    ColumnKindLeft::Io(ref mut ci) | ColumnKindLeft::Gt(ref mut ci) => *ci = i,
+                    _ => unreachable!(),
+                },
+                ColSide::Right => match columns[ioc.col].r {
+                    ColumnKindRight::Io(ref mut ci) | ColumnKindRight::Gt(ref mut ci) => *ci = i,
+                    _ => unreachable!(),
+                },
+            }
+        }
         let is_alt_cfg = is_plus
             && int
                 .find_tiles(&[
@@ -359,25 +377,13 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
                 ])
                 .is_empty();
 
-        let (col_hard, col_cfg) = match cols_hard.len() {
-            1 => {
-                let [col_cfg]: [_; 1] = cols_hard.try_into().unwrap();
-                (None, col_cfg)
-            }
-            2 => {
-                let [col_hard, col_cfg]: [_; 2] = cols_hard.try_into().unwrap();
-                (Some(col_hard), col_cfg)
-            }
-            _ => unreachable!(),
-        };
         assert_eq!(int.rows.len() % 60, 0);
         grids.push(Grid {
             kind,
             columns,
             cols_vbrk,
             cols_fsr_gap,
-            col_cfg,
-            col_hard,
+            cols_hard,
             cols_io,
             regs: int.rows.len() / 60,
             ps: get_ps(&int),
@@ -393,11 +399,11 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             let s0 = DieId::from_idx(0);
             assert_eq!(grids.len(), 1);
             assert_eq!(grids[s0].regs, 3);
-            assert_eq!(grids[s0].col_hard, None);
+            assert_eq!(grids[s0].cols_hard.len(), 1);
             assert_eq!(grids[s0].cols_io.len(), 3);
             grids[s0].regs = 5;
-            grids[s0].col_cfg.regs.push(HardRowKind::Pcie);
-            grids[s0].col_cfg.regs.push(HardRowKind::Pcie);
+            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
+            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
             grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
@@ -412,10 +418,10 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             assert_eq!(grids.len(), 2);
             assert_eq!(grids[s0].regs, 5);
             assert_eq!(grids[s1].regs, 4);
-            assert_eq!(grids[s1].col_hard, None);
+            assert_eq!(grids[s1].cols_hard.len(), 1);
             assert_eq!(grids[s1].cols_io.len(), 4);
             grids[s1].regs = 5;
-            grids[s1].col_cfg.regs.push(HardRowKind::Pcie);
+            grids[s1].cols_hard[0].regs.push(HardRowKind::Pcie);
             grids[s1].cols_io[0].regs.push(IoRowKind::Gth);
             grids[s1].cols_io[1].regs.push(IoRowKind::Hpio);
             grids[s1].cols_io[2].regs.push(IoRowKind::Hpio);
@@ -428,20 +434,10 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             assert_eq!(grids[s0].regs, 6);
             assert_eq!(grids[s0].cols_io.len(), 3);
             grids[s0].regs = 8;
-            grids[s0].col_cfg.regs.push(HardRowKind::Hdio);
-            grids[s0].col_cfg.regs.push(HardRowKind::Hdio);
-            grids[s0]
-                .col_hard
-                .as_mut()
-                .unwrap()
-                .regs
-                .push(HardRowKind::Cmac);
-            grids[s0]
-                .col_hard
-                .as_mut()
-                .unwrap()
-                .regs
-                .push(HardRowKind::Pcie);
+            grids[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
+            grids[s0].cols_hard[0].regs.push(HardRowKind::Pcie);
+            grids[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
+            grids[s0].cols_hard[1].regs.push(HardRowKind::Hdio);
             grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
             grids[s0].cols_io[0].regs.push(IoRowKind::Gty);
             grids[s0].cols_io[1].regs.push(IoRowKind::Hpio);
@@ -456,10 +452,10 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             assert_eq!(grids.len(), 1);
             assert_eq!(grids[s0].regs, 9);
             assert_eq!(grids[s0].cols_io.len(), 2);
-            assert_eq!(grids[s0].col_hard, None);
+            assert_eq!(grids[s0].cols_hard.len(), 1);
             grids[s0].regs = 11;
-            prepend_reg(&mut grids[s0].col_cfg.regs, HardRowKind::PciePlus);
-            grids[s0].col_cfg.regs.push(HardRowKind::Cmac);
+            prepend_reg(&mut grids[s0].cols_hard[0].regs, HardRowKind::PciePlus);
+            grids[s0].cols_hard[0].regs.push(HardRowKind::Cmac);
             prepend_reg(&mut grids[s0].cols_io[0].regs, IoRowKind::Hpio);
             grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
             prepend_reg(&mut grids[s0].cols_io[1].regs, IoRowKind::Gty);
@@ -485,11 +481,8 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             assert_eq!(grids[s2].regs, 5);
             assert_eq!(grids[s0].cols_io.len(), 4);
             grids[s0].regs = 5;
-            prepend_reg(&mut grids[s0].col_cfg.regs, HardRowKind::Pcie);
-            prepend_reg(
-                &mut grids[s0].col_hard.as_mut().unwrap().regs,
-                HardRowKind::Ilkn,
-            );
+            prepend_reg(&mut grids[s0].cols_hard[0].regs, HardRowKind::Ilkn);
+            prepend_reg(&mut grids[s0].cols_hard[1].regs, HardRowKind::Pcie);
             prepend_reg(&mut grids[s0].cols_io[0].regs, IoRowKind::Gty);
             prepend_reg(&mut grids[s0].cols_io[1].regs, IoRowKind::Hpio);
             prepend_reg(&mut grids[s0].cols_io[2].regs, IoRowKind::Hrio);
@@ -557,6 +550,12 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
     if let Some((_, tk)) = rd.tile_kinds.get("VCU_VCU_FT") {
         if tk.sites.is_empty() {
             disabled.insert(DisabledPart::Vcu);
+        }
+    }
+    for &crd in rd.tiles_by_kind_name("BLI_BLI_FT") {
+        let tile = &rd.tiles[&crd];
+        if tile.sites.iter().next().is_none() {
+            disabled.insert(DisabledPart::HbmLeft);
         }
     }
 

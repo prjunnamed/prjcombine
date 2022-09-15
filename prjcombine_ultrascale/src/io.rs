@@ -222,8 +222,7 @@ pub fn get_io(
 ) -> Vec<Io> {
     let mut res = Vec::new();
     let mut io_has_io: Vec<_> = grids[grid_master].cols_io.iter().map(|_| false).collect();
-    let mut hard_has_io = false;
-    let mut cfg_has_io = false;
+    let mut hard_has_io = [false, false];
     let mut reg_has_hprio = Vec::new();
     let mut reg_has_hdio = Vec::new();
     let mut reg_base = 0;
@@ -244,27 +243,18 @@ pub fn get_io(
                 }
             }
         }
-        if let Some(ref c) = grid.col_hard {
-            for (reg, &kind) in c.regs.iter() {
+        for (i, hc) in grid.cols_hard.iter().enumerate() {
+            for (reg, &kind) in hc.regs.iter() {
                 if disabled.contains(&DisabledPart::Region(gi, reg)) {
                     continue;
                 }
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                    hard_has_io = true;
+                    hard_has_io[i] = true;
                     reg_has_hdio[reg_base + reg.to_idx()] = true;
                 }
-            }
-        }
-        for (reg, &kind) in grid.col_cfg.regs.iter() {
-            if disabled.contains(&DisabledPart::Region(gi, reg)) {
-                continue;
-            }
-            if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                cfg_has_io = true;
-                reg_has_hdio[reg_base + reg.to_idx()] = true;
-            }
-            if gi == grid_master && kind == HardRowKind::Cfg {
-                reg_cfg = Some(reg_base + reg.to_idx());
+                if gi == grid_master && kind == HardRowKind::Cfg {
+                    reg_cfg = Some(reg_base + reg.to_idx());
+                }
             }
         }
         reg_base += grid.regs;
@@ -284,24 +274,15 @@ pub fn get_io(
         }
     }
     let mut iox_io = Vec::new();
-    let mut iox_hard = 0;
-    let mut iox_cfg = 0;
+    let mut iox_hard = [0, 0];
     let mut iox = 0;
     let mut prev_col = grids[grid_master].columns.first_id().unwrap();
     for (i, &has_io) in io_has_io.iter().enumerate() {
-        if hard_has_io
-            && grids[grid_master].col_hard.as_ref().unwrap().col > prev_col
-            && grids[grid_master].col_hard.as_ref().unwrap().col < grids[grid_master].cols_io[i].col
-        {
-            iox_hard = iox;
-            iox += 1;
-        }
-        if cfg_has_io
-            && grids[grid_master].col_cfg.col > prev_col
-            && grids[grid_master].col_cfg.col < grids[grid_master].cols_io[i].col
-        {
-            iox_cfg = iox;
-            iox += 1;
+        for (j, hc) in grids[grid_master].cols_hard.iter().enumerate() {
+            if hard_has_io[j] && hc.col > prev_col && hc.col < grids[grid_master].cols_io[i].col {
+                iox_hard[j] = iox;
+                iox += 1;
+            }
         }
         iox_io.push(iox);
         if has_io {
@@ -337,7 +318,7 @@ pub fn get_io(
                         if i == 0
                             && iox_io[i] != iox_spec
                             && grids[grid_master].kind == GridKind::UltrascalePlus
-                            && !hard_has_io
+                            && ((grids[grid_master].cols_hard.len() == 1) || !hard_has_io[0])
                         {
                             bank -= 20;
                         }
@@ -363,21 +344,21 @@ pub fn get_io(
             }
         }
         // HDIO
-        if let Some(ref c) = grid.col_hard {
-            for (reg, &kind) in c.regs.iter() {
+        for (i, hc) in grid.cols_hard.iter().enumerate() {
+            for (reg, &kind) in hc.regs.iter() {
                 if disabled.contains(&DisabledPart::Region(gi, reg)) {
                     continue;
                 }
                 let reg = reg_base + reg.to_idx();
                 if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                    let bank = (65 + reg - reg_cfg) as u32 + iox_hard * 20 - iox_spec * 20;
+                    let bank = (65 + reg - reg_cfg) as u32 + iox_hard[i] * 20 - iox_spec * 20;
                     for bel in 0..24 {
                         res.push(Io {
-                            col: c.col,
+                            col: hc.col,
                             side: None,
                             reg: reg as u32,
                             bel,
-                            iox: iox_hard,
+                            iox: iox_hard[i],
                             ioy: if bel < 12 {
                                 reg_ioy[reg].0 + bel
                             } else {
@@ -390,34 +371,6 @@ pub fn get_io(
                             is_alt_cfg: grid.is_alt_cfg,
                         });
                     }
-                }
-            }
-        }
-        for (reg, &kind) in grid.col_cfg.regs.iter() {
-            if disabled.contains(&DisabledPart::Region(gi, reg)) {
-                continue;
-            }
-            let reg = reg_base + reg.to_idx();
-            if matches!(kind, HardRowKind::Hdio | HardRowKind::HdioAms) {
-                let bank = (65 + reg - reg_cfg) as u32 + iox_cfg * 20 - iox_spec * 20;
-                for bel in 0..24 {
-                    res.push(Io {
-                        col: grid.col_cfg.col,
-                        side: None,
-                        reg: reg as u32,
-                        bel,
-                        iox: iox_cfg,
-                        ioy: if bel < 12 {
-                            reg_ioy[reg].0 + bel
-                        } else {
-                            reg_ioy[reg].1 + bel - 12
-                        },
-                        bank,
-                        kind: IoKind::Hdio,
-                        grid_kind: grid.kind,
-                        is_hdio_ams: kind == HardRowKind::HdioAms,
-                        is_alt_cfg: grid.is_alt_cfg,
-                    });
                 }
             }
         }
@@ -474,7 +427,7 @@ pub fn get_gt(
                     }
                 }
             }
-            for (reg, &rkind) in grid.col_cfg.regs.iter() {
+            for (reg, &rkind) in grid.cols_hard.last().unwrap().regs.iter() {
                 if disabled.contains(&DisabledPart::Region(gi, reg)) {
                     continue;
                 }

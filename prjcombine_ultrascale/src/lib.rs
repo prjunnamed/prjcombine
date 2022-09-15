@@ -31,8 +31,7 @@ pub struct Grid {
     pub columns: EntityVec<ColId, Column>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_fsr_gap: BTreeSet<ColId>,
-    pub col_cfg: HardColumn,
-    pub col_hard: Option<HardColumn>,
+    pub cols_hard: Vec<HardColumn>,
     pub cols_io: Vec<IoColumn>,
     pub regs: usize,
     pub ps: Option<Ps>,
@@ -47,9 +46,9 @@ pub enum ColumnKindLeft {
     CleM(CleMKind),
     Bram(BramKind),
     Uram,
-    Hard,
-    Io,
-    Gt,
+    Hard(usize),
+    Io(usize),
+    Gt(usize),
     Sdfec,
     DfeC,
     DfeDF,
@@ -78,9 +77,9 @@ pub enum ColumnKindRight {
     CleL(CleLKind),
     Dsp(DspKind),
     Uram,
-    Hard,
-    Io,
-    Gt,
+    Hard(usize),
+    Io(usize),
+    Gt(usize),
     DfeB,
     DfeC,
     DfeDF,
@@ -375,6 +374,7 @@ pub enum DisabledPart {
     Sdfec,
     Ps,
     Vcu,
+    HbmLeft,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -425,6 +425,10 @@ impl Grid {
 
     fn is_laguna_row(&self, row: RowId) -> bool {
         let reg = self.row_to_reg(row);
-        reg.to_idx() == 0 || reg.to_idx() == self.regs - 1
+        (reg.to_idx() == 0 && !self.has_hbm) || reg.to_idx() == self.regs - 1
+    }
+
+    fn col_cfg(&self) -> ColId {
+        self.cols_hard.last().unwrap().col
     }
 }

@@ -376,6 +376,44 @@ fn verify_vcu(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
+fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let vaux: Vec<_> = (0..16)
+        .map(|i| (format!("VP_AUX{i}"), format!("VN_AUX{i}")))
+        .collect();
+    let mut pins = vec![];
+    if edev.grids[bel.die].kind == GridKind::Ultrascale {
+        pins.extend([
+            ("I2C_SCLK_IN", SitePinDir::In),
+            ("I2C_SCLK_TS", SitePinDir::Out),
+            ("I2C_SDA_IN", SitePinDir::In),
+            ("I2C_SDA_TS", SitePinDir::Out),
+        ]);
+    }
+    for (vp, vn) in &vaux {
+        pins.extend([(&vp[..], SitePinDir::In), (&vn[..], SitePinDir::In)]);
+    }
+    let kind = match edev.grids[bel.die].kind {
+        GridKind::Ultrascale => "SYSMONE1",
+        GridKind::UltrascalePlus => "SYSMONE4",
+    };
+    vrf.verify_bel(bel, kind, &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    // XXX source VAUX?
+}
+
+fn verify_abus_switch(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pins = &[][..];
+    if edev.grids[bel.die].kind == GridKind::UltrascalePlus {
+        pins = &[("TEST_ANALOGBUS_SEL_B", SitePinDir::In)];
+    }
+    vrf.verify_bel(bel, "ABUS_SWITCH", pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+}
+
 fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE_L" | "SLICE_R" => verify_slice(vrf, bel),
@@ -405,11 +443,14 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             &[],
             &[],
         ),
-        "DFE_A" | "DFE_B" | "DFE_C" | "DFE_D" | "DFE_E" | "DFE_F" | "DFE_G" | "FE" => {
-            vrf.verify_bel(bel, bel.key, &[], &[])
-        }
+        "PMV" | "PMV2" | "PMVIOB" | "MTBF3" | "CFGIO_SITE" | "DFE_A" | "DFE_B" | "DFE_C"
+        | "DFE_D" | "DFE_E" | "DFE_F" | "DFE_G" | "FE" | "BLI_HBM_APB_INTF"
+        | "BLI_HBM_AXI_INTF" => vrf.verify_bel(bel, bel.key, &[], &[]),
+        "CFG" => vrf.verify_bel(bel, "CONFIG_SITE", &[], &[]),
+        "SYSMON" => verify_sysmon(edev, vrf, bel),
         "PS" => verify_ps(vrf, bel),
         "VCU" => verify_vcu(vrf, bel),
+        _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(edev, vrf, bel),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

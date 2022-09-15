@@ -1,5 +1,5 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::Part;
 
 use enum_map::enum_map;
 
@@ -413,10 +413,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = Coord {
-                x: xy.x,
-                y: xy.y + 1,
-            };
+            let int_xy = xy.delta(0, 1);
             builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }
@@ -428,17 +425,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("CLEM_R", "CLEM", "SLICE_L"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_xy = if key == "SLICE_L" {
-                Coord {
-                    x: xy.x + 1,
-                    y: xy.y,
-                }
-            } else {
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y,
-                }
-            };
+            let int_xy = xy.delta(if key == "SLICE_L" { 1 } else { -1 }, 0);
             builder.extract_xnode_bels(
                 kind,
                 xy,
@@ -458,17 +445,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut intf_xy = Vec::new();
         let n = builder.db.get_node_naming("INTF.W");
         for dy in 0..5 {
-            int_xy.push(Coord {
-                x: xy.x + 2,
-                y: xy.y + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x + 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(2, dy));
+            intf_xy.push((xy.delta(1, dy), n));
         }
         let mut bel_bram_f = builder
             .bel_xy("BRAM_F", "RAMB36", 0, 0)
@@ -536,17 +514,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let n = builder.db.get_node_naming("INTF.W");
-            let int_xy = Coord {
-                x: xy.x + 2,
-                y: xy.y + 1,
-            };
-            let intf_xy = (
-                Coord {
-                    x: xy.x + 1,
-                    y: xy.y + 1,
-                },
-                n,
-            );
+            let int_xy = xy.delta(2, 1);
+            let intf_xy = (xy.delta(1, 1), n);
 
             let mut bels = vec![];
             for (i, x, y) in [(0, 0, 0), (1, 0, 1), (2, 1, 0), (3, 1, 1)] {
@@ -569,17 +538,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut intf_xy = Vec::new();
         let n = builder.db.get_node_naming("INTF.E");
         for dy in 0..5 {
-            int_xy.push(Coord {
-                x: xy.x - 2,
-                y: xy.y + dy,
-            });
-            intf_xy.push((
-                Coord {
-                    x: xy.x - 1,
-                    y: xy.y + dy,
-                },
-                n,
-            ));
+            int_xy.push(xy.delta(-2, dy));
+            intf_xy.push((xy.delta(-1, dy), n));
         }
 
         let mut bels_dsp = vec![];
@@ -611,6 +571,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, "DSP", &bels_dsp);
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("BLI_BLI_FT").iter().next() {
+        let intf = builder.db.get_node_naming("INTF.E");
+        let bels = [
+            builder.bel_xy("BLI_HBM_APB_INTF", "BLI_HBM_APB_INTF", 0, 0),
+            builder.bel_xy("BLI_HBM_AXI_INTF", "BLI_HBM_AXI_INTF", 0, 0),
+        ];
+        let mut xn = builder.xnode("BLI", "BLI", xy).num_tiles(15);
+        for i in 0..15 {
+            xn = xn
+                .ref_int(xy.delta(-2, i as i32), i)
+                .ref_single(xy.delta(-1, i as i32), i, intf)
+        }
+        xn.bels(bels).extract();
+    }
+
     for tkn in ["URAM_URAM_FT", "URAM_URAM_DELAY_FT"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
@@ -618,30 +593,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let nr = builder.db.get_node_naming("INTF.E");
             let nl = builder.db.get_node_naming("INTF.W");
             for dy in 0..15 {
-                int_xy.push(Coord {
-                    x: xy.x - 2,
-                    y: xy.y + dy,
-                });
-                intf_xy.push((
-                    Coord {
-                        x: xy.x - 1,
-                        y: xy.y + dy,
-                    },
-                    nr,
-                ));
+                int_xy.push(xy.delta(-2, dy));
+                intf_xy.push((xy.delta(-1, dy), nr));
             }
             for dy in 0..15 {
-                int_xy.push(Coord {
-                    x: xy.x + 2,
-                    y: xy.y + dy,
-                });
-                intf_xy.push((
-                    Coord {
-                        x: xy.x + 1,
-                        y: xy.y + dy,
-                    },
-                    nl,
-                ));
+                int_xy.push(xy.delta(2, dy));
+                intf_xy.push((xy.delta(1, dy), nl));
             }
 
             let mut bels = vec![];
@@ -703,16 +660,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 bel = bel.pin_dummy("MCAP_PERST0_B").pin_dummy("MCAP_PERST1_B");
             }
             let mut xn = builder.xnode(kind, kind, xy).num_tiles(120);
-            for i in 0..30 {
+            for i in 0..60 {
                 xn = xn
-                    .ref_int(int_l_xy.delta(0, i as i32), i)
-                    .ref_int(int_l_xy.delta(0, 31 + i as i32), i + 30)
-                    .ref_int(int_r_xy.delta(0, i as i32), i + 60)
-                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 90)
-                    .ref_single(int_l_xy.delta(1, i as i32), i, intf_l)
-                    .ref_single(int_l_xy.delta(1, 31 + i as i32), i + 30, intf_l)
-                    .ref_single(int_r_xy.delta(-1, i as i32), i + 60, intf_r)
-                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 90, intf_r);
+                    .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                    .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
+                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
             }
             xn.bel(bel).extract();
         }
@@ -728,12 +681,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
             let bel = builder.bel_xy("DFE_B", "DFE_B", 0, 0);
             let mut xn = builder.xnode("DFE_B", "DFE_B", xy).num_tiles(60);
-            for i in 0..30 {
+            for i in 0..60 {
                 xn = xn
-                    .ref_int(int_l_xy.delta(0, i as i32), i)
-                    .ref_int(int_l_xy.delta(0, 31 + i as i32), i + 30)
-                    .ref_single(int_l_xy.delta(1, i as i32), i, intf_l)
-                    .ref_single(int_l_xy.delta(1, 31 + i as i32), i + 30, intf_l);
+                    .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l);
             }
             xn.bel(bel).extract();
         }
@@ -749,12 +700,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let bel = builder.bel_xy("FE", "FE", 0, 0);
             let mut xn = builder.xnode("FE", "FE", xy).num_tiles(60);
-            for i in 0..30 {
+            for i in 0..60 {
                 xn = xn
-                    .ref_int(int_r_xy.delta(0, i as i32), i)
-                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 30)
-                    .ref_single(int_r_xy.delta(-1, i as i32), i, intf_r)
-                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 30, intf_r);
+                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
             }
             xn.bel(bel).extract();
         }
@@ -845,7 +794,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..180 {
                 xn = xn
                     .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r)
+                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
             }
             xn.bel(bel).extract();
         }
@@ -863,15 +812,78 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel_xy("VCU", "VCU", 0, 0)
                 .pins_name_only(&["VCU_PLL_TEST_CLK_OUT0", "VCU_PLL_TEST_CLK_OUT1"]);
             let mut xn = builder.xnode("VCU", "VCU", xy).num_tiles(60);
-            for i in 0..30 {
+            for i in 0..60 {
                 xn = xn
-                    .ref_int(int_r_xy.delta(0, i as i32), i)
-                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 30)
-                    .ref_single(int_r_xy.delta(-1, i as i32), i, intf_r)
-                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 30, intf_r);
+                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
             }
             xn.bel(bel).extract();
         }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CFG_CONFIG").iter().next() {
+        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let bels = [
+            builder.bel_xy("CFG", "CONFIG_SITE", 0, 0),
+            builder
+                .bel_xy("ABUS_SWITCH", "ABUS_SWITCH", 0, 0)
+                .pins_name_only(&["TEST_ANALOGBUS_SEL_B"]),
+        ];
+        let mut xn = builder.xnode("CFG", "CFG", xy).num_tiles(120);
+        for i in 0..60 {
+            xn = xn
+                .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
+        }
+        xn.bels(bels).extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("CFGIO_IOB20").iter().next() {
+        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let bels = [
+            builder.bel_xy("PMV", "PMV", 0, 0),
+            builder.bel_xy("PMV2", "PMV2", 0, 0),
+            builder.bel_xy("PMVIOB", "PMVIOB", 0, 0),
+            builder.bel_xy("MTBF3", "MTBF3", 0, 0),
+            builder.bel_xy("CFGIO_SITE", "CFGIO_SITE", 0, 0),
+        ];
+        let mut xn = builder.xnode("CFGIO", "CFGIO", xy).num_tiles(60);
+        for i in 0..30 {
+            xn = xn
+                .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
+        }
+        xn.bels(bels).extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("AMS").iter().next() {
+        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let mut bel = builder.bel_xy("SYSMON", "SYSMONE4", 0, 0);
+        for i in 0..16 {
+            bel = bel.pins_name_only(&[format!("VP_AUX{i}"), format!("VN_AUX{i}")]);
+        }
+        let mut xn = builder.xnode("AMS", "AMS", xy).num_tiles(60);
+        for i in 0..30 {
+            xn = xn
+                .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
+        }
+        xn.bel(bel).extract();
     }
 
     builder.build()
