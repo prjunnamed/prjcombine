@@ -300,6 +300,32 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     &[(ps.col, row)],
                 );
             }
+            if self.disabled.contains(&DisabledPart::Ps) {
+                return;
+            }
+            let row = RowId::from_idx(if ps.has_vcu { 60 } else { 0 });
+            let crds: [_; 180] = core::array::from_fn(|i| (ps.col, row + i));
+            let name = format!("PSS_ALTO_X0Y{y}", y = self.ylut[row]);
+            let node = self.die[(ps.col, row)].add_xnode(
+                self.db.get_node("PS"),
+                &[&name],
+                self.db.get_node_naming("PS"),
+                &crds,
+            );
+            node.add_bel(0, "PS8_X0Y0".to_string());
+            if !ps.has_vcu || self.disabled.contains(&DisabledPart::Vcu) {
+                return;
+            }
+            let row = RowId::from_idx(0);
+            let crds: [_; 60] = core::array::from_fn(|i| (ps.col, row + i));
+            let name = format!("VCU_VCU_FT_X0Y{y}", y = self.ylut[row]);
+            let node = self.die[(ps.col, row)].add_xnode(
+                self.db.get_node("VCU"),
+                &[&name],
+                self.db.get_node_naming("VCU"),
+                &crds,
+            );
+            node.add_bel(0, "VCU_X0Y0".to_string());
         }
     }
 

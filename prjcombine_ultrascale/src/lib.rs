@@ -374,6 +374,7 @@ pub enum DisabledPart {
     Dfe,
     Sdfec,
     Ps,
+    Vcu,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

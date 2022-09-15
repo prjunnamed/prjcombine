@@ -1165,7 +1165,7 @@ impl<'a> IntBuilder<'a> {
         ExtrBelInfo {
             name: name.into(),
             slot: Some(rawdump::TkSiteSlot::Xy(
-                self.rd.slot_kinds.get(slot).unwrap(),
+                self.rd.slot_kinds.get(slot).expect("missing slot kind"),
                 x,
                 y,
             )),

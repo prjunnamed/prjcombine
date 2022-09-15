@@ -273,6 +273,109 @@ fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
 }
 
+fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins_clk = [
+        "O_DBG_L0_TXCLK",                   // 0.0
+        "O_DBG_L0_RXCLK",                   // 0.1
+        "O_DBG_L1_TXCLK",                   // 0.2
+        "O_DBG_L1_RXCLK",                   // 0.3
+        "O_DBG_L2_TXCLK",                   // 0.4
+        "O_DBG_L2_RXCLK",                   // 0.5
+        "O_DBG_L3_TXCLK",                   // 0.6
+        "O_DBG_L3_RXCLK",                   // 0.7
+        "APLL_TEST_CLK_OUT0",               // 1.0
+        "APLL_TEST_CLK_OUT1",               // 1.1
+        "DPLL_TEST_CLK_OUT0",               // 1.2
+        "DPLL_TEST_CLK_OUT1",               // 1.3
+        "VPLL_TEST_CLK_OUT0",               // 1.4
+        "VPLL_TEST_CLK_OUT1",               // 1.5
+        "DP_AUDIO_REF_CLK",                 // 1.6
+        "DP_VIDEO_REF_CLK",                 // 1.7
+        "DDR_DTO0",                         // 1.8
+        "DDR_DTO1",                         // 1.9
+        "PL_CLK0",                          // 2.0
+        "PL_CLK1",                          // 2.1
+        "PL_CLK2",                          // 2.2
+        "PL_CLK3",                          // 2.3
+        "IOPLL_TEST_CLK_OUT0",              // 2.4
+        "IOPLL_TEST_CLK_OUT1",              // 2.5
+        "RPLL_TEST_CLK_OUT0",               // 2.6
+        "RPLL_TEST_CLK_OUT1",               // 2.7
+        "FMIO_GEM0_FIFO_TX_CLK_TO_PL_BUFG", // 2.8
+        "FMIO_GEM0_FIFO_RX_CLK_TO_PL_BUFG", // 2.9
+        "FMIO_GEM1_FIFO_TX_CLK_TO_PL_BUFG", // 2.10
+        "FMIO_GEM1_FIFO_RX_CLK_TO_PL_BUFG", // 2.11
+        "FMIO_GEM2_FIFO_TX_CLK_TO_PL_BUFG", // 2.12
+        "FMIO_GEM2_FIFO_RX_CLK_TO_PL_BUFG", // 2.13
+        "FMIO_GEM3_FIFO_TX_CLK_TO_PL_BUFG", // 2.14
+        "FMIO_GEM3_FIFO_RX_CLK_TO_PL_BUFG", // 2.15
+        "FMIO_GEM_TSU_CLK_TO_PL_BUFG",      // 2.16
+        "PS_PL_SYSOSC_CLK",                 // 2.17
+    ];
+    let pins_cfg_in = [
+        "BSCAN_RESET_TAP_B",
+        "BSCAN_CLOCKDR",
+        "BSCAN_SHIFTDR",
+        "BSCAN_UPDATEDR",
+        "BSCAN_INTEST",
+        "BSCAN_EXTEST",
+        "BSCAN_INIT_MEMORY",
+        "BSCAN_AC_TEST",
+        "BSCAN_AC_MODE",
+        "BSCAN_MISR_JTAG_LOAD",
+        "PSS_CFG_RESET_B",
+        "PSS_FST_CFG_B",
+        "PSS_GTS_CFG_B",
+        "PSS_GTS_USR_B",
+        "PSS_GHIGH_B",
+        "PSS_GPWRDWN_B",
+        "PCFG_POR_B",
+    ];
+    let mut pins_dummy_in = vec![
+        "IDCODE15",
+        "IDCODE17",
+        "IDCODE18",
+        "IDCODE20",
+        "IDCODE21",
+        "IDCODE28",
+        "IDCODE29",
+        "IDCODE30",
+        "IDCODE31",
+        "PS_VERSION_0",
+        "PS_VERSION_2",
+        "PS_VERSION_3",
+    ];
+    let tk = vrf.rd.tile_kinds.get("PSS_ALTO").unwrap().1;
+    let site = tk.sites.values().next().unwrap();
+    if site.pins.contains_key("IDCODE16") {
+        pins_dummy_in.push("IDCODE16");
+    }
+    let mut pins = vec![];
+    for pin in pins_clk {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        pins.push((pin, SitePinDir::Out));
+    }
+    for pin in pins_cfg_in {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        pins.push((pin, SitePinDir::In));
+    }
+    for &pin in &pins_dummy_in {
+        pins.push((pin, SitePinDir::In));
+    }
+    vrf.verify_bel_dummies(bel, "PS8", &pins, &[], &pins_dummy_in);
+}
+
+fn verify_vcu(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = [
+        ("VCU_PLL_TEST_CLK_OUT0", SitePinDir::Out), // 0
+        ("VCU_PLL_TEST_CLK_OUT1", SitePinDir::Out), // 1
+    ];
+    vrf.verify_bel(bel, "VCU", &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+}
+
 fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE_L" | "SLICE_R" => verify_slice(vrf, bel),
@@ -305,6 +408,8 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "DFE_A" | "DFE_B" | "DFE_C" | "DFE_D" | "DFE_E" | "DFE_F" | "DFE_G" | "FE" => {
             vrf.verify_bel(bel, bel.key, &[], &[])
         }
+        "PS" => verify_ps(vrf, bel),
+        "VCU" => verify_vcu(vrf, bel),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

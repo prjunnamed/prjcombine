@@ -554,6 +554,11 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             disabled.insert(DisabledPart::Dfe);
         }
     }
+    if let Some((_, tk)) = rd.tile_kinds.get("VCU_VCU_FT") {
+        if tk.sites.is_empty() {
+            disabled.insert(DisabledPart::Vcu);
+        }
+    }
 
     (grids, grid_master, disabled)
 }
