@@ -767,17 +767,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[builder.bel_xy("PMVBRAM", "PMVBRAM", 0, 0)],
         );
 
-        let bel = builder.bel_xy("PMVBRAM_NC", "PMVBRAM", 0, 0)
+        let bel = builder
+            .bel_xy("PMVBRAM_NC", "PMVBRAM", 0, 0)
             .pins_name_only(&[
-                "O",
-                "ODIV2",
-                "ODIV4",
-                "SELECT1",
-                "SELECT2",
-                "SELECT3",
-                "SELECT4",
+                "O", "ODIV2", "ODIV4", "SELECT1", "SELECT2", "SELECT3", "SELECT4",
             ]);
-        builder.xnode("PMVBRAM_NC", "PMVBRAM_NC", xy).num_tiles(0).bel(bel).extract();
+        builder
+            .xnode("PMVBRAM_NC", "PMVBRAM_NC", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .extract();
     }
 
     for tkn in ["DSP_L", "DSP_R"] {

@@ -1,9 +1,10 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::{Part, PkgPin};
+use prjcombine_series7::io::{get_gt, get_gtz_pads, get_io, get_ps_pads, get_sysmon_pads};
 use prjcombine_series7::{
-    get_gt, get_gtz_pads, get_io, get_ps_pads, get_sysmon_pads, Bond, BondPin, CfgPin, ExtraDie,
-    Grid, GtPin, GtRegionPin, GtzPin, PsPin, SharedCfgPin, SysMonPin,
+    Bond, BondPin, CfgPin, ExtraDie, Grid, GtPin, GtRegionPin, GtzPin, PsPin, SharedCfgPin,
+    SysMonPin,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;

@@ -3,9 +3,8 @@ use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
 
 use crate::db::{make_device, PreDevice};
-use prjcombine_rdverify::verify;
 use prjcombine_virtex_rd2db::{bond, grid, int};
-use prjcombine_virtex_rdverify::verify_bel;
+use prjcombine_virtex_rdverify::verify_device;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);
@@ -16,12 +15,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex(bond)));
     }
-    verify(
-        rd,
-        &edev.egrid,
-        |vrf, ctx| verify_bel(&edev, vrf, ctx),
-        |_| (),
-    );
+    verify_device(&edev, rd);
     let disabled = disabled.into_iter().map(DisabledPart::Virtex).collect();
     (
         make_device(rd, Grid::Virtex(grid), bonds, disabled),

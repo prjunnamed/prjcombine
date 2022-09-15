@@ -125,12 +125,19 @@ pub enum DisabledPart {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bond {}
 
+pub struct ExpandedDevice<'a> {
+    pub grids: EntityVec<DieId, &'a Grid>,
+    pub grid_master: DieId,
+    pub egrid: ExpandedGrid<'a>,
+    pub disabled: BTreeSet<DisabledPart>,
+}
+
 pub fn expand_grid<'a>(
-    grids: &EntityVec<DieId, &Grid>,
-    _grid_master: DieId,
+    grids: &EntityVec<DieId, &'a Grid>,
+    grid_master: DieId,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
-) -> ExpandedGrid<'a> {
+) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
     let mut yb = 0;
     let mut syb = 0;
@@ -447,5 +454,10 @@ pub fn expand_grid<'a>(
         syb += die.rows().len() - dsy;
     }
 
-    egrid
+    ExpandedDevice {
+        grids: grids.clone(),
+        grid_master,
+        egrid,
+        disabled: disabled.clone(),
+    }
 }

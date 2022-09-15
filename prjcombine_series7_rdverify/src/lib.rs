@@ -3548,15 +3548,15 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     }
     for i in 0..15 {
         for tb in ["BOT", "TOP"] {
-        for lr in ['L', 'R'] {
-            for j in 0..2 {
-                vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_CLK{j}_{lr}_{i}"));
-                vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_CTRL{j}_{lr}_{i}"));
+            for lr in ['L', 'R'] {
+                for j in 0..2 {
+                    vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_CLK{j}_{lr}_{i}"));
+                    vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_CTRL{j}_{lr}_{i}"));
+                }
+                for j in 0..48 {
+                    vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_IMUX{j}_{lr}_{i}"));
+                }
             }
-            for j in 0..48 {
-                vrf.kill_stub_out_cond(&format!("PCIE3_{tb}_IMUX{j}_{lr}_{i}"));
-            }
-        }
         }
     }
     // XXX

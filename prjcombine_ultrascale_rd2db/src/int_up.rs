@@ -677,5 +677,88 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for (kind, tkn, bk) in [
+        ("PCIE4", "PCIE4_PCIE4_FT", "PCIE40E4"),
+        ("PCIE4C", "PCIE4C_PCIE4C_FT", "PCIE4CE4"),
+        ("CMAC", "CMAC", "CMACE4"),
+        ("ILKN", "ILKN_ILKN_FT", "ILKNE4"),
+        ("DFE_A", "DFE_DFE_TILEA_FT", "DFE_A"),
+        ("DFE_C", "DFE_DFE_TILEC_FT", "DFE_C"),
+        ("DFE_D", "DFE_DFE_TILED_FT", "DFE_D"),
+        ("DFE_E", "DFE_DFE_TILEE_FT", "DFE_E"),
+        ("DFE_F", "DFE_DFE_TILEF_FT", "DFE_F"),
+        ("DFE_G", "DFE_DFE_TILEG_FT", "DFE_G"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+            if tk.sites.is_empty() {
+                continue;
+            }
+            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+            let mut bel = builder.bel_xy(kind, bk, 0, 0);
+            if matches!(kind, "PCIE4" | "PCIE4C") {
+                bel = bel.pin_dummy("MCAP_PERST0_B").pin_dummy("MCAP_PERST1_B");
+            }
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(120);
+            for i in 0..30 {
+                xn = xn
+                    .ref_int(int_l_xy.delta(0, i as i32), i)
+                    .ref_int(int_l_xy.delta(0, 31 + i as i32), i + 30)
+                    .ref_int(int_r_xy.delta(0, i as i32), i + 60)
+                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 90)
+                    .ref_single(int_l_xy.delta(1, i as i32), i, intf_l)
+                    .ref_single(int_l_xy.delta(1, 31 + i as i32), i + 30, intf_l)
+                    .ref_single(int_r_xy.delta(-1, i as i32), i + 60, intf_r)
+                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 90, intf_r);
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
+    'a: {
+        if let Some(&xy) = rd.tiles_by_kind_name("DFE_DFE_TILEB_FT").iter().next() {
+            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+            if tk.sites.is_empty() {
+                break 'a;
+            }
+            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let bel = builder.bel_xy("DFE_B", "DFE_B", 0, 0);
+            let mut xn = builder.xnode("DFE_B", "DFE_B", xy).num_tiles(60);
+            for i in 0..30 {
+                xn = xn
+                    .ref_int(int_l_xy.delta(0, i as i32), i)
+                    .ref_int(int_l_xy.delta(0, 31 + i as i32), i + 30)
+                    .ref_single(int_l_xy.delta(1, i as i32), i, intf_l)
+                    .ref_single(int_l_xy.delta(1, 31 + i as i32), i + 30, intf_l);
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
+    'a: {
+        if let Some(&xy) = rd.tiles_by_kind_name("FE_FE_FT").iter().next() {
+            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+            if tk.sites.is_empty() {
+                break 'a;
+            }
+            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+            let bel = builder.bel_xy("FE", "FE", 0, 0);
+            let mut xn = builder.xnode("FE", "FE", xy).num_tiles(60);
+            for i in 0..30 {
+                xn = xn
+                    .ref_int(int_r_xy.delta(0, i as i32), i)
+                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 30)
+                    .ref_single(int_r_xy.delta(-1, i as i32), i, intf_r)
+                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 30, intf_r);
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
     builder.build()
 }

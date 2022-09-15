@@ -1,9 +1,9 @@
-use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::grid::DieId;
-use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_versal::Grid;
+use prjcombine_entity::EntityId;
+use prjcombine_rawdump::Part;
+use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
+use prjcombine_versal::ExpandedDevice;
 
-pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => {
             let kind = if bel.bel.pins.contains_key("WE") {
@@ -57,4 +57,18 @@ pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &Bel
             println!("MEOW {} {:?}", bel.key, bel.name);
         }
     }
+}
+
+fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+    // XXX
+    vrf.skip_residual();
+}
+
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

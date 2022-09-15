@@ -5,9 +5,8 @@ use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{Bond, Grid};
 
 use crate::db::{make_device, PreDevice};
-use prjcombine_rdverify::verify;
 use prjcombine_virtex2_rd2db::{bond, grid, int_s3, int_v2};
-use prjcombine_virtex2_rdverify::{verify_bel, verify_extra};
+use prjcombine_virtex2_rdverify::verify_device;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
@@ -23,12 +22,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Virtex2(bond)));
     }
 
-    verify(
-        rd,
-        &edev.egrid,
-        |vrf, ctx| verify_bel(&edev, vrf, ctx),
-        |vrf| verify_extra(&edev, vrf),
-    );
+    verify_device(&edev, rd);
     (
         make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
         Some(int_db),

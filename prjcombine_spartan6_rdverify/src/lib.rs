@@ -3,7 +3,8 @@
 
 use prjcombine_entity::EntityId;
 use prjcombine_int::db::BelId;
-use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_rawdump::Part;
+use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_spartan6::{ColumnKind, DisabledPart, ExpandedDevice, Gts};
 use std::collections::HashSet;
 
@@ -3076,7 +3077,7 @@ fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("I")]);
 }
 
-pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE0" => verify_sliceml(vrf, bel),
         "SLICE1" => vrf.verify_bel(bel, "SLICEX", &[], &[]),
@@ -3152,7 +3153,7 @@ pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 }
 
-pub fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("INT_IOI_LOGICIN_B4");
     vrf.kill_stub_out("INT_IOI_LOGICIN_B10");
     vrf.kill_stub_out("FAN");
@@ -3225,4 +3226,13 @@ pub fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
             }
         }
     }
+}
+
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

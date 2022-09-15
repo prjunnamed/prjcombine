@@ -4,9 +4,8 @@ use prjcombine_xilinx_geom::{Bond, Grid};
 use std::collections::BTreeSet;
 
 use crate::db::{make_device, PreDevice};
-use prjcombine_rdverify::verify;
 use prjcombine_xc5200_rd2db::{bond, grid, int};
-use prjcombine_xc5200_rdverify::verify_bel;
+use prjcombine_xc5200_rdverify::verify_device;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
@@ -17,12 +16,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Xc5200(bond)));
     }
-    verify(
-        rd,
-        &edev.egrid,
-        |vrf, ctx| verify_bel(&edev, vrf, ctx),
-        |_| (),
-    );
+    verify_device(&edev, rd);
     (
         make_device(rd, Grid::Xc5200(grid), bonds, BTreeSet::new()),
         Some(int_db),

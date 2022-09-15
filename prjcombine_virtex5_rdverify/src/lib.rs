@@ -3,8 +3,9 @@
 use prjcombine_entity::EntityId;
 use prjcombine_int::db::{BelId, NodeRawTileId};
 use prjcombine_int::grid::{DieId, RowId};
-use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex5::Grid;
+use prjcombine_rawdump::Part;
+use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
+use prjcombine_virtex5::ExpandedDevice;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {
@@ -96,7 +97,7 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "DSP48E", &pins, &[]);
 }
 
-fn verify_bufgctrl(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bufgctrl(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
         "BUFGCTRL",
@@ -150,14 +151,14 @@ fn verify_bufgctrl(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("GFB"), bel.wire("O"));
     let srow = if is_b {
-        grid.row_ioi_cmt()
+        edev.grid.row_ioi_cmt()
     } else {
-        if grid.reg_cfg == grid.regs - 1 {
+        if edev.grid.reg_cfg == edev.grid.regs - 1 {
             vrf.claim_node(&[bel.fwire("MUXBUS0")]);
             vrf.claim_node(&[bel.fwire("MUXBUS1")]);
             return;
         }
-        grid.row_cmt_ioi() - 10
+        edev.grid.row_cmt_ioi() - 10
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     let idx0 = (bel.bid.to_idx() % 16) * 2;
@@ -166,7 +167,7 @@ fn verify_bufgctrl(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_node(&[bel.fwire("MUXBUS1"), obel.fwire(&format!("MUXBUS_O{idx1}"))]);
 }
 
-fn verify_bufg_mgtclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bufg_mgtclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let dy = match bel.key {
         "BUFG_MGTCLK_B" => 0,
         "BUFG_MGTCLK_T" => 20,
@@ -180,7 +181,7 @@ fn verify_bufg_mgtclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         let pin_r_o = format!("MGT_O_R{i}");
         vrf.claim_node(&[bel.fwire(&pin_l_o)]);
         vrf.claim_node(&[bel.fwire(&pin_r_o)]);
-        if grid.has_left_gt() {
+        if edev.grid.has_left_gt() {
             vrf.claim_pip(bel.crd(), bel.wire(&pin_l_o), bel.wire(&pin_l_i));
             vrf.verify_node(&[bel.fwire(&pin_l_i), obel.fwire(&pin_l_o)])
         }
@@ -189,7 +190,7 @@ fn verify_bufg_mgtclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_sysmon(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pins = vec![];
     for i in 0..16 {
         pins.push(format!("VAUXP{i}"));
@@ -220,19 +221,19 @@ fn verify_sysmon(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(bel.crd(), bel.wire(&vauxn), bel.wire_far(&vauxn));
         let srow = bel.row + dy;
         let obel = vrf
-            .find_bel(bel.die, (grid.cols_io[0].unwrap(), srow), "IOB0")
+            .find_bel(bel.die, (edev.grid.cols_io[0].unwrap(), srow), "IOB0")
             .unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxp), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
         let obel = vrf
-            .find_bel(bel.die, (grid.cols_io[0].unwrap(), srow), "IOB1")
+            .find_bel(bel.die, (edev.grid.cols_io[0].unwrap(), srow), "IOB1")
             .unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxn), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
     }
 }
 
-fn verify_clk_mux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_clk_mux(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "CLK_IOB" => {
             for i in 0..10 {
@@ -269,14 +270,14 @@ fn verify_clk_mux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ => (),
     }
 
-    let is_b = bel.row < grid.row_botcen();
+    let is_b = bel.row < edev.grid.row_botcen();
     let is_hrow_b = bel.row.to_idx() % 20 == 0;
 
     if is_b != is_hrow_b {
         let dy = if is_hrow_b { 10 } else { 0 };
         let obel = vrf.find_bel_delta(bel, 0, dy, "CLK_HROW").unwrap();
         for i in 0..5 {
-            if grid.has_left_gt() {
+            if edev.grid.has_left_gt() {
                 vrf.verify_node(&[
                     bel.fwire(&format!("MGT_L{i}")),
                     obel.fwire(&format!("MGT_O_L{i}")),
@@ -337,7 +338,7 @@ fn verify_clk_mux(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             _ => (),
         }
         for j in 0..5 {
-            if grid.has_left_gt() || bel.key != "CLK_MGT" {
+            if edev.grid.has_left_gt() || bel.key != "CLK_MGT" {
                 vrf.claim_pip(
                     bel.crd(),
                     bel.wire(&format!("MUXBUS_O{i}")),
@@ -963,7 +964,7 @@ fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("I")]);
 }
 
-fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..10 {
         vrf.claim_node(&[bel.fwire(&format!("GCLK_O_L{i}"))]);
         vrf.claim_node(&[bel.fwire(&format!("GCLK_O_R{i}"))]);
@@ -981,14 +982,14 @@ fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
     for i in 0..32 {
-        let orow = grid.row_botcen();
+        let orow = edev.grid.row_botcen();
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
         vrf.verify_node(&[bel.fwire(&format!("GCLK_I{i}")), obel.fwire("GCLK")]);
     }
-    if grid.has_left_gt() {
-        verify_mgt_conn(grid, vrf, bel, "MGT_I_L", true);
+    if edev.grid.has_left_gt() {
+        verify_mgt_conn(edev, vrf, bel, "MGT_I_L", true);
         for i in 0..5 {
             vrf.claim_node(&[bel.fwire(&format!("MGT_O_L{i}"))]);
             vrf.claim_pip(
@@ -998,7 +999,7 @@ fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             );
         }
     }
-    verify_mgt_conn(grid, vrf, bel, "MGT_I_R", false);
+    verify_mgt_conn(edev, vrf, bel, "MGT_I_R", false);
     for i in 0..5 {
         vrf.claim_node(&[bel.fwire(&format!("MGT_O_R{i}"))]);
         vrf.claim_pip(
@@ -1009,11 +1010,15 @@ fn verify_clk_hrow(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_hclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf
-        .find_bel(bel.die, (grid.cols_io[1].unwrap(), bel.row), "CLK_HROW")
+        .find_bel(
+            bel.die,
+            (edev.grid.cols_io[1].unwrap(), bel.row),
+            "CLK_HROW",
+        )
         .unwrap();
-    let lr = if bel.col <= grid.cols_io[1].unwrap() {
+    let lr = if bel.col <= edev.grid.cols_io[1].unwrap() {
         'L'
     } else {
         'R'
@@ -1039,9 +1044,9 @@ fn verify_hclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        grid.columns.first_id().unwrap()
+        edev.grid.columns.first_id().unwrap()
     } else {
-        grid.columns.last_id().unwrap()
+        edev.grid.columns.last_id().unwrap()
     };
     if bel.col == scol {
         for i in 0..4 {
@@ -1074,11 +1079,11 @@ fn verify_hclk_cmt_gclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_hclk_cmt_giob(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = if bel.row < grid.row_botcen() {
-        grid.row_ioi_cmt()
+fn verify_hclk_cmt_giob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let srow = if bel.row < edev.grid.row_botcen() {
+        edev.grid.row_ioi_cmt()
     } else {
-        grid.row_cmt_ioi() - 10
+        edev.grid.row_cmt_ioi() - 10
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     for i in 0..10 {
@@ -1095,12 +1100,18 @@ fn verify_hclk_cmt_giob(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_mgt_conn(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>, pref: &str, is_l: bool) {
+fn verify_mgt_conn(
+    edev: &ExpandedDevice,
+    vrf: &mut Verifier,
+    bel: &BelContext<'_>,
+    pref: &str,
+    is_l: bool,
+) {
     let dx = if is_l { -1 } else { 1 };
     let scol = if is_l {
-        grid.columns.first_id().unwrap()
+        edev.grid.columns.first_id().unwrap()
     } else {
-        grid.columns.last_id().unwrap()
+        edev.grid.columns.last_id().unwrap()
     };
     if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "HCLK_BRAM_MGT") {
         for i in 0..5 {
@@ -1119,9 +1130,9 @@ fn verify_mgt_conn(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>, pref: 
                 obel.fwire(&format!("MGT{i}")),
             ]);
         }
-    } else if !is_l && grid.cols_io[2].is_some() {
+    } else if !is_l && edev.grid.cols_io[2].is_some() {
         let obel = vrf
-            .find_bel(bel.die, (grid.cols_io[2].unwrap(), bel.row), "RCLK")
+            .find_bel(bel.die, (edev.grid.cols_io[2].unwrap(), bel.row), "RCLK")
             .unwrap();
         for i in 0..5 {
             vrf.verify_node(&[
@@ -1136,7 +1147,7 @@ fn verify_mgt_conn(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>, pref: 
     }
 }
 
-fn verify_hclk_bram_mgt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_hclk_bram_mgt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..5 {
         vrf.claim_node(&[bel.fwire(&format!("MGT_O{i}"))]);
         vrf.claim_pip(
@@ -1145,8 +1156,8 @@ fn verify_hclk_bram_mgt(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
             bel.wire(&format!("MGT_I{i}")),
         );
     }
-    let is_l = bel.col < grid.cols_io[1].unwrap();
-    verify_mgt_conn(grid, vrf, bel, "MGT_I", is_l);
+    let is_l = bel.col < edev.grid.cols_io[1].unwrap();
+    verify_mgt_conn(edev, vrf, bel, "MGT_I", is_l);
 }
 
 fn verify_idelayctrl(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -1222,12 +1233,12 @@ fn verify_bufio(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), obel.wire(pin), bel.wire("O"));
 }
 
-fn verify_rclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let is_l = bel.col < grid.cols_io[1].unwrap();
+fn verify_rclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let is_l = bel.col < edev.grid.cols_io[1].unwrap();
     let scol = if is_l {
-        grid.columns.first_id().unwrap()
+        edev.grid.columns.first_id().unwrap()
     } else {
-        grid.columns.last_id().unwrap()
+        edev.grid.columns.last_id().unwrap()
     };
     if let Some(obel) = vrf
         .find_bel(bel.die, (scol, bel.row - 10), "GTP_DUAL")
@@ -1246,11 +1257,15 @@ fn verify_rclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ioclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf
-        .find_bel(bel.die, (grid.cols_io[1].unwrap(), bel.row), "CLK_HROW")
+        .find_bel(
+            bel.die,
+            (edev.grid.cols_io[1].unwrap(), bel.row),
+            "CLK_HROW",
+        )
         .unwrap();
-    let lr = if bel.col <= grid.cols_io[1].unwrap() {
+    let lr = if bel.col <= edev.grid.cols_io[1].unwrap() {
         'L'
     } else {
         'R'
@@ -1278,9 +1293,9 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        grid.columns.first_id().unwrap()
+        edev.grid.columns.first_id().unwrap()
     } else {
-        grid.columns.last_id().unwrap()
+        edev.grid.columns.last_id().unwrap()
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK").unwrap();
     for i in 0..4 {
@@ -1347,7 +1362,7 @@ fn verify_ioclk(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("DSP") => verify_dsp(vrf, bel),
@@ -1357,15 +1372,15 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "PCIE" => vrf.verify_bel(bel, "PCIE", &[], &[]),
         "PPC" => vrf.verify_bel(bel, "PPC440", &[], &[]),
 
-        _ if bel.key.starts_with("BUFGCTRL") => verify_bufgctrl(grid, vrf, bel),
+        _ if bel.key.starts_with("BUFGCTRL") => verify_bufgctrl(edev, vrf, bel),
         _ if bel.key.starts_with("BSCAN") => vrf.verify_bel(bel, "BSCAN", &[], &[]),
         _ if bel.key.starts_with("ICAP") => vrf.verify_bel(bel, "ICAP", &[], &[]),
         "PMV" | "STARTUP" | "FRAME_ECC" | "DCIRESET" | "CAPTURE" | "USR_ACCESS" | "EFUSE_USR"
         | "KEY_CLEAR" | "JTAGPPC" | "DCI" | "GLOBALSIG" => vrf.verify_bel(bel, bel.key, &[], &[]),
-        "BUFG_MGTCLK_B" | "BUFG_MGTCLK_T" => verify_bufg_mgtclk(grid, vrf, bel),
-        "SYSMON" => verify_sysmon(grid, vrf, bel),
+        "BUFG_MGTCLK_B" | "BUFG_MGTCLK_T" => verify_bufg_mgtclk(edev, vrf, bel),
+        "SYSMON" => verify_sysmon(edev, vrf, bel),
 
-        "CLK_IOB" | "CLK_CMT" | "CLK_MGT" => verify_clk_mux(grid, vrf, bel),
+        "CLK_IOB" | "CLK_CMT" | "CLK_MGT" => verify_clk_mux(edev, vrf, bel),
 
         _ if bel.key.starts_with("ILOGIC") => verify_ilogic(vrf, bel),
         _ if bel.key.starts_with("OLOGIC") => verify_ologic(vrf, bel),
@@ -1384,22 +1399,22 @@ pub fn verify_bel(grid: &Grid, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
         _ if bel.key.starts_with("OPAD") => verify_opad(vrf, bel),
 
-        "CLK_HROW" => verify_clk_hrow(grid, vrf, bel),
-        "HCLK" => verify_hclk(grid, vrf, bel),
+        "CLK_HROW" => verify_clk_hrow(edev, vrf, bel),
+        "HCLK" => verify_hclk(edev, vrf, bel),
         "HCLK_CMT_GCLK" => verify_hclk_cmt_gclk(vrf, bel),
-        "HCLK_CMT_GIOB" => verify_hclk_cmt_giob(grid, vrf, bel),
-        "HCLK_BRAM_MGT" => verify_hclk_bram_mgt(grid, vrf, bel),
+        "HCLK_CMT_GIOB" => verify_hclk_cmt_giob(edev, vrf, bel),
+        "HCLK_BRAM_MGT" => verify_hclk_bram_mgt(edev, vrf, bel),
         _ if bel.key.starts_with("BUFR") => verify_bufr(vrf, bel),
         _ if bel.key.starts_with("BUFIO") => verify_bufio(vrf, bel),
         "IDELAYCTRL" => verify_idelayctrl(vrf, bel),
-        "RCLK" => verify_rclk(grid, vrf, bel),
-        "IOCLK" => verify_ioclk(grid, vrf, bel),
+        "RCLK" => verify_rclk(edev, vrf, bel),
+        "IOCLK" => verify_ioclk(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }
 
-pub fn verify_extra(grid: &Grid, vrf: &mut Verifier) {
+pub fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_BYP0");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_BYP1");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_BYP2");
@@ -1412,9 +1427,9 @@ pub fn verify_extra(grid: &Grid, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL1");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL2");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL3");
-    if !grid.has_gt() {
-        let node = &vrf.grid.die(DieId::from_idx(0))
-            [(grid.columns.last_id().unwrap(), RowId::from_idx(0))]
+    if !edev.grid.has_gt() {
+        let node = &edev.egrid.die(DieId::from_idx(0))
+            [(edev.grid.columns.last_id().unwrap(), RowId::from_idx(0))]
             .nodes[0];
         let crd = vrf
             .xlat_tile(&node.names[NodeRawTileId::from_idx(0)])
@@ -1425,4 +1440,13 @@ pub fn verify_extra(grid: &Grid, vrf: &mut Verifier) {
     vrf.kill_stub_out_cond("IOI_BYP_INT_B2");
     vrf.kill_stub_out_cond("IOI_BYP_INT_B3");
     vrf.kill_stub_out_cond("IOI_BYP_INT_B6");
+}
+
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

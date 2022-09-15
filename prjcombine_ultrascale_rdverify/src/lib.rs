@@ -1,8 +1,7 @@
 use prjcombine_entity::EntityId;
-use prjcombine_entity::EntityVec;
-use prjcombine_int::grid::DieId;
-use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_ultrascale::Grid;
+use prjcombine_rawdump::Part;
+use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
+use prjcombine_ultrascale::{ExpandedDevice, GridKind};
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.node_kind == "CLEM" {
@@ -255,7 +254,26 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "URAM288", &pins, &[]);
 }
 
-pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let kind = match bel.key {
+        "PCIE" => "PCIE_3_1",
+        "PCIE4" => "PCIE40E4",
+        "PCIE4C" => "PCIE4CE4",
+        _ => unreachable!(),
+    };
+    vrf.verify_bel_dummies(
+        bel,
+        kind,
+        &[
+            ("MCAP_PERST0_B", SitePinDir::In),
+            ("MCAP_PERST1_B", SitePinDir::In),
+        ],
+        &[],
+        &["MCAP_PERST0_B", "MCAP_PERST1_B"],
+    );
+}
+
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "SLICE_L" | "SLICE_R" => verify_slice(vrf, bel),
         "DSP0" | "DSP1" => verify_dsp(vrf, bel),
@@ -263,6 +281,44 @@ pub fn verify_bel(_grids: &EntityVec<DieId, Grid>, vrf: &mut Verifier, bel: &Bel
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         _ if bel.key.starts_with("HARD_SYNC") => vrf.verify_bel(bel, "HARD_SYNC", &[], &[]),
         _ if bel.key.starts_with("URAM") => verify_uram(vrf, bel),
+        "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(vrf, bel),
+        "CMAC" => vrf.verify_bel(
+            bel,
+            if edev.grids[bel.die].kind == GridKind::Ultrascale {
+                "CMAC_SITE"
+            } else {
+                "CMACE4"
+            },
+            &[],
+            &[],
+        ),
+        "ILKN" => vrf.verify_bel(
+            bel,
+            if edev.grids[bel.die].kind == GridKind::Ultrascale {
+                "ILKN_SITE"
+            } else {
+                "ILKNE4"
+            },
+            &[],
+            &[],
+        ),
+        "DFE_A" | "DFE_B" | "DFE_C" | "DFE_D" | "DFE_E" | "DFE_F" | "DFE_G" | "FE" => {
+            vrf.verify_bel(bel, bel.key, &[], &[])
+        }
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
+}
+
+fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+    // XXX
+    vrf.skip_residual();
+}
+
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

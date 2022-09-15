@@ -1,6 +1,7 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_rawdump::Part;
+use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::{ExpandedDevice, GridKind};
 
 mod clb;
@@ -149,7 +150,7 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "RLL" => verify_rll(vrf, bel),
         _ if bel.key.starts_with("SLICE") => {
@@ -272,7 +273,7 @@ pub fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
     }
 }
 
-pub fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
+fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
     if edev.grid.kind.is_spartan3ea() {
         vrf.kill_stub_out("IOIS_STUB_F1_B3");
         vrf.kill_stub_out("IOIS_STUB_F2_B3");
@@ -290,4 +291,13 @@ pub fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
         vrf.kill_stub_in("STUB_IOIS_XQ3");
         vrf.kill_stub_in("STUB_IOIS_YQ3");
     }
+}
+
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+    verify(
+        rd,
+        &edev.egrid,
+        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf| verify_extra(edev, vrf),
+    );
 }

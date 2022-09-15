@@ -4,9 +4,8 @@ use prjcombine_ultrascale::expand_grid;
 use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
-use prjcombine_rdverify::verify;
 use prjcombine_ultrascale_rd2db::{bond, grid, int_u, int_up};
-use prjcombine_ultrascale_rdverify::verify_bel;
+use prjcombine_ultrascale_rdverify::verify_device;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, disabled) = grid::make_grids(rd);
@@ -21,13 +20,8 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Ultrascale(bond)));
     }
     let grid_refs = grids.map_values(|x| x);
-    let eint = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
-    verify(
-        rd,
-        &eint,
-        |vrf, bel| verify_bel(&grids, vrf, bel),
-        |vrf| vrf.skip_residual(),
-    );
+    let edev = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
+    verify_device(&edev, rd);
     let grids = grids.into_map_values(Grid::Ultrascale);
     let disabled = disabled.into_iter().map(DisabledPart::Ultrascale).collect();
     (

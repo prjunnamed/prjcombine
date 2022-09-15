@@ -677,5 +677,35 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, "DSP", &bels_dsp);
     }
 
+    for (kind, tkn, bk) in [
+        ("PCIE", "PCIE", "PCIE_3_1"),
+        ("CMAC", "CMAC_CMAC_FT", "CMAC_SITE"),
+        ("ILKN", "ILMAC_ILMAC_FT", "ILKN_SITE"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+            let mut bel = builder.bel_xy(kind, bk, 0, 0);
+            if kind == "PCIE" {
+                bel = bel.pin_dummy("MCAP_PERST0_B").pin_dummy("MCAP_PERST1_B");
+            }
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(120);
+            for i in 0..30 {
+                xn = xn
+                    .ref_int(int_l_xy.delta(0, i as i32), i)
+                    .ref_int(int_l_xy.delta(0, 31 + i as i32), i + 30)
+                    .ref_int(int_r_xy.delta(0, i as i32), i + 60)
+                    .ref_int(int_r_xy.delta(0, 31 + i as i32), i + 90)
+                    .ref_single(int_l_xy.delta(1, i as i32), i, intf_l)
+                    .ref_single(int_l_xy.delta(1, 31 + i as i32), i + 30, intf_l)
+                    .ref_single(int_r_xy.delta(-1, i as i32), i + 60, intf_r)
+                    .ref_single(int_r_xy.delta(-1, 31 + i as i32), i + 90, intf_r);
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
     builder.build()
 }
