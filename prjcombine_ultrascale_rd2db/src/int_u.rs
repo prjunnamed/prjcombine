@@ -418,11 +418,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    for i in 0..16 {
-        builder.mux_out(
-            format!("RCLK.IMUX.CE.{i}"),
-            &[format!("CLK_BUFCE_LEAF_X16_0_CE_INT{i}")],
-        );
+    for i in 0..2 {
+        for j in 0..16 {
+            builder.mux_out(
+                format!("RCLK.IMUX.CE.{i}.{j}"),
+                &[format!("CLK_BUFCE_LEAF_X16_{i}_CE_INT{j}")],
+            );
+        }
     }
     for i in 0..2 {
         for j in 0..4 {
@@ -478,11 +480,35 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = Coord {
-                x: xy.x,
-                y: xy.y + 1,
-            };
-            builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
+            let mut bels = vec![];
+            for i in 0..2 {
+                let ud = ['D', 'U'][i];
+                let mut bel = builder.bel_xy(
+                    &format!("BUFCE_LEAF_X16_{ud}"),
+                    "BUFCE_LEAF_X16",
+                    0,
+                    i as u8,
+                );
+                for j in 0..16 {
+                    bel = bel.pin_name_only(&format!("CLK_IN{j}"), 0);
+                }
+                bels.push(bel);
+            }
+            let mut bel = builder
+                .bel_virtual("RCLK_INT")
+                .extra_wire("VCC", &["VCC_WIRE"]);
+            for i in 0..24 {
+                bel = bel.extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")]);
+            }
+            bels.push(bel);
+            builder
+                .xnode("RCLK_INT", "RCLK_INT", xy)
+                .num_tiles(2)
+                .ref_int(xy.delta(0, 1), 0)
+                .ref_int(xy.delta(0, -1), 1)
+                .extract_muxes()
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -732,7 +758,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
                 bels.push(bel);
             }
-            bels.push(builder.bel_virtual("VCC").extra_wire("VCC", &["VCC_WIRE"]));
+            bels.push(
+                builder
+                    .bel_virtual("VCC.LAGUNA")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
             builder.extract_xnode_bels("LAGUNA", xy, &[], &[xy.delta(1, 0)], "LAGUNA", &bels);
         }
     }
@@ -828,6 +858,53 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 30, intf_r)
         }
         xn.bel(bel).extract();
+    }
+
+    for tkn in [
+        "PCIE",
+        "CMAC_CMAC_FT",
+        "ILMAC_ILMAC_FT",
+        "CFG_CFG",
+        "RCLK_AMS_CFGIO",
+        "RCLK_CLEM_CLKBUF_L",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("RCLK_HROUTE_SPLITTER");
+            for i in 0..24 {
+                bel = bel
+                    .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
+                    .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")]);
+            }
+            let bel_vcc = builder
+                .bel_virtual("VCC.RCLK_HROUTE_SPLITTER")
+                .extra_wire("VCC", &["VCC_WIRE"]);
+            builder
+                .xnode("RCLK_HROUTE_SPLITTER", "RCLK_HROUTE_SPLITTER", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .bel(bel_vcc)
+                .extract();
+        }
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_DSP_CLKBUF_L").iter().next() {
+        let mut bel = builder.bel_virtual("RCLK_SPLITTER");
+        for i in 0..24 {
+            bel = bel
+                .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_L{i}")])
+                .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_R{i}")])
+                .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
+                .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")]);
+        }
+        let bel_vcc = builder
+            .bel_virtual("VCC.RCLK_SPLITTER")
+            .extra_wire("VCC", &["VCC_WIRE"]);
+        builder
+            .xnode("RCLK_SPLITTER", "RCLK_SPLITTER", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .bel(bel_vcc)
+            .extract();
     }
 
     builder.build()

@@ -3,7 +3,8 @@ use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind, Ps, RegId,
+    DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind, Ps,
+    PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -348,8 +349,19 @@ fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
 
 fn get_ps(int: &IntGrid) -> Option<Ps> {
     let col = int.lookup_column(int.find_column(&["INT_INTF_LEFT_TERM_PSS"])? + 1);
+    let &ps = int.rd.tiles_by_kind_name("PSS_ALTO").iter().next().unwrap();
+    let intf_tk = &int.rd.tile_kinds.key(int.rd.tiles[&ps.delta(159, 30)].kind)[..];
     Some(Ps {
         col,
+        intf_kind: match intf_tk {
+            "RCLK_INTF_LEFT_TERM_ALTO" => PsIntfKind::Alto,
+            "RCLK_RCLK_INTF_LEFT_TERM_DA6_FT" => PsIntfKind::Da6,
+            "RCLK_INTF_LEFT_TERM_DA7" => PsIntfKind::Da7,
+            "RCLK_RCLK_INTF_LEFT_TERM_DA8_FT" => PsIntfKind::Da8,
+            "RCLK_RCLK_INTF_LEFT_TERM_DC12_FT" => PsIntfKind::Dc12,
+            "RCLK_RCLK_INTF_LEFT_TERM_MX8_FT" => PsIntfKind::Mx8,
+            _ => panic!("weird intf {intf_tk}"),
+        },
         has_vcu: int.find_column(&["VCU_VCU_FT"]).is_some(),
     })
 }

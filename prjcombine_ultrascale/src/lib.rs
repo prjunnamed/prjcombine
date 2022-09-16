@@ -152,6 +152,17 @@ pub struct IoColumn {
 pub struct Ps {
     pub col: ColId,
     pub has_vcu: bool,
+    pub intf_kind: PsIntfKind,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum PsIntfKind {
+    Alto,
+    Da6,
+    Da7,
+    Da8,
+    Dc12,
+    Mx8,
 }
 
 impl Ps {

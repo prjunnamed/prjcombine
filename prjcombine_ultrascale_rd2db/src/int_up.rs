@@ -419,8 +419,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = xy.delta(0, 1);
-            builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
+            let mut bels = vec![];
+            for ud in ['D', 'U'] {
+                for i in 0..16 {
+                    let mut bel = builder
+                        .bel_xy(
+                            &format!("BUFCE_LEAF_{ud}{i}"),
+                            "BUFCE_LEAF",
+                            i & 7,
+                            i / 8 + 2 * u8::from(ud == 'U'),
+                        )
+                        .pins_name_only(&["CLK_CASC_OUT", "CLK_IN"]);
+                    if i != 0 || ud == 'U' {
+                        bel = bel.pins_name_only(&["CLK_CASC_IN"]);
+                    }
+                    bels.push(bel);
+                }
+            }
+            let mut bel = builder
+                .bel_virtual("RCLK_INT")
+                .extra_wire("VCC", &["VCC_WIRE"]);
+            for i in 0..24 {
+                bel = bel.extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")]);
+            }
+            bels.push(bel);
+            builder
+                .xnode("RCLK_INT", "RCLK_INT", xy)
+                .num_tiles(2)
+                .ref_int(xy.delta(0, 1), 0)
+                .ref_int(xy.delta(0, -1), 1)
+                .extract_muxes()
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -695,7 +725,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
                 bels.push(bel);
             }
-            bels.push(builder.bel_virtual("VCC").extra_wire("VCC", &["VCC_WIRE"]));
+            bels.push(
+                builder
+                    .bel_virtual("VCC.LAGUNA")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
             builder.extract_xnode_bels("LAGUNA", xy, &[], &[xy.delta(2, 0)], "LAGUNA", &bels);
         }
     }
@@ -884,6 +918,57 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
             }
             xn.bel(bel).extract();
+        }
+    }
+
+    for tkn in [
+        "RCLK_INTF_LEFT_TERM_ALTO",
+        "RCLK_RCLK_INTF_LEFT_TERM_DA6_FT",
+        "RCLK_INTF_LEFT_TERM_DA7",
+        "RCLK_RCLK_INTF_LEFT_TERM_DA8_FT",
+        "RCLK_RCLK_INTF_LEFT_TERM_DC12_FT",
+        "RCLK_RCLK_INTF_LEFT_TERM_MX8_FT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let mut bels = vec![];
+            for i in 0..24 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFG_PS{i}"), "BUFG_PS", 0, i as u8)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT"])
+                        .extra_wire(
+                            "CLK_IN_DUMMY",
+                            &[format!(
+                                "VCC_WIRE{ii}",
+                                ii = [
+                                    0, 3, 8, 9, 10, 11, 13, 14, 15, 16, 1, 12, 17, 18, 19, 20, 21,
+                                    22, 23, 2, 4, 5, 6, 7
+                                ][i]
+                            )],
+                        ),
+                );
+            }
+            let mut bel = builder
+                .bel_virtual("RCLK_PS")
+                .extra_int_in("CKINT", &["INT_RCLK_TO_CLK_0_FT1_0"]);
+            for i in 0..18 {
+                bel = bel.extra_wire(format!("PS_TO_PL_CLK{i}"), &[format!("PS_TO_PL_CLK{i}")]);
+            }
+            for i in 0..24 {
+                bel = bel.extra_wire(format!("HROUTE{i}"), &[format!("CLK_HROUTE{i}")]);
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual("VCC.RCLK_PS")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            builder
+                .xnode("RCLK_PS", "RCLK_PS", xy)
+                .ref_xlat(xy.delta(1, 0), &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
         }
     }
 
@@ -1093,7 +1178,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
         }
         bels.push(bel);
-        bels.push(builder.bel_virtual("VCC").extra_wire("VCC", &["VCC_WIRE"]));
+        bels.push(
+            builder
+                .bel_virtual("VCC.RCLK_HDIO")
+                .extra_wire("VCC", &["VCC_WIRE"]),
+        );
         let mut xn = builder.xnode("RCLK_HDIO", "RCLK_HDIO", xy).num_tiles(120);
         for i in 0..60 {
             xn = xn
@@ -1103,6 +1192,62 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
         }
         xn.bels(bels).extract();
+    }
+
+    for tkn in [
+        "PCIE4_PCIE4_FT",
+        "PCIE4C_PCIE4C_FT",
+        "CMAC",
+        "ILKN_ILKN_FT",
+        "DFE_DFE_TILEA_FT",
+        "DFE_DFE_TILEB_FT",
+        "DFE_DFE_TILEE_FT",
+        "DFE_DFE_TILEG_FT",
+        "CFG_CONFIG",
+        "RCLK_AMS_CFGIO",
+        "RCLK_CLEM_CLKBUF_L",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("RCLK_HROUTE_SPLITTER");
+            for i in 0..24 {
+                bel = bel
+                    .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
+                    .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")]);
+            }
+            let bel_vcc = builder
+                .bel_virtual("VCC.RCLK_HROUTE_SPLITTER")
+                .extra_wire("VCC", &["VCC_WIRE"]);
+            builder
+                .xnode("RCLK_HROUTE_SPLITTER", "RCLK_HROUTE_SPLITTER", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .bel(bel_vcc)
+                .extract();
+        }
+    }
+
+    if let Some(&xy) = rd
+        .tiles_by_kind_name("RCLK_DSP_INTF_CLKBUF_L")
+        .iter()
+        .next()
+    {
+        let mut bel = builder.bel_virtual("RCLK_SPLITTER");
+        for i in 0..24 {
+            bel = bel
+                .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_L{i}")])
+                .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_R{i}")])
+                .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
+                .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")]);
+        }
+        let bel_vcc = builder
+            .bel_virtual("VCC.RCLK_SPLITTER")
+            .extra_wire("VCC", &["VCC_WIRE"]);
+        builder
+            .xnode("RCLK_SPLITTER", "RCLK_SPLITTER", xy)
+            .num_tiles(0)
+            .bel(bel)
+            .bel(bel_vcc)
+            .extract();
     }
 
     builder.build()

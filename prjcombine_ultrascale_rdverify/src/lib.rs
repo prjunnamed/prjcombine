@@ -283,7 +283,7 @@ fn verify_laguna(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         ],
         &["RXOUT0", "RXOUT1", "RXOUT2", "RXOUT3", "RXOUT4", "RXOUT5"],
     );
-    let bel_vcc = vrf.find_bel_sibling(bel, "VCC");
+    let bel_vcc = vrf.find_bel_sibling(bel, "VCC.LAGUNA");
     let mut obel = None;
     if bel.row.to_idx() < 60 {
         let odie = bel.die - 1;
@@ -370,42 +370,42 @@ fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins_clk = [
-        "O_DBG_L0_TXCLK",                   // 0.0
-        "O_DBG_L0_RXCLK",                   // 0.1
-        "O_DBG_L1_TXCLK",                   // 0.2
-        "O_DBG_L1_RXCLK",                   // 0.3
-        "O_DBG_L2_TXCLK",                   // 0.4
-        "O_DBG_L2_RXCLK",                   // 0.5
-        "O_DBG_L3_TXCLK",                   // 0.6
-        "O_DBG_L3_RXCLK",                   // 0.7
-        "APLL_TEST_CLK_OUT0",               // 1.0
-        "APLL_TEST_CLK_OUT1",               // 1.1
-        "DPLL_TEST_CLK_OUT0",               // 1.2
-        "DPLL_TEST_CLK_OUT1",               // 1.3
-        "VPLL_TEST_CLK_OUT0",               // 1.4
-        "VPLL_TEST_CLK_OUT1",               // 1.5
-        "DP_AUDIO_REF_CLK",                 // 1.6
-        "DP_VIDEO_REF_CLK",                 // 1.7
-        "DDR_DTO0",                         // 1.8
-        "DDR_DTO1",                         // 1.9
-        "PL_CLK0",                          // 2.0
-        "PL_CLK1",                          // 2.1
-        "PL_CLK2",                          // 2.2
-        "PL_CLK3",                          // 2.3
-        "IOPLL_TEST_CLK_OUT0",              // 2.4
-        "IOPLL_TEST_CLK_OUT1",              // 2.5
-        "RPLL_TEST_CLK_OUT0",               // 2.6
-        "RPLL_TEST_CLK_OUT1",               // 2.7
-        "FMIO_GEM0_FIFO_TX_CLK_TO_PL_BUFG", // 2.8
-        "FMIO_GEM0_FIFO_RX_CLK_TO_PL_BUFG", // 2.9
-        "FMIO_GEM1_FIFO_TX_CLK_TO_PL_BUFG", // 2.10
-        "FMIO_GEM1_FIFO_RX_CLK_TO_PL_BUFG", // 2.11
-        "FMIO_GEM2_FIFO_TX_CLK_TO_PL_BUFG", // 2.12
-        "FMIO_GEM2_FIFO_RX_CLK_TO_PL_BUFG", // 2.13
-        "FMIO_GEM3_FIFO_TX_CLK_TO_PL_BUFG", // 2.14
-        "FMIO_GEM3_FIFO_RX_CLK_TO_PL_BUFG", // 2.15
-        "FMIO_GEM_TSU_CLK_TO_PL_BUFG",      // 2.16
-        "PS_PL_SYSOSC_CLK",                 // 2.17
+        (0, 0, "O_DBG_L0_TXCLK"),
+        (0, 1, "O_DBG_L0_RXCLK"),
+        (0, 2, "O_DBG_L1_TXCLK"),
+        (0, 3, "O_DBG_L1_RXCLK"),
+        (0, 4, "O_DBG_L2_TXCLK"),
+        (0, 5, "O_DBG_L2_RXCLK"),
+        (0, 6, "O_DBG_L3_TXCLK"),
+        (0, 7, "O_DBG_L3_RXCLK"),
+        (1, 0, "APLL_TEST_CLK_OUT0"),
+        (1, 1, "APLL_TEST_CLK_OUT1"),
+        (1, 2, "DPLL_TEST_CLK_OUT0"),
+        (1, 3, "DPLL_TEST_CLK_OUT1"),
+        (1, 4, "VPLL_TEST_CLK_OUT0"),
+        (1, 5, "VPLL_TEST_CLK_OUT1"),
+        (1, 6, "DP_AUDIO_REF_CLK"),
+        (1, 7, "DP_VIDEO_REF_CLK"),
+        (1, 8, "DDR_DTO0"),
+        (1, 9, "DDR_DTO1"),
+        (2, 0, "PL_CLK0"),
+        (2, 1, "PL_CLK1"),
+        (2, 2, "PL_CLK2"),
+        (2, 3, "PL_CLK3"),
+        (2, 4, "IOPLL_TEST_CLK_OUT0"),
+        (2, 5, "IOPLL_TEST_CLK_OUT1"),
+        (2, 6, "RPLL_TEST_CLK_OUT0"),
+        (2, 7, "RPLL_TEST_CLK_OUT1"),
+        (2, 8, "FMIO_GEM0_FIFO_TX_CLK_TO_PL_BUFG"),
+        (2, 9, "FMIO_GEM0_FIFO_RX_CLK_TO_PL_BUFG"),
+        (2, 10, "FMIO_GEM1_FIFO_TX_CLK_TO_PL_BUFG"),
+        (2, 11, "FMIO_GEM1_FIFO_RX_CLK_TO_PL_BUFG"),
+        (2, 12, "FMIO_GEM2_FIFO_TX_CLK_TO_PL_BUFG"),
+        (2, 13, "FMIO_GEM2_FIFO_RX_CLK_TO_PL_BUFG"),
+        (2, 14, "FMIO_GEM3_FIFO_TX_CLK_TO_PL_BUFG"),
+        (2, 15, "FMIO_GEM3_FIFO_RX_CLK_TO_PL_BUFG"),
+        (2, 16, "FMIO_GEM_TSU_CLK_TO_PL_BUFG"),
+        (2, 17, "PS_PL_SYSOSC_CLK"),
     ];
     let pins_cfg_in = [
         "BSCAN_RESET_TAP_B",
@@ -446,8 +446,16 @@ fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
         pins_dummy_in.push("IDCODE16");
     }
     let mut pins = vec![];
-    for pin in pins_clk {
-        vrf.claim_node(&[bel.fwire(pin)]);
+    let obels = [
+        vrf.find_bel_delta(bel, 0, 30, "RCLK_PS").unwrap(),
+        vrf.find_bel_delta(bel, 0, 90, "RCLK_PS").unwrap(),
+        vrf.find_bel_delta(bel, 0, 150, "RCLK_PS").unwrap(),
+    ];
+    for (reg, idx, pin) in pins_clk {
+        vrf.claim_node(&[
+            bel.fwire(pin),
+            obels[reg].fwire(&format!("PS_TO_PL_CLK{idx}")),
+        ]);
         pins.push((pin, SitePinDir::Out));
     }
     for pin in pins_cfg_in {
@@ -461,22 +469,23 @@ fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_vcu(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let pins = [
-        ("VCU_PLL_TEST_CLK_OUT0", SitePinDir::Out), // 0
-        ("VCU_PLL_TEST_CLK_OUT1", SitePinDir::Out), // 1
-    ];
-    vrf.verify_bel(bel, "VCU", &pins, &[]);
-    for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+    let pins_clk = [(0, "VCU_PLL_TEST_CLK_OUT0"), (1, "VCU_PLL_TEST_CLK_OUT1")];
+    let obel = vrf.find_bel_delta(bel, 0, 30, "RCLK_PS").unwrap();
+    let mut pins = vec![];
+    for (idx, pin) in pins_clk {
+        vrf.claim_node(&[bel.fwire(pin), obel.fwire(&format!("PS_TO_PL_CLK{idx}"))]);
+        pins.push((pin, SitePinDir::Out));
     }
+    vrf.verify_bel(bel, "VCU", &pins, &[]);
 }
 
 fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = edev.grids[bel.die];
     let vaux: Vec<_> = (0..16)
         .map(|i| (format!("VP_AUX{i}"), format!("VN_AUX{i}")))
         .collect();
     let mut pins = vec![];
-    if edev.grids[bel.die].kind == GridKind::Ultrascale {
+    if grid.kind == GridKind::Ultrascale {
         pins.extend([
             ("I2C_SCLK_IN", SitePinDir::In),
             ("I2C_SCLK_TS", SitePinDir::Out),
@@ -487,7 +496,7 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     for (vp, vn) in &vaux {
         pins.extend([(&vp[..], SitePinDir::In), (&vn[..], SitePinDir::In)]);
     }
-    let kind = match edev.grids[bel.die].kind {
+    let kind = match grid.kind {
         GridKind::Ultrascale => "SYSMONE1",
         GridKind::UltrascalePlus => "SYSMONE4",
     };
@@ -495,11 +504,13 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    for i in 0..16 {
-        for pn in ['P', 'N'] {
-            let pin = format!("V{pn}_AUX{i}");
-            vrf.claim_node(&[bel.fwire_far(&pin)]);
-            vrf.claim_pip(bel.crd(), bel.wire(&pin), bel.wire_far(&pin));
+    if grid.kind == GridKind::UltrascalePlus {
+        for i in 0..16 {
+            for pn in ['P', 'N'] {
+                let pin = format!("V{pn}_AUX{i}");
+                vrf.claim_node(&[bel.fwire_far(&pin)]);
+                vrf.claim_pip(bel.crd(), bel.wire(&pin), bel.wire_far(&pin));
+            }
         }
     }
 }
@@ -515,6 +526,173 @@ fn verify_abus_switch(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
+}
+
+fn verify_bufce_leaf_x16(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let clk_in: [_; 16] = core::array::from_fn(|i| format!("CLK_IN{i}"));
+    let pins: Vec<_> = clk_in.iter().map(|x| (&x[..], SitePinDir::In)).collect();
+    vrf.verify_bel(bel, "BUFCE_LEAF_X16", &pins, &[]);
+    let obel = vrf.find_bel_sibling(bel, "RCLK_INT");
+    for pin in &clk_in {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        for j in 0..24 {
+            vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire(&format!("HDISTR{j}")));
+        }
+        vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("VCC"));
+    }
+}
+
+fn verify_bufce_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pins = vec![
+        ("CLK_CASC_OUT", SitePinDir::Out),
+        ("CLK_IN", SitePinDir::In),
+    ];
+    if bel.key != "BUFCE_LEAF_D0" {
+        pins.push(("CLK_CASC_IN", SitePinDir::In));
+    }
+    vrf.verify_bel(bel, "BUFCE_LEAF", &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    let obel = vrf.find_bel_sibling(bel, "RCLK_INT");
+    for j in 0..24 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("CLK_IN"),
+            obel.wire(&format!("HDISTR{j}")),
+        );
+    }
+    vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), obel.wire("VCC"));
+    if bel.key != "BUFCE_LEAF_D0" {
+        let idx: usize = bel.key[12..].parse().unwrap();
+        let okey = if bel.key == "BUFCE_LEAF_U0" {
+            "BUFCE_LEAF_D15".to_string()
+        } else {
+            format!("{p}{ni}", p = &bel.key[..12], ni = idx - 1)
+        };
+        let obel = vrf.find_bel_sibling(bel, &okey);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("CLK_CASC_IN"),
+            obel.wire("CLK_CASC_OUT"),
+        );
+    }
+}
+
+fn verify_rclk_int(_edev: &ExpandedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
+    // XXX source HDISTR
+}
+
+fn verify_rclk_splitter(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_SPLITTER");
+    for i in 0..24 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_L")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_L")),
+            bel.wire(&format!("HROUTE{i}_R")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_R")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_R")),
+            bel.wire(&format!("HROUTE{i}_L")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HDISTR{i}_L")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HDISTR{i}_L")),
+            bel.wire(&format!("HDISTR{i}_R")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HDISTR{i}_R")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HDISTR{i}_R")),
+            bel.wire(&format!("HDISTR{i}_L")),
+        );
+    }
+    // XXX source HROUTE, HDISTR
+}
+
+fn verify_rclk_hroute_splitter(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_HROUTE_SPLITTER");
+    for i in 0..24 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_L")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_L")),
+            bel.wire(&format!("HROUTE{i}_R")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_R")),
+            obel_vcc.wire("VCC"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}_R")),
+            bel.wire(&format!("HROUTE{i}_L")),
+        );
+    }
+    // XXX source HROUTE
+}
+
+fn verify_bufg_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = vec![("CLK_OUT", SitePinDir::Out), ("CLK_IN", SitePinDir::In)];
+    vrf.verify_bel(bel, "BUFG_PS", &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_PS");
+    let obel = vrf.find_bel_sibling(bel, "RCLK_PS");
+    for j in 0..18 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("CLK_IN"),
+            obel.wire(&format!("PS_TO_PL_CLK{j}")),
+        );
+    }
+    vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), obel.wire("CKINT"));
+    vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("CLK_IN_DUMMY"));
+}
+
+fn verify_rclk_ps(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_PS");
+    for i in 0..24 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}")),
+            obel_vcc.wire("VCC"),
+        );
+        let obel = vrf.find_bel_sibling(bel, &format!("BUFG_PS{i}"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("HROUTE{i}")),
+            obel.wire("CLK_OUT"),
+        );
+    }
+    // XXX source HROUTE
 }
 
 fn verify_hdiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -686,7 +864,7 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_rclk_hdio(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_bufgce: [_; 4] =
         core::array::from_fn(|i| vrf.find_bel_sibling(bel, &format!("BUFGCE_HDIO{i}")));
-    let obel_vcc = vrf.find_bel_sibling(bel, "VCC");
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_HDIO");
     for i in 0..24 {
         vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_MUX"))]);
         vrf.claim_pip(
@@ -774,7 +952,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         _ if bel.key.starts_with("HARD_SYNC") => vrf.verify_bel(bel, "HARD_SYNC", &[], &[]),
         _ if bel.key.starts_with("URAM") => verify_uram(vrf, bel),
         "LAGUNA0" | "LAGUNA1" | "LAGUNA2" | "LAGUNA3" => verify_laguna(edev, vrf, bel),
-        "VCC" => verify_vcc(vrf, bel),
+        _ if bel.key.starts_with("VCC") => verify_vcc(vrf, bel),
 
         "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(vrf, bel),
         "CMAC" => vrf.verify_bel(
@@ -808,11 +986,21 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "VCU" => verify_vcu(vrf, bel),
         _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(edev, vrf, bel),
 
+        _ if bel.key.starts_with("BUFCE_LEAF_X16") => verify_bufce_leaf_x16(vrf, bel),
+        _ if bel.key.starts_with("BUFCE_LEAF") => verify_bufce_leaf(vrf, bel),
+        "RCLK_INT" => verify_rclk_int(edev, vrf, bel),
+
+        "RCLK_SPLITTER" => verify_rclk_splitter(edev, vrf, bel),
+        "RCLK_HROUTE_SPLITTER" => verify_rclk_hroute_splitter(edev, vrf, bel),
+
+        _ if bel.key.starts_with("BUFG_PS") => verify_bufg_ps(vrf, bel),
+        "RCLK_PS" => verify_rclk_ps(edev, vrf, bel),
+
         _ if bel.key.starts_with("HDIOBDIFFINBUF") => verify_hdiobdiffinbuf(edev, vrf, bel),
         _ if bel.key.starts_with("HDIOB") => verify_hdiob(edev, vrf, bel),
         _ if bel.key.starts_with("HDIOLOGIC") => verify_hdiologic(vrf, bel),
         _ if bel.key.starts_with("BUFGCE_HDIO") => verify_bufgce_hdio(vrf, bel),
-        _ if bel.key.starts_with("RCLK_HDIO") => verify_rclk_hdio(edev, vrf, bel),
+        "RCLK_HDIO" => verify_rclk_hdio(edev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }

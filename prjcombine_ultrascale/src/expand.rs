@@ -7,8 +7,8 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId}
 use std::collections::BTreeSet;
 
 use crate::{
-    BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, ExpandedDevice,
-    Grid, GridKind, HardRowKind, IoRowKind, RegId,
+    BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind,
+    ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
 };
 
 struct Asx {
@@ -342,18 +342,51 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         for (col, &cd) in &self.grid.columns {
             let x = col.to_idx();
             for row in self.die.rows() {
+                if self.disabled.contains(&DisabledPart::Region(
+                    self.die.die,
+                    self.grid.row_to_reg(row),
+                )) {
+                    continue;
+                }
                 let y = self.ylut[row];
                 self.die
                     .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                if row.to_idx() % 60 == 30 && y != 0 {
+                if row.to_idx() % 60 == 30 {
                     let lr = if col < self.grid.col_cfg() { 'L' } else { 'R' };
                     let name = format!("RCLK_INT_{lr}_X{x}Y{yy}", yy = y - 1);
-                    self.die[(col, row)].add_xnode(
-                        self.db.get_node("RCLK"),
+                    let node = self.die[(col, row)].add_xnode(
+                        self.db.get_node("RCLK_INT"),
                         &[&name],
-                        self.db.get_node_naming("RCLK"),
-                        &[(col, row)],
+                        self.db.get_node_naming("RCLK_INT"),
+                        &[(col, row), (col, row - 1)],
                     );
+                    let sy = self.sylut[row] / 60;
+                    match self.grid.kind {
+                        GridKind::Ultrascale => {
+                            node.add_bel(0, format!("BUFCE_LEAF_X16_X{x}Y{y}", y = sy * 2));
+                            node.add_bel(1, format!("BUFCE_LEAF_X16_X{x}Y{y}", y = sy * 2 + 1));
+                        }
+                        GridKind::UltrascalePlus => {
+                            for i in 0..16 {
+                                node.add_bel(
+                                    i,
+                                    format!(
+                                        "BUFCE_LEAF_X{x}Y{y}",
+                                        x = x * 8 + (i & 7),
+                                        y = sy * 4 + i / 8
+                                    ),
+                                );
+                                node.add_bel(
+                                    i + 16,
+                                    format!(
+                                        "BUFCE_LEAF_X{x}Y{y}",
+                                        x = x * 8 + (i & 7),
+                                        y = sy * 4 + i / 8 + 2
+                                    ),
+                                );
+                            }
+                        }
+                    }
                 }
                 match cd.l {
                     ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => (),
@@ -518,6 +551,12 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     let term_e = self.db.get_term("IO.E");
                     let term_w = self.db.get_term("IO.W");
                     for row in self.die.rows() {
+                        if self.disabled.contains(&DisabledPart::Region(
+                            self.die.die,
+                            self.grid.row_to_reg(row),
+                        )) {
+                            continue;
+                        }
                         self.die
                             .fill_term_pair_anon((col - 1, row), (col, row), term_e, term_w);
                     }
@@ -550,6 +589,25 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     self.db.get_node_naming("INTF.PSS"),
                     &[(ps.col, row)],
                 );
+                if dy % 60 == 30 {
+                    let tk = match ps.intf_kind {
+                        PsIntfKind::Alto => "RCLK_INTF_LEFT_TERM_ALTO",
+                        PsIntfKind::Da6 => "RCLK_RCLK_INTF_LEFT_TERM_DA6_FT",
+                        PsIntfKind::Da7 => "RCLK_INTF_LEFT_TERM_DA7",
+                        PsIntfKind::Da8 => "RCLK_RCLK_INTF_LEFT_TERM_DA8_FT",
+                        PsIntfKind::Dc12 => "RCLK_RCLK_INTF_LEFT_TERM_DC12_FT",
+                        PsIntfKind::Mx8 => "RCLK_RCLK_INTF_LEFT_TERM_MX8_FT",
+                    };
+                    let node = self.die[(ps.col, row)].add_xnode(
+                        self.db.get_node("RCLK_PS"),
+                        &[&format!("{tk}_X{x}Y{y}", y = y - 1)],
+                        self.db.get_node_naming("RCLK_PS"),
+                        &[(ps.col, row)],
+                    );
+                    for i in 0..24 {
+                        node.add_bel(i, format!("BUFG_PS_X0Y{y}", y = dy / 60 * 24 + i));
+                    }
+                }
             }
             if self.disabled.contains(&DisabledPart::Ps) {
                 return;
@@ -577,22 +635,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 &crds,
             );
             node.add_bel(0, "VCU_X0Y0".to_string());
-        }
-    }
-
-    fn cut_regions(&mut self) {
-        for reg in self.grid.regs() {
-            if self
-                .disabled
-                .contains(&DisabledPart::Region(self.die.die, reg))
-            {
-                self.die.nuke_rect(
-                    ColId::from_idx(0),
-                    self.grid.row_reg_bot(reg),
-                    self.grid.columns.len(),
-                    60,
-                );
-            }
         }
     }
 
@@ -626,6 +668,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         for (col, &cd) in &self.grid.columns {
             let mut found = false;
             let mut found_laguna = false;
+            let x = col.to_idx();
             if let Some((kind, tk)) = match cd.l {
                 ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
                 ColumnKindLeft::CleM(_) => Some((
@@ -649,7 +692,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
-                    let x = col.to_idx();
                     let y = self.ylut[row];
                     if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
                         && self.grid.is_laguna_row(row)
@@ -696,6 +738,22 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         found = true;
                     }
                 }
+                for reg in self.grid.regs() {
+                    let row = self.grid.row_reg_rclk(reg);
+                    let tile = &mut self.die[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    if matches!(cd.l, ColumnKindLeft::CleM(CleMKind::ClkBuf)) {
+                        let name = format!("RCLK_CLEM_CLKBUF_L_X{x}Y{y}", y = self.ylut[row - 1]);
+                        tile.add_xnode(
+                            self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                            &[&name],
+                            self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
+                            &[],
+                        );
+                    }
+                }
             }
             if found {
                 sx += 1;
@@ -710,7 +768,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
-                    let x = col.to_idx();
                     let y = self.ylut[row];
                     let name = format!("CLEL_R_X{x}Y{y}");
                     let node = tile.add_xnode(
@@ -860,6 +917,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         let dieid = self.die.die;
         let mut dx = 0;
         for (col, &cd) in &self.grid.columns {
+            let x = col.to_idx();
             if !matches!(cd.r, ColumnKindRight::Dsp(_)) {
                 continue;
             }
@@ -875,7 +933,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         continue;
                     }
                     let tile = &mut self.die[(col, row)];
-                    let x = col.to_idx();
                     let y = self.ylut[row];
                     let name = format!("BLI_BLI_FT_X{x}Y{y}");
                     let crds: [_; 15] = core::array::from_fn(|i| (col, row + i));
@@ -892,7 +949,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
-                    let x = col.to_idx();
                     let y = self.ylut[row];
                     let name = format!("DSP_X{x}Y{y}");
                     let node = tile.add_xnode(
@@ -918,6 +974,26 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         continue;
                     }
                     node.add_bel(1, format!("DSP48E2_X{dx}Y{y}", y = dy * 2 + 1));
+                }
+            }
+            for reg in self.grid.regs() {
+                let row = self.grid.row_reg_rclk(reg);
+                let tile = &mut self.die[(col, row)];
+                if tile.nodes.is_empty() {
+                    continue;
+                }
+                if matches!(cd.r, ColumnKindRight::Dsp(DspKind::ClkBuf)) {
+                    let tk = match self.grid.kind {
+                        GridKind::Ultrascale => "RCLK_DSP_CLKBUF_L",
+                        GridKind::UltrascalePlus => "RCLK_DSP_INTF_CLKBUF_L",
+                    };
+                    let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row - 1]);
+                    tile.add_xnode(
+                        self.db.get_node("RCLK_SPLITTER"),
+                        &[&name],
+                        self.db.get_node_naming("RCLK_SPLITTER"),
+                        &[],
+                    );
                 }
             }
             dx += 1;
@@ -1148,6 +1224,13 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     node.add_bel(4, format!("CFGIO_SITE_X{sx}Y{sy}"));
                 }
                 let row = row + 30;
+                let name = format!("RCLK_AMS_CFGIO_X{x}Y{y}", y = self.ylut[row - 1]);
+                self.die[(col, row)].add_xnode(
+                    self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                    &[&name],
+                    self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
+                    &[],
+                );
                 let name = format!("AMS_X{x}Y{y}", y = self.ylut[row]);
                 let crds: [_; 60] = core::array::from_fn(|i| {
                     if i < 30 {
@@ -1196,6 +1279,12 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             HardRowKind::DfeG => ("DFE_G", "DFE_DFE_TILEG_FT", "DFE_G"),
         };
         let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
+        self.die[(col, row + 30)].add_xnode(
+            self.db.get_node("RCLK_HROUTE_SPLITTER"),
+            &[&name],
+            self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
+            &[],
+        );
         let crds: [_; 120] = core::array::from_fn(|i| {
             if i < 60 {
                 (col - 1, row + i)
@@ -1309,6 +1398,14 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     _ => unreachable!(),
                 };
                 let name = format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = self.ylut[row]);
+                if matches!(cd.r, ColumnKindRight::DfeB | ColumnKindRight::DfeE) {
+                    self.die[(if bi { col + 1 } else { col }, row + 30)].add_xnode(
+                        self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                        &[&name],
+                        self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
+                        &[],
+                    );
+                }
                 if self.disabled.contains(&DisabledPart::Dfe) {
                     continue;
                 }
@@ -1319,7 +1416,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         (col + 1, row + (i - 60))
                     }
                 });
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die[(if bi { col + 1 } else { col }, row)].add_xnode(
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1406,7 +1503,6 @@ pub fn expand_grid<'a>(
         expander.fill_int();
         expander.fill_io_pass();
         expander.fill_ps();
-        expander.cut_regions();
         expander.fill_term();
         expander.die.fill_main_passes();
         expander.fill_clb();

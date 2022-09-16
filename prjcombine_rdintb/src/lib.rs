@@ -228,6 +228,19 @@ impl XNodeInfo<'_, '_> {
         self
     }
 
+    pub fn ref_xlat(mut self, xy: Coord, slots: &[Option<usize>], naming: NodeNamingId) -> Self {
+        self.refs.push(XNodeRef {
+            xy,
+            naming: Some(naming),
+            tile_map: slots
+                .iter()
+                .enumerate()
+                .filter_map(|(i, x)| x.map(|x| (NodeTileId::from_idx(i), NodeTileId::from_idx(x))))
+                .collect(),
+        });
+        self
+    }
+
     pub fn extract_muxes(mut self) -> Self {
         self.extract_muxes = true;
         self
@@ -333,9 +346,9 @@ impl XNodeInfo<'_, '_> {
                         continue;
                     }
                     if let Some(nw) = rd.lookup_wire(r.xy, v) {
-                        names
-                            .entry(nw)
-                            .or_insert((IntConnKind::Raw, (r.tile_map[k.0], k.1)));
+                        if let Some(&ti) = r.tile_map.get(k.0) {
+                            names.entry(nw).or_insert((IntConnKind::Raw, (ti, k.1)));
+                        }
                     }
                 }
                 for (&k, v) in &naming.intf_wires_in {
