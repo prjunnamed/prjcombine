@@ -11,6 +11,7 @@ pub use expand::expand_grid;
 
 entity_id! {
     pub id RegId u32;
+    pub id HdioIobId u8;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -370,6 +371,7 @@ pub enum DisabledPart {
     Region(DieId, RegId),
     TopRow(DieId, RegId),
     HardIp(DieId, ColId, RegId),
+    HdioIob(DieId, ColId, RegId, HdioIobId),
     Dfe,
     Sdfec,
     Ps,
@@ -411,24 +413,39 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl Grid {
-    fn row_to_reg(&self, row: RowId) -> RegId {
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
         RegId::from_idx(row.to_idx() / 60)
     }
 
-    fn row_reg_bot(&self, reg: RegId) -> RowId {
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
         RowId::from_idx(reg.to_idx() * 60)
     }
 
-    fn regs(&self) -> EntityIds<RegId> {
+    pub fn row_reg_rclk(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 60 + 30)
+    }
+
+    pub fn regs(&self) -> EntityIds<RegId> {
         EntityIds::new(self.regs)
     }
 
-    fn is_laguna_row(&self, row: RowId) -> bool {
+    pub fn is_laguna_row(&self, row: RowId) -> bool {
         let reg = self.row_to_reg(row);
         (reg.to_idx() == 0 && !self.has_hbm) || reg.to_idx() == self.regs - 1
     }
 
-    fn col_cfg(&self) -> ColId {
+    pub fn col_cfg(&self) -> ColId {
         self.cols_hard.last().unwrap().col
+    }
+
+    pub fn row_ams(&self) -> RowId {
+        for hc in &self.cols_hard {
+            for (reg, &kind) in &hc.regs {
+                if kind == HardRowKind::Ams {
+                    return self.row_reg_rclk(reg);
+                }
+            }
+        }
+        unreachable!()
     }
 }

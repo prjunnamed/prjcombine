@@ -11,23 +11,31 @@ use crate::{
     Grid, GridKind, HardRowKind, IoRowKind, RegId,
 };
 
-// XXX
-#[allow(dead_code)]
 struct Asx {
+    // XXX
+    #[allow(dead_code)]
     gt: usize,
     io: usize,
     cfg: usize,
+    // XXX
+    #[allow(dead_code)]
     hbm: usize,
 }
 
-// XXX
-#[allow(dead_code)]
 struct Asy {
     hdio: usize,
+    // XXX
+    #[allow(dead_code)]
     hpio: usize,
+    // XXX
+    #[allow(dead_code)]
     hrio: usize,
+    // XXX
+    #[allow(dead_code)]
     cmt: usize,
     cfg: usize,
+    // XXX
+    #[allow(dead_code)]
     gt: usize,
 }
 
@@ -41,6 +49,8 @@ struct DieExpander<'a, 'b> {
     asxlut: EntityVec<ColId, Asx>,
     asylut: EntityVec<RegId, Asy>,
     lylut: EntityVec<RowId, usize>,
+    ioxlut: EntityVec<ColId, usize>,
+    ioylut: EntityVec<RegId, (usize, usize)>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
     has_slr_d: bool,
@@ -238,9 +248,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         for row in self.die.rows() {
             self.lylut.push(y);
             let reg = self.grid.row_to_reg(row);
-            if self.grid.is_laguna_row(row) && !self
-                .disabled
-                .contains(&DisabledPart::Region(self.die.die, reg))
+            if self.grid.is_laguna_row(row)
+                && !self
+                    .disabled
+                    .contains(&DisabledPart::Region(self.die.die, reg))
             {
                 y += 2;
             }
@@ -258,7 +269,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 let mut found = false;
                 if !skip {
                     for hc in &self.grid.cols_hard {
-                        if hc.regs[reg] == k {
+                        if hc.regs[reg] == k
+                            || (k == HardRowKind::Hdio && hc.regs[reg] == HardRowKind::HdioAms)
+                        {
                             found = true;
                         }
                     }
@@ -268,6 +281,61 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 }
             }
         }
+    }
+
+    fn fill_ioxlut(&mut self) {
+        let mut iox = 0;
+        for &cd in self.grid.columns.values() {
+            self.ioxlut.push(iox);
+            match cd.l {
+                ColumnKindLeft::Io(_) => {
+                    iox += 1;
+                }
+                ColumnKindLeft::Hard(idx) => {
+                    let regs = &self.grid.cols_hard[idx].regs;
+                    if regs
+                        .values()
+                        .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms))
+                    {
+                        iox += 1;
+                    }
+                }
+                _ => (),
+            }
+            if matches!(cd.r, ColumnKindRight::Io(_)) {
+                iox += 1;
+            }
+        }
+    }
+
+    fn fill_ioylut(&mut self, mut ioy: usize) -> usize {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            let has_hdio = self
+                .grid
+                .cols_hard
+                .iter()
+                .any(|x| matches!(x.regs[reg], HardRowKind::Hdio | HardRowKind::HdioAms))
+                && !skip;
+            let has_hprio = self
+                .grid
+                .cols_io
+                .iter()
+                .any(|x| matches!(x.regs[reg], IoRowKind::Hpio | IoRowKind::Hrio))
+                && !skip;
+            if has_hprio {
+                self.ioylut.push((ioy, ioy + 26));
+                ioy += 52;
+            } else if has_hdio {
+                self.ioylut.push((ioy, ioy + 12));
+                ioy += 24;
+            } else {
+                self.ioylut.push((0, 0));
+            }
+        }
+        ioy
     }
 
     fn fill_int(&mut self) {
@@ -587,11 +655,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         && self.grid.is_laguna_row(row)
                     {
                         let is_d = self.grid.row_to_reg(row).to_idx() == 0;
-                        let has_conn = if is_d {
-                            self.has_slr_d
-                        } else {
-                            self.has_slr_u
-                        };
+                        let has_conn = if is_d { self.has_slr_d } else { self.has_slr_u };
                         if !has_conn {
                             continue;
                         }
@@ -920,9 +984,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         reg: RegId,
         kind: HardRowKind,
         sx: usize,
+        sy: usize,
         hdio_cfg_only: bool,
     ) {
-        let sy = self.hylut[kind][reg];
         let row = self.grid.row_reg_bot(reg);
         if self
             .disabled
@@ -938,7 +1002,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             x = col.to_idx();
         }
         if self.grid.kind == GridKind::UltrascalePlus
-            && matches!(kind, HardRowKind::Cfg | HardRowKind::Ams)
+            && matches!(
+                kind,
+                HardRowKind::Cfg | HardRowKind::Ams | HardRowKind::Hdio | HardRowKind::HdioAms
+            )
             && !hdio_cfg_only
         {
             x = col.to_idx();
@@ -946,7 +1013,104 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         let (nk, tk, bk) = match kind {
             HardRowKind::None => return,
             HardRowKind::Hdio | HardRowKind::HdioAms => {
-                // XXX HDIO
+                for (i, (tk, nk)) in [
+                    ("HDIO_BOT_RIGHT", "HDIO_BOT"),
+                    ("HDIO_TOP_RIGHT", "HDIO_TOP"),
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    let row = row + i * 30;
+                    let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
+                    let crds: [_; 60] = core::array::from_fn(|i| {
+                        if i < 30 {
+                            (col - 1, row + i)
+                        } else {
+                            (col, row + (i - 30))
+                        }
+                    });
+                    let node = self.die[(col, row)].add_xnode(
+                        self.db.get_node(nk),
+                        &[&name],
+                        self.db.get_node_naming(nk),
+                        &crds,
+                    );
+                    let iox = self.ioxlut[col];
+                    let ioy = match i {
+                        0 => self.ioylut[reg].0,
+                        1 => self.ioylut[reg].1,
+                        _ => unreachable!(),
+                    };
+                    for j in 0..12 {
+                        node.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                    }
+                    // XXX IOBs
+                    for j in 0..6 {
+                        node.add_bel(
+                            12 + j,
+                            format!("HDIOBDIFFINBUF_X{sx}Y{y}", y = sy * 12 + i * 6 + j),
+                        );
+                        node.add_bel(
+                            18 + 2 * j,
+                            format!("HDIOLOGIC_M_X{sx}Y{y}", y = sy * 12 + i * 6 + j),
+                        );
+                        node.add_bel(
+                            18 + 2 * j + 1,
+                            format!("HDIOLOGIC_S_X{sx}Y{y}", y = sy * 12 + i * 6 + j),
+                        );
+                    }
+                    node.add_bel(30, format!("HDLOGIC_CSSD_X{sx}Y{y}", y = sy * 2 + i));
+                    if i == 0 {
+                        node.add_bel(31, format!("HDIO_VREF_X{sx}Y{sy}"));
+                    } else {
+                        node.add_bel(31, format!("HDIO_BIAS_X{sx}Y{sy}"));
+                    }
+                }
+                let name = format!("RCLK_HDIO_X{x}Y{y}", y = self.ylut[row + 29]);
+                let crds: [_; 120] = core::array::from_fn(|i| {
+                    if i < 60 {
+                        (col - 1, row + i)
+                    } else {
+                        (col, row + (i - 60))
+                    }
+                });
+                let node = self.die[(col, row + 30)].add_xnode(
+                    self.db.get_node("RCLK_HDIO"),
+                    &[&name],
+                    self.db.get_node_naming("RCLK_HDIO"),
+                    &crds,
+                );
+                node.add_bel(0, format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2));
+                node.add_bel(
+                    1,
+                    format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2 + 1),
+                );
+                node.add_bel(
+                    2,
+                    format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2),
+                );
+                node.add_bel(
+                    3,
+                    format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2 + 1),
+                );
+                for (i, x, y) in [
+                    (0, 0, 0),
+                    (1, 0, 1),
+                    (2, 1, 0),
+                    (3, 1, 1),
+                    (4, 2, 0),
+                    (5, 2, 1),
+                    (6, 3, 0),
+                ] {
+                    node.add_bel(
+                        4 + i,
+                        format!(
+                            "ABUS_SWITCH_X{x}Y{y}",
+                            x = self.asxlut[col].io + x,
+                            y = self.asylut[reg].hdio + y
+                        ),
+                    );
+                }
                 return;
             }
             HardRowKind::Cfg => {
@@ -1067,13 +1231,23 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             let hdio_cfg_only = hc.regs.values().all(|x| {
                 matches!(
                     x,
-                    HardRowKind::Cfg | HardRowKind::Ams | HardRowKind::Hdio | HardRowKind::HdioAms
+                    HardRowKind::Cfg
+                        | HardRowKind::Ams
+                        | HardRowKind::Hdio
+                        | HardRowKind::HdioAms
+                        | HardRowKind::None
                 )
-            });
+            }) || !hc.regs.values().any(|&x| x == HardRowKind::Cfg);
             for reg in self.grid.regs() {
                 let kind = hc.regs[reg];
-                let sx = if i == 0 { 0 } else { hcx[kind] };
-                self.fill_hard_single(hc.col, reg, kind, sx, hdio_cfg_only);
+                let adjkind = if kind == HardRowKind::HdioAms {
+                    HardRowKind::Hdio
+                } else {
+                    kind
+                };
+                let sx = if i == 0 { 0 } else { hcx[adjkind] };
+                let sy = self.hylut[adjkind][reg];
+                self.fill_hard_single(hc.col, reg, kind, sx, sy, hdio_cfg_only);
             }
         }
     }
@@ -1186,12 +1360,13 @@ pub fn expand_grid<'a>(
     let mut y = 0;
     let mut sy = 0;
     let mut ly = 0;
+    let mut ioy = 0;
     let mut hy = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
     let hcx = enum_map! {
         k => if grids.values().any(|grid| {
-            grid.cols_hard[0].regs.values().any(|&x| x == k)
+            grid.cols_hard[0].regs.values().any(|&x| x == k || (k == HardRowKind::Hdio && x == HardRowKind::HdioAms))
         }) {
             1
         } else {
@@ -1211,6 +1386,8 @@ pub fn expand_grid<'a>(
             lylut: EntityVec::new(),
             asxlut: EntityVec::new(),
             asylut: EntityVec::new(),
+            ioxlut: EntityVec::new(),
+            ioylut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
             has_slr_d: did != grids.first_id().unwrap(),
@@ -1223,6 +1400,8 @@ pub fn expand_grid<'a>(
         expander.fill_hylut(&mut hy);
         expander.fill_asxlut();
         asy = expander.fill_asylut(asy);
+        expander.fill_ioxlut();
+        ioy = expander.fill_ioylut(ioy);
 
         expander.fill_int();
         expander.fill_io_pass();

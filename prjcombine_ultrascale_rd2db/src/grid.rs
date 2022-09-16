@@ -1,9 +1,9 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::{Coord, NodeId, Part};
+use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, Grid, GridKind, HardColumn, HardRowKind, IoColumn, IoRowKind, Ps, RegId,
+    DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind, Ps, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -210,12 +210,43 @@ fn get_cols_hard(
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
             cells.insert((col, reg), kind);
-            let tile = &int.rd.tiles[&Coord {
+            let crd = Coord {
                 x: x as u16,
                 y: y as u16,
-            }];
+            };
+            let tile = &int.rd.tiles[&crd];
             if tile.sites.iter().next().is_none() && !tt.starts_with("DFE") {
                 disabled.insert(DisabledPart::HardIp(dieid, col, reg));
+            }
+            if tt == "HDIO_BOT_RIGHT" {
+                let sk = int.rd.slot_kinds.get("IOB").unwrap();
+                let tk = &int.rd.tile_kinds[tile.kind];
+                for i in 0..6 {
+                    let slot = TkSiteSlot::Xy(sk, 0, 2 * i as u8);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::HdioIob(
+                            dieid,
+                            col,
+                            reg,
+                            HdioIobId::from_idx(i),
+                        ));
+                    }
+                }
+                let tile = &int.rd.tiles[&crd.delta(0, 31)];
+                let tk = &int.rd.tile_kinds[tile.kind];
+                for i in 0..6 {
+                    let slot = TkSiteSlot::Xy(sk, 0, 2 * i as u8);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::HdioIob(
+                            dieid,
+                            col,
+                            reg,
+                            HdioIobId::from_idx(i + 6),
+                        ));
+                    }
+                }
             }
         }
     }

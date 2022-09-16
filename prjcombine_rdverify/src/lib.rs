@@ -1101,6 +1101,9 @@ impl<'a> Verifier<'a> {
                     wire: None,
                 });
             } else {
+                if !bel.naming.pins.contains_key(pin) {
+                    panic!("MISSING PIN NAME {key} {pin}", key = bel.key);
+                }
                 pins.push(SitePin {
                     dir,
                     pin,

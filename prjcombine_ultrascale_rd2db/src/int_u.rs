@@ -798,9 +798,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 0..30 {
             xn = xn
                 .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
-                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 30)
                 .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
-                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 30, intf_r)
         }
         xn.bels(bels).extract();
     }
@@ -823,9 +823,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 0..30 {
             xn = xn
                 .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
-                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 30)
                 .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
-                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 30, intf_r)
         }
         xn.bel(bel).extract();
     }
