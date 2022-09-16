@@ -1,4 +1,5 @@
 use prjcombine_entity::EntityId;
+use prjcombine_int::grid::RowId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_ultrascale::{ExpandedDevice, GridKind};
@@ -254,6 +255,68 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "URAM288", &pins, &[]);
 }
 
+fn verify_laguna(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "LAGUNA", &[
+        ("RXD0", SitePinDir::In),
+        ("RXD1", SitePinDir::In),
+        ("RXD2", SitePinDir::In),
+        ("RXD3", SitePinDir::In),
+        ("RXD4", SitePinDir::In),
+        ("RXD5", SitePinDir::In),
+        ("RXQ0", SitePinDir::Out),
+        ("RXQ1", SitePinDir::Out),
+        ("RXQ2", SitePinDir::Out),
+        ("RXQ3", SitePinDir::Out),
+        ("RXQ4", SitePinDir::Out),
+        ("RXQ5", SitePinDir::Out),
+        ("TXQ0", SitePinDir::Out),
+        ("TXQ1", SitePinDir::Out),
+        ("TXQ2", SitePinDir::Out),
+        ("TXQ3", SitePinDir::Out),
+        ("TXQ4", SitePinDir::Out),
+        ("TXQ5", SitePinDir::Out),
+    ], &[
+        "RXOUT0",
+        "RXOUT1",
+        "RXOUT2",
+        "RXOUT3",
+        "RXOUT4",
+        "RXOUT5",
+    ]);
+    let bel_vcc = vrf.find_bel_sibling(bel, "VCC");
+    let mut obel = None;
+    if bel.row.to_idx() < 60 {
+        let odie = bel.die - 1;
+        let orow = RowId::from_idx(edev.egrid.die(odie).rows().len() - 60 + bel.row.to_idx());
+        obel = vrf.find_bel(odie, (bel.col, orow), bel.key);
+        assert!(obel.is_some());
+    }
+    for i in 0..6 {
+        vrf.claim_node(&[bel.fwire(&format!("TXQ{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("TXOUT{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("RXD{i}"))]);
+        vrf.claim_node(&[bel.fwire(&format!("RXQ{i}"))]);
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("TXOUT{i}")), bel.wire(&format!("TXD{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("TXOUT{i}")), bel.wire(&format!("TXQ{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("RXOUT{i}")), bel.wire(&format!("RXD{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("RXOUT{i}")), bel.wire(&format!("RXQ{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("RXD{i}")), bel.wire(&format!("TXOUT{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("RXD{i}")), bel.wire(&format!("UBUMP{i}")));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("UBUMP{i}")), bel_vcc.wire("VCC"));
+        vrf.claim_pip(bel.crd(), bel.wire(&format!("UBUMP{i}")), bel.wire(&format!("TXOUT{i}")));
+        if let Some(ref obel) = obel {
+            vrf.claim_node(&[
+                bel.fwire(&format!("UBUMP{i}")),
+                obel.fwire(&format!("UBUMP{i}")),
+            ]);
+        }
+    }
+}
+
+fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.claim_node(&[bel.fwire("VCC")]);
+}
+
 fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match bel.key {
         "PCIE" => "PCIE_3_1",
@@ -422,6 +485,8 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         _ if bel.key.starts_with("HARD_SYNC") => vrf.verify_bel(bel, "HARD_SYNC", &[], &[]),
         _ if bel.key.starts_with("URAM") => verify_uram(vrf, bel),
+        "LAGUNA0" | "LAGUNA1" | "LAGUNA2" | "LAGUNA3" => verify_laguna(edev, vrf, bel),
+        "VCC" => verify_vcc(vrf, bel),
         "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(vrf, bel),
         "CMAC" => vrf.verify_bel(
             bel,

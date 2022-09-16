@@ -40,8 +40,11 @@ struct DieExpander<'a, 'b> {
     sylut: EntityVec<RowId, usize>,
     asxlut: EntityVec<ColId, Asx>,
     asylut: EntityVec<RegId, Asy>,
+    lylut: EntityVec<RowId, usize>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
+    has_slr_d: bool,
+    has_slr_u: bool,
 }
 
 impl<'a, 'b> DieExpander<'a, 'b> {
@@ -226,6 +229,20 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 .contains(&DisabledPart::Region(self.die.die, reg))
             {
                 y += 1;
+            }
+        }
+        y
+    }
+
+    fn fill_lylut(&mut self, mut y: usize) -> usize {
+        for row in self.die.rows() {
+            self.lylut.push(y);
+            let reg = self.grid.row_to_reg(row);
+            if self.grid.is_laguna_row(row) && !self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg))
+            {
+                y += 2;
             }
         }
         y
@@ -536,9 +553,11 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_clb(&mut self) {
         let mut sx = 0;
+        let mut lx = 0;
         let dieid = self.die.die;
         for (col, &cd) in &self.grid.columns {
             let mut found = false;
+            let mut found_laguna = false;
             if let Some((kind, tk)) = match cd.l {
                 ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
                 ColumnKindLeft::CleM(_) => Some((
@@ -553,11 +572,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 _ => None,
             } {
                 for row in self.die.rows() {
-                    if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
-                        && self.grid.is_laguna_row(row)
-                    {
-                        continue;
-                    }
                     let tile = &mut self.die[(col, row)];
                     if let Some(ps) = self.grid.ps {
                         if col == ps.col && row.to_idx() < ps.height() {
@@ -569,27 +583,61 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     }
                     let x = col.to_idx();
                     let y = self.ylut[row];
-                    let name = format!("{tk}_X{x}Y{y}");
-                    let node = tile.add_xnode(
-                        self.db.get_node(kind),
-                        &[&name],
-                        self.db.get_node_naming(kind),
-                        &[(col, row)],
-                    );
-                    if row.to_idx() % 60 == 59
-                        && self
-                            .disabled
-                            .contains(&DisabledPart::TopRow(dieid, self.grid.row_to_reg(row)))
+                    if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
+                        && self.grid.is_laguna_row(row)
                     {
-                        continue;
+                        let is_d = self.grid.row_to_reg(row).to_idx() == 0;
+                        let has_conn = if is_d {
+                            self.has_slr_d
+                        } else {
+                            self.has_slr_u
+                        };
+                        if !has_conn {
+                            continue;
+                        }
+                        let (x, tk) = match self.grid.kind {
+                            GridKind::Ultrascale => (x, "LAGUNA_TILE"),
+                            GridKind::UltrascalePlus => (x - 1, "LAG_LAG"),
+                        };
+                        let name = format!("{tk}_X{x}Y{y}");
+                        let node = tile.add_xnode(
+                            self.db.get_node("LAGUNA"),
+                            &[&name],
+                            self.db.get_node_naming("LAGUNA"),
+                            &[(col, row)],
+                        );
+                        let ly = self.lylut[row];
+                        node.add_bel(0, format!("LAGUNA_X{x}Y{y}", x = lx, y = ly));
+                        node.add_bel(1, format!("LAGUNA_X{x}Y{y}", x = lx, y = ly + 1));
+                        node.add_bel(2, format!("LAGUNA_X{x}Y{y}", x = lx + 1, y = ly));
+                        node.add_bel(3, format!("LAGUNA_X{x}Y{y}", x = lx + 1, y = ly + 1));
+                        found_laguna = true;
+                    } else {
+                        let name = format!("{tk}_X{x}Y{y}");
+                        let node = tile.add_xnode(
+                            self.db.get_node(kind),
+                            &[&name],
+                            self.db.get_node_naming(kind),
+                            &[(col, row)],
+                        );
+                        if row.to_idx() % 60 == 59
+                            && self
+                                .disabled
+                                .contains(&DisabledPart::TopRow(dieid, self.grid.row_to_reg(row)))
+                        {
+                            continue;
+                        }
+                        let sy = self.sylut[row];
+                        node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
+                        found = true;
                     }
-                    let sy = self.sylut[row];
-                    node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
-                    found = true;
                 }
             }
             if found {
                 sx += 1;
+            }
+            if found_laguna {
+                lx += 2;
             }
             let mut found = false;
             if matches!(cd.r, ColumnKindRight::CleL(_)) {
@@ -1137,6 +1185,7 @@ pub fn expand_grid<'a>(
     let mut egrid = ExpandedGrid::new(db);
     let mut y = 0;
     let mut sy = 0;
+    let mut ly = 0;
     let mut hy = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
@@ -1150,7 +1199,7 @@ pub fn expand_grid<'a>(
         }
     };
     for (_, grid) in grids {
-        let (_, die) = egrid.add_die(grid.columns.len(), grid.regs * 60);
+        let (did, die) = egrid.add_die(grid.columns.len(), grid.regs * 60);
 
         let mut expander = DieExpander {
             grid,
@@ -1159,14 +1208,18 @@ pub fn expand_grid<'a>(
             db,
             ylut: EntityVec::new(),
             sylut: EntityVec::new(),
+            lylut: EntityVec::new(),
             asxlut: EntityVec::new(),
             asylut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
+            has_slr_d: did != grids.first_id().unwrap(),
+            has_slr_u: did != grids.last_id().unwrap(),
         };
 
         y = expander.fill_ylut(y);
         sy = expander.fill_sylut(sy);
+        ly = expander.fill_lylut(ly);
         expander.fill_hylut(&mut hy);
         expander.fill_asxlut();
         asy = expander.fill_asylut(asy);
