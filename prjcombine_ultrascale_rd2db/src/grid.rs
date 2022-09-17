@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::grid::{ColId, DieId};
+use prjcombine_int::grid::{ColId, RowId, DieId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
@@ -148,10 +148,64 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
             println!("FAILED TO DETERMINE COLUMN {}.R", i.to_idx());
         }
     }
-    res.into_map_values(|(l, r)| Column {
+    let mut res = res.into_map_values(|(l, r)| Column {
         l: l.unwrap(),
         r: r.unwrap(),
-    })
+        clk_l: [None; 4],
+        clk_r: [None; 2],
+    });
+    for (col, cd) in res.iter_mut() {
+        let x = int.cols[col] as u16;
+        let row = if int.rd.family == "ultrascale" {
+            // avoid laguna rows, if present
+            RowId::from_idx(90)
+        } else {
+            // avoid PS rows
+            RowId::from_idx(int.rows.len() - 30)
+        };
+        let y = int.rows[row] as u16 - 1;
+        let crd = Coord{x, y};
+        let hdistr: [_; 24] = core::array::from_fn(|i| {
+            int.rd.lookup_wire(crd, &format!("CLK_HDISTR_FT0_{i}")).unwrap()
+        });
+        if let Some((xy, num)) = match cd.l {
+            ColumnKindLeft::CleL => Some((crd.delta(-1, 0), 1)),
+            ColumnKindLeft::CleM(CleMKind::ClkBuf) => None,
+            ColumnKindLeft::CleM(CleMKind::Laguna) if int.rd.family == "ultrascaleplus" => Some((crd.delta(-2, 0), 1)),
+            ColumnKindLeft::CleM(_) => Some((crd.delta(-1, 0), 1)),
+            ColumnKindLeft::Bram(_) => if int.rd.family == "ultrascale" {
+                Some((crd.delta(-2, 0), 2))
+            } else {
+                Some((crd.delta(-2, 0), 4))
+            }
+            ColumnKindLeft::Uram => Some((crd.delta(-3, 0), 4)),
+            _ => None,
+        } {
+            for j in 0..num {
+                let nw = int.rd.lookup_wire(xy, &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1));
+                if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
+                    cd.clk_l[j] = Some(idx as u8);
+                }
+            }
+        }
+        if let Some((xy, num)) = match cd.r {
+            ColumnKindRight::CleL(_) if int.rd.family == "ultrascale" => Some((crd.delta(1, 0), 1)),
+            ColumnKindRight::Dsp(_) => if int.rd.family == "ultrascale" {
+                Some((crd.delta(2, 0), 2))
+            } else {
+                Some((crd.delta(1, 0), 2))
+            }
+            _ => None,
+        } {
+            for j in 0..num {
+                let nw = int.rd.lookup_wire(xy, &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1));
+                if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
+                    cd.clk_r[j] = Some(idx as u8);
+                }
+            }
+        }
+    }
+    res
 }
 
 fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {

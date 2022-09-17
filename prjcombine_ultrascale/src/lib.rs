@@ -108,6 +108,8 @@ pub enum DspKind {
 pub struct Column {
     pub l: ColumnKindLeft,
     pub r: ColumnKindRight,
+    pub clk_l: [Option<u8>; 4],
+    pub clk_r: [Option<u8>; 2],
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Enum)]

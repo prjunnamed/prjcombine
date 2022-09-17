@@ -658,13 +658,15 @@ fn verify_rclk_hroute_splitter(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: 
 }
 
 fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = edev.grids[bel.die];
     let pins = vec![
         ("CLK_IN", SitePinDir::In),
         ("CLK_OUT", SitePinDir::Out),
         ("CLK_OUT_OPT_DLY", SitePinDir::Out),
     ];
+    // XXX do we use this for IO?
     let kind = if !bel.key.starts_with("BUFCE_ROW_IO")
-        && edev.grids[bel.die].kind == GridKind::UltrascalePlus
+        && grid.kind == GridKind::UltrascalePlus
     {
         "BUFCE_ROW_FSR"
     } else {
@@ -675,14 +677,19 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
         vrf.claim_node(&[bel.fwire(pin)]);
     }
 
+    let is_l = bel.key.starts_with("BUFCE_ROW_L");
+    let idx: usize = bel.key[11..].parse().unwrap();
+    let hidx = if is_l {
+        grid.columns[bel.col].clk_l[idx]
+    } else {
+        grid.columns[bel.col].clk_r[idx]
+    };
     // XXX source HROUTE and GCLK_TEST_BUF.CLK_IN aka HDISTR
 
     vrf.claim_node(&[bel.fwire("VROUTE_T")]);
     vrf.claim_node(&[bel.fwire("VDISTR_T")]);
-    // XXX uncomment and fix up when we have the wire mapping data
-    /*
     let obel_s = vrf.find_bel_delta(bel, 0, -60, bel.key).or_else(|| {
-        if bel.die.to_idx() == 0 || bel.row.to_idx() != 30 {
+        if bel.die.to_idx() == 0 || bel.row.to_idx() != 30 || hidx.is_none() {
             return None;
         }
         let odie = bel.die - 1;
@@ -706,11 +713,10 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
             bel.fwire("VDISTR_B"),
         ]);
     }
-    */
 
     let obel_gtb = vrf.find_bel_sibling(bel, &format!("GCLK_TEST_BUF_{k}", k = &bel.key[10..]));
 
-    let okey_vcc = if bel.key.starts_with("BUFCE_ROW_L") {
+    let okey_vcc = if is_l {
         "VCC.RCLK_V_L"
     } else {
         "VCC.RCLK_V_R"
@@ -733,7 +739,7 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
     vrf.claim_node(&[bel.fwire("VDISTR_B_MUX")]);
     vrf.claim_node(&[bel.fwire("VDISTR_T_MUX")]);
 
-    if edev.grids[bel.die].kind == GridKind::Ultrascale {
+    if grid.kind == GridKind::Ultrascale {
         vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_B"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_T"));
 
