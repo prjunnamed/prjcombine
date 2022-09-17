@@ -41,6 +41,11 @@ pub struct Grid {
     pub is_alt_cfg: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DeviceNaming {
+    pub rclk_alt_pins: BTreeMap<String, bool>,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKindLeft {
     CleL,
@@ -421,6 +426,7 @@ pub struct ExpandedDevice<'a> {
     pub grid_master: DieId,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
+    pub naming: &'a DeviceNaming,
 }
 
 impl Grid {
@@ -458,5 +464,13 @@ impl Grid {
             }
         }
         unreachable!()
+    }
+
+    pub fn is_dc12(&self) -> bool {
+        if let Some(ps) = self.ps {
+            matches!(ps.intf_kind, PsIntfKind::Dc12 | PsIntfKind::Mx8)
+        } else {
+            false
+        }
     }
 }

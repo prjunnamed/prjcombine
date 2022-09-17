@@ -1,9 +1,10 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::{Coord, Part};
+use prjcombine_ultrascale::DeviceNaming;
 
 use prjcombine_rdintb::IntBuilder;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
+pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     let mut builder = IntBuilder::new("ultrascale", rd);
 
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
@@ -905,6 +906,139 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .bel(bel)
             .bel(bel_vcc)
             .extract();
+    }
+
+    for (tkn, lr) in [
+        ("RCLK_CLEL_L", 'L'),
+        ("RCLK_CLEL_R", 'L'),
+        ("RCLK_CLEL_R_L", 'R'),
+        ("RCLK_CLEL_R_R", 'R'),
+        ("RCLK_CLE_M_L", 'L'),
+        ("RCLK_CLE_M_R", 'L'),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_alt = dev_naming.rclk_alt_pins[tkn];
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let kind = if lr == 'L' {
+                "RCLK_V_SINGLE_L"
+            } else {
+                "RCLK_V_SINGLE_R"
+            };
+            let int_xy = xy.delta(if lr == 'L' { 1 } else { -1 }, 0);
+            let bels = vec![
+                builder
+                    .bel_xy(&format!("BUFCE_ROW_{lr}0"), "BUFCE_ROW", 0, 0)
+                    .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
+                    .extra_wire("VDISTR_B", &["CLK_VDISTR_BOT"])
+                    .extra_wire("VDISTR_T", &["CLK_VDISTR_TOP"])
+                    .extra_wire("VROUTE_B", &["CLK_VROUTE_BOT"])
+                    .extra_wire("VROUTE_T", &["CLK_VROUTE_TOP"])
+                    .extra_wire("HROUTE", &["CLK_HROUTE_CORE_OPT"])
+                    .extra_wire("VDISTR_B_MUX", &["CLK_CMT_MUX_3TO1_0_CLK_OUT"])
+                    .extra_wire("VDISTR_T_MUX", &["CLK_CMT_MUX_3TO1_1_CLK_OUT"])
+                    .extra_wire("VROUTE_B_MUX", &["CLK_CMT_MUX_3TO1_2_CLK_OUT"])
+                    .extra_wire("VROUTE_T_MUX", &["CLK_CMT_MUX_3TO1_3_CLK_OUT"])
+                    .extra_wire("HROUTE_MUX", &["CLK_CMT_MUX_2TO1_1_CLK_OUT"]),
+                builder
+                    .bel_xy(&format!("GCLK_TEST_BUF_{lr}0"), "GCLK_TEST_BUFE3", 0, 0)
+                    .pin_name_only("CLK_OUT", 0)
+                    .pin_name_only("CLK_IN", usize::from(is_alt)),
+                builder
+                    .bel_virtual(&format!("VCC.RCLK_V_{lr}"))
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            ];
+            builder
+                .xnode(
+                    kind,
+                    &if is_alt {
+                        format!("{kind}.ALT")
+                    } else {
+                        kind.to_string()
+                    },
+                    xy,
+                )
+                .ref_xlat(int_xy, &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for (tkn, lr) in [
+        ("RCLK_BRAM_L", 'L'),
+        ("RCLK_BRAM_R", 'L'),
+        ("RCLK_RCLK_BRAM_L_AUXCLMP_FT", 'L'),
+        ("RCLK_RCLK_BRAM_L_BRAMCLMP_FT", 'L'),
+        ("RCLK_DSP_L", 'R'),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_alt = dev_naming.rclk_alt_pins[tkn];
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let kind = if lr == 'L' {
+                "RCLK_V_DOUBLE_L"
+            } else {
+                "RCLK_V_DOUBLE_R"
+            };
+            let int_xy = xy.delta(if lr == 'L' { 2 } else { -2 }, 0);
+            let mut bels = vec![];
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFCE_ROW_{lr}{i}"), "BUFCE_ROW", i, 0)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
+                        .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
+                        .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
+                        .extra_wire("VROUTE_B", &[format!("CLK_VROUTE_BOT{i}")])
+                        .extra_wire("VROUTE_T", &[format!("CLK_VROUTE_TOP{i}")])
+                        .extra_wire("HROUTE", &[format!("CLK_HROUTE_CORE_OPT{i}")])
+                        .extra_wire(
+                            "VDISTR_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4)],
+                        )
+                        .extra_wire(
+                            "VDISTR_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 1)],
+                        )
+                        .extra_wire(
+                            "VROUTE_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 2)],
+                        )
+                        .extra_wire(
+                            "VROUTE_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 3)],
+                        )
+                        .extra_wire(
+                            "HROUTE_MUX",
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 2 + 1)],
+                        ),
+                );
+            }
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("GCLK_TEST_BUF_{lr}{i}"), "GCLK_TEST_BUFE3", i, 0)
+                        .pin_name_only("CLK_OUT", 0)
+                        .pin_name_only("CLK_IN", usize::from(is_alt)),
+                );
+            }
+            bels.push(
+                builder
+                    .bel_virtual(&format!("VCC.RCLK_V_{lr}"))
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            builder
+                .xnode(
+                    kind,
+                    &if is_alt {
+                        format!("{kind}.ALT")
+                    } else {
+                        kind.to_string()
+                    },
+                    xy,
+                )
+                .ref_xlat(int_xy, &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
+        }
     }
 
     builder.build()

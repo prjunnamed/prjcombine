@@ -1,7 +1,9 @@
 #![allow(clippy::needless_range_loop)]
+#![allow(clippy::collapsible_else_if)]
 
 use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::Part;
+use prjcombine_ultrascale::DeviceNaming;
 
 use enum_map::enum_map;
 
@@ -11,7 +13,7 @@ const XLAT24: [usize; 24] = [
     0, 11, 16, 17, 18, 19, 20, 21, 22, 23, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15,
 ];
 
-pub fn make_int_db(rd: &Part) -> IntDb {
+pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     let mut builder = IntBuilder::new("ultrascaleplus", rd);
 
     let d2n = enum_map!(
@@ -1194,6 +1196,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         xn.bels(bels).extract();
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("CFRM_CFRAME_TERM_H_FT").iter().next() {
+        let mut bels = vec![];
+        for i in 0..8 {
+            bels.push(
+                builder
+                    .bel_xy(&format!("ABUS_SWITCH.HBM{i}"), "ABUS_SWITCH", i >> 1, i & 1)
+                    .pins_name_only(&["TEST_ANALOGBUS_SEL_B"]),
+            );
+        }
+        builder
+            .xnode("HBM_ABUS_SWITCH", "HBM_ABUS_SWITCH", xy)
+            .num_tiles(0)
+            .bels(bels)
+            .extract();
+    }
+
     for tkn in [
         "PCIE4_PCIE4_FT",
         "PCIE4C_PCIE4C_FT",
@@ -1248,6 +1266,286 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .bel(bel)
             .bel(bel_vcc)
             .extract();
+    }
+
+    for tkn in [
+        "RCLK_CLEL_L_L",
+        "RCLK_CLEL_L_R",
+        "RCLK_CLEM_L",
+        "RCLK_CLEM_DMC_L",
+        "RCLK_CLEM_R",
+        "RCLK_LAG_L",
+        "RCLK_LAG_R",
+        "RCLK_LAG_DMC_L",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_alt = dev_naming.rclk_alt_pins[tkn];
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let int_xy = xy.delta(if tkn.starts_with("RCLK_LAG") { 2 } else { 1 }, 0);
+            let bels = vec![
+                builder
+                    .bel_xy("BUFCE_ROW_L0", "BUFCE_ROW_FSR", 0, 0)
+                    .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
+                    .extra_wire("VDISTR_B", &["CLK_VDISTR_BOT"])
+                    .extra_wire("VDISTR_T", &["CLK_VDISTR_TOP"])
+                    .extra_wire("VROUTE_B", &["CLK_VROUTE_BOT"])
+                    .extra_wire("VROUTE_T", &["CLK_VROUTE_TOP"])
+                    .extra_wire("HROUTE", &["CLK_HROUTE_CORE_OPT"])
+                    .extra_wire("VDISTR_B_MUX", &["CLK_CMT_MUX_3TO1_0_CLK_OUT"])
+                    .extra_wire("VDISTR_T_MUX", &["CLK_CMT_MUX_3TO1_1_CLK_OUT"])
+                    .extra_wire("VROUTE_B_MUX", &["CLK_CMT_MUX_3TO1_2_CLK_OUT"])
+                    .extra_wire("VROUTE_T_MUX", &["CLK_CMT_MUX_3TO1_3_CLK_OUT"])
+                    .extra_wire("HROUTE_MUX", &["CLK_CMT_MUX_2TO1_1_CLK_OUT"])
+                    .extra_wire(
+                        "VDISTR_B_BUF",
+                        &["CLK_CMT_DRVR_TRI_ESD_0_CLK_OUT_SCHMITT_B"],
+                    )
+                    .extra_wire(
+                        "VDISTR_T_BUF",
+                        &["CLK_CMT_DRVR_TRI_ESD_1_CLK_OUT_SCHMITT_B"],
+                    )
+                    .extra_wire(
+                        "VROUTE_B_BUF",
+                        &["CLK_CMT_DRVR_TRI_ESD_2_CLK_OUT_SCHMITT_B"],
+                    )
+                    .extra_wire(
+                        "VROUTE_T_BUF",
+                        &["CLK_CMT_DRVR_TRI_ESD_3_CLK_OUT_SCHMITT_B"],
+                    ),
+                builder
+                    .bel_xy("GCLK_TEST_BUF_L0", "GCLK_TEST_BUFE3", 0, 0)
+                    .pin_name_only("CLK_OUT", 0)
+                    .pin_name_only("CLK_IN", usize::from(is_alt)),
+                builder
+                    .bel_virtual("VCC.RCLK_V_L")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            ];
+            builder
+                .xnode(
+                    "RCLK_V_SINGLE_L",
+                    if is_alt {
+                        "RCLK_V_SINGLE_L.ALT"
+                    } else {
+                        "RCLK_V_SINGLE_L"
+                    },
+                    xy,
+                )
+                .ref_xlat(int_xy, &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for tkn in [
+        "RCLK_DSP_INTF_L",
+        "RCLK_DSP_INTF_R",
+        "RCLK_RCLK_DSP_INTF_DC12_L_FT",
+        "RCLK_RCLK_DSP_INTF_DC12_R_FT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_alt = dev_naming.rclk_alt_pins[tkn];
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let int_xy = xy.delta(-1, 0);
+            let mut bels = vec![];
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFCE_ROW_R{i}"), "BUFCE_ROW_FSR", i, 0)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
+                        .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
+                        .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
+                        .extra_wire("VROUTE_B", &[format!("CLK_VROUTE_BOT{i}")])
+                        .extra_wire("VROUTE_T", &[format!("CLK_VROUTE_TOP{i}")])
+                        .extra_wire("HROUTE", &[format!("CLK_HROUTE_CORE_OPT{i}")])
+                        .extra_wire(
+                            "VDISTR_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4)],
+                        )
+                        .extra_wire(
+                            "VDISTR_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 1)],
+                        )
+                        .extra_wire(
+                            "VROUTE_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 2)],
+                        )
+                        .extra_wire(
+                            "VROUTE_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 3)],
+                        )
+                        .extra_wire(
+                            "HROUTE_MUX",
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 2 + 1)],
+                        )
+                        .extra_wire(
+                            "VDISTR_B_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4
+                            )],
+                        )
+                        .extra_wire(
+                            "VDISTR_T_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 1
+                            )],
+                        )
+                        .extra_wire(
+                            "VROUTE_B_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 2
+                            )],
+                        )
+                        .extra_wire(
+                            "VROUTE_T_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 3
+                            )],
+                        ),
+                );
+            }
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("GCLK_TEST_BUF_R{i}"), "GCLK_TEST_BUFE3", i, 0)
+                        .pin_name_only("CLK_OUT", 0)
+                        .pin_name_only("CLK_IN", usize::from(is_alt)),
+                );
+            }
+            bels.push(
+                builder
+                    .bel_virtual("VCC.RCLK_V_R")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            builder
+                .xnode(
+                    "RCLK_V_DOUBLE_R",
+                    if is_alt {
+                        "RCLK_V_DOUBLE_R.ALT"
+                    } else {
+                        "RCLK_V_DOUBLE_R"
+                    },
+                    xy,
+                )
+                .ref_xlat(int_xy, &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
+        }
+    }
+
+    for tkn in [
+        "RCLK_BRAM_INTF_L",
+        "RCLK_BRAM_INTF_TD_L",
+        "RCLK_BRAM_INTF_TD_R",
+        "RCLK_RCLK_URAM_INTF_L_FT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let is_alt = dev_naming.rclk_alt_pins[tkn];
+            let is_uram = tkn == "RCLK_RCLK_URAM_INTF_L_FT";
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let int_xy = xy.delta(if is_uram { 3 } else { 2 }, 0);
+            let mut bels = vec![];
+            for i in 0..4 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFCE_ROW_L{i}"), "BUFCE_ROW_FSR", i, 0)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
+                        .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
+                        .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
+                        .extra_wire("VROUTE_B", &[format!("CLK_VROUTE_BOT{i}")])
+                        .extra_wire("VROUTE_T", &[format!("CLK_VROUTE_TOP{i}")])
+                        .extra_wire("HROUTE", &[format!("CLK_HROUTE_CORE_OPT{i}")])
+                        .extra_wire(
+                            "VDISTR_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4)],
+                        )
+                        .extra_wire(
+                            "VDISTR_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 1)],
+                        )
+                        .extra_wire(
+                            "VROUTE_B_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 2)],
+                        )
+                        .extra_wire(
+                            "VROUTE_T_MUX",
+                            &[format!("CLK_CMT_MUX_3TO1_{ii}_CLK_OUT", ii = i * 4 + 3)],
+                        )
+                        .extra_wire(
+                            "HROUTE_MUX",
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 2 + 1)],
+                        )
+                        .extra_wire(
+                            "VDISTR_B_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4
+                            )],
+                        )
+                        .extra_wire(
+                            "VDISTR_T_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 1
+                            )],
+                        )
+                        .extra_wire(
+                            "VROUTE_B_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 2
+                            )],
+                        )
+                        .extra_wire(
+                            "VROUTE_T_BUF",
+                            &[format!(
+                                "CLK_CMT_DRVR_TRI_ESD_{ii}_CLK_OUT_SCHMITT_B",
+                                ii = i * 4 + 3
+                            )],
+                        ),
+                );
+            }
+            for i in 0..4 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("GCLK_TEST_BUF_L{i}"), "GCLK_TEST_BUFE3", i, 0)
+                        .pin_name_only("CLK_OUT", 0)
+                        .pin_name_only("CLK_IN", usize::from(is_alt)),
+                );
+            }
+            for (i, x, y) in [(0, 0, 0), (1, 0, 1), (2, 1, 0)] {
+                bels.push(builder.bel_xy(&format!("VBUS_SWITCH{i}"), "VBUS_SWITCH", x, y));
+            }
+            bels.push(
+                builder
+                    .bel_virtual("VCC.RCLK_V_L")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            builder
+                .xnode(
+                    "RCLK_V_QUAD_L",
+                    if is_uram {
+                        if is_alt {
+                            "RCLK_V_QUAD_L.URAM.ALT"
+                        } else {
+                            "RCLK_V_QUAD_L.URAM"
+                        }
+                    } else {
+                        if is_alt {
+                            "RCLK_V_QUAD_L.ALT"
+                        } else {
+                            "RCLK_V_QUAD_L"
+                        }
+                    },
+                    xy,
+                )
+                .ref_xlat(int_xy, &[Some(0), None], rclk_int)
+                .bels(bels)
+                .extract();
+        }
     }
 
     builder.build()

@@ -2,9 +2,9 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::{
-    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind, Ps,
-    PsIntfKind, RegId,
+    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
+    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind,
+    Ps, PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -370,7 +370,14 @@ fn prepend_reg<T: Copy>(v: &mut EntityVec<RegId, T>, x: T) {
     *v = core::iter::once(x).chain(v.values().copied()).collect();
 }
 
-pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<DisabledPart>) {
+pub fn make_grids(
+    rd: &Part,
+) -> (
+    EntityVec<DieId, Grid>,
+    DieId,
+    BTreeSet<DisabledPart>,
+    DeviceNaming,
+) {
     let is_plus = rd.family == "ultrascaleplus";
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["INT_TERM_T"])
         .into_iter()
@@ -384,6 +391,60 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
     } else {
         GridKind::Ultrascale
     };
+
+    let mut rclk_alt_pins = BTreeMap::new();
+    for tkn in [
+        "RCLK_CLEL_L",
+        "RCLK_CLEL_R",
+        "RCLK_CLEL_R_L",
+        "RCLK_CLEL_R_R",
+        "RCLK_CLE_M_L",
+        "RCLK_CLE_M_R",
+        "RCLK_BRAM_L",
+        "RCLK_BRAM_R",
+        "RCLK_RCLK_BRAM_L_AUXCLMP_FT",
+        "RCLK_RCLK_BRAM_L_BRAMCLMP_FT",
+        "RCLK_DSP_L",
+        "RCLK_CLEL_L_L",
+        "RCLK_CLEL_L_R",
+        "RCLK_CLEM_L",
+        "RCLK_CLEM_DMC_L",
+        "RCLK_CLEM_R",
+        "RCLK_LAG_L",
+        "RCLK_LAG_R",
+        "RCLK_LAG_DMC_L",
+        "RCLK_DSP_INTF_L",
+        "RCLK_DSP_INTF_R",
+        "RCLK_RCLK_DSP_INTF_DC12_L_FT",
+        "RCLK_RCLK_DSP_INTF_DC12_R_FT",
+        "RCLK_BRAM_INTF_L",
+        "RCLK_BRAM_INTF_TD_L",
+        "RCLK_BRAM_INTF_TD_R",
+        "RCLK_RCLK_URAM_INTF_L_FT",
+    ] {
+        if let Some((_, tk)) = rd.tile_kinds.get(tkn) {
+            let mut has_any = false;
+            let mut has_pin = false;
+            for i in 0..4 {
+                let w = format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = i * 2 + 1);
+                let wp = format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN_PIN", ii = i * 2 + 1);
+                if let Some(wi) = rd.wires.get(&w) {
+                    if tk.wires.contains_key(&wi) {
+                        if let Some(wpi) = rd.wires.get(&wp) {
+                            if tk.wires.contains_key(&wpi) {
+                                has_pin = true;
+                            }
+                        }
+                    }
+                }
+                has_any = true;
+            }
+            if has_any {
+                rclk_alt_pins.insert(tkn.to_string(), has_pin);
+            }
+        }
+    }
+
     let mut grids = EntityVec::new();
     let mut disabled = BTreeSet::new();
     let mut dieid = DieId::from_idx(0);
@@ -602,5 +663,6 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
         }
     }
 
-    (grids, grid_master, disabled)
+    let naming = DeviceNaming { rclk_alt_pins };
+    (grids, grid_master, disabled, naming)
 }

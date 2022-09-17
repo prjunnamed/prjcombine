@@ -2,8 +2,8 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::Part;
 use prjcombine_versal::{
-    BotKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind, HardColumn, HardRowKind,
-    TopKind,
+    BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
+    HardRowKind, TopKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -229,7 +229,14 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<Vec<GtRowKind>> {
     }
 }
 
-pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<DisabledPart>) {
+pub fn make_grids(
+    rd: &Part,
+) -> (
+    EntityVec<DieId, Grid>,
+    DieId,
+    BTreeSet<DisabledPart>,
+    DeviceNaming,
+) {
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
         .into_iter()
         .map(|r| r as u16)
@@ -341,5 +348,5 @@ pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, DieId, BTreeSet<Disable
             disabled.insert(DisabledPart::Column(s0, ColId::from_idx(i)));
         }
     }
-    (grids, DieId::from_idx(0), disabled)
+    (grids, DieId::from_idx(0), disabled, DeviceNaming {})
 }

@@ -1,7 +1,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_series7::expand_grid;
-use prjcombine_xilinx_geom::{Bond, DisabledPart, ExtraDie, Grid};
+use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, ExtraDie, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
 use prjcombine_series7_rd2db::{bond, grid, int};
@@ -27,7 +27,15 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let extras = extras.into_iter().map(ExtraDie::Series7).collect();
     let disabled = disabled.into_iter().map(DisabledPart::Series7).collect();
     (
-        make_device_multi(rd, grids, grid_master, extras, bonds, disabled),
+        make_device_multi(
+            rd,
+            grids,
+            grid_master,
+            extras,
+            bonds,
+            disabled,
+            DeviceNaming::Dummy,
+        ),
         Some(int_db),
     )
 }

@@ -1,4 +1,5 @@
 #![allow(clippy::bool_to_int_with_if)]
+#![allow(clippy::collapsible_else_if)]
 
 use enum_map::{enum_map, EnumMap};
 use prjcombine_entity::{EntityId, EntityVec};
@@ -7,8 +8,8 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId}
 use std::collections::BTreeSet;
 
 use crate::{
-    BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind,
-    ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
+    BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DeviceNaming, DisabledPart,
+    DspKind, ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
 };
 
 struct Asx {
@@ -17,8 +18,6 @@ struct Asx {
     gt: usize,
     io: usize,
     cfg: usize,
-    // XXX
-    #[allow(dead_code)]
     hbm: usize,
 }
 
@@ -51,10 +50,15 @@ struct DieExpander<'a, 'b> {
     lylut: EntityVec<RowId, usize>,
     ioxlut: EntityVec<ColId, usize>,
     ioylut: EntityVec<RegId, (usize, usize)>,
+    brxlut: EntityVec<ColId, (usize, usize)>,
+    gtbxlut: EntityVec<ColId, (usize, usize)>,
+    gtbylut: EntityVec<RegId, (usize, usize)>,
+    vsxlut: EntityVec<ColId, usize>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
     has_slr_d: bool,
     has_slr_u: bool,
+    naming: &'b DeviceNaming,
 }
 
 impl<'a, 'b> DieExpander<'a, 'b> {
@@ -308,6 +312,67 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_brxlut(&mut self) {
+        let mut brx = 0;
+        let mut gtbx = 0;
+        let mut vsx = 0;
+        for (col, &cd) in &self.grid.columns {
+            self.vsxlut.push(vsx);
+            let lbrx = brx;
+            let lgtbx = gtbx;
+            match cd.l {
+                ColumnKindLeft::CleM(CleMKind::ClkBuf) => (),
+                ColumnKindLeft::CleM(CleMKind::Laguna)
+                    if self.grid.kind == GridKind::UltrascalePlus =>
+                {
+                    brx += 2;
+                    gtbx += 2;
+                }
+                ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => {
+                    // skip leftmost column on whole-height PS devices
+                    if col.to_idx() != 0 {
+                        brx += 1;
+                        gtbx += 1;
+                    }
+                }
+                ColumnKindLeft::Bram(_) | ColumnKindLeft::Uram => match self.grid.kind {
+                    GridKind::Ultrascale => {
+                        brx += 2;
+                        gtbx += 2;
+                    }
+                    GridKind::UltrascalePlus => {
+                        brx += 4;
+                        gtbx += 4;
+                        vsx += 2;
+                    }
+                },
+                ColumnKindLeft::Io(_) => {
+                    if self.grid.kind == GridKind::Ultrascale {
+                        brx += 1;
+                    }
+                    gtbx += 1;
+                }
+                _ => (),
+            }
+            let rbrx = brx;
+            let rgtbx = gtbx;
+            match cd.r {
+                ColumnKindRight::CleL(_) if self.grid.kind == GridKind::Ultrascale => {
+                    brx += 1;
+                    gtbx += 1;
+                }
+                ColumnKindRight::Dsp(DspKind::ClkBuf) => (),
+                ColumnKindRight::Dsp(_) => {
+                    brx += 2;
+                    gtbx += 2;
+                }
+                _ => (),
+            }
+            self.brxlut.push((lbrx, rbrx));
+            self.gtbxlut.push((lgtbx, rgtbx));
+        }
+    }
+
     fn fill_ioylut(&mut self, mut ioy: usize) -> usize {
         for reg in self.grid.regs() {
             let skip = self
@@ -336,6 +401,37 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
         }
         ioy
+    }
+
+    fn fill_gtbylut(&mut self, mut gtby: usize) -> usize {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            let has_hprio = self
+                .grid
+                .cols_io
+                .iter()
+                .any(|x| matches!(x.regs[reg], IoRowKind::Hpio | IoRowKind::Hrio))
+                && !skip;
+            if has_hprio {
+                match self.grid.kind {
+                    GridKind::Ultrascale => {
+                        self.gtbylut.push((gtby, gtby + 24));
+                    }
+                    GridKind::UltrascalePlus => {
+                        self.gtbylut.push((gtby, gtby + 18));
+                    }
+                }
+                gtby += 25;
+            } else if !skip {
+                self.gtbylut.push((gtby, gtby));
+                gtby += 1;
+            } else {
+                self.gtbylut.push((0, 0));
+            }
+        }
+        gtby
     }
 
     fn fill_int(&mut self) {
@@ -666,6 +762,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         let mut lx = 0;
         let dieid = self.die.die;
         for (col, &cd) in &self.grid.columns {
+            let is_l = col < self.grid.col_cfg();
             let mut found = false;
             let mut found_laguna = false;
             let x = col.to_idx();
@@ -673,7 +770,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 ColumnKindLeft::CleL => Some(("CLEL_L", "CLEL_L")),
                 ColumnKindLeft::CleM(_) => Some((
                     "CLEM",
-                    match (self.grid.kind, col < self.grid.col_cfg()) {
+                    match (self.grid.kind, is_l) {
                         (GridKind::Ultrascale, true) => "CLE_M",
                         (GridKind::Ultrascale, false) => "CLE_M_R",
                         (GridKind::UltrascalePlus, true) => "CLEM",
@@ -744,6 +841,11 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
+                    if let Some(ps) = self.grid.ps {
+                        if col == ps.col && row.to_idx() < ps.height() {
+                            continue;
+                        }
+                    }
                     if matches!(cd.l, ColumnKindLeft::CleM(CleMKind::ClkBuf)) {
                         let name = format!("RCLK_CLEM_CLKBUF_L_X{x}Y{y}", y = self.ylut[row - 1]);
                         tile.add_xnode(
@@ -752,6 +854,95 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
                             &[],
                         );
+                    } else {
+                        let tk = match (self.grid.kind, cd.l, is_l, self.grid.is_laguna_row(row)) {
+                            (GridKind::Ultrascale, ColumnKindLeft::CleL, true, _) => "RCLK_CLEL_L",
+                            (GridKind::Ultrascale, ColumnKindLeft::CleL, false, _) => "RCLK_CLEL_R",
+                            (
+                                GridKind::Ultrascale,
+                                ColumnKindLeft::CleM(CleMKind::Laguna),
+                                _,
+                                true,
+                            ) => continue,
+                            (GridKind::Ultrascale, ColumnKindLeft::CleM(_), true, _) => {
+                                "RCLK_CLE_M_L"
+                            }
+                            (GridKind::Ultrascale, ColumnKindLeft::CleM(_), false, _) => {
+                                "RCLK_CLE_M_R"
+                            }
+                            (GridKind::UltrascalePlus, ColumnKindLeft::CleL, true, _) => {
+                                "RCLK_CLEL_L_L"
+                            }
+                            (GridKind::UltrascalePlus, ColumnKindLeft::CleL, false, _) => {
+                                "RCLK_CLEL_L_R"
+                            }
+                            (
+                                GridKind::UltrascalePlus,
+                                ColumnKindLeft::CleM(CleMKind::Laguna),
+                                true,
+                                true,
+                            ) => {
+                                if self.grid.is_dmc {
+                                    "RCLK_LAG_DMC_L"
+                                } else {
+                                    "RCLK_LAG_L"
+                                }
+                            }
+                            (
+                                GridKind::UltrascalePlus,
+                                ColumnKindLeft::CleM(CleMKind::Laguna),
+                                false,
+                                true,
+                            ) => "RCLK_LAG_R",
+                            (GridKind::UltrascalePlus, ColumnKindLeft::CleM(_), true, _) => {
+                                if self.grid.is_dmc
+                                    && cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
+                                {
+                                    "RCLK_CLEM_DMC_L"
+                                } else {
+                                    "RCLK_CLEM_L"
+                                }
+                            }
+                            (GridKind::UltrascalePlus, ColumnKindLeft::CleM(_), false, _) => {
+                                "RCLK_CLEM_R"
+                            }
+                            _ => unreachable!(),
+                        };
+                        let is_alt = self.naming.rclk_alt_pins[tk];
+                        let x = if tk.starts_with("RCLK_LAG") { x - 1 } else { x };
+                        let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row - 1]);
+                        let node = tile.add_xnode(
+                            self.db.get_node("RCLK_V_SINGLE_L"),
+                            &[&name],
+                            self.db.get_node_naming(if is_alt {
+                                "RCLK_V_SINGLE_L.ALT"
+                            } else {
+                                "RCLK_V_SINGLE_L"
+                            }),
+                            &[(col, row)],
+                        );
+                        let reg = self.grid.row_to_reg(row);
+                        let mut brx = self.brxlut[col].0;
+                        let mut gtbx = self.gtbxlut[col].0;
+                        if self.grid.kind == GridKind::UltrascalePlus
+                            && cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
+                            && !self.grid.is_laguna_row(row)
+                        {
+                            brx += 1;
+                            gtbx += 1;
+                        }
+                        match self.grid.kind {
+                            GridKind::Ultrascale => node.add_bel(
+                                0,
+                                format!("BUFCE_ROW_X{brx}Y{y}", y = self.sylut[row] / 60 * 25 + 24),
+                            ),
+                            GridKind::UltrascalePlus => node.add_bel(
+                                0,
+                                format!("BUFCE_ROW_FSR_X{brx}Y{y}", y = self.sylut[row] / 60),
+                            ),
+                        }
+                        let gtby = self.gtbylut[reg].1;
+                        node.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
                     }
                 }
             }
@@ -786,6 +977,42 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     let sy = self.sylut[row];
                     node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     found = true;
+                }
+                for reg in self.grid.regs() {
+                    let row = self.grid.row_reg_rclk(reg);
+                    let tile = &mut self.die[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    if self.grid.kind == GridKind::UltrascalePlus {
+                        continue;
+                    }
+                    let tk = if is_l {
+                        "RCLK_CLEL_R_L"
+                    } else {
+                        "RCLK_CLEL_R_R"
+                    };
+                    let is_alt = self.naming.rclk_alt_pins[tk];
+                    let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row - 1]);
+                    let node = tile.add_xnode(
+                        self.db.get_node("RCLK_V_SINGLE_R"),
+                        &[&name],
+                        self.db.get_node_naming(if is_alt {
+                            "RCLK_V_SINGLE_R.ALT"
+                        } else {
+                            "RCLK_V_SINGLE_R"
+                        }),
+                        &[(col, row)],
+                    );
+                    let reg = self.grid.row_to_reg(row);
+                    let brx = self.brxlut[col].1;
+                    node.add_bel(
+                        0,
+                        format!("BUFCE_ROW_X{brx}Y{y}", y = self.sylut[row] / 60 * 25 + 24),
+                    );
+                    let gtbx = self.gtbxlut[col].1;
+                    let gtby = self.gtbylut[reg].1;
+                    node.add_bel(1, format!("GCLK_TEST_BUFE3_X{gtbx}Y{gtby}"));
                 }
             }
             if found {
@@ -907,6 +1134,80 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             sy = sy / 60 * 2 + 1
                         ),
                     );
+
+                    let is_alt = self.naming.rclk_alt_pins[tk];
+                    if self.grid.kind == GridKind::Ultrascale {
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("RCLK_V_DOUBLE_L"),
+                            &[&name_h],
+                            self.db.get_node_naming(if is_alt {
+                                "RCLK_V_DOUBLE_L.ALT"
+                            } else {
+                                "RCLK_V_DOUBLE_L"
+                            }),
+                            &[(col, row)],
+                        );
+                        let reg = self.grid.row_to_reg(row);
+                        let brx = self.brxlut[col].0;
+                        for i in 0..2 {
+                            node.add_bel(
+                                i,
+                                format!(
+                                    "BUFCE_ROW_X{x}Y{y}",
+                                    x = brx + i,
+                                    y = self.sylut[row] / 60 * 25 + 24
+                                ),
+                            );
+                        }
+                        let gtbx = self.gtbxlut[col].0;
+                        let gtby = self.gtbylut[reg].1;
+                        for i in 0..2 {
+                            node.add_bel(
+                                2 + i,
+                                format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
+                            );
+                        }
+                    } else {
+                        let node = self.die[(col, row)].add_xnode(
+                            self.db.get_node("RCLK_V_QUAD_L"),
+                            &[&name_h],
+                            self.db.get_node_naming(if is_alt {
+                                "RCLK_V_QUAD_L.ALT"
+                            } else {
+                                "RCLK_V_QUAD_L"
+                            }),
+                            &[(col, row)],
+                        );
+                        let reg = self.grid.row_to_reg(row);
+                        let brx = self.brxlut[col].0;
+                        for i in 0..4 {
+                            node.add_bel(
+                                i,
+                                format!(
+                                    "BUFCE_ROW_FSR_X{x}Y{y}",
+                                    x = brx + i,
+                                    y = self.sylut[row] / 60
+                                ),
+                            );
+                        }
+                        let gtbx = self.gtbxlut[col].0;
+                        let gtby = self.gtbylut[reg].1;
+                        for i in 0..4 {
+                            node.add_bel(
+                                4 + i,
+                                format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i),
+                            );
+                        }
+
+                        let vsx = self.vsxlut[col];
+                        let vsy = self.sylut[row] / 60 * 2;
+                        for i in 0..3 {
+                            node.add_bel(
+                                8 + i,
+                                format!("VBUS_SWITCH_X{x}Y{y}", x = vsx + i / 2, y = vsy + i % 2),
+                            );
+                        }
+                    }
                 }
             }
             bx += 1;
@@ -994,6 +1295,65 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         self.db.get_node_naming("RCLK_SPLITTER"),
                         &[],
                     );
+                } else {
+                    let tk = match self.grid.kind {
+                        GridKind::Ultrascale => "RCLK_DSP_L",
+                        GridKind::UltrascalePlus => {
+                            let is_l = col < self.grid.col_cfg();
+                            if self.grid.is_dc12() {
+                                if is_l {
+                                    "RCLK_RCLK_DSP_INTF_DC12_L_FT"
+                                } else {
+                                    "RCLK_RCLK_DSP_INTF_DC12_R_FT"
+                                }
+                            } else {
+                                if is_l {
+                                    "RCLK_DSP_INTF_L"
+                                } else {
+                                    "RCLK_DSP_INTF_R"
+                                }
+                            }
+                        }
+                    };
+                    let is_alt = self.naming.rclk_alt_pins[tk];
+                    let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row - 1]);
+                    let node = tile.add_xnode(
+                        self.db.get_node("RCLK_V_DOUBLE_R"),
+                        &[&name],
+                        self.db.get_node_naming(if is_alt {
+                            "RCLK_V_DOUBLE_R.ALT"
+                        } else {
+                            "RCLK_V_DOUBLE_R"
+                        }),
+                        &[(col, row)],
+                    );
+                    let reg = self.grid.row_to_reg(row);
+                    let brx = self.brxlut[col].1;
+                    for i in 0..2 {
+                        match self.grid.kind {
+                            GridKind::Ultrascale => node.add_bel(
+                                i,
+                                format!(
+                                    "BUFCE_ROW_X{x}Y{y}",
+                                    x = brx + i,
+                                    y = self.sylut[row] / 60 * 25 + 24
+                                ),
+                            ),
+                            GridKind::UltrascalePlus => node.add_bel(
+                                i,
+                                format!(
+                                    "BUFCE_ROW_FSR_X{x}Y{y}",
+                                    x = brx + i,
+                                    y = self.sylut[row] / 60
+                                ),
+                            ),
+                        }
+                    }
+                    let gtbx = self.gtbxlut[col].1;
+                    let gtby = self.gtbylut[reg].1;
+                    for i in 0..2 {
+                        node.add_bel(2 + i, format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i));
+                    }
                 }
             }
             dx += 1;
@@ -1049,6 +1409,47 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 node.add_bel(1, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 1));
                 node.add_bel(2, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 2));
                 node.add_bel(3, format!("URAM288_X{ux}Y{y}", y = sy / 15 * 4 + 3));
+                if row.to_idx() % 60 == 30 {
+                    let tk = "RCLK_RCLK_URAM_INTF_L_FT";
+                    let name_h = format!("{tk}_X{x}Y{y}", y = y - 1);
+                    let is_alt = self.naming.rclk_alt_pins[tk];
+                    let node = self.die[(col + 1, row)].add_xnode(
+                        self.db.get_node("RCLK_V_QUAD_L"),
+                        &[&name_h],
+                        self.db.get_node_naming(if is_alt {
+                            "RCLK_V_QUAD_L.URAM.ALT"
+                        } else {
+                            "RCLK_V_QUAD_L.URAM"
+                        }),
+                        &[(col + 1, row)],
+                    );
+                    let reg = self.grid.row_to_reg(row);
+                    let brx = self.brxlut[col + 1].0;
+                    for i in 0..4 {
+                        node.add_bel(
+                            i,
+                            format!(
+                                "BUFCE_ROW_FSR_X{x}Y{y}",
+                                x = brx + i,
+                                y = self.sylut[row] / 60
+                            ),
+                        );
+                    }
+                    let gtbx = self.gtbxlut[col + 1].0;
+                    let gtby = self.gtbylut[reg].1;
+                    for i in 0..4 {
+                        node.add_bel(4 + i, format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i));
+                    }
+
+                    let vsx = self.vsxlut[col + 1];
+                    let vsy = self.sylut[row] / 60 * 2;
+                    for i in 0..3 {
+                        node.add_bel(
+                            8 + i,
+                            format!("VBUS_SWITCH_X{x}Y{y}", x = vsx + i / 2, y = vsy + i % 2),
+                        );
+                    }
+                }
             }
             ux += 1;
         }
@@ -1120,7 +1521,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     for j in 0..12 {
                         node.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
                     }
-                    // XXX IOBs
                     for j in 0..6 {
                         node.add_bel(
                             12 + j,
@@ -1317,6 +1717,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_hard(&mut self, hcx: &EnumMap<HardRowKind, usize>) {
         for (i, hc) in self.grid.cols_hard.iter().enumerate() {
+            let is_cfg = hc.regs.values().any(|&x| x == HardRowKind::Cfg);
             let hdio_cfg_only = hc.regs.values().all(|x| {
                 matches!(
                     x,
@@ -1326,7 +1727,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         | HardRowKind::HdioAms
                         | HardRowKind::None
                 )
-            }) || !hc.regs.values().any(|&x| x == HardRowKind::Cfg);
+            }) || !is_cfg;
             for reg in self.grid.regs() {
                 let kind = hc.regs[reg];
                 let adjkind = if kind == HardRowKind::HdioAms {
@@ -1337,6 +1738,22 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 let sx = if i == 0 { 0 } else { hcx[adjkind] };
                 let sy = self.hylut[adjkind][reg];
                 self.fill_hard_single(hc.col, reg, kind, sx, sy, hdio_cfg_only);
+            }
+            if is_cfg && self.grid.has_hbm {
+                let name = format!("CFRM_CFRAME_TERM_H_FT_X{x}Y0", x = hc.col.to_idx());
+                let node = self.die[(hc.col, RowId::from_idx(0))].add_xnode(
+                    self.db.get_node("HBM_ABUS_SWITCH"),
+                    &[&name],
+                    self.db.get_node_naming("HBM_ABUS_SWITCH"),
+                    &[],
+                );
+                let asx = self.asxlut[hc.col].hbm;
+                for i in 0..8 {
+                    node.add_bel(
+                        i,
+                        format!("ABUS_SWITCH_X{x}Y{y}", x = asx + i / 2, y = i % 2),
+                    );
+                }
             }
         }
     }
@@ -1451,6 +1868,7 @@ pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &'a Grid>,
     grid_master: DieId,
     disabled: &BTreeSet<DisabledPart>,
+    naming: &'a DeviceNaming,
     db: &'a IntDb,
 ) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
@@ -1461,6 +1879,7 @@ pub fn expand_grid<'a>(
     let mut hy = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
+    let mut gtby = 0;
     let hcx = enum_map! {
         k => if grids.values().any(|grid| {
             grid.cols_hard[0].regs.values().any(|&x| x == k || (k == HardRowKind::Hdio && x == HardRowKind::HdioAms))
@@ -1485,10 +1904,15 @@ pub fn expand_grid<'a>(
             asylut: EntityVec::new(),
             ioxlut: EntityVec::new(),
             ioylut: EntityVec::new(),
+            brxlut: EntityVec::new(),
+            gtbxlut: EntityVec::new(),
+            gtbylut: EntityVec::new(),
+            vsxlut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
             has_slr_d: did != grids.first_id().unwrap(),
             has_slr_u: did != grids.last_id().unwrap(),
+            naming,
         };
 
         y = expander.fill_ylut(y);
@@ -1499,6 +1923,8 @@ pub fn expand_grid<'a>(
         asy = expander.fill_asylut(asy);
         expander.fill_ioxlut();
         ioy = expander.fill_ioylut(ioy);
+        expander.fill_brxlut();
+        gtby = expander.fill_gtbylut(gtby);
 
         expander.fill_int();
         expander.fill_io_pass();
@@ -1520,5 +1946,6 @@ pub fn expand_grid<'a>(
         grid_master,
         egrid,
         disabled: disabled.clone(),
+        naming,
     }
 }

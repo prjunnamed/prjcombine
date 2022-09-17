@@ -11,6 +11,7 @@ entity_id! {
     pub id BondId usize;
     pub id DevBondId usize;
     pub id DevSpeedId usize;
+    pub id DeviceNamingId usize;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -67,6 +68,7 @@ pub struct Device {
     // valid (bond, speed) pairs
     pub combos: Vec<DeviceCombo>,
     pub disabled: BTreeSet<DisabledPart>,
+    pub naming: DeviceNamingId,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -88,6 +90,14 @@ pub enum Bond {
 pub struct GeomDb {
     pub grids: EntityVec<GridId, Grid>,
     pub bonds: EntityVec<BondId, Bond>,
+    pub dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, IntDb>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DeviceNaming {
+    Dummy,
+    Ultrascale(prjcombine_ultrascale::DeviceNaming),
+    Versal(prjcombine_versal::DeviceNaming),
 }

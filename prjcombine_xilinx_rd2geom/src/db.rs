@@ -3,8 +3,8 @@ use prjcombine_int::db::{IntDb, IntfWireOutNaming};
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{
-    Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DisabledPart, ExtraDie,
-    GeomDb, Grid, GridId,
+    Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DeviceNaming,
+    DeviceNamingId, DisabledPart, ExtraDie, GeomDb, Grid, GridId,
 };
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 
@@ -17,6 +17,7 @@ pub struct PreDevice {
     pub speeds: EntityVec<DevSpeedId, String>,
     pub combos: Vec<DeviceCombo>,
     pub disabled: BTreeSet<DisabledPart>,
+    pub naming: DeviceNaming,
 }
 
 pub fn make_device_multi(
@@ -26,6 +27,7 @@ pub fn make_device_multi(
     extras: Vec<ExtraDie>,
     mut bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
+    naming: DeviceNaming,
 ) -> PreDevice {
     let mut speeds = EntitySet::new();
     bonds.sort_by(|x, y| x.0.cmp(&y.0));
@@ -48,6 +50,7 @@ pub fn make_device_multi(
         speeds: speeds.into_vec(),
         combos,
         disabled,
+        naming,
     }
 }
 
@@ -59,12 +62,21 @@ pub fn make_device(
 ) -> PreDevice {
     let mut grids = EntityVec::new();
     let grid_master = grids.push(grid);
-    make_device_multi(rd, grids, grid_master, vec![], bonds, disabled)
+    make_device_multi(
+        rd,
+        grids,
+        grid_master,
+        vec![],
+        bonds,
+        disabled,
+        DeviceNaming::Dummy,
+    )
 }
 
 pub struct DbBuilder {
     grids: EntityVec<GridId, Grid>,
     bonds: EntityVec<BondId, Bond>,
+    dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
     devices: Vec<Device>,
     ints: BTreeMap<String, IntDb>,
 }
@@ -74,6 +86,7 @@ impl DbBuilder {
         Self {
             grids: EntityVec::new(),
             bonds: EntityVec::new(),
+            dev_namings: EntityVec::new(),
             devices: Vec::new(),
             ints: BTreeMap::new(),
         }
@@ -97,12 +110,22 @@ impl DbBuilder {
         self.bonds.push(bond)
     }
 
+    pub fn insert_dev_naming(&mut self, naming: DeviceNaming) -> DeviceNamingId {
+        for (k, v) in self.dev_namings.iter() {
+            if v == &naming {
+                return k;
+            }
+        }
+        self.dev_namings.push(naming)
+    }
+
     pub fn ingest(&mut self, pre: PreDevice) {
         let grids = pre.grids.into_map_values(|x| self.insert_grid(x));
         let bonds = pre.bonds.into_map_values(|(name, b)| DeviceBond {
             name,
             bond: self.insert_bond(b),
         });
+        let naming = self.insert_dev_naming(pre.naming);
         self.devices.push(Device {
             name: pre.name,
             grids,
@@ -112,6 +135,7 @@ impl DbBuilder {
             speeds: pre.speeds,
             combos: pre.combos,
             disabled: pre.disabled,
+            naming,
         });
     }
 
@@ -202,6 +226,7 @@ impl DbBuilder {
         GeomDb {
             grids: self.grids,
             bonds: self.bonds,
+            dev_namings: self.dev_namings,
             devices: self.devices,
             ints: self.ints,
         }

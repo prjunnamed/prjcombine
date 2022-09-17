@@ -657,6 +657,188 @@ fn verify_rclk_hroute_splitter(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: 
     // XXX source HROUTE
 }
 
+fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = vec![
+        ("CLK_IN", SitePinDir::In),
+        ("CLK_OUT", SitePinDir::Out),
+        ("CLK_OUT_OPT_DLY", SitePinDir::Out),
+    ];
+    let kind = if !bel.key.starts_with("BUFCE_ROW_IO")
+        && edev.grids[bel.die].kind == GridKind::UltrascalePlus
+    {
+        "BUFCE_ROW_FSR"
+    } else {
+        "BUFCE_ROW"
+    };
+    vrf.verify_bel(bel, kind, &pins, &[]);
+    for (pin, _) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+    }
+
+    // XXX source HROUTE and GCLK_TEST_BUF.CLK_IN aka HDISTR
+
+    vrf.claim_node(&[bel.fwire("VROUTE_T")]);
+    vrf.claim_node(&[bel.fwire("VDISTR_T")]);
+    // XXX uncomment and fix up when we have the wire mapping data
+    /*
+    let obel_s = vrf.find_bel_delta(bel, 0, -60, bel.key).or_else(|| {
+        if bel.die.to_idx() == 0 || bel.row.to_idx() != 30 {
+            return None;
+        }
+        let odie = bel.die - 1;
+        let ogrid = edev.grids[odie];
+        vrf.find_bel(odie, (bel.col, ogrid.row_reg_rclk(ogrid.regs().next_back().unwrap())), bel.key)
+    });
+    if let Some(obel) = obel_s {
+        vrf.verify_node(&[
+            bel.fwire("VROUTE_B"),
+            obel.fwire("VROUTE_T"),
+        ]);
+        vrf.verify_node(&[
+            bel.fwire("VDISTR_B"),
+            obel.fwire("VDISTR_T"),
+        ]);
+    } else {
+        vrf.claim_node(&[
+            bel.fwire("VROUTE_B"),
+        ]);
+        vrf.claim_node(&[
+            bel.fwire("VDISTR_B"),
+        ]);
+    }
+    */
+
+    let obel_gtb = vrf.find_bel_sibling(bel, &format!("GCLK_TEST_BUF_{k}", k = &bel.key[10..]));
+
+    let okey_vcc = if bel.key.starts_with("BUFCE_ROW_L") {
+        "VCC.RCLK_V_L"
+    } else {
+        "VCC.RCLK_V_R"
+    };
+    let obel_vcc = vrf.find_bel_sibling(bel, okey_vcc);
+    vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B"), bel.wire("VDISTR_B_MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T"), bel.wire("VDISTR_T_MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B"), bel.wire("VROUTE_B_MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T"), bel.wire("VROUTE_T_MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), bel.wire("HROUTE"), bel.wire("HROUTE_MUX"));
+    vrf.claim_pip(bel.crd(), bel.wire("HROUTE"), obel_vcc.wire("VCC"));
+
+    vrf.claim_node(&[bel.fwire("HROUTE_MUX")]);
+    vrf.claim_node(&[bel.fwire("VROUTE_B_MUX")]);
+    vrf.claim_node(&[bel.fwire("VROUTE_T_MUX")]);
+    vrf.claim_node(&[bel.fwire("VDISTR_B_MUX")]);
+    vrf.claim_node(&[bel.fwire("VDISTR_T_MUX")]);
+
+    if edev.grids[bel.die].kind == GridKind::Ultrascale {
+        vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_T"));
+
+        vrf.claim_pip(bel.crd(), bel.wire("HROUTE_MUX"), bel.wire("VROUTE_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("HROUTE_MUX"), bel.wire("VROUTE_T"));
+
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B_MUX"), bel.wire("VDISTR_T"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B_MUX"), bel.wire("VROUTE_T"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T_MUX"), bel.wire("VDISTR_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T_MUX"), bel.wire("VROUTE_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T_MUX"), bel.wire("HROUTE"));
+
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B_MUX"), bel.wire("VROUTE_T"));
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_B_MUX"),
+            obel_gtb.wire("CLK_OUT"),
+        );
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T_MUX"), bel.wire("VROUTE_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_T_MUX"),
+            obel_gtb.wire("CLK_OUT"),
+        );
+    } else {
+        vrf.claim_node(&[bel.fwire("VDISTR_B_BUF")]);
+        vrf.claim_node(&[bel.fwire("VDISTR_T_BUF")]);
+        vrf.claim_node(&[bel.fwire("VROUTE_B_BUF")]);
+        vrf.claim_node(&[bel.fwire("VROUTE_T_BUF")]);
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B_BUF"), bel.wire("VDISTR_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T_BUF"), bel.wire("VDISTR_T"));
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B_BUF"), bel.wire("VROUTE_B"));
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T_BUF"), bel.wire("VROUTE_T"));
+
+        vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_B_BUF"));
+        vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_T_BUF"));
+
+        vrf.claim_pip(bel.crd(), bel.wire("HROUTE_MUX"), bel.wire("VROUTE_B_BUF"));
+        vrf.claim_pip(bel.crd(), bel.wire("HROUTE_MUX"), bel.wire("VROUTE_T_BUF"));
+
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VDISTR_B_MUX"),
+            bel.wire("VDISTR_T_BUF"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VDISTR_B_MUX"),
+            bel.wire("VROUTE_T_BUF"),
+        );
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_B_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VDISTR_T_MUX"),
+            bel.wire("VDISTR_B_BUF"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VDISTR_T_MUX"),
+            bel.wire("VROUTE_B_BUF"),
+        );
+        vrf.claim_pip(bel.crd(), bel.wire("VDISTR_T_MUX"), bel.wire("HROUTE"));
+
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_B_MUX"),
+            bel.wire("VROUTE_T_BUF"),
+        );
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_B_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_B_MUX"),
+            obel_gtb.wire("CLK_OUT"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_T_MUX"),
+            bel.wire("VROUTE_B_BUF"),
+        );
+        vrf.claim_pip(bel.crd(), bel.wire("VROUTE_T_MUX"), bel.wire("HROUTE"));
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("VROUTE_T_MUX"),
+            obel_gtb.wire("CLK_OUT"),
+        );
+    }
+
+    vrf.claim_pip(bel.crd(), obel_gtb.wire_far("CLK_IN"), obel_vcc.wire("VCC"));
+    vrf.claim_pip(bel.crd(), obel_gtb.wire_far("CLK_IN"), bel.wire("CLK_OUT"));
+}
+
+fn verify_gclk_test_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let pins = vec![("CLK_IN", SitePinDir::In), ("CLK_OUT", SitePinDir::Out)];
+    vrf.verify_bel(bel, "GCLK_TEST_BUFE3", &pins, &[]);
+    if !bel.naming.pins["CLK_IN"].pips.is_empty() {
+        vrf.claim_node(&[bel.fwire("CLK_IN")]);
+        vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire_far("CLK_IN"));
+    }
+    vrf.claim_node(&[bel.fwire("CLK_OUT")]);
+    // other stuff dealt with in BUFCE_ROW
+}
+
 fn verify_bufg_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins = vec![("CLK_OUT", SitePinDir::Out), ("CLK_IN", SitePinDir::In)];
     vrf.verify_bel(bel, "BUFG_PS", &pins, &[]);
@@ -985,6 +1167,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "PS" => verify_ps(vrf, bel),
         "VCU" => verify_vcu(vrf, bel),
         _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(edev, vrf, bel),
+        _ if bel.key.starts_with("VBUS_SWITCH") => vrf.verify_bel(bel, "VBUS_SWITCH", &[], &[]),
 
         _ if bel.key.starts_with("BUFCE_LEAF_X16") => verify_bufce_leaf_x16(vrf, bel),
         _ if bel.key.starts_with("BUFCE_LEAF") => verify_bufce_leaf(vrf, bel),
@@ -992,6 +1175,9 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
 
         "RCLK_SPLITTER" => verify_rclk_splitter(edev, vrf, bel),
         "RCLK_HROUTE_SPLITTER" => verify_rclk_hroute_splitter(edev, vrf, bel),
+
+        _ if bel.key.starts_with("BUFCE_ROW") => verify_bufce_row(edev, vrf, bel),
+        _ if bel.key.starts_with("GCLK_TEST_BUF") => verify_gclk_test_buf(vrf, bel),
 
         _ if bel.key.starts_with("BUFG_PS") => verify_bufg_ps(vrf, bel),
         "RCLK_PS" => verify_rclk_ps(edev, vrf, bel),

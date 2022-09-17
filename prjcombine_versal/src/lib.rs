@@ -125,6 +125,9 @@ pub enum DisabledPart {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bond {}
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DeviceNaming {}
+
 pub struct ExpandedDevice<'a> {
     pub grids: EntityVec<DieId, &'a Grid>,
     pub grid_master: DieId,
