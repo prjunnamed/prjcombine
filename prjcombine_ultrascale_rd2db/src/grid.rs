@@ -1,10 +1,10 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::grid::{ColId, RowId, DieId};
+use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, IoColumn, IoRowKind,
-    Ps, PsIntfKind, RegId,
+    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, HpioIobId, IoColumn,
+    IoRowKind, Ps, PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -164,25 +164,34 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
             RowId::from_idx(int.rows.len() - 30)
         };
         let y = int.rows[row] as u16 - 1;
-        let crd = Coord{x, y};
+        let crd = Coord { x, y };
         let hdistr: [_; 24] = core::array::from_fn(|i| {
-            int.rd.lookup_wire(crd, &format!("CLK_HDISTR_FT0_{i}")).unwrap()
+            int.rd
+                .lookup_wire(crd, &format!("CLK_HDISTR_FT0_{i}"))
+                .unwrap()
         });
         if let Some((xy, num)) = match cd.l {
             ColumnKindLeft::CleL => Some((crd.delta(-1, 0), 1)),
             ColumnKindLeft::CleM(CleMKind::ClkBuf) => None,
-            ColumnKindLeft::CleM(CleMKind::Laguna) if int.rd.family == "ultrascaleplus" => Some((crd.delta(-2, 0), 1)),
+            ColumnKindLeft::CleM(CleMKind::Laguna) if int.rd.family == "ultrascaleplus" => {
+                Some((crd.delta(-2, 0), 1))
+            }
             ColumnKindLeft::CleM(_) => Some((crd.delta(-1, 0), 1)),
-            ColumnKindLeft::Bram(_) => if int.rd.family == "ultrascale" {
-                Some((crd.delta(-2, 0), 2))
-            } else {
-                Some((crd.delta(-2, 0), 4))
+            ColumnKindLeft::Bram(_) => {
+                if int.rd.family == "ultrascale" {
+                    Some((crd.delta(-2, 0), 2))
+                } else {
+                    Some((crd.delta(-2, 0), 4))
+                }
             }
             ColumnKindLeft::Uram => Some((crd.delta(-3, 0), 4)),
             _ => None,
         } {
             for j in 0..num {
-                let nw = int.rd.lookup_wire(xy, &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1));
+                let nw = int.rd.lookup_wire(
+                    xy,
+                    &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
+                );
                 if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
                     cd.clk_l[j] = Some(idx as u8);
                 }
@@ -190,15 +199,20 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         }
         if let Some((xy, num)) = match cd.r {
             ColumnKindRight::CleL(_) if int.rd.family == "ultrascale" => Some((crd.delta(1, 0), 1)),
-            ColumnKindRight::Dsp(_) => if int.rd.family == "ultrascale" {
-                Some((crd.delta(2, 0), 2))
-            } else {
-                Some((crd.delta(1, 0), 2))
+            ColumnKindRight::Dsp(_) => {
+                if int.rd.family == "ultrascale" {
+                    Some((crd.delta(2, 0), 2))
+                } else {
+                    Some((crd.delta(1, 0), 2))
+                }
             }
             _ => None,
         } {
             for j in 0..num {
-                let nw = int.rd.lookup_wire(xy, &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1));
+                let nw = int.rd.lookup_wire(
+                    xy,
+                    &format!("CLK_TEST_BUF_SITE_{ii}_CLK_IN", ii = j * 2 + 1),
+                );
                 if let Some(idx) = hdistr.iter().position(|&x| Some(x) == nw) {
                     cd.clk_r[j] = Some(idx as u8);
                 }
@@ -276,8 +290,8 @@ fn get_cols_hard(
             if tt == "HDIO_BOT_RIGHT" {
                 let sk = int.rd.slot_kinds.get("IOB").unwrap();
                 let tk = &int.rd.tile_kinds[tile.kind];
-                for i in 0..6 {
-                    let slot = TkSiteSlot::Xy(sk, 0, 2 * i as u8);
+                for i in 0..12 {
+                    let slot = TkSiteSlot::Xy(sk, 0, i as u8);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
@@ -290,15 +304,15 @@ fn get_cols_hard(
                 }
                 let tile = &int.rd.tiles[&crd.delta(0, 31)];
                 let tk = &int.rd.tile_kinds[tile.kind];
-                for i in 0..6 {
-                    let slot = TkSiteSlot::Xy(sk, 0, 2 * i as u8);
+                for i in 0..12 {
+                    let slot = TkSiteSlot::Xy(sk, 0, i as u8);
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
                             dieid,
                             col,
                             reg,
-                            HdioIobId::from_idx(i + 6),
+                            HdioIobId::from_idx(i + 12),
                         ));
                     }
                 }
@@ -342,7 +356,11 @@ fn get_cols_hard(
     res
 }
 
-fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
+fn get_cols_io(
+    int: &IntGrid,
+    dieid: DieId,
+    disabled: &mut BTreeSet<DisabledPart>,
+) -> Vec<IoColumn> {
     let mut cells = BTreeMap::new();
     for (tt, kind) in [
         // Ultrascale
@@ -361,6 +379,40 @@ fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
             cells.insert((col, ColSide::Left, reg), kind);
+            if tt == "HPIO_L" {
+                let crd = Coord {
+                    x: x as u16,
+                    y: y as u16,
+                };
+                let tile = &int.rd.tiles[&crd];
+                let sk = int.rd.slot_kinds.get("IOB").unwrap();
+                let tk = &int.rd.tile_kinds[tile.kind];
+                let bi = if int.lookup_row(y).to_idx() % 60 == 0 {
+                    0
+                } else {
+                    26
+                };
+                for i in 0..26 {
+                    let slot = TkSiteSlot::Xy(sk, 0, i as u8);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::HpioIob(
+                            dieid,
+                            col,
+                            reg,
+                            HpioIobId::from_idx(bi + i),
+                        ));
+                    }
+                }
+                if int.rd.family == "ultrascaleplus" {
+                    let sk = int.rd.slot_kinds.get("HPIOB_DCI_SNGL").unwrap();
+                    let slot = TkSiteSlot::Xy(sk, 0, 0);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::HpioDci(dieid, col, reg));
+                    }
+                }
+            }
         }
     }
     for (tt, kind) in [
@@ -508,7 +560,7 @@ pub fn make_grids(
         let cols_vbrk = get_cols_vbrk(&int);
         let cols_fsr_gap = get_cols_fsr_gap(&int);
         let cols_hard = get_cols_hard(&int, dieid, &mut disabled);
-        let cols_io = get_cols_io(&int);
+        let cols_io = get_cols_io(&int, dieid, &mut disabled);
         for (i, hc) in cols_hard.iter().enumerate() {
             assert_eq!(columns[hc.col - 1].r, ColumnKindRight::Hard(0));
             assert_eq!(columns[hc.col].l, ColumnKindLeft::Hard(0));

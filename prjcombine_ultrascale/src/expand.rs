@@ -23,14 +23,8 @@ struct Asx {
 
 struct Asy {
     hdio: usize,
-    // XXX
-    #[allow(dead_code)]
     hpio: usize,
-    // XXX
-    #[allow(dead_code)]
     hrio: usize,
-    // XXX
-    #[allow(dead_code)]
     cmt: usize,
     cfg: usize,
     // XXX
@@ -54,8 +48,10 @@ struct DieExpander<'a, 'b> {
     gtbxlut: EntityVec<ColId, (usize, usize)>,
     gtbylut: EntityVec<RegId, (usize, usize)>,
     vsxlut: EntityVec<ColId, usize>,
+    cmtxlut: EntityVec<ColId, usize>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
+    gtylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
     has_slr_d: bool,
     has_slr_u: bool,
     naming: &'b DeviceNaming,
@@ -287,6 +283,28 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_gtylut(&mut self, gty: &mut EnumMap<IoRowKind, usize>) {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            for (k, v) in gty.iter_mut() {
+                self.gtylut[k].push(*v);
+                let mut found = false;
+                if !skip {
+                    for ioc in &self.grid.cols_io {
+                        if ioc.regs[reg] == k {
+                            found = true;
+                        }
+                    }
+                }
+                if found {
+                    *v += 1;
+                }
+            }
+        }
+    }
+
     fn fill_ioxlut(&mut self) {
         let mut iox = 0;
         for &cd in self.grid.columns.values() {
@@ -432,6 +450,19 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
         }
         gtby
+    }
+
+    fn fill_cmtxlut(&mut self) {
+        let mut cmtx = 0;
+        for &cd in self.grid.columns.values() {
+            self.cmtxlut.push(cmtx);
+            if matches!(cd.l, ColumnKindLeft::Io(_)) {
+                cmtx += 1;
+            }
+            if matches!(cd.r, ColumnKindRight::Io(_)) {
+                cmtx += 1;
+            }
+        }
     }
 
     fn fill_int(&mut self) {
@@ -1758,6 +1789,470 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn fill_io(&mut self) {
+        for ioc in &self.grid.cols_io {
+            for reg in self.grid.regs() {
+                if self
+                    .disabled
+                    .contains(&DisabledPart::Region(self.die.die, reg))
+                {
+                    continue;
+                }
+                let kind = ioc.regs[reg];
+                match kind {
+                    IoRowKind::None => (),
+                    IoRowKind::Hpio | IoRowKind::Hrio => {
+                        let row = self.grid.row_reg_rclk(reg);
+                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        if self.grid.kind == GridKind::Ultrascale {
+                            let name = format!(
+                                "XIPHY_L_X{x}Y{y}",
+                                x = ioc.col.to_idx(),
+                                y = self.ylut[row - 30]
+                            );
+                            let node = self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node("XIPHY"),
+                                &[&name],
+                                self.db.get_node_naming("XIPHY"),
+                                &crds,
+                            );
+                            let cmtx = self.cmtxlut[ioc.col];
+                            let cmty = self.sylut[row - 30] / 60;
+                            for i in 0..24 {
+                                node.add_bel(
+                                    i,
+                                    format!(
+                                        "BUFCE_ROW_X{x}Y{y}",
+                                        x = self.brxlut[ioc.col].0,
+                                        y = cmty * 25 + i
+                                    ),
+                                );
+                                node.add_bel(
+                                    24 + i,
+                                    format!(
+                                        "GCLK_TEST_BUFE3_X{x}Y{y}",
+                                        x = self.gtbxlut[ioc.col].0,
+                                        y = self.gtbylut[reg].0 + i
+                                    ),
+                                );
+                                node.add_bel(
+                                    48 + i,
+                                    format!("BUFGCE_X{cmtx}Y{y}", y = cmty * 24 + i),
+                                );
+                            }
+                            for i in 0..8 {
+                                node.add_bel(
+                                    72 + i,
+                                    format!("BUFGCTRL_X{cmtx}Y{y}", y = cmty * 8 + i),
+                                );
+                            }
+                            for i in 0..4 {
+                                node.add_bel(
+                                    80 + i,
+                                    format!("BUFGCE_DIV_X{cmtx}Y{y}", y = cmty * 4 + i),
+                                );
+                            }
+                            for i in 0..2 {
+                                node.add_bel(
+                                    84 + i,
+                                    format!("PLLE3_ADV_X{cmtx}Y{y}", y = cmty * 2 + i),
+                                );
+                            }
+                            node.add_bel(86, format!("MMCME3_ADV_X{cmtx}Y{cmty}"));
+                            node.add_bel(
+                                87,
+                                format!(
+                                    "ABUS_SWITCH_X{x}Y{y}",
+                                    x = self.asxlut[ioc.col].io,
+                                    y = self.asylut[reg].cmt
+                                ),
+                            );
+                            for i in 0..52 {
+                                node.add_bel(
+                                    88 + i,
+                                    format!("BITSLICE_RX_TX_X{cmtx}Y{y}", y = cmty * 52 + i),
+                                );
+                            }
+                            for i in 0..8 {
+                                node.add_bel(
+                                    140 + i,
+                                    format!("BITSLICE_TX_X{cmtx}Y{y}", y = cmty * 8 + i),
+                                );
+                            }
+                            for i in 0..8 {
+                                node.add_bel(
+                                    148 + i,
+                                    format!("BITSLICE_CONTROL_X{cmtx}Y{y}", y = cmty * 8 + i),
+                                );
+                            }
+                            for i in 0..8 {
+                                node.add_bel(
+                                    156 + i,
+                                    format!("PLL_SELECT_SITE_X{cmtx}Y{y}", y = cmty * 8 + (i ^ 1)),
+                                );
+                            }
+                            for i in 0..4 {
+                                node.add_bel(
+                                    164 + i,
+                                    format!("RIU_OR_X{cmtx}Y{y}", y = cmty * 4 + i),
+                                );
+                            }
+                            for i in 0..4 {
+                                node.add_bel(
+                                    168 + i,
+                                    format!("XIPHY_FEEDTHROUGH_X{x}Y{cmty}", x = cmtx * 4 + i),
+                                );
+                            }
+                            let mut iobx = ioc.col.to_idx();
+                            if iobx != 0 {
+                                iobx -= 1;
+                            }
+                            if kind == IoRowKind::Hpio {
+                                let name =
+                                    format!("RCLK_HPIO_L_X{iobx}Y{y}", y = self.ylut[row - 1]);
+                                let node = self.die[(ioc.col, row)].add_xnode(
+                                    self.db.get_node("RCLK_HPIO"),
+                                    &[&name],
+                                    self.db.get_node_naming("RCLK_HPIO"),
+                                    &crds,
+                                );
+                                for i in 0..5 {
+                                    node.add_bel(
+                                        i,
+                                        format!(
+                                            "ABUS_SWITCH_X{x}Y{y}",
+                                            x = self.asxlut[ioc.col].io + i,
+                                            y = self.asylut[reg].hpio
+                                        ),
+                                    );
+                                }
+                                node.add_bel(5, format!("HPIO_ZMATCH_BLK_HCLK_X{cmtx}Y{cmty}"));
+                                for i in 0..2 {
+                                    let row = row - 30 + i * 30;
+                                    let name = format!("HPIO_L_X{iobx}Y{y}", y = self.ylut[row]);
+                                    let node = self.die[(ioc.col, row)].add_xnode(
+                                        self.db.get_node("HPIO"),
+                                        &[&name],
+                                        self.db.get_node_naming("HPIO"),
+                                        &crds[i * 30..i * 30 + 30],
+                                    );
+                                    let iobx = self.ioxlut[ioc.col];
+                                    let ioby = self.ioylut[reg].0 + i * 26;
+                                    for j in 0..26 {
+                                        node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                    }
+                                    for j in 0..12 {
+                                        node.add_bel(
+                                            26 + j,
+                                            format!(
+                                                "HPIOBDIFFINBUF_X{cmtx}Y{y}",
+                                                y = cmty * 24 + i * 12 + j
+                                            ),
+                                        );
+                                    }
+                                    for j in 0..12 {
+                                        node.add_bel(
+                                            38 + j,
+                                            format!(
+                                                "HPIOBDIFFOUTBUF_X{cmtx}Y{y}",
+                                                y = cmty * 24 + i * 12 + j
+                                            ),
+                                        );
+                                    }
+                                    node.add_bel(
+                                        50,
+                                        format!("HPIO_VREF_SITE_X{cmtx}Y{y}", y = cmty * 2 + i),
+                                    );
+                                }
+                            } else {
+                                let name =
+                                    format!("RCLK_HRIO_L_X{iobx}Y{y}", y = self.ylut[row - 1]);
+                                let node = self.die[(ioc.col, row)].add_xnode(
+                                    self.db.get_node("RCLK_HRIO"),
+                                    &[&name],
+                                    self.db.get_node_naming("RCLK_HRIO"),
+                                    &[],
+                                );
+                                for i in 0..8 {
+                                    node.add_bel(
+                                        i,
+                                        format!(
+                                            "ABUS_SWITCH_X{x}Y{y}",
+                                            x = self.asxlut[ioc.col].io + i,
+                                            y = self.asylut[reg].hrio
+                                        ),
+                                    );
+                                }
+                                for i in 0..2 {
+                                    let row = row - 30 + i * 30;
+                                    let name = format!("HRIO_L_X{iobx}Y{y}", y = self.ylut[row]);
+                                    let node = self.die[(ioc.col, row)].add_xnode(
+                                        self.db.get_node("HRIO"),
+                                        &[&name],
+                                        self.db.get_node_naming("HRIO"),
+                                        &crds[i * 30..i * 30 + 30],
+                                    );
+                                    let iobx = self.ioxlut[ioc.col];
+                                    let ioby = self.ioylut[reg].0 + i * 26;
+                                    for j in 0..26 {
+                                        node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                    }
+                                    let hrioy = self.gtylut[IoRowKind::Hrio][reg];
+                                    for j in 0..12 {
+                                        node.add_bel(
+                                            26 + j,
+                                            format!(
+                                                "HRIODIFFINBUF_X0Y{y}",
+                                                y = hrioy * 24 + i * 12 + j
+                                            ),
+                                        );
+                                    }
+                                    for j in 0..12 {
+                                        node.add_bel(
+                                            38 + j,
+                                            format!(
+                                                "HRIODIFFOUTBUF_X0Y{y}",
+                                                y = hrioy * 24 + i * 12 + j
+                                            ),
+                                        );
+                                    }
+                                }
+                            }
+                        } else {
+                            let is_hbm = self.grid.has_hbm && reg.to_idx() == 0;
+                            let (kind, tk) = if ioc.side == ColSide::Right {
+                                ("CMT_R", "CMT_RIGHT")
+                            } else if is_hbm {
+                                ("CMT_L_HBM", "CMT_LEFT_H")
+                            } else {
+                                ("CMT_L", "CMT_L")
+                            };
+                            let name = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = ioc.col.to_idx(),
+                                y = self.ylut[row - 30]
+                            );
+                            let node = self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node(kind),
+                                &[&name],
+                                self.db.get_node_naming(kind),
+                                &crds,
+                            );
+                            let cmtx = self.cmtxlut[ioc.col];
+                            let cmty = self.sylut[row - 30] / 60;
+                            let gtbx = if ioc.side == ColSide::Left {
+                                self.gtbxlut[ioc.col].0
+                            } else {
+                                self.gtbxlut[ioc.col].1
+                            };
+                            for i in 0..24 {
+                                node.add_bel(
+                                    i,
+                                    format!("BUFCE_ROW_X{cmtx}Y{y}", y = cmty * 24 + i),
+                                );
+                                node.add_bel(
+                                    24 + i,
+                                    format!(
+                                        "GCLK_TEST_BUFE3_X{gtbx}Y{y}",
+                                        y = self.gtbylut[reg].0 + if i < 18 { i } else { i + 1 }
+                                    ),
+                                );
+                                node.add_bel(
+                                    48 + i,
+                                    format!("BUFGCE_X{cmtx}Y{y}", y = cmty * 24 + i),
+                                );
+                            }
+                            for i in 0..8 {
+                                node.add_bel(
+                                    72 + i,
+                                    format!("BUFGCTRL_X{cmtx}Y{y}", y = cmty * 8 + i),
+                                );
+                            }
+                            for i in 0..4 {
+                                node.add_bel(
+                                    80 + i,
+                                    format!("BUFGCE_DIV_X{cmtx}Y{y}", y = cmty * 4 + i),
+                                );
+                            }
+                            for i in 0..2 {
+                                node.add_bel(84 + i, format!("PLL_X{cmtx}Y{y}", y = cmty * 2 + i));
+                            }
+                            node.add_bel(86, format!("MMCM_X{cmtx}Y{cmty}"));
+                            let asx = if ioc.side == ColSide::Left {
+                                self.asxlut[ioc.col].io + 7
+                            } else {
+                                self.asxlut[ioc.col].io
+                            };
+                            node.add_bel(
+                                87,
+                                format!("ABUS_SWITCH_X{asx}Y{y}", y = self.asylut[reg].cmt),
+                            );
+                            if is_hbm {
+                                node.add_bel(88, "HBM_REF_CLK_X0Y0".to_string());
+                                node.add_bel(89, "HBM_REF_CLK_X0Y1".to_string());
+                            }
+
+                            let tk = if ioc.side == ColSide::Right {
+                                "RCLK_XIPHY_OUTER_RIGHT"
+                            } else {
+                                "RCLK_RCLK_XIPHY_INNER_FT"
+                            };
+                            let name = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = ioc.col.to_idx(),
+                                y = self.ylut[row - 1]
+                            );
+                            self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node("RCLK_XIPHY"),
+                                &[&name],
+                                self.db.get_node_naming("RCLK_XIPHY"),
+                                &[],
+                            );
+
+                            for i in 0..4 {
+                                let (kind, tk) = if ioc.side == ColSide::Right {
+                                    ("XIPHY_R", "XIPHY_BYTE_RIGHT")
+                                } else {
+                                    ("XIPHY_L", "XIPHY_BYTE_L")
+                                };
+                                let row = self.grid.row_reg_bot(reg) + i * 15;
+                                let name = format!(
+                                    "{tk}_X{x}Y{y}",
+                                    x = ioc.col.to_idx(),
+                                    y = self.ylut[row]
+                                );
+                                let node = self.die[(ioc.col, row)].add_xnode(
+                                    self.db.get_node(kind),
+                                    &[&name],
+                                    self.db.get_node_naming(kind),
+                                    &crds[i * 15..i * 15 + 15],
+                                );
+                                let phyx = self.cmtxlut[ioc.col];
+                                let phyy = self.sylut[row] / 15;
+                                for i in 0..13 {
+                                    node.add_bel(
+                                        i,
+                                        format!("BITSLICE_RX_TX_X{phyx}Y{y}", y = phyy * 13 + i),
+                                    );
+                                }
+                                for i in 0..2 {
+                                    node.add_bel(
+                                        13 + i,
+                                        format!("BITSLICE_TX_X{phyx}Y{y}", y = phyy * 2 + i),
+                                    );
+                                }
+                                for i in 0..2 {
+                                    node.add_bel(
+                                        15 + i,
+                                        format!("BITSLICE_CONTROL_X{phyx}Y{y}", y = phyy * 2 + i),
+                                    );
+                                }
+                                for i in 0..2 {
+                                    node.add_bel(
+                                        17 + i,
+                                        format!("PLL_SELECT_SITE_X{phyx}Y{y}", y = phyy * 2 + i),
+                                    );
+                                }
+                                node.add_bel(19, format!("RIU_OR_X{phyx}Y{phyy}"));
+                                node.add_bel(20, format!("XIPHY_FEEDTHROUGH_X{phyx}Y{phyy}"));
+                            }
+
+                            let mut iobx = ioc.col.to_idx();
+                            if iobx != 0 && ioc.side == ColSide::Left {
+                                iobx -= 1;
+                            }
+                            for i in 0..2 {
+                                let (kind, tk) = if ioc.side == ColSide::Right {
+                                    ("HPIO_R", "HPIO_RIGHT")
+                                } else {
+                                    ("HPIO_L", "HPIO_L")
+                                };
+                                let row = self.grid.row_reg_bot(reg) + i * 30;
+                                let name = format!("{tk}_X{iobx}Y{y}", y = self.ylut[row]);
+                                let node = self.die[(ioc.col, row)].add_xnode(
+                                    self.db.get_node(kind),
+                                    &[&name],
+                                    self.db.get_node_naming(kind),
+                                    &crds[i * 30..i * 30 + 30],
+                                );
+                                let iobx = self.ioxlut[ioc.col];
+                                let ioby = self.ioylut[reg].0 + i * 26;
+                                for j in 0..26 {
+                                    node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                }
+                                for j in 0..12 {
+                                    node.add_bel(
+                                        26 + j,
+                                        format!(
+                                            "HPIOBDIFFINBUF_X{cmtx}Y{y}",
+                                            y = cmty * 24 + i * 12 + j
+                                        ),
+                                    );
+                                }
+                                for j in 0..12 {
+                                    node.add_bel(
+                                        38 + j,
+                                        format!(
+                                            "HPIOBDIFFOUTBUF_X{cmtx}Y{y}",
+                                            y = cmty * 24 + i * 12 + j
+                                        ),
+                                    );
+                                }
+                                for j in 0..2 {
+                                    node.add_bel(
+                                        50 + j,
+                                        format!(
+                                            "HPIOB_DCI_SNGL_X{cmtx}Y{y}",
+                                            y = cmty * 4 + i * 2 + j
+                                        ),
+                                    );
+                                }
+                                node.add_bel(
+                                    52,
+                                    format!("HPIO_VREF_SITE_X{cmtx}Y{y}", y = cmty * 2 + i),
+                                );
+                                node.add_bel(53, format!("BIAS_X{cmtx}Y{y}", y = cmty * 2 + i));
+                            }
+
+                            let kind = if ioc.side == ColSide::Left {
+                                "RCLK_HPIO_L"
+                            } else {
+                                "RCLK_HPIO_R"
+                            };
+                            let name = format!("{kind}_X{iobx}Y{y}", y = self.ylut[row - 1]);
+                            let node = self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node(kind),
+                                &[&name],
+                                self.db.get_node_naming(kind),
+                                &crds,
+                            );
+                            let asx = if ioc.side == ColSide::Left {
+                                self.asxlut[ioc.col].io
+                            } else {
+                                self.asxlut[ioc.col].io + 1
+                            };
+                            for i in 0..7 {
+                                node.add_bel(
+                                    i,
+                                    format!(
+                                        "ABUS_SWITCH_X{x}Y{y}",
+                                        x = asx + i,
+                                        y = self.asylut[reg].hpio
+                                    ),
+                                );
+                            }
+                            node.add_bel(7, format!("HPIO_ZMATCH_BLK_HCLK_X{cmtx}Y{cmty}"));
+                            node.add_bel(8, format!("HPIO_RCLK_PRBS_X{cmtx}Y{cmty}"));
+                        }
+                    }
+                    _ => {
+                        // XXX
+                    }
+                }
+            }
+        }
+    }
+
     fn fill_fe(&mut self) {
         if self.disabled.contains(&DisabledPart::Sdfec) {
             return;
@@ -1877,6 +2372,7 @@ pub fn expand_grid<'a>(
     let mut ly = 0;
     let mut ioy = 0;
     let mut hy = EnumMap::default();
+    let mut gty = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
     let mut gtby = 0;
@@ -1908,8 +2404,10 @@ pub fn expand_grid<'a>(
             gtbxlut: EntityVec::new(),
             gtbylut: EntityVec::new(),
             vsxlut: EntityVec::new(),
+            cmtxlut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
+            gtylut: EnumMap::default(),
             has_slr_d: did != grids.first_id().unwrap(),
             has_slr_u: did != grids.last_id().unwrap(),
             naming,
@@ -1919,12 +2417,14 @@ pub fn expand_grid<'a>(
         sy = expander.fill_sylut(sy);
         ly = expander.fill_lylut(ly);
         expander.fill_hylut(&mut hy);
+        expander.fill_gtylut(&mut gty);
         expander.fill_asxlut();
         asy = expander.fill_asylut(asy);
         expander.fill_ioxlut();
         ioy = expander.fill_ioylut(ioy);
         expander.fill_brxlut();
         gtby = expander.fill_gtbylut(gtby);
+        expander.fill_cmtxlut();
 
         expander.fill_int();
         expander.fill_io_pass();
@@ -1938,6 +2438,7 @@ pub fn expand_grid<'a>(
         expander.fill_fe();
         expander.fill_dfe();
         expander.fill_hard(&hcx);
+        expander.fill_io();
         expander.fill_clkroot();
     }
 

@@ -1090,7 +1090,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..6 {
                 bels.push(
                     builder
-                        .bel_xy(format!("HDIOBDIFFINBUF{i}"), "HDIOBDIFFINBUF", 0, i)
+                        .bel_xy(format!("HDIODIFFIN{i}"), "HDIOBDIFFINBUF", 0, i)
                         .pins_name_only(&["LVDS_TRUE", "LVDS_COMP", "PAD_RES_0", "PAD_RES_1"]),
                 );
             }
@@ -1545,6 +1545,754 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .ref_xlat(int_xy, &[Some(0), None], rclk_int)
                 .bels(bels)
                 .extract();
+        }
+    }
+
+    for (kind, tkn) in [
+        ("CMT_L", "CMT_L"),
+        ("CMT_L_HBM", "CMT_LEFT_H"),
+        ("CMT_R", "CMT_RIGHT"),
+    ] {
+        let is_l = tkn != "CMT_RIGHT";
+        let is_hbm = tkn == "CMT_LEFT_H";
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let mut bels = vec![];
+            for i in 0..24 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFCE_ROW_IO{i}"), "BUFCE_ROW", 0, i)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"]),
+                );
+            }
+            for i in 0..24 {
+                bels.push(
+                    builder
+                        .bel_xy(
+                            &format!("GCLK_TEST_BUF_IO{i}"),
+                            "GCLK_TEST_BUFE3",
+                            0,
+                            if i < 18 { i } else { i + 1 },
+                        )
+                        .pins_name_only(&["CLK_IN", "CLK_OUT"]),
+                );
+            }
+            for i in 0..24 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFGCE{i}"), "BUFGCE", 0, i)
+                        .pins_name_only(&["CLK_OUT"])
+                        .pin_name_only("CLK_IN", usize::from(matches!(i, 5 | 11 | 17 | 23)))
+                        .extra_wire(
+                            "CLK_IN_MUX_HROUTE",
+                            &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = i * 2 + 1)],
+                        )
+                        .extra_wire(
+                            "CLK_IN_MUX_PLL_CKINT",
+                            &[format!(
+                                "CLK_CMT_MUX_3TO1_{ii}_CLK_OUT",
+                                ii = i % 3 + i / 3 * 5
+                            )],
+                        )
+                        .extra_wire(
+                            "CLK_IN_MUX_TEST",
+                            &[format!("CLK_CMT_MUX_4TO1_{i}_CLK_OUT")],
+                        )
+                        .extra_int_in("CLK_IN_CKINT", &[format!("CLK_INT{i}")]),
+                );
+            }
+            for i in 0..8 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
+                        .pins_name_only(&["CLK_I0", "CLK_I1", "CLK_OUT"]),
+                );
+            }
+            for i in 0..4 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("BUFGCE_DIV{i}"), "BUFGCE_DIV", 0, i)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT"]),
+                );
+            }
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_xy(&format!("PLL{i}"), "PLL", 0, i)
+                    .pins_name_only(&[
+                        "CLKOUT0",
+                        "CLKOUT0B",
+                        "CLKOUT1",
+                        "CLKOUT1B",
+                        "CLKFBOUT",
+                        "TMUXOUT",
+                        "CLKOUTPHY_P",
+                        "CLKIN",
+                        "CLKFBIN",
+                    ])
+                    .extra_wire(
+                        "CLKIN_MUX_MMCM",
+                        &[format!("CLK_CMT_MUX_4TO1_{ii}_CLK_OUT", ii = 24 + i)],
+                    )
+                    .extra_wire(
+                        "CLKIN_MUX_HDISTR",
+                        &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 60 + i * 3)],
+                    )
+                    .extra_wire(
+                        "CLKIN_MUX_HROUTE",
+                        &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 61 + i * 3)],
+                    )
+                    .extra_wire(
+                        "CLKIN_MUX_BUFCE_ROW_DLY",
+                        &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 62 + i * 3)],
+                    );
+                if is_hbm {
+                    // the muxes are repurposed for HBM reference
+                    bel = bel.pin_name_only("CLKFBIN", 1);
+                } else {
+                    bel = bel
+                        .extra_wire(
+                            "CLKFBIN_MUX_HDISTR",
+                            &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 56 + i * 2)],
+                        )
+                        .extra_wire(
+                            "CLKFBIN_MUX_BUFCE_ROW_DLY",
+                            &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 57 + i * 2)],
+                        );
+                }
+                bels.push(bel);
+            }
+            bels.push(
+                builder
+                    .bel_xy("MMCM", "MMCM", 0, 0)
+                    .pins_name_only(&[
+                        "CLKOUT0",
+                        "CLKOUT0B",
+                        "CLKOUT1",
+                        "CLKOUT1B",
+                        "CLKOUT2",
+                        "CLKOUT2B",
+                        "CLKOUT3",
+                        "CLKOUT3B",
+                        "CLKOUT4",
+                        "CLKOUT5",
+                        "CLKOUT6",
+                        "CLKFBOUT",
+                        "CLKFBOUTB",
+                        "TMUXOUT",
+                        "CLKIN1",
+                        "CLKIN2",
+                        "CLKFBIN",
+                    ])
+                    .extra_wire("CLKFBIN_MUX_HDISTR", &["CLK_CMT_MUX_24_ENC_48_CLK_OUT"])
+                    .extra_wire(
+                        "CLKFBIN_MUX_BUFCE_ROW_DLY",
+                        &["CLK_CMT_MUX_24_ENC_49_CLK_OUT"],
+                    )
+                    .extra_wire("CLKFBIN_MUX_DUMMY0", &["VCC_WIRE51"])
+                    .extra_wire("CLKFBIN_MUX_DUMMY1", &["VCC_WIRE52"])
+                    .extra_wire("CLKIN1_MUX_HDISTR", &["CLK_CMT_MUX_24_ENC_50_CLK_OUT"])
+                    .extra_wire("CLKIN1_MUX_HROUTE", &["CLK_CMT_MUX_24_ENC_51_CLK_OUT"])
+                    .extra_wire(
+                        "CLKIN1_MUX_BUFCE_ROW_DLY",
+                        &["CLK_CMT_MUX_24_ENC_52_CLK_OUT"],
+                    )
+                    .extra_wire("CLKIN1_MUX_DUMMY0", &["GND_WIRE0"])
+                    .extra_wire("CLKIN2_MUX_HDISTR", &["CLK_CMT_MUX_24_ENC_53_CLK_OUT"])
+                    .extra_wire("CLKIN2_MUX_HROUTE", &["CLK_CMT_MUX_24_ENC_54_CLK_OUT"])
+                    .extra_wire(
+                        "CLKIN2_MUX_BUFCE_ROW_DLY",
+                        &["CLK_CMT_MUX_24_ENC_55_CLK_OUT"],
+                    )
+                    .extra_wire("CLKIN2_MUX_DUMMY0", &["GND_WIRE1"]),
+            );
+            bels.push(builder.bel_xy("ABUS_SWITCH.CMT", "ABUS_SWITCH", 0, 0));
+            if is_hbm {
+                for i in 0..2 {
+                    bels.push(
+                        builder
+                            .bel_xy(&format!("HBM_REF_CLK{i}"), "HBM_REF_CLK", 0, i)
+                            .pins_name_only(&["REF_CLK"])
+                            .extra_wire(
+                                "REF_CLK_MUX_HDISTR",
+                                &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 56 + i * 2)],
+                            )
+                            .extra_wire(
+                                "REF_CLK_MUX_BUFCE_ROW_DLY",
+                                &[format!("CLK_CMT_MUX_24_ENC_{ii}_CLK_OUT", ii = 57 + i * 2)],
+                            ),
+                    );
+                }
+            }
+            let mut bel = builder.bel_virtual("CMT");
+            for i in 0..4 {
+                bel = bel.extra_wire(&format!("CCIO{i}"), &[format!("IOB2CLK_CCIO{i}")]);
+            }
+            for i in 0..8 {
+                bel = bel.extra_wire(
+                    &format!("FIFO_WRCLK{i}"),
+                    &[format!("PHY2RCLK_SS_DIVCLK_{j}_{k}", j = i / 2, k = i % 2)],
+                );
+            }
+            for i in 0..24 {
+                let dummy_base = [
+                    0, 3, 36, 53, 56, 59, 62, 65, 68, 71, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 39,
+                    42, 45, 48,
+                ][i];
+                bel = bel
+                    .extra_wire(&format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
+                    .extra_wire(&format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
+                    .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
+                    .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
+                    .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
+                    .extra_wire(
+                        &format!("HDISTR{i}_R"),
+                        &[format!("CLK_CMT_DRVR_TRI_{ii}_CLK_OUT_B", ii = i * 4)],
+                    )
+                    .extra_wire(
+                        &format!("HDISTR{i}_L_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 1 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("HDISTR{i}_R_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("HDISTR{i}_OUT_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 4 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("HROUTE{i}_L_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("HROUTE{i}_R_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("VDISTR{i}_B_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 6 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("VDISTR{i}_T_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 7 + i * 8)],
+                    )
+                    .extra_wire(
+                        &format!("OUT_MUX{i}"),
+                        &[format!("CLK_CMT_MUX_16_ENC_{i}_CLK_OUT")],
+                    )
+                    .extra_wire(
+                        &format!("OUT_MUX{i}_DUMMY0"),
+                        &[format!("VCC_WIRE{ii}", ii = dummy_base)],
+                    )
+                    .extra_wire(
+                        &format!("OUT_MUX{i}_DUMMY1"),
+                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 1)],
+                    )
+                    .extra_wire(
+                        &format!("OUT_MUX{i}_DUMMY2"),
+                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 2)],
+                    );
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual("VCC.CMT")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(60).ref_single(
+                int_xy.delta(0, 30),
+                30,
+                rclk_int,
+            );
+            for i in 0..60 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for (kind, tkn) in [("XIPHY_L", "XIPHY_BYTE_L"), ("XIPHY_R", "XIPHY_BYTE_RIGHT")] {
+        let is_l = tkn != "XIPHY_BYTE_RIGHT";
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
+            let mut bels = vec![];
+            for i in 0..13 {
+                let mut bel = builder
+                    .bel_xy(&format!("BITSLICE_RX_TX{i}"), "BITSLICE_RX_TX", 0, i)
+                    .pins_name_only(&[
+                        "TX_CLK",
+                        "TX_OCLK",
+                        "TX_DIV2_CLK",
+                        "TX_DIV4_CLK",
+                        "TX_DDR_CLK",
+                        "TX_CTRL_CLK",
+                        "TX_CTRL_CE",
+                        "TX_CTRL_INC",
+                        "TX_CTRL_LD",
+                        "TX_OCLKDIV",
+                        "TX_TBYTE_IN",
+                        "TX_WL_TRAIN",
+                        "TX_MUX_360_N_SEL",
+                        "TX_MUX_360_P_SEL",
+                        "TX_MUX_720_P0_SEL",
+                        "TX_MUX_720_P1_SEL",
+                        "TX_MUX_720_P2_SEL",
+                        "TX_MUX_720_P3_SEL",
+                        "TX_VTC_READY",
+                        "TX_TOGGLE_DIV2_SEL",
+                        "TX_BS_RESET",
+                        "TX_REGRST",
+                        "TX_RST",
+                        "TX_Q",
+                        "RX_CLK_C",
+                        "RX_CLK_C_B",
+                        "RX_CLK_P",
+                        "RX_CLK_N",
+                        "RX_CTRL_CLK",
+                        "RX_CTRL_CE",
+                        "RX_CTRL_INC",
+                        "RX_CTRL_LD",
+                        "RX_RST",
+                        "RX_CLKDIV",
+                        "RX_DCC0",
+                        "RX_DCC1",
+                        "RX_DCC2",
+                        "RX_DCC3",
+                        "RX_VTC_READY",
+                        "RX_RESET",
+                        "RX_BS_RESET",
+                        "RX_DQS_OUT",
+                        "TX2RX_CASC_IN",
+                        "TX2RX_CASC_OUT",
+                        "RX2TX_CASC_RETURN_IN",
+                        "PHY2CLB_FIFO_WRCLK",
+                        "CLB2PHY_FIFO_CLK",
+                        "CTL2BS_FIFO_BYPASS",
+                        "CTL2BS_RX_RECALIBRATE_EN",
+                        "CTL2BS_TX_DDR_PHASE_SEL",
+                        "CTL2BS_DYNAMIC_MODE_EN",
+                        "BS2CTL_IDELAY_DELAY_FORMAT",
+                        "BS2CTL_ODELAY_DELAY_FORMAT",
+                        "BS2CTL_TX_DDR_PHASE_SEL",
+                        "BS2CTL_RX_P0_DQ_OUT",
+                        "BS2CTL_RX_N0_DQ_OUT",
+                        "BS2CTL_RX_DDR_EN_DQS",
+                    ])
+                    .pin_name_only("RX_CLK", 1)
+                    .pin_name_only("RX_D", 1)
+                    .extra_wire("DYN_DCI_OUT", &[format!("PHY2IOB_ODT_OUT_BYTE{i}")])
+                    .extra_int_in(
+                        "DYN_DCI_OUT_INT",
+                        &[if i < 6 {
+                            format!("CLB2PHY_ODT_LOW{i}")
+                        } else {
+                            format!("CLB2PHY_ODT_UPP{ii}", ii = i - 6)
+                        }],
+                    );
+                for i in 0..18 {
+                    bel = bel.pins_name_only(&[
+                        format!("BS2CTL_IDELAY_FIXED_DLY_RATIO{i}"),
+                        format!("BS2CTL_ODELAY_FIXED_DLY_RATIO{i}"),
+                    ]);
+                }
+                for i in 0..9 {
+                    bel = bel.pins_name_only(&[
+                        format!("BS2CTL_RX_CNTVALUEOUT{i}"),
+                        format!("BS2CTL_TX_CNTVALUEOUT{i}"),
+                        format!("RX_CTRL_DLY{i}"),
+                        format!("TX_CTRL_DLY{i}"),
+                    ]);
+                }
+                bels.push(bel);
+            }
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_xy(&format!("BITSLICE_TX{i}"), "BITSLICE_TX", 0, i)
+                    .pins_name_only(&[
+                        "CLK",
+                        "DIV2_CLK",
+                        "DIV4_CLK",
+                        "DDR_CLK",
+                        "CTRL_CLK",
+                        "CTRL_CE",
+                        "CTRL_INC",
+                        "CTRL_LD",
+                        "TX_MUX_360_N_SEL",
+                        "TX_MUX_360_P_SEL",
+                        "TX_MUX_720_P0_SEL",
+                        "TX_MUX_720_P1_SEL",
+                        "TX_MUX_720_P2_SEL",
+                        "TX_MUX_720_P3_SEL",
+                        "TOGGLE_DIV2_SEL",
+                        "D0",
+                        "D1",
+                        "D2",
+                        "D3",
+                        "D4",
+                        "D5",
+                        "D6",
+                        "D7",
+                        "Q",
+                        "RST",
+                        "REGRST",
+                        "BS_RESET",
+                        "CDATAIN0",
+                        "CDATAIN1",
+                        "CDATAOUT",
+                        "CTL2BS_TX_DDR_PHASE_SEL",
+                        "CTL2BS_DYNAMIC_MODE_EN",
+                        "BS2CTL_TX_DDR_PHASE_SEL",
+                        "FORCE_OE_B",
+                        "VTC_READY",
+                    ]);
+                for i in 0..9 {
+                    bel = bel.pins_name_only(&[
+                        format!("BS2CTL_CNTVALUEOUT{i}"),
+                        format!("CTRL_DLY{i}"),
+                    ]);
+                }
+                bels.push(bel);
+            }
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_xy(&format!("BITSLICE_CONTROL{i}"), "BITSLICE_CONTROL", 0, i)
+                    .pins_name_only(&[
+                        "PDQS_GT_IN",
+                        "NDQS_GT_IN",
+                        "PDQS_GT_OUT",
+                        "NDQS_GT_OUT",
+                        "FORCE_OE_B",
+                        "PLL_CLK",
+                        "PLL_CLK_EN",
+                        "REFCLK_DFD",
+                        "CLK_TO_EXT_SOUTH",
+                        "CLK_TO_EXT_NORTH",
+                        "CLB2PHY_CTRL_RST",
+                        "LOCAL_DIV_CLK",
+                        "BS_RESET_TRI",
+                        "TRISTATE_ODELAY_CE_OUT",
+                        "TRISTATE_ODELAY_INC_OUT",
+                        "TRISTATE_ODELAY_LD_OUT",
+                        "TRISTATE_VTC_READY",
+                        "SCAN_INT",
+                        "RIU2CLB_VALID",
+                        "CLK_STOP",
+                        "CLK_FROM_EXT",
+                    ])
+                    .pin_name_only("CLK_FROM_EXT", 1);
+                for i in 0..7 {
+                    bel = bel.pins_name_only(&[
+                        format!("RX_DCC{i:02}_0"),
+                        format!("RX_DCC{i:02}_1"),
+                        format!("RX_DCC{i:02}_2"),
+                        format!("RX_DCC{i:02}_3"),
+                        format!("RX_PDQ{i}_IN"),
+                        format!("RX_NDQ{i}_IN"),
+                        format!("IDELAY_CTRL_CLK{i}"),
+                        format!("IDELAY_CE_OUT{i}"),
+                        format!("IDELAY_INC_OUT{i}"),
+                        format!("IDELAY_LD_OUT{i}"),
+                        format!("FIXED_IDELAY{i:02}"),
+                        format!("ODELAY_CE_OUT{i}"),
+                        format!("ODELAY_INC_OUT{i}"),
+                        format!("ODELAY_LD_OUT{i}"),
+                        format!("FIXED_ODELAY{i:02}"),
+                        format!("VTC_READY_IDELAY{i:02}"),
+                        format!("VTC_READY_ODELAY{i:02}"),
+                        format!("WL_TRAIN{i}"),
+                        format!("DYN_DCI_OUT{i}"),
+                        format!("DQS_IN{i}"),
+                        format!("RX_BS_RESET{i}"),
+                        format!("TX_BS_RESET{i}"),
+                        format!("PDQS_OUT{i}"),
+                        format!("NDQS_OUT{i}"),
+                        format!("REFCLK_EN{i}"),
+                        format!("IFIFO_BYPASS{i}"),
+                        format!("BS2CTL_RIU_BS_DQS_EN{i}"),
+                    ]);
+                    for j in 0..9 {
+                        bel = bel.pins_name_only(&[
+                            format!("IDELAY{i:02}_IN{j}"),
+                            format!("IDELAY{i:02}_OUT{j}"),
+                            format!("ODELAY{i:02}_IN{j}"),
+                            format!("ODELAY{i:02}_OUT{j}"),
+                        ]);
+                    }
+                    for j in 0..18 {
+                        bel = bel.pins_name_only(&[
+                            format!("FIXDLYRATIO_IDELAY{i:02}_{j}"),
+                            format!("FIXDLYRATIO_ODELAY{i:02}_{j}"),
+                        ]);
+                    }
+                }
+                for i in 0..8 {
+                    bel = bel.pins_name_only(&[
+                        format!("ODELAY_CTRL_CLK{i}"),
+                        format!("DYNAMIC_MODE_EN{i}"),
+                        format!("EN_DIV_DLY_OE{i}"),
+                        format!("TOGGLE_DIV2_SEL{i}"),
+                        format!("TX_DATA_PHASE{i}"),
+                        format!("BS2CTL_RIU_TX_DATA_PHASE{i}"),
+                        format!("DIV2_CLK_OUT{i}"),
+                        format!("DIV_CLK_OUT{i}"),
+                        format!("DDR_CLK_OUT{i}"),
+                        format!("PH02_DIV2_360_{i}"),
+                        format!("PH13_DIV2_360_{i}"),
+                        format!("PH0_DIV_720_{i}"),
+                        format!("PH1_DIV_720_{i}"),
+                        format!("PH2_DIV_720_{i}"),
+                        format!("PH3_DIV_720_{i}"),
+                    ]);
+                }
+                for i in 0..9 {
+                    bel = bel.pins_name_only(&[
+                        format!("TRISTATE_ODELAY_IN{i}"),
+                        format!("TRISTATE_ODELAY_OUT{i}"),
+                    ]);
+                }
+                for i in 0..16 {
+                    bel = bel.pins_name_only(&[format!("RIU2CLB_RD_DATA{i}")]);
+                }
+                bels.push(bel);
+            }
+            for i in 0..2 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("PLL_SELECT{i}"), "PLL_SELECT_SITE", 0, i)
+                        .pins_name_only(&["REFCLK_DFD", "Z", "PLL_CLK_EN"])
+                        .pin_name_only("D0", 1)
+                        .pin_name_only("D1", 1),
+                );
+            }
+            let mut bel = builder
+                .bel_xy("RIU_OR0", "RIU_OR", 0, 0)
+                .pins_name_only(&["RIU_RD_VALID_LOW", "RIU_RD_VALID_UPP"]);
+            for i in 0..16 {
+                bel = bel.pins_name_only(&[
+                    format!("RIU_RD_DATA_LOW{i}"),
+                    format!("RIU_RD_DATA_UPP{i}"),
+                ]);
+            }
+            bels.push(bel);
+            let mut bel = builder
+                .bel_xy("XIPHY_FEEDTHROUGH0", "XIPHY_FEEDTHROUGH", 0, 0)
+                .pins_name_only(&[
+                    "CLB2PHY_CTRL_RST_LOW_SMX",
+                    "CLB2PHY_CTRL_RST_UPP_SMX",
+                    "CLB2PHY_TRISTATE_ODELAY_RST_SMX0",
+                    "CLB2PHY_TRISTATE_ODELAY_RST_SMX1",
+                    "CLB2PHY_TXBIT_TRI_RST_SMX0",
+                    "CLB2PHY_TXBIT_TRI_RST_SMX1",
+                    "SCAN_INT_LOWER",
+                    "SCAN_INT_UPPER",
+                    "DIV_CLK_OUT_LOW",
+                    "DIV_CLK_OUT_UPP",
+                    "XIPHY_CLK_STOP_CTRL_LOW",
+                    "XIPHY_CLK_STOP_CTRL_UPP",
+                    "RCLK2PHY_CLKDR",
+                    "RCLK2PHY_SHIFTDR",
+                ]);
+            for i in 0..13 {
+                bel = bel.pins_name_only(&[
+                    format!("CLB2PHY_TXBIT_RST_SMX{i}"),
+                    format!("CLB2PHY_RXBIT_RST_SMX{i}"),
+                    format!("CLB2PHY_FIFO_CLK_SMX{i}"),
+                    format!("CLB2PHY_IDELAY_RST_SMX{i}"),
+                    format!("CLB2PHY_ODELAY_RST_SMX{i}"),
+                ]);
+            }
+            for i in 0..6 {
+                bel = bel.pins_name_only(&[format!("CTL2BS_REFCLK_EN_LOW_SMX{i}")]);
+            }
+            for i in 0..7 {
+                bel = bel.pins_name_only(&[
+                    format!("CTL2BS_REFCLK_EN_LOW{i}"),
+                    format!("CTL2BS_REFCLK_EN_UPP{i}"),
+                    format!("CTL2BS_REFCLK_EN_UPP_SMX{i}"),
+                ]);
+            }
+            bels.push(bel);
+            let mut bel = builder.bel_virtual("XIPHY_BYTE");
+            for i in 0..6 {
+                bel = bel.extra_wire(format!("XIPHY_CLK{i}"), &[format!("GCLK_FT0_{i}")]);
+            }
+            bels.push(bel);
+
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(15);
+            for i in 0..15 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in ["RCLK_RCLK_XIPHY_INNER_FT", "RCLK_XIPHY_OUTER_RIGHT"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bel = builder.bel_virtual("RCLK_XIPHY");
+            for i in 0..24 {
+                bel = bel
+                    .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ZERO{i}")])
+                    .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ONE{i}")]);
+            }
+            for i in 0..6 {
+                bel = bel
+                    .extra_wire(
+                        &format!("XIPHY_CLK{i}_B"),
+                        &[format!("CLK_TO_XIPHY_BYTES_BOT{i}")],
+                    )
+                    .extra_wire(
+                        &format!("XIPHY_CLK{i}_T"),
+                        &[format!("CLK_TO_XIPHY_BYTES_TOP{i}")],
+                    );
+            }
+            let bel_vcc = builder
+                .bel_virtual("VCC.RCLK_XIPHY")
+                .extra_wire("VCC", &["VCC_WIRE"]);
+            builder
+                .xnode("RCLK_XIPHY", "RCLK_XIPHY", xy)
+                .num_tiles(0)
+                .bel(bel)
+                .bel(bel_vcc)
+                .extract();
+        }
+    }
+
+    for (kind, tkn) in [("HPIO_L", "HPIO_L"), ("HPIO_R", "HPIO_RIGHT")] {
+        let is_l = tkn != "HPIO_RIGHT";
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
+            let mut bels = vec![];
+
+            for i in 0..26 {
+                let mut bel = builder
+                    .bel_xy(&format!("HPIOB{i}"), "IOB", 0, i)
+                    .pins_name_only(&[
+                        "I",
+                        "OUTB_B_IN",
+                        "OUTB_B",
+                        "TSTATE_IN",
+                        "TSTATE_OUT",
+                        "DOUT",
+                        "IO",
+                        "LVDS_TRUE",
+                        "PAD_RES",
+                        "O_B",
+                        "TSTATEB",
+                        "DYNAMIC_DCI_TS",
+                        "VREF",
+                    ])
+                    .pin_name_only("SWITCH_OUT", 1)
+                    .pin_name_only("OP", 1)
+                    .pin_name_only("TSP", 1)
+                    .pin_dummy("TSDI");
+                if matches!(i, 12 | 25) {
+                    bel = bel
+                        .pin_dummy("IO")
+                        .pin_dummy("LVDS_TRUE")
+                        .pin_dummy("OUTB_B_IN")
+                        .pin_dummy("TSTATE_IN");
+                }
+                bels.push(bel);
+            }
+            for i in 0..12 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("HPIODIFFIN{i}"), "HPIOBDIFFINBUF", 0, i)
+                        .pins_name_only(&[
+                            "LVDS_TRUE",
+                            "LVDS_COMP",
+                            "PAD_RES_0",
+                            "PAD_RES_1",
+                            "VREF",
+                        ]),
+                );
+            }
+            for i in 0..12 {
+                bels.push(
+                    builder
+                        .bel_xy(&format!("HPIODIFFOUT{i}"), "HPIOBDIFFOUTBUF", 0, i)
+                        .pins_name_only(&["AOUT", "BOUT", "O_B", "TSTATEB"]),
+                );
+            }
+            for i in 0..2 {
+                bels.push(builder.bel_xy(&format!("HPIO_DCI{i}"), "HPIOB_DCI_SNGL", 0, i));
+            }
+            bels.push(
+                builder
+                    .bel_xy("HPIO_VREF", "HPIO_VREF_SITE", 0, 0)
+                    .pins_name_only(&["VREF1", "VREF2"]),
+            );
+            bels.push(builder.bel_xy("HPIO_BIAS", "BIAS", 0, 0));
+
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(30);
+            for i in 0..30 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in ["RCLK_HPIO_L", "RCLK_HPIO_R"] {
+        let is_l = tkn != "RCLK_HPIO_R";
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy.delta(0, -30), if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
+            let mut bels = vec![];
+            for i in 0..7 {
+                bels.push(builder.bel_xy(&format!("ABUS_SWITCH.HPIO{i}"), "ABUS_SWITCH", i, 0));
+            }
+            bels.push(builder.bel_xy("HPIO_ZMATCH_BLK_HCLK", "HPIO_ZMATCH_BLK_HCLK", 0, 0));
+            bels.push(builder.bel_xy("HPIO_RCLK_PRBS", "HPIO_RCLK_PRBS", 0, 0));
+
+            let mut xn = builder.xnode(tkn, tkn, xy).num_tiles(60);
+            for i in 0..60 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
         }
     }
 

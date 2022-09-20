@@ -12,6 +12,7 @@ pub use expand::expand_grid;
 entity_id! {
     pub id RegId u32;
     pub id HdioIobId u8;
+    pub id HpioIobId u8;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -133,7 +134,7 @@ pub struct HardColumn {
     pub regs: EntityVec<RegId, HardRowKind>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Enum)]
 pub enum IoRowKind {
     None,
     Hpio,
@@ -390,6 +391,8 @@ pub enum DisabledPart {
     TopRow(DieId, RegId),
     HardIp(DieId, ColId, RegId),
     HdioIob(DieId, ColId, RegId, HdioIobId),
+    HpioIob(DieId, ColId, RegId, HpioIobId),
+    HpioDci(DieId, ColId, RegId),
     Dfe,
     Sdfec,
     Ps,
@@ -442,6 +445,10 @@ impl Grid {
 
     pub fn row_reg_rclk(&self, reg: RegId) -> RowId {
         RowId::from_idx(reg.to_idx() * 60 + 30)
+    }
+
+    pub fn row_rclk(&self, row: RowId) -> RowId {
+        RowId::from_idx(row.to_idx() / 60 * 60 + 30)
     }
 
     pub fn regs(&self) -> EntityIds<RegId> {
