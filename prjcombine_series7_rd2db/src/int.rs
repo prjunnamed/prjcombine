@@ -851,9 +851,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for (kind, tkn) in [("PCIE_L", "PCIE_BOT_LEFT"), ("PCIE_R", "PCIE_BOT")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            if rd.tile_kinds[rd.tiles[&xy].kind].sites.is_empty() {
-                continue;
-            }
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
             let nl = builder.db.get_node_naming(if kind == "PCIE_L" {
@@ -2578,9 +2575,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("GTP_CHANNEL_2_MID_RIGHT", 19, 18, "INTF.GTP_L"),
         ("GTP_CHANNEL_3_MID_RIGHT", 19, 18, "INTF.GTP_L"),
     ] {
-        if rd.part.contains("7s") {
-            continue;
-        }
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);
             let bels = [
@@ -2624,9 +2618,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("GTP_COMMON_MID_LEFT", -14, -13, "INTF.GTP_R"),
         ("GTP_COMMON_MID_RIGHT", 19, 18, "INTF.GTP_L"),
     ] {
-        if rd.part.contains("7s") {
-            continue;
-        }
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);
             let mut bel = builder

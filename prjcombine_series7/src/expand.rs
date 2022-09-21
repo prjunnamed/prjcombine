@@ -11,7 +11,6 @@ use crate::{
 struct DieExpander<'a, 'b> {
     grid: &'b Grid,
     db: &'a IntDb,
-    disabled: &'b BTreeSet<DisabledPart>,
     die: ExpandedDieRefMut<'a, 'b>,
     xlut: EntityVec<ColId, usize>,
     rxlut: EntityVec<ColId, usize>,
@@ -575,9 +574,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     );
                 }
             }
-            if self.disabled.contains(&DisabledPart::Gtp) {
-                continue;
-            }
             let mut crds = vec![];
             for dy in 0..25 {
                 crds.push((pcie2.col, pcie2.row + dy));
@@ -740,9 +736,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         self.die.fill_term_anon((col_r, row), "TERM.W");
                     }
 
-                    if self.disabled.contains(&DisabledPart::Gtp) {
-                        continue;
-                    }
                     let gty = self.gtylut[br];
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -842,9 +835,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         self.die.fill_term_anon((col_r, row), "TERM.W");
                     }
 
-                    if self.disabled.contains(&DisabledPart::Gtp) {
-                        continue;
-                    }
                     let gty = self.gtylut[br];
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -1051,9 +1041,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         );
                     }
 
-                    if self.disabled.contains(&DisabledPart::Gtp) {
-                        continue;
-                    }
                     let gty = self.gtylut[br];
                     let sk = match kind {
                         GtKind::Gtp => "GTP",
@@ -1993,7 +1980,6 @@ pub fn expand_grid<'a>(
         let mut de = DieExpander {
             grid,
             db,
-            disabled,
             die,
             xlut: EntityVec::new(),
             rxlut: EntityVec::new(),

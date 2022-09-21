@@ -727,7 +727,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             if !has_io {
                 let mut has_gt = false;
                 if let Some(ref gtcol) = grid.cols_gt[if lr == 'L' { 0 } else { 1 }] {
-                    if gtcol.regs[reg].is_some() && !edev.disabled.contains(&DisabledPart::Gtp) {
+                    if gtcol.regs[reg].is_some() {
                         has_gt = true;
                         let obel = vrf
                             .find_bel(bel.die, (gtcol.col, bel.row), "GTP_COMMON")
@@ -2624,13 +2624,17 @@ fn verify_out_fifo(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     vrf.verify_node(&[bel.fwire("PHASER_RDEN"), obel.fwire("FIFO_RDEN")]);
 }
 
-fn verify_ipad(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
+fn verify_ipad(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if !bel.node_kind.starts_with("GTP") || !edev.disabled.contains(&DisabledPart::Gtp) {
+        vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
+    }
     vrf.claim_node(&[bel.fwire("O")]);
 }
 
-fn verify_opad(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
+fn verify_opad(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if !bel.node_kind.starts_with("GTP") || !edev.disabled.contains(&DisabledPart::Gtp) {
+        vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
+    }
     vrf.claim_node(&[bel.fwire("I")]);
 }
 
@@ -2896,14 +2900,16 @@ fn verify_hclk_ps_hi(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_ibufds(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_ibufds(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins = [
         ("I", SitePinDir::In),
         ("IB", SitePinDir::In),
         ("O", SitePinDir::Out),
         ("ODIV2", SitePinDir::Out),
     ];
-    vrf.verify_bel(bel, "IBUFDS_GTE2", &pins, &[]);
+    if !edev.disabled.contains(&DisabledPart::Gtp) {
+        vrf.verify_bel(bel, "IBUFDS_GTE2", &pins, &[]);
+    }
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
@@ -2937,7 +2943,9 @@ fn verify_gtp_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
         ("RXOUTCLK", SitePinDir::Out),
         ("TXOUTCLK", SitePinDir::Out),
     ];
-    vrf.verify_bel(bel, "GTPE2_CHANNEL", &pins, &[]);
+    if !edev.disabled.contains(&DisabledPart::Gtp) {
+        vrf.verify_bel(bel, "GTPE2_CHANNEL", &pins, &[]);
+    }
     for (pin, _) in &pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
@@ -3081,7 +3089,9 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
             "GTWESTREFCLK1",
         ]);
     }
-    vrf.verify_bel_dummies(bel, "GTPE2_COMMON", &pins, &[], &dummies);
+    if !edev.disabled.contains(&DisabledPart::Gtp) {
+        vrf.verify_bel_dummies(bel, "GTPE2_COMMON", &pins, &[], &dummies);
+    }
     for (pin, _) in &pins {
         if !dummies.contains(pin) {
             vrf.claim_node(&[bel.fwire(pin)]);
@@ -3437,7 +3447,11 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BRAM_F" => verify_bram_f(vrf, bel),
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         "BRAM_ADDR" => verify_bram_addr(vrf, bel),
-        "PCIE" => vrf.verify_bel(bel, "PCIE_2_1", &[], &[]),
+        "PCIE" => {
+            if !edev.disabled.contains(&DisabledPart::Gtp) {
+                vrf.verify_bel(bel, "PCIE_2_1", &[], &[])
+            }
+        }
         "PCIE3" => vrf.verify_bel(bel, "PCIE_3_0", &[], &[]),
         "PMVBRAM_NC" => verify_pmvbram_nc(vrf, bel),
         "PMVBRAM" | "PMV" | "PMV2" | "PMV2_SVT" | "PMVIOB" | "MTBF2" | "STARTUP" | "CAPTURE"
@@ -3488,8 +3502,8 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "OUT_FIFO" => verify_out_fifo(edev, vrf, bel),
 
         "XADC" => verify_xadc(edev, vrf, bel),
-        _ if bel.key.starts_with("IPAD") => verify_ipad(vrf, bel),
-        _ if bel.key.starts_with("OPAD") => verify_opad(vrf, bel),
+        _ if bel.key.starts_with("IPAD") => verify_ipad(edev, vrf, bel),
+        _ if bel.key.starts_with("OPAD") => verify_opad(edev, vrf, bel),
         _ if bel.key.starts_with("IOPAD") => verify_iopad(vrf, bel),
         "PS" => verify_ps(vrf, bel),
         "HCLK_PS_LO" => verify_hclk_ps_lo(vrf, bel),
@@ -3499,7 +3513,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "GTP_COMMON" => verify_gtp_common(edev, vrf, bel),
         "GTX_CHANNEL" | "GTH_CHANNEL" => verify_gtxh_channel(edev, vrf, bel),
         "GTX_COMMON" | "GTH_COMMON" => verify_gtxh_common(vrf, bel),
-        "IBUFDS0" | "IBUFDS1" => verify_ibufds(vrf, bel),
+        "IBUFDS0" | "IBUFDS1" => verify_ibufds(edev, vrf, bel),
         "BRKH_GTX" => verify_brkh_gtx(vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),

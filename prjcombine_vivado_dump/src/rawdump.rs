@@ -2,7 +2,8 @@ use super::parts::VivadoPart;
 use indicatif::ProgressBar;
 use prjcombine_entity::{entity_id, EntitySet};
 use prjcombine_rawdump::{
-    Coord, Part, PkgPin, Source, TkPipDirection, TkPipInversion, TkSitePinDir,
+    Coord, Part, PkgPin, Source, TileKindId, TkPipDirection, TkPipInversion, TkSite, TkSitePin,
+    TkSitePinDir, TkSiteSlot,
 };
 use prjcombine_rdbuild::{PartBuilder, PbPip, PbSitePin};
 use prjcombine_toolchain::{Toolchain, ToolchainReader};
@@ -639,6 +640,490 @@ fn dump_tile(
     }
 }
 
+const STEAL_SITES_TCL: &str = r#"
+set ifd [open "sites.list" r]
+set fd [open "sites.fifo" w]
+link_design -part [lindex $argv 0]
+foreach x [get_speed_models] {
+    set idx [get_property SPEED_INDEX $x]
+    puts $fd "SPEED #$idx #$x"
+}
+while { [gets $ifd sname] >= 0 } {
+    set site [get_sites $sname]
+    set type [get_property SITE_TYPE $site]
+    set tile [get_tiles -of $site]
+    puts $fd "SITE $sname #$site $type #$tile"
+    foreach y [get_site_pins -of $site] {
+        set node [get_nodes -of $y]
+        set dir [get_property DIRECTION $y]
+        set si [get_property SPEED_INDEX $y]
+        puts $fd "SITEPIN #$y #$dir #$si #$node"
+        foreach w [get_wires -of $node] {
+            puts $fd "WIRE #$w"
+        }
+        puts $fd "ENDSITEPIN"
+    }
+    puts $fd "ENDSITE"
+}
+puts $fd "END"
+"#;
+
+fn steal_sites(
+    tc: &Toolchain,
+    part: &mut Part,
+    device: &str,
+    slots: HashMap<&str, (TileKindId, TkSiteSlot)>,
+) {
+    let mut slist: Vec<u8> = Vec::new();
+    for site in slots.keys() {
+        writeln!(slist, "{}", site).unwrap();
+    }
+    let tr = ToolchainReader::new(
+        tc,
+        "vivado",
+        &[
+            "-nolog",
+            "-nojournal",
+            "-mode",
+            "batch",
+            "-source",
+            "script.tcl",
+            "-tclargs",
+            device,
+        ],
+        &[],
+        "sites.fifo",
+        &[
+            ("script.tcl", STEAL_SITES_TCL.as_bytes()),
+            ("sites.list", &slist),
+        ],
+    )
+    .unwrap();
+    let mut lines = tr.lines();
+    let mut speed_models = HashMap::new();
+    loop {
+        let l = lines.next().unwrap();
+        let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+        match sl[0] {
+            "SPEED" => {
+                let idx: u32 = sl[1][1..].parse().unwrap();
+                let name = &sl[2][1..];
+                if idx == 65535 {
+                    continue;
+                }
+                if speed_models.contains_key(&idx) {
+                    panic!(
+                        "double speed model {}: {} {}",
+                        idx, name, speed_models[&idx]
+                    );
+                }
+                speed_models.insert(idx, name.to_string());
+            }
+            "SITE" => {
+                let name = sl[1];
+                assert_eq!(name, &sl[2][1..]);
+                let kind = sl[3].to_string();
+                let tile = &sl[4][1..];
+                let (tki, slot) = slots[name];
+                let mut site = TkSite {
+                    kind,
+                    pins: HashMap::new(),
+                };
+                let spref = format!("{name}/");
+                let tpref = format!("{tile}/");
+                loop {
+                    let l = lines.next().unwrap();
+                    let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+                    match sl[0] {
+                        "SITEPIN" => {
+                            let pin = sl[1][1..].strip_prefix(&spref).unwrap().to_string();
+                            let dir = match &sl[2][1..] {
+                                "IN" => TkSitePinDir::Input,
+                                "OUT" => TkSitePinDir::Output,
+                                "INOUT" => TkSitePinDir::Bidir,
+                                _ => panic!("weird pin dir {}", &sl[2][1..]),
+                            };
+                            let si = &sl[3][1..];
+                            let node = &sl[4][1..];
+                            let speed = if si.is_empty() {
+                                None
+                            } else {
+                                Some(
+                                    part.speeds
+                                        .get_or_insert(&speed_models[&si.parse::<u32>().unwrap()]),
+                                )
+                            };
+
+                            let mut wires = Vec::new();
+                            loop {
+                                let l = lines.next().unwrap();
+                                let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
+                                match sl[0] {
+                                    "WIRE" => {
+                                        if let Some(wname) = sl[1][1..].strip_prefix(&tpref) {
+                                            wires.push(wname.to_string());
+                                        }
+                                    }
+                                    "ENDSITEPIN" => break,
+                                    _ => panic!("unknown line {}", sl[0]),
+                                }
+                            }
+                            let mut nwires = wires.clone();
+                            if nwires.len() > 1 {
+                                nwires.retain(|x| x.ends_with(&pin));
+                            }
+                            if nwires.len() > 1 {
+                                panic!(
+                                    "AMBIG PIN {name} {pin} {dir:?} {speed:?} {node:?} {wires:?}"
+                                );
+                            }
+                            let wire = if nwires.is_empty() {
+                                None
+                            } else {
+                                Some(part.wires.get_or_insert(&nwires[0]))
+                            };
+                            site.pins.insert(pin, TkSitePin { dir, wire, speed });
+                        }
+                        "ENDSITE" => break,
+                        _ => panic!("unknown line {}", sl[0]),
+                    }
+                }
+                let tk = &mut part.tile_kinds[tki];
+                tk.sites.insert(slot, site);
+            }
+            "END" => break,
+            _ => panic!("unknown line {}", sl[0]),
+        }
+    }
+}
+
+struct FixupSiteSlot {
+    slot_name: &'static str,
+    slot_x: u8,
+    slot_y: u8,
+    source_site: &'static str,
+}
+
+struct FixupTileKind {
+    family: &'static str,
+    tile_kind: &'static str,
+    slots: &'static [FixupSiteSlot],
+    source_device: &'static str,
+}
+
+const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "GTP_CHANNEL_0",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "GTPE2_CHANNEL",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTPE2_CHANNEL_X0Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IPAD_X1Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IPAD_X1Y1",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "OPAD_X0Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "OPAD_X0Y1",
+            },
+        ],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "GTP_CHANNEL_1",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "GTPE2_CHANNEL",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTPE2_CHANNEL_X0Y1",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IPAD_X1Y6",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IPAD_X1Y7",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "OPAD_X0Y2",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "OPAD_X0Y3",
+            },
+        ],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "GTP_CHANNEL_2",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "GTPE2_CHANNEL",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTPE2_CHANNEL_X0Y2",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IPAD_X1Y24",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IPAD_X1Y25",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "OPAD_X0Y4",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "OPAD_X0Y5",
+            },
+        ],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "GTP_CHANNEL_3",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "GTPE2_CHANNEL",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTPE2_CHANNEL_X0Y3",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IPAD_X1Y30",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IPAD_X1Y31",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "OPAD_X0Y6",
+            },
+            FixupSiteSlot {
+                slot_name: "OPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "OPAD_X0Y7",
+            },
+        ],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "GTP_COMMON",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "GTPE2_COMMON",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTPE2_COMMON_X0Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IPAD_X1Y8",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IPAD_X1Y9",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 2,
+                source_site: "IPAD_X1Y10",
+            },
+            FixupSiteSlot {
+                slot_name: "IPAD",
+                slot_x: 0,
+                slot_y: 3,
+                source_site: "IPAD_X1Y11",
+            },
+            FixupSiteSlot {
+                slot_name: "IBUFDS_GTE2",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "IBUFDS_GTE2_X0Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "IBUFDS_GTE2",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "IBUFDS_GTE2_X0Y1",
+            },
+        ],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "7series",
+        tile_kind: "PCIE_BOT",
+        slots: &[FixupSiteSlot {
+            slot_name: "PCIE",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "PCIE_X0Y0",
+        }],
+        source_device: "xc7a25t",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "GTM_DUAL_RIGHT_FT",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "BUFG_GT_SYNC",
+                slot_x: 0,
+                slot_y: 6,
+                source_site: "BUFG_GT_SYNC_X1Y6",
+            },
+            FixupSiteSlot {
+                slot_name: "BUFG_GT_SYNC",
+                slot_x: 0,
+                slot_y: 13,
+                source_site: "BUFG_GT_SYNC_X1Y13",
+            },
+            FixupSiteSlot {
+                slot_name: "ABUS_SWITCH",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "ABUS_SWITCH_X10Y1",
+            },
+            FixupSiteSlot {
+                slot_name: "ABUS_SWITCH",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "ABUS_SWITCH_X10Y2",
+            },
+            FixupSiteSlot {
+                slot_name: "ABUS_SWITCH",
+                slot_x: 0,
+                slot_y: 2,
+                source_site: "ABUS_SWITCH_X10Y3",
+            },
+            FixupSiteSlot {
+                slot_name: "ABUS_SWITCH",
+                slot_x: 0,
+                slot_y: 3,
+                source_site: "ABUS_SWITCH_X10Y4",
+            },
+            FixupSiteSlot {
+                slot_name: "ABUS_SWITCH",
+                slot_x: 0,
+                slot_y: 4,
+                source_site: "ABUS_SWITCH_X10Y5",
+            },
+            FixupSiteSlot {
+                slot_name: "GTM_DUAL",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTM_DUAL_X1Y0",
+            },
+            FixupSiteSlot {
+                slot_name: "GTM_REFCLK",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "GTM_REFCLK_X1Y0",
+            },
+        ],
+        source_device: "xcvu27p-figd2104-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "GTM_DUAL_LEFT_FT",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "BUFG_GT_SYNC",
+                slot_x: 0,
+                slot_y: 6,
+                source_site: "BUFG_GT_SYNC_X0Y6",
+            },
+            FixupSiteSlot {
+                slot_name: "BUFG_GT_SYNC",
+                slot_x: 0,
+                slot_y: 13,
+                source_site: "BUFG_GT_SYNC_X0Y13",
+            },
+        ],
+        source_device: "xcvu27p-figd2104-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "HSADC_HSADC_RIGHT_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "HSADC",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "HSADC_X0Y0",
+        }],
+        source_device: "xczu28dr-ffve1156-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "HSDAC_HSDAC_RIGHT_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "HSDAC",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "HSDAC_X0Y0",
+        }],
+        source_device: "xczu28dr-ffve1156-1-e",
+    },
+];
+
 pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {
     let fpart = &parts[0];
 
@@ -742,7 +1227,39 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         );
     }
 
-    // STEP 5: dump packages
+    // STEP 5: add missing site slots to some tiles, by cheating and pulling them from other
+    // devices
+    let mut fixup_slots: HashMap<&str, HashMap<_, _>> = HashMap::new();
+    for ft in FIXUP_TILE_KINDS {
+        if ft.family != mctx.rd.part.family {
+            continue;
+        }
+        let Some((tki, tk)) = mctx.rd.part.tile_kinds.get(ft.tile_kind) else {
+            continue;
+        };
+        for fs in ft.slots {
+            let sk = mctx.rd.part.slot_kinds.get_or_insert(fs.slot_name);
+            let slot = TkSiteSlot::Xy(sk, fs.slot_x, fs.slot_y);
+            if !tk.sites.contains_key(&slot) {
+                fixup_slots
+                    .entry(ft.source_device)
+                    .or_default()
+                    .insert(fs.source_site, (tki, slot));
+            }
+        }
+        if fixup_slots.is_empty() {
+            continue;
+        }
+        println!(
+            "FIXUP {} {} from {}",
+            mctx.rd.part.part, ft.tile_kind, ft.source_device
+        );
+    }
+    for (k, v) in fixup_slots {
+        steal_sites(tc, &mut mctx.rd.part, k, v);
+    }
+
+    // STEP 6: dump packages
     let mut packages = HashMap::new();
     for part in parts.iter() {
         if !packages.contains_key(&part.package) {
