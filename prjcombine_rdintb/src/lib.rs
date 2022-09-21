@@ -745,7 +745,10 @@ impl XNodeExtractor<'_, '_, '_> {
                             _ => panic!("bidir pin {name}"),
                         };
                         if tksp.wire.is_none() {
-                            panic!("missing site wire for pin {name}");
+                            panic!(
+                                "missing site wire for pin {name} tile {tile}",
+                                tile = self.xnode.kind
+                            );
                         }
                         let (ick, wires, wnf, pips, int_pips) =
                             self.walk_to_int(name, dir, bel.raw_tile, tksp.wire.unwrap());
@@ -794,6 +797,12 @@ impl XNodeExtractor<'_, '_, '_> {
                         );
                     }
                     &BelPinInfo::NameOnly(buf_cnt) => {
+                        if tksp.wire.is_none() {
+                            panic!(
+                                "missing site wire for pin {name} tile {tile}",
+                                tile = self.xnode.kind
+                            );
+                        }
                         if buf_cnt == 0 {
                             naming_pins.insert(
                                 name.clone(),

@@ -3560,7 +3560,11 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         }
     }
     // XXX
-    if vrf.rd.source == Source::Vivado || !edev.extras.is_empty() {
+    if vrf.rd.source == Source::Vivado {
+        vrf.skip_residual_pips();
+        vrf.skip_residual_nodes();
+    }
+    if !edev.extras.is_empty() {
         vrf.skip_residual();
     }
 }

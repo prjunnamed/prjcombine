@@ -100,7 +100,9 @@ pub struct Verifier<'a> {
     claimed_sites: HashMap<Coord, EntityBitVec<rawdump::TkSiteId>>,
     int_wire_data: HashMap<IntWire, IntWireData>,
     node_used: EntityVec<NodeKindId, NodeUsedInfo>,
-    skip_residual: bool,
+    skip_residual_sites: bool,
+    skip_residual_pips: bool,
+    skip_residual_nodes: bool,
     stub_outs: HashSet<rawdump::WireId>,
     stub_ins: HashSet<rawdump::WireId>,
     cond_stub_outs: HashSet<rawdump::WireId>,
@@ -199,7 +201,9 @@ impl<'a> Verifier<'a> {
                 .collect(),
             node_used,
             int_wire_data: HashMap::new(),
-            skip_residual: false,
+            skip_residual_sites: false,
+            skip_residual_pips: false,
+            skip_residual_nodes: false,
             stub_outs: HashSet::new(),
             stub_ins: HashSet::new(),
             cond_stub_outs: HashSet::new(),
@@ -372,6 +376,16 @@ impl<'a> Verifier<'a> {
         if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
             if !self.dummy_in_nodes.contains(&cnw) {
                 self.dummy_in_nodes.insert(cnw);
+                self.claim_raw_node(cnw, crd, wn);
+            }
+        }
+    }
+
+    pub fn claim_dummy_out(&mut self, wire: (Coord, &str)) {
+        let (crd, wn) = wire;
+        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+            if !self.dummy_out_nodes.contains(&cnw) {
+                self.dummy_out_nodes.insert(cnw);
                 self.claim_raw_node(cnw, crd, wn);
             }
         }
@@ -1222,8 +1236,22 @@ impl<'a> Verifier<'a> {
         self.find_bel(bel.die, (bel.col, bel.row), key).unwrap()
     }
 
+    pub fn skip_residual_sites(&mut self) {
+        self.skip_residual_sites = true;
+    }
+
+    pub fn skip_residual_pips(&mut self) {
+        self.skip_residual_pips = true;
+    }
+
+    pub fn skip_residual_nodes(&mut self) {
+        self.skip_residual_nodes = true;
+    }
+
     pub fn skip_residual(&mut self) {
-        self.skip_residual = true;
+        self.skip_residual_sites();
+        self.skip_residual_pips();
+        self.skip_residual_nodes();
     }
 
     pub fn kill_stub_out(&mut self, name: &str) {
@@ -1292,58 +1320,64 @@ impl<'a> Verifier<'a> {
             }
         }
 
-        if self.skip_residual {
+        if self.skip_residual_sites && self.skip_residual_pips && self.skip_residual_nodes {
             return;
         }
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
-            let claimed_sites = &self.claimed_sites[&crd];
-            for (i, site) in &tile.sites {
-                if !claimed_sites[i] {
-                    println!(
-                        "UNCLAIMED SITE {part} {tile} {site}",
-                        part = self.rd.part,
-                        tile = tile.name
-                    );
-                }
-            }
-            let claimed_pips = &self.claimed_pips[&crd];
-            for (i, &(wf, wt), _) in &tk.pips {
-                let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
-                    && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
-                if !claimed_pips[i] && pip_present {
-                    println!(
-                        "UNCLAIMED PIP {part} {tile} {wt} <- {wf}",
-                        part = self.rd.part,
-                        tile = tile.name,
-                        wt = self.rd.wires[wt],
-                        wf = self.rd.wires[wf]
-                    );
-                }
-            }
-            let claimed_twires = &self.claimed_twires[&crd];
-            for (i, &w, &wi) in &tk.wires {
-                match wi {
-                    rawdump::TkWire::Internal(_, _) => {
-                        if !claimed_twires[i] {
-                            println!(
-                                "UNCLAIMED INTERNAL WIRE {part} {tile} {wire}",
-                                part = self.rd.part,
-                                tile = tile.name,
-                                wire = self.rd.wires[w]
-                            );
-                        }
+            if !self.skip_residual_sites {
+                let claimed_sites = &self.claimed_sites[&crd];
+                for (i, site) in &tile.sites {
+                    if !claimed_sites[i] {
+                        println!(
+                            "UNCLAIMED SITE {part} {tile} {site}",
+                            part = self.rd.part,
+                            tile = tile.name
+                        );
                     }
-                    rawdump::TkWire::Connected(ci) => {
-                        if let Some(&node) = tile.conn_wires.get(ci) {
-                            if !self.claimed_nodes[node] {
+                }
+            }
+            if !self.skip_residual_pips {
+                let claimed_pips = &self.claimed_pips[&crd];
+                for (i, &(wf, wt), _) in &tk.pips {
+                    let pip_present = self.rd.lookup_wire(crd, &self.rd.wires[wf]).is_some()
+                        && self.rd.lookup_wire(crd, &self.rd.wires[wt]).is_some();
+                    if !claimed_pips[i] && pip_present {
+                        println!(
+                            "UNCLAIMED PIP {part} {tile} {wt} <- {wf}",
+                            part = self.rd.part,
+                            tile = tile.name,
+                            wt = self.rd.wires[wt],
+                            wf = self.rd.wires[wf]
+                        );
+                    }
+                }
+            }
+            if !self.skip_residual_nodes {
+                let claimed_twires = &self.claimed_twires[&crd];
+                for (i, &w, &wi) in &tk.wires {
+                    match wi {
+                        rawdump::TkWire::Internal(_, _) => {
+                            if !claimed_twires[i] {
                                 println!(
-                                    "UNCLAIMED CONN WIRE {part} {tile} {wire} {node}",
+                                    "UNCLAIMED INTERNAL WIRE {part} {tile} {wire}",
                                     part = self.rd.part,
                                     tile = tile.name,
-                                    wire = self.rd.wires[w],
-                                    node = node.to_idx()
+                                    wire = self.rd.wires[w]
                                 );
+                            }
+                        }
+                        rawdump::TkWire::Connected(ci) => {
+                            if let Some(&node) = tile.conn_wires.get(ci) {
+                                if !self.claimed_nodes[node] {
+                                    println!(
+                                        "UNCLAIMED CONN WIRE {part} {tile} {wire} {node}",
+                                        part = self.rd.part,
+                                        tile = tile.name,
+                                        wire = self.rd.wires[w],
+                                        node = node.to_idx()
+                                    );
+                                }
                             }
                         }
                     }
