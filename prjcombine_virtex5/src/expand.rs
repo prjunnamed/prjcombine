@@ -482,7 +482,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         node.add_bel(45, "KEY_CLEAR".to_string());
                         node.add_bel(46, "EFUSE_USR".to_string());
                         node.add_bel(47, "SYSMON_X0Y0".to_string());
-                        let ipx = if self.grid.has_left_gt() { 1 } else { 0 };
+                        let ipx = usize::from(self.grid.has_left_gt());
                         let ipy = if self.grid.has_gt() {
                             self.grid.reg_cfg * 6
                         } else {

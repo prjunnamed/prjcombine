@@ -1408,7 +1408,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_xy(
                         format!("BUFGMUX{i}"),
                         "BUFGMUX",
-                        if (i & 4) != 0 { 1 } else { 0 },
+                        u8::from((i & 4) != 0),
                         i,
                     )
                     .pin_name_only("O", 1)
@@ -1888,17 +1888,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             _ => unreachable!(),
         };
         let bi = if is_top {
-            if lr == 'L' {
-                1
-            } else {
-                0
-            }
+            u8::from(lr == 'L')
         } else {
-            if lr == 'L' {
-                0
-            } else {
-                1
-            }
+            u8::from(lr == 'R')
         };
         let bt = if is_top { "TOP" } else { "BOT" };
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {

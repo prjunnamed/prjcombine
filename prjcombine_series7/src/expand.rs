@@ -601,7 +601,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     kind = "PCIE_R";
                     sy = pry;
                     pry += 1;
-                    sx = if has_pcie2_left { 1 } else { 0 };
+                    sx = usize::from(has_pcie2_left);
                 }
             }
             let x = self.rxlut[pcie2.col] + 2;
@@ -987,7 +987,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_gt_right(&mut self) {
         if let Some(ref gtcol) = self.grid.cols_gt[1] {
-            let gtx = if self.grid.cols_gt[0].is_some() { 1 } else { 0 };
+            let gtx = usize::from(self.grid.cols_gt[0].is_some());
             let ipx = self.ipxlut[gtcol.col];
             let opx = self.opxlut[gtcol.col];
             let need_holes = self.grid.columns[gtcol.col] != ColumnKind::Gt;

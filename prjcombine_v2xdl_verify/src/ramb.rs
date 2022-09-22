@@ -2831,11 +2831,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     }
     if pk != 4 {
         en_syn = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
-        do_reg = if en_syn == "FALSE" || ctx.rng.gen() {
-            1
-        } else {
-            0
-        };
+        do_reg = i32::from(en_syn == "FALSE" || ctx.rng.gen());
         inst.param_str("EN_SYN", en_syn);
         inst.param_int("DO_REG", do_reg);
     } else {

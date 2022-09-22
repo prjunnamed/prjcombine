@@ -1612,11 +1612,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.db.get_node_naming("GTPDUAL_TOP"),
                     &crd,
                 );
-                let gty = if matches!(self.grid.gts, Gts::Quad(_, _)) {
-                    1
-                } else {
-                    0
-                };
+                let gty = usize::from(matches!(self.grid.gts, Gts::Quad(_, _)));
                 Self::fill_gt_bels(node, 0, gty);
 
                 let col_l = bc - 2;
@@ -1669,11 +1665,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.db.get_node_naming("GTPDUAL_TOP"),
                     &crd,
                 );
-                let gty = if matches!(self.grid.gts, Gts::Quad(_, _)) {
-                    1
-                } else {
-                    0
-                };
+                let gty = usize::from(matches!(self.grid.gts, Gts::Quad(_, _)));
                 Self::fill_gt_bels(node, 1, gty);
             }
             _ => (),

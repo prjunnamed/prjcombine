@@ -231,11 +231,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         &crds,
                     );
                     let my = if row.to_idx() == 0 { 0 } else { 1 };
-                    let ipx = if self.grid.columns.first().unwrap() == &ColumnKind::Gt {
-                        1
-                    } else {
-                        0
-                    };
+                    let ipx = usize::from(self.grid.columns.first().unwrap() == &ColumnKind::Gt);
                     let ipy = if row.to_idx() == 0 {
                         0
                     } else if self.grid.columns.first().unwrap() == &ColumnKind::Gt {

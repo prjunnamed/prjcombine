@@ -158,7 +158,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(14, "DCIRESET_X0Y0".to_string());
         node.add_bel(15, "CFG_IO_ACCESS_X0Y0".to_string());
         node.add_bel(16, "SYSMON_X0Y0".to_string());
-        let ipx = if self.grid.has_left_gt() { 1 } else { 0 };
+        let ipx = usize::from(self.grid.has_left_gt());
         let mut ipy = if self.grid.has_gt() {
             self.grid.reg_cfg * 24 + 6
         } else {
