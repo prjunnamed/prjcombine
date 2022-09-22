@@ -842,6 +842,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     BelPinInfo::Dummy => (),
                     BelPinInfo::ExtraWireForce(_, _) => (),
                     BelPinInfo::ExtraInt(_, _) => (),
+                    BelPinInfo::ExtraWire(_) => (),
                     _ => unreachable!(),
                 }
             }

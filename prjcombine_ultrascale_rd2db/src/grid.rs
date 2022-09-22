@@ -379,14 +379,14 @@ fn get_cols_io(
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
             cells.insert((col, ColSide::Left, reg), kind);
+            let crd = Coord {
+                x: x as u16,
+                y: y as u16,
+            };
+            let tile = &int.rd.tiles[&crd];
+            let tk = &int.rd.tile_kinds[tile.kind];
             if tt == "HPIO_L" {
-                let crd = Coord {
-                    x: x as u16,
-                    y: y as u16,
-                };
-                let tile = &int.rd.tiles[&crd];
                 let sk = int.rd.slot_kinds.get("IOB").unwrap();
-                let tk = &int.rd.tile_kinds[tile.kind];
                 let bi = if int.lookup_row(y).to_idx() % 60 == 0 {
                     0
                 } else {
@@ -413,6 +413,31 @@ fn get_cols_io(
                     }
                 }
             }
+            if tt == "GTY_L" {
+                let sk = int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
+                let slot = TkSiteSlot::Xy(sk, 0, 0);
+                let sid = tk.sites.get(&slot).unwrap().0;
+                if !tile.sites.contains_id(sid) {
+                    disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                }
+            }
+            if tt == "GTM_DUAL_LEFT_FT" {
+                let sk = int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
+                let slot = TkSiteSlot::Xy(sk, 0, 6);
+                if let Some((sid, _)) = tk.sites.get(&slot) {
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
+                    }
+                } else {
+                    disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
+                }
+                let sk = int.rd.slot_kinds.get("GTM_DUAL").unwrap();
+                let slot = TkSiteSlot::Xy(sk, 0, 0);
+                let sid = tk.sites.get(&slot).unwrap().0;
+                if !tile.sites.contains_id(sid) {
+                    disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                }
+            }
         }
     }
     for (tt, kind) in [
@@ -433,6 +458,51 @@ fn get_cols_io(
             let col = int.lookup_column_inter(x) - 1;
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 60);
             cells.insert((col, ColSide::Right, reg), kind);
+            let crd = Coord {
+                x: x as u16,
+                y: y as u16,
+            };
+            let tile = &int.rd.tiles[&crd];
+            let tk = &int.rd.tile_kinds[tile.kind];
+            if tt == "GTY_R" {
+                let sk = int.rd.slot_kinds.get("GTYE4_COMMON").unwrap();
+                let slot = TkSiteSlot::Xy(sk, 0, 0);
+                let sid = tk.sites.get(&slot).unwrap().0;
+                if !tile.sites.contains_id(sid) {
+                    disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                }
+            }
+            if tt.starts_with("HS") || tt.starts_with("RF") {
+                if let Some(sk) = int.rd.slot_kinds.get(&tt[..5]) {
+                    let slot = TkSiteSlot::Xy(sk, 0, 0);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                    }
+                } else {
+                    disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                }
+            }
+            if tt == "GTM_DUAL_RIGHT_FT" {
+                let sk = int.rd.slot_kinds.get("BUFG_GT_SYNC").unwrap();
+                let slot = TkSiteSlot::Xy(sk, 0, 6);
+                if let Some((sid, _)) = tk.sites.get(&slot) {
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
+                    }
+                } else {
+                    disabled.insert(DisabledPart::GtmSpareBufs(dieid, col, reg));
+                }
+                if let Some(sk) = int.rd.slot_kinds.get("GTM_DUAL") {
+                    let slot = TkSiteSlot::Xy(sk, 0, 0);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                    }
+                } else {
+                    disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                }
+            }
         }
     }
     let cols: BTreeSet<(ColId, ColSide)> = cells.keys().map(|&(c, s, _)| (c, s)).collect();
@@ -670,8 +740,20 @@ pub fn make_grids(
             grids[s0].cols_io[0].regs.push(IoRowKind::Hpio);
             prepend_reg(&mut grids[s0].cols_io[1].regs, IoRowKind::Gty);
             grids[s0].cols_io[1].regs.push(IoRowKind::Gtm);
+            // the "disabled gt" regions will be off now
+            disabled.clear();
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(0)));
             disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
+            disabled.insert(DisabledPart::Gt(
+                s0,
+                grids[s0].cols_io[1].col,
+                RegId::from_idx(9),
+            ));
+            disabled.insert(DisabledPart::GtmSpareBufs(
+                s0,
+                grids[s0].cols_io[1].col,
+                RegId::from_idx(9),
+            ));
         } else {
             println!("UNKNOWN CUT TOP {}", rd.part);
         }

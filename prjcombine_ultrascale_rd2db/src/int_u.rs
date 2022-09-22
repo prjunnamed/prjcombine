@@ -1738,5 +1738,210 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             .extract();
     }
 
+    for (tkn, kind, is_l) in [
+        ("GTH_QUAD_LEFT_FT", "GTH_L", true),
+        ("GTY_QUAD_LEFT_FT", "GTY_L", true),
+        ("GTH_R", "GTH_R", false),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.GT" } else { "INTF.E.GT" });
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let gtk = &kind[..3];
+            let mut bels = vec![];
+            for i in 0..24 {
+                let bi = [
+                    (0, 5, 60),
+                    (135, 140, 145),
+                    (215, 220, 230),
+                    (235, 240, 245),
+                    (250, 255, 260),
+                    (265, 270, 275),
+                    (285, 290, 295),
+                    (300, 305, 310),
+                    (315, 320, 325),
+                    (330, 340, 345),
+                    (115, 170, 225),
+                    (280, 335, 350),
+                    (355, 10, 15),
+                    (20, 25, 30),
+                    (35, 40, 45),
+                    (50, 55, 65),
+                    (70, 75, 80),
+                    (85, 90, 95),
+                    (100, 105, 110),
+                    (120, 125, 130),
+                    (150, 155, 160),
+                    (165, 175, 180),
+                    (185, 190, 195),
+                    (200, 205, 210),
+                ][i];
+                let mut bel = builder
+                    .bel_xy(format!("BUFG_GT{i}"), "BUFG_GT", 0, i as u8)
+                    .pins_name_only(&["CLK_IN", "CLK_OUT", "CE", "RST_PRE_OPTINV"]);
+                for j in 0..5 {
+                    bel = bel
+                        .extra_wire(
+                            format!("CE_MUX_DUMMY{j}"),
+                            &[format!("VCC_WIRE{ii}", ii = bi.0 + j)],
+                        )
+                        .extra_wire(
+                            format!("CLK_IN_MUX_DUMMY{j}"),
+                            &[format!("VCC_WIRE{ii}", ii = bi.1 + j)],
+                        )
+                        .extra_wire(
+                            format!("RST_MUX_DUMMY{j}"),
+                            &[format!("VCC_WIRE{ii}", ii = bi.2 + j)],
+                        );
+                }
+                bels.push(bel);
+            }
+            for i in 0..11 {
+                let mut bel = builder
+                    .bel_xy(format!("BUFG_GT_SYNC{i}"), "BUFG_GT_SYNC", 0, i)
+                    .pins_name_only(&["CE_OUT", "RST_OUT"]);
+                if i != 10 {
+                    bel = bel.pins_name_only(&["CLK_IN"]);
+                }
+                bels.push(bel);
+            }
+            for i in 0..4 {
+                bels.push(builder.bel_xy(format!("ABUS_SWITCH.GT{i}"), "ABUS_SWITCH", 0, i));
+            }
+
+            for i in 0..4 {
+                bels.push(
+                    builder
+                        .bel_xy(
+                            format!("{gtk}_CHANNEL{i}"),
+                            &format!("{gtk}E3_CHANNEL"),
+                            0,
+                            i,
+                        )
+                        .pins_name_only(&[
+                            "MGTREFCLK0",
+                            "MGTREFCLK1",
+                            "NORTHREFCLK0",
+                            "NORTHREFCLK1",
+                            "SOUTHREFCLK0",
+                            "SOUTHREFCLK1",
+                            "QDCMREFCLK0_INT",
+                            "QDCMREFCLK1_INT",
+                            "QDPLL0CLK0P_INT",
+                            "QDPLL1CLK0P_INT",
+                            "RING_OSC_CLK_INT",
+                            "RXRECCLKOUT",
+                            "RXRECCLK_INT",
+                            "TXOUTCLK_INT",
+                        ]),
+                );
+            }
+            bels.push(
+                builder
+                    .bel_xy(format!("{gtk}_COMMON"), &format!("{gtk}E3_COMMON"), 0, 0)
+                    .pins_name_only(&[
+                        "RXRECCLK0",
+                        "RXRECCLK1",
+                        "RXRECCLK2",
+                        "RXRECCLK3",
+                        "QDCMREFCLK_INT_0",
+                        "QDCMREFCLK_INT_1",
+                        "QDPLLCLK0P_0",
+                        "QDPLLCLK0P_1",
+                        "COM0_REFCLKOUT0",
+                        "COM0_REFCLKOUT1",
+                        "COM0_REFCLKOUT2",
+                        "COM0_REFCLKOUT3",
+                        "COM0_REFCLKOUT4",
+                        "COM0_REFCLKOUT5",
+                        "COM2_REFCLKOUT0",
+                        "COM2_REFCLKOUT1",
+                        "COM2_REFCLKOUT2",
+                        "COM2_REFCLKOUT3",
+                        "COM2_REFCLKOUT4",
+                        "COM2_REFCLKOUT5",
+                        "MGTREFCLK0",
+                        "MGTREFCLK1",
+                        "REFCLK2HROW0",
+                        "REFCLK2HROW1",
+                        "SARC_CLK0",
+                        "SARC_CLK1",
+                        "SARC_CLK2",
+                        "SARC_CLK3",
+                    ])
+                    .extra_wire("CLKOUT_NORTH0", &["CLKOUT_NORTH0"])
+                    .extra_wire("CLKOUT_NORTH1", &["CLKOUT_NORTH1"])
+                    .extra_wire("CLKOUT_SOUTH0", &["CLKOUT_SOUTH0"])
+                    .extra_wire("CLKOUT_SOUTH1", &["CLKOUT_SOUTH1"])
+                    .extra_wire(
+                        "NORTHREFCLK0",
+                        &[
+                            "GTH_CHANNEL_BLH_0_NORTHREFCLK0",
+                            "GTY_CHANNEL_BLH_1_NORTHREFCLK0",
+                        ],
+                    )
+                    .extra_wire(
+                        "NORTHREFCLK1",
+                        &[
+                            "GTH_CHANNEL_BLH_0_NORTHREFCLK1",
+                            "GTY_CHANNEL_BLH_1_NORTHREFCLK1",
+                        ],
+                    )
+                    .extra_wire(
+                        "SOUTHREFCLK0",
+                        &[
+                            "GTH_CHANNEL_BLH_0_SOUTHREFCLK0",
+                            "GTY_CHANNEL_BLH_1_SOUTHREFCLK0",
+                        ],
+                    )
+                    .extra_wire(
+                        "SOUTHREFCLK1",
+                        &[
+                            "GTH_CHANNEL_BLH_0_SOUTHREFCLK1",
+                            "GTY_CHANNEL_BLH_1_SOUTHREFCLK1",
+                        ],
+                    ),
+            );
+            let mut bel = builder.bel_virtual(if is_l { "RCLK_GT_L" } else { "RCLK_GT_R" });
+            for i in 0..24 {
+                if is_l {
+                    bel = bel
+                        .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_FT1_{i}")])
+                        .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_FT1_{i}")]);
+                } else {
+                    bel = bel
+                        .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_FT0_{i}")])
+                        .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_FT0_{i}")])
+                }
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual("VCC.GT")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(60).ref_single(
+                int_xy.delta(0, 30),
+                30,
+                rclk_int,
+            );
+            for i in 0..60 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
     builder.build()
 }

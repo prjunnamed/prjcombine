@@ -13,8 +13,6 @@ use crate::{
 };
 
 struct Asx {
-    // XXX
-    #[allow(dead_code)]
     gt: usize,
     io: usize,
     cfg: usize,
@@ -27,8 +25,6 @@ struct Asy {
     hrio: usize,
     cmt: usize,
     cfg: usize,
-    // XXX
-    #[allow(dead_code)]
     gt: usize,
 }
 
@@ -47,11 +43,14 @@ struct DieExpander<'a, 'b> {
     brxlut: EntityVec<ColId, (usize, usize)>,
     gtbxlut: EntityVec<ColId, (usize, usize)>,
     gtbylut: EntityVec<RegId, (usize, usize)>,
+    gtylut: EntityVec<RegId, usize>,
     vsxlut: EntityVec<ColId, usize>,
     cmtxlut: EntityVec<ColId, usize>,
+    gtxlut: EntityVec<ColId, usize>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
-    gtylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
+    iotxlut: EnumMap<IoRowKind, EntityVec<ColId, usize>>,
+    iotylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
     has_slr_d: bool,
     has_slr_u: bool,
     naming: &'b DeviceNaming,
@@ -283,13 +282,13 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
-    fn fill_gtylut(&mut self, gty: &mut EnumMap<IoRowKind, usize>) {
+    fn fill_iotylut(&mut self, ioty: &mut EnumMap<IoRowKind, usize>) {
         for reg in self.grid.regs() {
             let skip = self
                 .disabled
                 .contains(&DisabledPart::Region(self.die.die, reg));
-            for (k, v) in gty.iter_mut() {
-                self.gtylut[k].push(*v);
+            for (k, v) in ioty.iter_mut() {
+                self.iotylut[k].push(*v);
                 let mut found = false;
                 if !skip {
                     for ioc in &self.grid.cols_io {
@@ -303,6 +302,30 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 }
             }
         }
+    }
+
+    fn fill_gtylut(&mut self, mut gty: usize) -> usize {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            self.gtylut.push(gty);
+            let mut found = false;
+            if !skip {
+                for ioc in &self.grid.cols_io {
+                    if !matches!(
+                        ioc.regs[reg],
+                        IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio
+                    ) {
+                        found = true;
+                    }
+                }
+            }
+            if found {
+                gty += 1;
+            }
+        }
+        gty
     }
 
     fn fill_ioxlut(&mut self) {
@@ -461,6 +484,54 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
             if matches!(cd.r, ColumnKindRight::Io(_)) {
                 cmtx += 1;
+            }
+        }
+    }
+
+    fn fill_gtxlut(&mut self) {
+        let mut gtx = 0;
+        for &cd in self.grid.columns.values() {
+            self.gtxlut.push(gtx);
+            if let ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) = cd.l {
+                let ioc = &self.grid.cols_io[idx];
+                if ioc
+                    .regs
+                    .values()
+                    .any(|x| !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio))
+                {
+                    gtx += 1;
+                }
+            }
+            if let ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) = cd.r {
+                let ioc = &self.grid.cols_io[idx];
+                if ioc
+                    .regs
+                    .values()
+                    .any(|x| !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio))
+                {
+                    gtx += 1;
+                }
+            }
+        }
+    }
+
+    fn fill_iotxlut(&mut self) {
+        let mut iotx = EnumMap::default();
+        for &cd in self.grid.columns.values() {
+            for (k, v) in iotx.iter_mut() {
+                self.iotxlut[k].push(*v);
+                if let ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) = cd.l {
+                    let ioc = &self.grid.cols_io[idx];
+                    if ioc.regs.values().any(|&x| x == k) {
+                        *v += 1;
+                    }
+                }
+                if let ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) = cd.r {
+                    let ioc = &self.grid.cols_io[idx];
+                    if ioc.regs.values().any(|&x| x == k) {
+                        *v += 1;
+                    }
+                }
             }
         }
     }
@@ -1997,7 +2068,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                     for j in 0..26 {
                                         node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
                                     }
-                                    let hrioy = self.gtylut[IoRowKind::Hrio][reg];
+                                    let hrioy = self.iotylut[IoRowKind::Hrio][reg];
                                     for j in 0..12 {
                                         node.add_bel(
                                             26 + j,
@@ -2246,7 +2317,141 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         }
                     }
                     _ => {
-                        // XXX
+                        let row = self.grid.row_reg_rclk(reg);
+                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        if self.grid.kind == GridKind::Ultrascale {
+                            let (tk, nk, gtk) = match (kind, ioc.side) {
+                                (IoRowKind::Gth, ColSide::Left) => {
+                                    ("GTH_QUAD_LEFT_FT", "GTH_L", "GTH")
+                                }
+                                (IoRowKind::Gty, ColSide::Left) => {
+                                    ("GTY_QUAD_LEFT_FT", "GTY_L", "GTY")
+                                }
+                                (IoRowKind::Gth, ColSide::Right) => ("GTH_R", "GTH_R", "GTH"),
+                                _ => unreachable!(),
+                            };
+                            let name = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = ioc.col.to_idx(),
+                                y = self.ylut[row - 30]
+                            );
+                            let node = self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node(nk),
+                                &[&name],
+                                self.db.get_node_naming(nk),
+                                &crds,
+                            );
+                            let gtx = self.gtxlut[ioc.col];
+                            let gty = self.gtylut[reg];
+                            for i in 0..24 {
+                                node.add_bel(i, format!("BUFG_GT_X{gtx}Y{y}", y = gty * 24 + i));
+                            }
+                            for i in 0..11 {
+                                node.add_bel(
+                                    24 + i,
+                                    format!("BUFG_GT_SYNC_X{gtx}Y{y}", y = gty * 11 + i),
+                                );
+                            }
+                            for i in 0..4 {
+                                node.add_bel(
+                                    35 + i,
+                                    format!(
+                                        "ABUS_SWITCH_X{x}Y{y}",
+                                        x = self.asxlut[ioc.col].gt,
+                                        y = self.asylut[reg].gt + i
+                                    ),
+                                );
+                            }
+                            let iotx = self.iotxlut[kind][ioc.col];
+                            let ioty = self.iotylut[kind][reg];
+                            for i in 0..4 {
+                                node.add_bel(
+                                    39 + i,
+                                    format!("{gtk}E3_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i),
+                                );
+                            }
+                            node.add_bel(43, format!("{gtk}E3_COMMON_X{iotx}Y{ioty}"));
+                        } else {
+                            let (tk, nk) = match (kind, ioc.side) {
+                                (IoRowKind::Gth, ColSide::Left) => ("GTH_QUAD_LEFT", "GTH_L"),
+                                (IoRowKind::Gth, ColSide::Right) => ("GTH_QUAD_RIGHT", "GTH_R"),
+                                (IoRowKind::Gty, ColSide::Left) => ("GTY_L", "GTY_L"),
+                                (IoRowKind::Gty, ColSide::Right) => ("GTY_R", "GTY_R"),
+                                (IoRowKind::Gtf, ColSide::Left) => ("GTFY_QUAD_LEFT_FT", "GTF_L"),
+                                (IoRowKind::Gtf, ColSide::Right) => ("GTFY_QUAD_RIGHT_FT", "GTF_R"),
+                                (IoRowKind::Gtm, ColSide::Left) => ("GTM_DUAL_LEFT_FT", "GTM_L"),
+                                (IoRowKind::Gtm, ColSide::Right) => ("GTM_DUAL_RIGHT_FT", "GTM_R"),
+                                (IoRowKind::HsAdc, ColSide::Right) => {
+                                    ("HSADC_HSADC_RIGHT_FT", "HSADC_R")
+                                }
+                                (IoRowKind::HsDac, ColSide::Right) => {
+                                    ("HSDAC_HSDAC_RIGHT_FT", "HSDAC_R")
+                                }
+                                (IoRowKind::RfAdc, ColSide::Right) => {
+                                    ("RFADC_RFADC_RIGHT_FT", "RFADC_R")
+                                }
+                                (IoRowKind::RfDac, ColSide::Right) => {
+                                    ("RFDAC_RFDAC_RIGHT_FT", "RFDAC_R")
+                                }
+                                _ => unreachable!(),
+                            };
+                            let name = format!(
+                                "{tk}_X{x}Y{y}",
+                                x = ioc.col.to_idx(),
+                                y = self.ylut[row - 30]
+                            );
+                            let node = self.die[(ioc.col, row)].add_xnode(
+                                self.db.get_node(nk),
+                                &[&name],
+                                self.db.get_node_naming(nk),
+                                &crds,
+                            );
+                            let gtx = self.gtxlut[ioc.col];
+                            let gty = self.gtylut[reg];
+                            for i in 0..24 {
+                                node.add_bel(i, format!("BUFG_GT_X{gtx}Y{y}", y = gty * 24 + i));
+                            }
+                            for i in 0..15 {
+                                node.add_bel(
+                                    24 + i,
+                                    format!("BUFG_GT_SYNC_X{gtx}Y{y}", y = gty * 15 + i),
+                                );
+                            }
+                            for i in 0..5 {
+                                node.add_bel(
+                                    39 + i,
+                                    format!(
+                                        "ABUS_SWITCH_X{x}Y{y}",
+                                        x = self.asxlut[ioc.col].gt,
+                                        y = self.asylut[reg].gt + i
+                                    ),
+                                );
+                            }
+                            let iotx = self.iotxlut[kind][ioc.col];
+                            let ioty = self.iotylut[kind][reg];
+                            if nk.starts_with("GTM") {
+                                node.add_bel(44, format!("GTM_DUAL_X{iotx}Y{ioty}"));
+                                node.add_bel(45, format!("GTM_REFCLK_X{iotx}Y{ioty}"));
+                            } else if nk.starts_with("GT") {
+                                let gtk = &nk[..3];
+                                let pref = if gtk == "GTF" {
+                                    "GTF".to_string()
+                                } else {
+                                    format!("{gtk}E4")
+                                };
+
+                                for i in 0..4 {
+                                    node.add_bel(
+                                        44 + i,
+                                        format!("{pref}_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i),
+                                    );
+                                }
+                                node.add_bel(48, format!("{pref}_COMMON_X{iotx}Y{ioty}"));
+                            } else {
+                                let bk = &nk[..5];
+                                node.add_bel(44, format!("{bk}_X{iotx}Y{ioty}"));
+                            }
+                        }
                     }
                 }
             }
@@ -2371,8 +2576,9 @@ pub fn expand_grid<'a>(
     let mut sy = 0;
     let mut ly = 0;
     let mut ioy = 0;
+    let mut gty = 0;
     let mut hy = EnumMap::default();
-    let mut gty = EnumMap::default();
+    let mut ioty = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
     let mut gtby = 0;
@@ -2405,9 +2611,12 @@ pub fn expand_grid<'a>(
             gtbylut: EntityVec::new(),
             vsxlut: EntityVec::new(),
             cmtxlut: EntityVec::new(),
+            gtylut: EntityVec::new(),
+            gtxlut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
-            gtylut: EnumMap::default(),
+            iotxlut: EnumMap::default(),
+            iotylut: EnumMap::default(),
             has_slr_d: did != grids.first_id().unwrap(),
             has_slr_u: did != grids.last_id().unwrap(),
             naming,
@@ -2417,7 +2626,7 @@ pub fn expand_grid<'a>(
         sy = expander.fill_sylut(sy);
         ly = expander.fill_lylut(ly);
         expander.fill_hylut(&mut hy);
-        expander.fill_gtylut(&mut gty);
+        expander.fill_iotylut(&mut ioty);
         expander.fill_asxlut();
         asy = expander.fill_asylut(asy);
         expander.fill_ioxlut();
@@ -2425,6 +2634,9 @@ pub fn expand_grid<'a>(
         expander.fill_brxlut();
         gtby = expander.fill_gtbylut(gtby);
         expander.fill_cmtxlut();
+        expander.fill_gtxlut();
+        expander.fill_iotxlut();
+        gty = expander.fill_gtylut(gty);
 
         expander.fill_int();
         expander.fill_io_pass();

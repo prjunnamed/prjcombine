@@ -2296,5 +2296,370 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         }
     }
 
+    for (tkn, kind, is_l) in [
+        ("GTH_QUAD_LEFT", "GTH_L", true),
+        ("GTH_QUAD_RIGHT", "GTH_R", false),
+        ("GTY_L", "GTY_L", true),
+        ("GTY_R", "GTY_R", false),
+        ("GTFY_QUAD_LEFT_FT", "GTF_L", true),
+        ("GTFY_QUAD_RIGHT_FT", "GTF_R", false),
+        ("GTM_DUAL_LEFT_FT", "GTM_L", true),
+        ("GTM_DUAL_RIGHT_FT", "GTM_R", false),
+        ("HSADC_HSADC_RIGHT_FT", "HSADC_R", false),
+        ("HSDAC_HSDAC_RIGHT_FT", "HSDAC_R", false),
+        ("RFADC_RFADC_RIGHT_FT", "RFADC_R", false),
+        ("RFDAC_RFDAC_RIGHT_FT", "RFDAC_R", false),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let int_xy = builder
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .unwrap();
+            let intf = builder
+                .db
+                .get_node_naming(if is_l { "INTF.W.GT" } else { "INTF.E.GT" });
+            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let mut bels = vec![];
+            for i in 0..24 {
+                let mut bel = builder
+                    .bel_xy(format!("BUFG_GT{i}"), "BUFG_GT", 0, i as u8)
+                    .pins_name_only(&["CLK_IN", "CLK_OUT", "CE", "RST_PRE_OPTINV"]);
+                if !kind.starts_with("GT") {
+                    bel = bel
+                        .pin_name_only("DIV0", 1)
+                        .pin_name_only("DIV1", 1)
+                        .pin_name_only("DIV2", 1);
+                }
+                if kind.starts_with("GT") {
+                    let bi = [
+                        (0, 1, 12),
+                        (27, 28, 29),
+                        (43, 44, 46),
+                        (47, 48, 49),
+                        (50, 51, 52),
+                        (53, 54, 55),
+                        (57, 58, 59),
+                        (60, 61, 62),
+                        (63, 64, 65),
+                        (66, 68, 69),
+                        (23, 34, 45),
+                        (56, 67, 70),
+                        (71, 2, 3),
+                        (4, 5, 6),
+                        (7, 8, 9),
+                        (10, 11, 13),
+                        (14, 15, 16),
+                        (17, 18, 19),
+                        (20, 21, 22),
+                        (24, 25, 26),
+                        (30, 31, 32),
+                        (33, 35, 36),
+                        (37, 38, 39),
+                        (40, 41, 42),
+                    ][i];
+                    bel = bel
+                        .extra_wire("CE_MUX_DUMMY0", &[format!("VCC_WIRE{ii}", ii = bi.0)])
+                        .extra_wire("CLK_IN_MUX_DUMMY0", &[format!("VCC_WIRE{ii}", ii = bi.1)])
+                        .extra_wire("RST_MUX_DUMMY0", &[format!("VCC_WIRE{ii}", ii = bi.2)]);
+                } else {
+                    let bi = [
+                        (20, 21, 82),
+                        (137, 138, 149),
+                        (213, 214, 226),
+                        (227, 228, 239),
+                        (240, 241, 252),
+                        (253, 254, 265),
+                        (267, 268, 279),
+                        (280, 281, 292),
+                        (293, 294, 305),
+                        (306, 318, 329),
+                        (123, 164, 225),
+                        (266, 307, 330),
+                        (331, 32, 43),
+                        (44, 45, 56),
+                        (57, 58, 69),
+                        (70, 71, 83),
+                        (84, 85, 96),
+                        (97, 98, 109),
+                        (110, 111, 122),
+                        (124, 125, 136),
+                        (150, 151, 162),
+                        (163, 175, 186),
+                        (187, 188, 199),
+                        (200, 201, 212),
+                    ][i];
+                    bel = bel
+                        .extra_wire("CE_MUX_DUMMY0", &[format!("VCC_WIRE{ii}", ii = bi.0)])
+                        .extra_wire("RST_MUX_DUMMY0", &[format!("VCC_WIRE{ii}", ii = bi.2)]);
+                    for j in 0..11 {
+                        bel = bel.extra_wire(
+                            format!("CLK_IN_MUX_DUMMY{j}"),
+                            &[format!("VCC_WIRE{ii}", ii = bi.1 + j)],
+                        );
+                    }
+                }
+                bels.push(bel);
+            }
+            for i in 0..15 {
+                let mut bel = builder
+                    .bel_xy(format!("BUFG_GT_SYNC{i}"), "BUFG_GT_SYNC", 0, i)
+                    .pins_name_only(&["CE_OUT", "RST_OUT"]);
+                if !kind.starts_with("GT") && (4..14).contains(&i) {
+                    bel = bel.pins_name_only(&["CE_IN", "RST_IN"]);
+                }
+                if i != 14 {
+                    bel = bel.pins_name_only(&["CLK_IN"]);
+                }
+                if kind.starts_with("GTM") && matches!(i, 6 | 13) {
+                    bel = bel.extra_wire(
+                        "CLK_IN",
+                        &[format!(
+                            "CLK_BUFG_GT_SYNC_BOTH_{ii}_CLK_IN",
+                            ii = if is_l { 24 + i } else { 26 + i }
+                        )],
+                    );
+                }
+                bels.push(bel);
+            }
+            for i in 0..5 {
+                bels.push(builder.bel_xy(format!("ABUS_SWITCH.GT{i}"), "ABUS_SWITCH", 0, i));
+            }
+
+            if kind.starts_with("GTM") {
+                bels.push(
+                    builder
+                        .bel_xy("GTM_DUAL", "GTM_DUAL", 0, 0)
+                        .pins_name_only(&[
+                            "CLK_BUFGT_CLK_IN_BOT0",
+                            "CLK_BUFGT_CLK_IN_BOT1",
+                            "CLK_BUFGT_CLK_IN_BOT2",
+                            "CLK_BUFGT_CLK_IN_BOT3",
+                            "CLK_BUFGT_CLK_IN_BOT4",
+                            "CLK_BUFGT_CLK_IN_BOT5",
+                            "CLK_BUFGT_CLK_IN_TOP0",
+                            "CLK_BUFGT_CLK_IN_TOP1",
+                            "CLK_BUFGT_CLK_IN_TOP2",
+                            "CLK_BUFGT_CLK_IN_TOP3",
+                            "CLK_BUFGT_CLK_IN_TOP4",
+                            "CLK_BUFGT_CLK_IN_TOP5",
+                            "HROW_TEST_CK_SA",
+                            "MGTREFCLK_CLEAN",
+                            "RXRECCLK0_INT",
+                            "RXRECCLK1_INT",
+                            "REFCLKPDB_SA",
+                            "RCALSEL0",
+                            "RCALSEL1",
+                            "REFCLK_DIST2PLL0",
+                            "REFCLK_DIST2PLL1",
+                            "REFCLK2HROW",
+                        ])
+                        .extra_wire("SOUTHCLKOUT", &["SOUTHCLKOUT"])
+                        .extra_wire("SOUTHCLKOUT_DUMMY0", &["VCC_WIRE72"])
+                        .extra_wire("SOUTHCLKOUT_DUMMY1", &["VCC_WIRE73"])
+                        .extra_wire("NORTHCLKOUT", &["NORTHCLKOUT"])
+                        .extra_wire("NORTHCLKOUT_DUMMY0", &["VCC_WIRE74"])
+                        .extra_wire("NORTHCLKOUT_DUMMY1", &["VCC_WIRE75"]),
+                );
+                bels.push(
+                    builder
+                        .bel_xy("GTM_REFCLK", "GTM_REFCLK", 0, 0)
+                        .pins_name_only(&[
+                            "HROW_TEST_CK_FS",
+                            "MGTREFCLK_CLEAN",
+                            "REFCLK2HROW",
+                            "REFCLKPDB_SA",
+                            "RXRECCLK0_INT",
+                            "RXRECCLK1_INT",
+                            "RXRECCLK2_INT",
+                            "RXRECCLK3_INT",
+                        ]),
+                );
+            } else if kind.starts_with("GT") {
+                let gtk = &kind[..3];
+                let pref = if gtk == "GTF" {
+                    "GTF".to_string()
+                } else {
+                    format!("{gtk}E4")
+                };
+                for i in 0..4 {
+                    bels.push(
+                        builder
+                            .bel_xy(
+                                format!("{gtk}_CHANNEL{i}"),
+                                &format!("{pref}_CHANNEL"),
+                                0,
+                                i,
+                            )
+                            .pins_name_only(&[
+                                "MGTREFCLK0",
+                                "MGTREFCLK1",
+                                "NORTHREFCLK0",
+                                "NORTHREFCLK1",
+                                "SOUTHREFCLK0",
+                                "SOUTHREFCLK1",
+                                "QDCMREFCLK0_INT",
+                                "QDCMREFCLK1_INT",
+                                "QDPLL0CLK0P_INT",
+                                "QDPLL1CLK0P_INT",
+                                "RING_OSC_CLK_INT",
+                                "RXRECCLKOUT",
+                                "RXRECCLK_INT",
+                                "TXOUTCLK_INT",
+                                "DMONOUTCLK_INT",
+                            ]),
+                    );
+                }
+                bels.push(
+                    builder
+                        .bel_xy(format!("{gtk}_COMMON"), &format!("{pref}_COMMON"), 0, 0)
+                        .pins_name_only(&[
+                            "RXRECCLK0",
+                            "RXRECCLK1",
+                            "RXRECCLK2",
+                            "RXRECCLK3",
+                            "QDCMREFCLK_INT_0",
+                            "QDCMREFCLK_INT_1",
+                            "QDPLLCLK0P_0",
+                            "QDPLLCLK0P_1",
+                            "COM0_REFCLKOUT0",
+                            "COM0_REFCLKOUT1",
+                            "COM0_REFCLKOUT2",
+                            "COM0_REFCLKOUT3",
+                            "COM0_REFCLKOUT4",
+                            "COM0_REFCLKOUT5",
+                            "COM2_REFCLKOUT0",
+                            "COM2_REFCLKOUT1",
+                            "COM2_REFCLKOUT2",
+                            "COM2_REFCLKOUT3",
+                            "COM2_REFCLKOUT4",
+                            "COM2_REFCLKOUT5",
+                            "MGTREFCLK0",
+                            "MGTREFCLK1",
+                            "REFCLK2HROW0",
+                            "REFCLK2HROW1",
+                            "SARC_CLK0",
+                            "SARC_CLK1",
+                            "SARC_CLK2",
+                            "SARC_CLK3",
+                        ])
+                        .extra_wire("CLKOUT_NORTH0", &["CLKOUT_NORTH0"])
+                        .extra_wire("CLKOUT_NORTH1", &["CLKOUT_NORTH1"])
+                        .extra_wire("CLKOUT_SOUTH0", &["CLKOUT_SOUTH0"])
+                        .extra_wire("CLKOUT_SOUTH1", &["CLKOUT_SOUTH1"])
+                        .extra_wire(
+                            "NORTHREFCLK0",
+                            &[
+                                "GTH_CHANNEL_BLH_0_NORTHREFCLK0",
+                                "GTH_CHANNEL_BLH_44_NORTHREFCLK0",
+                                "GTF_CHANNEL_BLH_1_NORTHREFCLK0",
+                                "GTF_CHANNEL_BLH_45_NORTHREFCLK0",
+                                "GTY_CHANNEL_BLH_1_NORTHREFCLK0",
+                                "GTY_CHANNEL_BLH_45_NORTHREFCLK0",
+                            ],
+                        )
+                        .extra_wire(
+                            "NORTHREFCLK1",
+                            &[
+                                "GTH_CHANNEL_BLH_0_NORTHREFCLK1",
+                                "GTH_CHANNEL_BLH_44_NORTHREFCLK1",
+                                "GTF_CHANNEL_BLH_1_NORTHREFCLK1",
+                                "GTF_CHANNEL_BLH_45_NORTHREFCLK1",
+                                "GTY_CHANNEL_BLH_1_NORTHREFCLK1",
+                                "GTY_CHANNEL_BLH_45_NORTHREFCLK1",
+                            ],
+                        )
+                        .extra_wire(
+                            "SOUTHREFCLK0",
+                            &[
+                                "GTH_CHANNEL_BLH_0_SOUTHREFCLK0",
+                                "GTH_CHANNEL_BLH_44_SOUTHREFCLK0",
+                                "GTF_CHANNEL_BLH_1_SOUTHREFCLK0",
+                                "GTF_CHANNEL_BLH_45_SOUTHREFCLK0",
+                                "GTY_CHANNEL_BLH_1_SOUTHREFCLK0",
+                                "GTY_CHANNEL_BLH_45_SOUTHREFCLK0",
+                            ],
+                        )
+                        .extra_wire(
+                            "SOUTHREFCLK1",
+                            &[
+                                "GTH_CHANNEL_BLH_0_SOUTHREFCLK1",
+                                "GTH_CHANNEL_BLH_44_SOUTHREFCLK1",
+                                "GTF_CHANNEL_BLH_1_SOUTHREFCLK1",
+                                "GTF_CHANNEL_BLH_45_SOUTHREFCLK1",
+                                "GTY_CHANNEL_BLH_1_SOUTHREFCLK1",
+                                "GTY_CHANNEL_BLH_45_SOUTHREFCLK1",
+                            ],
+                        ),
+                );
+            } else {
+                let bk = &kind[..5];
+                let mut bel = builder
+                    .bel_xy(bk, bk, 0, 0)
+                    .pins_name_only(&[
+                        "SYSREF_OUT_SOUTH_P",
+                        "SYSREF_OUT_NORTH_P",
+                        "PLL_DMON_OUT",
+                        "PLL_REFCLK_OUT",
+                    ])
+                    .pin_name_only("SYSREF_IN_SOUTH_P", 1)
+                    .pin_name_only("SYSREF_IN_NORTH_P", 1);
+                if bk.ends_with("ADC") {
+                    bel = bel.pins_name_only(&["CLK_ADC", "CLK_ADC_SPARE"]);
+                } else {
+                    bel = bel.pins_name_only(&["CLK_DAC", "CLK_DAC_SPARE"]);
+                }
+                if bk.starts_with("RF") {
+                    bel = bel
+                        .pins_name_only(&[
+                            "CLK_DISTR_IN_NORTH",
+                            "CLK_DISTR_IN_SOUTH",
+                            "CLK_DISTR_OUT_NORTH",
+                            "CLK_DISTR_OUT_SOUTH",
+                            "T1_ALLOWED_SOUTH",
+                            "T1_ALLOWED_NORTH",
+                        ])
+                        .pin_name_only("CLK_DISTR_IN_NORTH", 1)
+                        .pin_name_only("CLK_DISTR_IN_SOUTH", 1)
+                        .pin_name_only("T1_ALLOWED_NORTH", 1);
+                }
+                bels.push(bel);
+            }
+
+            let mut bel = builder.bel_virtual(if is_l { "RCLK_GT_L" } else { "RCLK_GT_R" });
+            for i in 0..24 {
+                if is_l {
+                    bel = bel
+                        .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_FT1_{i}")])
+                        .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_FT1_{i}")]);
+                } else {
+                    bel = bel
+                        .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_FT0_{i}")])
+                        .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_FT0_{i}")])
+                }
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual("VCC.GT")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(60).ref_single(
+                int_xy.delta(0, 30),
+                30,
+                rclk_int,
+            );
+            for i in 0..60 {
+                xn = xn
+                    .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(
+                        int_xy.delta(if is_l { -1 } else { 1 }, (i + i / 30) as i32),
+                        i,
+                        intf,
+                    )
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
     builder.build()
 }
