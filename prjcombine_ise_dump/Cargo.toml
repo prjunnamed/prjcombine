@@ -1,15 +1,15 @@
 [package]
 name = "prjcombine_ise_dump"
-version = "0.1.0"
-edition = "2018"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-prjcombine_rdbuild = { path = "../prjcombine_rdbuild" }
-prjcombine_toolchain = { path = "../prjcombine_toolchain" }
-simple-error = "0.2"
-tempfile = "3.0"
-regex = "1"
-indexmap = "1.7"
-rayon = "1.5"
-structopt = "0.3"
+prjcombine_rawdump.workspace = true
+prjcombine_rdbuild.workspace = true
+prjcombine_toolchain.workspace = true
+simple-error.workspace = true
+tempfile.workspace = true
+regex.workspace = true
+indexmap.workspace = true
+rayon.workspace = true
+structopt.workspace = true

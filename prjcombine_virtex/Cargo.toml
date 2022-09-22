@@ -1,11 +1,9 @@
 [package]
 name = "prjcombine_virtex"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_int = { path = "../prjcombine_int" }
+serde.workspace = true
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true

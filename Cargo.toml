@@ -49,6 +49,73 @@ members = [
 	"prjcombine_v2xdl_verify",
 ]
 
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+
+[workspace.dependencies]
+prjcombine_entity = { path = "prjcombine_entity" }
+prjcombine_rawdump = { path = "prjcombine_rawdump" }
+prjcombine_rdbuild = { path = "prjcombine_rdbuild" }
+prjcombine_toolchain = { path = "prjcombine_toolchain" }
+prjcombine_xdl = { path = "prjcombine_xdl" }
+prjcombine_int = { path = "prjcombine_int" }
+prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
+prjcombine_rdintb = { path = "prjcombine_rdintb" }
+prjcombine_rdverify = { path = "prjcombine_rdverify" }
+prjcombine_xc4k = { path = "prjcombine_xc4k" }
+prjcombine_xc4k_rd2db = { path = "prjcombine_xc4k_rd2db" }
+prjcombine_xc5200 = { path = "prjcombine_xc5200" }
+prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }
+prjcombine_xc5200_rd2db = { path = "prjcombine_xc5200_rd2db" }
+prjcombine_virtex = { path = "prjcombine_virtex" }
+prjcombine_virtex_rdverify = { path = "prjcombine_virtex_rdverify" }
+prjcombine_virtex_rd2db = { path = "prjcombine_virtex_rd2db" }
+prjcombine_virtex2 = { path = "prjcombine_virtex2" }
+prjcombine_virtex2_rdverify = { path = "prjcombine_virtex2_rdverify" }
+prjcombine_virtex2_rd2db = { path = "prjcombine_virtex2_rd2db" }
+prjcombine_virtex4 = { path = "prjcombine_virtex4" }
+prjcombine_virtex4_rdverify = { path = "prjcombine_virtex4_rdverify" }
+prjcombine_virtex4_rd2db = { path = "prjcombine_virtex4_rd2db" }
+prjcombine_virtex5 = { path = "prjcombine_virtex5" }
+prjcombine_virtex5_rdverify = { path = "prjcombine_virtex5_rdverify" }
+prjcombine_virtex5_rd2db = { path = "prjcombine_virtex5_rd2db" }
+prjcombine_virtex6 = { path = "prjcombine_virtex6" }
+prjcombine_virtex6_rdverify = { path = "prjcombine_virtex6_rdverify" }
+prjcombine_virtex6_rd2db = { path = "prjcombine_virtex6_rd2db" }
+prjcombine_spartan6 = { path = "prjcombine_spartan6" }
+prjcombine_spartan6_rd2db = { path = "prjcombine_spartan6_rd2db" }
+prjcombine_spartan6_rdverify = { path = "prjcombine_spartan6_rdverify" }
+prjcombine_series7 = { path = "prjcombine_series7" }
+prjcombine_series7_rdverify = { path = "prjcombine_series7_rdverify" }
+prjcombine_series7_rd2db = { path = "prjcombine_series7_rd2db" }
+prjcombine_ultrascale = { path = "prjcombine_ultrascale" }
+prjcombine_ultrascale_rdverify = { path = "prjcombine_ultrascale_rdverify" }
+prjcombine_ultrascale_rd2db = { path = "prjcombine_ultrascale_rd2db" }
+prjcombine_versal = { path = "prjcombine_versal" }
+prjcombine_versal_rdverify = { path = "prjcombine_versal_rdverify" }
+prjcombine_versal_rd2db = { path = "prjcombine_versal_rd2db" }
+prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
+assert_matches = "1.5.0"
+serde = { version = "1.0", features = ["derive"] }
+indexmap = "1.8"
+ndarray = { version = "0.15", features = ["serde"] }
+enum-map = { version = "2.4.0", features = ["serde"] }
+bitvec = { version = "1.0", features = ["serde"] }
+itertools = "0.10"
+rand = { version = "0.8", features = ["small_rng"] }
+nix = "0.24"
+tempfile = "3.0"
+toml = "0.5"
+zstd = "0.9"
+bincode = "1.3"
+structopt = "0.3"
+simple-error = "0.2"
+regex = "1"
+rayon = "1.5"
+indicatif = "0.16.2"
+ron = "0.7"
+
 [profile.dev]
 opt-level = 2
 debug = 2

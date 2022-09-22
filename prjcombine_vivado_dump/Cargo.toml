@@ -1,16 +1,16 @@
 [package]
 name = "prjcombine_vivado_dump"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-prjcombine_rdbuild = { path = "../prjcombine_rdbuild" }
-prjcombine_toolchain = { path = "../prjcombine_toolchain" }
-prjcombine_entity = { path = "../prjcombine_entity" }
-serde = { version = "1", features = ["derive"] }
-simple-error = "0.2"
-indexmap = "1.7"
-rayon = "1.5"
-structopt = "0.3"
-indicatif = "0.16.2"
+prjcombine_rawdump.workspace = true
+prjcombine_rdbuild.workspace = true
+prjcombine_toolchain.workspace = true
+prjcombine_entity.workspace = true
+serde.workspace = true
+simple-error.workspace = true
+indexmap.workspace = true
+rayon.workspace = true
+structopt.workspace = true
+indicatif.workspace = true

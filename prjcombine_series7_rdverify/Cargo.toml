@@ -1,13 +1,11 @@
 [package]
 name = "prjcombine_series7_rdverify"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_int = { path = "../prjcombine_int" }
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-prjcombine_rdverify = { path = "../prjcombine_rdverify" }
-prjcombine_series7 = { path = "../prjcombine_series7" }
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_rawdump.workspace = true
+prjcombine_rdverify.workspace = true
+prjcombine_series7.workspace = true

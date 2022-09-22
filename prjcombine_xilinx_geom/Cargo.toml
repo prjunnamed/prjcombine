@@ -1,22 +1,20 @@
 [package]
 name = "prjcombine_xilinx_geom"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_int = { path = "../prjcombine_int" }
-prjcombine_xc4k = { path = "../prjcombine_xc4k" }
-prjcombine_xc5200 = { path = "../prjcombine_xc5200" }
-prjcombine_virtex = { path = "../prjcombine_virtex" }
-prjcombine_virtex2 = { path = "../prjcombine_virtex2" }
-prjcombine_spartan6 = { path = "../prjcombine_spartan6" }
-prjcombine_virtex4 = { path = "../prjcombine_virtex4" }
-prjcombine_virtex5 = { path = "../prjcombine_virtex5" }
-prjcombine_virtex6 = { path = "../prjcombine_virtex6" }
-prjcombine_series7 = { path = "../prjcombine_series7" }
-prjcombine_ultrascale = { path = "../prjcombine_ultrascale" }
-prjcombine_versal = { path = "../prjcombine_versal" }
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_xc4k.workspace = true
+prjcombine_xc5200.workspace = true
+prjcombine_virtex.workspace = true
+prjcombine_virtex2.workspace = true
+prjcombine_spartan6.workspace = true
+prjcombine_virtex4.workspace = true
+prjcombine_virtex5.workspace = true
+prjcombine_virtex6.workspace = true
+prjcombine_series7.workspace = true
+prjcombine_ultrascale.workspace = true
+prjcombine_versal.workspace = true
+serde.workspace = true

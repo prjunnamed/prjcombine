@@ -1,43 +1,43 @@
 [package]
 name = "prjcombine_xilinx_rd2geom"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_int = { path = "../prjcombine_int" }
-prjcombine_rdintb = { path = "../prjcombine_rdintb" }
-prjcombine_rdgrid = { path = "../prjcombine_rdgrid" }
-prjcombine_rdverify = { path = "../prjcombine_rdverify" }
-prjcombine_xilinx_geom = { path = "../prjcombine_xilinx_geom" }
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-prjcombine_xc4k_rd2db = { path = "../prjcombine_xc4k_rd2db" }
-prjcombine_xc5200_rdverify = { path = "../prjcombine_xc5200_rdverify" }
-prjcombine_xc5200_rd2db = { path = "../prjcombine_xc5200_rd2db" }
-prjcombine_virtex_rdverify = { path = "../prjcombine_virtex_rdverify" }
-prjcombine_virtex_rd2db = { path = "../prjcombine_virtex_rd2db" }
-prjcombine_virtex2_rdverify = { path = "../prjcombine_virtex2_rdverify" }
-prjcombine_virtex2_rd2db = { path = "../prjcombine_virtex2_rd2db" }
-prjcombine_virtex4_rdverify = { path = "../prjcombine_virtex4_rdverify" }
-prjcombine_virtex4_rd2db = { path = "../prjcombine_virtex4_rd2db" }
-prjcombine_virtex5_rdverify = { path = "../prjcombine_virtex5_rdverify" }
-prjcombine_virtex5_rd2db = { path = "../prjcombine_virtex5_rd2db" }
-prjcombine_virtex6_rdverify = { path = "../prjcombine_virtex6_rdverify" }
-prjcombine_virtex6_rd2db = { path = "../prjcombine_virtex6_rd2db" }
-prjcombine_spartan6_rd2db = { path = "../prjcombine_spartan6_rd2db" }
-prjcombine_spartan6_rdverify = { path = "../prjcombine_spartan6_rdverify" }
-prjcombine_series7 = { path = "../prjcombine_series7" }
-prjcombine_series7_rdverify = { path = "../prjcombine_series7_rdverify" }
-prjcombine_series7_rd2db = { path = "../prjcombine_series7_rd2db" }
-prjcombine_ultrascale = { path = "../prjcombine_ultrascale" }
-prjcombine_ultrascale_rdverify = { path = "../prjcombine_ultrascale_rdverify" }
-prjcombine_ultrascale_rd2db = { path = "../prjcombine_ultrascale_rd2db" }
-prjcombine_versal = { path = "../prjcombine_versal" }
-prjcombine_versal_rdverify = { path = "../prjcombine_versal_rdverify" }
-prjcombine_versal_rd2db = { path = "../prjcombine_versal_rd2db" }
-structopt = "0.3"
-simple-error = "0.2"
-serde = { version = "1.0", features = ["derive"] }
-ron = "0.7"
-rayon = "1.5.1"
-enum-map = { version = "2.4.0", features = ["serde"] }
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_rdintb.workspace = true
+prjcombine_rdgrid.workspace = true
+prjcombine_rdverify.workspace = true
+prjcombine_xilinx_geom.workspace = true
+prjcombine_rawdump.workspace = true
+prjcombine_xc4k_rd2db.workspace = true
+prjcombine_xc5200_rdverify.workspace = true
+prjcombine_xc5200_rd2db.workspace = true
+prjcombine_virtex_rdverify.workspace = true
+prjcombine_virtex_rd2db.workspace = true
+prjcombine_virtex2_rdverify.workspace = true
+prjcombine_virtex2_rd2db.workspace = true
+prjcombine_virtex4_rdverify.workspace = true
+prjcombine_virtex4_rd2db.workspace = true
+prjcombine_virtex5_rdverify.workspace = true
+prjcombine_virtex5_rd2db.workspace = true
+prjcombine_virtex6_rdverify.workspace = true
+prjcombine_virtex6_rd2db.workspace = true
+prjcombine_spartan6_rd2db.workspace = true
+prjcombine_spartan6_rdverify.workspace = true
+prjcombine_series7.workspace = true
+prjcombine_series7_rdverify.workspace = true
+prjcombine_series7_rd2db.workspace = true
+prjcombine_ultrascale.workspace = true
+prjcombine_ultrascale_rdverify.workspace = true
+prjcombine_ultrascale_rd2db.workspace = true
+prjcombine_versal.workspace = true
+prjcombine_versal_rdverify.workspace = true
+prjcombine_versal_rd2db.workspace = true
+structopt.workspace = true
+simple-error.workspace = true
+serde.workspace = true
+ron.workspace = true
+rayon.workspace = true
+enum-map.workspace = true

@@ -1,12 +1,10 @@
 [package]
 name = "prjcombine_xc4k_rd2db"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_rdgrid = { path = "../prjcombine_rdgrid" }
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-prjcombine_xc4k = { path = "../prjcombine_xc4k" }
+prjcombine_entity.workspace = true
+prjcombine_rdgrid.workspace = true
+prjcombine_rawdump.workspace = true
+prjcombine_xc4k.workspace = true

@@ -1,13 +1,11 @@
 [package]
 name = "prjcombine_rdintb"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-prjcombine_entity = { path = "../prjcombine_entity" }
-prjcombine_int = { path = "../prjcombine_int" }
-prjcombine_rawdump = { path = "../prjcombine_rawdump" }
-assert_matches = "1.5.0"
-enum-map = { version = "2.4.0", features = ["serde"] }
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_rawdump.workspace = true
+assert_matches.workspace = true
+enum-map.workspace = true

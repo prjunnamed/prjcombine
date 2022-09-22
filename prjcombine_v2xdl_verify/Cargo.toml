@@ -1,15 +1,13 @@
 [package]
 name = "prjcombine_v2xdl_verify"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-rand = { version = "0.8", features = ["small_rng"] }
-structopt = "0.3"
-prjcombine_toolchain = { path = "../prjcombine_toolchain" }
-prjcombine_xdl = { path = "../prjcombine_xdl" }
-tempfile = "3.0"
-simple-error = "0.2"
-rayon = "1.5"
+prjcombine_toolchain.workspace = true
+prjcombine_xdl.workspace = true
+rand.workspace = true
+structopt.workspace = true
+tempfile.workspace = true
+simple-error.workspace = true
+rayon.workspace = true
