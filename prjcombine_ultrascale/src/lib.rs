@@ -1,4 +1,4 @@
-use enum_map::Enum;
+use enum_map::{Enum, EnumMap};
 use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,9 @@ pub enum GridKind {
     UltrascalePlus,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize, Enum,
+)]
 pub enum ColSide {
     Left,
     Right,
@@ -428,12 +430,22 @@ pub enum SharedCfgPin {
     PerstN1, // Ultrascale only (shared with I2C_SDA on Ultrascale+)
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum ClkSrc {
+    DspSplitter(ColId),
+    Gt(ColId),
+    Cmt(ColId),
+    RouteSplitter(ColId),
+}
+
 pub struct ExpandedDevice<'a> {
     pub grids: EntityVec<DieId, &'a Grid>,
     pub grid_master: DieId,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
     pub naming: &'a DeviceNaming,
+    pub hdistr_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
+    pub hroute_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
 }
 
 impl Grid {

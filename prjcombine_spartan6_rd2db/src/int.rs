@@ -1405,12 +1405,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 0..16 {
             bels.push(
                 builder
-                    .bel_xy(
-                        format!("BUFGMUX{i}"),
-                        "BUFGMUX",
-                        u8::from((i & 4) != 0),
-                        i,
-                    )
+                    .bel_xy(format!("BUFGMUX{i}"), "BUFGMUX", u8::from((i & 4) != 0), i)
                     .pin_name_only("O", 1)
                     .pins_name_only(&["I0", "I1"]),
             );

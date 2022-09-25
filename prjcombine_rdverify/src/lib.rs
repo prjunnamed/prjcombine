@@ -434,12 +434,17 @@ impl<'a> Verifier<'a> {
             let tile = &self.rd.tiles[&crd];
             let tname = &tile.name;
             if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
-                if let Some(pnw) = nw {
+                if let Some((pnw, pcrd, pwn)) = nw {
                     if pnw != cnw {
-                        println!("NODE MISMATCH FOR {p} {tname} {wn}", p = self.rd.part);
+                        let ptile = &self.rd.tiles[&pcrd];
+                        let ptname = &ptile.name;
+                        println!(
+                            "NODE MISMATCH FOR {p} {tname} {wn} != {ptname} {pwn}",
+                            p = self.rd.part
+                        );
                     }
                 } else {
-                    nw = Some(cnw);
+                    nw = Some((cnw, crd, wn));
                 }
             } else {
                 println!("MISSING WIRE {part} {tname} {wn}", part = self.rd.part);

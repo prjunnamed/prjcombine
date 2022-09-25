@@ -1,5 +1,7 @@
 #![allow(clippy::bool_to_int_with_if)]
 #![allow(clippy::collapsible_else_if)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::single_match)]
 
 use enum_map::{enum_map, EnumMap};
 use prjcombine_entity::{EntityId, EntityVec};
@@ -8,8 +10,9 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId}
 use std::collections::BTreeSet;
 
 use crate::{
-    BramKind, CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DeviceNaming, DisabledPart,
-    DspKind, ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
+    BramKind, CleMKind, ClkSrc, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
+    DisabledPart, DspKind, ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind,
+    RegId,
 };
 
 struct Asx {
@@ -951,7 +954,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if matches!(cd.l, ColumnKindLeft::CleM(CleMKind::ClkBuf)) {
                         let name = format!("RCLK_CLEM_CLKBUF_L_X{x}Y{y}", y = self.ylut[row - 1]);
                         tile.add_xnode(
-                            self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                            self.db.get_node("RCLK_HROUTE_SPLITTER_L"),
                             &[&name],
                             self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
                             &[],
@@ -1728,7 +1731,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 let row = row + 30;
                 let name = format!("RCLK_AMS_CFGIO_X{x}Y{y}", y = self.ylut[row - 1]);
                 self.die[(col, row)].add_xnode(
-                    self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                    self.db.get_node("RCLK_HROUTE_SPLITTER_L"),
                     &[&name],
                     self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
                     &[],
@@ -1782,7 +1785,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         };
         let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
         self.die[(col, row + 30)].add_xnode(
-            self.db.get_node("RCLK_HROUTE_SPLITTER"),
+            self.db.get_node("RCLK_HROUTE_SPLITTER_L"),
             &[&name],
             self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
             &[],
@@ -2163,10 +2166,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                 node.add_bel(89, "HBM_REF_CLK_X0Y1".to_string());
                             }
 
-                            let tk = if ioc.side == ColSide::Right {
-                                "RCLK_XIPHY_OUTER_RIGHT"
+                            let (tk, kind) = if ioc.side == ColSide::Right {
+                                ("RCLK_XIPHY_OUTER_RIGHT", "RCLK_XIPHY_R")
                             } else {
-                                "RCLK_RCLK_XIPHY_INNER_FT"
+                                ("RCLK_RCLK_XIPHY_INNER_FT", "RCLK_XIPHY_L")
                             };
                             let name = format!(
                                 "{tk}_X{x}Y{y}",
@@ -2174,9 +2177,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                 y = self.ylut[row - 1]
                             );
                             self.die[(ioc.col, row)].add_xnode(
-                                self.db.get_node("RCLK_XIPHY"),
+                                self.db.get_node(kind),
                                 &[&name],
-                                self.db.get_node_naming("RCLK_XIPHY"),
+                                self.db.get_node_naming(kind),
                                 &[],
                             );
 
@@ -2517,7 +2520,11 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 let name = format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = self.ylut[row]);
                 if matches!(cd.r, ColumnKindRight::DfeB | ColumnKindRight::DfeE) {
                     self.die[(if bi { col + 1 } else { col }, row + 30)].add_xnode(
-                        self.db.get_node("RCLK_HROUTE_SPLITTER"),
+                        self.db.get_node(if bi {
+                            "RCLK_HROUTE_SPLITTER_L"
+                        } else {
+                            "RCLK_HROUTE_SPLITTER_R"
+                        }),
                         &[&name],
                         self.db.get_node_naming("RCLK_HROUTE_SPLITTER"),
                         &[],
@@ -2562,6 +2569,56 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
         }
     }
+}
+
+pub fn fill_clk_src(
+    columns: &EntityVec<ColId, Column>,
+) -> (
+    EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
+    EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
+) {
+    let mut hroute_src = vec![];
+    let mut hdistr_src = vec![];
+    let mut hd = ClkSrc::Gt(columns.last_id().unwrap());
+    let mut hr = ClkSrc::Gt(columns.last_id().unwrap());
+    for (col, &cd) in columns.iter().rev() {
+        let rhd = hd;
+        let rhr = hr;
+        match cd.r {
+            ColumnKindRight::Dsp(DspKind::ClkBuf) => {
+                hd = ClkSrc::DspSplitter(col);
+                hr = ClkSrc::DspSplitter(col);
+            }
+            ColumnKindRight::DfeB => {
+                hr = ClkSrc::RouteSplitter(col);
+            }
+            _ => (),
+        }
+        hroute_src.push(enum_map! {
+            ColSide::Left => hr,
+            ColSide::Right => rhr,
+        });
+        hdistr_src.push(enum_map! {
+            ColSide::Left => hd,
+            ColSide::Right => rhd,
+        });
+        match cd.l {
+            ColumnKindLeft::CleM(CleMKind::ClkBuf)
+            | ColumnKindLeft::Hard(_)
+            | ColumnKindLeft::DfeE => {
+                hr = ClkSrc::RouteSplitter(col);
+            }
+            ColumnKindLeft::Io(_) => {
+                hr = ClkSrc::Cmt(col);
+                hd = ClkSrc::Cmt(col);
+            }
+            _ => (),
+        }
+    }
+    (
+        hroute_src.into_iter().rev().collect(),
+        hdistr_src.into_iter().rev().collect(),
+    )
 }
 
 pub fn expand_grid<'a>(
@@ -2654,11 +2711,15 @@ pub fn expand_grid<'a>(
         expander.fill_clkroot();
     }
 
+    let (hroute_src, hdistr_src) = fill_clk_src(&grids[grid_master].columns);
+
     ExpandedDevice {
         grids: grids.clone(),
         grid_master,
         egrid,
         disabled: disabled.clone(),
         naming,
+        hroute_src,
+        hdistr_src,
     }
 }

@@ -1235,8 +1235,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let bel_vcc = builder
                 .bel_virtual("VCC.RCLK_HROUTE_SPLITTER")
                 .extra_wire("VCC", &["VCC_WIRE"]);
+            let kind = if tkn == "DFE_DFE_TILEB_FT" {
+                "RCLK_HROUTE_SPLITTER_R"
+            } else {
+                "RCLK_HROUTE_SPLITTER_L"
+            };
             builder
-                .xnode("RCLK_HROUTE_SPLITTER", "RCLK_HROUTE_SPLITTER", xy)
+                .xnode(kind, "RCLK_HROUTE_SPLITTER", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .bel(bel_vcc)
@@ -1747,8 +1752,6 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 bel = bel
                     .extra_wire(&format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
                     .extra_wire(&format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
-                    .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
-                    .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
                     .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
                     .extra_wire(
                         &format!("HDISTR{i}_R"),
@@ -1765,14 +1768,6 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     .extra_wire(
                         &format!("HDISTR{i}_OUT_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 4 + i * 8)],
-                    )
-                    .extra_wire(
-                        &format!("HROUTE{i}_L_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
-                    )
-                    .extra_wire(
-                        &format!("HROUTE{i}_R_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
                     )
                     .extra_wire(
                         &format!("VDISTR{i}_B_MUX"),
@@ -1798,6 +1793,31 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                         &format!("OUT_MUX{i}_DUMMY2"),
                         &[format!("VCC_WIRE{ii}", ii = dummy_base + 2)],
                     );
+                if is_l {
+                    bel = bel
+                        .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
+                        .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
+                        .extra_wire(
+                            &format!("HROUTE{i}_L_MUX"),
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
+                        )
+                        .extra_wire(
+                            &format!("HROUTE{i}_R_MUX"),
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
+                        );
+                } else {
+                    bel = bel
+                        .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_1_{i}")])
+                        .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_0_{i}")])
+                        .extra_wire(
+                            &format!("HROUTE{i}_L_MUX"),
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
+                        )
+                        .extra_wire(
+                            &format!("HROUTE{i}_R_MUX"),
+                            &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
+                        );
+                }
             }
             bels.push(bel);
             bels.push(
@@ -2149,13 +2169,22 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         }
     }
 
-    for tkn in ["RCLK_RCLK_XIPHY_INNER_FT", "RCLK_XIPHY_OUTER_RIGHT"] {
+    for (tkn, kind) in [
+        ("RCLK_RCLK_XIPHY_INNER_FT", "RCLK_XIPHY_L"),
+        ("RCLK_XIPHY_OUTER_RIGHT", "RCLK_XIPHY_R"),
+    ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("RCLK_XIPHY");
             for i in 0..24 {
-                bel = bel
-                    .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ZERO{i}")])
-                    .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ONE{i}")]);
+                if kind == "RCLK_XIPHY_L" {
+                    bel = bel
+                        .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ZERO{i}")])
+                        .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ONE{i}")]);
+                } else {
+                    bel = bel
+                        .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ONE{i}")])
+                        .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ZERO{i}")]);
+                }
             }
             for i in 0..6 {
                 bel = bel
@@ -2172,7 +2201,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .bel_virtual("VCC.RCLK_XIPHY")
                 .extra_wire("VCC", &["VCC_WIRE"]);
             builder
-                .xnode("RCLK_XIPHY", "RCLK_XIPHY", xy)
+                .xnode(kind, kind, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .bel(bel_vcc)
