@@ -7,6 +7,7 @@ members = [
 	"prjcombine_rdbuild",
 	"prjcombine_ise_dump",
 	"prjcombine_vivado_dump",
+	"prjcombine_lattice_dump",
 	"prjcombine_int",
 	"prjcombine_xc4k",
 	"prjcombine_xc5200",

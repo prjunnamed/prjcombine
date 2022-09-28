@@ -3475,14 +3475,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Some((crd, cs, rs)) = grid[(x, y)] {
                 let tile = &rd.tiles[&crd];
                 let tk = &rd.tile_kinds[tile.kind];
-                let cls;
-                match tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..]) {
+                let cls = match tile_info_d.get(&rd.tile_kinds.key(tile.kind)[..]) {
                     None => {
-                        cls = "_unk";
                         println!("unknown tile {}", rd.tile_kinds.key(tile.kind));
+                        "_unk"
                     }
-                    Some(_) => cls = rd.tile_kinds.key(tile.kind),
-                }
+                    Some(_) => rd.tile_kinds.key(tile.kind),
+                };
                 if rs != 1 || cs != 1 {
                     ofile.write_all(
                         format!(

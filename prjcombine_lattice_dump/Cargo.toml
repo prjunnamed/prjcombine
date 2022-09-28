@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine_lattice_dump"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+prjcombine_toolchain.workspace = true
+rayon.workspace = true
+tempfile.workspace = true
+structopt.workspace = true
+simple-error.workspace = true
+ndarray.workspace = true
+regex.workspace = true
+serde.workspace = true
