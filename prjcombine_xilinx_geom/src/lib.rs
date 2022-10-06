@@ -5,6 +5,9 @@ use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::DieId;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use std::error::Error;
+use std::fs::File;
+use std::path::Path;
 
 entity_id! {
     pub id GridId usize;
@@ -100,4 +103,20 @@ pub enum DeviceNaming {
     Dummy,
     Ultrascale(prjcombine_ultrascale::DeviceNaming),
     Versal(prjcombine_versal::DeviceNaming),
+}
+
+impl GeomDb {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
+        let f = File::open(path)?;
+        let cf = zstd::stream::Decoder::new(f)?;
+        Ok(bincode::deserialize_from(cf)?)
+    }
+
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
+        let f = File::create(path)?;
+        let mut cf = zstd::stream::Encoder::new(f, 9)?;
+        bincode::serialize_into(&mut cf, self)?;
+        cf.finish()?;
+        Ok(())
+    }
 }

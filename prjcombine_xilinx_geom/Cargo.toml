@@ -18,3 +18,5 @@ prjcombine_series7.workspace = true
 prjcombine_ultrascale.workspace = true
 prjcombine_versal.workspace = true
 serde.workspace = true
+bincode.workspace = true
+zstd.workspace = true

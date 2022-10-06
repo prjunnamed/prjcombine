@@ -4,7 +4,6 @@ use prjcombine_rawdump::Part;
 use rayon::prelude::*;
 use simple_error::bail;
 use std::error::Error;
-use std::fs::File;
 use structopt::StructOpt;
 
 mod db;
@@ -68,9 +67,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     let db = builder.finish();
-    {
-        let f = File::create(opt.dst)?;
-        ron::ser::to_writer_pretty(f, &db, ron::ser::PrettyConfig::new().enumerate_arrays(true))?;
-    }
+    db.to_file(opt.dst)?;
     Ok(())
 }

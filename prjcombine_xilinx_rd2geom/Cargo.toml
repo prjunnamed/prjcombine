@@ -3,6 +3,10 @@ name = "prjcombine_xilinx_rd2geom"
 version.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "xrd2geom"
+path = "src/main.rs"
+
 [dependencies]
 prjcombine_entity.workspace = true
 prjcombine_int.workspace = true
