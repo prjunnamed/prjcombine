@@ -9,87 +9,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 entity_id! {
-    pub id DieId u16, reserve 1;
-    pub id ColId u16, reserve 1;
-    pub id RowId u16, reserve 1;
-}
-
-impl core::ops::Add<usize> for ColId {
-    type Output = ColId;
-    fn add(self, x: usize) -> ColId {
-        ColId::from_idx(self.to_idx() + x)
-    }
-}
-
-impl core::ops::AddAssign<usize> for ColId {
-    fn add_assign(&mut self, x: usize) {
-        *self = *self + x;
-    }
-}
-
-impl core::ops::Sub<usize> for ColId {
-    type Output = ColId;
-    fn sub(self, x: usize) -> ColId {
-        ColId::from_idx(self.to_idx() - x)
-    }
-}
-
-impl core::ops::SubAssign<usize> for ColId {
-    fn sub_assign(&mut self, x: usize) {
-        *self = *self - x;
-    }
-}
-
-impl core::ops::Add<usize> for RowId {
-    type Output = RowId;
-    fn add(self, x: usize) -> RowId {
-        RowId::from_idx(self.to_idx() + x)
-    }
-}
-
-impl core::ops::AddAssign<usize> for RowId {
-    fn add_assign(&mut self, x: usize) {
-        *self = *self + x;
-    }
-}
-
-impl core::ops::Sub<usize> for RowId {
-    type Output = RowId;
-    fn sub(self, x: usize) -> RowId {
-        RowId::from_idx(self.to_idx() - x)
-    }
-}
-
-impl core::ops::SubAssign<usize> for RowId {
-    fn sub_assign(&mut self, x: usize) {
-        *self = *self - x;
-    }
-}
-
-impl core::ops::Add<usize> for DieId {
-    type Output = DieId;
-    fn add(self, x: usize) -> DieId {
-        DieId::from_idx(self.to_idx() + x)
-    }
-}
-
-impl core::ops::AddAssign<usize> for DieId {
-    fn add_assign(&mut self, x: usize) {
-        *self = *self + x;
-    }
-}
-
-impl core::ops::Sub<usize> for DieId {
-    type Output = DieId;
-    fn sub(self, x: usize) -> DieId {
-        DieId::from_idx(self.to_idx() - x)
-    }
-}
-
-impl core::ops::SubAssign<usize> for DieId {
-    fn sub_assign(&mut self, x: usize) {
-        *self = *self - x;
-    }
+    pub id DieId u16, reserve 1, delta;
+    pub id ColId u16, reserve 1, delta;
+    pub id RowId u16, reserve 1, delta;
 }
 
 pub type Coord = (ColId, RowId);

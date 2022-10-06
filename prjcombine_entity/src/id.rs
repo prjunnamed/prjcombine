@@ -79,21 +79,74 @@ macro_rules! __impl_entity_id {
 }
 
 #[macro_export]
+macro_rules! __impl_entity_id_delta {
+    ($v:vis, $id:ident, $t:ty) => {
+        impl core::ops::Add<usize> for $id {
+            type Output = $id;
+            fn add(self, x: usize) -> Self {
+                Self::from_idx(self.to_idx() + x)
+            }
+        }
+
+        impl core::ops::AddAssign<usize> for $id {
+            fn add_assign(&mut self, x: usize) {
+                *self = *self + x;
+            }
+        }
+
+        impl core::ops::Sub<usize> for $id {
+            type Output = $id;
+            fn sub(self, x: usize) -> Self {
+                Self::from_idx(self.to_idx() - x)
+            }
+        }
+
+        impl core::ops::SubAssign<usize> for $id {
+            fn sub_assign(&mut self, x: usize) {
+                *self = *self - x;
+            }
+        }
+
+        impl core::ops::Sub<$id> for $id {
+            type Output = isize;
+            fn sub(self, x: Self) -> isize {
+                self.to_idx() as isize - x.to_idx() as isize
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! __reserved_ty {
+    (u16) => {
+        $crate::id::__ReservedU16
+    };
+    (u32) => {
+        $crate::id::__ReservedU32
+    };
+    (usize) => {
+        $crate::id::__ReservedUsize
+    };
+}
+
+#[macro_export]
 macro_rules! entity_id {
     ($v:vis id $id:ident $t:ty; $($rest:tt)*) => {
         $crate::__impl_entity_id!($v, $id, $t);
         $crate::entity_id!{ $($rest)* }
     };
-    ($v:vis id $id:ident u16, reserve 1; $($rest:tt)*) => {
-        $crate::__impl_entity_id!($v, $id, $crate::id::__ReservedU16);
+    ($v:vis id $id:ident $t:ty, delta; $($rest:tt)*) => {
+        $crate::__impl_entity_id!($v, $id, $t);
+        $crate::__impl_entity_id_delta!($v, $id, $t);
         $crate::entity_id!{ $($rest)* }
     };
-    ($v:vis id $id:ident u32, reserve 1; $($rest:tt)*) => {
-        $crate::__impl_entity_id!($v, $id, $crate::id::__ReservedU32);
+    ($v:vis id $id:ident $t:tt, reserve 1; $($rest:tt)*) => {
+        $crate::__impl_entity_id!($v, $id, $crate::__reserved_ty!($t));
         $crate::entity_id!{ $($rest)* }
     };
-    ($v:vis id $id:ident usize, reserve 1; $($rest:tt)*) => {
-        $crate::__impl_entity_id!($v, $id, $crate::id::__ReservedUsize);
+    ($v:vis id $id:ident $t:tt, reserve 1, delta; $($rest:tt)*) => {
+        $crate::__impl_entity_id!($v, $id, $crate::__reserved_ty!($t));
+        $crate::__impl_entity_id_delta!($v, $id, $t);
         $crate::entity_id!{ $($rest)* }
     };
     () => {};
