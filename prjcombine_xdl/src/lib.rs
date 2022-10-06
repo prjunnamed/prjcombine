@@ -172,13 +172,10 @@ impl Error for ParseError {}
 
 impl Design {
     pub fn write(&self, f: &mut dyn Write) -> io::Result<()> {
-        write!(
-            f,
-            "design {} {} {}",
-            fmt_string(&self.name),
-            self.part,
-            self.version
-        )?;
+        write!(f, "design {} {}", fmt_string(&self.name), self.part,)?;
+        if !self.version.is_empty() {
+            write!(f, " {}", self.version)?;
+        }
         if !self.cfg.is_empty() {
             write!(f, ", cfg {}", fmt_cfg(&self.cfg))?;
         }
