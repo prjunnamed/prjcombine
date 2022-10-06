@@ -1,301 +1,348 @@
 #![allow(clippy::type_complexity)]
 
-use prjcombine_lattice_dump::{dump_html, parse_tiles};
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_lattice_dump::parse_tiles;
+use prjcombine_lattice_rawdump::{Db, Grid, Node, Part, Pip, Site};
 use prjcombine_toolchain::Toolchain;
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
-use simple_error::bail;
+use regex::Regex;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::create_dir_all;
 use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::io::{BufRead, BufReader, Write};
+use std::path::PathBuf;
 use std::process::Stdio;
 use structopt::StructOpt;
 
-const DIAMOND_PARTS: &[(&str, &[(&str, &str, &str, &str)])] = &[
-    (
-        "xp",
-        &[
-            ("mg5g00", "LFXP3C", "PQFP208", "3"),
-            ("mg5g00", "LFXP3E", "PQFP208", "3"),
-            ("mg5g00", "LFXP6C", "PQFP208", "3"),
-            ("mg5g00", "LFXP6E", "PQFP208", "3"),
-            ("mg5g00", "LFXP10C", "FPBGA256", "3"),
-            ("mg5g00", "LFXP10E", "FPBGA256", "3"),
-            ("mg5g00", "LFXP15C", "FPBGA256", "3"),
-            ("mg5g00", "LFXP15E", "FPBGA256", "3"),
-            ("mg5g00", "LFXP20C", "FPBGA256", "3"),
-            ("mg5g00", "LFXP20E", "FPBGA256", "3"),
+struct FamilyInfo {
+    name: &'static str,
+    parts: &'static [(&'static str, &'static str)],
+    pkgs: &'static [&'static str],
+    speeds: &'static [&'static str],
+}
+
+const DIAMOND_FAMILIES: &[FamilyInfo] = &[
+    FamilyInfo {
+        name: "ecp",
+        parts: &[
+            ("ep5g00", "LFEC1E"),
+            ("ep5g00", "LFEC3E"),
+            ("ep5g00", "LFEC6E"),
+            ("ep5g00", "LFEC10E"),
+            ("ep5g00", "LFEC15E"),
+            ("ep5g00", "LFEC20E"),
+            ("ep5g00", "LFEC33E"),
+            ("ep5g00p", "LFECP6E"),
+            ("ep5g00p", "LFECP10E"),
+            ("ep5g00p", "LFECP15E"),
+            ("ep5g00p", "LFECP20E"),
+            ("ep5g00p", "LFECP33E"),
         ],
-    ),
-    (
-        "ecp",
-        &[
-            ("ep5g00", "LFEC1E", "PQFP208", "3"),
-            ("ep5g00", "LFEC3E", "PQFP208", "3"),
-            ("ep5g00", "LFEC6E", "PQFP208", "3"),
-            ("ep5g00", "LFEC10E", "PQFP208", "3"),
-            ("ep5g00", "LFEC15E", "FPBGA484", "3"),
-            ("ep5g00", "LFEC20E", "FPBGA484", "3"),
-            ("ep5g00", "LFEC33E", "FPBGA484", "3"),
-            ("ep5g00p", "LFECP6E", "PQFP208", "3"),
-            ("ep5g00p", "LFECP10E", "PQFP208", "3"),
-            ("ep5g00p", "LFECP15E", "FPBGA484", "3"),
-            ("ep5g00p", "LFECP20E", "FPBGA484", "3"),
-            ("ep5g00p", "LFECP33E", "FPBGA484", "3"),
+        pkgs: &[
+            "TQFP100", "TQFP144", "PQFP208", "FPBGA256", "FPBGA484", "FPBGA672",
         ],
-    ),
-    (
-        "machxo",
-        &[
-            ("mj5g00", "LAMXO256C", "TQFP100", "3"),
-            ("mj5g00", "LAMXO256E", "TQFP100", "3"),
-            ("mj5g00", "LCMXO256C", "TQFP100", "3"),
-            ("mj5g00", "LCMXO256E", "TQFP100", "3"),
-            ("mj5g00", "LAMXO640C", "TQFP100", "3"),
-            ("mj5g00", "LAMXO640E", "TQFP100", "3"),
-            ("mj5g00", "LCMXO640C", "TQFP100", "3"),
-            ("mj5g00", "LCMXO640E", "TQFP100", "3"),
-            ("mj5g00", "LAMXO1200E", "TQFP100", "3"),
-            ("mj5g00", "LCMXO1200C", "TQFP100", "3"),
-            ("mj5g00", "LCMXO1200E", "TQFP100", "3"),
-            ("mj5g00", "LAMXO2280E", "TQFP100", "3"),
-            ("mj5g00", "LCMXO2280C", "TQFP100", "3"),
-            ("mj5g00", "LCMXO2280E", "TQFP100", "3"),
-            ("mj5g00p", "LPTM10-1247", "TQFP128", "3"),
-            ("mj5g00p", "LPTM10-12107", "FTBGA208", "3"),
+        speeds: &["3", "4", "5"],
+    },
+    FamilyInfo {
+        name: "xp",
+        parts: &[
+            ("mg5g00", "LFXP3C"),
+            ("mg5g00", "LFXP3E"),
+            ("mg5g00", "LFXP6C"),
+            ("mg5g00", "LFXP6E"),
+            ("mg5g00", "LFXP10C"),
+            ("mg5g00", "LFXP10E"),
+            ("mg5g00", "LFXP15C"),
+            ("mg5g00", "LFXP15E"),
+            ("mg5g00", "LFXP20C"),
+            ("mg5g00", "LFXP20E"),
         ],
-    ),
-    (
-        "scm",
-        &[
-            ("slayer", "LFSC3GA15E", "FPBGA900", "5"),
-            ("slayer", "LFSC3GA25E", "FPBGA900", "5"),
-            ("slayer", "LFSC3GA40E", "FFBGA1152", "5"),
-            ("slayer", "LFSC3GA80E", "FFBGA1152", "5"),
-            ("slayer", "LFSC3GA115E", "FFBGA1152", "5"),
-            ("or5s00", "LFSCM3GA15EP1", "FPBGA900", "5"),
-            ("or5s00", "LFSCM3GA25EP1", "FPBGA900", "5"),
-            ("or5s00", "LFSCM3GA40EP1", "FFBGA1152", "5"),
-            ("or5s00", "LFSCM3GA80EP1", "FFBGA1152", "5"),
-            ("or5s00", "LFSCM3GA115EP1", "FFBGA1152", "5"),
+        pkgs: &[
+            "TQFP100", "TQFP144", "PQFP208", "FPBGA256", "FPBGA388", "FPBGA484",
         ],
-    ),
-    (
-        "xp2",
-        &[
-            ("mg5a00", "LAXP2-5E", "FTBGA256", "5"),
-            ("mg5a00", "LFXP2-5E", "FTBGA256", "5"),
-            ("mg5a00", "LAXP2-8E", "FTBGA256", "5"),
-            ("mg5a00", "LFXP2-8E", "FTBGA256", "5"),
-            ("mg5a00", "LAXP2-17E", "FTBGA256", "5"),
-            ("mg5a00", "LFXP2-17E", "FTBGA256", "5"),
-            ("mg5a00", "LFXP2-30E", "FTBGA256", "5"),
-            ("mg5a00", "LFXP2-40E", "FPBGA484", "5"),
+        speeds: &["3", "4", "5"],
+    },
+    FamilyInfo {
+        name: "machxo",
+        parts: &[
+            ("mj5g00", "LAMXO256C"),
+            ("mj5g00", "LAMXO256E"),
+            ("mj5g00", "LCMXO256C"),
+            ("mj5g00", "LCMXO256E"),
+            ("mj5g00", "LAMXO640C"),
+            ("mj5g00", "LAMXO640E"),
+            ("mj5g00", "LCMXO640C"),
+            ("mj5g00", "LCMXO640E"),
+            ("mj5g00", "LAMXO1200E"),
+            ("mj5g00", "LCMXO1200C"),
+            ("mj5g00", "LCMXO1200E"),
+            ("mj5g00", "LAMXO2280E"),
+            ("mj5g00", "LCMXO2280C"),
+            ("mj5g00", "LCMXO2280E"),
+            ("mj5g00p", "LPTM10-1247"),
+            ("mj5g00p", "LPTM10-12107"),
         ],
-    ),
-    (
-        "ecp2",
-        &[
-            ("ep5a00", "LFE2-6E", "FPBGA256", "5"),
-            ("ep5a00", "LFE2-12E", "FPBGA256", "5"),
-            ("ep5a00", "LFE2-20E", "FPBGA256", "5"),
-            ("ep5a00", "LFE2-35E", "FPBGA672", "5"),
-            ("ep5a00", "LFE2-50E", "FPBGA672", "5"),
-            ("ep5a00", "LFE2-70E", "FPBGA672", "5"),
-            ("ep5m00", "LFE2M20E", "FPBGA256", "5"),
-            ("ep5m00", "LFE2M35E", "FPBGA672", "5"),
-            ("ep5m00", "LFE2M50E", "FPBGA672", "5"),
-            ("ep5m00", "LFE2M70E", "FPBGA900", "5"),
-            ("ep5m00", "LFE2M100E", "FPBGA900", "5"),
+        pkgs: &[
+            "TQFP100", "TQFP128", "TQFP144", "CSBGA100", "CSBGA132", "CABGA256", "FTBGA208",
+            "FTBGA256", "FTBGA324",
         ],
-    ),
-    (
-        "ecp3",
-        &[
-            ("ep5c00", "LAE3-17EA", "FTBGA256", "6"),
-            ("ep5c00", "LFE3-17EA", "FTBGA256", "6"),
-            ("ep5c00", "LAE3-35EA", "FTBGA256", "6"),
-            ("ep5c00", "LFE3-35EA", "FTBGA256", "6"),
-            ("ep5c00", "LFE3-70E", "FPBGA1156", "6"),
-            ("ep5c00", "LFE3-70EA", "FPBGA1156", "6"),
-            ("ep5c00", "LFE3-95E", "FPBGA1156", "6"),
-            ("ep5c00", "LFE3-95EA", "FPBGA1156", "6"),
-            ("ep5c00", "LFE3-150EA", "FPBGA1156", "6"),
+        speeds: &["3", "4", "5"],
+    },
+    FamilyInfo {
+        name: "scm",
+        parts: &[
+            ("slayer", "LFSC3GA15E"),
+            ("slayer", "LFSC3GA25E"),
+            ("slayer", "LFSC3GA40E"),
+            ("slayer", "LFSC3GA80E"),
+            ("slayer", "LFSC3GA115E"),
+            ("or5s00", "LFSCM3GA15EP1"),
+            ("or5s00", "LFSCM3GA25EP1"),
+            ("or5s00", "LFSCM3GA40EP1"),
+            ("or5s00", "LFSCM3GA80EP1"),
+            ("or5s00", "LFSCM3GA115EP1"),
         ],
-    ),
-    (
-        "ecp4",
-        &[
-            ("ep5d00", "LFE4-30E", "FPBGA648", "8"),
-            ("ep5d00", "LFE4-50E", "FPBGA648", "8"),
-            ("ep5d00", "LFE4-95E", "FPBGA648", "8"),
-            ("ep5d00", "LFE4-130E", "FPBGA648", "8"),
-            ("ep5d00", "LFE4-190E", "FCBGA1152", "8"),
+        pkgs: &[
+            "FPBGA256",
+            "FPBGA900",
+            "FFBGA1020",
+            "FFABGA1020",
+            "FCBGA1152",
+            "FFBGA1152",
+            "FCBGA1704",
+            "FFBGA1704",
         ],
-    ),
-    (
-        "ecp5",
-        &[
-            ("sa5p00", "LAE5U-12F", "CABGA381", "6"),
-            ("sa5p00", "LFE5U-12F", "CABGA381", "6"),
-            ("sa5p00", "LFE5U-25F", "CABGA381", "6"),
-            ("sa5p00", "LFE5U-45F", "CABGA381", "6"),
-            ("sa5p00", "LFE5U-85F", "CABGA381", "6"),
-            ("sa5p00m", "LAE5UM-25F", "CABGA381", "6"),
-            ("sa5p00m", "LFE5UM-25F", "CABGA381", "6"),
-            ("sa5p00m", "LAE5UM-45F", "CABGA381", "6"),
-            ("sa5p00m", "LFE5UM-45F", "CABGA381", "6"),
-            ("sa5p00m", "LAE5UM-85F", "CABGA381", "6"),
-            ("sa5p00m", "LFE5UM-85F", "CABGA381", "6"),
-            ("sa5p00g", "LFE5UM5G-25F", "CABGA381", "8"),
-            ("sa5p00g", "LFE5UM5G-45F", "CABGA381", "8"),
-            ("sa5p00g", "LFE5UM5G-85F", "CABGA381", "8"),
+        speeds: &["5", "6", "7"],
+    },
+    FamilyInfo {
+        name: "ecp2",
+        parts: &[
+            ("ep5a00", "LFE2-6E"),
+            ("ep5a00", "LFE2-12E"),
+            ("ep5a00", "LFE2-20E"),
+            ("ep5a00", "LFE2-35E"),
+            ("ep5a00", "LFE2-50E"),
+            ("ep5a00", "LFE2-70E"),
         ],
-    ),
-    (
-        "crosslink",
-        &[
-            ("sn5w00", "LIA-MD6000", "CKFBGA80", "6"),
-            ("sn5w00", "LIF-MD6000", "CKFBGA80", "6"),
-            ("wi5s00", "LIA-MDF6000", "CKFBGA80", "6"),
-            ("wi5s00", "LIF-MDF6000", "CKFBGA80", "6"),
+        pkgs: &[
+            "TQFP144", "PQFP208", "FPBGA256", "FPBGA484", "FPBGA672", "FPBGA900",
         ],
-    ),
-    (
-        "machxo2",
-        &[
-            ("xo2c00", "LCMXO2-256HC", "CSBGA132", "4"),
-            ("xo2c00", "LCMXO2-256ZE", "CSBGA132", "1"),
-            ("xo2c00", "LCMXO2-640HC", "CSBGA132", "4"),
-            ("xo2c00", "LCMXO2-640ZE", "CSBGA132", "1"),
-            ("xo2c00", "LCMXO2-640UHC", "TQFP144", "4"),
-            ("xo2c00", "LCMXO2-1200HC", "TQFP144", "4"),
-            ("xo2c00", "LCMXO2-1200ZE", "TQFP144", "1"),
-            ("xo2c00", "LCMXO2-1200UHC", "FTBGA256", "4"),
-            ("xo2c00", "LCMXO2-2000HC", "FTBGA256", "4"),
-            ("xo2c00", "LCMXO2-2000ZE", "FTBGA256", "1"),
-            ("xo2c00", "LCMXO2-2000UHC", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-2000UHE", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-4000HC", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-4000HE", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-4000ZE", "FPBGA484", "1"),
-            ("xo2c00", "LCMXO2-4000UHC", "CABGA400", "4"),
-            ("xo2c00", "LCMXO2-7000HC", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-7000HE", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-7000ZE", "FPBGA484", "1"),
-            ("xo2c00", "LCMXO2-10000HC", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-10000HE", "FPBGA484", "4"),
-            ("xo2c00", "LCMXO2-10000ZE", "FPBGA484", "1"),
-            ("xo2c00p", "LPTM21", "FTBGA237", "1A"),
-            ("xo2c00p", "LPTM21L", "CABGA100", "1A"),
-            ("xo3c00a", "LCMXO3L-640E", "CSFBGA121", "5"),
-            ("xo3c00a", "LCMXO3L-1300C", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-1300E", "WLCSP36", "5"),
-            ("xo3c00a", "LCMXO3L-1300E", "CSFBGA121", "5"),
-            ("xo3c00a", "LCMXO3L-1300E", "CSFBGA256", "5"),
-            ("xo3c00a", "LCMXO3L-2100C", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-2100C", "CABGA324", "5"),
-            ("xo3c00a", "LCMXO3L-2100E", "WLCSP49", "5"),
-            ("xo3c00a", "LCMXO3L-2100E", "CSFBGA121", "5"),
-            ("xo3c00a", "LCMXO3L-2100E", "CSFBGA256", "5"),
-            ("xo3c00a", "LCMXO3L-2100E", "CSFBGA324", "5"),
-            ("xo3c00a", "LCMXO3L-4300C", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-4300C", "CABGA324", "5"),
-            ("xo3c00a", "LCMXO3L-4300C", "CABGA400", "5"),
-            ("xo3c00a", "LCMXO3L-4300E", "WLCSP81", "5"),
-            ("xo3c00a", "LCMXO3L-4300E", "CSFBGA121", "5"),
-            ("xo3c00a", "LCMXO3L-4300E", "CSFBGA256", "5"),
-            ("xo3c00a", "LCMXO3L-4300E", "CSFBGA324", "5"),
-            ("xo3c00a", "LCMXO3L-6900C", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-6900C", "CABGA324", "5"),
-            ("xo3c00a", "LCMXO3L-6900C", "CABGA400", "5"),
-            ("xo3c00a", "LCMXO3L-6900E", "CSFBGA256", "5"),
-            ("xo3c00a", "LCMXO3L-6900E", "CSFBGA324", "5"),
-            ("xo3c00a", "LCMXO3L-9400C", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-9400C", "CABGA400", "5"),
-            ("xo3c00a", "LCMXO3L-9400C", "CABGA484", "5"),
-            ("xo3c00a", "LCMXO3L-9400E", "CABGA256", "5"),
-            ("xo3c00a", "LCMXO3L-9400E", "CSFBGA256", "5"),
-            ("xo3c00a", "LCMXO3L-9400E", "CABGA400", "5"),
-            ("xo3c00a", "LCMXO3L-9400E", "CABGA484", "5"),
-            ("xo3c00f", "LCMXO3LF-640E", "CSFBGA121", "5"),
-            ("xo3c00f", "LAMXO3LF-1300C", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-1300E", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-1300E", "CSFBGA121", "5"),
-            ("xo3c00f", "LCMXO3LF-1300C", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-1300E", "WLCSP36", "5"),
-            ("xo3c00f", "LCMXO3LF-1300E", "CSFBGA121", "5"),
-            ("xo3c00f", "LCMXO3LF-1300E", "CSFBGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-2100C", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-2100C", "CABGA324", "5"),
-            ("xo3c00f", "LAMXO3LF-2100E", "CSFBGA121", "5"),
-            ("xo3c00f", "LAMXO3LF-2100E", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-2100E", "CABGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-2100C", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-2100C", "CABGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-2100E", "WLCSP49", "5"),
-            ("xo3c00f", "LCMXO3LF-2100E", "CSFBGA121", "5"),
-            ("xo3c00f", "LCMXO3LF-2100E", "CSFBGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-2100E", "CSFBGA324", "5"),
-            ("xo3c00f", "LAMXO3LF-4300C", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-4300C", "CABGA324", "5"),
-            ("xo3c00f", "LAMXO3LF-4300E", "CSFBGA121", "5"),
-            ("xo3c00f", "LAMXO3LF-4300E", "CABGA256", "5"),
-            ("xo3c00f", "LAMXO3LF-4300E", "CABGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-4300C", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-4300C", "CABGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-4300C", "CABGA400", "5"),
-            ("xo3c00f", "LCMXO3LF-4300E", "WLCSP81", "5"),
-            ("xo3c00f", "LCMXO3LF-4300E", "CSFBGA121", "5"),
-            ("xo3c00f", "LCMXO3LF-4300E", "CSFBGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-4300E", "CSFBGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-6900C", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-6900C", "CABGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-6900C", "CABGA400", "5"),
-            ("xo3c00f", "LCMXO3LF-6900E", "CSFBGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-6900E", "CSFBGA324", "5"),
-            ("xo3c00f", "LCMXO3LF-9400C", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-9400C", "CABGA400", "5"),
-            ("xo3c00f", "LCMXO3LF-9400C", "CABGA484", "5"),
-            ("xo3c00f", "LCMXO3LF-9400E", "CABGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-9400E", "CSFBGA256", "5"),
-            ("xo3c00f", "LCMXO3LF-9400E", "CABGA400", "5"),
-            ("xo3c00f", "LCMXO3LF-9400E", "CABGA484", "5"),
-            ("xo3c00d", "LCMXO3LFP-4300HC", "QFN72", "5"),
-            ("xo3c00d", "LCMXO3LFP-4300HC", "CABGA256", "5"),
-            ("xo3c00d", "LCMXO3LFP-6900HC", "CABGA400", "5"),
-            ("xo3c00d", "LCMXO3LFP-9400HC", "QFN72", "5"),
-            ("xo3c00d", "LCMXO3LFP-9400HC", "CABGA256", "5"),
-            ("xo3c00d", "LCMXO3LFP-9400HC", "CABGA400", "5"),
-            ("xo3c00d", "LCMXO3LFP-9400HC", "CABGA484", "5"),
-            ("se5c00", "LAMXO3D-4300HC", "CABGA256", "5"),
-            ("se5c00", "LAMXO3D-4300ZC", "CABGA256", "2"),
-            ("se5c00", "LAMXO3D-4300ZC", "QFN72", "2"),
-            ("se5c00", "LCMXO3D-4300HC", "CABGA256", "5"),
-            ("se5c00", "LCMXO3D-4300HC", "QFN72", "5"),
-            ("se5c00", "LCMXO3D-4300HE", "CABGA256", "5"),
-            ("se5c00", "LCMXO3D-4300ZC", "CABGA256", "2"),
-            ("se5c00", "LCMXO3D-4300ZC", "QFN72", "2"),
-            ("se5c00", "LCMXO3D-4300ZE", "CABGA256", "2"),
-            ("se5c00", "LAMXO3D-9400HE", "CABGA256", "5"),
-            ("se5c00", "LAMXO3D-9400HE", "CABGA484", "5"),
-            ("se5c00", "LAMXO3D-9400ZC", "CABGA256", "2"),
-            ("se5c00", "LAMXO3D-9400ZC", "CABGA484", "2"),
-            ("se5c00", "LCMXO3D-9400HC", "QFN72", "5"),
-            ("se5c00", "LCMXO3D-9400HC", "CABGA256", "5"),
-            ("se5c00", "LCMXO3D-9400HC", "CABGA400", "5"),
-            ("se5c00", "LCMXO3D-9400HC", "CABGA484", "5"),
-            ("se5c00", "LCMXO3D-9400HE", "WLCSP69", "5"),
-            ("se5c00", "LCMXO3D-9400HE", "CABGA484", "5"),
-            ("se5c00", "LCMXO3D-9400ZC", "QFN72", "2"),
-            ("se5c00", "LCMXO3D-9400ZC", "CABGA256", "2"),
-            ("se5c00", "LCMXO3D-9400ZC", "CABGA400", "2"),
-            ("se5c00", "LCMXO3D-9400ZE", "CABGA484", "2"),
-            ("se5r00", "LFMNX-50", "CBG256", "5"),
+        speeds: &["5", "6", "7"],
+    },
+    FamilyInfo {
+        name: "ecp2m",
+        parts: &[
+            ("ep5m00", "LFE2M20E"),
+            ("ep5m00", "LFE2M35E"),
+            ("ep5m00", "LFE2M50E"),
+            ("ep5m00", "LFE2M70E"),
+            ("ep5m00", "LFE2M100E"),
         ],
-    ),
+        pkgs: &["FPBGA256", "FPBGA484", "FPBGA672", "FPBGA900", "FPBGA1152"],
+        speeds: &["5", "6", "7"],
+    },
+    FamilyInfo {
+        name: "xp2",
+        parts: &[
+            ("mg5a00", "LAXP2-5E"),
+            ("mg5a00", "LFXP2-5E"),
+            ("mg5a00", "LAXP2-8E"),
+            ("mg5a00", "LFXP2-8E"),
+            ("mg5a00", "LAXP2-17E"),
+            ("mg5a00", "LFXP2-17E"),
+            ("mg5a00", "LFXP2-30E"),
+            ("mg5a00", "LFXP2-40E"),
+        ],
+        pkgs: &[
+            "TQFP144", "PQFP208", "CSBGA132", "FTBGA256", "FPBGA484", "FPBGA672",
+        ],
+        speeds: &["5", "6", "7"],
+    },
+    FamilyInfo {
+        name: "ecp3",
+        parts: &[
+            ("ep5c00", "LAE3-17EA"),
+            ("ep5c00", "LFE3-17EA"),
+            ("ep5c00", "LAE3-35EA"),
+            ("ep5c00", "LFE3-35EA"),
+            ("ep5c00", "LFE3-70E"),
+            ("ep5c00", "LFE3-70EA"),
+            ("ep5c00", "LFE3-95E"),
+            ("ep5c00", "LFE3-95EA"),
+            ("ep5c00", "LFE3-150EA"),
+        ],
+        pkgs: &["CSBGA328", "FTBGA256", "FPBGA484", "FPBGA672", "FPBGA1156"],
+        speeds: &["6", "6L", "7", "7L", "8", "8L", "9"],
+    },
+    FamilyInfo {
+        name: "ecp4",
+        parts: &[
+            ("ep5d00", "LFE4-30E"),
+            ("ep5d00", "LFE4-50E"),
+            ("ep5d00", "LFE4-95E"),
+            ("ep5d00", "LFE4-130E"),
+            ("ep5d00", "LFE4-190E"),
+        ],
+        pkgs: &[
+            "FPBGA484",
+            "FPBGA648",
+            "FPBGA868",
+            "FCBGA676",
+            "FCBGA900",
+            "FCBGA1152",
+        ],
+        speeds: &["7", "8", "9"],
+    },
+    FamilyInfo {
+        name: "ecp5",
+        parts: &[
+            ("sa5p00", "LAE5U-12F"),
+            ("sa5p00", "LFE5U-12F"),
+            ("sa5p00", "LFE5U-25F"),
+            ("sa5p00", "LFE5U-45F"),
+            ("sa5p00", "LFE5U-85F"),
+            ("sa5p00m", "LAE5UM-25F"),
+            ("sa5p00m", "LFE5UM-25F"),
+            ("sa5p00m", "LAE5UM-45F"),
+            ("sa5p00m", "LFE5UM-45F"),
+            ("sa5p00m", "LAE5UM-85F"),
+            ("sa5p00m", "LFE5UM-85F"),
+            ("sa5p00g", "LFE5UM5G-25F"),
+            ("sa5p00g", "LFE5UM5G-45F"),
+            ("sa5p00g", "LFE5UM5G-85F"),
+        ],
+        pkgs: &[
+            "TQFP144",
+            "CABGA256",
+            "CABGA381",
+            "CABGA554",
+            "CABGA756",
+            "CSFBGA285",
+        ],
+        speeds: &["6", "7", "8"],
+    },
+    FamilyInfo {
+        name: "crosslink",
+        parts: &[
+            ("sn5w00", "LIA-MD6000"),
+            ("sn5w00", "LIF-MD6000"),
+            ("wi5s00", "LIA-MDF6000"),
+            ("wi5s00", "LIF-MDF6000"),
+        ],
+        pkgs: &["WLCSP36", "UCFBGA64", "CKFBGA80", "CTFBGA80", "CSFBGA81"],
+        speeds: &["6"],
+    },
+    FamilyInfo {
+        name: "machxo2",
+        parts: &[
+            ("xo2c00", "LCMXO2-256HC"),
+            ("xo2c00", "LCMXO2-256ZE"),
+            ("xo2c00", "LCMXO2-640HC"),
+            ("xo2c00", "LCMXO2-640ZE"),
+            ("xo2c00", "LCMXO2-640UHC"),
+            ("xo2c00", "LCMXO2-1200HC"),
+            ("xo2c00", "LCMXO2-1200ZE"),
+            ("xo2c00", "LCMXO2-1200UHC"),
+            ("xo2c00", "LCMXO2-2000HC"),
+            ("xo2c00", "LCMXO2-2000ZE"),
+            ("xo2c00", "LCMXO2-2000UHC"),
+            ("xo2c00", "LCMXO2-2000UHE"),
+            ("xo2c00", "LCMXO2-4000HC"),
+            ("xo2c00", "LCMXO2-4000HE"),
+            ("xo2c00", "LCMXO2-4000ZE"),
+            ("xo2c00", "LCMXO2-4000UHC"),
+            ("xo2c00", "LCMXO2-7000HC"),
+            ("xo2c00", "LCMXO2-7000HE"),
+            ("xo2c00", "LCMXO2-7000ZE"),
+            ("xo2c00", "LCMXO2-10000HC"),
+            ("xo2c00", "LCMXO2-10000HE"),
+            ("xo2c00", "LCMXO2-10000ZE"),
+            ("xo2c00p", "LPTM21"),
+            ("xo2c00p", "LPTM21L"),
+            ("xo3c00a", "LCMXO3L-640E"),
+            ("xo3c00a", "LCMXO3L-1300C"),
+            ("xo3c00a", "LCMXO3L-1300E"),
+            ("xo3c00a", "LCMXO3L-2100C"),
+            ("xo3c00a", "LCMXO3L-2100E"),
+            ("xo3c00a", "LCMXO3L-4300C"),
+            ("xo3c00a", "LCMXO3L-4300E"),
+            ("xo3c00a", "LCMXO3L-6900C"),
+            ("xo3c00a", "LCMXO3L-6900E"),
+            ("xo3c00a", "LCMXO3L-9400C"),
+            ("xo3c00a", "LCMXO3L-9400E"),
+            ("xo3c00f", "LCMXO3LF-640E"),
+            ("xo3c00f", "LAMXO3LF-1300C"),
+            ("xo3c00f", "LAMXO3LF-1300E"),
+            ("xo3c00f", "LCMXO3LF-1300C"),
+            ("xo3c00f", "LCMXO3LF-1300E"),
+            ("xo3c00f", "LAMXO3LF-2100C"),
+            ("xo3c00f", "LAMXO3LF-2100E"),
+            ("xo3c00f", "LCMXO3LF-2100C"),
+            ("xo3c00f", "LCMXO3LF-2100E"),
+            ("xo3c00f", "LAMXO3LF-4300C"),
+            ("xo3c00f", "LAMXO3LF-4300E"),
+            ("xo3c00f", "LCMXO3LF-4300C"),
+            ("xo3c00f", "LCMXO3LF-4300E"),
+            ("xo3c00f", "LCMXO3LF-6900C"),
+            ("xo3c00f", "LCMXO3LF-6900E"),
+            ("xo3c00f", "LCMXO3LF-9400C"),
+            ("xo3c00f", "LCMXO3LF-9400E"),
+            ("xo3c00d", "LCMXO3LFP-4300HC"),
+            ("xo3c00d", "LCMXO3LFP-6900HC"),
+            ("xo3c00d", "LCMXO3LFP-9400HC"),
+            ("se5c00", "LAMXO3D-4300HC"),
+            ("se5c00", "LAMXO3D-4300ZC"),
+            ("se5c00", "LCMXO3D-4300HC"),
+            ("se5c00", "LCMXO3D-4300HE"),
+            ("se5c00", "LCMXO3D-4300ZC"),
+            ("se5c00", "LCMXO3D-4300ZE"),
+            ("se5c00", "LAMXO3D-9400HE"),
+            ("se5c00", "LAMXO3D-9400ZC"),
+            ("se5c00", "LCMXO3D-9400HC"),
+            ("se5c00", "LCMXO3D-9400HE"),
+            ("se5c00", "LCMXO3D-9400ZC"),
+            ("se5c00", "LCMXO3D-9400ZE"),
+            ("se5r00", "LFMNX-50"),
+        ],
+        pkgs: &[
+            // MachXO2
+            "WLCSP25",
+            "WLCSP36",
+            "WLCSP49",
+            "WLCSP69",
+            "WLCSP81",
+            "QFN32",
+            "QFN48",
+            "QFN84",
+            "TQFP100",
+            "TQFP144",
+            "UCBGA64",
+            "CSBGA132",
+            "CSBGA184",
+            "CABGA256",
+            "CABGA332",
+            "CABGA400",
+            "FTBGA256",
+            "FPBGA484",
+            // MachXO3
+            "QFN72",
+            "CSFBGA121",
+            "CSFBGA256",
+            "CSFBGA324",
+            "CABGA324",
+            "CABGA484",
+            // LPTM21
+            "FTBGA237",
+            "CABGA100",
+            // Mach-NX
+            "CBG256",
+            "FBG484",
+            "LBG484",
+        ],
+        speeds: &["1", "1A", "2", "3", "4", "5", "6"],
+    },
 ];
 
 #[derive(Debug, StructOpt)]
@@ -312,22 +359,34 @@ struct Opt {
     num_threads: usize,
 }
 
-fn dump_part(
+struct PrePart {
+    pub arch: String,
+    pub name: String,
+    pub package: String,
+    pub speeds: Vec<String>,
+    pub grid: Grid,
+    pub sites: Vec<Site>,
+}
+
+fn dump_pre(
     tc: &Toolchain,
-    family: &str,
+    family: &FamilyInfo,
     arch: &str,
     part: &str,
-    package: &str,
-    perf: &str,
-    output_dir: &Path,
-) -> Result<(), Box<dyn Error>> {
-    let dir = tempfile::Builder::new()
-        .prefix("prjcombine_diamond_dump")
-        .tempdir()?;
-    let mut file = File::create(dir.path().join("top.ncl"))?;
-    write!(
-        file,
-        r#"
+    pkg: &str,
+) -> Option<PrePart> {
+    let mut speeds = vec![];
+    let mut grid = None;
+    let mut sites = None;
+    for speed in family.speeds {
+        let dir = tempfile::Builder::new()
+            .prefix("prjcombine_diamond_dump")
+            .tempdir()
+            .unwrap();
+        let mut file = File::create(dir.path().join("top.ncl")).unwrap();
+        write!(
+            file,
+            r#"
 ::FROM-WRITER;
 design top
 {{
@@ -335,58 +394,177 @@ design top
    {{
       architecture {arch};
       device {part};
-      package {package};
-      performance "{perf}";
+      package {pkg};
+      performance "{speed}";
    }}
 }}
-    "#
-    )?;
-    std::mem::drop(file);
-    let mut cmd = tc.command("ncl2ncd");
-    cmd.current_dir(dir.path().as_os_str());
-    cmd.stdin(Stdio::null());
-    cmd.arg("top.ncl");
-    let status = cmd.output()?;
-    if !status.status.success() {
-        let _ = std::io::stderr().write_all(&status.stdout);
-        let _ = std::io::stderr().write_all(&status.stderr);
-        bail!("non-zero ncl2ncd exit status");
+        "#
+        )
+        .unwrap();
+        std::mem::drop(file);
+        let mut cmd = tc.command("ncl2ncd");
+        cmd.current_dir(dir.path().as_os_str());
+        cmd.stdin(Stdio::null());
+        cmd.arg("top.ncl");
+        let status = cmd.output().unwrap();
+        if !status.status.success() {
+            let stdout = std::str::from_utf8(&status.stdout).unwrap();
+            let stderr = std::str::from_utf8(&status.stderr).unwrap();
+            if !stderr.contains("Invalid package name")
+                && !stderr.contains("Invalid performance")
+                && !stdout.contains("Invalid package name")
+                && !stdout.contains("Invalid performance")
+            {
+                eprintln!("STDOUT");
+                let _ = std::io::stderr().write_all(&status.stdout);
+                eprintln!("STDERR");
+                let _ = std::io::stderr().write_all(&status.stderr);
+                panic!("non-zero ncl2ncd exit status");
+            }
+            continue;
+        }
+        speeds.push(speed.to_string());
+        if grid.is_some() {
+            continue;
+        }
+        let mut cmd = tc.command("bitgen");
+        cmd.current_dir(dir.path().as_os_str());
+        cmd.stdin(Stdio::null());
+        cmd.arg("-d");
+        cmd.arg("top.ncd");
+        let status = cmd.output().unwrap();
+        if !status.status.success() {
+            let _ = std::io::stderr().write_all(&status.stdout);
+            let _ = std::io::stderr().write_all(&status.stderr);
+            panic!("non-zero bitgen exit status");
+        }
+        let mut cmd = tc.command("bstool");
+        cmd.current_dir(dir.path().as_os_str());
+        cmd.stdin(Stdio::null());
+        cmd.arg("-t");
+        cmd.arg("top.bit");
+        let status = cmd.output().unwrap();
+        if !status.status.success() {
+            let _ = std::io::stderr().write_all(&status.stdout);
+            let _ = std::io::stderr().write_all(&status.stderr);
+            panic!("non-zero bstool exit status");
+        }
+        let tiles = parse_tiles(std::str::from_utf8(&status.stdout).unwrap(), family.name);
+        File::create(dir.path().join("meow.prf")).unwrap();
+
+        let mut cmd = tc.command("ispTcl");
+        cmd.current_dir(dir.path().as_os_str());
+        let mut file = File::create(dir.path().join("meow.tcl")).unwrap();
+        write!(
+            file,
+            r#"
+des_read_ncd top.ncd
+des_read_prf meow.prf
+basciCmdListSite 1 *
+basciCmdListNode 1 nodes.out *
+        "#
+        )
+        .unwrap();
+        std::mem::drop(file);
+        cmd.stdin(File::open(dir.path().join("meow.tcl")).unwrap());
+        cmd.stdout(Stdio::null());
+        let status = cmd.output().unwrap();
+        if !status.status.success() {
+            let _ = std::io::stderr().write_all(&status.stdout);
+            let _ = std::io::stderr().write_all(&status.stderr);
+            panic!("non-zero ispTcl exit status");
+        }
+        let mut nodes = EntityMap::new();
+        let mut cur_sites = Vec::new();
+        let mut pips = HashMap::new();
+        let file = File::open(dir.path().join("nodes.out")).unwrap();
+        for line in BufReader::new(file).lines() {
+            let line = line.unwrap();
+            nodes.insert(
+                line,
+                Node {
+                    aliases: vec![],
+                    typ: None,
+                    pin: None,
+                },
+            );
+        }
+        let site_re = Regex::new(r"Site=([A-Za-z0-9_]+) type=XXX$").unwrap();
+        let file = File::open(dir.path().join("ispTcl.log")).unwrap();
+        for line in BufReader::new(file).lines() {
+            let line = line.unwrap();
+            if let Some(cap) = site_re.captures(&line) {
+                cur_sites.push(Site {
+                    name: cap[1].to_string(),
+                    typ: None,
+                });
+            } else if line.starts_with("Site") {
+                panic!("regex failed: {line:?}");
+            }
+        }
+        for i in 0..32 {
+            let mut cmd = tc.command("ispTcl");
+            cmd.current_dir(dir.path().as_os_str());
+            std::fs::remove_file(dir.path().join("ispTcl.log")).unwrap();
+            let cmd_file = format!("pip{i}.tcl");
+            let mut file = File::create(dir.path().join(&cmd_file)).unwrap();
+            write!(
+                file,
+                r#"
+    des_read_ncd top.ncd
+    des_read_prf meow.prf
+    basciCmdListArcByNodeType {i} -1 1000000000
+            "#
+            )
+            .unwrap();
+            std::mem::drop(file);
+            cmd.stdin(File::open(dir.path().join(cmd_file)).unwrap());
+            cmd.stdout(Stdio::null());
+            let status = cmd.output().unwrap();
+            if !status.status.success() {
+                let _ = std::io::stderr().write_all(&status.stdout);
+                let _ = std::io::stderr().write_all(&status.stderr);
+                panic!("non-zero ispTcl exit status");
+            }
+            let pip_re = Regex::new(r"from ([A-Z0-9_]+) to ([A-Z0-9_]+)$").unwrap();
+            let file = File::open(dir.path().join("ispTcl.log")).unwrap();
+            for line in BufReader::new(file).lines() {
+                let line = line.unwrap();
+                if let Some(cap) = pip_re.captures(&line) {
+                    pips.insert(
+                        (nodes.get(&cap[1]).unwrap().0, nodes.get(&cap[2]).unwrap().0),
+                        Pip {
+                            is_j: false,
+                            buf: None,
+                        },
+                    );
+                } else if line.starts_with("from ") {
+                    panic!("regex failed: {line:?}");
+                }
+            }
+        }
+
+        grid = Some(Grid {
+            tiles,
+            nodes,
+            pips,
+            bufs: EntitySet::new(),
+        });
+        sites = Some(cur_sites);
     }
-    let mut cmd = tc.command("bitgen");
-    cmd.current_dir(dir.path().as_os_str());
-    cmd.stdin(Stdio::null());
-    cmd.arg("-d");
-    cmd.arg("top.ncd");
-    let status = cmd.output()?;
-    if !status.status.success() {
-        let _ = std::io::stderr().write_all(&status.stdout);
-        let _ = std::io::stderr().write_all(&status.stderr);
-        bail!("non-zero bitgen exit status");
-    }
-    let mut cmd = tc.command("bstool");
-    cmd.current_dir(dir.path().as_os_str());
-    cmd.stdin(Stdio::null());
-    cmd.arg("-t");
-    cmd.arg("top.bit");
-    let status = cmd.output()?;
-    if !status.status.success() {
-        let _ = std::io::stderr().write_all(&status.stdout);
-        let _ = std::io::stderr().write_all(&status.stderr);
-        bail!("non-zero bstool exit status");
-    }
-    let tiles = parse_tiles(std::str::from_utf8(&status.stdout).unwrap(), family);
-    let pname = if part.contains("MXO3") {
-        format!("{part}-{package}")
+    if grid.is_some() {
+        println!("dumped {part}-{pkg}");
     } else {
-        part.to_string()
-    };
-    dump_html(
-        &output_dir.join(format!("{pname}.html")),
-        family,
-        &pname,
-        &tiles,
-    )?;
-    Ok(())
+        println!("no {part}-{pkg}");
+    }
+    Some(PrePart {
+        arch: arch.to_string(),
+        name: part.to_string(),
+        package: pkg.to_string(),
+        speeds,
+        grid: grid?,
+        sites: sites?,
+    })
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -397,25 +575,55 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap();
     let tc = Toolchain::from_file(&opt.toolchain)?;
     create_dir_all(&opt.target_directory)?;
-    DIAMOND_PARTS.into_par_iter().for_each(|(family, parts)| {
-        if opt.families.iter().any(|x| x == family) {
-            parts
+    for family in DIAMOND_FAMILIES {
+        if opt.families.iter().any(|x| x == family.name) {
+            let pparts: Vec<_> = family
+                .parts
                 .into_par_iter()
-                .for_each(|(arch, part, package, grade)| {
-                    println!("dumping {}", part);
-                    dump_part(
-                        &tc,
-                        family,
-                        arch,
-                        part,
-                        package,
-                        grade,
-                        &opt.target_directory,
-                    )
-                    .unwrap();
-                    println!("dumped {}", part);
+                .flat_map(|&(arch, part)| {
+                    family
+                        .pkgs
+                        .into_par_iter()
+                        .map(move |&pkg| (arch, part, pkg))
+                })
+                .filter_map(|(arch, part, pkg)| dump_pre(&tc, family, arch, part, pkg))
+                .collect();
+            let mut grids = EntityVec::new();
+            let mut parts = Vec::new();
+            for part in pparts {
+                let grid = 'grid: {
+                    for (gid, grid) in &grids {
+                        if *grid == part.grid {
+                            break 'grid gid;
+                        }
+                    }
+                    grids.push(part.grid)
+                };
+                parts.push(Part {
+                    arch: part.arch,
+                    name: part.name,
+                    package: part.package,
+                    speeds: part.speeds,
+                    grid,
+                    sites: part.sites,
                 });
+            }
+            let db = Db {
+                family: family.name.to_string(),
+                grids,
+                parts,
+            };
+            db.to_file(
+                opt.target_directory
+                    .join(format!("{f}.zstd", f = family.name)),
+            )
+            .unwrap();
+            println!(
+                "dumped {f} [{n} grids]",
+                f = family.name,
+                n = db.grids.len()
+            );
         }
-    });
+    }
     Ok(())
 }

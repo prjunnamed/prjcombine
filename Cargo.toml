@@ -8,6 +8,7 @@ members = [
 	"prjcombine_ise_dump",
 	"prjcombine_vivado_dump",
 	"prjcombine_lattice_dump",
+	"prjcombine_lattice_rawdump",
 	"prjcombine_int",
 	"prjcombine_xc4k",
 	"prjcombine_xc5200",
@@ -97,6 +98,7 @@ prjcombine_versal = { path = "prjcombine_versal" }
 prjcombine_versal_rdverify = { path = "prjcombine_versal_rdverify" }
 prjcombine_versal_rd2db = { path = "prjcombine_versal_rd2db" }
 prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
+prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
 assert_matches = "1.5.0"
 serde = { version = "1.0", features = ["derive"] }
 indexmap = "1.8"
