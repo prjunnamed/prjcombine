@@ -426,7 +426,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 for i in 0..16 {
                     let mut bel = builder
                         .bel_xy(
-                            &format!("BUFCE_LEAF_{ud}{i}"),
+                            format!("BUFCE_LEAF_{ud}{i}"),
                             "BUFCE_LEAF",
                             i & 7,
                             i / 8 + 2 * u8::from(ud == 'U'),
@@ -680,15 +680,15 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             }
             let mut bels = vec![];
             for i in 0..4 {
-                let mut bel = builder.bel_xy(&format!("LAGUNA{i}"), "LAGUNA", i >> 1, i & 1);
+                let mut bel = builder.bel_xy(format!("LAGUNA{i}"), "LAGUNA", i >> 1, i & 1);
                 for j in 0..6 {
                     bel = bel
                         .pin_name_only(&format!("RXQ{j}"), 0)
                         .pin_name_only(&format!("RXD{j}"), 0)
                         .pin_name_only(&format!("TXQ{j}"), 0)
-                        .extra_int_out(&format!("RXOUT{j}"), &[format!("RXD{ii}", ii = i * 6 + j)])
+                        .extra_int_out(format!("RXOUT{j}"), &[format!("RXD{ii}", ii = i * 6 + j)])
                         .extra_wire(
-                            &format!("TXOUT{j}"),
+                            format!("TXOUT{j}"),
                             &[format!(
                                 "LAG_MUX_ATOM_{ii}_TXOUT",
                                 ii = match (i, j) {
@@ -720,10 +720,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                                 }
                             )],
                         )
-                        .extra_wire(
-                            &format!("UBUMP{j}"),
-                            &[format!("UBUMP{ii}", ii = i * 6 + j)],
-                        );
+                        .extra_wire(format!("UBUMP{j}"), &[format!("UBUMP{ii}", ii = i * 6 + j)]);
                 }
                 bels.push(bel);
             }
@@ -937,7 +934,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..24 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFG_PS{i}"), "BUFG_PS", 0, i as u8)
+                        .bel_xy(format!("BUFG_PS{i}"), "BUFG_PS", 0, i as u8)
                         .pins_name_only(&["CLK_IN", "CLK_OUT"])
                         .extra_wire(
                             "CLK_IN_DUMMY",
@@ -1133,7 +1130,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         for i in 0..4 {
             bels.push(
                 builder
-                    .bel_xy(&format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", i >> 1, i & 1)
+                    .bel_xy(format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", i >> 1, i & 1)
                     .pins_name_only(&["CLK_IN", "CLK_OUT"])
                     .extra_wire("CLK_IN_MUX", &[format!("CLK_CMT_MUX_4TO1_{i}_CLK_OUT")]),
             );
@@ -1147,7 +1144,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             (5, 2, 1),
             (6, 3, 0),
         ] {
-            bels.push(builder.bel_xy(&format!("ABUS_SWITCH.HDIO{i}"), "ABUS_SWITCH", x, y));
+            bels.push(builder.bel_xy(format!("ABUS_SWITCH.HDIO{i}"), "ABUS_SWITCH", x, y));
         }
         let mut bel = builder
             .bel_virtual("RCLK_HDIO")
@@ -1201,7 +1198,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         for i in 0..8 {
             bels.push(
                 builder
-                    .bel_xy(&format!("ABUS_SWITCH.HBM{i}"), "ABUS_SWITCH", i >> 1, i & 1)
+                    .bel_xy(format!("ABUS_SWITCH.HBM{i}"), "ABUS_SWITCH", i >> 1, i & 1)
                     .pins_name_only(&["TEST_ANALOGBUS_SEL_B"]),
             );
         }
@@ -1355,7 +1352,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFCE_ROW_R{i}"), "BUFCE_ROW_FSR", i, 0)
+                        .bel_xy(format!("BUFCE_ROW_R{i}"), "BUFCE_ROW_FSR", i, 0)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
                         .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
                         .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
@@ -1415,7 +1412,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("GCLK_TEST_BUF_R{i}"), "GCLK_TEST_BUFE3", i, 0)
+                        .bel_xy(format!("GCLK_TEST_BUF_R{i}"), "GCLK_TEST_BUFE3", i, 0)
                         .pin_name_only("CLK_OUT", 0)
                         .pin_name_only("CLK_IN", usize::from(is_alt)),
                 );
@@ -1456,7 +1453,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFCE_ROW_L{i}"), "BUFCE_ROW_FSR", i, 0)
+                        .bel_xy(format!("BUFCE_ROW_L{i}"), "BUFCE_ROW_FSR", i, 0)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
                         .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
                         .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
@@ -1516,13 +1513,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("GCLK_TEST_BUF_L{i}"), "GCLK_TEST_BUFE3", i, 0)
+                        .bel_xy(format!("GCLK_TEST_BUF_L{i}"), "GCLK_TEST_BUFE3", i, 0)
                         .pin_name_only("CLK_OUT", 0)
                         .pin_name_only("CLK_IN", usize::from(is_alt)),
                 );
             }
             for (i, x, y) in [(0, 0, 0), (1, 0, 1), (2, 1, 0)] {
-                bels.push(builder.bel_xy(&format!("VBUS_SWITCH{i}"), "VBUS_SWITCH", x, y));
+                bels.push(builder.bel_xy(format!("VBUS_SWITCH{i}"), "VBUS_SWITCH", x, y));
             }
             bels.push(
                 builder
@@ -1572,7 +1569,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..24 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFCE_ROW_IO{i}"), "BUFCE_ROW", 0, i)
+                        .bel_xy(format!("BUFCE_ROW_IO{i}"), "BUFCE_ROW", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"]),
                 );
             }
@@ -1580,7 +1577,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 bels.push(
                     builder
                         .bel_xy(
-                            &format!("GCLK_TEST_BUF_IO{i}"),
+                            format!("GCLK_TEST_BUF_IO{i}"),
                             "GCLK_TEST_BUFE3",
                             0,
                             if i < 18 { i } else { i + 1 },
@@ -1591,7 +1588,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..24 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFGCE{i}"), "BUFGCE", 0, i)
+                        .bel_xy(format!("BUFGCE{i}"), "BUFGCE", 0, i)
                         .pins_name_only(&["CLK_OUT"])
                         .pin_name_only("CLK_IN", usize::from(matches!(i, 5 | 11 | 17 | 23)))
                         .extra_wire(
@@ -1615,20 +1612,20 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..8 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
+                        .bel_xy(format!("BUFGCTRL{i}"), "BUFGCTRL", 0, i)
                         .pins_name_only(&["CLK_I0", "CLK_I1", "CLK_OUT"]),
                 );
             }
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFGCE_DIV{i}"), "BUFGCE_DIV", 0, i)
+                        .bel_xy(format!("BUFGCE_DIV{i}"), "BUFGCE_DIV", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT"]),
                 );
             }
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("PLL{i}"), "PLL", 0, i)
+                    .bel_xy(format!("PLL{i}"), "PLL", 0, i)
                     .pins_name_only(&[
                         "CLKOUT0",
                         "CLKOUT0B",
@@ -1721,7 +1718,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 for i in 0..2 {
                     bels.push(
                         builder
-                            .bel_xy(&format!("HBM_REF_CLK{i}"), "HBM_REF_CLK", 0, i)
+                            .bel_xy(format!("HBM_REF_CLK{i}"), "HBM_REF_CLK", 0, i)
                             .pins_name_only(&["REF_CLK"])
                             .extra_wire(
                                 "REF_CLK_MUX_HDISTR",
@@ -1736,11 +1733,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             }
             let mut bel = builder.bel_virtual("CMT");
             for i in 0..4 {
-                bel = bel.extra_wire(&format!("CCIO{i}"), &[format!("IOB2CLK_CCIO{i}")]);
+                bel = bel.extra_wire(format!("CCIO{i}"), &[format!("IOB2CLK_CCIO{i}")]);
             }
             for i in 0..8 {
                 bel = bel.extra_wire(
-                    &format!("FIFO_WRCLK{i}"),
+                    format!("FIFO_WRCLK{i}"),
                     &[format!("PHY2RCLK_SS_DIVCLK_{j}_{k}", j = i / 2, k = i % 2)],
                 );
             }
@@ -1750,71 +1747,71 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     42, 45, 48,
                 ][i];
                 bel = bel
-                    .extra_wire(&format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
-                    .extra_wire(&format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
-                    .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
+                    .extra_wire(format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
+                    .extra_wire(format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
+                    .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
                     .extra_wire(
-                        &format!("HDISTR{i}_R"),
+                        format!("HDISTR{i}_R"),
                         &[format!("CLK_CMT_DRVR_TRI_{ii}_CLK_OUT_B", ii = i * 4)],
                     )
                     .extra_wire(
-                        &format!("HDISTR{i}_L_MUX"),
+                        format!("HDISTR{i}_L_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 1 + i * 8)],
                     )
                     .extra_wire(
-                        &format!("HDISTR{i}_R_MUX"),
+                        format!("HDISTR{i}_R_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 8)],
                     )
                     .extra_wire(
-                        &format!("HDISTR{i}_OUT_MUX"),
+                        format!("HDISTR{i}_OUT_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 4 + i * 8)],
                     )
                     .extra_wire(
-                        &format!("VDISTR{i}_B_MUX"),
+                        format!("VDISTR{i}_B_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 6 + i * 8)],
                     )
                     .extra_wire(
-                        &format!("VDISTR{i}_T_MUX"),
+                        format!("VDISTR{i}_T_MUX"),
                         &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 7 + i * 8)],
                     )
                     .extra_wire(
-                        &format!("OUT_MUX{i}"),
+                        format!("OUT_MUX{i}"),
                         &[format!("CLK_CMT_MUX_16_ENC_{i}_CLK_OUT")],
                     )
                     .extra_wire(
-                        &format!("OUT_MUX{i}_DUMMY0"),
+                        format!("OUT_MUX{i}_DUMMY0"),
                         &[format!("VCC_WIRE{ii}", ii = dummy_base)],
                     )
                     .extra_wire(
-                        &format!("OUT_MUX{i}_DUMMY1"),
+                        format!("OUT_MUX{i}_DUMMY1"),
                         &[format!("VCC_WIRE{ii}", ii = dummy_base + 1)],
                     )
                     .extra_wire(
-                        &format!("OUT_MUX{i}_DUMMY2"),
+                        format!("OUT_MUX{i}_DUMMY2"),
                         &[format!("VCC_WIRE{ii}", ii = dummy_base + 2)],
                     );
                 if is_l {
                     bel = bel
-                        .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
-                        .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
+                        .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
+                        .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
                         .extra_wire(
-                            &format!("HROUTE{i}_L_MUX"),
+                            format!("HROUTE{i}_L_MUX"),
                             &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
                         )
                         .extra_wire(
-                            &format!("HROUTE{i}_R_MUX"),
+                            format!("HROUTE{i}_R_MUX"),
                             &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
                         );
                 } else {
                     bel = bel
-                        .extra_wire(&format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_1_{i}")])
-                        .extra_wire(&format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_0_{i}")])
+                        .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_1_{i}")])
+                        .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_0_{i}")])
                         .extra_wire(
-                            &format!("HROUTE{i}_L_MUX"),
+                            format!("HROUTE{i}_L_MUX"),
                             &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
                         )
                         .extra_wire(
-                            &format!("HROUTE{i}_R_MUX"),
+                            format!("HROUTE{i}_R_MUX"),
                             &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
                         );
                 }
@@ -1855,7 +1852,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let mut bels = vec![];
             for i in 0..13 {
                 let mut bel = builder
-                    .bel_xy(&format!("BITSLICE_RX_TX{i}"), "BITSLICE_RX_TX", 0, i)
+                    .bel_xy(format!("BITSLICE_RX_TX{i}"), "BITSLICE_RX_TX", 0, i)
                     .pins_name_only(&[
                         "TX_CLK",
                         "TX_OCLK",
@@ -1944,7 +1941,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             }
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("BITSLICE_TX{i}"), "BITSLICE_TX", 0, i)
+                    .bel_xy(format!("BITSLICE_TX{i}"), "BITSLICE_TX", 0, i)
                     .pins_name_only(&[
                         "CLK",
                         "DIV2_CLK",
@@ -1992,7 +1989,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             }
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("BITSLICE_CONTROL{i}"), "BITSLICE_CONTROL", 0, i)
+                    .bel_xy(format!("BITSLICE_CONTROL{i}"), "BITSLICE_CONTROL", 0, i)
                     .pins_name_only(&[
                         "PDQS_GT_IN",
                         "NDQS_GT_IN",
@@ -2095,7 +2092,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("PLL_SELECT{i}"), "PLL_SELECT_SITE", 0, i)
+                        .bel_xy(format!("PLL_SELECT{i}"), "PLL_SELECT_SITE", 0, i)
                         .pins_name_only(&["REFCLK_DFD", "Z", "PLL_CLK_EN"])
                         .pin_name_only("D0", 1)
                         .pin_name_only("D1", 1),
@@ -2178,22 +2175,22 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..24 {
                 if kind == "RCLK_XIPHY_L" {
                     bel = bel
-                        .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ZERO{i}")])
-                        .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ONE{i}")]);
+                        .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ZERO{i}")])
+                        .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ONE{i}")]);
                 } else {
                     bel = bel
-                        .extra_wire(&format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ONE{i}")])
-                        .extra_wire(&format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ZERO{i}")]);
+                        .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_ONE{i}")])
+                        .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_ZERO{i}")]);
                 }
             }
             for i in 0..6 {
                 bel = bel
                     .extra_wire(
-                        &format!("XIPHY_CLK{i}_B"),
+                        format!("XIPHY_CLK{i}_B"),
                         &[format!("CLK_TO_XIPHY_BYTES_BOT{i}")],
                     )
                     .extra_wire(
-                        &format!("XIPHY_CLK{i}_T"),
+                        format!("XIPHY_CLK{i}_T"),
                         &[format!("CLK_TO_XIPHY_BYTES_TOP{i}")],
                     );
             }
@@ -2222,7 +2219,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
 
             for i in 0..26 {
                 let mut bel = builder
-                    .bel_xy(&format!("HPIOB{i}"), "IOB", 0, i)
+                    .bel_xy(format!("HPIOB{i}"), "IOB", 0, i)
                     .pins_name_only(&[
                         "I",
                         "OUTB_B_IN",
@@ -2254,7 +2251,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..12 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("HPIODIFFIN{i}"), "HPIOBDIFFINBUF", 0, i)
+                        .bel_xy(format!("HPIODIFFIN{i}"), "HPIOBDIFFINBUF", 0, i)
                         .pins_name_only(&[
                             "LVDS_TRUE",
                             "LVDS_COMP",
@@ -2267,12 +2264,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..12 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("HPIODIFFOUT{i}"), "HPIOBDIFFOUTBUF", 0, i)
+                        .bel_xy(format!("HPIODIFFOUT{i}"), "HPIOBDIFFOUTBUF", 0, i)
                         .pins_name_only(&["AOUT", "BOUT", "O_B", "TSTATEB"]),
                 );
             }
             for i in 0..2 {
-                bels.push(builder.bel_xy(&format!("HPIO_DCI{i}"), "HPIOB_DCI_SNGL", 0, i));
+                bels.push(builder.bel_xy(format!("HPIO_DCI{i}"), "HPIOB_DCI_SNGL", 0, i));
             }
             bels.push(
                 builder
@@ -2306,7 +2303,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
             for i in 0..7 {
-                bels.push(builder.bel_xy(&format!("ABUS_SWITCH.HPIO{i}"), "ABUS_SWITCH", i, 0));
+                bels.push(builder.bel_xy(format!("ABUS_SWITCH.HPIO{i}"), "ABUS_SWITCH", i, 0));
             }
             bels.push(builder.bel_xy("HPIO_ZMATCH_BLK_HCLK", "HPIO_ZMATCH_BLK_HCLK", 0, 0));
             bels.push(builder.bel_xy("HPIO_RCLK_PRBS", "HPIO_RCLK_PRBS", 0, 0));

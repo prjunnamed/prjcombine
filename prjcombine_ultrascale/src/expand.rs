@@ -2,6 +2,7 @@
 #![allow(clippy::collapsible_else_if)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::single_match)]
+#![allow(clippy::implicit_saturating_sub)]
 
 use enum_map::{enum_map, EnumMap};
 use prjcombine_entity::{EntityId, EntityVec};

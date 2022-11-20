@@ -1,3 +1,4 @@
+#![allow(clippy::bool_to_int_with_if)]
 #![allow(clippy::collapsible_else_if)]
 use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, DieId, RowId};
