@@ -1,0 +1,11 @@
+[package]
+name = "prjcombine_virtex_bitstream"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bitvec.workspace = true
+enum-map.workspace = true
+arrayref.workspace = true
+prjcombine_entity.workspace = true
+prjcombine_int.workspace = true
