@@ -90,9 +90,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             for (_, nn, node) in &grid.nodes {
                 print!("\tNODE {nn}");
                 if let Some(typ) = node.typ {
-                    print!("TYPE {typ}");
+                    print!(" TYPE {typ}");
                 }
                 println!();
+                for alias in &node.aliases {
+                    println!("\t\tALIAS {alias}");
+                }
                 if let Some((ref site, ref pin, dir)) = node.pin {
                     println!("\t\tPIN {site} {pin} {dir:?}");
                 }
