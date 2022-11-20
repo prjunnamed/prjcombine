@@ -515,6 +515,7 @@ fn dump_tile(
     let mut sites: Vec<(String, String, Vec<VSitePin<'_>>)> = Vec::new();
     let mut tile_n2w: HashMap<String, Vec<String>> = HashMap::new();
     let mut node_wires = Vec::new();
+    let mut kill_wires = Vec::new();
     loop {
         let l = lines.next().unwrap();
         let sl: Vec<_> = l.as_ref().unwrap().split_whitespace().collect();
@@ -534,6 +535,8 @@ fn dump_tile(
                         .entry(node.to_string())
                         .or_default()
                         .push(name.to_string());
+                } else {
+                    kill_wires.push(name.to_string());
                 }
             }
             "PIP" => {
@@ -631,6 +634,9 @@ fn dump_tile(
                         wire: mctx.names.get_or_insert(&name),
                         speed: si,
                     });
+                }
+                for name in kill_wires {
+                    mctx.rd.kill_wire(tile, &name);
                 }
                 ctx.bar.inc(1);
                 return;

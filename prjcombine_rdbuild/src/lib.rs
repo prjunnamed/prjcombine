@@ -567,6 +567,31 @@ impl PartBuilder {
         self.tiles_by_name.insert(name, coord);
     }
 
+    pub fn ensure_conn_wire(&mut self, tki: TileKindId, wire: WireId) -> TkConnWireId {
+        let tk = &mut self.part.tile_kinds[tki];
+        let w = tk.wires.get_mut(&wire).unwrap().1;
+        match *w {
+            TkWire::Internal(s, nc) => {
+                let i = tk.conn_wires.push(wire);
+                *w = TkWire::Connected(i);
+                for crd in &tk.tiles {
+                    self.pending_wires.get_mut(crd).unwrap().insert(i, nc);
+                }
+                self.fixup_nodes_queue.push((tki, wire, s, nc));
+                i
+            }
+            TkWire::Connected(i) => i,
+        }
+    }
+
+    pub fn kill_wire(&mut self, tile: &str, wire: &str) {
+        let crd = self.tiles_by_name[tile];
+        let wire = self.part.wires.get(wire).unwrap();
+        let idx = self.ensure_conn_wire(self.part.tiles[&crd].kind, wire);
+        self.part.tiles.get_mut(&crd).unwrap().conn_wires.remove(idx);
+        self.pending_wires.get_mut(&crd).unwrap().remove(idx);
+    }
+
     pub fn add_node(&mut self, wires: &[(&str, &str, Option<&str>)]) {
         let wires: Vec<_> = wires
             .iter()
@@ -622,20 +647,7 @@ impl PartBuilder {
         });
         for (coord, wire, _) in wires {
             let tki = self.part.tiles[&coord].kind;
-            let tk = &mut self.part.tile_kinds[tki];
-            let w = tk.wires.get_mut(&wire).unwrap().1;
-            let idx = match *w {
-                TkWire::Internal(s, nc) => {
-                    let i = tk.conn_wires.push(wire);
-                    *w = TkWire::Connected(i);
-                    for crd in &tk.tiles {
-                        self.pending_wires.get_mut(crd).unwrap().insert(i, nc);
-                    }
-                    self.fixup_nodes_queue.push((tki, wire, s, nc));
-                    i
-                }
-                TkWire::Connected(i) => i,
-            };
+            let idx = self.ensure_conn_wire(tki, wire);
             self.part
                 .tiles
                 .get_mut(&coord)
