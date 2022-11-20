@@ -199,12 +199,12 @@ impl Grid {
         }
         // center column
         // bank 4
-        let base = (self.reg_cfg - self.regs_cfg_io) * 16 - 8;
+        let base = self.row_dcmiob();
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: RowId::from_idx(base + j),
+                    row: base + j,
                     ioc: 1,
                     bel: k,
                     bank: 4,
@@ -214,12 +214,12 @@ impl Grid {
         }
         // bank 2
         if self.regs_cfg_io > 1 {
-            let base = (self.reg_cfg - self.regs_cfg_io) * 16;
+            let base = self.row_dcmiob() + 8;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: RowId::from_idx(base + j),
+                        row: base + j,
                         ioc: 1,
                         bel: k,
                         bank: 2,
@@ -229,12 +229,12 @@ impl Grid {
             }
         }
         if self.regs_cfg_io > 2 {
-            let base = self.reg_cfg * 16 - 32;
+            let base = self.row_reg_bot(self.reg_cfg - 2);
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: RowId::from_idx(base + j),
+                        row: base + j,
                         ioc: 1,
                         bel: k,
                         bank: 2,
@@ -243,12 +243,12 @@ impl Grid {
                 }
             }
         }
-        let base = self.reg_cfg * 16 - 16;
+        let base = self.row_reg_bot(self.reg_cfg - 1);
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: RowId::from_idx(base + j),
+                    row: base + j,
                     ioc: 1,
                     bel: k,
                     bank: 2,
@@ -257,12 +257,12 @@ impl Grid {
             }
         }
         // bank 1
-        let base = self.reg_cfg * 16 + 8;
+        let base = self.row_cfg_above();
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: RowId::from_idx(base + j),
+                    row: base + j,
                     ioc: 1,
                     bel: k,
                     bank: 1,
@@ -271,12 +271,12 @@ impl Grid {
             }
         }
         if self.regs_cfg_io > 2 {
-            let base = self.reg_cfg * 16 + 16;
+            let base = self.row_cfg_above() + 8;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: RowId::from_idx(base + j),
+                        row: base + j,
                         ioc: 1,
                         bel: k,
                         bank: 1,
@@ -286,12 +286,12 @@ impl Grid {
             }
         }
         if self.regs_cfg_io > 1 {
-            let base = (self.reg_cfg + self.regs_cfg_io) * 16 - 16;
+            let base = self.row_iobdcm() - 24;
             for j in 0..16 {
                 for k in 0..2 {
                     res.push(Io {
                         col: self.cols_io[1],
-                        row: RowId::from_idx(base + j),
+                        row: base + j,
                         ioc: 1,
                         bel: k,
                         bank: 1,
@@ -301,12 +301,12 @@ impl Grid {
             }
         }
         // bank 3
-        let base = (self.reg_cfg + self.regs_cfg_io) * 16;
+        let base = self.row_iobdcm() - 8;
         for j in 0..8 {
             for k in 0..2 {
                 res.push(Io {
                     col: self.cols_io[1],
-                    row: RowId::from_idx(base + j),
+                    row: base + j,
                     ioc: 1,
                     bel: k,
                     bank: 3,

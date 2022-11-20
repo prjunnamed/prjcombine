@@ -763,7 +763,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for i in 0..32 {
                 bel = bel
-                    .extra_wire_force(format!("MUXBUS_I{i}"), &format!("CLK_IOB_MUXED_CLKP_IN{i}"));
+                    .extra_wire_force(format!("MUXBUS_I{i}"), format!("CLK_IOB_MUXED_CLKP_IN{i}"));
                 bel = bel.extra_wire(
                     format!("MUXBUS_O{i}"),
                     &[format!("CLKV_DCM_MUXED_CLKP_OUT{i}")],

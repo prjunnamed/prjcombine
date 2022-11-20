@@ -1,8 +1,11 @@
-use prjcombine_entity::EntityId;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 
-use crate::{ColumnKind, ExpandedDevice, Grid};
+use crate::{ColumnKind, ExpandedDevice, Grid, RegId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -11,6 +14,10 @@ struct Expander<'a, 'b> {
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     dciylut: Vec<usize>,
+    frame_info: Vec<FrameInfo>,
+    col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
+    spine_frame: EntityVec<RegId, usize>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -140,7 +147,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if row >= self.grid.row_dcmiob() && row < self.grid.row_iobdcm() {
                 if row >= self.grid.row_cfg_below() && row < self.grid.row_cfg_above() {
                     // CFG
-                    let dy = row.to_idx() - (self.grid.reg_cfg * 16 - 8);
+                    let dy = (row - self.grid.row_cfg_below()) as usize;
                     let y = y - dy;
                     let name = format!("CFG_CENTER_X{x}Y{y}", y = y + 7);
                     self.die[(col, row)].add_xnode(
@@ -230,7 +237,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         self.db.get_node_naming("SYSMON"),
                         &crds,
                     );
-                    let my = if row.to_idx() == 0 { 0 } else { 1 };
+                    let my = usize::from(row.to_idx() != 0);
                     let ipx = usize::from(self.grid.columns.first().unwrap() == &ColumnKind::Gt);
                     let ipy = if row.to_idx() == 0 {
                         0
@@ -722,7 +729,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             let x = col.to_idx();
             let lr = if col.to_idx() == 0 { 'L' } else { 'R' };
-            let gtx = if col.to_idx() == 0 { 0 } else { 1 };
+            let gtx = usize::from(col.to_idx() != 0);
             let ipx = if col.to_idx() == 0 {
                 0
             } else if self.grid.has_bot_sysmon {
@@ -795,6 +802,98 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
         }
     }
+
+    fn fill_frame_info(&mut self) {
+        let mut regs: Vec<_> = self.grid.regs().collect();
+        regs.sort_by_key(|&reg| {
+            let rreg = reg - self.grid.reg_cfg;
+            (rreg < 0, rreg.abs())
+        });
+        for _ in 0..self.grid.regs {
+            self.col_frame.push(EntityVec::new());
+            self.bram_frame.push(EntityPartVec::new());
+            self.spine_frame.push(0);
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, cd) in &self.grid.columns {
+                // Fixed later for Bram
+                self.col_frame[reg].push(self.frame_info.len());
+                let width = match cd {
+                    ColumnKind::Clb => 22,
+                    ColumnKind::Bram => continue,
+                    ColumnKind::Dsp => 21,
+                    ColumnKind::Io => 30,
+                    ColumnKind::Gt => 20,
+                };
+                for minor in 0..width {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+                if col == self.grid.cols_io[1] {
+                    self.spine_frame[reg] = self.frame_info.len();
+                    for minor in 0..3 {
+                        self.frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: (reg - self.grid.reg_cfg) as i32,
+                                major,
+                                minor,
+                            },
+                        });
+                    }
+                    major += 1;
+                }
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.bram_frame[reg].insert(col, self.frame_info.len());
+                for minor in 0..64 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 1,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.col_frame[reg][col] = self.frame_info.len();
+                for minor in 0..20 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 2,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+    }
 }
 
 impl Grid {
@@ -812,6 +911,10 @@ impl Grid {
             int_holes: vec![],
             site_holes: vec![],
             dciylut: vec![],
+            frame_info: vec![],
+            col_frame: EntityVec::new(),
+            bram_frame: EntityVec::new(),
+            spine_frame: EntityVec::new(),
         };
 
         expander.fill_dciylut();
@@ -825,7 +928,31 @@ impl Grid {
         expander.fill_bram_dsp();
         expander.fill_gt();
         expander.fill_hclk();
+        expander.fill_frame_info();
 
-        ExpandedDevice { grid: self, egrid }
+        let col_frame = expander.col_frame;
+        let bram_frame = expander.bram_frame;
+        let spine_frame = expander.spine_frame;
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len: 80 * 16 + 32,
+            frame_info: expander.frame_info,
+            bram_cols: 0,
+            bram_regs: 0,
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Virtex4,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![expander.die.die],
+        };
+
+        ExpandedDevice {
+            grid: self,
+            egrid,
+            bs_geom,
+            col_frame,
+            bram_frame,
+            spine_frame,
+        }
     }
 }

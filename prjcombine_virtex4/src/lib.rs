@@ -1,10 +1,15 @@
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 mod expand;
 pub mod io;
+
+entity_id! {
+    pub id RegId u32, delta;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -16,7 +21,7 @@ pub struct Grid {
     pub has_top_sysmon: bool,
     pub regs_cfg_io: usize,
     pub ccm: usize,
-    pub reg_cfg: usize,
+    pub reg_cfg: RegId,
     pub holes_ppc: Vec<(ColId, RowId)>,
     pub has_bram_fx: bool,
 }
@@ -109,27 +114,47 @@ pub struct Bond {
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,
+    pub bs_geom: BitstreamGeom,
+    pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
+    pub spine_frame: EntityVec<RegId, usize>,
 }
 
 impl Grid {
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
+        RegId::from_idx(row.to_idx() / 16)
+    }
+
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 16)
+    }
+
+    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 16 + 8)
+    }
+
     pub fn row_hclk(&self, row: RowId) -> RowId {
         RowId::from_idx(row.to_idx() / 16 * 16 + 8)
     }
 
+    pub fn regs(&self) -> EntityIds<RegId> {
+        EntityIds::new(self.regs)
+    }
+
     pub fn row_dcmiob(&self) -> RowId {
-        RowId::from_idx(self.reg_cfg * 16 - self.regs_cfg_io * 16 - 8)
+        self.row_reg_hclk(self.reg_cfg - self.regs_cfg_io - 1)
     }
 
     pub fn row_iobdcm(&self) -> RowId {
-        RowId::from_idx(self.reg_cfg * 16 + self.regs_cfg_io * 16 + 8)
+        self.row_reg_hclk(self.reg_cfg + self.regs_cfg_io)
     }
 
     pub fn row_cfg_below(&self) -> RowId {
-        RowId::from_idx(self.reg_cfg * 16 - 8)
+        self.row_reg_hclk(self.reg_cfg - 1)
     }
 
     pub fn row_cfg_above(&self) -> RowId {
-        RowId::from_idx(self.reg_cfg * 16 + 8)
+        self.row_reg_hclk(self.reg_cfg)
     }
 
     pub fn col_lgt(&self) -> ColId {

@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
-use prjcombine_virtex4::{ColumnKind, Grid};
+use prjcombine_virtex4::{ColumnKind, Grid, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_columns, find_row, find_rows, IntGrid};
@@ -46,21 +46,23 @@ fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [ColId; 3] {
     v.try_into().unwrap()
 }
 
-fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
-    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
-        .to_idx()
-        / 16
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
+    RegId::from_idx(
+        int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
+            .to_idx()
+            / 16,
+    )
 }
 
-fn get_regs_cfg_io(rd: &Part, int: &IntGrid, reg_cfg: usize) -> usize {
+fn get_regs_cfg_io(rd: &Part, int: &IntGrid, reg_cfg: RegId) -> usize {
     let d2i = int
         .lookup_row_inter(find_row(rd, &["HCLK_DCMIOB"]).unwrap())
         .to_idx();
     let i2d = int
         .lookup_row_inter(find_row(rd, &["HCLK_IOBDCM"]).unwrap())
         .to_idx();
-    assert_eq!(i2d - reg_cfg * 16, reg_cfg * 16 - d2i);
-    (i2d - reg_cfg * 16 - 8) / 16
+    assert_eq!(i2d - reg_cfg.to_idx() * 16, reg_cfg.to_idx() * 16 - d2i);
+    (i2d - reg_cfg.to_idx() * 16 - 8) / 16
 }
 
 fn get_ccm(rd: &Part) -> usize {
