@@ -153,7 +153,7 @@ fn verify_bufgctrl(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     let srow = if is_b {
         edev.grid.row_ioi_cmt()
     } else {
-        if edev.grid.reg_cfg == edev.grid.regs - 1 {
+        if edev.grid.reg_cfg.to_idx() == edev.grid.regs - 1 {
             vrf.claim_node(&[bel.fwire("MUXBUS0")]);
             vrf.claim_node(&[bel.fwire("MUXBUS1")]);
             return;

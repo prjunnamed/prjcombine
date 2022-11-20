@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
-use prjcombine_virtex5::{ColumnKind, Grid, HardColumn};
+use prjcombine_virtex5::{ColumnKind, Grid, HardColumn, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
@@ -80,10 +80,12 @@ fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
     }
 }
 
-fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
-    int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
-        .to_idx()
-        / 20
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
+    RegId::from_idx(
+        int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
+            .to_idx()
+            / 20,
+    )
 }
 
 fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
