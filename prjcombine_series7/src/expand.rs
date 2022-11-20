@@ -1,11 +1,15 @@
-use prjcombine_entity::{EntityId, EntityVec};
+#![allow(clippy::bool_to_int_with_if)]
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::{
-    ColumnKind, DisabledPart, ExpandedDevice, ExtraDie, Grid, GridKind, GtKind, IoKind, Pcie2Kind,
-    XadcKind,
+    ColumnKind, DisabledPart, ExpandedDevice, ExtraDie, FrameGeom, Grid, GridKind, GtKind, IoKind,
+    Pcie2Kind, XadcKind,
 };
 
 struct DieExpander<'a, 'b> {
@@ -30,6 +34,8 @@ struct DieExpander<'a, 'b> {
     has_slr_u: bool,
     has_gtz_d: bool,
     has_gtz_u: bool,
+    frame_info: Vec<FrameInfo>,
+    frames: FrameGeom,
 }
 
 impl<'a, 'b> DieExpander<'a, 'b> {
@@ -72,7 +78,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     .cols_io
                     .iter()
                     .flatten()
-                    .any(|x| x.regs[row.to_idx() / 50] == Some(IoKind::Hpio))
+                    .any(|x| x.regs[self.grid.row_to_reg(row)] == Some(IoKind::Hpio))
             {
                 dciy += 1;
             }
@@ -82,7 +88,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_ipylut(&mut self, mut ipy: usize, is_7k70t: bool) -> usize {
         for row in self.die.rows() {
-            let reg = row.to_idx() / 50;
+            let reg = self.grid.row_to_reg(row);
             self.ipylut.push(ipy);
             if matches!(row.to_idx() % 50, 0 | 11 | 22 | 28 | 39) {
                 let mut has_gt = false;
@@ -100,19 +106,19 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     ipy += 6;
                 }
             }
-            if !is_7k70t && row == RowId::from_idx(self.grid.reg_cfg * 50 + 25) {
+            if !is_7k70t && row == self.grid.row_reg_hclk(self.grid.reg_cfg) {
                 ipy += 6;
             }
         }
         if is_7k70t {
-            self.ipylut[RowId::from_idx(self.grid.reg_cfg * 50 + 25)] = ipy + 6;
+            self.ipylut[self.grid.row_reg_hclk(self.grid.reg_cfg)] = ipy + 6;
         }
         ipy
     }
 
     fn fill_opylut(&mut self, mut opy: usize) -> usize {
         for row in self.die.rows() {
-            let reg = row.to_idx() / 50;
+            let reg = self.grid.row_to_reg(row);
             self.opylut.push(opy);
             if matches!(row.to_idx() % 50, 0 | 11 | 28 | 39) {
                 let mut has_gt = false;
@@ -136,7 +142,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_gtylut(&mut self, mut gty: usize) -> usize {
         for row in self.die.rows() {
-            let reg = row.to_idx() / 50;
+            let reg = self.grid.row_to_reg(row);
             self.gtylut.push(gty);
             if row.to_idx() % 50 == 0 {
                 let mut has_gt = false;
@@ -317,7 +323,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
     }
 
     fn fill_cfg(&mut self, is_master: bool) {
-        let row_cm = RowId::from_idx(self.grid.reg_cfg * 50);
+        let row_cm = self.grid.row_reg_bot(self.grid.reg_cfg);
         let row_cb = row_cm - 50;
         let row_ct = row_cm + 50;
         if self.grid.regs == 1 {
@@ -689,13 +695,13 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_gt_mid(&mut self) {
         if let Some((ref lcol, ref rcol)) = self.grid.cols_gtp_mid {
-            for (reg, &kind) in lcol.regs.iter().enumerate() {
+            for (reg, &kind) in &lcol.regs {
                 let gtx = 0;
                 let ipx = self.ipxlut[lcol.col];
                 let opx = self.opxlut[lcol.col];
                 if let Some(kind) = kind {
                     assert_eq!(kind, GtKind::Gtp);
-                    let br = RowId::from_idx(reg * 50);
+                    let br = self.grid.row_reg_bot(reg);
                     self.die.nuke_rect(lcol.col + 1, br, 18, 50);
                     self.int_holes.push(Rect {
                         col_l: lcol.col + 1,
@@ -788,13 +794,13 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     node.add_bel(6, format!("IPAD_X{ipx}Y{y}", y = ipy - 1));
                 }
             }
-            for (reg, &kind) in rcol.regs.iter().enumerate() {
+            for (reg, &kind) in &rcol.regs {
                 let gtx = 1;
                 let ipx = self.ipxlut[rcol.col];
                 let opx = self.opxlut[rcol.col];
                 if let Some(kind) = kind {
                     assert_eq!(kind, GtKind::Gtp);
-                    let br = RowId::from_idx(reg * 50);
+                    let br = self.grid.row_reg_bot(reg);
                     self.die.nuke_rect(rcol.col - 18, br, 18, 50);
                     self.int_holes.push(Rect {
                         col_l: rcol.col - 18,
@@ -896,9 +902,9 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             let ipx = self.ipxlut[gtcol.col];
             let opx = self.opxlut[gtcol.col];
 
-            for (reg, &kind) in gtcol.regs.iter().enumerate() {
+            for (reg, &kind) in &gtcol.regs {
                 if let Some(kind) = kind {
-                    let br = RowId::from_idx(reg * 50);
+                    let br = self.grid.row_reg_bot(reg);
                     let x = self.xlut[gtcol.col];
                     for dy in 0..50 {
                         let row = br + dy;
@@ -991,8 +997,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             let ipx = self.ipxlut[gtcol.col];
             let opx = self.opxlut[gtcol.col];
             let need_holes = self.grid.columns[gtcol.col] != ColumnKind::Gt;
-            for (reg, &kind) in gtcol.regs.iter().enumerate() {
-                let br = RowId::from_idx(reg * 50);
+            for (reg, &kind) in &gtcol.regs {
+                let br = self.grid.row_reg_bot(reg);
                 if let Some(kind) = kind {
                     if need_holes {
                         self.die.nuke_rect(gtcol.col + 1, br, 6, 50);
@@ -1008,12 +1014,12 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             row_b: br,
                             row_t: br + 50,
                         });
-                        if reg != 0 && gtcol.regs[reg - 1].is_none() {
+                        if reg.to_idx() != 0 && gtcol.regs[reg - 1].is_none() {
                             for dx in 1..7 {
                                 self.die.fill_term_anon((gtcol.col + dx, br - 1), "TERM.N");
                             }
                         }
-                        if reg != self.grid.regs - 1 && gtcol.regs[reg + 1].is_none() {
+                        if reg.to_idx() != self.grid.regs - 1 && gtcol.regs[reg + 1].is_none() {
                             for dx in 1..7 {
                                 self.die.fill_term_anon((gtcol.col + dx, br + 50), "TERM.S");
                             }
@@ -1346,7 +1352,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             let mut found = false;
             let mut found_hp = false;
             for row in self.die.rows() {
-                if let Some(kind) = iocol.regs[row.to_idx() / 50] {
+                let reg = self.grid.row_to_reg(row);
+                if let Some(kind) = iocol.regs[reg] {
                     found = true;
                     if kind == IoKind::Hpio {
                         found_hp = true;
@@ -1563,8 +1570,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                 self.rxlut[col] + 3
             };
             let mut found = false;
-            'a: for reg in 0..self.grid.regs {
-                let row = RowId::from_idx(reg * 50 + 25);
+            'a: for reg in self.grid.regs() {
+                let row = self.grid.row_reg_hclk(reg);
                 for hole in &self.site_holes {
                     if hole.contains(col, row) {
                         continue 'a;
@@ -1630,11 +1637,11 @@ impl<'a, 'b> DieExpander<'a, 'b> {
 
     fn fill_clk(&mut self, mut bglb_y: usize) -> usize {
         let col = self.grid.col_clk;
-        for reg in 0..self.grid.regs {
-            let row_h = RowId::from_idx(reg * 50 + 25);
+        for reg in self.grid.regs() {
+            let row_h = self.grid.row_reg_hclk(reg);
             let ctb_y = self.tieylut[row_h] / 50 * 48;
             let bufh_y = self.tieylut[row_h] / 50 * 12;
-            if self.grid.has_slr && reg == 0 {
+            if self.grid.has_slr && reg.to_idx() == 0 {
                 let tk = if self.has_gtz_d {
                     "CLK_BALI_REBUF_GTZ_BOT"
                 } else {
@@ -1723,7 +1730,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             node.add_bel(56, format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 17));
             node.add_bel(57, format!("GCLK_TEST_BUF_X3Y{y}", y = ctb_y + 16));
 
-            if self.grid.has_slr && reg == self.grid.regs - 1 {
+            if self.grid.has_slr && reg.to_idx() == self.grid.regs - 1 {
                 let tk = if self.has_gtz_u {
                     "CLK_BALI_REBUF_GTZ_TOP"
                 } else {
@@ -1796,7 +1803,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         for i in 0..16 {
             node.add_bel(i, format!("BUFGCTRL_X0Y{y}", y = bg_y + i));
         }
-        if self.grid.reg_clk != self.grid.regs {
+        if self.grid.reg_clk.to_idx() != self.grid.regs {
             let row = self.grid.row_bufg();
             let crds: [_; 4] = core::array::from_fn(|dy| (col, row + dy));
             let name = format!(
@@ -1944,6 +1951,82 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }
         }
     }
+
+    fn fill_frame_info(&mut self) {
+        let mut regs: Vec<_> = self.grid.regs().collect();
+        regs.sort_by_key(|&reg| {
+            let rreg = reg - self.grid.reg_cfg;
+            (rreg < 0, rreg.abs())
+        });
+        for _ in 0..self.grid.regs {
+            self.frames.col_frame.push(EntityVec::new());
+            self.frames.bram_frame.push(EntityPartVec::new());
+        }
+        for &reg in &regs {
+            for (col, cd) in &self.grid.columns {
+                self.frames.col_frame[reg].push(self.frame_info.len());
+                if let Some(ref rgt) = self.grid.cols_gt[1] {
+                    if col == rgt.col
+                        && rgt.col != self.grid.columns.last_id().unwrap()
+                        && rgt.regs[reg].is_some()
+                    {
+                        for minor in 0..32 {
+                            self.frame_info.push(FrameInfo {
+                                addr: FrameAddr {
+                                    typ: 0,
+                                    region: (reg - self.grid.reg_cfg) as i32,
+                                    major: col.to_idx() as u32,
+                                    minor,
+                                },
+                            });
+                        }
+                        break;
+                    }
+                }
+                let width = match cd {
+                    ColumnKind::ClbLL => 36,
+                    ColumnKind::ClbLM => 36,
+                    ColumnKind::Bram => 28,
+                    ColumnKind::Dsp => 28,
+                    ColumnKind::Io => 42,
+                    ColumnKind::Cmt => 30,
+                    ColumnKind::Cfg => 30,
+                    ColumnKind::Clk => 30,
+                    ColumnKind::Gt => 32,
+                };
+                for minor in 0..width {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major: col.to_idx() as u32,
+                            minor,
+                        },
+                    });
+                }
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
+                for minor in 0..128 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 1,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+    }
 }
 
 pub fn expand_grid<'a>(
@@ -1973,6 +2056,8 @@ pub fn expand_grid<'a>(
         ipy = 6;
         opy = 2;
     }
+    let mut frames = EntityVec::new();
+    let mut die_bs_geom = EntityVec::new();
     for &grid in grids.values() {
         let is_7k70t = grid.kind == GridKind::Kintex && grid.regs == 4 && !grid.has_ps;
         let (did, die) = egrid.add_die(grid.columns.len(), grid.regs * 50);
@@ -1999,6 +2084,11 @@ pub fn expand_grid<'a>(
             has_slr_u: did != grids.last_id().unwrap(),
             has_gtz_d: did == grids.first_id().unwrap() && extras.contains(&ExtraDie::GtzBottom),
             has_gtz_u: did == grids.last_id().unwrap() && extras.contains(&ExtraDie::GtzTop),
+            frame_info: vec![],
+            frames: FrameGeom {
+                col_frame: EntityVec::new(),
+                bram_frame: EntityVec::new(),
+            },
         };
 
         de.fill_xlut();
@@ -2029,6 +2119,16 @@ pub fn expand_grid<'a>(
         de.fill_cmt();
         bglb_y = de.fill_clk(bglb_y);
         de.fill_hclk();
+        de.fill_frame_info();
+
+        frames.push(de.frames);
+        die_bs_geom.push(DieBitstreamGeom {
+            frame_len: 50 * 64 + 32,
+            frame_info: de.frame_info,
+            bram_cols: 0,
+            bram_regs: 0,
+            iob_frame_len: 0,
+        });
     }
 
     let lvb6 = db
@@ -2054,11 +2154,27 @@ pub fn expand_grid<'a>(
     }
     egrid.xdie_wires = xdie_wires;
 
+    let mut die_order = vec![];
+    die_order.push(grid_master);
+    for die in grids.ids() {
+        if die != grid_master {
+            die_order.push(die);
+        }
+    }
+
+    let bs_geom = BitstreamGeom {
+        kind: DeviceKind::Series7,
+        die: die_bs_geom,
+        die_order,
+    };
+
     ExpandedDevice {
         grids: grids.clone(),
         grid_master,
         egrid,
         extras: extras.to_vec(),
         disabled: disabled.clone(),
+        bs_geom,
+        frames,
     }
 }

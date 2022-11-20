@@ -169,7 +169,7 @@ impl Io {
 
 pub fn get_io(grids: &EntityVec<DieId, Grid>, grid_master: DieId) -> Vec<Io> {
     let mut res = Vec::new();
-    let reg_cfg: usize = grids[grid_master].reg_cfg
+    let reg_cfg: usize = grids[grid_master].reg_cfg.to_idx()
         + grids
             .iter()
             .filter(|&(k, _)| k < grid_master)
@@ -184,11 +184,11 @@ pub fn get_io(grids: &EntityVec<DieId, Grid>, grid_master: DieId) -> Vec<Io> {
         let mut reg_base = 0;
         for (die, grid) in grids {
             if let Some(ref col) = grid.cols_io[ioc as usize] {
-                for (j, &kind) in col.regs.iter().enumerate() {
+                for (reg, &kind) in &col.regs {
                     if let Some(kind) = kind {
-                        let bank = (15 + reg_base + j - reg_cfg) as u32 + ioc * 20;
+                        let bank = (15 + reg_base + reg.to_idx() - reg_cfg) as u32 + ioc * 20;
                         for k in 0..50 {
-                            let row = RowId::from_idx(j * 50 + k);
+                            let row = grid.row_reg_bot(reg) + k;
                             res.push(Io {
                                 col: col.col,
                                 row,
@@ -223,20 +223,20 @@ fn get_iopad_y(
         opy += 2;
     }
     for grid in grids.values() {
-        for j in 0..grid.regs {
+        for reg in grid.regs() {
             let mut has_gt = false;
             if let Some(ref col) = grid.cols_gt[0] {
-                has_gt |= col.regs[j].is_some();
+                has_gt |= col.regs[reg].is_some();
             }
             if let Some(ref col) = grid.cols_gt[1] {
-                has_gt |= col.regs[j].is_some();
+                has_gt |= col.regs[reg].is_some();
             }
             if let Some((ref lcol, ref rcol)) = grid.cols_gtp_mid {
-                has_gt |= lcol.regs[j].is_some();
-                has_gt |= rcol.regs[j].is_some();
+                has_gt |= lcol.regs[reg].is_some();
+                has_gt |= rcol.regs[reg].is_some();
             }
             if has_gt {
-                if grid.reg_cfg == j && !is_7k70t {
+                if grid.reg_cfg == reg && !is_7k70t {
                     res.push((gy, opy, ipy, ipy + 24, ipy + 18));
                     ipy += 36;
                 } else {
@@ -246,7 +246,7 @@ fn get_iopad_y(
                 gy += 1;
                 opy += 8;
             } else {
-                if grid.reg_cfg == j && !is_7k70t {
+                if grid.reg_cfg == reg && !is_7k70t {
                     res.push((0, 0, 0, 0, ipy));
                     ipy += 6;
                 } else {
@@ -256,7 +256,7 @@ fn get_iopad_y(
         }
     }
     if is_7k70t {
-        res[grids.first().unwrap().reg_cfg].4 = ipy + 6;
+        res[grids.first().unwrap().reg_cfg.to_idx()].4 = ipy + 6;
     }
     res
 }
@@ -345,7 +345,7 @@ pub fn get_gt(
     is_7k70t: bool,
 ) -> Vec<Gt> {
     let iopad_y = get_iopad_y(grids, extras, is_7k70t);
-    let reg_cfg: usize = grids[grid_master].reg_cfg
+    let reg_cfg: usize = grids[grid_master].reg_cfg.to_idx()
         + grids
             .iter()
             .filter(|&(k, _)| k < grid_master)
@@ -375,22 +375,22 @@ pub fn get_gt(
                 0
             };
             if let Some(ref col) = grid.cols_gt[gtc as usize] {
-                for (j, &kind) in col.regs.iter().enumerate() {
+                for (reg, &kind) in &col.regs {
                     if let Some(kind) = kind {
-                        let reg = reg_base + j;
+                        let areg = reg_base + reg.to_idx();
                         let bank = if kind == GtKind::Gtp {
                             if grid.has_ps {
                                 112
-                            } else if reg == 0 {
+                            } else if areg == 0 {
                                 213
                             } else {
                                 216
                             }
                         } else {
-                            (15 + reg - reg_cfg + [200, 100][gtc as usize]) as u32
+                            (15 + areg - reg_cfg + [200, 100][gtc as usize]) as u32
                         };
-                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[reg as usize];
-                        let row = RowId::from_idx(j * 50);
+                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[areg];
+                        let row = grid.row_reg_bot(reg);
                         res.push(Gt {
                             col: col.col,
                             row,
@@ -415,12 +415,12 @@ pub fn get_gt(
                 let gx = gtc;
                 let opx = gtc;
                 let ipx = gtc + 1;
-                for (j, &kind) in col.regs.iter().enumerate() {
+                for (reg, &kind) in &col.regs {
                     if let Some(kind) = kind {
-                        let reg = reg_base + j;
-                        let bank = if reg == 0 { 13 } else { 16 } + [200, 100][gtc as usize];
-                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[reg];
-                        let row = RowId::from_idx(j * 50);
+                        let areg = reg_base + reg.to_idx();
+                        let bank = if areg == 0 { 13 } else { 16 } + [200, 100][gtc as usize];
+                        let (gy, opy, ipy_l, ipy_h, _) = iopad_y[areg];
+                        let row = grid.row_reg_bot(reg);
                         res.push(Gt {
                             col: col.col,
                             row,
@@ -454,11 +454,11 @@ pub fn get_sysmon_pads(
     let mut res = Vec::new();
     let mut reg_base = 0;
     for (i, grid) in grids {
-        if grid.reg_cfg == grid.regs {
+        if grid.reg_cfg.to_idx() == grid.regs {
             continue;
         }
         let ipx = if grid.cols_gt[0].is_some() { 1 } else { 0 };
-        let ipy = iopad_y[reg_base + grid.reg_cfg].4;
+        let ipy = iopad_y[reg_base + grid.reg_cfg.to_idx()].4;
         res.push((format!("IPAD_X{}Y{}", ipx, ipy), i, SysMonPin::VP));
         res.push((format!("IPAD_X{}Y{}", ipx, ipy + 1), i, SysMonPin::VN));
         reg_base += grid.regs;

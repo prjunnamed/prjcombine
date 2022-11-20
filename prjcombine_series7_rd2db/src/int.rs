@@ -660,32 +660,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     for i in 0..15 {
                         bel_bram_addr = bel_bram_addr
                             .extra_int_in(
-                                &format!("IMUX_ADDR{ab}ADDR{ul}{i}"),
+                                format!("IMUX_ADDR{ab}ADDR{ul}{i}"),
                                 &[
                                     &format!("BRAM_IMUX_ADDR{ab}ADDR{ul}{i}"),
                                     &format!("BRAM_R_IMUX_ADDR{ab}ADDR{ul}{i}"),
                                 ],
                             )
                             .extra_wire(
-                                &format!("UTURN_ADDR{ab}ADDR{ul}{i}"),
+                                format!("UTURN_ADDR{ab}ADDR{ul}{i}"),
                                 &[&format!("BRAM_UTURN_ADDR{ab}ADDR{ul}{i}")],
                             )
                             .extra_wire(
-                                &format!("ADDR{ab}ADDR{ul}{i}"),
+                                format!("ADDR{ab}ADDR{ul}{i}"),
                                 &[&format!("BRAM_ADDR{ab}ADDR{ul}{i}")],
                             );
                         if ul == 'U' {
                             bel_bram_addr = bel_bram_addr
                                 .extra_wire(
-                                    &format!("CASCINBOT_ADDR{ab}ADDR{ul}{i}"),
+                                    format!("CASCINBOT_ADDR{ab}ADDR{ul}{i}"),
                                     &[&format!("BRAM_CASCINBOT_ADDR{ab}ADDR{ul}{i}")],
                                 )
                                 .extra_wire(
-                                    &format!("CASCINTOP_ADDR{ab}ADDR{ul}{i}"),
+                                    format!("CASCINTOP_ADDR{ab}ADDR{ul}{i}"),
                                     &[&format!("BRAM_CASCINTOP_ADDR{ab}ADDR{ul}{i}")],
                                 )
                                 .extra_wire(
-                                    &format!("CASCOUT_ADDR{ab}ADDR{ul}{i}"),
+                                    format!("CASCOUT_ADDR{ab}ADDR{ul}{i}"),
                                     &[&format!("BRAM_CASCOUT_ADDR{ab}ADDR{ul}{i}")],
                                 );
                         }
@@ -693,14 +693,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 }
                 bel_bram_addr = bel_bram_addr
                     .extra_int_in(
-                        &format!("IMUX_ADDR{ab}ADDRL15"),
+                        format!("IMUX_ADDR{ab}ADDRL15"),
                         &[
                             &format!("BRAM_IMUX_ADDR{ab}ADDRL15"),
                             &format!("BRAM_IMUX_R_ADDR{ab}ADDRL15"),
                         ],
                     )
                     .extra_wire(
-                        &format!("UTURN_ADDR{ab}ADDRL15"),
+                        format!("UTURN_ADDR{ab}ADDRL15"),
                         &[&format!("BRAM_UTURN_ADDR{ab}ADDRL15")],
                     );
             }
@@ -1330,14 +1330,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFIO{i}"), "BUFIO", 0, i ^ 2)
+                        .bel_xy(format!("BUFIO{i}"), "BUFIO", 0, i ^ 2)
                         .pins_name_only(&["I", "O"]),
                 );
             }
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFR{i}"), "BUFR", 0, i ^ 2)
+                        .bel_xy(format!("BUFR{i}"), "BUFR", 0, i ^ 2)
                         .pins_name_only(&["I", "O"]),
                 );
             }
@@ -1475,7 +1475,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..num {
                 let mut bel = builder
                     .bel_xy(
-                        &if is_sing {
+                        if is_sing {
                             "ILOGIC".to_string()
                         } else {
                             format!("ILOGIC{i}")
@@ -1530,7 +1530,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..num {
                 let mut bel = builder
                     .bel_xy(
-                        &if is_sing {
+                        if is_sing {
                             "OLOGIC".to_string()
                         } else {
                             format!("OLOGIC{i}")
@@ -1604,7 +1604,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 bels.push(
                     builder
                         .bel_xy(
-                            &if is_sing {
+                            if is_sing {
                                 "IDELAY".to_string()
                             } else {
                                 format!("IDELAY{i}")
@@ -1621,7 +1621,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     bels.push(
                         builder
                             .bel_xy(
-                                &if is_sing {
+                                if is_sing {
                                     "ODELAY".to_string()
                                 } else {
                                     format!("ODELAY{i}")
@@ -1637,7 +1637,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..num {
                 let mut bel = builder
                     .bel_xy(
-                        &if is_sing {
+                        if is_sing {
                             "IOB".to_string()
                         } else {
                             format!("IOB{i}")
@@ -1739,7 +1739,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 let abcd = ['A', 'B', 'C', 'D'][i as usize];
                 let mut bel = builder
-                    .bel_xy(&format!("PHASER_IN{i}"), "PHASER_IN_PHY", 0, i % 2)
+                    .bel_xy(format!("PHASER_IN{i}"), "PHASER_IN_PHY", 0, i % 2)
                     .raw_tile(1 + i as usize / 2)
                     .pins_name_only(&[
                         "MEMREFCLK",
@@ -1791,7 +1791,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 let abcd = ['A', 'B', 'C', 'D'][i as usize];
                 let mut bel = builder
-                    .bel_xy(&format!("PHASER_OUT{i}"), "PHASER_OUT_PHY", 0, i % 2)
+                    .bel_xy(format!("PHASER_OUT{i}"), "PHASER_OUT_PHY", 0, i % 2)
                     .raw_tile(1 + i as usize / 2)
                     .pins_name_only(&[
                         "MEMREFCLK",
@@ -2017,7 +2017,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFMRCE{i}"), "BUFMRCE", 0, i)
+                        .bel_xy(format!("BUFMRCE{i}"), "BUFMRCE", 0, i)
                         .raw_tile(4)
                         .pins_name_only(&["I", "O"]),
                 );
@@ -2515,7 +2515,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for &(ref pin, y) in &pins {
             bels.push(
                 builder
-                    .bel_xy(&format!("IOPAD.{pin}"), "IOPAD", 0, y - 1)
+                    .bel_xy(format!("IOPAD.{pin}"), "IOPAD", 0, y - 1)
                     .raw_tile(2)
                     .pins_name_only(&["IO"]),
             );

@@ -1,3 +1,4 @@
+#![allow(clippy::bool_to_int_with_if)]
 use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Part, Source};
@@ -375,7 +376,7 @@ fn verify_hclk_l(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         .unwrap();
     let has_rclk = grid.cols_io[if bel.col <= grid.col_clk { 0 } else { 1 }]
         .as_ref()
-        .filter(|ioc| ioc.regs[bel.row.to_idx() / 50].is_some())
+        .filter(|ioc| ioc.regs[grid.row_to_reg(bel.row)].is_some())
         .is_some();
     let lr = if bel.col <= grid.col_clk { 'L' } else { 'R' };
     for i in 8..12 {
@@ -538,7 +539,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     let obel_casc = vrf.find_bel_delta(
         bel,
         0,
-        if bel.row.to_idx() / 50 < grid.reg_clk {
+        if grid.row_to_reg(bel.row) < grid.reg_clk {
             -50
         } else {
             50
@@ -680,7 +681,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
                 vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire(&format!("GCLK{j}")));
             }
         }
-        let reg = bel.row.to_idx() / 50;
+        let reg = grid.row_to_reg(bel.row);
         let has_rclk = grid.cols_io[if lr == 'L' { 0 } else { 1 }]
             .as_ref()
             .filter(|ioc| ioc.regs[reg].is_some())
@@ -2047,8 +2048,8 @@ fn verify_hclk_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 
     let mut has_gt = false;
-    if let Some(ref gtcol) = grid.cols_gt[if lr == 'L' { 0 } else { 1 }] {
-        if gtcol.regs[bel.row.to_idx() / 50].is_some() {
+    if let Some(ref gtcol) = grid.cols_gt[usize::from(lr == 'R')] {
+        if gtcol.regs[grid.row_to_reg(bel.row)].is_some() {
             has_gt = true;
             let obel = vrf
                 .find_bel(bel.die, (gtcol.col, bel.row), "GTP_COMMON")

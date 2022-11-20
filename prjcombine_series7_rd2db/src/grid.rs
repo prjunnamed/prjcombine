@@ -3,7 +3,7 @@ use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_series7::{
     ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind, Pcie2,
-    Pcie2Kind, XadcKind,
+    Pcie2Kind, RegId, XadcKind,
 };
 use std::collections::BTreeSet;
 
@@ -163,7 +163,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
     let mut res = [None, None];
     if let Some(x) = int.find_column(&["LIOI", "LIOI3"]) {
         let col = int.lookup_column_inter(x);
-        let mut regs = Vec::new();
+        let mut regs = EntityVec::new();
         for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: x as u16,
@@ -181,7 +181,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
     }
     if let Some(x) = int.find_column(&["RIOI", "RIOI3"]) {
         let col = int.lookup_column_inter(x) - 1;
-        let mut regs = Vec::new();
+        let mut regs = EntityVec::new();
         for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: x as u16,
@@ -203,7 +203,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
 fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option<GtColumn>; 2] {
     let mut res = [None, None];
     if *columns.first().unwrap() == ColumnKind::Gt {
-        let mut regs = Vec::new();
+        let mut regs = EntityVec::new();
         for i in 0..(int.rows.len() / 50) {
             let c = Coord {
                 x: 0,
@@ -227,7 +227,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
         columns.last_id().unwrap() - 6
     };
     let x = int.cols[col] + 4;
-    let mut regs = Vec::new();
+    let mut regs = EntityVec::new();
     for i in 0..(int.rows.len() / 50) {
         let c = Coord {
             x: x as u16,
@@ -241,7 +241,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
         };
         regs.push(kind);
     }
-    if regs.iter().any(|&x| x.is_some()) {
+    if regs.values().any(|&x| x.is_some()) {
         res[1] = Some(GtColumn { col, regs });
     }
     res
@@ -268,11 +268,11 @@ fn get_cols_gtp_mid(int: &IntGrid) -> Option<(GtColumn, GtColumn)> {
         (
             GtColumn {
                 col: lcol,
-                regs: lrows,
+                regs: lrows.into_iter().collect(),
             },
             GtColumn {
                 col: rcol.unwrap(),
-                regs: rrows,
+                regs: rrows.into_iter().collect(),
             },
         )
     })
@@ -351,8 +351,8 @@ pub fn make_grids(
             cols_io: get_cols_io(&int),
             cols_gt: get_cols_gt(&int, &columns),
             regs: int.rows.len() / 50,
-            reg_cfg: row_cfg.to_idx() / 50,
-            reg_clk: row_clk.to_idx() / 50,
+            reg_cfg: RegId::from_idx(row_cfg.to_idx() / 50),
+            reg_clk: RegId::from_idx(row_clk.to_idx() / 50),
             pcie2: get_pcie2(&int),
             pcie3: get_pcie3(&int),
             cols_gtp_mid: get_cols_gtp_mid(&int),

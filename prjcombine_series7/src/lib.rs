@@ -1,12 +1,17 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 mod expand;
 pub mod io;
+
+entity_id! {
+    pub id RegId u32, delta;
+}
 
 pub use expand::expand_grid;
 
@@ -22,8 +27,8 @@ pub struct Grid {
     pub cols_gt: [Option<GtColumn>; 2],
     pub cols_gtp_mid: Option<(GtColumn, GtColumn)>,
     pub regs: usize,
-    pub reg_cfg: usize,
-    pub reg_clk: usize,
+    pub reg_cfg: RegId,
+    pub reg_clk: RegId,
     pub pcie2: Vec<Pcie2>,
     pub pcie3: Vec<(ColId, RowId)>,
     pub has_ps: bool,
@@ -61,13 +66,13 @@ pub enum ColumnKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IoColumn {
     pub col: ColId,
-    pub regs: Vec<Option<IoKind>>,
+    pub regs: EntityVec<RegId, Option<IoKind>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GtColumn {
     pub col: ColId,
-    pub regs: Vec<Option<GtKind>>,
+    pub regs: EntityVec<RegId, Option<GtKind>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -253,20 +258,44 @@ pub enum ExtraDie {
     GtzBottom,
 }
 
+pub struct FrameGeom {
+    pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
+}
+
 pub struct ExpandedDevice<'a> {
     pub grids: EntityVec<DieId, &'a Grid>,
     pub grid_master: DieId,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
     pub extras: Vec<ExtraDie>,
+    pub bs_geom: BitstreamGeom,
+    pub frames: EntityVec<DieId, FrameGeom>,
 }
 
 impl Grid {
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
+        RegId::from_idx(row.to_idx() / 50)
+    }
+
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 50)
+    }
+
+    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 50 + 25)
+    }
+
     pub fn row_hclk(&self, row: RowId) -> RowId {
         RowId::from_idx(row.to_idx() / 50 * 50 + 25)
     }
+
+    pub fn regs(&self) -> EntityIds<RegId> {
+        EntityIds::new(self.regs)
+    }
+
     pub fn row_bufg(&self) -> RowId {
-        RowId::from_idx(self.reg_clk * 50)
+        self.row_reg_bot(self.reg_clk)
     }
 
     pub fn col_ps(&self) -> ColId {

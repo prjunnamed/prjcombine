@@ -58,7 +58,7 @@ pub fn make_bond(
                     n => format!(
                         "IO_L{}{}_T{}",
                         (50 - n) / 2,
-                        ['P', 'N'][n as usize % 2],
+                        ['P', 'N'][n % 2],
                         3 - (n - 1) / 12
                     ),
                 };
