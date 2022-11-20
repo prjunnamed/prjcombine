@@ -64,7 +64,7 @@ make_res_type!(__ReservedUsize, core::num::NonZeroUsize, usize);
 #[macro_export]
 macro_rules! __impl_entity_id {
     ($v:vis, $id:ident, $t:ty) => {
-        #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, $crate::__serde::Serialize, $crate::__serde::Deserialize)]
         $v struct $id($t);
 
         impl $crate::EntityId for $id {
@@ -111,6 +111,12 @@ macro_rules! __impl_entity_id_delta {
             type Output = isize;
             fn sub(self, x: Self) -> isize {
                 self.to_idx() as isize - x.to_idx() as isize
+            }
+        }
+
+        impl $id {
+            pub fn range(self, other: $id) -> ::prjcombine_entity::id::EntityIds<$id> {
+                ::prjcombine_entity::id::EntityIds::new_range(self.to_idx(), other.to_idx())
             }
         }
     };
@@ -184,6 +190,14 @@ impl<I: EntityId> EntityIds<I> {
         Self {
             cur: 0,
             end: num,
+            ids: PhantomData,
+        }
+    }
+
+    pub fn new_range(start: usize, end: usize) -> Self {
+        Self {
+            cur: start,
+            end,
             ids: PhantomData,
         }
     }

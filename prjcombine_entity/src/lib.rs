@@ -11,3 +11,5 @@ pub use map::EntityMap;
 pub use part::EntityPartVec;
 pub use set::EntitySet;
 pub use vec::EntityVec;
+
+pub use serde as __serde;
