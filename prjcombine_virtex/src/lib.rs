@@ -1,8 +1,10 @@
 #![allow(clippy::collapsible_else_if)]
+#![allow(clippy::bool_to_int_with_if)]
 
-use prjcombine_entity::{EntityId, EntityIds};
+use prjcombine_entity::{EntityId, EntityIds, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
 use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, RowId};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -97,6 +99,10 @@ pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,
     pub bonded_ios: Vec<((ColId, RowId), BelId)>,
+    pub bs_geom: BitstreamGeom,
+    pub spine_frame: usize,
+    pub col_frame: EntityVec<ColId, usize>,
+    pub bram_frame: EntityPartVec<ColId, usize>,
 }
 
 impl Grid {

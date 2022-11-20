@@ -1,6 +1,9 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, IntDb};
 use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use std::collections::BTreeSet;
 
 use crate::{DisabledPart, ExpandedDevice, Grid, GridKind};
@@ -15,6 +18,10 @@ struct Expander<'a, 'b> {
     rlut: EntityVec<RowId, usize>,
     cols_bram: Vec<ColId>,
     bonded_ios: Vec<((ColId, RowId), BelId)>,
+    spine_frame: usize,
+    frame_info: Vec<FrameInfo>,
+    col_frame: EntityVec<ColId, usize>,
+    bram_frame: EntityPartVec<ColId, usize>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -671,6 +678,116 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
         }
     }
+
+    fn fill_frame_info(&mut self) {
+        let mut major = 0;
+        // spine
+        self.spine_frame = 0;
+        for minor in 0..8 {
+            self.frame_info.push(FrameInfo {
+                addr: FrameAddr {
+                    typ: 0,
+                    region: 0,
+                    major,
+                    minor,
+                },
+            });
+        }
+        major += 1;
+
+        for _ in self.grid.columns() {
+            self.col_frame.push(0);
+        }
+
+        let split_bram = self.grid.kind != GridKind::VirtexE;
+
+        for dx in 0..(self.grid.columns / 2) {
+            for lr in ['R', 'L'] {
+                let col = if lr == 'R' {
+                    self.grid.col_clk() + dx
+                } else {
+                    self.grid.col_clk() - 1 - dx
+                };
+                if self.grid.cols_bram.contains(&col) && split_bram {
+                    continue;
+                }
+                self.col_frame[col] = self.frame_info.len();
+                let width = if col == self.grid.col_lio() || col == self.grid.col_rio() {
+                    54
+                } else if self.grid.cols_bram.contains(&col) {
+                    27
+                } else {
+                    48
+                };
+                for minor in 0..width {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: 0,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+
+        // bram main
+        if split_bram {
+            for dx in 0..(self.grid.columns / 2) {
+                for lr in ['R', 'L'] {
+                    let col = if lr == 'R' {
+                        self.grid.col_clk() + dx
+                    } else {
+                        self.grid.col_clk() - 1 - dx
+                    };
+                    if !self.grid.cols_bram.contains(&col) {
+                        continue;
+                    }
+                    self.col_frame[col] = self.frame_info.len();
+                    for minor in 0..27 {
+                        self.frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: 0,
+                                major,
+                                minor,
+                            },
+                        });
+                    }
+                    major += 1;
+                }
+            }
+        }
+
+        // bram data
+        major = u32::from(self.grid.kind != GridKind::Virtex);
+        for dx in 0..(self.grid.columns / 2) {
+            for lr in ['R', 'L'] {
+                let col = if lr == 'R' {
+                    self.grid.col_clk() + dx
+                } else {
+                    self.grid.col_clk() - 1 - dx
+                };
+                if !self.grid.cols_bram.contains(&col) {
+                    continue;
+                }
+                self.bram_frame.insert(col, self.frame_info.len());
+                for minor in 0..64 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 1,
+                            region: 0,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+    }
 }
 
 impl Grid {
@@ -692,6 +809,10 @@ impl Grid {
             bramclut: EntityPartVec::new(),
             rlut: EntityVec::new(),
             cols_bram: self.cols_bram.iter().copied().collect(),
+            frame_info: vec![],
+            spine_frame: 0,
+            col_frame: EntityVec::new(),
+            bram_frame: EntityPartVec::new(),
         };
         expander.fill_clut();
         expander.fill_rlut();
@@ -702,12 +823,34 @@ impl Grid {
         expander.fill_clkbt();
         expander.fill_pcilogic();
         expander.fill_clk();
+        expander.fill_frame_info();
+
         let bonded_ios = expander.bonded_ios;
+        let spine_frame = expander.spine_frame;
+        let col_frame = expander.col_frame;
+        let bram_frame = expander.bram_frame;
+
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len: self.rows * 18,
+            frame_info: expander.frame_info,
+            bram_cols: 0,
+            bram_regs: 0,
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Virtex,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![expander.die.die],
+        };
 
         ExpandedDevice {
             grid: self,
             egrid,
             bonded_ios,
+            bs_geom,
+            spine_frame,
+            col_frame,
+            bram_frame,
         }
     }
 }
