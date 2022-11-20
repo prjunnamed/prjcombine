@@ -29,22 +29,10 @@ pub struct PbSitePin<'a> {
 }
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
-    let (l, r) = match s.rfind("_X") {
-        None => return None,
-        Some(pos) => (&s[..pos], &s[pos + 2..]),
-    };
-    let (x, y) = match r.rfind('Y') {
-        None => return None,
-        Some(pos) => (&r[..pos], &r[pos + 1..]),
-    };
-    let x = match x.parse::<u32>() {
-        Err(_) => return None,
-        Ok(x) => x,
-    };
-    let y = match y.parse::<u32>() {
-        Err(_) => return None,
-        Ok(y) => y,
-    };
+    let (l, r) = s.rsplit_once("_X")?;
+    let (x, y) = r.rsplit_once('Y')?;
+    let x = x.parse().ok()?;
+    let y = y.parse().ok()?;
     Some((l, x, y))
 }
 
