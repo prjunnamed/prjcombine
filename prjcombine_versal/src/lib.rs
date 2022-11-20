@@ -1,8 +1,12 @@
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+
+entity_id! {
+    pub id RegId u32, delta;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -12,8 +16,8 @@ pub struct Grid {
     pub cols_hard: [Option<HardColumn>; 3],
     pub col_cfrm: ColId,
     pub regs: usize,
-    pub regs_gt_left: Vec<GtRowKind>,
-    pub regs_gt_right: Option<Vec<GtRowKind>>,
+    pub regs_gt_left: EntityVec<RegId, GtRowKind>,
+    pub regs_gt_right: Option<EntityVec<RegId, GtRowKind>>,
     pub cpm: CpmKind,
     pub top: TopKind,
     pub bottom: BotKind,
@@ -70,7 +74,7 @@ pub enum HardRowKind {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HardColumn {
     pub col: ColId,
-    pub regs: Vec<HardRowKind>,
+    pub regs: EntityVec<RegId, HardRowKind>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -117,9 +121,9 @@ pub enum NocEndpoint {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
-    HardIp(DieId, ColId, usize),
+    HardIp(DieId, ColId, RegId),
     Column(DieId, ColId),
-    GtRight(DieId, usize),
+    GtRight(DieId, RegId),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -133,6 +137,16 @@ pub struct ExpandedDevice<'a> {
     pub grid_master: DieId,
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
+}
+
+impl Grid {
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
+        RegId::from_idx(row.to_idx() / 48)
+    }
+
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 48)
+    }
 }
 
 pub fn expand_grid<'a>(
@@ -271,7 +285,7 @@ pub fn expand_grid<'a>(
                                 .flatten()
                                 .find(|x| x.col == col + 1)
                                 .unwrap();
-                            match ch.regs[row.to_idx() / 48] {
+                            match ch.regs[grid.row_to_reg(row)] {
                                 HardRowKind::Hdio => {
                                     tile = format!("INTF_HDIO_{ocf}_{bt}R_TILE_X{x}Y{y}");
                                 }
@@ -326,7 +340,7 @@ pub fn expand_grid<'a>(
                                 .flatten()
                                 .find(|x| x.col == col)
                                 .unwrap();
-                            match ch.regs[row.to_idx() / 48] {
+                            match ch.regs[grid.row_to_reg(row)] {
                                 HardRowKind::Hdio => {
                                     tile = format!("INTF_HDIO_{ocf}_{bt}L_TILE_X{x}Y{y}");
                                 }

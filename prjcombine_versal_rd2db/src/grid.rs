@@ -3,7 +3,7 @@ use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::Part;
 use prjcombine_versal::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
-    HardRowKind, TopKind,
+    HardRowKind, RegId, TopKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -126,8 +126,8 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
-            let row = int.lookup_row(y).to_idx() / 48;
-            hard_cells.insert((col, row), kind);
+            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
+            hard_cells.insert((col, reg), kind);
         }
     }
     for (tt, kind_b, kind_t) in [
@@ -137,9 +137,9 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
-            let row = int.lookup_row(y).to_idx() / 48;
-            hard_cells.insert((col, row), kind_b);
-            hard_cells.insert((col, row + 1), kind_t);
+            let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
+            hard_cells.insert((col, reg), kind_b);
+            hard_cells.insert((col, reg + 1), kind_t);
         }
     }
     let mut cols_hard = Vec::new();
@@ -147,7 +147,7 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
     for col in cols {
         res[col].l = ColumnKind::Hard;
         res[col - 1].r = ColumnKind::Hard;
-        let mut regs = Vec::new();
+        let mut regs = EntityVec::new();
         for _ in 0..(int.rows.len() / 48) {
             regs.push(HardRowKind::None);
         }
@@ -193,8 +193,11 @@ fn get_cols_cpipe(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_rows_gt_left(int: &IntGrid) -> Vec<GtRowKind> {
-    let mut res = vec![GtRowKind::None; int.rows.len() / 48];
+fn get_rows_gt_left(int: &IntGrid) -> EntityVec<RegId, GtRowKind> {
+    let mut res = EntityVec::new();
+    for _ in 0..(int.rows.len() / 48) {
+        res.push(GtRowKind::None);
+    }
     for (tkn, kind) in [
         ("GTY_QUAD_SINGLE_MY", GtRowKind::Gty),
         ("GTYP_QUAD_SINGLE_MY", GtRowKind::Gtyp),
@@ -202,15 +205,18 @@ fn get_rows_gt_left(int: &IntGrid) -> Vec<GtRowKind> {
         ("XRAM_CORE", GtRowKind::Xram),
     ] {
         for row in int.find_rows(&[tkn]) {
-            let row = int.lookup_row(row);
-            res[row.to_idx() / 48] = kind;
+            let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
+            res[reg] = kind;
         }
     }
     res
 }
 
-fn get_rows_gt_right(int: &IntGrid) -> Option<Vec<GtRowKind>> {
-    let mut res = vec![GtRowKind::None; int.rows.len() / 48];
+fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
+    let mut res = EntityVec::new();
+    for _ in 0..(int.rows.len() / 48) {
+        res.push(GtRowKind::None);
+    }
     for (tkn, kind) in [
         ("GTY_QUAD_SINGLE", GtRowKind::Gty),
         ("GTYP_QUAD_SINGLE", GtRowKind::Gtyp),
@@ -218,11 +224,11 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<Vec<GtRowKind>> {
         ("VDU_CORE_MY", GtRowKind::Vdu),
     ] {
         for row in int.find_rows(&[tkn]) {
-            let row = int.lookup_row(row);
-            res[row.to_idx() / 48] = kind;
+            let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
+            res[reg] = kind;
         }
     }
-    if res.iter().any(|&x| x != GtRowKind::None) {
+    if res.values().any(|&x| x != GtRowKind::None) {
         Some(res)
     } else {
         None
@@ -276,12 +282,14 @@ pub fn make_grids(
         assert_eq!(grids[s0].regs, 7);
         let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
         for (reg, kind) in [(0, HardRowKind::Mrmac), (6, HardRowKind::Hdio)] {
+            let reg = RegId::from_idx(reg);
             assert_eq!(col_hard_r.regs[reg], HardRowKind::None);
             col_hard_r.regs[reg] = kind;
             disabled.insert(DisabledPart::HardIp(s0, col_hard_r.col, reg));
         }
         let regs_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
         for reg in [0, 1, 6] {
+            let reg = RegId::from_idx(reg);
             assert_eq!(regs_gt_r[reg], GtRowKind::None);
             regs_gt_r[reg] = GtRowKind::Gty;
             disabled.insert(DisabledPart::GtRight(s0, reg));
