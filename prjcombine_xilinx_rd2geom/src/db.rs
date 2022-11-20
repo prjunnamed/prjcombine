@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
-use prjcombine_int::db::{IntDb, IntfWireOutNaming};
+use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{
@@ -145,79 +145,7 @@ impl DbBuilder {
                 x.insert(int);
             }
             btree_map::Entry::Occupied(mut x) => {
-                let x = x.get_mut();
-                assert_eq!(x.wires, int.wires);
-                macro_rules! merge_dicts {
-                    ($f:ident) => {
-                        for (_, k, v) in int.$f {
-                            match x.$f.get(&k) {
-                                None => {
-                                    x.$f.insert(k, v);
-                                }
-                                Some((_, v2)) => {
-                                    if v != *v2 {
-                                        println!("FAIL at {}", k);
-                                    }
-                                    assert_eq!(&v, v2);
-                                }
-                            }
-                        }
-                    };
-                }
-                merge_dicts!(nodes);
-                merge_dicts!(terms);
-                for (_, k, v) in int.node_namings {
-                    match x.node_namings.get_mut(&k) {
-                        None => {
-                            x.node_namings.insert(k, v);
-                        }
-                        Some((_, v2)) => {
-                            for (kk, vv) in v.wires {
-                                match v2.wires.get(&kk) {
-                                    None => {
-                                        v2.wires.insert(kk, vv);
-                                    }
-                                    Some(vv2) => {
-                                        assert_eq!(&vv, vv2);
-                                    }
-                                }
-                            }
-                            assert_eq!(v.wire_bufs, v2.wire_bufs);
-                            assert_eq!(v.ext_pips, v2.ext_pips);
-                            assert_eq!(v.bels, v2.bels);
-                            for (kk, vv) in v.intf_wires_in {
-                                match v2.intf_wires_in.get(&kk) {
-                                    None => {
-                                        v2.intf_wires_in.insert(kk, vv);
-                                    }
-                                    Some(vv2) => {
-                                        assert_eq!(&vv, vv2);
-                                    }
-                                }
-                            }
-                            for (kk, vv) in v.intf_wires_out {
-                                match v2.intf_wires_out.get(&kk) {
-                                    None => {
-                                        v2.intf_wires_out.insert(kk, vv);
-                                    }
-                                    Some(vv2 @ IntfWireOutNaming::Buf(no, _)) => match vv {
-                                        IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
-                                        IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
-                                    },
-                                    Some(vv2 @ IntfWireOutNaming::Simple(n)) => {
-                                        if let IntfWireOutNaming::Buf(no, _) = &vv {
-                                            assert_eq!(no, n);
-                                            v2.intf_wires_out.insert(kk, vv);
-                                        } else {
-                                            assert_eq!(&vv, vv2);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                merge_dicts!(term_namings);
+                x.get_mut().merge(int);
             }
         }
     }

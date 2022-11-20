@@ -3,7 +3,9 @@ use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Enum, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Enum, Serialize, Deserialize,
+)]
 pub enum Dir {
     W,
     E,
@@ -79,6 +81,81 @@ impl IntDb {
     #[track_caller]
     pub fn get_term_naming(&self, name: &str) -> TermNamingId {
         self.term_namings.get(name).unwrap().0
+    }
+
+    pub fn merge(&mut self, other: IntDb) {
+        assert_eq!(self.wires, other.wires);
+        macro_rules! merge_dicts {
+            ($f:ident) => {
+                for (_, k, v) in other.$f {
+                    match self.$f.get(&k) {
+                        None => {
+                            self.$f.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            if v != *v2 {
+                                println!("FAIL at {}", k);
+                            }
+                            assert_eq!(&v, v2);
+                        }
+                    }
+                }
+            };
+        }
+        merge_dicts!(nodes);
+        merge_dicts!(terms);
+        for (_, k, v) in other.node_namings {
+            match self.node_namings.get_mut(&k) {
+                None => {
+                    self.node_namings.insert(k, v);
+                }
+                Some((_, v2)) => {
+                    for (kk, vv) in v.wires {
+                        match v2.wires.get(&kk) {
+                            None => {
+                                v2.wires.insert(kk, vv);
+                            }
+                            Some(vv2) => {
+                                assert_eq!(&vv, vv2);
+                            }
+                        }
+                    }
+                    assert_eq!(v.wire_bufs, v2.wire_bufs);
+                    assert_eq!(v.ext_pips, v2.ext_pips);
+                    assert_eq!(v.bels, v2.bels);
+                    for (kk, vv) in v.intf_wires_in {
+                        match v2.intf_wires_in.get(&kk) {
+                            None => {
+                                v2.intf_wires_in.insert(kk, vv);
+                            }
+                            Some(vv2) => {
+                                assert_eq!(&vv, vv2);
+                            }
+                        }
+                    }
+                    for (kk, vv) in v.intf_wires_out {
+                        match v2.intf_wires_out.get(&kk) {
+                            None => {
+                                v2.intf_wires_out.insert(kk, vv);
+                            }
+                            Some(vv2 @ IntfWireOutNaming::Buf(no, _)) => match vv {
+                                IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
+                                IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
+                            },
+                            Some(vv2 @ IntfWireOutNaming::Simple(n)) => {
+                                if let IntfWireOutNaming::Buf(no, _) = &vv {
+                                    assert_eq!(no, n);
+                                    v2.intf_wires_out.insert(kk, vv);
+                                } else {
+                                    assert_eq!(&vv, vv2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        merge_dicts!(term_namings);
     }
 }
 
