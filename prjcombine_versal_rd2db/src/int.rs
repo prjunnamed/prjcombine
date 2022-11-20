@@ -277,10 +277,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for (fwd, name, l, ll) in [
-        (Dir::E, "LONG", 3, 6),
-        (Dir::N, "LONG", 7, 7),
-        (Dir::E, "LONG", 5, 10),
-        (Dir::N, "LONG", 12, 12),
+        (Dir::E, "LONG.6", 3, 6),
+        (Dir::N, "LONG.7", 7, 7),
+        (Dir::E, "LONG.10", 5, 10),
+        (Dir::N, "LONG.12", 12, 12),
     ] {
         let bwd = !fwd;
         for i in 0..8 {

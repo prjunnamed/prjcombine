@@ -131,7 +131,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 &[format!("BRAM_R{name}N{i}")],
             );
             bram_forbidden.push(s);
-            let n = builder.branch(w, Dir::N, format!("BRAM.SINGLE.{name}{i}.n"), &[""]);
+            let n = builder.branch(w, Dir::N, format!("BRAM.SINGLE.{name}{i}.N"), &[""]);
             l.push(w);
             ln.push(n);
         }
