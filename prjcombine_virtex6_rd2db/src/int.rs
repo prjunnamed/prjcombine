@@ -609,21 +609,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFIODQS{i}"), "BUFIODQS", 0, i ^ 2)
+                        .bel_xy(format!("BUFIODQS{i}"), "BUFIODQS", 0, i ^ 2)
                         .pins_name_only(&["I", "O"]),
                 );
             }
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFR{i}"), "BUFR", 0, i ^ 1)
+                        .bel_xy(format!("BUFR{i}"), "BUFR", 0, i ^ 1)
                         .pins_name_only(&["I", "O"]),
                 );
             }
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFO{i}"), "BUFO", 0, i ^ 1)
+                        .bel_xy(format!("BUFO{i}"), "BUFO", 0, i ^ 1)
                         .pins_name_only(&["I", "O"])
                         .extra_wire("VI", &[format!("HCLK_IOI_VBUFOCLK{i}")])
                         .extra_wire("VI_S", &[format!("HCLK_IOI_VBUFOCLK_SOUTH{i}")])
@@ -758,7 +758,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![];
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
+                    .bel_xy(format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
                     .pins_name_only(&[
                         "CLK",
                         "CLKB",
@@ -788,7 +788,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
+                        .bel_xy(format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
                         .pins_name_only(&[
                             "CLK",
                             "CLKB",
@@ -830,13 +830,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
+                        .bel_xy(format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
                         .pins_name_only(&["CLKIN", "IDATAIN", "ODATAIN", "DATAOUT", "T"]),
                 );
             }
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("IOB{i}"), "IOB", 0, i ^ 1)
+                    .bel_xy(format!("IOB{i}"), "IOB", 0, i ^ 1)
                     .raw_tile(1)
                     .pins_name_only(&[
                         "I",
@@ -952,7 +952,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 for j in 0..12 {
                     bels.push(
                         builder
-                            .bel_xy(&format!("BUFHCE_{lr}{j}"), "BUFHCE", i, j)
+                            .bel_xy(format!("BUFHCE_{lr}{j}"), "BUFHCE", i, j)
                             .raw_tile(2)
                             .pins_name_only(&["I", "O"]),
                     );
@@ -960,7 +960,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_xy(&format!("MMCM{i}"), "MMCM_ADV", 0, 0)
+                    .bel_xy(format!("MMCM{i}"), "MMCM_ADV", 0, 0)
                     .raw_tile(i)
                     .pins_name_only(&[
                         "CLKIN1",
@@ -1255,7 +1255,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 let ii = bi + i;
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFGCTRL{ii}"), "BUFGCTRL", 0, i)
+                        .bel_xy(format!("BUFGCTRL{ii}"), "BUFGCTRL", 0, i)
                         .pins_name_only(&["I0", "I1", "O"])
                         .extra_int_in(
                             "I0_CKINT",
@@ -1645,11 +1645,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bels.extend([
                     builder
-                        .bel_xy(&format!("IPAD.RXP{i}"), "IPAD", 0, (3 - i) * 2 + 1)
+                        .bel_xy(format!("IPAD.RXP{i}"), "IPAD", 0, (3 - i) * 2 + 1)
                         .raw_tile(1)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy(&format!("IPAD.RXN{i}"), "IPAD", 0, (3 - i) * 2)
+                        .bel_xy(format!("IPAD.RXN{i}"), "IPAD", 0, (3 - i) * 2)
                         .raw_tile(1)
                         .pins_name_only(&["O"]),
                 ]);
@@ -1657,11 +1657,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..4 {
                 bels.extend([
                     builder
-                        .bel_xy(&format!("OPAD.TXP{i}"), "OPAD", 0, (3 - i) * 2 + 1)
+                        .bel_xy(format!("OPAD.TXP{i}"), "OPAD", 0, (3 - i) * 2 + 1)
                         .raw_tile(1)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_xy(&format!("OPAD.TXN{i}"), "OPAD", 0, (3 - i) * 2)
+                        .bel_xy(format!("OPAD.TXN{i}"), "OPAD", 0, (3 - i) * 2)
                         .raw_tile(1)
                         .pins_name_only(&["I"]),
                 ]);

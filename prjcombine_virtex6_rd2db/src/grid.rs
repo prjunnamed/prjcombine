@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::ColId;
 use prjcombine_rawdump::Part;
-use prjcombine_virtex6::{ColumnKind, DisabledPart, Grid, HardColumn};
+use prjcombine_virtex6::{ColumnKind, DisabledPart, Grid, HardColumn, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
@@ -115,17 +115,19 @@ fn get_col_cfg(rd: &Part, int: &IntGrid) -> ColId {
     int.lookup_column(find_column(rd, &["CFG_CENTER_0"]).unwrap() + 2)
 }
 
-fn get_reg_cfg(rd: &Part, int: &IntGrid) -> usize {
-    int.lookup_row(find_row(rd, &["CFG_CENTER_2"]).unwrap() - 10)
-        .to_idx()
-        / 40
+fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
+    RegId::from_idx(
+        int.lookup_row(find_row(rd, &["CFG_CENTER_2"]).unwrap() - 10)
+            .to_idx()
+            / 40,
+    )
 }
 
-fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> usize {
+fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> RegId {
     if let Some(r) = find_rows(rd, &["GTH_BOT"]).into_iter().min() {
-        int.lookup_row(r - 10).to_idx() / 40
+        RegId::from_idx(int.lookup_row(r - 10).to_idx() / 40)
     } else {
-        int.rows.len() / 40
+        RegId::from_idx(int.rows.len() / 40)
     }
 }
 
@@ -140,7 +142,9 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         disabled.insert(DisabledPart::Emac(int.lookup_row(r)));
     }
     for r in find_rows(rd, &["GTX_DUMMY"]) {
-        disabled.insert(DisabledPart::GtxRow(int.lookup_row(r).to_idx() / 40));
+        disabled.insert(DisabledPart::GtxRow(RegId::from_idx(
+            int.lookup_row(r).to_idx() / 40,
+        )));
     }
     let grid = Grid {
         columns,

@@ -572,7 +572,7 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             }
         }
     } else {
-        let reg = bel.row.to_idx() / 40;
+        let reg = edev.grid.row_to_reg(bel.row);
         if which == "IR"
             && edev.disabled.contains(&DisabledPart::GtxRow(reg))
             && edev.grid.cols_io[3].is_none()
@@ -1243,7 +1243,7 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 obel_mmcm0.fwire(&format!("PERF{i}_{which}")),
                 obel_mmcm1.fwire(&format!("PERF{i}_{which}")),
             ]);
-            let reg = bel.row.to_idx() / 40;
+            let reg = edev.grid.row_to_reg(bel.row);
             if which == "OL" && edev.grid.cols_io[0].is_none() && reg >= edev.grid.reg_gth_start {
                 continue;
             }
@@ -1987,7 +1987,7 @@ pub fn verify_hclk_gth(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 pub fn verify_mgt_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let reg = bel.row.to_idx() / 40;
+    let reg = edev.grid.row_to_reg(bel.row);
     if edev.disabled.contains(&DisabledPart::GtxRow(reg)) && edev.grid.cols_io[3].is_none() {
         return;
     }

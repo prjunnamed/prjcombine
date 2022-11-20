@@ -1,12 +1,17 @@
 #![allow(clippy::comparison_chain)]
 
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 mod expand;
 pub mod io;
+
+entity_id! {
+    pub id RegId u32, delta;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -18,8 +23,8 @@ pub struct Grid {
     pub cols_io: [Option<ColId>; 4],
     pub col_hard: Option<HardColumn>,
     pub regs: usize,
-    pub reg_gth_start: usize,
-    pub reg_cfg: usize,
+    pub reg_gth_start: RegId,
+    pub reg_cfg: RegId,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -43,7 +48,7 @@ pub struct HardColumn {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
     Emac(RowId),
-    GtxRow(usize),
+    GtxRow(RegId),
     SysMon,
 }
 
@@ -161,15 +166,34 @@ pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub disabled: &'a BTreeSet<DisabledPart>,
     pub egrid: ExpandedGrid<'a>,
+    pub bs_geom: BitstreamGeom,
+    pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
 }
 
 impl Grid {
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
+        RegId::from_idx(row.to_idx() / 40)
+    }
+
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 40)
+    }
+
+    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 40 + 20)
+    }
+
     pub fn row_hclk(&self, row: RowId) -> RowId {
         RowId::from_idx(row.to_idx() / 40 * 40 + 20)
     }
 
+    pub fn regs(&self) -> EntityIds<RegId> {
+        EntityIds::new(self.regs)
+    }
+
     pub fn row_bufg(&self) -> RowId {
-        RowId::from_idx(self.reg_cfg * 40)
+        self.row_reg_bot(self.reg_cfg)
     }
 
     pub fn has_gt(&self) -> bool {

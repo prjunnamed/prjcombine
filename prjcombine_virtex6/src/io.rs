@@ -148,9 +148,9 @@ impl Gt {
             (1, 0)
         };
         if self.is_gth {
-            let gthy = self.row.to_idx() / 40 - grid.reg_gth_start;
-            let opy = (grid.reg_gth_start * 32 + gthy * 8) as u32;
-            let ipy = (grid.reg_gth_start * 24 + gthy * 12) as u32;
+            let gthy = (grid.row_to_reg(self.row) - grid.reg_gth_start) as usize;
+            let opy = (grid.reg_gth_start.to_idx() * 32 + gthy * 8) as u32;
+            let ipy = (grid.reg_gth_start.to_idx() * 24 + gthy * 12) as u32;
             for b in 0..4 {
                 res.push((
                     format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)),
@@ -231,12 +231,12 @@ impl Grid {
         let mut iox = 0;
         for ioc in 0..4 {
             if let Some(col) = self.cols_io[ioc as usize] {
-                for j in 0..self.regs {
-                    let bank = 15 + j - self.reg_cfg + ioc as usize * 10;
+                for reg in self.regs() {
+                    let bank = (reg - self.reg_cfg + 15) as usize + ioc as usize * 10;
                     for k in 0..40 {
                         res.push(Io {
                             col,
-                            row: RowId::from_idx(j * 40 + k),
+                            row: self.row_reg_bot(reg) + k,
                             ioc,
                             iox,
                             bank: bank as u32,
@@ -253,16 +253,16 @@ impl Grid {
     pub fn get_gt(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
         let mut res = Vec::new();
         let mut gy = 0;
-        for i in 0..self.regs {
-            if disabled.contains(&DisabledPart::GtxRow(i)) {
+        for reg in self.regs() {
+            if disabled.contains(&DisabledPart::GtxRow(reg)) {
                 continue;
             }
-            let is_gth = i >= self.reg_gth_start;
+            let is_gth = reg >= self.reg_gth_start;
             if self.has_left_gt() {
-                let bank = 105 + i - self.reg_cfg;
+                let bank = reg - self.reg_cfg + 105;
                 res.push(Gt {
                     col: self.columns.first_id().unwrap(),
-                    row: RowId::from_idx(i * 40),
+                    row: self.row_reg_bot(reg),
                     gtc: 0,
                     gy,
                     bank: bank as u32,
@@ -270,10 +270,10 @@ impl Grid {
                 });
             }
             if self.col_hard.is_some() {
-                let bank = 115 + i - self.reg_cfg;
+                let bank = reg - self.reg_cfg + 115;
                 res.push(Gt {
                     col: self.columns.last_id().unwrap(),
-                    row: RowId::from_idx(i * 40),
+                    row: self.row_reg_bot(reg),
                     gtc: 1,
                     gy,
                     bank: bank as u32,
@@ -292,8 +292,8 @@ impl Grid {
             res.push(("IPAD_X0Y1".to_string(), SysMonPin::VN));
         } else {
             let mut ipy = 6;
-            for i in 0..self.reg_cfg {
-                if !disabled.contains(&DisabledPart::GtxRow(i)) {
+            for reg in self.regs() {
+                if reg < self.reg_cfg && !disabled.contains(&DisabledPart::GtxRow(reg)) {
                     ipy += 24;
                 }
             }

@@ -1,9 +1,12 @@
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use std::collections::{BTreeSet, HashSet};
 
-use crate::{ColumnKind, DisabledPart, ExpandedDevice, Grid};
+use crate::{ColumnKind, DisabledPart, ExpandedDevice, Grid, RegId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -15,6 +18,9 @@ struct Expander<'a, 'b> {
     site_holes: Vec<Rect>,
     int_holes: Vec<Rect>,
     hard_skip: HashSet<RowId>,
+    frame_info: Vec<FrameInfo>,
+    col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -104,8 +110,8 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_cfg(&mut self) {
-        let row_b = RowId::from_idx(self.grid.reg_cfg * 40 - 40);
-        let row_t = RowId::from_idx(self.grid.reg_cfg * 40 + 40);
+        let row_b = self.grid.row_reg_bot(self.grid.reg_cfg - 1);
+        let row_t = self.grid.row_reg_bot(self.grid.reg_cfg + 1);
         self.die.nuke_rect(self.grid.col_cfg - 6, row_b, 6, 80);
         for dx in 0..6 {
             let col = self.grid.col_cfg - 6 + dx;
@@ -159,16 +165,15 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(15, "CFG_IO_ACCESS_X0Y0".to_string());
         node.add_bel(16, "SYSMON_X0Y0".to_string());
         let ipx = usize::from(self.grid.has_left_gt());
-        let mut ipy = if self.grid.has_gt() {
-            self.grid.reg_cfg * 24 + 6
-        } else {
-            0
-        };
-        for i in 0..self.grid.reg_cfg {
-            if self.disabled.contains(&DisabledPart::GtxRow(i)) {
-                ipy -= 24;
+        let mut ipy = 0;
+        if self.grid.has_gt() {
+            ipy += 6;
+            for reg in self.grid.regs() {
+                if reg < self.grid.reg_cfg && !self.disabled.contains(&DisabledPart::GtxRow(reg)) {
+                    ipy += 24;
+                }
             }
-        }
+        };
         node.add_bel(17, format!("IPAD_X{ipx}Y{y}", y = ipy));
         node.add_bel(18, format!("IPAD_X{ipx}Y{y}", y = ipy + 1));
     }
@@ -486,8 +491,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_cfg;
         let x = col.to_idx();
         let mut pmvy = 0;
-        for reg in 0..self.grid.regs {
-            let row_hclk = RowId::from_idx(reg * 40 + 20);
+        for reg in self.grid.regs() {
+            let row_hclk = self.grid.row_reg_hclk(reg);
             let crds: [_; 40] = core::array::from_fn(|dy| (col, row_hclk - 20 + dy));
             let name_b = format!("CMT_X{x}Y{y}", y = row_hclk.to_idx() - 9);
             let name_t = format!("CMT_X{x}Y{y}", y = row_hclk.to_idx() + 9);
@@ -509,12 +514,15 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             for i in 0..2 {
                 for j in 0..12 {
-                    node.add_bel(i * 12 + j, format!("BUFHCE_X{i}Y{y}", y = reg * 12 + j));
+                    node.add_bel(
+                        i * 12 + j,
+                        format!("BUFHCE_X{i}Y{y}", y = reg.to_idx() * 12 + j),
+                    );
                 }
             }
-            node.add_bel(24, format!("MMCM_ADV_X0Y{y}", y = reg * 2));
-            node.add_bel(25, format!("MMCM_ADV_X0Y{y}", y = reg * 2 + 1));
-            node.add_bel(26, format!("PPR_FRAME_X0Y{reg}"));
+            node.add_bel(24, format!("MMCM_ADV_X0Y{y}", y = reg.to_idx() * 2));
+            node.add_bel(25, format!("MMCM_ADV_X0Y{y}", y = reg.to_idx() * 2 + 1));
+            node.add_bel(26, format!("PPR_FRAME_X0Y{y}", y = reg.to_idx()));
 
             let row = row_hclk - 20;
             let y = row.to_idx();
@@ -599,7 +607,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let mut gthy = 0;
             let mut hy = 0;
             for row in self.die.rows() {
-                let reg = row.to_idx() / 40;
+                let reg = self.grid.row_to_reg(row);
                 if reg >= self.grid.reg_gth_start {
                     if row.to_idx() % 40 == 20 {
                         let name_b = if is_l {
@@ -791,6 +799,62 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
         }
     }
+
+    fn fill_frame_info(&mut self) {
+        let mut regs: Vec<_> = self.grid.regs().collect();
+        regs.sort_by_key(|&reg| {
+            let rreg = reg - self.grid.reg_cfg;
+            (rreg < 0, rreg.abs())
+        });
+        for _ in 0..self.grid.regs {
+            self.col_frame.push(EntityVec::new());
+            self.bram_frame.push(EntityPartVec::new());
+        }
+        for &reg in &regs {
+            for (col, cd) in &self.grid.columns {
+                self.col_frame[reg].push(self.frame_info.len());
+                let width = match cd {
+                    ColumnKind::ClbLL => 36,
+                    ColumnKind::ClbLM => 36,
+                    ColumnKind::Bram => 28,
+                    ColumnKind::Dsp => 28,
+                    ColumnKind::Io => 44,
+                    ColumnKind::Cmt => 38,
+                    ColumnKind::Gt => 30,
+                };
+                for minor in 0..width {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major: col.to_idx() as u32,
+                            minor,
+                        },
+                    });
+                }
+            }
+        }
+        for &reg in &regs {
+            let mut major = 0;
+            for (col, &cd) in &self.grid.columns {
+                if cd != ColumnKind::Bram {
+                    continue;
+                }
+                self.bram_frame[reg].insert(col, self.frame_info.len());
+                for minor in 0..128 {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 1,
+                            region: (reg - self.grid.reg_cfg) as i32,
+                            major,
+                            minor,
+                        },
+                    });
+                }
+                major += 1;
+            }
+        }
+    }
 }
 
 impl Grid {
@@ -815,6 +879,9 @@ impl Grid {
             int_holes: vec![],
             site_holes: vec![],
             hard_skip: HashSet::new(),
+            frame_info: vec![],
+            col_frame: EntityVec::new(),
+            bram_frame: EntityVec::new(),
         };
 
         expander.fill_tiexlut();
@@ -830,11 +897,30 @@ impl Grid {
         expander.fill_cmt();
         expander.fill_gt();
         expander.fill_hclk();
+        expander.fill_frame_info();
+
+        let col_frame = expander.col_frame;
+        let bram_frame = expander.bram_frame;
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len: 64 * 40 + 32,
+            frame_info: expander.frame_info,
+            bram_cols: 0,
+            bram_regs: 0,
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Virtex6,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![expander.die.die],
+        };
 
         ExpandedDevice {
             grid: self,
             disabled,
             egrid,
+            bs_geom,
+            col_frame,
+            bram_frame,
         }
     }
 }
