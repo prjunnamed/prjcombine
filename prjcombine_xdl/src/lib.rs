@@ -1,5 +1,9 @@
+use arrayref::array_ref;
+use prjcombine_toolchain::Toolchain;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::fs::File;
 use std::io::{self, Write};
 
 mod parser;
@@ -338,4 +342,67 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
         }
         None
     }
+}
+
+pub fn run_bitgen(
+    tc: &Toolchain,
+    design: &Design,
+    gopts: &HashMap<String, String>,
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let dir = tempfile::Builder::new().prefix("xdl_bitgen").tempdir()?;
+    let mut xdl_file = File::create(dir.path().join("meow.xdl"))?;
+    design.write(&mut xdl_file)?;
+    if design.nets.is_empty() && design.version.is_empty() {
+        writeln!(xdl_file, "net \"meow\";")?;
+    }
+    std::mem::drop(xdl_file);
+    let mut cmd = tc.command("xdl");
+    cmd.current_dir(dir.path());
+    cmd.arg("-xdl2ncd");
+    cmd.arg("-force");
+    cmd.arg("meow.xdl");
+    let status = cmd.output()?;
+    if !status.status.success() {
+        let _ = std::io::stderr().write_all(&status.stdout);
+        let _ = std::io::stderr().write_all(&status.stderr);
+        panic!("non-zero xdl exit status");
+    }
+    let mut cmd = tc.command("bitgen");
+    cmd.current_dir(dir.path());
+    cmd.arg("-d");
+    for (k, v) in gopts {
+        cmd.arg("-g");
+        if v.is_empty() {
+            cmd.arg(k);
+        } else {
+            cmd.arg(format!("{k}:{v}"));
+        }
+    }
+    cmd.arg("meow.ncd");
+    let status = cmd.output()?;
+    if !status.status.success() {
+        let _ = std::io::stderr().write_all(&status.stdout);
+        let _ = std::io::stderr().write_all(&status.stderr);
+        panic!("non-zero bitgen exit status");
+    }
+    let mut bitdata = std::fs::read(dir.path().join("meow.bit"))?;
+    assert_eq!(
+        bitdata[..13],
+        [0x00, 0x09, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x0f, 0xf0, 0x00, 0x00, 0x01]
+    );
+    let mut pos = 13;
+    for l in [b'a', b'b', b'c', b'd'] {
+        assert_eq!(bitdata[pos], l);
+        pos += 1;
+        let len = u16::from_be_bytes(*array_ref!(bitdata, pos, 2)) as usize;
+        pos += 2;
+        pos += len;
+    }
+    assert_eq!(bitdata[pos], b'e');
+    pos += 1;
+    let len = u32::from_be_bytes(*array_ref!(bitdata, pos, 4)) as usize;
+    pos += 4;
+    assert_eq!(pos + len, bitdata.len());
+    bitdata.drain(0..pos);
+    Ok(bitdata)
 }
