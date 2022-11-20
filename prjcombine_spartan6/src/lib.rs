@@ -1,6 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::db::BelId;
 use prjcombine_int::grid::{ColId, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -191,6 +192,7 @@ pub struct ExpandedDevice<'a> {
     pub disabled: &'a BTreeSet<DisabledPart>,
     pub egrid: ExpandedGrid<'a>,
     pub bonded_ios: Vec<((ColId, RowId), BelId)>,
+    pub bs_geom: BitstreamGeom,
 }
 
 impl Grid {

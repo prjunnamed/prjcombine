@@ -4,6 +4,9 @@ use prjcombine_int::db::{BelId, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{
     ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
 };
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use std::collections::BTreeSet;
 
 use crate::{ColumnIoKind, ColumnKind, DisabledPart, ExpandedDevice, Grid, Gts};
@@ -21,6 +24,8 @@ struct Expander<'a, 'b> {
     pad_cnt: usize,
     bonded_ios: Vec<((ColId, RowId), BelId)>,
     holes: Vec<Rect>,
+    frame_info: Vec<FrameInfo>,
+    iob_frame_len: usize,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -2230,6 +2235,35 @@ impl<'a, 'b> Expander<'a, 'b> {
             &[crd],
         );
     }
+
+    fn fill_frame_info(&mut self) {
+        let regs = self.grid.rows.len() / 16;
+        for reg in 0..regs {
+            for (col, cd) in &self.grid.columns {
+                // XXX
+                //self.col_frame.push(self.frame_info.len());
+                let width = match cd.kind {
+                    ColumnKind::CleXL => 30,
+                    ColumnKind::CleXM => 31,
+                    ColumnKind::CleClk => 31,
+                    ColumnKind::Bram => 25,
+                    ColumnKind::Dsp => 24,
+                    ColumnKind::DspPlus => 31,
+                    ColumnKind::Io => 30,
+                };
+                for minor in 0..width {
+                    self.frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: reg as i32,
+                            major: col.to_idx() as u32,
+                            minor,
+                        },
+                    });
+                }
+            }
+        }
+    }
 }
 
 impl Grid {
@@ -2258,6 +2292,8 @@ impl Grid {
             pad_cnt: 1,
             bonded_ios: vec![],
             holes: vec![],
+            frame_info: vec![],
+            iob_frame_len: 0,
         };
 
         expander.fill_rxlut();
@@ -2284,14 +2320,35 @@ impl Grid {
         expander.fill_cle();
         expander.fill_hclk_fold();
         expander.fill_hclk();
+        expander.fill_frame_info();
+        // XXX compute iob frame data
 
         let bonded_ios = expander.bonded_ios;
+
+        // XXX fill frame_info
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len: 1040,
+            frame_info: expander.frame_info,
+            bram_cols: self
+                .columns
+                .values()
+                .filter(|x| x.kind == ColumnKind::Bram)
+                .count(),
+            bram_regs: self.rows.len() / 16,
+            iob_frame_len: expander.iob_frame_len,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Spartan6,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![expander.die.die],
+        };
 
         ExpandedDevice {
             grid: self,
             disabled,
             egrid,
             bonded_ios,
+            bs_geom,
         }
     }
 }

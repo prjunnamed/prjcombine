@@ -437,7 +437,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(&format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
+                    .bel_xy(format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
                     .pins_name_only(&[
                         "D", "DDLY", "DDLY2", "CLK0", "CLK1", "IOCE", "DFB", "CFB0", "CFB1", "OFB",
                         "TFB", "SHIFTIN", "SHIFTOUT", "SR",
@@ -516,7 +516,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_xy(&format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
+                    .bel_xy(format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
                     .pins_name_only(&[
                         "CLK0",
                         "CLK1",
@@ -565,7 +565,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(&format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
+                    .bel_xy(format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
                     .pins_name_only(&[
                         "IOCLK0",
                         "IOCLK1",
@@ -630,7 +630,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_virtual(&format!("IOICLK{i}"))
+                    .bel_virtual(format!("IOICLK{i}"))
                     .extra_wire("CLK0INTER", &[format!("IOI_CLK0INTER_{ms}")])
                     .extra_wire("CLK1INTER", &[format!("IOI_CLK1INTER_{ms}")])
                     .extra_wire("CLK2INTER", &[format!("IOI_CLK2INTER_{ms}")])
@@ -737,7 +737,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![];
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_indexed(&format!("IOB{i}"), "IOB", idx[i])
+                    .bel_indexed(format!("IOB{i}"), "IOB", idx[i])
                     .pins_name_only(&["PADOUT", "DIFFI_IN", "DIFFO_OUT", "DIFFO_IN", "PCI_RDY"])
                     .pin_name_only("I", 1)
                     .pin_name_only("O", 1)
@@ -1545,7 +1545,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..8 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFIO2_{i}"), "BUFIO2", bio2[i].0, bio2[i].1)
+                        .bel_xy(format!("BUFIO2_{i}"), "BUFIO2", bio2[i].0, bio2[i].1)
                         .pins_name_only(&["I", "IB"])
                         .pin_name_only("DIVCLK", 1)
                         .pin_name_only("IOCLK", 1)
@@ -1557,7 +1557,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..8 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFIO2FB_{i}"), "BUFIO2FB", bio2[i].0, bio2[i].1)
+                        .bel_xy(format!("BUFIO2FB_{i}"), "BUFIO2FB", bio2[i].0, bio2[i].1)
                         .pins_name_only(&["I", "IB", "O"])
                         .extra_wire("CMT", &[format!("REG{e}_CLK_FEEDBACK{i}")]),
                 );
@@ -1565,7 +1565,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFPLL{i}"), "BUFPLL", 0, bpll[i])
+                        .bel_xy(format!("BUFPLL{i}"), "BUFPLL", 0, bpll[i])
                         .pins_name_only(&[
                             "PLLIN",
                             "IOCLK",
@@ -2113,7 +2113,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 let ii = 2 - i;
                 let mut bel = builder
-                    .bel_xy(&format!("DCM{i}"), "DCM", 0, i)
+                    .bel_xy(format!("DCM{i}"), "DCM", 0, i)
                     .pins_name_only(&["CLKIN", "CLKFB", "SKEWCLKIN1", "SKEWCLKIN2"])
                     .extra_int_in("CLKFB_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG0")])
                     .extra_int_in("CLKIN_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG1")])
@@ -2494,7 +2494,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(&format!("BUFDS{i}"), "BUFDS", 0, i)
+                        .bel_xy(format!("BUFDS{i}"), "BUFDS", 0, i)
                         .pins_name_only(&["I", "IB", "O"]),
                 );
             }
