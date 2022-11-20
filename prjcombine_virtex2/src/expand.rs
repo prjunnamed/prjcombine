@@ -1,6 +1,9 @@
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
@@ -20,6 +23,13 @@ struct Expander<'a, 'b> {
     rows_brk: HashSet<RowId>,
     ctr_pad: usize,
     ctr_nopad: usize,
+    frame_info: Vec<FrameInfo>,
+    clkv_frame: usize,
+    spine_frame: usize,
+    lterm_frame: usize,
+    rterm_frame: usize,
+    col_frame: EntityVec<ColId, usize>,
+    bram_frame: EntityPartVec<ColId, usize>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -3102,6 +3112,124 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
         }
     }
+
+    fn fill_frame_info(&mut self) {
+        let mut major = 0;
+        // spine
+        self.clkv_frame = 0;
+        let num_spine = if self.grid.kind.is_virtex2() {
+            self.spine_frame = 0;
+            4
+        } else if self.grid.cols_clkv.is_none() {
+            self.spine_frame = 0;
+            2
+        } else if self.grid.has_ll || self.grid.kind.is_spartan3a() {
+            self.spine_frame = 2;
+            4
+        } else {
+            self.spine_frame = 2;
+            3
+        };
+        for minor in 0..num_spine {
+            self.frame_info.push(FrameInfo {
+                addr: FrameAddr {
+                    typ: 0,
+                    region: 0,
+                    major,
+                    minor,
+                },
+            });
+        }
+        major += 1;
+        let num_term = if self.grid.kind.is_virtex2() { 4 } else { 2 };
+        self.lterm_frame = self.frame_info.len();
+        for minor in 0..num_term {
+            self.frame_info.push(FrameInfo {
+                addr: FrameAddr {
+                    typ: 0,
+                    region: 0,
+                    major,
+                    minor,
+                },
+            });
+        }
+        major += 1;
+        let num_main = if self.grid.kind.is_virtex2() { 22 } else { 19 };
+        for (_, cd) in &self.grid.columns {
+            // For Bram and BramCont, to be fixed later.
+            self.col_frame.push(self.frame_info.len());
+            if matches!(cd.kind, ColumnKind::BramCont(_) | ColumnKind::Bram) {
+                continue;
+            }
+            for minor in 0..num_main {
+                self.frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major,
+                        minor,
+                    },
+                });
+            }
+            major += 1;
+        }
+        self.rterm_frame = self.frame_info.len();
+        for minor in 0..num_term {
+            self.frame_info.push(FrameInfo {
+                addr: FrameAddr {
+                    typ: 0,
+                    region: 0,
+                    major,
+                    minor,
+                },
+            });
+        }
+
+        major = 0;
+        let num_bram = if self.grid.kind.is_virtex2() { 64 } else { 76 };
+        for (col, cd) in &self.grid.columns {
+            if cd.kind != ColumnKind::Bram {
+                continue;
+            }
+            self.bram_frame.insert(col, self.frame_info.len());
+            for minor in 0..num_bram {
+                self.frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 1,
+                        region: 0,
+                        major,
+                        minor,
+                    },
+                });
+            }
+            major += 1;
+        }
+
+        major = 0;
+        for (col, cd) in &self.grid.columns {
+            if cd.kind != ColumnKind::Bram {
+                continue;
+            }
+            self.col_frame[col] = self.frame_info.len();
+            for minor in 0..num_main {
+                self.frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 2,
+                        region: 0,
+                        major,
+                        minor,
+                    },
+                });
+            }
+            major += 1;
+        }
+
+        for (col, cd) in &self.grid.columns {
+            if let ColumnKind::BramCont(i) = cd.kind {
+                self.col_frame[col] = self.col_frame[col - (i as usize)] + (i as usize) * 19;
+            }
+        }
+    }
 }
 
 impl Grid {
@@ -3142,6 +3270,13 @@ impl Grid {
             rows_brk: HashSet::new(),
             ctr_pad: 1,
             ctr_nopad: if self.kind.is_spartan3ea() { 0 } else { 1 },
+            frame_info: vec![],
+            clkv_frame: 0,
+            spine_frame: 0,
+            lterm_frame: 0,
+            rterm_frame: 0,
+            col_frame: EntityVec::new(),
+            bram_frame: EntityPartVec::new(),
         };
 
         expander.fill_xlut();
@@ -3186,13 +3321,44 @@ impl Grid {
         expander.fill_gclkc();
         expander.fill_clkc();
         expander.fill_gclkvm();
+        expander.fill_frame_info();
 
         let bonded_ios = expander.bonded_ios;
+        let clkv_frame = expander.clkv_frame;
+        let spine_frame = expander.spine_frame;
+        let lterm_frame = expander.lterm_frame;
+        let rterm_frame = expander.rterm_frame;
+        let col_frame = expander.col_frame;
+        let bram_frame = expander.bram_frame;
+
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len: 32 + self.rows.len() * if self.kind.is_virtex2() { 80 } else { 64 },
+            frame_info: expander.frame_info,
+            bram_cols: 0,
+            bram_regs: 0,
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: if self.kind.is_spartan3a() {
+                DeviceKind::Spartan3A
+            } else {
+                DeviceKind::Virtex2
+            },
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![expander.die.die],
+        };
 
         ExpandedDevice {
             grid: self,
             egrid,
             bonded_ios,
+            bs_geom,
+            clkv_frame,
+            spine_frame,
+            lterm_frame,
+            rterm_frame,
+            col_frame,
+            bram_frame,
         }
     }
 }
