@@ -2135,6 +2135,7 @@ pub fn verify(edev: &ExpandedDevice, rd: &Part) {
     prjcombine_rdverify::verify(
         rd,
         &edev.egrid,
+        |_| (),
         |vrf, bel| verify_bel(edev, vrf, bel),
         |vrf| verify_extra(edev, vrf),
     );

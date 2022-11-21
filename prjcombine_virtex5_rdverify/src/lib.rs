@@ -1446,6 +1446,7 @@ pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
     verify(
         rd,
         &edev.egrid,
+        |_| (),
         |vrf, bel| verify_bel(edev, vrf, bel),
         |vrf| verify_extra(edev, vrf),
     );

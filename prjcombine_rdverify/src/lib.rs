@@ -107,6 +107,7 @@ pub struct Verifier<'a> {
     stub_ins: HashSet<rawdump::WireId>,
     cond_stub_outs: HashSet<rawdump::WireId>,
     cond_stub_ins: HashSet<rawdump::WireId>,
+    skip_bel_pins: HashSet<(DieId, ColId, RowId, usize, BelId, &'static str)>,
 }
 
 #[derive(Debug, Default)]
@@ -208,6 +209,7 @@ impl<'a> Verifier<'a> {
             stub_ins: HashSet::new(),
             cond_stub_outs: HashSet::new(),
             cond_stub_ins: HashSet::new(),
+            skip_bel_pins: HashSet::new(),
         }
     }
 
@@ -602,7 +604,7 @@ impl<'a> Verifier<'a> {
         self.db.wires[w].name.to_string()
     }
 
-    fn handle_int_node(&mut self, die: DieId, node: &ExpandedTileNode) {
+    fn handle_int_node(&mut self, die: DieId, col: ColId, row: RowId, nidx: usize, node: &ExpandedTileNode) {
         let crds;
         if let Some(c) = self.get_node_crds(node) {
             crds = c;
@@ -786,6 +788,9 @@ impl<'a> Verifier<'a> {
         for (id, _, bel) in &kind.bels {
             let bn = &naming.bels[id];
             for (k, v) in &bel.pins {
+                if self.skip_bel_pins.contains(&(die, col, row, nidx, id, k)) {
+                    continue;
+                }
                 let n = &bn.pins[k];
                 let mut crd = crds[bn.tile];
                 let mut wn: &str = &n.name;
@@ -1081,8 +1086,8 @@ impl<'a> Verifier<'a> {
             for col in die.cols() {
                 for row in die.rows() {
                     let et = &die[(col, row)];
-                    for node in &et.nodes {
-                        self.handle_int_node(die.die, node);
+                    for (nidx, node) in et.nodes.iter().enumerate() {
+                        self.handle_int_node(die.die, col, row, nidx, node);
                     }
                     for t in et.terms.values().flatten() {
                         self.handle_int_term(die.die, col, row, t);
@@ -1286,6 +1291,10 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    pub fn skip_bel_pin(&mut self, die: DieId, col: ColId, row: RowId, nidx: usize, bel: BelId, pin: &'static str) {
+        self.skip_bel_pins.insert((die, col, row, nidx, bel, pin));
+    }
+
     fn finish(mut self) {
         let mut cond_stub_outs = HashMap::new();
         let mut cond_stub_ins = HashMap::new();
@@ -1398,10 +1407,12 @@ impl<'a> Verifier<'a> {
 pub fn verify(
     rd: &rawdump::Part,
     grid: &ExpandedGrid,
+    extra_pre: impl FnOnce(&mut Verifier),
     bel_handler: impl Fn(&mut Verifier, &BelContext<'_>),
     extra: impl FnOnce(&mut Verifier),
 ) {
     let mut vrf = Verifier::new(rd, grid);
+    extra_pre(&mut vrf);
     vrf.prep_int_wires();
     vrf.handle_int();
     for die in grid.dies() {

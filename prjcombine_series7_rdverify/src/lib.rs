@@ -3676,10 +3676,31 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     }
 }
 
+fn verify_pre(edev: &ExpandedDevice, vrf: &mut Verifier) {
+    if vrf.rd.source == Source::Vivado {
+        for die in edev.egrid.dies() {
+            for col in die.cols() {
+                for row in die.rows() {
+                    let et = &die[(col, row)];
+                    for (nidx, node) in et.nodes.iter().enumerate() {
+                        if edev.egrid.db.nodes.key(node.kind) == "CLK_BUFG" {
+                            for bel in edev.egrid.db.nodes[node.kind].bels.ids() {
+                                vrf.skip_bel_pin(die.die, col, row, nidx, bel, "FB_TEST0");
+                                vrf.skip_bel_pin(die.die, col, row, nidx, bel, "FB_TEST1");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
     verify(
         rd,
         &edev.egrid,
+        |vrf| verify_pre(edev, vrf),
         |vrf, bel| verify_bel(edev, vrf, bel),
         |vrf| verify_extra(edev, vrf),
     );
