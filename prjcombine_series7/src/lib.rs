@@ -305,30 +305,6 @@ impl Grid {
 }
 
 impl<'a> ExpandedDevice<'a> {
-    pub fn adjust_ise(&mut self) {
-        for (die, &grid) in &self.grids {
-            if grid.has_no_tbuturn {
-                let (w, _) = self
-                    .egrid
-                    .db
-                    .wires
-                    .iter()
-                    .find(|(_, w)| w.name == "LVB.6")
-                    .unwrap();
-                for col in grid.columns.ids() {
-                    for i in 0..6 {
-                        let row = RowId::from_idx(i);
-                        self.egrid.blackhole_wires.insert((die, (col, row), w));
-                    }
-                    for i in 0..6 {
-                        let row = RowId::from_idx(grid.regs * 50 - 6 + i);
-                        self.egrid.blackhole_wires.insert((die, (col, row), w));
-                    }
-                }
-            }
-        }
-    }
-
     pub fn adjust_vivado(&mut self) {
         let lvb6 = self
             .egrid
@@ -351,6 +327,6 @@ impl<'a> ExpandedDevice<'a> {
                 }
             }
         }
-        self.egrid.cursed_wires = cursed_wires;
+        self.egrid.blackhole_wires.extend(cursed_wires);
     }
 }

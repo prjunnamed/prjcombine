@@ -2131,6 +2131,26 @@ pub fn expand_grid<'a>(
         });
     }
 
+    for (die, &grid) in grids {
+        if grid.has_no_tbuturn {
+            let (w, _) = db
+                .wires
+                .iter()
+                .find(|(_, w)| w.name == "LVB.6")
+                .unwrap();
+            for col in grid.columns.ids() {
+                for i in 0..6 {
+                    let row = RowId::from_idx(i);
+                    egrid.blackhole_wires.insert((die, (col, row), w));
+                }
+                for i in 0..6 {
+                    let row = RowId::from_idx(grid.regs * 50 - 6 + i);
+                    egrid.blackhole_wires.insert((die, (col, row), w));
+                }
+            }
+        }
+    }
+
     let lvb6 = db
         .wires
         .iter()

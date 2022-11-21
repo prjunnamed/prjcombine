@@ -21,10 +21,14 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
         vrf.claim_node(&[bel.fwire("CIN"), obel.fwire_far("COUT")]);
         vrf.claim_pip(obel.crd(), obel.wire_far("COUT"), obel.wire("COUT"));
-    } else {
+    } else if vrf.rd.source == Source::ISE {
         vrf.claim_node(&[bel.fwire("CIN")]);
     }
     vrf.claim_node(&[bel.fwire("COUT")]);
+    if vrf.rd.source == Source::Vivado && vrf.find_bel_delta(bel, 0, 1, bel.key).is_none() {
+        vrf.claim_node(&[bel.fwire_far("COUT")]);
+        vrf.claim_pip(bel.crd(), bel.wire_far("COUT"), bel.wire("COUT"));
+    }
 }
 
 fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -46,16 +50,21 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
         pins.push((&opin[..], SitePinDir::Out));
         vrf.claim_node(&[bel.fwire(opin)]);
         if bel.key == "DSP0" {
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, -5, "DSP1") {
-                vrf.claim_node(&[bel.fwire(ipin), obel.fwire_far(opin)]);
-                vrf.claim_pip(obel.crd(), obel.wire_far(opin), obel.wire(opin));
-            } else {
+            if vrf.rd.source == Source::ISE && vrf.find_bel_delta(bel, 0, -5, "DSP1").is_none() {
                 vrf.claim_node(&[bel.fwire(ipin)]);
             }
         } else {
             vrf.claim_node(&[bel.fwire(ipin)]);
             let obel = vrf.find_bel_sibling(bel, "DSP0");
             vrf.claim_pip(bel.crd(), bel.wire(ipin), obel.wire(opin));
+
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, 5, "DSP0") {
+                vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
+                vrf.claim_node(&[obel.fwire(ipin), bel.fwire_far(opin)]);
+            } else if vrf.rd.source == Source::Vivado {
+                vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
+                vrf.claim_node(&[bel.fwire_far(opin)]);
+            }
         }
     }
     vrf.verify_bel(bel, "DSP48E1", &pins, &[]);
@@ -140,12 +149,24 @@ fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
     vrf.verify_bel(bel, "RAMBFIFO36E1", &pins, &[]);
     for (pin, _) in pins {
-        vrf.claim_node(&[bel.fwire(pin)]);
+        if !pin.starts_with("CASCADEIN") {
+            vrf.claim_node(&[bel.fwire(pin)]);
+        }
     }
     if let Some(obel) = vrf.find_bel_delta(bel, 0, -5, bel.key) {
         for (ipin, opin) in [("CASCADEINA", "CASCADEOUTA"), ("CASCADEINB", "CASCADEOUTB")] {
-            vrf.verify_node(&[bel.fwire(ipin), obel.fwire_far(opin)]);
+            vrf.claim_node(&[bel.fwire(ipin), obel.fwire_far(opin)]);
             vrf.claim_pip(obel.crd(), obel.wire_far(opin), obel.wire(opin));
+        }
+    } else if vrf.rd.source == Source::ISE {
+        for ipin in ["CASCADEINA", "CASCADEINB"] {
+            vrf.claim_node(&[bel.fwire(ipin)]);
+        }
+    }
+    if vrf.rd.source == Source::Vivado && vrf.find_bel_delta(bel, 0, 5, bel.key).is_none() {
+        for opin in ["CASCADEOUTA", "CASCADEOUTB"] {
+            vrf.claim_node(&[bel.fwire_far(opin)]);
+            vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
         }
     }
     let obel = vrf.find_bel_sibling(bel, "BRAM_ADDR");
@@ -261,12 +282,12 @@ fn verify_bram_addr(vrf: &mut Verifier, bel: &BelContext<'_>) {
                     vrf.claim_pip(bel.crd(), bel.wire(&copin), bel.wire(&apin));
                     if let Some(ref obel) = obel_b {
                         vrf.verify_node(&[bel.fwire(&cibpin), obel.fwire(&copin)]);
-                    } else {
+                    } else if vrf.rd.source == Source::ISE {
                         vrf.claim_node(&[bel.fwire(&cibpin)]);
                     }
                     if let Some(ref obel) = obel_t {
                         vrf.verify_node(&[bel.fwire(&citpin), obel.fwire(&copin)]);
-                    } else {
+                    } else if vrf.rd.source == Source::ISE {
                         vrf.claim_node(&[bel.fwire(&citpin)]);
                     }
                 }
@@ -306,7 +327,10 @@ fn verify_pmvbram_nc(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("SELECT4", SitePinDir::In),
     ];
     vrf.verify_bel(bel, "PMVBRAM", &pins, &[]);
-    for (pin, _) in pins {
+    for (pin, dir) in pins {
+        if vrf.rd.source == Source::Vivado && dir == SitePinDir::In {
+            continue;
+        }
         vrf.claim_node(&[bel.fwire(pin)]);
     }
 }
@@ -588,7 +612,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
                 bel.fwire(&format!("CASCI{i}")),
                 obel_casc.fwire(&format!("CASCO{i}")),
             ]);
-        } else {
+        } else if vrf.rd.source == Source::ISE {
             vrf.claim_node(&[bel.fwire(&format!("CASCI{i}"))]);
         }
         vrf.claim_pip(
@@ -1127,10 +1151,15 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
 
-    if bel.key == "ILOGIC0" && matches!(bel.row.to_idx() % 50, 7 | 19 | 31 | 43 | 21 | 23 | 25 | 27)
-    {
-        vrf.claim_node(&[bel.fwire("CLKOUT")]);
-        vrf.claim_pip(bel.crd(), bel.wire("CLKOUT"), bel.wire("O"));
+    if bel.key == "ILOGIC0" {
+        let has_clkout = match vrf.rd.source {
+            Source::ISE => matches!(bel.row.to_idx() % 50, 7 | 19 | 31 | 43 | 21 | 23 | 25 | 27),
+            Source::Vivado => !matches!(bel.row.to_idx() % 50, 13 | 37),
+        };
+        if has_clkout {
+            vrf.claim_node(&[bel.fwire("CLKOUT")]);
+            vrf.claim_pip(bel.crd(), bel.wire("CLKOUT"), bel.wire("O"));
+        }
     }
 
     let y = bel.row.to_idx() % 50
@@ -2173,13 +2202,21 @@ fn verify_cmt_a(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     });
     let obel_pc = vrf.find_bel_sibling(bel, "PHY_CONTROL");
+    let mut has_conn = false;
     if let Some(ref obel_s) = obel_s {
         if obel_s.die == bel.die {
             vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
             vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_S"), bel.wire("SYNC_BB"));
             vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_S"));
             vrf.claim_node(&[bel.fwire("SYNC_BB_S"), obel_s.fwire("SYNC_BB_N")]);
+            has_conn = true;
         }
+    }
+    if !has_conn && vrf.rd.source == Source::Vivado {
+        vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_S"), bel.wire("SYNC_BB"));
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_S"));
+        vrf.claim_node(&[bel.fwire("SYNC_BB_S")]);
     }
     for i in 0..4 {
         vrf.verify_node(&[
@@ -2191,6 +2228,18 @@ fn verify_cmt_a(vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.fwire(&format!("FREQ_BB{i}_S")),
                 obel_s.fwire(&format!("FREQ_BB{i}_N")),
             ]);
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}")),
+                bel.wire(&format!("FREQ_BB{i}_S")),
+            );
+            vrf.claim_pip(
+                bel.crd(),
+                bel.wire(&format!("FREQ_BB{i}_S")),
+                bel.wire(&format!("FREQ_BB{i}")),
+            );
+        } else if vrf.rd.source == Source::Vivado {
+            vrf.claim_node(&[bel.fwire(&format!("FREQ_BB{i}_S"))]);
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("FREQ_BB{i}")),
@@ -2533,6 +2582,11 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
         vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_N"), bel.wire("SYNC_BB"));
         vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_N"));
+    } else if vrf.rd.source == Source::Vivado {
+        vrf.verify_node(&[bel.fwire("SYNC_BB"), obel_pc.fwire("SYNC_BB")]);
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB_N"), bel.wire("SYNC_BB"));
+        vrf.claim_pip(bel.crd(), bel.wire("SYNC_BB"), bel.wire("SYNC_BB_N"));
+        vrf.claim_node(&[bel.fwire("SYNC_BB_N")]);
     }
     let obel_n = vrf.find_bel_walk(bel, 0, 50, "CMT_A").or_else(|| {
         if bel.die.to_idx() != vrf.grid.tiles.len() - 1 {
@@ -2548,7 +2602,7 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
             bel.fwire(&format!("FREQ_BB{i}")),
             obel_hclk.fwire(&format!("FREQ_BB{i}")),
         ]);
-        if obel_n.is_some() {
+        if obel_n.is_some() || vrf.rd.source == Source::Vivado {
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(&format!("FREQ_BB{i}")),
@@ -2559,6 +2613,9 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
                 bel.wire(&format!("FREQ_BB{i}_N")),
                 bel.wire(&format!("FREQ_BB{i}")),
             );
+            if obel_n.is_none() {
+                vrf.claim_node(&[bel.fwire(&format!("FREQ_BB{i}_N"))]);
+            }
         }
     }
 
@@ -3522,7 +3579,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
-    for w in [
+    let mut stub_out_cond = vec![
         "IOI_IMUX_RC0",
         "IOI_IMUX_RC1",
         "IOI_IMUX_RC2",
@@ -3545,7 +3602,23 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         "LIOB_MONITOR_N",
         "RIOB_MONITOR_P",
         "RIOB_MONITOR_N",
-    ] {
+    ];
+    if vrf.rd.source == Source::Vivado {
+        stub_out_cond.extend([
+            "BRAM_PMVBRAM_SELECT1",
+            "BRAM_PMVBRAM_SELECT2",
+            "BRAM_PMVBRAM_SELECT3",
+            "BRAM_PMVBRAM_SELECT4",
+            // hmmmmm.
+            "IOI_INT_DCI_EN",
+            "IOI_DCI_TSTRST",
+            "IOI_DCI_TSTHLP",
+            "IOI_DCI_TSTHLN",
+            "IOI_DCI_TSTCLK",
+            "IOI_DCI_TSTRST0",
+        ]);
+    }
+    for w in stub_out_cond {
         vrf.kill_stub_out_cond(w);
     }
     for prefix in ["PSS0", "PSS1", "PSS2"] {
@@ -3574,10 +3647,29 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
             }
         }
     }
-    // XXX
     if vrf.rd.source == Source::Vivado {
-        vrf.skip_residual_pips();
-        vrf.skip_residual_nodes();
+        for &crd in vrf.rd.tiles_by_kind_name("BRKH_INT") {
+            if crd.y == vrf.rd.height - 1 {
+                for w in [
+                    "BRKH_INT_SL1END0",
+                    "BRKH_INT_SL1END1",
+                    "BRKH_INT_SL1END2",
+                    "BRKH_INT_SL1END3",
+                    "BRKH_INT_SR1END1",
+                    "BRKH_INT_SR1END2",
+                    "BRKH_INT_SR1END3",
+                    "BRKH_INT_NL1BEG0_SLOW",
+                    "BRKH_INT_NL1BEG1_SLOW",
+                    "BRKH_INT_NL1BEG2_SLOW",
+                    "BRKH_INT_NR1BEG0_SLOW",
+                    "BRKH_INT_NR1BEG1_SLOW",
+                    "BRKH_INT_NR1BEG2_SLOW",
+                    "BRKH_INT_NR1BEG3_SLOW",
+                ] {
+                    vrf.claim_node(&[(crd, w)]);
+                }
+            }
+        }
     }
     if !edev.extras.is_empty() {
         vrf.skip_residual();

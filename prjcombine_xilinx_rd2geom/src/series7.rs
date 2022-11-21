@@ -17,9 +17,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let mut edev = expand_grid(&grid_refs, grid_master, &extras, &disabled, &int_db);
-    if rd.source == Source::ISE {
-        edev.adjust_ise();
-    } else {
+    if rd.source == Source::Vivado {
         edev.adjust_vivado();
     }
     verify_device(&edev, rd);

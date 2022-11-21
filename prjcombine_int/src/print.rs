@@ -1,4 +1,7 @@
-use crate::db::{IntDb, IntfInfo, PinDir, TermInfo, WireKind, IntfWireOutNaming, IntfWireInNaming, TermWireOutNaming, TermWireInFarNaming};
+use crate::db::{
+    IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, PinDir, TermInfo, TermWireInFarNaming,
+    TermWireOutNaming, WireKind,
+};
 use prjcombine_entity::EntityId;
 use std::collections::BTreeMap;
 
@@ -208,19 +211,31 @@ impl IntDb {
                 }
             }
             for (w, wn) in &naming.intf_wires_out {
-                write!(o, "\t\tINTF.OUT {wt:3}.{wn:20}: ", wt = w.0.to_idx(), wn = self.wires[w.1].name)?;
+                write!(
+                    o,
+                    "\t\tINTF.OUT {wt:3}.{wn:20}: ",
+                    wt = w.0.to_idx(),
+                    wn = self.wires[w.1].name
+                )?;
                 match wn {
                     IntfWireOutNaming::Simple(n) => writeln!(o, "SIMPLE {n}")?,
                     IntfWireOutNaming::Buf(nt, nf) => writeln!(o, "BUF {nt} <- {nf}")?,
                 }
             }
             for (w, wn) in &naming.intf_wires_in {
-                write!(o, "\t\tINTF.IN {wt:3}.{wn:20}: ", wt = w.0.to_idx(), wn = self.wires[w.1].name)?;
+                write!(
+                    o,
+                    "\t\tINTF.IN {wt:3}.{wn:20}: ",
+                    wt = w.0.to_idx(),
+                    wn = self.wires[w.1].name
+                )?;
                 match wn {
                     IntfWireInNaming::Simple(n) => writeln!(o, "SIMPLE {n}")?,
                     IntfWireInNaming::Buf(nt, nf) => writeln!(o, "BUF {nt} <- {nf}")?,
                     IntfWireInNaming::TestBuf(nt, nf) => writeln!(o, "TESTBUF {nt} <- {nf}")?,
-                    IntfWireInNaming::Delay(nt, nd, nf) => writeln!(o, "DELAY {nt} <- {nd} <- {nf}")?,
+                    IntfWireInNaming::Delay(nt, nd, nf) => {
+                        writeln!(o, "DELAY {nt} <- {nd} <- {nf}")?
+                    }
                 }
             }
         }

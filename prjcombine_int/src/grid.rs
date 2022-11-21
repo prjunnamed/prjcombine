@@ -41,7 +41,6 @@ pub struct ExpandedGrid<'a> {
     pub tiles: EntityVec<DieId, Array2<ExpandedTile>>,
     pub xdie_wires: HashMap<IntWire, IntWire>,
     pub blackhole_wires: HashSet<IntWire>,
-    pub cursed_wires: HashSet<IntWire>,
 }
 
 pub struct ExpandedDieRef<'a, 'b> {
@@ -65,7 +64,6 @@ impl<'a> ExpandedGrid<'a> {
             tiles: EntityVec::new(),
             xdie_wires: HashMap::new(),
             blackhole_wires: HashSet::new(),
-            cursed_wires: HashSet::new(),
         }
     }
 
@@ -428,7 +426,6 @@ impl ExpandedDieRefMut<'_, '_> {
 
 impl ExpandedGrid<'_> {
     pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
-        let owire = wire;
         let die = self.die(wire.0);
         loop {
             let tile = &die[wire.1];
@@ -477,20 +474,13 @@ impl ExpandedGrid<'_> {
                 _ => break,
             }
         }
+        if let Some(&twire) = self.xdie_wires.get(&wire) {
+            wire = twire;
+        }
         if self.blackhole_wires.contains(&wire) {
             None
-        } else if let Some(&twire) = self.xdie_wires.get(&wire) {
-            if self.cursed_wires.contains(&twire) {
-                Some(owire)
-            } else {
-                Some(twire)
-            }
         } else {
-            if self.cursed_wires.contains(&wire) {
-                Some(owire)
-            } else {
-                Some(wire)
-            }
+            Some(wire)
         }
     }
 }

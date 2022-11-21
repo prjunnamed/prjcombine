@@ -576,7 +576,12 @@ impl PartBuilder {
         let crd = self.tiles_by_name[tile];
         let wire = self.part.wires.get(wire).unwrap();
         let idx = self.ensure_conn_wire(self.part.tiles[&crd].kind, wire);
-        self.part.tiles.get_mut(&crd).unwrap().conn_wires.remove(idx);
+        self.part
+            .tiles
+            .get_mut(&crd)
+            .unwrap()
+            .conn_wires
+            .remove(idx);
         self.pending_wires.get_mut(&crd).unwrap().remove(idx);
     }
 

@@ -927,12 +927,15 @@ impl<'a> Verifier<'a> {
                                 }
                             };
                             if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
-                                let tname = &node.names[def_rt];
-                                println!(
-                                    "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
-                                    p = self.rd.part,
-                                    wn = self.print_nw(wf),
-                                );
+                                let iwd = &self.int_wire_data[&wfi];
+                                if iwd.used_o {
+                                    let tname = &node.names[def_rt];
+                                    println!(
+                                        "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                        p = self.rd.part,
+                                        wn = self.print_nw(wf),
+                                    );
+                                }
                             }
                         } else {
                             let iwd = &self.int_wire_data[&wfi];
