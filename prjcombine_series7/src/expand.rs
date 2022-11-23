@@ -2133,11 +2133,7 @@ pub fn expand_grid<'a>(
 
     for (die, &grid) in grids {
         if grid.has_no_tbuturn {
-            let (w, _) = db
-                .wires
-                .iter()
-                .find(|(_, w)| w.name == "LVB.6")
-                .unwrap();
+            let (w, _) = db.wires.iter().find(|(_, w)| w.name == "LVB.6").unwrap();
             for col in grid.columns.ids() {
                 for i in 0..6 {
                     let row = RowId::from_idx(i);

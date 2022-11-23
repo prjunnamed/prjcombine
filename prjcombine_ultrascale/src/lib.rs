@@ -10,7 +10,7 @@ pub mod io;
 pub use expand::expand_grid;
 
 entity_id! {
-    pub id RegId u32;
+    pub id RegId u32, delta;
     pub id HdioIobId u8;
     pub id HpioIobId u8;
 }
@@ -439,6 +439,7 @@ pub enum ClkSrc {
 }
 
 pub struct ExpandedDevice<'a> {
+    pub kind: GridKind,
     pub grids: EntityVec<DieId, &'a Grid>,
     pub grid_master: DieId,
     pub egrid: ExpandedGrid<'a>,
@@ -446,6 +447,8 @@ pub struct ExpandedDevice<'a> {
     pub naming: &'a DeviceNaming,
     pub hdistr_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
     pub hroute_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
+    pub has_pcie_cfg: bool,
+    pub is_cut: bool,
 }
 
 impl Grid {

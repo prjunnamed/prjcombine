@@ -1027,6 +1027,68 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
+        family: "ultrascale",
+        tile_kind: "LAGUNA_TILE",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "LAGUNA_X0Y240",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 1,
+                slot_y: 0,
+                source_site: "LAGUNA_X1Y240",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "LAGUNA_X0Y241",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 1,
+                slot_y: 1,
+                source_site: "LAGUNA_X1Y241",
+            },
+        ],
+        source_device: "xcku115-flva1517-1-c",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "LAG_LAG",
+        slots: &[
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 0,
+                slot_y: 0,
+                source_site: "LAGUNA_X0Y240",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 1,
+                slot_y: 0,
+                source_site: "LAGUNA_X1Y240",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 0,
+                slot_y: 1,
+                source_site: "LAGUNA_X0Y241",
+            },
+            FixupSiteSlot {
+                slot_name: "LAGUNA",
+                slot_x: 1,
+                slot_y: 1,
+                source_site: "LAGUNA_X1Y241",
+            },
+        ],
+        source_device: "xcvu7p-flva2104-1-e",
+    },
+    FixupTileKind {
         family: "ultrascaleplus",
         tile_kind: "GTM_DUAL_RIGHT_FT",
         slots: &[

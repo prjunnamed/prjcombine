@@ -700,65 +700,66 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         builder.extract_xnode_bels_intf("DSP", xy, &[], &int_xy, &intf_xy, "DSP", &bels_dsp);
     }
 
-    'a: {
-        if let Some(&xy) = rd.tiles_by_kind_name("LAGUNA_TILE").iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                break 'a;
+    if let Some(&xy) = rd.tiles_by_kind_name("LAGUNA_TILE").iter().next() {
+        let mut bels = vec![];
+        for i in 0..4 {
+            let mut bel = builder.bel_xy(format!("LAGUNA{i}"), "LAGUNA", i >> 1, i & 1);
+            for j in 0..6 {
+                bel = bel
+                    .pin_name_only(&format!("RXQ{j}"), 0)
+                    .pin_name_only(&format!("RXD{j}"), 0)
+                    .pin_name_only(&format!("TXQ{j}"), 0)
+                    .extra_int_out(format!("RXOUT{j}"), &[format!("RXD{ii}", ii = i * 6 + j)])
+                    .extra_wire(
+                        format!("TXOUT{j}"),
+                        &[format!(
+                            "LAG_MUX_ATOM_{ii}_TXOUT",
+                            ii = match (i, j) {
+                                (0, 0) => 0,
+                                (0, 1) => 11,
+                                (0, 2) => 16,
+                                (0, 3) => 17,
+                                (0, 4) => 18,
+                                (0, 5) => 19,
+                                (1, 0) => 20,
+                                (1, 1) => 21,
+                                (1, 2) => 22,
+                                (1, 3) => 23,
+                                (1, 4) => 1,
+                                (1, 5) => 2,
+                                (2, 0) => 3,
+                                (2, 1) => 4,
+                                (2, 2) => 5,
+                                (2, 3) => 6,
+                                (2, 4) => 7,
+                                (2, 5) => 8,
+                                (3, 0) => 9,
+                                (3, 1) => 10,
+                                (3, 2) => 12,
+                                (3, 3) => 13,
+                                (3, 4) => 14,
+                                (3, 5) => 15,
+                                _ => unreachable!(),
+                            }
+                        )],
+                    )
+                    .extra_wire(format!("UBUMP{j}"), &[format!("UBUMP{ii}", ii = i * 6 + j)]);
             }
-            let mut bels = vec![];
-            for i in 0..4 {
-                let mut bel = builder.bel_xy(format!("LAGUNA{i}"), "LAGUNA", i >> 1, i & 1);
-                for j in 0..6 {
-                    bel = bel
-                        .pin_name_only(&format!("RXQ{j}"), 0)
-                        .pin_name_only(&format!("RXD{j}"), 0)
-                        .pin_name_only(&format!("TXQ{j}"), 0)
-                        .extra_int_out(format!("RXOUT{j}"), &[format!("RXD{ii}", ii = i * 6 + j)])
-                        .extra_wire(
-                            format!("TXOUT{j}"),
-                            &[format!(
-                                "LAG_MUX_ATOM_{ii}_TXOUT",
-                                ii = match (i, j) {
-                                    (0, 0) => 0,
-                                    (0, 1) => 11,
-                                    (0, 2) => 16,
-                                    (0, 3) => 17,
-                                    (0, 4) => 18,
-                                    (0, 5) => 19,
-                                    (1, 0) => 20,
-                                    (1, 1) => 21,
-                                    (1, 2) => 22,
-                                    (1, 3) => 23,
-                                    (1, 4) => 1,
-                                    (1, 5) => 2,
-                                    (2, 0) => 3,
-                                    (2, 1) => 4,
-                                    (2, 2) => 5,
-                                    (2, 3) => 6,
-                                    (2, 4) => 7,
-                                    (2, 5) => 8,
-                                    (3, 0) => 9,
-                                    (3, 1) => 10,
-                                    (3, 2) => 12,
-                                    (3, 3) => 13,
-                                    (3, 4) => 14,
-                                    (3, 5) => 15,
-                                    _ => unreachable!(),
-                                }
-                            )],
-                        )
-                        .extra_wire(format!("UBUMP{j}"), &[format!("UBUMP{ii}", ii = i * 6 + j)]);
-                }
-                bels.push(bel);
-            }
-            bels.push(
-                builder
-                    .bel_virtual("VCC.LAGUNA")
-                    .extra_wire("VCC", &["VCC_WIRE"]),
-            );
-            builder.extract_xnode_bels("LAGUNA", xy, &[], &[xy.delta(1, 0)], "LAGUNA", &bels);
+            bels.push(bel);
         }
+        bels.push(
+            builder
+                .bel_virtual("LAGUNA_EXTRA")
+                .extra_wire("UBUMP", &["UBUMP_EXTRA"])
+                .extra_wire("RXD", &["LAG_IOBUF_ATOM_16_RXO"])
+                .extra_wire("TXOUT", &["VCC_WIRE0"]),
+        );
+        bels.push(
+            builder
+                .bel_virtual("VCC.LAGUNA")
+                .extra_wire("VCC", &["VCC_WIRE"]),
+        );
+        builder.extract_xnode_bels("LAGUNA", xy, &[], &[xy.delta(1, 0)], "LAGUNA", &bels);
     }
 
     for (kind, tkn, bk) in [

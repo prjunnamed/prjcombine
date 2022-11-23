@@ -55,8 +55,6 @@ struct DieExpander<'a, 'b> {
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
     iotxlut: EnumMap<IoRowKind, EntityVec<ColId, usize>>,
     iotylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
-    has_slr_d: bool,
-    has_slr_u: bool,
     naming: &'b DeviceNaming,
 }
 
@@ -899,11 +897,6 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     if cd.l == ColumnKindLeft::CleM(CleMKind::Laguna)
                         && self.grid.is_laguna_row(row)
                     {
-                        let is_d = self.grid.row_to_reg(row).to_idx() == 0;
-                        let has_conn = if is_d { self.has_slr_d } else { self.has_slr_u };
-                        if !has_conn {
-                            continue;
-                        }
                         let (x, tk) = match self.grid.kind {
                             GridKind::Ultrascale => (x, "LAGUNA_TILE"),
                             GridKind::UltrascalePlus => (x - 1, "LAG_LAG"),
@@ -1821,7 +1814,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
-    fn fill_hard(&mut self, hcx: &EnumMap<HardRowKind, usize>) {
+    fn fill_hard(&mut self, hcx: &EnumMap<HardRowKind, usize>, has_pcie_cfg: &mut bool) {
         for (i, hc) in self.grid.cols_hard.iter().enumerate() {
             let is_cfg = hc.regs.values().any(|&x| x == HardRowKind::Cfg);
             let hdio_cfg_only = hc.regs.values().all(|x| {
@@ -1836,6 +1829,12 @@ impl<'a, 'b> DieExpander<'a, 'b> {
             }) || !is_cfg;
             for reg in self.grid.regs() {
                 let kind = hc.regs[reg];
+                if kind == HardRowKind::Cfg
+                    && reg.to_idx() != 0
+                    && matches!(hc.regs[reg - 1], HardRowKind::Pcie | HardRowKind::PciePlus)
+                {
+                    *has_pcie_cfg = true;
+                }
                 let adjkind = if kind == HardRowKind::HdioAms {
                     HardRowKind::Hdio
                 } else {
@@ -2649,8 +2648,9 @@ pub fn expand_grid<'a>(
             0
         }
     };
+    let mut has_pcie_cfg = false;
     for (_, grid) in grids {
-        let (did, die) = egrid.add_die(grid.columns.len(), grid.regs * 60);
+        let (_, die) = egrid.add_die(grid.columns.len(), grid.regs * 60);
 
         let mut expander = DieExpander {
             grid,
@@ -2675,8 +2675,6 @@ pub fn expand_grid<'a>(
             hylut: EnumMap::default(),
             iotxlut: EnumMap::default(),
             iotylut: EnumMap::default(),
-            has_slr_d: did != grids.first_id().unwrap(),
-            has_slr_u: did != grids.last_id().unwrap(),
             naming,
         };
 
@@ -2707,14 +2705,18 @@ pub fn expand_grid<'a>(
         expander.fill_uram();
         expander.fill_fe();
         expander.fill_dfe();
-        expander.fill_hard(&hcx);
+        expander.fill_hard(&hcx, &mut has_pcie_cfg);
         expander.fill_io();
         expander.fill_clkroot();
     }
 
     let (hroute_src, hdistr_src) = fill_clk_src(&grids[grid_master].columns);
+    let is_cut = disabled
+        .iter()
+        .any(|x| matches!(x, DisabledPart::Region(..)));
 
     ExpandedDevice {
+        kind: grids[grid_master].kind,
         grids: grids.clone(),
         grid_master,
         egrid,
@@ -2722,5 +2724,7 @@ pub fn expand_grid<'a>(
         naming,
         hroute_src,
         hdistr_src,
+        has_pcie_cfg,
+        is_cut,
     }
 }
