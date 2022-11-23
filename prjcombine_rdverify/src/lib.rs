@@ -107,6 +107,7 @@ pub struct Verifier<'a> {
     stub_ins: HashSet<rawdump::WireId>,
     cond_stub_outs: HashSet<rawdump::WireId>,
     cond_stub_ins: HashSet<rawdump::WireId>,
+    cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
     skip_bel_pins: HashSet<(DieId, ColId, RowId, usize, BelId, &'static str)>,
 }
 
@@ -209,6 +210,7 @@ impl<'a> Verifier<'a> {
             stub_ins: HashSet::new(),
             cond_stub_outs: HashSet::new(),
             cond_stub_ins: HashSet::new(),
+            cond_stub_ins_tk: HashSet::new(),
             skip_bel_pins: HashSet::new(),
         }
     }
@@ -604,7 +606,14 @@ impl<'a> Verifier<'a> {
         self.db.wires[w].name.to_string()
     }
 
-    fn handle_int_node(&mut self, die: DieId, col: ColId, row: RowId, nidx: usize, node: &ExpandedTileNode) {
+    fn handle_int_node(
+        &mut self,
+        die: DieId,
+        col: ColId,
+        row: RowId,
+        nidx: usize,
+        node: &ExpandedTileNode,
+    ) {
         let crds;
         if let Some(c) = self.get_node_crds(node) {
             crds = c;
@@ -958,11 +967,11 @@ impl<'a> Verifier<'a> {
             }
         }
         for (wf, iwin) in &naming.intf_wires_in {
-            if let &IntfWireInNaming::TestBuf(ref wfbn, ref wfn) = iwin {
+            if let IntfWireInNaming::TestBuf(wfbn, wfn) = iwin {
                 self.claim_node(&[(crds[def_rt], wfbn)]);
                 self.claim_pip(crds[def_rt], wfbn, wfn);
             }
-            if let &IntfWireInNaming::Buf(ref wfbn, ref wfn) = iwin {
+            if let IntfWireInNaming::Buf(wfbn, wfn) = iwin {
                 if self.pin_int_intf_wire(crds[def_rt], wfbn, (die, node.tiles[wf.0], wf.1)) {
                     self.claim_pip(crds[def_rt], wfbn, wfn);
                 }
@@ -1291,7 +1300,23 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn skip_bel_pin(&mut self, die: DieId, col: ColId, row: RowId, nidx: usize, bel: BelId, pin: &'static str) {
+    pub fn kill_stub_in_cond_tk(&mut self, tk: &str, name: &str) {
+        if let Some((tki, _)) = self.rd.tile_kinds.get(tk) {
+            if let Some(wi) = self.rd.wires.get(name) {
+                self.cond_stub_ins_tk.insert((tki, wi));
+            }
+        }
+    }
+
+    pub fn skip_bel_pin(
+        &mut self,
+        die: DieId,
+        col: ColId,
+        row: RowId,
+        nidx: usize,
+        bel: BelId,
+        pin: &'static str,
+    ) {
         self.skip_bel_pins.insert((die, col, row, nidx, bel, pin));
     }
 
@@ -1308,7 +1333,10 @@ impl<'a> Verifier<'a> {
                     if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {
                         cond_stub_outs.insert(nw, (crd, w));
                     }
-                    if self.cond_stub_ins.contains(&w) && !self.is_claimed_raw(crd, w) {
+                    if (self.cond_stub_ins.contains(&w)
+                        || self.cond_stub_ins_tk.contains(&(tile.kind, w)))
+                        && !self.is_claimed_raw(crd, w)
+                    {
                         cond_stub_ins.insert(nw, (crd, w));
                     }
                 }
