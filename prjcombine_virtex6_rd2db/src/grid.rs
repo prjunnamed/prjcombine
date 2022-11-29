@@ -1,7 +1,9 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::ColId;
 use prjcombine_rawdump::Part;
-use prjcombine_virtex6::{ColumnKind, DisabledPart, Grid, HardColumn, RegId};
+use prjcombine_virtex6::{
+    ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId,
+};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
@@ -27,7 +29,7 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
         res[int.lookup_column_inter(c)] = Some(ColumnKind::Io);
     }
     for c in find_columns(rd, &["CMT_TOP"]) {
-        res[int.lookup_column(c - 2)] = Some(ColumnKind::Cmt);
+        res[int.lookup_column(c - 2)] = Some(ColumnKind::Cfg);
     }
     for c in find_columns(rd, &["GTX"]) {
         res[int.lookup_column(c - 3)] = Some(ColumnKind::Gt);
@@ -71,48 +73,11 @@ fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
     })
 }
 
-fn get_cols_io(rd: &Part, int: &IntGrid) -> [Option<ColId>; 4] {
-    let mut res = [None; 4];
-    let lc: Vec<_> = find_columns(rd, &["LIOI"])
-        .into_iter()
-        .map(|x| int.lookup_column_inter(x))
-        .collect();
-    match lc[..] {
-        [il] => {
-            res[1] = Some(il);
-        }
-        [ol, il] => {
-            res[0] = Some(ol);
-            res[1] = Some(il);
-        }
-        _ => unreachable!(),
-    }
-    let rc: Vec<_> = find_columns(rd, &["RIOI"])
-        .into_iter()
-        .map(|x| int.lookup_column_inter(x) - 1)
-        .collect();
-    match rc[..] {
-        [ir] => {
-            res[2] = Some(ir);
-        }
-        [ir, or] => {
-            res[2] = Some(ir);
-            res[3] = Some(or);
-        }
-        _ => unreachable!(),
-    }
-    res
-}
-
 fn get_cols_qbuf(rd: &Part, int: &IntGrid) -> (ColId, ColId) {
     (
         int.lookup_column(find_column(rd, &["HCLK_QBUF_L"]).unwrap()),
         int.lookup_column(find_column(rd, &["HCLK_QBUF_R"]).unwrap()),
     )
-}
-
-fn get_col_cfg(rd: &Part, int: &IntGrid) -> ColId {
-    int.lookup_column(find_column(rd, &["CFG_CENTER_0"]).unwrap() + 2)
 }
 
 fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
@@ -123,18 +88,39 @@ fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
     )
 }
 
-fn get_reg_gth_start(rd: &Part, int: &IntGrid) -> RegId {
-    if let Some(r) = find_rows(rd, &["GTH_BOT"]).into_iter().min() {
-        RegId::from_idx(int.lookup_row(r - 10).to_idx() / 40)
+fn get_cols_gt(rd: &Part, int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) -> Vec<GtColumn> {
+    let reg_gth_start = if let Some(r) = find_rows(rd, &["GTH_BOT"]).into_iter().min() {
+        int.lookup_row(r - 10).to_idx() / 40
     } else {
-        RegId::from_idx(int.rows.len() / 40)
-    }
+        int.rows.len() / 40
+    };
+    cols.iter()
+        .filter_map(|(col, &cd)| {
+            if cd == ColumnKind::Gt {
+                Some(GtColumn {
+                    col,
+                    regs: (0..(int.rows.len() / 40))
+                        .map(|reg| {
+                            Some(if reg >= reg_gth_start {
+                                GtKind::Gth
+                            } else {
+                                GtKind::Gtx
+                            })
+                        })
+                        .collect(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
     let mut disabled = BTreeSet::new();
     let int = extract_int(rd, &["INT"], &[]);
     let columns = make_columns(rd, &int);
+    let cols_gt = get_cols_gt(rd, &int, &columns);
     if rd.part.contains("vcx") {
         disabled.insert(DisabledPart::SysMon);
     }
@@ -146,17 +132,27 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
             int.lookup_row(r).to_idx() / 40,
         )));
     }
+    let reg_cfg = get_reg_cfg(rd, &int);
     let grid = Grid {
+        kind: GridKind::Virtex6,
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_mgt_buf: get_cols_mgt_buf(rd, &int),
-        col_cfg: get_col_cfg(rd, &int),
-        cols_qbuf: get_cols_qbuf(rd, &int),
+        cols_qbuf: Some(get_cols_qbuf(rd, &int)),
         col_hard: get_col_hard(rd, &int),
-        cols_io: get_cols_io(rd, &int),
+        cols_io: vec![],
+        cols_gt,
         regs: int.rows.len() / 40,
-        reg_cfg: get_reg_cfg(rd, &int),
-        reg_gth_start: get_reg_gth_start(rd, &int),
+        reg_cfg,
+        reg_clk: reg_cfg,
+        rows_cfg: vec![],
+        holes_ppc: vec![],
+        holes_pcie2: vec![],
+        holes_pcie3: vec![],
+        has_bram_fx: false,
+        has_ps: false,
+        has_slr: false,
+        has_no_tbuturn: true,
     };
     (grid, disabled)
 }

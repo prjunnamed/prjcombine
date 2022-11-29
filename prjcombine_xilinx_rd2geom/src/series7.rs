@@ -10,20 +10,20 @@ use prjcombine_series7_rdverify::verify_device;
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, extras, disabled) = grid::make_grids(rd);
     let int_db = int::make_int_db(rd);
-    let mut bonds = Vec::new();
-    for (pkg, pins) in rd.packages.iter() {
-        let bond = bond::make_bond(rd, pkg, &grids, grid_master, &extras, pins);
-        bonds.push((pkg.clone(), Bond::Series7(bond)));
-    }
     let grid_refs = grids.map_values(|x| x);
     let mut edev = expand_grid(&grid_refs, grid_master, &extras, &disabled, &int_db);
     if rd.source == Source::Vivado {
         edev.adjust_vivado();
     }
+    let mut bonds = Vec::new();
+    for (pkg, pins) in rd.packages.iter() {
+        let bond = bond::make_bond(rd, pkg, &edev, pins);
+        bonds.push((pkg.clone(), Bond::Series7(bond)));
+    }
     verify_device(&edev, rd);
-    let grids = grids.into_map_values(Grid::Series7);
+    let grids = grids.into_map_values(Grid::Virtex4);
     let extras = extras.into_iter().map(ExtraDie::Series7).collect();
-    let disabled = disabled.into_iter().map(DisabledPart::Series7).collect();
+    let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
     (
         make_device_multi(
             rd,

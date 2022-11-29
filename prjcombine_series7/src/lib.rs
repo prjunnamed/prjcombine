@@ -1,151 +1,27 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid};
 use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
+pub use prjcombine_virtex4::bond::{CfgPin, GtPin, SharedCfgPin, SysMonPin};
+pub use prjcombine_virtex4::{
+    CfgRowKind, ColumnKind, DisabledPart, Grid, GridKind, Gt, GtColumn, GtKind, HardColumn,
+    IoColumn, IoCoord, IoKind, Pcie2, Pcie2Kind, RegId, SysMon, TileIobId,
+};
+
 mod expand;
 pub mod io;
 
-entity_id! {
-    pub id RegId u32, delta;
-}
-
 pub use expand::expand_grid;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Grid {
-    pub kind: GridKind,
-    pub xadc_kind: XadcKind,
-    pub columns: EntityVec<ColId, ColumnKind>,
-    pub cols_vbrk: BTreeSet<ColId>,
-    pub col_cfg: ColId,
-    pub col_clk: ColId,
-    pub cols_io: [Option<IoColumn>; 2],
-    pub cols_gt: [Option<GtColumn>; 2],
-    pub cols_gtp_mid: Option<(GtColumn, GtColumn)>,
-    pub regs: usize,
-    pub reg_cfg: RegId,
-    pub reg_clk: RegId,
-    pub pcie2: Vec<Pcie2>,
-    pub pcie3: Vec<(ColId, RowId)>,
-    pub has_ps: bool,
-    pub has_slr: bool,
-    pub has_no_tbuturn: bool,
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum GridKind {
-    Artix,
-    Kintex,
-    Virtex,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum XadcKind {
+pub enum XadcIoLoc {
     Left,
     Right,
-    Both,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum ColumnKind {
-    ClbLL,
-    ClbLM,
-    Bram,
-    Dsp,
-    Io,
-    Cmt,
-    Gt,
-    Cfg,
-    Clk,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct IoColumn {
-    pub col: ColId,
-    pub regs: EntityVec<RegId, Option<IoKind>>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GtColumn {
-    pub col: ColId,
-    pub regs: EntityVec<RegId, Option<GtKind>>,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum GtKind {
-    Gtp,
-    Gtx,
-    Gth,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IoKind {
-    Hpio,
-    Hrio,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Pcie2Kind {
-    Left,
-    Right,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Pcie2 {
-    pub kind: Pcie2Kind,
-    pub col: ColId,
-    pub row: RowId,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum SharedCfgPin {
-    // ×32; high 16 bits are also low 16 bits of Addr
-    // 0 doubles as MOSI
-    // 1 doubles as DIN
-    Data(u8),
-    Addr(u8), // ×29 total, but 0-15 are represented as Data(16-31)
-    CsiB,
-    Dout, // doubles as CSO_B
-    RdWrB,
-    EmCclk,
-    PudcB,
-    Rs(u8), // ×2
-    AdvB,
-    FweB,
-    FoeB,
-    FcsB,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-pub enum CfgPin {
-    Tck,
-    Tdi,
-    Tdo,
-    Tms,
-    ProgB,
-    Done,
-    M0,
-    M1,
-    M2,
-    Cclk,
-    InitB,
-    CfgBvs,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum GtPin {
-    RxP(u8),
-    RxN(u8),
-    TxP(u8),
-    TxN(u8),
-    ClkP(u8),
-    ClkN(u8),
-    RRef,
-    AVttRCal,
+    LR,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -178,16 +54,6 @@ pub enum GtzPin {
     SenseVcc,
     SenseVccL,
     SenseVccH,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum SysMonPin {
-    VP,
-    VN,
-    AVdd,
-    AVss,
-    VRefP,
-    VRefN,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -234,7 +100,7 @@ pub enum BondPin {
     GtRegion(u32, GtRegionPin),
     Dxp,
     Dxn,
-    SysMon(DieId, SysMonPin),
+    SysMon(u32, SysMonPin),
     VccPsInt,
     VccPsAux,
     VccPsPll,
@@ -245,11 +111,6 @@ pub enum BondPin {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum DisabledPart {
-    Gtp,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -271,37 +132,15 @@ pub struct ExpandedDevice<'a> {
     pub extras: Vec<ExtraDie>,
     pub bs_geom: BitstreamGeom,
     pub frames: EntityVec<DieId, FrameGeom>,
-}
-
-impl Grid {
-    pub fn row_to_reg(&self, row: RowId) -> RegId {
-        RegId::from_idx(row.to_idx() / 50)
-    }
-
-    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * 50)
-    }
-
-    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * 50 + 25)
-    }
-
-    pub fn row_hclk(&self, row: RowId) -> RowId {
-        RowId::from_idx(row.to_idx() / 50 * 50 + 25)
-    }
-
-    pub fn regs(&self) -> EntityIds<RegId> {
-        EntityIds::new(self.regs)
-    }
-
-    pub fn row_bufg(&self) -> RowId {
-        self.row_reg_bot(self.reg_clk)
-    }
-
-    pub fn col_ps(&self) -> ColId {
-        assert!(self.has_ps);
-        ColId::from_idx(18)
-    }
+    pub col_lio: Option<ColId>,
+    pub col_rio: Option<ColId>,
+    pub col_lgt: Option<ColId>,
+    pub col_rgt: Option<ColId>,
+    pub col_mgt: Option<(ColId, ColId)>,
+    pub col_cfg: ColId,
+    pub col_clk: ColId,
+    pub gt: Vec<Gt>,
+    pub sysmon: Vec<SysMon>,
 }
 
 impl<'a> ExpandedDevice<'a> {

@@ -431,168 +431,10 @@ mod spartan6 {
 
 mod virtex4 {
     use prjcombine_entity::EntityId;
-    use prjcombine_virtex4::{ColumnKind, Grid};
+    use prjcombine_virtex4::{ColumnKind, Grid, GridKind, Pcie2Kind};
 
     pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: Virtex4");
-        println!("\tCOLS:");
-        for (col, cd) in &grid.columns {
-            if grid.cols_vbrk.contains(&col) {
-                println!("\t\t--- break");
-            }
-            print!("\t\tX{c}: ", c = col.to_idx());
-            match cd {
-                ColumnKind::Io => match grid.cols_io.iter().position(|&x| x == col).unwrap() {
-                    0 => print!("LIO"),
-                    1 => print!("CIO"),
-                    2 => print!("RIO"),
-                    _ => unreachable!(),
-                },
-                ColumnKind::Clb => print!("CLB"),
-                ColumnKind::Bram => print!("BRAM"),
-                ColumnKind::Dsp => print!("DSP"),
-                ColumnKind::Gt => print!("GT"),
-            }
-            println!();
-        }
-        println!("\tREGS: {r}", r = grid.regs);
-        println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
-        println!("\tCFG IO REGS: {v:?}", v = grid.regs_cfg_io);
-        println!("\tCCM: {r}", r = grid.ccm);
-        println!("\tSYSMON BOT: {v:?}", v = grid.has_bot_sysmon);
-        println!("\tSYSMON TOP: {v:?}", v = grid.has_top_sysmon);
-        for &(col, row) in &grid.holes_ppc {
-            println!(
-                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
-                xl = col.to_idx(),
-                xr = col.to_idx() + 9,
-                yb = row.to_idx(),
-                yt = row.to_idx() + 24
-            );
-        }
-        println!("\tHAS BRAM_FX: {v:?}", v = grid.has_bram_fx);
-    }
-}
-
-mod virtex5 {
-    use prjcombine_entity::EntityId;
-    use prjcombine_virtex5::{ColumnKind, Grid};
-
-    pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: Virtex5");
-        println!("\tCOLS:");
-        for (col, cd) in &grid.columns {
-            if grid.cols_vbrk.contains(&col) {
-                println!("\t\t--- break");
-            }
-            print!("\t\tX{c}: ", c = col.to_idx());
-            match cd {
-                ColumnKind::Io => {
-                    match grid.cols_io.iter().position(|&x| x == Some(col)).unwrap() {
-                        0 => print!("LIO"),
-                        1 => print!("CIO"),
-                        2 => print!("RIO"),
-                        _ => unreachable!(),
-                    }
-                }
-                ColumnKind::ClbLL => print!("CLBLL"),
-                ColumnKind::ClbLM => print!("CLBLM"),
-                ColumnKind::Bram => print!("BRAM"),
-                ColumnKind::Dsp => print!("DSP"),
-                ColumnKind::Gtp => print!("GTP"),
-                ColumnKind::Gtx => print!("GTX"),
-            }
-            if grid.cols_mgt_buf.contains(&col) {
-                print!(" MGT_BUF");
-            }
-            println!();
-            if let Some(ref hard) = grid.col_hard {
-                if hard.col == col {
-                    for &row in &hard.rows_pcie {
-                        println!("\t\t\tY{y}: PCIE", y = row.to_idx());
-                    }
-                    for &row in &hard.rows_emac {
-                        println!("\t\t\tY{y}: EMAC", y = row.to_idx());
-                    }
-                }
-            }
-        }
-        println!("\tREGS: {r}", r = grid.regs);
-        println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
-        for &(col, row) in &grid.holes_ppc {
-            println!(
-                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
-                xl = col.to_idx(),
-                xr = col.to_idx() + 14,
-                yb = row.to_idx(),
-                yt = row.to_idx() + 40
-            );
-        }
-    }
-}
-
-mod virtex6 {
-    use prjcombine_entity::EntityId;
-    use prjcombine_virtex6::{ColumnKind, Grid};
-
-    pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: Virtex6");
-        println!("\tCOLS:");
-        for (col, cd) in &grid.columns {
-            if grid.cols_vbrk.contains(&col) {
-                println!("\t\t--- break");
-            }
-            print!("\t\tX{c}: ", c = col.to_idx());
-            match cd {
-                ColumnKind::Io => {
-                    match grid.cols_io.iter().position(|&x| x == Some(col)).unwrap() {
-                        0 => print!("OLIO"),
-                        1 => print!("CLIO"),
-                        2 => print!("CRIO"),
-                        3 => print!("ORIO"),
-                        _ => unreachable!(),
-                    }
-                }
-                ColumnKind::ClbLL => print!("CLBLL"),
-                ColumnKind::ClbLM => print!("CLBLM"),
-                ColumnKind::Bram => print!("BRAM"),
-                ColumnKind::Dsp => print!("DSP"),
-                ColumnKind::Gt => print!("GT"),
-                ColumnKind::Cmt => print!("CMT"),
-            }
-            if grid.cols_mgt_buf.contains(&col) {
-                print!(" MGT_BUF");
-            }
-            if grid.cols_qbuf.0 == col || grid.cols_qbuf.1 == col {
-                print!(" QBUF");
-            }
-            println!();
-            if let Some(ref hard) = grid.col_hard {
-                if hard.col == col {
-                    for &row in &hard.rows_pcie {
-                        println!("\t\t\tY{y}: PCIE", y = row.to_idx());
-                    }
-                    for &row in &hard.rows_emac {
-                        println!("\t\t\tY{y}: EMAC", y = row.to_idx());
-                    }
-                }
-            }
-        }
-        println!("\tREGS: {r}", r = grid.regs);
-        println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
-        if grid.reg_gth_start.to_idx() != grid.regs {
-            println!("\tGTH START REG: {v:?}", v = grid.reg_gth_start.to_idx());
-        }
-    }
-}
-
-mod series7 {
-    use prjcombine_entity::EntityId;
-    use prjcombine_series7::{ColumnKind, Grid, Pcie2Kind};
-
-    pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: {v:?}7", v = grid.kind);
-        println!("\tXADC side: {v:?}", v = grid.xadc_kind);
+        println!("\tKIND: {v:?}", v = grid.kind);
         if grid.has_ps {
             println!("\tHAS PS");
         }
@@ -603,19 +445,13 @@ mod series7 {
             println!("\tHAS NO TB UTURN");
         }
         println!("\tCOLS:");
-        for (col, cd) in &grid.columns {
+        for (col, &cd) in &grid.columns {
             if grid.cols_vbrk.contains(&col) {
                 println!("\t\t--- break");
             }
             print!("\t\tX{c}: ", c = col.to_idx());
             match cd {
-                ColumnKind::Io => {
-                    if col < grid.col_clk {
-                        print!("LIO");
-                    } else {
-                        print!("RIO");
-                    }
-                }
+                ColumnKind::Io => print!("IO"),
                 ColumnKind::ClbLL => print!("CLBLL"),
                 ColumnKind::ClbLM => print!("CLBLM"),
                 ColumnKind::Bram => print!("BRAM"),
@@ -625,8 +461,26 @@ mod series7 {
                 ColumnKind::Clk => print!("CLK"),
                 ColumnKind::Cfg => print!("CFG"),
             }
+            if grid.cols_mgt_buf.contains(&col) {
+                print!(" MGT_BUF");
+            }
+            if let Some((cl, cr)) = grid.cols_qbuf {
+                if col == cl || col == cr {
+                    print!(" QBUF");
+                }
+            }
             println!();
-            for ioc in grid.cols_io.iter().flatten() {
+            if let Some(ref hard) = grid.col_hard {
+                if hard.col == col {
+                    for &row in &hard.rows_pcie {
+                        println!("\t\t\tY{y}: PCIE", y = row.to_idx());
+                    }
+                    for &row in &hard.rows_emac {
+                        println!("\t\t\tY{y}: EMAC", y = row.to_idx());
+                    }
+                }
+            }
+            for ioc in &grid.cols_io {
                 if ioc.col == col {
                     for (reg, kind) in &ioc.regs {
                         if let Some(kind) = kind {
@@ -635,7 +489,7 @@ mod series7 {
                     }
                 }
             }
-            for gtc in grid.cols_gt.iter().flatten() {
+            for gtc in &grid.cols_gt {
                 if gtc.col == col {
                     for (reg, kind) in &gtc.regs {
                         if let Some(kind) = kind {
@@ -644,19 +498,30 @@ mod series7 {
                     }
                 }
             }
-            if let Some((ref gtl, ref gtr)) = grid.cols_gtp_mid {
-                for (t, gtc) in [("LGTP", gtl), ("RGTP", gtr)] {
-                    if gtc.col == col {
-                        for (reg, kind) in &gtc.regs {
-                            if kind.is_some() {
-                                println!("\t\t\tY{y}: {t}", y = grid.row_reg_bot(reg).to_idx());
-                            }
-                        }
-                    }
+            if cd == ColumnKind::Cfg {
+                for &(row, kind) in &grid.rows_cfg {
+                    println!("\t\t\tY{y}: {kind:?}", y = row.to_idx());
                 }
             }
         }
-        for pcie in &grid.pcie2 {
+        println!("\tREGS: {r}", r = grid.regs);
+        println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
+        println!("\tCLK REG: {v:?}", v = grid.reg_clk.to_idx());
+        for &(col, row) in &grid.holes_ppc {
+            let (col_r, row_t) = match grid.kind {
+                GridKind::Virtex4 => (col + 9, row + 24),
+                GridKind::Virtex5 => (col + 14, row + 40),
+                _ => unreachable!(),
+            };
+            println!(
+                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
+                xl = col.to_idx(),
+                xr = col_r.to_idx(),
+                yb = row.to_idx(),
+                yt = row_t.to_idx(),
+            );
+        }
+        for pcie in &grid.holes_pcie2 {
             println!(
                 "\tPCIE2.{lr}: X{xl}:X{xr} Y{yb}:Y{yt}",
                 lr = match pcie.kind {
@@ -669,7 +534,7 @@ mod series7 {
                 yt = pcie.row.to_idx() + 25
             );
         }
-        for &(col, row) in &grid.pcie3 {
+        for &(col, row) in &grid.holes_pcie3 {
             println!(
                 "\tPCIE3: X{xl}:X{xr} Y{yb}:Y{yt}",
                 xl = col.to_idx(),
@@ -678,9 +543,7 @@ mod series7 {
                 yt = row.to_idx() + 50
             );
         }
-        println!("\tREGS: {r}", r = grid.regs);
-        println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
-        println!("\tCLK REG: {v:?}", v = grid.reg_clk.to_idx());
+        println!("\tHAS BRAM_FX: {v:?}", v = grid.has_bram_fx);
     }
 }
 
@@ -964,9 +827,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Grid::Virtex2(g) => virtex2::print_grid(g),
                     Grid::Spartan6(g) => spartan6::print_grid(g),
                     Grid::Virtex4(g) => virtex4::print_grid(g),
-                    Grid::Virtex5(g) => virtex5::print_grid(g),
-                    Grid::Virtex6(g) => virtex6::print_grid(g),
-                    Grid::Series7(g) => series7::print_grid(g),
                     Grid::Ultrascale(g) => ultrascale::print_grid(g),
                     Grid::Versal(g) => versal::print_grid(g),
                 }

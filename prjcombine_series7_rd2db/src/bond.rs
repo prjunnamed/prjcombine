@@ -1,53 +1,85 @@
-use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::grid::DieId;
+use prjcombine_entity::EntityId;
 use prjcombine_rawdump::{Part, PkgPin};
-use prjcombine_series7::io::{get_gt, get_gtz_pads, get_io, get_ps_pads, get_sysmon_pads};
 use prjcombine_series7::{
-    Bond, BondPin, CfgPin, ExtraDie, Grid, GtPin, GtRegionPin, GtzPin, PsPin, SharedCfgPin,
-    SysMonPin,
+    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegionPin, GtzPin, IoCoord, PsPin,
+    SharedCfgPin, SysMonPin, TileIobId,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(
-    rd: &Part,
-    pkg: &str,
-    grids: &EntityVec<DieId, Grid>,
-    grid_master: DieId,
-    extras: &[ExtraDie],
-    pins: &[PkgPin],
-) -> Bond {
+pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let is_7k70t = rd.part.contains("7k70t");
-    let io_lookup: HashMap<_, _> = get_io(grids, grid_master)
+    let io_lookup: HashMap<_, _> = edev
+        .get_io()
         .into_iter()
         .map(|io| (io.iob_name(), io))
         .collect();
-    let gt_lookup: HashMap<_, _> = get_gt(grids, grid_master, extras, is_7k70t)
-        .into_iter()
-        .flat_map(|gt| {
-            gt.get_pads()
-                .into_iter()
-                .map(move |(name, func, pin)| (name, (func, gt.bank, pin)))
-        })
-        .collect();
-    let gtz_lookup: HashMap<_, _> = get_gtz_pads(extras)
+    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
+    for gt in &edev.gt {
+        let bank = gt.bank;
+        let t = match gt.kind {
+            GtKind::Gtp => "GTP",
+            GtKind::Gtx => "GTX",
+            GtKind::Gth => "GTH",
+        };
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTREFCLK{i}P_{bank}"), bank, GtPin::ClkP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTREFCLK{i}N_{bank}"), bank, GtPin::ClkN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("M{t}RXP{i}_{bank}"), bank, GtPin::RxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("M{t}RXN{i}_{bank}"), bank, GtPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("M{t}TXP{i}_{bank}"), bank, GtPin::TxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("M{t}TXN{i}_{bank}"), bank, GtPin::TxN(i as u8)),
+            );
+        }
+    }
+    let gtz_lookup: HashMap<_, _> = edev
+        .get_gtz_pads()
         .into_iter()
         .map(|(name, func, bank, pin)| (name, (func, bank, pin)))
         .collect();
-    let sm_lookup: HashMap<_, _> = get_sysmon_pads(grids, extras, is_7k70t)
-        .into_iter()
-        .map(|(name, bank, pin)| (name, (bank, pin)))
-        .collect();
-    let ps_lookup: HashMap<_, _> = get_ps_pads(grids)
+    let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
+    let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
+    for sysmon in &edev.sysmon {
+        if sysmon.die == edev.grid_master {
+            sm_lookup.insert(sysmon.pad_vp.clone(), (sysmon.bank, SysMonPin::VP));
+            sm_lookup.insert(sysmon.pad_vn.clone(), (sysmon.bank, SysMonPin::VN));
+            for (i, vaux) in sysmon.vaux.iter().enumerate() {
+                if let &Some((vauxp, vauxn)) = vaux {
+                    vaux_lookup.insert(vauxp, (i, 'P'));
+                    vaux_lookup.insert(vauxn, (i, 'N'));
+                }
+            }
+        }
+    }
+    let ps_lookup: HashMap<_, _> = edev
+        .get_ps_pads()
         .into_iter()
         .map(|(name, bank, pin)| (name, (bank, pin)))
         .collect();
     let has_14 = io_lookup.values().any(|io| io.bank == 14);
-    let has_15 = io_lookup.values().any(|io| io.bank == 15);
-    let has_35 = io_lookup.values().any(|io| io.bank == 35);
     let is_spartan = rd.part.contains("7s");
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
@@ -62,6 +94,14 @@ pub fn make_bond(
                         3 - (n - 1) / 12
                     ),
                 };
+                let is_s = matches!(io.row.to_idx() % 50, 0 | 49);
+                let is_p = io.row.to_idx() % 2 == 0 && !is_s;
+                let ioc = IoCoord {
+                    die: io.die,
+                    col: io.col,
+                    row: if is_p { io.row - 1 } else { io.row },
+                    iob: TileIobId::from_idx(if !is_p && !is_s { 1 } else { 0 }),
+                };
                 if matches!(pkg, "fbg484" | "fbv484")
                     && rd.part.contains("7k")
                     && io.bank == 16
@@ -74,8 +114,8 @@ pub fn make_bond(
                     );
                 }
                 if io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22) {
-                    if let Some(sm) = io.sm_pair(has_15, has_35) {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row.to_idx() % 2]).unwrap();
+                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                        write!(exp_func, "_AD{}{}", i, pn).unwrap();
                     }
                 }
                 if io.is_srcc() {
@@ -112,7 +152,7 @@ pub fn make_bond(
                     Some(SharedCfgPin::EmCclk) => exp_func += "_EMCCLK",
                     Some(SharedCfgPin::RdWrB) => exp_func += "_RDWR_B",
                     Some(SharedCfgPin::CsiB) => exp_func += "_CSI_B",
-                    Some(SharedCfgPin::Dout) => exp_func += "_DOUT_CSO_B",
+                    Some(SharedCfgPin::CsoB) => exp_func += "_DOUT_CSO_B",
                     Some(SharedCfgPin::FweB) => {
                         if !is_spartan {
                             exp_func += "_FWE_B"
@@ -132,8 +172,8 @@ pub fn make_bond(
                     None => (),
                 }
                 if !(io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22)) {
-                    if let Some(sm) = io.sm_pair(has_15, has_35) {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.row.to_idx() % 2]).unwrap();
+                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                        write!(exp_func, "_AD{}{}", i, pn).unwrap();
                     }
                 }
                 if io.is_vref() {
@@ -165,7 +205,7 @@ pub fn make_bond(
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::Gtz(bank, gpin)
-            } else if let Some(&(die, spin)) = sm_lookup.get(pad) {
+            } else if let Some(&(bank, spin)) = sm_lookup.get(pad) {
                 let exp_func = match spin {
                     SysMonPin::VP => "VP_0",
                     SysMonPin::VN => "VN_0",
@@ -174,7 +214,7 @@ pub fn make_bond(
                 if exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::SysMon(die, spin)
+                BondPin::SysMon(bank, spin)
             } else if let Some(&(bank, spin)) = ps_lookup.get(pad) {
                 let exp_func = match spin {
                     PsPin::Clk => format!("PS_CLK_{bank}"),
@@ -235,10 +275,10 @@ pub fn make_bond(
                 "CFGBVS_0" => BondPin::Cfg(CfgPin::CfgBvs),
                 "DXN_0" => BondPin::Dxn,
                 "DXP_0" => BondPin::Dxp,
-                "GNDADC_0" | "GNDADC" => BondPin::SysMon(grid_master, SysMonPin::AVss),
-                "VCCADC_0" | "VCCADC" => BondPin::SysMon(grid_master, SysMonPin::AVdd),
-                "VREFP_0" => BondPin::SysMon(grid_master, SysMonPin::VRefP),
-                "VREFN_0" => BondPin::SysMon(grid_master, SysMonPin::VRefN),
+                "GNDADC_0" | "GNDADC" => BondPin::SysMon(0, SysMonPin::AVss),
+                "VCCADC_0" | "VCCADC" => BondPin::SysMon(0, SysMonPin::AVdd),
+                "VREFP_0" => BondPin::SysMon(0, SysMonPin::VRefP),
+                "VREFN_0" => BondPin::SysMon(0, SysMonPin::VRefN),
                 "MGTAVTT" => BondPin::GtRegion(10, GtRegionPin::AVtt),
                 "MGTAVCC" => BondPin::GtRegion(10, GtRegionPin::AVcc),
                 "MGTVCCAUX" => BondPin::GtRegion(10, GtRegionPin::VccAux),

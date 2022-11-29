@@ -2543,7 +2543,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("REBUF_INTF_GT_OPTDLY_B_CORE_MY", SINGLE, &[]),
     TileInfo("RCLK_INTF_TERM_LEFT_CORE", (1, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_INTF_TERM_RIGHT_CORE", (1, 0, 0, 0), &["clk-last-buf"]),
-    TileInfo("RCLK_INTF_TERM2_RIGHT_CORE", (1, 0, 0, 0), &["clk-last-buf"]),
+    TileInfo(
+        "RCLK_INTF_TERM2_RIGHT_CORE",
+        (1, 0, 0, 0),
+        &["clk-last-buf"],
+    ),
     TileInfo("RBRK_INTF_GT_CORE_MY", SINGLE, &["clk-brk"]),
     TileInfo("RBRK_INTF_GT_CORE", SINGLE, &["clk-brk"]),
     TileInfo("TERM_T_INTF_GT_CORE", SINGLE, &[]),

@@ -1,32 +1,77 @@
+use prjcombine_entity::EntityId;
+use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex5::{
-    Bond, BondPin, CfgPin, Grid, GtPin, GtRegion, GtRegionPin, SharedCfgPin, SysMonPin,
+    Bond, BondPin, CfgPin, ExpandedDevice, GtPin, GtRegion, GtRegionPin, IoCoord, SharedCfgPin,
+    SysMonPin, TileIobId,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = grid
+    let io_lookup: HashMap<_, _> = edev
         .get_io()
         .into_iter()
         .map(|io| (io.iob_name(), io))
         .collect();
-    let gt_lookup: HashMap<_, _> = grid
-        .get_gt()
-        .into_iter()
-        .flat_map(|gt| {
-            gt.get_pads(grid)
-                .into_iter()
-                .map(move |(name, func, pin)| (name, (func, gt.bank, pin)))
-        })
-        .collect();
-    let sm_lookup: HashMap<_, _> = grid.get_sysmon_pads().into_iter().collect();
+    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
+    for gt in &edev.gt {
+        let bank = gt.bank;
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTREFCLKP_{bank}"), bank, GtPin::ClkP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTREFCLKN_{bank}"), bank, GtPin::ClkN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)),
+            );
+        }
+    }
+    let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
+    let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
+    for sysmon in &edev.sysmon {
+        sm_lookup.insert(sysmon.pad_vp.clone(), (sysmon.bank, SysMonPin::VP));
+        sm_lookup.insert(sysmon.pad_vn.clone(), (sysmon.bank, SysMonPin::VN));
+        for (i, vaux) in sysmon.vaux.iter().enumerate() {
+            if let &Some((vauxp, vauxn)) = vaux {
+                vaux_lookup.insert(vauxp, (i, 'P'));
+                vaux_lookup.insert(vauxn, (i, 'N'));
+            }
+        }
+    }
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
+                let ioc = IoCoord {
+                    die: DieId::from_idx(0),
+                    col: io.col,
+                    row: io.row,
+                    iob: TileIobId::from_idx(!io.bbel as usize % 2),
+                };
                 let mut exp_func =
                     format!("IO_L{}{}", io.bbel / 2, ['N', 'P'][io.bbel as usize % 2]);
                 if io.is_cc() {
@@ -65,10 +110,11 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                     Some(SharedCfgPin::FweB) => exp_func += "_FWE_B",
                     Some(SharedCfgPin::FoeB) => exp_func += "_FOE_B_MOSI",
                     Some(SharedCfgPin::FcsB) => exp_func += "_FCS_B",
+                    Some(_) => unreachable!(),
                     None => (),
                 }
-                if let Some(sm) = io.sm_pair() {
-                    write!(exp_func, "_SM{}{}", sm, ['N', 'P'][io.bbel as usize % 2]).unwrap();
+                if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                    write!(exp_func, "_SM{}{}", i, pn).unwrap();
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
                 if exp_func != pin.func {
@@ -82,7 +128,7 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::Gt(bank, gpin)
-            } else if let Some(&spin) = sm_lookup.get(pad) {
+            } else if let Some(&(bank, spin)) = sm_lookup.get(pad) {
                 let exp_func = match spin {
                     SysMonPin::VP => "VP_0",
                     SysMonPin::VN => "VN_0",
@@ -91,7 +137,7 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                 if exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::SysMon(spin)
+                BondPin::SysMon(bank, spin)
             } else {
                 println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
@@ -123,10 +169,10 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                 "HSWAPEN_0" => BondPin::Cfg(CfgPin::HswapEn),
                 "DXN_0" => BondPin::Dxn,
                 "DXP_0" => BondPin::Dxp,
-                "AVSS_0" => BondPin::SysMon(SysMonPin::AVss),
-                "AVDD_0" => BondPin::SysMon(SysMonPin::AVdd),
-                "VREFP_0" => BondPin::SysMon(SysMonPin::VRefP),
-                "VREFN_0" => BondPin::SysMon(SysMonPin::VRefN),
+                "AVSS_0" => BondPin::SysMon(0, SysMonPin::AVss),
+                "AVDD_0" => BondPin::SysMon(0, SysMonPin::AVdd),
+                "VREFP_0" => BondPin::SysMon(0, SysMonPin::VRefP),
+                "VREFN_0" => BondPin::SysMon(0, SysMonPin::VRefN),
                 "MGTAVTTRXC" => BondPin::GtRegion(GtRegion::All, GtRegionPin::AVttRxC),
                 "MGTAVTTRXC_L" => BondPin::GtRegion(GtRegion::L, GtRegionPin::AVttRxC),
                 "MGTAVTTRXC_R" => BondPin::GtRegion(GtRegion::R, GtRegionPin::AVttRxC),
@@ -136,8 +182,8 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                             "VCCO_" => BondPin::VccO(b),
                             "MGTAVCC_" => BondPin::Gt(b, GtPin::AVcc),
                             "MGTAVCCPLL_" => BondPin::Gt(b, GtPin::AVccPll),
-                            "MGTAVTTRX_" => BondPin::Gt(b, GtPin::VtRx),
-                            "MGTAVTTTX_" => BondPin::Gt(b, GtPin::VtTx),
+                            "MGTAVTTRX_" => BondPin::Gt(b, GtPin::VtRx(0)),
+                            "MGTAVTTTX_" => BondPin::Gt(b, GtPin::VtTx(0)),
                             "MGTRREF_" => BondPin::Gt(b, GtPin::RRef),
                             _ => {
                                 println!("UNK FUNC {}", pin.func);

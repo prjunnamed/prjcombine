@@ -1,9 +1,8 @@
 use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
 
-use crate::{DisabledPart, Grid, GtPin, SharedCfgPin, SysMonPin};
+use crate::{ExpandedDevice, SharedCfgPin};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
@@ -42,36 +41,6 @@ impl Io {
             24 => matches!(self.row.to_idx() % 40, 4 | 5),
             15 | 25 | 35 => matches!(self.row.to_idx() % 40, 6 | 7),
             _ => matches!(self.row.to_idx() % 40, 14 | 15),
-        }
-    }
-    pub fn sm_pair(&self, grid: &Grid) -> Option<u32> {
-        let has_ol = grid.cols_io[0].is_some();
-        match (self.bank, self.row.to_idx() % 40) {
-            (15, 8 | 9) => Some(15),
-            (15, 12 | 13) => Some(14),
-            (15, 14 | 15) => Some(13),
-            (15, 24 | 25) => Some(12),
-            (15, 26 | 27) => Some(11),
-            (15, 28 | 29) => Some(10),
-            (15, 32 | 33) => Some(9),
-            (15, 34 | 35) => Some(8),
-            (25, 8 | 9) if !has_ol => Some(15),
-            (25, 12 | 13) if !has_ol => Some(14),
-            (25, 14 | 15) if !has_ol => Some(13),
-            (25, 24 | 25) if !has_ol => Some(12),
-            (25, 26 | 27) if !has_ol => Some(11),
-            (25, 28 | 29) if !has_ol => Some(10),
-            (25, 32 | 33) if !has_ol => Some(9),
-            (25, 34 | 35) if !has_ol => Some(8),
-            (35, 8 | 9) => Some(7),
-            (35, 12 | 13) => Some(6),
-            (35, 14 | 15) => Some(5),
-            (35, 24 | 25) => Some(4),
-            (35, 26 | 27) => Some(3),
-            (35, 28 | 29) => Some(2),
-            (35, 32 | 33) => Some(1),
-            (35, 34 | 35) => Some(0),
-            _ => None,
         }
     }
     pub fn get_cfg(&self) -> Option<SharedCfgPin> {
@@ -129,115 +98,22 @@ impl Io {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Gt {
-    pub col: ColId,
-    pub row: RowId,
-    pub gtc: u32,
-    pub gy: u32,
-    pub bank: u32,
-    pub is_gth: bool,
-}
-
-impl Gt {
-    pub fn get_pads(&self, grid: &Grid) -> Vec<(String, String, GtPin)> {
-        let mut res = Vec::new();
-        let (ipx, opx) = if grid.has_left_gt() {
-            (self.gtc * 2, self.gtc)
-        } else {
-            (1, 0)
-        };
-        if self.is_gth {
-            let gthy = (grid.row_to_reg(self.row) - grid.reg_gth_start) as usize;
-            let opy = (grid.reg_gth_start.to_idx() * 32 + gthy * 8) as u32;
-            let ipy = (grid.reg_gth_start.to_idx() * 24 + gthy * 12) as u32;
-            for b in 0..4 {
-                res.push((
-                    format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b)),
-                    format!("MGTTXN{}_{}", b, self.bank),
-                    GtPin::TxN(b as u8),
-                ));
-                res.push((
-                    format!("OPAD_X{}Y{}", opx, opy + 2 * (3 - b) + 1),
-                    format!("MGTTXP{}_{}", b, self.bank),
-                    GtPin::TxP(b as u8),
-                ));
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b)),
-                    format!("MGTRXN{}_{}", b, self.bank),
-                    GtPin::RxN(b as u8),
-                ));
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 6 + 2 * (3 - b) + 1),
-                    format!("MGTRXP{}_{}", b, self.bank),
-                    GtPin::RxP(b as u8),
-                ));
-            }
-            res.push((
-                format!("IPAD_X{}Y{}", ipx, ipy - 9),
-                format!("MGTREFCLKN_{}", self.bank),
-                GtPin::ClkN(0),
-            ));
-            res.push((
-                format!("IPAD_X{}Y{}", ipx, ipy - 8),
-                format!("MGTREFCLKP_{}", self.bank),
-                GtPin::ClkP(0),
-            ));
-        } else {
-            let opy = self.gy * 8;
-            let ipy = self.gy * 24;
-            for b in 0..4 {
-                res.push((
-                    format!("OPAD_X{}Y{}", opx, opy + 2 * b),
-                    format!("MGTTXN{}_{}", b, self.bank),
-                    GtPin::TxN(b as u8),
-                ));
-                res.push((
-                    format!("OPAD_X{}Y{}", opx, opy + 2 * b + 1),
-                    format!("MGTTXP{}_{}", b, self.bank),
-                    GtPin::TxP(b as u8),
-                ));
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 6 * b),
-                    format!("MGTRXN{}_{}", b, self.bank),
-                    GtPin::RxN(b as u8),
-                ));
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 6 * b + 1),
-                    format!("MGTRXP{}_{}", b, self.bank),
-                    GtPin::RxP(b as u8),
-                ));
-            }
-            for b in 0..2 {
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 10 - 2 * b),
-                    format!("MGTREFCLK{}P_{}", b, self.bank),
-                    GtPin::ClkP(b as u8),
-                ));
-                res.push((
-                    format!("IPAD_X{}Y{}", ipx, ipy + 11 - 2 * b),
-                    format!("MGTREFCLK{}N_{}", b, self.bank),
-                    GtPin::ClkN(b as u8),
-                ));
-            }
-        }
-        res
-    }
-}
-
-impl Grid {
+impl ExpandedDevice<'_> {
     pub fn get_io(&self) -> Vec<Io> {
         let mut res = Vec::new();
         let mut iox = 0;
-        for ioc in 0..4 {
-            if let Some(col) = self.cols_io[ioc as usize] {
-                for reg in self.regs() {
-                    let bank = (reg - self.reg_cfg + 15) as usize + ioc as usize * 10;
+        for (ioc, col) in [self.col_lio, self.col_lcio, self.col_rcio, self.col_rio]
+            .into_iter()
+            .enumerate()
+        {
+            if let Some(col) = col {
+                for reg in self.grid.regs() {
+                    let bank = (reg - self.grid.reg_cfg + 15) as usize + ioc * 10;
                     for k in 0..40 {
                         res.push(Io {
                             col,
-                            row: self.row_reg_bot(reg) + k,
-                            ioc,
+                            row: self.grid.row_reg_bot(reg) + k,
+                            ioc: ioc as u32,
                             iox,
                             bank: bank as u32,
                             bbel: 39 - k as u32,
@@ -245,64 +121,6 @@ impl Grid {
                     }
                 }
                 iox += 1;
-            }
-        }
-        res
-    }
-
-    pub fn get_gt(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<Gt> {
-        let mut res = Vec::new();
-        let mut gy = 0;
-        for reg in self.regs() {
-            if disabled.contains(&DisabledPart::GtxRow(reg)) {
-                continue;
-            }
-            let is_gth = reg >= self.reg_gth_start;
-            if self.has_left_gt() {
-                let bank = reg - self.reg_cfg + 105;
-                res.push(Gt {
-                    col: self.columns.first_id().unwrap(),
-                    row: self.row_reg_bot(reg),
-                    gtc: 0,
-                    gy,
-                    bank: bank as u32,
-                    is_gth,
-                });
-            }
-            if self.col_hard.is_some() {
-                let bank = reg - self.reg_cfg + 115;
-                res.push(Gt {
-                    col: self.columns.last_id().unwrap(),
-                    row: self.row_reg_bot(reg),
-                    gtc: 1,
-                    gy,
-                    bank: bank as u32,
-                    is_gth,
-                });
-            }
-            gy += 1;
-        }
-        res
-    }
-
-    pub fn get_sysmon_pads(&self, disabled: &BTreeSet<DisabledPart>) -> Vec<(String, SysMonPin)> {
-        let mut res = Vec::new();
-        if self.col_hard.is_none() {
-            res.push(("IPAD_X0Y0".to_string(), SysMonPin::VP));
-            res.push(("IPAD_X0Y1".to_string(), SysMonPin::VN));
-        } else {
-            let mut ipy = 6;
-            for reg in self.regs() {
-                if reg < self.reg_cfg && !disabled.contains(&DisabledPart::GtxRow(reg)) {
-                    ipy += 24;
-                }
-            }
-            if self.has_left_gt() {
-                res.push((format!("IPAD_X1Y{}", ipy), SysMonPin::VP));
-                res.push((format!("IPAD_X1Y{}", ipy + 1), SysMonPin::VN));
-            } else {
-                res.push((format!("IPAD_X0Y{}", ipy), SysMonPin::VP));
-                res.push((format!("IPAD_X0Y{}", ipy + 1), SysMonPin::VN));
             }
         }
         res

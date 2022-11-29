@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
-use prjcombine_virtex4::{ColumnKind, Grid, RegId};
+use prjcombine_virtex4::{CfgRowKind, ColumnKind, Grid, GridKind, GtColumn, GtKind, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_columns, find_row, find_rows, IntGrid};
@@ -10,7 +10,7 @@ use prjcombine_rdgrid::{extract_int, find_columns, find_row, find_rows, IntGrid}
 fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
     for c in find_columns(rd, &["CLB"]) {
-        res[int.lookup_column(c - 1)] = Some(ColumnKind::Clb);
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::ClbLM);
     }
     for c in find_columns(rd, &["BRAM"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::Bram);
@@ -20,6 +20,9 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     }
     for c in find_columns(rd, &["IOIS_LC", "IOIS_LC_L"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::Io);
+    }
+    for c in find_columns(rd, &["DCM"]) {
+        res[int.lookup_column(c - 1)] = Some(ColumnKind::Cfg);
     }
     for c in find_columns(rd, &["MGT_AR"]) {
         res[int.lookup_column(c - 1)] = Some(ColumnKind::Gt);
@@ -38,42 +41,11 @@ fn get_cols_vbrk(rd: &Part, int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [ColId; 3] {
-    let v: Vec<_> = columns
-        .iter()
-        .filter_map(|(k, &v)| if v == ColumnKind::Io { Some(k) } else { None })
-        .collect();
-    v.try_into().unwrap()
-}
-
 fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
     RegId::from_idx(
         int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
             .to_idx()
             / 16,
-    )
-}
-
-fn get_regs_cfg_io(rd: &Part, int: &IntGrid, reg_cfg: RegId) -> usize {
-    let d2i = int
-        .lookup_row_inter(find_row(rd, &["HCLK_DCMIOB"]).unwrap())
-        .to_idx();
-    let i2d = int
-        .lookup_row_inter(find_row(rd, &["HCLK_IOBDCM"]).unwrap())
-        .to_idx();
-    assert_eq!(i2d - reg_cfg.to_idx() * 16, reg_cfg.to_idx() * 16 - d2i);
-    (i2d - reg_cfg.to_idx() * 16 - 8) / 16
-}
-
-fn get_ccm(rd: &Part) -> usize {
-    find_rows(rd, &["CCM"]).len() / 2
-}
-
-fn get_has_sysmons(rd: &Part) -> (bool, bool) {
-    let sysmons = find_rows(rd, &["SYS_MON"]);
-    (
-        sysmons.contains(&1),
-        sysmons.contains(&((rd.height - 9) as i32)),
     )
 }
 
@@ -93,23 +65,65 @@ fn get_has_bram_fx(rd: &Part) -> bool {
     !find_columns(rd, &["HCLK_BRAM_FX"]).is_empty()
 }
 
+fn get_cols_gt(int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) -> Vec<GtColumn> {
+    cols.iter()
+        .filter_map(|(col, &cd)| {
+            if cd == ColumnKind::Gt {
+                Some(GtColumn {
+                    col,
+                    regs: (0..(int.rows.len() / 16))
+                        .map(|_| Some(GtKind::Gtp))
+                        .collect(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn get_rows_cfg(rd: &Part, int: &IntGrid) -> Vec<(RowId, CfgRowKind)> {
+    let mut res = vec![];
+    for y in find_rows(rd, &["DCM", "DCM_BOT"]) {
+        let row = int.lookup_row(y);
+        res.push((row, CfgRowKind::Dcm));
+    }
+    for y in find_rows(rd, &["CCM"]) {
+        let row = int.lookup_row(y);
+        res.push((row, CfgRowKind::Ccm));
+    }
+    for y in find_rows(rd, &["SYS_MON"]) {
+        let row = int.lookup_row(y);
+        res.push((row, CfgRowKind::Sysmon));
+    }
+    res.sort_by_key(|&(x, _)| x);
+    res
+}
+
 pub fn make_grid(rd: &Part) -> Grid {
     let int = extract_int(rd, &["INT", "INT_SO"], &[]);
     let columns = make_columns(rd, &int);
-    let cols_io = get_cols_io(&columns);
-    let (has_bot_sysmon, has_top_sysmon) = get_has_sysmons(rd);
+    let cols_gt = get_cols_gt(&int, &columns);
     let reg_cfg = get_reg_cfg(rd, &int);
     Grid {
+        kind: GridKind::Virtex4,
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
-        cols_io,
+        cols_mgt_buf: BTreeSet::new(),
+        cols_qbuf: None,
+        cols_io: vec![],
+        cols_gt,
+        col_hard: None,
         regs: int.rows.len() / 16,
-        has_bot_sysmon,
-        has_top_sysmon,
-        regs_cfg_io: get_regs_cfg_io(rd, &int, reg_cfg),
-        ccm: get_ccm(rd),
         reg_cfg,
+        reg_clk: reg_cfg,
+        rows_cfg: get_rows_cfg(rd, &int),
         holes_ppc: get_holes_ppc(rd, &int),
+        holes_pcie2: vec![],
+        holes_pcie3: vec![],
         has_bram_fx: get_has_bram_fx(rd),
+        has_ps: false,
+        has_slr: false,
+        has_no_tbuturn: false,
     }
 }

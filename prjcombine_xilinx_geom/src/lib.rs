@@ -25,9 +25,6 @@ pub enum Grid {
     Virtex2(prjcombine_virtex2::Grid),
     Spartan6(prjcombine_spartan6::Grid),
     Virtex4(prjcombine_virtex4::Grid),
-    Virtex5(prjcombine_virtex5::Grid),
-    Virtex6(prjcombine_virtex6::Grid),
-    Series7(prjcombine_series7::Grid),
     Ultrascale(prjcombine_ultrascale::Grid),
     Versal(prjcombine_versal::Grid),
 }
@@ -42,8 +39,7 @@ pub struct DeviceBond {
 pub enum DisabledPart {
     Virtex(prjcombine_virtex::DisabledPart),
     Spartan6(prjcombine_spartan6::DisabledPart),
-    Virtex6(prjcombine_virtex6::DisabledPart),
-    Series7(prjcombine_series7::DisabledPart),
+    Virtex4(prjcombine_virtex4::DisabledPart),
     Ultrascale(prjcombine_ultrascale::DisabledPart),
     Versal(prjcombine_versal::DisabledPart),
 }
@@ -81,7 +77,7 @@ pub enum Bond {
     Virtex(prjcombine_virtex::Bond),
     Virtex2(prjcombine_virtex2::Bond),
     Spartan6(prjcombine_spartan6::Bond),
-    Virtex4(prjcombine_virtex4::Bond),
+    Virtex4(prjcombine_virtex4::bond::Bond),
     Virtex5(prjcombine_virtex5::Bond),
     Virtex6(prjcombine_virtex6::Bond),
     Series7(prjcombine_series7::Bond),

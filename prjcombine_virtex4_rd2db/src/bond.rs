@@ -1,4 +1,7 @@
-use prjcombine_virtex4::{Bond, BondPin, CfgPin, Grid, GtPin, SharedCfgPin, SysMonPin};
+use prjcombine_entity::EntityId;
+use prjcombine_int::grid::DieId;
+use prjcombine_virtex4::bond::{Bond, BondPin, CfgPin, GtPin, SharedCfgPin, SysMonPin};
+use prjcombine_virtex4::{ExpandedDevice, IoCoord, TileIobId};
 
 use prjcombine_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};
@@ -6,35 +9,75 @@ use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = grid
+    let io_lookup: HashMap<_, _> = edev
         .get_io()
         .into_iter()
         .map(|io| (io.iob_name(), io))
         .collect();
-    let gt_lookup: HashMap<_, _> = grid
-        .get_gt()
-        .into_iter()
-        .flat_map(|gt| {
-            gt.get_pads(grid)
-                .into_iter()
-                .map(move |(name, func, pin)| (name, (func, gt.bank, pin)))
-        })
-        .collect();
-    let sm_lookup: HashMap<_, _> = grid
-        .get_sysmon_pads()
-        .into_iter()
-        .map(|(name, bank, pin)| (name, (bank, pin)))
-        .collect();
+    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
+    for gt in &edev.gt {
+        let bank = gt.bank;
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTCLK_P_{bank}"), bank, GtPin::ClkP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTCLK_N_{bank}"), bank, GtPin::ClkN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            let ab = ['B', 'A'][i];
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("RXPPAD{ab}_{bank}"), bank, GtPin::RxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("RXNPAD{ab}_{bank}"), bank, GtPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            let ab = ['B', 'A'][i];
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("TXPPAD{ab}_{bank}"), bank, GtPin::TxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("TXNPAD{ab}_{bank}"), bank, GtPin::TxN(i as u8)),
+            );
+        }
+    }
+    let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
+    let mut vaux_lookup: HashMap<IoCoord, (u32, usize, char)> = HashMap::new();
+    for sysmon in &edev.sysmon {
+        sm_lookup.insert(sysmon.pad_vp.clone(), (sysmon.bank, SysMonPin::VP));
+        sm_lookup.insert(sysmon.pad_vn.clone(), (sysmon.bank, SysMonPin::VN));
+        for (i, vaux) in sysmon.vaux.iter().enumerate() {
+            if let &Some((vauxp, vauxn)) = vaux {
+                vaux_lookup.insert(vauxp, (sysmon.bank, i, 'P'));
+                vaux_lookup.insert(vauxn, (sysmon.bank, i, 'N'));
+            }
+        }
+    }
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
+                let ioc = IoCoord {
+                    die: DieId::from_idx(0),
+                    col: io.col,
+                    row: io.row,
+                    iob: TileIobId::from_idx(!io.bbel as usize % 2),
+                };
                 let mut exp_func =
                     format!("IO_L{}{}", io.bbel / 2, ['N', 'P'][io.bbel as usize % 2]);
-                #[allow(clippy::single_match)]
                 match io.get_cfg() {
                     Some(SharedCfgPin::Data(d)) => write!(exp_func, "_D{d}").unwrap(),
+                    Some(_) => unreachable!(),
                     None => (),
                 }
                 if io.is_gc() {
@@ -53,8 +96,8 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                 if io.is_cc() {
                     exp_func += "_CC";
                 }
-                if let Some((bank, sm)) = io.sm_pair(grid) {
-                    write!(exp_func, "_{}{}", ["SM", "ADC"][bank as usize], sm).unwrap();
+                if let Some(&(bank, i, _)) = vaux_lookup.get(&ioc) {
+                    write!(exp_func, "_{}{}", ["SM", "ADC"][bank as usize], i).unwrap();
                 }
                 if io.is_lc() {
                     exp_func += "_LC";

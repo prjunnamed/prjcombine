@@ -1,40 +1,93 @@
 use prjcombine_entity::EntityId;
-use prjcombine_rawdump::{Part, PkgPin};
+use prjcombine_int::grid::DieId;
+use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex6::{
-    Bond, BondPin, CfgPin, DisabledPart, Grid, GtPin, GtRegion, GthRegionPin, GtxRegionPin,
-    SharedCfgPin, SysMonPin,
+    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegion, GthRegionPin, GtxRegionPin,
+    SharedCfgPin, SysMonPin, IoCoord, TileIobId, DisabledPart,
 };
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(
-    rd: &Part,
-    grid: &Grid,
-    disabled: &BTreeSet<DisabledPart>,
-    pins: &[PkgPin],
-) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let is_vcx = rd.part.contains("vcx");
-    let io_lookup: HashMap<_, _> = grid
+    let io_lookup: HashMap<_, _> = edev
         .get_io()
         .into_iter()
         .map(|io| (io.iob_name(), io))
         .collect();
-    let gt_lookup: HashMap<_, _> = grid
-        .get_gt(disabled)
-        .into_iter()
-        .flat_map(|gt| {
-            gt.get_pads(grid)
-                .into_iter()
-                .map(move |(name, func, pin)| (name, (func, gt.bank, pin)))
-        })
-        .collect();
-    let sm_lookup: HashMap<_, _> = grid.get_sysmon_pads(disabled).into_iter().collect();
+    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
+    for gt in &edev.gt {
+        let bank = gt.bank;
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (
+                    if gt.kind == GtKind::Gth {
+                        format!("MGTREFCLKP_{bank}")
+                    } else {
+                        format!("MGTREFCLK{i}P_{bank}")
+                    },
+                    bank,
+                    GtPin::ClkP(i as u8),
+                ),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (
+                    if gt.kind == GtKind::Gth {
+                        format!("MGTREFCLKN_{bank}")
+                    } else {
+                        format!("MGTREFCLK{i}N_{bank}")
+                    },
+                    bank,
+                    GtPin::ClkN(i as u8),
+                ),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)),
+            );
+        }
+    }
+    let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
+    let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
+    for sysmon in &edev.sysmon {
+        sm_lookup.insert(sysmon.pad_vp.clone(), (sysmon.bank, SysMonPin::VP));
+        sm_lookup.insert(sysmon.pad_vn.clone(), (sysmon.bank, SysMonPin::VN));
+        for (i, vaux) in sysmon.vaux.iter().enumerate() {
+            if let &Some((vauxp, vauxn)) = vaux {
+                vaux_lookup.insert(vauxp, (i, 'P'));
+                vaux_lookup.insert(vauxn, (i, 'N'));
+            }
+        }
+    }
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(pad) {
+                let ioc = IoCoord {
+                    die: DieId::from_idx(0),
+                    col: io.col,
+                    row: io.row - (!io.bbel as usize % 2),
+                    iob: TileIobId::from_idx(io.bbel as usize % 2),
+                };
                 let mut exp_func =
                     format!("IO_L{}{}", io.bbel / 2, ['P', 'N'][io.bbel as usize % 2]);
                 if io.is_srcc() {
@@ -76,11 +129,12 @@ pub fn make_bond(
                     Some(SharedCfgPin::FweB) => exp_func += "_FWE_B",
                     Some(SharedCfgPin::FoeB) => exp_func += "_FOE_B_MOSI",
                     Some(SharedCfgPin::FcsB) => exp_func += "_FCS_B",
+                    Some(_) => unreachable!(),
                     None => (),
                 }
-                if !is_vcx {
-                    if let Some(sm) = io.sm_pair(grid) {
-                        write!(exp_func, "_SM{}{}", sm, ['P', 'N'][io.bbel as usize % 2]).unwrap();
+                if !edev.disabled.contains(&DisabledPart::SysMon) {
+                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                        write!(exp_func, "_SM{}{}", i, pn).unwrap();
                     }
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
@@ -95,7 +149,7 @@ pub fn make_bond(
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::Gt(bank, gpin)
-            } else if let Some(&spin) = sm_lookup.get(pad) {
+            } else if let Some(&(bank, spin)) = sm_lookup.get(pad) {
                 let exp_func = match spin {
                     SysMonPin::VP => "VP_0",
                     SysMonPin::VN => "VN_0",
@@ -104,7 +158,7 @@ pub fn make_bond(
                 if exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
-                BondPin::SysMon(spin)
+                BondPin::SysMon(bank, spin)
             } else {
                 println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
@@ -136,10 +190,10 @@ pub fn make_bond(
                 "DXN_0" => BondPin::Dxn,
                 "DXP_0" => BondPin::Dxp,
                 "VFS_0" => BondPin::Vfs,
-                "AVSS_0" => BondPin::SysMon(SysMonPin::AVss),
-                "AVDD_0" => BondPin::SysMon(SysMonPin::AVdd),
-                "VREFP_0" => BondPin::SysMon(SysMonPin::VRefP),
-                "VREFN_0" => BondPin::SysMon(SysMonPin::VRefN),
+                "AVSS_0" => BondPin::SysMon(0, SysMonPin::AVss),
+                "AVDD_0" => BondPin::SysMon(0, SysMonPin::AVdd),
+                "VREFP_0" => BondPin::SysMon(0, SysMonPin::VRefP),
+                "VREFN_0" => BondPin::SysMon(0, SysMonPin::VRefN),
                 "MGTAVTT" => BondPin::GtxRegion(GtRegion::All, GtxRegionPin::AVtt),
                 "MGTAVCC" => BondPin::GtxRegion(GtRegion::All, GtxRegionPin::AVcc),
                 "MGTAVTT_S" => BondPin::GtxRegion(GtRegion::S, GtxRegionPin::AVtt),

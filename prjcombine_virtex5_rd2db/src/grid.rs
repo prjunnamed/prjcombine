@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
-use prjcombine_virtex5::{ColumnKind, Grid, HardColumn, RegId};
+use prjcombine_virtex5::{ColumnKind, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_column, find_columns, find_row, find_rows, IntGrid};
@@ -23,14 +23,14 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     for c in find_columns(rd, &["IOI"]) {
         res[int.lookup_column_inter(c) - 1] = Some(ColumnKind::Io);
     }
-    for c in find_columns(rd, &["GT3"]) {
-        res[int.lookup_column(c - 3)] = Some(ColumnKind::Gtp);
+    for c in find_columns(rd, &["CFG_CENTER"]) {
+        res[int.lookup_column_inter(c) - 1] = Some(ColumnKind::Cfg);
     }
-    for c in find_columns(rd, &["GTX"]) {
-        res[int.lookup_column(c - 3)] = Some(ColumnKind::Gtx);
+    for c in find_columns(rd, &["GT3", "GTX"]) {
+        res[int.lookup_column(c - 3)] = Some(ColumnKind::Gt);
     }
     for c in find_columns(rd, &["GTX_LEFT"]) {
-        res[int.lookup_column(c + 2)] = Some(ColumnKind::Gtx);
+        res[int.lookup_column(c + 2)] = Some(ColumnKind::Gt);
     }
     res.map_values(|x| x.unwrap())
 }
@@ -68,18 +68,6 @@ fn get_col_hard(rd: &Part, int: &IntGrid) -> Option<HardColumn> {
     })
 }
 
-fn get_cols_io(columns: &EntityVec<ColId, ColumnKind>) -> [Option<ColId>; 3] {
-    let v: Vec<_> = columns
-        .iter()
-        .filter_map(|(k, &v)| if v == ColumnKind::Io { Some(k) } else { None })
-        .collect();
-    if v.len() == 2 {
-        [Some(v[0]), Some(v[1]), None]
-    } else {
-        [Some(v[0]), Some(v[1]), Some(v[2])]
-    }
-}
-
 fn get_reg_cfg(rd: &Part, int: &IntGrid) -> RegId {
     RegId::from_idx(
         int.lookup_row_inter(find_row(rd, &["CFG_CENTER"]).unwrap())
@@ -100,19 +88,57 @@ fn get_holes_ppc(rd: &Part, int: &IntGrid) -> Vec<(ColId, RowId)> {
     res
 }
 
+fn get_cols_gt(rd: &Part, int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) -> Vec<GtColumn> {
+    let cols_gtp: BTreeSet<_> = find_columns(rd, &["GT3"])
+        .into_iter()
+        .map(|c| int.lookup_column(c - 3))
+        .collect();
+    cols.iter()
+        .filter_map(|(col, &cd)| {
+            if cd == ColumnKind::Gt {
+                Some(GtColumn {
+                    col,
+                    regs: (0..(int.rows.len() / 20))
+                        .map(|_| {
+                            Some(if cols_gtp.contains(&col) {
+                                GtKind::Gtp
+                            } else {
+                                GtKind::Gtx
+                            })
+                        })
+                        .collect(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 pub fn make_grid(rd: &Part) -> Grid {
     let int = extract_int(rd, &["INT"], &[]);
     let columns = make_columns(rd, &int);
-    let cols_io = get_cols_io(&columns);
+    let cols_gt = get_cols_gt(rd, &int, &columns);
     let reg_cfg = get_reg_cfg(rd, &int);
     Grid {
+        kind: GridKind::Virtex5,
         columns,
         cols_vbrk: get_cols_vbrk(rd, &int),
         cols_mgt_buf: get_cols_mgt_buf(rd, &int),
+        cols_qbuf: None,
+        cols_io: vec![],
+        cols_gt,
         col_hard: get_col_hard(rd, &int),
-        cols_io,
         regs: (int.rows.len() / 20),
         reg_cfg,
+        reg_clk: reg_cfg,
+        rows_cfg: vec![],
         holes_ppc: get_holes_ppc(rd, &int),
+        holes_pcie2: vec![],
+        holes_pcie3: vec![],
+        has_bram_fx: false,
+        has_ps: false,
+        has_slr: false,
+        has_no_tbuturn: true,
     }
 }

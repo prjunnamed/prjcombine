@@ -3,31 +3,11 @@ use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_series7::{
     ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind, Pcie2,
-    Pcie2Kind, RegId, XadcKind,
+    Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
 
-use prjcombine_rdgrid::{extract_int_slr, find_columns, find_row, find_rows, ExtraCol, IntGrid};
-
-fn get_kind(rd: &Part) -> GridKind {
-    if find_columns(rd, &["GTX_COMMON", "GTH_COMMON"]).is_empty() {
-        GridKind::Artix
-    } else if !find_columns(rd, &["MONITOR_BOT_FUJI2", "MONITOR_BOT_PELE1"]).is_empty() {
-        GridKind::Kintex
-    } else {
-        GridKind::Virtex
-    }
-}
-
-fn get_xadc_kind(rd: &Part) -> XadcKind {
-    if !find_columns(rd, &["MONITOR_BOT_PELE1"]).is_empty() {
-        XadcKind::Right
-    } else if !find_columns(rd, &["MONITOR_BOT_FUJI2"]).is_empty() {
-        XadcKind::Left
-    } else {
-        XadcKind::Both
-    }
-}
+use prjcombine_rdgrid::{extract_int_slr, find_row, find_rows, ExtraCol, IntGrid};
 
 fn make_columns(int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
@@ -123,7 +103,7 @@ fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_pcie2(int: &IntGrid) -> Vec<Pcie2> {
+fn get_holes_pcie2(int: &IntGrid) -> Vec<Pcie2> {
     let mut res = Vec::new();
     for (x, y) in int.find_tiles(&["PCIE_BOT"]) {
         let col = int.lookup_column(x - 2);
@@ -148,7 +128,7 @@ fn get_pcie2(int: &IntGrid) -> Vec<Pcie2> {
     res
 }
 
-fn get_pcie3(int: &IntGrid) -> Vec<(ColId, RowId)> {
+fn get_holes_pcie3(int: &IntGrid) -> Vec<(ColId, RowId)> {
     let mut res = vec![];
     for (x, y) in int.find_tiles(&["PCIE3_BOT_RIGHT"]) {
         let col = int.lookup_column(x - 2);
@@ -159,8 +139,8 @@ fn get_pcie3(int: &IntGrid) -> Vec<(ColId, RowId)> {
     res
 }
 
-fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
-    let mut res = [None, None];
+fn get_cols_io(int: &IntGrid) -> Vec<IoColumn> {
+    let mut res = vec![];
     if let Some(x) = int.find_column(&["LIOI", "LIOI3"]) {
         let col = int.lookup_column_inter(x);
         let mut regs = EntityVec::new();
@@ -177,7 +157,7 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
             };
             regs.push(kind);
         }
-        res[0] = Some(IoColumn { col, regs });
+        res.push(IoColumn { col, regs });
     }
     if let Some(x) = int.find_column(&["RIOI", "RIOI3"]) {
         let col = int.lookup_column_inter(x) - 1;
@@ -195,13 +175,13 @@ fn get_cols_io(int: &IntGrid) -> [Option<IoColumn>; 2] {
             };
             regs.push(kind);
         }
-        res[1] = Some(IoColumn { col, regs });
+        res.push(IoColumn { col, regs });
     }
     res
 }
 
-fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option<GtColumn>; 2] {
-    let mut res = [None, None];
+fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtColumn> {
+    let mut res = vec![];
     if *columns.first().unwrap() == ColumnKind::Gt {
         let mut regs = EntityVec::new();
         for i in 0..(int.rows.len() / 50) {
@@ -216,66 +196,69 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> [Option
             };
             regs.push(kind);
         }
-        res[0] = Some(GtColumn {
+        res.push(GtColumn {
             col: columns.first_id().unwrap(),
             regs,
         });
     }
-    let col = if *columns.last().unwrap() == ColumnKind::Gt {
-        columns.last_id().unwrap()
-    } else {
-        columns.last_id().unwrap() - 6
-    };
-    let x = int.cols[col] + 4;
-    let mut regs = EntityVec::new();
-    for i in 0..(int.rows.len() / 50) {
-        let c = Coord {
-            x: x as u16,
-            y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
-        };
-        let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
-            "GTH_CHANNEL_0" => Some(GtKind::Gth),
-            "GTX_CHANNEL_0" => Some(GtKind::Gtx),
-            "GTP_CHANNEL_0" => Some(GtKind::Gtp),
-            _ => None,
-        };
-        regs.push(kind);
+    {
+        let mut lcol = None;
+        let mut regs = vec![None; int.rows.len() / 50];
+        for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_LEFT"]) {
+            lcol = Some(int.lookup_column(x - 14));
+            let row = int.lookup_row(y - 5);
+            assert_eq!(row.to_idx() % 50, 0);
+            regs[row.to_idx() / 50] = Some(GtKind::Gtp);
+        }
+        if let Some(col) = lcol {
+            res.push(GtColumn {
+                col,
+                regs: regs.into_iter().collect(),
+            });
+        }
     }
-    if regs.values().any(|&x| x.is_some()) {
-        res[1] = Some(GtColumn { col, regs });
+    {
+        let mut rcol = None;
+        let mut regs = vec![None; int.rows.len() / 50];
+        for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_RIGHT"]) {
+            rcol = Some(int.lookup_column(x + 19));
+            let row = int.lookup_row(y - 5);
+            assert_eq!(row.to_idx() % 50, 0);
+            regs[row.to_idx() / 50] = Some(GtKind::Gtp);
+        }
+        if let Some(col) = rcol {
+            res.push(GtColumn {
+                col,
+                regs: regs.into_iter().collect(),
+            });
+        }
+    }
+    {
+        let col = if *columns.last().unwrap() == ColumnKind::Gt {
+            columns.last_id().unwrap()
+        } else {
+            columns.last_id().unwrap() - 6
+        };
+        let x = int.cols[col] + 4;
+        let mut regs = EntityVec::new();
+        for i in 0..(int.rows.len() / 50) {
+            let c = Coord {
+                x: x as u16,
+                y: int.rows[RowId::from_idx(i * 50 + 5)] as u16,
+            };
+            let kind = match &int.rd.tile_kinds.key(int.rd.tiles[&c].kind)[..] {
+                "GTH_CHANNEL_0" => Some(GtKind::Gth),
+                "GTX_CHANNEL_0" => Some(GtKind::Gtx),
+                "GTP_CHANNEL_0" => Some(GtKind::Gtp),
+                _ => None,
+            };
+            regs.push(kind);
+        }
+        if regs.values().any(|&x| x.is_some()) {
+            res.push(GtColumn { col, regs });
+        }
     }
     res
-}
-
-fn get_cols_gtp_mid(int: &IntGrid) -> Option<(GtColumn, GtColumn)> {
-    let mut lcol = None;
-    let mut lrows = vec![None; int.rows.len() / 50];
-    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_LEFT"]) {
-        lcol = Some(int.lookup_column(x - 14));
-        let row = int.lookup_row(y - 5);
-        assert_eq!(row.to_idx() % 50, 0);
-        lrows[row.to_idx() / 50] = Some(GtKind::Gtp);
-    }
-    let mut rcol = None;
-    let mut rrows = vec![None; int.rows.len() / 50];
-    for (x, y) in int.find_tiles(&["GTP_CHANNEL_0_MID_RIGHT"]) {
-        rcol = Some(int.lookup_column(x + 19));
-        let row = int.lookup_row(y - 5);
-        assert_eq!(row.to_idx() % 50, 0);
-        rrows[row.to_idx() / 50] = Some(GtKind::Gtp);
-    }
-    lcol.map(|lcol| {
-        (
-            GtColumn {
-                col: lcol,
-                regs: lrows.into_iter().collect(),
-            },
-            GtColumn {
-                col: rcol.unwrap(),
-                regs: rrows.into_iter().collect(),
-            },
-        )
-    })
 }
 
 pub fn make_grids(
@@ -299,7 +282,6 @@ pub fn make_grids(
         rows_slr_split.remove(&rd.height);
     }
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
-    let kind = get_kind(rd);
     let mut grids = EntityVec::new();
     let mut grid_master = None;
     for w in rows_slr_split.windows(2) {
@@ -331,8 +313,6 @@ pub fn make_grids(
         );
         let columns = make_columns(&int);
         let cols_vbrk = get_cols_vbrk(&int);
-        let col_cfg = int.lookup_column(int.find_column(&["CFG_CENTER_BOT"]).unwrap() + 3);
-        let col_clk = int.lookup_column(int.find_column(&["CLK_HROW_BOT_R"]).unwrap() - 2);
         let has_no_tbuturn = !int.find_rows(&["T_TERM_INT_NOUTURN"]).is_empty();
         let row_cfg = int.lookup_row(int.find_row(&["CFG_CENTER_BOT"]).unwrap() - 10) + 50;
         let row_clk = int.lookup_row(int.find_row(&["CLK_BUFG_BOT_R"]).unwrap()) + 4;
@@ -342,20 +322,22 @@ pub fn make_grids(
         assert_eq!(row_clk.to_idx() % 50, 0);
         assert_eq!(int.rows.len() % 50, 0);
         let slr = grids.push(Grid {
-            kind,
-            xadc_kind: get_xadc_kind(rd),
+            kind: GridKind::Virtex7,
             columns: columns.clone(),
             cols_vbrk: cols_vbrk.clone(),
-            col_cfg,
-            col_clk,
+            cols_mgt_buf: BTreeSet::new(),
+            cols_qbuf: None,
+            col_hard: None,
             cols_io: get_cols_io(&int),
             cols_gt: get_cols_gt(&int, &columns),
             regs: int.rows.len() / 50,
             reg_cfg: RegId::from_idx(row_cfg.to_idx() / 50),
             reg_clk: RegId::from_idx(row_clk.to_idx() / 50),
-            pcie2: get_pcie2(&int),
-            pcie3: get_pcie3(&int),
-            cols_gtp_mid: get_cols_gtp_mid(&int),
+            rows_cfg: vec![],
+            holes_ppc: vec![],
+            holes_pcie2: get_holes_pcie2(&int),
+            holes_pcie3: get_holes_pcie3(&int),
+            has_bram_fx: false,
             has_ps,
             has_slr,
             has_no_tbuturn,
@@ -374,7 +356,7 @@ pub fn make_grids(
     }
     let mut disabled = BTreeSet::new();
     if (rd.part.starts_with("xc7s") || rd.part.starts_with("xa7s"))
-        && grids.values().any(|x| !x.pcie2.is_empty())
+        && grids.values().any(|x| !x.holes_pcie2.is_empty())
     {
         disabled.insert(DisabledPart::Gtp);
     }

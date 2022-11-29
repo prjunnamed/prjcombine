@@ -3,7 +3,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_series7::{DisabledPart, ExpandedDevice, XadcKind};
+use prjcombine_series7::{DisabledPart, ExpandedDevice};
 use std::collections::HashMap;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -396,13 +396,18 @@ fn verify_hclk_l(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     let obel = vrf.find_bel_sibling(bel, "HCLK_R");
     let grid = edev.grids[bel.die];
     let obel_hrow = vrf
-        .find_bel(bel.die, (grid.col_clk, bel.row), "CLK_HROW")
+        .find_bel(bel.die, (edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
-    let has_rclk = grid.cols_io[if bel.col <= grid.col_clk { 0 } else { 1 }]
-        .as_ref()
+    let col_io = if bel.col <= edev.col_clk {
+        edev.col_lio
+    } else {
+        edev.col_rio
+    };
+    let iocol = col_io.and_then(|col| grid.get_col_io(col));
+    let has_rclk = iocol
         .filter(|ioc| ioc.regs[grid.row_to_reg(bel.row)].is_some())
         .is_some();
-    let lr = if bel.col <= grid.col_clk { 'L' } else { 'R' };
+    let lr = if bel.col <= edev.col_clk { 'L' } else { 'R' };
     for i in 8..12 {
         vrf.claim_node(&[
             bel.fwire(&format!("HCLK{i}_O")),
@@ -472,13 +477,9 @@ fn verify_hclk_r(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     }
     let obel = vrf.find_bel_sibling(bel, "HCLK_L");
     let obel_hrow = vrf
-        .find_bel(bel.die, (edev.grids[bel.die].col_clk, bel.row), "CLK_HROW")
+        .find_bel(bel.die, (edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
-    let lr = if bel.col <= edev.grids[bel.die].col_clk {
-        'L'
-    } else {
-        'R'
-    };
+    let lr = if bel.col <= edev.col_clk { 'L' } else { 'R' };
     for i in 0..8 {
         vrf.claim_node(&[
             bel.fwire(&format!("HCLK{i}_O")),
@@ -654,6 +655,12 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 
     for lr in ['L', 'R'] {
+        let col_io = if lr == 'L' {
+            edev.col_lio
+        } else {
+            edev.col_rio
+        };
+        let iocol = col_io.and_then(|col| grid.get_col_io(col));
         let obel = vrf.find_bel_sibling(bel, &format!("GCLK_TEST_BUF.HROW_BUFH_{lr}"));
         vrf.claim_node(&[bel.fwire(&format!("HCLK_TEST_IN_{lr}"))]);
         vrf.claim_pip(
@@ -706,10 +713,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             }
         }
         let reg = grid.row_to_reg(bel.row);
-        let has_rclk = grid.cols_io[if lr == 'L' { 0 } else { 1 }]
-            .as_ref()
-            .filter(|ioc| ioc.regs[reg].is_some())
-            .is_some();
+        let has_rclk = iocol.filter(|ioc| ioc.regs[reg].is_some()).is_some();
         for i in 0..4 {
             if has_rclk {
                 vrf.claim_node(&[bel.fwire(&format!("RCLK{i}_{lr}"))]);
@@ -719,8 +723,8 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         }
 
         let mut has_gtp_mid = false;
-        if let Some((ref lcol, ref rcol)) = grid.cols_gtp_mid {
-            let gtcol = if lr == 'L' { lcol } else { rcol };
+        if let Some((cl, cr)) = edev.col_mgt {
+            let gtcol = grid.get_col_gt(if lr == 'L' { cl } else { cr }).unwrap();
             if gtcol.regs[reg].is_some() {
                 has_gtp_mid = true;
                 let obel = vrf
@@ -736,7 +740,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         }
         if !has_gtp_mid {
             let mut has_io = false;
-            if let Some(ref iocol) = grid.cols_io[if lr == 'L' { 0 } else { 1 }] {
+            if let Some(iocol) = iocol {
                 if iocol.regs[reg].is_some() {
                     has_io = true;
                     let scol = ColId::from_idx(iocol.col.to_idx() ^ 1);
@@ -751,7 +755,12 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             }
             if !has_io {
                 let mut has_gt = false;
-                if let Some(ref gtcol) = grid.cols_gt[if lr == 'L' { 0 } else { 1 }] {
+                if let Some(gc) = if lr == 'L' {
+                    edev.col_lgt
+                } else {
+                    edev.col_rgt
+                } {
+                    let gtcol = grid.get_col_gt(gc).unwrap();
                     if gtcol.regs[reg].is_some() {
                         has_gt = true;
                         let obel = vrf
@@ -947,13 +956,9 @@ fn verify_dci(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_hrow = vrf
-        .find_bel(bel.die, (edev.grids[bel.die].col_clk, bel.row), "CLK_HROW")
+        .find_bel(bel.die, (edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
-    let lr = if bel.col <= edev.grids[bel.die].col_clk {
-        'L'
-    } else {
-        'R'
-    };
+    let lr = if bel.col <= edev.col_clk { 'L' } else { 'R' };
     for i in 0..12 {
         vrf.claim_node(&[bel.fwire(&format!("HCLK{i}_BUF"))]);
         vrf.claim_pip(
@@ -1930,9 +1935,9 @@ fn verify_bufmrce(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_hclk_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let grid = edev.grids[bel.die];
     let obel_hrow = vrf
-        .find_bel(bel.die, (grid.col_clk, bel.row), "CLK_HROW")
+        .find_bel(bel.die, (edev.col_clk, bel.row), "CLK_HROW")
         .unwrap();
-    let lr = if bel.col <= grid.col_clk { 'L' } else { 'R' };
+    let lr = if bel.col <= edev.col_clk { 'L' } else { 'R' };
     for i in 0..12 {
         vrf.verify_node(&[
             bel.fwire(&format!("HCLK{i}")),
@@ -2077,7 +2082,12 @@ fn verify_hclk_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 
     let mut has_gt = false;
-    if let Some(ref gtcol) = grid.cols_gt[usize::from(lr == 'R')] {
+    if let Some(gc) = if lr == 'L' {
+        edev.col_lgt
+    } else {
+        edev.col_rgt
+    } {
+        let gtcol = grid.get_col_gt(gc).unwrap();
         if gtcol.regs[grid.row_to_reg(bel.row)].is_some() {
             has_gt = true;
             let obel = vrf
@@ -2702,27 +2712,27 @@ fn verify_iopad(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+    let sm = edev.sysmon.iter().find(|sm| sm.die == bel.die).unwrap();
     let mut pins = vec![];
     for i in 0..16 {
         pins.push(format!("VAUXP{i}"));
         pins.push(format!("VAUXN{i}"));
     }
-    let mut dummies: &[&str] = &[];
-    if grid.xadc_kind == XadcKind::Left {
-        dummies = &[
-            "VAUXP6", "VAUXN6", "VAUXP7", "VAUXN7", "VAUXP13", "VAUXN13", "VAUXP14", "VAUXN14",
-            "VAUXP15", "VAUXN15",
-        ];
-    }
     pins.push("VP".to_string());
     pins.push("VN".to_string());
+    let mut dummies = vec![];
+    for (i, v) in sm.vaux.iter().enumerate() {
+        if v.is_none() {
+            dummies.push(&*pins[2 * i]);
+            dummies.push(&*pins[2 * i + 1]);
+        }
+    }
     let mut pin_refs = vec![];
     for pin in &pins {
         pin_refs.push((&pin[..], SitePinDir::In));
     }
     if bel.die == edev.grid_master || vrf.rd.source != Source::Vivado {
-        vrf.verify_bel_dummies(bel, "XADC", &pin_refs, &[], dummies);
+        vrf.verify_bel_dummies(bel, "XADC", &pin_refs, &[], &dummies);
     }
 
     vrf.claim_node(&[bel.fwire("VP")]);
@@ -2732,68 +2742,8 @@ fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
     vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
 
-    let ios = match grid.xadc_kind {
-        XadcKind::Left => {
-            let cl = grid.cols_io[0].as_ref().unwrap().col;
-            vec![
-                (0, cl, 47),
-                (1, cl, 43),
-                (2, cl, 39),
-                (3, cl, 33),
-                (4, cl, 29),
-                (5, cl, 25),
-                (8, cl, 45),
-                (9, cl, 41),
-                (10, cl, 35),
-                (11, cl, 31),
-                (12, cl, 27),
-            ]
-        }
-        XadcKind::Right => {
-            let cr = grid.cols_io[1].as_ref().unwrap().col;
-            vec![
-                (0, cr, 47),
-                (1, cr, 43),
-                (2, cr, 35),
-                (3, cr, 31),
-                (4, cr, 21),
-                (5, cr, 15),
-                (6, cr, 9),
-                (7, cr, 5),
-                (8, cr, 45),
-                (9, cr, 39),
-                (10, cr, 33),
-                (11, cr, 29),
-                (12, cr, 19),
-                (13, cr, 13),
-                (14, cr, 7),
-                (15, cr, 1),
-            ]
-        }
-        XadcKind::Both => {
-            let cl = grid.cols_io[0].as_ref().unwrap().col;
-            let cr = grid.cols_io[1].as_ref().unwrap().col;
-            vec![
-                (0, cl, 47),
-                (1, cl, 43),
-                (2, cl, 35),
-                (3, cl, 31),
-                (4, cr, 47),
-                (5, cr, 43),
-                (6, cr, 35),
-                (7, cr, 31),
-                (8, cl, 45),
-                (9, cl, 39),
-                (10, cl, 33),
-                (11, cl, 29),
-                (12, cr, 45),
-                (13, cr, 39),
-                (14, cr, 33),
-                (15, cr, 29),
-            ]
-        }
-    };
-    for (i, col, dy) in ios {
+    for (i, vaux) in sm.vaux.iter().enumerate() {
+        let Some((iop, _)) = vaux else { continue; };
         let vauxp = format!("VAUXP{i}");
         let vauxn = format!("VAUXN{i}");
         vrf.claim_node(&[bel.fwire(&vauxp)]);
@@ -2808,11 +2758,10 @@ fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         vrf.claim_pip(c1n, ow1n, iw1n);
         vrf.claim_node(&[(c0p, iw0p), (c1p, ow1p)]);
         vrf.claim_node(&[(c0n, iw0n), (c1n, ow1n)]);
-        let srow = bel.row - 25 + dy;
-        let obel = vrf.find_bel(bel.die, (col, srow), "IOB0").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
         vrf.claim_node(&[(c1p, iw1p), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
-        let obel = vrf.find_bel(bel.die, (col, srow), "IOB1").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
         vrf.claim_node(&[(c1n, iw1n), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
     }
@@ -3130,12 +3079,12 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     let mut dummies = vec![];
     let mut is_mid_l = false;
     let mut is_mid_r = false;
-    if let Some((ref lcol, ref rcol)) = edev.grids[bel.die].cols_gtp_mid {
-        if lcol.col == bel.col {
+    if let Some((cl, cr)) = edev.col_mgt {
+        if cl == bel.col {
             dummies.extend(["GTEASTREFCLK0", "GTEASTREFCLK1"]);
             is_mid_l = true;
         } else {
-            assert_eq!(bel.col, rcol.col);
+            assert_eq!(bel.col, cr);
             dummies.extend(["GTWESTREFCLK0", "GTWESTREFCLK1"]);
             is_mid_r = true;
         }
@@ -3183,14 +3132,7 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         vrf.claim_pip(bel.crd(), bel.wire("GTWESTREFCLK0"), bel.wire("WESTCLK0"));
         vrf.claim_pip(bel.crd(), bel.wire("GTWESTREFCLK1"), bel.wire("WESTCLK1"));
         let obel = vrf
-            .find_bel(
-                bel.die,
-                (
-                    edev.grids[bel.die].cols_gtp_mid.as_ref().unwrap().1.col,
-                    bel.row,
-                ),
-                "GTP_COMMON",
-            )
+            .find_bel(bel.die, (edev.col_mgt.unwrap().1, bel.row), "GTP_COMMON")
             .unwrap();
         vrf.verify_node(&[bel.fwire("WESTCLK0"), obel.fwire("WESTCLK0")]);
         vrf.verify_node(&[bel.fwire("WESTCLK1"), obel.fwire("WESTCLK1")]);
@@ -3206,14 +3148,7 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         vrf.claim_pip(bel.crd(), bel.wire("GTEASTREFCLK0"), bel.wire("EASTCLK0"));
         vrf.claim_pip(bel.crd(), bel.wire("GTEASTREFCLK1"), bel.wire("EASTCLK1"));
         let obel = vrf
-            .find_bel(
-                bel.die,
-                (
-                    edev.grids[bel.die].cols_gtp_mid.as_ref().unwrap().0.col,
-                    bel.row,
-                ),
-                "GTP_COMMON",
-            )
+            .find_bel(bel.die, (edev.col_mgt.unwrap().0, bel.row), "GTP_COMMON")
             .unwrap();
         vrf.verify_node(&[bel.fwire("EASTCLK0"), obel.fwire("EASTCLK0")]);
         vrf.verify_node(&[bel.fwire("EASTCLK1"), obel.fwire("EASTCLK1")]);
@@ -3249,10 +3184,7 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
             vrf.claim_node(&[bel.fwire(bpin)]);
             vrf.claim_pip(bel.crd(), bel.wire(bpin), obel.wire("MGTCLKOUT"));
         }
-        let scol_io = edev.grids[bel.die].cols_io[if is_mid_l { 0 } else { 1 }]
-            .as_ref()
-            .unwrap()
-            .col;
+        let scol_io = if is_mid_l { edev.col_lio } else { edev.col_rio }.unwrap();
         let scol = ColId::from_idx(scol_io.to_idx() ^ 1);
         let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK_CMT").unwrap();
         for i in 0..14 {
