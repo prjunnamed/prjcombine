@@ -2,8 +2,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex6::{
-    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegion, GthRegionPin, GtxRegionPin,
-    SharedCfgPin, SysMonPin, IoCoord, TileIobId, DisabledPart,
+    Bond, BondPin, CfgPin, DisabledPart, ExpandedDevice, GtKind, GtPin, GtRegion, GthRegionPin,
+    GtxRegionPin, IoCoord, SharedCfgPin, SysMonPin, TileIobId,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;

@@ -160,6 +160,7 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
         cols_hard.push(HardColumn { col, regs });
     }
     let cols_hard = match cols_hard.len() {
+        0 => [None, None, None],
         1 => {
             let [col_l]: [_; 1] = cols_hard.try_into().unwrap();
             [Some(col_l), None, None]
@@ -222,6 +223,8 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
         ("GTYP_QUAD_SINGLE", GtRowKind::Gtyp),
         ("GTM_QUAD_SINGLE", GtRowKind::Gtm),
         ("VDU_CORE_MY", GtRowKind::Vdu),
+        ("BFR_TILE_B_BOT_CORE", GtRowKind::BfrB),
+        ("BFR_TILE_B_TOP_CORE", GtRowKind::BfrB),
     ] {
         for row in int.find_rows(&[tkn]) {
             let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
@@ -355,6 +358,60 @@ pub fn make_grids(
         for i in 36..61 {
             disabled.insert(DisabledPart::Column(s0, ColId::from_idx(i)));
         }
+    }
+    if rd.part.contains("vp1002") {
+        let s0 = DieId::from_idx(0);
+        assert_eq!(grids[s0].regs, 11);
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(8)));
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(9)));
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
+        let col_hard_l = grids[s0].cols_hard[0].as_mut().unwrap();
+        col_hard_l.regs[RegId::from_idx(8)] = HardRowKind::DcmacB;
+        col_hard_l.regs[RegId::from_idx(9)] = HardRowKind::DcmacT;
+        col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
+        let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
+        col_hard_r.regs[RegId::from_idx(8)] = HardRowKind::IlknB;
+        col_hard_r.regs[RegId::from_idx(9)] = HardRowKind::IlknT;
+        col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
+        grids[s0].regs_gt_left[RegId::from_idx(8)] = GtRowKind::Gtm;
+        grids[s0].regs_gt_left[RegId::from_idx(9)] = GtRowKind::Gtm;
+        grids[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
+        let col_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
+        col_gt_r[RegId::from_idx(8)] = GtRowKind::Gtm;
+        col_gt_r[RegId::from_idx(9)] = GtRowKind::Gtm;
+        col_gt_r[RegId::from_idx(10)] = GtRowKind::Gtm;
+    }
+    if rd.part.contains("vp1102") {
+        let s0 = DieId::from_idx(0);
+        assert_eq!(grids[s0].regs, 14);
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(11)));
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(12)));
+        disabled.insert(DisabledPart::Region(s0, RegId::from_idx(13)));
+        let col_hard_l = grids[s0].cols_hard[0].as_mut().unwrap();
+        col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
+        col_hard_l.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
+        col_hard_l.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
+        col_hard_l.regs[RegId::from_idx(13)] = HardRowKind::DcmacT;
+        let col_hard_m = grids[s0].cols_hard[1].as_mut().unwrap();
+        col_hard_m.regs[RegId::from_idx(10)] = HardRowKind::HscB;
+        col_hard_m.regs[RegId::from_idx(11)] = HardRowKind::HscT;
+        col_hard_m.regs[RegId::from_idx(12)] = HardRowKind::Hdio;
+        col_hard_m.regs[RegId::from_idx(13)] = HardRowKind::Hdio;
+        let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
+        col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
+        col_hard_r.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
+        col_hard_r.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
+        col_hard_r.regs[RegId::from_idx(13)] = HardRowKind::DcmacT;
+        grids[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
+        grids[s0].regs_gt_left[RegId::from_idx(11)] = GtRowKind::Gtm;
+        grids[s0].regs_gt_left[RegId::from_idx(12)] = GtRowKind::Gtm;
+        grids[s0].regs_gt_left[RegId::from_idx(13)] = GtRowKind::Gtm;
+        let col_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
+        col_gt_r[RegId::from_idx(10)] = GtRowKind::Gtm;
+        col_gt_r[RegId::from_idx(11)] = GtRowKind::Gtm;
+        col_gt_r[RegId::from_idx(12)] = GtRowKind::Gtm;
+        col_gt_r[RegId::from_idx(13)] = GtRowKind::Gtm;
     }
     (grids, DieId::from_idx(0), disabled, DeviceNaming {})
 }

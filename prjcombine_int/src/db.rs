@@ -157,6 +157,10 @@ impl IntDb {
         }
         merge_dicts!(term_namings);
     }
+
+    pub fn get_wire(&self, n: &str) -> WireId {
+        self.wires.iter().find(|(_, w)| w.name == n).unwrap().0
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

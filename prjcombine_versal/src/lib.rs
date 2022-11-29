@@ -85,6 +85,7 @@ pub enum GtRowKind {
     Gtm,
     Xram,
     Vdu,
+    BfrB,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -124,6 +125,7 @@ pub enum DisabledPart {
     HardIp(DieId, ColId, RegId),
     Column(DieId, ColId),
     GtRight(DieId, RegId),
+    Region(DieId, RegId),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -213,17 +215,20 @@ pub fn expand_grid<'a>(
                 cle_x_bump_cur = false;
             }
             for row in die.rows() {
-                let reg = row.to_idx() / 48;
+                let reg = grid.row_to_reg(row);
+                if disabled.contains(&DisabledPart::Region(dieid, reg)) {
+                    continue;
+                }
                 let y = yb + row.to_idx();
                 die.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                let bt = if reg == grid.regs - 1 || reg % 2 == 1 {
+                let bt = if reg.to_idx() == grid.regs - 1 || reg.to_idx() % 2 == 1 {
                     'T'
                 } else {
                     'B'
                 };
                 if row.to_idx() % 48 == 0 && bt == 'T' {
                     let lr = if col < grid.col_cfrm { 'L' } else { 'R' };
-                    let yy = if reg % 2 == 1 { y - 1 } else { y };
+                    let yy = if reg.to_idx() % 2 == 1 { y - 1 } else { y };
                     let name = format!("RCLK_INT_{lr}_FT_X{x}Y{yy}");
                     die[(col, row)].add_xnode(
                         db.get_node("RCLK"),
@@ -312,11 +317,6 @@ pub fn expand_grid<'a>(
                 ) {
                     let kind;
                     let tile;
-                    let bt = if reg == grid.regs - 1 || reg % 2 == 1 {
-                        'T'
-                    } else {
-                        'B'
-                    };
                     let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
                     match cd.l {
                         ColumnKind::Gt => {

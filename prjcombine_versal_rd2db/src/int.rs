@@ -625,6 +625,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    term_wires[Dir::N].insert(
+        builder.db.get_wire("LONG.6.E.0.3.S"),
+        TermInfo::PassNear(builder.db.get_wire("LONG.10.E.7.5")),
+    );
+    term_wires[Dir::N].insert(
+        builder.db.get_wire("OUT.E.1.S"),
+        TermInfo::PassNear(builder.db.get_wire("LONG.10.E.7.5")),
+    );
     for (dir, wires) in term_wires {
         builder.insert_term_merge(&format!("TERM.{dir}"), TermKind { dir, wires });
     }
