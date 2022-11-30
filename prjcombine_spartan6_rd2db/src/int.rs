@@ -2485,8 +2485,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for (i, key) in [
                 (1, "OPAD.TXP0"),
-                (0, "OPAD.TXP1"),
                 (3, "OPAD.TXN0"),
+                (0, "OPAD.TXP1"),
                 (2, "OPAD.TXN1"),
             ] {
                 bels.push(builder.bel_xy(key, "OPAD", 0, i).pins_name_only(&["I"]));

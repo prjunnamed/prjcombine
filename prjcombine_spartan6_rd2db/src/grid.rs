@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
     Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, Row,
     SharedCfgPin, TileIobId,
@@ -309,12 +309,54 @@ fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: IoCoord) {
     assert!(old.is_none() || old == Some(coord));
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid) {
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, io.coord))
-        .collect();
+fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+    let mut io_lookup = HashMap::new();
+    for (&crd, tile) in &rd.tiles {
+        let tkn = rd.tile_kinds.key(tile.kind);
+        let tk = &rd.tile_kinds[tile.kind];
+        for (k, v) in &tile.sites {
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
+                if rd.slot_kinds[sn] == "IOB" {
+                    let crd = if tkn.starts_with('T') {
+                        IoCoord {
+                            col: int.lookup_column(crd.x.into()),
+                            row: if idx < 2 {
+                                grid.row_tio_outer()
+                            } else {
+                                grid.row_tio_inner()
+                            },
+                            iob: TileIobId::from_idx([0, 1, 0, 1][idx as usize]),
+                        }
+                    } else if tkn.starts_with('B') {
+                        IoCoord {
+                            col: int.lookup_column(crd.x.into()),
+                            row: if idx < 2 {
+                                grid.row_bio_inner()
+                            } else {
+                                grid.row_bio_outer()
+                            },
+                            iob: TileIobId::from_idx([0, 1, 1, 0][idx as usize]),
+                        }
+                    } else if tkn.starts_with('L') {
+                        IoCoord {
+                            col: grid.col_lio(),
+                            row: int.lookup_row(crd.y.into()),
+                            iob: TileIobId::from_idx(idx as usize),
+                        }
+                    } else if tkn.starts_with('R') {
+                        IoCoord {
+                            col: grid.col_rio(),
+                            row: int.lookup_row(crd.y.into()),
+                            iob: TileIobId::from_idx(idx as usize),
+                        }
+                    } else {
+                        unreachable!();
+                    };
+                    io_lookup.insert(v.clone(), crd);
+                }
+            }
+        }
+    }
     let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         for pin in pins {
@@ -552,6 +594,6 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         cfg_io: BTreeMap::new(),
         has_encrypt: has_encrypt(rd),
     };
-    handle_spec_io(rd, &mut grid);
+    handle_spec_io(rd, &mut grid, &int);
     (grid, disabled)
 }

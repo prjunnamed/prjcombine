@@ -844,8 +844,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            // XXX print actual pkg
-            let _ = bond;
+            if opt.pkgs {
+                println!("{bond:#?}");
+            }
         }
     }
     if opt.devices {

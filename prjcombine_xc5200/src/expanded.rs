@@ -44,7 +44,7 @@ impl<'a> ExpandedDevice<'a> {
                 res.push(self.get_io(IoCoord {
                     col,
                     row: self.grid.row_tio(),
-                    iob: TileIobId::from_idx(iob)
+                    iob: TileIobId::from_idx(iob),
                 }));
             }
         }
@@ -53,10 +53,11 @@ impl<'a> ExpandedDevice<'a> {
                 continue;
             }
             for iob in [3, 2, 1, 0] {
-                res.push(self.get_io(IoCoord{
+                res.push(self.get_io(IoCoord {
                     col: self.grid.col_rio(),
-                    row, 
-                    iob: TileIobId::from_idx(iob)}));
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                }));
             }
         }
         for col in die.cols().rev() {
@@ -67,7 +68,8 @@ impl<'a> ExpandedDevice<'a> {
                 res.push(self.get_io(IoCoord {
                     col,
                     row: self.grid.row_bio(),
-                    iob: TileIobId::from_idx(iob)}));
+                    iob: TileIobId::from_idx(iob),
+                }));
             }
         }
         for row in die.rows() {
@@ -77,7 +79,9 @@ impl<'a> ExpandedDevice<'a> {
             for iob in [0, 1, 2, 3] {
                 res.push(self.get_io(IoCoord {
                     col: self.grid.col_lio(),
-                    row, iob: TileIobId::from_idx(iob)}));
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                }));
             }
         }
         res

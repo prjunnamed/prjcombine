@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 
 use crate::grid::IoCoord;
 
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum CfgPin {
     Tdo,

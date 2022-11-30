@@ -2,7 +2,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 
-use crate::grid::{Grid, TileIobId, IoCoord};
+use crate::grid::{Grid, IoCoord, TileIobId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {

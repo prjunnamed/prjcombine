@@ -1,35 +1,56 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, HashMap};
 
 use prjcombine_rawdump::PkgPin;
 use prjcombine_spartan6::bond::{Bond, BondPin, CfgPin, GtPin};
-use prjcombine_spartan6::grid::{DisabledPart, Grid};
+use prjcombine_spartan6::expanded::ExpandedDevice;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(grid: &Grid, disabled: &BTreeSet<DisabledPart>, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, (io.coord, io.bank)))
-        .collect();
-    let gt_lookup: HashMap<_, _> = grid
-        .get_gt(disabled)
-        .into_iter()
-        .flat_map(|gt| {
-            gt.get_pads()
-                .into_iter()
-                .map(move |(name, func, pin)| (name, (func, gt.bank, pin)))
-        })
-        .collect();
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
+    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
+    for gt in &edev.gt {
+        let bank = gt.bank;
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTREFCLK{i}P_{bank}"), bank, GtPin::ClkP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTREFCLK{i}N_{bank}"), bank, GtPin::ClkN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            gt_lookup.insert(
+                pp.clone(),
+                (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)),
+            );
+            gt_lookup.insert(
+                pn.clone(),
+                (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)),
+            );
+        }
+    }
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&(coord, bank)) = io_lookup.get(pad) {
+            if let Some(io) = io_lookup.get(&**pad) {
                 //assert_eq!(pin.vref_bank, Some(bank));
-                let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
+                let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
-                BondPin::Io(coord)
+                BondPin::Io(io.crd)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);

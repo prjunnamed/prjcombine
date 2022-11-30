@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::db::{BelId, IntDb, NodeRawTileId};
+use prjcombine_int::db::{IntDb, NodeRawTileId};
 use prjcombine_int::grid::{
     ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
 };
@@ -9,8 +9,8 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::BTreeSet;
 
-use crate::expanded::ExpandedDevice;
-use crate::grid::{ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts};
+use crate::expanded::{ExpandedDevice, Gt, Io, IoDiffKind};
+use crate::grid::{ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, TileIobId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -23,10 +23,11 @@ struct Expander<'a, 'b> {
     ioxlut: EntityVec<ColId, usize>,
     ioylut: EntityVec<RowId, usize>,
     pad_cnt: usize,
-    bonded_ios: Vec<((ColId, RowId), BelId)>,
     holes: Vec<Rect>,
     frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
+    io: Vec<Io>,
+    gt: Vec<Gt>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -169,7 +170,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if row == self.grid.row_clk() + 2 {
                     tk = "LIOB_PCI";
                 }
-                self.fill_iob((col, row), tk, tk);
+                let bank = if let Some((rs, _)) = self.grid.rows_bank_split {
+                    if row < rs {
+                        3
+                    } else {
+                        4
+                    }
+                } else {
+                    3
+                };
+                self.fill_iob((col, row), tk, tk, bank);
             } else {
                 let cnr = if row == self.grid.row_bio_outer() {
                     Some("LL")
@@ -362,7 +372,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if row == self.grid.row_clk() + 2 {
                     tk = "RIOB_RDY";
                 }
-                self.fill_iob((col, row), tk, tk);
+                let bank = if let Some((_, rs)) = self.grid.rows_bank_split {
+                    if row < rs {
+                        1
+                    } else {
+                        5
+                    }
+                } else {
+                    1
+                };
+                self.fill_iob((col, row), tk, tk, bank);
             } else {
                 let cnr = if row == self.grid.row_bio_outer() {
                     Some("LR_LOWER")
@@ -577,7 +596,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_ioi((col, row), &naming);
                 let naming = format!("TIOB_{io}");
                 if !unused {
-                    self.fill_iob((col, row), iob_tk, &naming);
+                    self.fill_iob((col, row), iob_tk, &naming, 0);
                 }
             }
             let row = self.grid.row_tio_outer();
@@ -637,7 +656,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_ioi((col, row), &naming);
                 let naming = format!("BIOB_{io}");
                 if !unused {
-                    self.fill_iob((col, row), iob_tk, &naming);
+                    self.fill_iob((col, row), iob_tk, &naming, 2);
                 }
             }
             let row = self.grid.row_bio_outer();
@@ -1334,25 +1353,65 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
-    fn fill_gt_bels(node: &mut ExpandedTileNode, gtx: usize, gty: usize) {
-        node.add_bel(0, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 2));
-        node.add_bel(1, format!("IPAD_X{gtx}Y{y}", y = gty * 8));
-        node.add_bel(2, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 3));
-        node.add_bel(3, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 1));
-        node.add_bel(4, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 5));
-        node.add_bel(5, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 4));
-        node.add_bel(6, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 7));
-        node.add_bel(7, format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 6));
-        node.add_bel(8, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1));
-        node.add_bel(9, format!("OPAD_X{gtx}Y{y}", y = gty * 4));
-        node.add_bel(10, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3));
-        node.add_bel(11, format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2));
+    fn fill_gt_bels(
+        gts: &mut Vec<Gt>,
+        node: &mut ExpandedTileNode,
+        gtx: usize,
+        gty: usize,
+        bank: u32,
+    ) {
+        let gt = Gt {
+            bank,
+            pads_clk: vec![
+                (
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 5),
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 4),
+                ),
+                (
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 7),
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 6),
+                ),
+            ],
+            pads_rx: vec![
+                (
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 2),
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8),
+                ),
+                (
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 3),
+                    format!("IPAD_X{gtx}Y{y}", y = gty * 8 + 1),
+                ),
+            ],
+            pads_tx: vec![
+                (
+                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 1),
+                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 3),
+                ),
+                (
+                    format!("OPAD_X{gtx}Y{y}", y = gty * 4),
+                    format!("OPAD_X{gtx}Y{y}", y = gty * 4 + 2),
+                ),
+            ],
+        };
+        node.add_bel(0, gt.pads_rx[0].0.clone());
+        node.add_bel(1, gt.pads_rx[0].1.clone());
+        node.add_bel(2, gt.pads_rx[1].0.clone());
+        node.add_bel(3, gt.pads_rx[1].1.clone());
+        node.add_bel(4, gt.pads_clk[0].0.clone());
+        node.add_bel(5, gt.pads_clk[0].1.clone());
+        node.add_bel(6, gt.pads_clk[1].0.clone());
+        node.add_bel(7, gt.pads_clk[1].1.clone());
+        node.add_bel(8, gt.pads_tx[0].0.clone());
+        node.add_bel(9, gt.pads_tx[0].1.clone());
+        node.add_bel(10, gt.pads_tx[1].0.clone());
+        node.add_bel(11, gt.pads_tx[1].1.clone());
         node.add_bel(12, format!("BUFDS_X{x}Y{y}", x = gtx + 1, y = 2 + gty * 2));
         node.add_bel(
             13,
             format!("BUFDS_X{x}Y{y}", x = gtx + 1, y = 2 + gty * 2 + 1),
         );
         node.add_bel(14, format!("GTPA1_DUAL_X{gtx}Y{gty}"));
+        gts.push(gt);
     }
 
     fn fill_gts_holes(&mut self) {
@@ -1619,7 +1678,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &crd,
                 );
                 let gty = usize::from(matches!(self.grid.gts, Gts::Quad(_, _)));
-                Self::fill_gt_bels(node, 0, gty);
+                Self::fill_gt_bels(&mut self.gt, node, 0, gty, 101);
 
                 let col_l = bc - 2;
                 let col_r = bc + 2;
@@ -1672,7 +1731,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &crd,
                 );
                 let gty = usize::from(matches!(self.grid.gts, Gts::Quad(_, _)));
-                Self::fill_gt_bels(node, 1, gty);
+                Self::fill_gt_bels(&mut self.gt, node, 1, gty, 123);
             }
             _ => (),
         }
@@ -1703,7 +1762,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("GTPDUAL_BOT"),
                 &crd,
             );
-            Self::fill_gt_bels(node, 0, 0);
+            Self::fill_gt_bels(&mut self.gt, node, 0, 0, 245);
 
             let col_l = bcr - 3;
             let col_r = bcr + 6;
@@ -1728,7 +1787,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.db.get_node_naming("GTPDUAL_BOT"),
                 &crd,
             );
-            Self::fill_gt_bels(node, 1, 0);
+            Self::fill_gt_bels(&mut self.gt, node, 1, 0, 267);
         }
     }
 
@@ -2184,7 +2243,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(6, format!("TIEOFF_X{tiex}Y{y}", y = y * 2));
     }
 
-    fn fill_iob(&mut self, crd: Coord, tk: &str, naming: &str) {
+    fn fill_iob(&mut self, crd: Coord, tk: &str, naming: &str, bank: u32) {
         let x = crd.0.to_idx();
         let mut y = crd.1.to_idx();
         if tk.starts_with('T') {
@@ -2201,11 +2260,35 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.db.get_node_naming(naming),
             &[],
         );
-        node.add_bel(0, format!("PAD{i}", i = self.pad_cnt));
-        node.add_bel(1, format!("PAD{i}", i = self.pad_cnt + 1));
+        let iob_name_p = format!("PAD{i}", i = self.pad_cnt);
+        let iob_name_n = format!("PAD{i}", i = self.pad_cnt + 1);
+        node.add_bel(0, iob_name_p.clone());
+        node.add_bel(1, iob_name_n.clone());
         self.pad_cnt += 2;
-        self.bonded_ios.push((crd, BelId::from_idx(0)));
-        self.bonded_ios.push((crd, BelId::from_idx(1)));
+        let crd_p = IoCoord {
+            col: crd.0,
+            row: crd.1,
+            iob: TileIobId::from_idx(0),
+        };
+        let crd_n = IoCoord {
+            col: crd.0,
+            row: crd.1,
+            iob: TileIobId::from_idx(1),
+        };
+        self.io.extend([
+            Io {
+                crd: crd_p,
+                name: iob_name_p,
+                bank,
+                diff: IoDiffKind::P(crd_n),
+            },
+            Io {
+                crd: crd_n,
+                name: iob_name_n,
+                bank,
+                diff: IoDiffKind::N(crd_p),
+            },
+        ]);
     }
 
     fn fill_intf_rterm(&mut self, crd: Coord, name: String) {
@@ -2291,10 +2374,11 @@ impl Grid {
             ioxlut: EntityVec::new(),
             ioylut: EntityVec::new(),
             pad_cnt: 1,
-            bonded_ios: vec![],
             holes: vec![],
             frame_info: vec![],
             iob_frame_len: 0,
+            io: vec![],
+            gt: vec![],
         };
 
         expander.fill_rxlut();
@@ -2324,7 +2408,8 @@ impl Grid {
         expander.fill_frame_info();
         // XXX compute iob frame data
 
-        let bonded_ios = expander.bonded_ios;
+        let io = expander.io;
+        let gt = expander.gt;
 
         // XXX fill frame_info
         let die_bs_geom = DieBitstreamGeom {
@@ -2348,8 +2433,9 @@ impl Grid {
             grid: self,
             disabled,
             egrid,
-            bonded_ios,
             bs_geom,
+            io,
+            gt,
         }
     }
 }

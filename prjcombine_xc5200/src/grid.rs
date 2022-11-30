@@ -1,5 +1,5 @@
 use prjcombine_entity::{entity_id, EntityId};
-use prjcombine_int::grid::{ColId,  RowId};
+use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 
 entity_id! {
