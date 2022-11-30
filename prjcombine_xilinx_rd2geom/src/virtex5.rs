@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityVec;
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{Bond, Grid};
@@ -10,8 +11,12 @@ use prjcombine_virtex5_rdverify::verify_device;
 
 pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
+    let grid_refs: EntityVec<_, _> = [&grid].into_iter().collect();
+    let grid_master = grid_refs.first_id().unwrap();
+    let extras = [];
+    let disabled = Default::default();
     let int_db = int::make_int_db(rd);
-    let edev = expand_grid(&grid, &int_db);
+    let edev = expand_grid(&grid_refs, grid_master, &extras, &disabled, &int_db);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         let bond = bond::make_bond(&edev, pins);

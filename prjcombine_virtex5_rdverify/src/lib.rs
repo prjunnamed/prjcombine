@@ -151,14 +151,14 @@ fn verify_bufgctrl(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     vrf.claim_pip(bel.crd(), bel.wire("GCLK"), bel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("GFB"), bel.wire("O"));
     let srow = if is_b {
-        edev.grid.row_bufg() - 30
+        edev.grids[bel.die].row_bufg() - 30
     } else {
-        if edev.grid.reg_cfg.to_idx() == edev.grid.regs - 1 {
+        if edev.grids[bel.die].reg_cfg.to_idx() == edev.grids[bel.die].regs - 1 {
             vrf.claim_node(&[bel.fwire("MUXBUS0")]);
             vrf.claim_node(&[bel.fwire("MUXBUS1")]);
             return;
         }
-        edev.grid.row_bufg() + 20
+        edev.grids[bel.die].row_bufg() + 20
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     let idx0 = (bel.bid.to_idx() % 16) * 2;
@@ -266,7 +266,7 @@ fn verify_clk_mux(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         _ => (),
     }
 
-    let is_b = bel.row < edev.grid.row_bufg();
+    let is_b = bel.row < edev.grids[bel.die].row_bufg();
     let is_hrow_b = bel.row.to_idx() % 20 == 0;
 
     if is_b != is_hrow_b {
@@ -978,7 +978,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         }
     }
     for i in 0..32 {
-        let orow = edev.grid.row_bufg() - 10;
+        let orow = edev.grids[bel.die].row_bufg() - 10;
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
@@ -1032,9 +1032,9 @@ fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        edev.grid.columns.first_id().unwrap()
+        edev.grids[bel.die].columns.first_id().unwrap()
     } else {
-        edev.grid.columns.last_id().unwrap()
+        edev.grids[bel.die].columns.last_id().unwrap()
     };
     if bel.col == scol {
         for i in 0..4 {
@@ -1068,10 +1068,10 @@ fn verify_hclk_cmt_gclk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_hclk_cmt_giob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = if bel.row < edev.grid.row_bufg() {
-        edev.grid.row_bufg() - 30
+    let srow = if bel.row < edev.grids[bel.die].row_bufg() {
+        edev.grids[bel.die].row_bufg() - 30
     } else {
-        edev.grid.row_bufg() + 20
+        edev.grids[bel.die].row_bufg() + 20
     };
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "CLK_IOB").unwrap();
     for i in 0..10 {
@@ -1097,9 +1097,9 @@ fn verify_mgt_conn(
 ) {
     let dx = if is_l { -1 } else { 1 };
     let scol = if is_l {
-        edev.grid.columns.first_id().unwrap()
+        edev.grids[bel.die].columns.first_id().unwrap()
     } else {
-        edev.grid.columns.last_id().unwrap()
+        edev.grids[bel.die].columns.last_id().unwrap()
     };
     if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "HCLK_BRAM_MGT") {
         for i in 0..5 {
@@ -1224,9 +1224,9 @@ fn verify_bufio(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_rclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.col < edev.col_cfg;
     let scol = if is_l {
-        edev.grid.columns.first_id().unwrap()
+        edev.grids[bel.die].columns.first_id().unwrap()
     } else {
-        edev.grid.columns.last_id().unwrap()
+        edev.grids[bel.die].columns.last_id().unwrap()
     };
     if let Some(obel) = vrf
         .find_bel(bel.die, (scol, bel.row - 10), "GTP_DUAL")
@@ -1273,9 +1273,9 @@ fn verify_ioclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     // actually sourced from HCLK_IOI, but instead pretend it's sourced from the edge because the
     // HCLK_IOI may be missing.
     let scol = if lr == 'L' {
-        edev.grid.columns.first_id().unwrap()
+        edev.grids[bel.die].columns.first_id().unwrap()
     } else {
-        edev.grid.columns.last_id().unwrap()
+        edev.grids[bel.die].columns.last_id().unwrap()
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK").unwrap();
     for i in 0..4 {
@@ -1408,8 +1408,10 @@ pub fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL2");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL3");
     if edev.col_rgt.is_none() {
-        let node = &edev.egrid.die(DieId::from_idx(0))
-            [(edev.grid.columns.last_id().unwrap(), RowId::from_idx(0))]
+        let node = &edev.egrid.die(DieId::from_idx(0))[(
+            edev.grids.first().unwrap().columns.last_id().unwrap(),
+            RowId::from_idx(0),
+        )]
             .nodes[0];
         let crd = vrf
             .xlat_tile(&node.names[NodeRawTileId::from_idx(0)])

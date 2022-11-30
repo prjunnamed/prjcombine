@@ -1,13 +1,15 @@
 use assert_matches::assert_matches;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
+use std::collections::BTreeSet;
 
 use crate::{
-    ColumnKind, ExpandedDevice, Grid, Gt, GtColumn, GtKind, IoCoord, RegId, SysMon, TileIobId,
+    ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind,
+    Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SharedCfgPin, SysMon, TileIobId,
 };
 
 struct Expander<'a, 'b> {
@@ -18,12 +20,12 @@ struct Expander<'a, 'b> {
     int_holes: Vec<Rect>,
     rxlut: EntityVec<ColId, usize>,
     frame_info: Vec<FrameInfo>,
-    col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
-    bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
-    spine_frame: EntityVec<RegId, usize>,
+    frames: DieFrameGeom,
     col_cfg: ColId,
     col_lio: Option<ColId>,
-    col_lgt: Option<&'b GtColumn>,
+    col_rio: Option<ColId>,
+    col_lgt: Option<ColId>,
+    io: Vec<Io>,
     gt: Vec<Gt>,
     sysmon: Vec<SysMon>,
 }
@@ -627,8 +629,98 @@ impl<'a, 'b> Expander<'a, 'b> {
                         self.db.get_node_naming(naming),
                         &[],
                     );
-                    node.add_bel(0, format!("IOB_X{iox}Y{y}", y = y * 2 + 1));
-                    node.add_bel(1, format!("IOB_X{iox}Y{y}", y = y * 2));
+                    let iob_name_p = format!("IOB_X{iox}Y{y}", y = y * 2 + 1);
+                    let iob_name_n = format!("IOB_X{iox}Y{y}", y = y * 2);
+                    node.add_bel(0, iob_name_p.clone());
+                    node.add_bel(1, iob_name_n.clone());
+                    let reg = self.grid.row_to_reg(row);
+                    let rr = reg - self.grid.reg_cfg;
+                    let bank = if col == self.col_cfg {
+                        (if rr <= -4 {
+                            6 + (-rr - 4) * 2
+                        } else if rr >= 3 {
+                            5 + (rr - 3) * 2
+                        } else if rr < 0 {
+                            2 + (-rr - 1) * 2
+                        } else {
+                            1 + rr * 2
+                        }) as u32
+                    } else {
+                        (if rr < 0 {
+                            13 + (-rr - 1) * 4
+                        } else {
+                            11 + rr * 4
+                        }) as u32
+                            + u32::from(self.col_rio == Some(col))
+                    };
+                    let is_short_bank = bank <= 4;
+                    let biob = if is_short_bank {
+                        2 * (row.to_idx() % 10) as u32
+                    } else {
+                        2 * (row.to_idx() % 20) as u32
+                    };
+                    let pkgid = if is_short_bank {
+                        (18 - biob) / 2
+                    } else {
+                        (38 - biob) / 2
+                    };
+                    let crd_p = IoCoord {
+                        die: self.die.die,
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(0),
+                    };
+                    let crd_n = IoCoord {
+                        die: self.die.die,
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(1),
+                    };
+                    let is_gc = matches!(bank, 3 | 4);
+                    let is_srcc = matches!(row.to_idx() % 20, 8..=11);
+                    let is_vref = matches!(biob, 10 | 30);
+                    let is_vr = match bank {
+                        1 | 2 => false,
+                        3 => biob == 14,
+                        4 => biob == 4,
+                        _ => biob == 14,
+                    };
+                    self.io.extend([
+                        Io {
+                            crd: crd_p,
+                            name: iob_name_p,
+                            bank,
+                            biob: biob + 1,
+                            pkgid,
+                            byte: None,
+                            kind: IoKind::Hpio,
+                            diff: IoDiffKind::P(crd_n),
+                            is_lc: false,
+                            is_gc,
+                            is_srcc,
+                            is_mrcc: false,
+                            is_dqs: false,
+                            is_vref: false,
+                            vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
+                        },
+                        Io {
+                            crd: crd_n,
+                            name: iob_name_n,
+                            bank,
+                            biob,
+                            pkgid,
+                            byte: None,
+                            kind: IoKind::Hpio,
+                            diff: IoDiffKind::N(crd_p),
+                            is_lc: false,
+                            is_gc,
+                            is_srcc,
+                            is_mrcc: false,
+                            is_dqs: false,
+                            is_vref,
+                            vr: if is_vr { IoVrKind::VrP } else { IoVrKind::None },
+                        },
+                    ]);
                 }
 
                 if row.to_idx() % 20 == 10 {
@@ -952,14 +1044,14 @@ impl<'a, 'b> Expander<'a, 'b> {
             (rreg < 0, rreg.abs())
         });
         for _ in 0..self.grid.regs {
-            self.col_frame.push(EntityVec::new());
-            self.bram_frame.push(EntityPartVec::new());
-            self.spine_frame.push(0);
+            self.frames.col_frame.push(EntityVec::new());
+            self.frames.bram_frame.push(EntityPartVec::new());
+            self.frames.spine_frame.push(0);
         }
         for &reg in &regs {
             let mut major = 0;
             for (col, cd) in &self.grid.columns {
-                self.col_frame[reg].push(self.frame_info.len());
+                self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLL => 36,
                     ColumnKind::ClbLM => 36,
@@ -981,7 +1073,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 major += 1;
                 if col == self.col_cfg {
-                    self.spine_frame[reg] = self.frame_info.len();
+                    self.frames.spine_frame[reg] = self.frame_info.len();
                     for minor in 0..4 {
                         self.frame_info.push(FrameInfo {
                             addr: FrameAddr {
@@ -1002,7 +1094,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                self.bram_frame[reg].insert(col, self.frame_info.len());
+                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
                 for minor in 0..128 {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -1019,8 +1111,16 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 }
 
-pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
+pub fn expand_grid<'a>(
+    grids: &EntityVec<DieId, &'a Grid>,
+    grid_master: DieId,
+    extras: &[ExtraDie],
+    disabled: &BTreeSet<DisabledPart>,
+    db: &'a IntDb,
+) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
+    let grid = grids[grid_master];
+    assert_eq!(grids.len(), 1);
     let col_cfg = grid
         .columns
         .iter()
@@ -1044,8 +1144,8 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         })
         .collect();
     assert_matches!(cols_io.len(), 1 | 2);
-    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg);
-    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg);
+    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg).map(|x| x.col);
+    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg).map(|x| x.col);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_pullup = Some("KEEP1".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());
@@ -1060,12 +1160,16 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         site_holes: vec![],
         rxlut: EntityVec::new(),
         frame_info: vec![],
-        col_frame: EntityVec::new(),
-        bram_frame: EntityVec::new(),
-        spine_frame: EntityVec::new(),
+        frames: DieFrameGeom {
+            col_frame: EntityVec::new(),
+            bram_frame: EntityVec::new(),
+            spine_frame: EntityVec::new(),
+        },
         col_cfg,
         col_lio: Some(cols_io[0]),
+        col_rio: cols_io.get(1).copied(),
         col_lgt,
+        io: vec![],
         gt: vec![],
         sysmon: vec![],
     };
@@ -1084,9 +1188,8 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
     expander.fill_hclk();
     expander.fill_frame_info();
 
-    let col_frame = expander.col_frame;
-    let bram_frame = expander.bram_frame;
-    let spine_frame = expander.spine_frame;
+    let frames = expander.frames;
+    let io = expander.io;
     let gt = expander.gt;
     let sysmon = expander.sysmon;
     let die_bs_geom = DieBitstreamGeom {
@@ -1102,19 +1205,95 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         die_order: vec![expander.die.die],
     };
 
+    let cfg_io = [
+        (6, 1, SharedCfgPin::Data(8)),
+        (6, 0, SharedCfgPin::Data(9)),
+        (7, 1, SharedCfgPin::Data(10)),
+        (7, 0, SharedCfgPin::Data(11)),
+        (8, 1, SharedCfgPin::Data(12)),
+        (8, 0, SharedCfgPin::Data(13)),
+        (9, 1, SharedCfgPin::Data(14)),
+        (9, 0, SharedCfgPin::Data(15)),
+        (10, 1, SharedCfgPin::Data(0)),
+        (10, 0, SharedCfgPin::Data(1)),
+        (11, 1, SharedCfgPin::Data(2)),
+        (11, 0, SharedCfgPin::Data(3)),
+        (12, 1, SharedCfgPin::Data(4)),
+        (12, 0, SharedCfgPin::Data(5)),
+        (13, 1, SharedCfgPin::Data(6)),
+        (13, 0, SharedCfgPin::Data(7)),
+        (14, 1, SharedCfgPin::CsoB),
+        (14, 0, SharedCfgPin::FweB),
+        (15, 1, SharedCfgPin::FoeB),
+        (15, 0, SharedCfgPin::FcsB),
+        (16, 1, SharedCfgPin::Addr(20)),
+        (16, 0, SharedCfgPin::Addr(21)),
+        (17, 1, SharedCfgPin::Addr(22)),
+        (17, 0, SharedCfgPin::Addr(23)),
+        (18, 1, SharedCfgPin::Addr(24)),
+        (18, 0, SharedCfgPin::Addr(25)),
+        (19, 1, SharedCfgPin::Rs(0)),
+        (19, 0, SharedCfgPin::Rs(1)),
+        (40, 1, SharedCfgPin::Data(16)),
+        (40, 0, SharedCfgPin::Data(17)),
+        (41, 1, SharedCfgPin::Data(18)),
+        (41, 0, SharedCfgPin::Data(19)),
+        (42, 1, SharedCfgPin::Data(20)),
+        (42, 0, SharedCfgPin::Data(21)),
+        (43, 1, SharedCfgPin::Data(22)),
+        (43, 0, SharedCfgPin::Data(23)),
+        (44, 1, SharedCfgPin::Data(24)),
+        (44, 0, SharedCfgPin::Data(25)),
+        (45, 1, SharedCfgPin::Data(26)),
+        (45, 0, SharedCfgPin::Data(27)),
+        (46, 1, SharedCfgPin::Data(28)),
+        (46, 0, SharedCfgPin::Data(29)),
+        (47, 1, SharedCfgPin::Data(30)),
+        (47, 0, SharedCfgPin::Data(31)),
+        (48, 1, SharedCfgPin::Addr(16)),
+        (48, 0, SharedCfgPin::Addr(17)),
+        (49, 1, SharedCfgPin::Addr(18)),
+        (49, 0, SharedCfgPin::Addr(19)),
+    ]
+    .into_iter()
+    .map(|(dy, iob, pin)| {
+        (
+            pin,
+            IoCoord {
+                die: grid_master,
+                col: col_cfg,
+                row: grid.row_reg_bot(grid.reg_cfg) - 30 + dy,
+                iob: TileIobId::from_idx(iob),
+            },
+        )
+    })
+    .collect();
+
     ExpandedDevice {
-        grid,
+        kind: grid.kind,
+        grids: grids.clone(),
+        grid_master,
+        extras: extras.to_vec(),
+        disabled: disabled.clone(),
         egrid,
         bs_geom,
-        col_frame,
-        bram_frame,
-        spine_frame,
-        col_lio: Some(cols_io[0]),
+        frames: [frames].into_iter().collect(),
         col_cfg,
+        col_clk: col_cfg,
+        col_lio: Some(cols_io[0]),
         col_rio: cols_io.get(1).copied(),
+        col_lcio: None,
+        col_rcio: None,
         col_lgt,
         col_rgt,
+        col_mgt: None,
+        row_dcmiob: None,
+        row_iobdcm: None,
+        io,
         gt,
+        gtz: vec![],
         sysmon,
+        cfg_io,
+        ps_io: Default::default(),
     }
 }

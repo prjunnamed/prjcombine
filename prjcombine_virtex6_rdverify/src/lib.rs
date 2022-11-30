@@ -186,9 +186,9 @@ fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         }
     }
     let scol = if bel.col <= edev.col_cfg {
-        edev.grid.cols_qbuf.unwrap().0
+        edev.grids[bel.die].cols_qbuf.unwrap().0
     } else {
-        edev.grid.cols_qbuf.unwrap().1
+        edev.grids[bel.die].cols_qbuf.unwrap().1
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK_QBUF").unwrap();
     for i in 0..12 {
@@ -346,9 +346,9 @@ fn verify_dci(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let scol = if bel.col <= edev.col_cfg {
-        edev.grid.cols_qbuf.unwrap().0
+        edev.grids[bel.die].cols_qbuf.unwrap().0
     } else {
-        edev.grid.cols_qbuf.unwrap().1
+        edev.grids[bel.die].cols_qbuf.unwrap().1
     };
     let obel = vrf.find_bel(bel.die, (scol, bel.row), "HCLK_QBUF").unwrap();
     for i in 0..12 {
@@ -546,9 +546,9 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
 
     if matches!(which, "OL" | "OR") {
         let scol = if which == "OL" {
-            edev.grid.columns.first_id().unwrap()
+            edev.grids[bel.die].columns.first_id().unwrap()
         } else {
-            edev.grid.columns.last_id().unwrap()
+            edev.grids[bel.die].columns.last_id().unwrap()
         };
         if let Some(obel) = vrf
             .find_bel(bel.die, (scol, bel.row), "HCLK_GTX")
@@ -566,7 +566,7 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             }
         }
     } else {
-        let reg = edev.grid.row_to_reg(bel.row);
+        let reg = edev.grids[bel.die].row_to_reg(bel.row);
         if which == "IR"
             && edev.disabled.contains(&DisabledPart::GtxRow(reg))
             && edev.col_rio.is_none()
@@ -688,10 +688,10 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     let is_rclk = matches!(bel.row.to_idx() % 40, 16 | 18 | 20 | 22);
     let is_inner = bel.col == edev.col_lcio.unwrap() || bel.col == edev.col_rcio.unwrap();
     let is_gclk = is_inner
-        && (bel.row == edev.grid.row_bufg() - 4
-            || bel.row == edev.grid.row_bufg() - 2
-            || bel.row == edev.grid.row_bufg()
-            || bel.row == edev.grid.row_bufg() + 2);
+        && (bel.row == edev.grids[bel.die].row_bufg() - 4
+            || bel.row == edev.grids[bel.die].row_bufg() - 2
+            || bel.row == edev.grids[bel.die].row_bufg()
+            || bel.row == edev.grids[bel.die].row_bufg() + 2);
     if (is_rclk || is_gclk) && bel.key == "ILOGIC0" {
         vrf.claim_node(&[bel.fwire("CLKOUT")]);
         vrf.claim_pip(bel.crd(), bel.wire("CLKOUT"), bel.wire("O"));
@@ -889,7 +889,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = edev.grid.row_hclk(bel.row);
+    let srow = edev.grids[bel.die].row_hclk(bel.row);
     let obel = vrf.find_bel(bel.die, (bel.col, srow), "HCLK_IOI").unwrap();
     for i in 0..12 {
         vrf.verify_node(&[
@@ -1144,8 +1144,16 @@ fn verify_mmcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (scol_h, scol_r, lr) in [
-        (edev.grid.cols_qbuf.unwrap().0, edev.col_lcio.unwrap(), 'L'),
-        (edev.grid.cols_qbuf.unwrap().1, edev.col_rcio.unwrap(), 'R'),
+        (
+            edev.grids[bel.die].cols_qbuf.unwrap().0,
+            edev.col_lcio.unwrap(),
+            'L',
+        ),
+        (
+            edev.grids[bel.die].cols_qbuf.unwrap().1,
+            edev.col_rcio.unwrap(),
+            'R',
+        ),
     ] {
         vrf.claim_node(&[bel.fwire(&format!("BUFH_TEST_{lr}"))]);
         vrf.claim_pip(
@@ -1219,12 +1227,12 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 obel_mmcm0.fwire(&format!("PERF{i}_{which}")),
                 obel_mmcm1.fwire(&format!("PERF{i}_{which}")),
             ]);
-            let reg = edev.grid.row_to_reg(bel.row);
+            let reg = edev.grids[bel.die].row_to_reg(bel.row);
             if which == "OL"
                 && edev.col_lio.is_none()
                 && edev
                     .col_lgt
-                    .map_or(true, |gtc| gtc.regs[reg] == Some(GtKind::Gth))
+                    .map_or(true, |col| edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth))
             {
                 continue;
             }
@@ -1232,7 +1240,7 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 && edev.col_rio.is_none()
                 && (edev
                     .col_rgt
-                    .map_or(true, |gtc| gtc.regs[reg] == Some(GtKind::Gth))
+                    .map_or(true, |col| edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth))
                     || edev.disabled.contains(&DisabledPart::GtxRow(reg)))
             {
                 continue;
@@ -1414,7 +1422,7 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             );
         }
     }
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         -40
     } else {
         40
@@ -1453,7 +1461,7 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         }
     }
 
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         20
     } else {
         -20
@@ -1512,7 +1520,7 @@ pub fn verify_gclk_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelConte
             bel.wire(&format!("GIO{i}_I")),
         );
     }
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         40
     } else {
         -40
@@ -1701,7 +1709,11 @@ pub fn verify_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 
     let obel = vrf
-        .find_bel(bel.die, (bel.col, edev.grid.row_hclk(bel.row)), "HCLK_GTX")
+        .find_bel(
+            bel.die,
+            (bel.col, edev.grids[bel.die].row_hclk(bel.row)),
+            "HCLK_GTX",
+        )
         .unwrap();
     for (orx, otx, pin) in [
         ("PERFCLKRX", "PERFCLKTX", "PERFCLK"),
@@ -1967,7 +1979,7 @@ pub fn verify_hclk_gth(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 pub fn verify_mgt_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let reg = edev.grid.row_to_reg(bel.row);
+    let reg = edev.grids[bel.die].row_to_reg(bel.row);
     if edev.disabled.contains(&DisabledPart::GtxRow(reg)) && edev.col_rio.is_none() {
         return;
     }
@@ -1982,9 +1994,9 @@ pub fn verify_mgt_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     let is_l = bel.col < edev.col_cfg;
     let dx = if is_l { -1 } else { 1 };
     let gtcol = if is_l {
-        edev.grid.columns.first_id().unwrap()
+        edev.grids[bel.die].columns.first_id().unwrap()
     } else {
-        edev.grid.columns.last_id().unwrap()
+        edev.grids[bel.die].columns.last_id().unwrap()
     };
     if let Some(obel) = vrf.find_bel_walk(bel, dx, 0, "MGT_BUF") {
         for i in 0..10 {

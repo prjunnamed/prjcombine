@@ -2,8 +2,8 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_series7::{
-    ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind, Pcie2,
-    Pcie2Kind, RegId,
+    ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, GtzLoc, IoColumn, IoKind,
+    Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
 
@@ -349,10 +349,10 @@ pub fn make_grids(
     let grid_master = grid_master.unwrap();
     let mut extras = Vec::new();
     if find_row(rd, &["GTZ_BOT"]).is_some() {
-        extras.push(ExtraDie::GtzBottom);
+        extras.push(ExtraDie::Gtz(GtzLoc::Bottom));
     }
     if find_row(rd, &["GTZ_TOP"]).is_some() {
-        extras.push(ExtraDie::GtzTop);
+        extras.push(ExtraDie::Gtz(GtzLoc::Top));
     }
     let mut disabled = BTreeSet::new();
     if (rd.part.starts_with("xc7s") || rd.part.starts_with("xa7s"))

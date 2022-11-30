@@ -1,8 +1,7 @@
-use prjcombine_entity::EntityId;
 use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_series7::{
-    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegionPin, GtzPin, IoCoord, PsPin,
-    SharedCfgPin, SysMonPin, TileIobId,
+    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegionPin, GtzPin, IoCoord, IoDiffKind,
+    IoVrKind, PsPin, SharedCfgPin, SysMonPin,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
@@ -11,11 +10,7 @@ use prjcombine_rdgrid::split_num;
 
 pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev
-        .get_io()
-        .into_iter()
-        .map(|io| (io.iob_name(), io))
-        .collect();
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
     let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
     for gt in &edev.gt {
         let bank = gt.bank;
@@ -55,11 +50,48 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
             );
         }
     }
-    let gtz_lookup: HashMap<_, _> = edev
-        .get_gtz_pads()
-        .into_iter()
-        .map(|(name, func, bank, pin)| (name, (func, bank, pin)))
-        .collect();
+    let mut gtz_lookup: HashMap<String, (String, u32, GtzPin)> = HashMap::new();
+    for gt in &edev.gtz {
+        let bank = gt.bank;
+        for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (
+                    format!("MGTZREFCLK{i}P_{bank}"),
+                    bank,
+                    GtzPin::ClkP(i as u8),
+                ),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (
+                    format!("MGTZREFCLK{i}N_{bank}"),
+                    bank,
+                    GtzPin::ClkN(i as u8),
+                ),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (format!("MGTZRXP{i}_{bank}"), bank, GtzPin::RxP(i as u8)),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (format!("MGTZRXN{i}_{bank}"), bank, GtzPin::RxN(i as u8)),
+            );
+        }
+        for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
+            gtz_lookup.insert(
+                pp.clone(),
+                (format!("MGTZTXP{i}_{bank}"), bank, GtzPin::TxP(i as u8)),
+            );
+            gtz_lookup.insert(
+                pn.clone(),
+                (format!("MGTZTXN{i}_{bank}"), bank, GtzPin::TxN(i as u8)),
+            );
+        }
+    }
     let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
     let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
     for sysmon in &edev.sysmon {
@@ -74,60 +106,47 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
             }
         }
     }
+    let cfg_lookup: HashMap<_, _> = edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
     let ps_lookup: HashMap<_, _> = edev
-        .get_ps_pads()
-        .into_iter()
-        .map(|(name, bank, pin)| (name, (bank, pin)))
+        .ps_io
+        .iter()
+        .map(|(&k, v)| (&*v.name, (v.bank, k)))
         .collect();
     let has_14 = io_lookup.values().any(|io| io.bank == 14);
     let is_spartan = rd.part.contains("7s");
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
-                let mut exp_func = match io.row.to_idx() % 50 {
-                    0 => "IO_25".to_string(),
-                    49 => "IO_0".to_string(),
-                    n => format!(
-                        "IO_L{}{}_T{}",
-                        (50 - n) / 2,
-                        ['P', 'N'][n % 2],
-                        3 - (n - 1) / 12
-                    ),
-                };
-                let is_s = matches!(io.row.to_idx() % 50, 0 | 49);
-                let is_p = io.row.to_idx() % 2 == 0 && !is_s;
-                let ioc = IoCoord {
-                    die: io.die,
-                    col: io.col,
-                    row: if is_p { io.row - 1 } else { io.row },
-                    iob: TileIobId::from_idx(if !is_p && !is_s { 1 } else { 0 }),
+            if let Some(&io) = io_lookup.get(&**pad) {
+                let mut exp_func = match io.diff {
+                    IoDiffKind::None => format!("IO_{}", io.pkgid),
+                    IoDiffKind::P(_) => format!("IO_L{}P", io.pkgid),
+                    IoDiffKind::N(_) => format!("IO_L{}N", io.pkgid),
                 };
                 if matches!(pkg, "fbg484" | "fbv484")
                     && rd.part.contains("7k")
                     && io.bank == 16
-                    && matches!(io.row.to_idx() % 50, 2 | 14 | 37)
+                    && matches!(io.biob, 2 | 14 | 37)
                 {
-                    exp_func = format!(
-                        "IO_{}_T{}",
-                        (50 - io.row.to_idx() % 50) / 2,
-                        3 - (io.row.to_idx() % 50 - 1) / 12
-                    );
+                    exp_func = format!("IO_{}", io.pkgid);
                 }
-                if io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                if let Some(byte) = io.byte {
+                    write!(exp_func, "_T{byte}").unwrap();
+                }
+                if io.bank == 35 && matches!(io.biob, 21 | 22) {
+                    if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
                         write!(exp_func, "_AD{}{}", i, pn).unwrap();
                     }
                 }
-                if io.is_srcc() {
+                if io.is_srcc {
                     exp_func += "_SRCC";
                 }
-                if io.is_mrcc() {
+                if io.is_mrcc {
                     exp_func += "_MRCC";
                 }
-                if io.is_dqs() {
+                if io.is_dqs {
                     exp_func += "_DQS";
                 }
-                match io.get_cfg(has_14) {
+                match cfg_lookup.get(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => {
                         if d >= 16 && !is_spartan {
                             write!(exp_func, "_A{:02}", d - 16).unwrap();
@@ -171,19 +190,18 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     }
                     None => (),
                 }
-                if !(io.bank == 35 && matches!(io.row.to_idx() % 50, 21 | 22)) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                if !(io.bank == 35 && matches!(io.biob, 21 | 22)) {
+                    if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
                         write!(exp_func, "_AD{}{}", i, pn).unwrap();
                     }
                 }
-                if io.is_vref() {
+                if io.is_vref {
                     exp_func += "_VREF";
                 }
-                if io.is_vrp() {
-                    exp_func += "_VRP";
-                }
-                if io.is_vrn() {
-                    exp_func += "_VRN";
+                match io.vr {
+                    IoVrKind::VrP => exp_func += "_VRP",
+                    IoVrKind::VrN => exp_func += "_VRN",
+                    IoVrKind::None => (),
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
                 if exp_func != pin.func {
@@ -194,7 +212,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                 }
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 assert_eq!(pin.vcco_bank, Some(io.bank));
-                BondPin::Io(io.bank, (io.row.to_idx() % 50) as u32)
+                BondPin::Io(io.bank, io.biob)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
@@ -215,7 +233,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::SysMon(bank, spin)
-            } else if let Some(&(bank, spin)) = ps_lookup.get(pad) {
+            } else if let Some(&(bank, spin)) = ps_lookup.get(&**pad) {
                 let exp_func = match spin {
                     PsPin::Clk => format!("PS_CLK_{bank}"),
                     PsPin::PorB => format!("PS_POR_B_{bank}"),
@@ -229,16 +247,15 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     PsPin::DdrBa(x) => format!("PS_DDR_BA{x}_{bank}"),
                     PsPin::DdrVrP => format!("PS_DDR_VRP_{bank}"),
                     PsPin::DdrVrN => format!("PS_DDR_VRN_{bank}"),
-                    PsPin::DdrCkP(0) => format!("PS_DDR_CKP_{bank}"),
-                    PsPin::DdrCkN(0) => format!("PS_DDR_CKN_{bank}"),
-                    PsPin::DdrCke(0) => format!("PS_DDR_CKE_{bank}"),
-                    PsPin::DdrOdt(0) => format!("PS_DDR_ODT_{bank}"),
+                    PsPin::DdrCkP => format!("PS_DDR_CKP_{bank}"),
+                    PsPin::DdrCkN => format!("PS_DDR_CKN_{bank}"),
+                    PsPin::DdrCke => format!("PS_DDR_CKE_{bank}"),
+                    PsPin::DdrOdt => format!("PS_DDR_ODT_{bank}"),
                     PsPin::DdrDrstB => format!("PS_DDR_DRST_B_{bank}"),
-                    PsPin::DdrCsB(0) => format!("PS_DDR_CS_B_{bank}"),
+                    PsPin::DdrCsB => format!("PS_DDR_CS_B_{bank}"),
                     PsPin::DdrRasB => format!("PS_DDR_RAS_B_{bank}"),
                     PsPin::DdrCasB => format!("PS_DDR_CAS_B_{bank}"),
                     PsPin::DdrWeB => format!("PS_DDR_WE_B_{bank}"),
-                    _ => unreachable!(),
                 };
                 if exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);

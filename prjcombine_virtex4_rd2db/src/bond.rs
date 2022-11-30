@@ -1,7 +1,5 @@
-use prjcombine_entity::EntityId;
-use prjcombine_int::grid::DieId;
 use prjcombine_virtex4::bond::{Bond, BondPin, CfgPin, GtPin, SharedCfgPin, SysMonPin};
-use prjcombine_virtex4::{ExpandedDevice, IoCoord, TileIobId};
+use prjcombine_virtex4::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
 
 use prjcombine_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};
@@ -11,11 +9,7 @@ use prjcombine_rdgrid::split_num;
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev
-        .get_io()
-        .into_iter()
-        .map(|io| (io.iob_name(), io))
-        .collect();
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
     let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
     for gt in &edev.gt {
         let bank = gt.bank;
@@ -64,42 +58,38 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             }
         }
     }
+    let cfg_lookup: HashMap<_, _> = edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
-                let ioc = IoCoord {
-                    die: DieId::from_idx(0),
-                    col: io.col,
-                    row: io.row,
-                    iob: TileIobId::from_idx(!io.bbel as usize % 2),
+            if let Some(&io) = io_lookup.get(&**pad) {
+                let mut exp_func = match io.diff {
+                    IoDiffKind::None => format!("IO_{}", io.pkgid),
+                    IoDiffKind::P(_) => format!("IO_L{}P", io.pkgid),
+                    IoDiffKind::N(_) => format!("IO_L{}N", io.pkgid),
                 };
-                let mut exp_func =
-                    format!("IO_L{}{}", io.bbel / 2, ['N', 'P'][io.bbel as usize % 2]);
-                match io.get_cfg() {
+                match cfg_lookup.get(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => write!(exp_func, "_D{d}").unwrap(),
                     Some(_) => unreachable!(),
                     None => (),
                 }
-                if io.is_gc() {
+                if io.is_gc {
                     exp_func += "_GC";
                 }
-                if io.is_vref() {
+                if io.is_vref {
                     exp_func += "_VREF";
                 }
-                if io.is_vr() {
-                    match io.bel {
-                        0 => exp_func += "_VRP",
-                        1 => exp_func += "_VRN",
-                        _ => unreachable!(),
-                    }
+                match io.vr {
+                    IoVrKind::VrP => exp_func += "_VRP",
+                    IoVrKind::VrN => exp_func += "_VRN",
+                    IoVrKind::None => (),
                 }
-                if io.is_cc() {
+                if io.is_srcc {
                     exp_func += "_CC";
                 }
-                if let Some(&(bank, i, _)) = vaux_lookup.get(&ioc) {
+                if let Some(&(bank, i, _)) = vaux_lookup.get(&io.crd) {
                     write!(exp_func, "_{}{}", ["SM", "ADC"][bank as usize], i).unwrap();
                 }
-                if io.is_lc() {
+                if io.is_lc {
                     exp_func += "_LC";
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
@@ -108,7 +98,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 }
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 assert_eq!(pin.vcco_bank, Some(io.bank));
-                BondPin::Io(io.bank, io.bbel)
+                BondPin::Io(io.bank, io.biob)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);

@@ -1,13 +1,16 @@
+#![allow(clippy::collapsible_else_if)]
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 
 use crate::{
-    CfgRowKind, ColumnKind, ExpandedDevice, Grid, Gt, GtKind, IoCoord, RegId, SysMon, TileIobId,
+    CfgRowKind, ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind,
+    Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SharedCfgPin, SysMon, TileIobId,
 };
+use std::collections::{BTreeMap, BTreeSet};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -17,14 +20,13 @@ struct Expander<'a, 'b> {
     int_holes: Vec<Rect>,
     dciylut: Vec<usize>,
     frame_info: Vec<FrameInfo>,
-    col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
-    bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
-    spine_frame: EntityVec<RegId, usize>,
+    frames: DieFrameGeom,
     col_cfg: ColId,
     col_lio: Option<ColId>,
     col_rio: Option<ColId>,
     row_dcmiob: Option<RowId>,
     row_iobdcm: Option<RowId>,
+    io: Vec<Io>,
     gt: Vec<Gt>,
     sysmon: Vec<SysMon>,
 }
@@ -112,8 +114,82 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.add_bel(1, format!("ILOGIC_X{biox}Y{y}", y = 2 * y));
                 node.add_bel(2, format!("OLOGIC_X{biox}Y{y}", y = 2 * y + 1));
                 node.add_bel(3, format!("OLOGIC_X{biox}Y{y}", y = 2 * y));
-                node.add_bel(4, format!("IOB_X{biox}Y{y}", y = 2 * y + 1));
-                node.add_bel(5, format!("IOB_X{biox}Y{y}", y = 2 * y));
+                let iob_name_p = format!("IOB_X{biox}Y{y}", y = 2 * y + 1);
+                let iob_name_n = format!("IOB_X{biox}Y{y}", y = 2 * y);
+                node.add_bel(4, iob_name_p.clone());
+                node.add_bel(5, iob_name_n.clone());
+                let lr = if col == self.col_lio.unwrap() {
+                    'L'
+                } else {
+                    'R'
+                };
+                let banks: &[u32] = match (lr, self.grid.regs) {
+                    ('L', 4) => &[7, 5],
+                    ('L', 6) => &[7, 9, 5],
+                    ('L', 8) => &[7, 11, 9, 5],
+                    ('L', 10) => &[7, 11, 13, 9, 5],
+                    ('L', 12) => &[7, 11, 15, 13, 9, 5],
+                    ('R', 4) => &[8, 6],
+                    ('R', 6) => &[8, 10, 6],
+                    ('R', 8) => &[8, 12, 10, 6],
+                    ('R', 10) => &[8, 12, 14, 10, 6],
+                    ('R', 12) => &[8, 12, 16, 14, 10, 6],
+                    _ => unreachable!(),
+                };
+                let bank = banks[row.to_idx() / 32];
+                let biob = (row.to_idx() % 32 * 2) as u32;
+                let pkgid = (64 - biob) / 2;
+                let crd_p = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(0),
+                };
+                let crd_n = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(1),
+                };
+                let is_cc = matches!(row.to_idx() % 16, 7 | 8);
+                let is_vref = row.to_idx() % 8 == 4;
+                let is_vr = biob == 18;
+                self.io.extend([
+                    Io {
+                        crd: crd_p,
+                        name: iob_name_p,
+                        bank,
+                        biob: biob + 1,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::P(crd_n),
+                        is_lc: is_cc,
+                        is_gc: false,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref: false,
+                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
+                    },
+                    Io {
+                        crd: crd_n,
+                        name: iob_name_n,
+                        bank,
+                        biob,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::N(crd_p),
+                        is_lc: is_cc,
+                        is_gc: false,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref,
+                        vr: if is_vr { IoVrKind::VrP } else { IoVrKind::None },
+                    },
+                ]);
 
                 if row.to_idx() % 32 == 8 {
                     let name = format!("HCLK_IOIS_DCI_X{x}Y{y}", y = y - 1);
@@ -388,8 +464,116 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.add_bel(1, format!("ILOGIC_X1Y{y}", y = 2 * y));
                 node.add_bel(2, format!("OLOGIC_X1Y{y}", y = 2 * y + 1));
                 node.add_bel(3, format!("OLOGIC_X1Y{y}", y = 2 * y));
-                node.add_bel(4, format!("IOB_X1Y{y}", y = 2 * y + 1));
-                node.add_bel(5, format!("IOB_X1Y{y}", y = 2 * y));
+                let iob_name_p = format!("IOB_X1Y{y}", y = 2 * y + 1);
+                let iob_name_n = format!("IOB_X1Y{y}", y = 2 * y);
+                node.add_bel(4, iob_name_p.clone());
+                node.add_bel(5, iob_name_n.clone());
+                let bank;
+                let biob;
+                let pkgid;
+                let is_gc;
+                if row < self.grid.row_bufg() {
+                    if row < self.row_dcmiob.unwrap() + 8 {
+                        bank = 4;
+                        biob = (row.to_idx() % 8) as u32 * 2;
+                        pkgid = (8 - (row.to_idx() % 8)) as u32;
+                        is_gc = true;
+                    } else if row >= self.grid.row_bufg() - 16 {
+                        bank = 2;
+                        biob = (row.to_idx() % 8) as u32 * 2;
+                        pkgid = (8 - (row.to_idx() % 8)) as u32;
+                        is_gc = false;
+                    } else if row < self.row_dcmiob.unwrap() + 24 {
+                        bank = 2;
+                        biob = (row.to_idx() % 16) as u32 * 2 + 16;
+                        pkgid = (16 - ((row.to_idx() % 16) ^ 8)) as u32 + 8;
+                        is_gc = biob < 32;
+                    } else {
+                        bank = 2;
+                        biob = (row.to_idx() % 16) as u32 * 2 + 48;
+                        pkgid = (16 - ((row.to_idx() % 16) ^ 8)) as u32 + 24;
+                        is_gc = false;
+                    }
+                } else {
+                    if row >= self.row_iobdcm.unwrap() - 8 {
+                        bank = 3;
+                        biob = (row.to_idx() % 8) as u32 * 2;
+                        pkgid = (8 - (row.to_idx() % 8)) as u32;
+                        is_gc = true;
+                    } else if row < self.grid.row_bufg() + 16 {
+                        bank = 1;
+                        biob = (row.to_idx() % 8) as u32 * 2;
+                        pkgid = (8 - (row.to_idx() % 8)) as u32;
+                        is_gc = false;
+                    } else if row >= self.row_iobdcm.unwrap() - 24 {
+                        bank = 1;
+                        biob = (row.to_idx() % 16) as u32 * 2 + 16;
+                        pkgid = (16 - (row.to_idx() % 16)) as u32 + 8;
+                        is_gc = biob >= 32;
+                    } else {
+                        bank = 1;
+                        biob = (row.to_idx() % 16) as u32 * 2 + 48;
+                        pkgid = (16 - (row.to_idx() % 16)) as u32 + 24;
+                        is_gc = false;
+                    }
+                }
+                let crd_p = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(0),
+                };
+                let crd_n = IoCoord {
+                    die: self.die.die,
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(1),
+                };
+                let is_cc = matches!(row.to_idx() % 16, 7 | 8);
+                let is_vref = row.to_idx() % 8 == 4;
+                let is_vr = match bank {
+                    1 => biob == 28,
+                    2 => biob == 34,
+                    3 => biob == 12,
+                    4 => biob == 2,
+                    _ => unreachable!(),
+                };
+                self.io.extend([
+                    Io {
+                        crd: crd_p,
+                        name: iob_name_p,
+                        bank,
+                        biob: biob + 1,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::P(crd_n),
+                        is_lc: true,
+                        is_gc,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref: false,
+                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
+                    },
+                    Io {
+                        crd: crd_n,
+                        name: iob_name_n,
+                        bank,
+                        biob,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::N(crd_p),
+                        is_lc: true,
+                        is_gc,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref,
+                        vr: if is_vr { IoVrKind::VrP } else { IoVrKind::None },
+                    },
+                ]);
             }
 
             if row.to_idx() % 16 == 8 {
@@ -942,15 +1126,15 @@ impl<'a, 'b> Expander<'a, 'b> {
             (rreg < 0, rreg.abs())
         });
         for _ in 0..self.grid.regs {
-            self.col_frame.push(EntityVec::new());
-            self.bram_frame.push(EntityPartVec::new());
-            self.spine_frame.push(0);
+            self.frames.col_frame.push(EntityVec::new());
+            self.frames.bram_frame.push(EntityPartVec::new());
+            self.frames.spine_frame.push(0);
         }
         for &reg in &regs {
             let mut major = 0;
             for &cd in self.grid.columns.values() {
                 // Fixed later for Bram
-                self.col_frame[reg].push(self.frame_info.len());
+                self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLM => 22,
                     ColumnKind::Bram => continue,
@@ -971,7 +1155,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 major += 1;
                 if cd == ColumnKind::Cfg {
-                    self.spine_frame[reg] = self.frame_info.len();
+                    self.frames.spine_frame[reg] = self.frame_info.len();
                     for minor in 0..3 {
                         self.frame_info.push(FrameInfo {
                             addr: FrameAddr {
@@ -992,7 +1176,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                self.bram_frame[reg].insert(col, self.frame_info.len());
+                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
                 for minor in 0..64 {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -1012,7 +1196,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                self.col_frame[reg][col] = self.frame_info.len();
+                self.frames.col_frame[reg][col] = self.frame_info.len();
                 for minor in 0..20 {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -1029,8 +1213,16 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 }
 
-pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
+pub fn expand_grid<'a>(
+    grids: &EntityVec<DieId, &'a Grid>,
+    grid_master: DieId,
+    extras: &[ExtraDie],
+    disabled: &BTreeSet<DisabledPart>,
+    db: &'a IntDb,
+) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
+    let grid = grids[grid_master];
+    assert_eq!(grids.len(), 1);
     let col_cfg = grid
         .columns
         .iter()
@@ -1054,8 +1246,8 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         })
         .collect();
     assert_eq!(cols_io.len(), 2);
-    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg);
-    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg);
+    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg).map(|x| x.col);
+    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg).map(|x| x.col);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_pullup = Some("KEEP1".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());
@@ -1069,14 +1261,17 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         site_holes: vec![],
         dciylut: vec![],
         frame_info: vec![],
-        col_frame: EntityVec::new(),
-        bram_frame: EntityVec::new(),
-        spine_frame: EntityVec::new(),
+        frames: DieFrameGeom {
+            col_frame: EntityVec::new(),
+            bram_frame: EntityVec::new(),
+            spine_frame: EntityVec::new(),
+        },
         col_lio: Some(cols_io[0]),
         col_cfg,
         col_rio: Some(cols_io[1]),
         row_dcmiob: None,
         row_iobdcm: None,
+        io: vec![],
         gt: vec![],
         sysmon: vec![],
     };
@@ -1095,9 +1290,8 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
     expander.fill_hclk();
     expander.fill_frame_info();
 
-    let col_frame = expander.col_frame;
-    let bram_frame = expander.bram_frame;
-    let spine_frame = expander.spine_frame;
+    let frames = expander.frames;
+    let io = expander.io;
     let gt = expander.gt;
     let sysmon = expander.sysmon;
     let row_dcmiob = expander.row_dcmiob;
@@ -1115,21 +1309,55 @@ pub fn expand_grid<'a>(grid: &'a Grid, db: &'a IntDb) -> ExpandedDevice<'a> {
         die_order: vec![expander.die.die],
     };
 
+    let mut cfg_io = BTreeMap::new();
+    for i in 0..16 {
+        cfg_io.insert(
+            SharedCfgPin::Data(i as u8),
+            IoCoord {
+                die: grid_master,
+                col: col_cfg,
+                row: grid.row_reg_bot(grid.reg_cfg) - 16 + i / 2,
+                iob: TileIobId::from_idx(!i & 1),
+            },
+        );
+    }
+    for i in 0..16 {
+        cfg_io.insert(
+            SharedCfgPin::Data(i as u8 + 16),
+            IoCoord {
+                die: grid_master,
+                col: col_cfg,
+                row: grid.row_reg_bot(grid.reg_cfg) + 8 + i / 2,
+                iob: TileIobId::from_idx(!i & 1),
+            },
+        );
+    }
+
     ExpandedDevice {
-        grid,
+        kind: grid.kind,
+        grids: grids.clone(),
+        grid_master,
+        extras: extras.to_vec(),
+        disabled: disabled.clone(),
         egrid,
         bs_geom,
-        col_frame,
-        bram_frame,
-        spine_frame,
-        col_lio: Some(cols_io[0]),
+        frames: [frames].into_iter().collect(),
         col_cfg,
+        col_clk: col_cfg,
+        col_lio: Some(cols_io[0]),
         col_rio: Some(cols_io[1]),
+        col_lcio: None,
+        col_rcio: None,
         col_lgt,
         col_rgt,
+        col_mgt: None,
         row_dcmiob,
         row_iobdcm,
+        io,
         gt,
+        gtz: vec![],
         sysmon,
+        cfg_io,
+        ps_io: Default::default(),
     }
 }

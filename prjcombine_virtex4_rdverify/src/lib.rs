@@ -344,12 +344,12 @@ fn verify_bufg_mgtclk_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelC
             _ => unreachable!(),
         };
         let obel = vrf
-            .find_bel(bel.die, (edev.col_lgt.unwrap().col, srow), "GT11")
+            .find_bel(bel.die, (edev.col_lgt.unwrap(), srow), "GT11")
             .unwrap();
         vrf.verify_node(&[bel.fwire("MGT_L0_I"), obel.fwire("MGT0")]);
         vrf.verify_node(&[bel.fwire("MGT_L1_I"), obel.fwire("MGT1")]);
         let obel = vrf
-            .find_bel(bel.die, (edev.col_rgt.unwrap().col, srow), "GT11")
+            .find_bel(bel.die, (edev.col_rgt.unwrap(), srow), "GT11")
             .unwrap();
         vrf.verify_node(&[bel.fwire("MGT_R0_I"), obel.fwire("MGT0")]);
         vrf.verify_node(&[bel.fwire("MGT_R1_I"), obel.fwire("MGT1")]);
@@ -379,7 +379,7 @@ fn verify_clk_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         }
     }
     for i in 0..32 {
-        let orow = edev.grid.row_bufg() - 8;
+        let orow = edev.grids[bel.die].row_bufg() - 8;
         let obel = vrf
             .find_bel(bel.die, (bel.col, orow), &format!("BUFGCTRL{i}"))
             .unwrap();
@@ -409,7 +409,7 @@ fn verify_clk_iob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             vrf.claim_pip(obel.crd(), obel.wire("CLKOUT"), obel.wire("O"));
         }
     }
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         -8
     } else {
         16
@@ -455,7 +455,7 @@ fn verify_clk_dcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             ]);
         }
     }
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         -8
     } else {
         8
@@ -745,8 +745,8 @@ fn verify_hclk_dcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         "HCLK_DCM" => {
             for i in 0..4 {
                 if edev.col_lgt.is_some() || !has_sysmon_s {
-                    let skip =
-                        edev.col_lgt.is_none() && bel.row.to_idx() == edev.grid.regs * 16 - 8;
+                    let skip = edev.col_lgt.is_none()
+                        && bel.row.to_idx() == edev.grids[bel.die].regs * 16 - 8;
                     if !skip {
                         vrf.claim_node(&[bel.fwire(&format!("MGT{i}"))]);
                     }
@@ -813,12 +813,12 @@ fn verify_hclk_dcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     if edev.col_lgt.is_some() {
         let srow = bel.row - 8;
         let obel = vrf
-            .find_bel(bel.die, (edev.col_lgt.unwrap().col, srow), "GT11")
+            .find_bel(bel.die, (edev.col_lgt.unwrap(), srow), "GT11")
             .unwrap();
         vrf.verify_node(&[bel.fwire("MGT_I0"), obel.fwire("MGT0")]);
         vrf.verify_node(&[bel.fwire("MGT_I1"), obel.fwire("MGT1")]);
         let obel = vrf
-            .find_bel(bel.die, (edev.col_rgt.unwrap().col, srow), "GT11")
+            .find_bel(bel.die, (edev.col_rgt.unwrap(), srow), "GT11")
             .unwrap();
         vrf.verify_node(&[bel.fwire("MGT_I2"), obel.fwire("MGT0")]);
         vrf.verify_node(&[bel.fwire("MGT_I3"), obel.fwire("MGT1")]);
@@ -826,7 +826,7 @@ fn verify_hclk_dcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
 }
 
 fn verify_hclk_dcm_hrow(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let srow = if bel.row <= edev.grid.row_bufg() {
+    let srow = if bel.row <= edev.grids[bel.die].row_bufg() {
         edev.row_dcmiob.unwrap()
     } else {
         edev.row_iobdcm.unwrap() - 16
@@ -951,7 +951,7 @@ fn verify_dcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("TO_BUFG11")]);
     vrf.claim_node(&[bel.fwire("LOCKED_BUF")]);
     vrf.claim_pip(bel.crd(), bel.wire("LOCKED_BUF"), bel.wire("LOCKED"));
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         -4
     } else {
         4
@@ -1170,7 +1170,7 @@ fn verify_ccm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire(&opin), ibel.wire(ipin));
         }
     }
-    let dy = if bel.row < edev.grid.row_bufg() {
+    let dy = if bel.row < edev.grids[bel.die].row_bufg() {
         -4
     } else {
         4

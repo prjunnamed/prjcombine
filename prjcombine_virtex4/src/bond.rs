@@ -65,6 +65,56 @@ pub enum SysMonPin {
     VRefN,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum GtzPin {
+    RxP(u8),
+    RxN(u8),
+    TxP(u8),
+    TxN(u8),
+    ClkP(u8),
+    ClkN(u8),
+    AGnd,
+    AVcc,
+    VccH,
+    VccL,
+    ObsClkP,
+    ObsClkN,
+    ThermIn,
+    ThermOut,
+    SenseAGnd,
+    SenseGnd,
+    SenseGndL,
+    SenseAVcc,
+    SenseVcc,
+    SenseVccL,
+    SenseVccH,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum PsPin {
+    Mio(u32),
+    Clk,
+    PorB,
+    SrstB,
+    DdrDq(u32),
+    DdrDm(u32),
+    DdrDqsP(u32),
+    DdrDqsN(u32),
+    DdrA(u32),
+    DdrBa(u32),
+    DdrVrP,
+    DdrVrN,
+    DdrCkP,
+    DdrCkN,
+    DdrCke,
+    DdrOdt,
+    DdrDrstB,
+    DdrCsB,
+    DdrRasB,
+    DdrCasB,
+    DdrWeB,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum BondPin {
     // bank, pin within bank

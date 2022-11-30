@@ -1,9 +1,7 @@
-use prjcombine_entity::EntityId;
-use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex6::{
     Bond, BondPin, CfgPin, DisabledPart, ExpandedDevice, GtKind, GtPin, GtRegion, GthRegionPin,
-    GtxRegionPin, IoCoord, SharedCfgPin, SysMonPin, TileIobId,
+    GtxRegionPin, IoCoord, IoDiffKind, IoVrKind, SharedCfgPin, SysMonPin,
 };
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
@@ -12,11 +10,7 @@ use prjcombine_rdgrid::split_num;
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev
-        .get_io()
-        .into_iter()
-        .map(|io| (io.iob_name(), io))
-        .collect();
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
     let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
     for gt in &edev.gt {
         let bank = gt.bank;
@@ -79,37 +73,33 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             }
         }
     }
+    let cfg_lookup: HashMap<_, _> = edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
-                let ioc = IoCoord {
-                    die: DieId::from_idx(0),
-                    col: io.col,
-                    row: io.row - (!io.bbel as usize % 2),
-                    iob: TileIobId::from_idx(io.bbel as usize % 2),
+            if let Some(&io) = io_lookup.get(&**pad) {
+                let mut exp_func = match io.diff {
+                    IoDiffKind::None => format!("IO_{}", io.pkgid),
+                    IoDiffKind::P(_) => format!("IO_L{}P", io.pkgid),
+                    IoDiffKind::N(_) => format!("IO_L{}N", io.pkgid),
                 };
-                let mut exp_func =
-                    format!("IO_L{}{}", io.bbel / 2, ['P', 'N'][io.bbel as usize % 2]);
-                if io.is_srcc() {
+                if io.is_srcc {
                     exp_func += "_SRCC";
                 }
-                if io.is_mrcc() {
+                if io.is_mrcc {
                     exp_func += "_MRCC";
                 }
-                if io.is_gc() {
+                if io.is_gc {
                     exp_func += "_GC";
                 }
-                if io.is_vref() {
+                if io.is_vref {
                     exp_func += "_VREF";
                 }
-                if io.is_vr() {
-                    match io.row.to_idx() % 2 {
-                        0 => exp_func += "_VRP",
-                        1 => exp_func += "_VRN",
-                        _ => unreachable!(),
-                    }
+                match io.vr {
+                    IoVrKind::VrP => exp_func += "_VRP",
+                    IoVrKind::VrN => exp_func += "_VRN",
+                    IoVrKind::None => (),
                 }
-                match io.get_cfg() {
+                match cfg_lookup.get(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => {
                         if d >= 16 {
                             write!(exp_func, "_A{:02}", d - 16).unwrap();
@@ -133,7 +123,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     None => (),
                 }
                 if !edev.disabled.contains(&DisabledPart::SysMon) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&ioc) {
+                    if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
                         write!(exp_func, "_SM{}{}", i, pn).unwrap();
                     }
                 }
@@ -143,7 +133,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 }
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 assert_eq!(pin.vcco_bank, Some(io.bank));
-                BondPin::Io(io.bank, io.bbel)
+                BondPin::Io(io.bank, io.biob)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
