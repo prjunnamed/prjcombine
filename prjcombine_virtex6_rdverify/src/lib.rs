@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex6::{DisabledPart, ExpandedDevice, GtKind};
+use prjcombine_virtex4::{DisabledPart, ExpandedDevice, GtKind};
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {
@@ -1230,18 +1230,17 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             let reg = edev.grids[bel.die].row_to_reg(bel.row);
             if which == "OL"
                 && edev.col_lio.is_none()
-                && edev
-                    .col_lgt
-                    .map_or(true, |col| edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth))
+                && edev.col_lgt.map_or(true, |col| {
+                    edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth)
+                })
             {
                 continue;
             }
             if which == "OR"
                 && edev.col_rio.is_none()
-                && (edev
-                    .col_rgt
-                    .map_or(true, |col| edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth))
-                    || edev.disabled.contains(&DisabledPart::GtxRow(reg)))
+                && (edev.col_rgt.map_or(true, |col| {
+                    edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg] == Some(GtKind::Gth)
+                }) || edev.disabled.contains(&DisabledPart::GtxRow(reg)))
             {
                 continue;
             }

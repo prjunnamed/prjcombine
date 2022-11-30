@@ -56,6 +56,34 @@ pub enum GtPin {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum GtRegion {
+    All,
+    S,
+    N,
+    L,
+    R,
+    LS,
+    RS,
+    LN,
+    RN,
+    H,
+    LH,
+    RH,
+    Num(u32),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum GtRegionPin {
+    AVtt,
+    AGnd,
+    AVcc,
+    AVccRx,
+    AVccPll,
+    AVttRxC,
+    VccAux,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SysMonPin {
     VP,
     VN,
@@ -121,15 +149,27 @@ pub enum BondPin {
     Io(u32, u32),
     Nc,
     Gnd,
+    Rsvd,
     VccInt,
     VccAux,
+    VccBram,
     VccO(u32),
     VccBatt,
+    VccAuxIo(u32),
+    RsvdGnd,
     Cfg(CfgPin),
     Gt(u32, GtPin),
+    Gtz(u32, GtzPin),
+    GtRegion(GtRegion, GtRegionPin),
     Dxp,
     Dxn,
+    Vfs,
     SysMon(u32, SysMonPin),
+    VccPsInt,
+    VccPsAux,
+    VccPsPll,
+    PsVref(u32, u32),
+    PsIo(u32, PsPin),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

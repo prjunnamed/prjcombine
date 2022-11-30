@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::ColId;
 use prjcombine_rawdump::Part;
-use prjcombine_virtex6::{
+use prjcombine_virtex4::{
     ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, HardColumn, RegId,
 };
 use std::collections::BTreeSet;

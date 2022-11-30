@@ -7,9 +7,9 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::BTreeSet;
 
-use crate::{
-    ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind,
-    Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SharedCfgPin, SysMon, TileIobId,
+use prjcombine_virtex4::{
+    bond::SharedCfgPin, ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt,
+    GtKind, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SysMon, TileIobId,
 };
 
 struct Expander<'a, 'b> {
@@ -1144,8 +1144,16 @@ pub fn expand_grid<'a>(
         })
         .collect();
     assert_matches!(cols_io.len(), 1 | 2);
-    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg).map(|x| x.col);
-    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg).map(|x| x.col);
+    let col_lgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col < col_cfg)
+        .map(|x| x.col);
+    let col_rgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col > col_cfg)
+        .map(|x| x.col);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_pullup = Some("KEEP1".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());

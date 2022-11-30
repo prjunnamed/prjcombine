@@ -7,10 +7,10 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use crate::{
+use prjcombine_virtex4::bond::{PsPin, SharedCfgPin};
+use prjcombine_virtex4::{
     ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind, Gtz,
-    GtzLoc, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, Pcie2Kind, PsIo, PsPin, RegId, SharedCfgPin,
-    SysMon, TileIobId,
+    GtzLoc, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, Pcie2Kind, PsIo, RegId, SysMon, TileIobId,
 };
 
 struct DieExpander<'a, 'b, 'c> {

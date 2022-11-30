@@ -6,9 +6,9 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::{BTreeSet, HashSet};
 
-use crate::{
-    ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind,
-    Io, IoCoord, IoDiffKind, IoKind, IoVrKind, RegId, SharedCfgPin, SysMon, TileIobId,
+use prjcombine_virtex4::{
+    bond::SharedCfgPin, ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt,
+    GtKind, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, RegId, SysMon, TileIobId,
 };
 
 struct Expander<'a, 'b> {
@@ -1126,8 +1126,16 @@ pub fn expand_grid<'a>(
         [rc, r] => (Some(r), Some(rc)),
         _ => unreachable!(),
     };
-    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg).map(|x| x.col);
-    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg).map(|x| x.col);
+    let col_lgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col < col_cfg)
+        .map(|x| x.col);
+    let col_rgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col > col_cfg)
+        .map(|x| x.col);
 
     let mut expander = Expander {
         grid,

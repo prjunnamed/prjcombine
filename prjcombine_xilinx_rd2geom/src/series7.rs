@@ -18,11 +18,11 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         let bond = bond::make_bond(rd, pkg, &edev, pins);
-        bonds.push((pkg.clone(), Bond::Series7(bond)));
+        bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
     verify_device(&edev, rd);
     let grids = grids.into_map_values(Grid::Virtex4);
-    let extras = extras.into_iter().map(ExtraDie::Series7).collect();
+    let extras = extras.into_iter().map(ExtraDie::Virtex4).collect();
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
     (
         make_device_multi(

@@ -20,7 +20,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         let bond = bond::make_bond(&edev, pins);
-        bonds.push((pkg.clone(), Bond::Virtex5(bond)));
+        bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
     verify_device(&edev, rd);
     (

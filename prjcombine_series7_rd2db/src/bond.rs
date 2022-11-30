@@ -1,8 +1,8 @@
 use prjcombine_rawdump::{Part, PkgPin};
-use prjcombine_series7::{
-    Bond, BondPin, CfgPin, ExpandedDevice, GtKind, GtPin, GtRegionPin, GtzPin, IoCoord, IoDiffKind,
-    IoVrKind, PsPin, SharedCfgPin, SysMonPin,
+use prjcombine_virtex4::bond::{
+    Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, GtzPin, PsPin, SharedCfgPin, SysMonPin,
 };
+use prjcombine_virtex4::{ExpandedDevice, GtKind, IoCoord, IoDiffKind, IoVrKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
@@ -296,9 +296,9 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                 "VCCADC_0" | "VCCADC" => BondPin::SysMon(0, SysMonPin::AVdd),
                 "VREFP_0" => BondPin::SysMon(0, SysMonPin::VRefP),
                 "VREFN_0" => BondPin::SysMon(0, SysMonPin::VRefN),
-                "MGTAVTT" => BondPin::GtRegion(10, GtRegionPin::AVtt),
-                "MGTAVCC" => BondPin::GtRegion(10, GtRegionPin::AVcc),
-                "MGTVCCAUX" => BondPin::GtRegion(10, GtRegionPin::VccAux),
+                "MGTAVTT" => BondPin::GtRegion(GtRegion::All, GtRegionPin::AVtt),
+                "MGTAVCC" => BondPin::GtRegion(GtRegion::All, GtRegionPin::AVcc),
+                "MGTVCCAUX" => BondPin::GtRegion(GtRegion::All, GtRegionPin::VccAux),
                 "VCCO_MIO0_500" => BondPin::VccO(500),
                 "VCCO_MIO1_501" => BondPin::VccO(501),
                 "VCCO_DDR_502" => BondPin::VccO(502),
@@ -315,9 +315,11 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                             "VCCAUX_IO_G" => BondPin::VccAuxIo(b),
                             "MGTAVTTRCAL_" => BondPin::Gt(b, GtPin::AVttRCal),
                             "MGTRREF_" => BondPin::Gt(b, GtPin::RRef),
-                            "MGTAVTT_G" => BondPin::GtRegion(b, GtRegionPin::AVtt),
-                            "MGTAVCC_G" => BondPin::GtRegion(b, GtRegionPin::AVcc),
-                            "MGTVCCAUX_G" => BondPin::GtRegion(b, GtRegionPin::VccAux),
+                            "MGTAVTT_G" => BondPin::GtRegion(GtRegion::Num(b), GtRegionPin::AVtt),
+                            "MGTAVCC_G" => BondPin::GtRegion(GtRegion::Num(b), GtRegionPin::AVcc),
+                            "MGTVCCAUX_G" => {
+                                BondPin::GtRegion(GtRegion::Num(b), GtRegionPin::VccAux)
+                            }
                             "MGTZAGND_" => BondPin::Gtz(b, GtzPin::AGnd),
                             "MGTZAVCC_" => BondPin::Gtz(b, GtzPin::AVcc),
                             "MGTZVCCH_" => BondPin::Gtz(b, GtzPin::VccH),

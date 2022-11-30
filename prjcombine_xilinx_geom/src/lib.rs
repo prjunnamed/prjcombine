@@ -53,7 +53,7 @@ pub struct DeviceCombo {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ExtraDie {
-    Series7(prjcombine_series7::ExtraDie),
+    Virtex4(prjcombine_virtex4::ExtraDie),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -78,9 +78,6 @@ pub enum Bond {
     Virtex2(prjcombine_virtex2::Bond),
     Spartan6(prjcombine_spartan6::Bond),
     Virtex4(prjcombine_virtex4::bond::Bond),
-    Virtex5(prjcombine_virtex5::Bond),
-    Virtex6(prjcombine_virtex6::Bond),
-    Series7(prjcombine_series7::Bond),
     Ultrascale(prjcombine_ultrascale::Bond),
     Versal(prjcombine_versal::Bond),
 }

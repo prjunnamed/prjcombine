@@ -1246,8 +1246,16 @@ pub fn expand_grid<'a>(
         })
         .collect();
     assert_eq!(cols_io.len(), 2);
-    let col_lgt = grid.cols_gt.iter().find(|gtc| gtc.col < col_cfg).map(|x| x.col);
-    let col_rgt = grid.cols_gt.iter().find(|gtc| gtc.col > col_cfg).map(|x| x.col);
+    let col_lgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col < col_cfg)
+        .map(|x| x.col);
+    let col_rgt = grid
+        .cols_gt
+        .iter()
+        .find(|gtc| gtc.col > col_cfg)
+        .map(|x| x.col);
     egrid.tie_kind = Some("TIEOFF".to_string());
     egrid.tie_pin_pullup = Some("KEEP1".to_string());
     egrid.tie_pin_gnd = Some("HARD0".to_string());

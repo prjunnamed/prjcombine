@@ -18,7 +18,7 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
         let bond = bond::make_bond(&edev, pins);
-        bonds.push((pkg.clone(), Bond::Virtex6(bond)));
+        bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
     verify(&edev, rd);
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
