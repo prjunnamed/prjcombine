@@ -1,9 +1,9 @@
 use prjcombine_entity::EntityId;
-use prjcombine_int::db::BelId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-use crate::{ColumnIoKind, DisabledPart, Grid, GtPin, Gts, IoCoord};
+use crate::bond::GtPin;
+use crate::grid::{ColumnIoKind, DisabledPart, Grid, Gts, IoCoord, TileIobId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {
@@ -70,13 +70,13 @@ impl Grid {
             let row_o = self.rows.last_id().unwrap();
             let row_i = row_o - 1;
             if matches!(cd.tio, ColumnIoKind::Outer | ColumnIoKind::Both) {
-                for bel in [0, 1] {
+                for iob in [0, 1] {
                     res.push(Io {
                         bank: 0,
                         coord: IoCoord {
                             col,
                             row: row_o,
-                            bel: BelId::from_idx(bel),
+                            iob: TileIobId::from_idx(iob),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -84,13 +84,13 @@ impl Grid {
                 }
             }
             if matches!(cd.tio, ColumnIoKind::Inner | ColumnIoKind::Both) {
-                for bel in [0, 1] {
+                for iob in [0, 1] {
                     res.push(Io {
                         bank: 0,
                         coord: IoCoord {
                             col,
                             row: row_i,
-                            bel: BelId::from_idx(bel),
+                            iob: TileIobId::from_idx(iob),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -113,13 +113,13 @@ impl Grid {
             } else {
                 1
             };
-            for bel in [0, 1] {
+            for iob in [0, 1] {
                 res.push(Io {
                     bank,
                     coord: IoCoord {
                         col,
                         row,
-                        bel: BelId::from_idx(bel),
+                        iob: TileIobId::from_idx(iob),
                     },
                     name: format!("PAD{ctr}"),
                 });
@@ -131,13 +131,13 @@ impl Grid {
             let row_o = self.rows.first_id().unwrap();
             let row_i = row_o + 1;
             if matches!(cd.bio, ColumnIoKind::Outer | ColumnIoKind::Both) {
-                for bel in [0, 1] {
+                for iob in [0, 1] {
                     res.push(Io {
                         bank: 2,
                         coord: IoCoord {
                             col,
                             row: row_o,
-                            bel: BelId::from_idx(bel),
+                            iob: TileIobId::from_idx(iob),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -145,13 +145,13 @@ impl Grid {
                 }
             }
             if matches!(cd.bio, ColumnIoKind::Inner | ColumnIoKind::Both) {
-                for bel in [0, 1] {
+                for iob in [0, 1] {
                     res.push(Io {
                         bank: 2,
                         coord: IoCoord {
                             col,
                             row: row_i,
-                            bel: BelId::from_idx(bel),
+                            iob: TileIobId::from_idx(iob),
                         },
                         name: format!("PAD{ctr}"),
                     });
@@ -174,13 +174,13 @@ impl Grid {
             } else {
                 3
             };
-            for bel in [0, 1] {
+            for iob in [0, 1] {
                 res.push(Io {
                     bank,
                     coord: IoCoord {
                         col,
                         row,
-                        bel: BelId::from_idx(bel),
+                        iob: TileIobId::from_idx(iob),
                     },
                     name: format!("PAD{ctr}"),
                 });

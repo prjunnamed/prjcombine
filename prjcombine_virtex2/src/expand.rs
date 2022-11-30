@@ -1,5 +1,5 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_int::db::{BelId, Dir, IntDb, NodeRawTileId};
+use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -7,13 +7,14 @@ use prjcombine_virtex_bitstream::{
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
-use crate::{ColumnIoKind, ColumnKind, Dcms, ExpandedDevice, Grid, GridKind, RowIoKind};
+use crate::expanded::ExpandedDevice;
+use crate::grid::{ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, IoCoord, RowIoKind, TileIobId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
     db: &'a IntDb,
     die: ExpandedDieRefMut<'a, 'b>,
-    bonded_ios: Vec<((ColId, RowId), BelId)>,
+    bonded_ios: Vec<IoCoord>,
     xlut: EntityVec<ColId, usize>,
     vcc_xlut: EntityVec<ColId, usize>,
     vcc_ylut: EntityVec<RowId, usize>,
@@ -633,7 +634,11 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             for &i in iobs {
                 if pads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     match (ioi_kind, i) {
                         ("IOI.CLK_T", 0) => node.add_bel(i, "CLKPPAD1".to_string()),
                         ("IOI.CLK_T", 1) => node.add_bel(i, "CLKNPAD1".to_string()),
@@ -641,7 +646,11 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     node.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {
@@ -869,11 +878,19 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             for &i in iobs {
                 if pads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     node.add_bel(i, format!("PAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     node.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {
@@ -1083,7 +1100,11 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             for &i in iobs {
                 if pads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     let mut name = format!("PAD{idx}", idx = self.ctr_pad);
                     if self.grid.kind == GridKind::Spartan3A && self.grid.cols_clkv.is_none() {
                         // 3s50a special
@@ -1102,7 +1123,11 @@ impl<'a, 'b> Expander<'a, 'b> {
                     node.add_bel(i, name);
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     let mut name = format!("IPAD{idx}", idx = self.ctr_pad);
                     if self.grid.kind == GridKind::Spartan3A
                         && self.grid.cols_clkv.is_none()
@@ -1346,11 +1371,19 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             for &i in iobs {
                 if pads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     node.add_bel(i, format!("PAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else if ipads.contains(&i) {
-                    self.bonded_ios.push(((col, row), BelId::from_idx(i)));
+                    self.bonded_ios.push(IoCoord {
+                        col,
+                        row,
+                        iob: TileIobId::from_idx(i),
+                    });
                     node.add_bel(i, format!("IPAD{idx}", idx = self.ctr_pad));
                     self.ctr_pad += 1;
                 } else {

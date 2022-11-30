@@ -8,9 +8,12 @@ use prjcombine_virtex_bitstream::{
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_virtex4::bond::{PsPin, SharedCfgPin};
-use prjcombine_virtex4::{
-    ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind, Gtz,
-    GtzLoc, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, Pcie2Kind, PsIo, RegId, SysMon, TileIobId,
+use prjcombine_virtex4::expanded::{
+    DieFrameGeom, ExpandedDevice, Gt, Gtz, Io, IoCoord, IoDiffKind, IoVrKind, PsIo, SysMon,
+    TileIobId,
+};
+use prjcombine_virtex4::grid::{
+    ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, GtzLoc, IoKind, Pcie2Kind, RegId,
 };
 
 struct DieExpander<'a, 'b, 'c> {

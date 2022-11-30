@@ -4,9 +4,9 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_ultrascale::{
-    ClkSrc, ColSide, ColumnKindLeft, DisabledPart, ExpandedDevice, GridKind, HardRowKind,
-    HdioIobId, HpioIobId,
+use prjcombine_ultrascale::expanded::{ClkSrc, ExpandedDevice};
+use prjcombine_ultrascale::grid::{
+    ColSide, ColumnKindLeft, DisabledPart, GridKind, HardRowKind, HdioIobId, HpioIobId,
 };
 
 fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {

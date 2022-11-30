@@ -19,7 +19,7 @@ struct Opt {
 
 mod xc4k {
     use prjcombine_entity::EntityId;
-    use prjcombine_xc4k::Grid;
+    use prjcombine_xc4k::grid::Grid;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -30,14 +30,14 @@ mod xc4k {
                 "\t\t{k:?}: X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
     }
 }
 
 mod xc5200 {
-    use prjcombine_xc5200::Grid;
+    use prjcombine_xc5200::grid::Grid;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Xc5200");
@@ -47,7 +47,7 @@ mod xc5200 {
 
 mod virtex {
     use prjcombine_entity::EntityId;
-    use prjcombine_virtex::Grid;
+    use prjcombine_virtex::grid::Grid;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -82,7 +82,7 @@ mod virtex {
                 "\t\t{k:?}: X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
         println!("\tVREF:");
@@ -91,7 +91,7 @@ mod virtex {
                 "\t\tX{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
     }
@@ -99,7 +99,7 @@ mod virtex {
 
 mod virtex2 {
     use prjcombine_entity::EntityId;
-    use prjcombine_virtex2::{ColumnIoKind, ColumnKind, Grid, RowIoKind};
+    use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, Grid, RowIoKind};
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -200,7 +200,7 @@ mod virtex2 {
                 "\t\t{k:?}: X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
         println!("\tVREF:");
@@ -209,7 +209,7 @@ mod virtex2 {
                 "\t\tX{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
         if !grid.dci_io.is_empty() {
@@ -221,13 +221,13 @@ mod virtex2 {
                         "\t\t\tVP: X{x}Y{y}B{b}",
                         x = vp.col.to_idx(),
                         y = vp.row.to_idx(),
-                        b = vp.bel.to_idx()
+                        b = vp.iob.to_idx()
                     );
                     println!(
                         "\t\t\tVN: X{x}Y{y}B{b}",
                         x = vn.col.to_idx(),
                         y = vn.row.to_idx(),
-                        b = vn.bel.to_idx()
+                        b = vn.iob.to_idx()
                     );
                 }
                 if let Some(&(vp, vn)) = grid.dci_io_alt.get(&k) {
@@ -235,13 +235,13 @@ mod virtex2 {
                         "\t\t\tALT VP: X{x}Y{y}B{b}",
                         x = vp.col.to_idx(),
                         y = vp.row.to_idx(),
-                        b = vp.bel.to_idx()
+                        b = vp.iob.to_idx()
                     );
                     println!(
                         "\t\t\tALT VN: X{x}Y{y}B{b}",
                         x = vn.col.to_idx(),
                         y = vn.row.to_idx(),
-                        b = vn.bel.to_idx()
+                        b = vn.iob.to_idx()
                     );
                 }
             }
@@ -251,7 +251,7 @@ mod virtex2 {
 
 mod spartan6 {
     use prjcombine_entity::EntityId;
-    use prjcombine_spartan6::{ColumnIoKind, ColumnKind, Grid, Gts};
+    use prjcombine_spartan6::grid::{ColumnIoKind, ColumnKind, Grid, Gts};
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Spartan6");
@@ -386,7 +386,7 @@ mod spartan6 {
                     ("RST", mcb.io_reset),
                 ] {
                     if row == io.row {
-                        pins[io.bel.to_idx()] = Some(pin);
+                        pins[io.iob.to_idx()] = Some(pin);
                     }
                 }
                 if pins.iter().any(|x| x.is_some()) {
@@ -411,7 +411,7 @@ mod spartan6 {
                 "\t\t{k:?}: X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
         println!("\tVREF:");
@@ -420,7 +420,7 @@ mod spartan6 {
                 "\t\tX{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
-                b = v.bel.to_idx()
+                b = v.iob.to_idx()
             );
         }
         if grid.has_encrypt {
@@ -431,7 +431,7 @@ mod spartan6 {
 
 mod virtex4 {
     use prjcombine_entity::EntityId;
-    use prjcombine_virtex4::{ColumnKind, Grid, GridKind, Pcie2Kind};
+    use prjcombine_virtex4::grid::{ColumnKind, Grid, GridKind, Pcie2Kind};
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {v:?}", v = grid.kind);
@@ -549,7 +549,7 @@ mod virtex4 {
 
 mod ultrascale {
     use prjcombine_entity::EntityId;
-    use prjcombine_ultrascale::{
+    use prjcombine_ultrascale::grid::{
         BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid,
     };
 

@@ -1,5 +1,6 @@
 use prjcombine_rawdump::PkgPin;
-use prjcombine_xc5200::{Bond, BondPin, ExpandedDevice};
+use prjcombine_xc5200::bond::{Bond, BondPin};
+use prjcombine_xc5200::expanded::ExpandedDevice;
 use std::collections::{BTreeMap, HashMap};
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {

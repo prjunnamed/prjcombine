@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_rawdump::PkgPin;
-use prjcombine_spartan6::{Bond, BondPin, CfgPin, DisabledPart, Grid, GtPin};
+use prjcombine_spartan6::bond::{Bond, BondPin, CfgPin, GtPin};
+use prjcombine_spartan6::grid::{DisabledPart, Grid};
 
 use prjcombine_rdgrid::split_num;
 

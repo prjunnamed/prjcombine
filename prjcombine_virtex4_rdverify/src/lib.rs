@@ -5,7 +5,7 @@ use prjcombine_int::db::BelId;
 use prjcombine_int::grid::RowId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex4::ExpandedDevice;
+use prjcombine_virtex4::expanded::ExpandedDevice;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if matches!(bel.key, "SLICE0" | "SLICE2") {

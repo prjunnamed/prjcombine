@@ -1,0 +1,83 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_int::db::{BelId, BelInfo, BelNaming};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, ExpandedTileNode};
+use prjcombine_virtex_bitstream::BitstreamGeom;
+
+use crate::grid::{Grid, IoCoord};
+
+#[derive(Copy, Clone, Debug)]
+pub struct Io<'a> {
+    pub bank: u32,
+    pub coord: IoCoord,
+    pub name: &'a str,
+    pub is_vref: bool,
+}
+
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub egrid: ExpandedGrid<'a>,
+    pub bonded_ios: Vec<IoCoord>,
+    pub bs_geom: BitstreamGeom,
+    pub spine_frame: usize,
+    pub col_frame: EntityVec<ColId, usize>,
+    pub bram_frame: EntityPartVec<ColId, usize>,
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn get_io_bel(
+        &'a self,
+        coord: IoCoord,
+    ) -> Option<(&'a ExpandedTileNode, &'a BelInfo, &'a BelNaming, &'a str)> {
+        let die = self.egrid.die(DieId::from_idx(0));
+        let node = die.tile((coord.col, coord.row)).nodes.first()?;
+        let nk = &self.egrid.db.nodes[node.kind];
+        let naming = &self.egrid.db.node_namings[node.naming];
+        let bel = BelId::from_idx(coord.iob.to_idx());
+        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
+    }
+
+    pub fn get_io(&'a self, coord: IoCoord) -> Io<'a> {
+        let (_, _, _, name) = self.get_io_bel(coord).unwrap();
+        let bank = if coord.row == self.grid.row_tio() {
+            if coord.col < self.grid.col_clk() {
+                0
+            } else {
+                1
+            }
+        } else if coord.col == self.grid.col_rio() {
+            if coord.row < self.grid.row_mid() {
+                3
+            } else {
+                2
+            }
+        } else if coord.row == self.grid.row_bio() {
+            if coord.col < self.grid.col_clk() {
+                5
+            } else {
+                4
+            }
+        } else if coord.col == self.grid.col_lio() {
+            if coord.row < self.grid.row_mid() {
+                6
+            } else {
+                7
+            }
+        } else {
+            unreachable!()
+        };
+        Io {
+            coord,
+            bank,
+            name,
+            is_vref: self.grid.vref.contains(&coord),
+        }
+    }
+
+    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+        let mut res = vec![];
+        for &coord in &self.bonded_ios {
+            res.push(self.get_io(coord));
+        }
+        res
+    }
+}

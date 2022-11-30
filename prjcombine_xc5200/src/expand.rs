@@ -2,7 +2,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::ExpandedGrid;
 
-use crate::{ExpandedDevice, Grid};
+use crate::expanded::ExpandedDevice;
+use crate::grid::Grid;
 
 impl Grid {
     pub fn expand_grid<'a>(&'a self, db: &'a IntDb) -> ExpandedDevice<'a> {

@@ -1,9 +1,12 @@
 use prjcombine_entity::EntityId;
-use prjcombine_int::db::NodeRawTileId;
+use prjcombine_int::db::{Dir, NodeRawTileId};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Coord;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::{Edge, ExpandedDevice, GridKind, IoDiffKind};
+use prjcombine_virtex2::expanded::{ExpandedDevice, IoDiffKind};
+use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
+
+use crate::get_bel_iob;
 
 fn verify_pci_ce(
     edev: &ExpandedDevice<'_>,
@@ -69,7 +72,11 @@ fn verify_pci_ce(
 }
 
 pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let io = edev.get_io((bel.col, bel.row), bel.bid);
+    let io = edev.get_io(IoCoord {
+        col: bel.col,
+        row: bel.row,
+        iob: TileIobId::from_idx(bel.bid.to_idx()),
+    });
     let tn = &bel.node.names[NodeRawTileId::from_idx(0)];
     let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.bid.to_idx() == 2);
     let kind = if matches!(edev.grid.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) {
@@ -135,12 +142,26 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
             vrf.claim_node(&[bel.fwire(pin)]);
         }
         match io.diff {
-            IoDiffKind::P(obid) => {
-                let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
+            IoDiffKind::P(oiob) => {
+                let obel = get_bel_iob(
+                    vrf,
+                    IoCoord {
+                        col: bel.col,
+                        row: bel.row,
+                        iob: oiob,
+                    },
+                );
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
             }
-            IoDiffKind::N(obid) => {
-                let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
+            IoDiffKind::N(oiob) => {
+                let obel = get_bel_iob(
+                    vrf,
+                    IoCoord {
+                        col: bel.col,
+                        row: bel.row,
+                        iob: oiob,
+                    },
+                );
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
                 vrf.claim_pip(bel.crd(), bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
             }
@@ -157,8 +178,15 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
             vrf.claim_node(&[bel.fwire(pin)]);
         }
         // ODDR, IDDR
-        if let IoDiffKind::P(obid) | IoDiffKind::N(obid) = io.diff {
-            let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
+        if let IoDiffKind::P(oiob) | IoDiffKind::N(oiob) = io.diff {
+            let obel = get_bel_iob(
+                vrf,
+                IoCoord {
+                    col: bel.col,
+                    row: bel.row,
+                    iob: oiob,
+                },
+            );
             vrf.claim_pip(bel.crd(), bel.wire("ODDRIN1"), obel.wire("ODDROUT2"));
             vrf.claim_pip(bel.crd(), bel.wire("ODDRIN2"), obel.wire("ODDROUT1"));
             vrf.claim_pip(bel.crd(), bel.wire("IDDRIN1"), obel.wire("IQ1"));
@@ -194,18 +222,17 @@ pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &Be
         &[],
     );
     let edge = if bel.col == edev.grid.col_left() {
-        Edge::Left
+        Dir::W
     } else if bel.col == edev.grid.col_right() {
-        Edge::Right
+        Dir::E
     } else {
         unreachable!()
     };
     let pci_rdy = edev.grid.get_pci_io(edge);
-    for (pin, (crd, obid)) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy.into_iter()) {
+    for (pin, crd) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy.into_iter()) {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
-        let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
+        let obel = get_bel_iob(vrf, crd);
         vrf.claim_node(&[bel.fwire_far(pin), obel.fwire("PCI_RDY_IN")]);
         vrf.claim_pip(obel.crd(), obel.wire("PCI_RDY_IN"), obel.wire("PCI_RDY"));
     }

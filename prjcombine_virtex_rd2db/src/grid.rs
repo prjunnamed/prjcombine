@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::EntityId;
-use prjcombine_int::db::BelId;
 use prjcombine_int::grid::ColId;
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex::{DisabledPart, Grid, GridKind, IoCoord, SharedCfgPin};
+use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, IoCoord, SharedCfgPin, TileIobId};
 
 use prjcombine_rdgrid::{extract_int, find_columns, IntGrid};
 
@@ -82,7 +81,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         IoCoord {
                             col: int.lookup_column(crd.x.into()),
                             row: int.lookup_row(crd.y.into()),
-                            bel: BelId::from_idx(idx as usize),
+                            iob: TileIobId::from_idx(idx as usize),
                         },
                     );
                 }
@@ -120,12 +119,12 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         "IO_WRITE" => SharedCfgPin::RdWrB,
                         "IO_DOUT_BUSY" => SharedCfgPin::Dout,
                         "IO_IRDY" => {
-                            assert_eq!(coord.bel.to_idx(), 3);
+                            assert_eq!(coord.iob.to_idx(), 3);
                             assert_eq!(coord.row, grid.row_mid());
                             continue;
                         }
                         "IO_TRDY" => {
-                            assert_eq!(coord.bel.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 1);
                             assert_eq!(coord.row, grid.row_mid() - 1);
                             continue;
                         }

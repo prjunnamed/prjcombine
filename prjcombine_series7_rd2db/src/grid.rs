@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
-use prjcombine_virtex4::{
+use prjcombine_virtex4::grid::{
     ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, GtzLoc, IoColumn, IoKind,
     Pcie2, Pcie2Kind, RegId,
 };

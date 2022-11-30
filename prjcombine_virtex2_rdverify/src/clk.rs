@@ -1,7 +1,10 @@
 use prjcombine_entity::EntityId;
-use prjcombine_int::db::BelId;
+use prjcombine_int::db::{BelId, Dir};
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::{Dcms, Edge, ExpandedDevice, GridKind};
+use prjcombine_virtex2::expanded::ExpandedDevice;
+use prjcombine_virtex2::grid::{Dcms, GridKind};
+
+use crate::get_bel_iob;
 
 pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
@@ -17,20 +20,19 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     let obel = vrf.get_bel(bel.die, bel.col, bel.row, bel.node, obid);
     vrf.claim_pip(bel.crd(), bel.wire("I1"), obel.wire("CLK"));
     let edge = if bel.row == edev.grid.row_bot() {
-        Edge::Bot
+        Dir::S
     } else if bel.row == edev.grid.row_top() {
-        Edge::Top
+        Dir::N
     } else if bel.col == edev.grid.col_left() {
-        Edge::Left
+        Dir::W
     } else if bel.col == edev.grid.col_right() {
-        Edge::Right
+        Dir::E
     } else {
         unreachable!()
     };
     if edev.grid.kind.is_virtex2() || edev.grid.kind == GridKind::Spartan3 {
-        if let Some((crd, obid)) = edev.grid.get_clk_io(edge, bel.bid.to_idx()) {
-            let onode = edev.get_io_node(crd).unwrap();
-            let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
+        if let Some(crd) = edev.grid.get_clk_io(edge, bel.bid.to_idx()) {
+            let obel = get_bel_iob(vrf, crd);
             vrf.claim_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
             vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         } else {
@@ -50,15 +52,13 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             vrf.claim_node(&[bel.fwire("DCM_PAD")]);
             vrf.claim_pip(bel.crd(), bel.wire("DCM_PAD"), bel.wire("CKI"));
         }
-    } else if matches!(edge, Edge::Bot | Edge::Top) {
-        let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
-        let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
+    } else if matches!(edge, Dir::S | Dir::N) {
+        let crd = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
+        let obel = get_bel_iob(vrf, crd);
         vrf.claim_node(&[bel.fwire("CKIR"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
-        let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx() + 4).unwrap();
-        let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
+        let crd = edev.grid.get_clk_io(edge, bel.bid.to_idx() + 4).unwrap();
+        let obel = get_bel_iob(vrf, crd);
         vrf.claim_node(&[bel.fwire("CKIL"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKIL"));
@@ -84,20 +84,20 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             vrf.claim_node(&[bel.fwire("DCM_OUT_L"), (bel.crds[pip.tile], &pip.wire_to)]);
             vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
             let dy = match edge {
-                Edge::Bot => 1,
-                Edge::Top => -1,
+                Dir::S => 1,
+                Dir::N => -1,
                 _ => unreachable!(),
             };
             let obel = vrf.find_bel_delta(bel, -1, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
-                (Edge::Top, 0) => ("CLKPAD0", "OUT0"),
-                (Edge::Top, 1) => ("CLKPAD1", "OUT1"),
-                (Edge::Top, 2) => ("CLKPAD2", "OUT2"),
-                (Edge::Top, 3) => ("CLKPAD3", "OUT3"),
-                (Edge::Bot, 0) => ("CLKPAD3", "OUT0"),
-                (Edge::Bot, 1) => ("CLKPAD2", "OUT1"),
-                (Edge::Bot, 2) => ("CLKPAD1", "OUT2"),
-                (Edge::Bot, 3) => ("CLKPAD0", "OUT3"),
+                (Dir::N, 0) => ("CLKPAD0", "OUT0"),
+                (Dir::N, 1) => ("CLKPAD1", "OUT1"),
+                (Dir::N, 2) => ("CLKPAD2", "OUT2"),
+                (Dir::N, 3) => ("CLKPAD3", "OUT3"),
+                (Dir::S, 0) => ("CLKPAD3", "OUT0"),
+                (Dir::S, 1) => ("CLKPAD2", "OUT1"),
+                (Dir::S, 2) => ("CLKPAD1", "OUT2"),
+                (Dir::S, 3) => ("CLKPAD0", "OUT3"),
                 _ => unreachable!(),
             };
             vrf.verify_node(&[bel.fwire("DCM_PAD_L"), obel.fwire(dcm_pad_pin)]);
@@ -114,20 +114,20 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             vrf.claim_node(&[bel.fwire("DCM_OUT_R"), (bel.crds[pip.tile], &pip.wire_to)]);
             vrf.claim_pip(bel.crds[pip.tile], &pip.wire_to, &pip.wire_from);
             let dy = match edge {
-                Edge::Bot => 1,
-                Edge::Top => -1,
+                Dir::S => 1,
+                Dir::N => -1,
                 _ => unreachable!(),
             };
             let obel = vrf.find_bel_delta(bel, 0, dy, "DCMCONN.S3E").unwrap();
             let (dcm_pad_pin, dcm_out_pin) = match (edge, bel.bid.to_idx()) {
-                (Edge::Top, 0) => ("CLKPAD2", "OUT0"),
-                (Edge::Top, 1) => ("CLKPAD3", "OUT1"),
-                (Edge::Top, 2) => ("CLKPAD0", "OUT2"),
-                (Edge::Top, 3) => ("CLKPAD1", "OUT3"),
-                (Edge::Bot, 0) => ("CLKPAD0", "OUT0"),
-                (Edge::Bot, 1) => ("CLKPAD1", "OUT1"),
-                (Edge::Bot, 2) => ("CLKPAD2", "OUT2"),
-                (Edge::Bot, 3) => ("CLKPAD3", "OUT3"),
+                (Dir::N, 0) => ("CLKPAD2", "OUT0"),
+                (Dir::N, 1) => ("CLKPAD3", "OUT1"),
+                (Dir::N, 2) => ("CLKPAD0", "OUT2"),
+                (Dir::N, 3) => ("CLKPAD1", "OUT3"),
+                (Dir::S, 0) => ("CLKPAD0", "OUT0"),
+                (Dir::S, 1) => ("CLKPAD1", "OUT1"),
+                (Dir::S, 2) => ("CLKPAD2", "OUT2"),
+                (Dir::S, 3) => ("CLKPAD3", "OUT3"),
                 _ => unreachable!(),
             };
             vrf.verify_node(&[bel.fwire("DCM_PAD_R"), obel.fwire(dcm_pad_pin)]);
@@ -139,9 +139,8 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             vrf.claim_node(&[bel.fwire("DCM_OUT_R")]);
         }
     } else {
-        let (crd, obid) = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
-        let onode = edev.get_io_node(crd).unwrap();
-        let obel = vrf.get_bel(bel.die, crd.0, crd.1, onode, obid);
+        let crd = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
+        let obel = get_bel_iob(vrf, crd);
         vrf.verify_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKI"));
@@ -158,14 +157,14 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
             }
             let scol = if edev.grid.kind == GridKind::Spartan3E {
                 match edge {
-                    Edge::Left => edev.grid.col_left() + 9,
-                    Edge::Right => edev.grid.col_right() - 9,
+                    Dir::W => edev.grid.col_left() + 9,
+                    Dir::E => edev.grid.col_right() - 9,
                     _ => unreachable!(),
                 }
             } else {
                 match edge {
-                    Edge::Left => edev.grid.col_left() + 3,
-                    Edge::Right => edev.grid.col_right() - 6,
+                    Dir::W => edev.grid.col_left() + 3,
+                    Dir::E => edev.grid.col_right() - 6,
                     _ => unreachable!(),
                 }
             };

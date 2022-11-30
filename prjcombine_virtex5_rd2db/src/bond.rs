@@ -2,7 +2,7 @@ use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex4::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, SharedCfgPin, SysMonPin,
 };
-use prjcombine_virtex4::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
+use prjcombine_virtex4::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 

@@ -9,7 +9,8 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::BTreeSet;
 
-use crate::{ColumnIoKind, ColumnKind, DisabledPart, ExpandedDevice, Grid, Gts};
+use crate::expanded::ExpandedDevice;
+use crate::grid::{ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,

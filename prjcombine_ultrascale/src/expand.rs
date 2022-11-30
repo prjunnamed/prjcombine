@@ -10,10 +10,10 @@ use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId};
 use std::collections::BTreeSet;
 
-use crate::{
-    BramKind, CleMKind, ClkSrc, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, ExpandedDevice, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind,
-    RegId,
+use crate::expanded::{ClkSrc, ExpandedDevice};
+use crate::grid::{
+    BramKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
+    DisabledPart, DspKind, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
 };
 
 struct Asx {

@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, HashMap};
 
 use prjcombine_rawdump::PkgPin;
-use prjcombine_virtex2::{Bond, BondPin, CfgPin, ExpandedDevice, GtPin};
+use prjcombine_virtex2::bond::{Bond, BondPin, CfgPin, GtPin};
+use prjcombine_virtex2::expanded::ExpandedDevice;
 
 use prjcombine_rdgrid::split_num;
 

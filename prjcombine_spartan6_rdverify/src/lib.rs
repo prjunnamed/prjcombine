@@ -5,7 +5,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::db::BelId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_spartan6::{ColumnKind, DisabledPart, ExpandedDevice, Gts};
+use prjcombine_spartan6::expanded::ExpandedDevice;
+use prjcombine_spartan6::grid::{ColumnKind, DisabledPart, Gts};
 use std::collections::HashSet;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -657,7 +658,11 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut rows_out_handled = HashSet::new();
     for (pin, io) in pins_out {
         let obel = vrf
-            .find_bel(bel.die, (bel.col, io.row), bel_to_ologic(io.bel))
+            .find_bel(
+                bel.die,
+                (bel.col, io.row),
+                bel_to_ologic(BelId::from_idx(io.iob.to_idx())),
+            )
             .unwrap();
         vrf.claim_node(&[
             bel.fwire_far(&pin),
@@ -694,7 +699,11 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (op, on, io) in pins_dm {
         rows_handled.insert(io.row);
         let obel = vrf
-            .find_bel(bel.die, (bel.col, io.row), bel_to_ologic(io.bel))
+            .find_bel(
+                bel.die,
+                (bel.col, io.row),
+                bel_to_ologic(BelId::from_idx(io.iob.to_idx())),
+            )
             .unwrap();
         vrf.claim_node(&[bel.fwire_far(op), obel.fwire("MCB_D1")]);
         vrf.claim_node(&[bel.fwire_far(on), obel.fwire("MCB_D2")]);

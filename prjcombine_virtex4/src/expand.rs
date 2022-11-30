@@ -6,10 +6,11 @@ use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 
-use crate::{
-    CfgRowKind, ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt, GtKind,
-    Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SharedCfgPin, SysMon, TileIobId,
+use crate::bond::SharedCfgPin;
+use crate::expanded::{
+    DieFrameGeom, ExpandedDevice, Gt, Io, IoCoord, IoDiffKind, IoVrKind, SysMon, TileIobId,
 };
+use crate::grid::{CfgRowKind, ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind};
 use std::collections::{BTreeMap, BTreeSet};
 
 struct Expander<'a, 'b> {

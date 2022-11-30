@@ -7,9 +7,11 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::BTreeSet;
 
-use prjcombine_virtex4::{
-    bond::SharedCfgPin, ColumnKind, DieFrameGeom, DisabledPart, ExpandedDevice, ExtraDie, Grid, Gt,
-    GtKind, Io, IoCoord, IoDiffKind, IoKind, IoVrKind, SysMon, TileIobId,
+use prjcombine_virtex4::bond::SharedCfgPin;
+use prjcombine_virtex4::grid::{ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind};
+
+use prjcombine_virtex4::expanded::{
+    DieFrameGeom, ExpandedDevice, Gt, Io, IoCoord, IoDiffKind, IoVrKind, SysMon, TileIobId,
 };
 
 struct Expander<'a, 'b> {

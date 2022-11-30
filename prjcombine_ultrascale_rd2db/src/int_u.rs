@@ -1,6 +1,6 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::{Coord, Part};
-use prjcombine_ultrascale::DeviceNaming;
+use prjcombine_ultrascale::grid::DeviceNaming;
 
 use prjcombine_rdintb::IntBuilder;
 

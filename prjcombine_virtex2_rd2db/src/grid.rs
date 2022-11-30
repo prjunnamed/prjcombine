@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::db::BelId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
-use prjcombine_virtex2::{
+use prjcombine_virtex2::grid::{
     Column, ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, IoCoord, RowIoKind, SharedCfgPin,
+    TileIobId,
 };
 
 use prjcombine_rdgrid::{
@@ -405,7 +405,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         IoCoord {
                             col: int.lookup_column(crd.x.into()),
                             row: int.lookup_row(crd.y.into()),
-                            bel: BelId::from_idx(idx as usize),
+                            iob: TileIobId::from_idx(idx as usize),
                         },
                     );
                 }

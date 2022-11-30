@@ -1,12 +1,30 @@
 #![allow(clippy::collapsible_else_if)]
 
+use prjcombine_entity::EntityId;
+use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::{ExpandedDevice, GridKind};
+use prjcombine_virtex2::expanded::ExpandedDevice;
+use prjcombine_virtex2::grid::{GridKind, IoCoord};
 
 mod clb;
 mod clk;
 mod io;
+
+fn get_bel_iob<'a>(vrf: &Verifier<'a>, crd: IoCoord) -> BelContext<'a> {
+    vrf.find_bel(
+        DieId::from_idx(0),
+        (crd.col, crd.row),
+        match crd.iob.to_idx() {
+            0 => "IOI0",
+            1 => "IOI1",
+            2 => "IOI2",
+            3 => "IOI3",
+            _ => unreachable!(),
+        },
+    )
+    .unwrap()
+}
 
 fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pins = Vec::new();

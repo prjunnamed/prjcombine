@@ -3,7 +3,8 @@ use prjcombine_int::grid::{ColId, DieId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-use crate::{ColSide, DisabledPart, Grid, GridKind, HardRowKind, IoKind, IoRowKind, SharedCfgPin};
+use crate::bond::SharedCfgPin;
+use crate::grid::{ColSide, DisabledPart, Grid, GridKind, HardRowKind, IoKind, IoRowKind};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Io {

@@ -2,7 +2,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
-use prjcombine_virtex4::{CfgRowKind, ColumnKind, Grid, GridKind, GtColumn, GtKind, RegId};
+use prjcombine_virtex4::grid::{CfgRowKind, ColumnKind, Grid, GridKind, GtColumn, GtKind, RegId};
 use std::collections::BTreeSet;
 
 use prjcombine_rdgrid::{extract_int, find_columns, find_row, find_rows, IntGrid};

@@ -1,5 +1,6 @@
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::{ColumnKind, ExpandedDevice};
+use prjcombine_virtex2::expanded::ExpandedDevice;
+use prjcombine_virtex2::grid::ColumnKind;
 
 pub fn verify_slice_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(

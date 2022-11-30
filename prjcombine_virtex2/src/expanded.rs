@@ -1,0 +1,201 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_int::db::{BelId, BelInfo, BelNaming};
+use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode};
+use prjcombine_virtex_bitstream::BitstreamGeom;
+use serde::{Deserialize, Serialize};
+
+use crate::grid::{ColumnIoKind, Grid, GridKind, IoCoord, TileIobId};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IoDiffKind {
+    P(TileIobId),
+    N(TileIobId),
+    None,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum IoPadKind {
+    None,
+    Input,
+    Io,
+    Clk,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Io<'a> {
+    pub coord: IoCoord,
+    pub bank: u32,
+    pub diff: IoDiffKind,
+    pub pad_kind: IoPadKind,
+    pub name: &'a str,
+    pub is_vref: bool,
+}
+
+pub struct ExpandedDevice<'a> {
+    pub grid: &'a Grid,
+    pub egrid: ExpandedGrid<'a>,
+    pub bonded_ios: Vec<IoCoord>,
+    pub bs_geom: BitstreamGeom,
+    pub clkv_frame: usize,
+    pub spine_frame: usize,
+    pub lterm_frame: usize,
+    pub rterm_frame: usize,
+    pub col_frame: EntityVec<ColId, usize>,
+    pub bram_frame: EntityPartVec<ColId, usize>,
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn get_io_node(&'a self, coord: Coord) -> Option<&'a ExpandedTileNode> {
+        self.egrid.find_node(DieId::from_idx(0), coord, |x| {
+            self.egrid.db.nodes.key(x.kind).starts_with("IOI")
+        })
+    }
+
+    pub fn get_io_bel(
+        &'a self,
+        coord: IoCoord,
+    ) -> Option<(&'a ExpandedTileNode, &'a BelInfo, &'a BelNaming, &'a str)> {
+        let node = self.get_io_node((coord.col, coord.row))?;
+        let nk = &self.egrid.db.nodes[node.kind];
+        let naming = &self.egrid.db.node_namings[node.naming];
+        let bel = BelId::from_idx(coord.iob.to_idx());
+        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
+    }
+
+    pub fn get_io(&'a self, coord: IoCoord) -> Io<'a> {
+        let (_, _, _, name) = self.get_io_bel(coord).unwrap();
+        let bank = match self.grid.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
+                if coord.row == self.grid.row_top() {
+                    if coord.col < self.grid.col_clk {
+                        0
+                    } else {
+                        1
+                    }
+                } else if coord.col == self.grid.col_right() {
+                    if coord.row < self.grid.row_mid() {
+                        3
+                    } else {
+                        2
+                    }
+                } else if coord.row == self.grid.row_bot() {
+                    if coord.col < self.grid.col_clk {
+                        5
+                    } else {
+                        4
+                    }
+                } else if coord.col == self.grid.col_left() {
+                    if coord.row < self.grid.row_mid() {
+                        6
+                    } else {
+                        7
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.row == self.grid.row_top() {
+                    0
+                } else if coord.col == self.grid.col_right() {
+                    1
+                } else if coord.row == self.grid.row_bot() {
+                    2
+                } else if coord.col == self.grid.col_left() {
+                    3
+                } else {
+                    unreachable!()
+                }
+            }
+        };
+        let diff = match self.grid.kind {
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
+                if matches!(
+                    self.grid.columns[coord.col].io,
+                    ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
+                ) {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::None,
+                        1 => IoDiffKind::P(TileIobId::from_idx(2)),
+                        2 => IoDiffKind::N(TileIobId::from_idx(1)),
+                        3 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::P(TileIobId::from_idx(1)),
+                        1 => IoDiffKind::N(TileIobId::from_idx(0)),
+                        2 => IoDiffKind::P(TileIobId::from_idx(3)),
+                        3 => IoDiffKind::N(TileIobId::from_idx(2)),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3 => {
+                if coord.col == self.grid.col_left() {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::N(TileIobId::from_idx(1)),
+                        1 => IoDiffKind::P(TileIobId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::P(TileIobId::from_idx(1)),
+                        1 => IoDiffKind::N(TileIobId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+            GridKind::Spartan3E => match coord.iob.to_idx() {
+                0 => IoDiffKind::P(TileIobId::from_idx(1)),
+                1 => IoDiffKind::N(TileIobId::from_idx(0)),
+                2 => IoDiffKind::None,
+                _ => unreachable!(),
+            },
+            GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+                if coord.row == self.grid.row_top() || coord.col == self.grid.col_left() {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::N(TileIobId::from_idx(1)),
+                        1 => IoDiffKind::P(TileIobId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                } else {
+                    match coord.iob.to_idx() {
+                        0 => IoDiffKind::P(TileIobId::from_idx(1)),
+                        1 => IoDiffKind::N(TileIobId::from_idx(0)),
+                        2 => IoDiffKind::None,
+                        _ => unreachable!(),
+                    }
+                }
+            }
+        };
+        let pad_kind = if name.starts_with("PAD") {
+            IoPadKind::Io
+        } else if name.starts_with("IPAD") {
+            IoPadKind::Input
+        } else if name.starts_with("CLK") {
+            IoPadKind::Clk
+        } else {
+            IoPadKind::None
+        };
+        Io {
+            coord,
+            bank,
+            diff,
+            pad_kind,
+            name,
+            is_vref: self.grid.vref.contains(&coord),
+        }
+    }
+
+    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+        let mut res = vec![];
+        for &coord in &self.bonded_ios {
+            res.push(self.get_io(coord));
+        }
+        res
+    }
+}

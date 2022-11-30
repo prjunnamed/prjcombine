@@ -3,7 +3,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex4::{DisabledPart, ExpandedDevice};
+use prjcombine_virtex4::expanded::ExpandedDevice;
+use prjcombine_virtex4::grid::DisabledPart;
 use std::collections::HashMap;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {

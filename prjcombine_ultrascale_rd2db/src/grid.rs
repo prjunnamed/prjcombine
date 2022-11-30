@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
-use prjcombine_ultrascale::{
+use prjcombine_ultrascale::grid::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
     DisabledPart, DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, HpioIobId, IoColumn,
     IoRowKind, Ps, PsIntfKind, RegId,

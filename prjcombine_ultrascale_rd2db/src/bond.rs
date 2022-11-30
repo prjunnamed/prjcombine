@@ -1,11 +1,12 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::{Part, PkgPin};
-use prjcombine_ultrascale::io::{get_gt, get_io, Gt};
-use prjcombine_ultrascale::{
-    Bond, BondPin, CfgPin, DisabledPart, Grid, GridKind, GtPin, GtRegion, GtRegionPin, HbmPin,
-    IoKind, IoRowKind, PsPin, RfAdcPin, RfDacPin, SharedCfgPin, SysMonPin,
+use prjcombine_ultrascale::bond::{
+    Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
+    SharedCfgPin, SysMonPin,
 };
+use prjcombine_ultrascale::grid::{DisabledPart, Grid, GridKind, IoKind, IoRowKind};
+use prjcombine_ultrascale::io::{get_gt, get_io, Gt};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 

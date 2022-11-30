@@ -1,5 +1,5 @@
 use prjcombine_rawdump::Part;
-use prjcombine_xc5200::Grid;
+use prjcombine_xc5200::grid::Grid;
 
 use prjcombine_rdgrid::extract_int;
 

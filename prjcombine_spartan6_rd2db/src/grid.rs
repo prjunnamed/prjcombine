@@ -1,12 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::db::BelId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Coord, Part};
-use prjcombine_spartan6::{
+use prjcombine_spartan6::grid::{
     Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, Row,
-    SharedCfgPin,
+    SharedCfgPin, TileIobId,
 };
 
 use prjcombine_rdgrid::{
@@ -182,7 +181,7 @@ fn get_mcbs(rd: &Part, int: &IntGrid) -> Vec<Mcb> {
     #[allow(non_snake_case)]
     let P = |row, bel| McbIo {
         row,
-        bel: BelId::from_idx(bel),
+        iob: TileIobId::from_idx(bel),
     };
     for r in find_rows(rd, &["MCB_L", "MCB_DUMMY"]) {
         let row_mcb = int.lookup_row(r - 6);
@@ -400,73 +399,73 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid) {
                     match mf {
                         "RASN" => {
                             assert_eq!(coord.row, mcb.io_ras.row);
-                            assert_eq!(coord.bel, mcb.io_ras.bel);
+                            assert_eq!(coord.iob, mcb.io_ras.iob);
                         }
                         "CASN" => {
                             assert_eq!(coord.row, mcb.io_cas.row);
-                            assert_eq!(coord.bel, mcb.io_cas.bel);
+                            assert_eq!(coord.iob, mcb.io_cas.iob);
                         }
                         "WE" => {
                             assert_eq!(coord.row, mcb.io_we.row);
-                            assert_eq!(coord.bel, mcb.io_we.bel);
+                            assert_eq!(coord.iob, mcb.io_we.iob);
                         }
                         "ODT" => {
                             assert_eq!(coord.row, mcb.io_odt.row);
-                            assert_eq!(coord.bel, mcb.io_odt.bel);
+                            assert_eq!(coord.iob, mcb.io_odt.iob);
                         }
                         "CKE" => {
                             assert_eq!(coord.row, mcb.io_cke.row);
-                            assert_eq!(coord.bel, mcb.io_cke.bel);
+                            assert_eq!(coord.iob, mcb.io_cke.iob);
                         }
                         "RESET" => {
                             assert_eq!(coord.row, mcb.io_reset.row);
-                            assert_eq!(coord.bel, mcb.io_reset.bel);
+                            assert_eq!(coord.iob, mcb.io_reset.iob);
                         }
                         "LDM" => {
                             assert_eq!(coord.row, mcb.io_dm[0].row);
-                            assert_eq!(coord.bel, mcb.io_dm[0].bel);
+                            assert_eq!(coord.iob, mcb.io_dm[0].iob);
                         }
                         "UDM" => {
                             assert_eq!(coord.row, mcb.io_dm[1].row);
-                            assert_eq!(coord.bel, mcb.io_dm[1].bel);
+                            assert_eq!(coord.iob, mcb.io_dm[1].iob);
                         }
                         "LDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.bel.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         "LDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.bel.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         "UDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.bel.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         "UDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.bel.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         "CLK" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.bel.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         "CLKN" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.bel.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         _ => {
                             if let Some(i) = mf.strip_prefix('A') {
                                 let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.io_addr[i].row);
-                                assert_eq!(coord.bel, mcb.io_addr[i].bel);
+                                assert_eq!(coord.iob, mcb.io_addr[i].iob);
                             } else if let Some(i) = mf.strip_prefix("BA") {
                                 let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.io_ba[i].row);
-                                assert_eq!(coord.bel, mcb.io_ba[i].bel);
+                                assert_eq!(coord.iob, mcb.io_ba[i].iob);
                             } else if let Some(i) = mf.strip_prefix("DQ") {
                                 let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.iop_dq[i / 2]);
-                                assert_eq!(coord.bel.to_idx(), (i % 2));
+                                assert_eq!(coord.iob.to_idx(), (i % 2));
                             } else {
                                 println!("MCB {}", mf);
                             }

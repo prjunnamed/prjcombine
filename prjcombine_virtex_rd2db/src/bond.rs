@@ -1,5 +1,6 @@
 use prjcombine_rawdump::PkgPin;
-use prjcombine_virtex::{Bond, BondPin, CfgPin, ExpandedDevice};
+use prjcombine_virtex::bond::{Bond, BondPin, CfgPin};
+use prjcombine_virtex::expanded::ExpandedDevice;
 use std::collections::{BTreeMap, HashMap};
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {

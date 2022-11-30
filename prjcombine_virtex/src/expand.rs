@@ -1,12 +1,13 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_int::db::{BelId, IntDb};
+use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 use std::collections::BTreeSet;
 
-use crate::{DisabledPart, ExpandedDevice, Grid, GridKind};
+use crate::expanded::ExpandedDevice;
+use crate::grid::{DisabledPart, Grid, GridKind, IoCoord, TileIobId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -17,7 +18,7 @@ struct Expander<'a, 'b> {
     bramclut: EntityPartVec<ColId, usize>,
     rlut: EntityVec<RowId, usize>,
     cols_bram: Vec<ColId>,
-    bonded_ios: Vec<((ColId, RowId), BelId)>,
+    bonded_ios: Vec<IoCoord>,
     spine_frame: usize,
     frame_info: Vec<FrameInfo>,
     col_frame: EntityVec<ColId, usize>,
@@ -140,8 +141,13 @@ impl<'a, 'b> Expander<'a, 'b> {
             ctr_pad += 1;
             node.add_bel(0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            self.bonded_ios.push(((col, row), BelId::from_idx(2)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(1)));
+            for iob in [2, 1] {
+                self.bonded_ios.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
         }
         for row in self.die.rows().rev() {
             let col = self.grid.col_rio();
@@ -157,9 +163,13 @@ impl<'a, 'b> Expander<'a, 'b> {
             ctr_pad += 1;
             node.add_bel(3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
-            self.bonded_ios.push(((col, row), BelId::from_idx(1)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(2)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(3)));
+            for iob in [1, 2, 3] {
+                self.bonded_ios.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
         }
         for col in self.die.cols().rev() {
             let row = self.grid.row_bio();
@@ -178,8 +188,13 @@ impl<'a, 'b> Expander<'a, 'b> {
             ctr_pad += 1;
             node.add_bel(3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            self.bonded_ios.push(((col, row), BelId::from_idx(1)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(2)));
+            for iob in [1, 2] {
+                self.bonded_ios.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
         }
         for row in self.die.rows() {
             let col = self.grid.col_lio();
@@ -195,9 +210,13 @@ impl<'a, 'b> Expander<'a, 'b> {
             ctr_pad += 1;
             node.add_bel(0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
-            self.bonded_ios.push(((col, row), BelId::from_idx(3)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(2)));
-            self.bonded_ios.push(((col, row), BelId::from_idx(1)));
+            for iob in [3, 2, 1] {
+                self.bonded_ios.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
         }
     }
 

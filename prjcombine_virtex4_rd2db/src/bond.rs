@@ -1,5 +1,5 @@
 use prjcombine_virtex4::bond::{Bond, BondPin, CfgPin, GtPin, SharedCfgPin, SysMonPin};
-use prjcombine_virtex4::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
+use prjcombine_virtex4::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
 
 use prjcombine_rawdump::PkgPin;
 use std::collections::{BTreeMap, HashMap};

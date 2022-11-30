@@ -19,13 +19,13 @@ entity_id! {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
-    Xc4k(prjcombine_xc4k::Grid),
-    Xc5200(prjcombine_xc5200::Grid),
-    Virtex(prjcombine_virtex::Grid),
-    Virtex2(prjcombine_virtex2::Grid),
-    Spartan6(prjcombine_spartan6::Grid),
-    Virtex4(prjcombine_virtex4::Grid),
-    Ultrascale(prjcombine_ultrascale::Grid),
+    Xc4k(prjcombine_xc4k::grid::Grid),
+    Xc5200(prjcombine_xc5200::grid::Grid),
+    Virtex(prjcombine_virtex::grid::Grid),
+    Virtex2(prjcombine_virtex2::grid::Grid),
+    Spartan6(prjcombine_spartan6::grid::Grid),
+    Virtex4(prjcombine_virtex4::grid::Grid),
+    Ultrascale(prjcombine_ultrascale::grid::Grid),
     Versal(prjcombine_versal::Grid),
 }
 
@@ -37,10 +37,10 @@ pub struct DeviceBond {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
-    Virtex(prjcombine_virtex::DisabledPart),
-    Spartan6(prjcombine_spartan6::DisabledPart),
-    Virtex4(prjcombine_virtex4::DisabledPart),
-    Ultrascale(prjcombine_ultrascale::DisabledPart),
+    Virtex(prjcombine_virtex::grid::DisabledPart),
+    Spartan6(prjcombine_spartan6::grid::DisabledPart),
+    Virtex4(prjcombine_virtex4::grid::DisabledPart),
+    Ultrascale(prjcombine_ultrascale::grid::DisabledPart),
     Versal(prjcombine_versal::DisabledPart),
 }
 
@@ -53,7 +53,7 @@ pub struct DeviceCombo {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ExtraDie {
-    Virtex4(prjcombine_virtex4::ExtraDie),
+    Virtex4(prjcombine_virtex4::grid::ExtraDie),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -72,13 +72,13 @@ pub struct Device {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Bond {
-    Xc4k(prjcombine_xc4k::Bond),
-    Xc5200(prjcombine_xc5200::Bond),
-    Virtex(prjcombine_virtex::Bond),
-    Virtex2(prjcombine_virtex2::Bond),
-    Spartan6(prjcombine_spartan6::Bond),
+    Xc4k(prjcombine_xc4k::bond::Bond),
+    Xc5200(prjcombine_xc5200::bond::Bond),
+    Virtex(prjcombine_virtex::bond::Bond),
+    Virtex2(prjcombine_virtex2::bond::Bond),
+    Spartan6(prjcombine_spartan6::bond::Bond),
     Virtex4(prjcombine_virtex4::bond::Bond),
-    Ultrascale(prjcombine_ultrascale::Bond),
+    Ultrascale(prjcombine_ultrascale::bond::Bond),
     Versal(prjcombine_versal::Bond),
 }
 
@@ -94,7 +94,7 @@ pub struct GeomDb {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum DeviceNaming {
     Dummy,
-    Ultrascale(prjcombine_ultrascale::DeviceNaming),
+    Ultrascale(prjcombine_ultrascale::grid::DeviceNaming),
     Versal(prjcombine_versal::DeviceNaming),
 }
 

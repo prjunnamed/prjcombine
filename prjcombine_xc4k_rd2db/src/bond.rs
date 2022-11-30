@@ -1,5 +1,6 @@
 use prjcombine_rawdump::PkgPin;
-use prjcombine_xc4k::{Bond, BondPin, CfgPin, Grid};
+use prjcombine_xc4k::bond::{Bond, BondPin, CfgPin};
+use prjcombine_xc4k::grid::Grid;
 use std::collections::{BTreeMap, HashMap};
 
 pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
