@@ -11,7 +11,8 @@ use crate::expanded::{
     DieFrameGeom, ExpandedDevice, Gt, Io, IoCoord, IoDiffKind, IoVrKind, SysMon, TileIobId,
 };
 use crate::grid::{CfgRowKind, ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind};
-use std::collections::{BTreeMap, BTreeSet};
+use bimap::BiHashMap;
+use std::collections::BTreeSet;
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -1318,7 +1319,7 @@ pub fn expand_grid<'a>(
         die_order: vec![expander.die.die],
     };
 
-    let mut cfg_io = BTreeMap::new();
+    let mut cfg_io = BiHashMap::new();
     for i in 0..16 {
         cfg_io.insert(
             SharedCfgPin::Data(i as u8),

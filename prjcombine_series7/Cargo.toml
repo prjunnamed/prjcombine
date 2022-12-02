@@ -7,5 +7,6 @@ edition.workspace = true
 prjcombine_virtex_bitstream.workspace = true
 prjcombine_entity.workspace = true
 prjcombine_int.workspace = true
-serde.workspace = true
 prjcombine_virtex4.workspace = true
+serde.workspace = true
+bimap.workspace = true

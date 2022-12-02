@@ -1,5 +1,6 @@
 use crate::bond::{PsPin, SharedCfgPin};
 use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind, GtKind, GtzLoc, IoKind, RegId};
+use bimap::BiHashMap;
 use prjcombine_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_virtex_bitstream::BitstreamGeom;
@@ -40,7 +41,7 @@ pub struct ExpandedDevice<'a> {
     pub gt: Vec<Gt>,
     pub gtz: Vec<Gtz>,
     pub sysmon: Vec<SysMon>,
-    pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
+    pub cfg_io: BiHashMap<SharedCfgPin, IoCoord>,
     pub ps_io: BTreeMap<PsPin, PsIo>,
 }
 

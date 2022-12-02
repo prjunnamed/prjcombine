@@ -1,13 +1,12 @@
-use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::grid::DieId;
+use prjcombine_entity::EntityId;
 use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_ultrascale::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
     SharedCfgPin, SysMonPin,
 };
-use prjcombine_ultrascale::grid::{DisabledPart, Grid, GridKind, IoKind, IoRowKind};
-use prjcombine_ultrascale::io::{get_gt, get_io, Gt};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use prjcombine_ultrascale::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoKind};
+use prjcombine_ultrascale::grid::{DisabledPart, GridKind, IoRowKind};
+use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
@@ -174,223 +173,26 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
     None
 }
 
-fn lookup_gt_pin(
-    gt_lookup: &HashMap<(IoRowKind, u32, u32), Gt>,
-    pad: &str,
-    func: &str,
-) -> Option<BondPin> {
-    if let Some(p) = pad.strip_prefix("HSADC_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::HsAdc, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "ADC_VIN0_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(0))),
-            "ADC_VIN0_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(0))),
-            "ADC_VIN1_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(1))),
-            "ADC_VIN1_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(1))),
-            "ADC_VIN2_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(2))),
-            "ADC_VIN2_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(2))),
-            "ADC_VIN3_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(3))),
-            "ADC_VIN3_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(3))),
-            "ADC_VIN_I01_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(0))),
-            "ADC_VIN_I01_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(0))),
-            "ADC_VIN_I23_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(2))),
-            "ADC_VIN_I23_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(2))),
-            "ADC_CLK_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::ClkP)),
-            "ADC_CLK_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::ClkN)),
-            _ => None,
-        }
-    } else if let Some(p) = pad.strip_prefix("RFADC_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::RfAdc, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "ADC_VIN0_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(0))),
-            "ADC_VIN0_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(0))),
-            "ADC_VIN1_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(1))),
-            "ADC_VIN1_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(1))),
-            "ADC_VIN2_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(2))),
-            "ADC_VIN2_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(2))),
-            "ADC_VIN3_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInP(3))),
-            "ADC_VIN3_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInN(3))),
-            "ADC_VIN_I01_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(0))),
-            "ADC_VIN_I01_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(0))),
-            "ADC_VIN_I23_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(2))),
-            "ADC_VIN_I23_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(2))),
-            "ADC_CLK_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::ClkP)),
-            "ADC_CLK_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::ClkN)),
-            "ADC_PLL_TEST_OUT_P" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutP)),
-            "ADC_PLL_TEST_OUT_N" => Some(BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutN)),
-            _ => None,
-        }
-    } else if let Some(p) = pad.strip_prefix("HSDAC_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::HsDac, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "DAC_VOUT0_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(0))),
-            "DAC_VOUT0_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(0))),
-            "DAC_VOUT1_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(1))),
-            "DAC_VOUT1_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(1))),
-            "DAC_VOUT2_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(2))),
-            "DAC_VOUT2_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(2))),
-            "DAC_VOUT3_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(3))),
-            "DAC_VOUT3_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(3))),
-            "DAC_CLK_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::ClkP)),
-            "DAC_CLK_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::ClkN)),
-            "SYSREF_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::SysRefP)),
-            "SYSREF_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::SysRefN)),
-            _ => None,
-        }
-    } else if let Some(p) = pad.strip_prefix("RFDAC_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::RfDac, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "DAC_VOUT0_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(0))),
-            "DAC_VOUT0_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(0))),
-            "DAC_VOUT1_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(1))),
-            "DAC_VOUT1_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(1))),
-            "DAC_VOUT2_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(2))),
-            "DAC_VOUT2_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(2))),
-            "DAC_VOUT3_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutP(3))),
-            "DAC_VOUT3_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::VOutN(3))),
-            "DAC_CLK_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::ClkP)),
-            "DAC_CLK_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::ClkN)),
-            "SYSREF_P" => Some(BondPin::RfDac(gt.bank, RfDacPin::SysRefP)),
-            "SYSREF_N" => Some(BondPin::RfDac(gt.bank, RfDacPin::SysRefN)),
-            _ => None,
-        }
-    } else if let Some(p) = pad.strip_prefix("GTM_DUAL_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::Gtm, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "MGTMRXP0" => Some(BondPin::Gt(gt.bank, GtPin::RxP(0))),
-            "MGTMRXN0" => Some(BondPin::Gt(gt.bank, GtPin::RxN(0))),
-            "MGTMTXP0" => Some(BondPin::Gt(gt.bank, GtPin::TxP(0))),
-            "MGTMTXN0" => Some(BondPin::Gt(gt.bank, GtPin::TxN(0))),
-            "MGTMRXP1" => Some(BondPin::Gt(gt.bank, GtPin::RxP(1))),
-            "MGTMRXN1" => Some(BondPin::Gt(gt.bank, GtPin::RxN(1))),
-            "MGTMTXP1" => Some(BondPin::Gt(gt.bank, GtPin::TxP(1))),
-            "MGTMTXN1" => Some(BondPin::Gt(gt.bank, GtPin::TxN(1))),
-            _ => None,
-        }
-    } else if let Some(p) = pad.strip_prefix("GTM_REFCLK_X") {
-        let py = p.find('Y')?;
-        let gx: u32 = p[..py].parse().ok()?;
-        let gy: u32 = p[py + 1..].parse().ok()?;
-        let gt = gt_lookup.get(&(IoRowKind::Gtm, gx, gy))?;
-        let suf = format!("_{}", gt.bank);
-        let f = func.strip_suffix(&suf)?;
-        match f {
-            "MGTREFCLKP" => Some(BondPin::Gt(gt.bank, GtPin::ClkP(0))),
-            "MGTREFCLKN" => Some(BondPin::Gt(gt.bank, GtPin::ClkN(0))),
-            _ => None,
-        }
-    } else {
-        let p;
-        let kind;
-        if let Some(x) = pad.strip_prefix("GTHE3_") {
-            p = x;
-            kind = IoRowKind::Gth;
-        } else if let Some(x) = pad.strip_prefix("GTHE4_") {
-            p = x;
-            kind = IoRowKind::Gth;
-        } else if let Some(x) = pad.strip_prefix("GTYE3_") {
-            p = x;
-            kind = IoRowKind::Gty;
-        } else if let Some(x) = pad.strip_prefix("GTYE4_") {
-            p = x;
-            kind = IoRowKind::Gty;
-        } else if let Some(x) = pad.strip_prefix("GTF_") {
-            p = x;
-            kind = IoRowKind::Gtf;
-        } else {
-            return None;
-        }
-        if let Some(p) = p.strip_prefix("COMMON_X") {
-            let py = p.find('Y')?;
-            let gx: u32 = p[..py].parse().ok()?;
-            let gy: u32 = p[py + 1..].parse().ok()?;
-            let gt = gt_lookup.get(&(kind, gx, gy))?;
-            let suf = format!("_{}", gt.bank);
-            let f = func.strip_suffix(&suf)?;
-            match f {
-                "MGTREFCLK0P" => Some(BondPin::Gt(gt.bank, GtPin::ClkP(0))),
-                "MGTREFCLK0N" => Some(BondPin::Gt(gt.bank, GtPin::ClkN(0))),
-                "MGTREFCLK1P" => Some(BondPin::Gt(gt.bank, GtPin::ClkP(1))),
-                "MGTREFCLK1N" => Some(BondPin::Gt(gt.bank, GtPin::ClkN(1))),
-                _ => None,
-            }
-        } else if let Some(p) = p.strip_prefix("CHANNEL_X") {
-            let py = p.find('Y')?;
-            let gx: u32 = p[..py].parse().ok()?;
-            let y: u32 = p[py + 1..].parse().ok()?;
-            let bel = (y % 4) as u8;
-            let gy = y / 4;
-            let gt = gt_lookup.get(&(kind, gx, gy))?;
-            let suf = format!("{}_{}", bel, gt.bank);
-            let f = func.strip_suffix(&suf)?;
-            match f {
-                "MGTHRXP" => Some(BondPin::Gt(gt.bank, GtPin::RxP(bel))),
-                "MGTHRXN" => Some(BondPin::Gt(gt.bank, GtPin::RxN(bel))),
-                "MGTHTXP" => Some(BondPin::Gt(gt.bank, GtPin::TxP(bel))),
-                "MGTHTXN" => Some(BondPin::Gt(gt.bank, GtPin::TxN(bel))),
-                "MGTYRXP" => Some(BondPin::Gt(gt.bank, GtPin::RxP(bel))),
-                "MGTYRXN" => Some(BondPin::Gt(gt.bank, GtPin::RxN(bel))),
-                "MGTYTXP" => Some(BondPin::Gt(gt.bank, GtPin::TxP(bel))),
-                "MGTYTXN" => Some(BondPin::Gt(gt.bank, GtPin::TxN(bel))),
-                "MGTFRXP" => Some(BondPin::Gt(gt.bank, GtPin::RxP(bel))),
-                "MGTFRXN" => Some(BondPin::Gt(gt.bank, GtPin::RxN(bel))),
-                "MGTFTXP" => Some(BondPin::Gt(gt.bank, GtPin::TxP(bel))),
-                "MGTFTXN" => Some(BondPin::Gt(gt.bank, GtPin::TxN(bel))),
-                _ => None,
-            }
-        } else {
-            None
-        }
-    }
-}
-
-pub fn make_bond(
-    rd: &Part,
-    pkg: &str,
-    grids: &EntityVec<DieId, Grid>,
-    grid_master: DieId,
-    disabled: &BTreeSet<DisabledPart>,
-    pins: &[PkgPin],
-) -> Bond {
-    let kind = grids[grid_master].kind;
+pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = get_io(grids, grid_master, disabled)
-        .into_iter()
-        .map(|io| (io.iob_name(), io))
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
+    let gt_common_lookup: HashMap<_, _> = edev.gt.iter().map(|gt| (&*gt.name_common, gt)).collect();
+    let gt_channel_lookup: HashMap<_, _> = edev
+        .gt
+        .iter()
+        .flat_map(|gt| {
+            gt.name_channel
+                .iter()
+                .enumerate()
+                .map(move |(i, name)| (&**name, (gt, i)))
+        })
         .collect();
-    let gt_lookup: HashMap<_, _> = get_gt(grids, grid_master, disabled)
-        .into_iter()
-        .map(|gt| ((gt.kind, gt.gx, gt.gy), gt))
-        .collect();
-    let is_zynq = grids[grid_master].ps.is_some() && !disabled.contains(&DisabledPart::Ps);
+    let is_zynq =
+        edev.grids[edev.grid_master].ps.is_some() && !edev.disabled.contains(&DisabledPart::Ps);
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
+            if let Some(&io) = io_lookup.get(&**pad) {
                 if pin.vcco_bank.unwrap() != io.bank
                     && (pin.vcco_bank != Some(64) || !matches!(io.bank, 84 | 94))
                 {
@@ -403,64 +205,62 @@ pub fn make_bond(
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 let mut exp_func = "IO".to_string();
-                if io.kind == IoKind::Hdio {
-                    write!(
-                        exp_func,
-                        "_L{}{}",
-                        1 + io.bel / 2,
-                        ['P', 'N'][io.bel as usize % 2]
-                    )
-                    .unwrap();
-                } else {
-                    let group = io.bel / 13;
-                    if io.bel % 13 != 12 {
+                match io.crd {
+                    IoCoord::Hdio(crd) => {
                         write!(
                             exp_func,
                             "_L{}{}",
-                            1 + group * 6 + io.bel % 13 / 2,
-                            ['P', 'N'][io.bel as usize % 13 % 2]
+                            1 + crd.iob.to_idx() / 2,
+                            ['P', 'N'][crd.iob.to_idx() % 2]
                         )
                         .unwrap();
                     }
-                    write!(
-                        exp_func,
-                        "_T{}{}_N{}",
-                        group,
-                        if io.bel % 13 < 6 { 'L' } else { 'U' },
-                        io.bel % 13
-                    )
-                    .unwrap();
+                    IoCoord::Hpio(crd) => {
+                        let group = crd.iob.to_idx() / 13;
+                        if crd.iob.to_idx() % 13 != 12 {
+                            write!(
+                                exp_func,
+                                "_L{}{}",
+                                1 + group * 6 + crd.iob.to_idx() % 13 / 2,
+                                ['P', 'N'][crd.iob.to_idx() % 13 % 2]
+                            )
+                            .unwrap();
+                        }
+                        write!(
+                            exp_func,
+                            "_T{}{}_N{}",
+                            group,
+                            if crd.iob.to_idx() % 13 < 6 { 'L' } else { 'U' },
+                            crd.iob.to_idx() % 13
+                        )
+                        .unwrap();
+                    }
                 }
-                if io.is_gc() {
+                if io.is_gc {
                     if io.kind == IoKind::Hdio {
                         exp_func += "_HDGC";
                     } else {
                         exp_func += "_GC";
                     }
                 }
-                if io.is_dbc() {
+                if io.is_dbc {
                     exp_func += "_DBC";
                 }
-                if io.is_qbc() {
+                if io.is_qbc {
                     exp_func += "_QBC";
                 }
-                if io.is_vrp() {
+                if io.is_vrp {
                     exp_func += "_VRP";
                 }
-                if let Some(sm) = io.sm_pair() {
-                    if io.kind == IoKind::Hdio {
-                        write!(exp_func, "_AD{}{}", sm, ['P', 'N'][io.bel as usize % 2]).unwrap();
-                    } else {
-                        write!(
-                            exp_func,
-                            "_AD{}{}",
-                            sm,
-                            ['P', 'N'][io.bel as usize % 13 % 2]
-                        )
-                        .unwrap();
-                    }
+                if let Some(sm) = io.sm_pair {
+                    let pn = match io.diff {
+                        IoDiffKind::P(_) => 'P',
+                        IoDiffKind::N(_) => 'N',
+                        _ => unreachable!(),
+                    };
+                    write!(exp_func, "_AD{}{}", sm, pn).unwrap();
                 }
-                match io.get_cfg() {
+                match edev.cfg_io.get_by_right(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => {
                         if !is_zynq {
                             if d >= 16 {
@@ -509,7 +309,7 @@ pub fn make_bond(
                     Some(SharedCfgPin::SmbAlert) => exp_func += "_SMBALERT",
                     Some(SharedCfgPin::I2cSclk) => exp_func += "_I2C_SCLK",
                     Some(SharedCfgPin::I2cSda) => {
-                        exp_func += if kind == GridKind::Ultrascale {
+                        exp_func += if edev.kind == GridKind::Ultrascale {
                             "_I2C_SDA"
                         } else {
                             "_PERSTN1_I2C_SDA"
@@ -525,22 +325,155 @@ pub fn make_bond(
                         f = pin.func
                     );
                 }
-                BondPin::Io(io.bank, io.bel)
-            } else if pad.starts_with("GT") || pad.starts_with("RF") || pad.starts_with("HS") {
-                if let Some(pin) = lookup_gt_pin(&gt_lookup, pad, &pin.func) {
-                    pin
+                match io.crd {
+                    IoCoord::Hpio(crd) => BondPin::Hpio(io.bank, crd.iob),
+                    IoCoord::Hdio(crd) => BondPin::Hdio(io.bank, crd.iob),
+                }
+            } else if let Some(&gt) = gt_common_lookup.get(&**pad) {
+                let (f, bank) = pin.func.rsplit_once('_').unwrap();
+                let bank: u32 = bank.parse().unwrap();
+                if bank != gt.bank {
+                    println!(
+                        "gt pad bank mismatch {pkg} {p} {pad} {f} {gt:?}",
+                        f = pin.func,
+                        p = rd.part
+                    );
+                }
+                match gt.kind {
+                    IoRowKind::HsAdc | IoRowKind::RfAdc => match f {
+                        "ADC_VIN0_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(0)),
+                        "ADC_VIN0_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(0)),
+                        "ADC_VIN1_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(1)),
+                        "ADC_VIN1_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(1)),
+                        "ADC_VIN2_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(2)),
+                        "ADC_VIN2_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(2)),
+                        "ADC_VIN3_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(3)),
+                        "ADC_VIN3_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(3)),
+                        "ADC_VIN_I01_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(0)),
+                        "ADC_VIN_I01_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(0)),
+                        "ADC_VIN_I23_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(2)),
+                        "ADC_VIN_I23_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(2)),
+                        "ADC_CLK_P" => BondPin::RfAdc(gt.bank, RfAdcPin::ClkP),
+                        "ADC_CLK_N" => BondPin::RfAdc(gt.bank, RfAdcPin::ClkN),
+                        "ADC_PLL_TEST_OUT_P" => BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutP),
+                        "ADC_PLL_TEST_OUT_N" => BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutN),
+                        _ => {
+                            println!(
+                                "weird hsadc iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    },
+                    IoRowKind::HsDac | IoRowKind::RfDac => match f {
+                        "DAC_VOUT0_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(0)),
+                        "DAC_VOUT0_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(0)),
+                        "DAC_VOUT1_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(1)),
+                        "DAC_VOUT1_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(1)),
+                        "DAC_VOUT2_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(2)),
+                        "DAC_VOUT2_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(2)),
+                        "DAC_VOUT3_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(3)),
+                        "DAC_VOUT3_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(3)),
+                        "DAC_CLK_P" => BondPin::RfDac(gt.bank, RfDacPin::ClkP),
+                        "DAC_CLK_N" => BondPin::RfDac(gt.bank, RfDacPin::ClkN),
+                        "SYSREF_P" => BondPin::RfDac(gt.bank, RfDacPin::SysRefP),
+                        "SYSREF_N" => BondPin::RfDac(gt.bank, RfDacPin::SysRefN),
+                        _ => {
+                            println!(
+                                "weird hsdac iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    },
+                    IoRowKind::Gtm => match f {
+                        "MGTREFCLKP" => BondPin::Gt(gt.bank, GtPin::ClkP(0)),
+                        "MGTREFCLKN" => BondPin::Gt(gt.bank, GtPin::ClkN(0)),
+                        _ => {
+                            println!(
+                                "weird gtm clk iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    },
+                    IoRowKind::Gth | IoRowKind::Gty | IoRowKind::Gtf => match f {
+                        "MGTREFCLK0P" => BondPin::Gt(gt.bank, GtPin::ClkP(0)),
+                        "MGTREFCLK0N" => BondPin::Gt(gt.bank, GtPin::ClkN(0)),
+                        "MGTREFCLK1P" => BondPin::Gt(gt.bank, GtPin::ClkP(1)),
+                        "MGTREFCLK1N" => BondPin::Gt(gt.bank, GtPin::ClkN(1)),
+                        _ => {
+                            println!(
+                                "weird gt common iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    },
+                    _ => unreachable!(),
+                }
+            } else if let Some(&(gt, ch)) = gt_channel_lookup.get(&**pad) {
+                let (f, bank) = pin.func.rsplit_once('_').unwrap();
+                let bank: u32 = bank.parse().unwrap();
+                if bank != gt.bank {
+                    println!(
+                        "gt pad bank mismatch {pkg} {p} {pad} {f} {gt:?}",
+                        f = pin.func,
+                        p = rd.part
+                    );
+                }
+                if gt.kind == IoRowKind::Gtm {
+                    match f {
+                        "MGTMRXP0" => BondPin::Gt(gt.bank, GtPin::RxP(0)),
+                        "MGTMRXN0" => BondPin::Gt(gt.bank, GtPin::RxN(0)),
+                        "MGTMTXP0" => BondPin::Gt(gt.bank, GtPin::TxP(0)),
+                        "MGTMTXN0" => BondPin::Gt(gt.bank, GtPin::TxN(0)),
+                        "MGTMRXP1" => BondPin::Gt(gt.bank, GtPin::RxP(1)),
+                        "MGTMRXN1" => BondPin::Gt(gt.bank, GtPin::RxN(1)),
+                        "MGTMTXP1" => BondPin::Gt(gt.bank, GtPin::TxP(1)),
+                        "MGTMTXN1" => BondPin::Gt(gt.bank, GtPin::TxN(1)),
+                        _ => {
+                            println!(
+                                "weird gtm iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    }
+                } else if let Some(f) = f.strip_suffix(&format!("{}", ch)) {
+                    match f {
+                        "MGTHRXP" | "MGTYRXP" | "MGTFRXP" => BondPin::Gt(gt.bank, GtPin::RxP(ch as u8)),
+                        "MGTHRXN" | "MGTYRXN" | "MGTFRXN" => BondPin::Gt(gt.bank, GtPin::RxN(ch as u8)),
+                        "MGTHTXP" | "MGTYTXP" | "MGTFTXP" => BondPin::Gt(gt.bank, GtPin::TxP(ch as u8)),
+                        "MGTHTXN" | "MGTYTXN" | "MGTFTXN" => BondPin::Gt(gt.bank, GtPin::TxN(ch as u8)),
+                        _ => {
+                            println!(
+                                "weird gt iopad {pkg} {p} {pad} {f} {gt:?}",
+                                f = pin.func,
+                                p = rd.part
+                            );
+                            continue;
+                        }
+                    }
                 } else {
                     println!(
-                        "weird gt iopad {pkg} {p} {pad} {f}",
+                        "weird gt iopad {pkg} {p} {pad} {f} {gt:?}",
                         f = pin.func,
                         p = rd.part
                     );
                     continue;
                 }
             } else if pad.starts_with("SYSMON") {
-                let exp_site = match kind {
-                    GridKind::Ultrascale => format!("SYSMONE1_X0Y{}", grid_master.to_idx()),
-                    GridKind::UltrascalePlus => format!("SYSMONE4_X0Y{}", grid_master.to_idx()),
+                let exp_site = match edev.kind {
+                    GridKind::Ultrascale => format!("SYSMONE1_X0Y{}", edev.grid_master.to_idx()),
+                    GridKind::UltrascalePlus => {
+                        format!("SYSMONE4_X0Y{}", edev.grid_master.to_idx())
+                    }
                 };
                 if exp_site != *pad {
                     println!(
@@ -550,8 +483,8 @@ pub fn make_bond(
                     );
                 }
                 match &pin.func[..] {
-                    "VP" => BondPin::SysMon(grid_master, SysMonPin::VP),
-                    "VN" => BondPin::SysMon(grid_master, SysMonPin::VN),
+                    "VP" => BondPin::SysMon(edev.grid_master, SysMonPin::VP),
+                    "VN" => BondPin::SysMon(edev.grid_master, SysMonPin::VN),
                     _ => {
                         println!(
                             "weird sysmon iopad {p} {pad} {f}",

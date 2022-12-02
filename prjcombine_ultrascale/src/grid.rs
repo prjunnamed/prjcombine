@@ -197,13 +197,6 @@ pub enum DisabledPart {
     HbmLeft,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IoKind {
-    Hpio,
-    Hrio,
-    Hdio,
-}
-
 impl Grid {
     pub fn row_to_reg(&self, row: RowId) -> RegId {
         RegId::from_idx(row.to_idx() / 60)

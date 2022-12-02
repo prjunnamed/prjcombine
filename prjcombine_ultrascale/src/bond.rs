@@ -2,6 +2,8 @@ use prjcombine_int::grid::DieId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+use crate::grid::{HdioIobId, HpioIobId};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum CfgPin {
     Tck,
@@ -141,7 +143,8 @@ pub enum RfAdcPin {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum BondPin {
     // bank, bel idx
-    Io(u32, u32),
+    Hpio(u32, HpioIobId),
+    Hdio(u32, HdioIobId),
     IoVref(u32),
     // bank, type
     Gt(u32, GtPin),

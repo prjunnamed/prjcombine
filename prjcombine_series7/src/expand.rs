@@ -1,4 +1,5 @@
 #![allow(clippy::bool_to_int_with_if)]
+use bimap::BiHashMap;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
@@ -2312,7 +2313,7 @@ pub fn expand_grid<'a>(
         die_order,
     };
 
-    let mut cfg_io = BTreeMap::new();
+    let mut cfg_io = BiHashMap::new();
     let mut ps_io = BTreeMap::new();
     if mgrid.has_ps {
         cfg_io.insert(

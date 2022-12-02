@@ -121,6 +121,7 @@ rayon = "1.5"
 indicatif = "0.17"
 ron = "0.8"
 arrayref = "0.3.6"
+bimap = "0.6"
 
 [profile.dev]
 opt-level = 2

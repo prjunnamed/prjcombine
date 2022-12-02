@@ -14,13 +14,13 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     } else {
         int_up::make_int_db(rd, &naming)
     };
-    let mut bonds = Vec::new();
-    for (pkg, pins) in rd.packages.iter() {
-        let bond = bond::make_bond(rd, pkg, &grids, grid_master, &disabled, pins);
-        bonds.push((pkg.clone(), Bond::Ultrascale(bond)));
-    }
     let grid_refs = grids.map_values(|x| x);
     let edev = expand_grid(&grid_refs, grid_master, &disabled, &naming, &int_db);
+    let mut bonds = Vec::new();
+    for (pkg, pins) in rd.packages.iter() {
+        let bond = bond::make_bond(rd, pkg, &edev, pins);
+        bonds.push((pkg.clone(), Bond::Ultrascale(bond)));
+    }
     verify_device(&edev, rd);
     let grids = grids.into_map_values(Grid::Ultrascale);
     let disabled = disabled.into_iter().map(DisabledPart::Ultrascale).collect();

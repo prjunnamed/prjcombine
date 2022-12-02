@@ -4,17 +4,23 @@
 #![allow(clippy::single_match)]
 #![allow(clippy::implicit_saturating_sub)]
 
+use bimap::BiHashMap;
 use enum_map::{enum_map, EnumMap};
-use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId};
 use std::collections::BTreeSet;
 
-use crate::expanded::{ClkSrc, ExpandedDevice};
+use crate::expanded::{
+    ClkSrc, ExpandedDevice, Gt, HdioCoord, HpioCoord, Io, IoCoord, IoDiffKind, IoKind,
+};
 use crate::grid::{
     BramKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, Grid, GridKind, HardRowKind, IoRowKind, PsIntfKind, RegId,
+    DisabledPart, DspKind, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId, IoColumn, IoRowKind,
+    PsIntfKind, RegId,
 };
+
+use crate::bond::SharedCfgPin;
 
 struct Asx {
     gt: usize,
@@ -32,7 +38,7 @@ struct Asy {
     gt: usize,
 }
 
-struct DieExpander<'a, 'b> {
+struct DieExpander<'a, 'b, 'c> {
     grid: &'b Grid,
     db: &'a IntDb,
     disabled: &'b BTreeSet<DisabledPart>,
@@ -42,7 +48,7 @@ struct DieExpander<'a, 'b> {
     asxlut: EntityVec<ColId, Asx>,
     asylut: EntityVec<RegId, Asy>,
     lylut: EntityVec<RowId, usize>,
-    ioxlut: EntityVec<ColId, usize>,
+    ioxlut: EntityPartVec<ColId, usize>,
     ioylut: EntityVec<RegId, (usize, usize)>,
     brxlut: EntityVec<ColId, (usize, usize)>,
     gtbxlut: EntityVec<ColId, (usize, usize)>,
@@ -51,14 +57,19 @@ struct DieExpander<'a, 'b> {
     vsxlut: EntityVec<ColId, usize>,
     cmtxlut: EntityVec<ColId, usize>,
     gtxlut: EntityVec<ColId, usize>,
+    bankxlut: EntityPartVec<ColId, u32>,
+    bankylut: EntityVec<RegId, u32>,
     dev_has_hbm: bool,
     hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
     iotxlut: EnumMap<IoRowKind, EntityVec<ColId, usize>>,
     iotylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
     naming: &'b DeviceNaming,
+    io: &'c mut Vec<Io>,
+    cfg_io: &'c mut BiHashMap<SharedCfgPin, IoCoord>,
+    gt: &'c mut Vec<Gt>,
 }
 
-impl<'a, 'b> DieExpander<'a, 'b> {
+impl DieExpander<'_, '_, '_> {
     fn fill_asxlut(&mut self) {
         let mut asx = 0;
         for &cd in self.grid.columns.values() {
@@ -330,12 +341,22 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         gty
     }
 
+    fn fill_bankylut(&mut self, mut bank: u32) -> u32 {
+        for _ in self.grid.regs() {
+            self.bankylut.push(bank);
+            bank += 1;
+        }
+        bank
+    }
+
     fn fill_ioxlut(&mut self) {
         let mut iox = 0;
-        for &cd in self.grid.columns.values() {
-            self.ioxlut.push(iox);
+        let mut iox_cfg = None;
+        for (col, &cd) in &self.grid.columns {
             match cd.l {
                 ColumnKindLeft::Io(_) => {
+                    self.ioxlut.insert(col, iox);
+                    iox_cfg = Some(iox);
                     iox += 1;
                 }
                 ColumnKindLeft::Hard(idx) => {
@@ -344,14 +365,31 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         .values()
                         .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms))
                     {
+                        self.ioxlut.insert(col, iox);
                         iox += 1;
                     }
                 }
                 _ => (),
             }
             if matches!(cd.r, ColumnKindRight::Io(_)) {
+                if iox_cfg.is_none() {
+                    iox_cfg = Some(iox);
+                }
+                self.ioxlut.insert(col, iox);
                 iox += 1;
             }
+        }
+        let iox_cfg = iox_cfg.unwrap();
+        for (col, &iox) in &self.ioxlut {
+            let mut bank = (60 + iox * 20 - iox_cfg * 20) as u32;
+            if col.to_idx() == 0
+                && iox != iox_cfg
+                && self.grid.kind == GridKind::UltrascalePlus
+                && self.grid.cols_hard.len() == 1
+            {
+                bank -= 20;
+            }
+            self.bankxlut.insert(col, bank);
         }
     }
 
@@ -1586,6 +1624,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         {
             x = col.to_idx();
         }
+        let die = self.die.die;
         let (nk, tk, bk) = match kind {
             HardRowKind::None => return,
             HardRowKind::Hdio | HardRowKind::HdioAms => {
@@ -1618,7 +1657,60 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         _ => unreachable!(),
                     };
                     for j in 0..12 {
-                        node.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                        let name = format!("IOB_X{iox}Y{y}", y = ioy + j);
+                        node.add_bel(j, name.clone());
+                        let idx = i * 12 + j;
+                        let crd = IoCoord::Hdio(HdioCoord {
+                            die,
+                            col,
+                            reg,
+                            iob: HdioIobId::from_idx(idx),
+                        });
+                        let ocrd = IoCoord::Hdio(HdioCoord {
+                            die,
+                            col,
+                            reg,
+                            iob: HdioIobId::from_idx(idx ^ 1),
+                        });
+                        let bank = self.bankxlut[col] + self.bankylut[reg] - 20;
+                        self.io.push(Io {
+                            kind: IoKind::Hdio,
+                            crd,
+                            bank,
+                            name,
+                            diff: if idx % 2 == 0 {
+                                IoDiffKind::P(ocrd)
+                            } else {
+                                IoDiffKind::N(ocrd)
+                            },
+                            is_gc: (8..16).contains(&idx),
+                            is_dbc: false,
+                            is_qbc: false,
+                            is_vrp: false,
+                            sm_pair: match (kind, idx) {
+                                (HardRowKind::HdioAms, 0 | 1) => Some(11),
+                                (HardRowKind::HdioAms, 2 | 3) => Some(10),
+                                (HardRowKind::HdioAms, 4 | 5) => Some(9),
+                                (HardRowKind::HdioAms, 6 | 7) => Some(8),
+                                (HardRowKind::HdioAms, 8 | 9) => Some(7),
+                                (HardRowKind::HdioAms, 10 | 11) => Some(6),
+                                (HardRowKind::HdioAms, 12 | 13) => Some(5),
+                                (HardRowKind::HdioAms, 14 | 15) => Some(4),
+                                (HardRowKind::HdioAms, 16 | 17) => Some(3),
+                                (HardRowKind::HdioAms, 18 | 19) => Some(2),
+                                (HardRowKind::HdioAms, 20 | 21) => Some(1),
+                                (HardRowKind::HdioAms, 22 | 23) => Some(0),
+                                (HardRowKind::Hdio, 0 | 1) => Some(15),
+                                (HardRowKind::Hdio, 2 | 3) => Some(14),
+                                (HardRowKind::Hdio, 4 | 5) => Some(13),
+                                (HardRowKind::Hdio, 6 | 7) => Some(12),
+                                (HardRowKind::Hdio, 16 | 17) => Some(11),
+                                (HardRowKind::Hdio, 18 | 19) => Some(10),
+                                (HardRowKind::Hdio, 20 | 21) => Some(9),
+                                (HardRowKind::Hdio, 22 | 23) => Some(8),
+                                _ => None,
+                            },
+                        });
                     }
                     for j in 0..6 {
                         node.add_bel(
@@ -1863,7 +1955,207 @@ impl<'a, 'b> DieExpander<'a, 'b> {
         }
     }
 
+    fn add_hpio_iobs(&mut self, die: DieId, ioc: &IoColumn, reg: RegId) -> Vec<String> {
+        let kind = ioc.regs[reg];
+        let bank = self.bankxlut[ioc.col] + self.bankylut[reg] - 20;
+        let mut res = vec![];
+        let iobx = self.ioxlut[ioc.col];
+        let ioby = self.ioylut[reg].0;
+        for i in 0..2 {
+            let bank = if bank == 64 && kind == IoRowKind::Hrio {
+                94 - (i as u32) * 10
+            } else {
+                bank
+            };
+            for j in 0..26 {
+                let idx = i * 26 + j;
+                let name = format!("IOB_X{iobx}Y{y}", y = ioby + idx);
+                res.push(name.clone());
+                let crd = IoCoord::Hpio(HpioCoord {
+                    die,
+                    col: ioc.col,
+                    side: ioc.side,
+                    reg,
+                    iob: HpioIobId::from_idx(idx),
+                });
+                self.io.push(Io {
+                    kind: match kind {
+                        IoRowKind::Hpio => IoKind::Hpio,
+                        IoRowKind::Hrio => IoKind::Hrio,
+                        _ => unreachable!(),
+                    },
+                    crd,
+                    bank,
+                    name,
+                    diff: if idx % 13 == 12 {
+                        IoDiffKind::None
+                    } else if idx % 13 % 2 == 0 {
+                        IoDiffKind::P(IoCoord::Hpio(HpioCoord {
+                            die,
+                            col: ioc.col,
+                            side: ioc.side,
+                            reg,
+                            iob: HpioIobId::from_idx(idx + 1),
+                        }))
+                    } else {
+                        IoDiffKind::N(IoCoord::Hpio(HpioCoord {
+                            die,
+                            col: ioc.col,
+                            side: ioc.side,
+                            reg,
+                            iob: HpioIobId::from_idx(idx - 1),
+                        }))
+                    },
+                    is_vrp: kind == IoRowKind::Hpio && idx == 12,
+                    is_gc: matches!(idx, 21 | 22 | 23 | 24 | 26 | 27 | 28 | 29),
+                    is_dbc: matches!(idx, 0 | 1 | 6 | 7 | 39 | 40 | 45 | 46),
+                    is_qbc: matches!(idx, 13 | 14 | 19 | 20 | 26 | 27 | 32 | 33),
+                    sm_pair: match idx {
+                        4 | 5 => Some(15),
+                        6 | 7 => Some(7),
+                        8 | 9 => Some(14),
+                        10 | 11 => Some(6),
+                        13 | 14 => Some(13),
+                        15 | 16 => Some(5),
+                        17 | 18 => Some(12),
+                        19 | 20 => Some(4),
+                        30 | 31 => Some(11),
+                        32 | 33 => Some(3),
+                        34 | 35 => Some(10),
+                        36 | 37 => Some(2),
+                        39 | 40 => Some(9),
+                        41 | 42 => Some(1),
+                        43 | 44 => Some(8),
+                        45 | 46 => Some(0),
+                        _ => None,
+                    },
+                });
+                if let Some(cfg) = if !self.grid.is_alt_cfg {
+                    match (bank, idx) {
+                        (65, 0) => Some(SharedCfgPin::Rs(0)),
+                        (65, 1) => Some(SharedCfgPin::Rs(1)),
+                        (65, 2) => Some(SharedCfgPin::FoeB),
+                        (65, 3) => Some(SharedCfgPin::FweB),
+                        (65, 4) => Some(SharedCfgPin::Addr(26)),
+                        (65, 5) => Some(SharedCfgPin::Addr(27)),
+                        (65, 6) => Some(SharedCfgPin::Addr(24)),
+                        (65, 7) => Some(SharedCfgPin::Addr(25)),
+                        (65, 8) => Some(SharedCfgPin::Addr(22)),
+                        (65, 9) => Some(SharedCfgPin::Addr(23)),
+                        (65, 10) => Some(SharedCfgPin::Addr(20)),
+                        (65, 11) => Some(SharedCfgPin::Addr(21)),
+                        (65, 12) => Some(SharedCfgPin::Addr(28)),
+                        (65, 13) => Some(SharedCfgPin::Addr(18)),
+                        (65, 14) => Some(SharedCfgPin::Addr(19)),
+                        (65, 15) => Some(SharedCfgPin::Addr(16)),
+                        (65, 16) => Some(SharedCfgPin::Addr(17)),
+                        (65, 17) => Some(SharedCfgPin::Data(30)),
+                        (65, 18) => Some(SharedCfgPin::Data(31)),
+                        (65, 19) => Some(SharedCfgPin::Data(28)),
+                        (65, 20) => Some(SharedCfgPin::Data(29)),
+                        (65, 21) => Some(SharedCfgPin::Data(26)),
+                        (65, 22) => Some(SharedCfgPin::Data(27)),
+                        (65, 23) => Some(SharedCfgPin::Data(24)),
+                        (65, 24) => Some(SharedCfgPin::Data(25)),
+                        (65, 25) => Some(if self.grid.kind == GridKind::Ultrascale {
+                            SharedCfgPin::PerstN1
+                        } else {
+                            SharedCfgPin::SmbAlert
+                        }),
+                        (65, 26) => Some(SharedCfgPin::Data(22)),
+                        (65, 27) => Some(SharedCfgPin::Data(23)),
+                        (65, 28) => Some(SharedCfgPin::Data(20)),
+                        (65, 29) => Some(SharedCfgPin::Data(21)),
+                        (65, 30) => Some(SharedCfgPin::Data(18)),
+                        (65, 31) => Some(SharedCfgPin::Data(19)),
+                        (65, 32) => Some(SharedCfgPin::Data(16)),
+                        (65, 33) => Some(SharedCfgPin::Data(17)),
+                        (65, 34) => Some(SharedCfgPin::Data(14)),
+                        (65, 35) => Some(SharedCfgPin::Data(15)),
+                        (65, 36) => Some(SharedCfgPin::Data(12)),
+                        (65, 37) => Some(SharedCfgPin::Data(13)),
+                        (65, 38) => Some(SharedCfgPin::CsiB),
+                        (65, 39) => Some(SharedCfgPin::Data(10)),
+                        (65, 40) => Some(SharedCfgPin::Data(11)),
+                        (65, 41) => Some(SharedCfgPin::Data(8)),
+                        (65, 42) => Some(SharedCfgPin::Data(9)),
+                        (65, 43) => Some(SharedCfgPin::Data(6)),
+                        (65, 44) => Some(SharedCfgPin::Data(7)),
+                        (65, 45) => Some(SharedCfgPin::Data(4)),
+                        (65, 46) => Some(SharedCfgPin::Data(5)),
+                        (65, 47) => Some(SharedCfgPin::I2cSclk),
+                        (65, 48) => Some(SharedCfgPin::I2cSda),
+                        (65, 49) => Some(SharedCfgPin::EmCclk),
+                        (65, 50) => Some(SharedCfgPin::Dout),
+                        (65, 51) => Some(SharedCfgPin::PerstN0),
+                        _ => None,
+                    }
+                } else {
+                    match (bank, idx) {
+                        (65, 0) => Some(SharedCfgPin::Rs(1)),
+                        (65, 1) => Some(SharedCfgPin::FweB),
+                        (65, 2) => Some(SharedCfgPin::Rs(0)),
+                        (65, 3) => Some(SharedCfgPin::FoeB),
+                        (65, 4) => Some(SharedCfgPin::Addr(28)),
+                        (65, 5) => Some(SharedCfgPin::Addr(26)),
+                        (65, 6) => Some(SharedCfgPin::SmbAlert),
+                        (65, 7) => Some(SharedCfgPin::Addr(27)),
+                        (65, 8) => Some(SharedCfgPin::Addr(24)),
+                        (65, 9) => Some(SharedCfgPin::Addr(22)),
+                        (65, 10) => Some(SharedCfgPin::Addr(25)),
+                        (65, 11) => Some(SharedCfgPin::Addr(23)),
+                        (65, 12) => Some(SharedCfgPin::Addr(20)),
+                        (65, 13) => Some(SharedCfgPin::Addr(18)),
+                        (65, 14) => Some(SharedCfgPin::Addr(16)),
+                        (65, 15) => Some(SharedCfgPin::Addr(19)),
+                        (65, 16) => Some(SharedCfgPin::Addr(17)),
+                        (65, 17) => Some(SharedCfgPin::Data(30)),
+                        (65, 18) => Some(SharedCfgPin::Data(28)),
+                        (65, 19) => Some(SharedCfgPin::Data(31)),
+                        (65, 20) => Some(SharedCfgPin::Data(29)),
+                        (65, 21) => Some(SharedCfgPin::Data(26)),
+                        (65, 22) => Some(SharedCfgPin::Data(24)),
+                        (65, 23) => Some(SharedCfgPin::Data(27)),
+                        (65, 24) => Some(SharedCfgPin::Data(25)),
+                        (65, 25) => Some(SharedCfgPin::Addr(21)),
+                        (65, 26) => Some(SharedCfgPin::CsiB),
+                        (65, 27) => Some(SharedCfgPin::Data(22)),
+                        (65, 28) => Some(SharedCfgPin::EmCclk),
+                        (65, 29) => Some(SharedCfgPin::Data(23)),
+                        (65, 30) => Some(SharedCfgPin::Data(20)),
+                        (65, 31) => Some(SharedCfgPin::Data(18)),
+                        (65, 32) => Some(SharedCfgPin::Data(21)),
+                        (65, 33) => Some(SharedCfgPin::Data(19)),
+                        (65, 34) => Some(SharedCfgPin::Data(16)),
+                        (65, 35) => Some(SharedCfgPin::Data(14)),
+                        (65, 36) => Some(SharedCfgPin::Data(17)),
+                        (65, 37) => Some(SharedCfgPin::Data(15)),
+                        (65, 38) => Some(SharedCfgPin::Data(12)),
+                        (65, 39) => Some(SharedCfgPin::Data(10)),
+                        (65, 40) => Some(SharedCfgPin::Data(8)),
+                        (65, 41) => Some(SharedCfgPin::Data(11)),
+                        (65, 42) => Some(SharedCfgPin::Data(9)),
+                        (65, 43) => Some(SharedCfgPin::Data(6)),
+                        (65, 44) => Some(SharedCfgPin::Data(4)),
+                        (65, 45) => Some(SharedCfgPin::Data(7)),
+                        (65, 46) => Some(SharedCfgPin::Data(5)),
+                        (65, 47) => Some(SharedCfgPin::I2cSclk),
+                        (65, 48) => Some(SharedCfgPin::Dout),
+                        (65, 49) => Some(SharedCfgPin::I2cSda),
+                        (65, 50) => Some(SharedCfgPin::PerstN0),
+                        (65, 51) => Some(SharedCfgPin::Data(13)),
+                        _ => None,
+                    }
+                } {
+                    self.cfg_io.insert(cfg, crd);
+                }
+            }
+        }
+        res
+    }
+
     fn fill_io(&mut self) {
+        let die = self.die.die;
         for ioc in &self.grid.cols_io {
             for reg in self.grid.regs() {
                 if self
@@ -1878,6 +2170,7 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                     IoRowKind::Hpio | IoRowKind::Hrio => {
                         let row = self.grid.row_reg_rclk(reg);
                         let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        let iob_names = self.add_hpio_iobs(die, ioc, reg);
                         if self.grid.kind == GridKind::Ultrascale {
                             let name = format!(
                                 "XIPHY_L_X{x}Y{y}",
@@ -2010,10 +2303,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                         self.db.get_node_naming("HPIO"),
                                         &crds[i * 30..i * 30 + 30],
                                     );
-                                    let iobx = self.ioxlut[ioc.col];
-                                    let ioby = self.ioylut[reg].0 + i * 26;
                                     for j in 0..26 {
-                                        node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                        node.add_bel(j, iob_names[i * 26 + j].clone());
                                     }
                                     for j in 0..12 {
                                         node.add_bel(
@@ -2066,10 +2357,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                         self.db.get_node_naming("HRIO"),
                                         &crds[i * 30..i * 30 + 30],
                                     );
-                                    let iobx = self.ioxlut[ioc.col];
-                                    let ioby = self.ioylut[reg].0 + i * 26;
                                     for j in 0..26 {
-                                        node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                        node.add_bel(j, iob_names[i * 26 + j].clone());
                                     }
                                     let hrioy = self.iotylut[IoRowKind::Hrio][reg];
                                     for j in 0..12 {
@@ -2249,10 +2538,8 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                     self.db.get_node_naming(kind),
                                     &crds[i * 30..i * 30 + 30],
                                 );
-                                let iobx = self.ioxlut[ioc.col];
-                                let ioby = self.ioylut[reg].0 + i * 26;
                                 for j in 0..26 {
-                                    node.add_bel(j, format!("IOB_X{iobx}Y{y}", y = ioby + j));
+                                    node.add_bel(j, iob_names[i * 26 + j].clone());
                                 }
                                 for j in 0..12 {
                                     node.add_bel(
@@ -2320,6 +2607,10 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                         }
                     }
                     _ => {
+                        let bank =
+                            self.bankylut[reg] + if ioc.col.to_idx() == 0 { 100 } else { 200 };
+                        let mut name_channel = vec![];
+                        let name_common;
                         let row = self.grid.row_reg_rclk(reg);
                         let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
                         if self.grid.kind == GridKind::Ultrascale {
@@ -2368,12 +2659,12 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             let iotx = self.iotxlut[kind][ioc.col];
                             let ioty = self.iotylut[kind][reg];
                             for i in 0..4 {
-                                node.add_bel(
-                                    39 + i,
-                                    format!("{gtk}E3_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i),
-                                );
+                                let name = format!("{gtk}E3_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i);
+                                node.add_bel(39 + i, name.clone());
+                                name_channel.push(name);
                             }
-                            node.add_bel(43, format!("{gtk}E3_COMMON_X{iotx}Y{ioty}"));
+                            name_common = format!("{gtk}E3_COMMON_X{iotx}Y{ioty}");
+                            node.add_bel(43, name_common.clone());
                         } else {
                             let (tk, nk) = match (kind, ioc.side) {
                                 (IoRowKind::Gth, ColSide::Left) => ("GTH_QUAD_LEFT", "GTH_L"),
@@ -2433,8 +2724,11 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                             let iotx = self.iotxlut[kind][ioc.col];
                             let ioty = self.iotylut[kind][reg];
                             if nk.starts_with("GTM") {
-                                node.add_bel(44, format!("GTM_DUAL_X{iotx}Y{ioty}"));
-                                node.add_bel(45, format!("GTM_REFCLK_X{iotx}Y{ioty}"));
+                                let name = format!("GTM_DUAL_X{iotx}Y{ioty}");
+                                node.add_bel(44, name.clone());
+                                name_channel.push(name);
+                                name_common = format!("GTM_REFCLK_X{iotx}Y{ioty}");
+                                node.add_bel(45, name_common.clone());
                             } else if nk.starts_with("GT") {
                                 let gtk = &nk[..3];
                                 let pref = if gtk == "GTF" {
@@ -2444,17 +2738,29 @@ impl<'a, 'b> DieExpander<'a, 'b> {
                                 };
 
                                 for i in 0..4 {
-                                    node.add_bel(
-                                        44 + i,
-                                        format!("{pref}_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i),
-                                    );
+                                    let name =
+                                        format!("{pref}_CHANNEL_X{iotx}Y{y}", y = ioty * 4 + i);
+                                    node.add_bel(44 + i, name.clone());
+                                    name_channel.push(name);
                                 }
-                                node.add_bel(48, format!("{pref}_COMMON_X{iotx}Y{ioty}"));
+                                name_common = format!("{pref}_COMMON_X{iotx}Y{ioty}");
+                                node.add_bel(48, name_common.clone());
                             } else {
                                 let bk = &nk[..5];
-                                node.add_bel(44, format!("{bk}_X{iotx}Y{ioty}"));
+                                name_common = format!("{bk}_X{iotx}Y{ioty}");
+                                node.add_bel(44, name_common.clone());
                             }
                         }
+                        self.gt.push(Gt {
+                            die,
+                            col: ioc.col,
+                            side: ioc.side,
+                            reg,
+                            bank,
+                            kind,
+                            name_common,
+                            name_channel,
+                        });
                     }
                 }
             }
@@ -2648,7 +2954,29 @@ pub fn expand_grid<'a>(
             0
         }
     };
+    let mgrid = grids[grid_master];
+    let mrcfg = mgrid
+        .cols_hard
+        .iter()
+        .find_map(|hc| hc.regs.iter().find(|&(_, &hcr)| hcr == HardRowKind::Cfg))
+        .unwrap()
+        .0;
+    let mut bank = (25
+        - mrcfg.to_idx()
+        - grids
+            .iter()
+            .filter_map(|(die, grid)| {
+                if die < grid_master {
+                    Some(grid.regs)
+                } else {
+                    None
+                }
+            })
+            .sum::<usize>()) as u32;
     let mut has_pcie_cfg = false;
+    let mut io = vec![];
+    let mut cfg_io = BiHashMap::new();
+    let mut gt = vec![];
     for (_, grid) in grids {
         let (_, die) = egrid.add_die(grid.columns.len(), grid.regs * 60);
 
@@ -2662,7 +2990,7 @@ pub fn expand_grid<'a>(
             lylut: EntityVec::new(),
             asxlut: EntityVec::new(),
             asylut: EntityVec::new(),
-            ioxlut: EntityVec::new(),
+            ioxlut: EntityPartVec::new(),
             ioylut: EntityVec::new(),
             brxlut: EntityVec::new(),
             gtbxlut: EntityVec::new(),
@@ -2671,11 +2999,16 @@ pub fn expand_grid<'a>(
             cmtxlut: EntityVec::new(),
             gtylut: EntityVec::new(),
             gtxlut: EntityVec::new(),
+            bankxlut: EntityPartVec::new(),
+            bankylut: EntityVec::new(),
             dev_has_hbm,
             hylut: EnumMap::default(),
             iotxlut: EnumMap::default(),
             iotylut: EnumMap::default(),
             naming,
+            io: &mut io,
+            cfg_io: &mut cfg_io,
+            gt: &mut gt,
         };
 
         y = expander.fill_ylut(y);
@@ -2693,6 +3026,7 @@ pub fn expand_grid<'a>(
         expander.fill_gtxlut();
         expander.fill_iotxlut();
         gty = expander.fill_gtylut(gty);
+        bank = expander.fill_bankylut(bank);
 
         expander.fill_int();
         expander.fill_io_pass();
@@ -2726,5 +3060,8 @@ pub fn expand_grid<'a>(
         hdistr_src,
         has_pcie_cfg,
         is_cut,
+        io,
+        cfg_io,
+        gt,
     }
 }

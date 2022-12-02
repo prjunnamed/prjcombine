@@ -58,7 +58,6 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             }
         }
     }
-    let cfg_lookup: HashMap<_, _> = edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(&**pad) {
@@ -67,7 +66,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     IoDiffKind::P(_) => format!("IO_L{}P", io.pkgid),
                     IoDiffKind::N(_) => format!("IO_L{}N", io.pkgid),
                 };
-                match cfg_lookup.get(&io.crd).copied() {
+                match edev.cfg_io.get_by_right(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => write!(exp_func, "_D{d}").unwrap(),
                     Some(_) => unreachable!(),
                     None => (),
