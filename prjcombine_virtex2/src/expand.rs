@@ -1444,19 +1444,19 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let sx = 2 * cx;
                 let sy = 2 * (row.to_idx() - 1);
                 if self.grid.kind.is_virtex2() {
-                    node.add_bel(0, format!("SLICE_X{x}Y{y}", x = sx, y = sy));
+                    node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     node.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
                     node.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
                     node.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));
                     if cx % 2 == 0 {
-                        node.add_bel(4, format!("TBUF_X{x}Y{y}", x = sx, y = sy));
+                        node.add_bel(4, format!("TBUF_X{sx}Y{sy}"));
                         node.add_bel(5, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
                     } else {
                         node.add_bel(4, format!("TBUF_X{x}Y{y}", x = sx, y = sy + 1));
-                        node.add_bel(5, format!("TBUF_X{x}Y{y}", x = sx, y = sy));
+                        node.add_bel(5, format!("TBUF_X{sx}Y{sy}"));
                     }
                 } else {
-                    node.add_bel(0, format!("SLICE_X{x}Y{y}", x = sx, y = sy));
+                    node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     node.add_bel(1, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy));
                     node.add_bel(2, format!("SLICE_X{x}Y{y}", x = sx, y = sy + 1));
                     node.add_bel(3, format!("SLICE_X{x}Y{y}", x = sx + 1, y = sy + 1));

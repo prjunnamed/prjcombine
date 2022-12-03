@@ -135,7 +135,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                 }
                 if io.bank == 35 && matches!(io.biob, 21 | 22) {
                     if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
-                        write!(exp_func, "_AD{}{}", i, pn).unwrap();
+                        write!(exp_func, "_AD{i}{pn}").unwrap();
                     }
                 }
                 if io.is_srcc {
@@ -193,7 +193,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                 }
                 if !(io.bank == 35 && matches!(io.biob, 21 | 22)) {
                     if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
-                        write!(exp_func, "_AD{}{}", i, pn).unwrap();
+                        write!(exp_func, "_AD{i}{pn}").unwrap();
                     }
                 }
                 if io.is_vref {

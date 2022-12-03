@@ -947,7 +947,7 @@ impl DieExpander<'_, '_, '_> {
                             &[(col, row)],
                         );
                         let ly = self.lylut[row];
-                        node.add_bel(0, format!("LAGUNA_X{x}Y{y}", x = lx, y = ly));
+                        node.add_bel(0, format!("LAGUNA_X{lx}Y{ly}"));
                         node.add_bel(1, format!("LAGUNA_X{x}Y{y}", x = lx, y = ly + 1));
                         node.add_bel(2, format!("LAGUNA_X{x}Y{y}", x = lx + 1, y = ly));
                         node.add_bel(3, format!("LAGUNA_X{x}Y{y}", x = lx + 1, y = ly + 1));

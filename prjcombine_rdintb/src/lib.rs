@@ -775,7 +775,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         let dir = match tksp.dir {
                             rawdump::TkSitePinDir::Input => PinDir::Input,
                             rawdump::TkSitePinDir::Output => PinDir::Output,
-                            _ => panic!("bidir pin {}", name),
+                            _ => panic!("bidir pin {name}"),
                         };
                         naming_pins.insert(
                             name.clone(),
@@ -818,7 +818,7 @@ impl XNodeExtractor<'_, '_, '_> {
                             let dir = match tksp.dir {
                                 rawdump::TkSitePinDir::Input => PinDir::Input,
                                 rawdump::TkSitePinDir::Output => PinDir::Output,
-                                _ => panic!("bidir pin {}", name),
+                                _ => panic!("bidir pin {name}"),
                             };
                             let (wn, pips) = self.walk_count(
                                 name,
@@ -860,7 +860,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         }
                     }
                     if wn.is_none() {
-                        println!("NOT FOUND: {}", name);
+                        println!("NOT FOUND: {name}");
                     }
                     let wn = wn.unwrap();
                     let (ick, wires, wnf, pips, int_pips) =
@@ -922,7 +922,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         }
                     }
                     if wn.is_none() {
-                        println!("NOT FOUND: {}", name);
+                        println!("NOT FOUND: {name}");
                     }
                     let wn = wn.unwrap();
                     naming_pins.insert(
@@ -1654,7 +1654,7 @@ impl<'a> IntBuilder<'a> {
                             let dir = match tksp.dir {
                                 rawdump::TkSitePinDir::Input => PinDir::Input,
                                 rawdump::TkSitePinDir::Output => PinDir::Output,
-                                _ => panic!("bidir pin {}", name),
+                                _ => panic!("bidir pin {name}"),
                             };
                             let (ick, wires, wnf, pips, int_pips) =
                                 walk_to_int(dir, tksp.wire.unwrap());
@@ -1681,7 +1681,7 @@ impl<'a> IntBuilder<'a> {
                             let dir = match tksp.dir {
                                 rawdump::TkSitePinDir::Input => PinDir::Input,
                                 rawdump::TkSitePinDir::Output => PinDir::Output,
-                                _ => panic!("bidir pin {}", name),
+                                _ => panic!("bidir pin {name}"),
                             };
                             naming_pins.insert(
                                 name.clone(),
@@ -1718,7 +1718,7 @@ impl<'a> IntBuilder<'a> {
                                 let dir = match tksp.dir {
                                     rawdump::TkSitePinDir::Input => PinDir::Input,
                                     rawdump::TkSitePinDir::Output => PinDir::Output,
-                                    _ => panic!("bidir pin {}", name),
+                                    _ => panic!("bidir pin {name}"),
                                 };
                                 let (wn, pips) = walk_count(dir, tksp.wire.unwrap(), buf_cnt);
                                 naming_pins.insert(
@@ -1751,7 +1751,7 @@ impl<'a> IntBuilder<'a> {
                             }
                         }
                         if wn.is_none() {
-                            println!("NOT FOUND: {}", name);
+                            println!("NOT FOUND: {name}");
                         }
                         let wn = wn.unwrap();
                         let (ick, wires, wnf, pips, int_pips) = walk_to_int(dir, wn);
@@ -1805,7 +1805,7 @@ impl<'a> IntBuilder<'a> {
                             }
                         }
                         if wn.is_none() {
-                            println!("NOT FOUND: {}", name);
+                            println!("NOT FOUND: {name}");
                         }
                         let wn = wn.unwrap();
                         naming_pins.insert(

@@ -757,7 +757,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
                         } else if row == self.grid.row_bufg() + 10 {
                             let name = format!("HCLK_IOI_TOPCEN{mgt}_X{x}Y{y}", y = y - 1);
-                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let name_i2 = format!("IOI_X{x}Y{y}");
                             let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
                             let node = self.die[(col, row)].add_xnode(
                                 self.db.get_node("HCLK_IOI_TOPCEN"),
@@ -771,7 +771,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
                         } else if row == row_ioi_cmt {
                             let name = format!("HCLK_IOI_CMT{mgt}_X{x}Y{y}", y = y - 1);
-                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let name_i2 = format!("IOI_X{x}Y{y}");
                             let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
                             let node = self.die[(col, row)].add_xnode(
                                 self.db.get_node("HCLK_IOI_CMT"),
@@ -843,7 +843,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("HCLK_IOI_CENTER_X{x}Y{y}", y = y - 1);
                             let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
                             let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
-                            let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                            let name_i2 = format!("IOI_X{x}Y{y}");
                             let node = self.die[(col, row)].add_xnode(
                                 self.db.get_node("HCLK_IOI_CENTER"),
                                 &[&name, &name_i0, &name_i1, &name_i2],
@@ -879,7 +879,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let name = format!("HCLK_IOI_X{x}Y{y}", y = y - 1);
                         let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
                         let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
-                        let name_i2 = format!("IOI_X{x}Y{y}", y = y);
+                        let name_i2 = format!("IOI_X{x}Y{y}");
                         let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
                         let node = self.die[(col, row)].add_xnode(
                             self.db.get_node("HCLK_IOI"),
@@ -937,7 +937,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     pads_rx: vec![
                         (
                             format!("IPAD_X{ipx}Y{y}", y = ipy + 1),
-                            format!("IPAD_X{ipx}Y{y}", y = ipy),
+                            format!("IPAD_X{ipx}Y{ipy}"),
                         ),
                         (
                             format!("IPAD_X{ipx}Y{y}", y = ipy + 3),

@@ -104,7 +104,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     None => (),
                 }
                 if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
-                    write!(exp_func, "_SM{}{}", i, pn).unwrap();
+                    write!(exp_func, "_SM{i}{pn}").unwrap();
                 }
                 write!(exp_func, "_{}", io.bank).unwrap();
                 if exp_func != pin.func {

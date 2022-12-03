@@ -28,11 +28,11 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     "RXNPAD" => GtPin::RxN,
                     "TXPPAD" => GtPin::TxP,
                     "TXNPAD" => GtPin::TxN,
-                    _ => panic!("FUNNY PAD {}", pad),
+                    _ => panic!("FUNNY PAD {pad}"),
                 };
                 BondPin::Gt(b, pk)
             } else {
-                panic!("FUNNY PAD {}", pad);
+                panic!("FUNNY PAD {pad}");
             }
         } else {
             match &pin.func[..] {

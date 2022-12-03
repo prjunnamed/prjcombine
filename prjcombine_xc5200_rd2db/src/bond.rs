@@ -15,7 +15,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             if let Some(&io) = io_lookup.get(pad) {
                 BondPin::Io(io.coord)
             } else {
-                println!("UNK PAD {}", pad);
+                println!("UNK PAD {pad}");
                 continue;
             }
         } else {

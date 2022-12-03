@@ -388,7 +388,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     let forced: Vec<_> = (0..6)
         .map(|i| {
             (
-                builder.find_wire(format!("LH.{}", i)),
+                builder.find_wire(format!("LH.{i}")),
                 builder.find_wire(format!("LH.{}", 11 - i)),
             )
         })

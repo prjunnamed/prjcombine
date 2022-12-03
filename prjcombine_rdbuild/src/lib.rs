@@ -98,7 +98,7 @@ impl PartBuilder {
                     return get_lastnum(pin.wire.unwrap());
                 }
             }
-            panic!("key pin {} not found", refpin);
+            panic!("key pin {refpin} not found");
         }
 
         let mut res: HashMap<&'a str, TkSiteSlot> = HashMap::new();
@@ -167,7 +167,7 @@ impl PartBuilder {
                                     "_WSW" => 5,
                                     "_SSW" => 6,
                                     "_NNW" => 7,
-                                    _ => panic!("cannot match {}", n),
+                                    _ => panic!("cannot match {n}"),
                                 },
                             )
                         }
@@ -233,7 +233,7 @@ impl PartBuilder {
                             "DLL1S" => 5,
                             "DLL2S" => 6,
                             "DLL3S" => 7,
-                            _ => panic!("cannot match {}", n),
+                            _ => panic!("cannot match {n}"),
                         },
                     ),
                     _ => TkSiteSlot::Single(self.part.slot_kinds.get_or_insert(k)),
@@ -332,7 +332,7 @@ impl PartBuilder {
                                     }
                                     cpips.push((wf, wt, sid, did));
                                 }
-                                _ => panic!("weird pip string {:?}", s),
+                                _ => panic!("weird pip string {s:?}"),
                             }
                             None
                         } else {

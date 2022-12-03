@@ -57,7 +57,7 @@ fn parse_bool(s: &str) -> bool {
     match s {
         "0" => false,
         "1" => true,
-        _ => panic!("weird bool {}", s),
+        _ => panic!("weird bool {s}"),
     }
 }
 
@@ -278,7 +278,7 @@ fn dump_tts(
                     (false, false, false) => "<->",
                     (true, false, true) => "->>",
                     (false, true, true) => "<<->>",
-                    _ => panic!("unk pip dirbuf {} {} {} {}", name, dir, buf0, buf1),
+                    _ => panic!("unk pip dirbuf {name} {dir} {buf0} {buf1}"),
                 };
                 assert_eq!(name, wf.to_string() + sep + wt);
                 pips.as_mut().unwrap().insert(
@@ -295,7 +295,7 @@ fn dump_tts(
                             (false, false) => TkPipInversion::Never,
                             (true, false) => TkPipInversion::Always,
                             (false, true) => TkPipInversion::Prog,
-                            _ => panic!("unk inversion {} {}", invfix, invcan),
+                            _ => panic!("unk inversion {invfix} {invcan}"),
                         },
                     },
                 );
@@ -474,7 +474,7 @@ fn dump_site<'a>(
                                 | "CLK_DISTR_OUT_SOUTH"
                                 | "T1_ALLOWED_SOUTH"
                                 | "CLK_IN" => {
-                                    let suffix = format!("_{}", pin);
+                                    let suffix = format!("_{pin}");
                                     v.retain(|n| n.ends_with(&suffix));
                                 }
                                 _ => (),
@@ -552,7 +552,7 @@ fn dump_tile(
                     let si = si.parse::<u32>().unwrap();
                     let s = ctx.speed_models.get(&si);
                     if s.is_none() && si != 65535 {
-                        println!("UMMMM NO SI {:?}", sl);
+                        println!("UMMMM NO SI {sl:?}");
                     }
                     s.map(|x| &x[..])
                 };
@@ -682,7 +682,7 @@ fn steal_sites(
 ) {
     let mut slist: Vec<u8> = Vec::new();
     for site in slots.keys() {
-        writeln!(slist, "{}", site).unwrap();
+        writeln!(slist, "{site}").unwrap();
     }
     let tr = ToolchainReader::new(
         tc,

@@ -21,7 +21,7 @@ pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
                     "MD1" => BondPin::Cfg(CfgPin::M1),
                     "MD2" => BondPin::Cfg(CfgPin::M2),
                     _ => {
-                        println!("UNK PAD {}", pad);
+                        println!("UNK PAD {pad}");
                         continue;
                     }
                 }

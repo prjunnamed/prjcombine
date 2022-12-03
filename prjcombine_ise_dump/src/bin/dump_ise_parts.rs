@@ -34,12 +34,12 @@ fn dump_part(
     create_dir_all(&fdir)?;
     let path = fdir.join(part.clone() + ".zstd");
     if path.exists() {
-        println!("skipping {}", part);
+        println!("skipping {part}");
     } else {
-        println!("dumping {}", part);
+        println!("dumping {part}");
         let rd = get_rawdump(tc, &pkgs)?;
         rd.to_file(&path)?;
-        println!("dumped {}", part);
+        println!("dumped {part}");
     }
     Ok(())
 }
@@ -100,7 +100,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     create_dir_all(&opt.target_directory)?;
     let mut parts: HashMap<String, Vec<PartgenPkg>> = HashMap::new();
     for ise_fam in ise_families.iter() {
-        println!("querying {}", ise_fam);
+        println!("querying {ise_fam}");
     }
     let pkg_list: Vec<_> = ise_families
         .into_par_iter()

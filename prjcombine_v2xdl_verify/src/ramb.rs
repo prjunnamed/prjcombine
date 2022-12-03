@@ -1306,10 +1306,10 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 ti.pin_in(&format!("ADDRB{}", i + 5), &wraddr[i]);
             }
             for i in 0..32 {
-                ti.pin_tie(&format!("DIA{}", i), false);
+                ti.pin_tie(&format!("DIA{i}"), false);
             }
             for i in 0..4 {
-                ti.pin_tie(&format!("DIPA{}", i), false);
+                ti.pin_tie(&format!("DIPA{i}"), false);
             }
         }
 
@@ -1862,7 +1862,7 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                     for i in 0..2 {
                         let w = test.make_in(ctx);
                         for ul in ['U', 'L'] {
-                            ti.pin_in(&format!("WE{l}{ul}{k}", k = i), &w);
+                            ti.pin_in(&format!("WE{l}{ul}{i}"), &w);
                             ti.pin_in(&format!("WE{l}{ul}{k}", k = i + 2), &w);
                         }
                         we.push(w);

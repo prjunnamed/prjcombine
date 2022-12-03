@@ -26,12 +26,12 @@ fn dump_part(opt: &Opt, tc: &Toolchain, dev: String, devparts: Vec<VivadoPart>) 
     create_dir_all(&fdir).unwrap();
     let path = fdir.join(dev.clone() + ".zstd");
     if path.exists() {
-        println!("skipping {}", dev);
+        println!("skipping {dev}");
     } else {
-        println!("dumping {}", dev);
+        println!("dumping {dev}");
         let rd = get_rawdump(tc, &devparts).unwrap();
         rd.to_file(&path).unwrap();
-        println!("dumped {}", dev);
+        println!("dumped {dev}");
     }
 }
 

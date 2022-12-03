@@ -509,7 +509,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                                 assert_eq!(coord.row, mcb.iop_dq[i / 2]);
                                 assert_eq!(coord.iob.to_idx(), (i % 2));
                             } else {
-                                println!("MCB {}", mf);
+                                println!("MCB {mf}");
                             }
                         }
                     }

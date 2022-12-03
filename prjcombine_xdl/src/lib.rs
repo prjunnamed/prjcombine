@@ -86,8 +86,8 @@ impl Display for FmtString<'_> {
         write!(f, "\"")?;
         for c in self.0.chars() {
             match c {
-                '\\' | '"' => write!(f, "\\{}", c)?,
-                _ => write!(f, "{}", c)?,
+                '\\' | '"' => write!(f, "\\{c}")?,
+                _ => write!(f, "{c}")?,
             }
         }
         write!(f, "\"")?;
@@ -119,8 +119,8 @@ impl Display for FmtCfg<'_> {
                 first_part = false;
                 for c in part.chars() {
                     match c {
-                        '\\' | '"' | ':' | ' ' => write!(f, "\\{}", c)?,
-                        _ => write!(f, "{}", c)?,
+                        '\\' | '"' | ':' | ' ' => write!(f, "\\{c}")?,
+                        _ => write!(f, "{c}")?,
                     }
                 }
             }
@@ -193,7 +193,7 @@ impl Design {
                 fmt_string(&inst.kind)
             )?;
             match &inst.placement {
-                Placement::Placed { tile, site } => write!(f, "placed {} {}", tile, site)?,
+                Placement::Placed { tile, site } => write!(f, "placed {tile} {site}")?,
                 Placement::Unplaced => write!(f, "unplaced")?,
                 Placement::Bonded => write!(f, "unplaced bonded")?,
                 Placement::Unbonded => write!(f, "unplaced unbonded")?,

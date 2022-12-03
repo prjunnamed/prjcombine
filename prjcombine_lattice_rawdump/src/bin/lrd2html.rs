@@ -2218,7 +2218,7 @@ pub fn dump_html(
         let mut cs = Vec::new();
         for cls in tcls {
             match colors.get(cls) {
-                None => panic!("missing color {}", cls),
+                None => panic!("missing color {cls}"),
                 Some(c) => cs.push(c),
             }
         }
@@ -2227,7 +2227,7 @@ pub fn dump_html(
             1 => writeln!(f, "td.{} {{ background: rgb({}, {}, {}); }}\n", tname, cs[0].0, cs[0].1, cs[0].2)?,
             2 => writeln!(f, "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2)?,
             3 => writeln!(f, "td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2, cs[2].0, cs[2].1, cs[2].2)?,
-            _ => panic!("too colorful {}", tname),
+            _ => panic!("too colorful {tname}"),
         }
     }
     writeln!(f, "</style></head><body><table><tr>")?;

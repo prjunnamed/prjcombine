@@ -3571,7 +3571,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut cs = Vec::new();
         for cls in tcls {
             match colors.get(cls) {
-                None => panic!("missing color {}", cls),
+                None => panic!("missing color {cls}"),
                 Some(c) => cs.push(c),
             }
         }
@@ -3580,7 +3580,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             1 => ofile.write_all(format!("td.{} {{ background: rgb({}, {}, {}); }}\n", tname, cs[0].0, cs[0].1, cs[0].2).as_bytes())?,
             2 => ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 40%, rgb({}, {}, {}) 60%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2).as_bytes())?,
             3 => ofile.write_all(format!("td.{} {{ background: linear-gradient(45deg, rgb({}, {}, {}) 25%, rgb({}, {}, {}) 50%, rgb({}, {}, {}) 75%); }}\n", tname, cs[0].0, cs[0].1, cs[0].2, cs[1].0, cs[1].1, cs[1].2, cs[2].0, cs[2].1, cs[2].2).as_bytes())?,
-            _ => panic!("too colorful {}", tname),
+            _ => panic!("too colorful {tname}"),
         }
     }
     ofile.write_all("</style></head><body><table><tr>\n".as_bytes())?;
@@ -3598,14 +3598,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 };
                 if rs != 1 || cs != 1 {
                     ofile.write_all(
-                        format!(
-                            "<td colspan=\"{}\" rowspan=\"{}\" class=\"{}\">",
-                            cs, rs, cls
-                        )
-                        .as_bytes(),
+                        format!("<td colspan=\"{cs}\" rowspan=\"{rs}\" class=\"{cls}\">")
+                            .as_bytes(),
                     )?;
                 } else {
-                    ofile.write_all(format!("<td class=\"{}\">", cls).as_bytes())?;
+                    ofile.write_all(format!("<td class=\"{cls}\">").as_bytes())?;
                 }
                 ofile.write_all(
                     format!("<div>{}<br/>{}", rd.tile_kinds.key(tile.kind), tile.name).as_bytes(),

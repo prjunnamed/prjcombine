@@ -1001,11 +1001,11 @@ impl DieExpander<'_, '_, '_> {
                         node.add_bel(0, format!("{sk}E2_CHANNEL_X{gtx}Y{y}", y = gty * 4 + i));
                         gt.pads_rx.push((
                             format!("IPAD_X{ipx}Y{y}", y = ipy + 1),
-                            format!("IPAD_X{ipx}Y{y}", y = ipy),
+                            format!("IPAD_X{ipx}Y{ipy}"),
                         ));
                         gt.pads_tx.push((
                             format!("OPAD_X{opx}Y{y}", y = opy + 1),
-                            format!("OPAD_X{opx}Y{y}", y = opy),
+                            format!("OPAD_X{opx}Y{opy}"),
                         ));
                         node.add_bel(1, gt.pads_rx[i].0.clone());
                         node.add_bel(2, gt.pads_rx[i].1.clone());
@@ -1205,7 +1205,7 @@ impl DieExpander<'_, '_, '_> {
                     ],
                 );
                 if cd == ColumnKind::Bram {
-                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}", sy = sy));
+                    node.add_bel(0, format!("RAMB36_X{bx}Y{sy}"));
                     node.add_bel(1, format!("RAMB18_X{bx}Y{sy}", sy = sy * 2));
                     node.add_bel(2, format!("RAMB18_X{bx}Y{sy}", sy = sy * 2 + 1));
                 } else {

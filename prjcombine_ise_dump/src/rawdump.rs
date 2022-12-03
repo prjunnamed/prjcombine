@@ -17,7 +17,7 @@ fn is_buf_speed(speed: &Option<String>) -> bool {
             } else if s.starts_with("R_") || s.starts_with("D_") || s.starts_with("CCMA1D8_") {
                 false
             } else {
-                panic!("funny speed {}", s);
+                panic!("funny speed {s}");
             }
         }
     }

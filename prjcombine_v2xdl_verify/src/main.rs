@@ -254,7 +254,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "virtex5" => get_virtex5_tests(),
             "virtex6" => get_virtex6_tests(),
             "7series" => get_7series_tests(),
-            _ => panic!("unknown family {}", family),
+            _ => panic!("unknown family {family}"),
         };
         tests.par_iter().for_each(|t| {
             let tn = &t.name;
@@ -270,7 +270,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 Err(e) => {
-                    println!("SYNTH FAIL {:?}", e);
+                    println!("SYNTH FAIL {e:?}");
                     let mut fv = File::create(format!("fail_{family}_{tn}.v")).unwrap();
                     write!(fv, "{v}").unwrap();
                 }

@@ -1075,7 +1075,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             } else {
                 if ctx.rng.gen() {
                     let val = ctx.rng.gen_range(0..4);
-                    inst.connect("CARRYINSEL", &format!("{}", val));
+                    inst.connect("CARRYINSEL", &format!("{val}"));
                     // well...
                     ti.pin_tie("CARRYINSEL0", (val & 1) != 0);
                     ti.pin_tie("CARRYINSEL1", (val & 2) != 0);

@@ -1774,7 +1774,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     )
                     .extra_wire(
                         format!("OUT_MUX{i}_DUMMY0"),
-                        &[format!("VCC_WIRE{ii}", ii = dummy_base)],
+                        &[format!("VCC_WIRE{dummy_base}")],
                     )
                     .extra_wire(
                         format!("OUT_MUX{i}_DUMMY1"),

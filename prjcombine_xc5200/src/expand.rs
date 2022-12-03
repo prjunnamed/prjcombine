@@ -41,7 +41,7 @@ impl Grid {
                             + (self.rows - 2) * 4
                             + (row.to_idx() - 1) * 4
                             + 1;
-                        node.add_bel(0, format!("PAD{}", p));
+                        node.add_bel(0, format!("PAD{p}"));
                         node.add_bel(1, format!("PAD{}", p + 1));
                         node.add_bel(2, format!("PAD{}", p + 2));
                         node.add_bel(3, format!("PAD{}", p + 3));
@@ -78,7 +78,7 @@ impl Grid {
                         node.add_bel(0, format!("PAD{}", p + 3));
                         node.add_bel(1, format!("PAD{}", p + 2));
                         node.add_bel(2, format!("PAD{}", p + 1));
-                        node.add_bel(3, format!("PAD{}", p));
+                        node.add_bel(3, format!("PAD{p}"));
                         node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
                         node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
                         node.add_bel(6, format!("TBUF_R{r}C{c}.2"));
@@ -99,7 +99,7 @@ impl Grid {
                             + (self.rows - 2) * 4
                             + (col_r.to_idx() - col.to_idx() - 1) * 4
                             + 1;
-                        node.add_bel(0, format!("PAD{}", p));
+                        node.add_bel(0, format!("PAD{p}"));
                         node.add_bel(1, format!("PAD{}", p + 1));
                         node.add_bel(2, format!("PAD{}", p + 2));
                         node.add_bel(3, format!("PAD{}", p + 3));
@@ -118,7 +118,7 @@ impl Grid {
                         node.add_bel(0, format!("PAD{}", p + 3));
                         node.add_bel(1, format!("PAD{}", p + 2));
                         node.add_bel(2, format!("PAD{}", p + 1));
-                        node.add_bel(3, format!("PAD{}", p));
+                        node.add_bel(3, format!("PAD{p}"));
                         node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
                         node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
                         node.add_bel(6, format!("TBUF_R{r}C{c}.2"));

@@ -258,7 +258,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                         IoDiffKind::N(_) => 'N',
                         _ => unreachable!(),
                     };
-                    write!(exp_func, "_AD{}{}", sm, pn).unwrap();
+                    write!(exp_func, "_AD{sm}{pn}").unwrap();
                 }
                 match edev.cfg_io.get_by_right(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => {
@@ -445,12 +445,20 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                             continue;
                         }
                     }
-                } else if let Some(f) = f.strip_suffix(&format!("{}", ch)) {
+                } else if let Some(f) = f.strip_suffix(&format!("{ch}")) {
                     match f {
-                        "MGTHRXP" | "MGTYRXP" | "MGTFRXP" => BondPin::Gt(gt.bank, GtPin::RxP(ch as u8)),
-                        "MGTHRXN" | "MGTYRXN" | "MGTFRXN" => BondPin::Gt(gt.bank, GtPin::RxN(ch as u8)),
-                        "MGTHTXP" | "MGTYTXP" | "MGTFTXP" => BondPin::Gt(gt.bank, GtPin::TxP(ch as u8)),
-                        "MGTHTXN" | "MGTYTXN" | "MGTFTXN" => BondPin::Gt(gt.bank, GtPin::TxN(ch as u8)),
+                        "MGTHRXP" | "MGTYRXP" | "MGTFRXP" => {
+                            BondPin::Gt(gt.bank, GtPin::RxP(ch as u8))
+                        }
+                        "MGTHRXN" | "MGTYRXN" | "MGTFRXN" => {
+                            BondPin::Gt(gt.bank, GtPin::RxN(ch as u8))
+                        }
+                        "MGTHTXP" | "MGTYTXP" | "MGTFTXP" => {
+                            BondPin::Gt(gt.bank, GtPin::TxP(ch as u8))
+                        }
+                        "MGTHTXN" | "MGTYTXN" | "MGTFTXN" => {
+                            BondPin::Gt(gt.bank, GtPin::TxN(ch as u8))
+                        }
                         _ => {
                             println!(
                                 "weird gt iopad {pkg} {p} {pad} {f} {gt:?}",

@@ -142,7 +142,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 }
                 let (opin, ipin) = lut.unwrap();
                 if !in2_nets_pending.remove(name) {
-                    println!("funny ibuf2 found: {:?}", c);
+                    println!("funny ibuf2 found: {c:?}");
                     ok = false;
                     continue;
                 }
@@ -159,7 +159,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 }
                 let (opin, ipin) = lut.unwrap();
                 if !in_nets_pending.remove(name) {
-                    println!("funny ibuf found: {:?}", c);
+                    println!("funny ibuf found: {c:?}");
                     ok = false;
                     continue;
                 }
@@ -179,7 +179,7 @@ pub fn verify(test: &Test, design: &Design, family: &str) -> bool {
                 }
                 let (opin, ipin) = lut.unwrap();
                 if !out_nets_pending.remove(name) {
-                    println!("funny obuf found: {:?}", c);
+                    println!("funny obuf found: {c:?}");
                     ok = false;
                     continue;
                 }

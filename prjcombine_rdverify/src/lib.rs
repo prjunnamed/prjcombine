@@ -988,7 +988,7 @@ impl<'a> Verifier<'a> {
                 if let Some(c) = self.xlat_tile(n) {
                     crd = c;
                 } else {
-                    println!("MISSING TERM TILE {}", n);
+                    println!("MISSING TERM TILE {n}");
                     return;
                 }
             } else {
@@ -999,7 +999,7 @@ impl<'a> Verifier<'a> {
                 if let Some(c) = self.xlat_tile(n) {
                     crd_far = Some(c);
                 } else {
-                    println!("MISSING PASS TILE {}", n);
+                    println!("MISSING PASS TILE {n}");
                     return;
                 }
             } else {

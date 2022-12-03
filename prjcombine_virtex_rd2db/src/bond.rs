@@ -19,7 +19,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     "GCLKPAD1" => 5,
                     "GCLKPAD2" => 1,
                     "GCLKPAD3" => 0,
-                    _ => panic!("unknown pad {}", pad),
+                    _ => panic!("unknown pad {pad}"),
                 };
                 let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));

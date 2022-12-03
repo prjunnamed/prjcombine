@@ -40,7 +40,7 @@ pub fn find_columns(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
 pub fn find_column(rd: &Part, tts: &[&str]) -> Option<i32> {
     let res = find_columns(rd, tts);
     if res.len() > 1 {
-        panic!("more than one column found for {:?}", tts);
+        panic!("more than one column found for {tts:?}");
     }
     res.into_iter().next()
 }
@@ -58,7 +58,7 @@ pub fn find_rows(rd: &Part, tts: &[&str]) -> BTreeSet<i32> {
 pub fn find_row(rd: &Part, tts: &[&str]) -> Option<i32> {
     let res = find_rows(rd, tts);
     if res.len() > 1 {
-        panic!("more than one row found for {:?}", tts);
+        panic!("more than one row found for {tts:?}");
     }
     res.into_iter().next()
 }
@@ -126,7 +126,7 @@ impl IntGrid<'_> {
     pub fn find_row(&self, tts: &[&str]) -> Option<i32> {
         let res = self.find_rows(tts);
         if res.len() > 1 {
-            panic!("more than one row found for {:?}", tts);
+            panic!("more than one row found for {tts:?}");
         }
         res.into_iter().next()
     }
@@ -146,7 +146,7 @@ impl IntGrid<'_> {
     pub fn find_column(&self, tts: &[&str]) -> Option<i32> {
         let res = self.find_columns(tts);
         if res.len() > 1 {
-            panic!("more than one column found for {:?}", tts);
+            panic!("more than one column found for {tts:?}");
         }
         res.into_iter().next()
     }

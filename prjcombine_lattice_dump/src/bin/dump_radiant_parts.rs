@@ -156,7 +156,7 @@ endmodule;
         for line in BufReader::new(rbt).lines() {
             let line = line.unwrap();
             if !line.starts_with(['0', '1']) {
-                writeln!(orbt, "{}", line).unwrap();
+                writeln!(orbt, "{line}").unwrap();
             }
         }
         std::mem::drop(orbt);
@@ -295,7 +295,7 @@ dev_report_node -file nodes.out [get_nodes -re ".*"]
                     },
                 );
             } else {
-                panic!("unk line {}", line);
+                panic!("unk line {line}");
             }
         }
         let site_re =

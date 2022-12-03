@@ -248,7 +248,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
         }
         let mut part = words[1].to_lowercase();
         if !part.starts_with('x') {
-            part = format!("xc{}", part);
+            part = format!("xc{part}");
         }
         let (device, package, family) = match split_partname(&part) {
             None => bail!("cannot parse part name: {}", part),

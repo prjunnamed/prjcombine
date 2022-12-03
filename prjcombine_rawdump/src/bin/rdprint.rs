@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             );
         }
         for (pkg, pins) in rd.packages.iter().sorted_by_key(|(pkg, _)| *pkg) {
-            println!("PACKAGE {}", pkg);
+            println!("PACKAGE {pkg}");
             for pin in pins
                 .iter()
                 .sorted_by_key(|pin| (&pin.pad, &pin.func, &pin.pin))
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     for (_, name, tt) in rd.tile_kinds.iter().sorted_by_key(|(_, name, _)| *name) {
-        println!("TT {}", name);
+        println!("TT {name}");
         for (_, &slot, site) in tt.sites.iter().sorted_by_key(|&(_, slot, _)| slot) {
             let slot = match slot {
                 TkSiteSlot::Single(sk) => rd.slot_kinds[sk].clone(),
@@ -105,7 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         );
                     }
                     TkWire::Connected(_) => {
-                        println!("\tWIRE {} [connected]", wn);
+                        println!("\tWIRE {wn} [connected]");
                     }
                 }
             }
