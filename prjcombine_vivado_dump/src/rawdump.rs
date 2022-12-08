@@ -1190,6 +1190,28 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         }],
         source_device: "xczu28dr-ffve1156-1-e",
     },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "PSS_ALTO",
+        slots: &[FixupSiteSlot {
+            slot_name: "PS8",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "PS8_X0Y0",
+        }],
+        source_device: "xczu9eg-ffvb1156-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "VCU_VCU_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "VCU",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "VCU_X0Y0",
+        }],
+        source_device: "xczu5ev-fbvb900-1-e",
+    },
 ];
 
 pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {

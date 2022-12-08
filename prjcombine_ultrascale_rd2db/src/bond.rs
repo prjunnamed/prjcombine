@@ -260,7 +260,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     };
                     write!(exp_func, "_AD{sm}{pn}").unwrap();
                 }
-                match edev.cfg_io.get_by_right(&io.crd).copied() {
+                match edev.cfg_io[edev.grid_master].get_by_right(&io.crd).copied() {
                     Some(SharedCfgPin::Data(d)) => {
                         if !is_zynq {
                             if d >= 16 {

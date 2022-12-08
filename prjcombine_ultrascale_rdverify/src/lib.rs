@@ -4,9 +4,10 @@ use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_ultrascale::expanded::{ClkSrc, ExpandedDevice};
+use prjcombine_ultrascale::bond::SharedCfgPin;
+use prjcombine_ultrascale::expanded::{ClkSrc, ExpandedDevice, HpioCoord, IoCoord};
 use prjcombine_ultrascale::grid::{
-    ColSide, ColumnKindLeft, DisabledPart, GridKind, HardRowKind, HdioIobId, HpioIobId,
+    CleMKind, ColSide, ColumnKindLeft, DisabledPart, GridKind, HardRowKind, HdioIobId, HpioIobId,
 };
 
 fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
@@ -21,6 +22,25 @@ fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
 fn is_cut_u(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
     let reg = edev.grids[die].row_to_reg(row);
     edev.disabled.contains(&DisabledPart::Region(die, reg + 1))
+}
+
+fn get_hpiob_bel<'a>(edev: &ExpandedDevice, vrf: &Verifier<'a>, crd: IoCoord) -> BelContext<'a> {
+    let IoCoord::Hpio(crd) = crd else {unreachable!();};
+    let grid = edev.grids[crd.die];
+    let row = grid.row_reg_bot(crd.reg) + if crd.iob.to_idx() < 26 { 0 } else { 30 };
+    vrf.find_bel(
+        crd.die,
+        (crd.col, row),
+        &format!("HPIOB{}", crd.iob.to_idx() % 26),
+    )
+    .or_else(|| {
+        vrf.find_bel(
+            crd.die,
+            (crd.col, row),
+            &format!("HRIOB{}", crd.iob.to_idx() % 26),
+        )
+    })
+    .unwrap()
 }
 
 fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -41,7 +61,11 @@ fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     vrf.claim_node(&[bel.fwire("CIN")]);
     if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
         vrf.verify_node(&[bel.fwire_far("CIN"), obel.fwire("COUT")]);
-    } else if !is_cut_d(edev, bel.die, bel.row) {
+    } else if !is_cut_d(edev, bel.die, bel.row)
+        || (kind == "SLICEM"
+            && edev.grids[bel.die].columns[bel.col].l == ColumnKindLeft::CleM(CleMKind::Laguna)
+            && bel.row.to_idx() == 60)
+    {
         vrf.claim_node(&[bel.fwire_far("CIN")]);
     }
     vrf.claim_node(&[bel.fwire("COUT")]);
@@ -146,7 +170,7 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
         match mode {
             Mode::UpBuf => {
-                if !edev.is_cut || vrf.find_bel_delta(bel, 0, 5, "BRAM_F").is_some() {
+                if !edev.is_cut || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d) || vrf.find_bel_delta(bel, 0, 5, "BRAM_F").is_some() {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
                     vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
                 }
@@ -164,7 +188,7 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
                 }
             }
             Mode::DownBuf => {
-                if !edev.is_cut || vrf.find_bel_delta(bel, 0, -5, "BRAM_F").is_some() {
+                if !edev.is_cut || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d) || vrf.find_bel_delta(bel, 0, -5, "BRAM_F").is_some() {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
                     vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
                 }
@@ -176,7 +200,11 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             }
             Mode::DownHalfReg => match bel.row.to_idx() % 60 {
                 25 => (),
-                55 => vrf.claim_node(&[bel.fwire_far(ipin)]),
+                55 => {
+                    if !(edev.kind == GridKind::UltrascalePlus && edev.is_cut_d && is_cut_u(edev, bel.die, bel.row)) {
+                        vrf.claim_node(&[bel.fwire_far(ipin)]);
+                    }
+                }
                 _ => {
                     if let Some(obel) = vrf.find_bel_delta(bel, 0, 5, "BRAM_F") {
                         vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
@@ -228,7 +256,7 @@ fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_uram(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pairs = vec![];
     for ab in ['A', 'B'] {
         for i in 0..23 {
@@ -267,6 +295,8 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -15, "URAM3") {
                 vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
+            } else if !is_cut_d(edev, bel.die, bel.row) {
+                vrf.claim_node(&[bel.fwire_far(ipin)]);
             }
         } else {
             let okey = match bel.key {
@@ -415,14 +445,14 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("VCC")]);
 }
 
-fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match bel.key {
         "PCIE" => "PCIE_3_1",
         "PCIE4" => "PCIE40E4",
         "PCIE4C" => "PCIE4CE4",
         _ => unreachable!(),
     };
-    vrf.verify_bel_dummies(
+    vrf.verify_bel(
         bel,
         kind,
         &[
@@ -430,8 +460,53 @@ fn verify_pcie(vrf: &mut Verifier, bel: &BelContext<'_>) {
             ("MCAP_PERST1_B", SitePinDir::In),
         ],
         &[],
-        &["MCAP_PERST0_B", "MCAP_PERST1_B"],
     );
+    vrf.claim_node(&[bel.fwire("MCAP_PERST0_B")]);
+    vrf.claim_node(&[bel.fwire("MCAP_PERST1_B")]);
+    if vrf.find_bel_delta(bel, 0, 60, "CFG").is_some() {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("MCAP_PERST0_B"),
+            bel.wire_far("MCAP_PERST0_B"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("MCAP_PERST1_B"),
+            bel.wire_far("MCAP_PERST1_B"),
+        );
+        let obel = get_hpiob_bel(
+            edev,
+            vrf,
+            *edev.cfg_io[bel.die]
+                .get_by_left(&SharedCfgPin::PerstN0)
+                .unwrap(),
+        );
+        vrf.verify_node(&[bel.fwire_far("MCAP_PERST0_B"), obel.fwire("DOUT")]);
+        let obel = get_hpiob_bel(
+            edev,
+            vrf,
+            *edev.cfg_io[bel.die]
+                .get_by_left(&match edev.kind {
+                    GridKind::Ultrascale => SharedCfgPin::PerstN1,
+                    GridKind::UltrascalePlus => SharedCfgPin::I2cSda,
+                })
+                .unwrap(),
+        );
+        vrf.verify_node(&[bel.fwire_far("MCAP_PERST1_B"), obel.fwire("DOUT")]);
+    } else if bel.wire("MCAP_PERST0_B") != bel.wire_far("MCAP_PERST0_B") {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("MCAP_PERST0_B"),
+            bel.wire_far("MCAP_PERST0_B"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("MCAP_PERST1_B"),
+            bel.wire_far("MCAP_PERST1_B"),
+        );
+        vrf.claim_node(&[bel.fwire_far("MCAP_PERST0_B")]);
+        vrf.claim_node(&[bel.fwire_far("MCAP_PERST1_B")]);
+    }
 }
 
 fn verify_cmac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -459,7 +534,7 @@ fn verify_ilkn(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     );
 }
 
-fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins_clk = [
         (0, 0, "O_DBG_L0_TXCLK"),
         (0, 1, "O_DBG_L0_RXCLK"),
@@ -556,10 +631,12 @@ fn verify_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for &pin in &pins_dummy_in {
         pins.push((pin, SitePinDir::In));
     }
-    vrf.verify_bel_dummies(bel, "PS8", &pins, &[], &pins_dummy_in);
+    if !edev.disabled.contains(&DisabledPart::Ps) {
+        vrf.verify_bel_dummies(bel, "PS8", &pins, &[], &pins_dummy_in);
+    }
 }
 
-fn verify_vcu(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_vcu(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins_clk = [(0, "VCU_PLL_TEST_CLK_OUT0"), (1, "VCU_PLL_TEST_CLK_OUT1")];
     let obel = vrf.find_bel_delta(bel, 0, 30, "RCLK_PS").unwrap();
     let mut pins = vec![];
@@ -567,7 +644,9 @@ fn verify_vcu(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(pin), obel.fwire(&format!("PS_TO_PL_CLK{idx}"))]);
         pins.push((pin, SitePinDir::Out));
     }
-    vrf.verify_bel(bel, "VCU", &pins, &[]);
+    if !edev.disabled.contains(&DisabledPart::Vcu) {
+        vrf.verify_bel(bel, "VCU", &pins, &[]);
+    }
 }
 
 fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -582,6 +661,34 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             ("I2C_SDA_IN", SitePinDir::In),
             ("I2C_SDA_TS", SitePinDir::Out),
         ]);
+        let obel = get_hpiob_bel(
+            edev,
+            vrf,
+            *edev.cfg_io[bel.die]
+                .get_by_left(&SharedCfgPin::I2cSclk)
+                .unwrap(),
+        );
+        vrf.verify_node(&[bel.fwire("I2C_SCLK_TS"), obel.fwire_far("TSDI")]);
+        vrf.verify_node(&[bel.fwire_far("I2C_SCLK_IN"), obel.fwire("DOUT")]);
+        let obel = get_hpiob_bel(
+            edev,
+            vrf,
+            *edev.cfg_io[bel.die]
+                .get_by_left(&SharedCfgPin::I2cSda)
+                .unwrap(),
+        );
+        vrf.verify_node(&[bel.fwire("I2C_SDA_TS"), obel.fwire_far("TSDI")]);
+        vrf.verify_node(&[bel.fwire_far("I2C_SDA_IN"), obel.fwire("DOUT")]);
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("I2C_SCLK_IN"),
+            bel.wire_far("I2C_SCLK_IN"),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire("I2C_SDA_IN"),
+            bel.wire_far("I2C_SDA_IN"),
+        );
     }
     for (vp, vn) in &vaux {
         pins.extend([(&vp[..], SitePinDir::In), (&vn[..], SitePinDir::In)]);
@@ -1820,6 +1927,7 @@ fn verify_hbm_ref_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 
     let obel_cmt = vrf.find_bel_sibling(bel, "CMT");
+    let obel_vcc = vrf.find_bel_sibling(bel, "VCC.CMT");
 
     vrf.claim_node(&[bel.fwire("REF_CLK_MUX_HDISTR")]);
     for i in 0..24 {
@@ -1829,6 +1937,11 @@ fn verify_hbm_ref_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
             obel_cmt.wire(&format!("HDISTR{i}_L")),
         );
     }
+    vrf.claim_pip(
+        bel.crd(),
+        bel.wire("REF_CLK_MUX_HDISTR"),
+        obel_vcc.wire("VCC"),
+    );
     vrf.claim_node(&[bel.fwire("REF_CLK_MUX_BUFCE_ROW_DLY")]);
     for i in 0..24 {
         let obel_bufce_row = vrf.find_bel_sibling(bel, &format!("BUFCE_ROW_IO{i}"));
@@ -1838,6 +1951,11 @@ fn verify_hbm_ref_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
             obel_bufce_row.wire("CLK_OUT_OPT_DLY"),
         );
     }
+    vrf.claim_pip(
+        bel.crd(),
+        bel.wire("REF_CLK_MUX_BUFCE_ROW_DLY"),
+        obel_vcc.wire("VCC"),
+    );
     vrf.claim_pip(
         bel.crd(),
         bel.wire("REF_CLK"),
@@ -3094,7 +3212,7 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         pins.push(("PAD_RES", SitePinDir::Out));
     }
 
-    let mut dummies = vec!["TSDI"];
+    let mut dummies = vec![];
     if is_single {
         dummies.push("IO");
         if edev.kind == GridKind::UltrascalePlus {
@@ -3110,7 +3228,7 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         vrf.verify_bel_dummies(bel, kind, &pins, &[], &dummies);
     }
     for (pin, _) in pins {
-        if !dummies.contains(&pin) {
+        if !dummies.contains(&pin) && pin != "TSDI" {
             vrf.claim_node(&[bel.fwire(pin)]);
         }
     }
@@ -3150,6 +3268,44 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     vrf.verify_node(&[bel.fwire("I"), obel_bs.fwire_far("RX_D")]);
     vrf.verify_node(&[bel.fwire_far("OP"), obel_bs.fwire("TX_Q")]);
     vrf.verify_node(&[bel.fwire_far("TSP"), obel_bs.fwire("TX_T_OUT")]);
+
+    let crd = IoCoord::Hpio(HpioCoord {
+        col: bel.col,
+        die: bel.die,
+        reg,
+        side: if bel.node_kind == "HPIO_R" {
+            ColSide::Right
+        } else {
+            ColSide::Left
+        },
+        iob: hid,
+    });
+    let cfg = edev.cfg_io[bel.die].get_by_right(&crd);
+    let is_cfg = match cfg {
+        Some(SharedCfgPin::PerstN0) => false,
+        Some(SharedCfgPin::PerstN1) => false,
+        Some(SharedCfgPin::EmCclk) => false,
+        Some(_) => true,
+        None => false,
+    };
+    let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
+        && edev.kind == GridKind::Ultrascale;
+    if is_ams {
+        vrf.claim_node(&[bel.fwire("TSDI")]);
+        vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
+    } else if edev.is_cut {
+        if !(edev.is_cut_d && edev.kind == GridKind::UltrascalePlus && bel.wire("TSDI") == bel.wire_far("TSDI") && is_cfg) {
+            vrf.claim_node(&[bel.fwire("TSDI")]);
+        }
+    } else if !is_cfg {
+        vrf.claim_node(&[bel.fwire("TSDI")]);
+        if bel.wire("TSDI") != bel.wire_far("TSDI") {
+            vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
+            vrf.claim_node(&[bel.fwire_far("TSDI")]);
+        }
+    } else if bel.wire("TSDI") != bel.wire_far("TSDI") {
+        vrf.claim_node(&[bel.fwire("TSDI")]);
+    }
 
     if !bel.naming.pins["SWITCH_OUT"].pips.is_empty() {
         vrf.claim_pip(
@@ -3329,6 +3485,13 @@ fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     };
     let is_single = pidx.is_none();
     let is_m = !is_single && if idx < 13 { idx % 2 == 0 } else { idx % 2 == 1 };
+    let fidx = if bel.row.to_idx() % 60 == 0 {
+        idx
+    } else {
+        idx + 26
+    };
+    let hid = HpioIobId::from_idx(fidx);
+    let reg = grid.row_to_reg(bel.row);
     let pins = vec![
         // to/from PHY
         ("DOUT", SitePinDir::Out),
@@ -3352,12 +3515,7 @@ fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         // dummies
         ("TSDI", SitePinDir::In),
     ];
-    let idx: usize = bel.key[5..].parse().unwrap();
     let mut dummies = vec![];
-    let has_tsdi = false;
-    if !has_tsdi {
-        dummies.push("TSDI");
-    }
     if is_single {
         dummies.push("IO");
     }
@@ -3394,8 +3552,29 @@ fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     vrf.verify_node(&[bel.fwire("DOUT"), obel_bs.fwire_far("RX_D")]);
     vrf.verify_node(&[bel.fwire_far("OP"), obel_bs.fwire("TX_Q")]);
     vrf.verify_node(&[bel.fwire_far("TSP"), obel_bs.fwire("TX_T_OUT")]);
-    if has_tsdi {
+
+    let crd = IoCoord::Hpio(HpioCoord {
+        col: bel.col,
+        die: bel.die,
+        reg,
+        side: ColSide::Left,
+        iob: hid,
+    });
+    let cfg = edev.cfg_io[bel.die].get_by_right(&crd);
+    let is_cfg = match cfg {
+        Some(SharedCfgPin::PerstN0) => false,
+        Some(SharedCfgPin::PerstN1) => false,
+        Some(SharedCfgPin::EmCclk) => false,
+        Some(_) => true,
+        None => false,
+    };
+    let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
+        && edev.kind == GridKind::Ultrascale;
+    if is_ams {
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
+    } else if !edev.is_cut && !is_cfg && bel.wire("TSDI") != bel.wire_far("TSDI") {
+        vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
+        vrf.claim_node(&[bel.fwire_far("TSDI")]);
     }
 
     if !bel.naming.pins["SWITCH_OUT"].pips.is_empty() {
@@ -3606,6 +3785,9 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 bel.wire("RST_PRE_OPTINV"),
                 bel.wire("RST_MUX_DUMMY0"),
             );
+            vrf.claim_node(&[bel.fwire("CLK_IN_MUX_DUMMY0")]);
+            vrf.claim_node(&[bel.fwire("CE_MUX_DUMMY0")]);
+            vrf.claim_node(&[bel.fwire("RST_MUX_DUMMY0")]);
         } else if bel.node_kind.starts_with("GT") {
             let gtk = &bel.node_kind[..3];
             for (key, pin) in [
@@ -3654,6 +3836,7 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                     bel.wire("CLK_IN"),
                     bel.wire(&format!("CLK_IN_MUX_DUMMY{i}")),
                 );
+                vrf.claim_node(&[bel.fwire(&format!("CLK_IN_MUX_DUMMY{i}"))]);
             }
             vrf.claim_pip(bel.crd(), bel.wire("CE"), bel.wire("CE_MUX_DUMMY0"));
             vrf.claim_pip(
@@ -3661,6 +3844,14 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                 bel.wire("RST_PRE_OPTINV"),
                 bel.wire("RST_MUX_DUMMY0"),
             );
+            vrf.claim_node(&[bel.fwire("CE_MUX_DUMMY0")]);
+            vrf.claim_node(&[bel.fwire("RST_MUX_DUMMY0")]);
+            vrf.claim_pip(bel.crd(), bel.wire("DIV0"), bel.wire("DIV0_DUMMY"));
+            vrf.claim_pip(bel.crd(), bel.wire("DIV1"), bel.wire("DIV1_DUMMY"));
+            vrf.claim_pip(bel.crd(), bel.wire("DIV2"), bel.wire("DIV2_DUMMY"));
+            vrf.claim_node(&[bel.fwire("DIV0_DUMMY")]);
+            vrf.claim_node(&[bel.fwire("DIV1_DUMMY")]);
+            vrf.claim_node(&[bel.fwire("DIV2_DUMMY")]);
         }
         let obel = vrf.find_bel_sibling(bel, "BUFG_GT_SYNC14");
         vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), obel.wire("CLK_IN"));
@@ -4047,6 +4238,9 @@ fn verify_gtm_dual(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         vrf.verify_bel(bel, "GTM_DUAL", &pins, &[]);
     }
     for (pin, _) in pins {
+        if pin == "REFCLK_DIST2PLL1" && is_cut_u(edev, bel.die, bel.row) {
+            continue;
+        }
         vrf.claim_node(&[bel.fwire(pin)]);
     }
     let obel = vrf.find_bel_sibling(bel, "GTM_REFCLK");
@@ -4106,6 +4300,10 @@ fn verify_gtm_dual(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         bel.wire("SOUTHCLKOUT"),
         bel.wire("SOUTHCLKOUT_DUMMY1"),
     );
+    vrf.claim_node(&[bel.fwire("NORTHCLKOUT_DUMMY0")]);
+    vrf.claim_node(&[bel.fwire("NORTHCLKOUT_DUMMY1")]);
+    vrf.claim_node(&[bel.fwire("SOUTHCLKOUT_DUMMY0")]);
+    vrf.claim_node(&[bel.fwire("SOUTHCLKOUT_DUMMY1")]);
 }
 
 fn verify_gtm_refclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -4212,29 +4410,22 @@ fn verify_hsadc_hsdac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
                     bel.fwire_far("CLK_DISTR_IN_NORTH"),
                     obel_n.fwire("CLK_DISTR_OUT_SOUTH"),
                 ]);
-            } else {
-                vrf.claim_node(&[bel.fwire_far("CLK_DISTR_IN_NORTH")]);
             }
             vrf.verify_node(&[
                 bel.fwire_far("T1_ALLOWED_NORTH"),
                 obel_n.fwire("T1_ALLOWED_SOUTH"),
             ]);
         }
-    } else {
-        if grid.row_to_reg(bel.row).to_idx() == grid.regs - 1 {
+    } else if grid.row_to_reg(bel.row).to_idx() == grid.regs - 1 {
+        vrf.verify_node(&[
+            bel.fwire_far("SYSREF_IN_NORTH_P"),
+            bel.fwire("SYSREF_OUT_NORTH_P"),
+        ]);
+        if bel.key.starts_with("RF") {
             vrf.verify_node(&[
-                bel.fwire_far("SYSREF_IN_NORTH_P"),
-                bel.fwire("SYSREF_OUT_NORTH_P"),
+                bel.fwire_far("CLK_DISTR_IN_NORTH"),
+                bel.fwire("CLK_DISTR_OUT_NORTH"),
             ]);
-            if bel.key.starts_with("RF") {
-                vrf.verify_node(&[
-                    bel.fwire_far("CLK_DISTR_IN_NORTH"),
-                    bel.fwire("CLK_DISTR_OUT_NORTH"),
-                ]);
-                vrf.claim_node(&[bel.fwire_far("T1_ALLOWED_NORTH")]);
-            }
-        } else {
-            vrf.claim_node(&[bel.fwire_far("SYSREF_IN_NORTH_P")]);
         }
     }
     if let Some(obel_s) = vrf
@@ -4313,12 +4504,12 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BRAM_F" => verify_bram_f(edev, vrf, bel),
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         _ if bel.key.starts_with("HARD_SYNC") => vrf.verify_bel(bel, "HARD_SYNC", &[], &[]),
-        _ if bel.key.starts_with("URAM") => verify_uram(vrf, bel),
+        _ if bel.key.starts_with("URAM") => verify_uram(edev, vrf, bel),
         "LAGUNA0" | "LAGUNA1" | "LAGUNA2" | "LAGUNA3" => verify_laguna(edev, vrf, bel),
         "LAGUNA_EXTRA" => verify_laguna_extra(edev, vrf, bel),
         _ if bel.key.starts_with("VCC") => verify_vcc(vrf, bel),
 
-        "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(vrf, bel),
+        "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(edev, vrf, bel),
         "CMAC" => verify_cmac(edev, vrf, bel),
         "ILKN" => verify_ilkn(edev, vrf, bel),
         "PMV"
@@ -4343,8 +4534,8 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         | "HPIO_RCLK_PRBS" => vrf.verify_bel(bel, bel.key, &[], &[]),
         "CFG" => vrf.verify_bel(bel, "CONFIG_SITE", &[], &[]),
         "SYSMON" => verify_sysmon(edev, vrf, bel),
-        "PS" => verify_ps(vrf, bel),
-        "VCU" => verify_vcu(vrf, bel),
+        "PS" => verify_ps(edev, vrf, bel),
+        "VCU" => verify_vcu(edev, vrf, bel),
         _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(edev, vrf, bel),
         _ if bel.key.starts_with("VBUS_SWITCH") => vrf.verify_bel(bel, "VBUS_SWITCH", &[], &[]),
 
@@ -4417,9 +4608,6 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
-    // XXX
-    //vrf.skip_residual_pips();
-    //vrf.skip_residual_nodes();
     for w in [
         "CLK_VDISTR_FT0",
         "CLK_VROUTE_FT0",
@@ -4490,8 +4678,41 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         "REMOTE_DIODE_SP_FT0",
         "DIODE_N_OPT",
         "DIODE_P_OPT",
+        "GHIGH_B_PSS_0",
+        "GHIGH_B_PSS_1",
+        "CFG_RESET_B_FT1_0",
+        "CFG_RESET_B_FT1_1",
+        "GPWRDWN_B_FT1_0",
+        "GPWRDWN_B_FT1_1",
+        "POR_B_FT1_0",
+        "POR_B_FT1_1",
+        "IDCODE19",
+        "PSS_ALTO_CORE_0_IDCODE15_PIN",
+        "PSS_ALTO_CORE_0_IDCODE16_PIN",
+        "PSS_ALTO_CORE_0_IDCODE17_PIN",
+        "PSS_ALTO_CORE_0_IDCODE18_PIN",
+        "PSS_ALTO_CORE_0_IDCODE20_PIN",
+        "PSS_ALTO_CORE_0_IDCODE28_PIN",
+        "PSS_ALTO_CORE_0_IDCODE29_PIN",
+        "PSS_ALTO_CORE_0_PS_VERSION_0_PIN",
     ] {
         vrf.kill_stub_in_cond(w);
+    }
+    for w in [
+        "PSS_ALTO_CORE_0_IDCODE15",
+        "PSS_ALTO_CORE_0_IDCODE16",
+        "PSS_ALTO_CORE_0_IDCODE17",
+        "PSS_ALTO_CORE_0_IDCODE18",
+        "PSS_ALTO_CORE_0_IDCODE21",
+        "PSS_ALTO_CORE_0_IDCODE28",
+        "PSS_ALTO_CORE_0_IDCODE29",
+        "PSS_ALTO_CORE_0_IDCODE30",
+        "PSS_ALTO_CORE_0_IDCODE31",
+        "PSS_ALTO_CORE_0_PS_VERSION_0",
+        "PSS_ALTO_CORE_0_PS_VERSION_2",
+        "PSS_ALTO_CORE_0_PS_VERSION_3",
+    ] {
+        vrf.kill_stub_out_cond(w);
     }
     if edev.kind == GridKind::Ultrascale {
         for i in 0..104 {
@@ -4506,6 +4727,67 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         vrf.kill_stub_in_cond_tk("CFRM_L_TERM_T", "GND_WIRE0");
         vrf.kill_stub_in_cond_tk("CFRM_L_TERM_T", "GND_WIRE2");
     } else {
+        for i in 0..84 {
+            vrf.kill_stub_in_cond_tk("INT_INTF_LEFT_TERM_IO_FT", &format!("GND_WIRE{i}"));
+        }
+        for i in 0..3120 {
+            vrf.kill_stub_in_cond_tk("HPIO_TERM_L_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_TERM_L_DA6_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_AUX_IO_TERM_L_BOT_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_AUX_IO_TERM_L_TOP_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_CFG_TERM_L_BOT_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_CFG_TERM_L_TOP_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_AUX_IO_TERM_L_BOT_DA6_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("HPIO_AUX_IO_TERM_L_TOP_DA6_FT", &format!("GND_WIRE{i}"));
+        }
+        for i in 0..24 {
+            vrf.kill_stub_in_cond(&format!("OPTION2IOB_TX_DATA_OPT{i}"));
+            vrf.kill_stub_in_cond(&format!("OPTION2IOB_PERSIST_MODE_EN_OPT{i}"));
+        }
+        for i in 0..94 {
+            vrf.kill_stub_in_cond_tk("AMS", &format!("UNCONN_INOUTS{i}"));
+        }
+        for i in 0..32 {
+            vrf.kill_stub_in_cond_tk("CFG_CONFIG", &format!("PCAP_WDATA{i}"));
+        }
+        for w in [
+            "PCAP_CS_B",
+            "PCAP_PR",
+            "PCAP_WDATA_CLK",
+            "PCAP_RDWR_B",
+            "PCFG_BOOT0",
+            "PCFG_BOOT1",
+            "PCFG_BOOT2",
+            "PCFG_GSR",
+            "PCFG_GTS",
+            "PCFG_INIT_B",
+            "PCFG_JTAG_CFG_DISABLE0",
+            "PCFG_JTAG_CFG_DISABLE1",
+            "PCFG_POR_CNT_4K",
+            "PCFG_PROG",
+            "PCFG_TCK",
+            "PCFG_TDI",
+            "PCFG_TMS",
+            "UNCONN_INOUTS0",
+            "UNCONN_INOUTS1",
+            "UNCONN_INOUTS2",
+            "UNCONN_INOUTS3",
+            "UNCONN_INOUTS4",
+            "UNCONN_INOUTS5",
+            "UNCONN_INOUTS6",
+            "UNCONN_INOUTS7",
+            "UNCONN_INOUTS8",
+        ] {
+            vrf.kill_stub_in_cond_tk("CFG_CONFIG", w);
+        }
+        vrf.kill_stub_in_cond("OPTION2IOB_PERSIST_MODE_EN_VR1_OPT");
+        vrf.kill_stub_in_cond("OPTION2IOB_PERSIST_MODE_EN_VR2_OPT");
+        vrf.kill_stub_in_cond("OPTION2IOB_TX_DATA_VR1_OPT");
+        vrf.kill_stub_in_cond("OPTION2IOB_TX_DATA_VR2_OPT");
+        vrf.kill_stub_in_cond("CLK_FROM_EXT_LOW_SOUTH");
+        vrf.kill_stub_in_cond("CLK_FROM_EXT_UPP_SOUTH");
+        vrf.kill_stub_in_cond("CLK_FROM_EXT_LOW_NORTH");
+        vrf.kill_stub_in_cond("CLK_FROM_EXT_UPP_NORTH");
         vrf.kill_stub_in_cond_tk("RCLK_AMS_CFGIO", "VCC_WIRE1");
         vrf.kill_stub_in_cond_tk("RCLK_AMS_CFGIO", "VCC_WIRE2");
         vrf.kill_stub_in_cond_tk("RCLK_AMS_CFGIO", "VCC_WIRE3");
@@ -4523,9 +4805,31 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         vrf.kill_stub_in_cond_tk("RCLK_CLEM_CLKBUF_L", "VCC_WIRE4");
         vrf.kill_stub_in_cond_tk("RCLK_HDIO", "VCC_WIRE0");
         vrf.kill_stub_in_cond_tk("RCLK_HDIO", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("RCLK_DSP_INTF_L", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("RCLK_DSP_INTF_CLKBUF_L", "VCC_WIRE9");
+        vrf.kill_stub_in_cond_tk("RCLK_RCLK_XIPHY_INNER_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("RCLK_INTF_R_IBRK_L", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("RCLK_INTF_L_IBRK_IO_L", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("RCLK_RCLK_INTF_LEFT_IBRK_FE_L_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("RCLK_INTF_L_IBRK_PCIE4_L", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("RCLK_INTF_L_TERM_GT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("RCLK_RCLK_INTF_LEFT_TERM_IO_FT", "VCC_WIRE0");
         vrf.kill_stub_in_cond_tk("HPIO_RIGHT_TERM_T", "VCC_WIRE");
+        vrf.kill_stub_in_cond_tk("HPIO_RIGHT_TERM_T", "VCC_WIRE1");
         vrf.kill_stub_in_cond_tk("HPIO_RIGHT_TERM_T", "GND_WIRE1");
         vrf.kill_stub_in_cond_tk("HPIO_RIGHT_TERM_T", "GND_WIRE3");
+        vrf.kill_stub_in_cond_tk("HPIO_L_TERM_T", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("HPIO_L_TERM_T", "GND_WIRE2");
+        vrf.kill_stub_in_cond_tk("HPIO_L_TERM_T", "GND_WIRE5");
+        vrf.kill_stub_in_cond_tk("HPIO_HPIO_LEFT_TERM_T_L_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("HPIO_HPIO_LEFT_TERM_T_L_FT", "GND_WIRE1");
+        vrf.kill_stub_in_cond_tk("HPIO_HPIO_LEFT_TERM_T_L_FT", "GND_WIRE3");
+        vrf.kill_stub_in_cond_tk("PCIE4_TERM_T_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("PCIE4_TERM_T_FT", "GND_WIRE1");
+        vrf.kill_stub_in_cond_tk("PCIE4_TERM_T_FT", "GND_WIRE3");
+        vrf.kill_stub_in_cond_tk("CMAC_CMAC_TERM_T_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("CMAC_CMAC_TERM_T_FT", "GND_WIRE1");
+        vrf.kill_stub_in_cond_tk("CMAC_CMAC_TERM_T_FT", "GND_WIRE3");
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "VCC_WIRE0");
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "VCC_WIRE2");
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "VCC_WIRE4");
@@ -4533,6 +4837,76 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "GND_WIRE0");
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "GND_WIRE2");
         vrf.kill_stub_in_cond_tk("HDIO_BOT_RIGHT", "GND_WIRE5");
+        vrf.kill_stub_in_cond_tk("CMAC", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("CMAC", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("CMAC", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("CMAC", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("PCIE4_PCIE4_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("PCIE4_PCIE4_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("PCIE4_PCIE4_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("PCIE4_PCIE4_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("PCIE4C_PCIE4C_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("PCIE4C_PCIE4C_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("PCIE4C_PCIE4C_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("PCIE4C_PCIE4C_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("ILKN_ILKN_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("ILKN_ILKN_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("ILKN_ILKN_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("ILKN_ILKN_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("FE_FE_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEA_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEA_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEA_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEA_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEB_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEB_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEB_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEB_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEC_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEC_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILED_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILED_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEE_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEE_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEF_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEF_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEG_FT", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEG_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEG_FT", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("DFE_DFE_TILEG_FT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "VCC_WIRE3");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "VCC_WIRE5");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "VCC_WIRE7");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "GND_WIRE1");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "GND_WIRE3");
+        vrf.kill_stub_in_cond_tk("HDIO_TOP_RIGHT", "GND_WIRE6");
+        vrf.kill_stub_in_cond_tk("VCU_VCU_FT", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("VCU_VCU_FT", "VCC_WIRE4");
+        vrf.kill_stub_in_cond_tk("VCU_VCU_FT", "GHIGH_B_PSS");
+        vrf.kill_stub_in_cond_tk("VCU_VCU_FT", "PL_VCU_GLOBAL_CFG_RESET_B");
+        vrf.kill_stub_in_cond_tk("BRAM", "VCC_WIRE0");
+        vrf.kill_stub_in_cond_tk("BRAM", "VCC_WIRE1");
+        vrf.kill_stub_in_cond_tk("BRAM", "VCC_WIRE2");
+        vrf.kill_stub_in_cond_tk("BRAM", "VCC_WIRE3");
+        if let Some((_, tk)) = vrf.rd.tile_kinds.get("PSS_ALTO") {
+            for &crd in &tk.tiles {
+                for (wt, wf) in [
+                    ("PSS_ALTO_CORE_0_IDCODE15_PIN", "PSS_ALTO_CORE_0_IDCODE15"),
+                    ("PSS_ALTO_CORE_0_IDCODE16_PIN", "PSS_ALTO_CORE_0_IDCODE16"),
+                    ("PSS_ALTO_CORE_0_IDCODE17_PIN", "PSS_ALTO_CORE_0_IDCODE17"),
+                    ("PSS_ALTO_CORE_0_IDCODE18_PIN", "PSS_ALTO_CORE_0_IDCODE18"),
+                    ("PSS_ALTO_CORE_0_IDCODE20_PIN", "PSS_ALTO_CORE_0_IDCODE20"),
+                    ("PSS_ALTO_CORE_0_IDCODE28_PIN", "PSS_ALTO_CORE_0_IDCODE28"),
+                    ("PSS_ALTO_CORE_0_IDCODE29_PIN", "PSS_ALTO_CORE_0_IDCODE29"),
+                    ("PSS_ALTO_CORE_0_PS_VERSION_0_PIN", "PSS_ALTO_CORE_0_PS_VERSION_0"),
+                ] {
+                    if vrf.rd.wires.contains(wt) && vrf.rd.wires.contains(wf) {
+                        vrf.claim_pip(crd, wt, wf);
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -774,7 +774,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let mut bel = builder.bel_xy(kind, bk, 0, 0);
             if kind == "PCIE" {
-                bel = bel.pin_dummy("MCAP_PERST0_B").pin_dummy("MCAP_PERST1_B");
+                bel = bel
+                    .pin_name_only("MCAP_PERST0_B", 1)
+                    .pin_name_only("MCAP_PERST1_B", 1);
             }
             let mut xn = builder.xnode(kind, kind, xy).num_tiles(120);
             for i in 0..60 {
@@ -835,12 +837,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
         let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
         let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
-        let mut bel = builder.bel_xy("SYSMON", "SYSMONE1", 0, 0).pins_name_only(&[
-            "I2C_SCLK_IN",
-            "I2C_SCLK_TS",
-            "I2C_SDA_IN",
-            "I2C_SDA_TS",
-        ]);
+        let mut bel = builder
+            .bel_xy("SYSMON", "SYSMONE1", 0, 0)
+            .pins_name_only(&["I2C_SCLK_TS", "I2C_SDA_TS"])
+            .pin_name_only("I2C_SCLK_IN", 1)
+            .pin_name_only("I2C_SDA_IN", 1);
         for i in 0..16 {
             bel = bel.pins_name_only(&[format!("VP_AUX{i}"), format!("VN_AUX{i}")]);
         }
@@ -1582,6 +1583,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
         let intf_r = builder.db.get_node_naming("INTF.W.IO");
         let mut bels = vec![];
+        let mut is_nocfg = true;
+        if let Some(wire) = rd.wires.get("HPIO_IOB_3_TSDI_PIN") {
+            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+            if tk.wires.contains_key(&wire) {
+                is_nocfg = false;
+            }
+        }
         for i in 0..26 {
             let mut bel = builder
                 .bel_xy(format!("HPIOB{i}"), "IOB", 0, i)
@@ -1604,7 +1612,10 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .pin_name_only("SWITCH_OUT", usize::from(matches!(i, 4..=11 | 13..=20)))
                 .pin_name_only("OP", 1)
                 .pin_name_only("TSP", 1)
-                .pin_dummy("TSDI");
+                .pin_name_only("TSDI", 1);
+            if is_nocfg || i == 25 {
+                bel = bel.pin_name_only("TSDI", 0);
+            }
             if matches!(i, 12 | 25) {
                 bel = bel.pin_dummy("IO");
             }
@@ -1636,7 +1647,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .bel_xy("HPIO_VREF", "HPIO_VREF_SITE", 0, 0)
                 .pins_name_only(&["VREF1", "VREF2"]),
         );
-        let mut xn = builder.xnode("HPIO", "HPIO", xy).num_tiles(30);
+        let naming = if is_nocfg { "HPIO.NOCFG" } else { "HPIO" };
+        let mut xn = builder.xnode("HPIO", naming, xy).num_tiles(30);
         for i in 0..30 {
             xn = xn
                 .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
@@ -1649,6 +1661,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
         let intf_r = builder.db.get_node_naming("INTF.W.IO");
         let mut bels = vec![];
+        let mut is_nocfg = true;
+        if let Some(wire) = rd.wires.get("HRIO_IOB_5_TSDI_PIN") {
+            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+            if tk.wires.contains_key(&wire) {
+                is_nocfg = false;
+            }
+        }
         for i in 0..26 {
             let mut bel = builder
                 .bel_xy(format!("HRIOB{i}"), "IOB", 0, i)
@@ -1659,7 +1678,6 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     "TSTATEIN",
                     "TSTATEOUT",
                     "IO",
-                    "TSDI",
                     "TMDS_IBUF_OUT",
                     "DRIVER_BOT_IBUF",
                     "O_B",
@@ -1669,7 +1687,10 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .pin_name_only("SWITCH_OUT", usize::from(matches!(i, 4..=11 | 13..=20)))
                 .pin_name_only("OP", 1)
                 .pin_name_only("TSP", 1)
-                .pin_dummy("TSDI");
+                .pin_name_only("TSDI", 1);
+            if is_nocfg || i == 25 {
+                bel = bel.pin_name_only("TSDI", 0);
+            }
             if matches!(i, 12 | 25) {
                 bel = bel.pin_dummy("IO");
             }
@@ -1694,7 +1715,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     .pins_name_only(&["AOUT", "BOUT", "O_B", "TSTATEB"]),
             );
         }
-        let mut xn = builder.xnode("HRIO", "HRIO", xy).num_tiles(30);
+        let naming = if is_nocfg { "HRIO.NOCFG" } else { "HRIO" };
+        let mut xn = builder.xnode("HRIO", naming, xy).num_tiles(30);
         for i in 0..30 {
             xn = xn
                 .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)

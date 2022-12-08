@@ -93,7 +93,8 @@ pub struct ExpandedDevice<'a> {
     pub hroute_src: EntityVec<ColId, EnumMap<ColSide, ClkSrc>>,
     pub has_pcie_cfg: bool,
     pub is_cut: bool,
+    pub is_cut_d: bool,
     pub io: Vec<Io>,
-    pub cfg_io: BiHashMap<SharedCfgPin, IoCoord>,
+    pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPin, IoCoord>>,
     pub gt: Vec<Gt>,
 }

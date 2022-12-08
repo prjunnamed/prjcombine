@@ -839,8 +839,9 @@ pub fn make_grids(
             disabled.insert(DisabledPart::Dfe);
         }
     }
-    if let Some((_, tk)) = rd.tile_kinds.get("VCU_VCU_FT") {
-        if tk.sites.is_empty() {
+    for &crd in rd.tiles_by_kind_name("VCU_VCU_FT") {
+        let tile = &rd.tiles[&crd];
+        if tile.sites.iter().next().is_none() {
             disabled.insert(DisabledPart::Vcu);
         }
     }

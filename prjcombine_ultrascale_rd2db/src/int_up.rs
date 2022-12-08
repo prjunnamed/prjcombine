@@ -749,10 +749,45 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let mut bel = builder.bel_xy(kind, bk, 0, 0);
-            if matches!(kind, "PCIE4" | "PCIE4C") {
-                bel = bel.pin_dummy("MCAP_PERST0_B").pin_dummy("MCAP_PERST1_B");
+            let mut naming = kind;
+            if kind == "PCIE4" {
+                let mut has_mcap = false;
+                if let Some(wire) = rd.wires.get("PCIE4_PCIE4_CORE_0_MCAP_PERST0_B_PIN") {
+                    let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+                    if tk.wires.contains_key(&wire) {
+                        has_mcap = true;
+                    }
+                }
+                if has_mcap {
+                    bel = bel
+                        .pin_name_only("MCAP_PERST0_B", 1)
+                        .pin_name_only("MCAP_PERST1_B", 1);
+                } else {
+                    bel = bel
+                        .pin_name_only("MCAP_PERST0_B", 0)
+                        .pin_name_only("MCAP_PERST1_B", 0);
+                    naming = "PCIE4.NOCFG";
+                }
+            } else if kind == "PCIE4C" {
+                let mut has_mcap = false;
+                if let Some(wire) = rd.wires.get("PCIE4C_CORE_0_MCAP_PERST0_B_PIN") {
+                    let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+                    if tk.wires.contains_key(&wire) {
+                        has_mcap = true;
+                    }
+                }
+                if has_mcap {
+                    bel = bel
+                        .pin_name_only("MCAP_PERST0_B", 1)
+                        .pin_name_only("MCAP_PERST1_B", 1);
+                } else {
+                    bel = bel
+                        .pin_name_only("MCAP_PERST0_B", 0)
+                        .pin_name_only("MCAP_PERST1_B", 0);
+                    naming = "PCIE4C.NOCFG";
+                }
             }
-            let mut xn = builder.xnode(kind, kind, xy).num_tiles(120);
+            let mut xn = builder.xnode(kind, naming, xy).num_tiles(120);
             for i in 0..60 {
                 xn = xn
                     .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
@@ -802,116 +837,104 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         }
     }
 
-    'a: {
-        if let Some(&xy) = rd.tiles_by_kind_name("PSS_ALTO").iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                break 'a;
-            }
-            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
-            let intf_r = builder.db.get_node_naming("INTF.PSS");
-            let mut bel = builder.bel_xy("PS", "PS8", 0, 0).pins_name_only(&[
-                "DP_AUDIO_REF_CLK",
-                "DP_VIDEO_REF_CLK",
-                "DDR_DTO0",
-                "DDR_DTO1",
-                "APLL_TEST_CLK_OUT0",
-                "APLL_TEST_CLK_OUT1",
-                "RPLL_TEST_CLK_OUT0",
-                "RPLL_TEST_CLK_OUT1",
-                "DPLL_TEST_CLK_OUT0",
-                "DPLL_TEST_CLK_OUT1",
-                "IOPLL_TEST_CLK_OUT0",
-                "IOPLL_TEST_CLK_OUT1",
-                "VPLL_TEST_CLK_OUT0",
-                "VPLL_TEST_CLK_OUT1",
-                "FMIO_GEM0_FIFO_RX_CLK_TO_PL_BUFG",
-                "FMIO_GEM0_FIFO_TX_CLK_TO_PL_BUFG",
-                "FMIO_GEM1_FIFO_RX_CLK_TO_PL_BUFG",
-                "FMIO_GEM1_FIFO_TX_CLK_TO_PL_BUFG",
-                "FMIO_GEM2_FIFO_RX_CLK_TO_PL_BUFG",
-                "FMIO_GEM2_FIFO_TX_CLK_TO_PL_BUFG",
-                "FMIO_GEM3_FIFO_RX_CLK_TO_PL_BUFG",
-                "FMIO_GEM3_FIFO_TX_CLK_TO_PL_BUFG",
-                "FMIO_GEM_TSU_CLK_TO_PL_BUFG",
-                "PL_CLK0",
-                "PL_CLK1",
-                "PL_CLK2",
-                "PL_CLK3",
-                "O_DBG_L0_RXCLK",
-                "O_DBG_L0_TXCLK",
-                "O_DBG_L1_RXCLK",
-                "O_DBG_L1_TXCLK",
-                "O_DBG_L2_RXCLK",
-                "O_DBG_L2_TXCLK",
-                "O_DBG_L3_RXCLK",
-                "O_DBG_L3_TXCLK",
-                "PS_PL_SYSOSC_CLK",
-                "BSCAN_RESET_TAP_B",
-                "BSCAN_CLOCKDR",
-                "BSCAN_SHIFTDR",
-                "BSCAN_UPDATEDR",
-                "BSCAN_INTEST",
-                "BSCAN_EXTEST",
-                "BSCAN_INIT_MEMORY",
-                "BSCAN_AC_TEST",
-                "BSCAN_AC_MODE",
-                "BSCAN_MISR_JTAG_LOAD",
-                "PSS_CFG_RESET_B",
-                "PSS_FST_CFG_B",
-                "PSS_GTS_CFG_B",
-                "PSS_GTS_USR_B",
-                "PSS_GHIGH_B",
-                "PSS_GPWRDWN_B",
-                "PCFG_POR_B",
-            ]);
+    if let Some(&xy) = rd.tiles_by_kind_name("PSS_ALTO").iter().next() {
+        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let intf_r = builder.db.get_node_naming("INTF.PSS");
+        let mut bel = builder.bel_xy("PS", "PS8", 0, 0).pins_name_only(&[
+            "DP_AUDIO_REF_CLK",
+            "DP_VIDEO_REF_CLK",
+            "DDR_DTO0",
+            "DDR_DTO1",
+            "APLL_TEST_CLK_OUT0",
+            "APLL_TEST_CLK_OUT1",
+            "RPLL_TEST_CLK_OUT0",
+            "RPLL_TEST_CLK_OUT1",
+            "DPLL_TEST_CLK_OUT0",
+            "DPLL_TEST_CLK_OUT1",
+            "IOPLL_TEST_CLK_OUT0",
+            "IOPLL_TEST_CLK_OUT1",
+            "VPLL_TEST_CLK_OUT0",
+            "VPLL_TEST_CLK_OUT1",
+            "FMIO_GEM0_FIFO_RX_CLK_TO_PL_BUFG",
+            "FMIO_GEM0_FIFO_TX_CLK_TO_PL_BUFG",
+            "FMIO_GEM1_FIFO_RX_CLK_TO_PL_BUFG",
+            "FMIO_GEM1_FIFO_TX_CLK_TO_PL_BUFG",
+            "FMIO_GEM2_FIFO_RX_CLK_TO_PL_BUFG",
+            "FMIO_GEM2_FIFO_TX_CLK_TO_PL_BUFG",
+            "FMIO_GEM3_FIFO_RX_CLK_TO_PL_BUFG",
+            "FMIO_GEM3_FIFO_TX_CLK_TO_PL_BUFG",
+            "FMIO_GEM_TSU_CLK_TO_PL_BUFG",
+            "PL_CLK0",
+            "PL_CLK1",
+            "PL_CLK2",
+            "PL_CLK3",
+            "O_DBG_L0_RXCLK",
+            "O_DBG_L0_TXCLK",
+            "O_DBG_L1_RXCLK",
+            "O_DBG_L1_TXCLK",
+            "O_DBG_L2_RXCLK",
+            "O_DBG_L2_TXCLK",
+            "O_DBG_L3_RXCLK",
+            "O_DBG_L3_TXCLK",
+            "PS_PL_SYSOSC_CLK",
+            "BSCAN_RESET_TAP_B",
+            "BSCAN_CLOCKDR",
+            "BSCAN_SHIFTDR",
+            "BSCAN_UPDATEDR",
+            "BSCAN_INTEST",
+            "BSCAN_EXTEST",
+            "BSCAN_INIT_MEMORY",
+            "BSCAN_AC_TEST",
+            "BSCAN_AC_MODE",
+            "BSCAN_MISR_JTAG_LOAD",
+            "PSS_CFG_RESET_B",
+            "PSS_FST_CFG_B",
+            "PSS_GTS_CFG_B",
+            "PSS_GTS_USR_B",
+            "PSS_GHIGH_B",
+            "PSS_GPWRDWN_B",
+            "PCFG_POR_B",
+        ]);
 
-            for pin in [
-                "IDCODE15",
-                "IDCODE16",
-                "IDCODE17",
-                "IDCODE18",
-                "IDCODE20",
-                "IDCODE21",
-                "IDCODE28",
-                "IDCODE29",
-                "IDCODE30",
-                "IDCODE31",
-                "PS_VERSION_0",
-                "PS_VERSION_2",
-                "PS_VERSION_3",
-            ] {
-                bel = bel.pin_dummy(pin);
-            }
-            let mut xn = builder.xnode("PS", "PS", xy).num_tiles(180);
-            for i in 0..180 {
-                xn = xn
-                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
-            }
-            xn.bel(bel).extract();
+        for pin in [
+            "IDCODE15",
+            "IDCODE16",
+            "IDCODE17",
+            "IDCODE18",
+            "IDCODE20",
+            "IDCODE21",
+            "IDCODE28",
+            "IDCODE29",
+            "IDCODE30",
+            "IDCODE31",
+            "PS_VERSION_0",
+            "PS_VERSION_2",
+            "PS_VERSION_3",
+        ] {
+            bel = bel.pin_dummy(pin);
         }
+        let mut xn = builder.xnode("PS", "PS", xy).num_tiles(180);
+        for i in 0..180 {
+            xn = xn
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
+        }
+        xn.bel(bel).extract();
     }
 
-    'a: {
-        if let Some(&xy) = rd.tiles_by_kind_name("VCU_VCU_FT").iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                break 'a;
-            }
-            let int_r_xy = builder.walk_to_int(xy.delta(0, 2), Dir::E).unwrap();
-            let intf_r = builder.db.get_node_naming("INTF.PSS");
-            let bel = builder
-                .bel_xy("VCU", "VCU", 0, 0)
-                .pins_name_only(&["VCU_PLL_TEST_CLK_OUT0", "VCU_PLL_TEST_CLK_OUT1"]);
-            let mut xn = builder.xnode("VCU", "VCU", xy).num_tiles(60);
-            for i in 0..60 {
-                xn = xn
-                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
-            }
-            xn.bel(bel).extract();
+    if let Some(&xy) = rd.tiles_by_kind_name("VCU_VCU_FT").iter().next() {
+        let int_r_xy = builder.walk_to_int(xy.delta(0, 2), Dir::E).unwrap();
+        let intf_r = builder.db.get_node_naming("INTF.PSS");
+        let bel = builder
+            .bel_xy("VCU", "VCU", 0, 0)
+            .pins_name_only(&["VCU_PLL_TEST_CLK_OUT0", "VCU_PLL_TEST_CLK_OUT1"]);
+        let mut xn = builder.xnode("VCU", "VCU", xy).num_tiles(60);
+        for i in 0..60 {
+            xn = xn
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
         }
+        xn.bel(bel).extract();
     }
 
     for tkn in [
@@ -2210,6 +2233,13 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .db
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
+            let mut is_alt = false;
+            if let Some(wire) = rd.wires.get("HPIO_IOBSNGL_19_TSDI_PIN") {
+                let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+                if tk.wires.contains_key(&wire) {
+                    is_alt = true;
+                }
+            }
 
             for i in 0..26 {
                 let mut bel = builder
@@ -2232,13 +2262,16 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     .pin_name_only("SWITCH_OUT", 1)
                     .pin_name_only("OP", 1)
                     .pin_name_only("TSP", 1)
-                    .pin_dummy("TSDI");
+                    .pin_name_only("TSDI", 1);
                 if matches!(i, 12 | 25) {
                     bel = bel
                         .pin_dummy("IO")
                         .pin_dummy("LVDS_TRUE")
                         .pin_dummy("OUTB_B_IN")
                         .pin_dummy("TSTATE_IN");
+                    if !is_alt {
+                        bel = bel.pin_name_only("TSDI", 0);
+                    }
                 }
                 bels.push(bel);
             }
@@ -2272,7 +2305,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             );
             bels.push(builder.bel_xy("HPIO_BIAS", "BIAS", 0, 0));
 
-            let mut xn = builder.xnode(kind, kind, xy).num_tiles(30);
+            let naming = if is_alt {
+                format!("{kind}.ALTCFG")
+            } else {
+                kind.to_string()
+            };
+            let mut xn = builder.xnode(kind, &naming, xy).num_tiles(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int(int_xy.delta(0, (i + i / 30) as i32), i)
@@ -2344,10 +2382,17 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                     .bel_xy(format!("BUFG_GT{i}"), "BUFG_GT", 0, i as u8)
                     .pins_name_only(&["CLK_IN", "CLK_OUT", "CE", "RST_PRE_OPTINV"]);
                 if !kind.starts_with("GT") {
+                    let bi = [
+                        10, 43, 61, 64, 67, 70, 73, 76, 79, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40,
+                        46, 49, 52, 55, 58,
+                    ][i];
                     bel = bel
                         .pin_name_only("DIV0", 1)
                         .pin_name_only("DIV1", 1)
-                        .pin_name_only("DIV2", 1);
+                        .pin_name_only("DIV2", 1)
+                        .extra_wire("DIV0_DUMMY", &[format!("GND_WIRE{bi}")])
+                        .extra_wire("DIV1_DUMMY", &[format!("GND_WIRE{ii}", ii = bi + 1)])
+                        .extra_wire("DIV2_DUMMY", &[format!("GND_WIRE{ii}", ii = bi + 2)]);
                 }
                 if kind.starts_with("GT") {
                     let bi = [
