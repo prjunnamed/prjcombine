@@ -3,7 +3,7 @@ use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::Part;
 use prjcombine_versal::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
-    HardRowKind, RegId, TopKind,
+    HardRowKind, RegId, TopKind, PsKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -24,6 +24,7 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
         ("DSP_ROCF_B_TILE", ColumnKind::Dsp),
         ("DSP_ROCF_T_TILE", ColumnKind::Dsp),
         ("NOC_NSU512_TOP", ColumnKind::VNoc),
+        ("NOC2_NSU512_VNOC_TILE", ColumnKind::VNoc2),
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column_inter(c);
@@ -257,13 +258,23 @@ pub fn make_grids(
     for w in rows_slr_split.windows(2) {
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
         let (columns, col_cfrm, cols_hard) = make_columns(&int);
-        let cpm = if !int.find_tiles(&["CPM_G5_TILE"]).is_empty() {
-            CpmKind::Cpm5
-        } else if !int.find_tiles(&["CPM_CORE"]).is_empty() {
+        let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
+            PsKind::Ps9
+        } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
+            PsKind::PsX
+        } else {
+            unreachable!()
+        };
+        let cpm = if !int.find_tiles(&["CPM_CORE"]).is_empty() {
             CpmKind::Cpm4
+        } else if !int.find_tiles(&["CPM_G5_TILE"]).is_empty() {
+            CpmKind::Cpm5
+        } else if !int.find_tiles(&["CPM_G5N2X_TILE"]).is_empty() {
+            CpmKind::Cpm5N
         } else {
             CpmKind::None
         };
+        let has_hnicx = !int.find_tiles(&["HNICX_TILE"]).is_empty();
         assert_eq!(int.rows.len() % 48, 0);
         grids.push(Grid {
             columns,
@@ -274,7 +285,9 @@ pub fn make_grids(
             regs: int.rows.len() / 48,
             regs_gt_left: get_rows_gt_left(&int),
             regs_gt_right: get_rows_gt_right(&int),
+            ps,
             cpm,
+            has_hnicx,
             top: TopKind::Me,      // XXX
             bottom: BotKind::Ssit, // XXX
         });

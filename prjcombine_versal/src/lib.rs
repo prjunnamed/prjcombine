@@ -18,7 +18,9 @@ pub struct Grid {
     pub regs: usize,
     pub regs_gt_left: EntityVec<RegId, GtRowKind>,
     pub regs_gt_right: Option<EntityVec<RegId, GtRowKind>>,
+    pub ps: PsKind,
     pub cpm: CpmKind,
+    pub has_hnicx: bool,
     pub top: TopKind,
     pub bottom: BotKind,
 }
@@ -45,7 +47,14 @@ pub enum ColumnKind {
     Gt,
     Cfrm,
     VNoc,
+    VNoc2,
     None,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum PsKind {
+    Ps9,
+    PsX,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -53,6 +62,7 @@ pub enum CpmKind {
     None,
     Cpm4,
     Cpm5,
+    Cpm5N,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -192,10 +202,12 @@ pub fn expand_grid<'a>(
         let cle_w = db.get_term("CLE.W");
         let cle_bli_e = db.get_term("CLE.BLI.E");
         let cle_bli_w = db.get_term("CLE.BLI.W");
-        let ps_height = match grid.cpm {
-            CpmKind::Cpm4 => 48 * 3,
-            CpmKind::Cpm5 => 48 * 6,
-            CpmKind::None => 48 * 2,
+        let ps_height = match (grid.ps, grid.cpm) {
+            (PsKind::Ps9, CpmKind::None) => 48 * 2,
+            (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
+            (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
+            (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
+            _ => unreachable!(),
         };
         let ps_width = grid.col_cfrm.to_idx();
         let mut cle_x_bump_prev = false;

@@ -15,6 +15,8 @@ struct Opt {
     grids: bool,
     #[structopt(short, long)]
     pkgs: bool,
+    #[structopt(short, long)]
+    namings: bool,
 }
 
 mod xc4k {
@@ -696,7 +698,9 @@ mod versal {
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Versal");
+        println!("\tPS: {v:?}", v = grid.ps);
         println!("\tCPM: {v:?}", v = grid.cpm);
+        println!("\tHNICX: {v:?}", v = grid.has_hnicx);
         println!("\tTOP: {v:?}", v = grid.top);
         println!("\tBOTTOM: {v:?}", v = grid.bottom);
         println!("\tCOLS:");
@@ -714,6 +718,7 @@ mod versal {
                     | ColumnKind::Dsp
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
+                    | ColumnKind::VNoc2
             ) {
                 print!(
                     "\t\tX{cl}.R-X{c}.L: ",
@@ -735,6 +740,7 @@ mod versal {
                 ColumnKind::Gt => print!("GT"),
                 ColumnKind::Cfrm => print!("CFRM"),
                 ColumnKind::VNoc => print!("VNOC"),
+                ColumnKind::VNoc2 => print!("VNOC2"),
             }
             if cd.has_bli_bot_l {
                 print!(" BLI.BOT");
@@ -757,6 +763,7 @@ mod versal {
                     | ColumnKind::Dsp
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
+                    | ColumnKind::VNoc2
             ) {
                 continue;
             }
@@ -773,6 +780,7 @@ mod versal {
                 ColumnKind::Gt => print!("GT"),
                 ColumnKind::Cfrm => print!("CFRM"),
                 ColumnKind::VNoc => print!("VNOC"),
+                ColumnKind::VNoc2 => print!("VNOC2"),
             }
             if cd.has_bli_bot_r {
                 print!(" BLI.BOT");
@@ -845,6 +853,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if opt.pkgs {
+                // XXX pretty
                 println!("{bond:#?}");
             }
         }
@@ -884,6 +893,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    // XXX dev namings
+    if opt.devices || opt.namings {
+        for (dnid, dn) in geom.dev_namings {
+            print!("NAMING {dnid}:", dnid = dnid.to_idx());
+            for dev in &geom.devices {
+                if dev.naming == dnid {
+                    print!(" {dev}", dev = dev.name);
+                }
+            }
+            println!();
+            if opt.namings {
+                // XXX pretty
+                println!("{dn:?}");
+            }
+        }
+    }
     Ok(())
 }
