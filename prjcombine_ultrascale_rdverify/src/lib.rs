@@ -170,7 +170,10 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
         match mode {
             Mode::UpBuf => {
-                if !edev.is_cut || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d) || vrf.find_bel_delta(bel, 0, 5, "BRAM_F").is_some() {
+                if !edev.is_cut
+                    || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d)
+                    || vrf.find_bel_delta(bel, 0, 5, "BRAM_F").is_some()
+                {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
                     vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
                 }
@@ -188,7 +191,10 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
                 }
             }
             Mode::DownBuf => {
-                if !edev.is_cut || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d) || vrf.find_bel_delta(bel, 0, -5, "BRAM_F").is_some() {
+                if !edev.is_cut
+                    || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d)
+                    || vrf.find_bel_delta(bel, 0, -5, "BRAM_F").is_some()
+                {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
                     vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
                 }
@@ -201,7 +207,10 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             Mode::DownHalfReg => match bel.row.to_idx() % 60 {
                 25 => (),
                 55 => {
-                    if !(edev.kind == GridKind::UltrascalePlus && edev.is_cut_d && is_cut_u(edev, bel.die, bel.row)) {
+                    if !(edev.kind == GridKind::UltrascalePlus
+                        && edev.is_cut_d
+                        && is_cut_u(edev, bel.die, bel.row))
+                    {
                         vrf.claim_node(&[bel.fwire_far(ipin)]);
                     }
                 }
@@ -3294,7 +3303,11 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         vrf.claim_node(&[bel.fwire("TSDI")]);
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
     } else if edev.is_cut {
-        if !(edev.is_cut_d && edev.kind == GridKind::UltrascalePlus && bel.wire("TSDI") == bel.wire_far("TSDI") && is_cfg) {
+        if !(edev.is_cut_d
+            && edev.kind == GridKind::UltrascalePlus
+            && bel.wire("TSDI") == bel.wire_far("TSDI")
+            && is_cfg)
+        {
             vrf.claim_node(&[bel.fwire("TSDI")]);
         }
     } else if !is_cfg {
@@ -4899,7 +4912,10 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
                     ("PSS_ALTO_CORE_0_IDCODE20_PIN", "PSS_ALTO_CORE_0_IDCODE20"),
                     ("PSS_ALTO_CORE_0_IDCODE28_PIN", "PSS_ALTO_CORE_0_IDCODE28"),
                     ("PSS_ALTO_CORE_0_IDCODE29_PIN", "PSS_ALTO_CORE_0_IDCODE29"),
-                    ("PSS_ALTO_CORE_0_PS_VERSION_0_PIN", "PSS_ALTO_CORE_0_PS_VERSION_0"),
+                    (
+                        "PSS_ALTO_CORE_0_PS_VERSION_0_PIN",
+                        "PSS_ALTO_CORE_0_PS_VERSION_0",
+                    ),
                 ] {
                     if vrf.rd.wires.contains(wt) && vrf.rd.wires.contains(wf) {
                         vrf.claim_pip(crd, wt, wf);

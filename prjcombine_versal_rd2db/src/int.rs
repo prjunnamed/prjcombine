@@ -26,22 +26,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         (Dir::W, "INTF_HB_ROCF_TL_TILE", "INTF.W.HB", false),
         (Dir::E, "INTF_HB_ROCF_BR_TILE", "INTF.E.HB", false),
         (Dir::E, "INTF_HB_ROCF_TR_TILE", "INTF.E.HB", false),
-        (Dir::W, "INTF_HDIO_LOCF_BL_TILE", "INTF.W.HB", false),
-        (Dir::W, "INTF_HDIO_LOCF_TL_TILE", "INTF.W.HB", false),
-        (Dir::E, "INTF_HDIO_LOCF_BR_TILE", "INTF.E.HB", false),
-        (Dir::E, "INTF_HDIO_LOCF_TR_TILE", "INTF.E.HB", false),
-        (Dir::W, "INTF_HDIO_ROCF_BL_TILE", "INTF.W.HB", false),
-        (Dir::W, "INTF_HDIO_ROCF_TL_TILE", "INTF.W.HB", false),
-        (Dir::E, "INTF_HDIO_ROCF_BR_TILE", "INTF.E.HB", false),
-        (Dir::E, "INTF_HDIO_ROCF_TR_TILE", "INTF.E.HB", false),
-        (Dir::W, "INTF_CFRM_BL_TILE", "INTF.W", false),
-        (Dir::W, "INTF_CFRM_TL_TILE", "INTF.W", false),
-        (Dir::W, "INTF_PSS_BL_TILE", "INTF.W.TERM", true),
-        (Dir::W, "INTF_PSS_TL_TILE", "INTF.W.TERM", true),
-        (Dir::W, "INTF_GT_BL_TILE", "INTF.W.TERM", true),
-        (Dir::W, "INTF_GT_TL_TILE", "INTF.W.TERM", true),
-        (Dir::E, "INTF_GT_BR_TILE", "INTF.E.TERM", true),
-        (Dir::E, "INTF_GT_TR_TILE", "INTF.E.TERM", true),
+        (Dir::W, "INTF_HDIO_LOCF_BL_TILE", "INTF.W.HDIO", false),
+        (Dir::W, "INTF_HDIO_LOCF_TL_TILE", "INTF.W.HDIO", false),
+        (Dir::E, "INTF_HDIO_LOCF_BR_TILE", "INTF.E.HDIO", false),
+        (Dir::E, "INTF_HDIO_LOCF_TR_TILE", "INTF.E.HDIO", false),
+        (Dir::W, "INTF_HDIO_ROCF_BL_TILE", "INTF.W.HDIO", false),
+        (Dir::W, "INTF_HDIO_ROCF_TL_TILE", "INTF.W.HDIO", false),
+        (Dir::E, "INTF_HDIO_ROCF_BR_TILE", "INTF.E.HDIO", false),
+        (Dir::E, "INTF_HDIO_ROCF_TR_TILE", "INTF.E.HDIO", false),
+        (Dir::W, "INTF_CFRM_BL_TILE", "INTF.W.PSS", false),
+        (Dir::W, "INTF_CFRM_TL_TILE", "INTF.W.PSS", false),
+        (Dir::W, "INTF_PSS_BL_TILE", "INTF.W.TERM.PSS", true),
+        (Dir::W, "INTF_PSS_TL_TILE", "INTF.W.TERM.PSS", true),
+        (Dir::W, "INTF_GT_BL_TILE", "INTF.W.TERM.GT", true),
+        (Dir::W, "INTF_GT_TL_TILE", "INTF.W.TERM.GT", true),
+        (Dir::E, "INTF_GT_BR_TILE", "INTF.E.TERM.GT", true),
+        (Dir::E, "INTF_GT_TR_TILE", "INTF.E.TERM.GT", true),
     ];
 
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
@@ -621,7 +621,18 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for (dir, tkn, name, _) in intf_kinds {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = builder.walk_to_int(xy, !dir).unwrap();
-            builder.extract_xnode(name, xy, &[], &[int_xy], name, &[], &[]);
+            builder
+                .xnode(name, name, xy)
+                .ref_int(int_xy, 0)
+                .extract_muxes()
+                .extract_intfs(true)
+                .iris(&[
+                    ("IRI_QUAD", 0, 0),
+                    ("IRI_QUAD", 0, 1),
+                    ("IRI_QUAD", 0, 2),
+                    ("IRI_QUAD", 0, 3),
+                ])
+                .extract();
         }
     }
 

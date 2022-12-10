@@ -291,11 +291,10 @@ pub fn expand_grid<'a>(
                     let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
                     match cd.r {
                         ColumnKind::Gt => {
-                            kind = "INTF.E.TERM";
+                            kind = "INTF.E.TERM.GT";
                             tile = format!("INTF_GT_{bt}R_TILE_X{x}Y{y}");
                         }
                         ColumnKind::Hard => {
-                            kind = "INTF.E.HB";
                             let ch = grid
                                 .cols_hard
                                 .iter()
@@ -304,9 +303,11 @@ pub fn expand_grid<'a>(
                                 .unwrap();
                             match ch.regs[grid.row_to_reg(row)] {
                                 HardRowKind::Hdio => {
+                                    kind = "INTF.E.HDIO";
                                     tile = format!("INTF_HDIO_{ocf}_{bt}R_TILE_X{x}Y{y}");
                                 }
                                 _ => {
+                                    kind = "INTF.E.HB";
                                     tile = format!("INTF_HB_{ocf}_{bt}R_TILE_X{x}Y{y}");
                                 }
                             }
@@ -332,20 +333,19 @@ pub fn expand_grid<'a>(
                     let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
                     match cd.l {
                         ColumnKind::Gt => {
-                            kind = "INTF.W.TERM";
+                            kind = "INTF.W.TERM.GT";
                             tile = format!("INTF_GT_{bt}L_TILE_X{x}Y{y}");
                         }
                         ColumnKind::Cfrm => {
                             if row.to_idx() < ps_height {
-                                kind = "INTF.W.TERM";
+                                kind = "INTF.W.TERM.PSS";
                                 tile = format!("INTF_PSS_{bt}L_TILE_X{x}Y{y}");
                             } else {
-                                kind = "INTF.W";
+                                kind = "INTF.W.PSS";
                                 tile = format!("INTF_CFRM_{bt}L_TILE_X{x}Y{y}");
                             }
                         }
                         ColumnKind::Hard => {
-                            kind = "INTF.W.HB";
                             let ch = grid
                                 .cols_hard
                                 .iter()
@@ -354,9 +354,11 @@ pub fn expand_grid<'a>(
                                 .unwrap();
                             match ch.regs[grid.row_to_reg(row)] {
                                 HardRowKind::Hdio => {
+                                    kind = "INTF.W.HDIO";
                                     tile = format!("INTF_HDIO_{ocf}_{bt}L_TILE_X{x}Y{y}");
                                 }
                                 _ => {
+                                    kind = "INTF.W.HB";
                                     tile = format!("INTF_HB_{ocf}_{bt}L_TILE_X{x}Y{y}");
                                 }
                             }

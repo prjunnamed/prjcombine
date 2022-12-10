@@ -52,6 +52,7 @@ entity_id! {
     pub id TermNamingId u16, reserve 1;
     pub id NodeTileId u16, reserve 1;
     pub id NodeRawTileId u16, reserve 1;
+    pub id NodeIriId u16, reserve 1;
     pub id BelId u16, reserve 1;
 }
 
@@ -138,13 +139,13 @@ impl IntDb {
                             None => {
                                 v2.intf_wires_out.insert(kk, vv);
                             }
-                            Some(vv2 @ IntfWireOutNaming::Buf(no, _)) => match vv {
-                                IntfWireOutNaming::Buf(_, _) => assert_eq!(&vv, vv2),
-                                IntfWireOutNaming::Simple(ono) => assert_eq!(&ono, no),
+                            Some(vv2 @ IntfWireOutNaming::Buf { name_out, .. }) => match vv {
+                                IntfWireOutNaming::Buf { .. } => assert_eq!(&vv, vv2),
+                                IntfWireOutNaming::Simple { name } => assert_eq!(name_out, &name),
                             },
-                            Some(vv2 @ IntfWireOutNaming::Simple(n)) => {
-                                if let IntfWireOutNaming::Buf(no, _) = &vv {
-                                    assert_eq!(no, n);
+                            Some(vv2 @ IntfWireOutNaming::Simple { name }) => {
+                                if let IntfWireOutNaming::Buf { name_out, .. } = &vv {
+                                    assert_eq!(name_out, name);
                                     v2.intf_wires_out.insert(kk, vv);
                                 } else {
                                     assert_eq!(&vv, vv2);
@@ -197,6 +198,7 @@ impl WireKind {
 pub struct NodeKind {
     pub tiles: EntityVec<NodeTileId, ()>,
     pub muxes: BTreeMap<NodeWireId, MuxInfo>,
+    pub iris: EntityVec<NodeIriId, ()>,
     pub intfs: BTreeMap<NodeWireId, IntfInfo>,
     pub bels: EntityMap<BelId, String, BelInfo>,
 }
@@ -238,6 +240,16 @@ pub enum PinDir {
 pub enum IntfInfo {
     OutputTestMux(BTreeSet<NodeWireId>),
     InputDelay,
+    InputIri(NodeIriId, IriPin),
+    InputIriDelay(NodeIriId, IriPin),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum IriPin {
+    Clk,
+    Rst,
+    Ce(u32),
+    Imux(u32),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
@@ -246,6 +258,7 @@ pub struct NodeNaming {
     pub wire_bufs: BTreeMap<NodeWireId, NodeExtPipNaming>,
     pub ext_pips: BTreeMap<(NodeWireId, NodeWireId), NodeExtPipNaming>,
     pub bels: EntityVec<BelId, BelNaming>,
+    pub iris: EntityVec<NodeIriId, IriNaming>,
     pub intf_wires_out: BTreeMap<NodeWireId, IntfWireOutNaming>,
     pub intf_wires_in: BTreeMap<NodeWireId, IntfWireInNaming>,
 }
@@ -273,17 +286,49 @@ pub struct BelPinNaming {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct IriNaming {
+    pub tile: NodeRawTileId,
+    pub kind: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IntfWireOutNaming {
-    Simple(String),
-    Buf(String, String),
+    Simple { name: String },
+    Buf { name_out: String, name_in: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IntfWireInNaming {
-    Simple(String),
-    TestBuf(String, String),
-    Delay(String, String, String),
-    Buf(String, String),
+    Simple {
+        name: String,
+    },
+    Buf {
+        name_out: String,
+        name_in: String,
+    },
+    TestBuf {
+        name_out: String,
+        name_in: String,
+    },
+    Delay {
+        name_out: String,
+        name_in: String,
+        name_delay: String,
+    },
+    Iri {
+        name_out: String,
+        name_pin_out: String,
+        name_pin_in: String,
+        name_in: String,
+    },
+    IriDelay {
+        name_out: String,
+        name_delay: String,
+        name_pre_delay: String,
+        name_pin_out: String,
+        name_pin_in: String,
+        name_in: String,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -308,13 +353,22 @@ pub struct TermNaming {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TermWireOutNaming {
-    Simple(String),
-    Buf(String, String),
+    Simple { name: String },
+    Buf { name_out: String, name_in: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TermWireInFarNaming {
-    Simple(String),
-    Buf(String, String),
-    BufFar(String, String, String),
+    Simple {
+        name: String,
+    },
+    Buf {
+        name_out: String,
+        name_in: String,
+    },
+    BufFar {
+        name: String,
+        name_far_out: String,
+        name_far_in: String,
+    },
 }

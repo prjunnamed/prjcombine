@@ -609,17 +609,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some((_, intf)) = builder.db.node_namings.get_mut("INTF.PPC_R") {
         intf.intf_wires_in.insert(
             (NodeTileId::from_idx(0), clk[0]),
-            IntfWireInNaming::Buf(
-                "PPC_R_INT_INTERFACE_FB_CLK_B0".to_string(),
-                "INT_INTERFACE_CLK_B0".to_string(),
-            ),
+            IntfWireInNaming::Buf {
+                name_out: "PPC_R_INT_INTERFACE_FB_CLK_B0".to_string(),
+                name_in: "INT_INTERFACE_CLK_B0".to_string(),
+            },
         );
         intf.intf_wires_in.insert(
             (NodeTileId::from_idx(0), clk[1]),
-            IntfWireInNaming::Buf(
-                "PPC_R_INT_INTERFACE_FB_CLK_B1".to_string(),
-                "INT_INTERFACE_CLK_B1".to_string(),
-            ),
+            IntfWireInNaming::Buf {
+                name_out: "PPC_R_INT_INTERFACE_FB_CLK_B1".to_string(),
+                name_in: "INT_INTERFACE_CLK_B1".to_string(),
+            },
         );
     }
 

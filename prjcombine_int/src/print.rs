@@ -1,6 +1,6 @@
 use crate::db::{
-    IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, PinDir, TermInfo, TermWireInFarNaming,
-    TermWireOutNaming, WireKind,
+    IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, IriPin, PinDir, TermInfo,
+    TermWireInFarNaming, TermWireOutNaming, WireKind,
 };
 use prjcombine_entity::EntityId;
 use std::collections::BTreeMap;
@@ -52,16 +52,11 @@ impl IntDb {
                 }
                 writeln!(o)?;
             }
+            if !node.iris.is_empty() {
+                writeln!(o, "\t\tIRI {n}", n = node.iris.len())?;
+            }
             for (&wo, intf) in &node.intfs {
                 match intf {
-                    IntfInfo::InputDelay => {
-                        writeln!(
-                            o,
-                            "\t\tINTF.DELAY {wot}.{won}",
-                            wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name
-                        )?;
-                    }
                     IntfInfo::OutputTestMux(ins) => {
                         write!(
                             o,
@@ -78,6 +73,44 @@ impl IntDb {
                             )?;
                         }
                         writeln!(o)?;
+                    }
+                    IntfInfo::InputDelay => {
+                        writeln!(
+                            o,
+                            "\t\tINTF.DELAY {wot}.{won}",
+                            wot = wo.0.to_idx(),
+                            won = self.wires[wo.1].name
+                        )?;
+                    }
+                    IntfInfo::InputIri(iri, pin) => {
+                        write!(
+                            o,
+                            "\t\tINTF.IRI {wot}.{won} IRI.{iri} ",
+                            wot = wo.0.to_idx(),
+                            won = self.wires[wo.1].name,
+                            iri = iri.to_idx(),
+                        )?;
+                        match pin {
+                            IriPin::Clk => writeln!(o, "CLK")?,
+                            IriPin::Rst => writeln!(o, "RST")?,
+                            IriPin::Ce(i) => writeln!(o, "CE{i}")?,
+                            IriPin::Imux(i) => writeln!(o, "IMUX{i}")?,
+                        }
+                    }
+                    IntfInfo::InputIriDelay(iri, pin) => {
+                        write!(
+                            o,
+                            "\t\tINTF.IRI.DELAY {wot}.{won} IRI.{iri} ",
+                            wot = wo.0.to_idx(),
+                            won = self.wires[wo.1].name,
+                            iri = iri.to_idx(),
+                        )?;
+                        match pin {
+                            IriPin::Clk => writeln!(o, "CLK")?,
+                            IriPin::Rst => writeln!(o, "RST")?,
+                            IriPin::Ce(i) => writeln!(o, "CE{i}")?,
+                            IriPin::Imux(i) => writeln!(o, "IMUX{i}")?,
+                        }
                     }
                 }
             }
@@ -210,6 +243,15 @@ impl IntDb {
                     }
                 }
             }
+            for (i, iri) in &naming.iris {
+                writeln!(
+                    o,
+                    "\t\tIRI.{i}: RT.{rt} {kind}",
+                    i = i.to_idx(),
+                    rt = iri.tile.to_idx(),
+                    kind = iri.kind
+                )?;
+            }
             for (w, wn) in &naming.intf_wires_out {
                 write!(
                     o,
@@ -218,8 +260,10 @@ impl IntDb {
                     wn = self.wires[w.1].name
                 )?;
                 match wn {
-                    IntfWireOutNaming::Simple(n) => writeln!(o, "SIMPLE {n}")?,
-                    IntfWireOutNaming::Buf(nt, nf) => writeln!(o, "BUF {nt} <- {nf}")?,
+                    IntfWireOutNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,
+                    IntfWireOutNaming::Buf { name_out, name_in } => {
+                        writeln!(o, "BUF {name_out} <- {name_in}")?
+                    }
                 }
             }
             for (w, wn) in &naming.intf_wires_in {
@@ -230,11 +274,17 @@ impl IntDb {
                     wn = self.wires[w.1].name
                 )?;
                 match wn {
-                    IntfWireInNaming::Simple(n) => writeln!(o, "SIMPLE {n}")?,
-                    IntfWireInNaming::Buf(nt, nf) => writeln!(o, "BUF {nt} <- {nf}")?,
-                    IntfWireInNaming::TestBuf(nt, nf) => writeln!(o, "TESTBUF {nt} <- {nf}")?,
-                    IntfWireInNaming::Delay(nt, nd, nf) => {
-                        writeln!(o, "DELAY {nt} <- {nd} <- {nf}")?
+                    IntfWireInNaming::Simple {name} => writeln!(o, "SIMPLE {name}")?,
+                    IntfWireInNaming::Buf{name_out, name_in} => writeln!(o, "BUF {name_out} <- {name_in}")?,
+                    IntfWireInNaming::TestBuf{name_out, name_in} => writeln!(o, "TESTBUF {name_out} <- {name_in}")?,
+                    IntfWireInNaming::Delay{name_out, name_delay, name_in} => {
+                        writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?
+                    }
+                    IntfWireInNaming::Iri{name_out, name_pin_out, name_pin_in, name_in} => {
+                        writeln!(o, "DELAY {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
+                    }
+                    IntfWireInNaming::IriDelay{name_out, name_delay, name_pre_delay, name_pin_out, name_pin_in, name_in} => {
+                        writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
                     }
                 }
             }
@@ -244,8 +294,10 @@ impl IntDb {
             for (w, wn) in &naming.wires_out {
                 write!(o, "\t\tWIRE OUT {w}: ", w = self.wires[w].name)?;
                 match wn {
-                    TermWireOutNaming::Simple(n) => writeln!(o, "{n}")?,
-                    TermWireOutNaming::Buf(nt, nf) => writeln!(o, "{nt} <- {nf}")?,
+                    TermWireOutNaming::Simple { name } => writeln!(o, "{name}")?,
+                    TermWireOutNaming::Buf { name_out, name_in } => {
+                        writeln!(o, "{name_out} <- {name_in}")?
+                    }
                 }
             }
             for (w, wn) in &naming.wires_in_near {
@@ -254,9 +306,15 @@ impl IntDb {
             for (w, wn) in &naming.wires_in_far {
                 write!(o, "\t\tWIRE IN FAR {w}: ", w = self.wires[w].name)?;
                 match wn {
-                    TermWireInFarNaming::Simple(n) => writeln!(o, "{n}")?,
-                    TermWireInFarNaming::Buf(nt, nf) => writeln!(o, "{nt} <- {nf}")?,
-                    TermWireInFarNaming::BufFar(nt, nm, nf) => writeln!(o, "{nt} <- {nm} <- {nf}")?,
+                    TermWireInFarNaming::Simple { name } => writeln!(o, "{name}")?,
+                    TermWireInFarNaming::Buf { name_out, name_in } => {
+                        writeln!(o, "{name_out} <- {name_in}")?
+                    }
+                    TermWireInFarNaming::BufFar {
+                        name,
+                        name_far_out,
+                        name_far_in,
+                    } => writeln!(o, "{name} <- {name_far_out} <- {name_far_in}")?,
                 }
             }
         }

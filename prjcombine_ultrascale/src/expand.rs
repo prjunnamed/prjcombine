@@ -3105,7 +3105,10 @@ pub fn expand_grid<'a>(
     let is_cut = disabled
         .iter()
         .any(|x| matches!(x, DisabledPart::Region(..)));
-    let is_cut_d = disabled.contains(&DisabledPart::Region(DieId::from_idx(0), RegId::from_idx(0)));
+    let is_cut_d = disabled.contains(&DisabledPart::Region(
+        DieId::from_idx(0),
+        RegId::from_idx(0),
+    ));
 
     ExpandedDevice {
         kind: grids[grid_master].kind,

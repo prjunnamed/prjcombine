@@ -3,7 +3,7 @@ use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::Part;
 use prjcombine_versal::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
-    HardRowKind, RegId, TopKind, PsKind,
+    HardRowKind, PsKind, RegId, TopKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
