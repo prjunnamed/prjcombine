@@ -74,6 +74,25 @@ impl IntDb {
                         }
                         writeln!(o)?;
                     }
+                    IntfInfo::OutputTestMuxPass(ins, wi) => {
+                        write!(
+                            o,
+                            "\t\tINTF.TESTMUX.PASS {wot}.{won} <- {wit}.{win} | ",
+                            wot = wo.0.to_idx(),
+                            won = self.wires[wo.1].name,
+                            wit = wi.0.to_idx(),
+                            win = self.wires[wi.1].name
+                        )?;
+                        for &wi in ins {
+                            write!(
+                                o,
+                                " {wit}.{win}",
+                                wit = wi.0.to_idx(),
+                                win = self.wires[wi.1].name
+                            )?;
+                        }
+                        writeln!(o)?;
+                    }
                     IntfInfo::InputDelay => {
                         writeln!(
                             o,
@@ -281,10 +300,10 @@ impl IntDb {
                         writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_in}")?
                     }
                     IntfWireInNaming::Iri{name_out, name_pin_out, name_pin_in, name_in} => {
-                        writeln!(o, "DELAY {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
+                        writeln!(o, "IRI {name_out} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
                     }
                     IntfWireInNaming::IriDelay{name_out, name_delay, name_pre_delay, name_pin_out, name_pin_in, name_in} => {
-                        writeln!(o, "DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
+                        writeln!(o, "IRI.DELAY {name_out} <- {name_delay} <- {name_pre_delay} <- {name_pin_out} <-IRI- {name_pin_in} <- {name_in}")?
                     }
                 }
             }

@@ -1212,6 +1212,83 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         }],
         source_device: "xczu5ev-fbvb900-1-e",
     },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "PCIEB_BOT_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "PCIE40",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "PCIE40_X0Y1",
+        }],
+        source_device: "xcvc1902-viva1596-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "PCIEB_TOP_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "PCIE40",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "PCIE40_X0Y2",
+        }],
+        source_device: "xcvc1902-viva1596-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "MRMAC_BOT_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "MRMAC",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "MRMAC_X0Y0",
+        }],
+        source_device: "xcvc1902-viva1596-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "PCIEB5_TOP_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "PCIE50",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "PCIE50_X0Y1",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "GTYP_QUAD_SINGLE",
+        slots: &[FixupSiteSlot {
+            slot_name: "GTYP_QUAD",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "GTYP_QUAD_X1Y0",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "GTYP_QUAD_SINGLE",
+        slots: &[FixupSiteSlot {
+            slot_name: "GTYP_REFCLK",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "GTYP_REFCLK_X1Y0",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "GTYP_QUAD_SINGLE",
+        slots: &[FixupSiteSlot {
+            slot_name: "GTYP_REFCLK",
+            slot_x: 0,
+            slot_y: 1,
+            source_site: "GTYP_REFCLK_X1Y1",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
 ];
 
 pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {

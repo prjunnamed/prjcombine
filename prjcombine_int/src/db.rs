@@ -239,6 +239,7 @@ pub enum PinDir {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IntfInfo {
     OutputTestMux(BTreeSet<NodeWireId>),
+    OutputTestMuxPass(BTreeSet<NodeWireId>, NodeWireId),
     InputDelay,
     InputIri(NodeIriId, IriPin),
     InputIriDelay(NodeIriId, IriPin),

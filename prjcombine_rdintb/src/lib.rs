@@ -423,10 +423,10 @@ impl XNodeInfo<'_, '_> {
                             {
                                 continue;
                             }
-                            names
-                                .entry(nw)
-                                .or_insert((IntConnKind::Raw, (r.tile_map[w.0], w.1)));
-                            continue;
+                            if let Some(&t) = r.tile_map.get(w.0) {
+                                names.entry(nw).or_insert((IntConnKind::Raw, (t, w.1)));
+                                continue;
+                            }
                         }
                         if let Some(xn) = self.builder.extra_names_tile.get(&tile.kind) {
                             if let Some(&w) = xn.get(&rd.wires[wi]) {
@@ -440,10 +440,10 @@ impl XNodeInfo<'_, '_> {
                                 {
                                     continue;
                                 }
-                                names
-                                    .entry(nw)
-                                    .or_insert((IntConnKind::Raw, (r.tile_map[w.0], w.1)));
-                                continue;
+                                if let Some(&t) = r.tile_map.get(w.0) {
+                                    names.entry(nw).or_insert((IntConnKind::Raw, (t, w.1)));
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -1044,7 +1044,6 @@ impl XNodeExtractor<'_, '_, '_> {
         let crd = self.xnode.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
-        let mut out_muxes: HashMap<NodeWireId, Vec<NodeWireId>> = HashMap::new();
         let mut proxied_in = HashMap::new();
         for (iri, slot) in &self.xnode.iris {
             let (_, site) = tk.sites.get(slot).unwrap();
@@ -1110,16 +1109,6 @@ impl XNodeExtractor<'_, '_, '_> {
                             name_in: self.rd.wires[wire_in].to_string(),
                         },
                     );
-                    println!(
-                        "IRI {wft}.{wf}: {iri} {pin:?} {wo} {wpo} {wpi} {wi}",
-                        wft = wf.0.to_idx(),
-                        wf = self.db.wires[wf.1].name,
-                        iri = iri.to_idx(),
-                        wo = self.rd.wires[wire_out],
-                        wpo = self.rd.wires[wire_pin_out],
-                        wpi = self.rd.wires[wire_pin_in],
-                        wi = self.rd.wires[wire_in],
-                    );
                 } else {
                     println!(
                         "MISSING IRI {iri} {pin:?} {wo} {wpo} {wpi} {wi}",
@@ -1179,9 +1168,12 @@ impl XNodeExtractor<'_, '_, '_> {
                         },
                     );
                     proxied_in.remove(&wfi);
+                    proxied_in.insert(wti, wf);
                 }
             }
         }
+        let mut out_muxes: HashMap<NodeWireId, (Vec<NodeWireId>, Option<NodeWireId>)> =
+            HashMap::new();
         for &(wfi, wti) in tk.pips.keys() {
             let nwt = self.rd.lookup_wire_raw_force(crd, wti);
             if let Some(&(_, wt)) = self.names.get(&nwt) {
@@ -1203,9 +1195,13 @@ impl XNodeExtractor<'_, '_, '_> {
                         },
                     );
                     assert!(!self.node.intfs.contains_key(&wf));
-                    out_muxes.entry(wt).or_default().push(wf);
+                    if self.db.wires[wf.1].kind == WireKind::LogicOut || self.xnode.builder.test_mux_pass.contains(&wf.1) {
+                        assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
+                    } else {
+                        out_muxes.entry(wt).or_default().0.push(wf);
+                    }
                 } else if let Some(&wf) = proxied_in.get(&wfi) {
-                    out_muxes.entry(wt).or_default().push(wf);
+                    out_muxes.entry(wt).or_default().0.push(wf);
                 } else if let Some(&(_, wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
                     if !self.buf_in.contains_key(&nwf) {
                         assert!(!self.xnode.has_intf_out_bufs);
@@ -1221,7 +1217,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         },
                     );
                     assert!(!self.node.intfs.contains_key(&wf));
-                    out_muxes.entry(wt).or_default().push(wf);
+                    out_muxes.entry(wt).or_default().0.push(wf);
                 } else if self.xnode.has_intf_out_bufs {
                     out_muxes.entry(wt).or_default();
                     self.node_naming.intf_wires_out.insert(
@@ -1234,10 +1230,15 @@ impl XNodeExtractor<'_, '_, '_> {
                 }
             }
         }
-        for (k, v) in out_muxes {
-            self.node
-                .intfs
-                .insert(k, IntfInfo::OutputTestMux(v.into_iter().collect()));
+        for (wt, (wfs, pwf)) in out_muxes {
+            let wfs = wfs.into_iter().collect();
+            self.node.intfs.insert(
+                wt,
+                match pwf {
+                    None => IntfInfo::OutputTestMux(wfs),
+                    Some(pwf) => IntfInfo::OutputTestMuxPass(wfs, pwf),
+                },
+            );
         }
     }
 }
@@ -1256,6 +1257,7 @@ pub struct IntBuilder<'a> {
     stub_outs: HashSet<String>,
     extra_names: HashMap<String, NodeWireId>,
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, NodeWireId>>,
+    test_mux_pass: HashSet<WireId>,
 }
 
 impl<'a> IntBuilder<'a> {
@@ -1276,7 +1278,12 @@ impl<'a> IntBuilder<'a> {
             stub_outs: Default::default(),
             extra_names: Default::default(),
             extra_names_tile: Default::default(),
+            test_mux_pass: Default::default(),
         }
+    }
+
+    pub fn test_mux_pass(&mut self, wire: WireId) {
+        self.test_mux_pass.insert(wire);
     }
 
     pub fn bel_virtual(&self, name: impl Into<String>) -> ExtrBelInfo {
@@ -2263,6 +2270,16 @@ impl<'a> IntBuilder<'a> {
                         }
                         IntfInfo::OutputTestMux(ref wfs) => {
                             if let IntfInfo::OutputTestMux(cwfs) = cv {
+                                for &wf in wfs {
+                                    cwfs.insert(wf);
+                                }
+                            } else {
+                                assert_eq!(*cv, v);
+                            }
+                        }
+                        IntfInfo::OutputTestMuxPass(ref wfs, pwf) => {
+                            if let IntfInfo::OutputTestMuxPass(cwfs, cpwf) = cv {
+                                assert_eq!(pwf, *cpwf);
                                 for &wf in wfs {
                                     cwfs.insert(wf);
                                 }

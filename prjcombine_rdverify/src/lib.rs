@@ -265,10 +265,28 @@ impl<'a> Verifier<'a> {
                                         iwd.has_intf_o = true;
                                     }
                                     for &wf in wfs {
-                                        let wf = (die.die, node.tiles[w.0], wf.1);
+                                        let wf = (die.die, node.tiles[wf.0], wf.1);
                                         if let Some(wf) = self.grid.resolve_wire_raw(wf) {
                                             self.int_wire_data.entry(wf).or_default().used_i = true;
                                         }
+                                    }
+                                }
+                                IntfInfo::OutputTestMuxPass(ref wfs, pwf) => {
+                                    let wt = (die.die, node.tiles[w.0], w.1);
+                                    if let Some(wt) = self.grid.resolve_wire_raw(wt) {
+                                        let iwd = self.int_wire_data.entry(wt).or_default();
+                                        iwd.used_o = true;
+                                        iwd.has_intf_o = true;
+                                    }
+                                    for &wf in wfs {
+                                        let wf = (die.die, node.tiles[wf.0], wf.1);
+                                        if let Some(wf) = self.grid.resolve_wire_raw(wf) {
+                                            self.int_wire_data.entry(wf).or_default().used_i = true;
+                                        }
+                                    }
+                                    let wf = (die.die, node.tiles[pwf.0], pwf.1);
+                                    if let Some(wf) = self.grid.resolve_wire_raw(wf) {
+                                        self.int_wire_data.entry(wf).or_default().used_i = true;
                                     }
                                 }
                                 IntfInfo::InputDelay
@@ -883,7 +901,7 @@ impl<'a> Verifier<'a> {
         for (&wt, ii) in &kind.intfs {
             let wti = (die, node.tiles[wt.0], wt.1);
             match ii {
-                IntfInfo::OutputTestMux(wfs) => {
+                IntfInfo::OutputTestMux(wfs) | IntfInfo::OutputTestMuxPass(wfs, _) => {
                     let wtn = match naming.intf_wires_out[&wt] {
                         IntfWireOutNaming::Simple { name: ref wtn } => wtn,
                         IntfWireOutNaming::Buf {
@@ -904,7 +922,12 @@ impl<'a> Verifier<'a> {
                             wn = self.print_nw(wt),
                         );
                     }
-                    for &wf in wfs {
+                    let pwf = if let &IntfInfo::OutputTestMuxPass(_, wf) = ii {
+                        Some(wf)
+                    } else {
+                        None
+                    };
+                    for wf in wfs.iter().copied().chain(pwf) {
                         let wfi = (die, node.tiles[wf.0], wf.1);
                         if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                             let wfn = match *iwi {

@@ -43,6 +43,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         (Dir::E, "INTF_GT_BR_TILE", "INTF.E.TERM.GT", true),
         (Dir::E, "INTF_GT_TR_TILE", "INTF.E.TERM.GT", true),
     ];
+    let bli_cle_intf_kinds = [
+        (Dir::E, "BLI_CLE_BOT_CORE", "INTF.BLI_CLE.BOT.E", false),
+        (Dir::E, "BLI_CLE_TOP_CORE", "INTF.BLI_CLE.TOP.E", true),
+        (Dir::W, "BLI_CLE_BOT_CORE_MY", "INTF.BLI_CLE.BOT.W", false),
+        (Dir::W, "BLI_CLE_TOP_CORE_MY", "INTF.BLI_CLE.TOP.W", true),
+    ];
 
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
 
@@ -388,12 +394,30 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 _ => (),
             }
             let cw = builder.wire(format!("CLE.OUT.{ew}.{i}"), WireKind::Branch(ew), &[""]);
+            builder.test_mux_pass(cw);
             builder.extra_name_tile_sub("CLE_BC_CORE", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             builder.extra_name_tile_sub("SLL", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             if ew == Dir::E {
                 logic_outs_e.insert(cw, TermInfo::PassNear(w));
             } else {
                 logic_outs_w.insert(cw, TermInfo::PassNear(w));
+            }
+        }
+    }
+
+    for ew in [Dir::E, Dir::W] {
+        let w = builder.test_out(format!("TEST.{ew}.TMR_DFT"), &[""]);
+
+        for (dir, tkn, _, _) in intf_kinds {
+            if dir == ew {
+                builder.extra_name_tile(tkn, "INTF_MUX2_TMR_GREEN_TMR_DFT", w);
+            }
+        }
+        for (dir, tkn, _, _) in bli_cle_intf_kinds {
+            if dir == ew {
+                for i in 0..4 {
+                    builder.extra_name_tile(tkn, format!("INTF_MUX2_TMR_GREEN_{i}_TMR_DFT"), w);
+                }
             }
         }
     }
@@ -417,7 +441,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    for (sub, ew) in [Dir::W, Dir::E].into_iter().enumerate() {
+    for (sub, ew) in [Dir::E, Dir::W].into_iter().enumerate() {
         let lr = match ew {
             Dir::E => 'L',
             Dir::W => 'R',
@@ -425,7 +449,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         };
         for i in 0..13 {
             let w = builder.mux_out(format!("CLE.IMUX.{ew}.CTRL.{i}"), &[""]);
-            builder.extra_name_sub(format!("CTRL_{lr}{i}"), sub, w);
+            builder.extra_name_sub(format!("CTRL_{lr}_B{i}"), sub, w);
             builder.extra_name_tile(
                 match ew {
                     Dir::E => "CLE_W_CORE",
@@ -450,6 +474,40 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 },
                 w,
             );
+        }
+    }
+
+    for ew in [Dir::E, Dir::W] {
+        for i in 0..4 {
+            for j in 1..4 {
+                let w = builder.wire(
+                    format!("BLI_CLE.IMUX.{ew}.IRI{i}.FAKE_CE{j}"),
+                    WireKind::Tie0,
+                    &[""],
+                );
+                for (dir, tkn, _, _) in bli_cle_intf_kinds {
+                    if dir == ew {
+                        let idxs = match (i, j) {
+                            (0, 1) => [24, 30, 39, 45],
+                            (0, 2) => [25, 31, 40, 46],
+                            (0, 3) => [26, 32, 41, 47],
+                            (1, 1) => [0, 6, 15, 21],
+                            (1, 2) => [1, 7, 16, 22],
+                            (1, 3) => [2, 8, 17, 23],
+                            (2, 1) => [27, 33, 36, 42],
+                            (2, 2) => [28, 34, 37, 43],
+                            (2, 3) => [29, 35, 38, 44],
+                            (3, 1) => [3, 9, 12, 18],
+                            (3, 2) => [4, 10, 13, 19],
+                            (3, 3) => [5, 11, 14, 20],
+                            _ => unreachable!(),
+                        };
+                        for idx in idxs {
+                            builder.extra_name_tile(tkn, format!("GND_WIRE{idx}"), w);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -635,6 +693,40 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extract();
         }
     }
+    let cle_bc = builder.db.get_node_naming("CLE_BC");
+    for (dir, tkn, name, is_top) in bli_cle_intf_kinds {
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = builder.walk_to_int(xy, !dir).unwrap();
+            let cle_xy = xy.delta(if dir == Dir::E { 1 } else { -1 }, 0);
+            for i in 0..4 {
+                let iriy = if is_top {
+                    4 * i as u8
+                } else {
+                    4 * (3 - i) as u8
+                };
+                builder
+                    .xnode(format!("{name}.{i}"), format!("{name}.{i}"), xy)
+                    .ref_int(int_xy.delta(0, i), 0)
+                    .ref_xlat(
+                        cle_xy.delta(0, i),
+                        if dir == Dir::E {
+                            &[Some(0), None]
+                        } else {
+                            &[None, Some(0)]
+                        },
+                        cle_bc,
+                    )
+                    .extract_intfs(true)
+                    .iris(&[
+                        ("IRI_QUAD", 0, iriy),
+                        ("IRI_QUAD", 0, iriy + 1),
+                        ("IRI_QUAD", 0, iriy + 2),
+                        ("IRI_QUAD", 0, iriy + 3),
+                    ])
+                    .extract();
+            }
+        }
+    }
 
     term_wires[Dir::N].insert(
         builder.db.get_wire("LONG.6.E.0.3.S"),
@@ -717,6 +809,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .pin_name_only("COUT", 1),
                 ],
             );
+        }
+    }
+
+    for (kind, tkn, sk, is_large) in [
+        ("PCIE4", "PCIEB_BOT_TILE", "PCIE40", false),
+        ("PCIE4", "PCIEB_TOP_TILE", "PCIE40", false),
+        ("PCIE5", "PCIEB5_BOT_TILE", "PCIE50", false),
+        ("PCIE5", "PCIEB5_TOP_TILE", "PCIE50", false),
+        ("MRMAC", "MRMAC_BOT_TILE", "MRMAC", false),
+        ("MRMAC", "MRMAC_TOP_TILE", "MRMAC", false),
+        ("DCMAC", "DCMAC_TILE", "DCMAC", true),
+        ("ILKN", "ILKN_TILE", "ILKNF", true),
+        ("HSC", "HSC_TILE", "HSC", true),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder.bel_xy(kind, sk, 0, 0);
+            let intf_l = builder.db.get_node_naming("INTF.E.HB");
+            let intf_r = builder.db.get_node_naming("INTF.W.HB");
+            let height = if is_large { 96 } else { 48 };
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(height * 2);
+            for i in 0..height {
+                xn = xn
+                    .ref_single(xy.delta(-1, (i + i / 4) as i32), i, intf_l)
+                    .ref_single(xy.delta(1, (i + i / 4) as i32), i + height, intf_r)
+            }
+            xn.bel(bel).extract();
         }
     }
 
