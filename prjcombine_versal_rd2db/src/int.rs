@@ -812,6 +812,211 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for (dir, tkn) in [
+        (Dir::E, "BRAM_LOCF_BR_TILE"),
+        (Dir::E, "BRAM_LOCF_TR_TILE"),
+        (Dir::E, "BRAM_ROCF_BR_TILE"),
+        (Dir::E, "BRAM_ROCF_TR_TILE"),
+        (Dir::W, "BRAM_ROCF_BL_TILE"),
+        (Dir::W, "BRAM_ROCF_TL_TILE"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let (kind, key_f, key_h0, key_h1, intf) = match dir {
+                Dir::E => ("BRAM_R", "BRAM_R_F", "BRAM_R_H0", "BRAM_R_H1", "INTF.E"),
+                Dir::W => ("BRAM_L", "BRAM_L_F", "BRAM_L_H0", "BRAM_L_H1", "INTF.W"),
+                _ => unreachable!(),
+            };
+            let intf = builder.db.get_node_naming(intf);
+            let intf_xy = if dir == Dir::E {
+                xy.delta(-1, 0)
+            } else {
+                xy.delta(1, 0)
+            };
+            let mut bel_f = builder
+                .bel_xy(key_f, "RAMB36", 0, 0)
+                .pin_name_only("CASINSBITERR", 1)
+                .pin_name_only("CASINDBITERR", 1)
+                .pin_name_only("CASOUTSBITERR", 1)
+                .pin_name_only("CASOUTDBITERR", 1);
+            for ab in ['A', 'B'] {
+                for i in 0..32 {
+                    bel_f = bel_f
+                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 1);
+                }
+                for i in 0..4 {
+                    bel_f = bel_f
+                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
+                }
+            }
+            let mut bel_h0 = builder.bel_xy(key_h0, "RAMB18", 0, 0);
+            let mut bel_h1 = builder.bel_xy(key_h1, "RAMB18", 0, 1);
+            for ab in ['A', 'B'] {
+                for i in 0..16 {
+                    bel_h0 = bel_h0
+                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 1);
+                    bel_h1 = bel_h1
+                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 1);
+                }
+                for i in 0..2 {
+                    bel_h0 = bel_h0
+                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
+                    bel_h1 = bel_h1
+                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
+                }
+            }
+            let bels = [bel_f, bel_h0, bel_h1];
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(4);
+            for i in 0..4 {
+                xn = xn.ref_single(intf_xy.delta(0, i as i32), i, intf)
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for tkn in [
+        "URAM_LOCF_BL_TILE",
+        "URAM_LOCF_TL_TILE",
+        "URAM_ROCF_BL_TILE",
+        "URAM_ROCF_TL_TILE",
+        "URAM_DELAY_LOCF_TL_TILE",
+        "URAM_DELAY_ROCF_TL_TILE",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let intf = builder.db.get_node_naming("INTF.W");
+            let intf_xy = xy.delta(1, 0);
+            let mut bel = builder.bel_xy("URAM", "URAM288", 0, 0);
+            for ab in ['A', 'B'] {
+                bel = bel
+                    .pin_name_only(&format!("CAS_IN_EN_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_OUT_EN_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_IN_SBITERR_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_OUT_SBITERR_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_IN_DBITERR_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_OUT_DBITERR_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_IN_RDACCESS_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_OUT_RDACCESS_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_IN_RDB_WR_{ab}"), 1)
+                    .pin_name_only(&format!("CAS_OUT_RDB_WR_{ab}"), 1);
+                for i in 0..72 {
+                    bel = bel
+                        .pin_name_only(&format!("CAS_IN_DIN_{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CAS_IN_DOUT_{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CAS_OUT_DIN_{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CAS_OUT_DOUT_{ab}_{i}_"), 1);
+                }
+                for i in 0..26 {
+                    bel = bel
+                        .pin_name_only(&format!("CAS_IN_ADDR_{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CAS_OUT_ADDR_{ab}_{i}_"), 1);
+                }
+                for i in 0..9 {
+                    bel = bel
+                        .pin_name_only(&format!("CAS_IN_BWE_{ab}_{i}_"), 1)
+                        .pin_name_only(&format!("CAS_OUT_BWE_{ab}_{i}_"), 1);
+                }
+            }
+            let mut xn = builder.xnode("URAM", "URAM", xy).num_tiles(4);
+            for i in 0..4 {
+                xn = xn.ref_single(intf_xy.delta(0, i as i32), i, intf)
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
+    for tkn in ["DSP_ROCF_B_TILE", "DSP_ROCF_T_TILE"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..2 {
+                let mut bel = builder
+                    .bel_xy(format!("DSP{i}"), "DSP", i, 0)
+                    .pin_name_only("MULTSIGNIN", 1)
+                    .pin_name_only("MULTSIGNOUT", 1)
+                    .pin_name_only("CARRYCASCIN", 1)
+                    .pin_name_only("CARRYCASCOUT", 1)
+                    .pin_name_only("CONJ_CPLX_OUT", 1)
+                    .pin_name_only("CONJ_CPLX_MULT_IN", 0)
+                    .pin_name_only("CONJ_CPLX_PREADD_IN", 0);
+                for i in 0..34 {
+                    bel = bel
+                        .pin_name_only(&format!("ACIN_{i}_"), 1)
+                        .pin_name_only(&format!("ACOUT_{i}_"), 1);
+                }
+                for i in 0..32 {
+                    bel = bel
+                        .pin_name_only(&format!("BCIN_{i}_"), 1)
+                        .pin_name_only(&format!("BCOUT_{i}_"), 1);
+                }
+                for i in 0..58 {
+                    bel = bel
+                        .pin_name_only(&format!("PCIN_{i}_"), 1)
+                        .pin_name_only(&format!("PCOUT_{i}_"), 1);
+                }
+                for i in 0..10 {
+                    bel = bel
+                        .pin_name_only(&format!("AD_CPLX_{i}_"), 0)
+                        .pin_name_only(&format!("AD_DATA_CPLX_{i}_"), 1);
+                }
+                for i in 0..18 {
+                    bel = bel
+                        .pin_name_only(&format!("A_TO_D_CPLX_{i}_"), 1)
+                        .pin_name_only(&format!("D_FROM_A_CPLX_{i}_"), 1)
+                        .pin_name_only(&format!("A_CPLX_{i}_"), 1)
+                        .pin_name_only(&format!("B2B1_CPLX_{i}_"), 1);
+                }
+                for i in 0..37 {
+                    bel = bel
+                        .pin_name_only(&format!("U_CPLX_{i}_"), 0)
+                        .pin_name_only(&format!("V_CPLX_{i}_"), 0);
+                }
+                bels.push(bel);
+            }
+            let mut bel = builder
+                .bel_xy("DSP_CPLX", "DSP58_CPLX", 0, 0)
+                .pin_name_only("CONJ_DSP_L_IN", 0)
+                .pin_name_only("CONJ_DSP_R_IN", 0)
+                .pin_name_only("CONJ_DSP_L_MULT_OUT", 1)
+                .pin_name_only("CONJ_DSP_R_MULT_OUT", 1)
+                .pin_name_only("CONJ_DSP_L_PREADD_OUT", 1)
+                .pin_name_only("CONJ_DSP_R_PREADD_OUT", 1);
+            for i in 0..10 {
+                bel = bel
+                    .pin_name_only(&format!("AD_CPLX_DSPL_{i}_"), 1)
+                    .pin_name_only(&format!("AD_CPLX_DSPR_{i}_"), 1)
+                    .pin_name_only(&format!("AD_DATA_CPLX_DSPL_{i}_"), 0)
+                    .pin_name_only(&format!("AD_DATA_CPLX_DSPR_{i}_"), 0);
+            }
+            for i in 0..18 {
+                bel = bel
+                    .pin_name_only(&format!("A_CPLX_L_{i}_"), 0)
+                    .pin_name_only(&format!("B2B1_CPLX_L_{i}_"), 0)
+                    .pin_name_only(&format!("B2B1_CPLX_R_{i}_"), 0);
+            }
+            for i in 0..37 {
+                bel = bel
+                    .pin_name_only(&format!("U_CPLX_{i}_"), 1)
+                    .pin_name_only(&format!("V_CPLX_{i}_"), 1);
+            }
+            bels.push(bel);
+            let intf_l = builder.db.get_node_naming("INTF.E");
+            let intf_r = builder.db.get_node_naming("INTF.W");
+            builder
+                .xnode("DSP", "DSP", xy)
+                .num_tiles(4)
+                .ref_single(xy.delta(-1, 0), 0, intf_l)
+                .ref_single(xy.delta(-1, 1), 1, intf_l)
+                .ref_single(xy.delta(2, 0), 2, intf_r)
+                .ref_single(xy.delta(2, 1), 3, intf_r)
+                .bels(bels)
+                .extract();
+        }
+    }
+
     for (kind, tkn, sk, is_large) in [
         ("PCIE4", "PCIEB_BOT_TILE", "PCIE40", false),
         ("PCIE4", "PCIEB_TOP_TILE", "PCIE40", false),

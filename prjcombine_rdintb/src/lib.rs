@@ -1195,7 +1195,9 @@ impl XNodeExtractor<'_, '_, '_> {
                         },
                     );
                     assert!(!self.node.intfs.contains_key(&wf));
-                    if self.db.wires[wf.1].kind == WireKind::LogicOut || self.xnode.builder.test_mux_pass.contains(&wf.1) {
+                    if self.db.wires[wf.1].kind == WireKind::LogicOut
+                        || self.xnode.builder.test_mux_pass.contains(&wf.1)
+                    {
                         assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
                     } else {
                         out_muxes.entry(wt).or_default().0.push(wf);
