@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_versal::ExpandedDevice;
+use prjcombine_versal::expanded::ExpandedDevice;
 
 fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {

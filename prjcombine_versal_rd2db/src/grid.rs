@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::Part;
-use prjcombine_versal::{
+use prjcombine_versal::grid::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
     HardRowKind, PsKind, RegId, TopKind,
 };

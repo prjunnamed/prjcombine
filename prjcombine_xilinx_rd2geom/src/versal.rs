@@ -1,6 +1,6 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
-use prjcombine_versal::expand_grid;
+use prjcombine_versal::expand::expand_grid;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
@@ -12,10 +12,10 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     let int_db = int::make_int_db(rd);
     let mut bonds = Vec::new();
     for (pkg, _) in rd.packages.iter() {
-        bonds.push((pkg.clone(), Bond::Versal(prjcombine_versal::Bond {})));
+        bonds.push((pkg.clone(), Bond::Versal(prjcombine_versal::bond::Bond {})));
     }
     let grid_refs = grids.map_values(|x| x);
-    let edev = expand_grid(&grid_refs, grid_master, &disabled, &int_db);
+    let edev = expand_grid(&grid_refs, &disabled, &int_db);
     verify_device(&edev, rd);
     let grids = grids.into_map_values(Grid::Versal);
     let disabled = disabled.into_iter().map(DisabledPart::Versal).collect();

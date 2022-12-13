@@ -694,7 +694,7 @@ mod ultrascale {
 
 mod versal {
     use prjcombine_entity::EntityId;
-    use prjcombine_versal::{ColumnKind, Grid};
+    use prjcombine_versal::grid::{ColumnKind, Grid};
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Versal");

@@ -1104,8 +1104,7 @@ impl<'a> Verifier<'a> {
                     wire: Some(wi),
                 });
             }
-            // XXX
-            // self.claim_site(crds[n.tile], &node.iri_names[id], &n.kind, &site_pins);
+            self.claim_site(crds[n.tile], &node.iri_names[id], &n.kind, &site_pins);
         }
     }
 

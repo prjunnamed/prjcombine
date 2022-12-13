@@ -26,7 +26,7 @@ pub enum Grid {
     Spartan6(prjcombine_spartan6::grid::Grid),
     Virtex4(prjcombine_virtex4::grid::Grid),
     Ultrascale(prjcombine_ultrascale::grid::Grid),
-    Versal(prjcombine_versal::Grid),
+    Versal(prjcombine_versal::grid::Grid),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -41,7 +41,7 @@ pub enum DisabledPart {
     Spartan6(prjcombine_spartan6::grid::DisabledPart),
     Virtex4(prjcombine_virtex4::grid::DisabledPart),
     Ultrascale(prjcombine_ultrascale::grid::DisabledPart),
-    Versal(prjcombine_versal::DisabledPart),
+    Versal(prjcombine_versal::grid::DisabledPart),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -79,7 +79,7 @@ pub enum Bond {
     Spartan6(prjcombine_spartan6::bond::Bond),
     Virtex4(prjcombine_virtex4::bond::Bond),
     Ultrascale(prjcombine_ultrascale::bond::Bond),
-    Versal(prjcombine_versal::Bond),
+    Versal(prjcombine_versal::bond::Bond),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -95,7 +95,7 @@ pub struct GeomDb {
 pub enum DeviceNaming {
     Dummy,
     Ultrascale(prjcombine_ultrascale::grid::DeviceNaming),
-    Versal(prjcombine_versal::DeviceNaming),
+    Versal(prjcombine_versal::grid::DeviceNaming),
 }
 
 impl GeomDb {
