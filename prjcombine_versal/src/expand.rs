@@ -17,6 +17,10 @@ struct DieInfo {
     xlut: EntityVec<ColId, u32>,
     ylut: EntityVec<RowId, u32>,
     cleylut: EntityPartVec<RowId, u32>,
+    dspylut: EntityPartVec<RowId, u32>,
+    bramylut: EntityPartVec<RowId, u32>,
+    uramylut: EntityPartVec<RowId, u32>,
+    uramdylut: EntityPartVec<RowId, u32>,
     iriylut: EntityVec<RowId, u32>,
     irixlut: EnumMap<ColSide, EntityPartVec<ColId, u32>>,
 }
@@ -30,6 +34,9 @@ struct Expander<'a> {
     ecol_cfrm: EColId,
     ecols: EntityVec<EColId, ()>,
     clexlut: EntityPartVec<EColId, u32>,
+    dspxlut: EntityPartVec<EColId, u32>,
+    bramxlut: EnumMap<ColSide, EntityPartVec<EColId, u32>>,
+    uramxlut: EntityPartVec<EColId, u32>,
 }
 
 impl Expander<'_> {
@@ -42,6 +49,10 @@ impl Expander<'_> {
                 xlut: Default::default(),
                 ylut: Default::default(),
                 cleylut: Default::default(),
+                dspylut: Default::default(),
+                bramylut: Default::default(),
+                uramylut: Default::default(),
+                uramdylut: Default::default(),
                 iriylut: Default::default(),
                 irixlut: Default::default(),
             });
@@ -110,12 +121,13 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
             let has_cle_bot = grid.columns.iter().any(|(col, cd)| {
-                col >= grid.col_cfrm && matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) && !cd.has_bli_bot_r
+                col >= grid.col_cfrm
+                    && matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna)
+                    && !cd.has_bli_bot_r
             });
-            let has_cle_top = grid
-                .columns
-                .values()
-                .any(|cd| matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) && !cd.has_bli_top_r);
+            let has_cle_top = grid.columns.values().any(|cd| {
+                matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna) && !cd.has_bli_top_r
+            });
             for row in die.rows() {
                 if row.to_idx() < 4 && !has_cle_bot {
                     continue;
@@ -125,6 +137,172 @@ impl Expander<'_> {
                 }
                 di.cleylut.insert(row, cley);
                 cley += 1;
+            }
+        }
+    }
+
+    fn fill_dspxlut(&mut self) {
+        let mut dspx = 0;
+        for ecol in self.ecols.ids() {
+            let mut has_dsp = false;
+            for (dieid, grid) in &self.grids {
+                let di = &self.die[dieid];
+                if let Some(&col) = di.ecol2col.get(ecol) {
+                    if grid.columns[col].r == ColumnKind::Dsp {
+                        has_dsp = true;
+                    }
+                }
+            }
+            if has_dsp {
+                self.dspxlut.insert(ecol, dspx);
+                dspx += 1;
+            }
+        }
+    }
+
+    fn fill_dspylut(&mut self) {
+        let mut dspy = 0;
+        for (dieid, grid) in &self.grids {
+            let di = &mut self.die[dieid];
+            let die = self.egrid.die(dieid);
+            let has_dsp_bot = grid.columns.iter().any(|(col, cd)| {
+                col >= grid.col_cfrm && cd.r == ColumnKind::Dsp && !cd.has_bli_bot_r
+            });
+            let has_dsp_top = grid
+                .columns
+                .values()
+                .any(|cd| cd.r == ColumnKind::Dsp && !cd.has_bli_top_r);
+            for row in die.rows() {
+                if row.to_idx() % 2 != 0 {
+                    continue;
+                }
+                if row.to_idx() < 4 && !has_dsp_bot {
+                    continue;
+                }
+                if row.to_idx() >= die.rows().len() - 4 && !has_dsp_top {
+                    continue;
+                }
+                di.dspylut.insert(row, dspy);
+                dspy += 1;
+            }
+        }
+    }
+
+    fn fill_bramxlut(&mut self) {
+        let mut bramx = 0;
+        for ecol in self.ecols.ids() {
+            let mut has_bram_l = false;
+            let mut has_bram_r = false;
+            for (dieid, grid) in &self.grids {
+                let di = &self.die[dieid];
+                if let Some(&col) = di.ecol2col.get(ecol) {
+                    if matches!(
+                        grid.columns[col].l,
+                        ColumnKind::Bram | ColumnKind::BramClkBuf
+                    ) {
+                        has_bram_l = true;
+                    }
+                    if matches!(
+                        grid.columns[col].r,
+                        ColumnKind::Bram | ColumnKind::BramClkBuf
+                    ) {
+                        has_bram_r = true;
+                    }
+                }
+            }
+            if has_bram_l {
+                self.bramxlut[ColSide::Left].insert(ecol, bramx);
+                bramx += 1;
+            }
+            if has_bram_r {
+                self.bramxlut[ColSide::Right].insert(ecol, bramx);
+                bramx += 1;
+            }
+        }
+    }
+
+    fn fill_bramylut(&mut self) {
+        let mut bramy = 0;
+        for (dieid, grid) in &self.grids {
+            let di = &mut self.die[dieid];
+            let die = self.egrid.die(dieid);
+            let has_bram_bot = grid.columns.iter().any(|(col, cd)| {
+                col >= grid.col_cfrm
+                    && ((matches!(cd.l, ColumnKind::Bram | ColumnKind::BramClkBuf)
+                        && !cd.has_bli_bot_l)
+                        || (matches!(cd.r, ColumnKind::Bram | ColumnKind::BramClkBuf)
+                            && !cd.has_bli_bot_r))
+            });
+            let has_bram_top = grid.columns.values().any(|cd| {
+                (matches!(cd.l, ColumnKind::Bram | ColumnKind::BramClkBuf) && !cd.has_bli_top_l)
+                    || (matches!(cd.r, ColumnKind::Bram | ColumnKind::BramClkBuf)
+                        && !cd.has_bli_top_r)
+            });
+            for row in die.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                if row.to_idx() < 4 && !has_bram_bot {
+                    continue;
+                }
+                if row.to_idx() >= die.rows().len() - 4 && !has_bram_top {
+                    continue;
+                }
+                di.bramylut.insert(row, bramy);
+                bramy += 1;
+            }
+        }
+    }
+
+    fn fill_uramxlut(&mut self) {
+        let mut uramx = 0;
+        for ecol in self.ecols.ids() {
+            let mut has_uram = false;
+            for (dieid, grid) in &self.grids {
+                let di = &self.die[dieid];
+                if let Some(&col) = di.ecol2col.get(ecol) {
+                    if grid.columns[col].l == ColumnKind::Uram {
+                        has_uram = true;
+                    }
+                }
+            }
+            if has_uram {
+                self.uramxlut.insert(ecol, uramx);
+                uramx += 1;
+            }
+        }
+    }
+
+    fn fill_uramylut(&mut self) {
+        let mut uramy = 0;
+        let mut uramdy = 0;
+        for (dieid, grid) in &self.grids {
+            let di = &mut self.die[dieid];
+            let die = self.egrid.die(dieid);
+            let has_uram_bot = grid.columns.iter().any(|(col, cd)| {
+                col >= grid.col_cfrm && cd.l == ColumnKind::Uram && !cd.has_bli_bot_l
+            });
+            let has_uram_top = grid
+                .columns
+                .values()
+                .any(|cd| cd.l == ColumnKind::Uram && !cd.has_bli_top_l);
+            for row in die.rows() {
+                if row.to_idx() % 4 != 0 {
+                    continue;
+                }
+                if row.to_idx() < 4 && !has_uram_bot {
+                    continue;
+                }
+                if row.to_idx() >= die.rows().len() - 4 && !has_uram_top {
+                    continue;
+                }
+                di.uramylut.insert(row, uramy);
+                uramy += 1;
+                let reg = grid.row_to_reg(row);
+                if grid.is_reg_top(reg) && row.to_idx() % 48 == 44 {
+                    di.uramdylut.insert(row, uramdy);
+                    uramdy += 1;
+                }
             }
         }
     }
@@ -174,16 +352,19 @@ impl Expander<'_> {
         for (dieid, grid) in &self.grids {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
-            let has_bli_bot = grid.columns.values().any(|cd| {
-                cd.has_bli_bot_r || cd.has_bli_bot_l
-            });
-            let has_bli_top = grid.columns.values().any(|cd| {
-                cd.has_bli_top_r || cd.has_bli_top_l
-            });
+            let has_bli_bot = grid
+                .columns
+                .values()
+                .any(|cd| cd.has_bli_bot_r || cd.has_bli_bot_l);
+            let has_bli_top = grid
+                .columns
+                .values()
+                .any(|cd| cd.has_bli_top_r || cd.has_bli_top_l);
             for row in die.rows() {
                 di.iriylut.push(iriy);
-                if (row.to_idx() == 0 && has_bli_bot) ||
-                (row.to_idx() == die.rows().len() - 4 && has_bli_top) {
+                if (row.to_idx() == 0 && has_bli_bot)
+                    || (row.to_idx() == die.rows().len() - 4 && has_bli_top)
+                {
                     iriy += 16;
                 } else {
                     iriy += 4;
@@ -236,11 +417,7 @@ impl Expander<'_> {
                     }
                     let y = di.ylut[row];
                     die.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                    let bt = if reg.to_idx() == grid.regs - 1 || reg.to_idx() % 2 == 1 {
-                        'T'
-                    } else {
-                        'B'
-                    };
+                    let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                     if row.to_idx() % 48 == 0 && bt == 'T' {
                         let lr = if col < grid.col_cfrm { 'L' } else { 'R' };
                         let yy = if reg.to_idx() % 2 == 1 { y - 1 } else { y };
@@ -341,7 +518,11 @@ impl Expander<'_> {
                             &[(col, row)],
                         );
                         for i in 0..4 {
-                            node.iri_names.push(format!("IRI_QUAD_X{ix}Y{iy}", ix = di.irixlut[ColSide::Left][col], iy = di.iriylut[row] + i));
+                            node.iri_names.push(format!(
+                                "IRI_QUAD_X{ix}Y{iy}",
+                                ix = di.irixlut[ColSide::Left][col],
+                                iy = di.iriylut[row] + i
+                            ));
                         }
                     }
                     if !matches!(
@@ -386,7 +567,11 @@ impl Expander<'_> {
                             &[(col, row)],
                         );
                         for i in 0..4 {
-                            node.iri_names.push(format!("IRI_QUAD_X{ix}Y{iy}", ix = di.irixlut[ColSide::Right][col], iy = di.iriylut[row] + i));
+                            node.iri_names.push(format!(
+                                "IRI_QUAD_X{ix}Y{iy}",
+                                ix = di.irixlut[ColSide::Right][col],
+                                iy = di.iriylut[row] + i
+                            ));
                         }
                     }
                 }
@@ -474,6 +659,167 @@ impl Expander<'_> {
         }
     }
 
+    fn fill_dsp(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let di = &self.die[dieid];
+            let mut die = self.egrid.die_mut(dieid);
+            for (col, &cd) in &grid.columns {
+                if cd.r != ColumnKind::Dsp {
+                    continue;
+                }
+                for row in die.rows() {
+                    if row.to_idx() % 2 != 0 {
+                        continue;
+                    }
+                    if cd.has_bli_bot_r && row.to_idx() < 4 {
+                        continue;
+                    }
+                    if cd.has_bli_top_r && row.to_idx() >= die.rows().len() - 4 {
+                        continue;
+                    }
+                    let tile = &mut die[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    let x = di.xlut[col];
+                    let y = di.ylut[row];
+                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                    let reg = grid.row_to_reg(row);
+                    let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                    let name = format!("DSP_{ocf}_{bt}_TILE_X{x}Y{y}");
+                    let node = tile.add_xnode(
+                        self.db.get_node("DSP"),
+                        &[&name],
+                        self.db.get_node_naming("DSP"),
+                        &[
+                            (col, row),
+                            (col, row + 1),
+                            (col + 1, row),
+                            (col + 1, row + 1),
+                        ],
+                    );
+                    let sx = self.dspxlut[di.col2ecol[col]];
+                    let sy = di.dspylut[row];
+                    node.add_bel(0, format!("DSP_X{sx}Y{sy}", sx = sx * 2));
+                    node.add_bel(1, format!("DSP_X{sx}Y{sy}", sx = sx * 2 + 1));
+                    node.add_bel(2, format!("DSP58_CPLX_X{sx}Y{sy}"));
+                }
+            }
+        }
+    }
+
+    fn fill_bram(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let di = &self.die[dieid];
+            let mut die = self.egrid.die_mut(dieid);
+            for (col, &cd) in &grid.columns {
+                for (side, lr, kind, ck, has_bli_bot, has_bli_top) in [
+                    (
+                        ColSide::Left,
+                        'L',
+                        "BRAM_L",
+                        cd.l,
+                        cd.has_bli_bot_l,
+                        cd.has_bli_top_l,
+                    ),
+                    (
+                        ColSide::Right,
+                        'R',
+                        "BRAM_R",
+                        cd.r,
+                        cd.has_bli_bot_r,
+                        cd.has_bli_top_r,
+                    ),
+                ] {
+                    if !matches!(ck, ColumnKind::Bram | ColumnKind::BramClkBuf) {
+                        continue;
+                    }
+                    for row in die.rows() {
+                        if row.to_idx() % 4 != 0 {
+                            continue;
+                        }
+                        if has_bli_bot && row.to_idx() < 4 {
+                            continue;
+                        }
+                        if has_bli_top && row.to_idx() >= die.rows().len() - 4 {
+                            continue;
+                        }
+                        let tile = &mut die[(col, row)];
+                        if tile.nodes.is_empty() {
+                            continue;
+                        }
+                        let x = di.xlut[col];
+                        let y = di.ylut[row];
+                        let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                        let reg = grid.row_to_reg(row);
+                        let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                        let name = format!("BRAM_{ocf}_{bt}{lr}_TILE_X{x}Y{y}");
+                        let node = tile.add_xnode(
+                            self.db.get_node(kind),
+                            &[&name],
+                            self.db.get_node_naming(kind),
+                            &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                        );
+                        let sx = self.bramxlut[side][di.col2ecol[col]];
+                        let sy = di.bramylut[row];
+                        node.add_bel(0, format!("RAMB36_X{sx}Y{sy}"));
+                        node.add_bel(1, format!("RAMB18_X{sx}Y{sy}", sy = sy * 2));
+                        node.add_bel(2, format!("RAMB18_X{sx}Y{sy}", sy = sy * 2 + 1));
+                    }
+                }
+            }
+        }
+    }
+
+    fn fill_uram(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let di = &self.die[dieid];
+            let mut die = self.egrid.die_mut(dieid);
+            for (col, &cd) in &grid.columns {
+                if cd.l != ColumnKind::Uram {
+                    continue;
+                }
+                for row in die.rows() {
+                    if row.to_idx() % 4 != 0 {
+                        continue;
+                    }
+                    if cd.has_bli_bot_l && row.to_idx() < 4 {
+                        continue;
+                    }
+                    if cd.has_bli_top_l && row.to_idx() >= die.rows().len() - 4 {
+                        continue;
+                    }
+                    let tile = &mut die[(col, row)];
+                    if tile.nodes.is_empty() {
+                        continue;
+                    }
+                    let x = di.xlut[col];
+                    let y = di.ylut[row];
+                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                    let reg = grid.row_to_reg(row);
+                    let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
+                    let is_delay = grid.is_reg_top(reg) && row.to_idx() % 48 == 44;
+                    let delay = if is_delay { "_DELAY" } else { "" };
+                    let name = format!("URAM{delay}_{ocf}_{bt}L_TILE_X{x}Y{y}");
+                    let kind = if is_delay { "URAM_DELAY" } else { "URAM" };
+                    let node = tile.add_xnode(
+                        self.db.get_node(kind),
+                        &[&name],
+                        self.db.get_node_naming(kind),
+                        &[(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
+                    );
+                    let sx = self.uramxlut[di.col2ecol[col]];
+                    let sy = di.uramylut[row];
+                    node.add_bel(0, format!("URAM288_X{sx}Y{sy}"));
+                    if is_delay {
+                        let dy = di.uramdylut[row];
+                        node.add_bel(1, format!("URAM_CAS_DLY_X{sx}Y{dy}"));
+                    }
+                }
+            }
+        }
+    }
+
     fn fill_clkroot(&mut self) {
         for (dieid, grid) in &self.grids {
             let mut die = self.egrid.die_mut(dieid);
@@ -509,17 +855,29 @@ pub fn expand_grid<'a>(
         die: EntityVec::new(),
         ecol_cfrm: EColId::from_idx(0),
         ecols: EntityVec::new(),
-        clexlut: EntityPartVec::new(),
+        clexlut: Default::default(),
+        dspxlut: Default::default(),
+        bramxlut: Default::default(),
+        uramxlut: Default::default(),
     };
     expander.fill_die();
     expander.fill_ecol();
     expander.fill_ylut();
     expander.fill_clexlut();
     expander.fill_cleylut();
+    expander.fill_dspxlut();
+    expander.fill_dspylut();
+    expander.fill_bramxlut();
+    expander.fill_bramylut();
+    expander.fill_uramxlut();
+    expander.fill_uramylut();
     expander.fill_irixlut();
     expander.fill_iriylut();
     expander.fill_int();
     expander.fill_cle();
+    expander.fill_dsp();
+    expander.fill_bram();
+    expander.fill_uram();
     expander.fill_clkroot();
 
     ExpandedDevice {

@@ -855,19 +855,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for ab in ['A', 'B'] {
                 for i in 0..16 {
                     bel_h0 = bel_h0
-                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 1);
+                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 0)
+                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 0);
                     bel_h1 = bel_h1
-                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 1);
+                        .pin_name_only(&format!("CASDIN{ab}_{i}_"), 0)
+                        .pin_name_only(&format!("CASDOUT{ab}_{i}_"), 0);
                 }
                 for i in 0..2 {
                     bel_h0 = bel_h0
-                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
+                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 0)
+                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 0);
                     bel_h1 = bel_h1
-                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 1);
+                        .pin_name_only(&format!("CASDINP{ab}_{i}_"), 0)
+                        .pin_name_only(&format!("CASDOUTP{ab}_{i}_"), 0);
                 }
             }
             let bels = [bel_f, bel_h0, bel_h1];
@@ -879,53 +879,62 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    for tkn in [
-        "URAM_LOCF_BL_TILE",
-        "URAM_LOCF_TL_TILE",
-        "URAM_ROCF_BL_TILE",
-        "URAM_ROCF_TL_TILE",
-        "URAM_DELAY_LOCF_TL_TILE",
-        "URAM_DELAY_ROCF_TL_TILE",
+    for (tkn, kind) in [
+        ("URAM_LOCF_BL_TILE", "URAM"),
+        ("URAM_LOCF_TL_TILE", "URAM"),
+        ("URAM_ROCF_BL_TILE", "URAM"),
+        ("URAM_ROCF_TL_TILE", "URAM"),
+        ("URAM_DELAY_LOCF_TL_TILE", "URAM_DELAY"),
+        ("URAM_DELAY_ROCF_TL_TILE", "URAM_DELAY"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming("INTF.W");
             let intf_xy = xy.delta(1, 0);
-            let mut bel = builder.bel_xy("URAM", "URAM288", 0, 0);
-            for ab in ['A', 'B'] {
-                bel = bel
-                    .pin_name_only(&format!("CAS_IN_EN_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_OUT_EN_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_IN_SBITERR_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_OUT_SBITERR_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_IN_DBITERR_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_OUT_DBITERR_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_IN_RDACCESS_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_OUT_RDACCESS_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_IN_RDB_WR_{ab}"), 1)
-                    .pin_name_only(&format!("CAS_OUT_RDB_WR_{ab}"), 1);
-                for i in 0..72 {
-                    bel = bel
-                        .pin_name_only(&format!("CAS_IN_DIN_{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CAS_IN_DOUT_{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CAS_OUT_DIN_{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CAS_OUT_DOUT_{ab}_{i}_"), 1);
-                }
-                for i in 0..26 {
-                    bel = bel
-                        .pin_name_only(&format!("CAS_IN_ADDR_{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CAS_OUT_ADDR_{ab}_{i}_"), 1);
-                }
-                for i in 0..9 {
-                    bel = bel
-                        .pin_name_only(&format!("CAS_IN_BWE_{ab}_{i}_"), 1)
-                        .pin_name_only(&format!("CAS_OUT_BWE_{ab}_{i}_"), 1);
-                }
+            let mut bels = vec![builder.bel_xy("URAM", "URAM288", 0, 0)];
+            if kind == "URAM_DELAY" {
+                bels.push(builder.bel_xy("URAM_CAS_DLY", "URAM_CAS_DLY", 0, 0));
             }
-            let mut xn = builder.xnode("URAM", "URAM", xy).num_tiles(4);
+            let bels: Vec<_> = bels
+                .into_iter()
+                .map(|mut bel| {
+                    for ab in ['A', 'B'] {
+                        bel = bel
+                            .pin_name_only(&format!("CAS_IN_EN_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_OUT_EN_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_IN_SBITERR_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_OUT_SBITERR_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_IN_DBITERR_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_OUT_DBITERR_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_IN_RDACCESS_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_OUT_RDACCESS_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_IN_RDB_WR_{ab}"), 1)
+                            .pin_name_only(&format!("CAS_OUT_RDB_WR_{ab}"), 1);
+                        for i in 0..72 {
+                            bel = bel
+                                .pin_name_only(&format!("CAS_IN_DIN_{ab}_{i}_"), 1)
+                                .pin_name_only(&format!("CAS_IN_DOUT_{ab}_{i}_"), 1)
+                                .pin_name_only(&format!("CAS_OUT_DIN_{ab}_{i}_"), 1)
+                                .pin_name_only(&format!("CAS_OUT_DOUT_{ab}_{i}_"), 1);
+                        }
+                        for i in 0..26 {
+                            bel = bel
+                                .pin_name_only(&format!("CAS_IN_ADDR_{ab}_{i}_"), 1)
+                                .pin_name_only(&format!("CAS_OUT_ADDR_{ab}_{i}_"), 1);
+                        }
+                        for i in 0..9 {
+                            bel = bel
+                                .pin_name_only(&format!("CAS_IN_BWE_{ab}_{i}_"), 1)
+                                .pin_name_only(&format!("CAS_OUT_BWE_{ab}_{i}_"), 1);
+                        }
+                    }
+                    bel
+                })
+                .collect();
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(4);
             for i in 0..4 {
                 xn = xn.ref_single(intf_xy.delta(0, i as i32), i, intf)
             }
-            xn.bel(bel).extract();
+            xn.bels(bels).extract();
         }
     }
 

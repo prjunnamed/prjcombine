@@ -155,4 +155,8 @@ impl Grid {
     pub fn row_reg_bot(&self, reg: RegId) -> RowId {
         RowId::from_idx(reg.to_idx() * 48)
     }
+
+    pub fn is_reg_top(&self, reg: RegId) -> bool {
+        reg.to_idx() == self.regs - 1 || reg.to_idx() % 2 == 1
+    }
 }

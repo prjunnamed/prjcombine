@@ -3,59 +3,336 @@ use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_versal::expanded::ExpandedDevice;
 
+fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let kind = if bel.bel.pins.contains_key("WE") {
+        "SLICEM"
+    } else {
+        "SLICEL"
+    };
+    let mut pins = vec![
+        ("CIN", SitePinDir::In),
+        ("COUT", SitePinDir::Out),
+        ("LAG_E1", SitePinDir::In),
+        ("LAG_E2", SitePinDir::In),
+        ("LAG_W1", SitePinDir::In),
+        ("LAG_W2", SitePinDir::In),
+        ("LAG_S", SitePinDir::In),
+        ("LAG_N", SitePinDir::In),
+    ];
+    if kind == "SLICEM" {
+        pins.extend([("SRL_IN_B", SitePinDir::In), ("SRL_OUT_B", SitePinDir::Out)]);
+    }
+    vrf.verify_bel(bel, kind, &pins, &[]);
+    for (pin, dir) in pins {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        if dir == SitePinDir::In {
+            vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
+        } else {
+            vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
+        }
+    }
+    vrf.claim_node(&[bel.fwire_far("COUT")]);
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
+        vrf.verify_node(&[bel.fwire_far("CIN"), obel.fwire_far("COUT")]);
+    } else {
+        vrf.claim_node(&[bel.fwire_far("CIN")]);
+    }
+    if kind == "SLICEM" {
+        vrf.claim_node(&[bel.fwire_far("SRL_OUT_B")]);
+        if bel.row.to_idx() % 48 != 0 {
+            if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
+                vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
+            } else {
+                vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
+            }
+        } else {
+            vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
+        }
+    }
+    // XXX LAG_*
+}
+
+fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut inps = vec![];
+    let mut outps = vec![];
+    let mut cascs = vec![];
+    let obel_cplx = vrf.find_bel_sibling(bel, "DSP_CPLX");
+    let obel_odsp = vrf.find_bel_sibling(bel, if bel.key == "DSP1" { "DSP0" } else { "DSP1" });
+    let lr = if bel.key == "DSP1" { 'R' } else { 'L' };
+    for i in 0..10 {
+        inps.push((
+            format!("AD_CPLX_{i}_"),
+            &obel_cplx,
+            format!("AD_CPLX_DSP{lr}_{i}_"),
+        ));
+        outps.push(format!("AD_DATA_CPLX_{i}_"));
+    }
+    for i in 0..18 {
+        outps.push(format!("A_CPLX_{i}_"));
+        outps.push(format!("B2B1_CPLX_{i}_"));
+        outps.push(format!("A_TO_D_CPLX_{i}_"));
+        inps.push((
+            format!("D_FROM_A_CPLX_{i}_"),
+            &obel_odsp,
+            format!("A_TO_D_CPLX_{i}_"),
+        ));
+    }
+    for i in 0..37 {
+        inps.push((format!("U_CPLX_{i}_"), &obel_cplx, format!("U_CPLX_{i}_")));
+        inps.push((format!("V_CPLX_{i}_"), &obel_cplx, format!("V_CPLX_{i}_")));
+    }
+    outps.push("CONJ_CPLX_OUT".to_string());
+    inps.push((
+        "CONJ_CPLX_MULT_IN".to_string(),
+        &obel_cplx,
+        format!("CONJ_DSP_{lr}_MULT_OUT"),
+    ));
+    inps.push((
+        "CONJ_CPLX_PREADD_IN".to_string(),
+        &obel_cplx,
+        format!("CONJ_DSP_{lr}_PREADD_OUT"),
+    ));
+    for i in 0..34 {
+        cascs.push((format!("ACIN_{i}_"), format!("ACOUT_{i}_")));
+    }
+    for i in 0..32 {
+        cascs.push((format!("BCIN_{i}_"), format!("BCOUT_{i}_")));
+    }
+    for i in 0..58 {
+        cascs.push((format!("PCIN_{i}_"), format!("PCOUT_{i}_")));
+    }
+    cascs.push(("MULTSIGNIN".to_string(), "MULTSIGNOUT".to_string()));
+    cascs.push(("CARRYCASCIN".to_string(), "CARRYCASCOUT".to_string()));
+    let mut pins = vec![];
+    for out in &outps {
+        pins.push((&**out, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(out)]);
+        vrf.claim_node(&[bel.fwire_far(out)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(out), bel.wire(out));
+    }
+    for (inp, obel, opin) in &inps {
+        pins.push((&**inp, SitePinDir::In));
+        vrf.claim_node(&[bel.fwire(inp)]);
+        vrf.claim_pip(bel.crd(), bel.wire(inp), obel.wire_far(opin));
+    }
+    let obel_s = vrf.find_bel_delta(bel, 0, -2, bel.key);
+    for (ipin, opin) in &cascs {
+        pins.push((&**ipin, SitePinDir::In));
+        pins.push((&**opin, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(ipin)]);
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_node(&[bel.fwire_far(opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
+        vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
+        if let Some(ref obel) = obel_s {
+            vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire_far(opin)]);
+        } else {
+            vrf.claim_node(&[bel.fwire_far(ipin)]);
+        }
+    }
+    vrf.verify_bel(bel, "DSP58_PRIMARY", &pins, &[]);
+}
+
+fn verify_dsp_cplx(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut inps = vec![];
+    let mut outps = vec![];
+    let obel_dsp0 = vrf.find_bel_sibling(bel, "DSP0");
+    let obel_dsp1 = vrf.find_bel_sibling(bel, "DSP1");
+    for i in 0..10 {
+        outps.push(format!("AD_CPLX_DSPL_{i}_"));
+        outps.push(format!("AD_CPLX_DSPR_{i}_"));
+        inps.push((
+            format!("AD_DATA_CPLX_DSPL_{i}_"),
+            &obel_dsp0,
+            format!("AD_DATA_CPLX_{i}_"),
+        ));
+        inps.push((
+            format!("AD_DATA_CPLX_DSPR_{i}_"),
+            &obel_dsp1,
+            format!("AD_DATA_CPLX_{i}_"),
+        ));
+    }
+    for i in 0..18 {
+        inps.push((format!("A_CPLX_L_{i}_"), &obel_dsp0, format!("A_CPLX_{i}_")));
+        inps.push((
+            format!("B2B1_CPLX_L_{i}_"),
+            &obel_dsp0,
+            format!("B2B1_CPLX_{i}_"),
+        ));
+        inps.push((
+            format!("B2B1_CPLX_R_{i}_"),
+            &obel_dsp1,
+            format!("B2B1_CPLX_{i}_"),
+        ));
+    }
+    for i in 0..37 {
+        outps.push(format!("U_CPLX_{i}_"));
+        outps.push(format!("V_CPLX_{i}_"));
+    }
+    inps.push((
+        "CONJ_DSP_L_IN".to_string(),
+        &obel_dsp0,
+        "CONJ_CPLX_OUT".to_string(),
+    ));
+    inps.push((
+        "CONJ_DSP_R_IN".to_string(),
+        &obel_dsp1,
+        "CONJ_CPLX_OUT".to_string(),
+    ));
+    outps.push("CONJ_DSP_L_MULT_OUT".to_string());
+    outps.push("CONJ_DSP_R_MULT_OUT".to_string());
+    outps.push("CONJ_DSP_L_PREADD_OUT".to_string());
+    outps.push("CONJ_DSP_R_PREADD_OUT".to_string());
+    let mut pins = vec![];
+    for out in &outps {
+        pins.push((&**out, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(out)]);
+        vrf.claim_node(&[bel.fwire_far(out)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(out), bel.wire(out));
+    }
+    for (inp, obel, opin) in &inps {
+        pins.push((&**inp, SitePinDir::In));
+        vrf.claim_node(&[bel.fwire(inp)]);
+        vrf.claim_pip(bel.crd(), bel.wire(inp), obel.wire_far(opin));
+    }
+    vrf.verify_bel(bel, "DSP58_CPLX", &pins, &[]);
+}
+
+fn verify_bram_f(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut cascs = vec![];
+    for ab in ['A', 'B'] {
+        for i in 0..32 {
+            cascs.push((format!("CASDIN{ab}_{i}_"), format!("CASDOUT{ab}_{i}_")));
+        }
+        for i in 0..4 {
+            cascs.push((format!("CASDINP{ab}_{i}_"), format!("CASDOUTP{ab}_{i}_")));
+        }
+    }
+    cascs.push(("CASINSBITERR".to_string(), "CASOUTSBITERR".to_string()));
+    cascs.push(("CASINDBITERR".to_string(), "CASOUTDBITERR".to_string()));
+    let mut pins = vec![];
+    let obel_s = vrf.find_bel_delta(bel, 0, -4, bel.key);
+    for (ipin, opin) in &cascs {
+        pins.push((&**ipin, SitePinDir::In));
+        pins.push((&**opin, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(ipin)]);
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_node(&[bel.fwire_far(opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
+        vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
+        if let Some(ref obel) = obel_s {
+            vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire_far(opin)]);
+        } else {
+            vrf.claim_node(&[bel.fwire_far(ipin)]);
+        }
+    }
+    vrf.verify_bel(bel, "RAMB36", &pins, &[]);
+}
+
+fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut inps = vec![];
+    let mut outps = vec![];
+    let obel_f = vrf.find_bel_sibling(
+        bel,
+        if bel.key.starts_with("BRAM_L") {
+            "BRAM_L_F"
+        } else {
+            "BRAM_R_F"
+        },
+    );
+    let idx = if bel.key.ends_with('1') { 1 } else { 0 };
+    for ab in ['A', 'B'] {
+        for i in 0..16 {
+            let ii = i * 2 + idx;
+            outps.push((format!("CASDOUT{ab}_{i}_"), format!("CASDOUT{ab}_{ii}_")));
+            inps.push((format!("CASDIN{ab}_{i}_"), format!("CASDIN{ab}_{ii}_")));
+        }
+        for i in 0..2 {
+            let ii = i * 2 + idx;
+            outps.push((format!("CASDOUTP{ab}_{i}_"), format!("CASDOUTP{ab}_{ii}_")));
+            inps.push((format!("CASDINP{ab}_{i}_"), format!("CASDINP{ab}_{ii}_")));
+        }
+    }
+    let mut pins = vec![];
+    for (ipin, ipin_f) in &inps {
+        pins.push((&**ipin, SitePinDir::In));
+        vrf.claim_node(&[bel.fwire(ipin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(ipin), obel_f.wire_far(ipin_f));
+    }
+    for (opin, opin_f) in &outps {
+        pins.push((&**opin, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_pip(bel.crd(), obel_f.wire_far(opin_f), bel.wire(opin));
+    }
+    let kind = match bel.key {
+        "BRAM_L_H0" | "BRAM_R_H0" => "RAMB18_L",
+        "BRAM_L_H1" | "BRAM_R_H1" => "RAMB18_U",
+        _ => unreachable!(),
+    };
+    vrf.verify_bel(bel, kind, &pins, &[]);
+}
+
+fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut cascs = vec![];
+    for ab in ['A', 'B'] {
+        for i in 0..72 {
+            cascs.push((
+                format!("CAS_IN_DIN_{ab}_{i}_"),
+                format!("CAS_OUT_DIN_{ab}_{i}_"),
+            ));
+            cascs.push((
+                format!("CAS_IN_DOUT_{ab}_{i}_"),
+                format!("CAS_OUT_DOUT_{ab}_{i}_"),
+            ));
+        }
+        for i in 0..26 {
+            cascs.push((
+                format!("CAS_IN_ADDR_{ab}_{i}_"),
+                format!("CAS_OUT_ADDR_{ab}_{i}_"),
+            ));
+        }
+        for i in 0..9 {
+            cascs.push((
+                format!("CAS_IN_BWE_{ab}_{i}_"),
+                format!("CAS_OUT_BWE_{ab}_{i}_"),
+            ));
+        }
+        for n in ["EN", "SBITERR", "DBITERR", "RDACCESS", "RDB_WR"] {
+            cascs.push((format!("CAS_IN_{n}_{ab}"), format!("CAS_OUT_{n}_{ab}")));
+        }
+    }
+    let mut pins = vec![];
+    let obel_s = if bel.key == "URAM" { 
+        vrf.find_bel_delta(bel, 0, -4, "URAM_CAS_DLY").or_else(|| vrf.find_bel_delta(bel, 0, -4, bel.key))
+    } else {
+        Some(vrf.find_bel_sibling(bel, "URAM"))
+    };
+    for (ipin, opin) in &cascs {
+        pins.push((&**ipin, SitePinDir::In));
+        pins.push((&**opin, SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire(ipin)]);
+        vrf.claim_node(&[bel.fwire(opin)]);
+        vrf.claim_node(&[bel.fwire_far(opin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(opin), bel.wire(opin));
+        vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
+        if let Some(ref obel) = obel_s {
+            vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire_far(opin)]);
+        } else {
+            vrf.claim_node(&[bel.fwire_far(ipin)]);
+        }
+    }
+    vrf.verify_bel(bel, if bel.key == "URAM" {"URAM288"} else {bel.key}, &pins, &[]);
+}
+
 fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
-        _ if bel.key.starts_with("SLICE") => {
-            let kind = if bel.bel.pins.contains_key("WE") {
-                "SLICEM"
-            } else {
-                "SLICEL"
-            };
-            let mut pins = vec![
-                ("CIN", SitePinDir::In),
-                ("COUT", SitePinDir::Out),
-                ("LAG_E1", SitePinDir::In),
-                ("LAG_E2", SitePinDir::In),
-                ("LAG_W1", SitePinDir::In),
-                ("LAG_W2", SitePinDir::In),
-                ("LAG_S", SitePinDir::In),
-                ("LAG_N", SitePinDir::In),
-            ];
-            if kind == "SLICEM" {
-                pins.extend([("SRL_IN_B", SitePinDir::In), ("SRL_OUT_B", SitePinDir::Out)]);
-            }
-            vrf.verify_bel(bel, kind, &pins, &[]);
-            for (pin, dir) in pins {
-                vrf.claim_node(&[bel.fwire(pin)]);
-                if dir == SitePinDir::In {
-                    vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
-                } else {
-                    vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
-                }
-            }
-            vrf.claim_node(&[bel.fwire_far("COUT")]);
-            if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
-                vrf.verify_node(&[bel.fwire_far("CIN"), obel.fwire_far("COUT")]);
-            } else {
-                vrf.claim_node(&[bel.fwire_far("CIN")]);
-            }
-            if kind == "SLICEM" {
-                vrf.claim_node(&[bel.fwire_far("SRL_OUT_B")]);
-                if bel.row.to_idx() % 48 != 0 {
-                    if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
-                        vrf.verify_node(&[bel.fwire_far("SRL_IN_B"), obel.fwire_far("SRL_OUT_B")]);
-                    } else {
-                        vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
-                    }
-                } else {
-                    vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
-                }
-            }
-            // XXX LAG_*
-        }
-        _ => {
-            println!("MEOW {} {:?}", bel.key, bel.name);
-        }
+        _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
+        "DSP0" | "DSP1" => verify_dsp(vrf, bel),
+        "DSP_CPLX" => verify_dsp_cplx(vrf, bel),
+        "BRAM_L_F" | "BRAM_R_F" => verify_bram_f(vrf, bel),
+        "BRAM_L_H0" | "BRAM_L_H1" | "BRAM_R_H0" | "BRAM_R_H1" => verify_bram_h(vrf, bel),
+        "URAM" | "URAM_CAS_DLY" => verify_uram(vrf, bel),
+        _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }
 
