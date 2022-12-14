@@ -5,7 +5,7 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::BTreeSet;
 
 use crate::expanded::ExpandedDevice;
-use crate::grid::{ColSide, ColumnKind, CpmKind, DisabledPart, Grid, HardRowKind, PsKind};
+use crate::grid::{ColSide, ColumnKind, CpmKind, DisabledPart, Grid, HardRowKind, PsKind, RegId};
 
 entity_id! {
     id EColId u32, delta;
@@ -21,6 +21,7 @@ struct DieInfo {
     bramylut: EntityPartVec<RowId, u32>,
     uramylut: EntityPartVec<RowId, u32>,
     uramdylut: EntityPartVec<RowId, u32>,
+    hardylut: EnumMap<HardRowKind, EntityPartVec<RegId, u32>>,
     iriylut: EntityVec<RowId, u32>,
     irixlut: EnumMap<ColSide, EntityPartVec<ColId, u32>>,
 }
@@ -37,6 +38,7 @@ struct Expander<'a> {
     dspxlut: EntityPartVec<EColId, u32>,
     bramxlut: EnumMap<ColSide, EntityPartVec<EColId, u32>>,
     uramxlut: EntityPartVec<EColId, u32>,
+    hardxlut: EnumMap<HardRowKind, EntityPartVec<EColId, u32>>,
 }
 
 impl Expander<'_> {
@@ -53,6 +55,7 @@ impl Expander<'_> {
                 bramylut: Default::default(),
                 uramylut: Default::default(),
                 uramdylut: Default::default(),
+                hardylut: Default::default(),
                 iriylut: Default::default(),
                 irixlut: Default::default(),
             });
@@ -307,6 +310,49 @@ impl Expander<'_> {
         }
     }
 
+    fn fill_hardxlut(&mut self) {
+        let mut hardx = EnumMap::default();
+        for ecol in self.ecols.ids() {
+            let mut has_hard = EnumMap::default();
+            for (dieid, grid) in &self.grids {
+                let di = &self.die[dieid];
+                if let Some(&col) = di.ecol2col.get(ecol) {
+                    if grid.columns[col].l == ColumnKind::Hard {
+                        let hc = grid.get_col_hard(col).unwrap();
+                        for &t in hc.regs.values() {
+                            has_hard[t] = true;
+                        }
+                    }
+                }
+            }
+            for (k, v) in has_hard {
+                if v {
+                    self.hardxlut[k].insert(ecol, hardx[k]);
+                    hardx[k] += 1;
+                }
+            }
+        }
+    }
+
+    fn fill_hardylut(&mut self) {
+        let mut hardy = EnumMap::default();
+        for (dieid, grid) in &self.grids {
+            let di = &mut self.die[dieid];
+            for reg in grid.regs() {
+                let mut has_hard = EnumMap::default();
+                for hc in &grid.cols_hard {
+                    has_hard[hc.regs[reg]] = true;
+                }
+                for (k, v) in has_hard {
+                    if v {
+                        di.hardylut[k].insert(reg, hardy[k]);
+                        hardy[k] += 1;
+                    }
+                }
+            }
+        }
+    }
+
     fn fill_irixlut(&mut self) {
         let mut irix = self.die.map_values(|_| 0);
         for ecol in self.ecols.ids() {
@@ -489,12 +535,7 @@ impl Expander<'_> {
                                 }
                             }
                             ColumnKind::Hard => {
-                                let ch = grid
-                                    .cols_hard
-                                    .iter()
-                                    .flatten()
-                                    .find(|x| x.col == col)
-                                    .unwrap();
+                                let ch = grid.get_col_hard(col).unwrap();
                                 match ch.regs[grid.row_to_reg(row)] {
                                     HardRowKind::Hdio => {
                                         kind = "INTF.W.HDIO";
@@ -538,12 +579,7 @@ impl Expander<'_> {
                                 tile = format!("INTF_GT_{bt}R_TILE_X{x}Y{y}");
                             }
                             ColumnKind::Hard => {
-                                let ch = grid
-                                    .cols_hard
-                                    .iter()
-                                    .flatten()
-                                    .find(|x| x.col == col + 1)
-                                    .unwrap();
+                                let ch = grid.get_col_hard(col + 1).unwrap();
                                 match ch.regs[grid.row_to_reg(row)] {
                                     HardRowKind::Hdio => {
                                         kind = "INTF.E.HDIO";
@@ -820,6 +856,106 @@ impl Expander<'_> {
         }
     }
 
+    fn fill_hard(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let di = &self.die[dieid];
+            let mut die = self.egrid.die_mut(dieid);
+            for hc in &grid.cols_hard {
+                for reg in grid.regs() {
+                    if self.disabled.contains(&DisabledPart::HardIp(die.die, hc.col, reg)) {
+                        continue;
+                    }
+                    if self.disabled.contains(&DisabledPart::Region(die.die, reg)) {
+                        continue;
+                    }
+                    let kind = hc.regs[reg];
+                    let (nk, tk, bk, is_high) = match kind {
+                        HardRowKind::None => continue,
+                        HardRowKind::DcmacT | HardRowKind::IlknT | HardRowKind::HscT => continue,
+                        HardRowKind::Hdio => {
+                            // XXX
+                            continue;
+                        }
+                        HardRowKind::CpmExt => {
+                            // XXX
+                            continue;
+                        }
+                        HardRowKind::Pcie4 => (
+                            "PCIE4",
+                            if grid.is_reg_top(reg) {
+                                "PCIEB_TOP_TILE"
+                            } else {
+                                "PCIEB_BOT_TILE"
+                            },
+                            "PCIE40",
+                            false,
+                        ),
+                        HardRowKind::Pcie5 => (
+                            "PCIE5",
+                            if grid.is_reg_top(reg) {
+                                "PCIEB5_TOP_TILE"
+                            } else {
+                                "PCIEB5_BOT_TILE"
+                            },
+                            "PCIE50",
+                            false,
+                        ),
+                        HardRowKind::Mrmac => (
+                            "MRMAC",
+                            if grid.is_reg_top(reg) {
+                                "MRMAC_TOP_TILE"
+                            } else {
+                                "MRMAC_BOT_TILE"
+                            },
+                            "MRMAC",
+                            false,
+                        ),
+                        HardRowKind::DcmacB => (
+                            "DCMAC",
+                            "DCMAC_TILE",
+                            "DCMAC",
+                            true,
+                        ),
+                        HardRowKind::IlknB => (
+                            "ILKN",
+                            "ILKN_TILE",
+                            "ILKNF",
+                            true,
+                        ),
+                        HardRowKind::HscB => (
+                            "HSC",
+                            "HSC_TILE",
+                            "HSC",
+                            true,
+                        ),
+                    };
+                    let row = grid.row_reg_bot(reg);
+                    let tile = &mut die[(hc.col, row)];
+                    let mut crd = vec![];
+                    let height = if is_high {96} else {48};
+                    for i in 0..height {
+                        crd.push((hc.col - 1, row + i));
+                    }
+                    for i in 0..height {
+                        crd.push((hc.col, row + i));
+                    }
+                    let x = di.xlut[hc.col - 1];
+                    let y = di.ylut[row];
+                    let name = format!("{tk}_X{x}Y{y}");
+                    let node = tile.add_xnode(
+                        self.db.get_node(nk),
+                        &[&name],
+                        self.db.get_node_naming(nk),
+                        &crd,
+                    );
+                    let sx = self.hardxlut[kind][di.col2ecol[hc.col]];
+                    let sy = di.hardylut[kind][reg];
+                    node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+                }
+            }
+        }
+    }
+
     fn fill_clkroot(&mut self) {
         for (dieid, grid) in &self.grids {
             let mut die = self.egrid.die_mut(dieid);
@@ -859,6 +995,7 @@ pub fn expand_grid<'a>(
         dspxlut: Default::default(),
         bramxlut: Default::default(),
         uramxlut: Default::default(),
+        hardxlut: Default::default(),
     };
     expander.fill_die();
     expander.fill_ecol();
@@ -871,6 +1008,8 @@ pub fn expand_grid<'a>(
     expander.fill_bramylut();
     expander.fill_uramxlut();
     expander.fill_uramylut();
+    expander.fill_hardxlut();
+    expander.fill_hardylut();
     expander.fill_irixlut();
     expander.fill_iriylut();
     expander.fill_int();
@@ -878,6 +1017,7 @@ pub fn expand_grid<'a>(
     expander.fill_dsp();
     expander.fill_bram();
     expander.fill_uram();
+    expander.fill_hard();
     expander.fill_clkroot();
 
     ExpandedDevice {

@@ -1,6 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
+use prjcombine_versal::grid::DisabledPart;
 use prjcombine_versal::expanded::ExpandedDevice;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -324,7 +325,14 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, if bel.key == "URAM" {"URAM288"} else {bel.key}, &pins, &[]);
 }
 
-fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_hardip(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>, kind: &'static str) {
+    if edev.disabled.contains(&DisabledPart::HardIpSite(bel.die, bel.col, edev.grids[bel.die].row_to_reg(bel.row))) {
+        return;
+    }
+    vrf.verify_bel(bel, kind, &[], &[]);
+}
+
+fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         "DSP0" | "DSP1" => verify_dsp(vrf, bel),
@@ -332,6 +340,12 @@ fn verify_bel(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         "BRAM_L_F" | "BRAM_R_F" => verify_bram_f(vrf, bel),
         "BRAM_L_H0" | "BRAM_L_H1" | "BRAM_R_H0" | "BRAM_R_H1" => verify_bram_h(vrf, bel),
         "URAM" | "URAM_CAS_DLY" => verify_uram(vrf, bel),
+        "PCIE4" => verify_hardip(edev, vrf, bel, "PCIE40"),
+        "PCIE5" => verify_hardip(edev, vrf, bel, "PCIE50"),
+        "MRMAC" => verify_hardip(edev, vrf, bel, "MRMAC"),
+        "DCMAC" => verify_hardip(edev, vrf, bel, "DCMAC"),
+        "ILKN" => verify_hardip(edev, vrf, bel, "ILKNF"),
+        "HSC" => verify_hardip(edev, vrf, bel, "HSC"),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

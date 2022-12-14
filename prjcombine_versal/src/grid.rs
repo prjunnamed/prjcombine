@@ -1,5 +1,5 @@
 use enum_map::Enum;
-use prjcombine_entity::{entity_id, EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityVec, EntityIds};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -13,7 +13,7 @@ pub struct Grid {
     pub columns: EntityVec<ColId, Column>,
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_cpipe: BTreeSet<ColId>,
-    pub cols_hard: [Option<HardColumn>; 3],
+    pub cols_hard: Vec<HardColumn>,
     pub col_cfrm: ColId,
     pub regs: usize,
     pub regs_gt_left: EntityVec<RegId, GtRowKind>,
@@ -71,7 +71,7 @@ pub enum CpmKind {
     Cpm5N,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Enum)]
 pub enum HardRowKind {
     None,
     Hdio,
@@ -139,6 +139,7 @@ pub enum NocEndpoint {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DisabledPart {
     HardIp(DieId, ColId, RegId),
+    HardIpSite(DieId, ColId, RegId),
     Column(DieId, ColId),
     GtRight(DieId, RegId),
     Region(DieId, RegId),
@@ -158,5 +159,13 @@ impl Grid {
 
     pub fn is_reg_top(&self, reg: RegId) -> bool {
         reg.to_idx() == self.regs - 1 || reg.to_idx() % 2 == 1
+    }
+
+    pub fn regs(&self) -> EntityIds<RegId> {
+        EntityIds::new(self.regs)
+    }
+
+    pub fn get_col_hard(&self, col: ColId) -> Option<&HardColumn> {
+        self.cols_hard.iter().find(|x| x.col == col)
     }
 }

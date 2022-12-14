@@ -749,7 +749,7 @@ mod versal {
                 print!(" BLI.TOP");
             }
             println!();
-            for hc in grid.cols_hard.iter().flatten() {
+            for hc in &grid.cols_hard {
                 if hc.col == col {
                     for (reg, kind) in &hc.regs {
                         println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());

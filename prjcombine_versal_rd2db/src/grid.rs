@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::Part;
+use prjcombine_rawdump::{Part, Coord};
 use prjcombine_versal::grid::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
     HardRowKind, PsKind, RegId, TopKind,
@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
 
-fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<HardColumn>; 3]) {
+fn make_columns(die: DieId, int: &IntGrid, disabled: &mut BTreeSet<DisabledPart>) -> (EntityVec<ColId, Column>, ColId, Vec<HardColumn>) {
     let mut res = int.cols.map_values(|_| Column {
         l: ColumnKind::None,
         r: ColumnKind::None,
@@ -126,8 +126,12 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
         ("CPM_EXT_TILE", HardRowKind::CpmExt),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
+            let tile = &int.rd.tiles[&Coord {x: x as u16, y: y as u16}];
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
+            if tile.sites.iter().next().is_none() {
+                disabled.insert(DisabledPart::HardIpSite(die, col, reg));
+            }
             hard_cells.insert((col, reg), kind);
         }
     }
@@ -160,22 +164,6 @@ fn make_columns(int: &IntGrid) -> (EntityVec<ColId, Column>, ColId, [Option<Hard
         }
         cols_hard.push(HardColumn { col, regs });
     }
-    let cols_hard = match cols_hard.len() {
-        0 => [None, None, None],
-        1 => {
-            let [col_l]: [_; 1] = cols_hard.try_into().unwrap();
-            [Some(col_l), None, None]
-        }
-        2 => {
-            let [col_l, col_r]: [_; 2] = cols_hard.try_into().unwrap();
-            [Some(col_l), None, Some(col_r)]
-        }
-        3 => {
-            let [col_l, col_m, col_r]: [_; 3] = cols_hard.try_into().unwrap();
-            [Some(col_l), Some(col_m), Some(col_r)]
-        }
-        _ => unreachable!(),
-    };
     (res, col_cfrm, cols_hard)
 }
 
@@ -247,6 +235,7 @@ pub fn make_grids(
     BTreeSet<DisabledPart>,
     DeviceNaming,
 ) {
+    let mut disabled = BTreeSet::new();
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
         .into_iter()
         .map(|r| r as u16)
@@ -255,9 +244,9 @@ pub fn make_grids(
     rows_slr_split.insert(rd.height);
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
     let mut grids = EntityVec::new();
-    for w in rows_slr_split.windows(2) {
+    for (dieid, w) in rows_slr_split.windows(2).enumerate() {
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
-        let (columns, col_cfrm, cols_hard) = make_columns(&int);
+        let (columns, col_cfrm, cols_hard) = make_columns(DieId::from_idx(dieid), &int, &mut disabled);
         let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
             PsKind::Ps9
         } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
@@ -292,11 +281,10 @@ pub fn make_grids(
             bottom: BotKind::Ssit, // XXX
         });
     }
-    let mut disabled = BTreeSet::new();
     if rd.part.contains("vc1502") {
         let s0 = DieId::from_idx(0);
         assert_eq!(grids[s0].regs, 7);
-        let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
+        let col_hard_r = &mut grids[s0].cols_hard[1];
         for (reg, kind) in [(0, HardRowKind::Mrmac), (6, HardRowKind::Hdio)] {
             let reg = RegId::from_idx(reg);
             assert_eq!(col_hard_r.regs[reg], HardRowKind::None);
@@ -378,11 +366,11 @@ pub fn make_grids(
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(8)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(9)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(10)));
-        let col_hard_l = grids[s0].cols_hard[0].as_mut().unwrap();
+        let col_hard_l = &mut grids[s0].cols_hard[0];
         col_hard_l.regs[RegId::from_idx(8)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(9)] = HardRowKind::DcmacT;
         col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
-        let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
+        let col_hard_r = &mut grids[s0].cols_hard[1];
         col_hard_r.regs[RegId::from_idx(8)] = HardRowKind::IlknB;
         col_hard_r.regs[RegId::from_idx(9)] = HardRowKind::IlknT;
         col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::Mrmac;
@@ -401,17 +389,17 @@ pub fn make_grids(
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(11)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(12)));
         disabled.insert(DisabledPart::Region(s0, RegId::from_idx(13)));
-        let col_hard_l = grids[s0].cols_hard[0].as_mut().unwrap();
+        let col_hard_l = &mut grids[s0].cols_hard[0];
         col_hard_l.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
         col_hard_l.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
         col_hard_l.regs[RegId::from_idx(13)] = HardRowKind::DcmacT;
-        let col_hard_m = grids[s0].cols_hard[1].as_mut().unwrap();
+        let col_hard_m = &mut grids[s0].cols_hard[1];
         col_hard_m.regs[RegId::from_idx(10)] = HardRowKind::HscB;
         col_hard_m.regs[RegId::from_idx(11)] = HardRowKind::HscT;
         col_hard_m.regs[RegId::from_idx(12)] = HardRowKind::Hdio;
         col_hard_m.regs[RegId::from_idx(13)] = HardRowKind::Hdio;
-        let col_hard_r = grids[s0].cols_hard[2].as_mut().unwrap();
+        let col_hard_r = &mut grids[s0].cols_hard[2];
         col_hard_r.regs[RegId::from_idx(10)] = HardRowKind::DcmacB;
         col_hard_r.regs[RegId::from_idx(11)] = HardRowKind::DcmacT;
         col_hard_r.regs[RegId::from_idx(12)] = HardRowKind::DcmacB;
