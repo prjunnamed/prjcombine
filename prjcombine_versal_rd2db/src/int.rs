@@ -588,8 +588,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for ew in [Dir::W, Dir::E] {
-        for i in 0..20 {
-            for j in 0..2 {
+        for i in 0..2 {
+            for j in 0..20 {
                 builder.mux_out(
                     format!("RCLK.IMUX.{ew}.{i}.{j}"),
                     &[format!("IF_INT2COE_{ew}_INT_RCLK_TO_CLK_B_{i}_{j}")],
@@ -767,6 +767,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             builder.extract_xnode("RCLK", xy, &[], &[int_xy], "RCLK", &[], &[]);
         }
     }
+    let rclk_int = builder.db.get_node_naming("RCLK");
 
     for (tkn, kind, key0, key1) in [
         ("CLE_W_CORE", "CLE_R", "SLICE_L0", "SLICE_L1"),
@@ -1051,6 +1052,390 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             xn.bel(bel).extract();
         }
     }
+
+    for (tkn, naming_f, naming_h, swz) in [
+        (
+            "RCLK_CLE_CORE",
+            "RCLK_CLE",
+            "RCLK_CLE.HALF",
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+        ),
+        (
+            "RCLK_CLE_LAG_CORE",
+            "RCLK_CLE.LAG",
+            "RCLK_CLE.HALF.LAG",
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+        ),
+    ] {
+        let mut done_full = false;
+        let mut done_half = false;
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let td = &rd.tiles[&xy.delta(0, -1)];
+            let is_full = rd.tile_kinds.key(td.kind) == "CLE_W_CORE";
+            if is_full {
+                if done_full {
+                    continue;
+                }
+                done_full = true;
+            } else {
+                if done_half {
+                    continue;
+                }
+                done_half = true;
+            }
+            let mut bels = vec![];
+            for (i, &y) in swz.iter().enumerate() {
+                let mut bel = builder
+                    .bel_xy(&format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y)
+                    .pin_name_only("I", 1)
+                    .pin_name_only("I_CASC", 0)
+                    .pin_name_only("O_CASC", 1);
+                if !is_full && i < 16 {
+                    bel = bel.pin_name_only("O", 1);
+                }
+                bels.push(bel);
+            }
+            let mut bel = builder.bel_virtual("RCLK_HDISTR_LOC.CLE");
+            for i in 0..24 {
+                bel = bel.extra_wire(
+                    format!("HDISTR_LOC{i}"),
+                    &[format!("IF_HCLK_CLK_HDISTR_LOC{i}")],
+                );
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual("VCC.RCLK_CLE")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            let kind = if is_full { "RCLK_CLE" } else { "RCLK_CLE.HALF" };
+            let naming = if is_full { naming_f } else { naming_h };
+            let int_r_xy = builder
+                .walk_to_int(xy.delta(0, 1), Dir::E)
+                .unwrap()
+                .delta(0, -1);
+            let mut xn = builder
+                .xnode(kind, naming, xy)
+                .num_tiles(if is_full { 2 } else { 1 })
+                .ref_single(int_r_xy, 0, rclk_int)
+                .ref_xlat(xy.delta(1, 1), &[None, Some(0)], cle_bc);
+            if is_full {
+                xn = xn.ref_xlat(xy.delta(1, -1), &[None, Some(1)], cle_bc);
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
+    for (dir, naming, tkn, intf_dx, swz, has_dfx) in [
+        (
+            Dir::E,
+            "DSP",
+            "RCLK_DSP_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "DSP",
+            "RCLK_DSP_CORE",
+            3,
+            [
+                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
+                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
+            ],
+            true,
+        ),
+        (
+            Dir::E,
+            "HB",
+            "RCLK_HB_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "HB",
+            "RCLK_HB_CORE",
+            2,
+            [
+                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
+                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "HDIO",
+            "RCLK_HDIO_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "HDIO",
+            "RCLK_HDIO_CORE",
+            2,
+            [
+                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
+                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "HB_HDIO",
+            "RCLK_HB_HDIO_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "HB_HDIO",
+            "RCLK_HB_HDIO_CORE",
+            2,
+            [
+                39, 38, 37, 36, 44, 45, 46, 47, 55, 54, 53, 52, 60, 61, 62, 63, 32, 33, 34, 35, 43,
+                42, 41, 40, 48, 49, 50, 51, 59, 58, 57, 56,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "VNOC",
+            "RCLK_INTF_L_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "VNOC",
+            "RCLK_INTF_R_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "CFRM",
+            "RCLK_INTF_OPT_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "GT",
+            "RCLK_INTF_TERM_LEFT_CORE",
+            1,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "GT",
+            "RCLK_INTF_TERM_RIGHT_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "GT.ALT",
+            "RCLK_INTF_TERM2_RIGHT_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+        (
+            Dir::W,
+            "BRAM",
+            "RCLK_BRAM_CORE_MY",
+            1,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            true,
+        ),
+        (
+            Dir::W,
+            "URAM",
+            "RCLK_URAM_CORE_MY",
+            1,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM",
+            "RCLK_BRAM_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM.CLKBUF",
+            "RCLK_BRAM_CLKBUF_CORE",
+            0,
+            [
+                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
+                12, 20, 21, 22, 23, 31, 30, 29, 28,
+            ],
+            true,
+        ),
+        (
+            Dir::W,
+            "HB_FULL",
+            "RCLK_HB_FULL_R_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+        (
+            Dir::E,
+            "HB_FULL",
+            "RCLK_HB_FULL_L_CORE",
+            0,
+            [
+                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
+                8, 16, 17, 18, 19, 27, 26, 25, 24,
+            ],
+            false,
+        ),
+    ] {
+        let mut done_full = false;
+        let mut done_half = false;
+        for &xy in rd.tiles_by_kind_name(tkn) {
+            let int_xy = builder
+                .walk_to_int(xy.delta(0, 1), !dir)
+                .unwrap()
+                .delta(0, -1);
+            let td = &rd.tiles[&int_xy.delta(0, -1)];
+            let is_full = rd.tile_kinds.key(td.kind) == "INT";
+            if is_full {
+                if done_full {
+                    continue;
+                }
+                done_full = true;
+            } else {
+                if done_half {
+                    continue;
+                }
+                done_half = true;
+            }
+            let mut bels = vec![];
+            for (i, &y) in swz.iter().enumerate() {
+                let mut bel = builder
+                    .bel_xy(&format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y)
+                    .pin_name_only("I", 1)
+                    .pin_name_only("I_CASC", 0)
+                    .pin_name_only("O_CASC", 1);
+                if !is_full && i < 16 {
+                    bel = bel.pin_name_only("O", 1);
+                }
+                bels.push(bel);
+            }
+            let mut bel = builder.bel_virtual(format!("RCLK_HDISTR_LOC.{dir}"));
+            for i in 0..24 {
+                bel = bel.extra_wire(
+                    format!("HDISTR_LOC{i}"),
+                    &[
+                        format!("IF_HCLK_CLK_HDISTR_LOC{i}"),
+                        format!("IF_HCLK_L_CLK_HDISTR_LOC{i}"),
+                    ],
+                );
+            }
+            bels.push(bel);
+            bels.push(
+                builder
+                    .bel_virtual(format!("VCC.RCLK_INTF.{dir}"))
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            let intf = builder
+                .db
+                .get_node_naming(if dir == Dir::E { "INTF.E" } else { "INTF.W" });
+            let half = if is_full { "" } else { ".HALF" };
+            let mut xn = builder
+                .xnode(
+                    &format!("RCLK_INTF.{dir}{half}"),
+                    &format!("RCLK_INTF.{dir}{half}.{naming}"),
+                    xy,
+                )
+                .num_tiles(if is_full { 2 } else { 1 })
+                .ref_single(int_xy, 0, rclk_int)
+                .ref_single(xy.delta(intf_dx, 1), 0, intf);
+            if is_full {
+                xn = xn.ref_single(xy.delta(intf_dx, -1), 1, intf);
+            }
+            xn.bels(bels).extract();
+            if has_dfx {
+                let bel = builder.bel_xy(format!("RCLK_DFX_TEST.{dir}"), "RCLK", 0, 0);
+                builder
+                    .xnode(
+                        &format!("RCLK_DFX.{dir}"),
+                        &format!("RCLK_DFX.{dir}.{naming}"),
+                        xy,
+                    )
+                    .ref_single(int_xy, 0, rclk_int)
+                    .bel(bel)
+                    .extract();
+            }
+        }
+    }
+
+    // XXX RCLK_HDIO
+    // XXX RCLK_CLKBUF
 
     builder.build()
 }

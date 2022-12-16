@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::{Part, Coord};
+use prjcombine_rawdump::{Coord, Part};
 use prjcombine_versal::grid::{
     BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
     HardRowKind, PsKind, RegId, TopKind,
@@ -9,7 +9,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
 
-fn make_columns(die: DieId, int: &IntGrid, disabled: &mut BTreeSet<DisabledPart>) -> (EntityVec<ColId, Column>, ColId, Vec<HardColumn>) {
+fn make_columns(
+    die: DieId,
+    int: &IntGrid,
+    disabled: &mut BTreeSet<DisabledPart>,
+) -> (EntityVec<ColId, Column>, ColId, Vec<HardColumn>) {
     let mut res = int.cols.map_values(|_| Column {
         l: ColumnKind::None,
         r: ColumnKind::None,
@@ -126,7 +130,10 @@ fn make_columns(die: DieId, int: &IntGrid, disabled: &mut BTreeSet<DisabledPart>
         ("CPM_EXT_TILE", HardRowKind::CpmExt),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
-            let tile = &int.rd.tiles[&Coord {x: x as u16, y: y as u16}];
+            let tile = &int.rd.tiles[&Coord {
+                x: x as u16,
+                y: y as u16,
+            }];
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
             if tile.sites.iter().next().is_none() {
@@ -246,7 +253,8 @@ pub fn make_grids(
     let mut grids = EntityVec::new();
     for (dieid, w) in rows_slr_split.windows(2).enumerate() {
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
-        let (columns, col_cfrm, cols_hard) = make_columns(DieId::from_idx(dieid), &int, &mut disabled);
+        let (columns, col_cfrm, cols_hard) =
+            make_columns(DieId::from_idx(dieid), &int, &mut disabled);
         let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
             PsKind::Ps9
         } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {

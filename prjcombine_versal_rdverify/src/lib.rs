@@ -1,8 +1,8 @@
 use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_versal::grid::DisabledPart;
 use prjcombine_versal::expanded::ExpandedDevice;
+use prjcombine_versal::grid::DisabledPart;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {
@@ -303,8 +303,9 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
     let mut pins = vec![];
-    let obel_s = if bel.key == "URAM" { 
-        vrf.find_bel_delta(bel, 0, -4, "URAM_CAS_DLY").or_else(|| vrf.find_bel_delta(bel, 0, -4, bel.key))
+    let obel_s = if bel.key == "URAM" {
+        vrf.find_bel_delta(bel, 0, -4, "URAM_CAS_DLY")
+            .or_else(|| vrf.find_bel_delta(bel, 0, -4, bel.key))
     } else {
         Some(vrf.find_bel_sibling(bel, "URAM"))
     };
@@ -322,11 +323,29 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire_far(ipin)]);
         }
     }
-    vrf.verify_bel(bel, if bel.key == "URAM" {"URAM288"} else {bel.key}, &pins, &[]);
+    vrf.verify_bel(
+        bel,
+        if bel.key == "URAM" {
+            "URAM288"
+        } else {
+            bel.key
+        },
+        &pins,
+        &[],
+    );
 }
 
-fn verify_hardip(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>, kind: &'static str) {
-    if edev.disabled.contains(&DisabledPart::HardIpSite(bel.die, bel.col, edev.grids[bel.die].row_to_reg(bel.row))) {
+fn verify_hardip(
+    edev: &ExpandedDevice,
+    vrf: &mut Verifier,
+    bel: &BelContext<'_>,
+    kind: &'static str,
+) {
+    if edev.disabled.contains(&DisabledPart::HardIpSite(
+        bel.die,
+        bel.col,
+        edev.grids[bel.die].row_to_reg(bel.row),
+    )) {
         return;
     }
     vrf.verify_bel(bel, kind, &[], &[]);

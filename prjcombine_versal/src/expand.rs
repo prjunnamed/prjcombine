@@ -862,7 +862,10 @@ impl Expander<'_> {
             let mut die = self.egrid.die_mut(dieid);
             for hc in &grid.cols_hard {
                 for reg in grid.regs() {
-                    if self.disabled.contains(&DisabledPart::HardIp(die.die, hc.col, reg)) {
+                    if self
+                        .disabled
+                        .contains(&DisabledPart::HardIp(die.die, hc.col, reg))
+                    {
                         continue;
                     }
                     if self.disabled.contains(&DisabledPart::Region(die.die, reg)) {
@@ -910,29 +913,14 @@ impl Expander<'_> {
                             "MRMAC",
                             false,
                         ),
-                        HardRowKind::DcmacB => (
-                            "DCMAC",
-                            "DCMAC_TILE",
-                            "DCMAC",
-                            true,
-                        ),
-                        HardRowKind::IlknB => (
-                            "ILKN",
-                            "ILKN_TILE",
-                            "ILKNF",
-                            true,
-                        ),
-                        HardRowKind::HscB => (
-                            "HSC",
-                            "HSC_TILE",
-                            "HSC",
-                            true,
-                        ),
+                        HardRowKind::DcmacB => ("DCMAC", "DCMAC_TILE", "DCMAC", true),
+                        HardRowKind::IlknB => ("ILKN", "ILKN_TILE", "ILKNF", true),
+                        HardRowKind::HscB => ("HSC", "HSC_TILE", "HSC", true),
                     };
                     let row = grid.row_reg_bot(reg);
                     let tile = &mut die[(hc.col, row)];
                     let mut crd = vec![];
-                    let height = if is_high {96} else {48};
+                    let height = if is_high { 96 } else { 48 };
                     for i in 0..height {
                         crd.push((hc.col - 1, row + i));
                     }

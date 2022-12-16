@@ -1,5 +1,5 @@
 use enum_map::Enum;
-use prjcombine_entity::{entity_id, EntityId, EntityVec, EntityIds};
+use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
