@@ -98,6 +98,7 @@ pub struct Verifier<'a> {
     claimed_twires: HashMap<Coord, EntityBitVec<rawdump::TkWireId>>,
     claimed_pips: HashMap<Coord, EntityBitVec<rawdump::TkPipId>>,
     claimed_sites: HashMap<Coord, EntityBitVec<rawdump::TkSiteId>>,
+    vcc_nodes: HashSet<NodeOrWire>,
     int_wire_data: HashMap<IntWire, IntWireData>,
     node_used: EntityVec<NodeKindId, NodeUsedInfo>,
     skip_residual_sites: bool,
@@ -201,6 +202,7 @@ impl<'a> Verifier<'a> {
                     )
                 })
                 .collect(),
+            vcc_nodes: HashSet::new(),
             node_used,
             int_wire_data: HashMap::new(),
             skip_residual_sites: false,
@@ -508,6 +510,22 @@ impl<'a> Verifier<'a> {
             } else {
                 println!("MISSING NODE WIRE {part} {tname} {wn}", part = self.rd.part);
             }
+        }
+    }
+
+    pub fn claim_vcc_node(&mut self, node: (Coord, &str)) {
+        let (crd, wn) = node;
+        let tile = &self.rd.tiles[&crd];
+        let tname = &tile.name;
+        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+            if self.vcc_nodes.insert(cnw) {
+                self.claim_raw_node(cnw, crd, wn);
+            }
+        } else {
+            println!(
+                "MISSING VCC NODE WIRE {part} {tname} {wn}",
+                part = self.rd.part
+            );
         }
     }
 

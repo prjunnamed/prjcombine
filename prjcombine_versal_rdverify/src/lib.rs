@@ -351,6 +351,58 @@ fn verify_hardip(
     vrf.verify_bel(bel, kind, &[], &[]);
 }
 
+fn verify_bufdiv_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let mut pins = vec![("I", SitePinDir::In), ("O_CASC", SitePinDir::Out)];
+    if !bel.bel.pins.contains_key("O") {
+        pins.push(("O", SitePinDir::Out));
+        vrf.claim_node(&[bel.fwire("O")]);
+        vrf.claim_node(&[bel.fwire_far("O")]);
+        vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
+    }
+    if !bel.bel.pins.contains_key("I_CASC") {
+        pins.push(("I_CASC", SitePinDir::In));
+        let (key_base, idx) = bel.key.rsplit_once('.').unwrap();
+        let idx: u32 = idx.parse().unwrap();
+        let obel = vrf.find_bel_sibling(bel, &format!("{key_base}.{oidx}", oidx = idx - 1));
+        vrf.claim_node(&[bel.fwire("I_CASC")]);
+        vrf.claim_pip(bel.crd(), bel.wire("I_CASC"), obel.wire_far("O_CASC"));
+    }
+    vrf.verify_bel(bel, "BUFDIV_LEAF", &pins, &[]);
+
+    vrf.claim_node(&[bel.fwire("O_CASC")]);
+    vrf.claim_node(&[bel.fwire_far("O_CASC")]);
+    vrf.claim_pip(bel.crd(), bel.wire_far("O_CASC"), bel.wire("O_CASC"));
+
+    vrf.claim_node(&[bel.fwire("I")]);
+    vrf.claim_node(&[bel.fwire_far("I")]);
+    vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire_far("I"));
+    let (key_hdistr_loc, key_vcc) = if bel.key.starts_with("BUFDIV_LEAF.CLE") {
+        ("RCLK_HDISTR_LOC.CLE", "VCC.RCLK_CLE")
+    } else if bel.key.starts_with("BUFDIV_LEAF.W") {
+        ("RCLK_HDISTR_LOC.W", "VCC.RCLK_INTF.W")
+    } else {
+        ("RCLK_HDISTR_LOC.E", "VCC.RCLK_INTF.E")
+    };
+    let obel_hdistr_loc = vrf.find_bel_sibling(bel, key_hdistr_loc);
+    let obel_vcc = vrf.find_bel_sibling(bel, key_vcc);
+    vrf.claim_pip(bel.crd(), bel.wire_far("I"), obel_vcc.wire("VCC"));
+    for i in 0..24 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire_far("I"),
+            obel_hdistr_loc.wire(&format!("HDISTR_LOC{i}")),
+        );
+    }
+}
+
+fn verify_rclk_hdistr_loc(_edev: &ExpandedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
+    // XXX verify HDISTR_LOC
+}
+
+fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.claim_vcc_node(bel.fwire("VCC"));
+}
+
 fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
@@ -365,6 +417,10 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "DCMAC" => verify_hardip(edev, vrf, bel, "DCMAC"),
         "ILKN" => verify_hardip(edev, vrf, bel, "ILKNF"),
         "HSC" => verify_hardip(edev, vrf, bel, "HSC"),
+        "RCLK_DFX_TEST.E" | "RCLK_DFX_TEST.W" => vrf.verify_bel(bel, "RCLK_DFX_TEST", &[], &[]),
+        _ if bel.key.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(vrf, bel),
+        _ if bel.key.starts_with("RCLK_HDISTR_LOC") => verify_rclk_hdistr_loc(edev, vrf, bel),
+        _ if bel.key.starts_with("VCC") => verify_vcc(vrf, bel),
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }

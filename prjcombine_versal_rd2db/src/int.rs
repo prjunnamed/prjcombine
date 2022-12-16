@@ -2,6 +2,9 @@ use enum_map::EnumMap;
 use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_int::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::{Coord, Part, TkWire};
+use prjcombine_versal::expand::{
+    BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
+};
 use std::collections::HashMap;
 
 use prjcombine_rdintb::IntBuilder;
@@ -1058,19 +1061,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "RCLK_CLE_CORE",
             "RCLK_CLE",
             "RCLK_CLE.HALF",
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
         ),
         (
             "RCLK_CLE_LAG_CORE",
             "RCLK_CLE.LAG",
             "RCLK_CLE.HALF.LAG",
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
         ),
     ] {
         let mut done_full = false;
@@ -1092,10 +1089,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(&format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y)
+                    .bel_xy(&format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y as u8)
                     .pin_name_only("I", 1)
-                    .pin_name_only("I_CASC", 0)
                     .pin_name_only("O_CASC", 1);
+                if i != 0 {
+                    bel = bel.pin_name_only("I_CASC", 0);
+                }
                 if !is_full && i < 16 {
                     bel = bel.pin_name_only("O", 1);
                 }
@@ -1133,59 +1132,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for (dir, naming, tkn, intf_dx, swz, has_dfx) in [
-        (
-            Dir::E,
-            "DSP",
-            "RCLK_DSP_CORE",
-            0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
-            false,
-        ),
-        (
-            Dir::W,
-            "DSP",
-            "RCLK_DSP_CORE",
-            3,
-            [
-                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
-                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
-            ],
-            true,
-        ),
-        (
-            Dir::E,
-            "HB",
-            "RCLK_HB_CORE",
-            0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
-            false,
-        ),
-        (
-            Dir::W,
-            "HB",
-            "RCLK_HB_CORE",
-            2,
-            [
-                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
-                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
-            ],
-            false,
-        ),
+        (Dir::E, "DSP", "RCLK_DSP_CORE", 0, BUFDIV_LEAF_SWZ_A, false),
+        (Dir::W, "DSP", "RCLK_DSP_CORE", 3, BUFDIV_LEAF_SWZ_AH, true),
+        (Dir::E, "HB", "RCLK_HB_CORE", 0, BUFDIV_LEAF_SWZ_A, false),
+        (Dir::W, "HB", "RCLK_HB_CORE", 2, BUFDIV_LEAF_SWZ_AH, false),
         (
             Dir::E,
             "HDIO",
             "RCLK_HDIO_CORE",
             0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
@@ -1193,10 +1149,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "HDIO",
             "RCLK_HDIO_CORE",
             2,
-            [
-                35, 34, 33, 32, 40, 41, 42, 43, 51, 50, 49, 48, 56, 57, 58, 59, 36, 37, 38, 39, 47,
-                46, 45, 44, 52, 53, 54, 55, 63, 62, 61, 60,
-            ],
+            BUFDIV_LEAF_SWZ_AH,
             false,
         ),
         (
@@ -1204,10 +1157,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "HB_HDIO",
             "RCLK_HB_HDIO_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
@@ -1215,10 +1165,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "HB_HDIO",
             "RCLK_HB_HDIO_CORE",
             2,
-            [
-                39, 38, 37, 36, 44, 45, 46, 47, 55, 54, 53, 52, 60, 61, 62, 63, 32, 33, 34, 35, 43,
-                42, 41, 40, 48, 49, 50, 51, 59, 58, 57, 56,
-            ],
+            BUFDIV_LEAF_SWZ_BH,
             false,
         ),
         (
@@ -1226,10 +1173,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "VNOC",
             "RCLK_INTF_L_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
@@ -1237,10 +1181,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "VNOC",
             "RCLK_INTF_R_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
@@ -1248,10 +1189,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "CFRM",
             "RCLK_INTF_OPT_CORE",
             0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
@@ -1259,10 +1197,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "GT",
             "RCLK_INTF_TERM_LEFT_CORE",
             1,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
@@ -1270,10 +1205,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "GT",
             "RCLK_INTF_TERM_RIGHT_CORE",
             0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
@@ -1281,10 +1213,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "GT.ALT",
             "RCLK_INTF_TERM2_RIGHT_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
@@ -1292,10 +1221,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "BRAM",
             "RCLK_BRAM_CORE_MY",
             1,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             true,
         ),
         (
@@ -1303,32 +1229,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "URAM",
             "RCLK_URAM_CORE_MY",
             1,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             true,
         ),
-        (
-            Dir::E,
-            "BRAM",
-            "RCLK_BRAM_CORE",
-            0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
-            true,
-        ),
+        (Dir::E, "BRAM", "RCLK_BRAM_CORE", 0, BUFDIV_LEAF_SWZ_A, true),
         (
             Dir::E,
             "BRAM.CLKBUF",
             "RCLK_BRAM_CLKBUF_CORE",
             0,
-            [
-                3, 2, 1, 0, 8, 9, 10, 11, 19, 18, 17, 16, 24, 25, 26, 27, 4, 5, 6, 7, 15, 14, 13,
-                12, 20, 21, 22, 23, 31, 30, 29, 28,
-            ],
+            BUFDIV_LEAF_SWZ_A,
             true,
         ),
         (
@@ -1336,10 +1246,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "HB_FULL",
             "RCLK_HB_FULL_R_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
@@ -1347,10 +1254,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             "HB_FULL",
             "RCLK_HB_FULL_L_CORE",
             0,
-            [
-                7, 6, 5, 4, 12, 13, 14, 15, 23, 22, 21, 20, 28, 29, 30, 31, 0, 1, 2, 3, 11, 10, 9,
-                8, 16, 17, 18, 19, 27, 26, 25, 24,
-            ],
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
     ] {
@@ -1361,6 +1265,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .walk_to_int(xy.delta(0, 1), !dir)
                 .unwrap()
                 .delta(0, -1);
+            if int_xy.x.abs_diff(xy.x) > 5 {
+                continue;
+            }
+            if rd.tile_kinds.key(rd.tiles[&int_xy.delta(0, 1)].kind) != "INT" {
+                continue;
+            }
             let td = &rd.tiles[&int_xy.delta(0, -1)];
             let is_full = rd.tile_kinds.key(td.kind) == "INT";
             if is_full {
@@ -1377,10 +1287,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(&format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y)
+                    .bel_xy(&format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y as u8)
                     .pin_name_only("I", 1)
-                    .pin_name_only("I_CASC", 0)
                     .pin_name_only("O_CASC", 1);
+                if i != 0 {
+                    bel = bel.pin_name_only("I_CASC", 0);
+                }
                 if !is_full && i < 16 {
                     bel = bel.pin_name_only("O", 1);
                 }
