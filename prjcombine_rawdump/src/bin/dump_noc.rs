@@ -1,4 +1,4 @@
-use prjcombine_rawdump::{Part, TkWire};
+use prjcombine_rawdump::{Coord, Part, TkWire};
 use std::collections::HashMap;
 use std::error::Error;
 use structopt::StructOpt;
@@ -19,6 +19,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut n2ow = HashMap::new();
     let mut n2iw = HashMap::new();
     for (tkn, wires_out, wires_in) in [
+        // PS
+        (
+            "PSS_BASE_CORE",
+            &[
+                "PSS_BASE_ATOM_0_NCI_NOC_0",
+                "PSS_BASE_ATOM_0_NCI_NOC_1",
+                "PSS_BASE_ATOM_0_CCI_NOC_0",
+                "PSS_BASE_ATOM_0_CCI_NOC_1",
+                "PSS_BASE_ATOM_0_CCI_NOC_2",
+                "PSS_BASE_ATOM_0_CCI_NOC_3",
+                "PSS_BASE_ATOM_0_PCIE_NOC_0",
+                "PSS_BASE_ATOM_0_PCIE_NOC_1",
+                "PSS_BASE_ATOM_0_PMC_NOC_0",
+                "PSS_BASE_ATOM_0_RPU_NOC_0",
+            ][..],
+            &[
+                "PSS_BASE_ATOM_0_NOC_PCIE_0",
+                "PSS_BASE_ATOM_0_NOC_PMC_0",
+                "PSS_BASE_ATOM_0_NOC_CCI_0",
+                "PSS_BASE_ATOM_0_NOC_CCI_1",
+                "PSS_BASE_ATOM_0_NOC_NCI_0",
+                "PSS_BASE_ATOM_0_NOC_NCI_1",
+            ][..],
+        ),
         // bot XPIO
         (
             "DDRMC_DMC_CORE",
@@ -27,13 +51,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "DDRMC_MAIN_0_TO_NOC_1",
                 "DDRMC_MAIN_0_TO_NOC_2",
                 "DDRMC_MAIN_0_TO_NOC_3",
-            ][..],
+            ],
             &[
                 "DDRMC_MAIN_0_FROM_NOC_0",
                 "DDRMC_MAIN_0_FROM_NOC_1",
                 "DDRMC_MAIN_0_FROM_NOC_2",
                 "DDRMC_MAIN_0_FROM_NOC_3",
-            ][..],
+            ],
         ),
         (
             "NOC_HNOC_S3_PL_CORE",
@@ -100,6 +124,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "NOC_NMU128_TOP_14_TO_NOC",
                 "NOC_NMU128_TOP_15_TO_NOC",
                 "NOC_NMU128_TOP_16_TO_NOC",
+                "NOC_NSU128_TOP_0_AXI_OUT",
+                "NOC_NSU128_TOP_3_AXI_OUT",
+                "NOC_NSU128_TOP_9_AXI_OUT",
+                "NOC_NSU128_TOP_10_AXI_OUT",
+                "NOC_NSU128_TOP_11_AXI_OUT",
+                "NOC_NSU128_TOP_12_AXI_OUT",
             ],
             &[
                 "NOC_NSU128_TOP_0_FROM_NOC",
@@ -118,6 +148,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "NOC_NMU128_TOP_14_FROM_NOC",
                 "NOC_NMU128_TOP_15_FROM_NOC",
                 "NOC_NMU128_TOP_16_FROM_NOC",
+                "NOC_NMU128_TOP_1_AXI_IN",
+                "NOC_NMU128_TOP_2_AXI_IN",
+                "NOC_NMU128_TOP_4_AXI_IN",
+                "NOC_NMU128_TOP_5_AXI_IN",
+                "NOC_NMU128_TOP_7_AXI_IN",
+                "NOC_NMU128_TOP_8_AXI_IN",
+                "NOC_NMU128_TOP_13_AXI_IN",
+                "NOC_NMU128_TOP_14_AXI_IN",
+                "NOC_NMU128_TOP_15_AXI_IN",
+                "NOC_NMU128_TOP_16_AXI_IN",
             ],
         ),
         // VNOC
@@ -149,13 +189,29 @@ fn main() -> Result<(), Box<dyn Error>> {
         // top ME
         (
             "NOC_TNOC_ME_CORE_MX",
-            &["NOC_NMU128_TOP_0_TO_NOC", "NOC_NSU128_TOP_1_TO_NOC"],
-            &["NOC_NMU128_TOP_0_FROM_NOC", "NOC_NSU128_TOP_1_FROM_NOC"],
+            &[
+                "NOC_NMU128_TOP_0_TO_NOC",
+                "NOC_NSU128_TOP_1_TO_NOC",
+                "NOC_NSU128_TOP_1_AXI_OUT",
+            ],
+            &[
+                "NOC_NMU128_TOP_0_FROM_NOC",
+                "NOC_NSU128_TOP_1_FROM_NOC",
+                "NOC_NMU128_TOP_0_AXI_IN",
+            ],
         ),
         (
             "NOC_TNOC_ME_CORE_R180",
-            &["NOC_NMU128_TOP_0_TO_NOC", "NOC_NSU128_TOP_1_TO_NOC"],
-            &["NOC_NMU128_TOP_0_FROM_NOC", "NOC_NSU128_TOP_1_FROM_NOC"],
+            &[
+                "NOC_NMU128_TOP_0_TO_NOC",
+                "NOC_NSU128_TOP_1_TO_NOC",
+                "NOC_NSU128_TOP_1_AXI_OUT",
+            ],
+            &[
+                "NOC_NMU128_TOP_0_FROM_NOC",
+                "NOC_NSU128_TOP_1_FROM_NOC",
+                "NOC_NMU128_TOP_0_AXI_IN",
+            ],
         ),
         (
             "NOC_TNOC_NCRB_CORE_MX",
@@ -195,6 +251,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "NOC_NPS5555_TOP_1_IN_3",
             ],
         ),
+        // AI
+        (
+            "AIE_INTF_B1_CORE",
+            &["AIE_NOC_TO_NOC"],
+            &["AIE_NOC_FROM_NOC"],
+        ),
+        (
+            "AIE_INTF_B2_CORE",
+            &["AIE_NOC_TO_NOC"],
+            &["AIE_NOC_FROM_NOC"],
+        ),
+        // AI-ML
+        (
+            "AIE_ML_SHIM_NOC_TILE",
+            &["AIE_NOC_TO_NOC"],
+            &["AIE_NOC_FROM_NOC"],
+        ),
         // top XPIO
         (
             "DDRMC_DMC_CORE_MX",
@@ -203,13 +276,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "DDRMC_MAIN_0_TO_NOC_1",
                 "DDRMC_MAIN_0_TO_NOC_2",
                 "DDRMC_MAIN_0_TO_NOC_3",
-            ][..],
+            ],
             &[
                 "DDRMC_MAIN_0_FROM_NOC_0",
                 "DDRMC_MAIN_0_FROM_NOC_1",
                 "DDRMC_MAIN_0_FROM_NOC_2",
                 "DDRMC_MAIN_0_FROM_NOC_3",
-            ][..],
+            ],
         ),
         (
             "NOC_HNOC_S3_PL_CORE_MX",
@@ -346,6 +419,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "NOC_NMU128_TOP_14_TO_NOC",
                 "NOC_NMU128_TOP_15_TO_NOC",
                 "NOC_NMU128_TOP_16_TO_NOC",
+                "NOC_NSU128_TOP_0_AXI_OUT",
+                "NOC_NSU128_TOP_3_AXI_OUT",
+                "NOC_NSU128_TOP_9_AXI_OUT",
+                "NOC_NSU128_TOP_10_AXI_OUT",
+                "NOC_NSU128_TOP_11_AXI_OUT",
+                "NOC_NSU128_TOP_12_AXI_OUT",
             ],
             &[
                 "NOC_NSU128_TOP_0_FROM_NOC",
@@ -364,6 +443,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "NOC_NMU128_TOP_14_FROM_NOC",
                 "NOC_NMU128_TOP_15_FROM_NOC",
                 "NOC_NMU128_TOP_16_FROM_NOC",
+                "NOC_NMU128_TOP_1_AXI_IN",
+                "NOC_NMU128_TOP_2_AXI_IN",
+                "NOC_NMU128_TOP_4_AXI_IN",
+                "NOC_NMU128_TOP_5_AXI_IN",
+                "NOC_NMU128_TOP_7_AXI_IN",
+                "NOC_NMU128_TOP_8_AXI_IN",
+                "NOC_NMU128_TOP_13_AXI_IN",
+                "NOC_NMU128_TOP_14_AXI_IN",
+                "NOC_NMU128_TOP_15_AXI_IN",
+                "NOC_NMU128_TOP_16_AXI_IN",
             ],
         ),
         (
@@ -546,9 +635,279 @@ fn main() -> Result<(), Box<dyn Error>> {
             &["NOC_NMU_HBM2E_ATOM_0_TO_NOC"],
             &["NOC_NMU_HBM2E_ATOM_0_FROM_NOC"],
         ),
+        // ====== NOC v2 ======
+        //
+        (
+            "NOC2_NPS5555_TOP",
+            &[
+                "NOC2_NPS5555_ATOM_0_OUT_0",
+                "NOC2_NPS5555_ATOM_0_OUT_1",
+                "NOC2_NPS5555_ATOM_0_OUT_2",
+                "NOC2_NPS5555_ATOM_0_OUT_3",
+            ],
+            &[
+                "NOC2_NPS5555_ATOM_0_IN_0",
+                "NOC2_NPS5555_ATOM_0_IN_1",
+                "NOC2_NPS5555_ATOM_0_IN_2",
+                "NOC2_NPS5555_ATOM_0_IN_3",
+            ],
+        ),
+        (
+            "NOC2_NPS5555_TOP_MY",
+            &[
+                "NOC2_NPS5555_ATOM_0_OUT_0",
+                "NOC2_NPS5555_ATOM_0_OUT_1",
+                "NOC2_NPS5555_ATOM_0_OUT_2",
+                "NOC2_NPS5555_ATOM_0_OUT_3",
+            ],
+            &[
+                "NOC2_NPS5555_ATOM_0_IN_0",
+                "NOC2_NPS5555_ATOM_0_IN_1",
+                "NOC2_NPS5555_ATOM_0_IN_2",
+                "NOC2_NPS5555_ATOM_0_IN_3",
+            ],
+        ),
+        (
+            "NOC2_NPS7575_TOP",
+            &[
+                "NOC2_NPS7575_ATOM_0_OUT_0",
+                "NOC2_NPS7575_ATOM_0_OUT_1",
+                "NOC2_NPS7575_ATOM_0_OUT_2",
+                "NOC2_NPS7575_ATOM_0_OUT_3",
+            ],
+            &[
+                "NOC2_NPS7575_ATOM_0_IN_0",
+                "NOC2_NPS7575_ATOM_0_IN_1",
+                "NOC2_NPS7575_ATOM_0_IN_2",
+                "NOC2_NPS7575_ATOM_0_IN_3",
+            ],
+        ),
+        (
+            "NOC2_XBR2X4_TOP",
+            &[
+                "NOC2_XBR2X4_ATOM_0_OUT_0",
+                "NOC2_XBR2X4_ATOM_0_OUT_1",
+                "NOC2_XBR2X4_ATOM_0_OUT_2",
+                "NOC2_XBR2X4_ATOM_0_OUT_3",
+                "NOC2_XBR2X4_ATOM_0_OUT_NMU",
+                "NOC2_XBR2X4_ATOM_0_OUT_NSU",
+            ],
+            &[
+                "NOC2_XBR2X4_ATOM_0_IN_0",
+                "NOC2_XBR2X4_ATOM_0_IN_1",
+                "NOC2_XBR2X4_ATOM_0_IN_2",
+                "NOC2_XBR2X4_ATOM_0_IN_3",
+                "NOC2_XBR2X4_ATOM_0_IN_NMU",
+                "NOC2_XBR2X4_ATOM_0_IN_NSU",
+            ],
+        ),
+        (
+            "NOC2_XBR4X2_TOP",
+            &[
+                "NOC2_XBR4X2_ATOM_0_OUT_0",
+                "NOC2_XBR4X2_ATOM_0_OUT_1",
+                "NOC2_XBR4X2_ATOM_0_OUT_2",
+                "NOC2_XBR4X2_ATOM_0_OUT_3",
+                "NOC2_XBR4X2_ATOM_0_OUT_DMC_0",
+                "NOC2_XBR4X2_ATOM_0_OUT_DMC_1",
+            ],
+            &[
+                "NOC2_XBR4X2_ATOM_0_IN_0",
+                "NOC2_XBR4X2_ATOM_0_IN_1",
+                "NOC2_XBR4X2_ATOM_0_IN_2",
+                "NOC2_XBR4X2_ATOM_0_IN_3",
+                "NOC2_XBR4X2_ATOM_0_IN_DMC_0",
+                "NOC2_XBR4X2_ATOM_0_IN_DMC_1",
+            ],
+        ),
+        (
+            "NOC2_XBR4X2_TOP_MY",
+            &[
+                "NOC2_XBR4X2_ATOM_0_OUT_0",
+                "NOC2_XBR4X2_ATOM_0_OUT_1",
+                "NOC2_XBR4X2_ATOM_0_OUT_2",
+                "NOC2_XBR4X2_ATOM_0_OUT_3",
+                "NOC2_XBR4X2_ATOM_0_OUT_DMC_0",
+                "NOC2_XBR4X2_ATOM_0_OUT_DMC_1",
+            ],
+            &[
+                "NOC2_XBR4X2_ATOM_0_IN_0",
+                "NOC2_XBR4X2_ATOM_0_IN_1",
+                "NOC2_XBR4X2_ATOM_0_IN_2",
+                "NOC2_XBR4X2_ATOM_0_IN_3",
+                "NOC2_XBR4X2_ATOM_0_IN_DMC_0",
+                "NOC2_XBR4X2_ATOM_0_IN_DMC_1",
+            ],
+        ),
+        (
+            "NOC2_NCRB_TILE",
+            &[
+                "NOC_NCRB_TOP_0_OUT_0",
+                "NOC_NCRB_TOP_0_OUT_1",
+                "NOC_NCRB_TOP_1_OUT_0",
+                "NOC_NCRB_TOP_1_OUT_1",
+            ],
+            &[
+                "NOC_NCRB_TOP_0_IN_0",
+                "NOC_NCRB_TOP_0_IN_1",
+                "NOC_NCRB_TOP_1_IN_0",
+                "NOC_NCRB_TOP_1_IN_1",
+            ],
+        ),
+        (
+            "NOC2_NPP_RPTR_TILE",
+            &[
+                "NOC_NPP_RPTR_FLOP_0_OUT_LEFT",
+                "NOC_NPP_RPTR_FLOP_0_OUT_RIGHT",
+            ],
+            &[
+                "NOC_NPP_RPTR_FLOP_0_IN_LEFT",
+                "NOC_NPP_RPTR_FLOP_0_IN_RIGHT",
+            ],
+        ),
+        (
+            "NOC2_NMU128_TOP",
+            &["NOC2_NMU128_ATOM_0_TO_NOC"],
+            &["NOC2_NMU128_ATOM_0_FROM_NOC", "NOC2_NMU128_ATOM_0_AXI_IN"],
+        ),
+        (
+            "NOC2_NMU128_TOP_MY",
+            &["NOC2_NMU128_ATOM_0_TO_NOC"],
+            &["NOC2_NMU128_ATOM_0_FROM_NOC", "NOC2_NMU128_ATOM_0_AXI_IN"],
+        ),
+        (
+            "NOC2_NMU256_TOP",
+            &["NOC2_NMU256_ATOM_0_TO_NOC"],
+            &["NOC2_NMU256_ATOM_0_FROM_NOC", "NOC2_NMU256_ATOM_0_AXI_IN"],
+        ),
+        (
+            "NOC2_NMU512_BLI_TILE",
+            &["NOC2_NMU512_ATOM_0_TO_NOC"],
+            &["NOC2_NMU512_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NMU512_BLI_TILE_MY",
+            &["NOC2_NMU512_ATOM_0_TO_NOC"],
+            &["NOC2_NMU512_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NMU512_VNOC_TILE",
+            &["NOC2_NMU512_ATOM_0_TO_NOC"],
+            &["NOC2_NMU512_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU128_TOP",
+            &["NOC2_NSU128_ATOM_0_TO_NOC", "NOC2_NSU128_ATOM_0_AXI_OUT"],
+            &["NOC2_NSU128_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU256_TOP",
+            &["NOC2_NSU256_ATOM_0_TO_NOC", "NOC2_NSU256_ATOM_0_AXI_OUT"],
+            &["NOC2_NSU256_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU512_BLI_TILE",
+            &["NOC2_NSU512_ATOM_0_TO_NOC"],
+            &["NOC2_NSU512_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU512_VNOC_TILE",
+            &["NOC2_NSU512_ATOM_0_TO_NOC"],
+            &["NOC2_NSU512_ATOM_0_FROM_NOC"],
+        ),
+        // PSXL
+        (
+            "PSXL_CORE",
+            &[
+                "PSXL_ATOM_0_CMN_NOC_0",
+                "PSXL_ATOM_0_CMN_NOC_1",
+                "PSXL_ATOM_0_CMN_NOC_2",
+                "PSXL_ATOM_0_CMN_NOC_3",
+                "PSXL_ATOM_0_CMN_NOC_4",
+                "PSXL_ATOM_0_CMN_NOC_5",
+                "PSXL_ATOM_0_CMN_NOC_6",
+                "PSXL_ATOM_0_CMN_NOC_7",
+                "PSXL_ATOM_0_CMN_NOC_8",
+                "PSXL_ATOM_0_PMC_NOC_0",
+                "PSXL_ATOM_0_RPU_NOC_0",
+                "PSXL_ATOM_0_PSXL_NOC_PCIE_0",
+                "PSXL_ATOM_0_PSXL_NOC_PCIE_1",
+                "PSXL_ATOM_0_PSXL_NOC_PCIE_2",
+                "PSXL_ATOM_0_PSXL_NOC_PCIE_3",
+            ],
+            &[
+                "PSXL_ATOM_0_CMN_NOC_CCI_0",
+                "PSXL_ATOM_0_CMN_NOC_CCI_1",
+                "PSXL_ATOM_0_CMN_NOC_CCI_2",
+                "PSXL_ATOM_0_CMN_NOC_CCI_3",
+                "PSXL_ATOM_0_NOC_PMC_0",
+                "PSXL_ATOM_0_NOC_PCIE_0",
+            ],
+        ),
+        // bot X5HPIO
+        (
+            "DDRMC5_DMC_CORE",
+            &["DDRMC5_DMC_SITE_0_TO_NOC_0", "DDRMC5_DMC_SITE_0_TO_NOC_1"],
+            &[
+                "DDRMC5_DMC_SITE_0_FROM_NOC_0",
+                "DDRMC5_DMC_SITE_0_FROM_NOC_1",
+            ],
+        ),
+        (
+            "DDRMC5_DMC_CORE_MY",
+            &["DDRMC5_DMC_SITE_0_TO_NOC_0", "DDRMC5_DMC_SITE_0_TO_NOC_1"],
+            &[
+                "DDRMC5_DMC_SITE_0_FROM_NOC_0",
+                "DDRMC5_DMC_SITE_0_FROM_NOC_1",
+            ],
+        ),
+        // CPM5N
+        (
+            "CPM_G5N2X_TILE",
+            &[
+                "CPM5N_ATOM_0_CDX_NMU_AXIM",
+                "CPM5N_ATOM_0_CDX_NMU_AXIS0",
+                "CPM5N_ATOM_0_CDX_NMU_AXIS1",
+                "CPM5N_ATOM_0_CDX_NMU_AXIS2",
+                "CPM5N_ATOM_0_CDX_NMU_AXIS3",
+                "CPM5N_ATOM_0_DPU_NMU_AXIS0",
+                "CPM5N_ATOM_0_DPU_NMU_AXIS1",
+                "CPM5N_ATOM_0_DPU_NMU_AXIS2",
+                "CPM5N_ATOM_0_DPU_NMU_AXIS3",
+            ],
+            &[
+                "CPM5N_ATOM_0_CDX_NSU_AXIM",
+                "CPM5N_ATOM_0_CDX_NSU_AXIS0",
+                "CPM5N_ATOM_0_CDX_NSU_AXIS1",
+                "CPM5N_ATOM_0_CDX_NSU_AXIS2",
+                "CPM5N_ATOM_0_CDX_NSU_AXIS3",
+                "CPM5N_ATOM_0_DPU_NSU_AXIS0",
+                "CPM5N_ATOM_0_DPU_NSU_AXIS1",
+                "CPM5N_ATOM_0_DPU_NSU_AXIS2",
+                "CPM5N_ATOM_0_DPU_NSU_AXIS3",
+            ],
+        ),
+        // HNICX
+        (
+            "HNICX_TILE",
+            &[
+                "HNICX_ATOM_0_HNICX_NOC_AXIMM_M",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_M0",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_M1",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_M2",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_M3",
+            ],
+            &[
+                "HNICX_ATOM_0_HNICX_NOC_AXIMM_S",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_S0",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_S1",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_S2",
+                "HNICX_ATOM_0_HNICX_NOC_AXIS_S3",
+            ],
+        ),
     ] {
-        for crd in rd.tiles_by_kind_name(tkn) {
-            let tile = &rd.tiles[crd];
+        for &crd in rd.tiles_by_kind_name(tkn) {
+            let tile = &rd.tiles[&crd];
             let tk = &rd.tile_kinds[tile.kind];
             for &wn in wires_in {
                 if rd.wires.get(wn).is_none() {
@@ -562,7 +921,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if let TkWire::Connected(cwi) = *w {
                     if let Some(ni) = tile.conn_wires.get(cwi) {
                         assert!(!n2iw.contains_key(&ni));
-                        n2iw.insert(ni, (&tile.name, wn));
+                        n2iw.insert(ni, (crd, wn));
                     }
                 }
             }
@@ -578,27 +937,44 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if let TkWire::Connected(cwi) = *w {
                     if let Some(ni) = tile.conn_wires.get(cwi) {
                         assert!(!n2ow.contains_key(&ni));
-                        n2ow.insert(ni, (&tile.name, wn));
+                        n2ow.insert(ni, (crd, wn));
                     }
                 }
             }
         }
     }
+    let mut pairs = vec![];
     for (&ni, &(ti, wi)) in &n2iw {
         match n2ow.get(&ni) {
             Some(&(to, wo)) => {
-                println!("{ti:30} {wi:30} <= {to:30} {wo:30}");
+                pairs.push((Some((ti, wi)), Some((to, wo))));
             }
             None => {
-                println!("{ti:30} {wi:30} <= [NONE]");
+                pairs.push((Some((ti, wi)), None));
             }
         }
     }
     for (&ni, &(to, wo)) in &n2ow {
         if !n2iw.contains_key(&ni) {
-            println!(
-                "[NONE]                                                        <= {to:30} {wo:30}"
-            );
+            pairs.push((None, Some((to, wo))));
+        }
+    }
+    pairs.sort_by_key(|&(pi, po)| {
+        (
+            pi.map(|(Coord { x, y }, w)| (y, x, w)),
+            po.map(|(Coord { x, y }, w)| (y, x, w)),
+        )
+    });
+    for (pi, po) in pairs {
+        match pi {
+            None => {
+                print!("[NONE]                                                             <= ")
+            }
+            Some((ci, wi)) => print!("{ti:35} {wi:30} <= ", ti = rd.tiles[&ci].name),
+        }
+        match po {
+            None => println!("[NONE]"),
+            Some((co, wo)) => println!("{to:35} {wo}", to = rd.tiles[&co].name),
         }
     }
     Ok(())

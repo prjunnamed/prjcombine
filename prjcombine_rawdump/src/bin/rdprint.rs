@@ -13,6 +13,8 @@ struct Opt {
     wires: bool,
     #[structopt(short, long)]
     conns: bool,
+    #[structopt(short, long)]
+    kinds: Vec<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -62,6 +64,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     for (_, name, tt) in rd.tile_kinds.iter().sorted_by_key(|(_, name, _)| *name) {
+        if !opt.kinds.is_empty() && !opt.kinds.contains(name) {
+            continue;
+        }
         println!("TT {name}");
         for (_, &slot, site) in tt.sites.iter().sorted_by_key(|&(_, slot, _)| slot) {
             let slot = match slot {
@@ -143,6 +148,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     for (coord, tile) in rd.tiles.iter().sorted_by_key(|(coord, _)| *coord) {
         let tk = &rd.tile_kinds[tile.kind];
+        if !opt.kinds.is_empty() && !opt.kinds.contains(rd.tile_kinds.key(tile.kind)) {
+            continue;
+        }
         println!(
             "TILE {} {} {} {}",
             coord.x,
