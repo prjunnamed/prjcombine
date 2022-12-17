@@ -122,6 +122,7 @@ indicatif = "0.17"
 ron = "0.8"
 arrayref = "0.3.6"
 bimap = "0.6"
+std-semaphore = "0.1"
 
 [profile.dev]
 opt-level = 2

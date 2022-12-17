@@ -45,5 +45,5 @@ prjcombine_versal_rd2db.workspace = true
 structopt.workspace = true
 simple-error.workspace = true
 serde.workspace = true
-rayon.workspace = true
 enum-map.workspace = true
+std-semaphore.workspace = true

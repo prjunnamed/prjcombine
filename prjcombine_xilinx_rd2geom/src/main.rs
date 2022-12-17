@@ -1,10 +1,11 @@
 #![allow(clippy::collapsible_else_if)]
 
 use prjcombine_rawdump::Part;
-use rayon::prelude::*;
 use simple_error::bail;
 use std::error::Error;
 use structopt::StructOpt;
+use std_semaphore::Semaphore;
+use std::sync::Mutex;
 
 mod db;
 mod series7;
@@ -34,39 +35,49 @@ fn main() -> Result<(), Box<dyn Error>> {
     if opt.files.is_empty() {
         bail!("no files given");
     }
-    let mut builder = db::DbBuilder::new();
-    let pres: Vec<_> = opt
-        .files
-        .par_iter()
-        .map(|file| {
-            let rd = Part::from_file(file).unwrap();
-            println!("INGEST {} {:?}", rd.part, rd.source);
-            match &rd.family[..] {
-                "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => {
-                    xc4k::ingest(&rd)
-                }
-                "xc5200" => xc5200::ingest(&rd),
-                "virtex" | "virtexe" => virtex::ingest(&rd),
-                "virtex2" | "virtex2p" | "spartan3" | "spartan3e" | "spartan3a"
-                | "spartan3adsp" => virtex2::ingest(&rd),
-                "spartan6" => spartan6::ingest(&rd),
-                "virtex4" => virtex4::ingest(&rd),
-                "virtex5" => virtex5::ingest(&rd),
-                "virtex6" => virtex6::ingest(&rd),
-                "7series" => series7::ingest(&rd),
-                "ultrascale" | "ultrascaleplus" => ultrascale::ingest(&rd),
-                "versal" => versal::ingest(&rd),
-                _ => panic!("unknown family {}", rd.family),
+    let builder = Mutex::new(db::DbBuilder::new());
+    let rb = &builder;
+    let sema = Semaphore::new(std::thread::available_parallelism().unwrap().get() as isize);
+    std::thread::scope(|s| {
+        for fname in opt.files {
+            let guard = sema.access();
+            let mut tname = &fname[..];
+            if let Some((_, n)) = tname.rsplit_once('/') {
+                tname = n;
             }
-        })
-        .collect();
-    for (pre, idb) in pres {
-        builder.ingest(pre);
-        if let Some(int_db) = idb {
-            builder.ingest_int(int_db);
+            if let Some((n, _)) = tname.split_once('.') {
+                tname = n;
+            }
+            std::thread::Builder::new().name(tname.to_string()).spawn_scoped(s, move || {
+                let rd = Part::from_file(fname).unwrap();
+                println!("INGEST {} {:?}", rd.part, rd.source);
+                let (pre, idb) = match &rd.family[..] {
+                    "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => {
+                        xc4k::ingest(&rd)
+                    }
+                    "xc5200" => xc5200::ingest(&rd),
+                    "virtex" | "virtexe" => virtex::ingest(&rd),
+                    "virtex2" | "virtex2p" | "spartan3" | "spartan3e" | "spartan3a"
+                    | "spartan3adsp" => virtex2::ingest(&rd),
+                    "spartan6" => spartan6::ingest(&rd),
+                    "virtex4" => virtex4::ingest(&rd),
+                    "virtex5" => virtex5::ingest(&rd),
+                    "virtex6" => virtex6::ingest(&rd),
+                    "7series" => series7::ingest(&rd),
+                    "ultrascale" | "ultrascaleplus" => ultrascale::ingest(&rd),
+                    "versal" => versal::ingest(&rd),
+                    _ => panic!("unknown family {}", rd.family),
+                };
+                let mut builder = rb.lock().unwrap();
+                builder.ingest(pre);
+                if let Some(int_db) = idb {
+                    builder.ingest_int(int_db);
+                }
+                std::mem::drop(guard);
+            }).unwrap();
         }
-    }
-    let db = builder.finish();
+    });
+    let db = builder.into_inner().unwrap().finish();
     db.to_file(opt.dst)?;
     Ok(())
 }
