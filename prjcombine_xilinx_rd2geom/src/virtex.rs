@@ -6,7 +6,7 @@ use crate::db::{make_device, PreDevice};
 use prjcombine_virtex_rd2db::{bond, grid, int};
 use prjcombine_virtex_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);
     let int_db = int::make_int_db(rd);
     let edev = grid.expand_grid(&disabled, &int_db);
@@ -15,7 +15,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex(bond)));
     }
-    verify_device(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     let disabled = disabled.into_iter().map(DisabledPart::Virtex).collect();
     (
         make_device(rd, Grid::Virtex(grid), bonds, disabled),

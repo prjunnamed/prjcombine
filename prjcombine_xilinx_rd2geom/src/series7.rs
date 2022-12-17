@@ -7,7 +7,7 @@ use crate::db::{make_device_multi, PreDevice};
 use prjcombine_series7_rd2db::{bond, grid, int};
 use prjcombine_series7_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, extras, disabled) = grid::make_grids(rd);
     let int_db = int::make_int_db(rd);
     let grid_refs = grids.map_values(|x| x);
@@ -20,7 +20,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(rd, pkg, &edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
-    verify_device(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     let grids = grids.into_map_values(Grid::Virtex4);
     let extras = extras.into_iter().map(ExtraDie::Virtex4).collect();
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();

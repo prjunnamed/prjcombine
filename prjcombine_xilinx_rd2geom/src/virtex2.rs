@@ -8,7 +8,7 @@ use crate::db::{make_device, PreDevice};
 use prjcombine_virtex2_rd2db::{bond, grid, int_s3, int_v2};
 use prjcombine_virtex2_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
     let int_db = if rd.family.starts_with("virtex2") {
         int_v2::make_int_db(rd)
@@ -21,8 +21,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex2(bond)));
     }
-
-    verify_device(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     (
         make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
         Some(int_db),

@@ -6,9 +6,9 @@ use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
 use crate::db::{make_device, PreDevice};
 use prjcombine_virtex6::expand_grid;
 use prjcombine_virtex6_rd2db::{bond, grid, int};
-use prjcombine_virtex6_rdverify::verify;
+use prjcombine_virtex6_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grid, disabled) = grid::make_grid(rd);
     let grid_refs: EntityVec<_, _> = [&grid].into_iter().collect();
     let grid_master = grid_refs.first_id().unwrap();
@@ -20,7 +20,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
-    verify(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
     (
         make_device(rd, Grid::Virtex4(grid), bonds, disabled),

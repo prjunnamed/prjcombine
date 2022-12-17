@@ -9,7 +9,7 @@ use prjcombine_virtex5::expand_grid;
 use prjcombine_virtex5_rd2db::{bond, grid, int};
 use prjcombine_virtex5_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
     let grid_refs: EntityVec<_, _> = [&grid].into_iter().collect();
     let grid_master = grid_refs.first_id().unwrap();
@@ -22,7 +22,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
         let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Virtex4(bond)));
     }
-    verify_device(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     (
         make_device(rd, Grid::Virtex4(grid), bonds, BTreeSet::new()),
         Some(int_db),

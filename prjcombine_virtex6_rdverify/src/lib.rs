@@ -2123,7 +2123,7 @@ fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
     }
 }
 
-pub fn verify(edev: &ExpandedDevice, rd: &Part) {
+pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
     prjcombine_rdverify::verify(
         rd,
         &edev.egrid,

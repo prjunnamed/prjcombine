@@ -7,7 +7,7 @@ use crate::db::{make_device_multi, PreDevice};
 use prjcombine_versal_rd2db::{grid, int};
 use prjcombine_versal_rdverify::verify_device;
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, disabled, naming) = grid::make_grids(rd);
     let int_db = int::make_int_db(rd);
     let mut bonds = Vec::new();
@@ -16,7 +16,9 @@ pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
     }
     let grid_refs = grids.map_values(|x| x);
     let edev = expand_grid(&grid_refs, &disabled, &int_db);
-    verify_device(&edev, rd);
+    if verify {
+        verify_device(&edev, rd);
+    }
     let grids = grids.into_map_values(Grid::Versal);
     let disabled = disabled.into_iter().map(DisabledPart::Versal).collect();
     (

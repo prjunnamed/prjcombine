@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use crate::db::{make_device, PreDevice};
 use prjcombine_xc4k_rd2db::{bond, grid};
 
-pub fn ingest(rd: &Part) -> (PreDevice, Option<IntDb>) {
+pub fn ingest(rd: &Part, _verify: bool) -> (PreDevice, Option<IntDb>) {
     let grid = grid::make_grid(rd);
     let mut bonds = Vec::new();
     for (pkg, pins) in rd.packages.iter() {
