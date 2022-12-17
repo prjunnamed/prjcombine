@@ -1289,6 +1289,17 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         }],
         source_device: "xcvp1202-vsva2785-1LHP-i-L",
     },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "HDIO_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "DPLL",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DPLL_X3Y7",
+        }],
+        source_device: "xcvc1702-nsvg1369-1LHP-i-L",
+    },
 ];
 
 pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn Error>> {

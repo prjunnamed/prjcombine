@@ -95,7 +95,7 @@ pub struct GeomDb {
 pub enum DeviceNaming {
     Dummy,
     Ultrascale(prjcombine_ultrascale::grid::DeviceNaming),
-    Versal(prjcombine_versal::grid::DeviceNaming),
+    Versal(prjcombine_versal::naming::DeviceNaming),
 }
 
 impl GeomDb {

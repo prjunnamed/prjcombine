@@ -140,13 +140,11 @@ pub enum NocEndpoint {
 pub enum DisabledPart {
     HardIp(DieId, ColId, RegId),
     HardIpSite(DieId, ColId, RegId),
+    HdioDpll(DieId, ColId, RegId),
     Column(DieId, ColId),
     GtRight(DieId, RegId),
     Region(DieId, RegId),
 }
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceNaming {}
 
 impl Grid {
     pub fn row_to_reg(&self, row: RowId) -> RegId {

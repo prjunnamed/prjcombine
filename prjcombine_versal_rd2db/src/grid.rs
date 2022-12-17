@@ -1,18 +1,37 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::{Coord, Part};
+use prjcombine_rawdump::{Coord, Part, TkSiteSlot, Tile};
 use prjcombine_versal::grid::{
-    BotKind, Column, ColumnKind, CpmKind, DeviceNaming, DisabledPart, Grid, GtRowKind, HardColumn,
-    HardRowKind, PsKind, RegId, TopKind,
+    BotKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind, HardColumn, HardRowKind,
+    PsKind, RegId, TopKind,
 };
+use prjcombine_versal::naming::{DeviceNaming, DieNaming, HdioNaming};
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
+
+fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
+    let (l, r) = s.rsplit_once("_X")?;
+    let (x, y) = r.rsplit_once('Y')?;
+    let x = x.parse().ok()?;
+    let y = y.parse().ok()?;
+    Some((l, x, y))
+}
+
+fn extract_site_xy(rd: &Part, tile: &Tile, sname: &str) -> Option<(u32, u32)> {
+    let tk = &rd.tile_kinds[tile.kind];
+    let tks = TkSiteSlot::Xy(rd.slot_kinds.get(sname)?, 0, 0);
+    let si = tk.sites.get(&tks)?.0;
+    let name = tile.sites.get(si)?;
+    let (_, x, y) = split_xy(name).unwrap();
+    Some((x, y))
+}
 
 fn make_columns(
     die: DieId,
     int: &IntGrid,
     disabled: &mut BTreeSet<DisabledPart>,
+    naming: &mut DieNaming,
 ) -> (EntityVec<ColId, Column>, ColId, Vec<HardColumn>) {
     let mut res = int.cols.map_values(|_| Column {
         l: ColumnKind::None,
@@ -140,6 +159,30 @@ fn make_columns(
                 disabled.insert(DisabledPart::HardIpSite(die, col, reg));
             }
             hard_cells.insert((col, reg), kind);
+            if tt.starts_with("HDIO") {
+                let iob_xy = extract_site_xy(int.rd, tile, "IOB").unwrap();
+                let dpll_xy = extract_site_xy(int.rd, tile, "DPLL").unwrap_or_else(|| {
+                    disabled.insert(DisabledPart::HdioDpll(die, col, reg));
+                    let is_vc1902 = ["vc1902", "vc1802", "vm1802", "v65"].into_iter().any(|x| int.rd.part.contains(x));
+                    if is_vc1902 {
+                        let dpll_x = match col.to_idx() {
+                            5 => 3,
+                            108 => 12,
+                            _ => unreachable!(),
+                        };
+                        (dpll_x, 7)
+                    } else {
+                        panic!("MISSING DPLL FOR UNK PART {part}", part = int.rd.part);
+                    }
+                });
+                naming.hdio.insert(
+                    (col, reg),
+                    HdioNaming {
+                        iob_xy,
+                        dpll_xy,
+                    },
+                );
+            }
         }
     }
     for (tt, kind_b, kind_t) in [
@@ -251,10 +294,14 @@ pub fn make_grids(
     rows_slr_split.insert(rd.height);
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
     let mut grids = EntityVec::new();
+    let mut namings = EntityVec::new();
     for (dieid, w) in rows_slr_split.windows(2).enumerate() {
+        let mut naming = DieNaming {
+            hdio: BTreeMap::new(),
+        };
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
         let (columns, col_cfrm, cols_hard) =
-            make_columns(DieId::from_idx(dieid), &int, &mut disabled);
+            make_columns(DieId::from_idx(dieid), &int, &mut disabled, &mut naming);
         let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
             PsKind::Ps9
         } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
@@ -285,9 +332,10 @@ pub fn make_grids(
             ps,
             cpm,
             has_hnicx,
-            top: TopKind::Me,      // XXX
+            top: TopKind::Ssit,    // XXX
             bottom: BotKind::Ssit, // XXX
         });
+        namings.push(naming);
     }
     if rd.part.contains("vc1502") {
         let s0 = DieId::from_idx(0);
@@ -422,5 +470,10 @@ pub fn make_grids(
         col_gt_r[RegId::from_idx(12)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(13)] = GtRowKind::Gtm;
     }
-    (grids, DieId::from_idx(0), disabled, DeviceNaming {})
+    (
+        grids,
+        DieId::from_idx(0),
+        disabled,
+        DeviceNaming { die: namings },
+    )
 }

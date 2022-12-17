@@ -15,7 +15,7 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
         bonds.push((pkg.clone(), Bond::Versal(prjcombine_versal::bond::Bond {})));
     }
     let grid_refs = grids.map_values(|x| x);
-    let edev = expand_grid(&grid_refs, &disabled, &int_db);
+    let edev = expand_grid(&grid_refs, &disabled, &naming, &int_db);
     if verify {
         verify_device(&edev, rd);
     }

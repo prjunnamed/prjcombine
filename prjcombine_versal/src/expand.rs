@@ -7,6 +7,7 @@ use std::collections::BTreeSet;
 
 use crate::expanded::ExpandedDevice;
 use crate::grid::{ColSide, ColumnKind, CpmKind, DisabledPart, Grid, HardRowKind, PsKind, RegId};
+use crate::naming::{DeviceNaming, DieNaming};
 
 entity_id! {
     id EColId u32, delta;
@@ -32,7 +33,7 @@ pub const BUFDIV_LEAF_SWZ_BH: [u32; 32] = [
     48, 49, 50, 51, 59, 58, 57, 56,
 ];
 
-struct DieInfo {
+struct DieInfo<'a> {
     ecol2col: EntityPartVec<EColId, ColId>,
     col2ecol: EntityVec<ColId, EColId>,
     xlut: EntityVec<ColId, u32>,
@@ -48,14 +49,16 @@ struct DieInfo {
     rclkxlut: EnumMap<ColSide, EntityPartVec<ColId, u32>>,
     rclkylut: EntityPartVec<RegId, u32>,
     dfxylut: EntityPartVec<RegId, u32>,
+    naming: &'a DieNaming,
 }
 
 struct Expander<'a> {
     db: &'a IntDb,
     grids: EntityVec<DieId, &'a Grid>,
     disabled: BTreeSet<DisabledPart>,
+    naming: &'a DeviceNaming,
     egrid: ExpandedGrid<'a>,
-    die: EntityVec<DieId, DieInfo>,
+    die: EntityVec<DieId, DieInfo<'a>>,
     ecol_cfrm: EColId,
     ecols: EntityVec<EColId, ()>,
     clexlut: EntityPartVec<EColId, u32>,
@@ -68,9 +71,10 @@ struct Expander<'a> {
 
 impl Expander<'_> {
     fn fill_die(&mut self) {
-        for grid in self.grids.values().copied() {
+        for (dieid, &grid) in &self.grids {
             self.egrid.add_die(grid.columns.len(), grid.regs * 48);
             self.die.push(DieInfo {
+                naming: &self.naming.die[dieid],
                 ecol2col: Default::default(),
                 col2ecol: Default::default(),
                 xlut: Default::default(),
@@ -867,6 +871,8 @@ impl Expander<'_> {
                             let tile;
                             let swz;
                             let mut has_dfx = false;
+                            let mut is_rclk_hdio = false;
+                            let mut is_rclk_hb_hdio = false;
                             let wide;
                             match cd.l {
                                 ColumnKind::Dsp => {
@@ -916,6 +922,7 @@ impl Expander<'_> {
                                             tile = format!("RCLK_HDIO_CORE_X{x}Y{yy}", x = x - 1);
                                             swz = BUFDIV_LEAF_SWZ_AH;
                                             wide = true;
+                                            is_rclk_hdio = true;
                                         } else {
                                             kind = "HB";
                                             tile = format!("RCLK_HB_CORE_X{x}Y{yy}", x = x - 1);
@@ -928,12 +935,14 @@ impl Expander<'_> {
                                             tile = format!("RCLK_HDIO_CORE_X{x}Y{yy}", x = x - 1);
                                             swz = BUFDIV_LEAF_SWZ_AH;
                                             wide = true;
+                                            is_rclk_hdio = true;
                                         } else if hc.regs[reg - 1] == HardRowKind::Hdio {
                                             kind = "HB_HDIO";
                                             tile =
                                                 format!("RCLK_HB_HDIO_CORE_X{x}Y{yy}", x = x - 1);
                                             swz = BUFDIV_LEAF_SWZ_BH;
                                             wide = true;
+                                            is_rclk_hb_hdio = true;
                                         } else if matches!(
                                             hc.regs[reg - 1],
                                             HardRowKind::DcmacB
@@ -988,6 +997,22 @@ impl Expander<'_> {
                                 let sx = self.dfxxlut[ColSide::Left][di.col2ecol[col]];
                                 let sy = di.dfxylut[reg];
                                 node.add_bel(0, format!("RCLK_X{sx}Y{sy}"));
+                            }
+                            if is_rclk_hdio {
+                                die[(col, row)].add_xnode(
+                                    self.db.get_node("RCLK_HDIO"),
+                                    &[&tile],
+                                    self.db.get_node_naming("RCLK_HDIO"),
+                                    &[],
+                                );
+                            }
+                            if is_rclk_hb_hdio {
+                                die[(col, row)].add_xnode(
+                                    self.db.get_node("RCLK_HB_HDIO"),
+                                    &[&tile],
+                                    self.db.get_node_naming("RCLK_HB_HDIO"),
+                                    &[],
+                                );
                             }
                         }
                         if !matches!(
@@ -1345,10 +1370,16 @@ impl Expander<'_> {
                     let (nk, tk, bk, is_high) = match kind {
                         HardRowKind::None => continue,
                         HardRowKind::DcmacT | HardRowKind::IlknT | HardRowKind::HscT => continue,
-                        HardRowKind::Hdio => {
-                            // XXX
-                            continue;
-                        }
+                        HardRowKind::Hdio => (
+                            "HDIO",
+                            if grid.is_reg_top(reg) {
+                                "HDIO_TILE"
+                            } else {
+                                "HDIO_BOT_TILE"
+                            },
+                            "",
+                            false,
+                        ),
                         HardRowKind::CpmExt => {
                             // XXX
                             continue;
@@ -1408,7 +1439,24 @@ impl Expander<'_> {
                     );
                     let sx = self.hardxlut[kind][di.col2ecol[hc.col]];
                     let sy = di.hardylut[kind][reg];
-                    node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+                    if nk == "HDIO" {
+                        let naming = &di.naming.hdio[&(hc.col, reg)];
+                        for i in 0..11 {
+                            node.add_bel(i, format!("HDIOLOGIC_X{sx}Y{y}", y = sy * 11 + i as u32));
+                        }
+                        for i in 0..11 {
+                            node.add_bel(11 + i, format!("IOB_X{x}Y{y}", x = naming.iob_xy.0, y = naming.iob_xy.1 + i as u32));
+                        }
+                        for i in 0..4 {
+                            node.add_bel(22 + i, format!("BUFGCE_HDIO_X{sx}Y{y}", y = sy * 4 + i as u32));
+                        }
+                        node.add_bel(26, format!("DPLL_X{x}Y{y}", x = naming.dpll_xy.0, y = naming.dpll_xy.1));
+                        node.add_bel(27, format!("HDIO_BIAS_X{sx}Y{sy}"));
+                        node.add_bel(28, format!("RPI_HD_APB_X{sx}Y{sy}"));
+                        node.add_bel(29, format!("HDLOGIC_APB_X{sx}Y{sy}"));
+                    } else {
+                        node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+                    }
                 }
             }
         }
@@ -1439,12 +1487,14 @@ impl Expander<'_> {
 pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &'a Grid>,
     disabled: &BTreeSet<DisabledPart>,
+    naming: &'a DeviceNaming,
     db: &'a IntDb,
 ) -> ExpandedDevice<'a> {
     let mut expander = Expander {
         db,
         grids: grids.clone(),
         disabled: disabled.clone(),
+        naming,
         egrid: ExpandedGrid::new(db),
         die: EntityVec::new(),
         ecol_cfrm: EColId::from_idx(0),

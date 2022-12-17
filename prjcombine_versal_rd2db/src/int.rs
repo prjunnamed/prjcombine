@@ -1056,6 +1056,81 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
+    for tkn in ["HDIO_TILE", "HDIO_BOT_TILE"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let mut bels = vec![];
+            for i in 0..11 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("HDIOLOGIC{i}"), "HDIOLOGIC", 0, i)
+                        .pin_name_only("TFFM_Q", 1)
+                        .pin_name_only("TFFS_Q", 1)
+                        .pin_name_only("OPFFM_Q", 1)
+                        .pin_name_only("OPFFS_Q", 1)
+                        .pin_name_only("IPFFM_D", 0)
+                        .pin_name_only("IPFFS_D", 0),
+                );
+            }
+            for i in 0..11 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("HDIOB{i}"), "IOB", 0, i)
+                        .pin_name_only("RXOUT_M", 1)
+                        .pin_name_only("RXOUT_S", 1)
+                        .pin_name_only("OP_M", 0)
+                        .pin_name_only("OP_S", 0)
+                        .pin_name_only("TRISTATE_M", 0)
+                        .pin_name_only("TRISTATE_S", 0),
+                );
+            }
+            for i in 0..4 {
+                let mut bel = builder
+                    .bel_xy(format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", 0, i)
+                    .pin_name_only("O", 1)
+                    .pin_name_only("I", 1);
+                for j in 0..8 {
+                    bel = bel.extra_wire(
+                        format!("I_DUMMY{j}"),
+                        &[format!("VCC_WIRE{k}", k = i * 8 + j)],
+                    );
+                }
+                bels.push(bel);
+            }
+            bels.push(
+                builder
+                    .bel_xy("DPLL.HDIO", "DPLL", 0, 0)
+                    .pin_name_only("CLKIN", 1)
+                    .extra_int_in("CLKIN_INT", &["IF_COE_W24_CTRL14"])
+                    .extra_wire("CLKIN_RCLK", &["IF_RCLK_CLK_TO_DPLL"])
+                    .pin_name_only("CLKIN_DESKEW", 1)
+                    .extra_wire("CLKIN_DESKEW_DUMMY0", &["VCC_WIRE32"])
+                    .extra_wire("CLKIN_DESKEW_DUMMY1", &["VCC_WIRE33"])
+                    .pin_name_only("CLKOUT0", 1)
+                    .pin_name_only("CLKOUT1", 1)
+                    .pin_name_only("CLKOUT2", 1)
+                    .pin_name_only("CLKOUT3", 1)
+                    .pin_name_only("TMUXOUT", 1),
+            );
+            bels.push(builder.bel_xy("HDIO_BIAS", "HDIO_BIAS", 0, 0));
+            bels.push(builder.bel_xy("RPI_HD_APB", "RPI_HD_APB", 0, 0));
+            bels.push(builder.bel_xy("HDLOGIC_APB", "HDLOGIC_APB", 0, 0));
+            bels.push(
+                builder
+                    .bel_virtual("VCC.HDIO")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            let intf_l = builder.db.get_node_naming("INTF.E.HB");
+            let intf_r = builder.db.get_node_naming("INTF.W.HB");
+            let mut xn = builder.xnode("HDIO", "HDIO", xy).num_tiles(96);
+            for i in 0..48 {
+                xn = xn
+                    .ref_single(xy.delta(-1, (i + i / 4) as i32), i, intf_l)
+                    .ref_single(xy.delta(1, (i + i / 4) as i32), i + 48, intf_r)
+            }
+            xn.bels(bels).extract();
+        }
+    }
+
     for (tkn, naming_f, naming_h, swz) in [
         (
             "RCLK_CLE_CORE",
@@ -1346,7 +1421,82 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    // XXX RCLK_HDIO
+    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HDIO_CORE").iter().next() {
+        let bel_dpll = builder.bel_virtual("RCLK_HDIO_DPLL")
+            .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
+            .extra_wire("OUT_N", &["IF_RCLK_TOP_CLK_TO_DPLL"]);
+        let mut bel_hdio = builder.bel_virtual("RCLK_HDIO");
+        for i in 0..4 {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("BUFGCE_OUT_S{i}"), &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")])
+                .extra_wire(format!("BUFGCE_OUT_N{i}"), &[format!("IF_RCLK_TOP_CLK_FROM_BUFG{i}")])
+                ;
+        }
+        let swz = [
+            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2,
+            12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
+        ];
+        for (i, si) in swz.into_iter().enumerate() {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
+                .extra_wire(format!("HDISTR{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")])
+                ;
+        }
+        for i in 0..12 {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
+                .extra_wire(format!("HROUTE{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)])
+                ;
+        }
+        builder.xnode("RCLK_HDIO", "RCLK_HDIO", xy).num_tiles(0).bel(bel_hdio).bel(bel_dpll).extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HB_HDIO_CORE").iter().next() {
+        let bel_dpll = builder.bel_virtual("RCLK_HDIO_DPLL")
+            .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
+            .extra_wire("OUT_N", &["CLK_CMT_MUX_24_ENC_1_CLK_OUT"]);
+        let mut bel_hdio = builder.bel_virtual("RCLK_HB_HDIO");
+        for i in 0..4 {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("BUFGCE_OUT_S{i}"), &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")])
+                ;
+        }
+        let swz = [
+            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2,
+            12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
+        ];
+        for (i, si) in swz.into_iter().enumerate() {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
+                .extra_wire(format!("HDISTR{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")])
+                ;
+            let b = [
+                0, 92, 120, 124, 128, 132, 136, 140, 8, 12, 4, 48,
+                16, 28, 32, 36, 40, 44, 52, 56, 60, 64, 20, 24,
+            ][i];
+            for j in 0..4 {
+                bel_hdio = bel_hdio
+                    .extra_wire(format!("HDISTR{i}_MUX_DUMMY{j}"), &[format!("GND_WIRE{k}", k = b + j)])
+                ;
+            }
+        }
+        for i in 0..12 {
+            bel_hdio = bel_hdio
+                .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
+                .extra_wire(format!("HROUTE{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)])
+                ;
+            let b = [
+                68, 72, 76, 80, 84, 88, 96, 100, 104, 108, 112, 116,
+            ][i];
+            for j in 0..4 {
+                bel_hdio = bel_hdio
+                    .extra_wire(format!("HROUTE{i}_MUX_DUMMY{j}"), &[format!("GND_WIRE{k}", k = b + j)])
+                ;
+            }
+        }
+        builder.xnode("RCLK_HB_HDIO", "RCLK_HB_HDIO", xy).num_tiles(0).bel(bel_hdio).bel(bel_dpll).extract();
+    }
+
     // XXX RCLK_CLKBUF
 
     builder.build()
