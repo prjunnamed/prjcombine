@@ -904,7 +904,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if opt.namings {
                 // XXX pretty
-                println!("{dn:?}");
+                println!("{dn:#?}");
             }
         }
     }

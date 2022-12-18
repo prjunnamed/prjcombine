@@ -1422,82 +1422,246 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HDIO_CORE").iter().next() {
-        let bel_dpll = builder.bel_virtual("RCLK_HDIO_DPLL")
+        let bel_dpll = builder
+            .bel_virtual("RCLK_HDIO_DPLL")
             .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
             .extra_wire("OUT_N", &["IF_RCLK_TOP_CLK_TO_DPLL"]);
         let mut bel_hdio = builder.bel_virtual("RCLK_HDIO");
         for i in 0..4 {
             bel_hdio = bel_hdio
-                .extra_wire(format!("BUFGCE_OUT_S{i}"), &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")])
-                .extra_wire(format!("BUFGCE_OUT_N{i}"), &[format!("IF_RCLK_TOP_CLK_FROM_BUFG{i}")])
-                ;
+                .extra_wire(
+                    format!("BUFGCE_OUT_S{i}"),
+                    &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
+                )
+                .extra_wire(
+                    format!("BUFGCE_OUT_N{i}"),
+                    &[format!("IF_RCLK_TOP_CLK_FROM_BUFG{i}")],
+                );
         }
         let swz = [
-            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2,
-            12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
+            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
         ];
         for (i, si) in swz.into_iter().enumerate() {
             bel_hdio = bel_hdio
                 .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
-                .extra_wire(format!("HDISTR{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")])
-                ;
+                .extra_wire(
+                    format!("HDISTR{i}_MUX"),
+                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")],
+                );
         }
         for i in 0..12 {
             bel_hdio = bel_hdio
                 .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
-                .extra_wire(format!("HROUTE{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)])
-                ;
+                .extra_wire(
+                    format!("HROUTE{i}_MUX"),
+                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)],
+                );
         }
-        builder.xnode("RCLK_HDIO", "RCLK_HDIO", xy).num_tiles(0).bel(bel_hdio).bel(bel_dpll).extract();
+        builder
+            .xnode("RCLK_HDIO", "RCLK_HDIO", xy)
+            .num_tiles(0)
+            .bel(bel_hdio)
+            .bel(bel_dpll)
+            .extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HB_HDIO_CORE").iter().next() {
-        let bel_dpll = builder.bel_virtual("RCLK_HDIO_DPLL")
+        let bel_dpll = builder
+            .bel_virtual("RCLK_HDIO_DPLL")
             .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
             .extra_wire("OUT_N", &["CLK_CMT_MUX_24_ENC_1_CLK_OUT"]);
         let mut bel_hdio = builder.bel_virtual("RCLK_HB_HDIO");
         for i in 0..4 {
-            bel_hdio = bel_hdio
-                .extra_wire(format!("BUFGCE_OUT_S{i}"), &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")])
-                ;
+            bel_hdio = bel_hdio.extra_wire(
+                format!("BUFGCE_OUT_S{i}"),
+                &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
+            );
         }
         let swz = [
-            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2,
-            12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
+            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
         ];
         for (i, si) in swz.into_iter().enumerate() {
             bel_hdio = bel_hdio
                 .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
-                .extra_wire(format!("HDISTR{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")])
-                ;
+                .extra_wire(
+                    format!("HDISTR{i}_MUX"),
+                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")],
+                );
             let b = [
-                0, 92, 120, 124, 128, 132, 136, 140, 8, 12, 4, 48,
-                16, 28, 32, 36, 40, 44, 52, 56, 60, 64, 20, 24,
+                0, 92, 120, 124, 128, 132, 136, 140, 8, 12, 4, 48, 16, 28, 32, 36, 40, 44, 52, 56,
+                60, 64, 20, 24,
             ][i];
             for j in 0..4 {
-                bel_hdio = bel_hdio
-                    .extra_wire(format!("HDISTR{i}_MUX_DUMMY{j}"), &[format!("GND_WIRE{k}", k = b + j)])
-                ;
+                bel_hdio = bel_hdio.extra_wire(
+                    format!("HDISTR{i}_MUX_DUMMY{j}"),
+                    &[format!("GND_WIRE{k}", k = b + j)],
+                );
             }
         }
         for i in 0..12 {
             bel_hdio = bel_hdio
                 .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
-                .extra_wire(format!("HROUTE{i}_MUX"), &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)])
-                ;
-            let b = [
-                68, 72, 76, 80, 84, 88, 96, 100, 104, 108, 112, 116,
-            ][i];
+                .extra_wire(
+                    format!("HROUTE{i}_MUX"),
+                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)],
+                );
+            let b = [68, 72, 76, 80, 84, 88, 96, 100, 104, 108, 112, 116][i];
             for j in 0..4 {
-                bel_hdio = bel_hdio
-                    .extra_wire(format!("HROUTE{i}_MUX_DUMMY{j}"), &[format!("GND_WIRE{k}", k = b + j)])
-                ;
+                bel_hdio = bel_hdio.extra_wire(
+                    format!("HROUTE{i}_MUX_DUMMY{j}"),
+                    &[format!("GND_WIRE{k}", k = b + j)],
+                );
             }
         }
-        builder.xnode("RCLK_HB_HDIO", "RCLK_HB_HDIO", xy).num_tiles(0).bel(bel_hdio).bel(bel_dpll).extract();
+        builder
+            .xnode("RCLK_HB_HDIO", "RCLK_HB_HDIO", xy)
+            .num_tiles(0)
+            .bel(bel_hdio)
+            .bel(bel_dpll)
+            .extract();
     }
 
     // XXX RCLK_CLKBUF
+
+    if let Some(&xy) = rd.tiles_by_kind_name("AMS_SAT_VNOC_TILE").iter().next() {
+        let bel = builder.bel_xy("SYSMON_SAT.VNOC", "SYSMON_SAT", 0, 0);
+        let intf_l = builder.db.get_node_naming("INTF.E");
+        let mut xn = builder
+            .xnode("SYSMON_SAT.VNOC", "SYSMON_SAT.VNOC", xy)
+            .num_tiles(96);
+        for i in 0..48 {
+            xn = xn.ref_single(xy.delta(-1, -49 + (i + i / 4) as i32), i, intf_l)
+        }
+        xn.bel(bel).extract();
+    }
+
+    if let Some(&xy) = rd.tiles_by_kind_name("MISR_TILE").iter().next() {
+        let bel = builder.bel_xy("MISR", "MISR", 0, 0);
+        let intf_r = builder.db.get_node_naming("INTF.W");
+        let mut xn = builder.xnode("MISR", "MISR", xy).num_tiles(96);
+        for i in 0..48 {
+            xn = xn.ref_single(xy.delta(1, 1 + (i + i / 4) as i32), i + 48, intf_r)
+        }
+        xn.bel(bel).extract();
+    }
+
+    if let Some(&nsu_xy) = rd.tiles_by_kind_name("NOC_NSU512_TOP").iter().next() {
+        let nps_a_xy = nsu_xy.delta(0, 9);
+        let nps_b_xy = nsu_xy.delta(0, 19);
+        let nmu_xy = nsu_xy.delta(0, 29);
+        let intf_l = builder.db.get_node_naming("INTF.E");
+        let intf_r = builder.db.get_node_naming("INTF.W");
+        let bels = [
+            builder
+                .bel_xy("VNOC_NSU512", "NOC_NSU512", 0, 0)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+            builder
+                .bel_xy("VNOC_NPS_A", "NOC_NPS_VNOC", 0, 0)
+                .raw_tile(1)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1),
+            builder
+                .bel_xy("VNOC_NPS_B", "NOC_NPS_VNOC", 0, 0)
+                .raw_tile(2)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1),
+            builder
+                .bel_xy("VNOC_NMU512", "NOC_NMU512", 0, 0)
+                .raw_tile(3)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+        ];
+        let mut xn = builder
+            .xnode("VNOC", "VNOC", nsu_xy)
+            .num_tiles(96)
+            .raw_tile(nps_a_xy)
+            .raw_tile(nps_b_xy)
+            .raw_tile(nmu_xy);
+        for i in 0..48 {
+            xn = xn
+                .ref_single(nsu_xy.delta(-1, -9 + (i + i / 4) as i32), i, intf_l)
+                .ref_single(nsu_xy.delta(2, -9 + (i + i / 4) as i32), i + 48, intf_r)
+        }
+        xn.bels(bels).extract();
+    }
+
+    if let Some(&nsu_xy) = rd.tiles_by_kind_name("NOC2_NSU512_VNOC_TILE").iter().next() {
+        let nps_a_xy = nsu_xy.delta(0, 4);
+        let nps_b_xy = nsu_xy.delta(0, 8);
+        let nmu_xy = nsu_xy.delta(0, 11);
+        let scan_xy = nsu_xy.delta(1, 0);
+        let intf_l = builder.db.get_node_naming("INTF.E");
+        let intf_r = builder.db.get_node_naming("INTF.W");
+        let mut bel_scan = builder.bel_xy("VNOC2_SCAN", "NOC2_SCAN", 0, 0).raw_tile(4);
+        for i in 6..15 {
+            bel_scan = bel_scan
+                .pin_name_only(&format!("NOC2_SCAN_CHNL_FROM_PL_{i}_"), 1)
+                .pin_name_only(&format!("NOC2_SCAN_CHNL_TO_PL_{i}_"), 1);
+        }
+        for i in 5..14 {
+            bel_scan = bel_scan.pin_name_only(&format!("NOC2_SCAN_CHNL_MASK_FROM_PL_{i}_"), 1);
+        }
+        let bels = [
+            builder
+                .bel_xy("VNOC2_NSU512", "NOC2_NSU512", 0, 0)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+            builder
+                .bel_xy("VNOC2_NPS_A", "NOC2_NPS5555", 0, 0)
+                .raw_tile(1)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1),
+            builder
+                .bel_xy("VNOC2_NPS_B", "NOC2_NPS5555", 0, 0)
+                .raw_tile(2)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1),
+            builder
+                .bel_xy("VNOC2_NMU512", "NOC2_NMU512", 0, 0)
+                .raw_tile(3)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+            bel_scan,
+        ];
+        let mut xn = builder
+            .xnode("VNOC2", "VNOC2", nsu_xy)
+            .num_tiles(96)
+            .raw_tile(nps_a_xy)
+            .raw_tile(nps_b_xy)
+            .raw_tile(nmu_xy)
+            .raw_tile(scan_xy);
+        for i in 0..48 {
+            xn = xn
+                .ref_single(nsu_xy.delta(-1, -9 + (i + i / 4) as i32), i, intf_l)
+                .ref_single(nsu_xy.delta(3, -9 + (i + i / 4) as i32), i + 48, intf_r)
+        }
+        xn.bels(bels).extract();
+    }
 
     builder.build()
 }

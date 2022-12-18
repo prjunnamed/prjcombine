@@ -1,11 +1,11 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::{Coord, Part, TkSiteSlot, Tile};
+use prjcombine_rawdump::{Coord, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
     BotKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind, HardColumn, HardRowKind,
     PsKind, RegId, TopKind,
 };
-use prjcombine_versal::naming::{DeviceNaming, DieNaming, HdioNaming};
+use prjcombine_versal::naming::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
@@ -163,7 +163,9 @@ fn make_columns(
                 let iob_xy = extract_site_xy(int.rd, tile, "IOB").unwrap();
                 let dpll_xy = extract_site_xy(int.rd, tile, "DPLL").unwrap_or_else(|| {
                     disabled.insert(DisabledPart::HdioDpll(die, col, reg));
-                    let is_vc1902 = ["vc1902", "vc1802", "vm1802", "v65"].into_iter().any(|x| int.rd.part.contains(x));
+                    let is_vc1902 = ["vc1902", "vc1802", "vm1802", "v65"]
+                        .into_iter()
+                        .any(|x| int.rd.part.contains(x));
                     if is_vc1902 {
                         let dpll_x = match col.to_idx() {
                             5 => 3,
@@ -175,13 +177,9 @@ fn make_columns(
                         panic!("MISSING DPLL FOR UNK PART {part}", part = int.rd.part);
                     }
                 });
-                naming.hdio.insert(
-                    (col, reg),
-                    HdioNaming {
-                        iob_xy,
-                        dpll_xy,
-                    },
-                );
+                naming
+                    .hdio
+                    .insert((col, reg), HdioNaming { iob_xy, dpll_xy });
             }
         }
     }
@@ -277,6 +275,36 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
     }
 }
 
+fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
+    for (x, y) in int.find_tiles(&["AMS_SAT_VNOC_TILE"]) {
+        let col = int.lookup_column_inter(x);
+        let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
+        let tile = &int.rd.tiles[&Coord {
+            x: x as u16,
+            y: y as u16,
+        }];
+        let xy = extract_site_xy(int.rd, tile, "SYSMON_SAT").unwrap();
+        naming.sysmon_sat_vnoc.insert((col, reg), xy);
+    }
+    for (x, y) in int.find_tiles(&["NOC2_NSU512_VNOC_TILE"]) {
+        let col = int.lookup_column_inter(x);
+        let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
+        let nsu_crd = Coord {
+            x: x as u16,
+            y: y as u16,
+        };
+        let nps_a_crd = nsu_crd.delta(0, 4);
+        let nmu_crd = nsu_crd.delta(0, 11);
+        let scan_crd = nsu_crd.delta(1, 0);
+        naming.vnoc2.insert((col, reg), VNoc2Naming {
+            nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
+            nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
+            nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS5555").unwrap(),
+            scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
+        });
+    }
+}
+
 pub fn make_grids(
     rd: &Part,
 ) -> (
@@ -298,6 +326,8 @@ pub fn make_grids(
     for (dieid, w) in rows_slr_split.windows(2).enumerate() {
         let mut naming = DieNaming {
             hdio: BTreeMap::new(),
+            sysmon_sat_vnoc: BTreeMap::new(),
+            vnoc2: BTreeMap::new(),
         };
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
         let (columns, col_cfrm, cols_hard) =
@@ -335,6 +365,7 @@ pub fn make_grids(
             top: TopKind::Ssit,    // XXX
             bottom: BotKind::Ssit, // XXX
         });
+        get_vnoc_naming(&int, &mut naming);
         namings.push(naming);
     }
     if rd.part.contains("vc1502") {
@@ -414,6 +445,10 @@ pub fn make_grids(
         }
         for i in 36..61 {
             disabled.insert(DisabledPart::Column(s0, ColId::from_idx(i)));
+        }
+        let dn = &mut namings[s0];
+        for (i, y) in [(0, 1), (2, 2), (4, 5), (6, 8)] {
+            dn.sysmon_sat_vnoc.insert((ColId::from_idx(47), RegId::from_idx(i)), (5, y));
         }
     }
     if rd.part.contains("vp1002") {

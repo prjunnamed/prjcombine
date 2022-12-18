@@ -12,10 +12,20 @@ pub struct DeviceNaming {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DieNaming {
     pub hdio: BTreeMap<(ColId, RegId), HdioNaming>,
+    pub sysmon_sat_vnoc: BTreeMap<(ColId, RegId), (u32, u32)>,
+    pub vnoc2: BTreeMap<(ColId, RegId), VNoc2Naming>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HdioNaming {
     pub iob_xy: (u32, u32),
     pub dpll_xy: (u32, u32),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VNoc2Naming {
+    pub nsu_xy: (u32, u32),
+    pub nmu_xy: (u32, u32),
+    pub nps_xy: (u32, u32),
+    pub scan_xy: (u32, u32),
 }

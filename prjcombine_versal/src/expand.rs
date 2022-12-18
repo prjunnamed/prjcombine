@@ -49,6 +49,7 @@ struct DieInfo<'a> {
     rclkxlut: EnumMap<ColSide, EntityPartVec<ColId, u32>>,
     rclkylut: EntityPartVec<RegId, u32>,
     dfxylut: EntityPartVec<RegId, u32>,
+    vnocylut: EntityPartVec<RegId, u32>,
     naming: &'a DieNaming,
 }
 
@@ -67,6 +68,7 @@ struct Expander<'a> {
     uramxlut: EntityPartVec<EColId, u32>,
     hardxlut: EnumMap<HardRowKind, EntityPartVec<EColId, u32>>,
     dfxxlut: EnumMap<ColSide, EntityPartVec<EColId, u32>>,
+    vnocxlut: EntityPartVec<EColId, u32>,
 }
 
 impl Expander<'_> {
@@ -90,6 +92,7 @@ impl Expander<'_> {
                 rclkxlut: Default::default(),
                 rclkylut: Default::default(),
                 dfxylut: Default::default(),
+                vnocylut: Default::default(),
             });
         }
     }
@@ -548,6 +551,37 @@ impl Expander<'_> {
                     }
                     dfxy += 1;
                 }
+            }
+        }
+    }
+
+    fn fill_vnocxlut(&mut self) {
+        let mut vnocx = 0;
+        for ecol in self.ecols.ids() {
+            let mut has_vnoc = false;
+            for (dieid, grid) in &self.grids {
+                let di = &mut self.die[dieid];
+                if let Some(&col) = di.ecol2col.get(ecol) {
+                    match grid.columns[col].l {
+                        ColumnKind::VNoc | ColumnKind::VNoc2 => has_vnoc = true,
+                        _ => (),
+                    }
+                }
+            }
+            if has_vnoc {
+                self.vnocxlut.insert(ecol, vnocx);
+                vnocx += 1;
+            }
+        }
+    }
+
+    fn fill_vnocylut(&mut self) {
+        let mut vnocy = 0;
+        for (dieid, grid) in &self.grids {
+            let di = &mut self.die[dieid];
+            for reg in grid.regs() {
+                di.vnocylut.insert(reg, vnocy);
+                vnocy += 1;
             }
         }
     }
@@ -1445,17 +1479,119 @@ impl Expander<'_> {
                             node.add_bel(i, format!("HDIOLOGIC_X{sx}Y{y}", y = sy * 11 + i as u32));
                         }
                         for i in 0..11 {
-                            node.add_bel(11 + i, format!("IOB_X{x}Y{y}", x = naming.iob_xy.0, y = naming.iob_xy.1 + i as u32));
+                            node.add_bel(
+                                11 + i,
+                                format!(
+                                    "IOB_X{x}Y{y}",
+                                    x = naming.iob_xy.0,
+                                    y = naming.iob_xy.1 + i as u32
+                                ),
+                            );
                         }
                         for i in 0..4 {
-                            node.add_bel(22 + i, format!("BUFGCE_HDIO_X{sx}Y{y}", y = sy * 4 + i as u32));
+                            node.add_bel(
+                                22 + i,
+                                format!("BUFGCE_HDIO_X{sx}Y{y}", y = sy * 4 + i as u32),
+                            );
                         }
-                        node.add_bel(26, format!("DPLL_X{x}Y{y}", x = naming.dpll_xy.0, y = naming.dpll_xy.1));
+                        node.add_bel(
+                            26,
+                            format!("DPLL_X{x}Y{y}", x = naming.dpll_xy.0, y = naming.dpll_xy.1),
+                        );
                         node.add_bel(27, format!("HDIO_BIAS_X{sx}Y{sy}"));
                         node.add_bel(28, format!("RPI_HD_APB_X{sx}Y{sy}"));
                         node.add_bel(29, format!("HDLOGIC_APB_X{sx}Y{sy}"));
                     } else {
                         node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
+                    }
+                }
+            }
+        }
+    }
+
+    fn fill_vnoc(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let di = &self.die[dieid];
+            let mut die = self.egrid.die_mut(dieid);
+            for (col, cd) in &grid.columns {
+                if !matches!(cd.l, ColumnKind::VNoc | ColumnKind::VNoc2) {
+                    continue;
+                }
+                if self.disabled.contains(&DisabledPart::Column(die.die, col)) {
+                    continue;
+                }
+                for reg in grid.regs() {
+                    if self.disabled.contains(&DisabledPart::Region(die.die, reg)) {
+                        continue;
+                    }
+                    let row = grid.row_reg_bot(reg);
+                    let tile = &mut die[(col, row)];
+                    let mut crd = vec![];
+                    for i in 0..48 {
+                        crd.push((col - 1, row + i));
+                    }
+                    for i in 0..48 {
+                        crd.push((col, row + i));
+                    }
+                    let x = di.xlut[col - 1];
+                    let y = di.ylut[row];
+                    let sx = self.vnocxlut[di.col2ecol[col]];
+                    let sy = di.vnocylut[reg];
+                    if cd.l == ColumnKind::VNoc {
+                        let name_nsu = format!("NOC_NSU512_TOP_X{x}Y{y}", y = y + 7);
+                        let name_nps_a = format!("NOC_NPS_VNOC_TOP_X{x}Y{y}", y = y + 15);
+                        let name_nps_b = format!("NOC_NPS_VNOC_TOP_X{x}Y{y}", y = y + 23);
+                        let name_nmu = format!("NOC_NMU512_TOP_X{x}Y{y}", y = y + 31);
+                        let node = tile.add_xnode(
+                            self.db.get_node("VNOC"),
+                            &[&name_nsu, &name_nps_a, &name_nps_b, &name_nmu],
+                            self.db.get_node_naming("VNOC"),
+                            &crd,
+                        );
+                        node.add_bel(0, format!("NOC_NSU512_X{sx}Y{sy}"));
+                        node.add_bel(1, format!("NOC_NPS_VNOC_X{sx}Y{sy}", sy = sy * 2));
+                        node.add_bel(2, format!("NOC_NPS_VNOC_X{sx}Y{sy}", sy = sy * 2 + 1));
+                        node.add_bel(3, format!("NOC_NMU512_X{sx}Y{sy}"));
+                    } else {
+                        let name_nsu = format!("NOC2_NSU512_VNOC_TILE_X{x}Y{y}", y = y + 7);
+                        let name_nps_a = format!("NOC2_NPS5555_TOP_X{x}Y{y}", y = y + 11);
+                        let name_nps_b = format!("NOC2_NPS5555_TOP_X{x}Y{y}", y = y + 14);
+                        let name_nmu = format!("NOC2_NMU512_VNOC_TILE_X{x}Y{y}", y = y + 16);
+                        let name_scan = format!("NOC2_SCAN_TOP_X{x}Y{y}", y = y + 7);
+                        let node = tile.add_xnode(
+                            self.db.get_node("VNOC2"),
+                            &[&name_nsu, &name_nps_a, &name_nps_b, &name_nmu, &name_scan],
+                            self.db.get_node_naming("VNOC2"),
+                            &crd,
+                        );
+                        let naming = &di.naming.vnoc2[&(col, reg)];
+                        node.add_bel(0, format!("NOC2_NSU512_X{sx}Y{sy}", sx = naming.nsu_xy.0, sy = naming.nsu_xy.1));
+                        node.add_bel(1, format!("NOC2_NPS5555_X{sx}Y{sy}", sx = naming.nps_xy.0, sy = naming.nps_xy.1));
+                        node.add_bel(2, format!("NOC2_NPS5555_X{sx}Y{sy}", sx = naming.nps_xy.0, sy = naming.nps_xy.1 + 1));
+                        node.add_bel(3, format!("NOC2_NMU512_X{sx}Y{sy}", sx = naming.nmu_xy.0, sy = naming.nmu_xy.1));
+                        node.add_bel(4, format!("NOC2_SCAN_X{sx}Y{sy}", sx = naming.scan_xy.0, sy = naming.scan_xy.1));
+                    }
+                    if grid.is_reg_top(reg) {
+                        let yy = if reg.to_idx() % 2 == 0 { y } else { y - 1 };
+                        let name = format!("MISR_TILE_X{x}Y{yy}", x = x + 1);
+                        let node = tile.add_xnode(
+                            self.db.get_node("MISR"),
+                            &[&name],
+                            self.db.get_node_naming("MISR"),
+                            &crd,
+                        );
+                        let sy = di.dfxylut[reg];
+                        node.add_bel(0, format!("MISR_X{sx}Y{sy}"));
+                    } else {
+                        let name = format!("AMS_SAT_VNOC_TILE_X{x}Y{y}", y = y + 39);
+                        let node = tile.add_xnode(
+                            self.db.get_node("SYSMON_SAT.VNOC"),
+                            &[&name],
+                            self.db.get_node_naming("SYSMON_SAT.VNOC"),
+                            &crd,
+                        );
+                        let (sx, sy) = di.naming.sysmon_sat_vnoc[&(col, reg)];
+                        node.add_bel(0, format!("SYSMON_SAT_X{sx}Y{sy}"));
                     }
                 }
             }
@@ -1505,6 +1641,7 @@ pub fn expand_grid<'a>(
         uramxlut: Default::default(),
         hardxlut: Default::default(),
         dfxxlut: Default::default(),
+        vnocxlut: Default::default(),
     };
     expander.fill_die();
     expander.fill_ecol();
@@ -1523,6 +1660,8 @@ pub fn expand_grid<'a>(
     expander.fill_iriylut();
     expander.fill_rclkxlut();
     expander.fill_rclkylut();
+    expander.fill_vnocxlut();
+    expander.fill_vnocylut();
     expander.fill_int();
     expander.fill_cle_bc();
     expander.fill_intf();
@@ -1534,6 +1673,7 @@ pub fn expand_grid<'a>(
     expander.fill_bram();
     expander.fill_uram();
     expander.fill_hard();
+    expander.fill_vnoc();
     expander.fill_clkroot();
 
     ExpandedDevice {
