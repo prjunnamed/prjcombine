@@ -84,6 +84,7 @@ macro_rules! __impl_entity_id_delta {
         impl core::ops::Add<usize> for $id {
             type Output = $id;
             fn add(self, x: usize) -> Self {
+                use ::prjcombine_entity::EntityId;
                 Self::from_idx(self.to_idx() + x)
             }
         }
@@ -97,6 +98,7 @@ macro_rules! __impl_entity_id_delta {
         impl core::ops::Sub<usize> for $id {
             type Output = $id;
             fn sub(self, x: usize) -> Self {
+                use ::prjcombine_entity::EntityId;
                 Self::from_idx(self.to_idx() - x)
             }
         }
@@ -110,12 +112,14 @@ macro_rules! __impl_entity_id_delta {
         impl core::ops::Sub<$id> for $id {
             type Output = isize;
             fn sub(self, x: Self) -> isize {
+                use ::prjcombine_entity::EntityId;
                 self.to_idx() as isize - x.to_idx() as isize
             }
         }
 
         impl $id {
             pub fn range(self, other: $id) -> ::prjcombine_entity::id::EntityIds<$id> {
+                use ::prjcombine_entity::EntityId;
                 ::prjcombine_entity::id::EntityIds::new_range(self.to_idx(), other.to_idx())
             }
         }
