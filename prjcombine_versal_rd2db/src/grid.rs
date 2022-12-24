@@ -296,12 +296,15 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
         let nps_a_crd = nsu_crd.delta(0, 4);
         let nmu_crd = nsu_crd.delta(0, 11);
         let scan_crd = nsu_crd.delta(1, 0);
-        naming.vnoc2.insert((col, reg), VNoc2Naming {
-            nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
-            nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
-            nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS5555").unwrap(),
-            scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
-        });
+        naming.vnoc2.insert(
+            (col, reg),
+            VNoc2Naming {
+                nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
+                nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
+                nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS5555").unwrap(),
+                scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
+            },
+        );
     }
 }
 
@@ -448,7 +451,8 @@ pub fn make_grids(
         }
         let dn = &mut namings[s0];
         for (i, y) in [(0, 1), (2, 2), (4, 5), (6, 8)] {
-            dn.sysmon_sat_vnoc.insert((ColId::from_idx(47), RegId::from_idx(i)), (5, y));
+            dn.sysmon_sat_vnoc
+                .insert((ColId::from_idx(47), RegId::from_idx(i)), (5, y));
         }
     }
     if rd.part.contains("vp1002") {

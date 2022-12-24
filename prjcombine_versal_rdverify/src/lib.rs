@@ -700,10 +700,12 @@ fn verify_vnoc_nxu512(vrf: &mut Verifier, bel: &BelContext<'_>) {
         "VNOC2_NMU512" => ("NOC2_NMU512", "VNOC2_NPS_B"),
         _ => unreachable!(),
     };
-    vrf.verify_bel(bel, kind, &[
-        ("TO_NOC", SitePinDir::Out),
-        ("FROM_NOC", SitePinDir::In),
-    ], &[]);
+    vrf.verify_bel(
+        bel,
+        kind,
+        &[("TO_NOC", SitePinDir::Out), ("FROM_NOC", SitePinDir::In)],
+        &[],
+    );
     vrf.claim_node(&[bel.fwire("TO_NOC")]);
     vrf.claim_node(&[bel.fwire("FROM_NOC")]);
     vrf.claim_node(&[bel.fwire_far("TO_NOC")]);
@@ -721,32 +723,27 @@ fn verify_vnoc_nps(vrf: &mut Verifier, bel: &BelContext<'_>) {
         "VNOC2_NPS_B" => ("NOC2_NPS5555", "VNOC2_NMU512", "VNOC2_NPS_A"),
         _ => unreachable!(),
     };
-    vrf.verify_bel(bel, kind, &[
-        ("OUT_0", SitePinDir::Out),
-        ("OUT_1", SitePinDir::Out),
-        ("OUT_2", SitePinDir::Out),
-        ("OUT_3", SitePinDir::Out),
-        ("IN_0", SitePinDir::In),
-        ("IN_1", SitePinDir::In),
-        ("IN_2", SitePinDir::In),
-        ("IN_3", SitePinDir::In),
-    ], &[]);
-    for pin in [
-        "OUT_0",
-        "OUT_1",
-        "OUT_2",
-        "OUT_3",
-    ] {
+    vrf.verify_bel(
+        bel,
+        kind,
+        &[
+            ("OUT_0", SitePinDir::Out),
+            ("OUT_1", SitePinDir::Out),
+            ("OUT_2", SitePinDir::Out),
+            ("OUT_3", SitePinDir::Out),
+            ("IN_0", SitePinDir::In),
+            ("IN_1", SitePinDir::In),
+            ("IN_2", SitePinDir::In),
+            ("IN_3", SitePinDir::In),
+        ],
+        &[],
+    );
+    for pin in ["OUT_0", "OUT_1", "OUT_2", "OUT_3"] {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_node(&[bel.fwire_far(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
     }
-    for pin in [
-        "IN_0",
-        "IN_1",
-        "IN_2",
-        "IN_3",
-    ] {
+    for pin in ["IN_0", "IN_1", "IN_2", "IN_3"] {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
     }
@@ -828,10 +825,14 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "RCLK_HDIO_DPLL" => verify_rclk_hdio_dpll(vrf, bel),
         "RCLK_HDIO" => verify_rclk_hdio(edev, vrf, bel),
         "RCLK_HB_HDIO" => verify_rclk_hb_hdio(edev, vrf, bel),
-        "VNOC_NSU512" | "VNOC_NMU512" | "VNOC2_NSU512" | "VNOC2_NMU512" => verify_vnoc_nxu512(vrf, bel),
+        "VNOC_NSU512" | "VNOC_NMU512" | "VNOC2_NSU512" | "VNOC2_NMU512" => {
+            verify_vnoc_nxu512(vrf, bel)
+        }
         "VNOC_NPS_A" | "VNOC_NPS_B" | "VNOC2_NPS_A" | "VNOC2_NPS_B" => verify_vnoc_nps(vrf, bel),
         "VNOC2_SCAN" => verify_vnoc_scan(vrf, bel),
-        "HDIO_BIAS" | "RPI_HD_APB" | "HDLOGIC_APB" | "MISR" => vrf.verify_bel(bel, bel.key, &[], &[]),
+        "HDIO_BIAS" | "RPI_HD_APB" | "HDLOGIC_APB" | "MISR" => {
+            vrf.verify_bel(bel, bel.key, &[], &[])
+        }
 
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(vrf, bel),

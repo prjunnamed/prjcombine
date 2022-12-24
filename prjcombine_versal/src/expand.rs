@@ -1565,11 +1565,46 @@ impl Expander<'_> {
                             &crd,
                         );
                         let naming = &di.naming.vnoc2[&(col, reg)];
-                        node.add_bel(0, format!("NOC2_NSU512_X{sx}Y{sy}", sx = naming.nsu_xy.0, sy = naming.nsu_xy.1));
-                        node.add_bel(1, format!("NOC2_NPS5555_X{sx}Y{sy}", sx = naming.nps_xy.0, sy = naming.nps_xy.1));
-                        node.add_bel(2, format!("NOC2_NPS5555_X{sx}Y{sy}", sx = naming.nps_xy.0, sy = naming.nps_xy.1 + 1));
-                        node.add_bel(3, format!("NOC2_NMU512_X{sx}Y{sy}", sx = naming.nmu_xy.0, sy = naming.nmu_xy.1));
-                        node.add_bel(4, format!("NOC2_SCAN_X{sx}Y{sy}", sx = naming.scan_xy.0, sy = naming.scan_xy.1));
+                        node.add_bel(
+                            0,
+                            format!(
+                                "NOC2_NSU512_X{sx}Y{sy}",
+                                sx = naming.nsu_xy.0,
+                                sy = naming.nsu_xy.1
+                            ),
+                        );
+                        node.add_bel(
+                            1,
+                            format!(
+                                "NOC2_NPS5555_X{sx}Y{sy}",
+                                sx = naming.nps_xy.0,
+                                sy = naming.nps_xy.1
+                            ),
+                        );
+                        node.add_bel(
+                            2,
+                            format!(
+                                "NOC2_NPS5555_X{sx}Y{sy}",
+                                sx = naming.nps_xy.0,
+                                sy = naming.nps_xy.1 + 1
+                            ),
+                        );
+                        node.add_bel(
+                            3,
+                            format!(
+                                "NOC2_NMU512_X{sx}Y{sy}",
+                                sx = naming.nmu_xy.0,
+                                sy = naming.nmu_xy.1
+                            ),
+                        );
+                        node.add_bel(
+                            4,
+                            format!(
+                                "NOC2_SCAN_X{sx}Y{sy}",
+                                sx = naming.scan_xy.0,
+                                sy = naming.scan_xy.1
+                            ),
+                        );
                     }
                     if grid.is_reg_top(reg) {
                         let yy = if reg.to_idx() % 2 == 0 { y } else { y - 1 };
