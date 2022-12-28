@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
-use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode};
-use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, RowId};
+use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
 
 use crate::grid::{ColumnIoKind, Grid, GridKind, IoCoord, TileIobId};
@@ -197,5 +197,22 @@ impl<'a> ExpandedDevice<'a> {
             res.push(self.get_io(coord));
         }
         res
+    }
+
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (22, 80)
+        } else {
+            (19, 64)
+        };
+        let bit = 16 + height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[col],
+            width,
+            bit,
+            height,
+            false,
+        )
     }
 }
