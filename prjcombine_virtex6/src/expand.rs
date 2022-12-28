@@ -1192,8 +1192,8 @@ pub fn expand_grid<'a>(
     let die_bs_geom = DieBitstreamGeom {
         frame_len: 64 * 40 + 32,
         frame_info: expander.frame_info,
-        bram_cols: 0,
-        bram_regs: 0,
+        bram_frame_len: 0,
+        bram_frame_info: vec![],
         iob_frame_len: 0,
     };
     let bs_geom = BitstreamGeom {

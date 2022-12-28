@@ -74,8 +74,8 @@ pub struct DieBitstreamGeom {
     pub frame_len: usize,
     pub frame_info: Vec<FrameInfo>,
     // spartan 6 only
-    pub bram_cols: usize,
-    pub bram_regs: usize,
+    pub bram_frame_len: usize,
+    pub bram_frame_info: Vec<FrameInfo>,
     pub iob_frame_len: usize,
 }
 
@@ -83,6 +83,78 @@ pub struct DieBitstreamGeom {
 pub struct Bitstream {
     pub kind: DeviceKind,
     pub die: EntityVec<DieId, DieBitstream>,
+}
+
+impl Bitstream {
+    pub fn diff(a: &Bitstream, b: &Bitstream) -> HashMap<BitPos, bool> {
+        assert_eq!(a.kind, b.kind);
+        assert_eq!(a.die.len(), b.die.len());
+        let mut res = HashMap::new();
+        for ((die, da), db) in a.die.iter().zip(b.die.values()) {
+            for (reg, &va) in &da.regs {
+                let vb = db.regs[reg];
+                if va.is_some() != vb.is_some() {
+                    res.insert(BitPos::RegPresent(die, reg), vb.is_some());
+                }
+                let va = va.unwrap_or(0);
+                let vb = vb.unwrap_or(0);
+                if va != vb {
+                    for j in 0..32 {
+                        if (va >> j & 1) != (vb >> j & 1) {
+                            res.insert(BitPos::Reg(die, reg, j), (vb >> j & 1) != 0);
+                        }
+                    }
+                }
+            }
+            assert_eq!(da.frame_len, db.frame_len);
+            assert_eq!(da.frame_info, db.frame_info);
+            for i in 0..da.frame_info.len() {
+                let fa = da.frame(i);
+                let fb = db.frame(i);
+                if fa == fb {
+                    continue;
+                }
+                for j in 0..da.frame_len {
+                    if fa[j] != fb[j] {
+                        res.insert(BitPos::Main(die, i, j), fb[j]);
+                    }
+                }
+            }
+            assert_eq!(da.bram_frame_len, db.bram_frame_len);
+            assert_eq!(da.bram_frame_info, db.bram_frame_info);
+            for i in 0..da.bram_frame_info.len() {
+                let fa = da.bram_frame(i);
+                let fb = db.bram_frame(i);
+                if fa == fb {
+                    continue;
+                }
+                for j in 0..da.frame_len {
+                    if fa[j] != fb[j] {
+                        res.insert(BitPos::Bram(die, i, j), fb[j]);
+                    }
+                }
+            }
+            if da.iob != db.iob {
+                assert_eq!(da.iob.len(), db.iob.len());
+                for j in 0..da.iob.len() {
+                    if da.iob[j] != db.iob[j] {
+                        res.insert(BitPos::Iob(die, j), db.iob[j]);
+                    }
+                }
+            }
+            for k in da.frame_fixups.keys() {
+                if !db.frame_fixups.contains_key(k) {
+                    res.insert(BitPos::Fixup(die, k.0, k.1), false);
+                }
+            }
+            for k in db.frame_fixups.keys() {
+                if !da.frame_fixups.contains_key(k) {
+                    res.insert(BitPos::Fixup(die, k.0, k.1), true);
+                }
+            }
+        }
+        res
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -94,8 +166,9 @@ pub struct DieBitstream {
     pub frame_info: Vec<FrameInfo>,
     pub frame_present: BitVec,
     // spartan 6 only
+    pub bram_frame_len: usize,
     pub bram_data: BitVec,
-    pub bram_cols: usize,
+    pub bram_frame_info: Vec<FrameInfo>,
     pub bram_present: BitVec,
     pub iob: BitVec,
     pub iob_present: bool,
@@ -113,6 +186,16 @@ impl DieBitstream {
         let pos = fi * self.frame_len;
         &self.frame_data[pos..pos + self.frame_len]
     }
+
+    pub fn bram_frame_mut(&mut self, fi: usize) -> &mut BitSlice {
+        let pos = fi * self.bram_frame_len;
+        &mut self.bram_data[pos..pos + self.bram_frame_len]
+    }
+
+    pub fn bram_frame(&self, fi: usize) -> &BitSlice {
+        let pos = fi * self.bram_frame_len;
+        &self.bram_data[pos..pos + self.bram_frame_len]
+    }
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug)]
@@ -123,7 +206,7 @@ pub struct FrameAddr {
     pub minor: u32,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FrameInfo {
     pub addr: FrameAddr,
 }
@@ -131,6 +214,7 @@ pub struct FrameInfo {
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum BitPos {
     Reg(DieId, Reg, usize),
+    RegPresent(DieId, Reg),
     // die, frame, bit
     Main(DieId, usize, usize),
     Fixup(DieId, usize, usize),

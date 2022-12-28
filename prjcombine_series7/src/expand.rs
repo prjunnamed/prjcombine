@@ -2254,8 +2254,8 @@ pub fn expand_grid<'a>(
         die_bs_geom.push(DieBitstreamGeom {
             frame_len: 50 * 64 + 32,
             frame_info: de.frame_info,
-            bram_cols: 0,
-            bram_regs: 0,
+            bram_frame_len: 0,
+            bram_frame_info: vec![],
             iob_frame_len: 0,
         });
     }

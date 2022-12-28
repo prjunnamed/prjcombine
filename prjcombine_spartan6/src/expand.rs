@@ -25,6 +25,7 @@ struct Expander<'a, 'b> {
     pad_cnt: usize,
     holes: Vec<Rect>,
     frame_info: Vec<FrameInfo>,
+    bram_frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
     io: Vec<Io>,
     gt: Vec<Gt>,
@@ -2345,6 +2346,18 @@ impl<'a, 'b> Expander<'a, 'b> {
                         },
                     });
                 }
+                if cd.kind == ColumnKind::Bram {
+                    for minor in 0..4 {
+                        self.bram_frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 2,
+                                region: reg as i32,
+                                major: col.to_idx() as u32,
+                                minor,
+                            },
+                        });
+                    }
+                }
             }
         }
     }
@@ -2376,6 +2389,7 @@ impl Grid {
             pad_cnt: 1,
             holes: vec![],
             frame_info: vec![],
+            bram_frame_info: vec![],
             iob_frame_len: 0,
             io: vec![],
             gt: vec![],
@@ -2415,12 +2429,8 @@ impl Grid {
         let die_bs_geom = DieBitstreamGeom {
             frame_len: 1040,
             frame_info: expander.frame_info,
-            bram_cols: self
-                .columns
-                .values()
-                .filter(|x| x.kind == ColumnKind::Bram)
-                .count(),
-            bram_regs: self.rows.len() / 16,
+            bram_frame_len: 1040 * 18,
+            bram_frame_info: expander.bram_frame_info,
             iob_frame_len: expander.iob_frame_len,
         };
         let bs_geom = BitstreamGeom {
