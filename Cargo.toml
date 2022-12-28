@@ -50,6 +50,7 @@ members = [
 	"prjcombine_xdl",
 	"prjcombine_v2xdl_verify",
 	"prjcombine_virtex_bitstream",
+	"prjcombine_hammer",
 ]
 
 [workspace.package]
@@ -101,6 +102,7 @@ prjcombine_versal_rd2db = { path = "prjcombine_versal_rd2db" }
 prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
 prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
 prjcombine_virtex_bitstream = { path = "prjcombine_virtex_bitstream" }
+prjcombine_hammer = { path = "prjcombine_hammer" }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 indexmap = "1.8"
