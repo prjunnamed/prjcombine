@@ -14,7 +14,6 @@ pub struct Grid {
     pub cols_vbrk: BTreeSet<ColId>,
     pub cols_cpipe: BTreeSet<ColId>,
     pub cols_hard: Vec<HardColumn>,
-    pub col_cfrm: ColId,
     pub regs: usize,
     pub regs_gt_left: EntityVec<RegId, GtRowKind>,
     pub regs_gt_right: Option<EntityVec<RegId, GtRowKind>>,

@@ -43,6 +43,15 @@ impl<'a, 'b> Expander<'a, 'b> {
         false
     }
 
+    fn is_int_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.int_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
     fn fill_dciylut(&mut self) {
         let mut dciy = 0;
         for i in 0..self.grid.regs {
@@ -54,38 +63,38 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_holes(&mut self) {
+        for &(bc, br) in &self.grid.holes_ppc {
+            self.int_holes.push(Rect {
+                col_l: bc + 1,
+                col_r: bc + 8,
+                row_b: br + 1,
+                row_t: br + 23,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc,
+                col_r: bc + 9,
+                row_b: br,
+                row_t: br + 24,
+            });
+        }
+    }
+
     fn fill_int(&mut self) {
-        for (col, &kind) in &self.grid.columns {
+        for col in self.die.cols() {
             for row in self.die.rows() {
+                if self.is_int_hole(col, row) {
+                    continue;
+                }
                 let x = col.to_idx();
                 let y = row.to_idx();
-                self.die
-                    .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                let tile = &mut self.die[(col, row)];
-                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
-                match kind {
-                    ColumnKind::Bram => {
-                        let yy = y % 4;
-                        let dy = y - yy;
-                        tile.add_xnode(
-                            self.db.get_node("INTF"),
-                            &[&format!("BRAM_X{x}Y{dy}")],
-                            self.db.get_node_naming(&format!("INTF.BRAM.{yy}")),
-                            &[(col, row)],
-                        );
-                    }
-                    ColumnKind::Dsp => {
-                        let yy = y % 4;
-                        let dy = y - yy;
-                        tile.add_xnode(
-                            self.db.get_node("INTF"),
-                            &[&format!("DSP_X{x}Y{dy}")],
-                            self.db.get_node_naming(&format!("INTF.DSP.{yy}")),
-                            &[(col, row)],
-                        );
-                    }
-                    _ => (),
-                }
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("INT"),
+                    &[&format!("INT_X{x}Y{y}")],
+                    self.db.get_node_naming("INT"),
+                    &[(col, row)],
+                );
+                node.tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
             }
         }
     }
@@ -414,7 +423,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     );
                     if kind == CfgRowKind::Dcm {
                         node.add_bel(0, format!("DCM_ADV_X0Y{dcmy}"));
-                        self.die[(col, row)].nodes[0].naming = self.db.get_node_naming("INT.DCM0");
+                        self.die[(col, row)].nodes.first_mut().unwrap().naming =
+                            self.db.get_node_naming("INT.DCM0");
                         dcmy += 1;
                     } else {
                         node.add_bel(0, format!("PMCD_X0Y{y}", y = ccmy * 2));
@@ -684,19 +694,6 @@ impl<'a, 'b> Expander<'a, 'b> {
 
     fn fill_ppc(&mut self) {
         for (py, &(bc, br)) in self.grid.holes_ppc.iter().enumerate() {
-            self.die.nuke_rect(bc + 1, br + 1, 7, 22);
-            self.int_holes.push(Rect {
-                col_l: bc + 1,
-                col_r: bc + 8,
-                row_b: br + 1,
-                row_t: br + 23,
-            });
-            self.site_holes.push(Rect {
-                col_l: bc,
-                col_r: bc + 9,
-                row_b: br,
-                row_t: br + 24,
-            });
             let x = bc.to_idx();
             let yb = br.to_idx() + 3;
             let yt = br.to_idx() + 19;
@@ -736,7 +733,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let row = br + dy;
                 let tile = if dy < 12 { &tile_pb } else { &tile_pt };
                 let tile_l = &mut self.die[(col_l, row)];
-                tile_l.nodes.truncate(1);
                 tile_l.add_xnode(
                     self.db.get_node("INTF"),
                     &[tile],
@@ -744,7 +740,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[(col_l, row)],
                 );
                 let tile_r = &mut self.die[(col_r, row)];
-                tile_r.nodes.truncate(1);
                 tile_r.add_xnode(
                     self.db.get_node("INTF"),
                     &[tile],
@@ -755,7 +750,6 @@ impl<'a, 'b> Expander<'a, 'b> {
             for dx in 0..7 {
                 let col = bc + dx + 1;
                 let tile_b = &mut self.die[(col, row_b)];
-                tile_b.nodes.truncate(1);
                 tile_b.add_xnode(
                     self.db.get_node("INTF"),
                     &[&tile_pb],
@@ -763,7 +757,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[(col, row_b)],
                 );
                 let tile_t = &mut self.die[(col, row_t)];
-                tile_t.nodes.truncate(1);
                 tile_t.add_xnode(
                     self.db.get_node("INTF"),
                     &[&tile_pt],
@@ -963,6 +956,14 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("{kind}_X{x}Y{y}");
+                for dy in 0..4 {
+                    self.die[(col, row + dy)].add_xnode(
+                        self.db.get_node("INTF"),
+                        &[&name],
+                        self.db.get_node_naming(&format!("INTF.{kind}.{dy}")),
+                        &[(col, row + dy)],
+                    );
+                }
                 let node = self.die[(col, row)].add_xnode(
                     self.db.get_node(kind),
                     &[&name],
@@ -1286,6 +1287,7 @@ pub fn expand_grid<'a>(
         sysmon: vec![],
     };
 
+    expander.fill_holes();
     expander.fill_int();
     expander.fill_cfg();
     expander.fill_dciylut();

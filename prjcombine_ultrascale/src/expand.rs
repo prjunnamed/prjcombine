@@ -601,6 +601,11 @@ impl DieExpander<'_, '_, '_> {
                 )) {
                     continue;
                 }
+                if let Some(ps) = self.grid.ps {
+                    if col < ps.col && row.to_idx() < ps.height() {
+                        continue;
+                    }
+                }
                 let y = self.ylut[row];
                 self.die
                     .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
@@ -822,8 +827,6 @@ impl DieExpander<'_, '_, '_> {
         if let Some(ps) = self.grid.ps {
             let height = ps.height();
             let width = ps.col.to_idx();
-            self.die
-                .nuke_rect(ColId::from_idx(0), RowId::from_idx(0), width, height);
             if height != self.grid.regs * 60 {
                 let row_t = RowId::from_idx(height);
                 for dx in 0..width {

@@ -33,6 +33,24 @@ struct Expander<'a, 'b> {
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
+    fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.site_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn is_int_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.int_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
     fn fill_rxlut(&mut self) {
         let mut rx = 0;
         for (col, &kind) in &self.grid.columns {
@@ -57,20 +75,65 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_holes(&mut self) {
+        for &(bc, br) in &self.grid.holes_ppc {
+            self.int_holes.push(Rect {
+                col_l: bc + 1,
+                col_r: bc + 13,
+                row_b: br,
+                row_t: br + 40,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc,
+                col_r: bc + 14,
+                row_b: br,
+                row_t: br + 40,
+            });
+        }
+        if let Some(ref hard) = self.grid.col_hard {
+            let col = hard.col;
+            for &row in &hard.rows_emac {
+                self.site_holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: row,
+                    row_t: row + 10,
+                });
+            }
+            for &row in &hard.rows_pcie {
+                self.site_holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: row,
+                    row_t: row + 40,
+                });
+            }
+        }
+    }
+
     fn fill_int(&mut self) {
         for (col, &kind) in &self.grid.columns {
             for row in self.die.rows() {
+                if self.is_int_hole(col, row) {
+                    continue;
+                }
                 let x = col.to_idx();
                 let y = row.to_idx();
-                self.die
-                    .fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
-                let tile = &mut self.die[(col, row)];
-                tile.nodes[0].tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("INT"),
+                    &[&format!("INT_X{x}Y{y}")],
+                    self.db.get_node_naming("INT"),
+                    &[(col, row)],
+                );
+                node.tie_name = Some(format!("TIEOFF_X{x}Y{y}"));
+                if self.is_site_hole(col, row) {
+                    continue;
+                }
                 match kind {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cfg => {
-                        tile.add_xnode(
+                        self.die[(col, row)].add_xnode(
                             self.db.get_node("INTF"),
                             &[&format!("INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF"),
@@ -78,7 +141,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                     }
                     ColumnKind::Gt if col.to_idx() != 0 => {
-                        tile.add_xnode(
+                        self.die[(col, row)].add_xnode(
                             self.db.get_node("INTF.DELAY"),
                             &[&format!("GTP_INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF.GTP"),
@@ -86,7 +149,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                     }
                     ColumnKind::Gt => {
-                        tile.add_xnode(
+                        self.die[(col, row)].add_xnode(
                             self.db.get_node("INTF.DELAY"),
                             &[&format!("GTX_LEFT_INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF.GTX_LEFT"),
@@ -101,19 +164,6 @@ impl<'a, 'b> Expander<'a, 'b> {
 
     fn fill_ppc(&mut self) {
         for (py, &(bc, br)) in self.grid.holes_ppc.iter().enumerate() {
-            self.die.nuke_rect(bc + 1, br, 12, 40);
-            self.int_holes.push(Rect {
-                col_l: bc + 1,
-                col_r: bc + 13,
-                row_b: br,
-                row_t: br + 40,
-            });
-            self.site_holes.push(Rect {
-                col_l: bc,
-                col_r: bc + 14,
-                row_b: br,
-                row_t: br + 40,
-            });
             let col_l = bc;
             let col_r = bc + 13;
             let xl = col_l.to_idx();
@@ -137,7 +187,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.db.get_term_naming("PPC.W"),
                 );
                 let tile = &mut self.die[(col_l, row)];
-                tile.nodes.truncate(1);
                 tile.add_xnode(
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PPC_L_INT_INTERFACE_X{xl}Y{y}")],
@@ -145,7 +194,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[(col_l, row)],
                 );
                 let tile = &mut self.die[(col_r, row)];
-                tile.nodes.truncate(1);
                 tile.add_xnode(
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PPC_R_INT_INTERFACE_X{xr}Y{y}")],
@@ -313,7 +361,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let row = row + dy;
                     let y = row.to_idx();
                     let tile = &mut self.die[(col, row)];
-                    tile.nodes.truncate(1);
                     tile.add_xnode(
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
@@ -321,12 +368,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                         &[(col, row)],
                     );
                 }
-                self.site_holes.push(Rect {
-                    col_l: col,
-                    col_r: col + 1,
-                    row_b: row,
-                    row_t: row + 10,
-                });
                 let y = row.to_idx();
                 let crds: Vec<_> = (0..10).map(|dy| (col, row + dy)).collect();
                 let name = format!("EMAC_X{x}Y{y}");
@@ -343,7 +384,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let row = row + dy;
                     let y = row.to_idx();
                     let tile = &mut self.die[(col, row)];
-                    tile.nodes.truncate(1);
                     tile.add_xnode(
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("PCIE_INT_INTERFACE_X{x}Y{y}")],
@@ -351,12 +391,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                         &[(col, row)],
                     );
                 }
-                self.site_holes.push(Rect {
-                    col_l: col,
-                    col_r: col + 1,
-                    row_b: row,
-                    row_t: row + 40,
-                });
                 let y = row.to_idx();
                 let crds: Vec<_> = (0..40).map(|dy| (col, row + dy)).collect();
                 let name_b = format!("PCIE_B_X{x}Y{y}", y = y + 10);
@@ -1185,6 +1219,7 @@ pub fn expand_grid<'a>(
     };
 
     expander.fill_rxlut();
+    expander.fill_holes();
     expander.fill_int();
     expander.fill_ppc();
     expander.fill_terms();

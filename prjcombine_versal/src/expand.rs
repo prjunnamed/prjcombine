@@ -51,6 +51,8 @@ struct DieInfo<'a> {
     dfxylut: EntityPartVec<RegId, u32>,
     vnocylut: EntityPartVec<RegId, u32>,
     naming: &'a DieNaming,
+    col_cfrm: ColId,
+    ps_height: usize,
 }
 
 struct Expander<'a> {
@@ -75,6 +77,13 @@ impl Expander<'_> {
     fn fill_die(&mut self) {
         for (dieid, &grid) in &self.grids {
             self.egrid.add_die(grid.columns.len(), grid.regs * 48);
+            let ps_height = match (grid.ps, grid.cpm) {
+                (PsKind::Ps9, CpmKind::None) => 48 * 2,
+                (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
+                (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
+                (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
+                _ => unreachable!(),
+            };
             self.die.push(DieInfo {
                 naming: &self.naming.die[dieid],
                 ecol2col: Default::default(),
@@ -93,13 +102,20 @@ impl Expander<'_> {
                 rclkylut: Default::default(),
                 dfxylut: Default::default(),
                 vnocylut: Default::default(),
+                col_cfrm: grid
+                    .columns
+                    .iter()
+                    .find(|(_, cd)| cd.l == ColumnKind::Cfrm)
+                    .unwrap()
+                    .0,
+                ps_height,
             });
         }
     }
 
     fn fill_ecol(&mut self) {
         self.ecol_cfrm = EColId::from_idx(
-            self.grids
+            self.die
                 .values()
                 .map(|x| x.col_cfrm.to_idx())
                 .max()
@@ -109,7 +125,7 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let mut ecol = EColId::from_idx(0);
             for col in grid.columns.ids() {
-                if col == grid.col_cfrm {
+                if col == di.col_cfrm {
                     ecol = self.ecol_cfrm;
                 }
                 di.col2ecol.push(ecol);
@@ -159,7 +175,7 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
             let has_cle_bot = grid.columns.iter().any(|(col, cd)| {
-                col >= grid.col_cfrm
+                col >= di.col_cfrm
                     && matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna)
                     && !cd.has_bli_bot_r
             });
@@ -204,7 +220,7 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
             let has_dsp_bot = grid.columns.iter().any(|(col, cd)| {
-                col >= grid.col_cfrm && cd.r == ColumnKind::Dsp && !cd.has_bli_bot_r
+                col >= di.col_cfrm && cd.r == ColumnKind::Dsp && !cd.has_bli_bot_r
             });
             let has_dsp_top = grid
                 .columns
@@ -265,7 +281,7 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
             let has_bram_bot = grid.columns.iter().any(|(col, cd)| {
-                col >= grid.col_cfrm
+                col >= di.col_cfrm
                     && ((matches!(cd.l, ColumnKind::Bram | ColumnKind::BramClkBuf)
                         && !cd.has_bli_bot_l)
                         || (matches!(cd.r, ColumnKind::Bram | ColumnKind::BramClkBuf)
@@ -318,7 +334,7 @@ impl Expander<'_> {
             let di = &mut self.die[dieid];
             let die = self.egrid.die(dieid);
             let has_uram_bot = grid.columns.iter().any(|(col, cd)| {
-                col >= grid.col_cfrm && cd.l == ColumnKind::Uram && !cd.has_bli_bot_l
+                col >= di.col_cfrm && cd.l == ColumnKind::Uram && !cd.has_bli_bot_l
             });
             let has_uram_top = grid
                 .columns
@@ -595,14 +611,7 @@ impl Expander<'_> {
             let col_r = die.cols().next_back().unwrap();
             let row_b = die.rows().next().unwrap();
             let row_t = die.rows().next_back().unwrap();
-            let ps_height = match (grid.ps, grid.cpm) {
-                (PsKind::Ps9, CpmKind::None) => 48 * 2,
-                (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
-                (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
-                (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
-                _ => unreachable!(),
-            };
-            let ps_width = grid.col_cfrm.to_idx();
+            let ps_width = di.col_cfrm.to_idx();
             for col in grid.columns.ids() {
                 if self.disabled.contains(&DisabledPart::Column(dieid, col)) {
                     continue;
@@ -613,10 +622,13 @@ impl Expander<'_> {
                     if self.disabled.contains(&DisabledPart::Region(dieid, reg)) {
                         continue;
                     }
+                    if col < di.col_cfrm && row.to_idx() < di.ps_height {
+                        continue;
+                    }
                     let y = di.ylut[row];
                     die.fill_tile((col, row), "INT", "INT", format!("INT_X{x}Y{y}"));
                     if row.to_idx() % 48 == 0 && grid.is_reg_top(reg) {
-                        let lr = if col < grid.col_cfrm { 'L' } else { 'R' };
+                        let lr = if col < di.col_cfrm { 'L' } else { 'R' };
                         let yy = if reg.to_idx() % 2 == 1 { y - 1 } else { y };
                         let name = format!("RCLK_INT_{lr}_FT_X{x}Y{yy}");
                         die[(col, row)].add_xnode(
@@ -629,17 +641,16 @@ impl Expander<'_> {
                 }
             }
 
-            die.nuke_rect(ColId::from_idx(0), RowId::from_idx(0), ps_width, ps_height);
-            if ps_height != grid.regs * 48 {
-                let row_t = RowId::from_idx(ps_height);
+            if di.ps_height != grid.regs * 48 {
+                let row_t = RowId::from_idx(di.ps_height);
                 for dx in 0..ps_width {
                     let col = ColId::from_idx(dx);
                     die.fill_term_anon((col, row_t), "TERM.S");
                 }
             }
-            for dy in 0..ps_height {
+            for dy in 0..di.ps_height {
                 let row = RowId::from_idx(dy);
-                die.fill_term_anon((grid.col_cfrm, row), "TERM.W");
+                die.fill_term_anon((di.col_cfrm, row), "TERM.W");
             }
 
             for col in die.cols() {
@@ -677,7 +688,7 @@ impl Expander<'_> {
                 let x = di.xlut[col];
                 let cle_x_bump_cur;
                 if matches!(cd.r, ColumnKind::Cle | ColumnKind::CleLaguna)
-                    && col >= grid.col_cfrm
+                    && col >= di.col_cfrm
                     && grid.cols_vbrk.contains(&(col + 1))
                 {
                     cle_x_bump_cur = true;
@@ -782,13 +793,6 @@ impl Expander<'_> {
         for (dieid, grid) in &self.grids {
             let di = &self.die[dieid];
             let mut die = self.egrid.die_mut(dieid);
-            let ps_height = match (grid.ps, grid.cpm) {
-                (PsKind::Ps9, CpmKind::None) => 48 * 2,
-                (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
-                (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
-                (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
-                _ => unreachable!(),
-            };
             for (col, &cd) in &grid.columns {
                 let x = di.xlut[col];
                 for row in die.rows() {
@@ -798,7 +802,7 @@ impl Expander<'_> {
                     }
                     let y = di.ylut[row];
                     let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
-                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                    let ocf = if col < di.col_cfrm { "LOCF" } else { "ROCF" };
                     if !matches!(
                         cd.l,
                         ColumnKind::Cle | ColumnKind::CleLaguna | ColumnKind::None
@@ -811,7 +815,7 @@ impl Expander<'_> {
                                 tile = format!("INTF_GT_{bt}L_TILE_X{x}Y{y}");
                             }
                             ColumnKind::Cfrm => {
-                                if row.to_idx() < ps_height {
+                                if row.to_idx() < di.ps_height {
                                     kind = "INTF.W.TERM.PSS";
                                     tile = format!("INTF_PSS_{bt}L_TILE_X{x}Y{y}");
                                 } else {
@@ -1248,7 +1252,7 @@ impl Expander<'_> {
                     }
                     let x = di.xlut[col];
                     let y = di.ylut[row];
-                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                    let ocf = if col < di.col_cfrm { "LOCF" } else { "ROCF" };
                     let reg = grid.row_to_reg(row);
                     let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                     let name = format!("DSP_{ocf}_{bt}_TILE_X{x}Y{y}");
@@ -1315,7 +1319,7 @@ impl Expander<'_> {
                         }
                         let x = di.xlut[col];
                         let y = di.ylut[row];
-                        let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                        let ocf = if col < di.col_cfrm { "LOCF" } else { "ROCF" };
                         let reg = grid.row_to_reg(row);
                         let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                         let name = format!("BRAM_{ocf}_{bt}{lr}_TILE_X{x}Y{y}");
@@ -1360,7 +1364,7 @@ impl Expander<'_> {
                     }
                     let x = di.xlut[col];
                     let y = di.ylut[row];
-                    let ocf = if col < grid.col_cfrm { "LOCF" } else { "ROCF" };
+                    let ocf = if col < di.col_cfrm { "LOCF" } else { "ROCF" };
                     let reg = grid.row_to_reg(row);
                     let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                     let is_delay = grid.is_reg_top(reg) && row.to_idx() % 48 == 44;

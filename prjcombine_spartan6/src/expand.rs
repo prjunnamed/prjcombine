@@ -23,7 +23,8 @@ struct Expander<'a, 'b> {
     ioxlut: EntityVec<ColId, usize>,
     ioylut: EntityVec<RowId, usize>,
     pad_cnt: usize,
-    holes: Vec<Rect>,
+    int_holes: Vec<Rect>,
+    site_holes: Vec<Rect>,
     frame_info: Vec<FrameInfo>,
     bram_frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
@@ -32,6 +33,24 @@ struct Expander<'a, 'b> {
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
+    fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.site_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn is_int_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.int_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
     fn fill_rxlut(&mut self) {
         let mut rx = 2;
         for &cd in self.grid.columns.values() {
@@ -104,9 +123,140 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_holes(&mut self) {
+        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.grid.gts {
+            let row_gt_mid = self.grid.row_top() - 8;
+            let row_gt_bot = row_gt_mid - 8;
+            let row_pcie_bot = row_gt_bot - 16;
+            self.int_holes.push(Rect {
+                col_l: bc - 6,
+                col_r: bc + 5,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc - 6,
+                col_r: bc + 5,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.int_holes.push(Rect {
+                col_l: bc - 4,
+                col_r: bc + 3,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc - 5,
+                col_r: bc + 4,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+
+            // PCIE
+            self.int_holes.push(Rect {
+                col_l: bc - 1,
+                col_r: bc + 2,
+                row_b: row_pcie_bot,
+                row_t: row_gt_bot,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc - 2,
+                col_r: bc + 3,
+                row_b: row_pcie_bot,
+                row_t: row_gt_bot,
+            });
+        }
+        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.grid.gts {
+            let row_gt_mid = self.grid.row_top() - 8;
+            let row_gt_bot = row_gt_mid - 8;
+            self.int_holes.push(Rect {
+                col_l: bc - 4,
+                col_r: bc + 7,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc - 4,
+                col_r: bc + 7,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.int_holes.push(Rect {
+                col_l: bc - 2,
+                col_r: bc + 6,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.site_holes.push(Rect {
+                col_l: bc - 3,
+                col_r: bc + 7,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+        }
+        if let Gts::Quad(bcl, bcr) = self.grid.gts {
+            let row_gt_bot = RowId::from_idx(0);
+            let row_gt_mid = RowId::from_idx(8);
+            self.int_holes.push(Rect {
+                col_l: bcl - 6,
+                col_r: bcl + 5,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.site_holes.push(Rect {
+                col_l: bcl - 6,
+                col_r: bcl + 5,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.int_holes.push(Rect {
+                col_l: bcl - 4,
+                col_r: bcl + 3,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.site_holes.push(Rect {
+                col_l: bcl - 5,
+                col_r: bcl + 4,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+
+            // right
+            self.int_holes.push(Rect {
+                col_l: bcr - 4,
+                col_r: bcr + 7,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.site_holes.push(Rect {
+                col_l: bcr - 4,
+                col_r: bcr + 7,
+                row_b: row_gt_bot,
+                row_t: row_gt_mid,
+            });
+            self.int_holes.push(Rect {
+                col_l: bcr - 2,
+                col_r: bcr + 6,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+            self.site_holes.push(Rect {
+                col_l: bcr - 3,
+                col_r: bcr + 7,
+                row_b: row_gt_mid,
+                row_t: row_gt_mid + 8,
+            });
+        }
+    }
+
     fn fill_int(&mut self) {
         for (col, &cd) in &self.grid.columns {
             for row in self.die.rows() {
+                if self.is_int_hole(col, row) {
+                    continue;
+                }
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let tie_y = y * 2;
@@ -131,14 +281,18 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     ""
                 };
-                self.die.fill_tile(
-                    (col, row),
-                    "INT",
-                    if is_brk { "INT.BRK" } else { "INT" },
-                    format!("INT{bram}_X{x}Y{y}"),
+                let node = self.die[(col, row)].add_xnode(
+                    self.db.get_node("INT"),
+                    &[&format!("INT{bram}_X{x}Y{y}")],
+                    self.db
+                        .get_node_naming(if is_brk { "INT.BRK" } else { "INT" }),
+                    &[(col, row)],
                 );
                 let tie_x = self.tiexlut[col];
-                self.die[(col, row)].nodes[0].tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                node.tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
+                if self.is_site_hole(col, row) {
+                    continue;
+                }
                 if matches!(
                     cd.kind,
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
@@ -1275,7 +1429,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             for row in [br - 1, br] {
                 let y = row.to_idx();
                 let tile = &mut self.die[(col, row)];
-                let node = &mut tile.nodes[0];
+                let node = tile.nodes.first_mut().unwrap();
                 node.kind = self.db.get_node("INT.IOI");
                 node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
                 node.naming = self.db.get_node_naming("INT.IOI");
@@ -1316,7 +1470,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = br;
             let y = row.to_idx();
             let tile = &mut self.die[(col, row)];
-            let node = &mut tile.nodes[0];
+            let node = tile.nodes.first_mut().unwrap();
             node.kind = self.db.get_node("INT.IOI");
             node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
             node.naming = self.db.get_node_naming("INT.IOI");
@@ -1416,143 +1570,98 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_gts_holes(&mut self) {
-        match self.grid.gts {
-            Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
-                let row_gt_mid = self.grid.row_top() - 8;
-                let row_gt_bot = row_gt_mid - 8;
-                let row_pcie_bot = row_gt_bot - 16;
-                self.die.nuke_rect(bc - 6, row_gt_mid, 11, 8);
-                self.die.nuke_rect(bc - 4, row_gt_bot, 7, 8);
-                self.die.nuke_rect(bc - 1, row_pcie_bot, 3, 16);
-                let col_l = bc - 7;
-                let col_r = bc + 5;
-                let rxl = self.rxlut[col_l] + 6;
+        if let Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) = self.grid.gts {
+            let row_gt_mid = self.grid.row_top() - 8;
+            let row_gt_bot = row_gt_mid - 8;
+            let row_pcie_bot = row_gt_bot - 16;
+            let col_l = bc - 7;
+            let col_r = bc + 5;
+            let rxl = self.rxlut[col_l] + 6;
+            let rxr = self.rxlut[col_r] - 1;
+            for dy in 0..8 {
+                let row = row_gt_mid + dy;
+                let ry = self.rylut[row];
+                self.die.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                self.die.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
+            }
+            let col_l = bc - 5;
+            let col_r = bc + 3;
+            for dy in 0..8 {
+                let row = row_gt_bot + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 1;
                 let rxr = self.rxlut[col_r] - 1;
-                for dy in 0..8 {
-                    let row = row_gt_mid + dy;
-                    let ry = self.rylut[row];
-                    self.die.fill_term_tile(
-                        (col_l, row),
-                        "TERM.E",
-                        "TERM.E.INTF",
-                        format!("INT_RTERM_X{rxl}Y{ry}"),
-                    );
-                    self.die.fill_term_tile(
-                        (col_r, row),
-                        "TERM.W",
-                        "TERM.W.INTF",
-                        format!("INT_LTERM_X{rxr}Y{ry}"),
-                    );
-                }
-                self.holes.push(Rect {
-                    col_l: col_l + 1,
-                    col_r,
-                    row_b: row_gt_mid,
-                    row_t: row_gt_mid + 8,
-                });
-                let col_l = bc - 5;
-                let col_r = bc + 3;
-                for dy in 0..8 {
-                    let row = row_gt_bot + dy;
-                    let ry = self.rylut[row];
-                    let rxl = self.rxlut[col_l] + 1;
-                    let rxr = self.rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    self.fill_intf_rterm((col_l, row), tile_l);
-                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
-                }
-                self.holes.push(Rect {
-                    col_l,
-                    col_r: col_r + 1,
-                    row_b: row_gt_bot,
-                    row_t: row_gt_mid,
-                });
+                let is_brk = dy == 0;
+                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                self.fill_intf_rterm((col_l, row), tile_l);
+                self.fill_intf_lterm((col_r, row), tile_r, is_brk);
+            }
 
-                let col_l = bc - 2;
-                let col_r = bc + 2;
-                for dy in 0..16 {
-                    let row = row_pcie_bot + dy;
-                    let ry = self.rylut[row];
-                    let rxl = self.rxlut[col_l] + 1;
-                    let rxr = self.rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    self.fill_intf_rterm((col_l, row), tile_l);
-                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
-                }
-                self.holes.push(Rect {
-                    col_l,
-                    col_r: col_r + 1,
-                    row_b: row_pcie_bot,
-                    row_t: row_gt_bot,
-                });
+            let col_l = bc - 2;
+            let col_r = bc + 2;
+            for dy in 0..16 {
+                let row = row_pcie_bot + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 1;
+                let rxr = self.rxlut[col_r] - 1;
+                let is_brk = dy == 0;
+                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                self.fill_intf_rterm((col_l, row), tile_l);
+                self.fill_intf_lterm((col_r, row), tile_r, is_brk);
             }
-            _ => (),
         }
-        match self.grid.gts {
-            Gts::Double(_, bc) | Gts::Quad(_, bc) => {
-                let row_gt_mid = self.grid.row_top() - 8;
-                let row_gt_bot = row_gt_mid - 8;
-                self.die.nuke_rect(bc - 4, row_gt_mid, 11, 8);
-                self.die.nuke_rect(bc - 2, row_gt_bot, 8, 8);
-                let col_l = bc - 5;
-                let col_r = bc + 7;
-                for dy in 0..8 {
-                    let row = row_gt_mid + dy;
-                    let ry = self.rylut[row];
-                    let rxl = self.rxlut[col_l] + 5;
-                    let rxr = self.rxlut[col_r] - 2;
-                    self.die.fill_term_tile(
-                        (col_l, row),
-                        "TERM.E",
-                        "TERM.E.INTF",
-                        format!("INT_RTERM_X{rxl}Y{ry}"),
-                    );
-                    self.die.fill_term_tile(
-                        (col_r, row),
-                        "TERM.W",
-                        "TERM.W.INTF",
-                        format!("INT_LTERM_X{rxr}Y{ry}"),
-                    );
-                }
-                self.holes.push(Rect {
-                    col_l: col_l + 1,
-                    col_r,
-                    row_b: row_gt_mid,
-                    row_t: row_gt_mid + 8,
-                });
-                let col_l = bc - 3;
-                let col_r = bc + 6;
-                for dy in 0..8 {
-                    let row = row_gt_bot + dy;
-                    let ry = self.rylut[row];
-                    let rxl = self.rxlut[col_l] + 1;
-                    let rxr = self.rxlut[col_r] - 1;
-                    let is_brk = dy == 0;
-                    let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
-                    let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
-                    self.fill_intf_rterm((col_l, row), tile_l);
-                    self.fill_intf_lterm((col_r, row), tile_r, is_brk);
-                }
-                self.holes.push(Rect {
-                    col_l,
-                    col_r: col_r + 1,
-                    row_b: row_gt_bot,
-                    row_t: row_gt_mid,
-                });
+        if let Gts::Double(_, bc) | Gts::Quad(_, bc) = self.grid.gts {
+            let row_gt_mid = self.grid.row_top() - 8;
+            let row_gt_bot = row_gt_mid - 8;
+            let col_l = bc - 5;
+            let col_r = bc + 7;
+            for dy in 0..8 {
+                let row = row_gt_mid + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 5;
+                let rxr = self.rxlut[col_r] - 2;
+                self.die.fill_term_tile(
+                    (col_l, row),
+                    "TERM.E",
+                    "TERM.E.INTF",
+                    format!("INT_RTERM_X{rxl}Y{ry}"),
+                );
+                self.die.fill_term_tile(
+                    (col_r, row),
+                    "TERM.W",
+                    "TERM.W.INTF",
+                    format!("INT_LTERM_X{rxr}Y{ry}"),
+                );
             }
-            _ => (),
+            let col_l = bc - 3;
+            let col_r = bc + 6;
+            for dy in 0..8 {
+                let row = row_gt_bot + dy;
+                let ry = self.rylut[row];
+                let rxl = self.rxlut[col_l] + 1;
+                let rxr = self.rxlut[col_r] - 1;
+                let is_brk = dy == 0;
+                let tile_l = format!("INT_INTERFACE_RTERM_X{rxl}Y{ry}");
+                let tile_r = format!("INT_INTERFACE_LTERM_X{rxr}Y{ry}");
+                self.fill_intf_rterm((col_l, row), tile_l);
+                self.fill_intf_lterm((col_r, row), tile_r, is_brk);
+            }
         }
         if let Gts::Quad(bcl, bcr) = self.grid.gts {
             let row_gt_bot = RowId::from_idx(0);
             let row_gt_mid = RowId::from_idx(8);
-            self.die.nuke_rect(bcl - 6, row_gt_bot, 11, 8);
-            self.die.nuke_rect(bcl - 4, row_gt_mid, 7, 8);
-            self.die.nuke_rect(bcr - 4, row_gt_bot, 11, 8);
-            self.die.nuke_rect(bcr - 2, row_gt_mid, 8, 8);
             let col_l = bcl - 7;
             let col_r = bcl + 5;
             for dy in 0..8 {
@@ -1573,12 +1682,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     format!("INT_LTERM_X{rxr}Y{ry}"),
                 );
             }
-            self.holes.push(Rect {
-                col_l: col_l + 1,
-                col_r,
-                row_b: row_gt_bot,
-                row_t: row_gt_mid,
-            });
             let col_l = bcl - 5;
             let col_r = bcl + 3;
             for dy in 0..8 {
@@ -1591,12 +1694,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_intf_rterm((col_l, row), tile_l);
                 self.fill_intf_lterm((col_r, row), tile_r, false);
             }
-            self.holes.push(Rect {
-                col_l,
-                col_r: col_r + 1,
-                row_b: row_gt_mid,
-                row_t: row_gt_mid + 8,
-            });
 
             let col_l = bcr - 5;
             let col_r = bcr + 7;
@@ -1618,12 +1715,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                     format!("INT_LTERM_X{rxr}Y{ry}"),
                 );
             }
-            self.holes.push(Rect {
-                col_l: col_l + 1,
-                col_r,
-                row_b: row_gt_bot,
-                row_t: row_gt_mid,
-            });
             let col_l = bcr - 3;
             let col_r = bcr + 6;
             for dy in 0..8 {
@@ -1636,12 +1727,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_intf_rterm((col_l, row), tile_l);
                 self.fill_intf_lterm((col_r, row), tile_r, false);
             }
-            self.holes.push(Rect {
-                col_l,
-                col_r: col_r + 1,
-                row_b: row_gt_mid,
-                row_t: row_gt_mid + 8,
-            });
         }
     }
 
@@ -1816,11 +1901,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let rx = self.rxlut[col];
             let ryb = self.rylut[self.grid.row_bio_outer()] - 1;
             let mut row_b = self.grid.row_bio_outer();
-            while !self.die[(col, row_b)]
-                .nodes
-                .iter()
-                .any(|x| self.db.nodes.key(x.kind).starts_with("INT"))
-            {
+            while self.is_int_hole(col, row_b) {
                 row_b += 1;
             }
             if !btt.is_empty() {
@@ -1834,11 +1915,7 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             let ryt = self.rylut[self.grid.row_tio_outer()] + 1;
             let mut row_t = self.grid.row_tio_outer();
-            while !self.die[(col, row_t)]
-                .nodes
-                .iter()
-                .any(|x| self.db.nodes.key(x.kind).starts_with("INT"))
-            {
+            while self.is_int_hole(col, row_t) {
                 row_t -= 1;
             }
             self.die.fill_term_tile(
@@ -1879,8 +1956,10 @@ impl<'a, 'b> Expander<'a, 'b> {
             if self.disabled.contains(&DisabledPart::ClbColumn(col)) {
                 continue;
             }
-            'a: for row in self.die.rows() {
-                let tile = &mut self.die[(col, row)];
+            for row in self.die.rows() {
+                if self.is_site_hole(col, row) {
+                    continue;
+                }
                 if (row == self.grid.row_bio_outer() || row == self.grid.row_bio_inner())
                     && cd.bio != ColumnIoKind::None
                 {
@@ -1899,11 +1978,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                         continue;
                     }
                 }
-                for hole in &self.holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
-                }
                 let sy = row.to_idx() - sy_base;
                 let kind = if cd.kind == ColumnKind::CleXM {
                     "CLEXM"
@@ -1913,7 +1987,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("{kind}_X{x}Y{y}");
-                let node = tile.add_xnode(
+                let node = self.die[(col, row)].add_xnode(
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1943,7 +2017,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if cd.kind != ColumnKind::Bram {
                 continue;
             }
-            'a: for row in self.die.rows() {
+            for row in self.die.rows() {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
@@ -1951,17 +2025,14 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if self.disabled.contains(&DisabledPart::BramRegion(col, reg)) {
                     continue;
                 }
-                let tile = &mut self.die[(col, row)];
-                for hole in &self.holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+                if self.is_site_hole(col, row) {
+                    continue;
                 }
                 let by = row.to_idx() / 2 - bby;
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("BRAMSITE2_X{x}Y{y}");
-                let node = tile.add_xnode(
+                let node = self.die[(col, row)].add_xnode(
                     self.db.get_node("BRAM"),
                     &[&name],
                     self.db.get_node_naming("BRAM"),
@@ -2015,7 +2086,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if !matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus) {
                 continue;
             }
-            'a: for row in self.die.rows() {
+            for row in self.die.rows() {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
@@ -2031,17 +2102,14 @@ impl<'a, 'b> Expander<'a, 'b> {
                         continue;
                     }
                 }
-                let tile = &mut self.die[(col, row)];
-                for hole in &self.holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+                if self.is_site_hole(col, row) {
+                    continue;
                 }
                 let dy = row.to_idx() / 4 - bdy;
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("MACCSITE2_X{x}Y{y}");
-                let node = tile.add_xnode(
+                let node = self.die[(col, row)].add_xnode(
                     self.db.get_node("DSP"),
                     &[&name],
                     self.db.get_node_naming("DSP"),
@@ -2155,9 +2223,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             }
                         }
                     };
-                    if self.die[(col, row)].nodes.is_empty()
-                        && self.die[(col, row - 1)].nodes.is_empty()
-                    {
+                    if self.is_int_hole(col, row) && self.is_int_hole(col, row - 1) {
                         continue;
                     }
                     if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.grid.gts {
@@ -2205,7 +2271,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let x = crd.0.to_idx();
         let y = crd.1.to_idx();
         let tile = &mut self.die[crd];
-        let node = &mut tile.nodes[0];
+        let node = tile.nodes.first_mut().unwrap();
         let def_rt = NodeRawTileId::from_idx(0);
         node.kind = self.db.get_node("INT.IOI");
         let is_brk = y % 16 == 0 && crd.1 != self.grid.row_clk() && y != 0;
@@ -2296,7 +2362,6 @@ impl<'a, 'b> Expander<'a, 'b> {
         self.die
             .fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
         let tile = &mut self.die[crd];
-        tile.nodes.truncate(1);
         tile.add_xnode(
             self.db.get_node("INTF"),
             &[&name],
@@ -2309,8 +2374,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         self.die
             .fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
         let tile = &mut self.die[crd];
-        tile.nodes.truncate(1);
-        tile.nodes[0].naming =
+        tile.nodes.first_mut().unwrap().naming =
             self.db
                 .get_node_naming(if is_brk { "INT.TERM.BRK" } else { "INT.TERM" });
         tile.add_xnode(
@@ -2387,7 +2451,8 @@ impl Grid {
             ioxlut: EntityVec::new(),
             ioylut: EntityVec::new(),
             pad_cnt: 1,
-            holes: vec![],
+            int_holes: vec![],
+            site_holes: vec![],
             frame_info: vec![],
             bram_frame_info: vec![],
             iob_frame_len: 0,
@@ -2401,6 +2466,7 @@ impl Grid {
         expander.fill_ioylut();
         expander.fill_tiexlut();
 
+        expander.fill_holes();
         expander.fill_int();
         expander.fill_tio();
         expander.fill_rio();

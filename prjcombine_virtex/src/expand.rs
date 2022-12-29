@@ -132,7 +132,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if col == self.grid.col_lio() || col == self.grid.col_rio() {
                 continue;
             }
-            let node = &mut self.die[(col, row)].nodes[0];
+            let node = self.die[(col, row)].nodes.first_mut().unwrap();
             node.add_bel(3, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
             node.add_bel(2, format!("PAD{ctr_pad}"));
@@ -154,7 +154,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if row == self.grid.row_bio() || row == self.grid.row_tio() {
                 continue;
             }
-            let node = &mut self.die[(col, row)].nodes[0];
+            let node = self.die[(col, row)].nodes.first_mut().unwrap();
             node.add_bel(0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
             node.add_bel(1, format!("PAD{ctr_pad}"));
@@ -179,7 +179,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if col == self.grid.col_lio() || col == self.grid.col_rio() {
                 continue;
             }
-            let node = &mut self.die[(col, row)].nodes[0];
+            let node = self.die[(col, row)].nodes.first_mut().unwrap();
             node.add_bel(0, format!("EMPTY{ctr_empty}"));
             ctr_empty += 1;
             node.add_bel(1, format!("PAD{ctr_pad}"));
@@ -201,7 +201,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if row == self.grid.row_bio() || row == self.grid.row_tio() {
                 continue;
             }
-            let node = &mut self.die[(col, row)].nodes[0];
+            let node = self.die[(col, row)].nodes.first_mut().unwrap();
             node.add_bel(3, format!("PAD{ctr_pad}"));
             ctr_pad += 1;
             node.add_bel(2, format!("PAD{ctr_pad}"));

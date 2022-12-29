@@ -32,7 +32,7 @@ fn make_columns(
     int: &IntGrid,
     disabled: &mut BTreeSet<DisabledPart>,
     naming: &mut DieNaming,
-) -> (EntityVec<ColId, Column>, ColId, Vec<HardColumn>) {
+) -> (EntityVec<ColId, Column>, Vec<HardColumn>) {
     let mut res = int.cols.map_values(|_| Column {
         l: ColumnKind::None,
         r: ColumnKind::None,
@@ -212,7 +212,7 @@ fn make_columns(
         }
         cols_hard.push(HardColumn { col, regs });
     }
-    (res, col_cfrm, cols_hard)
+    (res, cols_hard)
 }
 
 fn get_cols_vbrk(int: &IntGrid) -> BTreeSet<ColId> {
@@ -333,7 +333,7 @@ pub fn make_grids(
             vnoc2: BTreeMap::new(),
         };
         let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
-        let (columns, col_cfrm, cols_hard) =
+        let (columns, cols_hard) =
             make_columns(DieId::from_idx(dieid), &int, &mut disabled, &mut naming);
         let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
             PsKind::Ps9
@@ -358,7 +358,6 @@ pub fn make_grids(
             cols_vbrk: get_cols_vbrk(&int),
             cols_cpipe: get_cols_cpipe(&int),
             cols_hard,
-            col_cfrm,
             regs: int.rows.len() / 48,
             regs_gt_left: get_rows_gt_left(&int),
             regs_gt_right: get_rows_gt_right(&int),
