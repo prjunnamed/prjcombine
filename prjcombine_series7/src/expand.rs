@@ -2260,27 +2260,22 @@ pub fn expand_grid<'a>(
         });
     }
 
+    let lvb6 = db.wires.get("LVB.6").unwrap().0;
     for (die, &grid) in grids {
         if grid.has_no_tbuturn {
-            let (w, _) = db.wires.iter().find(|(_, w)| w.name == "LVB.6").unwrap();
             for col in grid.columns.ids() {
                 for i in 0..6 {
                     let row = RowId::from_idx(i);
-                    egrid.blackhole_wires.insert((die, (col, row), w));
+                    egrid.blackhole_wires.insert((die, (col, row), lvb6));
                 }
                 for i in 0..6 {
                     let row = RowId::from_idx(grid.regs * 50 - 6 + i);
-                    egrid.blackhole_wires.insert((die, (col, row), w));
+                    egrid.blackhole_wires.insert((die, (col, row), lvb6));
                 }
             }
         }
     }
 
-    let lvb6 = db
-        .wires
-        .iter()
-        .find_map(|(k, v)| if v.name == "LVB.6" { Some(k) } else { None })
-        .unwrap();
     let mut xdie_wires = HashMap::new();
     for i in 1..grids.len() {
         let dieid_s = DieId::from_idx(i - 1);

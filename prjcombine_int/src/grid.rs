@@ -431,8 +431,8 @@ impl ExpandedGrid<'_> {
         let die = self.die(wire.0);
         loop {
             let tile = &die[wire.1];
-            let wi = &self.db.wires[wire.2];
-            match wi.kind {
+            let wi = self.db.wires[wire.2];
+            match wi {
                 WireKind::ClkOut(_) => {
                     wire.1 = tile.clkroot;
                     break;

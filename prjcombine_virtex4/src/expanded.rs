@@ -128,13 +128,7 @@ pub struct Gtz {
 impl<'a> ExpandedDevice<'a> {
     pub fn adjust_vivado(&mut self) {
         if self.kind == GridKind::Virtex7 {
-            let lvb6 = self
-                .egrid
-                .db
-                .wires
-                .iter()
-                .find_map(|(k, v)| if v.name == "LVB.6" { Some(k) } else { None })
-                .unwrap();
+            let lvb6 = self.egrid.db.wires.get("LVB.6").unwrap().0;
             let mut cursed_wires = HashSet::new();
             for i in 1..self.grids.len() {
                 let dieid_s = DieId::from_idx(i - 1);

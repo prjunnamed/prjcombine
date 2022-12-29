@@ -136,7 +136,7 @@ fn prep_node_used_info(db: &IntDb, nid: NodeKindId) -> NodeUsedInfo {
     for (&k, v) in &node.muxes {
         used_o.insert(k);
         for &w in &v.ins {
-            if !db.wires[w.1].kind.is_tie() {
+            if !db.wires[w.1].is_tie() {
                 used_i.insert(w);
             }
         }
@@ -240,8 +240,8 @@ impl<'a> Verifier<'a> {
                         }
                         let naming = &self.db.node_namings[node.naming];
                         for nt in node.tiles.ids() {
-                            for (wt, wd) in &self.db.wires {
-                                if let WireKind::Buf(wf) = wd.kind {
+                            for (wt, _, &wd) in &self.db.wires {
+                                if let WireKind::Buf(wf) = wd {
                                     let wt = (nt, wt);
                                     let wf = (nt, wf);
                                     if naming.wires.contains_key(&wt) {
@@ -377,7 +377,7 @@ impl<'a> Verifier<'a> {
                     println!(
                         "INT NODE MISMATCH FOR {p} {tname} {wire} {iw:?} {wn}",
                         p = self.rd.part,
-                        wn = self.db.wires[iw.2].name
+                        wn = self.db.wires.key(iw.2),
                     );
                 }
             } else if iwd.used_o {
@@ -426,7 +426,7 @@ impl<'a> Verifier<'a> {
                     println!(
                         "INT INTF NODE MISMATCH FOR {p} {tname} {wire} {iw:?} {wn}",
                         p = self.rd.part,
-                        wn = self.db.wires[iw.2].name
+                        wn = self.db.wires.key(iw.2)
                     );
                 }
             } else if iwd.intf_missing {
@@ -637,11 +637,11 @@ impl<'a> Verifier<'a> {
     }
 
     fn print_nw(&self, nw: NodeWireId) -> String {
-        format!("{t}.{w}", t = nw.0.to_idx(), w = self.db.wires[nw.1].name)
+        format!("{t}.{w}", t = nw.0.to_idx(), w = self.db.wires.key(nw.1))
     }
 
     fn print_w(&self, w: WireId) -> String {
-        self.db.wires[w].name.to_string()
+        self.db.wires.key(w).to_string()
     }
 
     fn handle_int_node(
@@ -676,7 +676,7 @@ impl<'a> Verifier<'a> {
             }
             let wti = wti.unwrap();
             for &wf in &wfs.ins {
-                let wftie = self.db.wires[wf.1].kind.is_tie();
+                let wftie = self.db.wires[wf.1].is_tie();
                 let pip_found;
                 if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
                     if !crds.contains_id(en.tile) {
@@ -775,8 +775,7 @@ impl<'a> Verifier<'a> {
             }
         }
         for (&wt, wtn) in &naming.wires {
-            let wtk = &self.db.wires[wt.1].kind;
-            if let &WireKind::Buf(wfw) = wtk {
+            if let WireKind::Buf(wfw) = self.db.wires[wt.1] {
                 let wf = (wt.0, wfw);
                 let wti = self
                     .grid
@@ -808,8 +807,7 @@ impl<'a> Verifier<'a> {
         if let Some(ref tn) = node.tie_name {
             let mut pins = vec![];
             for (&k, v) in &naming.wires {
-                let wi = &self.db.wires[k.1];
-                let pin = match wi.kind {
+                let pin = match self.db.wires[k.1] {
                     WireKind::Tie0 => self.grid.tie_pin_gnd.as_ref().unwrap(),
                     WireKind::Tie1 => self.grid.tie_pin_vcc.as_ref().unwrap(),
                     WireKind::TiePullup => self.grid.tie_pin_pullup.as_ref().unwrap(),

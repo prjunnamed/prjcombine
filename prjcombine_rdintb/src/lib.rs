@@ -8,7 +8,7 @@ use prjcombine_int::db::{
     BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, IntfInfo, IntfWireInNaming,
     IntfWireOutNaming, IriNaming, IriPin, MuxInfo, MuxKind, NodeExtPipNaming, NodeIriId, NodeKind,
     NodeKindId, NodeNaming, NodeNamingId, NodeRawTileId, NodeTileId, NodeWireId, PinDir, TermInfo,
-    TermKind, TermNamingId, TermWireInFarNaming, TermWireOutNaming, WireId, WireInfo, WireKind,
+    TermKind, TermNamingId, TermWireInFarNaming, TermWireOutNaming, WireId, WireKind,
 };
 use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 
@@ -352,7 +352,7 @@ impl XNodeInfo<'_, '_> {
                 for (&k, v) in &naming.wires {
                     if round == 0
                         && matches!(
-                            self.builder.db.wires[k.1].kind,
+                            self.builder.db.wires[k.1],
                             WireKind::Branch(_) | WireKind::MultiBranch(_) | WireKind::PipBranch(_)
                         )
                     {
@@ -415,7 +415,7 @@ impl XNodeInfo<'_, '_> {
                         if let Some(&w) = self.builder.extra_names.get(&rd.wires[wi]) {
                             if round == 0
                                 && matches!(
-                                    self.builder.db.wires[w.1].kind,
+                                    self.builder.db.wires[w.1],
                                     WireKind::Branch(_)
                                         | WireKind::MultiBranch(_)
                                         | WireKind::PipBranch(_)
@@ -432,7 +432,7 @@ impl XNodeInfo<'_, '_> {
                             if let Some(&w) = xn.get(&rd.wires[wi]) {
                                 if round == 0
                                     && matches!(
-                                        self.builder.db.wires[w.1].kind,
+                                        self.builder.db.wires[w.1],
                                         WireKind::Branch(_)
                                             | WireKind::MultiBranch(_)
                                             | WireKind::PipBranch(_)
@@ -995,7 +995,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     if !pass {
                         continue;
                     }
-                    if matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
+                    if matches!(self.db.wires[wt.1], WireKind::LogicOut) {
                         continue;
                     }
                     if let Some(&(_, wf)) = self.names.get(&nwf) {
@@ -1136,7 +1136,7 @@ impl XNodeExtractor<'_, '_, '_> {
                     continue;
                 }
                 if let Some(&(_, wf)) = self.names.get(&nwf) {
-                    if !matches!(self.db.wires[wf.1].kind, WireKind::MuxOut) {
+                    if !matches!(self.db.wires[wf.1], WireKind::MuxOut) {
                         continue;
                     }
                     assert_eq!(bwdi, wdi);
@@ -1177,7 +1177,7 @@ impl XNodeExtractor<'_, '_, '_> {
         for &(wfi, wti) in tk.pips.keys() {
             let nwt = self.rd.lookup_wire_raw_force(crd, wti);
             if let Some(&(_, wt)) = self.names.get(&nwt) {
-                if !matches!(self.db.wires[wt.1].kind, WireKind::LogicOut) {
+                if !matches!(self.db.wires[wt.1], WireKind::LogicOut) {
                     continue;
                 }
                 self.node_naming
@@ -1195,7 +1195,7 @@ impl XNodeExtractor<'_, '_, '_> {
                         },
                     );
                     assert!(!self.node.intfs.contains_key(&wf));
-                    if self.db.wires[wf.1].kind == WireKind::LogicOut
+                    if self.db.wires[wf.1] == WireKind::LogicOut
                         || self.xnode.builder.test_mux_pass.contains(&wf.1)
                     {
                         assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
@@ -1473,9 +1473,9 @@ impl<'a> IntBuilder<'a> {
     }
 
     pub fn find_wire(&mut self, name: impl AsRef<str>) -> WireId {
-        for (k, v) in &self.db.wires {
-            if v.name == name.as_ref() {
-                return k;
+        for (i, k, _) in &self.db.wires {
+            if k == name.as_ref() {
+                return i;
             }
         }
         unreachable!();
@@ -1487,10 +1487,7 @@ impl<'a> IntBuilder<'a> {
         kind: WireKind,
         raw_names: &[impl AsRef<str>],
     ) -> WireId {
-        let res = self.db.wires.push(WireInfo {
-            name: name.into(),
-            kind,
-        });
+        let res = self.db.wires.insert_new(name.into(), kind);
         for rn in raw_names {
             let rn = rn.as_ref();
             if !rn.is_empty() {
@@ -2028,7 +2025,7 @@ impl<'a> IntBuilder<'a> {
 
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(&(_, wt)) = names.get(&wti) {
-                    match self.db.wires[wt.1].kind {
+                    match self.db.wires[wt.1] {
                         WireKind::PipBranch(_)
                         | WireKind::PipOut
                         | WireKind::MultiBranch(_)
@@ -2403,10 +2400,8 @@ impl<'a> IntBuilder<'a> {
                     if wf.len() > 1 {
                         println!(
                             "WHOOPS MULTI {} {:?}",
-                            self.db.wires[wt].name,
-                            wf.iter()
-                                .map(|&x| &self.db.wires[x].name)
-                                .collect::<Vec<_>>()
+                            self.db.wires.key(wt),
+                            wf.iter().map(|&x| self.db.wires.key(x)).collect::<Vec<_>>()
                         );
                     }
                 }
@@ -2435,7 +2430,7 @@ impl<'a> IntBuilder<'a> {
         for &(wfi, wti) in tk.pips.keys() {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
-                    match self.db.wires[wt].kind {
+                    match self.db.wires[wt] {
                         WireKind::Branch(d) => {
                             if d != dir {
                                 continue;
@@ -2557,7 +2552,7 @@ impl<'a> IntBuilder<'a> {
         for &(wfi, wti) in tk.pips.keys() {
             if let Some(wtl) = names.get(&wti) {
                 for &wt in wtl {
-                    match self.db.wires[wt].kind {
+                    match self.db.wires[wt] {
                         WireKind::Branch(d) => {
                             if d != dir {
                                 continue;
@@ -2835,7 +2830,7 @@ impl<'a> IntBuilder<'a> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
-                        match self.db.wires[wt].kind {
+                        match self.db.wires[wt] {
                             WireKind::Branch(d) => {
                                 if d != dir {
                                     continue;
@@ -2982,7 +2977,7 @@ impl<'a> IntBuilder<'a> {
                 }
                 if let Some(wtl) = names.get(&wti) {
                     for &wt in wtl {
-                        if self.db.wires[wt].kind != WireKind::MultiBranch(dir) {
+                        if self.db.wires[wt] != WireKind::MultiBranch(dir) {
                             continue;
                         }
                         let wf = self.main_passes[dir][wt];

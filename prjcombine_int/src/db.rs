@@ -59,7 +59,7 @@ entity_id! {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct IntDb {
     pub name: String,
-    pub wires: EntityVec<WireId, WireInfo>,
+    pub wires: EntityMap<WireId, String, WireKind>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
     pub terms: EntityMap<TermKindId, String, TermKind>,
     pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
@@ -158,16 +158,6 @@ impl IntDb {
         }
         merge_dicts!(term_namings);
     }
-
-    pub fn get_wire(&self, n: &str) -> WireId {
-        self.wires.iter().find(|(_, w)| w.name == n).unwrap().0
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct WireInfo {
-    pub name: String,
-    pub kind: WireKind,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

@@ -521,8 +521,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         .db
         .wires
         .iter()
-        .filter_map(|(w, wi)| {
-            if wi.name.starts_with("SNG.S") || wi.name.starts_with("SNG.N") {
+        .filter_map(|(w, wn, _)| {
+            if wn.starts_with("SNG.S") || wn.starts_with("SNG.N") {
                 None
             } else {
                 Some(w)

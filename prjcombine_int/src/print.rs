@@ -8,9 +8,9 @@ use std::collections::BTreeMap;
 impl IntDb {
     pub fn print(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         writeln!(o, "INTDB {f}", f = self.name)?;
-        for w in self.wires.values() {
-            write!(o, "\tWIRE {n:14} ", n = w.name)?;
-            match w.kind {
+        for (_, k, &w) in &self.wires {
+            write!(o, "\tWIRE {k:14} ")?;
+            match w {
                 WireKind::Tie0 => write!(o, "TIE_0")?,
                 WireKind::Tie1 => write!(o, "TIE_1")?,
                 WireKind::TiePullup => write!(o, "TIE_PULLUP")?,
@@ -20,7 +20,7 @@ impl IntDb {
                 WireKind::TestOut => write!(o, "TESTOUT")?,
                 WireKind::MultiOut => write!(o, "MULTIOUT")?,
                 WireKind::PipOut => write!(o, "PIPOUT")?,
-                WireKind::Buf(bw) => write!(o, "BUF {bwn}", bwn = self.wires[bw].name)?,
+                WireKind::Buf(bw) => write!(o, "BUF {bwn}", bwn = self.wires.key(bw))?,
                 WireKind::Branch(d) => write!(o, "BRANCH {d}")?,
                 WireKind::PipBranch(d) => write!(o, "PIPBRANCH {d}")?,
                 WireKind::MultiBranch(d) => write!(o, "MULTIBRANCH {d}")?,
@@ -28,7 +28,7 @@ impl IntDb {
                     o,
                     "CONDALIAS {nkn} {own}",
                     nkn = self.nodes.key(nk),
-                    own = self.wires[ow].name
+                    own = self.wires.key(ow)
                 )?,
             }
             writeln!(o)?;
@@ -40,14 +40,14 @@ impl IntDb {
                     o,
                     "\t\tMUX {wot}.{won:14} <-",
                     wot = wo.0.to_idx(),
-                    won = self.wires[wo.1].name
+                    won = self.wires.key(wo.1)
                 )?;
                 for &wi in &mux.ins {
                     write!(
                         o,
                         " {wit}.{win:14}",
                         wit = wi.0.to_idx(),
-                        win = self.wires[wi.1].name
+                        win = self.wires.key(wi.1)
                     )?;
                 }
                 writeln!(o)?;
@@ -62,14 +62,14 @@ impl IntDb {
                             o,
                             "\t\tINTF.TESTMUX {wot}.{won} <-",
                             wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name
+                            won = self.wires.key(wo.1)
                         )?;
                         for &wi in ins {
                             write!(
                                 o,
                                 " {wit}.{win}",
                                 wit = wi.0.to_idx(),
-                                win = self.wires[wi.1].name
+                                win = self.wires.key(wi.1)
                             )?;
                         }
                         writeln!(o)?;
@@ -79,16 +79,16 @@ impl IntDb {
                             o,
                             "\t\tINTF.TESTMUX.PASS {wot}.{won} <- {wit}.{win} | ",
                             wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name,
+                            won = self.wires.key(wo.1),
                             wit = wi.0.to_idx(),
-                            win = self.wires[wi.1].name
+                            win = self.wires.key(wi.1)
                         )?;
                         for &wi in ins {
                             write!(
                                 o,
                                 " {wit}.{win}",
                                 wit = wi.0.to_idx(),
-                                win = self.wires[wi.1].name
+                                win = self.wires.key(wi.1)
                             )?;
                         }
                         writeln!(o)?;
@@ -98,7 +98,7 @@ impl IntDb {
                             o,
                             "\t\tINTF.DELAY {wot}.{won}",
                             wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name
+                            won = self.wires.key(wo.1)
                         )?;
                     }
                     IntfInfo::InputIri(iri, pin) => {
@@ -106,7 +106,7 @@ impl IntDb {
                             o,
                             "\t\tINTF.IRI {wot}.{won} IRI.{iri} ",
                             wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name,
+                            won = self.wires.key(wo.1),
                             iri = iri.to_idx(),
                         )?;
                         match pin {
@@ -121,7 +121,7 @@ impl IntDb {
                             o,
                             "\t\tINTF.IRI.DELAY {wot}.{won} IRI.{iri} ",
                             wot = wo.0.to_idx(),
-                            won = self.wires[wo.1].name,
+                            won = self.wires.key(wo.1),
                             iri = iri.to_idx(),
                         )?;
                         match pin {
@@ -152,7 +152,7 @@ impl IntDb {
                             o,
                             " {wit}.{win}",
                             wit = wi.0.to_idx(),
-                            win = self.wires[wi.1].name
+                            win = self.wires.key(wi.1)
                         )?;
                     }
                     writeln!(o)?;
@@ -163,7 +163,7 @@ impl IntDb {
                     o,
                     "\t\tWIRE {wt:3}.{wn:20}",
                     wt = wire.0.to_idx(),
-                    wn = self.wires[wire.1].name
+                    wn = self.wires.key(wire.1)
                 )?;
                 for (bel, pin) in bels {
                     write!(o, " {bel}.{pin}")?;
@@ -174,16 +174,16 @@ impl IntDb {
         for (_, name, term) in &self.terms {
             writeln!(o, "\tTERM {name} {d}", d = term.dir)?;
             for (w, ti) in &term.wires {
-                let wn = &self.wires[w].name;
+                let wn = &self.wires.key(w);
                 match ti {
                     TermInfo::BlackHole => {
                         writeln!(o, "\t\tBLACKHOLE {wn}")?;
                     }
                     &TermInfo::PassNear(ow) => {
-                        writeln!(o, "\t\tPASS NEAR {wn} <- {own}", own = self.wires[ow].name)?;
+                        writeln!(o, "\t\tPASS NEAR {wn} <- {own}", own = self.wires.key(ow))?;
                     }
                     &TermInfo::PassFar(ow) => {
-                        writeln!(o, "\t\tPASS FAR {wn} <- {own}", own = self.wires[ow].name)?;
+                        writeln!(o, "\t\tPASS FAR {wn} <- {own}", own = self.wires.key(ow))?;
                     }
                 }
             }
@@ -195,7 +195,7 @@ impl IntDb {
                     o,
                     "\t\tWIRE {wt:3}.{wn:20} {v}",
                     wt = k.0.to_idx(),
-                    wn = self.wires[k.1].name
+                    wn = self.wires.key(k.1)
                 )?;
             }
             for (k, v) in &naming.wire_bufs {
@@ -203,7 +203,7 @@ impl IntDb {
                     o,
                     "\t\tWIRE BUF {wt:3}.{wn:20}: RT.{vrt} {vt} <- {vf}",
                     wt = k.0.to_idx(),
-                    wn = self.wires[k.1].name,
+                    wn = self.wires.key(k.1),
                     vrt = v.tile.to_idx(),
                     vt = v.wire_to,
                     vf = v.wire_from,
@@ -214,9 +214,9 @@ impl IntDb {
                     o,
                     "\t\tEXT PIP {wtt:3}.{wtn:20} <- {wft:3}.{wfn:20}: RT.{vrt} {vt} <- {vf}",
                     wtt = k.0 .0.to_idx(),
-                    wtn = self.wires[k.0 .1].name,
+                    wtn = self.wires.key(k.0 .1),
                     wft = k.1 .0.to_idx(),
-                    wfn = self.wires[k.1 .1].name,
+                    wfn = self.wires.key(k.1 .1),
                     vrt = v.tile.to_idx(),
                     vt = v.wire_to,
                     vf = v.wire_from,
@@ -254,7 +254,7 @@ impl IntDb {
                             o,
                             "\t\t\t\tINT PIP {wt:3}.{wn:20}: RT.{rt} {pt} <- {pf}",
                             wt = w.0.to_idx(),
-                            wn = self.wires[w.1].name,
+                            wn = self.wires.key(w.1),
                             rt = pip.tile.to_idx(),
                             pt = pip.wire_to,
                             pf = pip.wire_from
@@ -276,7 +276,7 @@ impl IntDb {
                     o,
                     "\t\tINTF.OUT {wt:3}.{wn:20}: ",
                     wt = w.0.to_idx(),
-                    wn = self.wires[w.1].name
+                    wn = self.wires.key(w.1)
                 )?;
                 match wn {
                     IntfWireOutNaming::Simple { name } => writeln!(o, "SIMPLE {name}")?,
@@ -290,7 +290,7 @@ impl IntDb {
                     o,
                     "\t\tINTF.IN {wt:3}.{wn:20}: ",
                     wt = w.0.to_idx(),
-                    wn = self.wires[w.1].name
+                    wn = self.wires.key(w.1)
                 )?;
                 match wn {
                     IntfWireInNaming::Simple {name} => writeln!(o, "SIMPLE {name}")?,
@@ -311,7 +311,7 @@ impl IntDb {
         for (_, name, naming) in &self.term_namings {
             writeln!(o, "\tTERM NAMING {name}")?;
             for (w, wn) in &naming.wires_out {
-                write!(o, "\t\tWIRE OUT {w}: ", w = self.wires[w].name)?;
+                write!(o, "\t\tWIRE OUT {w}: ", w = self.wires.key(w))?;
                 match wn {
                     TermWireOutNaming::Simple { name } => writeln!(o, "{name}")?,
                     TermWireOutNaming::Buf { name_out, name_in } => {
@@ -320,10 +320,10 @@ impl IntDb {
                 }
             }
             for (w, wn) in &naming.wires_in_near {
-                writeln!(o, "\t\tWIRE IN NEAR {w}: {wn}", w = self.wires[w].name)?;
+                writeln!(o, "\t\tWIRE IN NEAR {w}: {wn}", w = self.wires.key(w))?;
             }
             for (w, wn) in &naming.wires_in_far {
-                write!(o, "\t\tWIRE IN FAR {w}: ", w = self.wires[w].name)?;
+                write!(o, "\t\tWIRE IN FAR {w}: ", w = self.wires.key(w))?;
                 match wn {
                     TermWireInFarNaming::Simple { name } => writeln!(o, "{name}")?,
                     TermWireInFarNaming::Buf { name_out, name_in } => {

@@ -589,16 +589,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     let node_ul = builder.db.nodes.get("CNR.TL").unwrap().0;
     let node_ur = builder.db.nodes.get("CNR.TR").unwrap().0;
     for (a, b) in cond_ll {
-        builder.db.wires[a].kind = WireKind::CondAlias(node_ll, b);
+        builder.db.wires[a] = WireKind::CondAlias(node_ll, b);
     }
     for (a, b) in cond_lr {
-        builder.db.wires[a].kind = WireKind::CondAlias(node_lr, b);
+        builder.db.wires[a] = WireKind::CondAlias(node_lr, b);
     }
     for (a, b) in cond_ul {
-        builder.db.wires[a].kind = WireKind::CondAlias(node_ul, b);
+        builder.db.wires[a] = WireKind::CondAlias(node_ul, b);
     }
     for (a, b) in cond_ur {
-        builder.db.wires[a].kind = WireKind::CondAlias(node_ur, b);
+        builder.db.wires[a] = WireKind::CondAlias(node_ur, b);
     }
     let node_bot = builder.db.nodes.get_mut("IO.B").unwrap().1;
     for mux in node_bot.muxes.values_mut() {
