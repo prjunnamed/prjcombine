@@ -57,6 +57,12 @@ where
         (I::from_idx(i), v)
     }
 
+    pub fn insert_new(&mut self, k: K, v: V) -> I {
+        let (i, f) = self.insert(k, v);
+        assert!(f.is_none());
+        i
+    }
+
     pub fn key(&self, id: I) -> &K {
         self.map.get_index(id.to_idx()).unwrap().0
     }

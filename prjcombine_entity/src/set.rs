@@ -57,6 +57,12 @@ where
         (I::from_idx(i), f)
     }
 
+    pub fn insert_new(&mut self, v: V) -> I {
+        let (i, f) = self.insert(v);
+        assert!(f);
+        i
+    }
+
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<I>
     where
         Q: Hash + Equivalent<V>,
