@@ -5,7 +5,7 @@ use prjcombine_xilinx_geom::{Bond, Grid};
 use std::collections::BTreeSet;
 
 use crate::db::{make_device, PreDevice};
-use prjcombine_virtex5::expand_grid;
+use prjcombine_virtex4::expand_grid;
 use prjcombine_virtex5_rd2db::{bond, grid, int};
 use prjcombine_virtex5_rdverify::verify_device;
 

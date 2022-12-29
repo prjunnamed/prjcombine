@@ -1,6 +1,6 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::{Part, Source};
-use prjcombine_series7::expand_grid;
+use prjcombine_virtex4::expand_grid;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, ExtraDie, Grid};
 
 use crate::db::{make_device_multi, PreDevice};

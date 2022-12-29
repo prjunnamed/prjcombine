@@ -6,11 +6,11 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::{BTreeSet, HashSet};
 
-use prjcombine_virtex4::bond::SharedCfgPin;
-use prjcombine_virtex4::expanded::{
+use crate::bond::SharedCfgPin;
+use crate::expanded::{
     DieFrameGeom, ExpandedDevice, Gt, Io, IoCoord, IoDiffKind, IoVrKind, SysMon, TileIobId,
 };
-use prjcombine_virtex4::grid::{ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind, RegId};
+use crate::grid::{ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind, RegId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,

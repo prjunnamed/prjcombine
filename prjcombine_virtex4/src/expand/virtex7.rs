@@ -8,12 +8,12 @@ use prjcombine_virtex_bitstream::{
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_virtex4::bond::{PsPin, SharedCfgPin};
-use prjcombine_virtex4::expanded::{
+use crate::bond::{PsPin, SharedCfgPin};
+use crate::expanded::{
     DieFrameGeom, ExpandedDevice, Gt, Gtz, Io, IoCoord, IoDiffKind, IoVrKind, PsIo, SysMon,
     TileIobId,
 };
-use prjcombine_virtex4::grid::{
+use crate::grid::{
     ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, GtzLoc, IoKind, Pcie2Kind, RegId,
 };
 
