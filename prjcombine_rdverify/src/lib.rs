@@ -8,7 +8,7 @@ use prjcombine_int::db::{
     TermWireOutNaming, WireId, WireKind,
 };
 use prjcombine_int::grid::{
-    ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, RowId,
+    ColId, DieId, ExpandedGrid, ExpandedTileNode, ExpandedTileTerm, IntWire, LayerId, RowId,
 };
 use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::collections::{HashMap, HashSet};
@@ -109,7 +109,7 @@ pub struct Verifier<'a> {
     cond_stub_outs: HashSet<rawdump::WireId>,
     cond_stub_ins: HashSet<rawdump::WireId>,
     cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
-    skip_bel_pins: HashSet<(DieId, ColId, RowId, usize, BelId, &'static str)>,
+    skip_bel_pins: HashSet<(DieId, ColId, RowId, LayerId, BelId, &'static str)>,
 }
 
 #[derive(Debug, Default)]
@@ -222,7 +222,7 @@ impl<'a> Verifier<'a> {
             for col in die.cols() {
                 for row in die.rows() {
                     let et = &die[(col, row)];
-                    for node in &et.nodes {
+                    for node in et.nodes.values() {
                         let nui = &self.node_used[node.kind];
                         let nk = &self.db.nodes[node.kind];
                         let nn = &self.db.node_namings[node.naming];
@@ -649,7 +649,7 @@ impl<'a> Verifier<'a> {
         die: DieId,
         col: ColId,
         row: RowId,
-        nidx: usize,
+        layer: LayerId,
         node: &ExpandedTileNode,
     ) {
         let crds;
@@ -833,7 +833,7 @@ impl<'a> Verifier<'a> {
         for (id, _, bel) in &kind.bels {
             let bn = &naming.bels[id];
             for (k, v) in &bel.pins {
-                if self.skip_bel_pins.contains(&(die, col, row, nidx, id, k)) {
+                if self.skip_bel_pins.contains(&(die, col, row, layer, id, k)) {
                     continue;
                 }
                 let n = &bn.pins[k];
@@ -1250,7 +1250,7 @@ impl<'a> Verifier<'a> {
             for col in die.cols() {
                 for row in die.rows() {
                     let et = &die[(col, row)];
-                    for (nidx, node) in et.nodes.iter().enumerate() {
+                    for (nidx, node) in &et.nodes {
                         self.handle_int_node(die.die, col, row, nidx, node);
                     }
                     for t in et.terms.values().flatten() {
@@ -1351,7 +1351,7 @@ impl<'a> Verifier<'a> {
     pub fn find_bel(&self, die: DieId, coord: (ColId, RowId), key: &str) -> Option<BelContext<'a>> {
         let die = self.grid.die(die);
         let tile = die.tile(coord);
-        for node in &tile.nodes {
+        for node in tile.nodes.values() {
             let nk = &self.db.nodes[node.kind];
             if let Some((id, _)) = nk.bels.get(key) {
                 return Some(self.get_bel(die.die, coord.0, coord.1, node, id));
@@ -1468,11 +1468,11 @@ impl<'a> Verifier<'a> {
         die: DieId,
         col: ColId,
         row: RowId,
-        nidx: usize,
+        layer: LayerId,
         bel: BelId,
         pin: &'static str,
     ) {
-        self.skip_bel_pins.insert((die, col, row, nidx, bel, pin));
+        self.skip_bel_pins.insert((die, col, row, layer, bel, pin));
     }
 
     fn finish(mut self) {
@@ -1601,7 +1601,7 @@ pub fn verify(
     for die in grid.dies() {
         for col in die.cols() {
             for row in die.rows() {
-                for node in &die[(col, row)].nodes {
+                for node in die[(col, row)].nodes.values() {
                     let nk = &grid.db.nodes[node.kind];
                     for id in nk.bels.ids() {
                         let ctx = vrf.get_bel(die.die, col, row, node, id);

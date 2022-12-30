@@ -57,6 +57,7 @@ macro_rules! make_res_type {
     };
 }
 
+make_res_type!(__ReservedU8, core::num::NonZeroU8, u8);
 make_res_type!(__ReservedU16, core::num::NonZeroU16, u16);
 make_res_type!(__ReservedU32, core::num::NonZeroU32, u32);
 make_res_type!(__ReservedUsize, core::num::NonZeroUsize, usize);
@@ -128,6 +129,9 @@ macro_rules! __impl_entity_id_delta {
 
 #[macro_export]
 macro_rules! __reserved_ty {
+    (u8) => {
+        $crate::id::__ReservedU8
+    };
     (u16) => {
         $crate::id::__ReservedU16
     };

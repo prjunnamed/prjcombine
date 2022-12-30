@@ -1408,11 +1408,11 @@ pub fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL2");
     vrf.kill_stub_out("CFG_PPC_DL_BUFS_CTRL3");
     if edev.col_rgt.is_none() {
-        let node = &edev.egrid.die(DieId::from_idx(0))[(
+        let die = edev.egrid.die(DieId::from_idx(0));
+        let node = die[(
             edev.grids.first().unwrap().columns.last_id().unwrap(),
             RowId::from_idx(0),
-        )]
-            .nodes[0];
+        )].nodes.first().unwrap();
         let crd = vrf
             .xlat_tile(&node.names[NodeRawTileId::from_idx(0)])
             .unwrap();

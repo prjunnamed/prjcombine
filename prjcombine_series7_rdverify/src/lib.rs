@@ -3615,11 +3615,11 @@ fn verify_pre(edev: &ExpandedDevice, vrf: &mut Verifier) {
             for col in die.cols() {
                 for row in die.rows() {
                     let et = &die[(col, row)];
-                    for (nidx, node) in et.nodes.iter().enumerate() {
+                    for (layer, node) in &et.nodes {
                         if edev.egrid.db.nodes.key(node.kind) == "CLK_BUFG" {
                             for bel in edev.egrid.db.nodes[node.kind].bels.ids() {
-                                vrf.skip_bel_pin(die.die, col, row, nidx, bel, "FB_TEST0");
-                                vrf.skip_bel_pin(die.die, col, row, nidx, bel, "FB_TEST1");
+                                vrf.skip_bel_pin(die.die, col, row, layer, bel, "FB_TEST0");
+                                vrf.skip_bel_pin(die.die, col, row, layer, bel, "FB_TEST1");
                             }
                         }
                     }

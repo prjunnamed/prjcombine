@@ -9,9 +9,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 entity_id! {
-    pub id DieId u16, reserve 1, delta;
+    pub id DieId u8, reserve 1, delta;
     pub id ColId u16, reserve 1, delta;
     pub id RowId u16, reserve 1, delta;
+    pub id LayerId u8;
 }
 
 pub type Coord = (ColId, RowId);
@@ -103,7 +104,7 @@ impl<'a> ExpandedGrid<'a> {
     ) -> Option<&ExpandedTileNode> {
         let die = self.die(die);
         let tile = die.tile(coord);
-        tile.nodes.iter().find(|x| f(x))
+        tile.nodes.values().find(|x| f(x))
     }
 
     pub fn find_bel(
@@ -114,7 +115,7 @@ impl<'a> ExpandedGrid<'a> {
     ) -> Option<(&ExpandedTileNode, BelId, &BelInfo, &BelNaming)> {
         let die = self.die(die);
         let tile = die.tile(coord);
-        for node in &tile.nodes {
+        for node in tile.nodes.values() {
             let nk = &self.db.nodes[node.kind];
             let naming = &self.db.node_namings[node.naming];
             if let Some((id, bel)) = nk.bels.get(key) {
@@ -401,7 +402,7 @@ impl ExpandedGrid<'_> {
                     break;
                 }
                 WireKind::CondAlias(node, wf) => {
-                    if tile.nodes[0].kind != node {
+                    if tile.nodes.first().unwrap().kind != node {
                         break;
                     }
                     wire.2 = wf;
@@ -452,7 +453,7 @@ impl ExpandedGrid<'_> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
-    pub nodes: Vec<ExpandedTileNode>,
+    pub nodes: EntityVec<LayerId, ExpandedTileNode>,
     pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
     pub clkroot: Coord,
 }
