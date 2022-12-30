@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
-use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId, Rect};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -14,6 +14,7 @@ struct Expander<'a, 'b> {
     grid: &'b Grid,
     db: &'a IntDb,
     die: ExpandedDieRefMut<'a, 'b>,
+    holes: Vec<Rect>,
     bonded_ios: Vec<IoCoord>,
     xlut: EntityVec<ColId, usize>,
     vcc_xlut: EntityVec<ColId, usize>,
@@ -34,6 +35,15 @@ struct Expander<'a, 'b> {
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
+    fn is_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
+
     fn fill_xlut(&mut self) {
         let mut x = 0;
         for &cd in self.grid.columns.values() {
@@ -314,7 +324,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3E",
         };
         let tile = &mut self.die[(col, row)];
-        let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+        let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
         let node = tile.add_xnode(
             self.db.get_node(kind),
             &[&name],
@@ -342,7 +352,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
         };
         let tile = &mut self.die[(col, row)];
-        let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+        let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
         let node = tile.add_xnode(
             self.db.get_node(kind),
             &[&name],
@@ -383,7 +393,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "UL.S3A",
         };
         let tile = &mut self.die[(col, row)];
-        let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+        let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
         let node = tile.add_xnode(
             self.db.get_node(kind),
             &[&name],
@@ -419,7 +429,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "UR.S3A",
         };
         let tile = &mut self.die[(col, row)];
-        let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+        let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
         let node = tile.add_xnode(
             self.db.get_node(kind),
             &[&name],
@@ -1419,6 +1429,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if io == RowIoKind::None {
                     continue;
                 }
+                if self.is_hole(col, row) {
+                    continue;
+                }
                 let tile = if self.grid.kind.is_spartan3ea() {
                     let x = self.xlut[col];
                     let y = row.to_idx();
@@ -1480,7 +1493,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 continue;
             }
             if let Some((b, t)) = self.grid.rows_ram {
-                self.die.nuke_rect(col, b, 4, t.to_idx() - b.to_idx() + 1);
+                self.holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 4,
+                    row_b: b,
+                    row_t: t + 1,
+                });
                 for d in 1..4 {
                     let x = self.xlut[col + d];
                     let yb = b.to_idx();
@@ -1506,6 +1524,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     if row <= b || row >= t {
                         continue;
                     }
+                } else if self.is_hole(col, row) {
+                    continue;
                 }
                 let naming = match self.grid.kind {
                     GridKind::Virtex2
@@ -1689,59 +1709,93 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row_b = self.grid.row_bot();
             let row_t = self.grid.row_top();
             let mut dcm_tiles = vec![];
-            if dcms != Dcms::Two {
-                // col, row, tile_kind, is_horiz
-                self.die.nuke_rect(self.grid.col_clk - 4, row_b + 1, 4, 4);
+            if dcms == Dcms::Two {
+                if self.grid.kind == GridKind::Spartan3E {
+                    self.holes.push(Rect {
+                        col_l: self.grid.col_clk - 1,
+                        col_r: self.grid.col_clk + 4,
+                        row_b: row_b + 1,
+                        row_t: row_b + 5,
+                    });
+                    self.holes.push(Rect {
+                        col_l: self.grid.col_clk - 1,
+                        col_r: self.grid.col_clk + 4,
+                        row_b: row_t - 4,
+                        row_t,
+                    });
+                    dcm_tiles.push((self.grid.col_clk, row_b + 1, "DCM_BR_CENTER", false));
+                    dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
+                    let x = self.xlut[self.grid.col_clk - 1];
+                    let y = row_b.to_idx() + 1;
+                    self.die.fill_tile(
+                        (self.grid.col_clk - 1, row_b + 1),
+                        "INT.DCM.S3E.DUMMY",
+                        "INT.DCM.S3E.DUMMY",
+                        format!("DCMAUX_BL_CENTER_X{x}Y{y}"),
+                    );
+                    let y = row_t.to_idx() - 1;
+                    self.die.fill_tile(
+                        (self.grid.col_clk - 1, row_t - 1),
+                        "INT.DCM.S3E.DUMMY",
+                        "INT.DCM.S3E.DUMMY",
+                        format!("DCMAUX_TL_CENTER_X{x}Y{y}"),
+                    );
+                } else {
+                    self.holes.push(Rect {
+                        col_l: self.grid.col_clk - 4,
+                        col_r: self.grid.col_clk + 4,
+                        row_b: row_t - 4,
+                        row_t,
+                    });
+                    dcm_tiles.push((self.grid.col_clk - 1, row_t - 1, "DCM_TL_CENTER", false));
+                    dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
+                }
+            } else {
+                self.holes.push(Rect {
+                    col_l: self.grid.col_clk - 4,
+                    col_r: self.grid.col_clk + 4,
+                    row_b: row_b + 1,
+                    row_t: row_b + 5,
+                });
+                self.holes.push(Rect {
+                    col_l: self.grid.col_clk - 4,
+                    col_r: self.grid.col_clk + 4,
+                    row_b: row_t - 4,
+                    row_t,
+                });
                 dcm_tiles.push((self.grid.col_clk - 1, row_b + 1, "DCM_BL_CENTER", false));
-            }
-            if !(self.grid.kind != GridKind::Spartan3E && dcms == Dcms::Two) {
-                self.die.nuke_rect(self.grid.col_clk, row_b + 1, 4, 4);
                 dcm_tiles.push((self.grid.col_clk, row_b + 1, "DCM_BR_CENTER", false));
-            }
-            if !(self.grid.kind == GridKind::Spartan3E && dcms == Dcms::Two) {
-                self.die.nuke_rect(self.grid.col_clk - 4, row_t - 4, 4, 4);
                 dcm_tiles.push((self.grid.col_clk - 1, row_t - 1, "DCM_TL_CENTER", false));
-            }
-            {
-                self.die.nuke_rect(self.grid.col_clk, row_t - 4, 4, 4);
                 dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
-            }
-            if self.grid.kind == GridKind::Spartan3E && dcms == Dcms::Two {
-                self.die.nuke_rect(self.grid.col_clk - 1, row_b + 1, 1, 4);
-                self.die.nuke_rect(self.grid.col_clk - 1, row_t - 4, 1, 4);
-                let x = self.xlut[self.grid.col_clk - 1];
-                let y = row_b.to_idx() + 1;
-                self.die.fill_tile_special(
-                    (self.grid.col_clk - 1, row_b + 1),
-                    "INT.DCM.S3E.DUMMY",
-                    "INT.DCM.S3E.DUMMY",
-                    format!("DCMAUX_BL_CENTER_X{x}Y{y}"),
-                );
-                let y = row_t.to_idx() - 1;
-                self.die.fill_tile_special(
-                    (self.grid.col_clk - 1, row_t - 1),
-                    "INT.DCM.S3E.DUMMY",
-                    "INT.DCM.S3E.DUMMY",
-                    format!("DCMAUX_TL_CENTER_X{x}Y{y}"),
-                );
             }
             if dcms == Dcms::Eight {
                 let col_l = self.grid.col_left();
                 let col_r = self.grid.col_right();
                 if self.grid.kind == GridKind::Spartan3E {
-                    self.die.nuke_rect(col_l + 9, self.grid.row_mid() - 4, 4, 4);
-                    self.die.nuke_rect(col_l + 9, self.grid.row_mid(), 4, 4);
-                    self.die
-                        .nuke_rect(col_r - 12, self.grid.row_mid() - 4, 4, 4);
-                    self.die.nuke_rect(col_r - 12, self.grid.row_mid(), 4, 4);
+                    self.holes.push(Rect {
+                        col_l: col_l + 9,
+                        col_r: col_l + 13,
+                        row_b: self.grid.row_mid() - 4,
+                        row_t: self.grid.row_mid() + 4,
+                    });
+                    self.holes.push(Rect {
+                        col_l: col_r - 12,
+                        col_r: col_r - 8,
+                        row_b: self.grid.row_mid() - 4,
+                        row_t: self.grid.row_mid() + 4,
+                    });
                     dcm_tiles.push((col_l + 9, self.grid.row_mid(), "DCM_H_TL_CENTER", true));
                     dcm_tiles.push((col_l + 9, self.grid.row_mid() - 1, "DCM_H_BL_CENTER", true));
                     dcm_tiles.push((col_r - 9, self.grid.row_mid(), "DCM_H_TR_CENTER", true));
                     dcm_tiles.push((col_r - 9, self.grid.row_mid() - 1, "DCM_H_BR_CENTER", true));
                 } else {
                     for col in [col_l + 3, col_r - 6] {
-                        self.die.nuke_rect(col, self.grid.row_mid() - 4, 4, 4);
-                        self.die.nuke_rect(col, self.grid.row_mid(), 4, 4);
+                        self.holes.push(Rect {
+                            col_l: col,
+                            col_r: col + 4,
+                            row_b: self.grid.row_mid() - 4,
+                            row_t: self.grid.row_mid() + 4,
+                        });
                         dcm_tiles.push((col, self.grid.row_mid(), "DCM_SPLY", true));
                         dcm_tiles.push((col, self.grid.row_mid() - 1, "DCM_BGAP", true));
                     }
@@ -1757,7 +1811,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = self.xlut[col];
                 let y = row.to_idx();
                 let name = format!("{tk}_X{x}Y{y}");
-                self.die.fill_tile_special(
+                self.die.fill_tile(
                     (col, row),
                     "INT.DCM",
                     if is_h { "INT.DCM.S3E.H" } else { "INT.DCM.S3E" },
@@ -1835,9 +1889,13 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_ppc(&mut self) {
-        let def_rt = NodeRawTileId::from_idx(0);
         for &(bc, br) in &self.grid.holes_ppc {
-            self.die.nuke_rect(bc, br, 10, 16);
+            self.holes.push(Rect {
+                col_l: bc,
+                col_r: bc + 10,
+                row_b: br,
+                row_t: br + 16,
+            });
             let mut ints = vec![];
             // left side
             for d in 0..16 {
@@ -1856,7 +1914,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     _ => "INT.PPC.L",
                 };
                 self.die
-                    .fill_tile_special((col, row), "INT.PPC", kind, format!("{pref}R{r}C{c}"));
+                    .fill_tile((col, row), "INT.PPC", kind, format!("{pref}R{r}C{c}"));
                 ints.push((col, row));
             }
             // right side
@@ -1866,7 +1924,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let r = self.rlut[row];
                 let c = self.clut[col];
                 self.die
-                    .fill_tile_special((col, row), "INT.PPC", "INT.PPC.R", format!("R{r}C{c}"));
+                    .fill_tile((col, row), "INT.PPC", "INT.PPC.R", format!("R{r}C{c}"));
                 ints.push((col, row));
             }
             // bottom
@@ -1876,7 +1934,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let r = self.rlut[row];
                 if self.grid.columns[col].kind == ColumnKind::Clb {
                     let c = self.clut[col];
-                    self.die.fill_tile_special(
+                    self.die.fill_tile(
                         (col, row),
                         "INT.PPC",
                         "INT.PPC.B",
@@ -1884,7 +1942,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     );
                 } else {
                     let c = self.bramclut[col];
-                    self.die.fill_tile_special(
+                    self.die.fill_tile(
                         (col, row),
                         "INT.PPC",
                         "INT.PPC.B",
@@ -1900,7 +1958,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let r = self.rlut[row];
                 if self.grid.columns[col].kind == ColumnKind::Clb {
                     let c = self.clut[col];
-                    self.die.fill_tile_special(
+                    self.die.fill_tile(
                         (col, row),
                         "INT.PPC",
                         "INT.PPC.T",
@@ -1908,7 +1966,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     );
                 } else {
                     let c = self.bramclut[col];
-                    self.die.fill_tile_special(
+                    self.die.fill_tile(
                         (col, row),
                         "INT.PPC",
                         "INT.PPC.T",
@@ -1922,7 +1980,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let col_l = bc;
                 let col_r = bc + 9;
                 let row = br + d;
-                let tile_l = self.die[(col_l, row)].nodes[0].names[def_rt].clone();
+                let tile_l = self.die[(col_l, row)].nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
                 let c = self.bramclut[col_r - 1];
                 let r = self.rlut[row];
                 let tile_r = format!("BMR{r}C{c}");
@@ -1998,8 +2056,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
-                    let name = tile.nodes[0].names[def_rt].clone();
-                    let nname = self.db.node_namings.key(tile.nodes[0].naming);
+                    let node = tile.nodes.first().unwrap();
+                    let name = node.names[NodeRawTileId::from_idx(0)].clone();
+                    let nname = self.db.node_namings.key(node.naming);
                     tile.add_xnode(
                         self.db.get_node("INTF.PPC"),
                         &[&name],
@@ -2030,17 +2089,37 @@ impl<'a, 'b> Expander<'a, 'b> {
         let row_t = self.grid.row_top();
         for (gx, (&col, &(bbank, tbank))) in self.grid.cols_gt.iter().enumerate() {
             if self.grid.kind == GridKind::Virtex2PX {
-                self.die.nuke_rect(col, row_b, 1, 9);
-                self.die.nuke_rect(col, row_t - 8, 1, 9);
+                self.holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b,
+                    row_t: row_b + 9,
+                });
+                self.holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: row_t - 8,
+                    row_t: row_t + 1,
+                });
             } else {
-                self.die.nuke_rect(col, row_b, 1, 5);
-                self.die.nuke_rect(col, row_t - 4, 1, 5);
+                self.holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b,
+                    row_t: row_b + 5,
+                });
+                self.holes.push(Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: row_t - 4,
+                    row_t: row_t + 1,
+                });
             }
             let c = self.bramclut[col];
             for row in [row_b, row_t] {
                 let bt = if row == row_b { 'B' } else { 'T' };
                 let name = format!("{bt}IOIBRAMC{c}");
-                self.die.fill_tile_special(
+                self.die.fill_tile(
                     (col, row),
                     "INT.GT.CLKPAD",
                     "INT.GT.CLKPAD",
@@ -2064,7 +2143,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let r = self.rlut[row];
                     let name = format!("BRAMR{r}C{c}");
                     self.die
-                        .fill_tile_special((col, row), "INT.PPC", "INT.GT", name.clone());
+                        .fill_tile((col, row), "INT.PPC", "INT.GT", name.clone());
                     self.die[(col, row)].add_xnode(
                         self.db.get_node(if d % 4 == 0 {
                             "INTF.GT.0"
@@ -2353,21 +2432,14 @@ impl<'a, 'b> Expander<'a, 'b> {
                     if row == self.grid.row_top() {
                         continue;
                     }
-                    let et = &mut self.die[(col, row)];
-                    if et.nodes.is_empty() {
+                    if self.is_hole(col, row) {
                         continue;
                     }
-                    if et.nodes[0].special {
-                        continue;
-                    }
-                    if let Some(ref mut p) = et.terms[Dir::S] {
-                        p.naming = Some(self.db.get_term_naming("BRAM.S"));
-                        let c = self.bramclut[col];
-                        let r = self.rlut[row];
-                        p.tile = Some(format!("BMR{r}C{c}"));
-                    } else {
-                        unreachable!();
-                    }
+                    let p = self.die[(col, row)].terms[Dir::S].as_mut().unwrap();
+                    p.naming = Some(self.db.get_term_naming("BRAM.S"));
+                    let c = self.bramclut[col];
+                    let r = self.rlut[row];
+                    p.tile = Some(format!("BMR{r}C{c}"));
                 }
             }
         }
@@ -2429,8 +2501,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let x = col.to_idx();
                 let y = row.to_idx();
-                tile.nodes[0].add_bel(0, format!("RLL_X{x}Y{y}"));
-                if self.db.nodes.key(tile.nodes[0].kind) == "INT.DCM.S3E.DUMMY" {
+                let node = tile.nodes.first_mut().unwrap();
+                node.add_bel(0, format!("RLL_X{x}Y{y}"));
+                if self.db.nodes.key(node.kind) == "INT.DCM.S3E.DUMMY" {
                     continue;
                 }
                 let mut x = self.vcc_xlut[col];
@@ -2478,7 +2551,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         }
                     }
                 }
-                tile.nodes[0].tie_name = Some(format!("VCC_X{x}Y{y}"));
+                node.tie_name = Some(format!("VCC_X{x}Y{y}"));
             }
         }
     }
@@ -2831,7 +2904,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 (self.grid.col_right(), self.grid.row_top()),
             ] {
                 let tile = &mut self.die[c];
-                let name = tile.nodes[0].names[NodeRawTileId::from_idx(0)].clone();
+                let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
                 tile.add_xnode(
                     self.db.get_node("PCI_CE_CNR"),
                     &[&name],
@@ -3293,6 +3366,7 @@ impl Grid {
             grid: self,
             db,
             die,
+            holes: vec![],
             bonded_ios: vec![],
             xlut: EntityVec::new(),
             vcc_xlut: EntityVec::new(),
@@ -3317,6 +3391,11 @@ impl Grid {
         expander.fill_rlut();
         expander.fill_rows_brk();
 
+        expander.fill_dcm();
+        expander.fill_ppc();
+        expander.fill_gt();
+        expander.fill_bram_dsp();
+        expander.fill_clb();
         expander.fill_cnr_int();
         expander.fill_cnr_ll();
         expander.fill_cnr_lr();
@@ -3326,11 +3405,6 @@ impl Grid {
         expander.fill_io_r();
         expander.fill_io_b();
         expander.fill_io_l();
-        expander.fill_clb();
-        expander.fill_bram_dsp();
-        expander.fill_dcm();
-        expander.fill_ppc();
-        expander.fill_gt();
         if self.has_ll {
             expander.fill_llv();
             expander.fill_llh();

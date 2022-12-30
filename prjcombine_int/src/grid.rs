@@ -170,49 +170,12 @@ impl ExpandedDieRefMut<'_, '_> {
         assert!(self[xy].nodes.is_empty());
         let kind = self.grid.db.get_node(kind);
         let naming = self.grid.db.get_node_naming(naming);
-        self[xy].nodes.push(ExpandedTileNode {
+        self[xy].add_xnode(
             kind,
-            tiles: [xy].into_iter().collect(),
-            names: [(NodeRawTileId::from_idx(0), name)].into_iter().collect(),
-            tie_name: None,
-            iri_names: Default::default(),
+            &[&name],
             naming,
-            special: false,
-            bels: Default::default(),
-        });
-        self[xy].nodes.last_mut().unwrap()
-    }
-
-    pub fn fill_tile_special(
-        &mut self,
-        xy: Coord,
-        kind: &str,
-        naming: &str,
-        name: String,
-    ) -> &mut ExpandedTileNode {
-        assert!(self[xy].nodes.is_empty());
-        let kind = self.grid.db.get_node(kind);
-        let naming = self.grid.db.get_node_naming(naming);
-        self[xy].nodes.push(ExpandedTileNode {
-            kind,
-            tiles: [xy].into_iter().collect(),
-            names: [(NodeRawTileId::from_idx(0), name)].into_iter().collect(),
-            tie_name: None,
-            iri_names: Default::default(),
-            naming,
-            special: true,
-            bels: Default::default(),
-        });
-        self[xy].nodes.last_mut().unwrap()
-    }
-
-    pub fn nuke_rect(&mut self, x: ColId, y: RowId, w: usize, h: usize) {
-        for dx in 0..w {
-            for dy in 0..h {
-                self[(x + dx, y + dy)].nodes.clear();
-                self[(x + dx, y + dy)].terms = Default::default();
-            }
-        }
+            &[xy],
+        )
     }
 
     pub fn rows(&self) -> EntityIds<RowId> {
@@ -511,7 +474,6 @@ impl ExpandedTile {
             tie_name: None,
             iri_names: Default::default(),
             naming,
-            special: true,
             bels: Default::default(),
         });
         self.nodes.last_mut().unwrap()
@@ -526,7 +488,6 @@ pub struct ExpandedTileNode {
     pub tie_name: Option<String>,
     pub iri_names: EntityVec<NodeIriId, String>,
     pub naming: NodeNamingId,
-    pub special: bool,
     pub bels: EntityPartVec<BelId, String>,
 }
 
