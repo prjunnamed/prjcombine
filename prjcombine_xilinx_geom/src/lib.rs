@@ -98,6 +98,16 @@ pub enum DeviceNaming {
     Versal(prjcombine_versal::naming::DeviceNaming),
 }
 
+pub enum ExpandedDevice<'a> {
+    Xc5200(prjcombine_xc5200::expanded::ExpandedDevice<'a>),
+    Virtex(prjcombine_virtex::expanded::ExpandedDevice<'a>),
+    Virtex2(prjcombine_virtex2::expanded::ExpandedDevice<'a>),
+    Spartan6(prjcombine_spartan6::expanded::ExpandedDevice<'a>),
+    Virtex4(prjcombine_virtex4::expanded::ExpandedDevice<'a>),
+    Ultrascale(prjcombine_ultrascale::expanded::ExpandedDevice<'a>),
+    Versal(prjcombine_versal::expanded::ExpandedDevice<'a>),
+}
+
 impl GeomDb {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
@@ -111,5 +121,136 @@ impl GeomDb {
         bincode::serialize_into(&mut cf, self)?;
         cf.finish()?;
         Ok(())
+    }
+
+    pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
+        let grid = &self.grids[dev.grids[dev.grid_master]];
+        match grid {
+            Grid::Xc4k(_) => todo!(),
+            Grid::Xc5200(grid) => {
+                let intdb = &self.ints["xc5200"];
+                ExpandedDevice::Xc5200(grid.expand_grid(intdb))
+            }
+            Grid::Virtex(grid) => {
+                let intdb = &self.ints["virtex"];
+                let disabled = dev
+                    .disabled
+                    .iter()
+                    .map(|&x| match x {
+                        DisabledPart::Virtex(x) => x,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                ExpandedDevice::Virtex(grid.expand_grid(&disabled, intdb))
+            }
+            Grid::Virtex2(grid) => {
+                let intdb = if grid.kind.is_virtex2() {
+                    &self.ints["virtex2"]
+                } else {
+                    &self.ints["spartan3"]
+                };
+                ExpandedDevice::Virtex2(grid.expand_grid(intdb))
+            }
+            Grid::Spartan6(grid) => {
+                let intdb = &self.ints["spartan6"];
+                let disabled = dev
+                    .disabled
+                    .iter()
+                    .map(|&x| match x {
+                        DisabledPart::Spartan6(x) => x,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                ExpandedDevice::Spartan6(grid.expand_grid(intdb, &disabled))
+            }
+            Grid::Virtex4(ref grid) => {
+                let intdb = &self.ints[match grid.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => "series7",
+                }];
+                let disabled = dev
+                    .disabled
+                    .iter()
+                    .map(|&x| match x {
+                        DisabledPart::Virtex4(x) => x,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                let extras: Vec<_> = dev
+                    .extras
+                    .iter()
+                    .map(|&x| match x {
+                        ExtraDie::Virtex4(x) => x,
+                    })
+                    .collect();
+                let grids = dev.grids.map_values(|&x| match self.grids[x] {
+                    Grid::Virtex4(ref x) => x,
+                    _ => unreachable!(),
+                });
+                ExpandedDevice::Virtex4(prjcombine_virtex4::expand_grid(
+                    &grids,
+                    dev.grid_master,
+                    &extras,
+                    &disabled,
+                    intdb,
+                ))
+            }
+            Grid::Ultrascale(ref grid) => {
+                let intdb = &self.ints[match grid.kind {
+                    prjcombine_ultrascale::grid::GridKind::Ultrascale => "ultrascale",
+                    prjcombine_ultrascale::grid::GridKind::UltrascalePlus => "ultrascaleplus",
+                }];
+                let disabled = dev
+                    .disabled
+                    .iter()
+                    .map(|&x| match x {
+                        DisabledPart::Ultrascale(x) => x,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                let grids = dev.grids.map_values(|&x| match self.grids[x] {
+                    Grid::Ultrascale(ref x) => x,
+                    _ => unreachable!(),
+                });
+                let naming = match self.dev_namings[dev.naming] {
+                    DeviceNaming::Ultrascale(ref x) => x,
+                    _ => unreachable!(),
+                };
+                ExpandedDevice::Ultrascale(prjcombine_ultrascale::expand_grid(
+                    &grids,
+                    dev.grid_master,
+                    &disabled,
+                    naming,
+                    intdb,
+                ))
+            }
+            Grid::Versal(_) => {
+                let intdb = &self.ints["versal"];
+                let disabled = dev
+                    .disabled
+                    .iter()
+                    .map(|&x| match x {
+                        DisabledPart::Versal(x) => x,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                let grids = dev.grids.map_values(|&x| match self.grids[x] {
+                    Grid::Versal(ref x) => x,
+                    _ => unreachable!(),
+                });
+                let naming = match self.dev_namings[dev.naming] {
+                    DeviceNaming::Versal(ref x) => x,
+                    _ => unreachable!(),
+                };
+                ExpandedDevice::Versal(prjcombine_versal::expand::expand_grid(
+                    &grids,
+                    &disabled,
+                    naming,
+                    intdb,
+                ))
+            }
+        }
     }
 }

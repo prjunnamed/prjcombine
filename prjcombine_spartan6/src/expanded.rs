@@ -6,7 +6,7 @@ use crate::grid::{DisabledPart, Grid, IoCoord};
 
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
-    pub disabled: &'a BTreeSet<DisabledPart>,
+    pub disabled: BTreeSet<DisabledPart>,
     pub egrid: ExpandedGrid<'a>,
     pub bs_geom: BitstreamGeom,
     pub io: Vec<Io>,

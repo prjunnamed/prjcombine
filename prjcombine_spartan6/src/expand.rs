@@ -2431,7 +2431,7 @@ impl Grid {
     pub fn expand_grid<'a>(
         &'a self,
         db: &'a IntDb,
-        disabled: &'a BTreeSet<DisabledPart>,
+        disabled: &BTreeSet<DisabledPart>,
     ) -> ExpandedDevice<'a> {
         let mut egrid = ExpandedGrid::new(db);
         egrid.tie_kind = Some("TIEOFF".to_string());
@@ -2439,11 +2439,12 @@ impl Grid {
         egrid.tie_pin_gnd = Some("HARD0".to_string());
         egrid.tie_pin_vcc = Some("HARD1".to_string());
         let (_, die) = egrid.add_die(self.columns.len(), self.rows.len());
+        let disabled = disabled.clone();
 
         let mut expander = Expander {
             grid: self,
             db,
-            disabled,
+            disabled: &disabled,
             die,
             rxlut: EntityVec::new(),
             rylut: EntityVec::new(),
