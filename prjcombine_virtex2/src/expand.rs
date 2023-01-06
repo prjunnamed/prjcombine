@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
-use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, RowId, Rect};
+use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -8,7 +8,9 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 
 use crate::expanded::ExpandedDevice;
-use crate::grid::{ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, IoCoord, RowIoKind, TileIobId};
+use crate::grid::{
+    ColumnIoKind, ColumnKind, DcmPairKind, Dcms, Grid, GridKind, IoCoord, RowIoKind, TileIobId,
+};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -1705,118 +1707,117 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_dcm(&mut self) {
-        if let Some(dcms) = self.grid.dcms {
-            let row_b = self.grid.row_bot();
-            let row_t = self.grid.row_top();
+        if self.grid.kind.is_spartan3ea() {
             let mut dcm_tiles = vec![];
-            if dcms == Dcms::Two {
-                if self.grid.kind == GridKind::Spartan3E {
-                    self.holes.push(Rect {
-                        col_l: self.grid.col_clk - 1,
-                        col_r: self.grid.col_clk + 4,
-                        row_b: row_b + 1,
-                        row_t: row_b + 5,
-                    });
-                    self.holes.push(Rect {
-                        col_l: self.grid.col_clk - 1,
-                        col_r: self.grid.col_clk + 4,
-                        row_b: row_t - 4,
-                        row_t,
-                    });
-                    dcm_tiles.push((self.grid.col_clk, row_b + 1, "DCM_BR_CENTER", false));
-                    dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
-                    let x = self.xlut[self.grid.col_clk - 1];
-                    let y = row_b.to_idx() + 1;
-                    self.die.fill_tile(
-                        (self.grid.col_clk - 1, row_b + 1),
-                        "INT.DCM.S3E.DUMMY",
-                        "INT.DCM.S3E.DUMMY",
-                        format!("DCMAUX_BL_CENTER_X{x}Y{y}"),
-                    );
-                    let y = row_t.to_idx() - 1;
-                    self.die.fill_tile(
-                        (self.grid.col_clk - 1, row_t - 1),
-                        "INT.DCM.S3E.DUMMY",
-                        "INT.DCM.S3E.DUMMY",
-                        format!("DCMAUX_TL_CENTER_X{x}Y{y}"),
-                    );
-                } else {
-                    self.holes.push(Rect {
-                        col_l: self.grid.col_clk - 4,
-                        col_r: self.grid.col_clk + 4,
-                        row_b: row_t - 4,
-                        row_t,
-                    });
-                    dcm_tiles.push((self.grid.col_clk - 1, row_t - 1, "DCM_TL_CENTER", false));
-                    dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
-                }
-            } else {
-                self.holes.push(Rect {
-                    col_l: self.grid.col_clk - 4,
-                    col_r: self.grid.col_clk + 4,
-                    row_b: row_b + 1,
-                    row_t: row_b + 5,
-                });
-                self.holes.push(Rect {
-                    col_l: self.grid.col_clk - 4,
-                    col_r: self.grid.col_clk + 4,
-                    row_b: row_t - 4,
-                    row_t,
-                });
-                dcm_tiles.push((self.grid.col_clk - 1, row_b + 1, "DCM_BL_CENTER", false));
-                dcm_tiles.push((self.grid.col_clk, row_b + 1, "DCM_BR_CENTER", false));
-                dcm_tiles.push((self.grid.col_clk - 1, row_t - 1, "DCM_TL_CENTER", false));
-                dcm_tiles.push((self.grid.col_clk, row_t - 1, "DCM_TR_CENTER", false));
-            }
-            if dcms == Dcms::Eight {
-                let col_l = self.grid.col_left();
-                let col_r = self.grid.col_right();
-                if self.grid.kind == GridKind::Spartan3E {
-                    self.holes.push(Rect {
-                        col_l: col_l + 9,
-                        col_r: col_l + 13,
-                        row_b: self.grid.row_mid() - 4,
-                        row_t: self.grid.row_mid() + 4,
-                    });
-                    self.holes.push(Rect {
-                        col_l: col_r - 12,
-                        col_r: col_r - 8,
-                        row_b: self.grid.row_mid() - 4,
-                        row_t: self.grid.row_mid() + 4,
-                    });
-                    dcm_tiles.push((col_l + 9, self.grid.row_mid(), "DCM_H_TL_CENTER", true));
-                    dcm_tiles.push((col_l + 9, self.grid.row_mid() - 1, "DCM_H_BL_CENTER", true));
-                    dcm_tiles.push((col_r - 9, self.grid.row_mid(), "DCM_H_TR_CENTER", true));
-                    dcm_tiles.push((col_r - 9, self.grid.row_mid() - 1, "DCM_H_BR_CENTER", true));
-                } else {
-                    for col in [col_l + 3, col_r - 6] {
+            for pair in self.grid.get_dcm_pairs() {
+                match pair.kind {
+                    DcmPairKind::Bot => {
                         self.holes.push(Rect {
-                            col_l: col,
-                            col_r: col + 4,
-                            row_b: self.grid.row_mid() - 4,
-                            row_t: self.grid.row_mid() + 4,
+                            col_l: pair.col - 4,
+                            col_r: pair.col + 4,
+                            row_b: pair.row,
+                            row_t: pair.row + 4,
                         });
-                        dcm_tiles.push((col, self.grid.row_mid(), "DCM_SPLY", true));
-                        dcm_tiles.push((col, self.grid.row_mid() - 1, "DCM_BGAP", true));
+                        dcm_tiles.push((pair.col - 1, pair.row, "DCM_BL_CENTER", false, false));
+                        dcm_tiles.push((pair.col, pair.row, "DCM_BR_CENTER", false, false));
+                    }
+                    DcmPairKind::BotSingle => {
+                        self.holes.push(Rect {
+                            col_l: pair.col - 1,
+                            col_r: pair.col + 4,
+                            row_b: pair.row,
+                            row_t: pair.row + 4,
+                        });
+                        dcm_tiles.push((pair.col - 1, pair.row, "DCMAUX_BL_CENTER", false, true));
+                        dcm_tiles.push((pair.col, pair.row, "DCM_BR_CENTER", false, false));
+                    }
+                    DcmPairKind::Top => {
+                        self.holes.push(Rect {
+                            col_l: pair.col - 4,
+                            col_r: pair.col + 4,
+                            row_b: pair.row - 3,
+                            row_t: pair.row + 1,
+                        });
+                        dcm_tiles.push((pair.col - 1, pair.row, "DCM_TL_CENTER", false, false));
+                        dcm_tiles.push((pair.col, pair.row, "DCM_TR_CENTER", false, false));
+                    }
+                    DcmPairKind::TopSingle => {
+                        self.holes.push(Rect {
+                            col_l: pair.col - 1,
+                            col_r: pair.col + 4,
+                            row_b: pair.row - 3,
+                            row_t: pair.row + 1,
+                        });
+                        dcm_tiles.push((pair.col - 1, pair.row, "DCMAUX_TL_CENTER", false, true));
+                        dcm_tiles.push((pair.col, pair.row, "DCM_TR_CENTER", false, false));
+                    }
+                    DcmPairKind::Left => {
+                        self.holes.push(Rect {
+                            col_l: pair.col,
+                            col_r: pair.col + 4,
+                            row_b: pair.row - 4,
+                            row_t: pair.row + 4,
+                        });
+                        dcm_tiles.push((pair.col, pair.row, "DCM_H_TL_CENTER", true, false));
+                        dcm_tiles.push((pair.col, pair.row - 1, "DCM_H_BL_CENTER", true, false));
+                    }
+                    DcmPairKind::Right => {
+                        self.holes.push(Rect {
+                            col_l: pair.col - 3,
+                            col_r: pair.col + 1,
+                            row_b: pair.row - 4,
+                            row_t: pair.row + 4,
+                        });
+                        dcm_tiles.push((pair.col, pair.row, "DCM_H_TR_CENTER", true, false));
+                        dcm_tiles.push((pair.col, pair.row - 1, "DCM_H_BR_CENTER", true, false));
+                    }
+                    DcmPairKind::Bram => {
+                        self.holes.push(Rect {
+                            col_l: pair.col,
+                            col_r: pair.col + 4,
+                            row_b: pair.row - 4,
+                            row_t: pair.row + 4,
+                        });
+                        dcm_tiles.push((pair.col, pair.row, "DCM_SPLY", true, false));
+                        dcm_tiles.push((pair.col, pair.row - 1, "DCM_BGAP", true, false));
                     }
                 }
             }
-            let mut dcm_cols: Vec<_> = dcm_tiles.iter().map(|&(col, _, _, _)| col).collect();
+            let mut dcm_cols = vec![];
+            let mut dcm_rows = vec![];
+            for &(col, row, _, _, is_aux) in &dcm_tiles {
+                if !is_aux {
+                    dcm_cols.push(col);
+                    dcm_rows.push(row);
+                }
+            }
             dcm_cols.sort_unstable();
             dcm_cols.dedup();
-            let mut dcm_rows: Vec<_> = dcm_tiles.iter().map(|&(_, row, _, _)| row).collect();
             dcm_rows.sort_unstable();
             dcm_rows.dedup();
-            for (col, row, tk, is_h) in dcm_tiles {
+            for (col, row, tk, is_h, is_aux) in dcm_tiles {
                 let x = self.xlut[col];
                 let y = row.to_idx();
                 let name = format!("{tk}_X{x}Y{y}");
                 self.die.fill_tile(
                     (col, row),
-                    "INT.DCM",
-                    if is_h { "INT.DCM.S3E.H" } else { "INT.DCM.S3E" },
+                    if is_aux {
+                        "INT.DCM.S3E.DUMMY"
+                    } else {
+                        "INT.DCM"
+                    },
+                    if is_aux {
+                        "INT.DCM.S3E.DUMMY"
+                    } else if is_h {
+                        "INT.DCM.S3E.H"
+                    } else {
+                        "INT.DCM.S3E"
+                    },
                     name.clone(),
                 );
+                if is_aux {
+                    continue;
+                }
                 let dx = dcm_cols.binary_search(&col).unwrap();
                 let dy = dcm_rows.binary_search(&row).unwrap();
                 let node = self.die[(col, row)].add_xnode(
@@ -1934,12 +1935,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let r = self.rlut[row];
                 if self.grid.columns[col].kind == ColumnKind::Clb {
                     let c = self.clut[col];
-                    self.die.fill_tile(
-                        (col, row),
-                        "INT.PPC",
-                        "INT.PPC.B",
-                        format!("R{r}C{c}"),
-                    );
+                    self.die
+                        .fill_tile((col, row), "INT.PPC", "INT.PPC.B", format!("R{r}C{c}"));
                 } else {
                     let c = self.bramclut[col];
                     self.die.fill_tile(
@@ -1958,12 +1955,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let r = self.rlut[row];
                 if self.grid.columns[col].kind == ColumnKind::Clb {
                     let c = self.clut[col];
-                    self.die.fill_tile(
-                        (col, row),
-                        "INT.PPC",
-                        "INT.PPC.T",
-                        format!("R{r}C{c}"),
-                    );
+                    self.die
+                        .fill_tile((col, row), "INT.PPC", "INT.PPC.T", format!("R{r}C{c}"));
                 } else {
                     let c = self.bramclut[col];
                     self.die.fill_tile(
@@ -1980,7 +1973,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let col_l = bc;
                 let col_r = bc + 9;
                 let row = br + d;
-                let tile_l = self.die[(col_l, row)].nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
+                let tile_l = self.die[(col_l, row)].nodes.first().unwrap().names
+                    [NodeRawTileId::from_idx(0)]
+                .clone();
                 let c = self.bramclut[col_r - 1];
                 let r = self.rlut[row];
                 let tile_r = format!("BMR{r}C{c}");
@@ -2119,12 +2114,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             for row in [row_b, row_t] {
                 let bt = if row == row_b { 'B' } else { 'T' };
                 let name = format!("{bt}IOIBRAMC{c}");
-                self.die.fill_tile(
-                    (col, row),
-                    "INT.GT.CLKPAD",
-                    "INT.GT.CLKPAD",
-                    name.clone(),
-                );
+                self.die
+                    .fill_tile((col, row), "INT.GT.CLKPAD", "INT.GT.CLKPAD", name.clone());
                 self.die[(col, row)].add_xnode(
                     self.db.get_node("INTF.GT.CLKPAD"),
                     &[&name],
@@ -3437,6 +3428,7 @@ impl Grid {
         let rterm_frame = expander.rterm_frame;
         let col_frame = expander.col_frame;
         let bram_frame = expander.bram_frame;
+        let holes = expander.holes;
 
         let die_bs_geom = DieBitstreamGeom {
             frame_len: 32 + self.rows.len() * if self.kind.is_virtex2() { 80 } else { 64 },
@@ -3466,6 +3458,7 @@ impl Grid {
             rterm_frame,
             col_frame,
             bram_frame,
+            holes,
         }
     }
 }

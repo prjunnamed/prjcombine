@@ -142,6 +142,26 @@ pub enum SharedCfgPin {
     Awake,
 }
 
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DcmPairKind {
+    Bot,
+    BotSingle,
+    Top,
+    TopSingle,
+    // S3E
+    Left,
+    Right,
+    // S3A
+    Bram,
+}
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DcmPair {
+    pub kind: DcmPairKind,
+    pub col: ColId,
+    pub row: RowId,
+}
+
 impl Grid {
     pub fn col_left(&self) -> ColId {
         self.columns.first_id().unwrap()
@@ -161,6 +181,77 @@ impl Grid {
 
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows.len() / 2)
+    }
+
+    pub fn get_dcm_pairs(&self) -> Vec<DcmPair> {
+        let mut res = vec![];
+        if let Some(dcms) = self.dcms {
+            if dcms == Dcms::Two {
+                if self.kind == GridKind::Spartan3E {
+                    res.extend([
+                        DcmPair {
+                            kind: DcmPairKind::BotSingle,
+                            col: self.col_clk,
+                            row: self.row_bot() + 1,
+                        },
+                        DcmPair {
+                            kind: DcmPairKind::TopSingle,
+                            col: self.col_clk,
+                            row: self.row_top() - 1,
+                        },
+                    ]);
+                } else {
+                    res.extend([DcmPair {
+                        kind: DcmPairKind::Top,
+                        col: self.col_clk,
+                        row: self.row_top() - 1,
+                    }]);
+                }
+            } else {
+                res.extend([
+                    DcmPair {
+                        kind: DcmPairKind::Bot,
+                        col: self.col_clk,
+                        row: self.row_bot() + 1,
+                    },
+                    DcmPair {
+                        kind: DcmPairKind::Top,
+                        col: self.col_clk,
+                        row: self.row_top() - 1,
+                    },
+                ]);
+            }
+            if dcms == Dcms::Eight {
+                if self.kind == GridKind::Spartan3E {
+                    res.extend([
+                        DcmPair {
+                            kind: DcmPairKind::Left,
+                            col: self.col_left() + 9,
+                            row: self.row_mid(),
+                        },
+                        DcmPair {
+                            kind: DcmPairKind::Right,
+                            col: self.col_right() - 9,
+                            row: self.row_mid(),
+                        },
+                    ]);
+                } else {
+                    res.extend([
+                        DcmPair {
+                            kind: DcmPairKind::Bram,
+                            col: self.col_left() + 3,
+                            row: self.row_mid(),
+                        },
+                        DcmPair {
+                            kind: DcmPairKind::Bram,
+                            col: self.col_right() - 6,
+                            row: self.row_mid(),
+                        },
+                    ]);
+                }
+            }
+        }
+        res
     }
 
     pub fn get_clk_io(&self, edge: Dir, idx: usize) -> Option<IoCoord> {

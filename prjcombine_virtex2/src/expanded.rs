@@ -1,6 +1,6 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
-use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, RowId};
+use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, Rect, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
 
@@ -36,6 +36,7 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub bonded_ios: Vec<IoCoord>,
     pub bs_geom: BitstreamGeom,
+    pub holes: Vec<Rect>,
     pub clkv_frame: usize,
     pub spine_frame: usize,
     pub lterm_frame: usize,
@@ -45,6 +46,14 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl<'a> ExpandedDevice<'a> {
+    pub fn is_in_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
     pub fn get_io_node(&'a self, coord: Coord) -> Option<&'a ExpandedTileNode> {
         self.egrid.find_node(DieId::from_idx(0), coord, |x| {
             self.egrid.db.nodes.key(x.kind).starts_with("IOI")
