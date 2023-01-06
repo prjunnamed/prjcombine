@@ -10,7 +10,9 @@ use prjcombine_virtex_bitstream::{
 use std::collections::BTreeSet;
 
 use crate::expanded::{ExpandedDevice, Gt, Io, IoDiffKind};
-use crate::grid::{ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, TileIobId};
+use crate::grid::{
+    ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, IoCoord, PllKind, TileIobId,
+};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -734,6 +736,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 ColumnIoKind::Outer => "TIOB_SINGLE",
                 ColumnIoKind::Both => "TIOB",
             };
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: self.grid.row_tio_inner(),
+                row_t: self.grid.row_tio_inner() + 2,
+            });
             for (row, io, unused) in [
                 (
                     self.grid.row_tio_outer(),
@@ -794,6 +802,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                 ColumnIoKind::Outer => "BIOB_SINGLE_ALT",
                 ColumnIoKind::Both => "BIOB",
             };
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: self.grid.row_bio_outer(),
+                row_t: self.grid.row_bio_outer() + 2,
+            });
             for (row, io, unused) in [
                 (
                     self.grid.row_bio_outer(),
@@ -989,6 +1003,12 @@ impl<'a, 'b> Expander<'a, 'b> {
         let rx = self.rxlut[col];
 
         let row = self.grid.row_clk();
+        self.site_holes.push(Rect {
+            col_l: col,
+            col_r: col + 1,
+            row_b: row,
+            row_t: row + 1,
+        });
         let y = row.to_idx();
         self.die[(col, row)].add_xnode(
             self.db.get_node("INTF"),
@@ -1301,131 +1321,19 @@ impl<'a, 'b> Expander<'a, 'b> {
         let x = col.to_idx();
         let def_rt = NodeRawTileId::from_idx(0);
 
-        let plls;
-        let dcms;
-        match self.grid.rows.len() {
-            64 | 80 => {
-                plls = vec![
-                    (
-                        self.grid.row_bot() + 24,
-                        "CMT_PLL_BOT",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                    (
-                        self.grid.row_top() - 8,
-                        "CMT_PLL_TOP",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                ];
-                dcms = vec![
-                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
-                    (
-                        self.grid.row_top() - 24,
-                        "CMT_DCM_TOP",
-                        "DCM_BUFPLL_BUF_TOP",
-                    ),
-                ];
-            }
-            128 => {
-                plls = vec![
-                    (
-                        self.grid.row_bot() + 24,
-                        "CMT_PLL1_BOT",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                    (
-                        self.grid.row_bot() + 56,
-                        "CMT_PLL2_BOT",
-                        Some("PLL_BUFPLL_OUT0"),
-                    ),
-                    (
-                        self.grid.row_top() - 40,
-                        "CMT_PLL2_TOP",
-                        Some("PLL_BUFPLL_OUT0"),
-                    ),
-                    (
-                        self.grid.row_top() - 8,
-                        "CMT_PLL_TOP",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                ];
-                dcms = vec![
-                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
-                    (
-                        self.grid.row_bot() + 40,
-                        "CMT_DCM2_BOT",
-                        "DCM_BUFPLL_BUF_BOT_MID",
-                    ),
-                    (
-                        self.grid.row_top() - 56,
-                        "CMT_DCM_TOP",
-                        "DCM_BUFPLL_BUF_TOP",
-                    ),
-                    (
-                        self.grid.row_top() - 24,
-                        "CMT_DCM2_TOP",
-                        "DCM_BUFPLL_BUF_TOP_MID",
-                    ),
-                ];
-            }
-            192 => {
-                plls = vec![
-                    (
-                        self.grid.row_bot() + 24,
-                        "CMT_PLL1_BOT",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                    (self.grid.row_bot() + 56, "CMT_PLL3_BOT", None),
-                    (
-                        self.grid.row_bot() + 88,
-                        "CMT_PLL2_BOT",
-                        Some("PLL_BUFPLL_OUT0"),
-                    ),
-                    (
-                        self.grid.row_top() - 72,
-                        "CMT_PLL2_TOP",
-                        Some("PLL_BUFPLL_OUT0"),
-                    ),
-                    (self.grid.row_top() - 40, "CMT_PLL3_TOP", None),
-                    (
-                        self.grid.row_top() - 8,
-                        "CMT_PLL_TOP",
-                        Some("PLL_BUFPLL_OUT1"),
-                    ),
-                ];
-                dcms = vec![
-                    (self.grid.row_bot() + 8, "CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
-                    (
-                        self.grid.row_bot() + 40,
-                        "CMT_DCM2_BOT",
-                        "DCM_BUFPLL_BUF_BOT_MID",
-                    ),
-                    (
-                        self.grid.row_bot() + 72,
-                        "CMT_DCM2_BOT",
-                        "DCM_BUFPLL_BUF_BOT_MID",
-                    ),
-                    (
-                        self.grid.row_top() - 88,
-                        "CMT_DCM_TOP",
-                        "DCM_BUFPLL_BUF_TOP",
-                    ),
-                    (
-                        self.grid.row_top() - 56,
-                        "CMT_DCM2_TOP",
-                        "DCM_BUFPLL_BUF_TOP_MID",
-                    ),
-                    (
-                        self.grid.row_top() - 24,
-                        "CMT_DCM2_TOP",
-                        "DCM_BUFPLL_BUF_TOP_MID",
-                    ),
-                ];
-            }
-            _ => unreachable!(),
-        }
-
-        for (dy, (br, tk, bk)) in dcms.into_iter().enumerate() {
+        for (dy, (br, kind)) in self.grid.get_dcms().into_iter().enumerate() {
+            let (tk, bk) = match kind {
+                DcmKind::Bot => ("CMT_DCM_BOT", "DCM_BUFPLL_BUF_BOT"),
+                DcmKind::BotMid => ("CMT_DCM2_BOT", "DCM_BUFPLL_BUF_BOT_MID"),
+                DcmKind::Top => ("CMT_DCM_TOP", "DCM_BUFPLL_BUF_TOP"),
+                DcmKind::TopMid => ("CMT_DCM2_TOP", "DCM_BUFPLL_BUF_TOP_MID"),
+            };
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: br - 1,
+                row_t: br + 1,
+            });
             for row in [br - 1, br] {
                 let y = row.to_idx();
                 let tile = &mut self.die[(col, row)];
@@ -1457,7 +1365,28 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
 
-        for (py, (br, tk, out)) in plls.into_iter().enumerate() {
+        for (py, (br, kind)) in self.grid.get_plls().into_iter().enumerate() {
+            let (tk, out) = match kind {
+                PllKind::BotOut0 => ("CMT_PLL2_BOT", Some("PLL_BUFPLL_OUT0")),
+                PllKind::BotOut1 => (
+                    if self.grid.rows.len() < 128 {
+                        "CMT_PLL_BOT"
+                    } else {
+                        "CMT_PLL1_BOT"
+                    },
+                    Some("PLL_BUFPLL_OUT1"),
+                ),
+                PllKind::BotNoOut => ("CMT_PLL3_BOT", None),
+                PllKind::TopOut0 => ("CMT_PLL2_TOP", Some("PLL_BUFPLL_OUT0")),
+                PllKind::TopOut1 => ("CMT_PLL_TOP", Some("PLL_BUFPLL_OUT1")),
+                PllKind::TopNoOut => ("CMT_PLL3_TOP", None),
+            };
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: br - 1,
+                row_t: br + 1,
+            });
             let row = br - 1;
             let y = row.to_idx();
             let tile = &mut self.die[(col, row)];
@@ -1959,24 +1888,6 @@ impl<'a, 'b> Expander<'a, 'b> {
             for row in self.die.rows() {
                 if self.is_site_hole(col, row) {
                     continue;
-                }
-                if (row == self.grid.row_bio_outer() || row == self.grid.row_bio_inner())
-                    && cd.bio != ColumnIoKind::None
-                {
-                    continue;
-                }
-                if (row == self.grid.row_tio_outer() || row == self.grid.row_tio_inner())
-                    && cd.tio != ColumnIoKind::None
-                {
-                    continue;
-                }
-                if cd.kind == ColumnKind::CleClk {
-                    if row == self.grid.row_clk() {
-                        continue;
-                    }
-                    if matches!(row.to_idx() % 16, 7 | 8) && row != self.grid.row_clk() - 1 {
-                        continue;
-                    }
                 }
                 let sy = row.to_idx() - sy_base;
                 let kind = if cd.kind == ColumnKind::CleXM {
@@ -2505,11 +2416,13 @@ impl Grid {
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![expander.die.die],
         };
+        let site_holes = expander.site_holes;
 
         ExpandedDevice {
             grid: self,
             disabled,
             egrid,
+            site_holes,
             bs_geom,
             io,
             gt,

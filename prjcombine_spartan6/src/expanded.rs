@@ -1,4 +1,4 @@
-use prjcombine_int::grid::ExpandedGrid;
+use prjcombine_int::grid::{ColId, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::BitstreamGeom;
 use std::collections::BTreeSet;
 
@@ -8,6 +8,7 @@ pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub disabled: BTreeSet<DisabledPart>,
     pub egrid: ExpandedGrid<'a>,
+    pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
     pub io: Vec<Io>,
     pub gt: Vec<Gt>,
@@ -31,4 +32,15 @@ pub struct Gt {
 pub enum IoDiffKind {
     P(IoCoord),
     N(IoCoord),
+}
+
+impl ExpandedDevice<'_> {
+    pub fn in_site_hole(&self, col: ColId, row: RowId) -> bool {
+        for hole in &self.site_holes {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
+    }
 }
