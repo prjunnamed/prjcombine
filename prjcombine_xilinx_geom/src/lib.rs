@@ -245,10 +245,7 @@ impl GeomDb {
                     _ => unreachable!(),
                 };
                 ExpandedDevice::Versal(prjcombine_versal::expand::expand_grid(
-                    &grids,
-                    &disabled,
-                    naming,
-                    intdb,
+                    &grids, &disabled, naming, intdb,
                 ))
             }
         }

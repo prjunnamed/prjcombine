@@ -173,4 +173,26 @@ impl Grid {
         assert!(self.has_ps);
         ColId::from_idx(18)
     }
+
+    pub fn rows(&self) -> EntityIds<RowId> {
+        EntityIds::new(self.regs * self.rows_per_reg())
+    }
+
+    pub fn get_cmt_rows(&self) -> Vec<RowId> {
+        assert_eq!(self.kind, GridKind::Virtex5);
+        let mut res = vec![];
+        if self.reg_cfg.to_idx() > 2 {
+            res.push(self.row_reg_bot(self.reg_cfg - 3));
+            res.push(self.row_reg_hclk(self.reg_cfg - 3));
+        }
+        res.push(self.row_reg_bot(self.reg_cfg - 2));
+        if self.regs - self.reg_cfg.to_idx() > 1 {
+            res.push(self.row_reg_hclk(self.reg_cfg + 1));
+        }
+        if self.regs - self.reg_cfg.to_idx() > 2 {
+            res.push(self.row_reg_bot(self.reg_cfg + 2));
+            res.push(self.row_reg_hclk(self.reg_cfg + 2));
+        }
+        res
+    }
 }

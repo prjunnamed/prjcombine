@@ -1412,7 +1412,10 @@ pub fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         let node = die[(
             edev.grids.first().unwrap().columns.last_id().unwrap(),
             RowId::from_idx(0),
-        )].nodes.first().unwrap();
+        )]
+            .nodes
+            .first()
+            .unwrap();
         let crd = vrf
             .xlat_tile(&node.names[NodeRawTileId::from_idx(0)])
             .unwrap();

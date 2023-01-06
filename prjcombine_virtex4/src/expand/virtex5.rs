@@ -491,6 +491,129 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
     }
 
+    fn fill_cfg(&mut self) {
+        let col = self.col_cfg;
+        let row = self.grid.row_reg_hclk(self.grid.reg_cfg - 1);
+        self.site_holes.push(Rect {
+            col_l: col,
+            col_r: col + 1,
+            row_b: row,
+            row_t: row + 20,
+        });
+        let ipx = usize::from(self.col_lgt.is_some());
+        let ipy = if !self.grid.cols_gt.is_empty() {
+            self.grid.reg_cfg.to_idx() * 6
+        } else {
+            0
+        };
+        let sysmon = SysMon {
+            die: self.die.die,
+            col,
+            row,
+            bank: 0,
+            pad_vp: format!("IPAD_X{ipx}Y{ipy}"),
+            pad_vn: format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1),
+            vaux: [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19]
+                .into_iter()
+                .map(|dy| {
+                    Some((
+                        IoCoord {
+                            die: self.die.die,
+                            col: self.col_lio.unwrap(),
+                            row: row + dy,
+                            iob: TileIobId::from_idx(0),
+                        },
+                        IoCoord {
+                            die: self.die.die,
+                            col: self.col_lio.unwrap(),
+                            row: row + dy,
+                            iob: TileIobId::from_idx(1),
+                        },
+                    ))
+                })
+                .collect(),
+        };
+        let rx = self.rxlut[col] + 3;
+        let ry = self.grid.reg_cfg.to_idx() * 22;
+        let name = format!("CFG_CENTER_X{rx}Y{ry}");
+        let name_bufg = format!("CLK_BUFGMUX_X{rx}Y{ry}");
+        let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
+        let node = self.die[(col, row)].add_xnode(
+            self.db.get_node("CFG"),
+            &[&name, &name_bufg],
+            self.db.get_node_naming("CFG"),
+            &crds,
+        );
+        for i in 0..32 {
+            node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
+        }
+        for i in 0..4 {
+            node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
+        }
+        for i in 0..2 {
+            node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
+        }
+        node.add_bel(38, "PMV".to_string());
+        node.add_bel(39, "STARTUP".to_string());
+        node.add_bel(40, "JTAGPPC".to_string());
+        node.add_bel(41, "FRAME_ECC".to_string());
+        node.add_bel(42, "DCIRESET".to_string());
+        node.add_bel(43, "CAPTURE".to_string());
+        node.add_bel(44, "USR_ACCESS_SITE".to_string());
+        node.add_bel(45, "KEY_CLEAR".to_string());
+        node.add_bel(46, "EFUSE_USR".to_string());
+        node.add_bel(47, "SYSMON_X0Y0".to_string());
+        node.add_bel(48, sysmon.pad_vp.clone());
+        node.add_bel(49, sysmon.pad_vn.clone());
+        self.sysmon.push(sysmon);
+    }
+
+    fn fill_cmt(&mut self) {
+        let mgt = if self.col_lgt.is_some() { "_MGT" } else { "" };
+        let col = self.col_cfg;
+        let x = col.to_idx();
+        for (cmty, row) in self.grid.get_cmt_rows().into_iter().enumerate() {
+            let y = row.to_idx();
+            self.site_holes.push(Rect {
+                col_l: col,
+                col_r: col + 1,
+                row_b: row,
+                row_t: row + 10,
+            });
+            let naming = if row.to_idx() % 20 == 0 {
+                "CMT_BOT"
+            } else {
+                "CMT_TOP"
+            };
+            let name = format!("CMT_X{x}Y{y}");
+            let crds: [_; 10] = core::array::from_fn(|i| (col, row + i));
+            let node = self.die[(col, row)].add_xnode(
+                self.db.get_node("CMT"),
+                &[&name],
+                self.db.get_node_naming(naming),
+                &crds,
+            );
+            node.add_bel(0, format!("DCM_ADV_X0Y{y}", y = cmty * 2));
+            node.add_bel(1, format!("DCM_ADV_X0Y{y}", y = cmty * 2 + 1));
+            node.add_bel(2, format!("PLL_ADV_X0Y{cmty}"));
+
+            let rx = self.rxlut[col] + 4;
+            let ry = y / 10 * 11 + 1;
+            let naming = if row < self.grid.row_bufg() {
+                "CLK_CMT_BOT"
+            } else {
+                "CLK_CMT_TOP"
+            };
+            let name = format!("{naming}{mgt}_X{rx}Y{ry}");
+            self.die[(col, row)].add_xnode(
+                self.db.get_node("CLK_CMT"),
+                &[&name],
+                self.db.get_node_naming(naming),
+                &[],
+            );
+        }
+    }
+
     fn fill_io(&mut self) {
         let row_ioi_cmt = if self.grid.reg_cfg.to_idx() == 1 {
             RowId::from_idx(0)
@@ -519,118 +642,10 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             let mgt = if self.col_lgt.is_some() { "_MGT" } else { "" };
             let x = col.to_idx();
-            let mut cmty = 0;
             for row in self.die.rows() {
                 let y = row.to_idx();
                 let is_cfg = col == self.col_cfg;
-                if is_cfg && row >= self.grid.row_bufg() - 10 && row < self.grid.row_bufg() + 10 {
-                    if row.to_idx() % 20 == 10 {
-                        let ipx = usize::from(self.col_lgt.is_some());
-                        let ipy = if !self.grid.cols_gt.is_empty() {
-                            self.grid.reg_cfg.to_idx() * 6
-                        } else {
-                            0
-                        };
-                        let sysmon = SysMon {
-                            die: self.die.die,
-                            col,
-                            row,
-                            bank: 0,
-                            pad_vp: format!("IPAD_X{ipx}Y{ipy}"),
-                            pad_vn: format!("IPAD_X{ipx}Y{ipy}", ipy = ipy + 1),
-                            vaux: [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19]
-                                .into_iter()
-                                .map(|dy| {
-                                    Some((
-                                        IoCoord {
-                                            die: self.die.die,
-                                            col: self.col_lio.unwrap(),
-                                            row: row + dy,
-                                            iob: TileIobId::from_idx(0),
-                                        },
-                                        IoCoord {
-                                            die: self.die.die,
-                                            col: self.col_lio.unwrap(),
-                                            row: row + dy,
-                                            iob: TileIobId::from_idx(1),
-                                        },
-                                    ))
-                                })
-                                .collect(),
-                        };
-                        let rx = self.rxlut[col] + 3;
-                        let ry = self.grid.reg_cfg.to_idx() * 22;
-                        let name = format!("CFG_CENTER_X{rx}Y{ry}");
-                        let name_bufg = format!("CLK_BUFGMUX_X{rx}Y{ry}");
-                        let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
-                        let node = self.die[(col, row)].add_xnode(
-                            self.db.get_node("CFG"),
-                            &[&name, &name_bufg],
-                            self.db.get_node_naming("CFG"),
-                            &crds,
-                        );
-                        for i in 0..32 {
-                            node.add_bel(i, format!("BUFGCTRL_X0Y{i}"));
-                        }
-                        for i in 0..4 {
-                            node.add_bel(32 + i, format!("BSCAN_X0Y{i}"));
-                        }
-                        for i in 0..2 {
-                            node.add_bel(36 + i, format!("ICAP_X0Y{i}"));
-                        }
-                        node.add_bel(38, "PMV".to_string());
-                        node.add_bel(39, "STARTUP".to_string());
-                        node.add_bel(40, "JTAGPPC".to_string());
-                        node.add_bel(41, "FRAME_ECC".to_string());
-                        node.add_bel(42, "DCIRESET".to_string());
-                        node.add_bel(43, "CAPTURE".to_string());
-                        node.add_bel(44, "USR_ACCESS_SITE".to_string());
-                        node.add_bel(45, "KEY_CLEAR".to_string());
-                        node.add_bel(46, "EFUSE_USR".to_string());
-                        node.add_bel(47, "SYSMON_X0Y0".to_string());
-                        node.add_bel(48, sysmon.pad_vp.clone());
-                        node.add_bel(49, sysmon.pad_vn.clone());
-                        self.sysmon.push(sysmon);
-                    }
-                } else if is_cfg
-                    && ((row >= row_bot_cmt && row < row_ioi_cmt)
-                        || (row >= row_cmt_ioi && row < row_top_cmt))
-                {
-                    if row.to_idx() % 10 == 0 {
-                        let naming = if row.to_idx() % 20 == 0 {
-                            "CMT_BOT"
-                        } else {
-                            "CMT_TOP"
-                        };
-                        let name = format!("CMT_X{x}Y{y}");
-                        let crds: [_; 10] = core::array::from_fn(|i| (col, row + i));
-                        let node = self.die[(col, row)].add_xnode(
-                            self.db.get_node("CMT"),
-                            &[&name],
-                            self.db.get_node_naming(naming),
-                            &crds,
-                        );
-                        node.add_bel(0, format!("DCM_ADV_X0Y{y}", y = cmty * 2));
-                        node.add_bel(1, format!("DCM_ADV_X0Y{y}", y = cmty * 2 + 1));
-                        node.add_bel(2, format!("PLL_ADV_X0Y{cmty}"));
-                        cmty += 1;
-
-                        let rx = self.rxlut[col] + 4;
-                        let ry = y / 10 * 11 + 1;
-                        let naming = if row < self.grid.row_bufg() {
-                            "CLK_CMT_BOT"
-                        } else {
-                            "CLK_CMT_TOP"
-                        };
-                        let name = format!("{naming}{mgt}_X{rx}Y{ry}");
-                        self.die[(col, row)].add_xnode(
-                            self.db.get_node("CLK_CMT"),
-                            &[&name],
-                            self.db.get_node_naming(naming),
-                            &[],
-                        );
-                    }
-                } else {
+                if !self.is_site_hole(col, row) {
                     let node = self.die[(col, row)].add_xnode(
                         self.db.get_node("IOI"),
                         &[&format!("IOI_X{x}Y{y}")],
@@ -1228,11 +1243,14 @@ pub fn expand_grid<'a>(
     expander.fill_clb();
     expander.fill_hard();
     expander.fill_bram_dsp();
+    expander.fill_cfg();
+    expander.fill_cmt();
     expander.fill_io();
     expander.fill_gt();
     expander.fill_hclk();
     expander.fill_frame_info();
 
+    let site_holes = expander.site_holes;
     let frames = expander.frames;
     let io = expander.io;
     let gt = expander.gt;
@@ -1321,6 +1339,7 @@ pub fn expand_grid<'a>(
         extras: extras.to_vec(),
         disabled: disabled.clone(),
         egrid,
+        site_holes: [site_holes].into_iter().collect(),
         bs_geom,
         frames: [frames].into_iter().collect(),
         col_cfg,

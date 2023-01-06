@@ -2,7 +2,7 @@ use crate::bond::{PsPin, SharedCfgPin};
 use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind, GtKind, GtzLoc, IoKind, RegId};
 use bimap::BiHashMap;
 use prjcombine_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::BitstreamGeom;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -24,6 +24,7 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub disabled: BTreeSet<DisabledPart>,
     pub extras: Vec<ExtraDie>,
+    pub site_holes: EntityVec<DieId, Vec<Rect>>,
     pub bs_geom: BitstreamGeom,
     pub frames: EntityVec<DieId, DieFrameGeom>,
     pub col_cfg: ColId,
@@ -147,5 +148,14 @@ impl<'a> ExpandedDevice<'a> {
             }
             self.egrid.blackhole_wires.extend(cursed_wires);
         }
+    }
+
+    pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId) -> bool {
+        for hole in &self.site_holes[die] {
+            if hole.contains(col, row) {
+                return true;
+            }
+        }
+        false
     }
 }

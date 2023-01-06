@@ -171,12 +171,7 @@ impl ExpandedDieRefMut<'_, '_> {
         assert!(self[xy].nodes.is_empty());
         let kind = self.grid.db.get_node(kind);
         let naming = self.grid.db.get_node_naming(naming);
-        self[xy].add_xnode(
-            kind,
-            &[&name],
-            naming,
-            &[xy],
-        )
+        self[xy].add_xnode(kind, &[&name], naming, &[xy])
     }
 
     pub fn rows(&self) -> EntityIds<RowId> {

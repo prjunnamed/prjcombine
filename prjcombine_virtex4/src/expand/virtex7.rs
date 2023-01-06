@@ -1207,6 +1207,23 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_bram_dsp(&mut self) {
+        let col = self.grid.columns.first_id().unwrap();
+        if self.grid.columns[col] == ColumnKind::Bram {
+            self.site_holes.extend([
+                Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: RowId::from_idx(0),
+                    row_t: RowId::from_idx(5),
+                },
+                Rect {
+                    col_l: col,
+                    col_r: col + 1,
+                    row_b: RowId::from_idx(self.die.rows().len() - 5),
+                    row_t: RowId::from_idx(self.die.rows().len()),
+                },
+            ]);
+        }
         let mut bx = 0;
         let mut dx = 0;
         for (col, &cd) in &self.grid.columns {
@@ -1224,11 +1241,6 @@ impl DieExpander<'_, '_, '_> {
                     if hole.contains(col, row) {
                         continue 'a;
                     }
-                }
-                if col.to_idx() == 0
-                    && (row.to_idx() < 5 || row.to_idx() >= self.die.rows().len() - 5)
-                {
-                    continue;
                 }
                 found = true;
                 let x = self.xlut[col];
@@ -2223,6 +2235,7 @@ pub fn expand_grid<'a>(
     }
     let has_gtz_bot = extras.contains(&ExtraDie::Gtz(GtzLoc::Bottom));
     let has_gtz_top = extras.contains(&ExtraDie::Gtz(GtzLoc::Top));
+    let mut site_holes = EntityVec::new();
     for &grid in grids.values() {
         let (did, die) = egrid.add_die(grid.columns.len(), grid.regs * 50);
 
@@ -2302,6 +2315,7 @@ pub fn expand_grid<'a>(
             bram_frame_info: vec![],
             iob_frame_len: 0,
         });
+        site_holes.push(de.site_holes);
     }
 
     let lvb6 = db.wires.get("LVB.6").unwrap().0;
@@ -2564,6 +2578,7 @@ pub fn expand_grid<'a>(
         egrid,
         extras: extras.to_vec(),
         disabled: disabled.clone(),
+        site_holes,
         bs_geom,
         frames,
         col_cfg,

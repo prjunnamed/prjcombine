@@ -1302,6 +1302,7 @@ pub fn expand_grid<'a>(
     expander.fill_hclk();
     expander.fill_frame_info();
 
+    let site_holes = expander.site_holes;
     let frames = expander.frames;
     let io = expander.io;
     let gt = expander.gt;
@@ -1351,6 +1352,7 @@ pub fn expand_grid<'a>(
         grid_master,
         extras: extras.to_vec(),
         disabled: disabled.clone(),
+        site_holes: [site_holes].into_iter().collect(),
         egrid,
         bs_geom,
         frames: [frames].into_iter().collect(),
