@@ -4,7 +4,7 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
-    Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, Row,
+    Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, RegId, Row,
     SharedCfgPin, TileIobId,
 };
 
@@ -557,12 +557,12 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
     }
     for (c, r) in find_tiles(rd, &["BRAMSITE2_DUMMY"]) {
         let c = int.lookup_column(c - 2);
-        let r = int.lookup_row(r).to_idx() as u32 / 16;
+        let r = RegId::from_idx(int.lookup_row(r).to_idx() / 16);
         disabled.insert(DisabledPart::BramRegion(c, r));
     }
     for (c, r) in find_tiles(rd, &["MACCSITE2_DUMMY"]) {
         let c = int.lookup_column(c - 2);
-        let r = int.lookup_row(r).to_idx() as u32 / 16;
+        let r = RegId::from_idx(int.lookup_row(r).to_idx() / 16);
         disabled.insert(DisabledPart::DspRegion(c, r));
     }
     let columns = make_columns(rd, &int);

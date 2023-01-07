@@ -1,10 +1,11 @@
-use prjcombine_entity::{entity_id, EntityId, EntityVec};
+use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 entity_id! {
     pub id TileIobId u8;
+    pub id RegId u32, delta;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -124,8 +125,8 @@ pub enum DisabledPart {
     Gtp,
     Mcb,
     ClbColumn(ColId),
-    BramRegion(ColId, u32),
-    DspRegion(ColId, u32),
+    BramRegion(ColId, RegId),
+    DspRegion(ColId, RegId),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
@@ -199,8 +200,28 @@ impl Grid {
         RowId::from_idx(self.rows.len() / 2)
     }
 
+    #[inline]
+    pub fn row_to_reg(&self, row: RowId) -> RegId {
+        RegId::from_idx(row.to_idx() / 16)
+    }
+
+    #[inline]
+    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+        RowId::from_idx(reg.to_idx() * 16)
+    }
+
+    #[inline]
+    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
+        self.row_reg_bot(reg) + 8
+    }
+
+    pub fn regs(&self) -> EntityIds<RegId> {
+        EntityIds::new(self.rows.len() / 16)
+    }
+
+    #[inline]
     pub fn row_hclk(&self, row: RowId) -> RowId {
-        RowId::from_idx(row.to_idx() / 16 * 16 + 8)
+        self.row_reg_hclk(self.row_to_reg(row))
     }
 
     pub fn is_25(&self) -> bool {

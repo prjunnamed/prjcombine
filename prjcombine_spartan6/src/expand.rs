@@ -1914,7 +1914,7 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_bram(&mut self) {
         let mut bx = 0;
         let mut bby = 0;
-        'a: for reg in 0..(self.grid.rows.len() as u32 / 16) {
+        'a: for reg in self.grid.regs() {
             for (col, &cd) in &self.grid.columns {
                 if cd.kind == ColumnKind::Bram
                     && !self.disabled.contains(&DisabledPart::BramRegion(col, reg))
@@ -1932,7 +1932,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
-                let reg = row.to_idx() as u32 / 16;
+                let reg = self.grid.row_to_reg(row);
                 if self.disabled.contains(&DisabledPart::BramRegion(col, reg)) {
                     continue;
                 }
@@ -1983,7 +1983,7 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_dsp(&mut self) {
         let mut dx = 0;
         let mut bdy = 0;
-        'a: for reg in 0..(self.grid.rows.len() as u32 / 16) {
+        'a: for reg in self.grid.regs() {
             for (col, &cd) in &self.grid.columns {
                 if matches!(cd.kind, ColumnKind::Dsp | ColumnKind::DspPlus)
                     && !self.disabled.contains(&DisabledPart::DspRegion(col, reg))
@@ -2001,7 +2001,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if row.to_idx() % 4 != 0 {
                     continue;
                 }
-                let reg = row.to_idx() as u32 / 16;
+                let reg = self.grid.row_to_reg(row);
                 if self.disabled.contains(&DisabledPart::DspRegion(col, reg)) {
                     continue;
                 }
