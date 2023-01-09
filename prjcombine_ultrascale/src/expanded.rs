@@ -1,12 +1,13 @@
 use bimap::BiHashMap;
 use enum_map::EnumMap;
-use prjcombine_entity::EntityVec;
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid};
+use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
 use crate::grid::{
-    ColSide, DeviceNaming, DisabledPart, Grid, GridKind, HdioIobId, HpioIobId, IoRowKind, RegId,
+    ColSide, ColumnKindRight, DeviceNaming, DisabledPart, Grid, GridKind, HdioIobId, HpioIobId,
+    IoRowKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;
@@ -97,4 +98,27 @@ pub struct ExpandedDevice<'a> {
     pub io: Vec<Io>,
     pub cfg_io: EntityVec<DieId, BiHashMap<SharedCfgPin, IoCoord>>,
     pub gt: Vec<Gt>,
+}
+
+impl ExpandedDevice<'_> {
+    pub fn in_site_hole(&self, die: DieId, col: ColId, row: RowId, side: ColSide) -> bool {
+        if let Some(ps) = self.grids[die].ps {
+            if row.to_idx() < ps.height() {
+                if col < ps.col {
+                    return true;
+                }
+                if col == ps.col && side == ColSide::Left {
+                    return true;
+                }
+            }
+        }
+        if self.grids[die].has_hbm
+            && side == ColSide::Right
+            && matches!(self.grids[die].columns[col].r, ColumnKindRight::Dsp(_))
+            && row.to_idx() < 15
+        {
+            return true;
+        }
+        false
+    }
 }

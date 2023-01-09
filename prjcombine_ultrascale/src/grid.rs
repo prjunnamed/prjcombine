@@ -218,6 +218,10 @@ impl Grid {
         EntityIds::new(self.regs)
     }
 
+    pub fn rows(&self) -> EntityIds<RowId> {
+        EntityIds::new(self.regs * 60)
+    }
+
     pub fn is_laguna_row(&self, row: RowId) -> bool {
         let reg = self.row_to_reg(row);
         (reg.to_idx() == 0 && !self.has_hbm) || reg.to_idx() == self.regs - 1
