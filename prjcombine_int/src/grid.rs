@@ -2,11 +2,15 @@
 #![allow(clippy::collapsible_else_if)]
 
 use crate::db::*;
+use bimap::BiHashMap;
 use enum_map::EnumMap;
 use ndarray::Array2;
 use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::{Deref, DerefMut},
+};
 
 entity_id! {
     pub id DieId u8, reserve 1, delta;
@@ -35,13 +39,20 @@ impl Rect {
 #[derive(Clone, Debug)]
 pub struct ExpandedGrid<'a> {
     pub db: &'a IntDb,
+    pub db_index: IntDbIndex,
     pub tie_kind: Option<String>,
     pub tie_pin_gnd: Option<String>,
     pub tie_pin_vcc: Option<String>,
     pub tie_pin_pullup: Option<String>,
-    pub tiles: EntityVec<DieId, Array2<ExpandedTile>>,
-    pub xdie_wires: HashMap<IntWire, IntWire>,
+    pub die: EntityVec<DieId, ExpandedDie>,
+    pub xdie_wires: BiHashMap<IntWire, IntWire>,
     pub blackhole_wires: HashSet<IntWire>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ExpandedDie {
+    tiles: Array2<ExpandedTile>,
+    pub clk_root_tiles: HashMap<Coord, HashSet<Coord>>,
 }
 
 pub struct ExpandedDieRef<'a, 'b> {
@@ -58,12 +69,13 @@ impl<'a> ExpandedGrid<'a> {
     pub fn new(db: &'a IntDb) -> Self {
         ExpandedGrid {
             db,
+            db_index: IntDbIndex::new(db),
             tie_kind: None,
             tie_pin_gnd: None,
             tie_pin_vcc: None,
             tie_pin_pullup: None,
-            tiles: EntityVec::new(),
-            xdie_wires: HashMap::new(),
+            die: EntityVec::new(),
+            xdie_wires: BiHashMap::new(),
             blackhole_wires: HashSet::new(),
         }
     }
@@ -73,20 +85,20 @@ impl<'a> ExpandedGrid<'a> {
         width: usize,
         height: usize,
     ) -> (DieId, ExpandedDieRefMut<'a, 'b>) {
-        let dieid = self
-            .tiles
-            .push(Array2::from_shape_fn([height, width], |(r, c)| {
-                ExpandedTile {
-                    nodes: Default::default(),
-                    terms: Default::default(),
-                    clkroot: (ColId::from_idx(c), RowId::from_idx(r)),
-                }
-            }));
+        let dieid = self.die.push(ExpandedDie {
+            tiles: Array2::from_shape_fn([height, width], |(r, c)| ExpandedTile {
+                nodes: Default::default(),
+                terms: Default::default(),
+                node_index: vec![],
+                clkroot: (ColId::from_idx(c), RowId::from_idx(r)),
+            }),
+            clk_root_tiles: HashMap::new(),
+        });
         (dieid, self.die_mut(dieid))
     }
 
     pub fn dies<'b>(&'b self) -> impl Iterator<Item = ExpandedDieRef<'a, 'b>> {
-        self.tiles.ids().map(|die| self.die(die))
+        self.die.ids().map(|die| self.die(die))
     }
 
     pub fn die<'b>(&'b self, die: DieId) -> ExpandedDieRef<'a, 'b> {
@@ -124,43 +136,131 @@ impl<'a> ExpandedGrid<'a> {
         }
         None
     }
-}
 
-impl core::ops::Index<Coord> for ExpandedDieRef<'_, '_> {
-    type Output = ExpandedTile;
-    fn index(&self, xy: Coord) -> &ExpandedTile {
-        &self.grid.tiles[self.die][[xy.1.to_idx(), xy.0.to_idx()]]
+    pub fn finish(&mut self) {
+        for die in self.die.values_mut() {
+            let mut clk_root_tiles: HashMap<_, HashSet<_>> = HashMap::new();
+            for col in die.cols() {
+                for row in die.rows() {
+                    clk_root_tiles
+                        .entry(die[(col, row)].clkroot)
+                        .or_default()
+                        .insert((col, row));
+                }
+            }
+            die.clk_root_tiles = clk_root_tiles;
+        }
+        if cfg!(self_check_egrid) {
+            println!("CHECK");
+            for die in self.dies() {
+                for col in die.cols() {
+                    for row in die.rows() {
+                        for w in self.db.wires.ids() {
+                            let wire = (die.die, (col, row), w);
+                            let Some(rw) = self.resolve_wire(wire) else { continue; };
+                            let tree = self.wire_tree(rw);
+                            if rw == wire {
+                                for &ow in &tree {
+                                    assert_eq!(Some(wire), self.resolve_wire(ow));
+                                }
+                            }
+                            if !tree.contains(&wire) {
+                                panic!(
+                                    "tree {rd}.{rc}.{rr}.{rw} does not contain {od}.{oc}.{or}.{ow}",
+                                    rd = rw.0.to_idx(),
+                                    rc = rw.1 .0.to_idx(),
+                                    rr = rw.1 .1.to_idx(),
+                                    rw = self.db.wires.key(rw.2),
+                                    od = wire.0.to_idx(),
+                                    oc = wire.1 .0.to_idx(),
+                                    or = wire.1 .1.to_idx(),
+                                    ow = self.db.wires.key(wire.2),
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-impl core::ops::Index<Coord> for ExpandedDieRefMut<'_, '_> {
+impl core::ops::Index<Coord> for ExpandedDie {
     type Output = ExpandedTile;
     fn index(&self, xy: Coord) -> &ExpandedTile {
-        &self.grid.tiles[self.die][[xy.1.to_idx(), xy.0.to_idx()]]
+        &self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
-impl core::ops::IndexMut<Coord> for ExpandedDieRefMut<'_, '_> {
+impl core::ops::IndexMut<Coord> for ExpandedDie {
     fn index_mut(&mut self, xy: Coord) -> &mut ExpandedTile {
-        &mut self.grid.tiles[self.die][[xy.1.to_idx(), xy.0.to_idx()]]
+        &mut self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
+    }
+}
+
+impl Deref for ExpandedDieRef<'_, '_> {
+    type Target = ExpandedDie;
+    fn deref(&self) -> &Self::Target {
+        &self.grid.die[self.die]
+    }
+}
+
+impl Deref for ExpandedDieRefMut<'_, '_> {
+    type Target = ExpandedDie;
+    fn deref(&self) -> &Self::Target {
+        &self.grid.die[self.die]
+    }
+}
+
+impl DerefMut for ExpandedDieRefMut<'_, '_> {
+    fn deref_mut(&mut self) -> &mut ExpandedDie {
+        &mut self.grid.die[self.die]
+    }
+}
+
+impl ExpandedDie {
+    pub fn rows(&self) -> EntityIds<RowId> {
+        EntityIds::new(self.tiles.shape()[0])
+    }
+
+    pub fn cols(&self) -> EntityIds<ColId> {
+        EntityIds::new(self.tiles.shape()[1])
     }
 }
 
 impl<'a> ExpandedDieRef<'_, 'a> {
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.grid.tiles[self.die].shape()[0])
-    }
-
-    pub fn cols(&self) -> EntityIds<ColId> {
-        EntityIds::new(self.grid.tiles[self.die].shape()[1])
-    }
-
     pub fn tile(&self, xy: Coord) -> &'a ExpandedTile {
-        &self.grid.tiles[self.die][[xy.1.to_idx(), xy.0.to_idx()]]
+        &self.grid.die[self.die].tiles[[xy.1.to_idx(), xy.0.to_idx()]]
     }
 }
 
 impl ExpandedDieRefMut<'_, '_> {
+    pub fn add_xnode(
+        &mut self,
+        crd: Coord,
+        kind: NodeKindId,
+        names: &[&str],
+        naming: NodeNamingId,
+        coords: &[Coord],
+    ) -> &mut ExpandedTileNode {
+        let names: EntityVec<_, _> = names.iter().map(|x| x.to_string()).collect();
+        let names = names.into_iter().collect();
+        let tiles: EntityVec<_, _> = coords.iter().copied().collect();
+        let layer = self[crd].nodes.push(ExpandedTileNode {
+            kind,
+            tiles: tiles.clone(),
+            names,
+            tie_name: None,
+            iri_names: Default::default(),
+            naming,
+            bels: Default::default(),
+        });
+        for (tid, tcrd) in tiles {
+            self[tcrd].node_index.push((crd, layer, tid))
+        }
+        &mut self[crd].nodes[layer]
+    }
+
     pub fn fill_tile(
         &mut self,
         xy: Coord,
@@ -171,15 +271,7 @@ impl ExpandedDieRefMut<'_, '_> {
         assert!(self[xy].nodes.is_empty());
         let kind = self.grid.db.get_node(kind);
         let naming = self.grid.db.get_node_naming(naming);
-        self[xy].add_xnode(kind, &[&name], naming, &[xy])
-    }
-
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.grid.tiles[self.die].shape()[0])
-    }
-
-    pub fn cols(&self) -> EntityIds<ColId> {
-        EntityIds::new(self.grid.tiles[self.die].shape()[1])
+        self.add_xnode(xy, kind, &[&name], naming, &[xy])
     }
 
     pub fn fill_term_pair(&mut self, fwd: ExpandedTileTerm, bwd: ExpandedTileTerm) {
@@ -385,7 +477,28 @@ impl ExpandedDieRefMut<'_, '_> {
     }
 }
 
-impl ExpandedGrid<'_> {
+#[derive(Copy, Clone, Debug)]
+pub struct TracePip<'a> {
+    pub tile: &'a str,
+    pub wire_to: &'a str,
+    pub wire_from: &'a str,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct NodePip {
+    pub wire_out: IntWire,
+    pub wire_in: IntWire,
+    pub wire_out_raw: IntWire,
+    pub wire_in_raw: IntWire,
+
+    pub node_die: DieId,
+    pub node_crd: Coord,
+    pub node_layer: LayerId,
+    pub node_wire_out: NodeWireId,
+    pub node_wire_in: NodeWireId,
+}
+
+impl<'a> ExpandedGrid<'a> {
     pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
         let die = self.die(wire.0);
         loop {
@@ -435,7 +548,7 @@ impl ExpandedGrid<'_> {
                 _ => break,
             }
         }
-        if let Some(&twire) = self.xdie_wires.get(&wire) {
+        if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
             wire = twire;
         }
         if self.blackhole_wires.contains(&wire) {
@@ -444,36 +557,338 @@ impl ExpandedGrid<'_> {
             Some(wire)
         }
     }
+
+    pub fn resolve_wire_trace<'b>(
+        &'b self,
+        mut wire: IntWire,
+    ) -> Option<(IntWire, Vec<TracePip<'b>>)> {
+        let die = self.die(wire.0);
+        let mut trace = vec![];
+        loop {
+            let tile = die.tile(wire.1);
+            let wi = self.db.wires[wire.2];
+            match wi {
+                WireKind::ClkOut(_) => {
+                    wire.1 = tile.clkroot;
+                    break;
+                }
+                WireKind::CondAlias(node, wf) => {
+                    if tile.nodes.first().unwrap().kind != node {
+                        break;
+                    }
+                    wire.2 = wf;
+                }
+                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
+                    if let Some(t) = &tile.terms[dir] {
+                        let term = &self.db.terms[t.kind];
+                        match term.wires.get(wire.2) {
+                            Some(&TermInfo::BlackHole) => return None,
+                            Some(&TermInfo::PassNear(wf)) => {
+                                if let Some(n) = t.naming {
+                                    let n = &self.db.term_namings[n];
+                                    match n.wires_out.get(wire.2) {
+                                        None => (),
+                                        Some(TermWireOutNaming::Simple { name }) => {
+                                            trace.push(TracePip {
+                                                tile: t.tile.as_ref().unwrap(),
+                                                wire_to: name,
+                                                wire_from: &n.wires_in_near[wf],
+                                            });
+                                        }
+                                        Some(TermWireOutNaming::Buf { name_out, name_in }) => {
+                                            trace.push(TracePip {
+                                                tile: t.tile.as_ref().unwrap(),
+                                                wire_to: name_out,
+                                                wire_from: name_in,
+                                            });
+                                        }
+                                    }
+                                }
+                                wire.2 = wf;
+                            }
+                            Some(&TermInfo::PassFar(wf)) => {
+                                if let Some(n) = t.naming {
+                                    let n = &self.db.term_namings[n];
+                                    match n.wires_out.get(wire.2) {
+                                        None => (),
+                                        Some(TermWireOutNaming::Simple { name: name_fout }) => {
+                                            match n.wires_in_far[wf] {
+                                                TermWireInFarNaming::Simple { ref name } => {
+                                                    trace.push(TracePip {
+                                                        tile: t.tile.as_ref().unwrap(),
+                                                        wire_to: name_fout,
+                                                        wire_from: name,
+                                                    });
+                                                }
+                                                TermWireInFarNaming::Buf {
+                                                    ref name_out,
+                                                    ref name_in,
+                                                } => {
+                                                    trace.push(TracePip {
+                                                        tile: t.tile.as_ref().unwrap(),
+                                                        wire_to: name_fout,
+                                                        wire_from: name_out,
+                                                    });
+                                                    trace.push(TracePip {
+                                                        tile: t.tile.as_ref().unwrap(),
+                                                        wire_to: name_out,
+                                                        wire_from: name_in,
+                                                    });
+                                                }
+                                                TermWireInFarNaming::BufFar {
+                                                    ref name,
+                                                    ref name_far_out,
+                                                    ref name_far_in,
+                                                } => {
+                                                    trace.push(TracePip {
+                                                        tile: t.tile.as_ref().unwrap(),
+                                                        wire_to: name_fout,
+                                                        wire_from: name,
+                                                    });
+                                                    trace.push(TracePip {
+                                                        tile: t.tile_far.as_ref().unwrap(),
+                                                        wire_to: name_far_out,
+                                                        wire_from: name_far_in,
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        Some(TermWireOutNaming::Buf { name_out, name_in }) => {
+                                            trace.push(TracePip {
+                                                tile: t.tile.as_ref().unwrap(),
+                                                wire_to: name_out,
+                                                wire_from: name_in,
+                                            });
+                                        }
+                                    }
+                                }
+                                wire.1 = t.target.unwrap();
+                                wire.2 = wf;
+                            }
+                            None => break,
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                WireKind::Buf(wf) => {
+                    let node = tile.nodes.first().unwrap();
+                    let nn = &self.db.node_namings[node.naming];
+                    trace.push(TracePip {
+                        tile: &node.names[NodeRawTileId::from_idx(0)],
+                        wire_to: &nn.wires[&(NodeTileId::from_idx(0), wire.2)],
+                        wire_from: &nn.wires[&(NodeTileId::from_idx(0), wf)],
+                    });
+                    wire.2 = wf;
+                }
+                _ => break,
+            }
+        }
+        if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
+            wire = twire;
+        }
+        if self.blackhole_wires.contains(&wire) {
+            None
+        } else {
+            Some((wire, trace))
+        }
+    }
+
+    pub fn resolve_wire(&self, mut wire: IntWire) -> Option<IntWire> {
+        let die = self.die(wire.0);
+        loop {
+            let tile = die.tile(wire.1);
+            let wi = self.db.wires[wire.2];
+            match wi {
+                WireKind::ClkOut(_) => {
+                    wire.1 = tile.clkroot;
+                    break;
+                }
+                WireKind::CondAlias(node, wf) => {
+                    if tile.nodes.first().unwrap().kind != node {
+                        break;
+                    }
+                    wire.2 = wf;
+                }
+                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
+                    if let Some(t) = &tile.terms[dir] {
+                        let term = &self.db.terms[t.kind];
+                        match term.wires.get(wire.2) {
+                            Some(&TermInfo::BlackHole) => return None,
+                            Some(&TermInfo::PassNear(wf)) => {
+                                wire.2 = wf;
+                            }
+                            Some(&TermInfo::PassFar(wf)) => {
+                                wire.1 = t.target.unwrap();
+                                wire.2 = wf;
+                            }
+                            None => break,
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                WireKind::Buf(wf) => {
+                    wire.2 = wf;
+                }
+                _ => break,
+            }
+        }
+        if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
+            wire = twire;
+        }
+        if self.blackhole_wires.contains(&wire) {
+            None
+        } else {
+            Some(wire)
+        }
+    }
+
+    pub fn wire_tree(&self, wire: IntWire) -> Vec<IntWire> {
+        if self.blackhole_wires.contains(&wire) {
+            return vec![];
+        }
+        let mut res = vec![];
+        let mut queue = vec![wire];
+        if let Some(&twire) = self.xdie_wires.get_by_right(&wire) {
+            queue.push(twire);
+        }
+        while let Some(wire) = queue.pop() {
+            let die = self.die(wire.0);
+            let tile = &die[wire.1];
+            res.push(wire);
+            if matches!(self.db.wires[wire.2], WireKind::ClkOut(_)) && tile.clkroot == wire.1 {
+                for &crd in &die.clk_root_tiles[&wire.1] {
+                    if crd != wire.1 {
+                        queue.push((wire.0, crd, wire.2));
+                    }
+                }
+            }
+            res.push(wire);
+            for &wt in &self.db_index.buf_ins[wire.2] {
+                queue.push((wire.0, wire.1, wt));
+            }
+            for (&wt, &nk) in &self.db_index.cond_alias_ins[wire.2] {
+                if let Some(node) = tile.nodes.first() {
+                    if node.kind == nk {
+                        queue.push((wire.0, wire.1, wt));
+                    }
+                }
+            }
+            for dir in Dir::DIRS {
+                if let Some(ref term) = tile.terms[dir] {
+                    for &wt in &self.db_index.terms[term.kind].wire_ins_near[wire.2] {
+                        queue.push((wire.0, wire.1, wt));
+                    }
+                    if let Some(ocrd) = term.target {
+                        let oterm = die[ocrd].terms[!dir].as_ref().unwrap();
+                        for &wt in &self.db_index.terms[oterm.kind].wire_ins_far[wire.2] {
+                            queue.push((wire.0, ocrd, wt));
+                        }
+                    }
+                }
+            }
+        }
+        res
+    }
+
+    pub fn wire_pips_bwd(&self, wire: IntWire) -> Vec<NodePip> {
+        let mut wires = vec![wire];
+        if matches!(
+            self.db.wires[wire.2],
+            WireKind::MultiOut
+                | WireKind::MultiBranch(_)
+                | WireKind::PipOut
+                | WireKind::PipBranch(_)
+                | WireKind::CondAlias(_, _)
+        ) {
+            wires = self.wire_tree(wire);
+        }
+        let mut res = vec![];
+        for w in wires {
+            for &(crd, layer, tid) in &self.die(w.0)[w.1].node_index {
+                let node = &self.die(w.0)[crd].nodes[layer];
+                let nk = &self.db.nodes[node.kind];
+                let nw = (tid, w.2);
+                if let Some(mux) = nk.muxes.get(&nw) {
+                    for &nwi in &mux.ins {
+                        let wire_in_raw = (w.0, node.tiles[nwi.0], nwi.1);
+                        if let Some(wire_in) = self.resolve_wire(wire_in_raw) {
+                            res.push(NodePip {
+                                wire_out: wire,
+                                wire_in,
+                                wire_out_raw: w,
+                                wire_in_raw,
+                                node_die: w.0,
+                                node_crd: crd,
+                                node_layer: layer,
+                                node_wire_out: nw,
+                                node_wire_in: nwi,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        res
+    }
+
+    pub fn wire_pips_fwd(&self, wire: IntWire) -> Vec<NodePip> {
+        let wires = self.wire_tree(wire);
+        let mut res = vec![];
+        for w in wires {
+            for &(crd, layer, tid) in &self.die(w.0)[w.1].node_index {
+                let node = &self.die(w.0)[crd].nodes[layer];
+                let nki = &self.db_index.nodes[node.kind];
+                let nw = (tid, w.2);
+                if let Some(outs) = nki.mux_ins.get(&nw) {
+                    for &nwo in outs {
+                        let wire_out_raw = (w.0, node.tiles[nwo.0], nwo.1);
+                        if let Some(wire_out) = self.resolve_wire(wire_out_raw) {
+                            res.push(NodePip {
+                                wire_out,
+                                wire_in: wire,
+                                wire_out_raw,
+                                wire_in_raw: w,
+                                node_die: w.0,
+                                node_crd: crd,
+                                node_layer: layer,
+                                node_wire_out: nwo,
+                                node_wire_in: nw,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        res
+    }
+
+    pub fn get_node_pip_naming(&self, np: NodePip) -> TracePip {
+        let node = &self.die(np.node_die).tile(np.node_crd).nodes[np.node_layer];
+        let naming = &self.db.node_namings[node.naming];
+        if let Some(pn) = naming.ext_pips.get(&(np.node_wire_out, np.node_wire_in)) {
+            TracePip {
+                tile: &node.names[pn.tile],
+                wire_to: &pn.wire_to,
+                wire_from: &pn.wire_from,
+            }
+        } else {
+            TracePip {
+                tile: &node.names[NodeRawTileId::from_idx(0)],
+                wire_to: &naming.wires[&np.node_wire_out],
+                wire_from: &naming.wires[&np.node_wire_in],
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExpandedTile {
     pub nodes: EntityVec<LayerId, ExpandedTileNode>,
     pub terms: EnumMap<Dir, Option<ExpandedTileTerm>>,
+    pub node_index: Vec<(Coord, LayerId, NodeTileId)>,
     pub clkroot: Coord,
-}
-
-impl ExpandedTile {
-    pub fn add_xnode(
-        &mut self,
-        kind: NodeKindId,
-        names: &[&str],
-        naming: NodeNamingId,
-        coords: &[Coord],
-    ) -> &mut ExpandedTileNode {
-        let names: EntityVec<_, _> = names.iter().map(|x| x.to_string()).collect();
-        let names = names.into_iter().collect();
-        self.nodes.push(ExpandedTileNode {
-            kind,
-            tiles: coords.iter().copied().collect(),
-            names,
-            tie_name: None,
-            iri_names: Default::default(),
-            naming,
-            bels: Default::default(),
-        });
-        self.nodes.last_mut().unwrap()
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

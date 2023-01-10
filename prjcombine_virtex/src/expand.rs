@@ -259,7 +259,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
 
             let row = self.grid.row_bio();
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("BRAM_BOT"),
                 &[&rt_b],
                 self.db.get_node_naming(naming_b),
@@ -293,7 +294,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     vec![&tile]
                 };
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &rts,
                     self.db.get_node_naming(kind),
@@ -317,7 +319,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
 
             let row = self.grid.row_tio();
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("BRAM_TOP"),
                 &[&rt_t],
                 self.db.get_node_naming(naming_t),
@@ -338,7 +341,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let col_c = self.grid.col_clk();
             let col_pl = self.grid.col_lio() + 1;
             let col_pr = self.grid.col_rio() - 1;
-            let node = self.die[(col_c, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_c, row_b),
                 self.db.get_node("CLKB"),
                 &["BM"],
                 self.db.get_node_naming("CLKB"),
@@ -348,7 +352,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.add_bel(1, "GCLKPAD1".to_string());
             node.add_bel(2, "GCLKBUF0".to_string());
             node.add_bel(3, "GCLKBUF1".to_string());
-            let node = self.die[(col_c, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_c, row_t),
                 self.db.get_node("CLKT"),
                 &["TM"],
                 self.db.get_node_naming("CLKT"),
@@ -358,28 +363,32 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.add_bel(1, "GCLKPAD3".to_string());
             node.add_bel(2, "GCLKBUF2".to_string());
             node.add_bel(3, "GCLKBUF3".to_string());
-            let node = self.die[(col_pl, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_pl, row_b),
                 self.db.get_node("DLL.BOT"),
                 &["LBRAM_BOT", "BM"],
                 self.db.get_node_naming("DLL.BL"),
                 &[(col_pl, row_b), (col_pl - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, "DLL1".to_string());
-            let node = self.die[(col_pl, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_pl, row_t),
                 self.db.get_node("DLL.TOP"),
                 &["LBRAM_TOP", "TM"],
                 self.db.get_node_naming("DLL.TL"),
                 &[(col_pl, row_t), (col_pl - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, "DLL3".to_string());
-            let node = self.die[(col_pr, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_pr, row_b),
                 self.db.get_node("DLL.BOT"),
                 &["RBRAM_BOT", "BM"],
                 self.db.get_node_naming("DLL.BR"),
                 &[(col_pr, row_b), (col_pr - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, "DLL0".to_string());
-            let node = self.die[(col_pr, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_pr, row_t),
                 self.db.get_node("DLL.TOP"),
                 &["RBRAM_TOP", "TM"],
                 self.db.get_node_naming("DLL.TR"),
@@ -410,7 +419,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 kind_t = "CLKT_4DLL";
                 s = "S";
             }
-            let node = self.die[(col_c, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_c, row_b),
                 self.db.get_node(kind_b),
                 &["BM"],
                 self.db.get_node_naming(kind_b),
@@ -426,7 +436,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.add_bel(1, "GCLKPAD1".to_string());
             node.add_bel(2, "GCLKBUF0".to_string());
             node.add_bel(3, "GCLKBUF1".to_string());
-            let node = self.die[(col_c, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_c, row_t),
                 self.db.get_node(kind_t),
                 &["TM"],
                 self.db.get_node_naming(kind_t),
@@ -443,7 +454,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.add_bel(2, "GCLKBUF2".to_string());
             node.add_bel(3, "GCLKBUF3".to_string());
             // DLLS
-            let node = self.die[(col_sl, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_sl, row_b),
                 self.db.get_node("DLLS.BOT"),
                 &[&format!("BRAM_BOTC{c_sl}"), "BM"],
                 self.db
@@ -451,7 +463,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 &[(col_sl, row_b), (col_sl - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, format!("DLL1{s}"));
-            let node = self.die[(col_sl, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_sl, row_t),
                 self.db.get_node("DLLS.TOP"),
                 &[&format!("BRAM_TOPC{c_sl}"), "TM"],
                 self.db
@@ -459,7 +472,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 &[(col_sl, row_t), (col_sl - 1, row_t), (col_c, row_t)],
             );
             node.add_bel(0, format!("DLL3{s}"));
-            let node = self.die[(col_sr, row_b)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_sr, row_b),
                 self.db.get_node("DLLS.BOT"),
                 &[&format!("BRAM_BOTC{c_sr}"), "BM"],
                 self.db
@@ -467,7 +481,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 &[(col_sr, row_b), (col_sr - 1, row_b), (col_c, row_b)],
             );
             node.add_bel(0, format!("DLL0{s}"));
-            let node = self.die[(col_sr, row_t)].add_xnode(
+            let node = self.die.add_xnode(
+                (col_sr, row_t),
                 self.db.get_node("DLLS.TOP"),
                 &[&format!("BRAM_TOPC{c_sr}"), "TM"],
                 self.db
@@ -476,7 +491,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             node.add_bel(0, format!("DLL2{s}"));
             if !self.disabled.contains(&DisabledPart::PrimaryDlls) {
-                let node = self.die[(col_pl, row_b)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col_pl, row_b),
                     self.db.get_node("DLLP.BOT"),
                     &[&format!("BRAM_BOTC{c_pl}"), "BM"],
                     self.db.get_node_naming("DLLP.BL"),
@@ -488,7 +504,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ],
                 );
                 node.add_bel(0, "DLL1P".to_string());
-                let node = self.die[(col_pl, row_t)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col_pl, row_t),
                     self.db.get_node("DLLP.TOP"),
                     &[&format!("BRAM_TOPC{c_pl}"), "TM"],
                     self.db.get_node_naming("DLLP.TL"),
@@ -500,7 +517,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ],
                 );
                 node.add_bel(0, "DLL3P".to_string());
-                let node = self.die[(col_pr, row_b)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col_pr, row_b),
                     self.db.get_node("DLLP.BOT"),
                     &[&format!("BRAM_BOTC{c_pr}"), "BM"],
                     self.db.get_node_naming("DLLP.BR"),
@@ -512,7 +530,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ],
                 );
                 node.add_bel(0, "DLL0P".to_string());
-                let node = self.die[(col_pr, row_t)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col_pr, row_t),
                     self.db.get_node("DLLP.TOP"),
                     &[&format!("BRAM_TOPC{c_pr}"), "TM"],
                     self.db.get_node_naming("DLLP.TR"),
@@ -532,14 +551,16 @@ impl<'a, 'b> Expander<'a, 'b> {
         // CLKL/CLKR
         let pci_l = (self.grid.col_lio(), self.grid.row_clk());
         let pci_r = (self.grid.col_rio(), self.grid.row_clk());
-        let node = self.die[pci_l].add_xnode(
+        let node = self.die.add_xnode(
+            pci_l,
             self.db.get_node("CLKL"),
             &["LM"],
             self.db.get_node_naming("CLKL"),
             &[pci_l],
         );
         node.add_bel(0, "LPCILOGIC".to_string());
-        let node = self.die[pci_r].add_xnode(
+        let node = self.die.add_xnode(
+            pci_r,
             self.db.get_node("CLKR"),
             &["RM"],
             self.db.get_node_naming("CLKR"),
@@ -573,7 +594,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let c = self.bramclut[col_m];
                             format!("BRAM_BOTC{c}")
                         };
-                        self.die[(col_m, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col_m, row),
                             self.db.get_node("CLKV_BRAM_BOT"),
                             &[&name],
                             self.db.get_node_naming("CLKV_BRAM_BOT"),
@@ -590,7 +612,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let c = self.bramclut[col_m];
                             format!("BRAM_TOPC{c}")
                         };
-                        self.die[(col_m, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col_m, row),
                             self.db.get_node("CLKV_BRAM_TOP"),
                             &[&name],
                             self.db.get_node_naming("CLKV_BRAM_TOP"),
@@ -609,7 +632,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                                 let c = self.bramclut[col_m];
                                 format!("BRAMR{r}C{c}", r = self.rlut[row])
                             };
-                            self.die[(col_m, row)].add_xnode(
+                            self.die.add_xnode(
+                                (col_m, row),
                                 self.db.get_node("CLKV_BRAM"),
                                 &[&name],
                                 self.db.get_node_naming(if lr == 'L' {
@@ -653,7 +677,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             (format!("GCLKVR{r}C{cc}", r = self.rlut[row]), "CLKV.GCLKV")
                         }
                     };
-                    self.die[(col_m, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col_m, row),
                         self.db.get_node("CLKV"),
                         &[&name],
                         self.db.get_node_naming(naming),
@@ -672,14 +697,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let c = self.bramclut[col_m];
                     format!("BRAMMC{c}")
                 };
-                self.die[(col_m, self.grid.row_clk())].add_xnode(
+                self.die.add_xnode(
+                    (col_m, self.grid.row_clk()),
                     self.db.get_node("BRAM_CLKH"),
                     &[&name],
                     self.db.get_node_naming("BRAM_CLKH"),
                     &[(col_m, self.grid.row_clk())],
                 );
             } else if col_m == self.grid.col_clk() {
-                self.die[(col_m, self.grid.row_clk())].add_xnode(
+                self.die.add_xnode(
+                    (col_m, self.grid.row_clk()),
                     self.db.get_node("CLKC"),
                     &["M"],
                     self.db.get_node_naming("CLKC"),
@@ -687,7 +714,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
             } else {
                 let name = format!("GCLKCC{cc}");
-                self.die[(col_m, self.grid.row_clk())].add_xnode(
+                self.die.add_xnode(
+                    (col_m, self.grid.row_clk()),
                     self.db.get_node("GCLKC"),
                     &[&name],
                     self.db.get_node_naming("GCLKC"),
@@ -862,6 +890,7 @@ impl Grid {
             die_order: vec![expander.die.die],
         };
 
+        egrid.finish();
         ExpandedDevice {
             grid: self,
             egrid,

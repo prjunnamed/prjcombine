@@ -7,7 +7,7 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, 
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::bond::{PsPin, SharedCfgPin};
 use crate::expanded::{
@@ -430,7 +430,8 @@ impl DieExpander<'_, '_, '_> {
                     continue;
                 }
                 let y = self.ylut[row];
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INT"),
                     &[&format!("INT_{lr}_X{x}Y{y}")],
                     self.db.get_node_naming(&format!("INT.{lr}")),
@@ -446,7 +447,8 @@ impl DieExpander<'_, '_, '_> {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Io => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF"),
                             &[&format!("IO_INT_INTERFACE_{lr}_X{x}Y{y}")],
                             self.db.get_node_naming(&format!("INTF.{lr}")),
@@ -454,7 +456,8 @@ impl DieExpander<'_, '_, '_> {
                         );
                     }
                     ColumnKind::Bram => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF.BRAM"),
                             &[&format!("BRAM_INT_INTERFACE_{lr}_X{x}Y{y}")],
                             self.db.get_node_naming(&format!("INTF.{lr}")),
@@ -462,7 +465,8 @@ impl DieExpander<'_, '_, '_> {
                         );
                     }
                     ColumnKind::Dsp | ColumnKind::Cmt | ColumnKind::Cfg | ColumnKind::Clk => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF"),
                             &[&format!("INT_INTERFACE_{lr}_X{x}Y{y}")],
                             self.db.get_node_naming(&format!("INTF.{lr}")),
@@ -498,7 +502,8 @@ impl DieExpander<'_, '_, '_> {
         let name_t = format!("CFG_CENTER_TOP{slv}_X{rx}Y{y}", y = self.rylut[row_cb + 40]);
         let crds: [_; 50] = core::array::from_fn(|dy| (self.col_cfg, row_cb + dy));
         let di = self.die.die.to_idx();
-        let node = self.die[(self.col_cfg, row_cb)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.col_cfg, row_cb),
             self.db.get_node("CFG"),
             &[&name_b, &name_m, &name_t],
             self.db.get_node_naming("CFG"),
@@ -669,7 +674,8 @@ impl DieExpander<'_, '_, '_> {
             if io_loc == XadcIoLoc::Right {
                 names.extend([&name_bs[..], &name_ms[..], &name_ts[..]]);
             }
-            let node = self.die[(self.col_cfg, row_m)].add_xnode(
+            let node = self.die.add_xnode(
+                (self.col_cfg, row_m),
                 self.db.get_node("XADC"),
                 &names,
                 self.db.get_node_naming(kind),
@@ -699,7 +705,8 @@ impl DieExpander<'_, '_, '_> {
                 self.die.fill_term_anon((col, row), "TERM.W");
                 let y = self.ylut[row];
                 let x = self.xlut[col];
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INTF"),
                     &[&format!("INT_INTERFACE_PSS_L_X{x}Y{y}")],
                     self.db.get_node_naming("INTF.PSS"),
@@ -714,7 +721,8 @@ impl DieExpander<'_, '_, '_> {
             let name_pss2 = format!("PSS2_X{rx}Y{y}", y = self.rylut[row_pb + 50]);
             let name_pss3 = format!("PSS3_X{rx}Y{y}", y = self.rylut[row_pb + 70]);
             let name_pss4 = format!("PSS4_X{rx}Y{y}", y = self.rylut[row_pb + 90]);
-            let node = self.die[(col, row_pb + 50)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row_pb + 50),
                 self.db.get_node("PS"),
                 &[&name_pss0, &name_pss1, &name_pss2, &name_pss3, &name_pss4],
                 self.db.get_node_naming("PS"),
@@ -753,23 +761,24 @@ impl DieExpander<'_, '_, '_> {
             for dy in 0..25 {
                 let row = pcie2.row + dy;
                 let y = self.ylut[row];
-                let tile_l = &mut self.die[(col_l, row)];
-                tile_l.add_xnode(
+                self.die.add_xnode(
+                    (col_l, row),
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PCIE_INT_INTERFACE_R_X{xl}Y{y}")],
                     self.db.get_node_naming("INTF.PCIE_R"),
                     &[(col_l, row)],
                 );
-                let tile_r = &mut self.die[(col_r, row)];
                 if pcie2.kind == Pcie2Kind::Left {
-                    tile_r.add_xnode(
+                    self.die.add_xnode(
+                        (col_r, row),
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("PCIE_INT_INTERFACE_LEFT_L_X{xr}Y{y}")],
                         self.db.get_node_naming("INTF.PCIE_LEFT_L"),
                         &[(col_r, row)],
                     );
                 } else {
-                    tile_r.add_xnode(
+                    self.die.add_xnode(
+                        (col_r, row),
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("PCIE_INT_INTERFACE_L_X{xr}Y{y}")],
                         self.db.get_node_naming("INTF.PCIE_L"),
@@ -811,7 +820,8 @@ impl DieExpander<'_, '_, '_> {
             let y = self.rylut[pcie2.row];
             let name_b = format!("{tkb}_X{x}Y{y}", y = y + 10);
             let name_t = format!("{tkt}_X{x}Y{y}", y = y + 20);
-            let node = self.die[crds[0]].add_xnode(
+            let node = self.die.add_xnode(
+                crds[0],
                 self.db.get_node(kind),
                 &[&name_b, &name_t],
                 self.db.get_node_naming(kind),
@@ -836,15 +846,15 @@ impl DieExpander<'_, '_, '_> {
             for dy in 0..50 {
                 let row = br + dy;
                 let y = self.ylut[row];
-                let tile_l = &mut self.die[(col_l, row)];
-                tile_l.add_xnode(
+                self.die.add_xnode(
+                    (col_l, row),
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PCIE3_INT_INTERFACE_R_X{xl}Y{y}")],
                     self.db.get_node_naming("INTF.PCIE3_R"),
                     &[(col_l, row)],
                 );
-                let tile_r = &mut self.die[(col_r, row)];
-                tile_r.add_xnode(
+                self.die.add_xnode(
+                    (col_r, row),
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PCIE3_INT_INTERFACE_L_X{xr}Y{y}")],
                     self.db.get_node_naming("INTF.PCIE3_L"),
@@ -863,7 +873,8 @@ impl DieExpander<'_, '_, '_> {
             let name_b = format!("PCIE3_BOT_RIGHT_X{x}Y{y}", y = y + 7);
             let name = format!("PCIE3_RIGHT_X{x}Y{y}", y = y + 26);
             let name_t = format!("PCIE3_TOP_RIGHT_X{x}Y{y}", y = y + 43);
-            let node = self.die[crds[0]].add_xnode(
+            let node = self.die.add_xnode(
+                crds[0],
                 self.db.get_node("PCIE3"),
                 &[&name, &name_b, &name_t],
                 self.db.get_node_naming("PCIE3"),
@@ -911,8 +922,8 @@ impl DieExpander<'_, '_, '_> {
                             for dy in 0..50 {
                                 let row = br + dy;
                                 let y = self.ylut[row];
-                                let tile = &mut self.die[(col_l, row)];
-                                tile.add_xnode(
+                                self.die.add_xnode(
+                                    (col_l, row),
                                     self.db.get_node("INTF.DELAY"),
                                     &[&format!("GTP_INT_INTERFACE_R_X{x}Y{y}")],
                                     self.db.get_node_naming("INTF.GTP_R"),
@@ -936,8 +947,8 @@ impl DieExpander<'_, '_, '_> {
                             for dy in 0..50 {
                                 let row = br + dy;
                                 let y = self.ylut[row];
-                                let tile = &mut self.die[(col_r, row)];
-                                tile.add_xnode(
+                                self.die.add_xnode(
+                                    (col_r, row),
                                     self.db.get_node("INTF.DELAY"),
                                     &[&format!("GTP_INT_INTERFACE_L_X{x}Y{y}")],
                                     self.db.get_node_naming("INTF.GTP_L"),
@@ -951,8 +962,8 @@ impl DieExpander<'_, '_, '_> {
                         for dy in 0..50 {
                             let row = br + dy;
                             let y = self.ylut[row];
-                            let tile = &mut self.die[(gtcol.col, row)];
-                            tile.add_xnode(
+                            self.die.add_xnode(
+                                (gtcol.col, row),
                                 self.db.get_node("INTF.DELAY"),
                                 &[&format!("{sk}_INT_INTERFACE_L_X{x}Y{y}")],
                                 self.db.get_node_naming(&format!("INTF.{sk}_L")),
@@ -978,8 +989,8 @@ impl DieExpander<'_, '_, '_> {
                         for dy in 0..50 {
                             let row = br + dy;
                             let y = self.ylut[row];
-                            let tile = &mut self.die[(gtcol.col, row)];
-                            tile.add_xnode(
+                            self.die.add_xnode(
+                                (gtcol.col, row),
                                 self.db.get_node("INTF.DELAY"),
                                 &[&format!("{sk}_INT_INTERFACE_X{x}Y{y}")],
                                 self.db.get_node_naming(&format!("INTF.{sk}")),
@@ -1035,7 +1046,8 @@ impl DieExpander<'_, '_, '_> {
                         let ry = self.rylut[row + 5];
                         let name = format!("{sk}_CHANNEL_{i}{nsuf}_X{rx}Y{ry}");
                         let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
-                        let node = self.die[(gtcol.col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (gtcol.col, row),
                             self.db.get_node(&format!("{sk}_CHANNEL")),
                             &[&name],
                             self.db.get_node_naming(&format!("{sk}_CHANNEL_{i}{nsuf}")),
@@ -1061,7 +1073,8 @@ impl DieExpander<'_, '_, '_> {
                     let ry = self.rylut[row];
                     let name = format!("{sk}_COMMON{nsuf}_X{rx}Y{ry}",);
                     let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
-                    let node = self.die[(gtcol.col, row + 3)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (gtcol.col, row + 3),
                         self.db.get_node(&format!("{sk}_COMMON")),
                         &[&name],
                         self.db.get_node_naming(&format!("{sk}_COMMON{nsuf}")),
@@ -1103,7 +1116,8 @@ impl DieExpander<'_, '_, '_> {
                             y = self.rylut[br] - 1
                         )
                     };
-                    self.die[(gtcol.col, br)].add_xnode(
+                    self.die.add_xnode(
+                        (gtcol.col, br),
                         self.db.get_node("BRKH_GTX"),
                         &[&name],
                         self.db.get_node_naming("BRKH_GTX"),
@@ -1179,18 +1193,16 @@ impl DieExpander<'_, '_, '_> {
                 _ => continue,
             };
             let mut found = false;
-            'a: for row in self.die.rows() {
-                let tile = &mut self.die[(col, row)];
-                for &hole in &self.site_holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+            for row in self.die.rows() {
+                if self.is_site_hole(col, row) {
+                    continue;
                 }
                 let x = self.xlut[col];
                 let y = self.ylut[row];
                 let sy = self.tieylut[row];
                 let name = format!("{naming}_X{x}Y{y}");
-                let node = tile.add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -1233,21 +1245,20 @@ impl DieExpander<'_, '_, '_> {
                 _ => continue,
             };
             let mut found = false;
-            'a: for row in self.die.rows() {
+            for row in self.die.rows() {
                 if row.to_idx() % 5 != 0 {
                     continue;
                 }
-                for &hole in &self.site_holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+                if self.is_site_hole(col, row) {
+                    continue;
                 }
                 found = true;
                 let x = self.xlut[col];
                 let y = self.ylut[row];
                 let sy = (self.tieylut[row]) / 5;
                 let name = format!("{naming}_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -1285,7 +1296,8 @@ impl DieExpander<'_, '_, '_> {
                     let name_1 = format!("{naming}_X{x}Y{y}", y = y + 5);
                     let name_2 = format!("{naming}_X{x}Y{y}", y = y + 10);
                     let coords: Vec<_> = (0..15).map(|dy| (col, row + dy)).collect();
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PMVBRAM"),
                         &[&name_h, &name, &name_1, &name_2],
                         self.db.get_node_naming("PMVBRAM"),
@@ -1295,20 +1307,14 @@ impl DieExpander<'_, '_, '_> {
                 }
             }
             if cd == ColumnKind::Bram {
-                'a: for row in self.die.rows() {
+                for row in self.die.rows() {
                     if row.to_idx() % 50 != 25 {
                         continue;
                     }
-                    let mut is_hole_up = false;
-                    for &hole in &self.site_holes {
-                        if hole.contains(col, row - 1) {
-                            continue 'a;
-                        }
-                        if hole.contains(col, row) {
-                            is_hole_up = true;
-                        }
+                    if self.is_site_hole(col, row - 1) {
+                        continue;
                     }
-                    if !is_hole_up {
+                    if !self.is_site_hole(col, row) {
                         continue;
                     }
                     let hx = if naming == "BRAM_L" {
@@ -1318,7 +1324,8 @@ impl DieExpander<'_, '_, '_> {
                     };
                     let hy = self.rylut[row] - 1;
                     let name_h = format!("HCLK_BRAM_X{hx}Y{hy}");
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PMVBRAM_NC"),
                         &[&name_h],
                         self.db.get_node_naming("PMVBRAM_NC"),
@@ -1423,7 +1430,8 @@ impl DieExpander<'_, '_, '_> {
                             name_iob = format!("{iob_tk}_SING_X{rxiob}Y{y}", y = self.rylut[row]);
                         }
                         let naming = format!("{tk}_SING");
-                        let node = self.die[(col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row),
                             self.db.get_node(if kind == IoKind::Hpio {
                                 "IOS_HP"
                             } else {
@@ -1501,7 +1509,8 @@ impl DieExpander<'_, '_, '_> {
                             name_iob = format!("{iob_tk}_X{rxiob}Y{y}", y = self.rylut[row]);
                         }
                         let naming = format!("{tk}{suf}");
-                        let node = self.die[(col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row),
                             self.db.get_node(if kind == IoKind::Hpio {
                                 "IOP_HP"
                             } else {
@@ -1622,7 +1631,8 @@ impl DieExpander<'_, '_, '_> {
                             name_t1 = format!("{tk}_X{rx}Y{y}", y = self.rylut[row + 2]);
                         }
                         let crds: [_; 8] = core::array::from_fn(|dy| (col, row - 4 + dy));
-                        let node = self.die[(col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row),
                             self.db.get_node(htk),
                             &[&name, &name_b0, &name_b1, &name_t0, &name_t1],
                             self.db.get_node_naming(htk),
@@ -1665,12 +1675,10 @@ impl DieExpander<'_, '_, '_> {
                 self.rxlut[col] + 3
             };
             let mut found = false;
-            'a: for reg in self.grid.regs() {
+            for reg in self.grid.regs() {
                 let row = self.grid.row_reg_hclk(reg);
-                for hole in &self.site_holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+                if self.is_site_hole(col, row) {
+                    continue;
                 }
                 found = true;
                 let crds: [_; 50] = core::array::from_fn(|dy| (col, row - 25 + dy));
@@ -1683,7 +1691,8 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     format!("HCLK_CMT_X{rx}Y{y}", y = self.rylut[row] - 1)
                 };
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CMT"),
                     &[&name0, &name1, &name2, &name3, &name_h],
                     self.db
@@ -1714,7 +1723,8 @@ impl DieExpander<'_, '_, '_> {
                         self.rxlut[col] + 2
                     };
                     let name = format!("{tkn}_X{rx}Y{y}", y = self.rylut[row + 6]);
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("CMT_FIFO"),
                         &[&name],
                         self.db.get_node_naming(tkn),
@@ -1748,7 +1758,8 @@ impl DieExpander<'_, '_, '_> {
                     x = self.rxlut[col] + 2,
                     y = self.rylut[row],
                 );
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLK_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BALI_REBUF"),
@@ -1776,7 +1787,8 @@ impl DieExpander<'_, '_, '_> {
                     x = self.rxlut[col] + 2,
                     y = self.rylut[row],
                 );
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLK_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BUFG_REBUF"),
@@ -1800,7 +1812,8 @@ impl DieExpander<'_, '_, '_> {
                 x = self.rxlut[col] + 2,
                 y = self.rylut[row_h] - 1,
             );
-            let node = self.die[(col, row_h)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row_h),
                 self.db.get_node("CLK_HROW"),
                 &[&name],
                 self.db.get_node_naming(tk),
@@ -1837,7 +1850,8 @@ impl DieExpander<'_, '_, '_> {
                     x = self.rxlut[col] + 2,
                     y = self.rylut[row],
                 );
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLK_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BALI_REBUF"),
@@ -1865,7 +1879,8 @@ impl DieExpander<'_, '_, '_> {
                     x = self.rxlut[col] + 2,
                     y = self.rylut[row],
                 );
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLK_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BUFG_REBUF"),
@@ -1889,7 +1904,8 @@ impl DieExpander<'_, '_, '_> {
             x = self.rxlut[col] + 2,
             y = self.rylut[row]
         );
-        let node = self.die[(col, row)].add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node("CLK_BUFG"),
             &[&name],
             self.db.get_node_naming("CLK_BUFG_BOT_R"),
@@ -1906,7 +1922,8 @@ impl DieExpander<'_, '_, '_> {
                 x = self.rxlut[col] + 2,
                 y = self.rylut[row]
             );
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("CLK_BUFG"),
                 &[&name],
                 self.db.get_node_naming("CLK_BUFG_TOP_R"),
@@ -1953,7 +1970,8 @@ impl DieExpander<'_, '_, '_> {
                 x = self.rxlut[col] + 2,
                 y = self.rylut[row]
             );
-            let node = self.die[(col, row_int)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row_int),
                 self.db.get_node(tk),
                 &[&name],
                 self.db.get_node_naming(tk),
@@ -1970,7 +1988,7 @@ impl DieExpander<'_, '_, '_> {
             if col.to_idx() % 2 != 0 {
                 continue;
             }
-            'a: for row in self.die.rows() {
+            for row in self.die.rows() {
                 if row.to_idx() % 50 == 25 {
                     let mut suf = "";
                     if self.grid.has_slr && !(col >= self.col_cfg - 6 && col < self.col_cfg) {
@@ -1991,16 +2009,8 @@ impl DieExpander<'_, '_, '_> {
                             }
                         }
                     }
-                    let mut hole_bot = false;
-                    let mut hole_top = false;
-                    for &hole in &self.int_holes {
-                        if hole.contains(col, row) {
-                            hole_top = true;
-                        }
-                        if hole.contains(col, row - 1) {
-                            hole_bot = true;
-                        }
-                    }
+                    let hole_bot = self.is_int_hole(col, row - 1);
+                    let hole_top = self.is_int_hole(col, row);
                     if hole_bot && hole_top {
                         continue;
                     }
@@ -2014,7 +2024,8 @@ impl DieExpander<'_, '_, '_> {
                     let y = self.rylut[row] - 1;
                     let name_l = format!("HCLK_L{suf}_X{x}Y{y}");
                     let name_r = format!("HCLK_R{suf}_X{x}Y{y}", x = x + 1);
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("HCLK"),
                         &[&name_l, &name_r],
                         self.db.get_node_naming("HCLK"),
@@ -2022,16 +2033,15 @@ impl DieExpander<'_, '_, '_> {
                     );
                 }
 
-                for &hole in &self.int_holes {
-                    if hole.contains(col, row) {
-                        continue 'a;
-                    }
+                if self.is_int_hole(col, row) {
+                    continue;
                 }
                 let x = self.xlut[col];
                 let y = self.ylut[row];
                 let name_l = format!("INT_L_X{x}Y{y}");
                 let name_r = format!("INT_R_X{x}Y{y}", x = x + 1);
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INT_GCLK"),
                     &[&name_l, &name_r],
                     self.db.get_node_naming("INT_GCLK"),
@@ -2334,7 +2344,7 @@ pub fn expand_grid<'a>(
         }
     }
 
-    let mut xdie_wires = HashMap::new();
+    let mut xdie_wires = BiHashMap::new();
     for i in 1..grids.len() {
         let dieid_s = DieId::from_idx(i - 1);
         let dieid_n = DieId::from_idx(i);
@@ -2571,6 +2581,7 @@ pub fn expand_grid<'a>(
         });
     }
 
+    egrid.finish();
     ExpandedDevice {
         kind: mgrid.kind,
         grids: grids.clone(),

@@ -631,7 +631,8 @@ impl Expander<'_> {
                         let lr = if col < di.col_cfrm { 'L' } else { 'R' };
                         let yy = if reg.to_idx() % 2 == 1 { y - 1 } else { y };
                         let name = format!("RCLK_INT_{lr}_FT_X{x}Y{yy}");
-                        die[(col, row)].add_xnode(
+                        die.add_xnode(
+                            (col, row),
                             self.db.get_node("RCLK"),
                             &[&name],
                             self.db.get_node_naming("RCLK"),
@@ -722,7 +723,8 @@ impl Expander<'_> {
                         } else {
                             tile = format!("{tk}_X{x}Y{y}");
                         }
-                        die[(col, row)].add_xnode(
+                        die.add_xnode(
+                            (col, row),
                             self.db.get_node("CLE_BC"),
                             &[&tile],
                             self.db.get_node_naming("CLE_BC"),
@@ -749,7 +751,8 @@ impl Expander<'_> {
                             };
                             let name = format!("{kind}_X{x}Y{yy}");
                             let node = if reg.to_idx() % 2 == 1 {
-                                die[(col + 1, row)].add_xnode(
+                                die.add_xnode(
+                                    (col + 1, row),
                                     self.db.get_node("RCLK_CLE"),
                                     &[&name],
                                     self.db.get_node_naming(if is_lag {
@@ -760,7 +763,8 @@ impl Expander<'_> {
                                     &[(col + 1, row), (col + 1, row - 1)],
                                 )
                             } else {
-                                die[(col + 1, row)].add_xnode(
+                                die.add_xnode(
+                                    (col + 1, row),
                                     self.db.get_node("RCLK_CLE.HALF"),
                                     &[&name],
                                     self.db.get_node_naming(if is_lag {
@@ -841,7 +845,8 @@ impl Expander<'_> {
                                 tile = format!("INTF_{ocf}_{bt}L_TILE_X{x}Y{y}");
                             }
                         }
-                        let node = die[(col, row)].add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node(kind),
                             &[&tile],
                             self.db.get_node_naming(kind),
@@ -884,7 +889,8 @@ impl Expander<'_> {
                                 tile = format!("INTF_{ocf}_{bt}R_TILE_X{x}Y{y}");
                             }
                         }
-                        let node = die[(col, row)].add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node(kind),
                             &[&tile],
                             self.db.get_node_naming(kind),
@@ -1002,14 +1008,16 @@ impl Expander<'_> {
                                 _ => unreachable!(),
                             }
                             let node = if reg.to_idx() % 2 == 1 {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_INTF.W"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_INTF.W.{kind}")),
                                     &[(col, row), (col, row - 1)],
                                 )
                             } else {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_INTF.W.HALF"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_INTF.W.HALF.{kind}")),
@@ -1026,7 +1034,8 @@ impl Expander<'_> {
                                 node.add_bel(i, format!("BUFDIV_LEAF_X{sx}Y{sy}", sy = sy + dy));
                             }
                             if has_dfx {
-                                let node = die[(col, row)].add_xnode(
+                                let node = die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_DFX.W"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_DFX.W.{kind}")),
@@ -1037,7 +1046,8 @@ impl Expander<'_> {
                                 node.add_bel(0, format!("RCLK_X{sx}Y{sy}"));
                             }
                             if is_rclk_hdio {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_HDIO"),
                                     &[&tile],
                                     self.db.get_node_naming("RCLK_HDIO"),
@@ -1045,7 +1055,8 @@ impl Expander<'_> {
                                 );
                             }
                             if is_rclk_hb_hdio {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_HB_HDIO"),
                                     &[&tile],
                                     self.db.get_node_naming("RCLK_HB_HDIO"),
@@ -1144,14 +1155,16 @@ impl Expander<'_> {
                                 _ => unreachable!(),
                             }
                             let node = if reg.to_idx() % 2 == 1 {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_INTF.E"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_INTF.E.{kind}")),
                                     &[(col, row), (col, row - 1)],
                                 )
                             } else {
-                                die[(col, row)].add_xnode(
+                                die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_INTF.E.HALF"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_INTF.E.HALF.{kind}")),
@@ -1164,7 +1177,8 @@ impl Expander<'_> {
                                 node.add_bel(i, format!("BUFDIV_LEAF_X{sx}Y{sy}", sy = sy + dy));
                             }
                             if has_dfx {
-                                let node = die[(col, row)].add_xnode(
+                                let node = die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("RCLK_DFX.E"),
                                     &[&tile],
                                     self.db.get_node_naming(&format!("RCLK_DFX.E.{kind}")),
@@ -1203,7 +1217,8 @@ impl Expander<'_> {
                     let x = di.xlut[col];
                     let y = di.ylut[row];
                     let name = format!("CLE_W_CORE_X{x}Y{y}");
-                    let node = tile.add_xnode(
+                    let node = die.add_xnode(
+                        (col, row),
                         self.db.get_node("CLE_R"),
                         &[&name],
                         self.db.get_node_naming("CLE_R"),
@@ -1213,9 +1228,9 @@ impl Expander<'_> {
                     let sy = di.cleylut[row];
                     node.add_bel(0, format!("SLICE_X{sx}Y{sy}"));
                     node.add_bel(1, format!("SLICE_X{sx}Y{sy}", sx = sx + 1));
-                    let tile = &mut die[(col + 1, row)];
                     let name = format!("CLE_E_CORE_X{x}Y{y}", x = x + 1);
-                    let node = tile.add_xnode(
+                    let node = die.add_xnode(
+                        (col + 1, row),
                         self.db.get_node("CLE_L"),
                         &[&name],
                         self.db.get_node_naming("CLE_L"),
@@ -1256,7 +1271,8 @@ impl Expander<'_> {
                     let reg = grid.row_to_reg(row);
                     let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                     let name = format!("DSP_{ocf}_{bt}_TILE_X{x}Y{y}");
-                    let node = tile.add_xnode(
+                    let node = die.add_xnode(
+                        (col, row),
                         self.db.get_node("DSP"),
                         &[&name],
                         self.db.get_node_naming("DSP"),
@@ -1323,7 +1339,8 @@ impl Expander<'_> {
                         let reg = grid.row_to_reg(row);
                         let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                         let name = format!("BRAM_{ocf}_{bt}{lr}_TILE_X{x}Y{y}");
-                        let node = tile.add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node(kind),
                             &[&name],
                             self.db.get_node_naming(kind),
@@ -1358,8 +1375,7 @@ impl Expander<'_> {
                     if cd.has_bli_top_l && row.to_idx() >= die.rows().len() - 4 {
                         continue;
                     }
-                    let tile = &mut die[(col, row)];
-                    if tile.nodes.is_empty() {
+                    if die[(col, row)].nodes.is_empty() {
                         continue;
                     }
                     let x = di.xlut[col];
@@ -1371,7 +1387,8 @@ impl Expander<'_> {
                     let delay = if is_delay { "_DELAY" } else { "" };
                     let name = format!("URAM{delay}_{ocf}_{bt}L_TILE_X{x}Y{y}");
                     let kind = if is_delay { "URAM_DELAY" } else { "URAM" };
-                    let node = tile.add_xnode(
+                    let node = die.add_xnode(
+                        (col, row),
                         self.db.get_node(kind),
                         &[&name],
                         self.db.get_node_naming(kind),
@@ -1457,7 +1474,6 @@ impl Expander<'_> {
                         HardRowKind::HscB => ("HSC", "HSC_TILE", "HSC", true),
                     };
                     let row = grid.row_reg_bot(reg);
-                    let tile = &mut die[(hc.col, row)];
                     let mut crd = vec![];
                     let height = if is_high { 96 } else { 48 };
                     for i in 0..height {
@@ -1469,7 +1485,8 @@ impl Expander<'_> {
                     let x = di.xlut[hc.col - 1];
                     let y = di.ylut[row];
                     let name = format!("{tk}_X{x}Y{y}");
-                    let node = tile.add_xnode(
+                    let node = die.add_xnode(
+                        (hc.col, row),
                         self.db.get_node(nk),
                         &[&name],
                         self.db.get_node_naming(nk),
@@ -1529,7 +1546,6 @@ impl Expander<'_> {
                         continue;
                     }
                     let row = grid.row_reg_bot(reg);
-                    let tile = &mut die[(col, row)];
                     let mut crd = vec![];
                     for i in 0..48 {
                         crd.push((col - 1, row + i));
@@ -1546,7 +1562,8 @@ impl Expander<'_> {
                         let name_nps_a = format!("NOC_NPS_VNOC_TOP_X{x}Y{y}", y = y + 15);
                         let name_nps_b = format!("NOC_NPS_VNOC_TOP_X{x}Y{y}", y = y + 23);
                         let name_nmu = format!("NOC_NMU512_TOP_X{x}Y{y}", y = y + 31);
-                        let node = tile.add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node("VNOC"),
                             &[&name_nsu, &name_nps_a, &name_nps_b, &name_nmu],
                             self.db.get_node_naming("VNOC"),
@@ -1562,7 +1579,8 @@ impl Expander<'_> {
                         let name_nps_b = format!("NOC2_NPS5555_TOP_X{x}Y{y}", y = y + 14);
                         let name_nmu = format!("NOC2_NMU512_VNOC_TILE_X{x}Y{y}", y = y + 16);
                         let name_scan = format!("NOC2_SCAN_TOP_X{x}Y{y}", y = y + 7);
-                        let node = tile.add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node("VNOC2"),
                             &[&name_nsu, &name_nps_a, &name_nps_b, &name_nmu, &name_scan],
                             self.db.get_node_naming("VNOC2"),
@@ -1613,7 +1631,8 @@ impl Expander<'_> {
                     if grid.is_reg_top(reg) {
                         let yy = if reg.to_idx() % 2 == 0 { y } else { y - 1 };
                         let name = format!("MISR_TILE_X{x}Y{yy}", x = x + 1);
-                        let node = tile.add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node("MISR"),
                             &[&name],
                             self.db.get_node_naming("MISR"),
@@ -1623,7 +1642,8 @@ impl Expander<'_> {
                         node.add_bel(0, format!("MISR_X{sx}Y{sy}"));
                     } else {
                         let name = format!("AMS_SAT_VNOC_TILE_X{x}Y{y}", y = y + 39);
-                        let node = tile.add_xnode(
+                        let node = die.add_xnode(
+                            (col, row),
                             self.db.get_node("SYSMON_SAT.VNOC"),
                             &[&name],
                             self.db.get_node_naming("SYSMON_SAT.VNOC"),
@@ -1714,6 +1734,7 @@ pub fn expand_grid<'a>(
     expander.fill_hard();
     expander.fill_vnoc();
     expander.fill_clkroot();
+    expander.egrid.finish();
 
     ExpandedDevice {
         grids: expander.grids,

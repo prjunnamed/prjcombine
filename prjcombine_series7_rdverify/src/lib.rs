@@ -2600,7 +2600,7 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire("SYNC_BB_N")]);
     }
     let obel_n = vrf.find_bel_walk(bel, 0, 50, "CMT_A").or_else(|| {
-        if bel.die.to_idx() != vrf.grid.tiles.len() - 1 {
+        if bel.die.to_idx() != vrf.grid.die.len() - 1 {
             let odie = bel.die + 1;
             let srow = vrf.grid.die(odie).rows().next().unwrap() + 25;
             vrf.find_bel(odie, (bel.col, srow), "CMT_A")

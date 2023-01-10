@@ -327,7 +327,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let tile = &mut self.die[(col, row)];
         let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(kind),
@@ -355,7 +356,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let tile = &mut self.die[(col, row)];
         let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(kind),
@@ -396,7 +398,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let tile = &mut self.die[(col, row)];
         let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(kind),
@@ -432,7 +435,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let tile = &mut self.die[(col, row)];
         let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(kind),
@@ -638,7 +642,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 .fill_tile((col, row), int_kind, int_naming, name.clone());
             self.grid
                 .fill_term(&mut self.die, (col, row), "TERM.N", "TERM.N", term_name);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node(ioi_kind),
                 &[&name],
                 self.db.get_node_naming(ioi_naming),
@@ -672,7 +677,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if let Some((kind, num)) = iobs_kind {
                 let coords: Vec<_> = (0..num).map(|dx| (col + dx, row)).collect();
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -680,7 +686,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
             }
             if !self.grid.kind.is_virtex2() {
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("RANDOR"),
                     &[&name],
                     self.db.get_node_naming("RANDOR.T"),
@@ -882,7 +889,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 .fill_tile((col, row), int_kind, int_naming, name.clone());
             self.grid
                 .fill_term(&mut self.die, (col, row), "TERM.E", term_kind, term_name);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node(ioi_kind),
                 &[&name],
                 self.db.get_node_naming(ioi_naming),
@@ -912,7 +920,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if let Some((kind, num)) = iobs_kind {
                 let coords: Vec<_> = (0..num).map(|dx| (col, row + dx)).collect();
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1104,7 +1113,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 .fill_tile((col, row), int_kind, int_naming, name.clone());
             self.grid
                 .fill_term(&mut self.die, (col, row), "TERM.S", "TERM.S", term_name);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node(ioi_kind),
                 &[&name],
                 self.db.get_node_naming(ioi_naming),
@@ -1156,7 +1166,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if let Some((kind, num)) = iobs_kind {
                 let coords: Vec<_> = (0..num).map(|dx| (col + dx, row)).collect();
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1164,7 +1175,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
             }
             if !self.grid.kind.is_virtex2() {
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("RANDOR"),
                     &[&name],
                     self.db.get_node_naming("RANDOR.B"),
@@ -1375,7 +1387,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 .fill_tile((col, row), int_kind, int_naming, name.clone());
             self.grid
                 .fill_term(&mut self.die, (col, row), "TERM.W", term_kind, term_name);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node(ioi_kind),
                 &[&name],
                 self.db.get_node_naming(ioi_naming),
@@ -1405,7 +1418,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if let Some((kind, num)) = iobs_kind {
                 let coords: Vec<_> = (0..num).map(|dx| (col, row + dx)).collect();
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1450,7 +1464,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 };
                 self.die
                     .fill_tile((col, row), "INT.CLB", naming, tile.clone());
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLB"),
                     &[&tile],
                     self.db.get_node_naming("CLB"),
@@ -1642,7 +1657,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let r = self.rlut[row];
                         format!("BMR{r}C{c}")
                     };
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node(kind),
                         &[&name],
                         self.db.get_node_naming(naming),
@@ -1674,7 +1690,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         } else {
                             format!("MACCSITE2_X{x}Y{y}")
                         };
-                        let node = self.die[(col + 3, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col + 3, row),
                             self.db.get_node("DSP"),
                             &[&name],
                             self.db.get_node_naming(naming),
@@ -1686,7 +1703,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             ],
                         );
                         node.add_bel(0, format!("DSP48A_X{sx}Y{sy}"));
-                        self.die[(col + 3, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col + 3, row),
                             self.db.get_node("INTF.DSP"),
                             &[&name],
                             self.db.get_node_naming("INTF.DSP"),
@@ -1820,7 +1838,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let dx = dcm_cols.binary_search(&col).unwrap();
                 let dy = dcm_rows.binary_search(&row).unwrap();
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("DCM.S3E"),
                     &[&name],
                     self.db.get_node_naming(if is_h {
@@ -1869,14 +1888,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if dcm.is_empty() {
                     continue;
                 }
-                let node = self.die[(col, row_b)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row_b),
                     self.db.get_node(dcm),
                     &[&name_b],
                     self.db.get_node_naming(dcm),
                     &[(col, row_b)],
                 );
                 node.add_bel(0, format!("DCM_X{dx}Y0"));
-                let node = self.die[(col, row_t)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row_t),
                     self.db.get_node(dcm),
                     &[&name_t],
                     self.db.get_node_naming(dcm),
@@ -1979,13 +2000,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let c = self.bramclut[col_r - 1];
                 let r = self.rlut[row];
                 let tile_r = format!("BMR{r}C{c}");
-                self.die[(col_l, row)].add_xnode(
+                self.die.add_xnode(
+                    (col_l, row),
                     self.db.get_node("PPC.E"),
                     &[&tile_l, &tile_r],
                     self.db.get_node_naming("PPC.E"),
                     &[(col_l, row), (col_r, row)],
                 );
-                self.die[(col_r, row)].add_xnode(
+                self.die.add_xnode(
+                    (col_r, row),
                     self.db.get_node("PPC.W"),
                     &[&tile_r, &tile_l],
                     self.db.get_node_naming("PPC.W"),
@@ -2020,13 +2043,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                     tile_b = format!("PTERMBR{rb}BRAMC{c}");
                     tile_t = format!("PTERMTR{rt}BRAMC{c}");
                 }
-                self.die[(col, row_b)].add_xnode(
+                self.die.add_xnode(
+                    (col, row_b),
                     self.db.get_node("PPC.N"),
                     &[&tile_b, &tile_t],
                     self.db.get_node_naming("PPC.N"),
                     &[(col, row_b), (col, row_t)],
                 );
-                self.die[(col, row_t)].add_xnode(
+                self.die.add_xnode(
+                    (col, row_t),
                     self.db.get_node("PPC.S"),
                     &[&tile_t, &tile_b],
                     self.db.get_node_naming("PPC.S"),
@@ -2054,7 +2079,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let node = tile.nodes.first().unwrap();
                     let name = node.names[NodeRawTileId::from_idx(0)].clone();
                     let nname = self.db.node_namings.key(node.naming);
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF.PPC"),
                         &[&name],
                         self.db.get_node_naming(&format!("INTF.{}", &nname[4..])),
@@ -2069,7 +2095,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 ("RBPPC", "PPC_X1Y0", "PPC405_X1Y0")
             };
-            let node = self.die[(bc, br)].add_xnode(
+            let node = self.die.add_xnode(
+                (bc, br),
                 self.db.get_node(kind),
                 &[name],
                 self.db.get_node_naming(kind),
@@ -2116,7 +2143,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let name = format!("{bt}IOIBRAMC{c}");
                 self.die
                     .fill_tile((col, row), "INT.GT.CLKPAD", "INT.GT.CLKPAD", name.clone());
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INTF.GT.CLKPAD"),
                     &[&name],
                     self.db.get_node_naming("INTF.GT.CLKPAD"),
@@ -2135,7 +2163,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let name = format!("BRAMR{r}C{c}");
                     self.die
                         .fill_tile((col, row), "INT.PPC", "INT.GT", name.clone());
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node(if d % 4 == 0 {
                             "INTF.GT.0"
                         } else {
@@ -2151,7 +2180,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let node_b;
             let node_t;
             if self.grid.kind == GridKind::Virtex2P {
-                node_b = self.die[(col, row_b)].add_xnode(
+                node_b = self.die.add_xnode(
+                    (col, row_b),
                     self.db.get_node("GIGABIT"),
                     &[&format!("BMR{r}C{c}")],
                     self.db.get_node_naming("GIGABIT.B"),
@@ -2165,7 +2195,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
                 node_b.add_bel(0, format!("GT_X{gx}Y0"));
             } else {
-                node_b = self.die[(col, row_b)].add_xnode(
+                node_b = self.die.add_xnode(
+                    (col, row_b),
                     self.db.get_node("GIGABIT10"),
                     &[&format!("BMR{r}C{c}")],
                     self.db.get_node_naming("GIGABIT10.B"),
@@ -2188,7 +2219,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             node_b.add_bel(3, format!("TXPPAD{bbank}"));
             node_b.add_bel(4, format!("TXNPAD{bbank}"));
             if self.grid.kind == GridKind::Virtex2P {
-                node_t = self.die[(col, row_t)].add_xnode(
+                node_t = self.die.add_xnode(
+                    (col, row_t),
                     self.db.get_node("GIGABIT"),
                     &[&format!("BMR4C{c}")],
                     self.db.get_node_naming("GIGABIT.T"),
@@ -2202,7 +2234,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
                 node_t.add_bel(0, format!("GT_X{gx}Y1"));
             } else {
-                node_t = self.die[(col, row_t)].add_xnode(
+                node_t = self.die.add_xnode(
+                    (col, row_t),
                     self.db.get_node("GIGABIT10"),
                     &[&format!("BMR8C{c}")],
                     self.db.get_node_naming("GIGABIT10.T"),
@@ -2286,7 +2319,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             self.die
                 .fill_term_pair_anon((col, row_s), (col, row_n), term_n, term_s);
-            self.die[(col, row_n)].add_xnode(
+            self.die.add_xnode(
+                (col, row_n),
                 self.db.get_node("LLV"),
                 &[&tile],
                 naming,
@@ -2337,7 +2371,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             };
             self.die
                 .fill_term_pair_anon((col_l, row), (col_r, row), term_e, term_w);
-            self.die[(col_r, row)].add_xnode(
+            self.die.add_xnode(
+                (col_r, row),
                 self.db.get_node("LLH"),
                 &[&tile],
                 self.db.get_node_naming("LLH"),
@@ -2558,7 +2593,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let vx = self.vcc_xlut[self.grid.col_clk] - 1;
         let vyb = self.grid.row_bot().to_idx();
-        let node = self.die[(self.grid.col_clk, row_b)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_b),
             self.db.get_node(kind_b),
             &[kind_b],
             self.db.get_node_naming(kind_b),
@@ -2583,7 +2619,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         } else {
             self.grid.rows.len() - 1
         };
-        let node = self.die[(self.grid.col_clk, row_t)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_t),
             self.db.get_node(kind_t),
             &[kind_t],
             self.db.get_node_naming(kind_t),
@@ -2607,7 +2644,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let rt = self.rlut[self.grid.row_pci.unwrap()];
         let rb = self.rlut[self.grid.row_pci.unwrap() - 1];
         let col_l = self.grid.col_left();
-        let node = self.die[(col_l, self.grid.row_pci.unwrap())].add_xnode(
+        let node = self.die.add_xnode(
+            (col_l, self.grid.row_pci.unwrap()),
             self.db.get_node("REG_L"),
             &[
                 if self.grid.kind == GridKind::Virtex2 {
@@ -2628,7 +2666,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         );
         node.add_bel(0, "PCILOGIC_X0Y0".to_string());
         let col_r = self.grid.col_right();
-        let node = self.die[(col_r, self.grid.row_pci.unwrap())].add_xnode(
+        let node = self.die.add_xnode(
+            (col_r, self.grid.row_pci.unwrap()),
             self.db.get_node("REG_R"),
             &[
                 if self.grid.kind == GridKind::Virtex2 {
@@ -2656,7 +2695,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let vyb = 0;
         let vyt = self.vcc_ylut[row_t];
         let vx = self.vcc_xlut[self.grid.col_clk] - 1;
-        let node = self.die[(self.grid.col_clk, row_b)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_b),
             self.db.get_node("CLKB.S3"),
             &["CLKB"],
             self.db.get_node_naming("CLKB.S3"),
@@ -2668,7 +2708,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(2, "BUFGMUX2".to_string());
         node.add_bel(3, "BUFGMUX3".to_string());
         node.add_bel(4, format!("GSIG_X{x}Y0", x = self.grid.col_clk.to_idx()));
-        let node = self.die[(self.grid.col_clk, row_t)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_t),
             self.db.get_node("CLKT.S3"),
             &["CLKT"],
             self.db.get_node_naming("CLKT.S3"),
@@ -2713,7 +2754,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         } else {
             "CLKB.S3A"
         };
-        let node = self.die[(self.grid.col_clk, row_b)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_b),
             self.db.get_node(kind_b),
             &[&tile_b, &buf_b],
             self.db.get_node_naming(kind_b),
@@ -2733,7 +2775,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         } else {
             "CLKT.S3A"
         };
-        let node = self.die[(self.grid.col_clk, row_t)].add_xnode(
+        let node = self.die.add_xnode(
+            (self.grid.col_clk, row_t),
             self.db.get_node(kind_t),
             &[&tile_t, &buf_t],
             self.db.get_node_naming(kind_t),
@@ -2793,7 +2836,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             kind_r = "CLKR.S3A";
         }
         let gsy = (self.grid.rows_hclk.len() + 1) / 2 + 1;
-        let node = self.die[(col_l, self.grid.row_mid())].add_xnode(
+        let node = self.die.add_xnode(
+            (col_l, self.grid.row_mid()),
             self.db.get_node(kind_l),
             &tiles_l,
             self.db.get_node_naming(kind_l),
@@ -2813,7 +2857,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         node.add_bel(8, "PCILOGIC_X0Y0".to_string());
         node.add_bel(9, format!("VCC_X{vxl}Y{vy}"));
         node.add_bel(10, format!("GLOBALSIG_X0Y{gsy}"));
-        let node = self.die[(col_r, self.grid.row_mid())].add_xnode(
+        let node = self.die.add_xnode(
+            (col_r, self.grid.row_mid()),
             self.db.get_node(kind_r),
             &tiles_r,
             self.db.get_node_naming(kind_r),
@@ -2869,13 +2914,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                     c += 1;
                     continue;
                 }
-                self.die[(col, row_b)].add_xnode(
+                self.die.add_xnode(
+                    (col, row_b),
                     self.db.get_node("DCMCONN.BOT"),
                     &[&name_b],
                     self.db.get_node_naming("DCMCONN.BOT"),
                     &[(col, row_b)],
                 );
-                self.die[(col, row_t)].add_xnode(
+                self.die.add_xnode(
+                    (col, row_t),
                     self.db.get_node("DCMCONN.TOP"),
                     &[&name_t],
                     self.db.get_node_naming("DCMCONN.TOP"),
@@ -2896,7 +2943,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             ] {
                 let tile = &mut self.die[c];
                 let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();
-                tile.add_xnode(
+                self.die.add_xnode(
+                    c,
                     self.db.get_node("PCI_CE_CNR"),
                     &[&name],
                     self.db.get_node_naming("PCI_CE_CNR"),
@@ -2918,7 +2966,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     } else {
                         format!("GCLKH_{kind}_X{x}Y{y}")
                     };
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node(kind),
                         &[&name],
                         self.db.get_node_naming(kind),
@@ -2932,7 +2981,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let x = self.xlut[col_l] - 1;
                         let y = row.to_idx();
                         let name = format!("GCLKV_IOISL_X{x}Y{y}");
-                        self.die[(col_l, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col_l, row),
                             self.db.get_node("PCI_CE_E"),
                             &[&name],
                             self.db.get_node_naming("PCI_CE_E"),
@@ -2940,7 +2990,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                         let x = self.xlut[col_r] - 1;
                         let name = format!("GCLKV_IOISR_X{x}Y{y}");
-                        self.die[(col_r, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col_r, row),
                             self.db.get_node("PCI_CE_W"),
                             &[&name],
                             self.db.get_node_naming("PCI_CE_W"),
@@ -3065,7 +3116,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let y = row_m.to_idx() - 1;
                     format!("{tk}_X{x}Y{y}")
                 };
-                let node = self.die[(col, row_m)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row_m),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -3099,7 +3151,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             x = self.xlut[col] + 1,
                             y = row_m.to_idx() - 1
                         );
-                        let node = self.die[(col, row_m)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row_m),
                             self.db.get_node("GCLKH.DSP"),
                             &[&name],
                             self.db.get_node_naming("GCLKH.DSP"),
@@ -3121,7 +3174,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     r -= 1;
                 }
                 let name = format!("GCLKCR{r}");
-                self.die[(self.grid.col_clk, row_m)].add_xnode(
+                self.die.add_xnode(
+                    (self.grid.col_clk, row_m),
                     self.db.get_node("GCLKC"),
                     &[&name],
                     self.db.get_node_naming("GCLKC"),
@@ -3137,7 +3191,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let y = row_m.to_idx() - 1;
                         format!("GCLKVC_X{x}Y{y}")
                     };
-                    self.die[(col, row_m)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row_m),
                         self.db.get_node("GCLKVC"),
                         &[&name],
                         self.db.get_node_naming("GCLKVC"),
@@ -3165,7 +3220,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         } else {
             "M".to_string()
         };
-        self.die[(self.grid.col_clk, self.grid.row_mid())].add_xnode(
+        self.die.add_xnode(
+            (self.grid.col_clk, self.grid.row_mid()),
             self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(kind),
@@ -3176,13 +3232,15 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_gclkvm(&mut self) {
         if let Some((col_cl, col_cr)) = self.grid.cols_clkv {
             if self.grid.kind == GridKind::Spartan3 {
-                self.die[(col_cl, self.grid.row_mid())].add_xnode(
+                self.die.add_xnode(
+                    (col_cl, self.grid.row_mid()),
                     self.db.get_node("GCLKVM.S3"),
                     &["LGCLKVM"],
                     self.db.get_node_naming("GCLKVM.S3"),
                     &[],
                 );
-                self.die[(col_cr, self.grid.row_mid())].add_xnode(
+                self.die.add_xnode(
+                    (col_cr, self.grid.row_mid()),
                     self.db.get_node("GCLKVM.S3"),
                     &["RGCLKVM"],
                     self.db.get_node_naming("GCLKVM.S3"),
@@ -3194,13 +3252,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let y = self.grid.row_mid().to_idx() - 1;
                 let name_l = format!("GCLKVML_X{xl}Y{y}");
                 let name_r = format!("GCLKVMR_X{xr}Y{y}");
-                self.die[(col_cl, self.grid.row_mid())].add_xnode(
+                self.die.add_xnode(
+                    (col_cl, self.grid.row_mid()),
                     self.db.get_node("GCLKVM.S3E"),
                     &[&name_l],
                     self.db.get_node_naming("GCLKVML"),
                     &[],
                 );
-                self.die[(col_cr, self.grid.row_mid())].add_xnode(
+                self.die.add_xnode(
+                    (col_cr, self.grid.row_mid()),
                     self.db.get_node("GCLKVM.S3E"),
                     &[&name_r],
                     self.db.get_node_naming("GCLKVMR"),
@@ -3341,7 +3401,7 @@ impl Grid {
         if self.kind.is_virtex2() {
             let kind = die.grid.db.get_node(kind);
             let naming = die.grid.db.get_node_naming(naming);
-            die[coord].add_xnode(kind, &[&name], naming, &[coord]);
+            die.add_xnode(coord, kind, &[&name], naming, &[coord]);
         }
         die.fill_term_tile(coord, kind, naming, name);
     }
@@ -3447,6 +3507,7 @@ impl Grid {
             die_order: vec![expander.die.die],
         };
 
+        egrid.finish();
         ExpandedDevice {
             grid: self,
             egrid,

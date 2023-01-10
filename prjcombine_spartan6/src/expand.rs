@@ -283,7 +283,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     ""
                 };
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INT"),
                     &[&format!("INT{bram}_X{x}Y{y}")],
                     self.db
@@ -299,7 +300,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     cd.kind,
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::DspPlus
                 ) {
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF"),
                         &[&format!("INT_INTERFACE_X{x}Y{y}")],
                         self.db.get_node_naming("INTF"),
@@ -316,7 +318,6 @@ impl<'a, 'b> Expander<'a, 'b> {
             let x = col.to_idx();
             let y = row.to_idx();
             let is_brk = y % 16 == 0 && row != self.grid.row_clk();
-            let tile = &mut self.die[(col, row)];
             let mut ltt = "IOI_LTERM";
             if rd.lio {
                 self.fill_ioi((col, row), if is_brk { "LIOI_BRK" } else { "LIOI" });
@@ -348,13 +349,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if let Some(cnr) = cnr {
                     ltt = "CNR_TL_LTERM";
                     let name = format!("{cnr}_X{x}Y{y}");
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF"),
                         &[&name],
                         self.db.get_node_naming("INTF.CNR"),
                         &[(col, row)],
                     );
-                    let node = tile.add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node(cnr),
                         &[&name],
                         self.db.get_node_naming(cnr),
@@ -375,7 +378,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                 } else {
                     let carry = if is_brk { "_CARRY" } else { "" };
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF"),
                         &[&format!("INT_INTERFACE{carry}_X{x}Y{y}")],
                         self.db.get_node_naming("INTF"),
@@ -399,7 +403,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             };
             let name = format!("{ltt}{txtra}_X{rx}Y{ry}", rx = rx - 1);
             if let Some(naming) = naming {
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -454,34 +459,37 @@ impl<'a, 'b> Expander<'a, 'b> {
                     trunk_naming = "PCI_CE_TRUNK_BUF_TOP";
                 }
                 let name = format!("{kind}_X{x}Y{y}", y = y - 1);
-                let tile = &mut self.die[(col, row)];
                 let name_term = if row == self.grid.row_clk() {
                     format!("HCLK_IOI_LTERM_BOT25_X{rx}Y{ry}", rx = rx - 1, ry = ry - 2)
                 } else {
                     format!("HCLK_IOI_LTERM_X{rx}Y{ry}", rx = rx - 1, ry = ry - 1)
                 };
-                tile.add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("LRIOI_CLK"),
                     &[&name, &name_term],
                     self.db.get_node_naming("LRIOI_CLK.L"),
                     &[],
                 );
                 if split {
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PCI_CE_SPLIT"),
                         &[&name],
                         self.db.get_node_naming("PCI_CE_SPLIT"),
                         &[],
                     );
                 } else {
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PCI_CE_TRUNK_BUF"),
                         &[&name],
                         self.db.get_node_naming(trunk_naming),
                         &[],
                     );
                     if row != self.grid.row_clk() {
-                        tile.add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("PCI_CE_V_BUF"),
                             &[&name],
                             self.db.get_node_naming(v_naming),
@@ -493,7 +501,8 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             if row == self.grid.row_bio_outer() {
                 let name = format!("IOI_PCI_CE_LEFT_X{rx}Y{ry}", ry = ry - 1);
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("PCI_CE_H_BUF"),
                     &[&name],
                     self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
@@ -502,7 +511,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if row == self.grid.row_tio_outer() {
                 let name = format!("IOI_PCI_CE_LEFT_X{rx}Y{ry}", ry = ry + 1);
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("PCI_CE_H_BUF"),
                     &[&name],
                     self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
@@ -518,7 +528,6 @@ impl<'a, 'b> Expander<'a, 'b> {
             let x = col.to_idx();
             let y = row.to_idx();
             let is_brk = y % 16 == 0 && row != self.grid.row_clk();
-            let tile = &mut self.die[(col, row)];
             let mut rtt = "IOI_RTERM";
             if rd.rio {
                 self.fill_ioi((col, row), if is_brk { "RIOI_BRK" } else { "RIOI" });
@@ -554,13 +563,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if let Some(cnr) = cnr {
                     rtt = "CNR_TR_RTERM";
                     let name = format!("{cnr}_X{x}Y{y}");
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF"),
                         &[&name],
                         self.db.get_node_naming("INTF.CNR"),
                         &[(col, row)],
                     );
-                    let node = tile.add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node(cnr),
                         &[&name],
                         self.db.get_node_naming(cnr),
@@ -591,7 +602,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                 } else {
                     let carry = if is_brk { "_CARRY" } else { "" };
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF"),
                         &[&format!("INT_INTERFACE{carry}_X{x}Y{y}")],
                         self.db.get_node_naming("INTF"),
@@ -615,7 +627,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             };
             let name = format!("{rtt}{txtra}_X{rx}Y{ry}", rx = rx + 3);
             if let Some(naming) = naming {
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -675,29 +688,32 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     format!("HCLK_IOI_RTERM_X{rx}Y{ry}", rx = rx + 3, ry = ry - 1)
                 };
-                let tile = &mut self.die[(col, row)];
-                tile.add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("LRIOI_CLK"),
                     &[&name, &name_term],
                     self.db.get_node_naming("LRIOI_CLK.R"),
                     &[],
                 );
                 if split {
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PCI_CE_SPLIT"),
                         &[&name],
                         self.db.get_node_naming("PCI_CE_SPLIT"),
                         &[],
                     );
                 } else {
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("PCI_CE_TRUNK_BUF"),
                         &[&name],
                         self.db.get_node_naming(trunk_naming),
                         &[],
                     );
                     if row != self.grid.row_clk() && !(self.grid.has_encrypt && row.to_idx() == 8) {
-                        tile.add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("PCI_CE_V_BUF"),
                             &[&name],
                             self.db.get_node_naming(v_naming),
@@ -709,7 +725,8 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             if row == self.grid.row_bio_outer() {
                 let name = format!("IOI_PCI_CE_RIGHT_X{rx}Y{ry}", ry = ry - 1);
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("PCI_CE_H_BUF"),
                     &[&name],
                     self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
@@ -718,7 +735,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             if row == self.grid.row_tio_outer() {
                 let name = format!("IOI_PCI_CE_RIGHT_X{rx}Y{ry}", ry = ry + 1);
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("PCI_CE_H_BUF"),
                     &[&name],
                     self.db.get_node_naming("PCI_CE_H_BUF_CNR"),
@@ -771,20 +789,23 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 format!("IOI_TTERM_CLB_X{rx}Y{ry}")
             };
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("BTIOI_CLK"),
                 &[&name],
                 self.db.get_node_naming("TIOI_CLK"),
                 &[],
             );
             if is_clk {
-                self.die[(col, row - 1)].add_xnode(
+                self.die.add_xnode(
+                    (col, row - 1),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming("CLKPIN_BUF.T.BOT"),
                     &[],
                 );
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming("CLKPIN_BUF.T.TOP"),
@@ -837,20 +858,23 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 format!("IOI_BTERM_CLB_X{rx}Y{ry}")
             };
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("BTIOI_CLK"),
                 &[&name],
                 self.db.get_node_naming("BIOI_CLK"),
                 &[],
             );
             if is_clk {
-                self.die[(col, row)].add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming("CLKPIN_BUF.B.BOT"),
                     &[],
                 );
-                self.die[(col, row + 1)].add_xnode(
+                self.die.add_xnode(
+                    (col, row + 1),
                     self.db.get_node("CLKPIN_BUF"),
                     &[&name],
                     self.db.get_node_naming("CLKPIN_BUF.B.TOP"),
@@ -900,7 +924,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let name_mui3 = format!("MCB_MUI3_X{x}Y{y}", y = mcb.row_mui[5].to_idx());
                 let name_mui4 = format!("MCB_MUI4_X{x}Y{y}", y = mcb.row_mui[6].to_idx());
                 let name_mui5 = format!("MCB_MUI5_X{x}Y{y}", y = mcb.row_mui[7].to_idx());
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("MCB"),
                     &[
                         &name,
@@ -970,7 +995,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
         let name_reg = format!("REG_L_X{rx}Y{ry}");
         let name_int = format!("INT_X{x}Y{y}");
-        let node = self.die[(col, row)].add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node("PCILOGICSE"),
             &[&name, &name_reg, &name_ioi, &name_int],
             self.db.get_node_naming("PCILOGICSE_L"),
@@ -988,7 +1014,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         };
         let name_reg = format!("REG_R_X{rx}Y{ry}");
         let name_int = format!("INT_X{x}Y{y}");
-        let node = self.die[(col, row)].add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node("PCILOGICSE"),
             &[&name, &name_reg, &name_int],
             self.db.get_node_naming("PCILOGICSE_R"),
@@ -1010,13 +1037,15 @@ impl<'a, 'b> Expander<'a, 'b> {
             row_t: row + 1,
         });
         let y = row.to_idx();
-        self.die[(col, row)].add_xnode(
+        self.die.add_xnode(
+            (col, row),
             self.db.get_node("INTF"),
             &[&format!("INT_INTERFACE_REGC_X{x}Y{y}")],
             self.db.get_node_naming("INTF.REGC"),
             &[(col, row)],
         );
-        let node = self.die[(col, row)].add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node("CLKC"),
             &[&format!(
                 "CLKC_X{x}Y{y}",
@@ -1036,7 +1065,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
 
-        self.die[(col, row)].add_xnode(
+        self.die.add_xnode(
+            (col, row),
             self.db.get_node("CLKC_BUFPLL"),
             &[&format!(
                 "REG_C_CMT_X{x}Y{y}",
@@ -1051,7 +1081,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             (self.grid.rows_hclkbuf.1, "REG_V_HCLKBUF_TOP"),
         ] {
             let y = row.to_idx();
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("HCLK_V_MIDBUF"),
                 &[&format!("{tk}_X{x}Y{y}")],
                 self.db.get_node_naming("HCLK_V_MIDBUF"),
@@ -1064,7 +1095,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             (self.grid.rows_midbuf.1, "REG_V_MIDBUF_TOP"),
         ] {
             let y = row.to_idx();
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("CKPIN_V_MIDBUF"),
                 &[&format!("{tk}_X{x}Y{y}")],
                 self.db.get_node_naming(tk),
@@ -1090,7 +1122,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 x = col.to_idx() + 1,
                 y = row.to_idx() + 1
             );
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("REG_B"),
                 &[&name, &name_term, &name_bufpll, &name_int],
                 self.db.get_node_naming("REG_B"),
@@ -1139,7 +1172,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 ry = self.rylut[row] + 1
             );
             let name_int = format!("IOI_INT_X{x}Y{y}", x = col.to_idx() + 1, y = row.to_idx());
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("REG_T"),
                 &[&name, &name_term, &name_bufpll, &name_int],
                 self.db.get_node_naming("REG_T"),
@@ -1184,7 +1218,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     format!("REG_V_HCLK_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1)
                 };
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("HCLK_ROW"),
                     &[&name],
                     self.db.get_node_naming("HCLK_ROW"),
@@ -1221,7 +1256,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 format!("{tk}_X{x}Y{y}", y = y - 1)
             };
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("CKPIN_H_MIDBUF"),
                 &[&name],
                 self.db.get_node_naming("CKPIN_H_MIDBUF"),
@@ -1237,7 +1273,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let name_term = format!("REGH_IOI_LTERM_X{rx}Y{ry}", rx = rx - 1, ry = ry - 1);
             let name_int0 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
             let name_int1 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("REG_L"),
                 &[&name, &name_term, &name_int0, &name_int1],
                 self.db.get_node_naming("REG_L"),
@@ -1280,7 +1317,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let name_term = format!("REGH_IOI_RTERM_X{rx}Y{ry}", rx = rx + 3, ry = ry - 1);
             let name_int0 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
             let name_int1 = format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1);
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("REG_R"),
                 &[&name, &name_term, &name_int0, &name_int1],
                 self.db.get_node_naming("REG_R"),
@@ -1341,7 +1379,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.kind = self.db.get_node("INT.IOI");
                 node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
                 node.naming = self.db.get_node_naming("INT.IOI");
-                tile.add_xnode(
+                self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INTF.IOI"),
                     &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
                     self.db.get_node_naming("INTF"),
@@ -1349,7 +1388,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
             }
             let name = format!("{tk}_X{x}Y{y}", y = br.to_idx());
-            let node = self.die[(col, br)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, br),
                 self.db.get_node("CMT_DCM"),
                 &[&name],
                 self.db.get_node_naming(tk),
@@ -1357,7 +1397,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
             node.add_bel(0, format!("DCM_X0Y{y}", y = dy * 2));
             node.add_bel(1, format!("DCM_X0Y{y}", y = dy * 2 + 1));
-            self.die[(col, br)].add_xnode(
+            self.die.add_xnode(
+                (col, br),
                 self.db.get_node(bk),
                 &[&name],
                 self.db.get_node_naming(bk),
@@ -1389,8 +1430,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             });
             let row = br - 1;
             let y = row.to_idx();
-            let tile = &mut self.die[(col, row)];
-            tile.add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("INTF"),
                 &[&format!("INT_INTERFACE_CARRY_X{x}Y{y}")],
                 self.db.get_node_naming("INTF"),
@@ -1403,7 +1444,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.kind = self.db.get_node("INT.IOI");
             node.names[def_rt] = format!("IOI_INT_X{x}Y{y}");
             node.naming = self.db.get_node_naming("INT.IOI");
-            tile.add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("INTF.IOI"),
                 &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
                 self.db.get_node_naming("INTF"),
@@ -1411,7 +1453,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
 
             let name = format!("{tk}_X{x}Y{y}", y = br.to_idx());
-            let node = self.die[(col, br)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, br),
                 self.db.get_node("CMT_PLL"),
                 &[&name],
                 self.db.get_node_naming(tk),
@@ -1427,7 +1470,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 ),
             );
             if let Some(out) = out {
-                self.die[(col, br)].add_xnode(
+                self.die.add_xnode(
+                    (col, br),
                     self.db.get_node("PLL_BUFPLL_OUT"),
                     &[&name],
                     self.db.get_node_naming(out),
@@ -1686,7 +1730,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     x = self.rxlut[bc] + 2,
                     y = self.rylut[row_gt_mid + 7] + 1
                 );
-                let node = self.die[(bc, self.grid.row_tio_outer())].add_xnode(
+                let node = self.die.add_xnode(
+                    (bc, self.grid.row_tio_outer()),
                     self.db.get_node("GTP"),
                     &[&name, &name_buf],
                     self.db.get_node_naming("GTPDUAL_TOP"),
@@ -1707,7 +1752,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = bc.to_idx();
                 let y = row_pcie_bot.to_idx() - 1;
                 let name = format!("PCIE_TOP_X{x}Y{y}");
-                let node = self.die[crd[0]].add_xnode(
+                let node = self.die.add_xnode(
+                    crd[0],
                     self.db.get_node("PCIE"),
                     &[&name],
                     self.db.get_node_naming("PCIE"),
@@ -1739,7 +1785,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     x = self.rxlut[bc] + 2,
                     y = self.rylut[row_gt_mid + 7] + 1
                 );
-                let node = self.die[(bc, self.grid.row_tio_outer())].add_xnode(
+                let node = self.die.add_xnode(
+                    (bc, self.grid.row_tio_outer()),
                     self.db.get_node("GTP"),
                     &[&name, &name_buf],
                     self.db.get_node_naming("GTPDUAL_TOP"),
@@ -1771,7 +1818,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 x = self.rxlut[bcl] + 2,
                 y = self.rylut[row_gt_bot] - 1
             );
-            let node = self.die[(bcl, self.grid.row_bio_outer())].add_xnode(
+            let node = self.die.add_xnode(
+                (bcl, self.grid.row_bio_outer()),
                 self.db.get_node("GTP"),
                 &[&name, &name_buf],
                 self.db.get_node_naming("GTPDUAL_BOT"),
@@ -1796,7 +1844,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 x = self.rxlut[bcr] + 2,
                 y = self.rylut[row_gt_bot] - 1
             );
-            let node = self.die[(bcr, self.grid.row_bio_outer())].add_xnode(
+            let node = self.die.add_xnode(
+                (bcr, self.grid.row_bio_outer()),
                 self.db.get_node("GTP"),
                 &[&name, &name_buf],
                 self.db.get_node_naming("GTPDUAL_BOT"),
@@ -1898,7 +1947,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("{kind}_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -1943,7 +1993,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("BRAMSITE2_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("BRAM"),
                     &[&name],
                     self.db.get_node_naming("BRAM"),
@@ -1961,7 +2012,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_bio_outer();
             let ry = self.rylut[row];
             let name = format!("BRAM_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1);
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("PCI_CE_H_BUF"),
                 &[&name],
                 self.db.get_node_naming("PCI_CE_H_BUF_BRAM"),
@@ -1971,7 +2023,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_tio_outer();
             let ry = self.rylut[row];
             let name = format!("BRAM_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1);
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("PCI_CE_H_BUF"),
                 &[&name],
                 self.db.get_node_naming("PCI_CE_H_BUF_BRAM"),
@@ -2020,7 +2073,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("MACCSITE2_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("DSP"),
                     &[&name],
                     self.db.get_node_naming("DSP"),
@@ -2036,7 +2090,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_bio_outer();
             let ry = self.rylut[row];
             let name = format!("DSP_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1);
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("PCI_CE_H_BUF"),
                 &[&name],
                 self.db.get_node_naming("PCI_CE_H_BUF_DSP"),
@@ -2046,7 +2101,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let row = self.grid.row_tio_outer();
             let ry = self.rylut[row];
             let name = format!("DSP_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1);
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("PCI_CE_H_BUF"),
                 &[&name],
                 self.db.get_node_naming("PCI_CE_H_BUF_DSP"),
@@ -2083,7 +2139,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             naming = "GTPDUAL_DSP_FEEDTHRU";
                         }
                     }
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("HCLK_H_MIDBUF"),
                         &[&name],
                         self.db.get_node_naming(naming),
@@ -2167,7 +2224,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}");
                         }
                     }
-                    self.die[(col, row)].add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("HCLK"),
                         &[&name],
                         self.db.get_node_naming(naming),
@@ -2197,13 +2255,15 @@ impl<'a, 'b> Expander<'a, 'b> {
             .db
             .get_node_naming(if is_brk { "INT.IOI.BRK" } else { "INT.IOI" });
         let name = format!("{naming}_X{x}Y{y}");
-        tile.add_xnode(
+        self.die.add_xnode(
+            crd,
             self.db.get_node("INTF.IOI"),
             &[&name],
             self.db.get_node_naming("INTF.IOI"),
             &[crd],
         );
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            crd,
             self.db.get_node("IOI"),
             &[&name],
             self.db.get_node_naming(naming),
@@ -2230,9 +2290,9 @@ impl<'a, 'b> Expander<'a, 'b> {
         if tk.starts_with('B') {
             y = 0;
         }
-        let tile = &mut self.die[crd];
         let name = format!("{tk}_X{x}Y{y}");
-        let node = tile.add_xnode(
+        let node = self.die.add_xnode(
+            crd,
             self.db.get_node("IOB"),
             &[&name],
             self.db.get_node_naming(naming),
@@ -2272,8 +2332,8 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_intf_rterm(&mut self, crd: Coord, name: String) {
         self.die
             .fill_term_tile(crd, "TERM.E", "TERM.E.INTF", name.clone());
-        let tile = &mut self.die[crd];
-        tile.add_xnode(
+        self.die.add_xnode(
+            crd,
             self.db.get_node("INTF"),
             &[&name],
             self.db.get_node_naming("INTF.RTERM"),
@@ -2284,11 +2344,11 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_intf_lterm(&mut self, crd: Coord, name: String, is_brk: bool) {
         self.die
             .fill_term_tile(crd, "TERM.W", "TERM.W.INTF", name.clone());
-        let tile = &mut self.die[crd];
-        tile.nodes.first_mut().unwrap().naming =
+        self.die[crd].nodes.first_mut().unwrap().naming =
             self.db
                 .get_node_naming(if is_brk { "INT.TERM.BRK" } else { "INT.TERM" });
-        tile.add_xnode(
+        self.die.add_xnode(
+            crd,
             self.db.get_node("INTF"),
             &[&name],
             self.db.get_node_naming("INTF.LTERM"),
@@ -2418,6 +2478,7 @@ impl Grid {
         };
         let site_holes = expander.site_holes;
 
+        egrid.finish();
         ExpandedDevice {
             grid: self,
             disabled,

@@ -159,7 +159,8 @@ impl Grid {
             let row_s = self.row_mid() - 1;
             let row_n = self.row_mid();
             grid.fill_term_pair_anon((col, row_s), (col, row_n), term_n, term_s);
-            grid[(col, row_n)].add_xnode(
+            grid.add_xnode(
+                (col, row_n),
                 db.get_node(kind),
                 &[&tile],
                 db.get_node_naming(kind),
@@ -186,7 +187,8 @@ impl Grid {
             let col_l = self.col_mid() - 1;
             let col_r = self.col_mid();
             grid.fill_term_pair_anon((col_l, row), (col_r, row), term_e, term_w);
-            grid[(col_r, row)].add_xnode(
+            grid.add_xnode(
+                (col_r, row),
                 db.get_node(kind),
                 &[&tile],
                 db.get_node_naming(kind),
@@ -196,6 +198,7 @@ impl Grid {
 
         grid.fill_main_passes();
 
+        egrid.finish();
         ExpandedDevice { grid: self, egrid }
     }
 }

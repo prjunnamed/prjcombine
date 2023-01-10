@@ -119,7 +119,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node("INT"),
                     &[&format!("INT_X{x}Y{y}")],
                     self.db.get_node_naming("INT"),
@@ -133,7 +134,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ColumnKind::ClbLL => (),
                     ColumnKind::ClbLM => (),
                     ColumnKind::Bram | ColumnKind::Dsp | ColumnKind::Io | ColumnKind::Cfg => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF"),
                             &[&format!("INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF"),
@@ -141,7 +143,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                     }
                     ColumnKind::Gt if col.to_idx() != 0 => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF.DELAY"),
                             &[&format!("GTP_INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF.GTP"),
@@ -149,7 +152,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                     }
                     ColumnKind::Gt => {
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("INTF.DELAY"),
                             &[&format!("GTX_LEFT_INT_INTERFACE_X{x}Y{y}")],
                             self.db.get_node_naming("INTF.GTX_LEFT"),
@@ -186,15 +190,15 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.db.get_term_naming("PPC.E"),
                     self.db.get_term_naming("PPC.W"),
                 );
-                let tile = &mut self.die[(col_l, row)];
-                tile.add_xnode(
+                self.die.add_xnode(
+                    (col_l, row),
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PPC_L_INT_INTERFACE_X{xl}Y{y}")],
                     self.db.get_node_naming("INTF.PPC_L"),
                     &[(col_l, row)],
                 );
-                let tile = &mut self.die[(col_r, row)];
-                tile.add_xnode(
+                self.die.add_xnode(
+                    (col_r, row),
                     self.db.get_node("INTF.DELAY"),
                     &[&format!("PPC_R_INT_INTERFACE_X{xr}Y{y}")],
                     self.db.get_node_naming("INTF.PPC_R"),
@@ -232,7 +236,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             let yt = br.to_idx() / 10 * 11 + 33;
             let tile_pb = format!("PPC_B_X36Y{yb}");
             let tile_pt = format!("PPC_T_X36Y{yt}");
-            let node = self.die[(bc, br)].add_xnode(
+            let node = self.die.add_xnode(
+                (bc, br),
                 self.db.get_node("PPC"),
                 &[&tile_pb, &tile_pt],
                 self.db.get_node_naming("PPC"),
@@ -339,7 +344,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("{kind}_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -360,8 +366,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 for dy in 0..10 {
                     let row = row + dy;
                     let y = row.to_idx();
-                    let tile = &mut self.die[(col, row)];
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("EMAC_INT_INTERFACE_X{x}Y{y}")],
                         self.db.get_node_naming("INTF.EMAC"),
@@ -371,7 +377,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let y = row.to_idx();
                 let crds: Vec<_> = (0..10).map(|dy| (col, row + dy)).collect();
                 let name = format!("EMAC_X{x}Y{y}");
-                let node = self.die[crds[0]].add_xnode(
+                let node = self.die.add_xnode(
+                    crds[0],
                     self.db.get_node("EMAC"),
                     &[&name],
                     self.db.get_node_naming("EMAC"),
@@ -383,8 +390,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 for dy in 0..40 {
                     let row = row + dy;
                     let y = row.to_idx();
-                    let tile = &mut self.die[(col, row)];
-                    tile.add_xnode(
+                    self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("INTF.DELAY"),
                         &[&format!("PCIE_INT_INTERFACE_X{x}Y{y}")],
                         self.db.get_node_naming("INTF.PCIE"),
@@ -395,7 +402,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let crds: Vec<_> = (0..40).map(|dy| (col, row + dy)).collect();
                 let name_b = format!("PCIE_B_X{x}Y{y}", y = y + 10);
                 let name_t = format!("PCIE_T_X{x}Y{y}", y = y + 30);
-                let node = self.die[crds[0]].add_xnode(
+                let node = self.die.add_xnode(
+                    crds[0],
                     self.db.get_node("PCIE"),
                     &[&name_b, &name_t],
                     self.db.get_node_naming("PCIE"),
@@ -434,7 +442,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("{tk}_X{x}Y{y}");
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(kind),
@@ -456,7 +465,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     if self.grid.cols_mgt_buf.contains(&col) {
                         let l = if col < self.col_cfg { "_LEFT" } else { "" };
                         let name_h = format!("HCLK_BRAM_MGT{l}_X{x}Y{y}", y = y - 1);
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("HCLK_BRAM_MGT"),
                             &[&name_h],
                             self.db.get_node_naming("HCLK_BRAM_MGT"),
@@ -464,7 +474,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         );
                     } else {
                         let name_h = format!("HCLK_{tk}_X{x}Y{y}", y = y - 1);
-                        let node = self.die[(col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("PMVBRAM"),
                             &[&name_h, &name],
                             self.db.get_node_naming("PMVBRAM"),
@@ -538,7 +549,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let name = format!("CFG_CENTER_X{rx}Y{ry}");
         let name_bufg = format!("CLK_BUFGMUX_X{rx}Y{ry}");
         let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
-        let node = self.die[(col, row)].add_xnode(
+        let node = self.die.add_xnode(
+            (col, row),
             self.db.get_node("CFG"),
             &[&name, &name_bufg],
             self.db.get_node_naming("CFG"),
@@ -587,7 +599,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             };
             let name = format!("CMT_X{x}Y{y}");
             let crds: [_; 10] = core::array::from_fn(|i| (col, row + i));
-            let node = self.die[(col, row)].add_xnode(
+            let node = self.die.add_xnode(
+                (col, row),
                 self.db.get_node("CMT"),
                 &[&name],
                 self.db.get_node_naming(naming),
@@ -605,7 +618,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 "CLK_CMT_TOP"
             };
             let name = format!("{naming}{mgt}_X{rx}Y{ry}");
-            self.die[(col, row)].add_xnode(
+            self.die.add_xnode(
+                (col, row),
                 self.db.get_node("CLK_CMT"),
                 &[&name],
                 self.db.get_node_naming(naming),
@@ -646,7 +660,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let y = row.to_idx();
                 let is_cfg = col == self.col_cfg;
                 if !self.is_site_hole(col, row) {
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("IOI"),
                         &[&format!("IOI_X{x}Y{y}")],
                         self.db.get_node_naming("IOI"),
@@ -674,7 +689,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         2 => "RIOB",
                         _ => unreachable!(),
                     };
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("IOB"),
                         &[&format!("{naming}_X{x}Y{y}")],
                         self.db.get_node_naming(naming),
@@ -783,7 +799,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             "CLK_HROW"
                         };
                         let name_hrow = format!("{kind}_X{x}Y{y}", y = y - 1);
-                        self.die[(col, row)].add_xnode(
+                        self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("CLK_HROW"),
                             &[&name_hrow],
                             self.db.get_node_naming("CLK_HROW"),
@@ -794,7 +811,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("HCLK_IOI_BOTCEN{mgt}_X{x}Y{y}", y = y - 1);
                             let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
                             let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
-                            let node = self.die[(col, row)].add_xnode(
+                            let node = self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_IOI_BOTCEN"),
                                 &[&name, &name_i0, &name_i1],
                                 self.db.get_node_naming("HCLK_IOI_BOTCEN"),
@@ -808,7 +826,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("HCLK_IOI_TOPCEN{mgt}_X{x}Y{y}", y = y - 1);
                             let name_i2 = format!("IOI_X{x}Y{y}");
                             let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
-                            let node = self.die[(col, row)].add_xnode(
+                            let node = self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_IOI_TOPCEN"),
                                 &[&name, &name_i2, &name_i3],
                                 self.db.get_node_naming("HCLK_IOI_TOPCEN"),
@@ -822,7 +841,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("HCLK_IOI_CMT{mgt}_X{x}Y{y}", y = y - 1);
                             let name_i2 = format!("IOI_X{x}Y{y}");
                             let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
-                            let node = self.die[(col, row)].add_xnode(
+                            let node = self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_IOI_CMT"),
                                 &[&name, &name_i2, &name_i3],
                                 self.db.get_node_naming("HCLK_IOI_CMT"),
@@ -834,7 +854,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
 
                             let name = format!("HCLK_IOB_CMT_BOT{mgt}_X{x}Y{y}", y = y - 1);
-                            self.die[(col, row)].add_xnode(
+                            self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_CMT"),
                                 &[&name, &name_hrow],
                                 self.db.get_node_naming("HCLK_CMT"),
@@ -842,7 +863,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             );
 
                             let name = format!("CLK_IOB_B_X{x}Y{y}");
-                            self.die[(col, row)].add_xnode(
+                            self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("CLK_IOB"),
                                 &[&name],
                                 self.db.get_node_naming("CLK_IOB_B"),
@@ -852,7 +874,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("HCLK_CMT_IOI_X{x}Y{y}", y = y - 1);
                             let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
                             let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
-                            let node = self.die[(col, row)].add_xnode(
+                            let node = self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_CMT_IOI"),
                                 &[&name, &name_i0, &name_i1],
                                 self.db.get_node_naming("HCLK_CMT_IOI"),
@@ -864,7 +887,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             node.add_bel(3, format!("DCI_X{iox}Y{ry}"));
 
                             let name = format!("HCLK_IOB_CMT_TOP{mgt}_X{x}Y{y}", y = y - 1);
-                            self.die[(col, row)].add_xnode(
+                            self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_CMT"),
                                 &[&name, &name_hrow],
                                 self.db.get_node_naming("HCLK_CMT"),
@@ -872,7 +896,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             );
 
                             let name = format!("CLK_IOB_T_X{x}Y{y}", y = y - 10);
-                            self.die[(col, row - 10)].add_xnode(
+                            self.die.add_xnode(
+                                (col, row - 10),
                                 self.db.get_node("CLK_IOB"),
                                 &[&name],
                                 self.db.get_node_naming("CLK_IOB_T"),
@@ -882,7 +907,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             || (row >= row_cmt_ioi && row < row_top_cmt)
                         {
                             let name = format!("HCLK_IOB_CMT_MID{mgt}_X{x}Y{y}", y = y - 1);
-                            self.die[(col, row)].add_xnode(
+                            self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_CMT"),
                                 &[&name, &name_hrow],
                                 self.db.get_node_naming("HCLK_CMT"),
@@ -893,7 +919,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name_i0 = format!("IOI_X{x}Y{y}", y = y - 2);
                             let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
                             let name_i2 = format!("IOI_X{x}Y{y}");
-                            let node = self.die[(col, row)].add_xnode(
+                            let node = self.die.add_xnode(
+                                (col, row),
                                 self.db.get_node("HCLK_IOI_CENTER"),
                                 &[&name, &name_i0, &name_i1, &name_i2],
                                 self.db.get_node_naming("HCLK_IOI_CENTER"),
@@ -908,7 +935,8 @@ impl<'a, 'b> Expander<'a, 'b> {
 
                             if row < self.grid.row_bufg() {
                                 let name = format!("CLK_MGT_BOT{mgt}_X{x}Y{y}");
-                                self.die[(col, row)].add_xnode(
+                                self.die.add_xnode(
+                                    (col, row),
                                     self.db.get_node("CLK_MGT"),
                                     &[&name],
                                     self.db.get_node_naming("CLK_MGT_BOT"),
@@ -916,7 +944,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                                 );
                             } else {
                                 let name = format!("CLK_MGT_TOP{mgt}_X{x}Y{y}", y = y - 10);
-                                self.die[(col, row - 10)].add_xnode(
+                                self.die.add_xnode(
+                                    (col, row - 10),
                                     self.db.get_node("CLK_MGT"),
                                     &[&name],
                                     self.db.get_node_naming("CLK_MGT_TOP"),
@@ -930,7 +959,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let name_i1 = format!("IOI_X{x}Y{y}", y = y - 1);
                         let name_i2 = format!("IOI_X{x}Y{y}");
                         let name_i3 = format!("IOI_X{x}Y{y}", y = y + 1);
-                        let node = self.die[(col, row)].add_xnode(
+                        let node = self.die.add_xnode(
+                            (col, row),
                             self.db.get_node("HCLK_IOI"),
                             &[&name, &name_i0, &name_i1, &name_i2, &name_i3],
                             self.db.get_node_naming("HCLK_IOI"),
@@ -1013,7 +1043,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let y = row.to_idx();
                 let crds: [_; 20] = core::array::from_fn(|i| (col, row + i));
                 let name = format!("{naming}_X{x}Y{y}", y = y + 9);
-                let node = self.die[(col, row)].add_xnode(
+                let node = self.die.add_xnode(
+                    (col, row),
                     self.db.get_node(kind),
                     &[&name],
                     self.db.get_node_naming(naming),
@@ -1076,7 +1107,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                         _ => "HCLK",
                     };
                     let name = format!("{kind}_X{x}Y{y}");
-                    let node = self.die[(col, row)].add_xnode(
+                    let node = self.die.add_xnode(
+                        (col, row),
                         self.db.get_node("HCLK"),
                         &[&name],
                         self.db.get_node_naming("HCLK"),
@@ -1332,6 +1364,7 @@ pub fn expand_grid<'a>(
     })
     .collect();
 
+    egrid.finish();
     ExpandedDevice {
         kind: grid.kind,
         grids: grids.clone(),

@@ -1,7 +1,7 @@
 use enum_map::Enum;
 use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Enum, Serialize, Deserialize,
@@ -328,7 +328,7 @@ pub struct TermKind {
     pub wires: EntityPartVec<WireId, TermInfo>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum TermInfo {
     BlackHole,
     PassNear(WireId),
@@ -362,4 +362,103 @@ pub enum TermWireInFarNaming {
         name_far_out: String,
         name_far_in: String,
     },
+}
+
+#[derive(Clone, Debug)]
+pub struct IntDbIndex {
+    pub nodes: EntityVec<NodeKindId, NodeIndex>,
+    pub terms: EntityVec<TermKindId, TermIndex>,
+    pub buf_ins: EntityVec<WireId, HashSet<WireId>>,
+    pub cond_alias_ins: EntityVec<WireId, HashMap<WireId, NodeKindId>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct NodeIndex {
+    pub mux_ins: HashMap<NodeWireId, HashSet<NodeWireId>>,
+    pub intf_ins: HashMap<NodeWireId, HashSet<NodeWireId>>,
+    pub intf_ins_pass: HashMap<NodeWireId, HashSet<NodeWireId>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TermIndex {
+    pub wire_ins_far: EntityVec<WireId, HashSet<WireId>>,
+    pub wire_ins_near: EntityVec<WireId, HashSet<WireId>>,
+}
+
+impl IntDbIndex {
+    pub fn new(db: &IntDb) -> Self {
+        let mut buf_ins: EntityVec<_, _> = db.wires.ids().map(|_| HashSet::new()).collect();
+        let mut cond_alias_ins: EntityVec<_, _> = db.wires.ids().map(|_| HashMap::new()).collect();
+        for (w, _, wd) in &db.wires {
+            match *wd {
+                WireKind::Buf(wi) => {
+                    buf_ins[wi].insert(w);
+                }
+                WireKind::CondAlias(nk, wi) => {
+                    cond_alias_ins[wi].insert(w, nk);
+                }
+                _ => (),
+            }
+        }
+        Self {
+            nodes: db.nodes.values().map(NodeIndex::new).collect(),
+            terms: db.terms.values().map(|t| TermIndex::new(t, db)).collect(),
+            buf_ins,
+            cond_alias_ins,
+        }
+    }
+}
+
+impl NodeIndex {
+    pub fn new(node: &NodeKind) -> Self {
+        let mut mux_ins: HashMap<_, HashSet<_>> = HashMap::new();
+        for (&wo, mux) in &node.muxes {
+            for &wi in &mux.ins {
+                mux_ins.entry(wi).or_default().insert(wo);
+            }
+        }
+
+        let mut intf_ins: HashMap<_, HashSet<_>> = HashMap::new();
+        let mut intf_ins_pass: HashMap<_, HashSet<_>> = HashMap::new();
+        for (&wo, intf) in &node.intfs {
+            match *intf {
+                IntfInfo::OutputTestMux(ref ins) => {
+                    for &wi in ins {
+                        intf_ins.entry(wi).or_default().insert(wo);
+                    }
+                }
+                IntfInfo::OutputTestMuxPass(ref ins, main_in) => {
+                    for &wi in ins {
+                        intf_ins.entry(wi).or_default().insert(wo);
+                    }
+                    intf_ins_pass.entry(main_in).or_default().insert(wo);
+                }
+                _ => (),
+            }
+        }
+
+        NodeIndex { mux_ins, intf_ins, intf_ins_pass }
+    }
+}
+
+impl TermIndex {
+    pub fn new(term: &TermKind, db: &IntDb) -> Self {
+        let mut wire_ins_far: EntityVec<_, _> = db.wires.ids().map(|_| HashSet::new()).collect();
+        let mut wire_ins_near: EntityVec<_, _> = db.wires.ids().map(|_| HashSet::new()).collect();
+        for (wo, ti) in &term.wires {
+            match *ti {
+                TermInfo::BlackHole => (),
+                TermInfo::PassNear(wi) => {
+                    wire_ins_near[wi].insert(wo);
+                }
+                TermInfo::PassFar(wi) => {
+                    wire_ins_far[wi].insert(wo);
+                }
+            }
+        }
+        TermIndex {
+            wire_ins_far,
+            wire_ins_near,
+        }
+    }
 }
