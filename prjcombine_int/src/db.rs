@@ -68,6 +68,10 @@ pub struct IntDb {
 
 impl IntDb {
     #[track_caller]
+    pub fn get_wire(&self, name: &str) -> WireId {
+        self.wires.get(name).unwrap().0
+    }
+    #[track_caller]
     pub fn get_node(&self, name: &str) -> NodeKindId {
         self.nodes.get(name).unwrap().0
     }
@@ -224,6 +228,7 @@ pub struct BelPin {
 pub enum PinDir {
     Input,
     Output,
+    Inout,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -437,7 +442,11 @@ impl NodeIndex {
             }
         }
 
-        NodeIndex { mux_ins, intf_ins, intf_ins_pass }
+        NodeIndex {
+            mux_ins,
+            intf_ins,
+            intf_ins_pass,
+        }
     }
 }
 

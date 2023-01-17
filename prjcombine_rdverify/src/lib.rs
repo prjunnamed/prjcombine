@@ -151,6 +151,10 @@ fn prep_node_used_info(db: &IntDb, nid: NodeKindId) -> NodeUsedInfo {
                     PinDir::Output => {
                         used_o.insert(w);
                     }
+                    PinDir::Inout => {
+                        used_i.insert(w);
+                        used_o.insert(w);
+                    }
                 }
             }
         }
@@ -669,6 +673,7 @@ impl<'a> Verifier<'a> {
         }
         let mut wires_pinned = HashSet::new();
         let mut wires_missing = HashSet::new();
+        let mut tie_pins_extra = HashMap::new();
         for (&wt, wfs) in &kind.muxes {
             let wti = &wire_lut[&wt];
             if wti.is_none() {
@@ -681,6 +686,16 @@ impl<'a> Verifier<'a> {
                 if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
                     if !crds.contains_id(en.tile) {
                         pip_found = false;
+                    } else if wftie {
+                        if !wires_pinned.contains(&wf) {
+                            wires_pinned.insert(wf);
+                            self.claim_node(&[(crds[en.tile], &en.wire_from)]);
+                            tie_pins_extra.insert(wf.1, &en.wire_from);
+                        }
+                        pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
+                        if pip_found {
+                            self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
+                        }
                     } else {
                         let wfi = &wire_lut[&wf];
                         if wfi.is_none() {
@@ -814,7 +829,7 @@ impl<'a> Verifier<'a> {
                     _ => continue,
                 };
                 if !wires_pinned.contains(&k) {
-                    self.claim_node(&[(crds[def_rt], v)]);
+                    self.claim_node(&[(crds[node.tie_rt], v)]);
                 }
                 pins.push(SitePin {
                     dir: SitePinDir::Out,
@@ -822,8 +837,21 @@ impl<'a> Verifier<'a> {
                     wire: Some(v),
                 });
             }
+            for (k, v) in tie_pins_extra {
+                let pin = match self.db.wires[k] {
+                    WireKind::Tie0 => self.grid.tie_pin_gnd.as_ref().unwrap(),
+                    WireKind::Tie1 => self.grid.tie_pin_vcc.as_ref().unwrap(),
+                    WireKind::TiePullup => self.grid.tie_pin_pullup.as_ref().unwrap(),
+                    _ => continue,
+                };
+                pins.push(SitePin {
+                    dir: SitePinDir::Out,
+                    pin,
+                    wire: Some(v),
+                })
+            }
             self.claim_site(
-                crds[def_rt],
+                crds[node.tie_rt],
                 tn,
                 self.grid.tie_kind.as_ref().unwrap(),
                 &pins,
@@ -852,6 +880,7 @@ impl<'a> Verifier<'a> {
                             self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
                             &pip.wire_to
                         }
+                        PinDir::Inout => unreachable!(),
                     };
                     crd = ncrd;
                 }
@@ -1279,6 +1308,7 @@ impl<'a> Verifier<'a> {
                 dir: match v.dir {
                     PinDir::Input => SitePinDir::In,
                     PinDir::Output => SitePinDir::Out,
+                    PinDir::Inout => SitePinDir::Inout,
                 },
                 pin: k,
                 wire: Some(&n.name),

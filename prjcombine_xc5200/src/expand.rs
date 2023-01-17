@@ -197,6 +197,10 @@ impl Grid {
         }
 
         grid.fill_main_passes();
+        grid.fill_term_anon((col_l, row_b), "CNR.LL");
+        grid.fill_term_anon((col_r, row_b), "CNR.LR");
+        grid.fill_term_anon((col_l, row_t), "CNR.UL");
+        grid.fill_term_anon((col_r, row_t), "CNR.UR");
 
         egrid.finish();
         ExpandedDevice { grid: self, egrid }

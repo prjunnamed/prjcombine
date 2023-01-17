@@ -748,9 +748,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let is_l = tkn == "LIOI";
             let lr = if is_l { 'L' } else { 'R' };
             let int_xy = if is_l {
-                builder.walk_to_int(xy, Dir::E).unwrap()
+                builder.walk_to_int(xy, Dir::E, false).unwrap()
             } else {
-                builder.walk_to_int(xy, Dir::W).unwrap()
+                builder.walk_to_int(xy, Dir::W, false).unwrap()
             };
             let intf_io = builder
                 .db

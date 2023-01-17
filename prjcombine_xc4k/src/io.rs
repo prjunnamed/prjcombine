@@ -19,8 +19,8 @@ impl Grid {
             for bel in [0, 1] {
                 res.push(Io {
                     coord: IoCoord {
-                        col: ColId::from_idx(c as usize),
-                        row: RowId::from_idx(self.rows as usize - 1),
+                        col: ColId::from_idx(c),
+                        row: RowId::from_idx(self.rows - 1),
                         iob: TileIobId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
@@ -33,8 +33,8 @@ impl Grid {
             for bel in [0, 1] {
                 res.push(Io {
                     coord: IoCoord {
-                        col: ColId::from_idx(self.columns as usize - 1),
-                        row: RowId::from_idx(r as usize),
+                        col: ColId::from_idx(self.columns - 1),
+                        row: RowId::from_idx(r),
                         iob: TileIobId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),
@@ -47,7 +47,7 @@ impl Grid {
             for bel in [1, 0] {
                 res.push(Io {
                     coord: IoCoord {
-                        col: ColId::from_idx(c as usize),
+                        col: ColId::from_idx(c),
                         row: RowId::from_idx(0),
                         iob: TileIobId::from_idx(bel),
                     },
@@ -62,7 +62,7 @@ impl Grid {
                 res.push(Io {
                     coord: IoCoord {
                         col: ColId::from_idx(0),
-                        row: RowId::from_idx(r as usize),
+                        row: RowId::from_idx(r),
                         iob: TileIobId::from_idx(bel),
                     },
                     name: format!("PAD{ctr}"),

@@ -230,7 +230,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     builder.extract_term_buf("TERM.W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
 
     for &term_xy in rd.tiles_by_kind_name("INT_LTERM") {
-        let int_xy = builder.walk_to_int(term_xy, Dir::E).unwrap();
+        let int_xy = builder.walk_to_int(term_xy, Dir::E, false).unwrap();
         // sigh.
         if int_xy.x == term_xy.x + 3 {
             continue;
@@ -2460,13 +2460,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let by = if is_b { 0 } else { -9 };
             let intfs_l: [_; 8] = core::array::from_fn(|i| {
                 builder
-                    .walk_to_int(xy.delta(0, by + i as i32), Dir::W)
+                    .walk_to_int(xy.delta(0, by + i as i32), Dir::W, false)
                     .unwrap()
                     .delta(1, 0)
             });
             let intfs_r: [_; 8] = core::array::from_fn(|i| {
                 builder
-                    .walk_to_int(xy.delta(0, by + i as i32), Dir::E)
+                    .walk_to_int(xy.delta(0, by + i as i32), Dir::E, false)
                     .unwrap()
                     .delta(-1, 0)
             });

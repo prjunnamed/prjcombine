@@ -236,7 +236,11 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
     };
 
     while let Some(t) = parser.get_tile()? {
-        if part.family == "xc5200" {
+        if part.family == "xc5200"
+            || part.family.starts_with("xc4000")
+            || part.family == "spartan"
+            || part.family == "spartanxl"
+        {
             for p in &t.prims {
                 if let Some(suf) = p.name.strip_prefix("UNB") {
                     pinmap.insert(p.name.clone(), format!("PAD{suf}"));

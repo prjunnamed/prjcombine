@@ -1206,8 +1206,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("GCLKT", "CLKV.GCLKT"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
-            let int_xy_r = builder.walk_to_int(xy, Dir::E).unwrap();
+            let int_xy_l = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let int_xy_r = builder.walk_to_int(xy, Dir::E, false).unwrap();
             let mut bel = builder.bel_virtual("CLKV");
             for i in 0..4 {
                 bel = bel.extra_int_out(
@@ -1294,7 +1294,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("RBRAM_TOPS_GCLK", "CLKV_BRAM_TOP"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
+            let int_xy_l = builder.walk_to_int(xy, Dir::W, false).unwrap();
             let mut bel = builder.bel_virtual(kind);
             for i in 0..4 {
                 bel = bel.extra_int_out(

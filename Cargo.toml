@@ -21,6 +21,7 @@ members = [
 	"prjcombine_rdgrid",
 	"prjcombine_rdintb",
 	"prjcombine_rdverify",
+	"prjcombine_xc4k_rdverify",
 	"prjcombine_xc5200_rdverify",
 	"prjcombine_virtex_rdverify",
 	"prjcombine_virtex2_rdverify",
@@ -65,6 +66,7 @@ prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
 prjcombine_rdintb = { path = "prjcombine_rdintb" }
 prjcombine_rdverify = { path = "prjcombine_rdverify" }
 prjcombine_xc4k = { path = "prjcombine_xc4k" }
+prjcombine_xc4k_rdverify = { path = "prjcombine_xc4k_rdverify" }
 prjcombine_xc4k_rd2db = { path = "prjcombine_xc4k_rd2db" }
 prjcombine_xc5200 = { path = "prjcombine_xc5200" }
 prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }

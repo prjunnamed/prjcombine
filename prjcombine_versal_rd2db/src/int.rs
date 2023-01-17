@@ -612,8 +612,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLE_BC_CORE", "SLL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let xy_l = builder.walk_to_int(xy, Dir::W).unwrap();
-            let xy_r = builder.walk_to_int(xy, Dir::E).unwrap();
+            let xy_l = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let xy_r = builder.walk_to_int(xy, Dir::E, false).unwrap();
             builder.extract_xnode("CLE_BC", xy, &[], &[xy_l, xy_r], "CLE_BC", &[], &[]);
             let tile = &rd.tiles[&xy];
             let tk = &rd.tile_kinds[tile.kind];
@@ -681,7 +681,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for (dir, tkn, name, _) in intf_kinds {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = builder.walk_to_int(xy, !dir).unwrap();
+            let int_xy = builder.walk_to_int(xy, !dir, false).unwrap();
             builder
                 .xnode(name, name, xy)
                 .ref_int(int_xy, 0)
@@ -699,7 +699,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     let cle_bc = builder.db.get_node_naming("CLE_BC");
     for (dir, tkn, name, is_top) in bli_cle_intf_kinds {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_xy = builder.walk_to_int(xy, !dir).unwrap();
+            let int_xy = builder.walk_to_int(xy, !dir, false).unwrap();
             let cle_xy = xy.delta(if dir == Dir::E { 1 } else { -1 }, 0);
             for i in 0..4 {
                 let iriy = if is_top {
@@ -778,9 +778,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = if kind == "CLE_R" {
-                builder.walk_to_int(xy, Dir::W).unwrap()
+                builder.walk_to_int(xy, Dir::W, false).unwrap()
             } else {
-                builder.walk_to_int(xy, Dir::E).unwrap()
+                builder.walk_to_int(xy, Dir::E, false).unwrap()
             };
             builder.extract_xnode_bels(
                 kind,
@@ -1191,7 +1191,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let kind = if is_full { "RCLK_CLE" } else { "RCLK_CLE.HALF" };
             let naming = if is_full { naming_f } else { naming_h };
             let int_r_xy = builder
-                .walk_to_int(xy.delta(0, 1), Dir::E)
+                .walk_to_int(xy.delta(0, 1), Dir::E, false)
                 .unwrap()
                 .delta(0, -1);
             let mut xn = builder
@@ -1337,7 +1337,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut done_half = false;
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = builder
-                .walk_to_int(xy.delta(0, 1), !dir)
+                .walk_to_int(xy.delta(0, 1), !dir, false)
                 .unwrap()
                 .delta(0, -1);
             if int_xy.x.abs_diff(xy.x) > 5 {

@@ -251,6 +251,7 @@ impl ExpandedDieRefMut<'_, '_> {
             tiles: tiles.clone(),
             names,
             tie_name: None,
+            tie_rt: NodeRawTileId::from_idx(0),
             iri_names: Default::default(),
             naming,
             bels: Default::default(),
@@ -558,10 +559,7 @@ impl<'a> ExpandedGrid<'a> {
         }
     }
 
-    pub fn resolve_wire_trace<'b>(
-        &'b self,
-        mut wire: IntWire,
-    ) -> Option<(IntWire, Vec<TracePip<'b>>)> {
+    pub fn resolve_wire_trace(&self, mut wire: IntWire) -> Option<(IntWire, Vec<TracePip>)> {
         let die = self.die(wire.0);
         let mut trace = vec![];
         loop {
@@ -897,6 +895,7 @@ pub struct ExpandedTileNode {
     pub tiles: EntityVec<NodeTileId, Coord>,
     pub names: EntityPartVec<NodeRawTileId, String>,
     pub tie_name: Option<String>,
+    pub tie_rt: NodeRawTileId,
     pub iri_names: EntityVec<NodeIriId, String>,
     pub naming: NodeNamingId,
     pub bels: EntityPartVec<BelId, String>,

@@ -15,6 +15,7 @@ prjcombine_rdgrid.workspace = true
 prjcombine_rdverify.workspace = true
 prjcombine_xilinx_geom.workspace = true
 prjcombine_rawdump.workspace = true
+prjcombine_xc4k_rdverify.workspace = true
 prjcombine_xc4k_rd2db.workspace = true
 prjcombine_xc5200_rdverify.workspace = true
 prjcombine_xc5200_rd2db.workspace = true

@@ -49,9 +49,10 @@ pub fn make_grid(rd: &Part) -> Grid {
     let kind = get_kind(rd);
     let mut grid = Grid {
         kind,
-        columns: int.cols.len() as u32,
-        rows: int.rows.len() as u32,
+        columns: int.cols.len(),
+        rows: int.rows.len(),
         cfg_io: BTreeMap::new(),
+        is_buff_large: rd.tile_kinds.contains_key("RHVBRK"),
     };
     handle_spec_io(rd, &mut grid);
     grid

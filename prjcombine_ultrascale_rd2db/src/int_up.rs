@@ -744,8 +744,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             if tk.sites.is_empty() {
                 continue;
             }
-            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let mut bel = builder.bel_xy(kind, bk, 0, 0);
@@ -805,7 +805,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             if tk.sites.is_empty() {
                 break 'a;
             }
-            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+            let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
             let bel = builder.bel_xy("DFE_B", "DFE_B", 0, 0);
             let mut xn = builder.xnode("DFE_B", "DFE_B", xy).num_tiles(60);
@@ -824,7 +824,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             if tk.sites.is_empty() {
                 break 'a;
             }
-            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let bel = builder.bel_xy("FE", "FE", 0, 0);
             let mut xn = builder.xnode("FE", "FE", xy).num_tiles(60);
@@ -838,7 +838,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PSS_ALTO").iter().next() {
-        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
         let intf_r = builder.db.get_node_naming("INTF.PSS");
         let mut bel = builder.bel_xy("PS", "PS8", 0, 0).pins_name_only(&[
             "DP_AUDIO_REF_CLK",
@@ -923,7 +923,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("VCU_VCU_FT").iter().next() {
-        let int_r_xy = builder.walk_to_int(xy.delta(0, 2), Dir::E).unwrap();
+        let int_r_xy = builder.walk_to_int(xy.delta(0, 2), Dir::E, false).unwrap();
         let intf_r = builder.db.get_node_naming("INTF.PSS");
         let bel = builder
             .bel_xy("VCU", "VCU", 0, 0)
@@ -989,8 +989,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("CFG_CONFIG").iter().next() {
-        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
         let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
         let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
         let bels = [
@@ -1011,8 +1011,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("CFGIO_IOB20").iter().next() {
-        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
         let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
         let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
         let bels = [
@@ -1034,8 +1034,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("AMS").iter().next() {
-        let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-        let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+        let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+        let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
         let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
         let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
         let mut bel = builder.bel_xy("SYSMON", "SYSMONE4", 0, 0);
@@ -1058,8 +1058,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     for tkn in ["HDIO_BOT_RIGHT", "HDIO_TOP_RIGHT"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_bot = tkn == "HDIO_BOT_RIGHT";
-            let int_l_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-            let int_r_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
             let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let mut bels = vec![];
@@ -1139,8 +1139,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HDIO").iter().next() {
         let top_xy = xy.delta(0, -30);
-        let int_l_xy = builder.walk_to_int(top_xy, Dir::W).unwrap();
-        let int_r_xy = builder.walk_to_int(top_xy, Dir::E).unwrap();
+        let int_l_xy = builder.walk_to_int(top_xy, Dir::W, false).unwrap();
+        let int_r_xy = builder.walk_to_int(top_xy, Dir::E, false).unwrap();
         let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
         let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
         let mut bels = vec![];
@@ -1576,7 +1576,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let is_hbm = tkn == "CMT_LEFT_H";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = builder
-                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
                 .db
@@ -1861,7 +1861,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let is_l = tkn != "XIPHY_BYTE_RIGHT";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = builder
-                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
                 .db
@@ -2227,7 +2227,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let is_l = tkn != "HPIO_RIGHT";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = builder
-                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
                 .db
@@ -2328,7 +2328,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         let is_l = tkn != "RCLK_HPIO_R";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = builder
-                .walk_to_int(xy.delta(0, -30), if is_l { Dir::E } else { Dir::W })
+                .walk_to_int(xy.delta(0, -30), if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
                 .db
@@ -2370,7 +2370,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_xy = builder
-                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W })
+                .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
                 .db

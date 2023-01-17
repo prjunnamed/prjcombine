@@ -1047,8 +1047,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for &xy_b in rd.tiles_by_kind_name("PTERMB") {
         let xy_t = xy_b.delta(0, 14);
-        let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
-        let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
+        let int_s_xy = builder.walk_to_int(xy_b, Dir::S, false).unwrap();
+        let int_n_xy = builder.walk_to_int(xy_t, Dir::N, false).unwrap();
         builder.extract_pass_tile(
             "PPC.S",
             Dir::S,
@@ -1074,8 +1074,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for tkn in ["PTERMR", "PTERMBR", "PTERMTR"] {
         for &xy_r in rd.tiles_by_kind_name(tkn) {
-            let int_w_xy = builder.walk_to_int(xy_r, Dir::W).unwrap();
-            let int_e_xy = builder.walk_to_int(xy_r, Dir::E).unwrap();
+            let int_w_xy = builder.walk_to_int(xy_r, Dir::W, false).unwrap();
+            let int_e_xy = builder.walk_to_int(xy_r, Dir::E, false).unwrap();
             builder.extract_pass_tile(
                 "PPC.W",
                 Dir::W,
@@ -1355,8 +1355,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["GCLKH", "LR_GCLKH"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_s_xy = builder.walk_to_int(xy, Dir::S).unwrap();
-            let int_n_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let int_s_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
+            let int_n_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
             let mut bel = builder.bel_virtual("GCLKH");
             for i in 0..8 {
                 bel = bel
@@ -1601,8 +1601,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for tkn in ["REG_L", "REG_R"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_o = xy.delta(if xy.x == 0 { 1 } else { -1 }, 0);
-            let int_s_xy = builder.walk_to_int(xy_o, Dir::S).unwrap();
-            let int_n_xy = builder.walk_to_int(xy_o, Dir::N).unwrap();
+            let int_s_xy = builder.walk_to_int(xy_o, Dir::S, false).unwrap();
+            let int_n_xy = builder.walk_to_int(xy_o, Dir::N, false).unwrap();
             let int_xy = [
                 int_s_xy.delta(0, -1),
                 int_s_xy,

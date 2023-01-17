@@ -380,8 +380,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             // wheeee.
             continue;
         }
-        let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
-        let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+        let int_w_xy = builder.walk_to_int(xy_l, Dir::W, false).unwrap();
+        let int_e_xy = builder.walk_to_int(xy_l, Dir::E, false).unwrap();
         builder.extract_pass_tile(
             "INT_BUFS.W",
             Dir::W,
@@ -410,8 +410,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         while rd.tile_kinds.key(rd.tiles[&xy_r].kind) != "R_TERM_PPC" {
             xy_r.x += 1;
         }
-        let int_w_xy = builder.walk_to_int(xy_l, Dir::W).unwrap();
-        let int_e_xy = builder.walk_to_int(xy_l, Dir::E).unwrap();
+        let int_w_xy = builder.walk_to_int(xy_l, Dir::W, false).unwrap();
+        let int_e_xy = builder.walk_to_int(xy_l, Dir::E, false).unwrap();
         builder.extract_pass_tile(
             "PPC.W",
             Dir::W,
@@ -782,7 +782,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("IOI").iter().next() {
-        let int_xy = builder.walk_to_int(xy, Dir::W).unwrap();
+        let int_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
         let intf_xy = int_xy.delta(1, 0);
         let bel_ilogic0 = builder
             .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
@@ -1144,7 +1144,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_x = builder.walk_to_int(xy.delta(0, -1), Dir::W).unwrap().x;
+            let int_x = builder
+                .walk_to_int(xy.delta(0, -1), Dir::W, false)
+                .unwrap()
+                .x;
             let mut bels = vec![];
             if has_io_n {
                 for i in 0..2 {

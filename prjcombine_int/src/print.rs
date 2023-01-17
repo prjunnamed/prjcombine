@@ -143,6 +143,7 @@ impl IntDb {
                         d = match pin.dir {
                             PinDir::Input => " INPUT",
                             PinDir::Output => "OUTPUT",
+                            PinDir::Inout => " INOUT",
                         },
                         intf = if pin.is_intf_in { ".INTF" } else { "     " }
                     )?;

@@ -1,4 +1,4 @@
-use prjcombine_int::db::{Dir, IntDb, WireKind};
+use prjcombine_int::db::{Dir, IntDb, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;
@@ -85,14 +85,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
-    let mut cond_ll = Vec::new();
-    let mut cond_lr = Vec::new();
-    let mut cond_ul = Vec::new();
-    let mut cond_ur = Vec::new();
+    let mut term_ll = Vec::new();
+    let mut term_lr = Vec::new();
+    let mut term_ul = Vec::new();
+    let mut term_ur = Vec::new();
     for i in 0..8 {
         let w_be = builder.wire(
             format!("IO.SINGLE.B.E{i}"),
-            WireKind::PipOut,
+            WireKind::PipBranch(Dir::W),
             &[format!("WIRE_E{i}_BOT")],
         );
         let w_bw = builder.pip_branch(
@@ -103,7 +103,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         let w_rn = builder.wire(
             format!("IO.SINGLE.R.N{i}"),
-            WireKind::PipOut,
+            WireKind::PipBranch(Dir::S),
             &[format!("WIRE_N{i}_RIGHT")],
         );
         let w_rs = builder.pip_branch(
@@ -114,7 +114,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         let w_tw = builder.wire(
             format!("IO.SINGLE.T.W{i}"),
-            WireKind::PipOut,
+            WireKind::PipBranch(Dir::E),
             &[format!("WIRE_W{i}_TOP")],
         );
         let w_te = builder.pip_branch(
@@ -125,7 +125,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
         let w_ls = builder.wire(
             format!("IO.SINGLE.L.S{i}"),
-            WireKind::PipOut,
+            WireKind::PipBranch(Dir::N),
             &[format!("WIRE_S{i}_LEFT")],
         );
         let w_ln = builder.pip_branch(
@@ -134,10 +134,26 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             format!("IO.SINGLE.L.N{i}"),
             &[format!("WIRE_N{i}_LEFT"), format!("WIRE_EN{i}_BL")],
         );
-        cond_ll.push((w_be, w_ln));
-        cond_lr.push((w_rn, w_bw));
-        cond_ul.push((w_ls, w_te));
-        cond_ur.push((w_tw, w_rs));
+        term_ll.push((w_be, w_ln));
+        term_lr.push((w_rn, w_bw));
+        term_ul.push((w_ls, w_te));
+        term_ur.push((w_tw, w_rs));
+    }
+
+    for (name, dir, wires) in [
+        ("CNR.LL", Dir::W, term_ll),
+        ("CNR.LR", Dir::S, term_lr),
+        ("CNR.UL", Dir::N, term_ul),
+        ("CNR.UR", Dir::E, term_ur),
+    ] {
+        let term = TermKind {
+            dir,
+            wires: wires
+                .into_iter()
+                .map(|(a, b)| (a, TermInfo::PassNear(b)))
+                .collect(),
+        };
+        builder.db.terms.insert_new(name.to_string(), term);
     }
 
     for i in [0, 6] {
@@ -584,22 +600,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ],
     );
 
-    let node_ll = builder.db.nodes.get("CNR.BL").unwrap().0;
-    let node_lr = builder.db.nodes.get("CNR.BR").unwrap().0;
-    let node_ul = builder.db.nodes.get("CNR.TL").unwrap().0;
-    let node_ur = builder.db.nodes.get("CNR.TR").unwrap().0;
-    for (a, b) in cond_ll {
-        builder.db.wires[a] = WireKind::CondAlias(node_ll, b);
-    }
-    for (a, b) in cond_lr {
-        builder.db.wires[a] = WireKind::CondAlias(node_lr, b);
-    }
-    for (a, b) in cond_ul {
-        builder.db.wires[a] = WireKind::CondAlias(node_ul, b);
-    }
-    for (a, b) in cond_ur {
-        builder.db.wires[a] = WireKind::CondAlias(node_ur, b);
-    }
     let node_bot = builder.db.nodes.get_mut("IO.B").unwrap().1;
     for mux in node_bot.muxes.values_mut() {
         mux.ins.retain(|&x| x.1 != bot_cin);
@@ -607,8 +607,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLKV", "CLKB", "CLKT"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_fwd_xy = builder.walk_to_int(xy, Dir::W).unwrap();
-            let int_bwd_xy = builder.walk_to_int(xy, Dir::E).unwrap();
+            let int_fwd_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let int_bwd_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
             builder.extract_pass_tile(
                 "LLH.W",
                 Dir::W,
@@ -636,8 +636,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLKH", "CLKL", "CLKR"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_fwd_xy = builder.walk_to_int(xy, Dir::S).unwrap();
-            let int_bwd_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let int_fwd_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
+            let int_bwd_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
             builder.extract_pass_tile(
                 "LLV.S",
                 Dir::S,

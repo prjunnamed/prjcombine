@@ -1499,8 +1499,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 x: xy_b.x,
                 y: cob_term_t_y,
             };
-            let int_s_xy = builder.walk_to_int(xy_b, Dir::S).unwrap();
-            let int_n_xy = builder.walk_to_int(xy_t, Dir::N).unwrap();
+            let int_s_xy = builder.walk_to_int(xy_b, Dir::S, false).unwrap();
+            let int_n_xy = builder.walk_to_int(xy_t, Dir::N, false).unwrap();
             builder.extract_pass_tile(
                 "TERM.BRAM.S",
                 Dir::S,
@@ -1546,8 +1546,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             llv_n = "LLV.CLKLR.S3E.N";
         }
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_fwd_xy = builder.walk_to_int(xy, Dir::S).unwrap();
-            let int_bwd_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let int_fwd_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
+            let int_bwd_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
             builder.extract_pass_tile(
                 llv_s,
                 Dir::S,
@@ -1575,8 +1575,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for tkn in ["CLKV_DCM_LL", "CLKV_LL", "CLKT_LL", "CLKB_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let fix_xy = if tkn == "CLKB_LL" { xy.delta(0, 1) } else { xy };
-            let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W).unwrap();
-            let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E).unwrap();
+            let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W, false).unwrap();
+            let int_bwd_xy = builder.walk_to_int(fix_xy, Dir::E, false).unwrap();
             let mut llh_w = "LLH.W";
             let mut llh_e = "LLH.E";
             if rd.family == "spartan3adsp" && tkn == "CLKV_DCM_LL" {
@@ -2130,8 +2130,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for tkn in ["CLKL", "CLKR"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let xy_o = xy.delta(if xy.x == 0 { 1 } else { -1 }, 0);
-                let int_s_xy = builder.walk_to_int(xy_o, Dir::S).unwrap();
-                let int_n_xy = builder.walk_to_int(xy_o, Dir::N).unwrap();
+                let int_s_xy = builder.walk_to_int(xy_o, Dir::S, false).unwrap();
+                let int_n_xy = builder.walk_to_int(xy_o, Dir::N, false).unwrap();
                 let int_xy = [int_s_xy, int_n_xy];
                 let kind;
                 let buf_xy;
@@ -2452,8 +2452,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "GCLKH_PCI_CE_S_50A",
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let int_s_xy = builder.walk_to_int(xy, Dir::S).unwrap();
-            let int_n_xy = builder.walk_to_int(xy, Dir::N).unwrap();
+            let int_s_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
+            let int_n_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
             let mut bel = builder.bel_virtual("GCLKH");
             for i in 0..8 {
                 bel = bel
