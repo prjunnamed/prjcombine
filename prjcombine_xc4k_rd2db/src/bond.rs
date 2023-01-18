@@ -1,18 +1,14 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xc4k::bond::{Bond, BondPin, CfgPin};
-use prjcombine_xc4k::grid::Grid;
+use prjcombine_xc4k::expanded::ExpandedDevice;
 use std::collections::{BTreeMap, HashMap};
 
-pub fn make_bond(grid: &Grid, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, io.coord))
-        .collect();
+    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io.crd)).collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
+            if let Some(&io) = io_lookup.get(&**pad) {
                 BondPin::Io(io)
             } else {
                 match &pad[..] {

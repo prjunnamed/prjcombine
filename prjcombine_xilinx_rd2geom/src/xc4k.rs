@@ -13,7 +13,7 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let mut bonds = Vec::new();
     let edev = grid.expand_grid(&int_db);
     for (pkg, pins) in rd.packages.iter() {
-        let bond = bond::make_bond(&grid, pins);
+        let bond = bond::make_bond(&edev, pins);
         bonds.push((pkg.clone(), Bond::Xc4k(bond)));
     }
     if verify {

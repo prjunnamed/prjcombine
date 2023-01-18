@@ -26,6 +26,7 @@ mod xc4k {
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
         println!("\tDIMS: {c}×{r}", c = grid.columns, r = grid.rows);
+        println!("\tIS BUFF LARGE: {v}", v = grid.is_buff_large);
         println!("\tCFG PINS:");
         for (k, v) in &grid.cfg_io {
             println!(

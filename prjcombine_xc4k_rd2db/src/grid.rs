@@ -1,8 +1,9 @@
-use prjcombine_rawdump::Part;
-use prjcombine_xc4k::grid::{Grid, GridKind, SharedCfgPin};
+use prjcombine_entity::EntityId;
+use prjcombine_rawdump::{Part, TkSiteSlot};
+use prjcombine_xc4k::grid::{Grid, GridKind, IoCoord, SharedCfgPin, TileIobId};
 use std::collections::{BTreeMap, HashMap};
 
-use prjcombine_rdgrid::extract_int;
+use prjcombine_rdgrid::{extract_int, IntGrid};
 
 fn get_kind(rd: &Part) -> GridKind {
     match &rd.family[..] {
@@ -15,12 +16,26 @@ fn get_kind(rd: &Part) -> GridKind {
     }
 }
 
-fn handle_spec_io(rd: &Part, grid: &mut Grid) {
-    let io_lookup: HashMap<_, _> = grid
-        .get_io()
-        .into_iter()
-        .map(|io| (io.name, io.coord))
-        .collect();
+fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+    let mut io_lookup = HashMap::new();
+    for (&crd, tile) in &rd.tiles {
+        let tk = &rd.tile_kinds[tile.kind];
+        for (k, v) in &tile.sites {
+            if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
+                if rd.slot_kinds[sn] == "IOB" {
+                    io_lookup.insert(
+                        v.clone(),
+                        IoCoord {
+                            col: int.lookup_column(crd.x.into()),
+                            row: int.lookup_row(crd.y.into()),
+                            iob: TileIobId::from_idx(idx as usize - 1),
+                        },
+                    );
+                }
+            }
+        }
+    }
+
     for pins in rd.packages.values() {
         for pin in pins {
             if let Some(ref pad) = pin.pad {
@@ -54,6 +69,6 @@ pub fn make_grid(rd: &Part) -> Grid {
         cfg_io: BTreeMap::new(),
         is_buff_large: rd.tile_kinds.contains_key("RHVBRK"),
     };
-    handle_spec_io(rd, &mut grid);
+    handle_spec_io(rd, &mut grid, &int);
     grid
 }

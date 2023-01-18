@@ -4,13 +4,13 @@ use std::fmt::Write;
 
 use prjcombine_entity::EntityId;
 use prjcombine_int::{
-    db::{IntDb, NodeRawTileId},
+    db::{BelId, IntDb, NodeRawTileId},
     grid::{ColId, ExpandedGrid, RowId},
 };
 
 use crate::{
-    expanded::ExpandedDevice,
-    grid::{Grid, GridKind},
+    expanded::{ExpandedDevice, Io},
+    grid::{Grid, GridKind, IoCoord, TileIobId},
 };
 
 impl Grid {
@@ -862,7 +862,77 @@ impl Grid {
         grid.fill_term_anon((col_r, row_t), "CNR.UR.E");
         grid.fill_term_anon((col_r, row_t), "CNR.UR.N");
 
+        let mut io = vec![];
+        for col in grid.cols() {
+            if col == self.col_lio() || col == self.col_rio() {
+                continue;
+            }
+            let node = grid[(col, self.row_tio())].nodes.first().unwrap();
+            for iob in [0, 1] {
+                io.extend([Io {
+                    name: node.bels[BelId::from_idx(iob)].clone(),
+                    crd: IoCoord {
+                        col,
+                        row: self.row_tio(),
+                        iob: TileIobId::from_idx(iob),
+                    },
+                }]);
+            }
+        }
+        for row in grid.rows().rev() {
+            if row == self.row_bio() || row == self.row_tio() {
+                continue;
+            }
+            let node = grid[(self.col_rio(), row)].nodes.first().unwrap();
+            for iob in [0, 1] {
+                io.extend([Io {
+                    name: node.bels[BelId::from_idx(iob)].clone(),
+                    crd: IoCoord {
+                        col: self.col_rio(),
+                        row,
+                        iob: TileIobId::from_idx(iob),
+                    },
+                }]);
+            }
+        }
+        for col in grid.cols().rev() {
+            if col == self.col_lio() || col == self.col_rio() {
+                continue;
+            }
+            let node = grid[(col, self.row_bio())].nodes.first().unwrap();
+            for iob in [1, 0] {
+                io.extend([Io {
+                    name: node.bels[BelId::from_idx(iob)].clone(),
+                    crd: IoCoord {
+                        col,
+                        row: self.row_bio(),
+                        iob: TileIobId::from_idx(iob),
+                    },
+                }]);
+            }
+        }
+        for row in grid.rows() {
+            if row == self.row_bio() || row == self.row_tio() {
+                continue;
+            }
+            let node = grid[(self.col_lio(), row)].nodes.first().unwrap();
+            for iob in [1, 0] {
+                io.extend([Io {
+                    name: node.bels[BelId::from_idx(iob)].clone(),
+                    crd: IoCoord {
+                        col: self.col_lio(),
+                        row,
+                        iob: TileIobId::from_idx(iob),
+                    },
+                }]);
+            }
+        }
         egrid.finish();
-        ExpandedDevice { grid: self, egrid }
+
+        ExpandedDevice {
+            grid: self,
+            egrid,
+            io,
+        }
     }
 }

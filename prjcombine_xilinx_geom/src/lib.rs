@@ -99,6 +99,7 @@ pub enum DeviceNaming {
 }
 
 pub enum ExpandedDevice<'a> {
+    Xc4k(prjcombine_xc4k::expanded::ExpandedDevice<'a>),
     Xc5200(prjcombine_xc5200::expanded::ExpandedDevice<'a>),
     Virtex(prjcombine_virtex::expanded::ExpandedDevice<'a>),
     Virtex2(prjcombine_virtex2::expanded::ExpandedDevice<'a>),
@@ -126,7 +127,19 @@ impl GeomDb {
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
         let grid = &self.grids[dev.grids[dev.grid_master]];
         match grid {
-            Grid::Xc4k(_) => todo!(),
+            Grid::Xc4k(grid) => {
+                let intdb = &self.ints[match grid.kind {
+                    prjcombine_xc4k::grid::GridKind::Xc4000 => "xc4000",
+                    prjcombine_xc4k::grid::GridKind::Xc4000A => "xc4000a",
+                    prjcombine_xc4k::grid::GridKind::Xc4000H => "xc4000h",
+                    prjcombine_xc4k::grid::GridKind::Xc4000E => "xc4000e",
+                    prjcombine_xc4k::grid::GridKind::Xc4000Ex => "xc4000ex",
+                    prjcombine_xc4k::grid::GridKind::Xc4000Xla => "xc4000xla",
+                    prjcombine_xc4k::grid::GridKind::Xc4000Xv => "xc4000xv",
+                    prjcombine_xc4k::grid::GridKind::SpartanXl => "spartanxl",
+                }];
+                ExpandedDevice::Xc4k(grid.expand_grid(intdb))
+            }
             Grid::Xc5200(grid) => {
                 let intdb = &self.ints["xc5200"];
                 ExpandedDevice::Xc5200(grid.expand_grid(intdb))
