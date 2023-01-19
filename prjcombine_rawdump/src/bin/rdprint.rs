@@ -1,12 +1,18 @@
 use itertools::Itertools;
+use prjcombine_entity::EntityPartVec;
 use prjcombine_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
-use std::error::Error;
+use std::{
+    error::Error,
+    fs::File,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "rdprint", about = "Dump rawdump file.")]
 struct Opt {
-    file: String,
+    file: PathBuf,
     #[structopt(short, long)]
     package: bool,
     #[structopt(short, long)]
@@ -15,6 +21,8 @@ struct Opt {
     conns: bool,
     #[structopt(short, long)]
     kinds: Vec<String>,
+    #[structopt(long)]
+    xlat: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -24,6 +32,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         "PART {} {} {:?} {}×{}",
         rd.part, rd.family, rd.source, rd.width, rd.height
     );
+    let mut xlat = EntityPartVec::new();
+    if let Some(xf) = opt.xlat {
+        let f = File::open(xf)?;
+        let br = BufReader::new(f);
+        for l in br.lines() {
+            let l = l?;
+            let l = l.trim();
+            if l.is_empty() || l.starts_with('#') {
+                continue;
+            }
+            let [k, v] = *l.split_ascii_whitespace().collect::<Vec<_>>() else {
+                panic!("weird line {l}");
+            };
+            if let Some(w) = rd.wires.get(k) {
+                xlat.insert(w, v.to_string());
+            }
+        }
+    }
+    let wire_name = |wi| -> &str { xlat.get(wi).unwrap_or(&rd.wires[wi]) };
     println!(
         "STAT {} {} {} {}",
         rd.tiles.len(),
@@ -81,7 +108,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     name,
                     pin.dir,
                     match pin.wire {
-                        Some(w) => &rd.wires[w],
+                        Some(w) => wire_name(w),
                         None => "[NONE]",
                     },
                     match pin.speed {
@@ -92,32 +119,31 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         if opt.wires {
-            for (_, wi, w) in tt.wires.iter().sorted_by_key(|&(_, &wi, _)| &rd.wires[wi]) {
-                let wn = &rd.wires[*wi];
-                match *w {
+            for (_, &wi, &w) in tt.wires.iter().sorted_by_key(|&(_, &wi, _)| wire_name(wi)) {
+                match w {
                     TkWire::Internal(s, nc) => {
                         println!(
-                            "\tWIRE {} {} {}",
-                            wn,
-                            match s {
+                            "\tWIRE {wn} {speed} {nc}",
+                            wn = wire_name(wi),
+                            speed = match s {
                                 Some(s) => &rd.speeds[s],
                                 None => "[NONE]",
                             },
-                            match nc {
+                            nc = match nc {
                                 Some(nc) => &rd.node_classes[nc],
                                 None => "[NONE]",
                             }
                         );
                     }
                     TkWire::Connected(_) => {
-                        println!("\tWIRE {wn} [connected]");
+                        println!("\tWIRE {wn} [connected]", wn = wire_name(wi));
                     }
                 }
             }
             for (_, &(wfi, wti), pip) in tt
                 .pips
                 .iter()
-                .sorted_by_key(|&(_, &(wfi, wti), _)| (&rd.wires[wti], &rd.wires[wfi]))
+                .sorted_by_key(|&(_, &(wfi, wti), _)| (wire_name(wti), wire_name(wfi)))
             {
                 let mut flags = String::new();
                 flags.push(if pip.is_buf { 'B' } else { '-' });
@@ -134,11 +160,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     TkPipDirection::BiBwd => '<',
                 });
                 println!(
-                    "\tPIP {} {} {} {}",
-                    rd.wires[wti],
-                    rd.wires[wfi],
-                    flags,
-                    match pip.speed {
+                    "\tPIP {wtn} {wfn} {flags} {speed}",
+                    wtn = wire_name(wti),
+                    wfn = wire_name(wfi),
+                    speed = match pip.speed {
                         Some(s) => &rd.speeds[s],
                         None => "[NONE]",
                     },
@@ -180,11 +205,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .conn_wires
                 .iter()
                 .map(|(i, &wi)| (wi, tile.conn_wires.get(i).copied()))
-                .sorted_by_key(|&(wi, _)| &rd.wires[wi])
+                .sorted_by_key(|&(wi, _)| wire_name(wi))
             {
                 match ni {
                     Some(ni) => {
-                        println!("\tWIRE {}:", rd.wires[wi]);
+                        println!("\tWIRE {wn}:", wn = wire_name(wi));
                         let node = &rd.nodes[ni];
                         let tpl = &rd.templates[node.template];
                         for w in tpl {
@@ -194,14 +219,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                             };
                             let otile = &rd.tiles[&tc];
                             println!(
-                                "\t\t{} {} {} {}",
-                                otile.name,
-                                rd.wires[w.wire],
-                                match w.speed {
+                                "\t\t{tn} {wn} {speed} {nc}",
+                                tn = otile.name,
+                                wn = wire_name(w.wire),
+                                speed = match w.speed {
                                     Some(s) => &rd.speeds[s],
                                     None => "[NONE]",
                                 },
-                                match w.cls {
+                                nc = match w.cls {
                                     Some(nc) => &rd.node_classes[nc],
                                     None => "[NONE]",
                                 }
@@ -209,7 +234,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                     None => {
-                        println!("\tWIRE {}: MISSING", rd.wires[wi]);
+                        println!("\tWIRE {}: MISSING", wire_name(wi));
                     }
                 }
             }
