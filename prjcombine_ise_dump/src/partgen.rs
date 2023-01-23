@@ -1,6 +1,7 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_toolchain::Toolchain;
 use simple_error::bail;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
@@ -131,7 +132,9 @@ pub fn parse_pkgfile(f: &mut impl BufRead) -> Result<Vec<PkgPin>, Box<dyn Error>
 use regex::Regex;
 
 const PATTERNS: &[(&str, &str, &str)] = &[
-    ("x[ca]95[0-9]+(?:xl|xv)?", "[a-z]{2}[0-9]+", "xc9500"),
+    ("x[ca]95[0-9]+", "[a-z]{2}[0-9]+", "xc9500"),
+    ("x[ca]95[0-9]+xl", "[a-z]{2}[0-9]+", "xc9500xl"),
+    ("x[ca]95[0-9]+xv?", "[a-z]{2}[0-9]+", "xc9500xv"),
     ("xcr3[0-9]+xl", "[a-z]{2}[0-9]+", "xpla3"),
     ("x[ca]2c[0-9]+a?", "[a-z]{2}g?[0-9]+", "xbr"),
     ("xc3[01][0-9]+[al]", "[a-z]{2}[0-9]+", "xc3000a"),
@@ -228,6 +231,7 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
     let bufread = BufReader::new(file);
     let mut lines = bufread.lines();
     let mut res: Vec<PartgenPkg> = Vec::new();
+    let mut fix_speed = false;
     loop {
         let l = match lines.next() {
             None => break,
@@ -274,7 +278,15 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
                 speedgrades.push(x[0].to_string());
             }
         }
-        let pfile = File::open(dir.path().join(words[3]))?;
+        if speedgrades.is_empty() {
+            fix_speed = true;
+        }
+        let pfn = if matches!(words[3], "9500.pkg" | "XBR.pkg" | "XPLA3.pkg") {
+            format!("{part}.pkg")
+        } else {
+            words[3].to_string()
+        };
+        let pfile = File::open(dir.path().join(pfn))?;
         let mut pbufread = BufReader::new(pfile);
         let pins = parse_pkgfile(&mut pbufread)?;
         res.push(PartgenPkg {
@@ -284,6 +296,34 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
             speedgrades,
             pins,
         });
+    }
+    if fix_speed {
+        let mut cmd = tc.command("partgen");
+        cmd.current_dir(dir.path().as_os_str());
+        cmd.stdin(Stdio::null());
+        cmd.arg("-arch");
+        cmd.arg(query);
+        let status = cmd.output()?;
+        if !status.status.success() {
+            let _ = std::io::stderr().write_all(&status.stdout);
+            let _ = std::io::stderr().write_all(&status.stderr);
+            bail!("non-zero partgen exit status");
+        }
+        let mut parts = HashMap::new();
+        for l in std::str::from_utf8(&status.stdout)?.lines() {
+            if l.contains("SPEEDS:") {
+                let l: Vec<_> = l.split_ascii_whitespace().collect();
+                if l[1] != "SPEEDS:" {
+                    bail!("weird speed list");
+                }
+                parts.insert(l[0], l[2..].to_vec());
+            }
+        }
+        for pkg in &mut res {
+            if pkg.speedgrades.is_empty() {
+                pkg.speedgrades = parts[&*pkg.device].iter().map(|x| x.to_string()).collect();
+            }
+        }
     }
     Ok(res)
 }
