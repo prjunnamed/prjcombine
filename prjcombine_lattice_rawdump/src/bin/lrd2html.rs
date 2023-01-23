@@ -1,3 +1,4 @@
+use clap::Parser;
 use ndarray::Array2;
 use prjcombine_lattice_rawdump::{Db, Tile};
 use std::collections::HashMap;
@@ -5,7 +6,6 @@ use std::error::Error;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use structopt::StructOpt;
 
 const COLORS: &[(&str, (u8, u8, u8))] = &[
     ("int", (204, 204, 204)),
@@ -2272,21 +2272,20 @@ pub fn dump_html(
     Ok(())
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "lrdprint", about = "Dump Lattice rawdump file.")]
-struct Opt {
-    file: String,
-    #[structopt(parse(from_os_str))]
+#[derive(Debug, Parser)]
+#[command(name = "lrdprint", about = "Dump Lattice rawdump file.")]
+struct Args {
+    file: PathBuf,
     target_directory: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let lrd = Db::from_file(opt.file)?;
-    create_dir_all(&opt.target_directory)?;
+    let args = Args::parse();
+    let lrd = Db::from_file(args.file)?;
+    create_dir_all(&args.target_directory)?;
     for part in &lrd.parts {
         dump_html(
-            &opt.target_directory.join(format!(
+            &args.target_directory.join(format!(
                 "{part}-{pkg}.html",
                 part = part.name,
                 pkg = part.package

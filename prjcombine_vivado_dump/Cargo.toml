@@ -12,5 +12,5 @@ serde.workspace = true
 simple-error.workspace = true
 indexmap.workspace = true
 rayon.workspace = true
-structopt.workspace = true
+clap.workspace = true
 indicatif.workspace = true

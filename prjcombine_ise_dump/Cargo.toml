@@ -12,4 +12,4 @@ tempfile.workspace = true
 regex.workspace = true
 indexmap.workspace = true
 rayon.workspace = true
-structopt.workspace = true
+clap.workspace = true

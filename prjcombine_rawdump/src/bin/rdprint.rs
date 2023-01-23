@@ -1,3 +1,4 @@
+use clap::Parser;
 use itertools::Itertools;
 use prjcombine_entity::EntityPartVec;
 use prjcombine_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
@@ -7,33 +8,32 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
 };
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "rdprint", about = "Dump rawdump file.")]
-struct Opt {
+#[derive(Debug, Parser)]
+#[command(name = "rdprint", about = "Dump rawdump file.")]
+struct Args {
     file: PathBuf,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     package: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     wires: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     conns: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     kinds: Vec<String>,
-    #[structopt(long)]
+    #[arg(long)]
     xlat: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let rd = Part::from_file(opt.file)?;
+    let args = Args::parse();
+    let rd = Part::from_file(args.file)?;
     println!(
         "PART {} {} {:?} {}×{}",
         rd.part, rd.family, rd.source, rd.width, rd.height
     );
     let mut xlat = EntityPartVec::new();
-    if let Some(xf) = opt.xlat {
+    if let Some(xf) = args.xlat {
         let f = File::open(xf)?;
         let br = BufReader::new(f);
         for l in br.lines() {
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         rd.templates.len(),
         rd.nodes.len()
     );
-    if opt.package {
+    if args.package {
         for combo in rd.combos.iter().sorted_by_key(|c| &c.name) {
             println!(
                 "COMBO {} {} {} {} {}",
@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     for (_, name, tt) in rd.tile_kinds.iter().sorted_by_key(|(_, name, _)| *name) {
-        if !opt.kinds.is_empty() && !opt.kinds.contains(name) {
+        if !args.kinds.is_empty() && !args.kinds.contains(name) {
             continue;
         }
         println!("TT {name}");
@@ -118,7 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
             }
         }
-        if opt.wires {
+        if args.wires {
             for (_, &wi, &w) in tt.wires.iter().sorted_by_key(|&(_, &wi, _)| wire_name(wi)) {
                 match w {
                     TkWire::Internal(s, nc) => {
@@ -173,7 +173,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     for (coord, tile) in rd.tiles.iter().sorted_by_key(|(coord, _)| *coord) {
         let tk = &rd.tile_kinds[tile.kind];
-        if !opt.kinds.is_empty() && !opt.kinds.contains(rd.tile_kinds.key(tile.kind)) {
+        if !args.kinds.is_empty() && !args.kinds.contains(rd.tile_kinds.key(tile.kind)) {
             continue;
         }
         println!(
@@ -200,7 +200,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 ts.as_ref().map_or("[none]".to_string(), |x| x.to_string())
             );
         }
-        if opt.conns {
+        if args.conns {
             for (wi, ni) in tk
                 .conn_wires
                 .iter()

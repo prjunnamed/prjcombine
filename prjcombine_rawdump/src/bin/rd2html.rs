@@ -1,3 +1,4 @@
+use clap::Parser;
 use itertools::Itertools;
 use ndarray::Array2;
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
@@ -5,7 +6,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
-use structopt::StructOpt;
+use std::path::PathBuf;
 
 #[derive(Copy, Clone)]
 struct TileInfo(
@@ -3456,16 +3457,16 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("INVALID_11_11", (10, 0, 10, 0), &["crippled"]),
 ];
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "rd2html", about = "Make html out of rawdump.")]
-struct Opt {
-    src: String,
-    dst: String,
+#[derive(Debug, Parser)]
+#[command(name = "rd2html", about = "Make html out of rawdump.")]
+struct Args {
+    src: PathBuf,
+    dst: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let rd = Part::from_file(opt.src)?;
+    let args = Args::parse();
+    let rd = Part::from_file(args.src)?;
     let mut grid: Array2<Option<(Coord, usize, usize)>> =
         Array2::from_shape_fn((rd.width as usize, rd.height as usize), |p| {
             Some((
@@ -3548,7 +3549,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    let mut ofile = File::create(opt.dst)?;
+    let mut ofile = File::create(args.dst)?;
     ofile.write_all(format!("<html><head><title>{}</title><style>\n", rd.part).as_bytes())?;
     ofile.write_all(r#"
         table { border-collapse: collapse }

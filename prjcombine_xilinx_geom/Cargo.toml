@@ -17,5 +17,5 @@ prjcombine_versal.workspace = true
 serde.workspace = true
 bincode.workspace = true
 zstd.workspace = true
-structopt.workspace = true
+clap.workspace = true
 rayon.workspace = true

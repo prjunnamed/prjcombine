@@ -1,17 +1,17 @@
+use clap::Parser;
 use itertools::Itertools;
 use prjcombine_rawdump::{Coord, Part};
-use std::error::Error;
-use structopt::StructOpt;
+use std::{error::Error, path::PathBuf};
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "dump_bli", about = "Dump Versal BLI structure from rawdump.")]
-struct Opt {
-    file: String,
+#[derive(Debug, Parser)]
+#[command(name = "dump_bli", about = "Dump Versal BLI structure from rawdump.")]
+struct Args {
+    file: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let rd = Part::from_file(opt.file)?;
+    let args = Args::parse();
+    let rd = Part::from_file(args.file)?;
     println!(
         "PART {} {} {:?} {}×{}",
         rd.part, rd.family, rd.source, rd.width, rd.height

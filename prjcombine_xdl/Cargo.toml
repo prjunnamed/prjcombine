@@ -9,4 +9,4 @@ tempfile.workspace = true
 arrayref.workspace = true
 
 [dev-dependencies]
-structopt.workspace = true
+clap.workspace = true

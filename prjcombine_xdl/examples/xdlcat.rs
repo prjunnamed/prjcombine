@@ -1,21 +1,22 @@
+use clap::Parser;
 use prjcombine_xdl::Design;
 use std::error::Error;
 use std::fs;
 use std::io;
-use structopt::StructOpt;
+use std::path::PathBuf;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "xdlcat", about = "Parse and reemit XDL.")]
-struct Opt {
-    src: String,
-    dst: Option<String>,
+#[derive(Debug, Parser)]
+#[command(name = "xdlcat", about = "Parse and reemit XDL.")]
+struct Args {
+    src: PathBuf,
+    dst: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let data = fs::read_to_string(opt.src)?;
+    let args = Args::parse();
+    let data = fs::read_to_string(args.src)?;
     let design = Design::parse(&data)?;
-    match opt.dst {
+    match args.dst {
         None => {
             design.write(&mut io::stdout())?;
         }

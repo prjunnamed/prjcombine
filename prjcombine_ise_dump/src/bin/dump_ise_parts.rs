@@ -1,3 +1,4 @@
+use clap::Parser;
 use prjcombine_ise_dump::partgen::{get_pkgs, PartgenPkg};
 use prjcombine_ise_dump::rawdump::get_rawdump;
 use prjcombine_toolchain::Toolchain;
@@ -8,29 +9,27 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "dump_ise_parts",
     about = "Dump ISE part geometry into rawdump files."
 )]
-struct Opt {
+struct Args {
     toolchain: String,
-    #[structopt(parse(from_os_str))]
     target_directory: PathBuf,
     families: Vec<String>,
-    #[structopt(short = "n", long, default_value = "0")]
+    #[arg(short, long, default_value = "0")]
     num_threads: usize,
 }
 
 fn dump_part(
-    opt: &Opt,
+    args: &Args,
     tc: &Toolchain,
     part: String,
     pkgs: Vec<PartgenPkg>,
 ) -> Result<(), Box<dyn Error>> {
-    let fdir = opt.target_directory.join(&pkgs[0].family);
+    let fdir = args.target_directory.join(&pkgs[0].family);
     create_dir_all(&fdir)?;
     let path = fdir.join(part.clone() + ".zstd");
     if path.exists() {
@@ -45,14 +44,14 @@ fn dump_part(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
+    let args = Args::parse();
     ThreadPoolBuilder::new()
-        .num_threads(opt.num_threads)
+        .num_threads(args.num_threads)
         .build_global()
         .unwrap();
-    let tc = Toolchain::from_file(&opt.toolchain)?;
+    let tc = Toolchain::from_file(&args.toolchain)?;
     let mut ise_families: Vec<&'static str> = Vec::new();
-    for family in opt.families.iter() {
+    for family in args.families.iter() {
         ise_families.extend(match &family[..] {
             "xc3000a" => vec!["xc3000a", "xc3000l", "xc3100a", "xc3100l"],
             "xc4000e" => vec!["xc4000e", "xc4000l", "spartan"],
@@ -97,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             _ => bail!("unknown family {}", family),
         });
     }
-    create_dir_all(&opt.target_directory)?;
+    create_dir_all(&args.target_directory)?;
     let mut parts: HashMap<String, Vec<PartgenPkg>> = HashMap::new();
     for ise_fam in ise_families.iter() {
         println!("querying {ise_fam}");
@@ -130,7 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for res in parts
         .into_par_iter()
         .map(|(part, pkgs)| {
-            dump_part(&opt, &tc, part, pkgs).map_err(|x| SimpleError::new(x.to_string()))
+            dump_part(&args, &tc, part, pkgs).map_err(|x| SimpleError::new(x.to_string()))
         })
         .collect::<Vec<_>>()
     {

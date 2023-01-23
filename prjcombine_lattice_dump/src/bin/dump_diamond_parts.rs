@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+use clap::Parser;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_lattice_dump::parse_tiles;
 use prjcombine_lattice_rawdump::{Db, Grid, Node, Part, Pip, Site};
@@ -14,7 +15,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
-use structopt::StructOpt;
 
 struct FamilyInfo {
     name: &'static str,
@@ -345,17 +345,16 @@ const DIAMOND_FAMILIES: &[FamilyInfo] = &[
     },
 ];
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "dump_diamond_parts",
     about = "Dump Diamond part geometry into rawdump files."
 )]
-struct Opt {
+struct Args {
     toolchain: String,
-    #[structopt(parse(from_os_str))]
     target_directory: PathBuf,
     families: Vec<String>,
-    #[structopt(short = "n", long, default_value = "0")]
+    #[arg(short, long, default_value = "0")]
     num_threads: usize,
 }
 
@@ -568,15 +567,15 @@ basciCmdListNode 1 nodes.out *
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
+    let args = Args::parse();
     ThreadPoolBuilder::new()
-        .num_threads(opt.num_threads)
+        .num_threads(args.num_threads)
         .build_global()
         .unwrap();
-    let tc = Toolchain::from_file(&opt.toolchain)?;
-    create_dir_all(&opt.target_directory)?;
+    let tc = Toolchain::from_file(&args.toolchain)?;
+    create_dir_all(&args.target_directory)?;
     for family in DIAMOND_FAMILIES {
-        if opt.families.iter().any(|x| x == family.name) {
+        if args.families.iter().any(|x| x == family.name) {
             let pparts: Vec<_> = family
                 .parts
                 .into_par_iter()
@@ -614,7 +613,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 parts,
             };
             db.to_file(
-                opt.target_directory
+                args.target_directory
                     .join(format!("{f}.zstd", f = family.name)),
             )
             .unwrap();

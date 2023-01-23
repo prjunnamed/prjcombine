@@ -1,21 +1,21 @@
+use clap::Parser;
 use prjcombine_entity::EntityId;
 use prjcombine_xilinx_geom::{DeviceNaming, GeomDb, Grid};
-use std::error::Error;
-use structopt::StructOpt;
+use std::{error::Error, path::PathBuf};
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "xgprint", about = "Dump Xilinx geom file.")]
-struct Opt {
-    file: String,
-    #[structopt(short, long)]
+#[derive(Debug, Parser)]
+#[command(name = "xgprint", about = "Dump Xilinx geom file.")]
+struct Args {
+    file: PathBuf,
+    #[arg(short, long)]
     intdb: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     devices: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     grids: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     pkgs: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     namings: bool,
 }
 
@@ -806,14 +806,14 @@ mod versal {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let geom = GeomDb::from_file(opt.file)?;
-    if opt.intdb {
+    let args = Args::parse();
+    let geom = GeomDb::from_file(args.file)?;
+    if args.intdb {
         for intdb in geom.ints.values() {
             intdb.print(&mut std::io::stdout())?;
         }
     }
-    if opt.grids || opt.devices {
+    if args.grids || args.devices {
         for (gid, grid) in &geom.grids {
             print!("GRID {gid}:", gid = gid.to_idx());
             for dev in &geom.devices {
@@ -828,7 +828,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if opt.grids {
+            if args.grids {
                 match grid {
                     Grid::Xc4k(g) => xc4k::print_grid(g),
                     Grid::Xc5200(g) => xc5200::print_grid(g),
@@ -842,7 +842,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    if opt.pkgs || opt.devices {
+    if args.pkgs || args.devices {
         for (bid, bond) in &geom.bonds {
             print!("BOND {bid}:", bid = bid.to_idx());
             for dev in &geom.devices {
@@ -853,13 +853,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if opt.pkgs {
+            if args.pkgs {
                 // XXX pretty
                 println!("{bond:#?}");
             }
         }
     }
-    if opt.devices {
+    if args.devices {
         for dev in &geom.devices {
             print!("DEVICE {n} GRIDS", n = dev.name);
             for (did, &gid) in &dev.grids {
@@ -894,7 +894,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    if opt.devices || opt.namings {
+    if args.devices || args.namings {
         for (dnid, dn) in geom.dev_namings {
             print!("NAMING {dnid}:", dnid = dnid.to_idx());
             for dev in &geom.devices {
@@ -903,7 +903,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             println!();
-            if opt.namings {
+            if args.namings {
                 // XXX pretty
                 println!("{dn:#?}");
             }

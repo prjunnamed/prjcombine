@@ -1,37 +1,37 @@
+use clap::Parser;
 use itertools::Itertools;
 use prjcombine_entity::{EntityBitVec, EntityId};
 use prjcombine_lattice_rawdump::Db;
-use std::error::Error;
-use structopt::StructOpt;
+use std::{error::Error, path::PathBuf};
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "lrdprint", about = "Dump Lattice rawdump file.")]
-struct Opt {
-    file: String,
+#[derive(Debug, Parser)]
+#[command(name = "lrdprint", about = "Dump Lattice rawdump file.")]
+struct Args {
+    file: PathBuf,
     part: Option<String>,
     package: Option<String>,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     tiles: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     sites: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     nodes: bool,
-    #[structopt(short, long)]
+    #[arg(short, long)]
     pips: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let lrd = Db::from_file(opt.file)?;
+    let args = Args::parse();
+    let lrd = Db::from_file(args.file)?;
     println!("DB {family}", family = lrd.family);
     let mut gids = EntityBitVec::repeat(false, lrd.grids.len());
     for part in &lrd.parts {
-        if let Some(ref opart) = opt.part {
+        if let Some(ref opart) = args.part {
             if &part.name != opart {
                 continue;
             }
         }
-        if let Some(ref opkg) = opt.package {
+        if let Some(ref opkg) = args.package {
             if &part.package != opkg {
                 continue;
             }
@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             print!(" {speed}");
         }
         println!();
-        if opt.sites {
+        if args.sites {
             for site in &part.sites {
                 if let Some(ref typ) = site.typ {
                     println!("\tSITE {name} {typ}", name = site.name);
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
         println!("GRID {gid}", gid = gid.to_idx());
-        if opt.tiles {
+        if args.tiles {
             for ((r, c), tile) in grid.tiles.indexed_iter() {
                 println!(
                     "\tTILE ({r}, {c}): {name} {kind} ({w}, {h}) at ({x}, {y})",
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     x = tile.x,
                     y = tile.y,
                 );
-                if opt.sites {
+                if args.sites {
                     for site in &tile.sites {
                         println!(
                             "\t\tSITE {name} ({x}, {y})",
@@ -86,7 +86,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        if opt.nodes {
+        if args.nodes {
             for (_, nn, node) in &grid.nodes {
                 print!("\tNODE {nn}");
                 if let Some(typ) = node.typ {
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        if opt.pips {
+        if args.pips {
             for (&(wf, wt), pip) in grid.pips.iter().sorted_by_key(|(&k, _)| k) {
                 print!(
                     "\tPIP {wt} <- {wf}",

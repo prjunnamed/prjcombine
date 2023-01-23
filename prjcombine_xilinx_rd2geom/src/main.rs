@@ -1,11 +1,12 @@
 #![allow(clippy::collapsible_else_if)]
 
+use clap::Parser;
 use prjcombine_rawdump::Part;
 use simple_error::bail;
 use std::error::Error;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std_semaphore::Semaphore;
-use structopt::StructOpt;
 
 mod db;
 mod series7;
@@ -20,37 +21,31 @@ mod virtex6;
 mod xc4k;
 mod xc5200;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "prjcombine_xilinx_rd2geom",
     about = "Extract geometry information from rawdumps."
 )]
-struct Opt {
-    dst: String,
-    files: Vec<String>,
-    #[structopt(long)]
+struct Args {
+    dst: PathBuf,
+    files: Vec<PathBuf>,
+    #[arg(long)]
     no_verify: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    if opt.files.is_empty() {
+    let args = Args::parse();
+    if args.files.is_empty() {
         bail!("no files given");
     }
     let builder = Mutex::new(db::DbBuilder::new());
     let rb = &builder;
     let sema = Semaphore::new(std::thread::available_parallelism().unwrap().get() as isize);
-    let verify = !opt.no_verify;
+    let verify = !args.no_verify;
     std::thread::scope(|s| {
-        for fname in opt.files {
+        for fname in args.files {
             let guard = sema.access();
-            let mut tname = &fname[..];
-            if let Some((_, n)) = tname.rsplit_once('/') {
-                tname = n;
-            }
-            if let Some((n, _)) = tname.split_once('.') {
-                tname = n;
-            }
+            let tname = fname.file_stem().unwrap().to_str().unwrap();
             std::thread::Builder::new()
                 .name(tname.to_string())
                 .spawn_scoped(s, move || {
@@ -84,6 +79,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     });
     let db = builder.into_inner().unwrap().finish();
-    db.to_file(opt.dst)?;
+    db.to_file(args.dst)?;
     Ok(())
 }

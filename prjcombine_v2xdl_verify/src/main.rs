@@ -2,12 +2,12 @@
 #![allow(clippy::collapsible_else_if)]
 #![allow(clippy::too_many_arguments)]
 
+use clap::Parser;
 use prjcombine_toolchain::Toolchain;
 use rayon::prelude::*;
-use std::error::Error;
 use std::fs::File;
 use std::io::Write;
-use structopt::StructOpt;
+use std::{error::Error, path::PathBuf};
 
 mod cfg;
 mod clb_lut4;
@@ -23,13 +23,13 @@ mod verilog;
 
 use types::{Test, TestGenCtx};
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "prjcombine_v2xdl_verify",
     about = "Verify ISE Verilog -> XDL mapping."
 )]
-struct Opt {
-    toolchain: String,
+struct Args {
+    toolchain: PathBuf,
     families: Vec<String>,
 }
 
@@ -235,9 +235,9 @@ fn get_7series_tests() -> Vec<Test> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let opt = Opt::from_args();
-    let tc = Toolchain::from_file(&opt.toolchain)?;
-    opt.families.par_iter().for_each(|family| {
+    let args = Args::parse();
+    let tc = Toolchain::from_file(&args.toolchain)?;
+    args.families.par_iter().for_each(|family| {
         let tests = match &family[..] {
             "spartan2" => get_virtex_tests(family),
             "spartan2e" => get_virtex_tests(family),

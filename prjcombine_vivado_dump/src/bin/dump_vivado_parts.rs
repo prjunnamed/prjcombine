@@ -1,3 +1,4 @@
+use clap::Parser;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vivado_dump::parts::{get_parts, VivadoPart};
 use prjcombine_vivado_dump::rawdump::get_rawdump;
@@ -5,24 +6,22 @@ use rayon::ThreadPoolBuilder;
 use std::collections::{HashMap, HashSet};
 use std::fs::create_dir_all;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(
+#[derive(Debug, Parser)]
+#[command(
     name = "dump_vivado_parts",
     about = "Dump Vivado part geometry into rawdump files."
 )]
-struct Opt {
+struct Args {
     toolchain: String,
-    #[structopt(parse(from_os_str))]
     target_directory: PathBuf,
     families: Vec<String>,
-    #[structopt(short = "n", long, default_value = "0")]
+    #[arg(short, long, default_value = "0")]
     num_threads: usize,
 }
 
-fn dump_part(opt: &Opt, tc: &Toolchain, dev: String, devparts: Vec<VivadoPart>) {
-    let fdir = opt.target_directory.join(&devparts[0].actual_family);
+fn dump_part(args: &Args, tc: &Toolchain, dev: String, devparts: Vec<VivadoPart>) {
+    let fdir = args.target_directory.join(&devparts[0].actual_family);
     create_dir_all(&fdir).unwrap();
     let path = fdir.join(dev.clone() + ".zstd");
     if path.exists() {
@@ -36,14 +35,14 @@ fn dump_part(opt: &Opt, tc: &Toolchain, dev: String, devparts: Vec<VivadoPart>) 
 }
 
 fn main() {
-    let opt = Opt::from_args();
+    let args = Args::parse();
     ThreadPoolBuilder::new()
-        .num_threads(opt.num_threads)
+        .num_threads(args.num_threads)
         .build_global()
         .unwrap();
-    let tc = Toolchain::from_file(&opt.toolchain).unwrap();
-    let families: HashSet<_> = opt.families.iter().map(|s| s.to_string()).collect();
-    create_dir_all(&opt.target_directory).unwrap();
+    let tc = Toolchain::from_file(&args.toolchain).unwrap();
+    let families: HashSet<_> = args.families.iter().map(|s| s.to_string()).collect();
+    create_dir_all(&args.target_directory).unwrap();
     let mut parts: HashMap<String, Vec<VivadoPart>> = HashMap::new();
     for part in get_parts(&tc).unwrap() {
         if !families.contains(&part.actual_family) && !families.contains(&part.device) {
@@ -69,6 +68,6 @@ fn main() {
         );
     }
     for (dev, devparts) in parts {
-        dump_part(&opt, &tc, dev, devparts);
+        dump_part(&args, &tc, dev, devparts);
     }
 }
