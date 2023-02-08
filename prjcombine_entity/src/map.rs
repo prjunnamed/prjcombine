@@ -138,6 +138,10 @@ where
         self.map.values()
     }
 
+    pub fn values_mut(&mut self) -> indexmap::map::ValuesMut<'_, K, V> {
+        self.map.values_mut()
+    }
+
     pub fn into_values(self) -> indexmap::map::IntoValues<K, V> {
         self.map.into_values()
     }
