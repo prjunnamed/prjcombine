@@ -1,12 +1,14 @@
 #![allow(clippy::type_complexity)]
 use crate::*;
 use bimap::BiHashMap;
+use itertools::Itertools;
+use prjcombine_entity::EntityId;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::thread_rng;
 use std::collections::hash_map::Entry;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Condvar;
 use std::sync::Mutex;
-use std_semaphore::{Semaphore, SemaphoreGuard};
 
 struct BatchState<B: Backend> {
     base_bs: Option<(B::Bitstream, HashMap<B::Key, B::Value>)>,
@@ -19,14 +21,19 @@ struct BatchData<B: Backend> {
     width: usize,
     base_kv: HashMap<B::Key, B::Value>,
     code: BiHashMap<(BatchFuzzerId, usize), u64>,
-    postproc: HashSet<B::PostProc>,
+}
+
+struct TaskQueue<'a, 'b, B: Backend> {
+    session: &'a Session<'b, B>,
+    batches: EntityVec<BatchId, BatchData<B>>,
+    skip: HashSet<BatchFuzzerId>,
+    items: Vec<(BatchId, Option<usize>)>,
+    next: AtomicUsize,
 }
 
 fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
-    let mut postproc = HashSet::new();
     let mut bits = vec![];
     for (fid, f) in &batch.fuzzers {
-        postproc.extend(f.postproc.iter().cloned());
         for i in 0..f.bits {
             bits.push((fid, i));
         }
@@ -59,9 +66,15 @@ fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
     let width = width as usize;
     let mut base_kv = HashMap::new();
     for (k, v) in &batch.kv {
-        if let BatchValue::Base(b) = v {
-            let v = b.iter().choose(&mut rng).unwrap();
-            base_kv.insert(k.clone(), v.clone());
+        match v {
+            BatchValue::Base(b) => {
+                base_kv.insert(k.clone(), b.clone());
+            }
+            BatchValue::BaseAny(b) => {
+                let v = b.iter().choose(&mut rng).unwrap();
+                base_kv.insert(k.clone(), v.clone());
+            }
+            _ => (),
         }
     }
     let state = BatchState {
@@ -74,7 +87,6 @@ fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
         base_kv,
         width,
         code,
-        postproc,
     }
 }
 
@@ -83,14 +95,17 @@ fn run_batch_item<B: Backend>(
     batch: &Batch<B>,
     bdata: &BatchData<B>,
     idx: Option<usize>,
-    g: SemaphoreGuard,
+    skip: &HashSet<BatchFuzzerId>,
 ) {
     let mut kv = bdata.base_kv.clone();
     for (k, v) in &batch.kv {
         match v {
             BatchValue::Base(_) => (),
+            BatchValue::BaseAny(_) => (),
             BatchValue::Fuzzer(fid, a, b) => {
-                let v = if let Some(idx) = idx {
+                let v = if skip.contains(fid) {
+                    a
+                } else if let Some(idx) = idx {
                     let cw = bdata.code.get_by_left(&(*fid, 0)).unwrap();
                     let state = cw >> idx & 1;
                     if state != 0 {
@@ -106,7 +121,9 @@ fn run_batch_item<B: Backend>(
             BatchValue::FuzzerMulti(fid, a) => {
                 let mut val: BitVec = BitVec::new();
                 for i in 0..batch.fuzzers[*fid].bits {
-                    val.push(if let Some(idx) = idx {
+                    val.push(if skip.contains(fid) {
+                        false
+                    } else if let Some(idx) = idx {
                         let cw = bdata.code.get_by_left(&(*fid, i)).unwrap();
                         let state = cw >> idx & 1;
                         state != 0
@@ -125,73 +142,223 @@ fn run_batch_item<B: Backend>(
     } else {
         s.base_bs = Some((bs, kv));
     }
+    std::mem::drop(s);
     bdata.cv.notify_one();
-    std::mem::drop(g);
+}
+
+fn work<B: Backend>(queue: &TaskQueue<B>) {
+    loop {
+        let idx = queue.next.fetch_add(1, Ordering::Relaxed);
+        if idx >= queue.items.len() {
+            break;
+        }
+        let (bid, idx) = queue.items[idx];
+        if queue.session.debug >= 2 {
+            if let Some(idx) = idx {
+                eprintln!("Starting batch {bid} run {idx}", bid = bid.to_idx());
+            } else {
+                eprintln!("Starting batch {bid} base run", bid = bid.to_idx());
+            }
+        }
+        run_batch_item(
+            queue.session.backend,
+            &queue.session.batches[bid],
+            &queue.batches[bid],
+            idx,
+            &queue.skip,
+        );
+    }
+}
+
+fn postproc_batch<B: Backend>(
+    backend: &B,
+    state: &B::State,
+    batch: &Batch<B>,
+    bd: &BatchData<B>,
+    skip: &HashSet<BatchFuzzerId>,
+) -> Result<EntityVec<BatchFuzzerId, Vec<HashMap<B::BitPos, bool>>>, B::BitPos> {
+    let mut g = bd.state.lock().unwrap();
+    while g.base_bs.is_none() || g.other_bs.iter().any(|x| x.is_none()) {
+        g = bd.cv.wait(g).unwrap();
+    }
+    let (mut base_bs, kv) = g.base_bs.take().unwrap();
+    let mut postproc = HashSet::new();
+    for (fid, f) in &batch.fuzzers {
+        if !skip.contains(&fid) {
+            postproc.extend(f.postproc.iter().cloned());
+        }
+    }
+    for pp in &postproc {
+        backend.postproc(state, &mut base_bs, pp, &kv);
+    }
+    let mut bits: HashMap<B::BitPos, (bool, u64)> = HashMap::new();
+    for (i, x) in g.other_bs.iter_mut().enumerate() {
+        let (mut bs, kv) = x.take().unwrap();
+        for pp in &postproc {
+            backend.postproc(state, &mut bs, pp, &kv);
+        }
+        let diff = B::diff(&base_bs, &bs);
+        for (bit, dir) in diff {
+            match bits.entry(bit) {
+                Entry::Vacant(e) => {
+                    e.insert((dir, 1 << i));
+                }
+                Entry::Occupied(mut v) => {
+                    assert_eq!(v.get().0, dir);
+                    v.get_mut().1 |= 1 << i;
+                }
+            }
+        }
+    }
+    let mut fuzzers = batch.fuzzers.map_values(|f| vec![HashMap::new(); f.bits]);
+    for (bit, (dir, cw)) in bits {
+        if let Some(&(fid, bidx)) = bd.code.get_by_right(&cw) {
+            fuzzers[fid][bidx].insert(bit, dir);
+        } else {
+            return Err(bit);
+        }
+    }
+    Ok(fuzzers)
+}
+
+fn try_cw_fail<B: Backend>(
+    backend: &B,
+    state: &B::State,
+    batch: &Batch<B>,
+    bd: &BatchData<B>,
+    skip: &HashSet<BatchFuzzerId>,
+) -> Result<EntityVec<BatchFuzzerId, Vec<HashMap<B::BitPos, bool>>>, B::BitPos> {
+    let bstate = BatchState {
+        base_bs: None,
+        other_bs: vec![None; bd.width],
+    };
+    let nbd = BatchData {
+        state: Mutex::new(bstate),
+        cv: Condvar::new(),
+        width: bd.width,
+        base_kv: bd.base_kv.clone(),
+        code: bd.code.clone(),
+    };
+    let bd = &nbd;
+    std::thread::scope(|s| {
+        s.spawn(|| run_batch_item(backend, batch, bd, None, skip));
+        for i in 0..bd.width {
+            s.spawn(move || run_batch_item(backend, batch, bd, Some(i), skip));
+        }
+    });
+    postproc_batch(backend, state, batch, bd, skip)
+}
+
+fn diagnose_cw_fail<B: Backend>(
+    backend: &B,
+    state: &B::State,
+    batch: &Batch<B>,
+    bd: &BatchData<B>,
+) {
+    eprintln!("CW FAIL; DIAGNOSING [{}]", batch.fuzzers.len());
+    let mut rng = thread_rng();
+    let mut skip: HashSet<BatchFuzzerId> = HashSet::new();
+    'big: loop {
+        let left: Vec<_> = batch.fuzzers.ids().filter(|f| !skip.contains(f)).collect();
+        if left.len() >= 9 {
+            for _ in 0..4 {
+                let mut nskip = skip.clone();
+                let n = left.len() / 3;
+                nskip.extend(left.choose_multiple(&mut rng, n));
+                if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
+                    skip = nskip;
+                    println!("REDUCE FAST {}", batch.fuzzers.len() - skip.len());
+                    continue 'big;
+                }
+            }
+        }
+        for &f in &left {
+            let mut nskip = skip.clone();
+            nskip.insert(f);
+            if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
+                skip.insert(f);
+                println!("REDUCE SLOW {}", batch.fuzzers.len() - skip.len());
+                continue 'big;
+            }
+        }
+        eprintln!("INTERFERENCE FUZZERS:");
+        for &fid in &left {
+            let tskip: HashSet<_> = batch.fuzzers.ids().filter(|of| *of != fid).collect();
+            let fuzzers = try_cw_fail(backend, state, batch, bd, &tskip).unwrap();
+            eprintln!(
+                "FUZZER {f:?}: {fd:?}",
+                f = batch.fuzzers[fid].info,
+                fd = fuzzers[fid]
+            );
+            for (k, v) in batch.fuzzers[fid].kv.iter().sorted_by_key(|x| x.0) {
+                match v {
+                    FuzzerValue::Base(_) => eprintln!("BASE {k:?} {v:?}", v = bd.base_kv[k]),
+                    FuzzerValue::BaseAny(_) => eprintln!("BASE ANY {k:?} {v:?}", v = bd.base_kv[k]),
+                    FuzzerValue::Fuzzer(v1, v2) => eprintln!("FUZZ {k:?} {v1:?} {v2:?}"),
+                    FuzzerValue::FuzzerMulti(mv) => eprintln!("MULTIFUZZ {k:?} {mv:?}"),
+                }
+            }
+        }
+        break;
+    }
 }
 
 impl<'a, B: Backend> Session<'a, B> {
     pub fn run(self) -> Option<B::State> {
         let batches = self.batches.map_values(prep_batch);
-
         let backend = self.backend;
-
+        let mut items = vec![];
+        for (bid, b) in &batches {
+            items.push((bid, None));
+            for i in 0..b.width {
+                items.push((bid, Some(i)));
+            }
+        }
+        let queue = TaskQueue {
+            session: &self,
+            batches,
+            skip: HashSet::new(),
+            items,
+            next: 0.into(),
+        };
         let mut state = backend.make_state();
-        let sema = Semaphore::new(std::thread::available_parallelism().unwrap().get() as isize);
-        std::thread::scope(|s| {
-            s.spawn(|| {
-                for (bid, batch) in &self.batches {
-                    let bd = &batches[bid];
-                    let g = sema.access();
-                    s.spawn(|| run_batch_item(backend, batch, bd, None, g));
-                    for i in 0..bd.width {
-                        let g = sema.access();
-                        s.spawn(move || run_batch_item(backend, batch, bd, Some(i), g));
-                    }
-                }
-            });
+        if self.debug >= 1 {
+            let nf: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
+            let nr: usize = queue.batches.values().map(|x| x.width + 1).sum();
+            let nb = self.batches.len();
+            eprintln!("Starting hammer run with {nf} fuzzers and {nr} runs in {nb} batches");
+        }
+        if self.debug >= 3 {
             for (bid, batch) in &self.batches {
-                let bd = &batches[bid];
-                let mut g = bd.state.lock().unwrap();
-                while g.base_bs.is_none() || g.other_bs.iter().any(|x| x.is_none()) {
-                    g = bd.cv.wait(g).unwrap();
+                eprintln!(
+                    "Batch {bid} [{nr} runs]:",
+                    bid = bid.to_idx(),
+                    nr = queue.batches[bid].width
+                );
+                for f in batch.fuzzers.values() {
+                    eprintln!("{f:?}", f = f.info);
                 }
-                let (mut base_bs, kv) = g.base_bs.take().unwrap();
-                for pp in &bd.postproc {
-                    backend.postproc(&state, &mut base_bs, pp, &kv);
-                }
-                let mut bits: HashMap<B::BitPos, (bool, u64)> = HashMap::new();
-                for (i, x) in g.other_bs.iter_mut().enumerate() {
-                    let (mut bs, kv) = x.take().unwrap();
-                    for pp in &bd.postproc {
-                        backend.postproc(&state, &mut bs, pp, &kv);
+            }
+        }
+        let nt = std::thread::available_parallelism().unwrap().get();
+        std::thread::scope(|s| {
+            for _ in 0..nt {
+                s.spawn(|| work(&queue));
+            }
+            for (bid, batch) in &self.batches {
+                let bd = &queue.batches[bid];
+                let fuzzers = match postproc_batch(backend, &state, batch, bd, &queue.skip) {
+                    Ok(f) => f,
+                    Err(bitpos) => {
+                        diagnose_cw_fail(backend, &state, batch, bd);
+                        panic!("oops weird cw for {bitpos:?}")
                     }
-                    let diff = B::diff(&base_bs, &bs);
-                    for (bit, dir) in diff {
-                        match bits.entry(bit) {
-                            Entry::Vacant(e) => {
-                                e.insert((dir, 1 << i));
-                            }
-                            Entry::Occupied(mut v) => {
-                                assert_eq!(v.get().0, dir);
-                                v.get_mut().1 |= 1 << i;
-                            }
-                        }
-                    }
-                }
-                let mut fuzzers = batch.fuzzers.map_values(|f| vec![HashMap::new(); f.bits]);
-                for (bit, (dir, cw)) in bits {
-                    if let Some(&(fid, bidx)) = bd.code.get_by_right(&cw) {
-                        fuzzers[fid][bidx].insert(bit, dir);
-                    } else {
-                        // TODO: diagnostics
-                        panic!("oops unknown cw for {bit:?}");
-                    }
-                }
+                };
                 for (fid, bits) in fuzzers {
                     let fuzzer = &batch.fuzzers[fid];
                     if let Some(oops) = backend.return_fuzzer(
                         &mut state,
-                        &fuzzer.backend,
+                        &fuzzer.info,
                         FuzzerId {
                             batch: bid,
                             fuzzer: fid,
@@ -204,6 +371,9 @@ impl<'a, B: Backend> Session<'a, B> {
                 }
             }
         });
+        if self.debug >= 1 {
+            eprintln!("Hammer done");
+        }
 
         Some(state)
     }
