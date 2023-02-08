@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs::read;
 use std::path::Path;
 use std::process::Command;
+use which::which_in;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Toolchain {
@@ -21,6 +22,9 @@ impl Toolchain {
         if self.use_wine {
             res = Command::new("wine");
             res.arg(cmd);
+        } else if let Some(path) = self.env.get("PATH") {
+            let rcmd = which_in(cmd, Some(path), "/").unwrap();
+            res = Command::new(rcmd);
         } else {
             res = Command::new(cmd);
         }
