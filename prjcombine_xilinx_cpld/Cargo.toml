@@ -1,0 +1,11 @@
+[package]
+name = "prjcombine_xilinx_cpld"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+prjcombine_entity.workspace = true
+serde.workspace = true
+enum-map.workspace = true
+bitvec.workspace = true
+itertools.workspace = true

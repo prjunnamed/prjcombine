@@ -7,7 +7,7 @@ use std::fmt;
 use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
-use crate::EntityId;
+use crate::{EntityId, EntityVec};
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct EntityPartVec<I, V> {
@@ -106,6 +106,13 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         IntoValues {
             vals: self.into_iter(),
         }
+    }
+
+    pub fn into_full(mut self) -> EntityVec<I, V> {
+        while matches!(self.vals.last(), Some(None)) {
+            self.vals.pop();
+        }
+        self.vals.into_iter().map(Option::unwrap).collect()
     }
 }
 

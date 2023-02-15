@@ -49,6 +49,9 @@ members = [
 	"prjcombine_v2xdl_verify",
 	"prjcombine_virtex_bitstream",
 	"prjcombine_hammer",
+	"prjcombine_vm6",
+	"prjcombine_xilinx_cpld",
+	"prjcombine_xilinx_recpld",
 ]
 
 [workspace.package]
@@ -99,9 +102,12 @@ prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
 prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
 prjcombine_virtex_bitstream = { path = "prjcombine_virtex_bitstream" }
 prjcombine_hammer = { path = "prjcombine_hammer" }
+prjcombine_vm6 = { path = "prjcombine_vm6" }
+prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
+prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
-indexmap = "1.8"
+indexmap = { version = "1.8", features = ["serde"] }
 ndarray = { version = "0.15", features = ["serde"] }
 enum-map = { version = "2.4", features = ["serde"] }
 bitvec = { version = "1.0", features = ["serde"] }
@@ -122,6 +128,7 @@ arrayref = "0.3.6"
 bimap = "0.6"
 std-semaphore = "0.1"
 which = "4.4"
+derivative = "2.2"
 
 [profile.dev]
 opt-level = 2

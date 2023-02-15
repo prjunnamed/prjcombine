@@ -1,0 +1,10 @@
+[package]
+name = "prjcombine_vm6"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+prjcombine_entity.workspace = true
+prjcombine_xilinx_cpld.workspace = true
+serde.workspace = true
+enum-map.workspace = true
