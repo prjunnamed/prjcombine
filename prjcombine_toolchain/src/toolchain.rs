@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fs::read;
+use std::fs::read_to_string;
 use std::path::Path;
 use std::process::Command;
 use which::which_in;
@@ -13,8 +13,8 @@ pub struct Toolchain {
 
 impl Toolchain {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
-        let s = read(path)?;
-        Ok(toml::from_slice(&s).unwrap())
+        let s = read_to_string(path)?;
+        Ok(toml::from_str(&s).unwrap())
     }
 
     pub fn command(&self, cmd: &str) -> Command {
