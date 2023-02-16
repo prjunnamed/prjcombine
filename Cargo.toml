@@ -52,6 +52,7 @@ members = [
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
+	"prjcombine_sdf",
 ]
 
 [workspace.package]
@@ -105,6 +106,7 @@ prjcombine_hammer = { path = "prjcombine_hammer" }
 prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
+prjcombine_sdf = { path = "prjcombine_sdf" }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 indexmap = { version = "1.8", features = ["serde"] }
