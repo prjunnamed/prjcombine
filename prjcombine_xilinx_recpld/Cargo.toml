@@ -22,3 +22,4 @@ serde.workspace = true
 bincode.workspace = true
 zstd.workspace = true
 enum-map.workspace = true
+prjcombine_sdf.workspace = true

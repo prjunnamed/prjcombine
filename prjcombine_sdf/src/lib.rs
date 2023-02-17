@@ -61,9 +61,9 @@ pub struct Width {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Delay {
-    min: i64,
-    typ: i64,
-    max: i64,
+    pub min: i64,
+    pub typ: i64,
+    pub max: i64,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
