@@ -4,8 +4,8 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use crate::types::{
     BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FbnId, FclkId,
-    FoeId, IBufMode, ImuxId, ImuxInput, IoId, IpadId, OeMode, OeMuxVal, OePadId, PTermId, RegMode,
-    Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
+    FoeId, FoeMuxVal, IBufMode, ImuxId, ImuxInput, IoId, IpadId, OeMode, OeMuxVal, OePadId,
+    PTermId, RegMode, Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
 };
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
@@ -42,6 +42,7 @@ pub struct Bits {
     pub foe_mux: EntityVec<FoeId, EnumData<OePadId>>,
     pub foe_en: EntityVec<FoeId, InvBit>,
     pub foe_inv: EntityVec<FoeId, InvBit>,
+    pub foe_mux_xbr: EntityVec<FoeId, EnumData<FoeMuxVal>>,
     // XBR
     pub term_mode: Option<EnumData<TermMode>>,
     pub vref_en: Option<InvBit>,
@@ -450,6 +451,12 @@ impl Bits {
         for (foe, &bit) in &self.foe_inv {
             let f = foe.to_idx();
             set(bit.0, format!("FOE{f}.INV"));
+        }
+        for (foe, data) in &self.foe_mux_xbr {
+            let f = foe.to_idx();
+            for (j, &bit) in data.bits.iter().enumerate() {
+                set(bit, format!("FOE{f}.MUX.{j}"));
+            }
         }
 
         if let Some(ref data) = self.term_mode {
@@ -979,6 +986,18 @@ impl Bits {
             write!(o, "FOE INV {i}: ", i = foe.to_idx())?;
             write_invbit(o, bit)?;
             writeln!(o)?;
+        }
+
+        for (foe, data) in &self.foe_mux_xbr {
+            write!(o, "FOE MUX {i}:", i = foe.to_idx())?;
+            write_enum(o, "", data, |k| {
+                match k {
+                    FoeMuxVal::Ibuf => "IBUF",
+                    FoeMuxVal::IbufInv => "IBUF_INV",
+                    FoeMuxVal::Mc => "MC",
+                }
+                .to_string()
+            })?;
         }
 
         for (bid, bank) in &self.banks {

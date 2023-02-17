@@ -144,6 +144,13 @@ pub enum Slew {
     Fast,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum FoeMuxVal {
+    Ibuf,
+    IbufInv,
+    Mc,
+}
+
 impl core::ops::Not for ExportDir {
     type Output = ExportDir;
 

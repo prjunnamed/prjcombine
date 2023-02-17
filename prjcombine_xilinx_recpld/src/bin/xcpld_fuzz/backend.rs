@@ -97,6 +97,7 @@ pub enum Value {
     InputCt(PTermId),
     InputUt(FbId, PTermId),
     InputPad(IoId, NodeKind),
+    InputMc(McId, NodeKind),
     CopyQ,
     MutexFuzz,
     MutexPin,
@@ -104,6 +105,7 @@ pub enum Value {
     OePadNode(NodeKind, OePadId, u8),
     SrPadNode(NodeKind),
     ClkPad(ClkPadId),
+    McGlb,
     Ut(FbId, PTermId),
     Ireg,
     CtUseCt,
@@ -243,6 +245,7 @@ pub enum FuzzerInfo {
     Fclk(FclkId, ClkPadId, bool),
     Fsr(bool),
     Foe(FoeId, OePadId, bool),
+    FoeMc(FoeId),
     FbPresent(FbId),
 }
 
@@ -668,6 +671,7 @@ impl<'a> Backend for CpldBackend<'a> {
                         NodeKind::McExport => "EXPORT",
                         NodeKind::McOe => "OE",
                         NodeKind::McUim => "UIM",
+                        NodeKind::McGlb => "GLB",
                         _ => unreachable!(),
                     };
                     let node = insert_node(
@@ -1071,6 +1075,7 @@ impl<'a> Backend for CpldBackend<'a> {
                         Value::InputUt(fb, pt) => (ct_lut[&(fb, pt)], true),
                         Value::InputSi(kind) => (mc_out_lut[&(mcid, kind)], false),
                         Value::InputPad(imc, kind) => (ibuf_out_lut[&(imc, kind)], true),
+                        Value::InputMc(mc, kind) => (mc_out_lut[&(mc, kind)], true),
                         _ => unreachable!(),
                     };
                     let rmcid = vm6.fbs[mcid.0].pins[mcid.1].mc.unwrap();
@@ -1154,6 +1159,18 @@ impl<'a> Backend for CpldBackend<'a> {
                     Value::Bool(true) => {
                         let mc = self.oe_pads_remapped[OePadId::from_idx(idx.to_idx())];
                         let node = pad_lut[&mc];
+                        let name = vm6.nodes[node].name.to_string();
+                        vm6.global_foe.insert(
+                            idx,
+                            GlobalSig {
+                                name,
+                                path: idx.to_idx() as u32,
+                            },
+                        );
+                    }
+                    Value::McGlb => {
+                        let IoId::Mc(mc) = self.device.oe_pads[OePadId::from_idx(idx.to_idx())] else { unreachable!(); };
+                        let node = mc_out_lut[&(mc, NodeKind::McGlb)];
                         let name = vm6.nodes[node].name.to_string();
                         vm6.global_foe.insert(
                             idx,

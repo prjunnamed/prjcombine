@@ -2011,6 +2011,35 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             hammer.add_fuzzer_simple(fuzzer);
         }
+        if backend.device.kind == DeviceKind::Coolrunner2 {
+            let mut fuzzer = Fuzzer::new(FuzzerInfo::FoeMc(tgt));
+            let IoId::Mc(oemc) = backend.device.oe_pads[src] else { unreachable!(); };
+            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else { unreachable!(); };
+            fuzzer = fuzzer
+                .base(Key::McPresent(mc), true)
+                .base(Key::McHasOut(mc, NodeKind::McUim), true)
+                .base(Key::McHasOut(mc, NodeKind::McQ), Value::CopyQ)
+                .fuzz(Key::McHasOut(mc, NodeKind::McOe), false, Value::CopyOe)
+                .fuzz(Key::McFlag(mc, 14), false, true)
+                .fuzz(Key::McSiMutex(mc), false, true)
+                .base(Key::McSiPresent(mc), true)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiD1), true)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiD2), true)
+                .base(Key::McFfPresent(mc), true)
+                .fuzz(
+                    Key::McOe(mc),
+                    Value::None,
+                    Value::InputMc(oemc, NodeKind::McGlb),
+                )
+                .base(Key::McPresent(oemc), true)
+                .base(Key::McHasOut(oemc, NodeKind::McUim), true)
+                .fuzz(Key::McHasOut(oemc, NodeKind::McGlb), false, Value::CopyQ)
+                .fuzz(Key::Foe(tgt), Value::None, Value::McGlb)
+                .base(Key::OBufPresent(mc), true);
+
+            fuzzer = pin_ibuf(backend, fuzzer, IoId::Mc(mc));
+            hammer.add_fuzzer_simple(fuzzer);
+        }
     }
 }
 

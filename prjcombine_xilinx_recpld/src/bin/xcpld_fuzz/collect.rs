@@ -15,9 +15,9 @@ use prjcombine_xilinx_cpld::{
     },
     device::DeviceKind,
     types::{
-        CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FclkId, FoeId, IBufMode,
-        ImuxId, ImuxInput, IoId, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal,
-        TermMode, Ut, Xc9500McPt, XorMuxVal,
+        CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FclkId, FoeId,
+        FoeMuxVal, IBufMode, ImuxId, ImuxInput, IoId, OeMode, OeMuxVal, OePadId, PTermId, RegMode,
+        Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
     },
 };
 
@@ -1491,15 +1491,21 @@ impl Collector<'_> {
                     let tgt = FoeId::from_idx(tgt);
                     let ff = FuzzerInfo::Foe(tgt, src, false);
                     let ft = FuzzerInfo::Foe(tgt, src, true);
-                    self.state.kill_fuzzer_bits_from(ft, ff);
-                    self.bits.foe_inv.push(self.state.collect_single(ft));
-                    self.state.kill_fuzzer_bits_enum_diff(
-                        ff,
-                        mc.oe_mux.as_ref().unwrap(),
-                        &OeMuxVal::Vcc,
-                        &OeMuxVal::Foe(tgt),
-                    );
-                    self.bits.foe_en.push(self.state.collect_single(ff));
+                    let fm = FuzzerInfo::FoeMc(tgt);
+                    for f in [ff, ft, fm] {
+                        self.state.kill_fuzzer_bits_enum_diff(
+                            f,
+                            mc.oe_mux.as_ref().unwrap(),
+                            &OeMuxVal::Vcc,
+                            &OeMuxVal::Foe(tgt),
+                        );
+                    }
+                    let f = [
+                        (ff, FoeMuxVal::Ibuf),
+                        (ft, FoeMuxVal::IbufInv),
+                        (fm, FoeMuxVal::Mc),
+                    ];
+                    self.bits.foe_mux_xbr.push(self.state.collect_enum(&f));
                 }
             }
         }
@@ -1592,6 +1598,7 @@ pub fn collect_fuzzers(backend: &CpldBackend, mut state: State) -> Bits {
         foe_mux: EntityVec::new(),
         foe_en: EntityVec::new(),
         foe_inv: EntityVec::new(),
+        foe_mux_xbr: EntityVec::new(),
         banks: EntityVec::new(),
         term_mode: None,
         vref_en: None,

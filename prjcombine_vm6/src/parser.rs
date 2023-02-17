@@ -196,6 +196,7 @@ impl<'a> Parser<'a> {
             ("0", "4", "MC_EXPORT") => Ok(NodeKind::McExport),
             ("0", "5", "MC_FBK") => Ok(NodeKind::McFbk),
             ("0", "6", "MC_COMB") => Ok(NodeKind::McComb),
+            ("0", "7", "MC_GLB") => Ok(NodeKind::McGlb),
             ("4", "0", "UIM_OUT") => Ok(NodeKind::UimOut),
             ("5", "0", "II_IMUX") => Ok(NodeKind::IiImux),
             ("5", "2", "II_FOE") => Ok(NodeKind::IiFoe),
