@@ -2165,12 +2165,14 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("RCLK_HPIO_TERM_R_GTH", (1, 0, 0, 0), &["clk-row"]),
     TileInfo("HPIO_TERM_R_GTH_RBRK", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("HPIO_TERM_R_GTH_TERM_B", (1, 0, 0, 0), &[]),
+    TileInfo("HPIO_TERM_R_GTH_TERM_T_FT", (1, 0, 0, 0), &[]),
     // right
     TileInfo("GTH_QUAD_RIGHT", (50, 0, 60, 0), &["gth"]),
     TileInfo("GTH_QUAD_RIGHT_RBRK", (50, 0, 0, 0), &["clk-brk"]),
     TileInfo("GTH_QUAD_RIGHT_TERM_B_FT", (50, 0, 0, 0), &[]),
     TileInfo("GTH_QUAD_RIGHT_TERM_T", (50, 0, 0, 0), &[]),
     TileInfo("GTH_QUAD_HPIO_RIGHT_RBRK", (50, 0, 0, 0), &["clk-brk"]),
+    TileInfo("HPIO_GTH_QUAD_RIGHT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
     // right
     TileInfo("GTY_R", (50, 0, 60, 0), &["gty"]),
     TileInfo("GTY_R_RBRK", (50, 0, 0, 0), &["clk-brk"]),
@@ -3380,6 +3382,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("HBM_PHY_CHNL_TOP", SINGLE, &["hardip"]),
     TileInfo("HBM_PHY_MS_TOP", SINGLE, &["hardip"]),
     TileInfo("CMT_HPLL_SITE", SINGLE, &["pll-alt"]),
+    TileInfo("CMT_HPLL", SINGLE, &["pll-alt"]),
     // SSIT top
     TileInfo("NOC_TNOC_SSIT_NCRB_CORE_MY", SINGLE, &["noc"]),
     TileInfo("NOC_TNOC_BRIDGE_TOP_CORE", SINGLE, &["noc"]),
