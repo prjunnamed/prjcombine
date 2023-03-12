@@ -2234,10 +2234,17 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
             let mut is_alt = false;
+            let mut is_nocfg = true;
             if let Some(wire) = rd.wires.get("HPIO_IOBSNGL_19_TSDI_PIN") {
                 let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
                 if tk.wires.contains_key(&wire) {
                     is_alt = true;
+                }
+            }
+            if let Some(wire) = rd.wires.get("HPIO_IOBPAIR_26_TSDI_PIN") {
+                let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
+                if tk.wires.contains_key(&wire) {
+                    is_nocfg = false;
                 }
             }
 
@@ -2273,6 +2280,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                         bel = bel.pin_name_only("TSDI", 0);
                     }
                 }
+                if is_nocfg {
+                    bel = bel.pin_name_only("TSDI", 0);
+                }
                 bels.push(bel);
             }
             for i in 0..12 {
@@ -2305,7 +2315,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             );
             bels.push(builder.bel_xy("HPIO_BIAS", "BIAS", 0, 0));
 
-            let naming = if is_alt {
+            let naming = if is_nocfg {
+                format!("{kind}.NOCFG")
+            } else if is_alt {
                 format!("{kind}.ALTCFG")
             } else {
                 kind.to_string()

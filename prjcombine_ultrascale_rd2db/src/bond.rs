@@ -97,8 +97,8 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
                 }
             } else {
                 for p in [
-                    "zu2cg", "zu2eg", "zu3cg", "zu3eg", "zu4cg", "zu4eg", "zu5cg", "zu5eg",
-                    "zu7cg", "zu7eg",
+                    "zu2cg", "zu2eg", "zu3cg", "zu3eg", "zu3tcg", "zu3teg", "zu4cg", "zu4eg",
+                    "zu5cg", "zu5eg", "zu7cg", "zu7eg",
                 ] {
                     if rd.part.contains(p) {
                         return Some(BondPin::VccIntVcu);

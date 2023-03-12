@@ -56,6 +56,7 @@ struct DieExpander<'a, 'b, 'c> {
     gtylut: EntityVec<RegId, usize>,
     vsxlut: EntityVec<ColId, usize>,
     cmtxlut: EntityVec<ColId, usize>,
+    cmtylut: EntityVec<RegId, usize>,
     gtxlut: EntityVec<ColId, usize>,
     bankxlut: EntityPartVec<ColId, u32>,
     bankylut: EntityVec<RegId, u32>,
@@ -374,7 +375,8 @@ impl DieExpander<'_, '_, '_> {
                     if let Some((reg, _)) = regs.iter().find(|&(_, &k)| k == HardRowKind::Cfg) {
                         self.reg_cfg_io = Some(reg);
                         self.has_mcap = reg.to_idx() != 0
-                            && matches!(regs[reg - 1], HardRowKind::Pcie | HardRowKind::PciePlus);
+                            && matches!(regs[reg - 1], HardRowKind::Pcie | HardRowKind::PciePlus)
+                            && !self.grid.is_nocfg();
                     }
                 }
                 _ => (),
@@ -459,8 +461,13 @@ impl DieExpander<'_, '_, '_> {
                 }
                 ColumnKindRight::Dsp(DspKind::ClkBuf) => (),
                 ColumnKindRight::Dsp(_) => {
-                    brx += 2;
-                    gtbx += 2;
+                    if self.grid.is_nocfg() && col > self.grid.cols_hard.last().unwrap().col {
+                        brx += 4;
+                        gtbx += 4;
+                    } else {
+                        brx += 2;
+                        gtbx += 2;
+                    }
                 }
                 _ => (),
             }
@@ -541,6 +548,24 @@ impl DieExpander<'_, '_, '_> {
                 cmtx += 1;
             }
         }
+    }
+
+    fn fill_cmtylut(&mut self, mut cmty: usize) -> usize {
+        for reg in self.grid.regs() {
+            let skip = self
+                .disabled
+                .contains(&DisabledPart::Region(self.die.die, reg));
+            let has_hprio = self
+                .grid
+                .cols_io
+                .iter()
+                .any(|x| matches!(x.regs[reg], IoRowKind::Hpio | IoRowKind::Hrio));
+            self.cmtylut.push(cmty);
+            if has_hprio && !skip {
+                cmty += 1;
+            }
+        }
+        cmty
     }
 
     fn fill_gtxlut(&mut self) {
@@ -1474,11 +1499,27 @@ impl DieExpander<'_, '_, '_> {
                         &[],
                     );
                 } else {
+                    let mut brx = self.brxlut[col].1;
+                    let mut gtbx = self.gtbxlut[col].1;
                     let tk = match self.grid.kind {
                         GridKind::Ultrascale => "RCLK_DSP_L",
                         GridKind::UltrascalePlus => {
                             let is_l = col < self.grid.col_cfg();
-                            if self.grid.is_dc12() {
+                            let mut is_dc12 = self.grid.is_dc12();
+                            if self.grid.is_nocfg() {
+                                if col < self.grid.cols_hard.first().unwrap().col {
+                                    is_dc12 = true;
+                                }
+                                if col > self.grid.cols_hard.last().unwrap().col {
+                                    if reg == self.grid.reg_cfg() {
+                                        is_dc12 = true;
+                                    } else {
+                                        brx += 2;
+                                        gtbx += 2;
+                                    }
+                                }
+                            }
+                            if is_dc12 {
                                 if is_l {
                                     "RCLK_RCLK_DSP_INTF_DC12_L_FT"
                                 } else {
@@ -1507,7 +1548,6 @@ impl DieExpander<'_, '_, '_> {
                         &[(col, row)],
                     );
                     let reg = self.grid.row_to_reg(row);
-                    let brx = self.brxlut[col].1;
                     for i in 0..2 {
                         match self.grid.kind {
                             GridKind::Ultrascale => node.add_bel(
@@ -1528,7 +1568,6 @@ impl DieExpander<'_, '_, '_> {
                             ),
                         }
                     }
-                    let gtbx = self.gtbxlut[col].1;
                     let gtby = self.gtbylut[reg].1;
                     for i in 0..2 {
                         node.add_bel(2 + i, format!("GCLK_TEST_BUFE3_X{x}Y{gtby}", x = gtbx + i));
@@ -2259,7 +2298,7 @@ impl DieExpander<'_, '_, '_> {
                                 &crds,
                             );
                             let cmtx = self.cmtxlut[ioc.col];
-                            let cmty = self.sylut[row - 30] / 60;
+                            let cmty = self.cmtylut[reg];
                             for i in 0..24 {
                                 node.add_bel(
                                     i,
@@ -2490,7 +2529,7 @@ impl DieExpander<'_, '_, '_> {
                                 &crds,
                             );
                             let cmtx = self.cmtxlut[ioc.col];
-                            let cmty = self.sylut[row - 30] / 60;
+                            let cmty = self.cmtylut[reg];
                             let gtbx = if ioc.side == ColSide::Left {
                                 self.gtbxlut[ioc.col].0
                             } else {
@@ -2581,7 +2620,7 @@ impl DieExpander<'_, '_, '_> {
                                     &crds[i * 15..i * 15 + 15],
                                 );
                                 let phyx = self.cmtxlut[ioc.col];
-                                let phyy = self.sylut[row] / 15;
+                                let phyy = self.cmtylut[reg] * 4 + i;
                                 for i in 0..13 {
                                     node.add_bel(
                                         i,
@@ -2615,10 +2654,11 @@ impl DieExpander<'_, '_, '_> {
                                 iobx -= 1;
                             }
                             for i in 0..2 {
-                                let (kind, kind_alt, tk) = if ioc.side == ColSide::Right {
-                                    ("HPIO_R", "HPIO_R.ALTCFG", "HPIO_RIGHT")
+                                let (kind, kind_alt, kind_nocfg, tk) = if ioc.side == ColSide::Right
+                                {
+                                    ("HPIO_R", "HPIO_R.ALTCFG", "HPIO_R.NOCFG", "HPIO_RIGHT")
                                 } else {
-                                    ("HPIO_L", "HPIO_L.ALTCFG", "HPIO_L")
+                                    ("HPIO_L", "HPIO_L.ALTCFG", "HPIO_L.NOCFG", "HPIO_L")
                                 };
                                 let row = self.grid.row_reg_bot(reg) + i * 30;
                                 let name = format!("{tk}_X{iobx}Y{y}", y = self.ylut[row]);
@@ -2626,16 +2666,16 @@ impl DieExpander<'_, '_, '_> {
                                     (ioc.col, row),
                                     self.db.get_node(kind),
                                     &[&name],
-                                    self.db.get_node_naming(
-                                        if self.grid.ps.is_some()
-                                            && (self.grid.is_alt_cfg
-                                                || !self.disabled.contains(&DisabledPart::Ps))
-                                        {
-                                            kind_alt
-                                        } else {
-                                            kind
-                                        },
-                                    ),
+                                    self.db.get_node_naming(if self.grid.is_nocfg() {
+                                        kind_nocfg
+                                    } else if self.grid.ps.is_some()
+                                        && (self.grid.is_alt_cfg
+                                            || !self.disabled.contains(&DisabledPart::Ps))
+                                    {
+                                        kind_alt
+                                    } else {
+                                        kind
+                                    }),
                                     &crds[i * 30..i * 30 + 30],
                                 );
                                 for j in 0..26 {
@@ -3050,6 +3090,7 @@ pub fn expand_grid<'a>(
     let mut ioty = EnumMap::default();
     let dev_has_hbm = grids.first().unwrap().has_hbm;
     let mut asy = if dev_has_hbm { 2 } else { 0 };
+    let mut cmty = 0;
     let mut gtby = 0;
     let hcx = enum_map! {
         k => if grids.values().any(|grid| {
@@ -3103,6 +3144,7 @@ pub fn expand_grid<'a>(
             gtbylut: EntityVec::new(),
             vsxlut: EntityVec::new(),
             cmtxlut: EntityVec::new(),
+            cmtylut: EntityVec::new(),
             gtylut: EntityVec::new(),
             gtxlut: EntityVec::new(),
             bankxlut: EntityPartVec::new(),
@@ -3133,6 +3175,7 @@ pub fn expand_grid<'a>(
         expander.fill_brxlut();
         gtby = expander.fill_gtbylut(gtby);
         expander.fill_cmtxlut();
+        cmty = expander.fill_cmtylut(cmty);
         expander.fill_gtxlut();
         expander.fill_iotxlut();
         gty = expander.fill_gtylut(gty);

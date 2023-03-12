@@ -472,7 +472,7 @@ fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     );
     vrf.claim_node(&[bel.fwire("MCAP_PERST0_B")]);
     vrf.claim_node(&[bel.fwire("MCAP_PERST1_B")]);
-    if vrf.find_bel_delta(bel, 0, 60, "CFG").is_some() {
+    if vrf.find_bel_delta(bel, 0, 60, "CFG").is_some() && !edev.grids[bel.die].is_nocfg() {
         vrf.claim_pip(
             bel.crd(),
             bel.wire("MCAP_PERST0_B"),
@@ -4705,6 +4705,7 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         "PSS_ALTO_CORE_0_IDCODE17_PIN",
         "PSS_ALTO_CORE_0_IDCODE18_PIN",
         "PSS_ALTO_CORE_0_IDCODE20_PIN",
+        "PSS_ALTO_CORE_0_IDCODE21_PIN",
         "PSS_ALTO_CORE_0_IDCODE28_PIN",
         "PSS_ALTO_CORE_0_IDCODE29_PIN",
         "PSS_ALTO_CORE_0_PS_VERSION_0_PIN",
@@ -4910,6 +4911,7 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
                     ("PSS_ALTO_CORE_0_IDCODE17_PIN", "PSS_ALTO_CORE_0_IDCODE17"),
                     ("PSS_ALTO_CORE_0_IDCODE18_PIN", "PSS_ALTO_CORE_0_IDCODE18"),
                     ("PSS_ALTO_CORE_0_IDCODE20_PIN", "PSS_ALTO_CORE_0_IDCODE20"),
+                    ("PSS_ALTO_CORE_0_IDCODE21_PIN", "PSS_ALTO_CORE_0_IDCODE21"),
                     ("PSS_ALTO_CORE_0_IDCODE28_PIN", "PSS_ALTO_CORE_0_IDCODE28"),
                     ("PSS_ALTO_CORE_0_IDCODE29_PIN", "PSS_ALTO_CORE_0_IDCODE29"),
                     (

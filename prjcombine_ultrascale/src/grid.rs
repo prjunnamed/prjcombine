@@ -242,11 +242,30 @@ impl Grid {
         unreachable!()
     }
 
+    pub fn reg_cfg(&self) -> RegId {
+        for hc in &self.cols_hard {
+            for (reg, &kind) in &hc.regs {
+                if kind == HardRowKind::Cfg {
+                    return reg;
+                }
+            }
+        }
+        unreachable!()
+    }
+
     pub fn is_dc12(&self) -> bool {
         if let Some(ps) = self.ps {
             matches!(ps.intf_kind, PsIntfKind::Dc12 | PsIntfKind::Mx8)
         } else {
             false
         }
+    }
+
+    pub fn is_nocfg(&self) -> bool {
+        let reg_cfg = self.reg_cfg();
+        !self
+            .cols_io
+            .iter()
+            .any(|x| matches!(x.regs[reg_cfg], IoRowKind::Hpio | IoRowKind::Hrio))
     }
 }
