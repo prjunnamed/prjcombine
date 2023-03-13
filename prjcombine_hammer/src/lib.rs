@@ -153,15 +153,26 @@ impl<B: Backend> Fuzzer<B> {
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub trait FuzzerGen<B: Backend>: Debug {
-    fn gen(&self, kv: &HashMap<B::Key, BatchValue<B>>) -> Option<Fuzzer<B>>;
+    fn gen<'a>(
+        &self,
+        backend: &'a B,
+        state: &mut B::State,
+        kv: &HashMap<B::Key, BatchValue<B>>,
+    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<B> + 'a>>)>;
 }
 
 #[derive(Debug)]
 struct SimpleFuzzerGen<B: Backend>(Fuzzer<B>);
 
 impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
-    fn gen(&self, kv: &HashMap<<B as Backend>::Key, BatchValue<B>>) -> Option<Fuzzer<B>> {
+    fn gen<'a>(
+        &self,
+        _backend: &'a B,
+        _state: &mut B::State,
+        kv: &HashMap<<B as Backend>::Key, BatchValue<B>>,
+    ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<B> + 'a>>)> {
         for (k, v) in &self.0.kv {
             if let Some(cv) = kv.get(k) {
                 match (cv, v) {
@@ -200,7 +211,7 @@ impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
                 };
             }
         }
-        Some(self.0.clone())
+        Some((self.0.clone(), None))
     }
 }
 

@@ -310,7 +310,7 @@ fn diagnose_cw_fail<B: Backend>(
 }
 
 impl<B: Backend> Batch<B> {
-    fn add_fuzzer(&mut self, fuzzer: Fuzzer<B>) -> Option<BatchFuzzerId> {
+    fn install_fuzzer(&mut self, fuzzer: Fuzzer<B>) -> Option<BatchFuzzerId> {
         let mut new_kv = HashMap::new();
         let fid = self.fuzzers.next_id();
         for (k, v) in &fuzzer.kv {
@@ -377,14 +377,21 @@ impl<B: Backend> Batch<B> {
 }
 
 impl<'a, B: Backend> Session<'a, B> {
-    fn install_fuzzer(&mut self, fgen: &(dyn FuzzerGen<B> + 'a)) -> FuzzerId {
+    fn install_fuzzer(
+        &mut self,
+        state: &mut B::State,
+        fgen: &(dyn FuzzerGen<B> + 'a),
+    ) -> (FuzzerId, Option<Box<dyn FuzzerGen<B> + 'a>>) {
         for (bid, batch) in &mut self.batches {
-            if let Some(fuzzer) = fgen.gen(&batch.kv) {
-                if let Some(fid) = batch.add_fuzzer(fuzzer) {
-                    return FuzzerId {
-                        batch: bid,
-                        fuzzer: fid,
-                    };
+            if let Some((fuzzer, chain)) = fgen.gen(self.backend, state, &batch.kv) {
+                if let Some(fid) = batch.install_fuzzer(fuzzer) {
+                    return (
+                        FuzzerId {
+                            batch: bid,
+                            fuzzer: fid,
+                        },
+                        chain,
+                    );
                 }
             }
         }
@@ -392,21 +399,24 @@ impl<'a, B: Backend> Session<'a, B> {
             kv: HashMap::new(),
             fuzzers: EntityVec::new(),
         };
-        let Some(fuzzer) = fgen.gen(&batch.kv) else {
+        let Some((fuzzer, chain)) = fgen.gen(self.backend, state, &batch.kv) else {
             panic!("failed to generate fuzzer on empty batch");
         };
-        if let Some(fid) = batch.add_fuzzer(fuzzer) {
+        if let Some(fid) = batch.install_fuzzer(fuzzer) {
             let bid = self.batches.push(batch);
-            FuzzerId {
-                batch: bid,
-                fuzzer: fid,
-            }
+            (
+                FuzzerId {
+                    batch: bid,
+                    fuzzer: fid,
+                },
+                chain,
+            )
         } else {
             panic!("failed to add fuzzer on empty batch");
         }
     }
 
-    fn prep_batches(&mut self) {
+    fn prep_batches(&mut self, state: &mut B::State) {
         let mut gens = vec![];
         for (i, g) in self.fgens.iter().enumerate() {
             assert_ne!(g.dup, 0);
@@ -418,15 +428,19 @@ impl<'a, B: Backend> Session<'a, B> {
         gens.shuffle(&mut rng);
         let fgens = core::mem::take(&mut self.fgens);
         for i in gens {
-            self.install_fuzzer(&*fgens[i].fgen);
+            let mut chain = self.install_fuzzer(state, &*fgens[i].fgen).1;
+            while let Some(gen) = chain {
+                chain = self.install_fuzzer(state, &*gen).1;
+            }
         }
         self.fgens = fgens;
     }
 
     pub fn run(mut self) -> Option<B::State> {
-        self.prep_batches();
-        let batches = self.batches.map_values(prep_batch);
         let backend = self.backend;
+        let mut state = backend.make_state();
+        self.prep_batches(&mut state);
+        let batches = self.batches.map_values(prep_batch);
         let mut items = vec![];
         for (bid, b) in &batches {
             items.push((bid, None));
@@ -444,7 +458,6 @@ impl<'a, B: Backend> Session<'a, B> {
             next: 0.into(),
             abort: false.into(),
         };
-        let mut state = backend.make_state();
         if self.debug >= 1 {
             let nf: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
             let nr: usize = queue.bdata.values().map(|x| x.width + 1).sum();
