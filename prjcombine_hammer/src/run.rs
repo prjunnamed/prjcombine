@@ -6,7 +6,7 @@ use prjcombine_entity::EntityId;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::thread_rng;
 use std::collections::hash_map::Entry;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Condvar;
 use std::sync::Mutex;
 
@@ -24,11 +24,14 @@ struct BatchData<B: Backend> {
 }
 
 struct TaskQueue<'a, 'b, B: Backend> {
-    session: &'a Session<'b, B>,
-    batches: EntityVec<BatchId, BatchData<B>>,
+    debug: u8,
+    backend: &'b B,
+    batches: &'a EntityVec<BatchId, Batch<B>>,
+    bdata: EntityVec<BatchId, BatchData<B>>,
     skip: HashSet<BatchFuzzerId>,
     items: Vec<(BatchId, Option<usize>)>,
     next: AtomicUsize,
+    abort: AtomicBool,
 }
 
 fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
@@ -148,12 +151,15 @@ fn run_batch_item<B: Backend>(
 
 fn work<B: Backend>(queue: &TaskQueue<B>) {
     loop {
+        if queue.abort.load(Ordering::Relaxed) {
+            return;
+        }
         let idx = queue.next.fetch_add(1, Ordering::Relaxed);
         if idx >= queue.items.len() {
             break;
         }
         let (bid, idx) = queue.items[idx];
-        if queue.session.debug >= 2 {
+        if queue.debug >= 2 {
             if let Some(idx) = idx {
                 eprintln!("Starting batch {bid} run {idx}", bid = bid.to_idx());
             } else {
@@ -161,9 +167,9 @@ fn work<B: Backend>(queue: &TaskQueue<B>) {
             }
         }
         run_batch_item(
-            queue.session.backend,
-            &queue.session.batches[bid],
+            queue.backend,
             &queue.batches[bid],
+            &queue.bdata[bid],
             idx,
             &queue.skip,
         );
@@ -303,8 +309,122 @@ fn diagnose_cw_fail<B: Backend>(
     }
 }
 
+impl<B: Backend> Batch<B> {
+    fn add_fuzzer(&mut self, fuzzer: Fuzzer<B>) -> Option<BatchFuzzerId> {
+        let mut new_kv = HashMap::new();
+        let fid = self.fuzzers.next_id();
+        for (k, v) in &fuzzer.kv {
+            if let Some(cv) = self.kv.get(k) {
+                let nv = match (cv, v) {
+                    (BatchValue::Base(cb), FuzzerValue::Base(fb)) => {
+                        if cb != fb {
+                            return None;
+                        }
+                        continue;
+                    }
+                    (BatchValue::Base(cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(cb) {
+                            return None;
+                        }
+                        continue;
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Base(fb)) => {
+                        if !cb.contains(fb) {
+                            return None;
+                        }
+                        BatchValue::Base(fb.clone())
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::BaseAny(fb)) => {
+                        let nb = cb & fb;
+                        if nb.is_empty() {
+                            return None;
+                        }
+                        if nb == *cb {
+                            continue;
+                        }
+                        BatchValue::BaseAny(nb)
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Fuzzer(a, b)) => {
+                        if !cb.contains(a) || !cb.contains(b) {
+                            return None;
+                        }
+                        BatchValue::Fuzzer(fid, a.clone(), b.clone())
+                    }
+                    (BatchValue::Fuzzer(_, ca, cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(ca) || !fb.contains(cb) {
+                            return None;
+                        }
+                        continue;
+                    }
+                    _ => return None,
+                };
+                new_kv.insert(k.clone(), nv);
+            } else {
+                let nv = match v {
+                    FuzzerValue::Base(b) => BatchValue::Base(b.clone()),
+                    FuzzerValue::BaseAny(b) => BatchValue::BaseAny(b.clone()),
+                    FuzzerValue::Fuzzer(a, b) => BatchValue::Fuzzer(fid, a.clone(), b.clone()),
+                    FuzzerValue::FuzzerMulti(a) => BatchValue::FuzzerMulti(fid, a.clone()),
+                };
+                new_kv.insert(k.clone(), nv);
+            }
+        }
+        for (k, v) in new_kv {
+            self.kv.insert(k, v);
+        }
+        Some(self.fuzzers.push(fuzzer))
+    }
+}
+
 impl<'a, B: Backend> Session<'a, B> {
-    pub fn run(self) -> Option<B::State> {
+    fn install_fuzzer(&mut self, fgen: &(dyn FuzzerGen<B> + 'a)) -> FuzzerId {
+        for (bid, batch) in &mut self.batches {
+            if let Some(fuzzer) = fgen.gen(&batch.kv) {
+                if let Some(fid) = batch.add_fuzzer(fuzzer) {
+                    return FuzzerId {
+                        batch: bid,
+                        fuzzer: fid,
+                    };
+                }
+            }
+        }
+        let mut batch = Batch {
+            kv: HashMap::new(),
+            fuzzers: EntityVec::new(),
+        };
+        let Some(fuzzer) = fgen.gen(&batch.kv) else {
+            panic!("failed to generate fuzzer on empty batch");
+        };
+        if let Some(fid) = batch.add_fuzzer(fuzzer) {
+            let bid = self.batches.push(batch);
+            FuzzerId {
+                batch: bid,
+                fuzzer: fid,
+            }
+        } else {
+            panic!("failed to add fuzzer on empty batch");
+        }
+    }
+
+    fn prep_batches(&mut self) {
+        let mut gens = vec![];
+        for (i, g) in self.fgens.iter().enumerate() {
+            assert_ne!(g.dup, 0);
+            for _ in 0..g.dup {
+                gens.push(i);
+            }
+        }
+        let mut rng = thread_rng();
+        gens.shuffle(&mut rng);
+        let fgens = core::mem::take(&mut self.fgens);
+        for i in gens {
+            self.install_fuzzer(&*fgens[i].fgen);
+        }
+        self.fgens = fgens;
+    }
+
+    pub fn run(mut self) -> Option<B::State> {
+        self.prep_batches();
         let batches = self.batches.map_values(prep_batch);
         let backend = self.backend;
         let mut items = vec![];
@@ -315,16 +435,19 @@ impl<'a, B: Backend> Session<'a, B> {
             }
         }
         let queue = TaskQueue {
-            session: &self,
-            batches,
+            debug: self.debug,
+            backend: self.backend,
+            batches: &self.batches,
+            bdata: batches,
             skip: HashSet::new(),
             items,
             next: 0.into(),
+            abort: false.into(),
         };
         let mut state = backend.make_state();
         if self.debug >= 1 {
             let nf: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
-            let nr: usize = queue.batches.values().map(|x| x.width + 1).sum();
+            let nr: usize = queue.bdata.values().map(|x| x.width + 1).sum();
             let nb = self.batches.len();
             eprintln!("Starting hammer run with {nf} fuzzers and {nr} runs in {nb} batches");
         }
@@ -333,7 +456,7 @@ impl<'a, B: Backend> Session<'a, B> {
                 eprintln!(
                     "Batch {bid} [{nr} runs]:",
                     bid = bid.to_idx(),
-                    nr = queue.batches[bid].width
+                    nr = queue.bdata[bid].width
                 );
                 for f in batch.fuzzers.values() {
                     eprintln!("{f:?}", f = f.info);
@@ -346,10 +469,11 @@ impl<'a, B: Backend> Session<'a, B> {
                 s.spawn(|| work(&queue));
             }
             for (bid, batch) in &self.batches {
-                let bd = &queue.batches[bid];
+                let bd = &queue.bdata[bid];
                 let fuzzers = match postproc_batch(backend, &state, batch, bd, &queue.skip) {
                     Ok(f) => f,
                     Err(bitpos) => {
+                        queue.abort.store(true, Ordering::Relaxed);
                         diagnose_cw_fail(backend, &state, batch, bd);
                         panic!("oops weird cw for {bitpos:?}")
                     }

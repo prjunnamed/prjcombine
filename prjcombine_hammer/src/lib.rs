@@ -3,10 +3,7 @@ use core::fmt::Debug;
 use core::hash::Hash;
 use derivative::Derivative;
 use prjcombine_entity::{entity_id, EntityVec};
-use std::{
-    borrow::Cow,
-    collections::{hash_map::Entry, HashMap, HashSet},
-};
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 
 entity_id! {
     pub id BatchFuzzerId u32;
@@ -81,7 +78,6 @@ pub struct FuzzerId {
 pub struct Fuzzer<B: Backend> {
     pub kv: HashMap<B::Key, FuzzerValue<B>>,
     pub postproc: HashSet<B::PostProc>,
-    pub deps: HashSet<FuzzerId>,
     pub bits: usize,
     pub info: B::FuzzerInfo,
 }
@@ -91,7 +87,6 @@ impl<B: Backend> Clone for Fuzzer<B> {
         Self {
             kv: self.kv.clone(),
             postproc: self.postproc.clone(),
-            deps: self.deps.clone(),
             bits: self.bits,
             info: self.info.clone(),
         }
@@ -104,7 +99,6 @@ impl<B: Backend> Fuzzer<B> {
             info,
             kv: HashMap::new(),
             postproc: HashSet::new(),
-            deps: HashSet::new(),
             bits: 1,
         }
     }
@@ -146,6 +140,74 @@ impl<B: Backend> Fuzzer<B> {
         }
         self
     }
+
+    pub fn fuzz_multi(mut self, key: B::Key, val: impl Into<B::MultiValue>) -> Self {
+        let val = FuzzerValue::FuzzerMulti(val.into());
+        match self.kv.entry(key) {
+            Entry::Occupied(e) => assert_eq!(*e.get(), val),
+            Entry::Vacant(e) => {
+                e.insert(val);
+            }
+        }
+        self
+    }
+}
+
+pub trait FuzzerGen<B: Backend>: Debug {
+    fn gen(&self, kv: &HashMap<B::Key, BatchValue<B>>) -> Option<Fuzzer<B>>;
+}
+
+#[derive(Debug)]
+struct SimpleFuzzerGen<B: Backend>(Fuzzer<B>);
+
+impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
+    fn gen(&self, kv: &HashMap<<B as Backend>::Key, BatchValue<B>>) -> Option<Fuzzer<B>> {
+        for (k, v) in &self.0.kv {
+            if let Some(cv) = kv.get(k) {
+                match (cv, v) {
+                    (BatchValue::Base(cb), FuzzerValue::Base(fb)) => {
+                        if cb != fb {
+                            return None;
+                        }
+                    }
+                    (BatchValue::Base(cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(cb) {
+                            return None;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Base(fb)) => {
+                        if !cb.contains(fb) {
+                            return None;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::BaseAny(fb)) => {
+                        let nb = cb & fb;
+                        if nb.is_empty() {
+                            return None;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Fuzzer(a, b)) => {
+                        if !cb.contains(a) || !cb.contains(b) {
+                            return None;
+                        }
+                    }
+                    (BatchValue::Fuzzer(_, ca, cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(ca) || !fb.contains(cb) {
+                            return None;
+                        }
+                    }
+                    _ => return None,
+                };
+            }
+        }
+        Some(self.0.clone())
+    }
+}
+
+#[derive(Debug)]
+struct FuzzerGenWrapper<'a, B: Backend> {
+    fgen: Box<dyn FuzzerGen<B> + 'a>,
+    dup: u32,
 }
 
 struct Batch<B: Backend> {
@@ -153,77 +215,25 @@ struct Batch<B: Backend> {
     fuzzers: EntityVec<BatchFuzzerId, Fuzzer<B>>,
 }
 
-impl<B: Backend> Batch<B> {
-    fn add_fuzzer(&mut self, fuzzer: Cow<Fuzzer<B>>) -> Option<BatchFuzzerId> {
-        let mut new_kv = HashMap::new();
-        let fid = self.fuzzers.next_id();
-        for (k, v) in &fuzzer.kv {
-            if let Some(cv) = self.kv.get(k) {
-                let nv = match (cv, v) {
-                    (BatchValue::Base(cb), FuzzerValue::Base(fb)) => {
-                        if cb != fb {
-                            return None;
-                        }
-                        continue;
-                    }
-                    (BatchValue::Base(cb), FuzzerValue::BaseAny(fb)) => {
-                        if !fb.contains(cb) {
-                            return None;
-                        }
-                        continue;
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::Base(fb)) => {
-                        if !cb.contains(fb) {
-                            continue;
-                        }
-                        BatchValue::Base(fb.clone())
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::BaseAny(fb)) => {
-                        let nb = cb & fb;
-                        if nb.is_empty() {
-                            return None;
-                        }
-                        if nb == *cb {
-                            continue;
-                        }
-                        BatchValue::BaseAny(nb)
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::Fuzzer(a, b)) => {
-                        if !cb.contains(a) || !cb.contains(b) {
-                            return None;
-                        }
-                        BatchValue::Fuzzer(fid, a.clone(), b.clone())
-                    }
-                    (BatchValue::Fuzzer(_, ca, cb), FuzzerValue::BaseAny(fb)) => {
-                        if !fb.contains(ca) || !fb.contains(cb) {
-                            return None;
-                        }
-                        continue;
-                    }
-                    _ => return None,
-                };
-                new_kv.insert(k.clone(), nv);
-            } else {
-                let nv = match v {
-                    FuzzerValue::Base(b) => BatchValue::Base(b.clone()),
-                    FuzzerValue::BaseAny(b) => BatchValue::BaseAny(b.clone()),
-                    FuzzerValue::Fuzzer(a, b) => BatchValue::Fuzzer(fid, a.clone(), b.clone()),
-                    FuzzerValue::FuzzerMulti(a) => BatchValue::FuzzerMulti(fid, a.clone()),
-                };
-                new_kv.insert(k.clone(), nv);
-            }
-        }
-        for (k, v) in new_kv {
-            self.kv.insert(k, v);
-        }
-        Some(self.fuzzers.push(fuzzer.into_owned()))
-    }
-}
-
 pub struct Session<'a, B: Backend> {
     backend: &'a B,
     pub debug: u8,
+    pub dup_factor: u32,
     batches: EntityVec<BatchId, Batch<B>>,
+    fgens: Vec<FuzzerGenWrapper<'a, B>>,
+}
+
+pub struct FuzzerGenHandle<'b, 'a, B: Backend> {
+    session: &'b mut Session<'a, B>,
+    idx: usize,
+}
+
+impl<B: Backend> FuzzerGenHandle<'_, '_, B> {
+    pub fn dup(self, val: u32) -> Self {
+        assert_ne!(val, 0);
+        self.session.fgens[self.idx].dup = val;
+        self
+    }
 }
 
 impl<'a, B: Backend> Session<'a, B> {
@@ -231,74 +241,26 @@ impl<'a, B: Backend> Session<'a, B> {
         Session {
             backend,
             debug: 0,
+            dup_factor: 3,
             batches: EntityVec::new(),
+            fgens: vec![],
         }
     }
 
-    pub fn add_fuzzer(
-        &mut self,
-        mut fgen: impl FnMut(&HashMap<B::Key, BatchValue<B>>) -> Option<Fuzzer<B>>,
-    ) -> FuzzerId {
-        'batches: for (bid, batch) in &mut self.batches {
-            if let Some(fuzzer) = fgen(&batch.kv) {
-                for dep in &fuzzer.deps {
-                    if bid <= dep.batch {
-                        continue 'batches;
-                    }
-                }
-                if let Some(fid) = batch.add_fuzzer(Cow::Owned(fuzzer)) {
-                    return FuzzerId {
-                        batch: bid,
-                        fuzzer: fid,
-                    };
-                }
-            }
-        }
-        let mut batch = Batch {
-            kv: HashMap::new(),
-            fuzzers: EntityVec::new(),
-        };
-        let Some(fuzzer) = fgen(&batch.kv) else {
-            panic!("failed to generate fuzzer on empty batch");
-        };
-        if let Some(fid) = batch.add_fuzzer(Cow::Owned(fuzzer)) {
-            let bid = self.batches.push(batch);
-            FuzzerId {
-                batch: bid,
-                fuzzer: fid,
-            }
-        } else {
-            panic!("failed to add fuzzer on empty batch");
+    pub fn add_fuzzer(&mut self, fgen: Box<dyn FuzzerGen<B> + 'a>) -> FuzzerGenHandle<'_, 'a, B> {
+        let i = self.fgens.len();
+        self.fgens.push(FuzzerGenWrapper {
+            fgen,
+            dup: self.dup_factor,
+        });
+        FuzzerGenHandle {
+            session: self,
+            idx: i,
         }
     }
 
-    pub fn add_fuzzer_simple(&mut self, fuzzer: Fuzzer<B>) -> FuzzerId {
-        'batches: for (bid, batch) in &mut self.batches {
-            for dep in &fuzzer.deps {
-                if bid <= dep.batch {
-                    continue 'batches;
-                }
-            }
-            if let Some(fid) = batch.add_fuzzer(Cow::Borrowed(&fuzzer)) {
-                return FuzzerId {
-                    batch: bid,
-                    fuzzer: fid,
-                };
-            }
-        }
-        let mut batch = Batch {
-            kv: HashMap::new(),
-            fuzzers: EntityVec::new(),
-        };
-        if let Some(fid) = batch.add_fuzzer(Cow::Borrowed(&fuzzer)) {
-            let bid = self.batches.push(batch);
-            FuzzerId {
-                batch: bid,
-                fuzzer: fid,
-            }
-        } else {
-            panic!("failed to add fuzzer on empty batch");
-        }
+    pub fn add_fuzzer_simple(&mut self, fuzzer: Fuzzer<B>) -> FuzzerGenHandle<'_, 'a, B> {
+        self.add_fuzzer(Box::new(SimpleFuzzerGen(fuzzer))).dup(1)
     }
 
     // TODO:

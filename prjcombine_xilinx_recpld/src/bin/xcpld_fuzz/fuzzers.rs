@@ -451,6 +451,14 @@ fn add_mc_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             let fuzzer = Fuzzer::new(FuzzerInfo::McLowPower(mc))
                 .base(Key::McPresent(mc), true)
                 .base(Key::McHasOut(mc, NodeKind::McUim), true)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiD1), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiD2), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiRstf), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiSetf), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiClkf), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiTrst), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiCe), false)
+                .base(Key::McSiHasOut(mc, NodeKind::McSiExport), false)
                 .fuzz(Key::McFlag(mc, 0), false, true);
             hammer.add_fuzzer_simple(fuzzer);
         } else {
@@ -2032,6 +2040,7 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
                     Value::InputMc(oemc, NodeKind::McGlb),
                 )
                 .base(Key::McPresent(oemc), true)
+                .base(Key::McFfInput(oemc, InputNodeKind::SrffC), Value::None)
                 .base(Key::McHasOut(oemc, NodeKind::McUim), true)
                 .fuzz(Key::McHasOut(oemc, NodeKind::McGlb), false, Value::CopyQ)
                 .fuzz(Key::Foe(tgt), Value::None, Value::McGlb)
