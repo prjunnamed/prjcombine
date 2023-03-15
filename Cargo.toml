@@ -49,6 +49,7 @@ members = [
 	"prjcombine_v2xdl_verify",
 	"prjcombine_virtex_bitstream",
 	"prjcombine_hammer",
+	"prjcombine_ise_hammer",
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",

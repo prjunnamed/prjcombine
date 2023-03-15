@@ -1,0 +1,23 @@
+[package]
+name = "prjcombine_ise_hammer"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ise_hammer"
+path = "src/main.rs"
+
+[dependencies]
+prjcombine_xilinx_geom.workspace = true
+prjcombine_virtex2.workspace = true
+prjcombine_virtex4.workspace = true
+prjcombine_virtex_bitstream.workspace = true
+prjcombine_xdl.workspace = true
+prjcombine_int.workspace = true
+prjcombine_toolchain.workspace = true
+prjcombine_hammer.workspace = true
+prjcombine_entity.workspace = true
+bitvec.workspace = true
+clap.workspace = true
+rand.workspace = true
+simple-error.workspace = true
