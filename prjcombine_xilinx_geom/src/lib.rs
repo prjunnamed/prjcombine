@@ -2,7 +2,8 @@
 
 use prjcombine_entity::{entity_id, EntityVec};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::DieId;
+use prjcombine_int::grid::{DieId, ExpandedGrid};
+use prjcombine_virtex_bitstream::BitstreamGeom;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
@@ -107,6 +108,34 @@ pub enum ExpandedDevice<'a> {
     Virtex4(prjcombine_virtex4::expanded::ExpandedDevice<'a>),
     Ultrascale(prjcombine_ultrascale::expanded::ExpandedDevice<'a>),
     Versal(prjcombine_versal::expanded::ExpandedDevice<'a>),
+}
+
+impl<'a> ExpandedDevice<'a> {
+    pub fn egrid(&self) -> &ExpandedGrid<'a> {
+        match self {
+            ExpandedDevice::Xc4k(edev) => &edev.egrid,
+            ExpandedDevice::Xc5200(edev) => &edev.egrid,
+            ExpandedDevice::Virtex(edev) => &edev.egrid,
+            ExpandedDevice::Virtex2(edev) => &edev.egrid,
+            ExpandedDevice::Spartan6(edev) => &edev.egrid,
+            ExpandedDevice::Virtex4(edev) => &edev.egrid,
+            ExpandedDevice::Ultrascale(edev) => &edev.egrid,
+            ExpandedDevice::Versal(edev) => &edev.egrid,
+        }
+    }
+
+    pub fn bs_geom(&self) -> &BitstreamGeom {
+        match self {
+            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc5200(_) => todo!(),
+            ExpandedDevice::Virtex(edev) => &edev.bs_geom,
+            ExpandedDevice::Virtex2(edev) => &edev.bs_geom,
+            ExpandedDevice::Spartan6(edev) => &edev.bs_geom,
+            ExpandedDevice::Virtex4(edev) => &edev.bs_geom,
+            ExpandedDevice::Ultrascale(_) => todo!(),
+            ExpandedDevice::Versal(_) => todo!(),
+        }
+    }
 }
 
 impl GeomDb {
