@@ -47,6 +47,7 @@ pub struct ExpandedGrid<'a> {
     pub die: EntityVec<DieId, ExpandedDie>,
     pub xdie_wires: BiHashMap<IntWire, IntWire>,
     pub blackhole_wires: HashSet<IntWire>,
+    pub node_index: EntityVec<NodeKindId, Vec<(DieId, ColId, RowId, LayerId)>>,
 }
 
 #[derive(Clone, Debug)]
@@ -77,6 +78,7 @@ impl<'a> ExpandedGrid<'a> {
             die: EntityVec::new(),
             xdie_wires: BiHashMap::new(),
             blackhole_wires: HashSet::new(),
+            node_index: db.nodes.ids().map(|_| vec![]).collect(),
         }
     }
 
@@ -106,6 +108,10 @@ impl<'a> ExpandedGrid<'a> {
     }
     pub fn die_mut<'b>(&'b mut self, die: DieId) -> ExpandedDieRefMut<'a, 'b> {
         ExpandedDieRefMut { grid: self, die }
+    }
+
+    pub fn node(&self, loc: (DieId, ColId, RowId, LayerId)) -> &ExpandedTileNode {
+        &self.die(loc.0).tile((loc.1, loc.2)).nodes[loc.3]
     }
 
     pub fn find_node(
@@ -138,7 +144,7 @@ impl<'a> ExpandedGrid<'a> {
     }
 
     pub fn finish(&mut self) {
-        for die in self.die.values_mut() {
+        for (dieid, die) in &mut self.die {
             let mut clk_root_tiles: HashMap<_, HashSet<_>> = HashMap::new();
             for col in die.cols() {
                 for row in die.rows() {
@@ -146,6 +152,9 @@ impl<'a> ExpandedGrid<'a> {
                         .entry(die[(col, row)].clkroot)
                         .or_default()
                         .insert((col, row));
+                    for (layer, node) in &die[(col, row)].nodes {
+                        self.node_index[node.kind].push((dieid, col, row, layer));
+                    }
                 }
             }
             die.clk_root_tiles = clk_root_tiles;
