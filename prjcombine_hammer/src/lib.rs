@@ -151,6 +151,48 @@ impl<B: Backend> Fuzzer<B> {
         }
         self
     }
+
+    pub fn is_ok(&self, kv: &HashMap<B::Key, BatchValue<B>>) -> bool {
+        for (k, v) in &self.kv {
+            if let Some(cv) = kv.get(k) {
+                match (cv, v) {
+                    (BatchValue::Base(cb), FuzzerValue::Base(fb)) => {
+                        if cb != fb {
+                            return false;
+                        }
+                    }
+                    (BatchValue::Base(cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(cb) {
+                            return false;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Base(fb)) => {
+                        if !cb.contains(fb) {
+                            return false;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::BaseAny(fb)) => {
+                        let nb = cb & fb;
+                        if nb.is_empty() {
+                            return false;
+                        }
+                    }
+                    (BatchValue::BaseAny(cb), FuzzerValue::Fuzzer(a, b)) => {
+                        if !cb.contains(a) || !cb.contains(b) {
+                            return false;
+                        }
+                    }
+                    (BatchValue::Fuzzer(_, ca, cb), FuzzerValue::BaseAny(fb)) => {
+                        if !fb.contains(ca) || !fb.contains(cb) {
+                            return false;
+                        }
+                    }
+                    _ => return false,
+                };
+            }
+        }
+        true
+    }
 }
 
 #[allow(clippy::type_complexity)]
@@ -173,45 +215,11 @@ impl<B: Backend> FuzzerGen<B> for SimpleFuzzerGen<B> {
         _state: &mut B::State,
         kv: &HashMap<<B as Backend>::Key, BatchValue<B>>,
     ) -> Option<(Fuzzer<B>, Option<Box<dyn FuzzerGen<B> + 'a>>)> {
-        for (k, v) in &self.0.kv {
-            if let Some(cv) = kv.get(k) {
-                match (cv, v) {
-                    (BatchValue::Base(cb), FuzzerValue::Base(fb)) => {
-                        if cb != fb {
-                            return None;
-                        }
-                    }
-                    (BatchValue::Base(cb), FuzzerValue::BaseAny(fb)) => {
-                        if !fb.contains(cb) {
-                            return None;
-                        }
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::Base(fb)) => {
-                        if !cb.contains(fb) {
-                            return None;
-                        }
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::BaseAny(fb)) => {
-                        let nb = cb & fb;
-                        if nb.is_empty() {
-                            return None;
-                        }
-                    }
-                    (BatchValue::BaseAny(cb), FuzzerValue::Fuzzer(a, b)) => {
-                        if !cb.contains(a) || !cb.contains(b) {
-                            return None;
-                        }
-                    }
-                    (BatchValue::Fuzzer(_, ca, cb), FuzzerValue::BaseAny(fb)) => {
-                        if !fb.contains(ca) || !fb.contains(cb) {
-                            return None;
-                        }
-                    }
-                    _ => return None,
-                };
-            }
+        if self.0.is_ok(kv) {
+            Some((self.0.clone(), None))
+        } else {
+            None
         }
-        Some((self.0.clone(), None))
     }
 }
 

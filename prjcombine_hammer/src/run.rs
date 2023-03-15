@@ -260,8 +260,12 @@ fn diagnose_cw_fail<B: Backend>(
     state: &B::State,
     batch: &Batch<B>,
     bd: &BatchData<B>,
+    bitpos: B::BitPos,
 ) {
-    eprintln!("CW FAIL; DIAGNOSING [{}]", batch.fuzzers.len());
+    eprintln!(
+        "CW FAIL at {bitpos:?}; DIAGNOSING [{}]",
+        batch.fuzzers.len()
+    );
     let mut rng = thread_rng();
     let mut skip: HashSet<BatchFuzzerId> = HashSet::new();
     'big: loop {
@@ -487,7 +491,7 @@ impl<'a, B: Backend> Session<'a, B> {
                     Ok(f) => f,
                     Err(bitpos) => {
                         queue.abort.store(true, Ordering::Relaxed);
-                        diagnose_cw_fail(backend, &state, batch, bd);
+                        diagnose_cw_fail(backend, &state, batch, bd, bitpos);
                         panic!("oops weird cw for {bitpos:?}")
                     }
                 };
