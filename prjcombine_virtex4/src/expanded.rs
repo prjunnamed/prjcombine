@@ -3,7 +3,7 @@ use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind, GtKind, GtzLoc, IoKind
 use bimap::BiHashMap;
 use prjcombine_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
-use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 entity_id! {
@@ -13,6 +13,7 @@ entity_id! {
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub col_width: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     pub spine_frame: EntityVec<RegId, usize>,
 }
@@ -157,5 +158,34 @@ impl<'a> ExpandedDevice<'a> {
             }
         }
         false
+    }
+
+    pub fn btile_main(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grids[die].row_to_reg(row);
+        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
+        let (height, bit, flip) = if self.kind == GridKind::Virtex4 {
+            let flip = reg < self.grids[die].reg_cfg;
+            let pos = if flip { 15 - rd } else { rd } * 80;
+            (80, if pos < 640 { pos } else { pos + 32 }, flip)
+        } else {
+            (
+                64,
+                64 * rd
+                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                        32
+                    } else {
+                        0
+                    },
+                false,
+            )
+        };
+        BitTile::Main(
+            die,
+            self.frames[die].col_frame[reg][col],
+            self.frames[die].col_width[reg][col],
+            bit,
+            height,
+            flip,
+        )
     }
 }

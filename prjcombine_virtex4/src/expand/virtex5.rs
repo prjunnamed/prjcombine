@@ -1128,6 +1128,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         });
         for _ in 0..self.grid.regs {
             self.frames.col_frame.push(EntityVec::new());
+            self.frames.col_width.push(EntityVec::new());
             self.frames.bram_frame.push(EntityPartVec::new());
             self.frames.spine_frame.push(0);
         }
@@ -1144,6 +1145,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ColumnKind::Gt => 32,
                     _ => unreachable!(),
                 };
+                self.frames.col_width[reg].push(width as usize);
                 for minor in 0..width {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -1253,6 +1255,7 @@ pub fn expand_grid<'a>(
         frame_info: vec![],
         frames: DieFrameGeom {
             col_frame: EntityVec::new(),
+            col_width: EntityVec::new(),
             bram_frame: EntityVec::new(),
             spine_frame: EntityVec::new(),
         },

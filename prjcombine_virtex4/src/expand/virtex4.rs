@@ -1160,6 +1160,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         });
         for _ in 0..self.grid.regs {
             self.frames.col_frame.push(EntityVec::new());
+            self.frames.col_width.push(EntityVec::new());
             self.frames.bram_frame.push(EntityPartVec::new());
             self.frames.spine_frame.push(0);
         }
@@ -1170,12 +1171,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLM => 22,
-                    ColumnKind::Bram => continue,
+                    ColumnKind::Bram => 20,
                     ColumnKind::Dsp => 21,
                     ColumnKind::Io | ColumnKind::Cfg => 30,
                     ColumnKind::Gt => 20,
                     _ => unreachable!(),
                 };
+                self.frames.col_width[reg].push(width as usize);
+                if cd == ColumnKind::Bram {
+                    continue;
+                }
                 for minor in 0..width {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -1209,8 +1214,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
-                for minor in 0..64 {
+                self.frames.col_frame[reg][col] = self.frame_info.len();
+                for minor in 0..20 {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 1,
@@ -1229,8 +1234,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                 if cd != ColumnKind::Bram {
                     continue;
                 }
-                self.frames.col_frame[reg][col] = self.frame_info.len();
-                for minor in 0..20 {
+                self.frames.bram_frame[reg].insert(col, self.frame_info.len());
+                for minor in 0..64 {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 2,
@@ -1304,6 +1309,7 @@ pub fn expand_grid<'a>(
         frame_info: vec![],
         frames: DieFrameGeom {
             col_frame: EntityVec::new(),
+            col_width: EntityVec::new(),
             bram_frame: EntityVec::new(),
             spine_frame: EntityVec::new(),
         },

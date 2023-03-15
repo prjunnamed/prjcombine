@@ -3383,7 +3383,7 @@ impl<'a, 'b> Expander<'a, 'b> {
 
         for (col, cd) in &self.grid.columns {
             if let ColumnKind::BramCont(i) = cd.kind {
-                self.col_frame[col] = self.col_frame[col - (i as usize)] + (i as usize) * 19;
+                self.col_frame[col] = self.bram_frame[col - (i as usize)] + (i as usize - 1) * 19;
             }
         }
     }

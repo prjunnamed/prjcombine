@@ -2059,6 +2059,7 @@ impl DieExpander<'_, '_, '_> {
         });
         for _ in 0..self.grid.regs {
             self.frames.col_frame.push(EntityVec::new());
+            self.frames.col_width.push(EntityVec::new());
             self.frames.bram_frame.push(EntityPartVec::new());
         }
         for &reg in &regs {
@@ -2068,6 +2069,7 @@ impl DieExpander<'_, '_, '_> {
                     if gtcol.col != self.grid.columns.last_id().unwrap()
                         && gtcol.regs[reg].is_some()
                     {
+                        self.frames.col_width[reg].push(32);
                         for minor in 0..32 {
                             self.frame_info.push(FrameInfo {
                                 addr: FrameAddr {
@@ -2092,6 +2094,7 @@ impl DieExpander<'_, '_, '_> {
                     ColumnKind::Clk => 30,
                     ColumnKind::Gt => 32,
                 };
+                self.frames.col_width[reg].push(width as usize);
                 for minor in 0..width {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
@@ -2275,6 +2278,7 @@ pub fn expand_grid<'a>(
             frame_info: vec![],
             frames: DieFrameGeom {
                 col_frame: EntityVec::new(),
+                col_width: EntityVec::new(),
                 bram_frame: EntityVec::new(),
                 spine_frame: EntityVec::new(),
             },

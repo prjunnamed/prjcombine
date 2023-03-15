@@ -1,7 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, ExpandedTileNode};
-use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, ExpandedTileNode, RowId};
+use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 
 use crate::grid::{Grid, IoCoord};
 
@@ -79,5 +79,26 @@ impl<'a> ExpandedDevice<'a> {
             res.push(self.get_io(coord));
         }
         res
+    }
+
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+        let width = if col == self.grid.col_lio() || col == self.grid.col_rio() {
+            54
+        } else if self.grid.cols_bram.contains(&col) {
+            27
+        } else {
+            48
+        };
+        let height = 18;
+
+        let bit = height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[col],
+            width,
+            bit,
+            height,
+            false,
+        )
     }
 }
