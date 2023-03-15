@@ -116,7 +116,15 @@ impl Bitstream {
                 }
                 for j in 0..da.frame_len {
                     if fa[j] != fb[j] {
-                        res.insert(BitPos::Main(die, i, j), fb[j]);
+                        let is_ecc = match a.kind {
+                            DeviceKind::Virtex4 | DeviceKind::Virtex5 => (640..652).contains(&j),
+                            DeviceKind::Virtex6 => (1280..1293).contains(&j),
+                            DeviceKind::Series7 => (1600..1613).contains(&j),
+                            _ => false,
+                        };
+                        if !is_ecc {
+                            res.insert(BitPos::Main(die, i, j), fb[j]);
+                        }
                     }
                 }
             }
