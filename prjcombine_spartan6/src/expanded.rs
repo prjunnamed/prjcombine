@@ -1,8 +1,13 @@
-use prjcombine_int::grid::{ColId, ExpandedGrid, Rect, RowId};
+use enum_map::EnumMap;
+use prjcombine_entity::{EntityPartVec, EntityVec};
+use prjcombine_int::{
+    db::Dir,
+    grid::{ColId, ExpandedGrid, Rect, RowId},
+};
 use prjcombine_virtex_bitstream::BitstreamGeom;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
-use crate::grid::{DisabledPart, Grid, IoCoord};
+use crate::grid::{DisabledPart, Grid, IoCoord, RegId};
 
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
@@ -12,6 +17,10 @@ pub struct ExpandedDevice<'a> {
     pub bs_geom: BitstreamGeom,
     pub io: Vec<Io>,
     pub gt: Vec<Gt>,
+    pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
+    pub iob_frame: HashMap<(ColId, RowId), usize>,
+    pub reg_frame: EnumMap<Dir, usize>,
 }
 
 pub struct Io {

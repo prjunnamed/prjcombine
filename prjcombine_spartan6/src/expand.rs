@@ -1,17 +1,18 @@
 use core::cmp::Ordering;
-use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_int::db::{IntDb, NodeRawTileId};
+use enum_map::{enum_map, EnumMap};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{
     ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
 };
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 use crate::expanded::{ExpandedDevice, Gt, Io, IoDiffKind};
 use crate::grid::{
-    ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, IoCoord, PllKind, TileIobId,
+    ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, IoCoord, PllKind, RegId, TileIobId,
 };
 
 struct Expander<'a, 'b> {
@@ -32,6 +33,10 @@ struct Expander<'a, 'b> {
     iob_frame_len: usize,
     io: Vec<Io>,
     gt: Vec<Gt>,
+    col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
+    iob_frame: HashMap<(ColId, RowId), usize>,
+    reg_frame: EnumMap<Dir, usize>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -2357,11 +2362,12 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_frame_info(&mut self) {
-        let regs = self.grid.rows.len() / 16;
-        for reg in 0..regs {
+        for reg in self.grid.regs() {
+            self.col_frame.push(EntityVec::new());
+            self.bram_frame.push(EntityPartVec::new());
+            let mut bram_major = 0;
             for (col, cd) in &self.grid.columns {
-                // XXX
-                //self.col_frame.push(self.frame_info.len());
+                self.col_frame[reg].push(self.frame_info.len());
                 let width = match cd.kind {
                     ColumnKind::CleXL => 30,
                     ColumnKind::CleXM => 31,
@@ -2375,24 +2381,96 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
-                            region: reg as i32,
+                            region: reg.to_idx() as i32,
                             major: col.to_idx() as u32,
                             minor,
                         },
                     });
                 }
                 if cd.kind == ColumnKind::Bram {
+                    self.bram_frame[reg].insert(col, self.bram_frame_info.len());
+                    // XXX uncertain
                     for minor in 0..4 {
                         self.bram_frame_info.push(FrameInfo {
                             addr: FrameAddr {
                                 typ: 2,
-                                region: reg as i32,
-                                major: col.to_idx() as u32,
+                                region: reg.to_idx() as i32,
+                                major: bram_major,
                                 minor,
                             },
                         });
                     }
+                    bram_major += 1;
                 }
+            }
+        }
+    }
+
+    fn fill_iob_frame_info(&mut self) {
+        for row in self.die.rows() {
+            if row == self.grid.row_clk() {
+                self.reg_frame[Dir::E] = self.iob_frame_len;
+                self.iob_frame_len += 384;
+            }
+            if self.grid.rows[row].rio {
+                self.iob_frame
+                    .insert((self.grid.col_rio(), row), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+        }
+        for col in self.die.cols().rev() {
+            if self.grid.columns[col].kind == ColumnKind::CleClk {
+                self.reg_frame[Dir::N] = self.iob_frame_len;
+                self.iob_frame_len += 384;
+            }
+            if matches!(
+                self.grid.columns[col].tio,
+                ColumnIoKind::Inner | ColumnIoKind::Both
+            ) {
+                self.iob_frame
+                    .insert((col, self.grid.row_tio_inner()), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+            if matches!(
+                self.grid.columns[col].tio,
+                ColumnIoKind::Outer | ColumnIoKind::Both
+            ) {
+                self.iob_frame
+                    .insert((col, self.grid.row_tio_outer()), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+        }
+        for row in self.die.rows().rev() {
+            if self.grid.rows[row].lio {
+                self.iob_frame
+                    .insert((self.grid.col_lio(), row), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+            if row == self.grid.row_clk() {
+                self.reg_frame[Dir::W] = self.iob_frame_len;
+                self.iob_frame_len += 384;
+            }
+        }
+        for col in self.die.cols() {
+            if matches!(
+                self.grid.columns[col].bio,
+                ColumnIoKind::Inner | ColumnIoKind::Both
+            ) {
+                self.iob_frame
+                    .insert((col, self.grid.row_bio_inner()), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+            if matches!(
+                self.grid.columns[col].bio,
+                ColumnIoKind::Outer | ColumnIoKind::Both
+            ) {
+                self.iob_frame
+                    .insert((col, self.grid.row_bio_outer()), self.iob_frame_len);
+                self.iob_frame_len += 128;
+            }
+            if self.grid.columns[col].kind == ColumnKind::CleClk {
+                self.reg_frame[Dir::S] = self.iob_frame_len;
+                self.iob_frame_len += 384;
             }
         }
     }
@@ -2417,9 +2495,9 @@ impl Grid {
             db,
             disabled: &disabled,
             die,
+            tiexlut: EntityVec::new(),
             rxlut: EntityVec::new(),
             rylut: EntityVec::new(),
-            tiexlut: EntityVec::new(),
             ioxlut: EntityVec::new(),
             ioylut: EntityVec::new(),
             pad_cnt: 1,
@@ -2430,6 +2508,10 @@ impl Grid {
             iob_frame_len: 0,
             io: vec![],
             gt: vec![],
+            col_frame: EntityVec::new(),
+            bram_frame: EntityVec::new(),
+            iob_frame: HashMap::new(),
+            reg_frame: enum_map! { _ => 0 },
         };
 
         expander.fill_rxlut();
@@ -2458,12 +2540,11 @@ impl Grid {
         expander.fill_hclk_fold();
         expander.fill_hclk();
         expander.fill_frame_info();
-        // XXX compute iob frame data
+        expander.fill_iob_frame_info();
 
         let io = expander.io;
         let gt = expander.gt;
 
-        // XXX fill frame_info
         let die_bs_geom = DieBitstreamGeom {
             frame_len: 1040,
             frame_info: expander.frame_info,
@@ -2477,6 +2558,10 @@ impl Grid {
             die_order: vec![expander.die.die],
         };
         let site_holes = expander.site_holes;
+        let col_frame = expander.col_frame;
+        let bram_frame = expander.bram_frame;
+        let iob_frame = expander.iob_frame;
+        let reg_frame = expander.reg_frame;
 
         egrid.finish();
         ExpandedDevice {
@@ -2487,6 +2572,10 @@ impl Grid {
             bs_geom,
             io,
             gt,
+            col_frame,
+            bram_frame,
+            iob_frame,
+            reg_frame,
         }
     }
 }
