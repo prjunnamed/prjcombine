@@ -1,10 +1,10 @@
 use enum_map::EnumMap;
-use prjcombine_entity::{EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::{
     db::Dir,
-    grid::{ColId, ExpandedGrid, Rect, RowId},
+    grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
 };
-use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::grid::{DisabledPart, Grid, IoCoord, RegId};
@@ -18,6 +18,8 @@ pub struct ExpandedDevice<'a> {
     pub io: Vec<Io>,
     pub gt: Vec<Gt>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    pub col_width: EntityVec<ColId, usize>,
+    pub spine_frame: EntityVec<RegId, usize>,
     pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     pub iob_frame: HashMap<(ColId, RowId), usize>,
     pub reg_frame: EnumMap<Dir, usize>,
@@ -51,5 +53,19 @@ impl ExpandedDevice<'_> {
             }
         }
         false
+    }
+
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grid.row_to_reg(row);
+        let rd = row - self.grid.row_reg_bot(reg);
+        let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[reg][col],
+            self.col_width[col],
+            bit,
+            64,
+            false,
+        )
     }
 }

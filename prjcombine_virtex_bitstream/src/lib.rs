@@ -177,7 +177,7 @@ pub struct DieBitstream {
     pub bram_frame_len: usize,
     pub bram_data: BitVec,
     pub bram_frame_info: Vec<FrameInfo>,
-    pub bram_present: BitVec,
+    pub bram_frame_present: BitVec,
     pub iob: BitVec,
     pub iob_present: bool,
     // frame idx, bit idx

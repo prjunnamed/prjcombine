@@ -46,7 +46,10 @@ impl<'a> TileKV<'a> {
 }
 
 #[derive(Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum TileFuzzKV<'a> {
+    #[allow(dead_code)]
+    SiteMode(BelId, &'a str),
     SiteAttr(BelId, &'a str, &'a str),
     #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
@@ -60,6 +63,10 @@ impl<'a> TileFuzzKV<'a> {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Fuzzer<IseBackend<'a>> {
         match *self {
+            TileFuzzKV::SiteMode(bel, val) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer.fuzz(Key::SiteMode(site), None, val)
+            }
             TileFuzzKV::SiteAttr(bel, attr, val) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr), None, val)
@@ -111,7 +118,9 @@ impl TileBits {
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_main(col, row)]
                 }
-                prjcombine_xilinx_geom::ExpandedDevice::Spartan6(_) => todo!(),
+                prjcombine_xilinx_geom::ExpandedDevice::Spartan6(edev) => {
+                    vec![edev.btile_main(col, row)]
+                }
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex4(edev) => {
                     vec![edev.btile_main(die, col, row)]
                 }

@@ -34,6 +34,8 @@ struct Expander<'a, 'b> {
     io: Vec<Io>,
     gt: Vec<Gt>,
     col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
+    col_width: EntityVec<ColId, usize>,
+    spine_frame: EntityVec<RegId, usize>,
     bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     iob_frame: HashMap<(ColId, RowId), usize>,
     reg_frame: EnumMap<Dir, usize>,
@@ -2362,38 +2364,55 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_frame_info(&mut self) {
+        for (_, cd) in &self.grid.columns {
+            let width = match cd.kind {
+                ColumnKind::CleXL => 30,
+                ColumnKind::CleXM => 31,
+                ColumnKind::CleClk => 31,
+                ColumnKind::Bram => 25,
+                ColumnKind::Dsp => 24,
+                ColumnKind::DspPlus => 31,
+                ColumnKind::Io => 30,
+            };
+            self.col_width.push(width);
+        }
         for reg in self.grid.regs() {
             self.col_frame.push(EntityVec::new());
             self.bram_frame.push(EntityPartVec::new());
+            let mut major = 0;
             let mut bram_major = 0;
+            self.spine_frame.push(self.frame_info.len());
+            for minor in 0..4 {
+                self.frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: reg.to_idx() as i32,
+                        major,
+                        minor: minor as u32,
+                    },
+                });
+            }
+            major += 1;
             for (col, cd) in &self.grid.columns {
                 self.col_frame[reg].push(self.frame_info.len());
-                let width = match cd.kind {
-                    ColumnKind::CleXL => 30,
-                    ColumnKind::CleXM => 31,
-                    ColumnKind::CleClk => 31,
-                    ColumnKind::Bram => 25,
-                    ColumnKind::Dsp => 24,
-                    ColumnKind::DspPlus => 31,
-                    ColumnKind::Io => 30,
-                };
-                for minor in 0..width {
+                for minor in 0..self.col_width[col] {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
                             region: reg.to_idx() as i32,
-                            major: col.to_idx() as u32,
-                            minor,
+                            major,
+                            minor: minor as u32,
                         },
                     });
                 }
+                major += 1;
                 if cd.kind == ColumnKind::Bram {
                     self.bram_frame[reg].insert(col, self.bram_frame_info.len());
                     // XXX uncertain
                     for minor in 0..4 {
                         self.bram_frame_info.push(FrameInfo {
                             addr: FrameAddr {
-                                typ: 2,
+                                typ: 1,
                                 region: reg.to_idx() as i32,
                                 major: bram_major,
                                 minor,
@@ -2509,6 +2528,8 @@ impl Grid {
             io: vec![],
             gt: vec![],
             col_frame: EntityVec::new(),
+            col_width: EntityVec::new(),
+            spine_frame: EntityVec::new(),
             bram_frame: EntityVec::new(),
             iob_frame: HashMap::new(),
             reg_frame: enum_map! { _ => 0 },
@@ -2559,6 +2580,8 @@ impl Grid {
         };
         let site_holes = expander.site_holes;
         let col_frame = expander.col_frame;
+        let col_width = expander.col_width;
+        let spine_frame = expander.spine_frame;
         let bram_frame = expander.bram_frame;
         let iob_frame = expander.iob_frame;
         let reg_frame = expander.reg_frame;
@@ -2573,6 +2596,8 @@ impl Grid {
             io,
             gt,
             col_frame,
+            col_width,
+            spine_frame,
             bram_frame,
             iob_frame,
             reg_frame,

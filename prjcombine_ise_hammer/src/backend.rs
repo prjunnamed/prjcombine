@@ -232,8 +232,6 @@ impl<'a> Backend for IseBackend<'a> {
             instances: insts.into_values().collect(),
             nets: nets.into_values().collect(),
         };
-        // XXX
-        gopts.insert("Compress".into(), "".into());
         let bitdata = run_bitgen(self.tc, &xdl, &gopts).unwrap();
         parse(self.bs_geom, &bitdata)
     }
