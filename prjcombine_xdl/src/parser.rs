@@ -48,7 +48,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn lex(&mut self) -> Result<Token<'a>, ParseError> {
-        if let Some(t) = std::mem::replace(&mut self.la, None) {
+        if let Some(t) = self.la.take() {
             return Ok(t);
         }
         self.skip_whitespace();

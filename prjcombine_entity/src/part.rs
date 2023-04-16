@@ -59,7 +59,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
 
     pub fn remove(&mut self, id: I) -> Option<V> {
         let idx = id.to_idx();
-        let res = std::mem::replace(self.vals.get_mut(idx)?, None);
+        let res = self.vals.get_mut(idx)?.take();
         while let Some(None) = self.vals.last() {
             self.vals.pop();
         }
