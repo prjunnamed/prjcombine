@@ -1174,7 +1174,9 @@ impl Collector<'_> {
                 }
             }
             if let Some(io) = self.backend.device.dge_pad {
-                let IoId::Mc(mc) = io else { unreachable!(); };
+                let IoId::Mc(mc) = io else {
+                    unreachable!();
+                };
                 let f = FuzzerInfo::Dge;
                 self.state
                     .kill_fuzzer_bit(f, self.bits.fbs[mc.0].mcs[mc.1].dge_en.unwrap());
@@ -1437,7 +1439,9 @@ impl Collector<'_> {
 
     fn collect_foe(&mut self) {
         let io = *self.backend.device.clk_pads.first().unwrap();
-        let IoId::Mc(mc) = io else { unreachable!(); };
+        let IoId::Mc(mc) = io else {
+            unreachable!();
+        };
         let mc = &self.bits.fbs[mc.0].mcs[mc.1];
         let num = self.backend.device.oe_pads.len();
         for tgt in 0..num {

@@ -92,7 +92,9 @@ impl<'a> Parser<'a> {
     }
 
     fn peek_verb(&mut self, t: &str) -> bool {
-        let Some(line) = self.peek_line() else {return false;};
+        let Some(line) = self.peek_line() else {
+            return false;
+        };
         line[0] == t
     }
 
@@ -681,8 +683,8 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                             "NULL" => None,
                             name => {
                                 let Some((ibuf, _)) = res.ibufs.get(name) else {
-                                parser.error(ParseErrorKind::UnknownIBuf)?
-                            };
+                                    parser.error(ParseErrorKind::UnknownIBuf)?
+                                };
                                 Some(ibuf)
                             }
                         };
@@ -721,8 +723,8 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                             "NULL" => None,
                             name => {
                                 let Some((mc, _)) = res.macrocells.get(name) else {
-                                parser.error(ParseErrorKind::UnknownMc)?
-                            };
+                                    parser.error(ParseErrorKind::UnknownMc)?
+                                };
                                 Some(mc)
                             }
                         };
@@ -731,8 +733,8 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                             "NULL" => None,
                             name => {
                                 let Some((ibuf, _)) = res.ibufs.get(name) else {
-                                parser.error(ParseErrorKind::UnknownIBuf)?
-                            };
+                                    parser.error(ParseErrorKind::UnknownIBuf)?
+                                };
                                 Some(ibuf)
                             }
                         };
@@ -741,8 +743,8 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                             "NULL" => None,
                             name => {
                                 let Some((obuf, _)) = res.obufs.get(name) else {
-                                parser.error(ParseErrorKind::UnknownOBuf)?
-                            };
+                                    parser.error(ParseErrorKind::UnknownOBuf)?
+                                };
                                 Some(obuf)
                             }
                         };
@@ -979,7 +981,9 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
                 }
                 res.iostd_default = Some(line[1].to_string());
                 loop {
-                    let Some(nl) = parser.peek_line() else { break; };
+                    let Some(nl) = parser.peek_line() else {
+                        break;
+                    };
                     if nl.len() != 2 {
                         break;
                     }

@@ -1041,7 +1041,10 @@ impl<'a> Verifier<'a> {
                         name_out,
                         name_delay,
                         name_in,
-                    } = &naming.intf_wires_in[&wt] else { unreachable!(); };
+                    } = &naming.intf_wires_in[&wt]
+                    else {
+                        unreachable!();
+                    };
                     if !self.pin_int_wire(crds[def_rt], name_in, wti) {
                         let tname = &node.names[def_rt];
                         println!(
@@ -1062,7 +1065,10 @@ impl<'a> Verifier<'a> {
                         name_pin_out,
                         name_pin_in,
                         name_in,
-                    } = &naming.intf_wires_in[&wt] else { unreachable!(); };
+                    } = &naming.intf_wires_in[&wt]
+                    else {
+                        unreachable!();
+                    };
                     if !self.pin_int_wire(crds[def_rt], name_in, wti) {
                         let tname = &node.names[def_rt];
                         println!(
@@ -1086,7 +1092,10 @@ impl<'a> Verifier<'a> {
                         name_pin_out,
                         name_pin_in,
                         name_in,
-                    } = &naming.intf_wires_in[&wt] else { unreachable!(); };
+                    } = &naming.intf_wires_in[&wt]
+                    else {
+                        unreachable!();
+                    };
                     if !self.pin_int_wire(crds[def_rt], name_in, wti) {
                         let tname = &node.names[def_rt];
                         println!(

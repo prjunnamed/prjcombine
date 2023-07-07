@@ -213,7 +213,9 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
 
     for (i, vaux) in sm.vaux.iter().enumerate() {
-        let Some((iop, _)) = vaux else { continue; };
+        let Some((iop, _)) = vaux else {
+            continue;
+        };
         let vauxp = format!("VAUXP{i}");
         let vauxn = format!("VAUXN{i}");
         vrf.claim_node(&[bel.fwire(&vauxp)]);

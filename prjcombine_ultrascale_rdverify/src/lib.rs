@@ -25,7 +25,9 @@ fn is_cut_u(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
 }
 
 fn get_hpiob_bel<'a>(edev: &ExpandedDevice, vrf: &Verifier<'a>, crd: IoCoord) -> BelContext<'a> {
-    let IoCoord::Hpio(crd) = crd else {unreachable!();};
+    let IoCoord::Hpio(crd) = crd else {
+        unreachable!();
+    };
     let grid = edev.grids[crd.die];
     let row = grid.row_reg_bot(crd.reg) + if crd.iob.to_idx() < 26 { 0 } else { 30 };
     vrf.find_bel(

@@ -1622,7 +1622,9 @@ fn add_cdr_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
     let Some(cdr) = backend.device.cdr_pad else {
         return;
     };
-    let IoId::Mc(cdrmc) = cdr else { unreachable!(); };
+    let IoId::Mc(cdrmc) = cdr else {
+        unreachable!();
+    };
     let clkpad = ClkPadId::from_idx(2);
     let fclk = FclkId::from_idx(2);
     let clk = backend.device.clk_pads[clkpad];
@@ -1973,7 +1975,9 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
             }
             let mut fuzzer = Fuzzer::new(FuzzerInfo::Foe(tgt, src, inv));
             let pad = backend.oe_pads_remapped[src];
-            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else { unreachable!(); };
+            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
+                unreachable!();
+            };
             let nk = if inv {
                 NodeKind::IiFoeInv
             } else {
@@ -2021,8 +2025,12 @@ fn add_foe_fuzzers(backend: &CpldBackend, hammer: &mut Session<CpldBackend>) {
         }
         if backend.device.kind == DeviceKind::Coolrunner2 {
             let mut fuzzer = Fuzzer::new(FuzzerInfo::FoeMc(tgt));
-            let IoId::Mc(oemc) = backend.device.oe_pads[src] else { unreachable!(); };
-            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else { unreachable!(); };
+            let IoId::Mc(oemc) = backend.device.oe_pads[src] else {
+                unreachable!();
+            };
+            let IoId::Mc(mc) = backend.device.clk_pads[ClkPadId::from_idx(0)] else {
+                unreachable!();
+            };
             fuzzer = fuzzer
                 .base(Key::McPresent(mc), true)
                 .base(Key::McHasOut(mc, NodeKind::McUim), true)

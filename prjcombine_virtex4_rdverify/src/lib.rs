@@ -1257,7 +1257,9 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     let obel = vrf.find_bel_sibling(bel, "IPAD.VN");
     vrf.claim_pip(bel.crd(), bel.wire("VN"), obel.wire("O"));
     for (i, vaux) in sm.vaux.iter().enumerate() {
-        let Some((iop, _)) = vaux else { continue; };
+        let Some((iop, _)) = vaux else {
+            continue;
+        };
         vrf.claim_node(&[bel.fwire(&format!("VP{i}"))]);
         vrf.claim_node(&[bel.fwire(&format!("VN{i}"))]);
         vrf.claim_pip(

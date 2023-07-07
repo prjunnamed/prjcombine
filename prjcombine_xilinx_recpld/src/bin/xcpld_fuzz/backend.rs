@@ -1169,7 +1169,10 @@ impl<'a> Backend for CpldBackend<'a> {
                         );
                     }
                     Value::McGlb => {
-                        let IoId::Mc(mc) = self.device.oe_pads[OePadId::from_idx(idx.to_idx())] else { unreachable!(); };
+                        let IoId::Mc(mc) = self.device.oe_pads[OePadId::from_idx(idx.to_idx())]
+                        else {
+                            unreachable!();
+                        };
                         let node = mc_out_lut[&(mc, NodeKind::McGlb)];
                         let name = vm6.nodes[node].name.to_string();
                         vm6.global_foe.insert(

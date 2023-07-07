@@ -1161,7 +1161,9 @@ impl XNodeExtractor<'_, '_, '_> {
                 if !self.buf_in.contains_key(&nwd) {
                     continue;
                 }
-                let Some(&(_, rt, wti, bwdi)) = self.buf_out.get(&nwd) else {continue;};
+                let Some(&(_, rt, wti, bwdi)) = self.buf_out.get(&nwd) else {
+                    continue;
+                };
                 if rt != 0 {
                     continue;
                 }
@@ -1184,11 +1186,21 @@ impl XNodeExtractor<'_, '_, '_> {
                     proxied_in.insert(wti, wf);
                     self.node.intfs.insert(wf, IntfInfo::InputDelay);
                 } else if let Some(&wf) = proxied_in.get(&wfi) {
-                    let IntfInfo::InputIri(iri, pin) = self.node.intfs[&wf] else {unreachable!();};
+                    let IntfInfo::InputIri(iri, pin) = self.node.intfs[&wf] else {
+                        unreachable!();
+                    };
                     self.node
                         .intfs
                         .insert(wf, IntfInfo::InputIriDelay(iri, pin));
-                    let Some(IntfWireInNaming::Iri{name_out, name_pin_out, name_pin_in, name_in}) = self.node_naming.intf_wires_in.remove(&wf) else {unreachable!();};
+                    let Some(IntfWireInNaming::Iri {
+                        name_out,
+                        name_pin_out,
+                        name_pin_in,
+                        name_in,
+                    }) = self.node_naming.intf_wires_in.remove(&wf)
+                    else {
+                        unreachable!();
+                    };
                     self.node_naming.intf_wires_in.insert(
                         wf,
                         IntfWireInNaming::IriDelay {

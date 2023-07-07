@@ -166,7 +166,9 @@ impl<'a> ExpandedGrid<'a> {
                     for row in die.rows() {
                         for w in self.db.wires.ids() {
                             let wire = (die.die, (col, row), w);
-                            let Some(rw) = self.resolve_wire(wire) else { continue; };
+                            let Some(rw) = self.resolve_wire(wire) else {
+                                continue;
+                            };
                             let tree = self.wire_tree(rw);
                             if rw == wire {
                                 for &ow in &tree {

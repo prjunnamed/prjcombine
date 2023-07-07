@@ -30,7 +30,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             .map(|(i, &wi)| (wi, tile.conn_wires.get(i).copied()))
             .sorted_by_key(|&(wi, _)| &rd.wires[wi])
         {
-            let Some(ni) = ni else {continue;};
+            let Some(ni) = ni else {
+                continue;
+            };
             let mut conns = vec![];
             let node = &rd.nodes[ni];
             let tpl = &rd.templates[node.template];
