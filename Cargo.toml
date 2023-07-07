@@ -55,6 +55,7 @@ members = [
 	"prjcombine_xilinx_recpld",
 	"prjcombine_sdf",
 ]
+resolver = "2"
 
 [workspace.package]
 edition = "2021"
