@@ -332,8 +332,8 @@ fn get_rows_hclk(rd: &Part, int: &IntGrid) -> Vec<(RowId, RowId, RowId)> {
     assert_eq!(rows_hclk.len(), rows_brk_d.len());
     rows_hclk
         .into_iter()
-        .zip(rows_brk_d.into_iter())
-        .zip(rows_brk.into_iter())
+        .zip(rows_brk_d)
+        .zip(rows_brk)
         .map(|((a, b), c)| (a, b, c))
         .collect()
 }

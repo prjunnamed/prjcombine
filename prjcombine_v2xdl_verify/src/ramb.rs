@@ -700,7 +700,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             if sz == 4 {
                 if mode == Mode::Virtex2 {
                     let ival = match wlog2 {
-                        0 | 1 | 2 => "0",
+                        0..=2 => "0",
                         3 => "000",
                         4 => "00000",
                         5 => "000000000",

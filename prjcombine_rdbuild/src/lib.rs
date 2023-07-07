@@ -36,14 +36,6 @@ fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     Some((l, x, y))
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn split_xy_test() {
-        assert_eq!(super::split_xy("SLICE_X123Y456"), Some(("SLICE", 123, 456)));
-    }
-}
-
 fn get_lastnum(s: &str) -> u8 {
     let mut num: Option<u8> = None;
     let mut res = None;
@@ -705,5 +697,13 @@ impl PartBuilder {
             }
         }
         self.part
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn split_xy_test() {
+        assert_eq!(super::split_xy("SLICE_X123Y456"), Some(("SLICE", 123, 456)));
     }
 }

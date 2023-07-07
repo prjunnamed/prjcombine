@@ -148,7 +148,7 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let carry: Vec<_> = (0..18)
         .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
         .chain((0..48).map(|x| (format!("PCOUT{x}"), format!("PCIN{x}"))))
-        .chain([("CARRYOUT".to_string(), "CARRYIN".to_string())].into_iter())
+        .chain([("CARRYOUT".to_string(), "CARRYIN".to_string())])
         .collect();
     let mut pins = vec![];
     for (o, i) in &carry {

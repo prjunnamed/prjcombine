@@ -46,8 +46,8 @@ fn get_cols_clkv(rd: &Part, int: &IntGrid) -> Vec<(ColId, ColId, ColId)> {
     assert_eq!(cols_clkv.len(), cols_brk_l.len());
     cols_clkv
         .into_iter()
-        .zip(cols_brk_l.into_iter())
-        .zip(cols_brk.into_iter())
+        .zip(cols_brk_l)
+        .zip(cols_brk)
         .map(|((a, b), c)| (a, b, c))
         .collect()
 }

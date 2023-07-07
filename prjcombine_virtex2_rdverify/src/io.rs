@@ -229,7 +229,7 @@ pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &Be
         unreachable!()
     };
     let pci_rdy = edev.grid.get_pci_io(edge);
-    for (pin, crd) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy.into_iter()) {
+    for (pin, crd) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy) {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
         let obel = get_bel_iob(vrf, crd);
