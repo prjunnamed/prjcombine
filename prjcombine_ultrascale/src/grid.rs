@@ -50,7 +50,7 @@ pub enum ColumnKindLeft {
     CleM(CleMKind),
     Bram(BramKind),
     Uram,
-    Hard(usize),
+    Hard(HardKind, usize),
     Io(usize),
     Gt(usize),
     Sdfec,
@@ -81,7 +81,7 @@ pub enum ColumnKindRight {
     CleL(CleLKind),
     Dsp(DspKind),
     Uram,
-    Hard(usize),
+    Hard(HardKind, usize),
     Io(usize),
     Gt(usize),
     DfeB,
@@ -94,6 +94,13 @@ pub enum ColumnKindRight {
 pub enum CleLKind {
     Plain,
     Dcg10,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum HardKind {
+    Clk,
+    NonClk,
+    Term,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -228,7 +235,11 @@ impl Grid {
     }
 
     pub fn col_cfg(&self) -> ColId {
-        self.cols_hard.last().unwrap().col
+        self.cols_hard
+            .iter()
+            .find(|hc| hc.regs.values().any(|&x| x == HardRowKind::Cfg))
+            .unwrap()
+            .col
     }
 
     pub fn row_ams(&self) -> RowId {

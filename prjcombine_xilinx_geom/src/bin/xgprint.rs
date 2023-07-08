@@ -553,7 +553,7 @@ mod virtex4 {
 mod ultrascale {
     use prjcombine_entity::EntityId;
     use prjcombine_ultrascale::grid::{
-        BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid,
+        BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid, HardKind,
     };
 
     pub fn print_grid(grid: &Grid) {
@@ -585,7 +585,7 @@ mod ultrascale {
             if matches!(
                 cd.l,
                 ColumnKindLeft::Uram
-                    | ColumnKindLeft::Hard(_)
+                    | ColumnKindLeft::Hard(_, _)
                     | ColumnKindLeft::DfeC
                     | ColumnKindLeft::DfeDF
                     | ColumnKindLeft::DfeE
@@ -612,7 +612,9 @@ mod ultrascale {
                 ColumnKindLeft::Bram(BramKind::BramClmpMaybe) => print!("BRAM.BRAM_CLMP*"),
                 ColumnKindLeft::Bram(BramKind::Td) => print!("BRAM.TD"),
                 ColumnKindLeft::Uram => print!("URAM"),
-                ColumnKindLeft::Hard(_) => print!("HARD"),
+                ColumnKindLeft::Hard(hk, _) => {
+                    print!("HARD{}", if hk == HardKind::Clk { " CLK" } else { "" })
+                }
                 ColumnKindLeft::Sdfec => print!("SDFEC"),
                 ColumnKindLeft::DfeC => print!("DFE_C"),
                 ColumnKindLeft::DfeDF => print!("DFE_DF"),
@@ -640,7 +642,7 @@ mod ultrascale {
                     println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
                 }
             }
-            if let ColumnKindLeft::Hard(idx) = cd.l {
+            if let ColumnKindLeft::Hard(_, idx) = cd.l {
                 let hc = &grid.cols_hard[idx];
                 for (reg, kind) in &hc.regs {
                     println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
@@ -649,7 +651,7 @@ mod ultrascale {
             if matches!(
                 cd.r,
                 ColumnKindRight::Uram
-                    | ColumnKindRight::Hard(_)
+                    | ColumnKindRight::Hard(HardKind::Clk | HardKind::NonClk, _)
                     | ColumnKindRight::DfeC
                     | ColumnKindRight::DfeDF
                     | ColumnKindRight::DfeE
@@ -665,7 +667,7 @@ mod ultrascale {
                 ColumnKindRight::Dsp(DspKind::Plain) => print!("DSP"),
                 ColumnKindRight::Dsp(DspKind::ClkBuf) => print!("DSP.CLK"),
                 ColumnKindRight::Uram => print!("URAM"),
-                ColumnKindRight::Hard(_) => print!("HARD"),
+                ColumnKindRight::Hard(_, _) => print!("HARD TERM"),
                 ColumnKindRight::DfeB => print!("DFE_B"),
                 ColumnKindRight::DfeC => print!("DFE_C"),
                 ColumnKindRight::DfeDF => print!("DFE_DF"),
@@ -685,6 +687,12 @@ mod ultrascale {
             if let ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) = cd.r {
                 let ioc = &grid.cols_io[idx];
                 for (reg, kind) in &ioc.regs {
+                    println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
+                }
+            }
+            if let ColumnKindRight::Hard(__, idx) = cd.r {
+                let hc = &grid.cols_hard[idx];
+                for (reg, kind) in &hc.regs {
                     println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
                 }
             }

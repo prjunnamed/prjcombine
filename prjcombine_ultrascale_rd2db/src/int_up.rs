@@ -371,6 +371,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     builder.extract_term_conn("TERM.W", Dir::W, "INT_INTF_LEFT_TERM_IO_FT", &[]);
     builder.extract_term_conn("TERM.E", Dir::E, "INT_INTF_R_TERM_GT", &[]);
     builder.extract_term_conn("TERM.E", Dir::E, "INT_INTF_RIGHT_TERM_IO", &[]);
+    builder.extract_term_conn("TERM.E", Dir::E, "INT_INTF_RIGHT_TERM_HDIO_FT", &[]);
     builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_B", &[]);
     builder.extract_term_conn("TERM.S", Dir::S, "INT_TERM_P", &[]);
     builder.extract_term_conn("TERM.S", Dir::S, "INT_INT_TERM_H_FT", &[]);
@@ -407,6 +408,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         (Dir::E, "PCIE", "INT_INTF_R_PCIE4"),
         (Dir::W, "GT", "INT_INTF_L_TERM_GT"),
         (Dir::E, "GT", "INT_INTF_R_TERM_GT"),
+        (Dir::E, "GT", "INT_INTF_RIGHT_TERM_HDIO_FT"),
     ] {
         builder.extract_intf(
             format!("INTF.{dir}.DELAY"),
@@ -1059,9 +1061,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_bot = tkn == "HDIO_BOT_RIGHT";
             let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
             let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
             let mut bels = vec![];
             for i in 0..6 {
                 bels.extend([
@@ -1129,85 +1129,85 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             for i in 0..30 {
                 xn = xn
                     .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 30)
                     .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
-                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 30, intf_r)
             }
             xn.bels(bels).extract();
         }
     }
 
-    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HDIO").iter().next() {
-        let top_xy = xy.delta(0, -30);
-        let int_l_xy = builder.walk_to_int(top_xy, Dir::W, false).unwrap();
-        let int_r_xy = builder.walk_to_int(top_xy, Dir::E, false).unwrap();
-        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
-        let mut bels = vec![];
-        for i in 0..4 {
+    for tkn in [
+        "RCLK_HDIO",
+        "RCLK_RCLK_HDIO_R_FT",
+        "RCLK_RCLK_HDIO_LAST_R_FT",
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let top_xy = xy.delta(0, -30);
+            let int_l_xy = builder.walk_to_int(top_xy, Dir::W, false).unwrap();
+            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let mut bels = vec![];
+            for i in 0..4 {
+                bels.push(
+                    builder
+                        .bel_xy(format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", i >> 1, i & 1)
+                        .pins_name_only(&["CLK_IN", "CLK_OUT"])
+                        .extra_wire("CLK_IN_MUX", &[format!("CLK_CMT_MUX_4TO1_{i}_CLK_OUT")]),
+                );
+            }
+            for (i, x, y) in [
+                (0, 0, 0),
+                (1, 0, 1),
+                (2, 1, 0),
+                (3, 1, 1),
+                (4, 2, 0),
+                (5, 2, 1),
+                (6, 3, 0),
+            ] {
+                bels.push(builder.bel_xy(format!("ABUS_SWITCH.HDIO{i}"), "ABUS_SWITCH", x, y));
+            }
+            let mut bel = builder
+                .bel_virtual("RCLK_HDIO")
+                .extra_int_in("CKINT", &["CLK_INT_TOP"]);
+            for i in 0..4 {
+                bel = bel.extra_wire(format!("CCIO{i}"), &[format!("CCIO_IO2RCLK{i}")]);
+            }
+            for i in 0..24 {
+                bel = bel
+                    .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
+                    .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")])
+                    .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_FT0_{i}")])
+                    .extra_wire(
+                        format!("HROUTE{i}_L_MUX"),
+                        &[format!(
+                            "CLK_CMT_MUX_2TO1_{ii}_CLK_OUT",
+                            ii = XLAT24[i] * 2 + 5
+                        )],
+                    )
+                    .extra_wire(
+                        format!("HROUTE{i}_R_MUX"),
+                        &[format!(
+                            "CLK_CMT_MUX_2TO1_{ii}_CLK_OUT",
+                            ii = XLAT24[i] * 2 + 4
+                        )],
+                    )
+                    .extra_wire(
+                        format!("HDISTR{i}_MUX"),
+                        &[format!("CLK_CMT_MUX_4TO1_{ii}_CLK_OUT", ii = XLAT24[i] + 4)],
+                    );
+            }
+            bels.push(bel);
             bels.push(
                 builder
-                    .bel_xy(format!("BUFGCE_HDIO{i}"), "BUFGCE_HDIO", i >> 1, i & 1)
-                    .pins_name_only(&["CLK_IN", "CLK_OUT"])
-                    .extra_wire("CLK_IN_MUX", &[format!("CLK_CMT_MUX_4TO1_{i}_CLK_OUT")]),
+                    .bel_virtual("VCC.RCLK_HDIO")
+                    .extra_wire("VCC", &["VCC_WIRE"]),
             );
+            let mut xn = builder.xnode("RCLK_HDIO", "RCLK_HDIO", xy).num_tiles(120);
+            for i in 0..60 {
+                xn = xn
+                    .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                    .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
+            }
+            xn.bels(bels).extract();
         }
-        for (i, x, y) in [
-            (0, 0, 0),
-            (1, 0, 1),
-            (2, 1, 0),
-            (3, 1, 1),
-            (4, 2, 0),
-            (5, 2, 1),
-            (6, 3, 0),
-        ] {
-            bels.push(builder.bel_xy(format!("ABUS_SWITCH.HDIO{i}"), "ABUS_SWITCH", x, y));
-        }
-        let mut bel = builder
-            .bel_virtual("RCLK_HDIO")
-            .extra_int_in("CKINT", &["CLK_INT_TOP"]);
-        for i in 0..4 {
-            bel = bel.extra_wire(format!("CCIO{i}"), &[format!("CCIO_IO2RCLK{i}")]);
-        }
-        for i in 0..24 {
-            bel = bel
-                .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
-                .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_R{i}")])
-                .extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")])
-                .extra_wire(
-                    format!("HROUTE{i}_L_MUX"),
-                    &[format!(
-                        "CLK_CMT_MUX_2TO1_{ii}_CLK_OUT",
-                        ii = XLAT24[i] * 2 + 5
-                    )],
-                )
-                .extra_wire(
-                    format!("HROUTE{i}_R_MUX"),
-                    &[format!(
-                        "CLK_CMT_MUX_2TO1_{ii}_CLK_OUT",
-                        ii = XLAT24[i] * 2 + 4
-                    )],
-                )
-                .extra_wire(
-                    format!("HDISTR{i}_MUX"),
-                    &[format!("CLK_CMT_MUX_4TO1_{ii}_CLK_OUT", ii = XLAT24[i] + 4)],
-                );
-        }
-        bels.push(bel);
-        bels.push(
-            builder
-                .bel_virtual("VCC.RCLK_HDIO")
-                .extra_wire("VCC", &["VCC_WIRE"]),
-        );
-        let mut xn = builder.xnode("RCLK_HDIO", "RCLK_HDIO", xy).num_tiles(120);
-        for i in 0..60 {
-            xn = xn
-                .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
-                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i + 60)
-                .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l)
-                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i + 60, intf_r)
-        }
-        xn.bels(bels).extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("CFRM_CFRAME_TERM_H_FT").iter().next() {

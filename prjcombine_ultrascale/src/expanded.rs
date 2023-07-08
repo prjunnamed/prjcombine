@@ -18,6 +18,7 @@ pub enum ClkSrc {
     Gt(ColId),
     Cmt(ColId),
     RouteSplitter(ColId),
+    RightHdio(ColId),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

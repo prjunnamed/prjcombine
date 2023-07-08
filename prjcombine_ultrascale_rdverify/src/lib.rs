@@ -7,7 +7,8 @@ use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_ultrascale::bond::SharedCfgPin;
 use prjcombine_ultrascale::expanded::{ClkSrc, ExpandedDevice, HpioCoord, IoCoord};
 use prjcombine_ultrascale::grid::{
-    CleMKind, ColSide, ColumnKindLeft, DisabledPart, GridKind, HardRowKind, HdioIobId, HpioIobId,
+    CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, GridKind, HardRowKind,
+    HdioIobId, HpioIobId,
 };
 
 fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
@@ -816,6 +817,7 @@ fn find_hdistr_src<'a>(
             .or_else(|| vrf.find_bel(die, (scol, row), "CMT"))
             .unwrap(),
         ClkSrc::RouteSplitter(_) => unreachable!(),
+        ClkSrc::RightHdio(scol) => vrf.find_bel(die, (scol, row), "RCLK_HDIO").unwrap(),
     }
 }
 
@@ -837,8 +839,9 @@ fn find_hroute_src<'a>(
         ClkSrc::Cmt(scol) => vrf.find_bel(die, (scol, row), "CMT").unwrap(),
         ClkSrc::RouteSplitter(scol) => vrf
             .find_bel(die, (scol, row), "RCLK_HROUTE_SPLITTER")
-            .or_else(|| vrf.find_bel(die, (scol, row), "RCLK_HDIO"))
+            .or_else(|| vrf.find_bel(die, (scol - 1, row), "RCLK_HDIO"))
             .unwrap(),
+        ClkSrc::RightHdio(scol) => vrf.find_bel(die, (scol, row), "RCLK_HDIO").unwrap(),
     }
 }
 
@@ -1240,11 +1243,10 @@ fn verify_hdiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         bel.wire("SWITCH_OUT"),
     );
 
-    let hdio_kind = if let ColumnKindLeft::Hard(hi) = grid.columns[bel.col].l {
-        grid.cols_hard[hi].regs[reg]
-    } else {
+    let ColumnKindRight::Hard(_, hi) = grid.columns[bel.col].r else {
         unreachable!()
     };
+    let hdio_kind = grid.cols_hard[hi].regs[reg];
 
     let ams_idx = match (hdio_kind, is_b, idx) {
         (HardRowKind::HdioAms, true, _) => Some(11 - idx),
@@ -1363,12 +1365,12 @@ fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
         vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_MUX"))]);
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("HDISTR{i}")),
+            bel.wire(&format!("HDISTR{i}_L")),
             bel.wire(&format!("HDISTR{i}_MUX")),
         );
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("HDISTR{i}")),
+            bel.wire(&format!("HDISTR{i}_L")),
             obel_vcc.wire("VCC"),
         );
         for obel in &obel_bufgce {
@@ -1433,18 +1435,26 @@ fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
         vrf.verify_node(&[bel.fwire(&format!("CCIO{i}")), obel.fwire("I")]);
     }
 
-    let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
-    let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
-    for i in 0..24 {
-        vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
-        vrf.verify_node(&[
-            bel.fwire(&format!("HDISTR{i}")),
-            obel_hd.fwire(&format!("HDISTR{i}_L")),
-        ]);
-        vrf.verify_node(&[
-            bel.fwire(&format!("HROUTE{i}_R")),
-            obel_hr.fwire(&format!("HROUTE{i}_L")),
-        ]);
+    if bel.col == edev.grids[bel.die].columns.last_id().unwrap() {
+        for i in 0..24 {
+            vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
+            vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_R"))]);
+            vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_L"))]);
+        }
+    } else {
+        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
+        let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
+        for i in 0..24 {
+            vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("HDISTR{i}_L")),
+                obel_hd.fwire(&format!("HDISTR{i}_L")),
+            ]);
+            vrf.verify_node(&[
+                bel.fwire(&format!("HROUTE{i}_R")),
+                obel_hr.fwire(&format!("HROUTE{i}_L")),
+            ]);
+        }
     }
 }
 
@@ -4746,6 +4756,13 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
         for i in 0..84 {
             vrf.kill_stub_in_cond_tk("INT_INTF_LEFT_TERM_IO_FT", &format!("GND_WIRE{i}"));
         }
+        for i in 0..104 {
+            vrf.kill_stub_in_cond_tk("INT_INTF_RIGHT_TERM_HDIO_FT", &format!("GND_WIRE{i}"));
+            vrf.kill_stub_in_cond_tk("INT_INTF_RIGHT_TERM_HDIO_FT", &format!("WESTBUS_NOCONN{i}"));
+        }
+        for i in 0..10785 {
+            vrf.kill_stub_in_cond_tk("HDIO_OUTER_TERM_R_FT", &format!("GND_WIRE{i}"));
+        }
         for i in 0..3120 {
             vrf.kill_stub_in_cond_tk("HPIO_TERM_L_FT", &format!("GND_WIRE{i}"));
             vrf.kill_stub_in_cond_tk("HPIO_TERM_L_DA6_FT", &format!("GND_WIRE{i}"));
@@ -4795,6 +4812,14 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
             "UNCONN_INOUTS8",
         ] {
             vrf.kill_stub_in_cond_tk("CFG_CONFIG", w);
+        }
+        for i in 0..61 {
+            if i == 30 {
+                continue;
+            }
+            for j in 0..32 {
+                vrf.kill_stub_in_cond_tk("HDIO_OUTER_TERM_R_FT", &format!("LOGIC_OUTS_{i}_{j}"));
+            }
         }
         vrf.kill_stub_in_cond("OPTION2IOB_PERSIST_MODE_EN_VR1_OPT");
         vrf.kill_stub_in_cond("OPTION2IOB_PERSIST_MODE_EN_VR2_OPT");

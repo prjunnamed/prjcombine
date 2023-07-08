@@ -16,8 +16,8 @@ use crate::expanded::{
 };
 use crate::grid::{
     BramKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId, IoColumn, IoRowKind,
-    PsIntfKind, RegId,
+    DisabledPart, DspKind, Grid, GridKind, HardKind, HardRowKind, HdioIobId, HpioIobId, IoColumn,
+    IoRowKind, PsIntfKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;
@@ -61,7 +61,7 @@ struct DieExpander<'a, 'b, 'c> {
     bankxlut: EntityPartVec<ColId, u32>,
     bankylut: EntityVec<RegId, u32>,
     dev_has_hbm: bool,
-    hylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
+    hardylut: EnumMap<HardRowKind, EntityVec<RegId, usize>>,
     iotxlut: EnumMap<IoRowKind, EntityVec<ColId, usize>>,
     iotylut: EnumMap<IoRowKind, EntityVec<RegId, usize>>,
     naming: &'b DeviceNaming,
@@ -103,24 +103,6 @@ impl DieExpander<'_, '_, '_> {
                         }
                     }
                 }
-                ColumnKindLeft::Hard(idx) => {
-                    let regs = &self.grid.cols_hard[idx].regs;
-                    let has_hdio = regs
-                        .values()
-                        .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms));
-                    let has_cfg = regs.values().any(|&x| x == HardRowKind::Cfg);
-                    if has_cfg {
-                        io += 1;
-                        hbm += 1;
-                        asx += 1;
-                        if self.dev_has_hbm {
-                            asx += 4;
-                        }
-                    }
-                    if has_hdio {
-                        asx += 4;
-                    }
-                }
                 _ => (),
             }
             match cd.r {
@@ -140,6 +122,24 @@ impl DieExpander<'_, '_, '_> {
                         }
                     } else if has_gt {
                         asx += 1;
+                    }
+                }
+                ColumnKindRight::Hard(_, idx) => {
+                    let regs = &self.grid.cols_hard[idx].regs;
+                    let has_hdio = regs
+                        .values()
+                        .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms));
+                    let has_cfg = regs.values().any(|&x| x == HardRowKind::Cfg);
+                    if has_cfg {
+                        io += 1;
+                        hbm += 1;
+                        asx += 1;
+                        if self.dev_has_hbm {
+                            asx += 4;
+                        }
+                    }
+                    if has_hdio {
+                        asx += 4;
                     }
                 }
                 _ => (),
@@ -276,13 +276,13 @@ impl DieExpander<'_, '_, '_> {
         y
     }
 
-    fn fill_hylut(&mut self, hy: &mut EnumMap<HardRowKind, usize>) {
+    fn fill_hardylut(&mut self, hy: &mut EnumMap<HardRowKind, usize>) {
         for reg in self.grid.regs() {
             let skip = self
                 .disabled
                 .contains(&DisabledPart::Region(self.die.die, reg));
             for (k, v) in hy.iter_mut() {
-                self.hylut[k].push(*v);
+                self.hardylut[k].push(*v);
                 let mut found = false;
                 if !skip {
                     for hc in &self.grid.cols_hard {
@@ -363,7 +363,17 @@ impl DieExpander<'_, '_, '_> {
                     self.col_cfg_io = Some((col, ColSide::Left));
                     iox += 1;
                 }
-                ColumnKindLeft::Hard(idx) => {
+                _ => (),
+            }
+            match cd.r {
+                ColumnKindRight::Io(_) => {
+                    if self.col_cfg_io.is_none() {
+                        self.col_cfg_io = Some((col, ColSide::Right));
+                    }
+                    self.ioxlut.insert(col, iox);
+                    iox += 1;
+                }
+                ColumnKindRight::Hard(_, idx) => {
                     let regs = &self.grid.cols_hard[idx].regs;
                     if regs
                         .values()
@@ -380,13 +390,6 @@ impl DieExpander<'_, '_, '_> {
                     }
                 }
                 _ => (),
-            }
-            if matches!(cd.r, ColumnKindRight::Io(_)) {
-                if self.col_cfg_io.is_none() {
-                    self.col_cfg_io = Some((col, ColSide::Right));
-                }
-                self.ioxlut.insert(col, iox);
-                iox += 1;
             }
         }
         let iox_cfg = self.ioxlut[self.col_cfg_io.unwrap().0];
@@ -461,7 +464,12 @@ impl DieExpander<'_, '_, '_> {
                 }
                 ColumnKindRight::Dsp(DspKind::ClkBuf) => (),
                 ColumnKindRight::Dsp(_) => {
-                    if self.grid.is_nocfg() && col > self.grid.cols_hard.last().unwrap().col {
+                    if (self.grid.is_nocfg() && col > self.grid.cols_hard.last().unwrap().col)
+                        || (matches!(
+                            self.grid.columns.last().unwrap().r,
+                            ColumnKindRight::Hard(_, _)
+                        ) && col > self.grid.cols_hard.first().unwrap().col)
+                    {
                         brx += 4;
                         gtbx += 4;
                     } else {
@@ -740,7 +748,7 @@ impl DieExpander<'_, '_, '_> {
                             }
                         }
                     }
-                    ColumnKindLeft::Hard(_)
+                    ColumnKindLeft::Hard(_, _)
                     | ColumnKindLeft::Sdfec
                     | ColumnKindLeft::DfeC
                     | ColumnKindLeft::DfeDF
@@ -814,7 +822,16 @@ impl DieExpander<'_, '_, '_> {
                             }
                         }
                     }
-                    ColumnKindRight::Hard(_)
+                    ColumnKindRight::Hard(HardKind::Term, _) => {
+                        self.die.add_xnode(
+                            (col, row),
+                            self.db.get_node("INTF.E.DELAY"),
+                            &[&format!("INT_INTF_RIGHT_TERM_HDIO_FT_X{x}Y{y}")],
+                            self.db.get_node_naming("INTF.E.GT"),
+                            &[(col, row)],
+                        );
+                    }
+                    ColumnKindRight::Hard(_, _)
                     | ColumnKindRight::DfeB
                     | ColumnKindRight::DfeC
                     | ColumnKindRight::DfeDF
@@ -1519,6 +1536,18 @@ impl DieExpander<'_, '_, '_> {
                                     }
                                 }
                             }
+                            if matches!(
+                                self.grid.columns.last().unwrap().r,
+                                ColumnKindRight::Hard(_, _)
+                            ) && col > self.grid.cols_hard.first().unwrap().col
+                            {
+                                if reg != self.grid.reg_cfg() {
+                                    is_dc12 = true;
+                                } else {
+                                    brx += 2;
+                                    gtbx += 2;
+                                }
+                            }
                             if is_dc12 {
                                 if is_l {
                                     "RCLK_RCLK_DSP_INTF_DC12_L_FT"
@@ -1684,6 +1713,9 @@ impl DieExpander<'_, '_, '_> {
         sy: usize,
         hdio_cfg_only: bool,
     ) {
+        let ColumnKindRight::Hard(hk, _) = self.grid.columns[col - 1].r else {
+            unreachable!();
+        };
         let row = self.grid.row_reg_bot(reg);
         if self
             .disabled
@@ -1711,6 +1743,7 @@ impl DieExpander<'_, '_, '_> {
         let (nk, nn, tk, bk) = match kind {
             HardRowKind::None => return,
             HardRowKind::Hdio | HardRowKind::HdioAms => {
+                let col = col - 1;
                 for (i, (tk, nk)) in [
                     ("HDIO_BOT_RIGHT", "HDIO_BOT"),
                     ("HDIO_TOP_RIGHT", "HDIO_TOP"),
@@ -1720,13 +1753,7 @@ impl DieExpander<'_, '_, '_> {
                 {
                     let row = row + i * 30;
                     let name = format!("{tk}_X{x}Y{y}", y = self.ylut[row]);
-                    let crds: [_; 60] = core::array::from_fn(|i| {
-                        if i < 30 {
-                            (col - 1, row + i)
-                        } else {
-                            (col, row + (i - 30))
-                        }
-                    });
+                    let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
                     let node = self.die.add_xnode(
                         (col, row),
                         self.db.get_node(nk),
@@ -1817,14 +1844,13 @@ impl DieExpander<'_, '_, '_> {
                         node.add_bel(31, format!("HDIO_BIAS_X{sx}Y{sy}"));
                     }
                 }
-                let name = format!("RCLK_HDIO_X{x}Y{y}", y = self.ylut[row + 29]);
-                let crds: [_; 120] = core::array::from_fn(|i| {
-                    if i < 60 {
-                        (col - 1, row + i)
-                    } else {
-                        (col, row + (i - 60))
-                    }
-                });
+                let tkn = match hk {
+                    HardKind::Clk => "RCLK_HDIO",
+                    HardKind::NonClk => "RCLK_RCLK_HDIO_R_FT",
+                    HardKind::Term => "RCLK_RCLK_HDIO_LAST_R_FT",
+                };
+                let name = format!("{tkn}_X{x}Y{y}", y = self.ylut[row + 29]);
+                let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
                 let node = self.die.add_xnode(
                     (col, row + 30),
                     self.db.get_node("RCLK_HDIO"),
@@ -2008,14 +2034,18 @@ impl DieExpander<'_, '_, '_> {
         );
         node.add_bel(0, format!("{bk}_X{sx}Y{sy}"));
         if kind == HardRowKind::Cfg {
-            let asx = self.asxlut[col].cfg;
+            let asx = self.asxlut[col - 1].cfg;
             let asy = self.asylut[reg].cfg;
             node.add_bel(1, format!("ABUS_SWITCH_X{asx}Y{asy}"));
         }
     }
 
-    fn fill_hard(&mut self, hcx: &EnumMap<HardRowKind, usize>, has_pcie_cfg: &mut bool) {
-        for (i, hc) in self.grid.cols_hard.iter().enumerate() {
+    fn fill_hard(
+        &mut self,
+        hardxlut: &EntityPartVec<ColId, EnumMap<HardRowKind, usize>>,
+        has_pcie_cfg: &mut bool,
+    ) {
+        for hc in &self.grid.cols_hard {
             let is_cfg = hc.regs.values().any(|&x| x == HardRowKind::Cfg);
             let hdio_cfg_only = hc.regs.values().all(|x| {
                 matches!(
@@ -2040,8 +2070,8 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     kind
                 };
-                let sx = if i == 0 { 0 } else { hcx[adjkind] };
-                let sy = self.hylut[adjkind][reg];
+                let sx = hardxlut[hc.col][adjkind];
+                let sy = self.hardylut[adjkind][reg];
                 self.fill_hard_single(hc.col, reg, kind, sx, sy, hdio_cfg_only);
             }
             if is_cfg && self.grid.has_hbm {
@@ -2053,7 +2083,7 @@ impl DieExpander<'_, '_, '_> {
                     self.db.get_node_naming("HBM_ABUS_SWITCH"),
                     &[],
                 );
-                let asx = self.asxlut[hc.col].hbm;
+                let asx = self.asxlut[hc.col - 1].hbm;
                 for i in 0..8 {
                     node.add_bel(
                         i,
@@ -3033,6 +3063,10 @@ pub fn fill_clk_src(
     let mut hdistr_src = vec![];
     let mut hd = ClkSrc::Gt(columns.last_id().unwrap());
     let mut hr = ClkSrc::Gt(columns.last_id().unwrap());
+    if matches!(columns.last().unwrap().r, ColumnKindRight::Hard(_, _)) {
+        hd = ClkSrc::RightHdio(columns.last_id().unwrap());
+        hr = ClkSrc::RightHdio(columns.last_id().unwrap());
+    }
     for (col, &cd) in columns.iter().rev() {
         let rhd = hd;
         let rhr = hr;
@@ -3056,7 +3090,7 @@ pub fn fill_clk_src(
         });
         match cd.l {
             ColumnKindLeft::CleM(CleMKind::ClkBuf)
-            | ColumnKindLeft::Hard(_)
+            | ColumnKindLeft::Hard(_, _)
             | ColumnKindLeft::DfeE => {
                 hr = ClkSrc::RouteSplitter(col);
             }
@@ -3092,16 +3126,22 @@ pub fn expand_grid<'a>(
     let mut asy = if dev_has_hbm { 2 } else { 0 };
     let mut cmty = 0;
     let mut gtby = 0;
-    let hcx = enum_map! {
-        k => if grids.values().any(|grid| {
-            grid.cols_hard[0].regs.values().any(|&x| x == k || (k == HardRowKind::Hdio && x == HardRowKind::HdioAms))
-        }) {
-            1
-        } else {
-            0
-        }
-    };
     let mgrid = grids[grid_master];
+    let mut tmp = enum_map!(_ => 0);
+    let mut hardxlut = EntityPartVec::new();
+    for (i, hc) in mgrid.cols_hard.iter().enumerate() {
+        hardxlut.insert(hc.col, tmp);
+        for (k, v) in tmp.iter_mut() {
+            if grids.values().any(|grid| {
+                grid.cols_hard[i]
+                    .regs
+                    .values()
+                    .any(|&x| x == k || (k == HardRowKind::Hdio && x == HardRowKind::HdioAms))
+            }) {
+                *v += 1;
+            }
+        }
+    }
     let mrcfg = mgrid
         .cols_hard
         .iter()
@@ -3150,7 +3190,7 @@ pub fn expand_grid<'a>(
             bankxlut: EntityPartVec::new(),
             bankylut: EntityVec::new(),
             dev_has_hbm,
-            hylut: EnumMap::default(),
+            hardylut: EnumMap::default(),
             iotxlut: EnumMap::default(),
             iotylut: EnumMap::default(),
             naming,
@@ -3166,7 +3206,7 @@ pub fn expand_grid<'a>(
         y = expander.fill_ylut(y);
         sy = expander.fill_sylut(sy);
         ly = expander.fill_lylut(ly);
-        expander.fill_hylut(&mut hy);
+        expander.fill_hardylut(&mut hy);
         expander.fill_iotylut(&mut ioty);
         expander.fill_asxlut();
         asy = expander.fill_asylut(asy);
@@ -3192,7 +3232,7 @@ pub fn expand_grid<'a>(
         expander.fill_uram();
         expander.fill_fe();
         expander.fill_dfe();
-        expander.fill_hard(&hcx, &mut has_pcie_cfg);
+        expander.fill_hard(&hardxlut, &mut has_pcie_cfg);
         expander.fill_io();
         expander.fill_clkroot();
 

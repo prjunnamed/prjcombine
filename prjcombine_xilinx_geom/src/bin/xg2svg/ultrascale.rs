@@ -36,7 +36,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             ColumnKindLeft::Bram(_) => W_BRAM,
             ColumnKindLeft::Uram => W_URAM,
             ColumnKindLeft::Io(_) | ColumnKindLeft::Gt(_) => W_IO,
-            ColumnKindLeft::Hard(_)
+            ColumnKindLeft::Hard(_, _)
             | ColumnKindLeft::Sdfec
             | ColumnKindLeft::DfeC
             | ColumnKindLeft::DfeDF
@@ -50,7 +50,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             ColumnKindRight::Io(_) | ColumnKindRight::Gt(_) => W_IO,
             ColumnKindRight::DfeB => W_HARD,
             ColumnKindRight::Uram
-            | ColumnKindRight::Hard(_)
+            | ColumnKindRight::Hard(_, _)
             | ColumnKindRight::DfeC
             | ColumnKindRight::DfeDF
             | ColumnKindRight::DfeE => 0.,
@@ -198,7 +198,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKindLeft::Hard(idx) => {
+                ColumnKindLeft::Hard(_, idx) => {
                     for (reg, kind) in &grid.cols_hard[idx].regs {
                         let kind = match kind {
                             HardRowKind::Cfg => "cfg",

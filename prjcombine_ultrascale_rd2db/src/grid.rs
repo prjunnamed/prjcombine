@@ -3,8 +3,8 @@ use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardRowKind, HdioIobId, HpioIobId, IoColumn,
-    IoRowKind, Ps, PsIntfKind, RegId,
+    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId,
+    IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
@@ -64,8 +64,18 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         "DFE_DFE_TILEA_FT",
         "DFE_DFE_TILEG_FT",
     ]) {
-        res[int.lookup_column_inter(c) - 1].1 = Some(ColumnKindRight::Hard(0));
-        res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Hard(0));
+        let col = int.lookup_column_inter(c);
+        if col == res.next_id() {
+            res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::Term, 0));
+        } else {
+            res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::Clk, 0));
+            res[col].0 = Some(ColumnKindLeft::Hard(HardKind::Clk, 0));
+        }
+    }
+    for c in int.find_columns(&["RCLK_RCLK_HDIO_R_FT"]) {
+        let col = int.lookup_column_inter(c);
+        res[col - 1].1 = Some(ColumnKindRight::Hard(HardKind::NonClk, 0));
+        res[col].0 = Some(ColumnKindLeft::Hard(HardKind::NonClk, 0));
     }
     for c in int.find_columns(&["FE_FE_FT"]) {
         res[int.lookup_column_inter(c)].0 = Some(ColumnKindLeft::Sdfec);
@@ -296,7 +306,7 @@ fn get_cols_hard(
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
                             dieid,
-                            col,
+                            col - 1,
                             reg,
                             HdioIobId::from_idx(i),
                         ));
@@ -310,7 +320,7 @@ fn get_cols_hard(
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::HdioIob(
                             dieid,
-                            col,
+                            col - 1,
                             reg,
                             HdioIobId::from_idx(i + 12),
                         ));
@@ -632,10 +642,16 @@ pub fn make_grids(
         let cols_hard = get_cols_hard(&int, dieid, &mut disabled);
         let cols_io = get_cols_io(&int, dieid, &mut disabled);
         for (i, hc) in cols_hard.iter().enumerate() {
-            assert_eq!(columns[hc.col - 1].r, ColumnKindRight::Hard(0));
-            assert_eq!(columns[hc.col].l, ColumnKindLeft::Hard(0));
-            columns[hc.col - 1].r = ColumnKindRight::Hard(i);
-            columns[hc.col].l = ColumnKindLeft::Hard(i);
+            let ColumnKindRight::Hard(_, ref mut idx) = columns[hc.col - 1].r else {
+                unreachable!();
+            };
+            *idx = i;
+            if hc.col != columns.next_id() {
+                let ColumnKindLeft::Hard(_, ref mut idx) = columns[hc.col].l else {
+                    unreachable!();
+                };
+                *idx = i;
+            }
         }
         for (i, ioc) in cols_io.iter().enumerate() {
             match ioc.side {
