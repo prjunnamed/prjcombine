@@ -726,17 +726,24 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
 
 fn verify_abus_switch(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let grid = edev.grids[bel.die];
+    let reg = grid.row_to_reg(bel.row);
     let mut pins = &[][..];
     if edev.kind == GridKind::UltrascalePlus && !bel.bel.pins.contains_key("TEST_ANALOGBUS_SEL_B") {
         pins = &[("TEST_ANALOGBUS_SEL_B", SitePinDir::In)];
     }
     let mut skip = false;
     if bel.node_kind.starts_with("GTM") {
-        let reg = grid.row_to_reg(bel.row);
         skip = edev
             .disabled
             .contains(&DisabledPart::Gt(bel.die, bel.col, reg));
     }
+    if edev
+        .disabled
+        .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg))
+    {
+        skip = true;
+    }
+
     if !skip {
         vrf.verify_bel(bel, "ABUS_SWITCH", pins, &[]);
     }
@@ -3718,6 +3725,8 @@ fn verify_hriodiffout(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = edev.grids[bel.die];
+    let reg = grid.row_to_reg(bel.row);
     let mut pins = vec![
         ("CLK_IN", SitePinDir::In),
         ("CE", SitePinDir::In),
@@ -3731,7 +3740,12 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             ("DIV2", SitePinDir::In),
         ]);
     }
-    vrf.verify_bel(bel, "BUFG_GT", &pins, &[]);
+    if !edev
+        .disabled
+        .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg))
+    {
+        vrf.verify_bel(bel, "BUFG_GT", &pins, &[]);
+    }
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
@@ -3981,10 +3995,13 @@ fn verify_bufg_gt_sync(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelConte
     }
 
     let reg = grid.row_to_reg(bel.row);
-    let skip = edev
+    let skip = (edev
         .disabled
         .contains(&DisabledPart::GtmSpareBufs(bel.die, bel.col, reg))
-        && matches!(idx, 6 | 13);
+        && matches!(idx, 6 | 13))
+        || edev
+            .disabled
+            .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg));
     if !skip {
         vrf.verify_bel_dummies(bel, "BUFG_GT_SYNC", &pins, &[], &dummies);
     }

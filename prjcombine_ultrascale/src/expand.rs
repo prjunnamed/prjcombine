@@ -2022,7 +2022,7 @@ impl DieExpander<'_, '_, '_> {
         {
             return;
         }
-        if nk.starts_with("DFE") && self.disabled.contains(&DisabledPart::Dfe) {
+        if nk == "DFE_G" && self.disabled.contains(&DisabledPart::Dfe) {
             return;
         }
         let node = self.die.add_xnode(

@@ -294,7 +294,7 @@ fn get_cols_hard(
                 y: y as u16,
             };
             let tile = &int.rd.tiles[&crd];
-            if tile.sites.iter().next().is_none() && !tt.starts_with("DFE") {
+            if tile.sites.iter().next().is_none() && tt != "DFE_DFE_TILEG_FT" {
                 disabled.insert(DisabledPart::HardIp(dieid, col, reg));
             }
             if tt == "HDIO_BOT_RIGHT" {
@@ -488,6 +488,12 @@ fn get_cols_io(
                     let sid = tk.sites.get(&slot).unwrap().0;
                     if !tile.sites.contains_id(sid) {
                         disabled.insert(DisabledPart::Gt(dieid, col, reg));
+                    }
+                    let sk = int.rd.slot_kinds.get("BUFG_GT").unwrap();
+                    let slot = TkSiteSlot::Xy(sk, 0, 0);
+                    let sid = tk.sites.get(&slot).unwrap().0;
+                    if !tile.sites.contains_id(sid) {
+                        disabled.insert(DisabledPart::GtBufs(dieid, col, reg));
                     }
                 } else {
                     disabled.insert(DisabledPart::Gt(dieid, col, reg));
@@ -850,7 +856,7 @@ pub fn make_grids(
             disabled.insert(DisabledPart::Sdfec);
         }
     }
-    if let Some((_, tk)) = rd.tile_kinds.get("DFE_DFE_TILEA_FT") {
+    if let Some((_, tk)) = rd.tile_kinds.get("DFE_DFE_TILEB_FT") {
         if tk.sites.is_empty() {
             disabled.insert(DisabledPart::Dfe);
         }

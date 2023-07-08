@@ -193,6 +193,7 @@ pub enum DisabledPart {
     TopRow(DieId, RegId),
     HardIp(DieId, ColId, RegId),
     Gt(DieId, ColId, RegId),
+    GtBufs(DieId, ColId, RegId),
     GtmSpareBufs(DieId, ColId, RegId),
     HdioIob(DieId, ColId, RegId, HdioIobId),
     HpioIob(DieId, ColId, RegId, HpioIobId),
