@@ -1800,7 +1800,9 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("INT_INTF_LEFT_IBRK_PCIE4_TERM_P_FT", SINGLE, &[]),
     TileInfo("INT_INTF_LEFT_IBRK_PCIE4_TERM_H_FT", SINGLE, &[]),
     TileInfo("INT_INTF_R_PCIE4", SINGLE, &["int-if"]),
+    TileInfo("INT_INTF_RIGHT_TERM_HDIO_FT", SINGLE, &["int-if"]),
     TileInfo("RCLK_INTF_R_IBRK_L", SINGLE, &["clk-row"]),
+    TileInfo("RCLK_RCLK_INTF_RIGHT_IBRK_PCIE4_R_FT", SINGLE, &["clk-row"]),
     TileInfo("INT_INTF_R_PCIE4_RBRK", SINGLE, &["clk-brk"]),
     TileInfo("INT_INTF_R_PCIE4_TERM_B", SINGLE, &[]),
     TileInfo("INT_INTF_R_PCIE4_TERM_T", SINGLE, &[]),
@@ -1837,7 +1839,9 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("INT_INTF_LEFT_TERM_PSS_TERM_T", SINGLE, &[]),
     TileInfo("INT_INTF_L_TERM_GT", SINGLE, &["int-if"]),
     TileInfo("RCLK_INTF_L_TERM_GT", SINGLE, &["clk-row"]),
+    TileInfo("RCLK_RCLK_INTF_LEFT_TERM_GT_IO_FT", SINGLE, &["clk-row"]),
     TileInfo("INT_INTF_L_TERM_GT_RBRK", SINGLE, &["clk-brk"]),
+    TileInfo("INT_INTF_LEFT_TERM_GT_IO_RBRK_FT", SINGLE, &["clk-brk"]),
     TileInfo("INT_INTF_L_TERM_G_TERM_B", SINGLE, &[]),
     TileInfo("INT_INTF_L_TERM_G_TERM_T", SINGLE, &[]),
     TileInfo("INT_INTF_LEFT_TERM_GT_TERM_P", SINGLE, &[]),
@@ -1942,11 +1946,18 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("HDIO_TOP_RIGHT", (1, 0, 29, 0), &["io"]),
     TileInfo("HDIO_HDIO_FILL_FT", (0, 0, 29, 0), &[]),
     TileInfo("RCLK_HDIO", (1, 0, 0, 0), &["clk-global-buf"]),
+    TileInfo("RCLK_RCLK_HDIO_R_FT", (1, 0, 0, 0), &["clk-global-buf"]),
+    TileInfo(
+        "RCLK_RCLK_HDIO_LAST_R_FT",
+        (1, 0, 0, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("HDIO_RIGHT_RBRK", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("HDIO_HDIO_FILL_RBRK_FT", SINGLE, &["clk-brk"]),
     TileInfo("HDIO_HDIO_RIGHT_TERM_RBRK_FT", (1, 0, 0, 0), &["clk-brk"]),
     TileInfo("HDIO_RIGHT_TERM_B", (1, 0, 0, 0), &[]),
     TileInfo("HDIO_RIGHT_TERM_T", (1, 0, 0, 0), &[]),
+    TileInfo("HDIO_HDIO_LEFT_TERM_T_FT", (1, 0, 0, 0), &[]),
     TileInfo("HDIO_RIGHT_CFG_TERM_T", (1, 0, 0, 0), &[]),
     TileInfo("HDIO_HDIO_RIGHT_TERM_P_FT", (1, 0, 0, 0), &[]),
     TileInfo("HDIO_HDIO_FILL_TERM_T_FT", SINGLE, &[]),
@@ -2016,6 +2027,11 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     TileInfo("CMAC_CMAC_CFG_TERM_T_FT", (2, 0, 0, 0), &[]),
     TileInfo("ILKN_ILKN_CFG_TERM_T_FT", (2, 0, 0, 0), &[]),
     TileInfo("DFE_DFE_TILEA_TERM_T_FT", (2, 0, 0, 0), &[]),
+    // special right HDIO
+    TileInfo("HDIO_OUTER_TERM_R_FT", (0, 0, 60, 0), &[]),
+    TileInfo("HDIO_OUTER_TERM_R_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("HDIO_OUTER_TERM_R_TERM_B_FT", SINGLE, &[]),
+    TileInfo("HDIO_OUTER_TERM_R_TERM_T_FT", SINGLE, &[]),
     // DFE_TILEB
     TileInfo("DFE_DFE_TILEB_FT", (2, 0, 60, 0), &["hardip"]),
     TileInfo("DFE_DFE_TILEB_RBRK_FT", (2, 0, 0, 0), &["clk-brk"]),
@@ -2218,12 +2234,24 @@ const ULTRASCALEPLUS_TILES: &[TileInfo] = &[
     // left
     TileInfo("GTH_QUAD_LEFT", (50, 0, 60, 0), &["gth"]),
     TileInfo("GTH_QUAD_LEFT_RBRK", (50, 0, 0, 0), &["clk-brk"]),
+    TileInfo("HPIO_GTH_QUAD_LEFT_RBRK_FT", (50, 0, 0, 0), &["clk-brk"]),
     TileInfo("GTH_QUAD_LEFT_DA7_TERM_P", (50, 0, 0, 0), &[]),
     TileInfo("GTH_QUAD_LEFT_TERM_T", (50, 0, 0, 0), &[]),
+    TileInfo("GTH_QUAD_LEFT_TERM_B_FT", (50, 0, 0, 0), &[]),
     TileInfo("GTH_DA7_TERM_L", (0, 0, 60, 0), &[]),
     TileInfo("GTH_DA7_TERM_L_RBRK", SINGLE, &["clk-brk"]),
     TileInfo("GTH_DA7_TERM_L_TERM_P", SINGLE, &[]),
     TileInfo("GTH_DA7_TERM_L_TERM_T", SINGLE, &[]),
+    TileInfo("GTH_DR1_TERM_L_TERM_B_FT", SINGLE, &[]),
+    TileInfo("GTH_DR1_TERM_L_FT", (0, 0, 60, 0), &[]),
+    TileInfo("HPIO_GTH_TERM_L_RBRK_FT", SINGLE, &["clk-brk"]),
+    TileInfo("HPIO_GTH_TERM_L_M_RBRK_FT", (2, 0, 0, 0), &["clk-brk"]),
+    TileInfo("HPIO_GTH_TERM_L_TERM_T_FT", (2, 0, 0, 0), &[]),
+    TileInfo("HPIO_GTH_CFG_TERM_L_BOT_FT", (2, 0, 29, 0), &[]),
+    TileInfo("HPIO_GTH_CFG_TERM_L_TOP_FT", (2, 0, 29, 0), &[]),
+    TileInfo("HPIO_GTH_AUX_IO_TERM_L_BOT_FT", (2, 0, 29, 0), &[]),
+    TileInfo("HPIO_GTH_AUX_IO_TERM_L_TOP_FT", (2, 0, 29, 0), &[]),
+    TileInfo("RCLK_RCLK_HPIO_GTH_TERM_L_FT", (2, 0, 0, 0), &["clk-row"]),
     // left
     TileInfo("GTY_L", (50, 0, 60, 0), &["gty"]),
     TileInfo("GTY_L_RBRK", (50, 0, 0, 0), &["clk-brk"]),
@@ -2762,8 +2790,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_T_GTM_L_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTM_L_AIE_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTM_CORE", (0, 0, 0, 0), &[]),
-    TileInfo("XRAM_CORE", (0, 0, 58, 0), &["hardip"]),
+    TileInfo("XRAM_CORE", (0, 0, 0, 0), &["hardip"]),
     TileInfo("TERM_P_XRAM_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("TERM_T_PSS_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("MISC_XRAM_DECAP_S06_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("MISC_XRAM_TIEOFF_CORE", (0, 0, 0, 0), &["rterm"]),
     // right GT
     TileInfo("GTY_QUAD_SINGLE", (2, 0, 58, 0), &["gth"]),
     TileInfo("RBRK_GTY_CORE", (2, 0, 0, 0), &["clk-brk"]),
@@ -3519,14 +3550,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 x: nc.0 as u16,
                                 y: nc.1 as u16,
                             };
-                            if dx == -el && dy == eu {
-                                grid[nc] =
-                                    Some((*crd, (el + er + 1) as usize, (ed + eu + 1) as usize));
-                            } else {
-                                grid[nc] = None;
-                            }
                             if ncrd != *crd {
-                                let ntile = &rd.tiles[&ncrd];
+                                let Some(ntile) = rd.tiles.get(&ncrd) else {
+                                    println!(
+                                        "Tile {tn} expanded out of device bounds at {nc:?}",
+                                        tn = tile.name
+                                    );
+                                    continue;
+                                };
                                 let ntk = &rd.tile_kinds[ntile.kind];
                                 let ntkn = rd.tile_kinds.key(ntile.kind);
                                 if need_null {
@@ -3545,6 +3576,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                                         tile.name, ntile.name
                                     );
                                 }
+                            }
+                            if dx == -el && dy == eu {
+                                grid[nc] =
+                                    Some((*crd, (el + er + 1) as usize, (ed + eu + 1) as usize));
+                            } else {
+                                grid[nc] = None;
                             }
                         }
                     }
