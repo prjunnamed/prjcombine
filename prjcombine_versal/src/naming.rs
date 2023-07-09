@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeviceNaming {
     pub die: EntityVec<DieId, DieNaming>,
+    pub is_dsp_v2: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

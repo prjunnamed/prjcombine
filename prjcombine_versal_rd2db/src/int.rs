@@ -2,14 +2,15 @@ use enum_map::EnumMap;
 use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_int::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::{Coord, Part, TkWire};
-use prjcombine_versal::expand::{
-    BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH,
+use prjcombine_versal::{
+    expand::{BUFDIV_LEAF_SWZ_A, BUFDIV_LEAF_SWZ_AH, BUFDIV_LEAF_SWZ_B, BUFDIV_LEAF_SWZ_BH},
+    naming::DeviceNaming,
 };
 use std::collections::HashMap;
 
 use prjcombine_rdintb::IntBuilder;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
+pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     let mut builder = IntBuilder::new("versal", rd);
     let mut term_wires: EnumMap<Dir, EntityPartVec<_, _>> = Default::default();
     let intf_kinds = [
@@ -1018,8 +1019,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bels.push(bel);
             let intf_l = builder.db.get_node_naming("INTF.E");
             let intf_r = builder.db.get_node_naming("INTF.W");
+            let naming = if dev_naming.is_dsp_v2 {
+                "DSP.V2"
+            } else {
+                "DSP.V1"
+            };
             builder
-                .xnode("DSP", "DSP", xy)
+                .xnode("DSP", naming, xy)
                 .num_tiles(4)
                 .ref_single(xy.delta(-1, 0), 0, intf_l)
                 .ref_single(xy.delta(-1, 1), 1, intf_l)

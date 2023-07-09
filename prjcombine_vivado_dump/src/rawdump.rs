@@ -1258,6 +1258,28 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
     },
     FixupTileKind {
         family: "versal",
+        tile_kind: "DCMAC_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "DCMAC",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DCMAC_X0Y0",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
+        tile_kind: "HSC_TILE",
+        slots: &[FixupSiteSlot {
+            slot_name: "HSC",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "HSC_X0Y0",
+        }],
+        source_device: "xcvp1202-vsva2785-1LHP-i-L",
+    },
+    FixupTileKind {
+        family: "versal",
         tile_kind: "GTYP_QUAD_SINGLE",
         slots: &[FixupSiteSlot {
             slot_name: "GTYP_QUAD",

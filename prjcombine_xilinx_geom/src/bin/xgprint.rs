@@ -710,6 +710,7 @@ mod versal {
         println!("\tPS: {v:?}", v = grid.ps);
         println!("\tCPM: {v:?}", v = grid.cpm);
         println!("\tHNICX: {v:?}", v = grid.has_hnicx);
+        println!("\tXRAM TOP: {v:?}", v = grid.has_xram_top);
         println!("\tTOP: {v:?}", v = grid.top);
         println!("\tBOTTOM: {v:?}", v = grid.bottom);
         println!("\tCOLS:");

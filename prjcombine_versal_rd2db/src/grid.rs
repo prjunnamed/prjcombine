@@ -189,8 +189,15 @@ fn make_columns(
         ("HSC_TILE", HardRowKind::HscB, HardRowKind::HscT),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
+            let tile = &int.rd.tiles[&Coord {
+                x: x as u16,
+                y: y as u16,
+            }];
             let col = int.lookup_column_inter(x);
             let reg = RegId::from_idx(int.lookup_row(y).to_idx() / 48);
+            if tile.sites.iter().next().is_none() {
+                disabled.insert(DisabledPart::HardIpSite(die, col, reg));
+            }
             hard_cells.insert((col, reg), kind_b);
             hard_cells.insert((col, reg + 1), kind_t);
         }
@@ -231,8 +238,9 @@ fn get_cols_cpipe(int: &IntGrid) -> BTreeSet<ColId> {
     res
 }
 
-fn get_rows_gt_left(int: &IntGrid) -> EntityVec<RegId, GtRowKind> {
+fn get_rows_gt_left(int: &IntGrid) -> (EntityVec<RegId, GtRowKind>, bool) {
     let mut res = EntityVec::new();
+    let mut has_xram_top = false;
     for _ in 0..(int.rows.len() / 48) {
         res.push(GtRowKind::None);
     }
@@ -243,11 +251,16 @@ fn get_rows_gt_left(int: &IntGrid) -> EntityVec<RegId, GtRowKind> {
         ("XRAM_CORE", GtRowKind::Xram),
     ] {
         for row in int.find_rows(&[tkn]) {
-            let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
-            res[reg] = kind;
+            if row > *int.rows.last().unwrap() {
+                assert_eq!(tkn, "XRAM_CORE");
+                has_xram_top = true;
+            } else {
+                let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
+                res[reg] = kind;
+            }
         }
     }
-    res
+    (res, has_xram_top)
 }
 
 fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
@@ -353,17 +366,19 @@ pub fn make_grids(
         };
         let has_hnicx = !int.find_tiles(&["HNICX_TILE"]).is_empty();
         assert_eq!(int.rows.len() % 48, 0);
+        let (regs_gt_left, has_xram_top) = get_rows_gt_left(&int);
         grids.push(Grid {
             columns,
             cols_vbrk: get_cols_vbrk(&int),
             cols_cpipe: get_cols_cpipe(&int),
             cols_hard,
             regs: int.rows.len() / 48,
-            regs_gt_left: get_rows_gt_left(&int),
+            regs_gt_left,
             regs_gt_right: get_rows_gt_right(&int),
             ps,
             cpm,
             has_hnicx,
+            has_xram_top,
             top: TopKind::Ssit,    // XXX
             bottom: BotKind::Ssit, // XXX
         });
@@ -508,10 +523,14 @@ pub fn make_grids(
         col_gt_r[RegId::from_idx(12)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(13)] = GtRowKind::Gtm;
     }
+    let is_dsp_v2 = rd.wires.contains("DSP_DSP58_4_CLK");
     (
         grids,
         DieId::from_idx(0),
         disabled,
-        DeviceNaming { die: namings },
+        DeviceNaming {
+            die: namings,
+            is_dsp_v2,
+        },
     )
 }

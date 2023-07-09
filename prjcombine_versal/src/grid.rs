@@ -20,6 +20,7 @@ pub struct Grid {
     pub ps: PsKind,
     pub cpm: CpmKind,
     pub has_hnicx: bool,
+    pub has_xram_top: bool,
     pub top: TopKind,
     pub bottom: BotKind,
 }

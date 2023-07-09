@@ -1099,7 +1099,7 @@ impl Expander<'_> {
                                 ColumnKind::Gt => {
                                     if reg.to_idx() == 1
                                         && grid.regs_gt_right.is_none()
-                                        && grid.regs == 5
+                                        && grid.cpm == CpmKind::None
                                     {
                                         kind = "GT.ALT";
                                         tile = format!("RCLK_INTF_TERM2_RIGHT_CORE_X{x}Y{yy}");
@@ -1271,11 +1271,16 @@ impl Expander<'_> {
                     let reg = grid.row_to_reg(row);
                     let bt = if grid.is_reg_top(reg) { 'T' } else { 'B' };
                     let name = format!("DSP_{ocf}_{bt}_TILE_X{x}Y{y}");
+                    let naming = if self.naming.is_dsp_v2 {
+                        "DSP.V2"
+                    } else {
+                        "DSP.V1"
+                    };
                     let node = die.add_xnode(
                         (col, row),
                         self.db.get_node("DSP"),
                         &[&name],
-                        self.db.get_node_naming("DSP"),
+                        self.db.get_node_naming(naming),
                         &[
                             (col, row),
                             (col, row + 1),

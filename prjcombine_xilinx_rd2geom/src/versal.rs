@@ -9,7 +9,7 @@ use prjcombine_versal_rdverify::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, disabled, naming) = grid::make_grids(rd);
-    let int_db = int::make_int_db(rd);
+    let int_db = int::make_int_db(rd, &naming);
     let mut bonds = Vec::new();
     for (pkg, _) in rd.packages.iter() {
         bonds.push((pkg.clone(), Bond::Versal(prjcombine_versal::bond::Bond {})));
