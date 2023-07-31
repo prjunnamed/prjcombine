@@ -805,7 +805,7 @@ fn verify_bufce_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn find_hdistr_src<'a>(
     edev: &ExpandedDevice,
-    vrf: &mut Verifier<'a>,
+    vrf: &Verifier<'a>,
     die: DieId,
     col: ColId,
     row: RowId,
@@ -830,7 +830,7 @@ fn find_hdistr_src<'a>(
 
 fn find_hroute_src<'a>(
     edev: &ExpandedDevice,
-    vrf: &mut Verifier<'a>,
+    vrf: &Verifier<'a>,
     die: DieId,
     col: ColId,
     row: RowId,

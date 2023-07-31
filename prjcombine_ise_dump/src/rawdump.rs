@@ -46,7 +46,7 @@ fn unintern(sp: &IndexSet<String>, idx: u32) -> &str {
 }
 
 impl Nodes {
-    fn finish_node(&mut self, rd: &mut PartBuilder, sp: &mut IndexSet<String>, idx: usize) {
+    fn finish_node(&mut self, rd: &mut PartBuilder, sp: &IndexSet<String>, idx: usize) {
         let node = &mut self.nodes[idx];
         if node.seen.is_empty() && node.unseen.is_empty() {
             return;
@@ -70,7 +70,7 @@ impl Nodes {
         rd.add_node(&wires);
         self.free_node(idx);
     }
-    fn finish_all(&mut self, rd: &mut PartBuilder, sp: &mut IndexSet<String>) {
+    fn finish_all(&mut self, rd: &mut PartBuilder, sp: &IndexSet<String>) {
         for nidx in 0..self.nodes.len() {
             self.finish_node(rd, sp, nidx);
         }
@@ -325,7 +325,7 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
             }
         }
     }
-    nodes.finish_all(&mut rd, &mut sp);
+    nodes.finish_all(&mut rd, &sp);
     for pkg in pkgs {
         assert_eq!(pkg.device, *device);
         rd.add_package(pkg.package.clone(), pkg.pins.clone());
