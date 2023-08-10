@@ -1227,7 +1227,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
     }
 }
 
-fn parse_ultrascale_bitstream(bs: &mut Bitstream, data: &[u8]) {
+fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8]) {
     let packets = PacketParser::new(bs.kind, data);
     for packet in packets {
         if let Packet::Fdri(data) = packet {
@@ -1270,7 +1270,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8]) -> Bitstream {
         DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Series7 => {
             parse_virtex4_bitstream(&mut res, data)
         }
-        DeviceKind::Ultrascale => parse_ultrascale_bitstream(&mut res, data),
+        DeviceKind::Ultrascale => parse_ultrascale_bitstream(&res, data),
         DeviceKind::UltrascalePlus => parse_ultrascaleplus_bitstream(&mut res, data),
         DeviceKind::Versal => panic!("versal bitstreams not supported through generic code"),
     }
