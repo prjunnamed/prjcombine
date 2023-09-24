@@ -2,8 +2,8 @@ use crate::db::{
     IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, IriPin, PinDir, TermInfo,
     TermWireInFarNaming, TermWireOutNaming, WireKind,
 };
-use prjcombine_entity::EntityId;
 use std::collections::BTreeMap;
+use unnamed_entity::EntityId;
 
 impl IntDb {
     pub fn print(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {

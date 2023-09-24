@@ -1,6 +1,6 @@
 use enum_map::Enum;
-use prjcombine_entity::entity_id;
 use serde::{Deserialize, Serialize};
+use unnamed_entity::entity_id;
 
 entity_id! {
     pub id FbId u8;

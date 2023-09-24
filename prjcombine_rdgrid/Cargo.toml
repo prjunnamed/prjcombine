@@ -4,6 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 prjcombine_int.workspace = true
 prjcombine_rawdump.workspace = true

@@ -1,7 +1,7 @@
-use prjcombine_entity::EntityId;
 use prjcombine_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc4k::grid::{Grid, GridKind, IoCoord, SharedCfgPin, TileIobId};
 use std::collections::{BTreeMap, HashMap};
+use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::{extract_int, IntGrid};
 

@@ -1,9 +1,9 @@
 use bimap::BiHashMap;
 use enum_map::EnumMap;
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::grid::{
     ColSide, ColumnKindRight, DeviceNaming, DisabledPart, Grid, GridKind, HdioIobId, HpioIobId,

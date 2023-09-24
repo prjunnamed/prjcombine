@@ -1,8 +1,8 @@
-use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex::expanded::ExpandedDevice;
 use prjcombine_virtex::grid::GridKind;
+use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(

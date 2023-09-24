@@ -6,7 +6,6 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use enum_map::enum_map;
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_vm6::NodeKind;
 use prjcombine_xilinx_cpld::{
     bits::{
@@ -20,6 +19,7 @@ use prjcombine_xilinx_cpld::{
         Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
     },
 };
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, State};
 

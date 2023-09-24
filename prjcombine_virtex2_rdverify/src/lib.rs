@@ -1,11 +1,11 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::EntityId;
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{GridKind, IoCoord};
+use unnamed_entity::EntityId;
 
 mod clb;
 mod clk;

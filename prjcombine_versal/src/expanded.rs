@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityVec;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
 use std::collections::BTreeSet;
+use unnamed_entity::EntityVec;
 
 use crate::grid::{DisabledPart, Grid};
 

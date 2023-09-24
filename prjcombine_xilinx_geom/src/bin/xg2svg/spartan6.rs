@@ -1,6 +1,6 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_spartan6::expanded::ExpandedDevice;
 use prjcombine_spartan6::grid::{ColumnIoKind, ColumnKind, Gts};
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
 

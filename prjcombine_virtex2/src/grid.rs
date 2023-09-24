@@ -1,8 +1,8 @@
-use prjcombine_entity::{entity_id, EntityId, EntityVec};
 use prjcombine_int::db::Dir;
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
+use unnamed_entity::{entity_id, EntityId, EntityVec};
 
 entity_id! {
     pub id TileIobId u8;

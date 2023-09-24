@@ -3,7 +3,6 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use prjcombine_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 use prjcombine_int::db::{
     BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, IntfInfo, IntfWireInNaming,
     IntfWireOutNaming, IriNaming, IriPin, MuxInfo, MuxKind, NodeExtPipNaming, NodeIriId, NodeKind,
@@ -11,6 +10,7 @@ use prjcombine_int::db::{
     TermKind, TermNamingId, TermWireInFarNaming, TermWireOutNaming, WireId, WireKind,
 };
 use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
+use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
 

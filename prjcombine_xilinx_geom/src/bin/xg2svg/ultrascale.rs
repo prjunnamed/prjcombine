@@ -1,9 +1,9 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_ultrascale::expanded::ExpandedDevice;
 use prjcombine_ultrascale::grid::{
     CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, HardRowKind, IoRowKind,
 };
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
 

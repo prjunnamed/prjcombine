@@ -1,8 +1,8 @@
 use crate::grid::RegId;
-use prjcombine_entity::EntityVec;
 use prjcombine_int::grid::{ColId, DieId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use unnamed_entity::EntityVec;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeviceNaming {

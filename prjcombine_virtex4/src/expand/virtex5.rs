@@ -1,11 +1,11 @@
 use assert_matches::assert_matches;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 use std::collections::BTreeSet;
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
 use crate::grid::{ColumnKind, DisabledPart, ExtraDie, Grid, GtKind, IoKind};

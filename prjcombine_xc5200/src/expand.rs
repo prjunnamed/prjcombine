@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::ExpandedGrid;
+use unnamed_entity::EntityId;
 
 use crate::expanded::ExpandedDevice;
 use crate::grid::Grid;

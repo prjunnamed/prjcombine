@@ -1,8 +1,8 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{Dcms, GridKind};
+use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;
 

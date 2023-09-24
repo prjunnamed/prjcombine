@@ -1,10 +1,10 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{Dir, NodeRawTileId};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Coord;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::expanded::{ExpandedDevice, IoDiffKind};
 use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
+use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;
 

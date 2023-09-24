@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 prjcombine_toolchain.workspace = true
 prjcombine_lattice_rawdump.workspace = true
 rayon.workspace = true

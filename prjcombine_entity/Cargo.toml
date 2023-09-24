@@ -1,9 +1,0 @@
-[package]
-name = "prjcombine_entity"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-serde.workspace = true
-indexmap.workspace = true
-bitvec.workspace = true

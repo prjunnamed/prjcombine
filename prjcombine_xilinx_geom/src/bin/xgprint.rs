@@ -1,7 +1,7 @@
 use clap::Parser;
-use prjcombine_entity::EntityId;
 use prjcombine_xilinx_geom::{DeviceNaming, GeomDb, Grid};
 use std::{error::Error, path::PathBuf};
+use unnamed_entity::EntityId;
 
 #[derive(Debug, Parser)]
 #[command(name = "xgprint", about = "Dump Xilinx geom file.")]
@@ -20,8 +20,8 @@ struct Args {
 }
 
 mod xc4k {
-    use prjcombine_entity::EntityId;
     use prjcombine_xc4k::grid::Grid;
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -49,8 +49,8 @@ mod xc5200 {
 }
 
 mod virtex {
-    use prjcombine_entity::EntityId;
     use prjcombine_virtex::grid::Grid;
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -101,8 +101,8 @@ mod virtex {
 }
 
 mod virtex2 {
-    use prjcombine_entity::EntityId;
     use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, Grid, RowIoKind};
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -253,8 +253,8 @@ mod virtex2 {
 }
 
 mod spartan6 {
-    use prjcombine_entity::EntityId;
     use prjcombine_spartan6::grid::{ColumnIoKind, ColumnKind, Grid, Gts};
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Spartan6");
@@ -433,8 +433,8 @@ mod spartan6 {
 }
 
 mod virtex4 {
-    use prjcombine_entity::EntityId;
     use prjcombine_virtex4::grid::{ColumnKind, Grid, GridKind, Pcie2Kind};
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {v:?}", v = grid.kind);
@@ -551,10 +551,10 @@ mod virtex4 {
 }
 
 mod ultrascale {
-    use prjcombine_entity::EntityId;
     use prjcombine_ultrascale::grid::{
         BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid, HardKind,
     };
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {v:?}", v = grid.kind);
@@ -702,8 +702,8 @@ mod ultrascale {
 }
 
 mod versal {
-    use prjcombine_entity::EntityId;
     use prjcombine_versal::grid::{ColumnKind, Grid};
+    use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Versal");

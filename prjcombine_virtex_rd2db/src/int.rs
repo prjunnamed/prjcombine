@@ -1,10 +1,10 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{
     BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, NodeExtPipNaming, NodeRawTileId,
     NodeTileId, PinDir, WireKind,
 };
 use prjcombine_rawdump::{Coord, Part};
 use std::collections::BTreeMap;
+use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::find_columns;
 use prjcombine_rdintb::IntBuilder;

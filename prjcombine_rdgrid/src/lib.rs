@@ -1,7 +1,7 @@
-use prjcombine_entity::EntityVec;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::Part;
 use std::collections::BTreeSet;
+use unnamed_entity::EntityVec;
 
 pub fn split_num(s: &str) -> Option<(&str, u32)> {
     let mut pos = None;

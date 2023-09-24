@@ -1,10 +1,10 @@
 use crate::bond::{PsPin, SharedCfgPin};
 use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind, GtKind, GtzLoc, IoKind, RegId};
 use bimap::BiHashMap;
-use prjcombine_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
+use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 
 entity_id! {
     pub id TileIobId u8;

@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_entity::EntityId;
 use prjcombine_int::grid::ColId;
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, IoCoord, SharedCfgPin, TileIobId};
+use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::{extract_int, find_columns, IntGrid};
 

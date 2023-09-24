@@ -1,7 +1,7 @@
-use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
     pub id RegId u32, delta;

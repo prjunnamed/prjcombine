@@ -1,4 +1,3 @@
-use prjcombine_entity::EntityId;
 use prjcombine_sdf::Sdf;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vm6::{InputNodeKind, NodeKind};
@@ -8,6 +7,7 @@ use prjcombine_xilinx_cpld::{
     types::{FbId, PTermId, Ut},
 };
 use prjcombine_xilinx_recpld::{db::Part, tsim::run_tsim, vm6::prep_vm6};
+use unnamed_entity::EntityId;
 
 use crate::{
     extract::{

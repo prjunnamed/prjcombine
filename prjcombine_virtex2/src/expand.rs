@@ -1,4 +1,3 @@
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
@@ -6,6 +5,7 @@ use prjcombine_virtex_bitstream::{
 };
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::ExpandedDevice;
 use crate::grid::{

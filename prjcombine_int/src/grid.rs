@@ -5,12 +5,12 @@ use crate::db::*;
 use bimap::BiHashMap;
 use enum_map::EnumMap;
 use ndarray::Array2;
-use prjcombine_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
 };
+use unnamed_entity::{entity_id, EntityId, EntityIds, EntityPartVec, EntityVec};
 
 entity_id! {
     pub id DieId u8, reserve 1, delta;

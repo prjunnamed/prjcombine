@@ -2,13 +2,13 @@
 use crate::*;
 use bimap::BiHashMap;
 use itertools::Itertools;
-use prjcombine_entity::EntityId;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::thread_rng;
 use std::collections::hash_map::Entry;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Condvar;
 use std::sync::Mutex;
+use unnamed_entity::EntityId;
 
 struct BatchState<B: Backend> {
     base_bs: Option<(B::Bitstream, HashMap<B::Key, B::Value>)>,

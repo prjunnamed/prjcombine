@@ -1,8 +1,8 @@
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
 use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, Rect, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{ColumnIoKind, Grid, GridKind, IoCoord, TileIobId};
 

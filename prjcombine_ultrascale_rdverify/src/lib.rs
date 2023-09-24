@@ -1,6 +1,5 @@
 #![allow(clippy::bool_to_int_with_if)]
 #![allow(clippy::collapsible_else_if)]
-use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
@@ -10,6 +9,7 @@ use prjcombine_ultrascale::grid::{
     CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, GridKind, HardRowKind,
     HdioIobId, HpioIobId,
 };
+use unnamed_entity::EntityId;
 
 fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
     let reg = edev.grids[die].row_to_reg(row);

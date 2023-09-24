@@ -1,7 +1,7 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_virtex4::expanded::ExpandedDevice;
 use prjcombine_virtex4::grid::{CfgRowKind, ColumnKind, GridKind, GtKind, RegId};
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
 

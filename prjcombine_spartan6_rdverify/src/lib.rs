@@ -1,13 +1,13 @@
 #![allow(clippy::needless_range_loop)]
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::BelId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_spartan6::expanded::ExpandedDevice;
 use prjcombine_spartan6::grid::{ColumnKind, DisabledPart, Gts};
 use std::collections::HashSet;
+use unnamed_entity::EntityId;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {

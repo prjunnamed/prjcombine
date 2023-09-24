@@ -6,10 +6,10 @@
 
 use bimap::BiHashMap;
 use enum_map::{enum_map, EnumMap};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId};
 use std::collections::BTreeSet;
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::{
     ClkSrc, ExpandedDevice, Gt, HdioCoord, HpioCoord, Io, IoCoord, IoDiffKind, IoKind,

@@ -1,9 +1,9 @@
-use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntitySet, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
+use unnamed_entity::{entity_id, EntityMap, EntityPartVec, EntitySet, EntityVec};
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct Coord {

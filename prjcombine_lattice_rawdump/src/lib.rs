@@ -1,10 +1,10 @@
 use ndarray::Array2;
-use prjcombine_entity::{entity_id, EntityMap, EntitySet, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
+use unnamed_entity::{entity_id, EntityMap, EntitySet, EntityVec};
 
 entity_id! {
     pub id NodeId u32;

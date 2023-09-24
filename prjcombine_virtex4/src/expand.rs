@@ -1,9 +1,9 @@
 use crate::expanded::ExpandedDevice;
 use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind};
-use prjcombine_entity::EntityVec;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::DieId;
 use std::collections::BTreeSet;
+use unnamed_entity::EntityVec;
 
 mod virtex4;
 mod virtex5;

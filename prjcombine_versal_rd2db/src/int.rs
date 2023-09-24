@@ -1,5 +1,4 @@
 use enum_map::EnumMap;
-use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_int::db::{Dir, IntDb, NodeTileId, TermInfo, TermKind, WireKind};
 use prjcombine_rawdump::{Coord, Part, TkWire};
 use prjcombine_versal::{
@@ -7,6 +6,7 @@ use prjcombine_versal::{
     naming::DeviceNaming,
 };
 use std::collections::HashMap;
+use unnamed_entity::{EntityId, EntityPartVec};
 
 use prjcombine_rdintb::IntBuilder;
 

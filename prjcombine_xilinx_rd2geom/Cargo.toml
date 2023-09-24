@@ -8,7 +8,7 @@ name = "xrd2geom"
 path = "src/main.rs"
 
 [dependencies]
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 prjcombine_int.workspace = true
 prjcombine_rdintb.workspace = true
 prjcombine_rdgrid.workspace = true

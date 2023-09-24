@@ -2,9 +2,9 @@
 
 use bitvec::prelude::*;
 use enum_map::{Enum, EnumMap};
-use prjcombine_entity::EntityVec;
 use prjcombine_int::grid::DieId;
 use std::collections::HashMap;
+use unnamed_entity::EntityVec;
 
 mod packet;
 mod parse;

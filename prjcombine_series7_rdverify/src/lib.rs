@@ -1,11 +1,11 @@
 #![allow(clippy::bool_to_int_with_if)]
-use prjcombine_entity::EntityId;
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex4::expanded::ExpandedDevice;
 use prjcombine_virtex4::grid::DisabledPart;
 use std::collections::HashMap;
+use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {

@@ -1,4 +1,3 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::{Coord, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
@@ -7,6 +6,7 @@ use prjcombine_versal::grid::{
 };
 use prjcombine_versal::naming::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use std::collections::{BTreeMap, BTreeSet};
+use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
 

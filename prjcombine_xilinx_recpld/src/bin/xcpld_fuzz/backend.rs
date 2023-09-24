@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use bitvec::vec::BitVec;
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_hammer::{Backend, FuzzerId, Session};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vm6::{
@@ -20,6 +19,7 @@ use prjcombine_xilinx_recpld::{
     db::{DeviceInfo, ImuxData, Part},
     hprep6::run_hprep6,
 };
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{collect::collect_fuzzers, fuzzers::add_fuzzers};
 

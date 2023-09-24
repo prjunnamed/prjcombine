@@ -1,6 +1,5 @@
 use core::cmp::Ordering;
 use enum_map::{enum_map, EnumMap};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{
     ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
@@ -9,6 +8,7 @@ use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 use std::collections::{BTreeSet, HashMap};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::{ExpandedDevice, Gt, Io, IoDiffKind};
 use crate::grid::{

@@ -2,10 +2,10 @@ use std::{error::Error, path::PathBuf};
 
 use clap::Parser;
 use itertools::Itertools;
-use prjcombine_entity::EntityId;
 use prjcombine_xilinx_cpld::device::{DeviceKind, PkgPin};
 use prjcombine_xilinx_cpld::types::{ImuxInput, IoId};
 use prjcombine_xilinx_recpld::db::Database;
+use unnamed_entity::EntityId;
 
 #[derive(Parser)]
 struct Args {

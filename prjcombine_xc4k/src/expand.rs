@@ -2,11 +2,11 @@
 
 use std::fmt::Write;
 
-use prjcombine_entity::EntityId;
 use prjcombine_int::{
     db::{BelId, IntDb, NodeRawTileId},
     grid::{ColId, ExpandedGrid, RowId},
 };
+use unnamed_entity::EntityId;
 
 use crate::{
     expanded::{ExpandedDevice, Io},

@@ -1,9 +1,9 @@
 use std::{collections::HashMap, error::Error, fs::File, path::Path};
 
-use prjcombine_entity::{entity_id, EntityVec};
 use prjcombine_xilinx_cpld::device::{Device, Package};
 use prjcombine_xilinx_cpld::types::{ImuxId, ImuxInput};
 use serde::{Deserialize, Serialize};
+use unnamed_entity::{entity_id, EntityVec};
 
 pub type ImuxData = EntityVec<ImuxId, HashMap<ImuxInput, u32>>;
 

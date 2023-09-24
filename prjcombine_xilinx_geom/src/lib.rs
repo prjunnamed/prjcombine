@@ -1,6 +1,5 @@
 #![allow(clippy::collapsible_else_if)]
 
-use prjcombine_entity::{entity_id, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
 use prjcombine_virtex_bitstream::BitstreamGeom;
@@ -9,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
+use unnamed_entity::{entity_id, EntityVec};
 
 entity_id! {
     pub id GridId usize;

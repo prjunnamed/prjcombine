@@ -1,8 +1,8 @@
-use prjcombine_entity::EntityId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex4::expanded::ExpandedDevice;
 use prjcombine_virtex4::grid::{DisabledPart, GtKind};
+use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.bel.pins.contains_key("WE") {

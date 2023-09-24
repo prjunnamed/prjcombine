@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_vm6::{
     Ct, Fb, FbImux, FbPin, IpadFb, IpadFbPin, Node, NodeId, NodeIoKind, NodeKind, OBuf, Pla, Vm6,
 };
@@ -9,6 +8,7 @@ use prjcombine_xilinx_cpld::{
     device::{Device, DeviceKind, JtagPin, Package, PkgPin},
     types::IoId,
 };
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::Part;
 

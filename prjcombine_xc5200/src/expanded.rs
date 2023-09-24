@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{BelId, BelInfo, BelNaming};
 use prjcombine_int::grid::{DieId, ExpandedGrid, ExpandedTileNode};
+use unnamed_entity::EntityId;
 
 use crate::grid::{Grid, IoCoord, TileIobId};
 

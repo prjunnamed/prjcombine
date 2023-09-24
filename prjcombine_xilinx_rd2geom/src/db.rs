@@ -1,4 +1,3 @@
-use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
@@ -7,6 +6,7 @@ use prjcombine_xilinx_geom::{
     DeviceNamingId, DisabledPart, ExtraDie, GeomDb, Grid, GridId,
 };
 use std::collections::{btree_map, BTreeMap, BTreeSet};
+use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 pub struct PreDevice {
     pub name: String,

@@ -10,7 +10,7 @@ use crate::types::{
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub type BitPos = (u32, usize);
 

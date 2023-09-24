@@ -1,11 +1,11 @@
 use enum_map::EnumMap;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::{
     db::Dir,
     grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
 };
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{DisabledPart, Grid, IoCoord, RegId};
 

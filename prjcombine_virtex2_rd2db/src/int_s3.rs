@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{Dir, IntDb, NodeExtPipNaming, NodeRawTileId, NodeTileId, WireKind};
 use prjcombine_rawdump::{Coord, Part};
+use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
 

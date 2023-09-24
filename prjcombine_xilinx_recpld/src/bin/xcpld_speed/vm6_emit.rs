@@ -1,8 +1,8 @@
-use prjcombine_entity::EntityId;
 use prjcombine_vm6::{
     BufOe, Fbnand, IBuf, InputNode, InputNodeKind, Macrocell, MacrocellId, Node, NodeId,
     NodeIoKind, NodeKind, OBuf, PTerm, Signal, Srff, Vm6,
 };
+use unnamed_entity::EntityId;
 
 use prjcombine_xilinx_cpld::types::{FbId, FbnId, PTermId};
 use prjcombine_xilinx_recpld::vm6::insert_node;

@@ -1,12 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
     Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, RegId, Row,
     SharedCfgPin, TileIobId,
 };
+use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_rdgrid::{
     extract_int, find_column, find_columns, find_row, find_rows, find_tiles, IntGrid,

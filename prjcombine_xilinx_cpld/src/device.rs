@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 use serde::{Deserialize, Serialize};
+use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
 use crate::types::{
     BankId, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FbnId, ImuxId, IoId, IpadId, McId,

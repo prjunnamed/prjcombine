@@ -4,7 +4,6 @@ use std::fmt::Write;
 use std::thread::available_parallelism;
 
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vm6::{FbImux, NodeKind};
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
@@ -15,6 +14,7 @@ use prjcombine_xilinx_recpld::{
 };
 use rand::seq::SliceRandom;
 use rayon::prelude::*;
+use unnamed_entity::{EntityId, EntityVec};
 
 fn gather_imux_once(
     tc: &Toolchain,

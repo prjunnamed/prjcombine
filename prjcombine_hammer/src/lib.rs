@@ -2,7 +2,7 @@ use bitvec::vec::BitVec;
 use core::fmt::Debug;
 use core::hash::Hash;
 use derivative::Derivative;
-use prjcombine_entity::{entity_id, EntityVec};
+use unnamed_entity::{entity_id, EntityVec};
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 
 entity_id! {

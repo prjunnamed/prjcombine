@@ -5,4 +5,4 @@ edition.workspace = true
 
 [dependencies]
 prjcombine_rawdump.workspace = true
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true

@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 serde.workspace = true
 enum-map.workspace = true
 bitvec.workspace = true

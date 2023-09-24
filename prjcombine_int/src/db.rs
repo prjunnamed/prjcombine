@@ -1,7 +1,7 @@
 use enum_map::Enum;
-use prjcombine_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use unnamed_entity::{entity_id, EntityMap, EntityPartVec, EntityVec};
 
 #[derive(
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Enum, Serialize, Deserialize,

@@ -1,8 +1,8 @@
-use prjcombine_entity::EntityVec;
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{Bond, Grid};
 use std::collections::BTreeSet;
+use unnamed_entity::EntityVec;
 
 use crate::db::{make_device, PreDevice};
 use prjcombine_virtex4::expand_grid;

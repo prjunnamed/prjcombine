@@ -1,9 +1,9 @@
 #![allow(clippy::collapsible_else_if)]
 use enum_map::EnumMap;
-use prjcombine_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::BTreeSet;
+use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::ExpandedDevice;
 use crate::grid::{ColSide, ColumnKind, CpmKind, DisabledPart, Grid, HardRowKind, PsKind, RegId};

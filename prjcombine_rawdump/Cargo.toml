@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 zstd.workspace = true
 serde.workspace = true
 bincode.workspace = true

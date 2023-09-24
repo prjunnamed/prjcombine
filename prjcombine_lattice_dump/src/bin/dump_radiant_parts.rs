@@ -1,5 +1,4 @@
 use clap::Parser;
-use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_lattice_dump::parse_tiles;
 use prjcombine_lattice_rawdump::{Db, Grid, Node, Part, PinDir, Pip, Site};
 use prjcombine_toolchain::Toolchain;
@@ -14,6 +13,7 @@ use std::io::Write;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::Stdio;
+use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct FamilyInfo {
     name: &'static str,

@@ -2,8 +2,6 @@ mod devinfo;
 mod imux;
 
 use clap::Parser;
-use prjcombine_entity::EntityVec;
-// use prjcombine_entity::EntityVec;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Package};
 use prjcombine_xilinx_recpld::{
@@ -14,9 +12,8 @@ use rayon::prelude::*;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::{error::Error, path::PathBuf};
+use unnamed_entity::EntityVec;
 
-//use crate::backend::{insert_dummy_obuf, prep_vm6, reverse_cpld};
-//use crate::bitstream::reverse_bitstream;
 use crate::imux::gather_imux;
 
 #[derive(Parser)]

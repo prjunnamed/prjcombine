@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityVec;
 use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, DcmPairKind, GridKind, RowIoKind};
+use unnamed_entity::EntityVec;
 
 use crate::drawer::Drawer;
 

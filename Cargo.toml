@@ -1,7 +1,6 @@
 [workspace]
 
 members = [
-	"prjcombine_entity",
 	"prjcombine_toolchain",
 	"prjcombine_rawdump",
 	"prjcombine_rdbuild",
@@ -62,7 +61,6 @@ edition = "2021"
 version = "0.1.0"
 
 [workspace.dependencies]
-prjcombine_entity = { path = "prjcombine_entity" }
 prjcombine_rawdump = { path = "prjcombine_rawdump" }
 prjcombine_rdbuild = { path = "prjcombine_rdbuild" }
 prjcombine_toolchain = { path = "prjcombine_toolchain" }
@@ -109,6 +107,7 @@ prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
 prjcombine_sdf = { path = "prjcombine_sdf" }
+unnamed_entity = { version = "0.1", features = ["bitvec", "map", "serde"] }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 indexmap = { version = "2", features = ["serde"] }

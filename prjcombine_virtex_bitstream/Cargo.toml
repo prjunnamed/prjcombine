@@ -7,5 +7,5 @@ edition.workspace = true
 bitvec.workspace = true
 enum-map.workspace = true
 arrayref.workspace = true
-prjcombine_entity.workspace = true
+unnamed_entity.workspace = true
 prjcombine_int.workspace = true

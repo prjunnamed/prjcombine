@@ -1,6 +1,6 @@
-use prjcombine_entity::EntityId;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
+use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, MultiValue, SimpleFeatureId},

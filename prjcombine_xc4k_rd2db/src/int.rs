@@ -1,10 +1,10 @@
 use std::fmt::Write;
 
-use prjcombine_entity::EntityId;
 use prjcombine_int::db::{
     Dir, IntDb, NodeNamingId, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
 };
 use prjcombine_rawdump::{Coord, Part};
+use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
 

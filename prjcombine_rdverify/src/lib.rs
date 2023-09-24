@@ -1,7 +1,6 @@
 #![allow(clippy::collapsible_else_if)]
 #![allow(clippy::unnecessary_unwrap)]
 
-use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 use prjcombine_int::db::{
     BelId, BelInfo, BelNaming, IntDb, IntfInfo, IntfWireInNaming, IntfWireOutNaming, IriPin,
     NodeKindId, NodeRawTileId, NodeWireId, PinDir, TermInfo, TermWireInFarNaming,
@@ -12,6 +11,7 @@ use prjcombine_int::grid::{
 };
 use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::collections::{HashMap, HashSet};
+use unnamed_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 
 #[derive(Debug)]
 pub struct BelContext<'a> {

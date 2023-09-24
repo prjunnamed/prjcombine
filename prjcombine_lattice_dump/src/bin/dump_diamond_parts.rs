@@ -1,7 +1,6 @@
 #![allow(clippy::type_complexity)]
 
 use clap::Parser;
-use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_lattice_dump::parse_tiles;
 use prjcombine_lattice_rawdump::{Db, Grid, Node, Part, Pip, Site};
 use prjcombine_toolchain::Toolchain;
@@ -15,6 +14,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
+use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct FamilyInfo {
     name: &'static str,

@@ -1,4 +1,3 @@
-use prjcombine_entity::EntityId;
 use prjcombine_rawdump::{Part, PkgPin};
 use prjcombine_ultrascale::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
@@ -8,6 +7,7 @@ use prjcombine_ultrascale::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoKin
 use prjcombine_ultrascale::grid::{DisabledPart, GridKind, IoRowKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
+use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::split_num;
 

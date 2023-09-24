@@ -1,6 +1,5 @@
 use clap::Parser;
 use itertools::Itertools;
-use prjcombine_entity::EntityPartVec;
 use prjcombine_rawdump::{Coord, Part, TkPipDirection, TkPipInversion, TkSiteSlot, TkWire};
 use std::{
     error::Error,
@@ -8,6 +7,7 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
 };
+use unnamed_entity::EntityPartVec;
 
 #[derive(Debug, Parser)]
 #[command(name = "rdprint", about = "Dump rawdump file.")]

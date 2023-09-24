@@ -1,4 +1,3 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
@@ -7,6 +6,7 @@ use prjcombine_ultrascale::grid::{
     IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
+use unnamed_entity::{EntityId, EntityVec};
 
 use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
 

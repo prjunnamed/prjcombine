@@ -1,6 +1,5 @@
 use super::parts::VivadoPart;
 use indicatif::ProgressBar;
-use prjcombine_entity::{entity_id, EntitySet};
 use prjcombine_rawdump::{
     Coord, Part, PkgPin, Source, TileKindId, TkPipDirection, TkPipInversion, TkSite, TkSitePin,
     TkSitePinDir, TkSiteSlot,
@@ -14,6 +13,7 @@ use std::error::Error;
 use std::fmt::Write as FmtWrite;
 use std::io::{BufRead, Write};
 use std::sync::Mutex;
+use unnamed_entity::{entity_id, EntitySet};
 
 const TILE_BATCH_SIZE: usize = 4000;
 
