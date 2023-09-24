@@ -1,12 +1,16 @@
 use super::partgen::PartgenPkg;
 use super::xdlrc::{Options, Parser, PipKind, Tile, Wire};
-use indexmap::IndexSet;
 use prjcombine_rawdump::{Coord, Part, Source, TkPipDirection, TkPipInversion};
 use prjcombine_rdbuild::{PartBuilder, PbPip, PbSitePin};
 use prjcombine_toolchain::Toolchain;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::error::Error;
+use unnamed_entity::{entity_id, EntitySet};
+
+entity_id! {
+    id StringId u32;
+}
 
 fn is_buf_speed(speed: &Option<String>) -> bool {
     match speed {
@@ -24,45 +28,34 @@ fn is_buf_speed(speed: &Option<String>) -> bool {
 }
 
 struct NodeInfo {
-    unseen: HashSet<(u32, u32)>,
-    seen: HashMap<(u32, u32), Option<u32>>,
+    unseen: HashSet<(StringId, StringId)>,
+    seen: HashMap<(StringId, StringId), Option<StringId>>,
 }
 
 struct Nodes {
     nodes: Vec<NodeInfo>,
     freelist: Vec<usize>,
-    wire2node: HashMap<(u32, u32), usize>,
-}
-
-fn intern(sp: &mut IndexSet<String>, s: &str) -> u32 {
-    match sp.get_index_of(s) {
-        Some(res) => res.try_into().unwrap(),
-        None => sp.insert_full(s.to_string()).0.try_into().unwrap(),
-    }
-}
-
-fn unintern(sp: &IndexSet<String>, idx: u32) -> &str {
-    sp.get_index(idx as usize).unwrap()
+    wire2node: HashMap<(StringId, StringId), usize>,
 }
 
 impl Nodes {
-    fn finish_node(&mut self, rd: &mut PartBuilder, sp: &IndexSet<String>, idx: usize) {
+    fn finish_node(&mut self, rd: &mut PartBuilder, sp: &EntitySet<StringId, String>, idx: usize) {
         let node = &mut self.nodes[idx];
         if node.seen.is_empty() && node.unseen.is_empty() {
             return;
         }
         let mut wires: Vec<(&str, &str, Option<&str>)> = Vec::new();
         for &(t, w) in node.unseen.iter() {
-            wires.push((unintern(sp, t), unintern(sp, w), None));
+            wires.push((&sp[t], &sp[w], None));
             self.wire2node.remove(&(t, w));
         }
         for (&(t, w), &s) in node.seen.iter() {
             wires.push((
-                unintern(sp, t),
-                unintern(sp, w),
+                &sp[t],
+                &sp[w],
                 match s {
                     None => None,
-                    Some(s) => Some(unintern(sp, s)),
+                    Some(s) => Some(&sp[s]),
                 },
             ));
             self.wire2node.remove(&(t, w));
@@ -70,7 +63,7 @@ impl Nodes {
         rd.add_node(&wires);
         self.free_node(idx);
     }
-    fn finish_all(&mut self, rd: &mut PartBuilder, sp: &IndexSet<String>) {
+    fn finish_all(&mut self, rd: &mut PartBuilder, sp: &EntitySet<StringId, String>) {
         for nidx in 0..self.nodes.len() {
             self.finish_node(rd, sp, nidx);
         }
@@ -84,15 +77,15 @@ impl Nodes {
     fn process_wire(
         &mut self,
         rd: &mut PartBuilder,
-        sp: &mut IndexSet<String>,
+        sp: &mut EntitySet<StringId, String>,
         t: &Tile,
         w: &Wire,
     ) {
         let mut wnodes: HashSet<usize> = HashSet::new();
-        let mut wwires: HashSet<(u32, u32)> = HashSet::new();
-        wwires.insert((intern(sp, &t.name), intern(sp, &w.name)));
+        let mut wwires: HashSet<(StringId, StringId)> = HashSet::new();
+        wwires.insert((sp.get_or_insert(&t.name), sp.get_or_insert(&w.name)));
         for (t, w) in &w.conns {
-            wwires.insert((intern(sp, t), intern(sp, w)));
+            wwires.insert((sp.get_or_insert(t), sp.get_or_insert(w)));
         }
         for k in wwires.iter() {
             if let Some(&i) = self.wire2node.get(k) {
@@ -100,10 +93,10 @@ impl Nodes {
             }
         }
         let mut wnodes: Vec<_> = wnodes.into_iter().collect();
-        let mut nseen: HashMap<(u32, u32), Option<u32>> = HashMap::new();
+        let mut nseen: HashMap<(StringId, StringId), Option<StringId>> = HashMap::new();
         nseen.insert(
-            (intern(sp, &t.name), intern(sp, &w.name)),
-            w.speed.as_ref().map(|s| intern(sp, s)),
+            (sp.get_or_insert(&t.name), sp.get_or_insert(&w.name)),
+            w.speed.as_ref().map(|s| sp.get_or_insert(s)),
         );
         let nidx = match wnodes.pop() {
             None => match self.freelist.pop() {
@@ -165,9 +158,9 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
         })
         .collect();
 
-    let mut sp = IndexSet::new();
+    let mut sp = EntitySet::new();
 
-    let mut pips_non_test: HashSet<(u32, u32, u32)> = HashSet::new();
+    let mut pips_non_test: HashSet<(StringId, StringId, StringId)> = HashSet::new();
     {
         let mut parser = Parser::from_toolchain(
             tc,
@@ -182,14 +175,14 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
         while let Some(t) = parser.get_tile()? {
             for pip in t.pips {
                 pips_non_test.insert((
-                    intern(&mut sp, &t.kind),
-                    intern(&mut sp, &pip.wire_from),
-                    intern(&mut sp, &pip.wire_to),
+                    sp.get_or_insert(&t.kind),
+                    sp.get_or_insert(&pip.wire_from),
+                    sp.get_or_insert(&pip.wire_to),
                 ));
             }
         }
     }
-    let mut pips_non_excl: HashSet<(u32, u32, u32)> = HashSet::new();
+    let mut pips_non_excl: HashSet<(StringId, StringId, StringId)> = HashSet::new();
     {
         let mut parser = Parser::from_toolchain(
             tc,
@@ -204,9 +197,9 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
         while let Some(t) = parser.get_tile()? {
             for pip in t.pips {
                 pips_non_excl.insert((
-                    intern(&mut sp, &t.kind),
-                    intern(&mut sp, &pip.wire_from),
-                    intern(&mut sp, &pip.wire_to),
+                    sp.get_or_insert(&t.kind),
+                    sp.get_or_insert(&pip.wire_from),
+                    sp.get_or_insert(&pip.wire_to),
                 ));
             }
         }
@@ -294,14 +287,14 @@ pub fn get_rawdump(tc: &Toolchain, pkgs: &[PartgenPkg]) -> Result<Part, Box<dyn 
                         PipKind::Uni => is_buf_speed(&p.speed),
                     },
                     is_excluded: !pips_non_excl.contains(&(
-                        intern(&mut sp, &t.kind),
-                        intern(&mut sp, &p.wire_from),
-                        intern(&mut sp, &p.wire_to),
+                        sp.get_or_insert(&t.kind),
+                        sp.get_or_insert(&p.wire_from),
+                        sp.get_or_insert(&p.wire_to),
                     )),
                     is_test: !pips_non_test.contains(&(
-                        intern(&mut sp, &t.kind),
-                        intern(&mut sp, &p.wire_from),
-                        intern(&mut sp, &p.wire_to),
+                        sp.get_or_insert(&t.kind),
+                        sp.get_or_insert(&p.wire_from),
+                        sp.get_or_insert(&p.wire_to),
                     )),
                     inv: TkPipInversion::Never,
                     dir: match p.kind {

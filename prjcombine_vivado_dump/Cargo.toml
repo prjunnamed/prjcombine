@@ -10,7 +10,6 @@ prjcombine_toolchain.workspace = true
 unnamed_entity.workspace = true
 serde.workspace = true
 simple-error.workspace = true
-indexmap.workspace = true
 rayon.workspace = true
 clap.workspace = true
 indicatif.workspace = true
