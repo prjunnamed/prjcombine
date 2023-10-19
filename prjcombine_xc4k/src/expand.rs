@@ -1,5 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
-
 use std::fmt::Write;
 
 use prjcombine_int::{

@@ -135,3 +135,8 @@ derivative = "2.2"
 [profile.dev]
 opt-level = 2
 debug = 2
+
+[workspace.lints.clippy]
+collapsible_else_if = "allow"
+bool_to_int_with_if = "allow"
+needless_range_loop = "allow"

@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-
 use prjcombine_int::db::BelId;
 use prjcombine_int::grid::RowId;
 use prjcombine_rawdump::Part;

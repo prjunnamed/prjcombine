@@ -10,3 +10,6 @@ prjcombine_rdintb.workspace = true
 prjcombine_rdgrid.workspace = true
 prjcombine_rawdump.workspace = true
 prjcombine_virtex4.workspace = true
+
+[lints]
+workspace = true

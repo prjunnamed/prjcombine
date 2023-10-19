@@ -1,4 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
 use enum_map::EnumMap;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};

@@ -1,5 +1,3 @@
-#![allow(clippy::bool_to_int_with_if)]
-#![allow(clippy::collapsible_else_if)]
 use bimap::BiHashMap;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};

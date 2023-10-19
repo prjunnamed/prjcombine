@@ -1,5 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
-
 use bitvec::prelude::*;
 use enum_map::{Enum, EnumMap};
 use prjcombine_int::grid::DieId;

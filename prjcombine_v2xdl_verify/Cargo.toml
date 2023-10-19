@@ -11,3 +11,6 @@ clap.workspace = true
 tempfile.workspace = true
 simple-error.workspace = true
 rayon.workspace = true
+
+[lints]
+workspace = true

@@ -8,3 +8,6 @@ serde.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
 prjcombine_virtex_bitstream.workspace = true
+
+[lints]
+workspace = true

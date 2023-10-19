@@ -1,6 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::collapsible_else_if)]
-
 use prjcombine_int::db::BelId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};

@@ -1,4 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
 #![allow(clippy::unnecessary_unwrap)]
 
 use prjcombine_int::db::{

@@ -1,4 +1,3 @@
-#![allow(clippy::bool_to_int_with_if)]
 use prjcombine_int::grid::{ColId, RowId};
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};

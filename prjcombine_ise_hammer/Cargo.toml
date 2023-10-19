@@ -21,3 +21,6 @@ bitvec.workspace = true
 clap.workspace = true
 rand.workspace = true
 simple-error.workspace = true
+
+[lints]
+workspace = true

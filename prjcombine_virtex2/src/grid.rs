@@ -83,7 +83,6 @@ pub enum ColumnKind {
     Dsp,
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnIoKind {
     None,
@@ -99,7 +98,6 @@ pub enum ColumnIoKind {
     DoubleRight(u8),
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum RowIoKind {
     None,

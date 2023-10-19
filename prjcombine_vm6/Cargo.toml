@@ -8,3 +8,6 @@ unnamed_entity.workspace = true
 prjcombine_xilinx_cpld.workspace = true
 serde.workspace = true
 enum-map.workspace = true
+
+[lints]
+workspace = true

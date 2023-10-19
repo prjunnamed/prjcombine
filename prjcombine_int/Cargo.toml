@@ -9,3 +9,5 @@ serde.workspace = true
 enum-map.workspace = true
 ndarray.workspace = true
 bimap.workspace = true
+[lints]
+workspace = true

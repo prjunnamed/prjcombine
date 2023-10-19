@@ -20,3 +20,6 @@ bincode.workspace = true
 zstd.workspace = true
 clap.workspace = true
 rayon.workspace = true
+
+[lints]
+workspace = true

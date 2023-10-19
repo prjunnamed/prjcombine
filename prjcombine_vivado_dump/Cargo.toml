@@ -13,3 +13,6 @@ simple-error.workspace = true
 rayon.workspace = true
 clap.workspace = true
 indicatif.workspace = true
+
+[lints]
+workspace = true

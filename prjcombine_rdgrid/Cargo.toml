@@ -7,3 +7,6 @@ edition.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
 prjcombine_rawdump.workspace = true
+
+[lints]
+workspace = true

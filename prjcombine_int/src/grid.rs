@@ -1,5 +1,4 @@
 #![allow(clippy::too_many_arguments)]
-#![allow(clippy::collapsible_else_if)]
 
 use crate::db::*;
 use bimap::BiHashMap;

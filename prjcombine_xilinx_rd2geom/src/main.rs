@@ -1,5 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
-
 use clap::Parser;
 use prjcombine_rawdump::Part;
 use simple_error::bail;

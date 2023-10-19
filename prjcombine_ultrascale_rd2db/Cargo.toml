@@ -11,3 +11,6 @@ prjcombine_rdgrid.workspace = true
 prjcombine_rawdump.workspace = true
 prjcombine_ultrascale.workspace = true
 enum-map.workspace = true
+
+[lints]
+workspace = true

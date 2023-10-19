@@ -9,3 +9,6 @@ prjcombine_int.workspace = true
 prjcombine_rawdump.workspace = true
 assert_matches.workspace = true
 enum-map.workspace = true
+
+[lints]
+workspace = true

@@ -1,5 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
-
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};

@@ -11,3 +11,6 @@ bincode.workspace = true
 clap.workspace = true
 ndarray.workspace = true
 itertools.workspace = true
+
+[lints]
+workspace = true

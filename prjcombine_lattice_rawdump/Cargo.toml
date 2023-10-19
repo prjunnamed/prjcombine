@@ -11,3 +11,6 @@ bincode.workspace = true
 zstd.workspace = true
 clap.workspace = true
 itertools.workspace = true
+
+[lints]
+workspace = true

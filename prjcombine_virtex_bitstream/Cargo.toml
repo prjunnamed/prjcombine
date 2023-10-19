@@ -9,3 +9,6 @@ enum-map.workspace = true
 arrayref.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
+
+[lints]
+workspace = true

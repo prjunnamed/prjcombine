@@ -9,3 +9,6 @@ prjcombine_int.workspace = true
 prjcombine_virtex_bitstream.workspace = true
 serde.workspace = true
 enum-map.workspace = true
+
+[lints]
+workspace = true

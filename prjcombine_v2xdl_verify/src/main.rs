@@ -1,5 +1,3 @@
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::collapsible_else_if)]
 #![allow(clippy::too_many_arguments)]
 
 use clap::Parser;

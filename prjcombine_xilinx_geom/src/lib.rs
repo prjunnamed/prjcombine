@@ -1,5 +1,3 @@
-#![allow(clippy::collapsible_else_if)]
-
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
 use prjcombine_virtex_bitstream::BitstreamGeom;

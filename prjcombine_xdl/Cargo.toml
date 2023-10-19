@@ -10,3 +10,6 @@ arrayref.workspace = true
 
 [dev-dependencies]
 clap.workspace = true
+
+[lints]
+workspace = true

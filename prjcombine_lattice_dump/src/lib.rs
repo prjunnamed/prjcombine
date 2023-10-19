@@ -1,4 +1,3 @@
-#![allow(clippy::needless_range_loop)]
 use ndarray::Array2;
 use prjcombine_lattice_rawdump::{Tile, TileSite};
 use regex::Regex;
