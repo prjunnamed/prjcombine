@@ -195,21 +195,6 @@ pub fn split_partname(s: &str) -> Option<(&str, &str, &str)> {
     None
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn split_partname_test() {
-        assert_eq!(
-            super::split_partname("xc6slx9tqg144"),
-            Some(("xc6slx9", "tqg144", "spartan6"))
-        );
-        assert_eq!(
-            super::split_partname("xq6slx75tcs484"),
-            Some(("xq6slx75t", "cs484", "spartan6"))
-        );
-    }
-}
-
 pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn Error>> {
     let dir = tempfile::Builder::new()
         .prefix("prjcombine_ise_dump_partgen")
@@ -326,4 +311,19 @@ pub fn get_pkgs(tc: &Toolchain, query: &str) -> Result<Vec<PartgenPkg>, Box<dyn 
         }
     }
     Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn split_partname_test() {
+        assert_eq!(
+            super::split_partname("xc6slx9tqg144"),
+            Some(("xc6slx9", "tqg144", "spartan6"))
+        );
+        assert_eq!(
+            super::split_partname("xq6slx75tcs484"),
+            Some(("xq6slx75t", "cs484", "spartan6"))
+        );
+    }
 }

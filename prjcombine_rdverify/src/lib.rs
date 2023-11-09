@@ -82,7 +82,6 @@ pub struct SitePin<'a> {
 pub enum SitePinDir {
     In,
     Out,
-    #[allow(dead_code)]
     Inout,
 }
 
