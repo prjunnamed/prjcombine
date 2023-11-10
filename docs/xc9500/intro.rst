@@ -11,12 +11,13 @@ EPLD families.  It comes in three variants:
    - FFs have clock enable function
    - 54 (instead of 36) UIM inputs per function block
    - FF has configurable clock polarity
+   - output enable has configurable polarity
    - FOE/FCLK multiplexers and inversion have been removed
    - optional weak bus keeper can be configured for all pins
 
 3. XC9500XV: 2.5V core logic, 1.8V, 2.5V, or 3.3V I/O, with minor functional changes from XC9500XL:
 
-   - larger devices have two I/O banks with separate VCCIO
+   - larger devices have two or four I/O banks with separate VCCIO
    - the bitstream now contains a ``DONE`` bit tied to ``ISC_DONE``, preventing problems with partially configured devices
 
 
@@ -25,27 +26,27 @@ Devices
 
 The following devices exist:
 
-========= ======== ===============
-Device    Variant  Function Blocks
-========= ======== ===============
-XC9536    XC9500   2
-XC9572    XC9500   4
-XC95108   XC9500   6
-XC95144   XC9500   8
-XC95216   XC9500   12
-XC95288   XC9500   16
-XC9536XL  XC9500XL 2
-XC9572XL  XC9500XL 4
-XC95144XL XC9500XL 8
-XC95288XL XC9500XL 16
-XA9536XL  XC9500XL 2
-XA9572XL  XC9500XL 4
-XA95144XL XC9500XL 8
-XC9536XV  XC9500XV 2
-XC9572XV  XC9500XV 4
-XC95144XV XC9500XV 8
-XC95288XV XC9500XV 16
-========= ======== ===============
+========= ======== =============== ======================= ========= ===============================
+Device    Variant  Function Blocks GOE pins / FOE networks I/O banks Notes
+========= ======== =============== ======================= ========= ===============================
+XC9536    XC9500   2               2                       1         Does not have FB input feedback
+XC9572    XC9500   4               2                       1         GOE mapping to pads varies with package
+XC95108   XC9500   6               2                       1
+XC95144   XC9500   8               4                       1
+XC95216   XC9500   12              4                       1
+XC95288   XC9500   16              4                       1         Has special input buffer enable fuses
+XC9536XL  XC9500XL 2               2                       1
+XC9572XL  XC9500XL 4               2                       1         GOE mapping to pads varies with package
+XC95144XL XC9500XL 8               4                       1
+XC95288XL XC9500XL 16              4                       1
+XA9536XL  XC9500XL 2               2                       1
+XA9572XL  XC9500XL 4               2                       1         GOE mapping to pads varies with package
+XA95144XL XC9500XL 8               4                       1
+XC9536XV  XC9500XV 2               2                       1
+XC9572XV  XC9500XV 4               2                       1         GOE mapping to pads varies with package
+XC95144XV XC9500XV 8               4                       2
+XC95288XV XC9500XV 16              4                       4
+========= ======== =============== ======================= ========= ===============================
 
 The parts starting with XA are automotive versions.  They are functionally completely identical to corresponding XC versions.
 
@@ -124,3 +125,46 @@ XC95288XV                           X                 X                       X 
 
 Pin compatibility is maintained across all 3 variants of the XC9500 family within a single package.
 Additionally, devices in PQ208 and HQ208 packages are pin compatible with each other.
+
+
+Device pins
+===========
+
+The XC9500 family devices have the following pads:
+
+- ``GND``: ground pins
+- ``VCCINT``: core power, has to be:
+
+  - 5V on XC9500
+  - 3.3V on XC9500XL
+  - 2.5V on XC9500XV
+
+- ``VCCIO`` or ``VCCIO{bank}``: I/O power, has to be:
+
+  - 3.3V or 5V on XC9500
+  - 2.5V or 3.3V on XC9500XL
+  - 1.8V, 2.5V, or 3.3V on XC9500XV
+
+- ``FB{i}_MC{j}``: general purpose I/O, associated with a macrocell; some of them also have an associated
+  special function that can be used in addition to or instead of their plain I/O function:
+
+  - ``GCLK[0-2]``: capable of driving ``FCLK*`` fast clock networks
+  - ``GSR``: capable of driving ``FSR`` fast set/reset network
+  - ``GOE[0-1]`` (smaller devices) or ``GOE[0-3]`` (larger devices): capable of driving ``FOE*`` fast output enable networks
+
+  Curiously, the ``GOE`` specials mapping to device pads varies with packaging on XC9572* devices.
+  How exactly that works is unknown.
+
+  The output drivers are powered by the ``VCCIO`` rails, and the output voltage
+  is determined by that rail.
+
+  For input, the following voltages are supported on all pins, regardless of VCCIO voltage:
+
+  - XC9500: 3.3V or 5V
+  - XC9500XL: 2.5V or 3.3V
+  - XC9500XV: 2.5V or 3.3V (notably, 1.8V is not supported)
+
+- ``TCK``, ``TMS``, ``TDI``, ``TDO``: dedicated JTAG pins; the ``TDO`` pin output driver
+  is powered by one of the ``VCCIO`` rails
+
+.. todo:: include TDO bank information in database
