@@ -1,0 +1,28 @@
+on: push
+name: Document
+jobs:
+  document:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade setuptools wheel
+          pip install -r docs/requirements.txt
+      - name: Build Sphinx documentation
+        run: |
+          sphinx-build docs/ docs/_build/
+          touch docs/_build/.nojekyll
+      - name: Publish documentation
+        if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: docs/_build/
+          CLEAN: true
