@@ -2,10 +2,12 @@ Project Combine
 ###############
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    xc9500/index
+   xpla3/index
+   xc2c/index
 
 
 
