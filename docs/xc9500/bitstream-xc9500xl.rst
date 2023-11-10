@@ -99,7 +99,7 @@ The formulas are as follows (unchanged from XC9500, but now with more rows):
 
 2. ``FB[i].MC[j].PT[k].IM[l].N`` is stored at:
 
-   - row: ``l * 2``
+   - row: ``l * 2 + 1``
    - column: ``k + (j % 3) * 5``
    - bit: ``j // 3``
 
