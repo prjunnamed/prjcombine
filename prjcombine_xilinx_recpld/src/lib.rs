@@ -1,5 +1,6 @@
 pub mod bitstream;
 pub mod db;
+pub mod fuzzdb;
 pub mod hprep6;
 pub mod impact;
 pub mod partgen;

@@ -10,11 +10,12 @@ use crate::types::{
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub type BitPos = (u32, usize);
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BitstreamMap {
     pub main: Vec<BitPos>,
     pub usercode: Option<[BitPos; 32]>,
@@ -29,7 +30,7 @@ pub struct BitstreamMap {
 
 pub type InvBit = (usize, bool);
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Bits {
     // common
     pub fbs: EntityVec<FbId, FbBits>,
@@ -58,7 +59,7 @@ pub struct Bits {
     pub usercode: Option<[InvBit; 32]>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FbBits {
     // common
     pub imux: EntityVec<ImuxId, EnumData<ImuxInput>>,
@@ -76,7 +77,7 @@ pub struct FbBits {
     pub mcs: EntityVec<FbMcId, McBits>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McBits {
     // XC9500*
     pub pt: Option<EnumMap<Xc9500McPt, PtData>>,
@@ -126,7 +127,7 @@ pub struct McBits {
     pub ibuf_uim_en: Vec<InvBit>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IPadBits {
     // XPLA3
     pub uim_out_en: EntityVec<FbGroupId, InvBit>,
@@ -135,13 +136,13 @@ pub struct IPadBits {
     pub ibuf_mode: Option<EnumData<IBufMode>>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BankBits {
     pub ibuf_hv: InvBit,
     pub obuf_hv: InvBit,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EnumData<K: Clone + Debug + Eq + PartialEq + Hash> {
     pub bits: Vec<usize>,
     pub items: HashMap<K, BitVec>,
@@ -158,32 +159,32 @@ impl<K: Clone + Debug + Eq + PartialEq + Hash> EnumData<K> {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PlaAndTerm {
     pub imux: EntityVec<ImuxId, (InvBit, InvBit)>,
     pub fbn: EntityVec<FbnId, InvBit>,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum PtAlloc {
     OrMain,
     OrExport,
     Special,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum McOut {
     Comb,
     Reg,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum IBufOut {
     Pad,
     Reg,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PtData {
     pub and: EntityVec<ImuxId, (InvBit, InvBit)>,
     pub hp: InvBit,
