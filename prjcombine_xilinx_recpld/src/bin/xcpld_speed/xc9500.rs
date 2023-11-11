@@ -1,8 +1,9 @@
+use std::collections::BTreeMap;
+
 use prjcombine_sdf::Sdf;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vm6::{InputNodeKind, NodeKind};
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Package};
-use prjcombine_xilinx_cpld::timing::Timing;
 use prjcombine_xilinx_recpld::{db::Part, tsim::run_tsim, vm6::prep_vm6};
 
 use crate::{
@@ -19,8 +20,8 @@ pub fn test_xc9500(
     device: &Device,
     package: &Package,
     spd: &str,
-) -> Timing {
-    let mut timing = Timing::default();
+) -> BTreeMap<String, i64> {
+    let mut timing = BTreeMap::new();
     for lp in [false, true] {
         test_comb(tc, part, device, package, spd, lp, &mut timing);
         test_reg_pt(tc, part, device, package, spd, lp, &mut timing);
@@ -36,7 +37,7 @@ pub fn test_xc9500(
         "-20" => 10000,
         _ => panic!("missing recovery data for {spd}"),
     };
-    timing.recovery_sr_clk = Some(rec);
+    timing.insert("RECOVERY_SR_CLK".into(), rec);
     timing
 }
 
@@ -47,7 +48,7 @@ fn test_comb(
     package: &Package,
     spd: &str,
     lp: bool,
-    timing: &mut Timing,
+    timing: &mut BTreeMap<String, i64>,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
     let node_i = insert_ibuf(&mut vm6, "I", NodeKind::IiImux, 0);
@@ -89,42 +90,41 @@ fn test_comb(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "I", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "IX", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "IE", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "IEE", &mut timing.del_ibuf_imux);
+    extract_buf(&sdf, "I", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "IX", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "IE", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "IEE", timing, "DEL_IBUF_IMUX");
 
-    extract_and2(&sdf, "EMC.EXP_PT_1", &mut timing.del_exp_exp);
-    let del_imux_d = if lp {
-        &mut timing.del_imux_d_lp
-    } else {
-        &mut timing.del_imux_d_hp
-    };
-    extract_and2(&sdf, "MC.D1", del_imux_d);
-    extract_and2(&sdf, "MC.D2_PT_0", del_imux_d);
-    let del_imux_d = del_imux_d.unwrap();
+    extract_and2(&sdf, "EMC.EXP_PT_1", timing, "DEL_EXP_EXP");
+    let del_imux_d = if lp { "DEL_IMUX_D_LP" } else { "DEL_IMUX_D_HP" };
+    extract_and2(&sdf, "MC.D1", timing, del_imux_d);
+    extract_and2(&sdf, "MC.D2_PT_0", timing, del_imux_d);
 
-    let mut del_imux_exp_d = None;
-    extract_and2(&sdf, "EEMC.EXP", &mut del_imux_exp_d);
-    extract_and2(&sdf, "EMC.EXP_PT_0", &mut del_imux_exp_d);
-    set_timing(&mut timing.del_exp_d, del_imux_exp_d.unwrap() - del_imux_d);
+    let mut tmp = BTreeMap::new();
+    extract_and2(&sdf, "EEMC.EXP", &mut tmp, "DEL_IMUX_EXP_D");
+    extract_and2(&sdf, "EMC.EXP_PT_0", &mut tmp, "DEL_IMUX_EXP_D");
+    set_timing(
+        timing,
+        "DEL_EXP_D",
+        tmp["DEL_IMUX_EXP_D"] - timing[del_imux_d],
+    );
 
-    extract_buf(&sdf, "MC.Q", &mut timing.del_d_q_comb);
-    extract_buf(&sdf, "UMC.Q", &mut timing.del_d_q_comb);
-    extract_buf(&sdf, "MC_PAD_10", &mut timing.del_obuf_fast);
-    extract_buf(&sdf, "UMC_PAD_12", &mut timing.del_obuf_fast);
+    extract_buf(&sdf, "MC.Q", timing, "DEL_D_Q_COMB");
+    extract_buf(&sdf, "UMC.Q", timing, "DEL_D_Q_COMB");
+    extract_buf(&sdf, "MC_PAD_10", timing, "DEL_OBUF_FAST");
+    extract_buf(&sdf, "UMC_PAD_12", timing, "DEL_OBUF_FAST");
     if device.has_fbk {
-        extract_buf(&sdf, "FMC.Q", &mut timing.del_d_q_comb);
-        extract_buf(&sdf, "FMC_PAD_14", &mut timing.del_obuf_fast);
+        extract_buf(&sdf, "FMC.Q", timing, "DEL_D_Q_COMB");
+        extract_buf(&sdf, "FMC_PAD_14", timing, "DEL_OBUF_FAST");
     }
 
-    let mut uim = None;
-    extract_and2(&sdf, "UMC.D2", &mut uim);
-    set_timing(&mut timing.del_uim_imux, uim.unwrap() - del_imux_d);
+    let mut tmp = BTreeMap::new();
+    extract_and2(&sdf, "UMC.D2", &mut tmp, "UIM");
+    set_timing(timing, "DEL_UIM_IMUX", tmp["UIM"] - timing[del_imux_d]);
     if device.has_fbk {
-        let mut fbk = None;
-        extract_and2(&sdf, "FMC.D2", &mut fbk);
-        set_timing(&mut timing.del_fbk_imux, fbk.unwrap() - del_imux_d);
+        let mut tmp = BTreeMap::new();
+        extract_and2(&sdf, "FMC.D2", &mut tmp, "FBK");
+        set_timing(timing, "DEL_FBK_IMUX", tmp["FBK"] - timing[del_imux_d]);
     }
 }
 
@@ -135,7 +135,7 @@ fn test_reg_pt(
     package: &Package,
     spd: &str,
     lp: bool,
-    timing: &mut Timing,
+    timing: &mut BTreeMap<String, i64>,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
 
@@ -163,43 +163,38 @@ fn test_reg_pt(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "C", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "R", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "S", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "E", &mut timing.del_ibuf_imux);
-    extract_tri_i(&sdf, "MC_PAD_12", &mut timing.del_obuf_slow);
+    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "C", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "R", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "S", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "E", timing, "DEL_IBUF_IMUX");
+    extract_tri_i(&sdf, "MC_PAD_12", timing, "DEL_OBUF_SLOW");
 
-    let del_imux_d = if lp {
-        &mut timing.del_imux_d_lp
-    } else {
-        &mut timing.del_imux_d_hp
-    };
-    extract_and2(&sdf, "MC.D2", del_imux_d);
+    let del_imux_d = if lp { "DEL_IMUX_D_LP" } else { "DEL_IMUX_D_HP" };
+    extract_and2(&sdf, "MC.D2", timing, del_imux_d);
     if device.kind == DeviceKind::Xc9500 {
-        extract_and2(&sdf, "MC.RSTF", del_imux_d);
-        extract_and2(&sdf, "MC.SETF", del_imux_d);
+        extract_and2(&sdf, "MC.RSTF", timing, del_imux_d);
+        extract_and2(&sdf, "MC.SETF", timing, del_imux_d);
     } else {
-        extract_and2(&sdf, "MC.RSTF", &mut timing.del_imux_pt_sr);
-        extract_and2(&sdf, "MC.SETF", &mut timing.del_imux_pt_sr);
+        extract_and2(&sdf, "MC.RSTF", timing, "DEL_IMUX_PT_SR");
+        extract_and2(&sdf, "MC.SETF", timing, "DEL_IMUX_PT_SR");
     }
-    extract_and2(&sdf, "MC.CLKF", &mut timing.del_imux_pt_clk);
-    extract_and2(&sdf, "MC.TRST", &mut timing.del_imux_pt_oe);
+    extract_and2(&sdf, "MC.CLKF", timing, "DEL_IMUX_PT_CLK");
+    extract_and2(&sdf, "MC.TRST", timing, "DEL_IMUX_PT_OE");
 
-    let mut period_clk_pt = None;
     extract_ff(
         &sdf,
         "MC.REG",
-        &mut timing.del_clk_q,
-        &mut timing.del_sr_q,
-        &mut timing.setup_d_clk,
-        &mut timing.hold_d_clk,
-        &mut None,
-        &mut None,
-        &mut period_clk_pt,
-        &mut timing.width_sr,
+        timing,
+        "DEL_CLK_Q",
+        "DEL_SR_Q",
+        "SETUP_D_CLK",
+        "HOLD_D_CLK",
+        None,
+        None,
+        "WIDTH_CLK_PT",
+        "WIDTH_SR",
     );
-    set_timing(&mut timing.width_clk_pt, period_clk_pt.unwrap() / 2);
 }
 
 fn test_reg_f(
@@ -209,7 +204,7 @@ fn test_reg_f(
     package: &Package,
     spd: &str,
     lp: bool,
-    timing: &mut Timing,
+    timing: &mut BTreeMap<String, i64>,
 ) {
     let mut vm6 = prep_vm6(part, device, package, spd);
 
@@ -236,48 +231,41 @@ fn test_reg_f(
     let sdf = Sdf::parse(&sdf);
     assert_eq!(sdf.timescale, Some(3));
 
-    extract_buf(&sdf, "D", &mut timing.del_ibuf_imux);
-    extract_buf(&sdf, "C", &mut timing.del_ibuf_fclk);
-    extract_buf(&sdf, "R", &mut timing.del_ibuf_fsr);
-    extract_buf(&sdf, "E", &mut timing.del_ibuf_foe);
+    extract_buf(&sdf, "D", timing, "DEL_IBUF_IMUX");
+    extract_buf(&sdf, "C", timing, "DEL_IBUF_FCLK");
+    extract_buf(&sdf, "R", timing, "DEL_IBUF_FSR");
+    extract_buf(&sdf, "E", timing, "DEL_IBUF_FOE");
     if device.kind != DeviceKind::Xc9500 {
-        extract_tri_i(&sdf, "MC_PAD_12", &mut timing.del_obuf_fast);
-        extract_buf(&sdf, "CE", &mut timing.del_ibuf_imux);
+        extract_tri_i(&sdf, "MC_PAD_12", timing, "DEL_OBUF_FAST");
+        extract_buf(&sdf, "CE", timing, "DEL_IBUF_IMUX");
     } else {
-        extract_tri_i(&sdf, "MC_PAD_10", &mut timing.del_obuf_fast);
+        extract_tri_i(&sdf, "MC_PAD_10", timing, "DEL_OBUF_FAST");
     }
 
-    let del_imux_d = if lp {
-        &mut timing.del_imux_d_lp
-    } else {
-        &mut timing.del_imux_d_hp
-    };
-    extract_and2(&sdf, "MC.D2", del_imux_d);
+    let del_imux_d = if lp { "DEL_IMUX_D_LP" } else { "DEL_IMUX_D_HP" };
+    extract_and2(&sdf, "MC.D2", timing, del_imux_d);
     if device.kind != DeviceKind::Xc9500 {
-        extract_and2(&sdf, "MC.CE", &mut timing.del_imux_pt_ce);
+        extract_and2(&sdf, "MC.CE", timing, "DEL_IMUX_PT_CE");
     }
-    let mut dummy_a = None;
-    let mut dummy_b = None;
-    let mut period_clk = None;
     extract_ff(
         &sdf,
         "MC.REG",
-        &mut timing.del_clk_q,
-        &mut timing.del_sr_q,
-        &mut timing.setup_d_clk,
-        &mut timing.hold_d_clk,
+        timing,
+        "DEL_CLK_Q",
+        "DEL_SR_Q",
+        "SETUP_D_CLK",
+        "HOLD_D_CLK",
         if device.kind != DeviceKind::Xc9500 {
-            &mut timing.setup_ce_clk
+            Some("SETUP_CE_CLK")
         } else {
-            &mut dummy_a
+            None
         },
         if device.kind != DeviceKind::Xc9500 {
-            &mut timing.hold_ce_clk
+            Some("HOLD_CE_CLK")
         } else {
-            &mut dummy_b
+            None
         },
-        &mut period_clk,
-        &mut timing.width_sr,
+        "WIDTH_CLK",
+        "WIDTH_SR",
     );
-    set_timing(&mut timing.width_clk, period_clk.unwrap() / 2);
 }

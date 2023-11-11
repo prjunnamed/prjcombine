@@ -4,6 +4,7 @@ pub mod fuzzdb;
 pub mod hprep6;
 pub mod impact;
 pub mod partgen;
+pub mod speeddb;
 pub mod taengine;
 pub mod tsim;
 pub mod v2vm6;
