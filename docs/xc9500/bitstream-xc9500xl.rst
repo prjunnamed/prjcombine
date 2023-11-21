@@ -147,8 +147,8 @@ The row is:
 - 40: ``RST_MUX``
 - 41: ``SET_MUX``
 - 42: ``INIT``
-- 43: ``GND``
-- 44: ``SLEW``
+- 43: ``IOB_GND``
+- 44: ``IOB_SLEW``
 - 45: ``PT[0].HP``
 - 46: ``PT[1].HP``
 - 47: ``PT[2].HP``
@@ -160,14 +160,14 @@ The fuse combination assignments are:
 - ``PT[*].ALLOC``:
 
   - ``00``: ``NONE``
-  - ``01``: ``OR_MAIN``
-  - ``10``: ``OR_EXPORT``
+  - ``01``: ``SUM``
+  - ``10``: ``EXPORT``
   - ``11``: ``SPECIAL``
 
 - ``IMPORT_*_ALLOC``:
 
-  - ``0``: ``OR_EXPORT``
-  - ``1``: ``OR_MAIN``
+  - ``0``: ``EXPORT``
+  - ``1``: ``SUM``
 
 - ``EXPORT_DIR``:
 
@@ -202,7 +202,7 @@ The fuse combination assignments are:
   - ``0``: ``PT``
   - ``1``: ``FSR``
 
-- ``SLEW``:
+- ``IOB_SLEW``:
 
   - ``0``: ``SLOW``
   - ``1``: ``FAST``

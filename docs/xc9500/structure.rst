@@ -90,7 +90,7 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 
 - mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
 
-  - ``EMPTY``: the input is a constant ??? (for unused inputs)
+  - ``NONE``: the input is a constant ??? (for unused inputs)
   - ``UIM``: the input is a wire-AND of MC outputs (and the second set of fuses is relevant)
   - ``FBK_MC{k}``: the input is routed through fast feedback path from ``FB[i].MC[k].OUT``
   - ``PAD_FB{k}_MC{l}``: the input is routed from an input buffer ``FB[k].MC[l].IOB.I``
@@ -103,7 +103,7 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
   wire-AND.  If a given fuse is programmed, it means that ``FB[k].MC[l].OUT_UIM`` is included
   in the product.  These fuses are only relevant when the mux fuse set is set to ``UIM``.
 
-.. todo:: check ``EMPTY`` semantics
+.. todo:: check ``NONE`` semantics
 
 .. todo:: verify ``FBK`` doesn't go through OE and inversion
 
@@ -118,7 +118,7 @@ Each FB has 54 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 
 - mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
 
-  - ``EMPTY``: the input is a constant ??? (for unused inputs)
+  - ``NONE``: the input is a constant ??? (for unused inputs)
   - ``FB{k}_MC{l}``: the input is routed from the macrocell output ``FB[k].MC[l].OUT``
   - ``PAD_FB{k}_MC{l}``: the input is routed from the input buffer ``FB[k].MC[l].IOB.I``
 
@@ -126,7 +126,7 @@ Each FB has 54 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
   FBs within a single device.  In other words, the set of allowed values for these fuses
   depends only on the ``j`` coordinate, but not on ``i``.
 
-.. todo:: check ``EMPTY`` semantics
+.. todo:: check ``NONE`` semantics
 
 
 FB global fuses
@@ -160,8 +160,8 @@ Each product term can be individually configured as low power or high performanc
 
 Each product term can be routed to at most one of three destinations:
 
-- ``OR_MAIN``: input to the MC's sum term
-- ``OR_EXPORT``: input to the export OR gate
+- ``SUM``: input to the MC's sum term
+- ``EXPORT``: input to the export OR gate
 - ``SPECIAL``: used for the dedicated function
 
 The fuses controlling a product term are:
@@ -171,9 +171,9 @@ The fuses controlling a product term are:
 - ``FB[i].MC[j].PT[k].HP``: if programmed, the product term is in high performance mode; otherwise, it is in low power mode
 - ``FB[i].MC[j].PT[k].ALLOC``: has one of four values:
 
-  - ``EMPTY``: product term is unused
-  - ``OR_MAIN``: product term is used for MC's sum term; dedicated function wired to 0
-  - ``OR_EXPORT`` product term is used for export sum term; dedicated function wired to 0
+  - ``NONE``: product term is unused
+  - ``SUM``: product term is used for MC's sum term; dedicated function wired to 0
+  - ``EXPORT`` product term is used for export sum term; dedicated function wired to 0
   - ``SPECIAL``: product term is used for the dedicated function
 
 The product term's corresponding dedicated function is called ``FB[i].MC[j].PT[k].SPECIAL``.
@@ -204,26 +204,26 @@ PT import/export is controlled by the following per-MC fuses:
 
 - ``FB[i].MC[j].IMPORT_UP_ALLOC``: one of:
 
-  - ``OR_MAIN``: includes PTs imported upwards in the main sum term
-  - ``OR_EXPORT``: includes PTs imported upwards in the export sum term
+  - ``SUM``: includes PTs imported upwards in the main sum term
+  - ``EXPORT``: includes PTs imported upwards in the export sum term
 
 - ``FB[i].MC[j].IMPORT_DOWN_ALLOC``: one of:
 
-  - ``OR_MAIN``: includes PTs imported downwards in the main sum term
-  - ``OR_EXPORT``: includes PTs imported downwards in the export sum term
+  - ``SUM``: includes PTs imported downwards in the main sum term
+  - ``EXPORT``: includes PTs imported downwards in the export sum term
 
 Additionally, the per-FB ``FB[i].EXPORT_ENABLE`` fuse needs to be set if any term within a FB is exported or imported.
 
 Export works as follows::
 
     FB[i].MC[j].EXPORT = 
-        (FB[i].MC[j].IMPORT_UP_ALLOC == OR_EXPORT ? FB[i].MC[j].IMPORT_UP : 0) |
-        (FB[i].MC[j].IMPORT_DOWN_ALLOC == OR_EXPORT ? FB[i].MC[j].IMPORT_DOWN : 0) |
-        (FB[i].MC[j].PT[0].ALLOC == OR_EXPORT ? FB[i].MC[j].PT[0] : 0) |
-        (FB[i].MC[j].PT[1].ALLOC == OR_EXPORT ? FB[i].MC[j].PT[1] : 0) |
-        (FB[i].MC[j].PT[2].ALLOC == OR_EXPORT ? FB[i].MC[j].PT[2] : 0) |
-        (FB[i].MC[j].PT[3].ALLOC == OR_EXPORT ? FB[i].MC[j].PT[3] : 0) |
-        (FB[i].MC[j].PT[4].ALLOC == OR_EXPORT ? FB[i].MC[j].PT[4] : 0);
+        (FB[i].MC[j].IMPORT_UP_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_UP : 0) |
+        (FB[i].MC[j].IMPORT_DOWN_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_DOWN : 0) |
+        (FB[i].MC[j].PT[0].ALLOC == EXPORT ? FB[i].MC[j].PT[0] : 0) |
+        (FB[i].MC[j].PT[1].ALLOC == EXPORT ? FB[i].MC[j].PT[1] : 0) |
+        (FB[i].MC[j].PT[2].ALLOC == EXPORT ? FB[i].MC[j].PT[2] : 0) |
+        (FB[i].MC[j].PT[3].ALLOC == EXPORT ? FB[i].MC[j].PT[3] : 0) |
+        (FB[i].MC[j].PT[4].ALLOC == EXPORT ? FB[i].MC[j].PT[4] : 0);
 
     FB[i].MC[j].EXPORT_UP = (FB[i].MC[j].EXPORT_DIR == UP ? FB[i].MC[j].EXPORT : 0);
     FB[i].MC[j].EXPORT_DOWN = (FB[i].MC[j].EXPORT_DIR == DOWN ? FB[i].MC[j].EXPORT : 0);
@@ -237,13 +237,13 @@ Sum term, XOR gate
 Each macrocell has a main sum term, which includes all product terms and imports routed towards it::
 
     FB[i].MC[j].SUM = 
-        (FB[i].MC[j].IMPORT_UP_ALLOC == OR_MAIN ? FB[i].MC[j].IMPORT_UP : 0) |
-        (FB[i].MC[j].IMPORT_DOWN_ALLOC == OR_MAIN ? FB[i].MC[j].IMPORT_DOWN : 0) |
-        (FB[i].MC[j].PT[0].ALLOC == OR_MAIN ? FB[i].MC[j].PT[0] : 0) |
-        (FB[i].MC[j].PT[1].ALLOC == OR_MAIN ? FB[i].MC[j].PT[1] : 0) |
-        (FB[i].MC[j].PT[2].ALLOC == OR_MAIN ? FB[i].MC[j].PT[2] : 0) |
-        (FB[i].MC[j].PT[3].ALLOC == OR_MAIN ? FB[i].MC[j].PT[3] : 0) |
-        (FB[i].MC[j].PT[4].ALLOC == OR_MAIN ? FB[i].MC[j].PT[4] : 0);
+        (FB[i].MC[j].IMPORT_UP_ALLOC == SUM ? FB[i].MC[j].IMPORT_UP : 0) |
+        (FB[i].MC[j].IMPORT_DOWN_ALLOC == SUM ? FB[i].MC[j].IMPORT_DOWN : 0) |
+        (FB[i].MC[j].PT[0].ALLOC == SUM ? FB[i].MC[j].PT[0] : 0) |
+        (FB[i].MC[j].PT[1].ALLOC == SUM ? FB[i].MC[j].PT[1] : 0) |
+        (FB[i].MC[j].PT[2].ALLOC == SUM ? FB[i].MC[j].PT[2] : 0) |
+        (FB[i].MC[j].PT[3].ALLOC == SUM ? FB[i].MC[j].PT[3] : 0) |
+        (FB[i].MC[j].PT[4].ALLOC == SUM ? FB[i].MC[j].PT[4] : 0);
 
 The sum term then goes through a XOR gate (whose other input is either 0 or a dedicated PT) and a programmable inverter::
 
@@ -501,13 +501,13 @@ it is directly connected to the UIM.  On XC95288, there are additional enable fu
 
 Each I/O buffer has the following fuses:
 
-- ``FB[i].MC[j].GND``: if programmed, this pin is "programmed ground" and will always output a const 0
-- ``FB[i].MC[j].SLEW``: selects slew rate, one of:
+- ``FB[i].MC[j].IOB_GND``: if programmed, this pin is "programmed ground" and will always output a const 0
+- ``FB[i].MC[j].IOB_SLEW``: selects slew rate, one of:
 
   - ``SLOW``
   - ``FAST``
 
-- ``FB[i].MC[j].IBUF_ENABLE`` (XC95288 only): when programmed, the input buffer is active and connected to UIM
+- ``FB[i].MC[j].IBUF_UIM_ENABLE`` (XC95288 only): when programmed, the input buffer is active and connected to UIM
 
 .. todo:: figure out the IBUF_ENABLE thing
 

@@ -53,6 +53,7 @@ members = [
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
 	"prjcombine_sdf",
+	"prjcombine_xc9500",
 ]
 resolver = "2"
 
@@ -107,9 +108,11 @@ prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
 prjcombine_sdf = { path = "prjcombine_sdf" }
+prjcombine_xc9500 = { path = "prjcombine_xc9500" }
 unnamed_entity = { version = "0.1", features = ["bitvec", "map", "serde"] }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 indexmap = { version = "2", features = ["serde"] }
 ndarray = { version = "0.15", features = ["serde"] }
 enum-map = { version = "2.4", features = ["serde"] }

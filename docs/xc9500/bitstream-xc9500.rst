@@ -197,8 +197,8 @@ The row is:
 - 45: ``UIM_OE_MUX`` bit 1
 - 46: ``UIM_OUT_INV``
 - 47: unused
-- 48: ``GND``
-- 49: ``SLEW``
+- 48: ``IOB_GND``
+- 49: ``IOB_SLEW``
 - 50: ``PT[0].HP``
 - 51: ``PT[1].HP``
 - 52: ``PT[2].HP``
@@ -210,14 +210,14 @@ The fuse combination assignments are:
 - ``PT[*].ALLOC``:
 
   - ``11``: ``NONE``
-  - ``10``: ``OR_MAIN``
-  - ``01``: ``OR_EXPORT``
+  - ``10``: ``SUM``
+  - ``01``: ``EXPORT``
   - ``00``: ``SPECIAL``
 
 - ``IMPORT_*_ALLOC``:
 
-  - ``1``: ``OR_EXPORT``
-  - ``0``: ``OR_MAIN``
+  - ``1``: ``EXPORT``
+  - ``0``: ``SUM``
 
 - ``EXPORT_DIR``:
 
@@ -266,7 +266,7 @@ The fuse combination assignments are:
   - ``10``: ``GND``
   - ``01``: ``VCC``
 
-- ``SLEW``:
+- ``IOB_SLEW``:
 
   - ``1``: ``SLOW``
   - ``0``: ``FAST``
@@ -387,7 +387,7 @@ The fuse combination assignments are:
 Fuses — input buffer enable
 ===========================
 
-On XC95288, the ``IBUF_ENABLE`` fuses are stored in rows (1, 2, 5, 8, 9),
+On XC95288, the ``IBUF_UIM_ENABLE`` fuses are stored in rows (1, 2, 5, 8, 9),
 columns 0-8, bits 6-7 of FBs (0, 1, 14, 15) in an irregular manner.  Each
 fuse is duplicated twice: once in FBs (0, 1) and once in FBs (14, 15).
 The purpose of this duplication is unknown.  Consult the database for exact
