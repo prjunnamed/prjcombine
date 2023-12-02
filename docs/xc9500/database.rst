@@ -3,9 +3,9 @@ Database schema
 
 The device database is provided in machine-readable form as three JSON files:
 
-- ``xc9500.json``, describing all XC9500 devices
-- ``xc9500xl.json``, describing all XC9500XL devices
-- ``xc9500xv.json``, describing all XC9500XV devices
+- `xc9500.json <https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500.json>`_, describing all XC9500 devices
+- `xc9500xl.json <https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500xl.json>`_, describing all XC9500XL devices
+- `xc9500xv.json <https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500xv.json>`_, describing all XC9500XV devices
 
 All three files have the same schema.
 
