@@ -59,8 +59,8 @@ from a :ref:`part <xc9500-db-part>`.  A device is an object with the following f
 
 - ``imux_bits`` (object) : a :ref:`tile <xc9500-db-tile>` describing per-FB bits corresponding to IMUX
 - ``uim_ibuf_bits`` (object or null): for XC95288 device, a :ref:`tile <xc9500-db-tile>` describing the UIM IBUF bits; for every other device, ``null``
-- ``program_time`` (number): number of TCK cycles to wait after a program operation
-- ``erase_time`` (number): number of TCK cycles to wait after an erase operation
+- ``program_time`` (number): maximum time required by a program operation, in µs
+- ``erase_time`` (number): maximum time required by an erase operation, in µs
 
 
 .. _xc9500-db-bond:
