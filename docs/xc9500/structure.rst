@@ -100,8 +100,8 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
   depends only on the ``j`` coordinate, but not on ``i``.
 
 - wire-AND fuses (``FB[i].IM[j].UIM.FB[k].MC[l]``) select which MC outputs participate in the
-  wire-AND.  If a given fuse is programmed, it means that ``FB[k].MC[l].OUT_UIM`` is included
-  in the product.  These fuses are only relevant when the mux fuse set is set to ``UIM``.
+  wire-AND.  If a given fuse is set to 1 (ie. *not* programmed), it means that ``FB[k].MC[l].OUT_UIM``
+  is included in the product.  These fuses are only relevant when the mux fuse set is set to ``UIM``.
 
 .. todo:: check ``NONE`` semantics
 
@@ -166,8 +166,8 @@ Each product term can be routed to at most one of three destinations:
 
 The fuses controlling a product term are:
 
-- ``FB[i].MC[j].PT[k].IM[l].P``: if programmed, ``FB[i].IM[l]`` is included in the product term (true polarity)
-- ``FB[i].MC[j].PT[k].IM[l].N``: if programmed, ``~FB[i].IM[l]`` is included in the product term (inverted polarity)
+- ``FB[i].MC[j].PT[k].IM[l].P``: if set to 1, ``FB[i].IM[l]`` is included in the product term (true polarity)
+- ``FB[i].MC[j].PT[k].IM[l].N``: if set to 1, ``~FB[i].IM[l]`` is included in the product term (inverted polarity)
 - ``FB[i].MC[j].PT[k].HP``: if programmed, the product term is in high performance mode; otherwise, it is in low power mode
 - ``FB[i].MC[j].PT[k].ALLOC``: has one of four values:
 
@@ -178,6 +178,10 @@ The fuses controlling a product term are:
 
 The product term's corresponding dedicated function is called ``FB[i].MC[j].PT[k].SPECIAL``.
 It is equal to ``FB[i].MC[j].PT[k]`` if the dedicated function is enabled in ``ALLOC``, 0 otherwise.
+
+Note that the main product term control fuses are active-high on both XC9500 and XC9500XL/XV.  This effectively
+means that an unprogrammed XC9500 chip has all product term inputs enabled, while an unprogrammed XC9500XL device
+has all product term inputs disabled.
 
 PT import/export
 ----------------

@@ -35,40 +35,6 @@ struct Args {
     json: PathBuf,
 }
 
-// fn print_tile<T>(prefix: &str, tile: &Tile<T>, print_coord: impl Fn(&T)) {
-//     for (name, item) in &tile.items {
-//         print!("{prefix}");
-//         let bits = match item {
-//             TileItem::Enum(it) => &it.bits,
-//             TileItem::BitVec(it) => &it.bits,
-//         };
-//         for bit in bits {
-//             print!(" ");
-//             print_coord(bit);
-//         }
-//         print!(": {name}");
-//         match item {
-//             TileItem::Enum(it) => {
-//                 println!(" ENUM");
-//                 for (k, v) in &it.values {
-//                     print!("    ");
-//                     for bit in v {
-//                         print!("{}", u8::from(*bit));
-//                     }
-//                     println!(": {k}");
-//                 }
-//             }
-//             TileItem::BitVec(it) => {
-//                 if it.invert {
-//                     println!(" INVERT");
-//                 } else {
-//                     println!(" TRUE");
-//                 }
-//             }
-//         }
-//     }
-// }
-
 fn merge_enum<T: Copy + Eq + Ord + Debug>(
     a: &mut TileItemEnum<T>,
     b: &TileItemEnum<T>,
@@ -971,8 +937,8 @@ fn validate_imux_uim(device: &Device, fpart: &FuzzDbPart) {
         for im in device.fb_imuxes() {
             for sfb in device.fbs() {
                 for smc in device.fb_mcs() {
-                    let (fuse, inv) = fpart.bits.fbs[fb].uim_mc[im][sfb][smc];
-                    assert!(inv);
+                    let (fuse, pol) = fpart.bits.fbs[fb].uim_mc[im][sfb][smc];
+                    assert!(pol);
                     let (r_addr, r_bit) = fpart.map.main[fuse];
                     let r_addr = r_addr as usize;
                     let bit = im.to_idx() / 5;
@@ -1001,10 +967,10 @@ fn validate_pterm(device: &Device, fpart: &FuzzDbPart) {
             .enumerate()
             {
                 for im in device.fb_imuxes() {
-                    let ((fuse_t, inv_t), (fuse_f, inv_f)) =
+                    let ((fuse_t, pol_t), (fuse_f, pol_f)) =
                         fpart.bits.fbs[fb].mcs[mc].pt.as_ref().unwrap()[pt].and[im];
-                    assert!(inv_t);
-                    assert!(inv_f);
+                    assert!(pol_t);
+                    assert!(pol_f);
                     for (neg, fuse) in [(0, fuse_t), (1, fuse_f)] {
                         let (r_addr, r_bit) = fpart.map.main[fuse];
                         let r_addr = r_addr as usize;
@@ -1054,11 +1020,11 @@ fn tile_to_json<T: Copy>(
 }
 
 fn fb_bit_to_json(crd: FbBitCoord) -> serde_json::Value {
-    json!([crd.row, crd.column, crd.bit])
+    json!([crd.row, crd.bit, crd.column])
 }
 
 fn global_bit_to_json(crd: GlobalBitCoord) -> serde_json::Value {
-    json!([crd.fb, crd.row, crd.column, crd.bit])
+    json!([crd.fb, crd.row, crd.bit, crd.column])
 }
 
 fn convert_io(io: IoId) -> (xc9500::FbId, xc9500::FbMcId) {
@@ -1153,23 +1119,6 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let mc_bits = mc_bits.unwrap();
     let fb_bits = fb_bits.unwrap();
     let global_bits = global_bits.unwrap();
-    // print_tile("MC", &mc_bits, |x| print!("{x}"));
-    // print_tile("FB", &fb_bits, |x| {
-    //     print!("{}.{}.{}", x.row, x.column, x.bit)
-    // });
-    // print_tile("GLOBAL", &global_bits, |x| {
-    //     print!("{}.{}.{}.{}", x.fb, x.row, x.column, x.bit)
-    // });
-    // for (k, v) in &imux_bits {
-    //     print_tile(&format!("IMUX {k}"), v, |x| {
-    //         print!("{}.{}.{}", x.row, x.column, x.bit)
-    //     })
-    // }
-    // if let Some(ref bits) = ibuf_uim_bits {
-    //     print_tile("IBUF_UIM.16", bits, |x| {
-    //         print!("{}.{}.{}.{}", x.fb, x.row, x.column, x.bit)
-    //     });
-    // }
 
     let devices: EntityVec<_, _> = db
         .devices
@@ -1212,6 +1161,17 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                     Some(ibuf_uim_bits.clone().unwrap())
                 } else {
                     None
+                },
+                program_time: match (device.kind, device.fbs) {
+                    (DeviceKind::Xc9500, 2) => 640,
+                    (DeviceKind::Xc9500, 4) => 320,
+                    (DeviceKind::Xc9500, _) => 160,
+                    _ => 20000,
+                },
+                erase_time: if device.kind == DeviceKind::Xc9500 {
+                    1300000
+                } else {
+                    200000
                 },
             }
         })
@@ -1339,6 +1299,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 serde_json::Value::Null
             },
+            "program_time": device.program_time,
+            "erase_time": device.erase_time,
         }))),
         "bonds": Vec::from_iter(
             database.bonds.values().map(|bond| json!({

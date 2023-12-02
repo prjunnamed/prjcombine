@@ -44,6 +44,22 @@ The IR status is:
 .. todo:: verify
 
 
+IDCODE
+======
+
+The IDCODE for XC9500* devices can be determined as follows:
+
+- bits 0-11: vendor code, ``0x093``
+- bits 12-19: number of FBs in the device
+- bits 20-27: device kind
+
+  - ``0x95``: XC9500
+  - ``0x96``: XC9500XL
+  - ``0x97``: XC9500XV
+
+- bits 28-31: device revision (varies)
+
+
 Boundary scan register
 ======================
 

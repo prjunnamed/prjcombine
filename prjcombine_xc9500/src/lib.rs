@@ -54,6 +54,8 @@ pub struct Device {
     pub io_special: BTreeMap<String, (FbId, FbMcId)>,
     pub imux_bits: Tile<FbBitCoord>,
     pub uim_ibuf_bits: Option<Tile<GlobalBitCoord>>,
+    pub program_time: u32,
+    pub erase_time: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -91,16 +93,16 @@ pub struct Part {
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct FbBitCoord {
     pub row: u32,
-    pub column: u32,
     pub bit: u32,
+    pub column: u32,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct GlobalBitCoord {
     pub fb: u32,
     pub row: u32,
-    pub column: u32,
     pub bit: u32,
+    pub column: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]

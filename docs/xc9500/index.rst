@@ -9,4 +9,5 @@ Xilinx XC9500, XC9500XL, XC9500XV CPLDs
    structure
    bitstream-xc9500
    bitstream-xc9500xl
+   database
    jtag
