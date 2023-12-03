@@ -23,7 +23,7 @@ IR           Instruction  Register             Notes
 ``11101001`` ``ISPENC``   ``ISPENABLE``        XC9500XL/XV only
 ``11101010`` ``FPGM``     ``ISPCONFIGURATION``
 ``11101011`` ``FPGMI``    ``ISPDATA``
-``11101100`` ``FERASE``   ``ISPCONFIGURATION`` XC9500 only
+``11101100`` ``FERASE``   ``ISPCONFIGURATION`` XC9500 revision 2 and up only
 ``11101100`` ``FERASE``   ``ISPADDRESS``       XC9500XL/XV only
 ``11101101`` ``FBULK``    ``ISPCONFIGURATION`` XC9500 only
 ``11101101`` ``FBULK``    ``ISPADDRESS``       XC9500XL/XV only
@@ -58,7 +58,7 @@ IDCODE
 The IDCODE for XC9500* devices can be determined as follows:
 
 - bits 0-11: vendor code, ``0x093``
-- bits 12-19: number of FBs in the device
+- bits 12-19: number of FBs in the device encoded as BCD
 - bits 20-27: device kind
 
   - ``0x95``: XC9500
@@ -66,6 +66,9 @@ The IDCODE for XC9500* devices can be determined as follows:
   - ``0x97``: XC9500XV
 
 - bits 28-31: device revision (varies)
+
+For XC9500, device revisions older than 2 do not support the ``FBULK`` instruction and
+require using ``FERASE``.
 
 
 Boundary scan register
@@ -183,6 +186,9 @@ There are two instructions that erase fuses:
   wire-AND area)
 - ``FBULK``: erases either all main areas on the device at once, or all UIM wire-AND areas
   at once
+
+Note that the ``FBULK`` instruction is not supported on (rarely seen) XC9500 devices with
+revision older than 2.
 
 An erase operation is triggered by the following sequence:
 

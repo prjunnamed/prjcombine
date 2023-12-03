@@ -1130,7 +1130,15 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 DeviceKind::Xc9500Xl => 0x9600093,
                 DeviceKind::Xc9500Xv => 0x9700093,
                 _ => unreachable!(),
-            } | (device.fbs as u32) << 12;
+            } | match device.fbs {
+                2 => 0x02000,
+                4 => 0x04000,
+                6 => 0x06000,
+                8 => 0x08000,
+                12 => 0x12000,
+                16 => 0x16000,
+                _ => unreachable!(),
+            };
             let mut io_special = BTreeMap::new();
             io_special.insert("GSR".to_string(), convert_io(device.sr_pad.unwrap()));
             for (i, &io) in &device.clk_pads {
