@@ -25,8 +25,9 @@ the high 2 bits of columns 0-8 are used to store everything else.
 When programmed or read via JTAG, the bitstream is transmitted as words.
 Each word is 8 bits per FB.  Each word of the bitstream has its address.
 Not all addresses are valid, and valid addresses are not contiguous.
-Address is 12 bits long, and is split to several fields:
+Address is 16 bits long, and is split to several fields:
 
+- bits 12-15: FB index (only used for JTAG ``FERASE`` operation, doesn't matter for reading and programming)
 - bits 5-11: row
 - bits 3-4: column / 5
 - bits 0-2: column % 5
