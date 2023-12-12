@@ -119,7 +119,10 @@ for db in dbs:
             f.write(f"\n")
             f.write(f"FERASE/FBULK time: {device['erase_time']}µs\n")
             f.write(f"\n")
-            f.write(f".. list-table:: I/O pins\n")
+            f.write(f"I/O pins\n")
+            f.write(f"========\n")
+            f.write(f"\n")
+            f.write(f".. list-table::\n")
             f.write(f"   :header-rows: 1\n")
             f.write(f"\n")
             f.write(f"   - - Function\n")
@@ -167,3 +170,22 @@ for db in dbs:
                             f.write(f"       {pin}\n")
                     else:
                         f.write(f"     - \-\n")
+            f.write(f"\n")
+            f.write(f"Speed data\n")
+            f.write(f"==========\n")
+            f.write(f"\n")
+            f.write(f".. list-table::\n")
+            f.write(f"   :header-rows: 1\n")
+            f.write(f"\n")
+            f.write(f"   - - Timing parameter\n")
+            for part in parts:
+                speeds = sorted(part["speeds"], key=lambda s: int(s[1:]))
+                for speed in speeds:
+                    f.write(f"     - {part['name']}{speed}\n")
+            for key in db["speeds"][0]["timing"]:
+                f.write(f"   - - {key}\n")
+                for part in parts:
+                    speeds = sorted(part["speeds"], key=lambda s: int(s[1:]))
+                    for speed in speeds:
+                        val = db["speeds"][part["speeds"][speed]]["timing"][key]
+                        f.write(f"     - {val}\n")
