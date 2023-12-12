@@ -296,7 +296,7 @@ The fuses involved are:
   - ``PT2``: product term 2 dedicated function
   - ``PT3``: product term 3 dedicated function
 
-- ``FB[i].MC[j].INIT``: if programmed, the initial value of the FF is 1; otherwise, it is 0
+- ``FB[i].MC[j].REG_INIT``: if programmed, the initial value of the FF is 1; otherwise, it is 0
 
 - ``FB[i].MC[j].REG_MODE``: selects FF mode
 
@@ -322,7 +322,7 @@ On XC9500, the FF works as follows::
     FSR: FB[i].MC[j].SET = FSR;
     endcase
 
-    initial FB[i].MC[j].FF = FB[i].MC[j].INIT;
+    initial FB[i].MC[j].FF = FB[i].MC[j].REG_INIT;
 
     // Pretend the usual synth/sim mismatch doesn't happen.
     always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST_MUX, posedge FB[i].MC[j].SET_MUX)
@@ -358,7 +358,7 @@ On XC9500XL/XV, the FF works as follows::
     NONE: FB[i].MC[j].CE = 1;
     endcase
 
-    initial FB[i].MC[j].FF = FB[i].MC[j].INIT;
+    initial FB[i].MC[j].FF = FB[i].MC[j].REG_INIT;
 
     // Pretend the usual synth/sim mismatch doesn't happen.
     always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST_MUX, posedge FB[i].MC[j].SET_MUX)
@@ -532,7 +532,10 @@ XC9500XL/XV bus keeper
 The XC9500XL/XV have a weak bus keeper in each IOB.  The keeper functionality can only be enabled
 globally for all pads on the device, or not at all, via a global fuse:
 
-- ``KEEPER``: if programmed, the bus keeper is enabled on all IOBs
+- ``TERM_MODE``: selects termination mode of all IOBs
+
+  - ``KEEPER``: bus keeper is enabled
+  - ``FLOAT``: bus keeper is disabled, all inputs float
 
 
 Global networks — XC9500
@@ -580,6 +583,10 @@ The fuses involved are:
   - ``NONE``: const ???
   - ``FOE[i]``: the corresponding ``FOE`` pad
 
+  These fuses have two variants in the database: the ``SMALL`` variant is applicable
+  for devices with 2 GOE pins, and the ``LARGE`` variant is applicable for devices
+  with 4 GOE pins.
+
 - ``FCLK[i].INV``: if programmed, the ``GCLK`` pad is inverted before driving ``FCLK[i]`` network
 - ``FSR.INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
 - ``FOE[i].INV``: if programmed, the ``GOE`` pad is inverted before driving ``FOE[i]`` network
@@ -622,5 +629,3 @@ The devices also include the following misc fuses:
   boot sequence and activate I/O buffers; otherwise, all output buffers will be disabled
 
 Due to their special semantics, the protection fuses and the ``DONE`` fuse should be programmed last, after all other fuses in the bitstream.
-
-.. todo:: exact semantics of protection fuses
