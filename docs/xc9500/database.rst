@@ -124,6 +124,7 @@ with the following keys:
 
 - ``bits`` (list of coordinate): the list of fuse coordinates in this fuse set
 - one of:
+
   - ``values`` (map of string to list of bool): used for an enumerated fuse set;
     the list of possible values for this fuse set; the value is a list of fuse values, corresponding one
     to one to the coordinates in ``bits``
