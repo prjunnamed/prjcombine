@@ -110,7 +110,7 @@ Several parts may correspond to the same device.  A part is an object with the f
   the key is speed grade name (including the leading ``-``), and the value is the index of the corresponding speed in the ``speeds`` database field
 
 
-.. _xc9500-db-part:
+.. _xc9500-db-tile:
 
 Tile
 ====

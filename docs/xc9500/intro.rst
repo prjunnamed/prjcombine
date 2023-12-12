@@ -26,27 +26,7 @@ Devices
 
 The following devices exist:
 
-========= ======== =============== ======================= ========= ===============================
-Device    Variant  Function Blocks GOE pins / FOE networks I/O banks Notes
-========= ======== =============== ======================= ========= ===============================
-XC9536    XC9500   2               2                       1         Does not have FB input feedback
-XC9572    XC9500   4               2                       1         GOE mapping to pads varies with package
-XC95108   XC9500   6               2                       1
-XC95144   XC9500   8               4                       1
-XC95216   XC9500   12              4                       1
-XC95288   XC9500   16              4                       1         Has special input buffer enable fuses
-XC9536XL  XC9500XL 2               2                       1
-XC9572XL  XC9500XL 4               2                       1         GOE mapping to pads varies with package
-XC95144XL XC9500XL 8               4                       1
-XC95288XL XC9500XL 16              4                       1
-XA9536XL  XC9500XL 2               2                       1
-XA9572XL  XC9500XL 4               2                       1         GOE mapping to pads varies with package
-XA95144XL XC9500XL 8               4                       1
-XC9536XV  XC9500XV 2               2                       1
-XC9572XV  XC9500XV 4               2                       1         GOE mapping to pads varies with package
-XC95144XV XC9500XV 8               4                       2
-XC95288XV XC9500XV 16              4                       4
-========= ======== =============== ======================= ========= ===============================
+.. include:: gen-devices.inc
 
 The parts starting with XA are automotive versions.  They are functionally completely identical to corresponding XC versions.
 
@@ -100,28 +80,7 @@ The devices come in the following packages:
     - CS144 (JEDEC MO-216-BAG-2)
     - CS280 (JEDEC MO-216-BAL-1)
 
-
-========= ==== ==== ==== ==== ===== ===== ===== ===== ===== ===== ===== ===== ===== ==== ===== =====
-Device    PC44 PC84 VQ44 VQ64 TQ100 TQ144 PQ100 PQ160 PQ208 HQ208 BG256 BG352 FG256 CS48 CS144 CS280
-========= ==== ==== ==== ==== ===== ===== ===== ===== ===== ===== ===== ===== ===== ==== ===== =====
-XC9536    X         X                                                               X
-XC9572    X    X              X           X
-XC95108        X              X           X     X
-XC95144                       X           X     X
-XC95216                                         X           X           X
-XC95288                                                     X           X
-XC9536XL  X         X    X                                                          X
-XC9572XL  X         X    X    X                                                     X
-XC95144XL                     X     X                                                    X
-XC95288XL                           X                 X           X           X                X
-XA9536XL            X
-XA9572XL            X    X    X
-XA95144XL                                                                                X
-XC9536XV  X         X                                                               X
-XC9572XV  X         X         X                                                     X
-XC95144XV                     X     X                                                    X
-XC95288XV                           X                 X                       X                X
-========= ==== ==== ==== ==== ===== ===== ===== ===== ===== ===== ===== ===== ===== ==== ===== =====
+.. include:: gen-devices-pkg.inc
 
 Pin compatibility is maintained across all 3 variants of the XC9500 family within a single package.
 Additionally, devices in PQ208 and HQ208 packages are pin compatible with each other.
@@ -166,5 +125,3 @@ The XC9500 family devices have the following pads:
 
 - ``TCK``, ``TMS``, ``TDI``, ``TDO``: dedicated JTAG pins; the ``TDO`` pin output driver
   is powered by one of the ``VCCIO`` rails
-
-.. todo:: include TDO bank information in database

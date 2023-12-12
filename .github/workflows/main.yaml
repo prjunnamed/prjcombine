@@ -16,7 +16,7 @@ jobs:
           pip install -r docs/requirements.txt
       - name: Build Sphinx documentation
         run: |
-          sphinx-build docs/ docs/_build/
+          make -C docs html
           touch docs/_build/.nojekyll
       - name: Publish documentation
         if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
