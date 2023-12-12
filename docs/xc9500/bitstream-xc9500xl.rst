@@ -115,103 +115,8 @@ columns 0-8 of rows 12-49 of the main area.  The formulas are as follows:
 - column: ``mc_idx % 9``
 - bit: ``6 + mc_idx // 9``
 
-The row is:
-
-- 12: ``PT[0].ALLOC`` bit 0
-- 13: ``PT[0].ALLOC`` bit 1
-- 14: ``PT[1].ALLOC`` bit 0
-- 15: ``PT[1].ALLOC`` bit 1
-- 16: ``PT[2].ALLOC`` bit 0
-- 17: ``PT[2].ALLOC`` bit 1
-- 18: ``PT[3].ALLOC`` bit 0
-- 19: ``PT[3].ALLOC`` bit 1
-- 20: ``PT[4].ALLOC`` bit 0
-- 21: ``PT[5].ALLOC`` bit 1
-- 22: ``INV``
-- 23: ``IMPORT_UP_ALLOC``
-- 24: ``IMPORT_DOWN_ALLOC``
-- 25: ``EXPORT_DIR``
-- 26: ``SUM_HP``
-- 27: ``OE_MUX`` bit 0
-- 28: ``OE_MUX`` bit 1
-- 29: ``OE_MUX`` bit 2
-- 30: ``OE_INV``
-- 31: unused
-- 32: ``OUT_MUX``
-- 33: ``CLK_MUX`` bit 0
-- 34: ``CLK_MUX`` bit 1
-- 35: ``CLK_INV``
-- 36: ``CE_MUX`` bit 0
-- 37: ``CE_MUX`` bit 1
-- 38: unused
-- 39: ``REG_MODE``
-- 40: ``RST_MUX``
-- 41: ``SET_MUX``
-- 42: ``INIT``
-- 43: ``IOB_GND``
-- 44: ``IOB_SLEW``
-- 45: ``PT[0].HP``
-- 46: ``PT[1].HP``
-- 47: ``PT[2].HP``
-- 48: ``PT[3].HP``
-- 49: ``PT[4].HP``
-
-The fuse combination assignments are:
-
-- ``PT[*].ALLOC``:
-
-  - ``00``: ``NONE``
-  - ``01``: ``SUM``
-  - ``10``: ``EXPORT``
-  - ``11``: ``SPECIAL``
-
-- ``IMPORT_*_ALLOC``:
-
-  - ``0``: ``EXPORT``
-  - ``1``: ``SUM``
-
-- ``EXPORT_DIR``:
-
-  - ``0``: ``UP``
-  - ``1``: ``DOWN``
-
-- ``OUT_MUX``:
-
-   - ``0``: ``COMB``
-   - ``1``: ``FF``
-
-- ``CLK_MUX``:
-
-  - ``00``: ``FCLK1``
-  - ``01``: ``FCLK0``
-  - ``10``: ``FCLK2``
-  - ``11``: ``PT``
-
-- ``CE_MUX``:
-
-  - ``00``: ``NONE``
-  - ``01``: ``PT2``
-  - ``10``: ``PT3``
-
-- ``REG_MODE``:
-
-  - ``0``: ``DFF``
-  - ``1``: ``TFF``
-
-- ``RST_MUX``, ``SET_MUX``:
-
-  - ``0``: ``PT``
-  - ``1``: ``FSR``
-
-- ``IOB_SLEW``:
-
-  - ``0``: ``SLOW``
-  - ``1``: ``FAST``
-
-- everything else:
-
-  - ``0``: false
-  - ``1``: true
+.. raw:: html
+   :file: gen-tile-xc9500xl-mc.html
 
 
 Fuses — FB inputs
@@ -230,44 +135,14 @@ The exact bit assignments are irregular and should be obtained from the database
 Fuses — per-FB bits and globals
 ===============================
 
-Per-FB bits are stored in row 78, columns 0-8, bits 6-7.  The bits are (row, column, bit):
+Per-FB bits are stored in row 78, columns 0-8, bits 6-7.  The bits are (row, bit, column):
 
-- (78, 0, 6): ``ENABLE``
-- (78, 1, 6): ``EXPORT_ENABLE``
-- (78, 6, 6): ``PULLUP_DISABLE``
+.. raw:: html
+   :file: gen-tile-xc9500xl-fb.html
 
-Global bits are stored in rows (2, 6, 7), columns 0-8, bits 6-7 of FB 0.  The bits are (row, column, bit):
+Global bits are stored in rows (2, 6, 7), columns 0-8, bits 6-7 of FB 0.  The bits are (fb, row, bit, column):
 
-- (2, 0, 6): ``FSR_INV``
-- (2, 1, 6): ``FCLK[0].EN``
-- (2, 2, 6): ``FCLK[1].EN``
-- (2, 3, 6): ``FCLK[2].EN``
-- (2, 4, 6): ``FOE[0].EN``
-- (2, 5, 6): ``FOE[1].EN``
-- (2, 6, 6): ``FOE[2].EN``
-- (2, 7, 6): ``FOE[3].EN``
-- (2, 8, 6): ``KEEPER``
-- (6, i, j) for i < 8, j in (6, 7): ``USERCODE`` bit ``16 + (7 - i) * 2 + (j - 6)``
-- (7, i, j) for i < 8, j in (6, 7): ``USERCODE`` bit ``(7 - i) * 2 + (j - 6)``
+.. raw:: html
+   :file: gen-tile-xc9500xl-global.html
 
-The fuse combination assignments are:
-
-- ``USERCODE``: each bit stored directly
-
-- everything else:
-
-  - ``0``: false
-  - ``1``: true
-
-
-Fuses — protection bits, DONE
-=============================
-
-The protection bits are stored as follows (row, column, bit) in every FB:
-
-- (11, 0, 6): ``WRITE_PROT``
-- (11, 3, 6): ``READ_PROT``
-
-The ``DONE`` bit is stored only once, in FB 0:
-
-- (11, 6, 6): ``DONE``
+The ``DONE`` bit is only applicable to XC9500XV.
