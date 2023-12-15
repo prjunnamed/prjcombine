@@ -270,7 +270,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
     .enumerate()
     {
         res.items.insert(
-            format!("PT.{i}.ALLOC"),
+            format!("PT[{i}].ALLOC"),
             extract_mc_enum(
                 device,
                 fpart,
@@ -284,7 +284,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
             ),
         );
         res.items.insert(
-            format!("PT.{i}.HP"),
+            format!("PT[{i}].HP"),
             extract_mc_bool(device, fpart, |mcbits| {
                 Some(mcbits.pt.as_ref().unwrap()[pt].hp)
             }),
@@ -306,7 +306,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
         );
     }
     res.items.insert(
-        "EXPORT_DIR".to_string(),
+        "EXPORT_CHAIN_DIR".to_string(),
         extract_mc_enum(
             device,
             fpart,
@@ -822,15 +822,15 @@ fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
             fpart,
             |fbbits| Some(&fbbits.imux[im]),
             |val| match val {
-                ImuxInput::Fbk(mc) => format!("FBK.{mc}"),
-                ImuxInput::Mc((fb, mc)) => format!("MC.{fb}.{mc}"),
-                ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB.{fb}.{mc}"),
+                ImuxInput::Fbk(mc) => format!("FBK_{mc}"),
+                ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
+                ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
                 ImuxInput::Uim => "UIM".to_string(),
                 _ => unreachable!(),
             },
             "NONE",
         );
-        tile.items.insert(format!("IMUX.{im}"), item);
+        tile.items.insert(format!("IM[{im}].MUX"), item);
     }
     tile
 }
@@ -847,7 +847,7 @@ fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitC
         assert_eq!(bits.len(), 2);
         for (i, bit) in bits.iter().copied().enumerate() {
             res.items.insert(
-                format!("FB.{fb}.MC.{mc}.IBUF_UIM_ENABLE.{i}"),
+                format!("FB[{fb}].MC[{mc}].IBUF_UIM_ENABLE.{i}"),
                 extract_global_bool(device, fpart, bit),
             );
         }
@@ -1296,7 +1296,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             "idcode": device.idcode,
             "fbs": device.fbs,
             "ios": serde_json::Map::from_iter(
-                device.io.iter().map(|(&(fb, mc), bank)| (format!("{fb}.{mc}"), json!(bank)))
+                device.io.iter().map(|(&(fb, mc), bank)| (format!("IOB_{fb}_{mc}"), json!(bank)))
             ),
             "banks": device.banks,
             "tdo_bank": device.tdo_bank,
@@ -1320,7 +1320,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                             xc9500::Pad::Gnd => "GND".to_string(),
                             xc9500::Pad::VccInt => "VCCINT".to_string(),
                             xc9500::Pad::VccIo(bank) => format!("VCCIO{bank}"),
-                            xc9500::Pad::Iob(fb, mc) => format!("MC_{fb}_{mc}"),
+                            xc9500::Pad::Iob(fb, mc) => format!("IOB_{fb}_{mc}"),
                             xc9500::Pad::Tms => "TMS".to_string(),
                             xc9500::Pad::Tck => "TCK".to_string(),
                             xc9500::Pad::Tdi => "TDI".to_string(),

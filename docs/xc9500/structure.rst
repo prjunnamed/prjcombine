@@ -92,8 +92,8 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 
   - ``NONE``: the input is a constant 0 (for unused inputs)
   - ``UIM``: the input is a wire-AND of MC outputs (and the second set of fuses is relevant)
-  - ``FBK_MC{k}``: the input is routed through fast feedback path from ``FB[i].MC[k].OUT``
-  - ``PAD_FB{k}_MC{l}``: the input is routed from an input buffer ``FB[k].MC[l].IOB.I``
+  - ``FBK_{k}``: the input is routed through fast feedback path from ``FB[i].MC[k].OUT``
+  - ``IOB_{k}_{l}``: the input is routed from an input buffer ``FB[k].MC[l].IOB.I``
 
   The allowable combinations differ between inputs within a single FB, but don't differ across
   FBs within a single device.  In other words, the set of allowed values for these fuses
@@ -115,8 +115,8 @@ Each FB has 54 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 - mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
 
   - ``NONE``: the input is disabled and will have indeterminate state (for unused inputs)
-  - ``FB{k}_MC{l}``: the input is routed from the macrocell output ``FB[k].MC[l].OUT``
-  - ``PAD_FB{k}_MC{l}``: the input is routed from the input buffer ``FB[k].MC[l].IOB.I``
+  - ``MC_{k}_{l}``: the input is routed from the macrocell output ``FB[k].MC[l].OUT``
+  - ``IOB_{k}_{l}``: the input is routed from the input buffer ``FB[k].MC[l].IOB.I``
 
   The allowable combinations differ between inputs within a single FB, but don't differ across
   FBs within a single device.  In other words, the set of allowed values for these fuses
@@ -197,12 +197,12 @@ Imported terms from a given direction can be used for either the main sum term, 
 
 Note that export behavior is slightly different depending on whether the importing MC allocates the imported
 terms towards its own sum term or reexport: if ``SUM`` allocation is selected, the exporting MC's PTs are always
-visible.  However, if ``EXPORT`` allocation is selected, the exporting MC's PTs are visible only if its ``EXPORT_DIR``
+visible.  However, if ``EXPORT`` allocation is selected, the exporting MC's PTs are visible only if its ``EXPORT_CHAIN_DIR``
 matches the import direction.
 
 PT import/export is controlled by the following per-MC fuses:
 
-- ``FB[i].MC[j].EXPORT_DIR``: one of:
+- ``FB[i].MC[j].EXPORT_CHAIN_DIR``: one of:
 
   - ``DOWN``: enables export through ``EXPORT_CHAIN_DOWN``
   - ``UP``: enables export through ``EXPORT_CHAIN_UP``
@@ -230,8 +230,8 @@ Export works as follows::
         (FB[i].MC[j].PT[3].ALLOC == EXPORT ? FB[i].MC[j].PT[3] : 0) |
         (FB[i].MC[j].PT[4].ALLOC == EXPORT ? FB[i].MC[j].PT[4] : 0);
 
-    FB[i].MC[j].EXPORT_CHAIN_UP = ((FB[i].MC[j].EXPORT_DIR == UP && (FB[i].EXPORT_ENABLE || j != 0)) ? FB[i].MC[j].EXPORT_SUM : 0);
-    FB[i].MC[j].EXPORT_CHAIN_DOWN = (FB[i].MC[j].EXPORT_DIR == DOWN ? FB[i].MC[j].EXPORT_SUM : 0);
+    FB[i].MC[j].EXPORT_CHAIN_UP = ((FB[i].MC[j].EXPORT_CHAIN_DIR == UP && (FB[i].EXPORT_ENABLE || j != 0)) ? FB[i].MC[j].EXPORT_SUM : 0);
+    FB[i].MC[j].EXPORT_CHAIN_DOWN = (FB[i].MC[j].EXPORT_CHAIN_DIR == DOWN ? FB[i].MC[j].EXPORT_SUM : 0);
 
 
 Sum term, XOR gate
@@ -306,9 +306,9 @@ On XC9500, the FF works as follows::
 
     case(FB[i].MC[j].CLK_MUX)
     PT: FB[i].MC[j].CLK = FB[i].MC[j].PT[0].SPECIAL;
-    FCLK0: FB[i].MC[j].CLK = FCLK[0];
-    FCLK1: FB[i].MC[j].CLK = FCLK[1];
-    FCLK2: FB[i].MC[j].CLK = FCLK[2];
+    FCLK0: FB[i].MC[j].CLK = FCLK0;
+    FCLK1: FB[i].MC[j].CLK = FCLK1;
+    FCLK2: FB[i].MC[j].CLK = FCLK2;
     endcase
 
     case(FB[i].MC[j].RST_MUX)
@@ -336,9 +336,9 @@ On XC9500XL/XV, the FF works as follows::
 
     case(FB[i].MC[j].CLK_MUX)
     PT: FB[i].MC[j].CLK = FB[i].MC[j].PT[0].SPECIAL ^ FB[i].MC[j].CLK_INV;
-    FCLK0: FB[i].MC[j].CLK = FCLK[0] ^ FB[i].MC[j].CLK_INV;
-    FCLK1: FB[i].MC[j].CLK = FCLK[1] ^ FB[i].MC[j].CLK_INV;
-    FCLK2: FB[i].MC[j].CLK = FCLK[2] ^ FB[i].MC[j].CLK_INV;
+    FCLK0: FB[i].MC[j].CLK = FCLK0 ^ FB[i].MC[j].CLK_INV;
+    FCLK1: FB[i].MC[j].CLK = FCLK1 ^ FB[i].MC[j].CLK_INV;
+    FCLK2: FB[i].MC[j].CLK = FCLK2 ^ FB[i].MC[j].CLK_INV;
     endcase
 
     case(FB[i].MC[j].RST_MUX)
@@ -568,23 +568,23 @@ Additionally, all networks can be inverted from their source pins.
 
 The fuses involved are:
 
-- ``FCLK[i].MUX``: selects the input routed to ``FCLK[i]``
+- ``FCLK{i}_MUX``: selects the input routed to ``FCLK{i}``
 
   - ``NONE``: const 0
-  - ``GCLK[i]``: the corresponding ``GCLK`` pad
+  - ``GCLK{i}``: the corresponding ``GCLK`` pad
 
-- ``FOE[i].MUX``: selects the input routed to ``FOE[i]``
+- ``FOE{i}_MUX``: selects the input routed to ``FOE{i}``
 
   - ``NONE``: const 0
-  - ``FOE[i]``: the corresponding ``FOE`` pad
+  - ``FOE{i}``: the corresponding ``GOE`` pad
 
   These fuses have two variants in the database: the ``SMALL`` variant is applicable
   for devices with 2 GOE pins, and the ``LARGE`` variant is applicable for devices
   with 4 GOE pins.
 
-- ``FCLK[i].INV``: if programmed, the ``GCLK`` pad is inverted before driving ``FCLK[i]`` network
-- ``FSR.INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
-- ``FOE[i].INV``: if programmed, the ``GOE`` pad is inverted before driving ``FOE[i]`` network
+- ``FCLK{i}_INV``: if programmed, the ``GCLK`` pad is inverted before driving ``FCLK{i}`` network
+- ``FSR_INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
+- ``FOE{i}_INV``: if programmed, the ``GOE`` pad is inverted before driving ``FOE{i}`` network
 
 .. todo:: no, really, what is it with the XC9572 GOE mapping varying between packages
 
@@ -593,14 +593,14 @@ Global networks — XC9500XL/XV
 =============================
 
 Global networks on XC9500XL/XV work similarly, except there are no muxes and no inversion (except for ``FSR``).
-Thus the ``GCLK[i]`` and ``GOE[i]`` pads are mapped 1-1 directly to ``FCLK[i]`` and ``FOE[i]`` networks, with only
+Thus the ``GCLK{i}`` and ``GOE{i}`` pads are mapped 1-1 directly to ``FCLK{i}`` and ``FOE{i}`` networks, with only
 an enable fuse.
 
 The fuses involved are:
 
-- ``FCLK[i].EN``: if programmed, the given ``FCLK`` network is active and connected to the ``GCLK[i]`` pad; otherwise, it's const-0
-- ``FOE[i].EN``: if programmed, the given ``FOE`` network is active and connected to the ``GOE[i]`` pad; otherwise, it's const-0
-- ``FSR.INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
+- ``FCLK{i}.ENABLE``: if programmed, the given ``FCLK`` network is active and connected to the ``GCLK{i}`` pad; otherwise, it's const-0
+- ``FOE{i}_ENABLE``: if programmed, the given ``FOE`` network is active and connected to the ``GOE{i}`` pad; otherwise, it's const-0
+- ``FSR_INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
 
 The ``FSR`` network is always enabled.
 

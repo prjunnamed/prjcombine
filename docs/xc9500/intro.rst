@@ -104,7 +104,7 @@ The XC9500 family devices have the following pads:
   - 2.5V or 3.3V on XC9500XL
   - 1.8V, 2.5V, or 3.3V on XC9500XV
 
-- ``FB{i}_MC{j}``: general purpose I/O, associated with a macrocell; some of them also have an associated
+- ``IOB_{i}_{j}``: general purpose I/O, associated with a macrocell (FB ``i``, MC ``j``); some of them also have an associated
   special function that can be used in addition to or instead of their plain I/O function:
 
   - ``GCLK[0-2]``: capable of driving ``FCLK*`` fast clock networks

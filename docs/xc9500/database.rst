@@ -43,7 +43,7 @@ from a :ref:`part <xc9500-db-part>`.  A device is an object with the following f
 - ``idcode`` (number): the JTAG IDCODE of the device
 - ``fbs`` (number): the number of FBs in the device
 - ``ios`` (map from string to number): describes the I/O pads available on the device.
-  The keys are of the form ``"<fb_idx>.<mc_idx>"`` and identify the MC that owns the IOB.
+  The keys are of the form ``"IOB_{fb_idx}_{mc_idx}"`` and identify the MC that owns the IOB.
   The value corresponding to the key is the bank index that the IOB belongs to.
 - ``banks`` (number): the number of I/O banks in the device
 - ``tdo_bank`` (number): the I/O bank index that is used to drive the TDO special pin
@@ -78,7 +78,7 @@ with the following fields:
 
   - ``NC``: unconnected pin
   - ``GND``, ``VCCINT``, ``VCCIO{bank}``: power and ground pins
-  - ``MC_{fb}_{mc}``: an I/O pin
+  - ``IOB_{fb}_{mc}``: an I/O pin
   - ``TMS``, ``TCK``, ``TDI``, ``TDO``: JTAG pins
 
 .. _xc9500-db-speed:

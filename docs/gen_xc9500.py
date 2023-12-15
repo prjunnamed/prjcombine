@@ -66,7 +66,7 @@ with open("xc9500/gen-devices-pkg.inc", "w") as f:
                     f.write(f"     - \\-\n")
 
 def gen_tile_items(f, tname, tile, sortflip):
-    for name, item in tile.items():
+    for name, item in sorted(tile.items(), key=lambda x: x[1]["bits"]):
         f.write(f"<table class=\"docutils align-default prjcombine-enum\" id=\"bits-{tname}-{name}\">\n")
         f.write(f"<tr><th>{name}</th>")
         for bit in reversed(item["bits"]):
@@ -214,7 +214,7 @@ for db in dbs:
                     if bond not in bonds:
                         pins = {}
                         io_special = {**device["io_special"], **db["bonds"][bond]["io_special_override"]}
-                        io_special_rev = {f"MC_{v[0]}_{v[1]}": k for k, v in io_special.items()}
+                        io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in io_special.items()}
                         # TODO io_special
                         for k, v in db["bonds"][bond]["pins"].items():
                             if v not in pins:
@@ -253,18 +253,16 @@ for db in dbs:
             f.write(f"     - Bank\n")
             for names, _ in bonds.values():
                 f.write(f"     - {', '.join(names)}\n")
-            for io, bank in sorted(device["ios"].items(), key=lambda io: (int(io[0].split(".")[0]), int(io[0].split(".")[1]))):
-                fb, mc = io.split(".")
-                pad = f"MC_{fb}_{mc}"
-                f.write(f"   - - {pad}\n")
+            for io, bank in sorted(device["ios"].items(), key=lambda io: (int(io[0].split("_")[1]), int(io[0].split("_")[2]))):
+                f.write(f"   - - {io}\n")
                 f.write(f"     - {bank}\n")
                 for _, pins in bonds.values():
-                    if pad in pins:
-                        spec = pins[pad][1]
+                    if io in pins:
+                        spec = pins[io][1]
                         if spec is not None:
-                            f.write(f"     - {pins[pad][0][0]} ({spec})\n")
+                            f.write(f"     - {pins[io][0][0]} ({spec})\n")
                         else:
-                            f.write(f"     - {pins[pad][0][0]}\n")
+                            f.write(f"     - {pins[io][0][0]}\n")
                     else:
                         f.write(f"     - \\-\n")
             for pad in ["TCK", "TMS", "TDI", "TDO"]:
