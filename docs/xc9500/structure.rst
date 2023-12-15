@@ -90,7 +90,7 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 
 - mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
 
-  - ``NONE``: the input is a constant ??? (for unused inputs)
+  - ``NONE``: the input is a constant 0 (for unused inputs)
   - ``UIM``: the input is a wire-AND of MC outputs (and the second set of fuses is relevant)
   - ``FBK_MC{k}``: the input is routed through fast feedback path from ``FB[i].MC[k].OUT``
   - ``PAD_FB{k}_MC{l}``: the input is routed from an input buffer ``FB[k].MC[l].IOB.I``
@@ -103,10 +103,6 @@ Each FB has 36 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
   wire-AND.  If a given fuse is set to 1 (ie. *not* programmed), it means that ``FB[k].MC[l].OUT_UIM``
   is included in the product.  These fuses are only relevant when the mux fuse set is set to ``UIM``.
 
-.. todo:: check ``NONE`` semantics
-
-.. todo:: verify ``FBK`` doesn't go through OE and inversion
-
 
 UIM and FB inputs — XC9500XL/XV
 ===============================
@@ -118,7 +114,7 @@ Each FB has 54 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
 
 - mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
 
-  - ``NONE``: the input is a constant ??? (for unused inputs)
+  - ``NONE``: the input is disabled and will have indeterminate state (for unused inputs)
   - ``FB{k}_MC{l}``: the input is routed from the macrocell output ``FB[k].MC[l].OUT``
   - ``PAD_FB{k}_MC{l}``: the input is routed from the input buffer ``FB[k].MC[l].IOB.I``
 
@@ -126,19 +122,17 @@ Each FB has 54 inputs, which we call ``FB[i].IM[j]``.  Each FB input is controll
   FBs within a single device.  In other words, the set of allowed values for these fuses
   depends only on the ``j`` coordinate, but not on ``i``.
 
-.. todo:: check ``NONE`` semantics
-
 
 FB global fuses
 ===============
 
 Each function block has two fuses controlling the entire FB:
 
-- ``FB[i].ENABLE``: function block enable; needs to be programmed to use this function block
-- ``FB[i].EXPORT_ENABLE``: function block PT export enable; needs to be programmed to use PT
-  import/export within this function block
-
-.. todo:: determine what these do exactly
+- ``FB[i].ENABLE``: function block enable; needs to be programmed to use this function block;
+  when not programmed, the product term circuitry will be powered off and all PTs will read as ``1``
+- ``FB[i].EXPORT_ENABLE``: function block PT export enable; should be programmed to use PT
+  import/export within this function block; disabling this masks MC 0 upwards chain export, breaking
+  a combinatorial loop that would otherwise form when no exports are used within a FB
 
 
 Product terms
@@ -186,25 +180,32 @@ has all product term inputs disabled.
 PT import/export
 ----------------
 
-Product terms can be borrowed between neighbouring MCs within a FB.  To this end, each MC has two outputs,
-``FB[i].MC[j].EXPORT_{UP|DOWN}``, and two inputs, ``FB[i].MC[j].IMPORT_{UP|DOWN}``.  The "down" direction
+Product terms can be borrowed between neighbouring MCs within a FB.  To this end, each MC has three outputs,
+``FB[i].MC[j].EXPORT{_SUM|_CHAIN_UP|_CHAIN_DOWN}``, and four inputs, ``FB[i].MC[j].IMPORT_{CHAIN|SUM}_{UP|DOWN}``.  The "down" direction
 corresponds to exporting PTs toward lower-numbered MCs (with a wraparound from 0 to 17), and the "up"
 direction corresponds to exporting PTs towards higher-numbered MCs (with a wraparound from 17 to 0).
 Accordingly, we have::
 
-    FB[i].MC[j].IMPORT_DOWN = FB[i].MC[(j + 1) % 18].EXPORT_DOWN;
-    FB[i].MC[j].IMPORT_UP = FB[i].MC[(j - 1) % 18].EXPORT_UP;
+    FB[i].MC[j].IMPORT_CHAIN_DOWN = FB[i].MC[(j + 1) % 18].EXPORT_CHAIN_DOWN;
+    FB[i].MC[j].IMPORT_CHAIN_UP = FB[i].MC[(j - 1) % 18].EXPORT_CHAIN_UP;
+    FB[i].MC[j].IMPORT_SUM_DOWN = FB[i].MC[(j + 1) % 18].EXPORT_SUM;
+    FB[i].MC[j].IMPORT_SUM_UP = FB[i].MC[(j - 1) % 18].EXPORT_SUM;
 
-A MC can only export product terms in one direction (up or down).
+For chaining purposes, a MC can only export product terms in one direction (up or down).
 Product terms can be imported from both directions at once.
 Imported terms from a given direction can be used for either the main sum term, or for further export, but not both at once.
+
+Note that export behavior is slightly different depending on whether the importing MC allocates the imported
+terms towards its own sum term or reexport: if ``SUM`` allocation is selected, the exporting MC's PTs are always
+visible.  However, if ``EXPORT`` allocation is selected, the exporting MC's PTs are visible only if its ``EXPORT_DIR``
+matches the import direction.
 
 PT import/export is controlled by the following per-MC fuses:
 
 - ``FB[i].MC[j].EXPORT_DIR``: one of:
 
-  - ``DOWN``: exports PTs downwards
-  - ``UP``: exports PTs upwards
+  - ``DOWN``: enables export through ``EXPORT_CHAIN_DOWN``
+  - ``UP``: enables export through ``EXPORT_CHAIN_UP``
 
 - ``FB[i].MC[j].IMPORT_UP_ALLOC``: one of:
 
@@ -220,19 +221,17 @@ Additionally, the per-FB ``FB[i].EXPORT_ENABLE`` fuse needs to be set if any ter
 
 Export works as follows::
 
-    FB[i].MC[j].EXPORT = 
-        (FB[i].MC[j].IMPORT_UP_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_UP : 0) |
-        (FB[i].MC[j].IMPORT_DOWN_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_DOWN : 0) |
+    FB[i].MC[j].EXPORT_SUM = 
+        (FB[i].MC[j].IMPORT_UP_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_CHAIN_UP : 0) |
+        (FB[i].MC[j].IMPORT_DOWN_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_CHAIN_DOWN : 0) |
         (FB[i].MC[j].PT[0].ALLOC == EXPORT ? FB[i].MC[j].PT[0] : 0) |
         (FB[i].MC[j].PT[1].ALLOC == EXPORT ? FB[i].MC[j].PT[1] : 0) |
         (FB[i].MC[j].PT[2].ALLOC == EXPORT ? FB[i].MC[j].PT[2] : 0) |
         (FB[i].MC[j].PT[3].ALLOC == EXPORT ? FB[i].MC[j].PT[3] : 0) |
         (FB[i].MC[j].PT[4].ALLOC == EXPORT ? FB[i].MC[j].PT[4] : 0);
 
-    FB[i].MC[j].EXPORT_UP = (FB[i].MC[j].EXPORT_DIR == UP ? FB[i].MC[j].EXPORT : 0);
-    FB[i].MC[j].EXPORT_DOWN = (FB[i].MC[j].EXPORT_DIR == DOWN ? FB[i].MC[j].EXPORT : 0);
-
-.. todo:: verify all of the above
+    FB[i].MC[j].EXPORT_CHAIN_UP = ((FB[i].MC[j].EXPORT_DIR == UP && (FB[i].EXPORT_ENABLE || j != 0)) ? FB[i].MC[j].EXPORT_SUM : 0);
+    FB[i].MC[j].EXPORT_CHAIN_DOWN = (FB[i].MC[j].EXPORT_DIR == DOWN ? FB[i].MC[j].EXPORT_SUM : 0);
 
 
 Sum term, XOR gate
@@ -241,8 +240,8 @@ Sum term, XOR gate
 Each macrocell has a main sum term, which includes all product terms and imports routed towards it::
 
     FB[i].MC[j].SUM = 
-        (FB[i].MC[j].IMPORT_UP_ALLOC == SUM ? FB[i].MC[j].IMPORT_UP : 0) |
-        (FB[i].MC[j].IMPORT_DOWN_ALLOC == SUM ? FB[i].MC[j].IMPORT_DOWN : 0) |
+        (FB[i].MC[j].IMPORT_UP_ALLOC == SUM ? FB[i].MC[j].IMPORT_SUM_UP : 0) |
+        (FB[i].MC[j].IMPORT_DOWN_ALLOC == SUM ? FB[i].MC[j].IMPORT_SUM_DOWN : 0) |
         (FB[i].MC[j].PT[0].ALLOC == SUM ? FB[i].MC[j].PT[0] : 0) |
         (FB[i].MC[j].PT[1].ALLOC == SUM ? FB[i].MC[j].PT[1] : 0) |
         (FB[i].MC[j].PT[2].ALLOC == SUM ? FB[i].MC[j].PT[2] : 0) |
@@ -369,8 +368,6 @@ On XC9500XL/XV, the FF works as follows::
         else if (FB[i].MC[j].CE)
             FB[i].MC[j].FF = FB[i].MC[j].XOR;
 
-.. todo:: verify (in particular, CE vs RST/SET shenanigans)
-
 
 Macrocell output — XC9500
 =========================
@@ -411,7 +408,7 @@ The output is routed to up to three places:
 The output to UIM additionally goes through (emulated) output enable logic, which can be used
 to implement emulated on-chip tristate buses in conjunction with the UIM wire-AND logic::
 
-    FB[i].MC[j].OUT_UIM = FB[i].MC[j].UIM_OE ? FB[i].MC[j].OUT ^ FB[i].MC[j].UIM_OUT_INV : 1;
+    FB[i].MC[j].OUT_UIM = (FB[i].MC[j].UIM_OE ? FB[i].MC[j].OUT : 1) ^ FB[i].MC[j].UIM_OUT_INV;
 
 The fuses involved are:
 
@@ -439,8 +436,6 @@ The fuses involved are:
 
 - ``FB[i].MC[j].UIM_OUT_INV``: if programmed, the output to UIM is inverted
 
-
-.. todo:: verify all of the above (in particular, feedback path vs OE and UIM out)
 
 
 Macrocell output — XC9500XL/XV
@@ -575,12 +570,12 @@ The fuses involved are:
 
 - ``FCLK[i].MUX``: selects the input routed to ``FCLK[i]``
 
-  - ``NONE``: const ???
+  - ``NONE``: const 0
   - ``GCLK[i]``: the corresponding ``GCLK`` pad
 
 - ``FOE[i].MUX``: selects the input routed to ``FOE[i]``
 
-  - ``NONE``: const ???
+  - ``NONE``: const 0
   - ``FOE[i]``: the corresponding ``FOE`` pad
 
   These fuses have two variants in the database: the ``SMALL`` variant is applicable
@@ -590,8 +585,6 @@ The fuses involved are:
 - ``FCLK[i].INV``: if programmed, the ``GCLK`` pad is inverted before driving ``FCLK[i]`` network
 - ``FSR.INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
 - ``FOE[i].INV``: if programmed, the ``GOE`` pad is inverted before driving ``FOE[i]`` network
-
-.. todo:: consts
 
 .. todo:: no, really, what is it with the XC9572 GOE mapping varying between packages
 
@@ -605,13 +598,11 @@ an enable fuse.
 
 The fuses involved are:
 
-- ``FCLK[i].EN``: if programmed, the given ``FCLK`` network is active and connected to the ``GCLK[i]`` pad
-- ``FOE[i].EN``: if programmed, the given ``FOE`` network is active and connected to the ``GOE[i]`` pad
+- ``FCLK[i].EN``: if programmed, the given ``FCLK`` network is active and connected to the ``GCLK[i]`` pad; otherwise, it's const-0
+- ``FOE[i].EN``: if programmed, the given ``FOE`` network is active and connected to the ``GOE[i]`` pad; otherwise, it's const-0
 - ``FSR.INV``: if programmed, the ``GSR`` pad is inverted before driving ``FSR`` network
 
 The ``FSR`` network is always enabled.
-
-.. todo:: what does disabled network do
 
 
 Misc configuration

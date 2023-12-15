@@ -86,6 +86,14 @@ The boundary register bit indices for ``FB[i].MC[j]`` are:
 
 All bits of the register are ``BC_1`` type cells.
 
+Note that the "programmed ground" feature is implemented outside of the boundary scan.  Thus,
+a macrocell with programmed ground enabled will show an output enable of ``0`` in ``INTEST``,
+and the ground connection will *not* be overriden by ``EXTEST``.
+
+For ``INTEST``, the output and output enable bits in boundary scan register are connected
+directly to the macrocell's data and ``IOB_OE`` outputs for all macrocells, even ones that
+do not have an IOB.
+
 .. todo:: details on the cell connection, EXTEST, INTEST semantics
 
 
