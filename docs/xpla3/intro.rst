@@ -1,8 +1,7 @@
 Introduction
 ############
 
-XPLA3 is a family of flash-based 3.3V CPLDs manufactured by Xilinx.  It is a derivative of the earlier XPLA architectures
-made by Phillips (whose CPLD division has been acquired by Xilinx).
+XPLA3 is a family of flash-based 3.3V CPLDs orignally designed by Philips, and later acquired by Xilinx (along with Philips entire CPLD division).  It is a derivative of Philips earlier XPLA and XPLA2 architectures.
 
 
 Devices
@@ -10,16 +9,7 @@ Devices
 
 The following devices exist:
 
-========= =============== =========
-Device    Function Blocks FB groups
-========= =============== =========
-XCR3032XL 2               1
-XCR3064XL 4               1
-XCR3128XL 8               2
-XCR3256XL 16              2
-XCR3384XL 24              3
-XCR3512XL 32              4
-========= =============== =========
+.. include:: gen-devices.inc
 
 Packages
 ========
@@ -65,16 +55,7 @@ The devices come in the following packages:
 
     - CP56
 
-========= ==== ==== ===== ===== ===== ==== ==== ===== ===== ===== =====
-Device    PC44 VQ44 VQ100 TQ144 PQ208 CP56 CS48 CS144 CS280 FT256 FG324
-========= ==== ==== ===== ===== ===== ==== ==== ===== ===== ===== =====
-XCR3032XL X    X                           X
-XCR3064XL X    X    X                 X    X
-XCR3128XL           X     X                     X
-XCR3256XL                 X     X                     X     X
-XCR3384XL                 X     X                           X     X
-XCR3512XL                       X                           X     X
-========= ==== ==== ===== ===== ===== ==== ==== ===== ===== ===== =====
+.. include:: gen-devices-pkg.inc
 
 Pin compatibility is maintained across devices within a single package, with one exception:
 

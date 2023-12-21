@@ -53,7 +53,7 @@ members = [
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
 	"prjcombine_sdf",
-	"prjcombine_xc9500",
+	"prjcombine_xc9500", "prjcombine_xpla3",
 ]
 resolver = "2"
 
@@ -109,6 +109,7 @@ prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
 prjcombine_sdf = { path = "prjcombine_sdf" }
 prjcombine_xc9500 = { path = "prjcombine_xc9500" }
+prjcombine_xpla3 = { path = "prjcombine_xpla3" }
 unnamed_entity = { version = "0.1", features = ["bitvec", "map", "serde"] }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }

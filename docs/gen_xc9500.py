@@ -215,7 +215,6 @@ for db in dbs:
                         pins = {}
                         io_special = {**device["io_special"], **db["bonds"][bond]["io_special_override"]}
                         io_special_rev = {f"IOB_{v[0]}_{v[1]}": k for k, v in io_special.items()}
-                        # TODO io_special
                         for k, v in db["bonds"][bond]["pins"].items():
                             if v not in pins:
                                 pins[v] = ([], io_special_rev.get(v))
