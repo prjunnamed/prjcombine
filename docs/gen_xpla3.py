@@ -182,6 +182,23 @@ for i, device in enumerate(db["devices"]):
         f.write(f"\n")
         f.write(f"FB cols: {len(device['fb_cols'])}\n")
         f.write(f"\n")
+        f.write(f".. list-table::\n")
+        f.write(f"   :header-rows: 1\n")
+        f.write(f"\n")
+        f.write(f"   - - Column range\n")
+        f.write(f"     - Bits\n")
+        items = []
+        for i, fbc in enumerate(device["fb_cols"]):
+            items.append((fbc["imux_col"], device["imux_width"], f"FB column {i} IMUX"))
+            items.append((fbc["pt_col"], 48, f"FB column {i} even PTs"))
+            items.append((fbc["pt_col"] + 48, 48, f"FB column {i} odd PTs"))
+            items.append((fbc["mc_col"], 5, f"FB column {i} even MCs"))
+            items.append((fbc["mc_col"] + 5, 5, f"FB column {i} odd MCs"))
+        items.sort()
+        for bit, width, item in items:
+            f.write(f"   - - {bit}..{bit+width}\n")
+            f.write(f"     - {item}\n")
+        f.write(f"\n")
         f.write(f"I/O pins\n")
         f.write(f"========\n")
         f.write(f"\n")
