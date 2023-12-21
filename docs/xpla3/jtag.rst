@@ -13,9 +13,11 @@ IR        Instruction     Register
 ``00001`` ``IDCODE``      ``IDCODE``
 ``00010`` ``SAMPLE``      ``BOUNDARY``
 ``00011`` ``INTEST``      ``BOUNDARY``
+``00100`` ``STRTEST``     ``STC``
 ``00101`` ``HIGHZ``       ``BYPASS``
 ``00110`` ``CLAMP``       ``BYPASS``
 ``00111`` ``ISP_WRITE``   ``MISR``
+``01000`` ``ISP_EOTF``    ``MISR``
 ``01001`` ``ISP_ENABLE``  ``MISR``
 ``01010`` ``ISP_ERASE``   ``MISR``
 ``01011`` ``ISP_PROGRAM`` ``MISR``
