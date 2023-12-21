@@ -561,7 +561,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                 .iter()
                 .map(|&bit| xlat_bit_raw(bit))
                 .collect(),
-            invert: true,
+            invert: false,
         }),
     );
     tile
