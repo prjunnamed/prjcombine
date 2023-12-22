@@ -627,7 +627,7 @@ fn extract_imux_bits(
                     ImuxInput::Ibuf(IoId::Ipad(ipad)) => format!("GCLK{}", ipad_to_gclk[ipad]),
                     ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
                     ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
-                    ImuxInput::Pup => "POR".to_string(),
+                    ImuxInput::Pup => "STARTUP".to_string(),
                     _ => unreachable!(),
                 };
                 let mut vbits = BitVec::repeat(true, dd.imux_width as usize);
