@@ -30,9 +30,9 @@ An XPLA3 device is made of:
       - LCT6: CLK, OE, UCTs (on XCR3032XL only)
       - LCT7: CLK, UCTs
 
-    - PT8-15: foldback NANDs, the PT outputs are inverted and fed back as possible inputs to all PTs in this FB
-    - PT16-31: fast data input to MC0-15, respectively
-    - PT32-47: dedicated CLK or CE input to MC0-15, respectively
+    - PT8-38 (even): fast data input to MC0-15, respectively
+    - PT9-39 (off): dedicated CLK or CE input to MC0-15, respectively
+    - PT40-47: foldback NANDs, the PT outputs are inverted and fed back as possible inputs to all PTs in this FB
 
   - 16 MCs (macrocells), each of which has:
 

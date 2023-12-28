@@ -11,6 +11,7 @@ unnamed_entity.workspace = true
 serde.workspace = true
 zstd.workspace = true
 bincode.workspace = true
+clap.workspace = true
 
 [lints]
 workspace = true
