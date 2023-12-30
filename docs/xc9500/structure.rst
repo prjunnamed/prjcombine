@@ -324,11 +324,13 @@ On XC9500, the FF works as follows::
     initial FB[i].MC[j].FF = FB[i].MC[j].REG_INIT;
 
     // Pretend the usual synth/sim mismatch doesn't happen.
-    always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST_MUX, posedge FB[i].MC[j].SET_MUX)
-        if (FB[i].MC[j].RST_MUX)
+    always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST, posedge FB[i].MC[j].SET)
+        if (FB[i].MC[j].RST)
             FB[i].MC[j].FF = 0;
-        else if (FB[i].MC[j].SET_MUX)
+        else if (FB[i].MC[j].SET)
             FB[i].MC[j].FF = 1;
+        else if (FB[i].MC[j].REG_MODE == TFF)
+            FB[i].MC[j].FF ^= FB[i].MC[j].XOR;
         else
             FB[i].MC[j].FF = FB[i].MC[j].XOR;
 
@@ -366,7 +368,10 @@ On XC9500XL/XV, the FF works as follows::
         else if (FB[i].MC[j].SET_MUX)
             FB[i].MC[j].FF = 1;
         else if (FB[i].MC[j].CE)
-            FB[i].MC[j].FF = FB[i].MC[j].XOR;
+            if (FB[i].MC[j].REG_MODE == TFF)
+                FB[i].MC[j].FF ^= FB[i].MC[j].XOR;
+            else
+                FB[i].MC[j].FF = FB[i].MC[j].XOR;
 
 
 Macrocell output — XC9500

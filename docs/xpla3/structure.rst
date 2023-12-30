@@ -76,62 +76,440 @@ An XPLA3 device is made of:
   - user electronic signature bits (free-form field, size varies with device)
   - read protection enable
 
+FB columns and rows
+===================
+
+The FBs in the device are organized in a 2D structure of columns and rows.
+
+Each FB column has its own branch of the ZIA, and actually contains two FBs per row:
+one on each side of the ZIA.  The FBs are nubered as follows:
+
+- Even-numbered FBs are on one side of the ZIA branch of their column, and odd-numbered are on
+  the other
+- When increasing FB number from odd to even, move to the next FB row
+- If already at the last FB row, move to the next FB column and first FB row
+
+For example, the xcr3384xl device is organized as follows:
+
+
++-----+-----------+-----------+-----------+
+| Row | Column 0  | Column 1  | Column 2  |
++=====+=====+=====+=====+=====+=====+=====+
+|  0  |  0  |  1  |  8  |  9  |  16 |  17 |
++-----+-----+-----+-----+-----+-----+-----+
+|  1  |  2  |  3  |  10 |  11 |  18 |  19 |
++-----+-----+-----+-----+-----+-----+-----+
+|  2  |  4  |  5  |  12 |  13 |  20 |  21 |
++-----+-----+-----+-----+-----+-----+-----+
+|  3  |  6  |  7  |  14 |  15 |  22 |  23 |
++-----+-----+-----+-----+-----+-----+-----+
 
 ZIA and FB inputs
 =================
 
-.. todo:: write me
+The core interconnect structure in XPLA3 devices is called ZIA, the Zero-power Interconnect Array.
+It is a classic CPLD design.
+
+Each FB has 40 inputs from ZIA, which we call ``FB[i].IM[j]``.  Each FB input is controlled
+by a set of fuses:
+
+- mux fuses (``FB[i].IM[j].MUX``) select what is routed to the input.  The combinations include:
+
+  - ``VCC``: the input is const 1 (for unused inputs)
+  - ``GND``: the input is const 0 (not very useful)
+  - ``MC_{k}_{l}``: the input is routed from the macrocell output ``FB[k].MC[l].MC_ZIA_OUT``
+  - ``IOB_{k}_{l}``: the input is routed from the macrocell output ``FB[k].MC[l].IOB_ZIA_OUT``
+  - ``GCLK{i}``: the input is routed from the input buffer of dedicated ``GCLK{i}`` pin;
+    for this choice to work, the relevant ``FB_COL[*].ZIA_GCLK{i}_ENABLE`` fuse has to be enabled
+  - ``STARTUP``: the input is routed to the special ``STARTUP`` network
+
+  The allowable combinations differ between inputs within a single FB, but don't differ across
+  FBs within a single device.  In other words, the set of allowed values for these fuses
+  depends only on the ``j`` coordinate, but not on ``i``.
+
+The ZIA lines corresponding to ``GCLK*`` inputs are gated, for the purpose for power saving.
+The gating is per-FB column, and is controlled by the following fuses:
+
+- ``FB_COL[i].ZIA_GCLK{j}_ENABLE``: if programmed, ``GCLK{i}`` can be routed through ZIA to FBs
+  within this column.  Otherwise, the ``GCLK{i}`` option above is non-functional and will result
+  in XXX.  Routing ``GCLK*`` to ``FCLK*`` is always possible, regardless of this fuse.
+
+.. todo:: check semantics of disabled ``GCLK*``
+
+The ``STARTUP`` net is a special device-wide net that is pulsed to ``1`` for a short time at device
+initialization, then remains at ``0`` afterwards.  It can be connected as the ``SET`` input
+to a register to effectively obtain a ``1``-initialized register.
 
 
 FCLK networks
 =============
 
-.. todo:: write me
+Every FB has two fast clock nets, ``FCLK[0-1]``.  They can be routed to the clock input
+of every MC within the FB.  They can be routed from ``GCLK*`` input pads in many combinations.
+
+The ``FCLK*`` routing is selected by a single fuse set per FB that selects both inputs
+at once:
+
+- ``FB[i].FCLK_MUX``: selects ``FCLK*`` routing for this FB.  The values are:
+
+  - ``GCLK{j}_GCLK{k}``: routes ``FCLK0`` to ``GCLK{j}`` and ``FCLK1`` to ``GCLK{k}``
+  - ``GCLK{j}_NONE``: routes ``FCLK0`` to ``GCLK{j}`` and ``FCLK1`` to const XXX
+  - ``NONE_GCLK{j}``: routes ``FCLK0`` to const XXX and ``FCLK1`` to ``GCLK{j}``
+  - ``NONE``: routes ``FCLK[0-1]`` to const XXX
+
+  See the database for the exact set of allowed values.
+
+.. todo:: check exact semantics of ``NONE``
 
 
 Product terms
 =============
 
-.. todo:: write me
+As the name suggests, XPLA3 has a PLA-like structure.  Each FB has 48 product terms, all of
+which are routable to sum terms of all MCs within that FB.  We call them ``FB[i].PT[j]``. In addition, each product term
+also has a single dedicated function it can be used for:
+
+- PTs 0-7 are used to derive Local Control Terms (LCTs), which can be routed to special inputs
+  of all MCs within the FB
+- PTs 8-38 (even) can be used as fast data input (D1) of MCs 0-15, respectively.  This data input
+  can be combined with the slower sum term input via a programmable LUT2.
+- PTs 9-39 (odd) can be used as dedicated clock or CE input to registers of MCs 0-15, respectively.
+- PTs 40-47 can be used for foldback NAND: the output of these product term is inverted and can
+  be further used as input to other product terms within the same FB.
+
+The inputs to all product terms within the FB are the same and include:
+
+- the 40 ``FB[i].IM[*]`` signals, both true and negated
+- the 8 foldback NAND signals from the same FB, ``FB[i].PT[40-47]``, negated only
+
+The fuses controlling a product term are:
+
+- ``FB[i].PT[j].IM[k].P``: if programmed (set to 0), ``FB[i].IM[k]`` is included in the product term (true polarity)
+- ``FB[i].PT[j].IM[k].N``: if programmed (set to 0), ``~FB[i].IM[k]`` is included in the product term (inverted polarity)
+- ``FB[i].PT[j].FBN[k]``: if programmed (set to 0), ``~FB[i].PT[40+k]`` is included in the product term (foldback NAND, inverted polarity)
 
 
 Local control terms
 -------------------
 
-.. todo:: write me
+Every FB has 8 LCTs (local control terms), which are derived from PT 0-7 respectively, via an optional inversion::
+
+  FB[i].LCT{j} = FB[i].PT[j] ^ FB[i].LCT{j}_INV
+
+The fuses controlling LCTs are:
+
+- ``FB[i].LCT{j}_INV``: if programmed, LCT j is inverse of PT j; otherwise LCT j is equal to PT jed_to_jtag
+
+The LCTs can be used for the following purposes:
+
+=== === === === == == ===
+LCT CLK RST SET CE OE UCT
+=== === === === == == ===
+0   \-  X   X   \- X  \-
+1   \-  X   X   \- X  \-
+2   \-  X   X   \- X  \-
+3   \-  X   X   \- \- \-
+4   X   X   X   X  \- \-
+5   X   X   X   \- \- \-
+6   X   \-  \-  \- X  \*
+7   X   \-  \-  \- \- X
+=== === === === == == ===
+
+\*: on XCR3032XL only
 
 
 Universal control terms
 -----------------------
 
-.. todo:: write me
+The device has 4 UCTs (universal control terms).  On the XCR3032XL, all UCTs are routable
+from LCT6 and LCT7 of all FBs.  On other devices, all the UCTs are routaeble from only LCT7 off
+all FBs.
+
+The UCTs can be routed to special inputs of all macrocells on the device.  They have fixed functions:
+
+- UCT 0: can be routed to OE of all MCs
+- UCT 1: can be routed to RST of all MCs
+- UCT 2: can be routed to SET of all MCs
+- UCT 3: can be routed to CLK of all MCs
+
+The "universal" name is a slight misnomer.  On all devices other than XCR3512XL, the UCTs are truly
+universal and cover the entire device.  However, on XCR3512XL, the FBs of the device are
+divided into two FB groups, and each group has their own UCT muxes.  The vendor toolchain doesn'T
+make use of this functionality and always mirrors UCT mux setting between the two groups.
+
+The relevant fuse sets are:
+
+- ``FB_GROUP[i].UCT{j}``: selects the signal routed to ``UCT{j}`` of FB group ``i`` (all devices other than XCR3512XL have only FB group 0)
+
+  - ``FB{k}_LCT{l}``: the UCT is driven by the given LCT of the given FB
+  - ``NONE``: the UCT is unused and will be const-XXX
+
+.. todo:: const
+
+.. todo:: exact FB assignment to groups on XCR3512XL
 
 
 Sum term, LUT2
 ==============
 
-.. todo:: write me
+Every MC in the device has a sum term, ``FB[i].MC[j].SUM``, which can be constructed from all
+product terms within the same FB.  Is is controlled by the following fuses:
+
+- ``FB[i].MC[j].SUM.PT[k]``: if programmed (set to 0), ``FB[i].PT[k]`` is included in the sum term for ``FB[i].MC[j]``
+
+The sum term, together with the fast input product term, are fed into a programmable LUT2 which
+determines the given macrocell's combinatorial output and can also be routed to the register's
+data input.  The LUT2 can be used for many purposes:
+
+- select between the sum term and the fast product term
+- serve as a XOR or AND gate between the sum term and fast product term
+- perform inversion
+
+The LUT2 is controlled by a fuse set:
+
+- ``FB[i].MC[j].LUT``: a 4-bit fuse set configuring the LUT2
+
+The LUT2 works as follows::
+
+  select = FB[i].MC[j].SUM | FB[i].PT[8 + j * 2] << 1
+  FB[i].MC[j].LUT_OUT = FB[i].MC[j].LUT[select]
 
 
 Register
 ========
 
-.. todo:: write me
+Each macrocell has a register.  It has:
+
+- four modes of operation:
+
+  - DFF
+  - TFF
+  - D latch
+  - DFF with clock enable
+
+- D or T input routable from one of:
+
+  - LUT output
+  - pad input buffer (so-called fast input register)
+
+- clock or gate input routable from one of:
+
+  - ``FCLK*``
+  - ``LCT[4-7]``
+  - ``UCT3``
+  - dedicated per-MC product term
+
+- configurable inversion on the clock or gate input
+
+- (in DFF with clock enable mode only) clock enable input routable to one of:
+
+  - dedicated per-MC product term
+  - ``LCT4``
+
+- asynchronous reset, routable from:
+
+  - ``LCT[0-5]``
+  - ``UCT1``
+  - const-0
+
+- asynchronous set, routable from:
+
+  - ``LCT[0-5]``
+  - ``UCT2``
+  - const-0
+
+- initial state of 0
+
+
+The fuses involved are:
+
+- ``FB[i].MC[j].CLK_MUX``: selects CLK input
+
+  - ``PT``: dedicated product term ``9 + j * 2``
+  - ``FCLK[0-1]``: per-FB ``FCLK[0-1]`` network
+  - ``LCTx``: per-FB local control term
+  - ``UCT3``: universal control term
+
+- ``FB[i].MC[j].CLK_INV``: if programmed, the CLK input is inverted (ie. clock is negedge)
+
+- ``FB[i].MC[j].RST_MUX``: selects RST input
+
+  - ``LCTx``: per-FB local control term
+  - ``UCT1``: universal control term
+  - ``GND``: const 0
+
+- ``FB[i].MC[j].SET_MUX``: selects SET input
+
+
+  - ``LCTx``: per-FB local control term
+  - ``UCT1``: universal control term
+  - ``GND``: const 0
+
+- ``FB[i].MC[j].CE_MUX``: selects CE input (only relevant in ``DFFCE`` mode)
+
+  - ``PT``: dedicated product term ``9 + j * 2``
+  - ``LCTx``: per-FB local control term
+
+- ``FB[i].MC[j].REG_MODE``: selects FF mode
+
+  - ``DFF``
+  - ``TFF``
+  - ``LATCH``
+  - ``DFFCE``
+
+
+The register works as follows::
+
+    case(FB[i].MC[j].CLK_MUX)
+    PT: FB[i].MC[j].CLK = FB[i].PT[9 + j * 2]. ^ FB[i].MC[j].CLK_INV;
+    LCTx: FB[i].MC[j].CLK = FB[i].LCTx ^ FB[i].MC[j].CLK_INV;
+    UCT3: FB[i].MC[j].CLK = FB_GROUP[fb_to_fb_group(i)].UCT3 ^ FB[i].MC[j].CLK_INV;
+    FCLKx: FB[i].MC[j].CLK = FB[i].FCLKx ^ FB[i].MC[j].CLK_INV;
+    endcase
+
+    case(FB[i].MC[j].RST_MUX)
+    LCTx: FB[i].MC[j].RST = FB[i].LCTx;
+    UCT1: FB[i].MC[j].RST = FB_GROUP[fb_to_fb_group(i)].UCT1;
+    GND: FB[i].MC[j].RST = 0;
+    endcase
+
+    case(FB[i].MC[j].SET_MUX)
+    LCTx: FB[i].MC[j].SET = FB[i].LCTx;
+    UCT2: FB[i].MC[j].SET = FB_GROUP[fb_to_fb_group(i)].UCT2;
+    GND: FB[i].MC[j].SET = 0;
+    endcase
+
+    case(FB[i].MC[j].CE_MUX)
+    PT: FB[i].MC[j].CE = FB[i].PT[9 + j * 2];
+    LCT4: FB[i].MC[j].CE = FB[i].LCT4;
+    endcase
+
+    case(FB[i].MC[j].REG_D_MUX)
+    LUT: FB[i].MC[j].REG_D = FB[i].MC[j].LUT_OUT;
+    IBUF: FB[i].MC[j].REG_D = FB[i].MC[j].IOB.I;
+    endcase
+
+    initial FB[i].MC[j].REG = 0;
+
+    case(FB[i].MC[j].REG_MODE)
+    // Pretend the usual synth/sim mismatch doesn't happen.
+    DFF:
+        always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST, posedge FB[i].MC[j].SET)
+            if (FB[i].MC[j].RST)
+                FB[i].MC[j].REG = 0;
+            else if (FB[i].MC[j].SET)
+                FB[i].MC[j].REG = 1;
+            else
+                FB[i].MC[j].REG = FB[i].MC[j].REG_D;
+    TFF:
+        always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST, posedge FB[i].MC[j].SET)
+            if (FB[i].MC[j].RST)
+                FB[i].MC[j].REG = 0;
+            else if (FB[i].MC[j].SET)
+                FB[i].MC[j].REG = 1;
+            else
+                FB[i].MC[j].REG ^= FB[i].MC[j].REG_D;
+    LATCH:
+        always @*
+            if (FB[i].MC[j].RST)
+                FB[i].MC[j].REG = 0;
+            else if (FB[i].MC[j].SET)
+                FB[i].MC[j].REG = 1;
+            else if (FB[i].MC[j].CLK)
+                FB[i].MC[j].REG = FB[i].MC[j].REG_D;
+    DFFCE:
+        always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST, posedge FB[i].MC[j].SET)
+            if (FB[i].MC[j].RST)
+                FB[i].MC[j].REG = 0;
+            else if (FB[i].MC[j].SET)
+                FB[i].MC[j].REG = 1;
+            else if (FB[i].MC[j].CE)
+                FB[i].MC[j].REG = FB[i].MC[j].REG_D;
+    endcase
+
+.. todo:: there are unknown bits involved
 
 
 Macrocell and IOB outputs
 =========================
 
-.. todo:: write me
+Macrocells come in two variants: ones with IOBs and buried macrocells (without IOBs).
+
+A macrocell with IOB has two outputs to ZIA:
+
+- ``FB[i].MC[j].MC_ZIA_OUT``: routable from the LUT2 or register output
+- ``FB[i].MC[j].IOB_ZIA_OUT``: routable from the IOB's input buffer or register output
+
+A macrocell with IOB also has an output to the IOB:
+
+- ``FB[i].MC[j].MC_IOB_OUT``: routable from the LUT2 or register output
+
+The muxes for all three of the above signals are independent, allowing any two of
+IBUF, LUT2, and register output to be routed to the ZIA, and also independently connect
+either LUT2 or register output to the output buffer.
+
+A buried macrocell has only one output to ZIA, ``FB[i].MC[j].MC_ZIA_OUT``.  It is thus
+not possible to use both its combinatorial and registered output at the same time.
+
+The fuses involved are:
+
+- ``FB[i].MC[j].MC_ZIA_MUX``: controls routing to ``FB[i].MC[j].MC_ZIA_OUT``
+
+  - ``REG``: routes from ``FB[i].MC[j].REG``
+  - ``LUT``: routes from ``FB[i].MC[j].LUT_OUT``
+
+- ``FB[i].MC[j].MC_IOB_MUX``: controls routing to ``FB[i].MC[j].MC_IOB_OUT``
+
+  - ``REG``: routes from ``FB[i].MC[j].REG``
+  - ``LUT``: routes from ``FB[i].MC[j].LUT_OUT``
+
+- ``FB[i].MC[j].IOB_ZIA_MUX``: controls routing to ``FB[i].MC[j].IOB_ZIA_OUT``
+
+  - ``REG``: routes from ``FB[i].MC[j].REG``
+  - ``IBUF``: routes from ``FB[i].MC[j].IOB.I``
 
 
 Input/output buffer
 ===================
 
-.. todo:: write me
+All I/O buffers (except ``GCLK*`` pins which are input-only) are associated with a macrocell.
+Not all MCs have associated IOBs.
+
+The output buffer is controlled by the ``FB[i].MC[j].MC_IOB_OUT`` and ``FB[i].MC[j].OE`` signals of the macrocell.
+
+The OE signal is routable from:
+
+- ``GND``: const-0 (input-only pin)
+- ``VCC``: const-1 (output-only pin)
+- ``LCT[0126]``: local control terms
+- ``UCT0``: universal control term
+- ``PULLUP``: special option; like ``GND``, but also enables a weak pull-up on the pin
+
+The output slew rate is programmable between two settings, "fast" and "slow".
+
+Each I/O buffer has the following fuses:
+
+- ``FB[i].MC[j].OE_MUX``: selects output enable source
+
+  - ``GND``: const-0
+  - ``VCC``: const-1
+  - ``LCTx``: per-FB local control term
+  - ``UCT1``: universal control term
+  - ``PULLUP``: const-0 and enable weak pull-up resistor
+
+- ``FB[i].MC[j].IOB_SLEW``: selects slew rate, one of:
+
+  - ``SLOW``
+  - ``FAST``
 
 
 Misc configuration
 ==================
 
-.. todo:: write me
+The XPLA3 devices also have some global configuration fuses that affect the whole device:
+
+- ``READ_PROT``: if programmed, the device is read-protected, and the bitstream cannot be read back (except for UES area)
+- ``ISP_DISABLE``: if programmed, and not overriden by ``PORT_EN``, the special function of the JTAG pins is disabled, and the pins are controlled by the macrocells as normal I/O; if not programmed, the JTAG pins retain their special functions and the relevant IOBs are disconnected from macrocell control
+- ``UES`` (user electronic signature): this scratchpad multi-bit field can be used for any user-defined purpose; it is exempt from read protection; the exact size of this field varies with device
+
+When used by ISE, the UES field stores 8-bit ASCII data, with MSB-first bit numbering (ie. bit 0 of ``UES`` is the MSB of first character).
