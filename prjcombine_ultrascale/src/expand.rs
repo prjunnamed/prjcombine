@@ -3125,7 +3125,7 @@ pub fn expand_grid<'a>(
     let mut cmty = 0;
     let mut gtby = 0;
     let mgrid = grids[grid_master];
-    let mut tmp = enum_map!(_ => 0);
+    let mut tmp = EnumMap::from_fn(|_| 0);
     let mut hardxlut = EntityPartVec::new();
     for (i, hc) in mgrid.cols_hard.iter().enumerate() {
         hardxlut.insert(hc.col, tmp);

@@ -1,5 +1,5 @@
 use core::cmp::Ordering;
-use enum_map::{enum_map, EnumMap};
+use enum_map::EnumMap;
 use prjcombine_int::db::{Dir, IntDb, NodeRawTileId};
 use prjcombine_int::grid::{
     ColId, Coord, ExpandedDieRefMut, ExpandedGrid, ExpandedTileNode, Rect, RowId,
@@ -2532,7 +2532,7 @@ impl Grid {
             spine_frame: EntityVec::new(),
             bram_frame: EntityVec::new(),
             iob_frame: HashMap::new(),
-            reg_frame: enum_map! { _ => 0 },
+            reg_frame: EnumMap::from_fn(|_| 0),
         };
 
         expander.fill_rxlut();

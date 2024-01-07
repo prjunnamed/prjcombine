@@ -8,7 +8,7 @@ use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
 
-use enum_map::enum_map;
+use enum_map::{enum_map, EnumMap};
 
 const BOT_KINDS: [&str; 4] = ["BOT", "BOTS", "BOTSL", "BOTRR"];
 const TOP_KINDS: [&str; 4] = ["TOP", "TOPS", "TOPSL", "TOPRR"];
@@ -157,7 +157,7 @@ fn fill_io_double_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
     );
 
     for i in 0..4 {
-        let mut wires = enum_map!(_ => vec![]);
+        let mut wires = EnumMap::from_fn(|_| vec![]);
 
         for j in 0..3 {
             for dir in Dir::DIRS {
@@ -345,7 +345,7 @@ fn fill_octal_wires(builder: &mut IntBuilder) {
 }
 
 fn fill_io_octal_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
-    let mut wires = enum_map!(_ => vec![]);
+    let mut wires = EnumMap::from_fn(|_| vec![]);
 
     let bdir = enum_map!(
         Dir::S => Dir::W,

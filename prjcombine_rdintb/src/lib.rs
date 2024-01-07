@@ -13,7 +13,7 @@ use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
 
-use enum_map::{enum_map, EnumMap};
+use enum_map::EnumMap;
 use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
@@ -1320,7 +1320,7 @@ impl<'a> IntBuilder<'a> {
         Self {
             rd,
             db,
-            main_passes: enum_map!(_ => Default::default()),
+            main_passes: Default::default(),
             node_types: vec![],
             injected_node_types: vec![],
             stub_outs: Default::default(),

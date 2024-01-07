@@ -4,7 +4,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use enum_map::enum_map;
+use enum_map::EnumMap;
 use prjcombine_xilinx_cpld::types::{ClkPadId, FbId, FbMcId, FbnId, ImuxId, IpadId, PTermId};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
@@ -460,7 +460,7 @@ pub fn parse(s: &str) -> Result<Vm6, ParseError> {
         dge: None,
         iostd_default: None,
         iostd: Default::default(),
-        utc: enum_map! {_ => None},
+        utc: EnumMap::from_fn(|_| None),
         cdr: None,
         prohibit_pins: Default::default(),
         vref: Default::default(),

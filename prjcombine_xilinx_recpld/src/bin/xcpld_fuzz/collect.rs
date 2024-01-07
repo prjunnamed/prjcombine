@@ -4,7 +4,7 @@ use core::fmt::Debug;
 use core::hash::Hash;
 use std::collections::{hash_map::Entry, HashMap};
 
-use enum_map::enum_map;
+use enum_map::EnumMap;
 use itertools::Itertools;
 use prjcombine_vm6::NodeKind;
 use prjcombine_xilinx_cpld::{
@@ -286,13 +286,20 @@ impl Collector<'_> {
 
     fn collect_pt(&mut self) {
         for mc in self.backend.device.mcs() {
-            let mcd = enum_map!(pt => {
-                let and: EntityVec<ImuxId, (InvBit, InvBit)> = self.backend.device.fb_imuxes().map(|imid| {
-                    (
-                        self.state.collect_single(FuzzerInfo::McPTermImux(mc, pt, imid, true)),
-                        self.state.collect_single(FuzzerInfo::McPTermImux(mc, pt, imid, false)),
-                    )
-                }).collect();
+            let mcd = EnumMap::from_fn(|pt| {
+                let and: EntityVec<ImuxId, (InvBit, InvBit)> = self
+                    .backend
+                    .device
+                    .fb_imuxes()
+                    .map(|imid| {
+                        (
+                            self.state
+                                .collect_single(FuzzerInfo::McPTermImux(mc, pt, imid, true)),
+                            self.state
+                                .collect_single(FuzzerInfo::McPTermImux(mc, pt, imid, false)),
+                        )
+                    })
+                    .collect();
                 let f_d2 = FuzzerInfo::McOrTerm(mc, NodeKind::McSiD2, pt);
                 let f_exp = FuzzerInfo::McOrTerm(mc, NodeKind::McSiExport, pt);
                 let f_spec = FuzzerInfo::McSiSpec(mc, pt);
@@ -304,12 +311,17 @@ impl Collector<'_> {
                 let af = vec![
                     (PtAlloc::OrMain, self.state.collect(f_d2)),
                     (PtAlloc::OrExport, self.state.collect(f_exp)),
-                    (PtAlloc::Special,
+                    (
+                        PtAlloc::Special,
                         match pt {
                             Xc9500McPt::Clk => {
                                 let mut bits = self.state.peek(f_spec).clone();
                                 for i in 0..3 {
-                                    let obits = self.state.peek(FuzzerInfo::McClk(mc, ClkMuxVal::Fclk(FclkId::from_idx(i)), false));
+                                    let obits = self.state.peek(FuzzerInfo::McClk(
+                                        mc,
+                                        ClkMuxVal::Fclk(FclkId::from_idx(i)),
+                                        false,
+                                    ));
                                     for k in obits.keys() {
                                         bits.remove(k);
                                     }
@@ -323,18 +335,12 @@ impl Collector<'_> {
                                 }
                                 bits
                             }
-                            _ => {
-                                self.state.collect(f_spec)
-                            },
-                        }
-                    )
+                            _ => self.state.collect(f_spec),
+                        },
+                    ),
                 ];
                 let alloc = extract_enum(&af);
-                PtData {
-                    and,
-                    hp,
-                    alloc,
-                }
+                PtData { and, hp, alloc }
             });
 
             for pt in [Xc9500McPt::Clk, Xc9500McPt::Oe] {
@@ -495,9 +501,10 @@ impl Collector<'_> {
 
     fn collect_import(&mut self) {
         for mc in self.backend.device.mcs() {
-            self.bits.fbs[mc.0].mcs[mc.1].import = Some(enum_map! {
-                k => self.state.collect_single(FuzzerInfo::McOrExp(mc, NodeKind::McSiD2, k))
-            });
+            self.bits.fbs[mc.0].mcs[mc.1].import = Some(EnumMap::from_fn(|k| {
+                self.state
+                    .collect_single(FuzzerInfo::McOrExp(mc, NodeKind::McSiD2, k))
+            }));
         }
     }
 
@@ -851,62 +858,60 @@ impl Collector<'_> {
     }
 
     fn collect_ut(&mut self) {
-        let ut = enum_map! {
-            ut => {
-                let mut f = vec![];
-                for fb in self.backend.device.fbs() {
-                    for pt in [PTermId::from_idx(6), PTermId::from_idx(7)] {
-                        if pt.to_idx() == 6 && self.backend.device.fbs != 2 {
-                            continue;
-                        }
-                        let fi = FuzzerInfo::Ut(ut, fb, pt);
-                        let bit = self.bits.fbs[fb].ct_invert[pt];
-                        self.state.kill_fuzzer_bit(fi, invbit(bit));
-                        let mc = (FbId::from_idx(fb.to_idx() ^ 1), FbMcId::from_idx(0));
-                        match ut {
-                            Ut::Clk => {
-                                self.state.kill_fuzzer_bits_enum(
-                                    fi,
-                                    &self.bits.fbs[mc.0].mcs[mc.1].clk_mux,
-                                    &ClkMuxVal::Ut,
-                                );
+        let ut = EnumMap::from_fn(|ut| {
+            let mut f = vec![];
+            for fb in self.backend.device.fbs() {
+                for pt in [PTermId::from_idx(6), PTermId::from_idx(7)] {
+                    if pt.to_idx() == 6 && self.backend.device.fbs != 2 {
+                        continue;
+                    }
+                    let fi = FuzzerInfo::Ut(ut, fb, pt);
+                    let bit = self.bits.fbs[fb].ct_invert[pt];
+                    self.state.kill_fuzzer_bit(fi, invbit(bit));
+                    let mc = (FbId::from_idx(fb.to_idx() ^ 1), FbMcId::from_idx(0));
+                    match ut {
+                        Ut::Clk => {
+                            self.state.kill_fuzzer_bits_enum(
+                                fi,
+                                &self.bits.fbs[mc.0].mcs[mc.1].clk_mux,
+                                &ClkMuxVal::Ut,
+                            );
+                            self.state.kill_fuzzer_bits_enum_diff(
+                                fi,
+                                self.bits.fbs[mc.0].mcs[mc.1].mc_uim_out.as_ref().unwrap(),
+                                &McOut::Comb,
+                                &McOut::Reg,
+                            );
+                            if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
                                 self.state.kill_fuzzer_bits_enum_diff(
                                     fi,
-                                    self.bits.fbs[mc.0].mcs[mc.1].mc_uim_out.as_ref().unwrap(),
+                                    self.bits.fbs[mc.0].mcs[mc.1].mc_obuf_out.as_ref().unwrap(),
                                     &McOut::Comb,
                                     &McOut::Reg,
                                 );
-                                if self.backend.pin_map.contains_key(&IoId::Mc(mc)) {
-                                    self.state.kill_fuzzer_bits_enum_diff(
-                                        fi,
-                                        self.bits.fbs[mc.0].mcs[mc.1].mc_obuf_out.as_ref().unwrap(),
-                                        &McOut::Comb,
-                                        &McOut::Reg,
-                                    );
-                                }
-                            }
-                            Ut::Oe => (),
-                            Ut::Set => {
-                                self.state.kill_fuzzer_bits_enum(
-                                    fi,
-                                    &self.bits.fbs[mc.0].mcs[mc.1].set_mux,
-                                    &SrMuxVal::Ut,
-                                );
-                            }
-                            Ut::Rst => {
-                                self.state.kill_fuzzer_bits_enum(
-                                    fi,
-                                    &self.bits.fbs[mc.0].mcs[mc.1].rst_mux,
-                                    &SrMuxVal::Ut,
-                                );
                             }
                         }
-                        f.push((fi, (fb, pt)));
+                        Ut::Oe => (),
+                        Ut::Set => {
+                            self.state.kill_fuzzer_bits_enum(
+                                fi,
+                                &self.bits.fbs[mc.0].mcs[mc.1].set_mux,
+                                &SrMuxVal::Ut,
+                            );
+                        }
+                        Ut::Rst => {
+                            self.state.kill_fuzzer_bits_enum(
+                                fi,
+                                &self.bits.fbs[mc.0].mcs[mc.1].rst_mux,
+                                &SrMuxVal::Ut,
+                            );
+                        }
                     }
+                    f.push((fi, (fb, pt)));
                 }
-                self.state.collect_enum(&f)
             }
-        };
+            self.state.collect_enum(&f)
+        });
         self.bits.ut = Some(ut);
     }
 
