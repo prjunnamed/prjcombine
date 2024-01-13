@@ -490,7 +490,7 @@ If the pad is supposed to be input only, the OE signal should be programmed to b
 - on XC9500, ``IOB_OE_MUX`` should be set to ``GND``
 - on XC9500XL/XV, ``OE_MUX`` should be set to ``PT``, ``OE_INV`` should be unset, and ``PT[1]`` should not be allocated to its dedicated function
 
-Likewise, if the pad is supposed to be always-on output, the OE signal should be programmed to be always 1:
+Likewise, if the pad is supposed to be an always-on output, the OE signal should be programmed to be always 1:
 
 - on XC9500, ``IOB_OE_MUX`` should be set to ``VCC``
 - on XC9500XL/XV, ``OE_MUX`` should be set to ``PT``, ``OE_INV`` should be set, and ``PT[1]`` should not be allocated to its dedicated function

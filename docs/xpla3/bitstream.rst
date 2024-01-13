@@ -35,4 +35,3 @@ JED mapping
 
 .. raw:: html
    :file: gen-jed-fb.html
-
