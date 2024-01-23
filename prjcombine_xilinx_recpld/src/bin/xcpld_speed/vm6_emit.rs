@@ -1,10 +1,11 @@
+use prjcombine_types::FbId;
 use prjcombine_vm6::{
     BufOe, Fbnand, IBuf, InputNode, InputNodeKind, Macrocell, MacrocellId, Node, NodeId,
     NodeIoKind, NodeKind, OBuf, PTerm, Signal, Srff, Vm6,
 };
 use unnamed_entity::EntityId;
 
-use prjcombine_xilinx_cpld::types::{FbId, FbnId, PTermId};
+use prjcombine_xilinx_cpld::types::{FbnId, PTermId};
 use prjcombine_xilinx_recpld::vm6::insert_node;
 
 pub fn insert_node_simple(vm6: &mut Vm6, name: &str, driver: &str, kind: NodeKind) -> NodeId {

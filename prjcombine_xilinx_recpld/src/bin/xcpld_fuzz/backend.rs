@@ -4,6 +4,7 @@ use bitvec::vec::BitVec;
 use itertools::Itertools;
 use prjcombine_hammer::{Backend, FuzzerId, Session};
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::{FbId, McId};
 use prjcombine_vm6::{
     BufOe, Cdr, CdrReset, FbImux, FbInput, Fbnand, GlobalSig, IBuf, InputNode, InputNodeKind,
     Macrocell, Node, NodeIoKind, NodeKind, OBuf, PTerm, Signal, Srff, Uim,
@@ -11,8 +12,8 @@ use prjcombine_vm6::{
 use prjcombine_xilinx_cpld::bits::Bits;
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
 use prjcombine_xilinx_cpld::types::{
-    BankId, ClkMuxVal, ClkPadId, ExportDir, FbId, FbnId, FclkId, FoeId, ImuxId, ImuxInput, IoId,
-    IpadId, McId, OeMuxVal, OePadId, PTermId, SrMuxVal, Ut, Xc9500McPt,
+    BankId, ClkMuxVal, ClkPadId, ExportDir, FbnId, FclkId, FoeId, ImuxId, ImuxInput, IoId, IpadId,
+    OeMuxVal, OePadId, PTermId, SrMuxVal, Ut, Xc9500McPt,
 };
 use prjcombine_xilinx_recpld::vm6::{insert_dummy_obuf, insert_node, prep_vm6};
 use prjcombine_xilinx_recpld::{

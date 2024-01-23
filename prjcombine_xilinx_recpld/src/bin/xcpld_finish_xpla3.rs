@@ -7,12 +7,13 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
+use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
 use prjcombine_xilinx_cpld::{
     bits::{EnumData, IBufOut, InvBit, McOut},
     device::{Device, JtagPin, PkgPin},
     types::{
-        CeMuxVal, ClkMuxVal, FbId, FbnId, ImuxId, ImuxInput, IoId, OeMuxVal, PTermId, RegMode,
-        Slew, SrMuxVal, Ut,
+        CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, IoId, OeMuxVal, PTermId, RegMode, Slew,
+        SrMuxVal, Ut,
     },
 };
 use prjcombine_xilinx_recpld::{
@@ -23,7 +24,7 @@ use prjcombine_xilinx_recpld::{
 use prjcombine_xpla3 as xpla3;
 use serde_json::json;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
-use xpla3::{BitCoord, FbColumn, Tile, TileItem, TileItemBitVec, TileItemEnum};
+use xpla3::{BitCoord, FbColumn};
 
 const JED_MC_BITS_IOB: &[(&str, usize)] = &[
     ("MC_IOB_MUX", 0),
@@ -109,14 +110,17 @@ struct DevData {
     fb_rows: u32,
     fb_cols: Vec<FbColumn>,
     imux_width: u32,
-    io_mcs: BTreeSet<xpla3::FbMcId>,
-    io_special: BTreeMap<String, (xpla3::FbId, xpla3::FbMcId)>,
+    io_mcs: BTreeSet<FbMcId>,
+    io_special: BTreeMap<String, (FbId, FbMcId)>,
 }
 
 fn extract_bool(bit: InvBit, xlat_bit: impl Fn(usize) -> BitCoord) -> TileItem<BitCoord> {
     let (bit, pol) = bit;
     let bits = vec![xlat_bit(bit)];
-    TileItem::BitVec(TileItemBitVec { bits, invert: !pol })
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec { invert: !pol },
+    }
 }
 
 fn extract_bitvec(bits: &[InvBit], xlat_bit: impl Fn(usize) -> BitCoord) -> TileItem<BitCoord> {
@@ -128,7 +132,10 @@ fn extract_bitvec(bits: &[InvBit], xlat_bit: impl Fn(usize) -> BitCoord) -> Tile
             xlat_bit(bit)
         })
         .collect();
-    TileItem::BitVec(TileItemBitVec { bits, invert: !pol })
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec { invert: !pol },
+    }
 }
 
 fn extract_bool_to_enum(
@@ -141,15 +148,17 @@ fn extract_bool_to_enum(
     let val_false = val_false.into();
     let (bit, pol) = bit;
     let bits = vec![xlat_bit(bit)];
-    TileItem::Enum(TileItemEnum {
+    TileItem {
         bits,
-        values: [
-            (val_true, BitVec::repeat(pol, 1)),
-            (val_false, BitVec::repeat(!pol, 1)),
-        ]
-        .into_iter()
-        .collect(),
-    })
+        kind: TileItemKind::Enum {
+            values: [
+                (val_true, BitVec::repeat(pol, 1)),
+                (val_false, BitVec::repeat(!pol, 1)),
+            ]
+            .into_iter()
+            .collect(),
+        },
+    }
 }
 
 fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash>(
@@ -173,7 +182,10 @@ fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash>(
             assert_eq!(*e.get(), enum_.default);
         }
     }
-    TileItem::Enum(TileItemEnum { bits, values })
+    TileItem {
+        bits,
+        kind: TileItemKind::Enum { values },
+    }
 }
 
 fn tile_insert<T: Copy + Eq + Debug>(
@@ -503,37 +515,31 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
         }
     }
     for (idx, ut) in [(0, Ut::Oe), (1, Ut::Rst), (2, Ut::Set), (3, Ut::Clk)] {
-        let TileItem::Enum(item) = extract_enum(
+        let item = extract_enum(
             &fpart.bits.ut.as_ref().unwrap()[ut],
             |(fb, pt)| format!("FB{fb}_LCT{pt}"),
             xlat_bit,
             "NONE",
-        ) else {
-            unreachable!()
-        };
+        );
         if device.fbs == 32 {
+            let TileItemKind::Enum { values } = &item.kind else {
+                unreachable!()
+            };
             let split = item.bits.len() / 2;
             for i in 0..2 {
-                let subitem = TileItemEnum {
+                let subitem = TileItem {
                     bits: item.bits[split * i..split * (i + 1)].to_vec(),
-                    values: item
-                        .values
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v[split * i..split * (i + 1)].to_bitvec()))
-                        .collect(),
+                    kind: TileItemKind::Enum {
+                        values: values
+                            .iter()
+                            .map(|(k, v)| (k.clone(), v[split * i..split * (i + 1)].to_bitvec()))
+                            .collect(),
+                    },
                 };
-                tile_insert(
-                    &mut tile,
-                    format!("FB_GROUP[{i}].UCT{idx}"),
-                    TileItem::Enum(subitem),
-                );
+                tile_insert(&mut tile, format!("FB_GROUP[{i}].UCT{idx}"), subitem);
             }
         } else {
-            tile_insert(
-                &mut tile,
-                format!("FB_GROUP[0].UCT{idx}"),
-                TileItem::Enum(item),
-            );
+            tile_insert(&mut tile, format!("FB_GROUP[0].UCT{idx}"), item);
         }
     }
     tile_insert(
@@ -544,15 +550,15 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
     tile_insert(
         &mut tile,
         "READ_PROT",
-        TileItem::BitVec(TileItemBitVec {
+        TileItem {
             bits: vec![xlat_bit_raw(fpart.map.rprot[0])],
-            invert: true,
-        }),
+            kind: TileItemKind::BitVec { invert: true },
+        },
     );
     tile_insert(
         &mut tile,
         "UES",
-        TileItem::BitVec(TileItemBitVec {
+        TileItem {
             bits: fpart
                 .map
                 .ues
@@ -561,8 +567,8 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                 .iter()
                 .map(|&bit| xlat_bit_raw(bit))
                 .collect(),
-            invert: false,
-        }),
+            kind: TileItemKind::BitVec { invert: false },
+        },
     );
     tile
 }
@@ -650,7 +656,7 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
             "VCC".to_string(),
             BitVec::repeat(true, dd.imux_width as usize),
         );
-        let item = TileItemEnum {
+        let item = TileItem {
             bits: (0..dd.imux_width)
                 .map(|j| BitCoord {
                     row: if i < 20 { 2 + i as u32 } else { 10 + i as u32 },
@@ -658,9 +664,9 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
                     column: dd.imux_width - 1 - j,
                 })
                 .collect(),
-            values,
+            kind: TileItemKind::Enum { values },
         };
-        tile_insert(&mut tile, format!("IM[{i}].MUX"), TileItem::Enum(item));
+        tile_insert(&mut tile, format!("IM[{i}].MUX"), item);
     }
     tile
 }
@@ -752,10 +758,7 @@ fn verify_jed(
         }
         for &(name, bit) in JED_FB_BITS {
             let item = &fb_bits.items[name];
-            let coord = match item {
-                TileItem::Enum(item) => item.bits[bit],
-                TileItem::BitVec(item) => item.bits[bit],
-            };
+            let coord = item.bits[bit];
             let exp_col = dd.fb_cols[fbc as usize].mc_col
                 + if fb_odd {
                     9 - coord.column
@@ -767,15 +770,12 @@ fn verify_jed(
             check_bit(&mut pos, exp_col, exp_row, exp_plane);
         }
         for mc in device.fb_mcs() {
-            if !dd.io_mcs.contains(&xpla3::FbMcId::from_idx(mc.to_idx())) {
+            if !dd.io_mcs.contains(&FbMcId::from_idx(mc.to_idx())) {
                 continue;
             }
             for &(name, bit) in JED_MC_BITS_IOB {
                 let item = &mc_bits.items[name];
-                let coord = match item {
-                    TileItem::Enum(item) => item.bits[bit],
-                    TileItem::BitVec(item) => item.bits[bit],
-                };
+                let coord = item.bits[bit];
                 let exp_col = dd.fb_cols[fbc as usize].mc_col
                     + if fb_odd {
                         9 - coord.column
@@ -794,15 +794,12 @@ fn verify_jed(
             }
         }
         for mc in device.fb_mcs() {
-            if dd.io_mcs.contains(&xpla3::FbMcId::from_idx(mc.to_idx())) {
+            if dd.io_mcs.contains(&FbMcId::from_idx(mc.to_idx())) {
                 continue;
             }
             for &(name, bit) in JED_MC_BITS_BURIED {
                 let item = &mc_bits.items[name];
-                let coord = match item {
-                    TileItem::Enum(item) => item.bits[bit],
-                    TileItem::BitVec(item) => item.bits[bit],
-                };
+                let coord = item.bits[bit];
                 let exp_col = dd.fb_cols[fbc as usize].mc_col
                     + if fb_odd {
                         9 - coord.column
@@ -823,10 +820,7 @@ fn verify_jed(
     }
     for (name, bit) in jed_global_bits {
         let item = &global_bits.items[name];
-        let coord = match item {
-            TileItem::Enum(item) => item.bits[*bit],
-            TileItem::BitVec(item) => item.bits[*bit],
-        };
+        let coord = item.bits[*bit];
         check_bit(&mut pos, coord.column, coord.row, coord.plane);
     }
     assert_eq!(pos, fpart.map.main.len());
@@ -839,18 +833,18 @@ fn tile_to_json<T: Copy>(
     serde_json::Map::from_iter(tile.items.iter().map(|(k, v)| {
         (
             k.clone(),
-            match v {
-                TileItem::Enum(it) => json!({
-                    "bits": Vec::from_iter(it.bits.iter().copied().map(&bit_to_json)),
+            match &v.kind {
+                TileItemKind::Enum { values } => json!({
+                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
                     "values": serde_json::Map::from_iter(
-                        it.values.iter().map(|(vk, vv)| {
+                        values.iter().map(|(vk, vv)| {
                             (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
                         })
                     ),
                 }),
-                TileItem::BitVec(it) => json!({
-                    "bits": Vec::from_iter(it.bits.iter().copied().map(&bit_to_json)),
-                    "invert": it.invert,
+                TileItemKind::BitVec { invert } => json!({
+                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
+                    "invert": *invert,
                 }),
             },
         )
@@ -914,9 +908,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         let mut io_special = BTreeMap::new();
         let mut io_mcs = BTreeSet::new();
         for (k, v) in &device.io {
-            let IoId::Mc((fb, mc)) = k else { continue };
-            let fb = xpla3::FbId::from_idx(fb.to_idx());
-            let mc = xpla3::FbMcId::from_idx(mc.to_idx());
+            let IoId::Mc((fb, mc)) = *k else { continue };
             io_mcs.insert(mc);
             if let Some(jtag) = v.jtag {
                 let spec = match jtag {
@@ -1049,15 +1041,12 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 .map(|(k, v)| {
                     (
                         k.clone(),
-                        match v {
+                        match *v {
                             PkgPin::Nc => xpla3::Pad::Nc,
                             PkgPin::Gnd => xpla3::Pad::Gnd,
                             PkgPin::VccInt => xpla3::Pad::Vcc,
                             PkgPin::PortEn => xpla3::Pad::PortEn,
-                            PkgPin::Io(IoId::Mc((fb, mc))) => xpla3::Pad::Iob(
-                                xpla3::FbId::from_idx(fb.to_idx()),
-                                xpla3::FbMcId::from_idx(mc.to_idx()),
-                            ),
+                            PkgPin::Io(IoId::Mc((fb, mc))) => xpla3::Pad::Iob(fb, mc),
                             PkgPin::Io(IoId::Ipad(pad)) => {
                                 xpla3::Pad::Gclk(xpla3::GclkId::from_idx(3 - pad.to_idx()))
                             }

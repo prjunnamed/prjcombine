@@ -5,39 +5,14 @@ use std::{
     path::Path,
 };
 
-use bitvec::vec::BitVec;
+use prjcombine_types::{FbId, FbMcId, Tile};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityVec};
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Tile<T> {
-    pub items: BTreeMap<String, TileItem<T>>,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum TileItem<T> {
-    Enum(TileItemEnum<T>),
-    BitVec(TileItemBitVec<T>),
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct TileItemEnum<T> {
-    pub bits: Vec<T>,
-    pub values: BTreeMap<String, BitVec>,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct TileItemBitVec<T> {
-    pub bits: Vec<T>,
-    pub invert: bool,
-}
 
 entity_id! {
     pub id DeviceId u32;
     pub id BondId u32;
     pub id SpeedId u32;
-    pub id FbId u8;
-    pub id FbMcId u8;
     pub id GclkId u8;
 }
 

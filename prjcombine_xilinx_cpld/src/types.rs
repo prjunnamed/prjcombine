@@ -1,11 +1,10 @@
 use enum_map::Enum;
+use prjcombine_types::{FbMcId, McId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::entity_id;
 
 entity_id! {
-    pub id FbId u8;
     pub id FbGroupId u8;
-    pub id FbMcId u8;
     pub id IpadId u8;
     pub id ImuxId u8;
     pub id PTermId u8;
@@ -16,8 +15,6 @@ entity_id! {
     pub id FoeId u8;
     pub id BankId u8;
 }
-
-pub type McId = (FbId, FbMcId);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum IoId {

@@ -1,7 +1,8 @@
 use prjcombine_ise_dump::partgen::PartgenPkg;
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::{FbId, FbMcId};
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Io, JtagPin, Package, PkgPin};
-use prjcombine_xilinx_cpld::types::{BankId, FbGroupId, FbId, FbMcId, IoId, OePadId};
+use prjcombine_xilinx_cpld::types::{BankId, FbGroupId, IoId, OePadId};
 use prjcombine_xilinx_recpld::v2vm6::{v2vm6, FitOpts};
 use unnamed_entity::{EntityId, EntitySet, EntityVec};
 

@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 unnamed_entity.workspace = true
+prjcombine_types.workspace = true
 prjcombine_vm6.workspace = true
 prjcombine_ise_dump.workspace = true
 clap.workspace = true

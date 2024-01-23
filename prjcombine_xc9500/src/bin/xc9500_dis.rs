@@ -2,7 +2,8 @@ use std::{error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord, Tile, TileItem};
+use prjcombine_types::{Tile, TileItemKind};
+use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -174,12 +175,12 @@ fn print_tile<T: Copy>(tile: &Tile<T>, device: &Device, get_bit: impl Fn(T) -> b
             }
             name = n;
         }
-        match item {
-            TileItem::Enum(item) => {
+        match &item.kind {
+            TileItemKind::Enum { values } => {
                 print!(" {name}=");
                 let bits: BitVec = item.bits.iter().map(|&crd| get_bit(crd)).collect();
                 let mut found = false;
-                for (vn, val) in &item.values {
+                for (vn, val) in values {
                     if val == &bits {
                         print!("{vn}");
                         found = true;
@@ -192,11 +193,11 @@ fn print_tile<T: Copy>(tile: &Tile<T>, device: &Device, get_bit: impl Fn(T) -> b
                     }
                 }
             }
-            TileItem::BitVec(item) => {
+            TileItemKind::BitVec { invert } => {
                 let bits: BitVec = item
                     .bits
                     .iter()
-                    .map(|&crd| get_bit(crd) ^ item.invert)
+                    .map(|&crd| get_bit(crd) ^ *invert)
                     .collect();
                 if item.bits.len() == 1 {
                     if bits[0] {

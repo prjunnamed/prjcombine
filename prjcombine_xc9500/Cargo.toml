@@ -10,6 +10,7 @@ bitvec.workspace = true
 zstd.workspace = true
 bincode.workspace = true
 clap.workspace = true
+prjcombine_types.workspace = true
 
 [lints]
 workspace = true

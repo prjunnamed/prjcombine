@@ -8,7 +8,8 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xpla3::{BitCoord, Database, Device, FbMcId, Tile, TileItem};
+use prjcombine_types::{FbMcId, Tile, TileItemKind};
+use prjcombine_xpla3::{BitCoord, Database, Device};
 use unnamed_entity::EntityId;
 
 struct Bitstream {
@@ -32,15 +33,7 @@ struct PTermData {
 fn init_tile(tile: &Tile<BitCoord>) -> BTreeMap<String, BitVec> {
     tile.items
         .iter()
-        .map(|(k, v)| {
-            (
-                k.clone(),
-                match v {
-                    TileItem::Enum(item) => BitVec::repeat(true, item.bits.len()),
-                    TileItem::BitVec(item) => BitVec::repeat(true, item.bits.len()),
-                },
-            )
-        })
+        .map(|(k, v)| (k.clone(), BitVec::repeat(true, v.bits.len())))
         .collect()
 }
 
@@ -126,15 +119,15 @@ impl Bitstream {
 fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, item: &str) {
     if let Some((name, val)) = item.split_once('=') {
         let item = &tile.items[name];
-        let val = match item {
-            TileItem::Enum(item) => item.values[val].clone(),
-            TileItem::BitVec(item) => {
+        let val = match &item.kind {
+            TileItemKind::Enum { values } => values[val].clone(),
+            TileItemKind::BitVec { invert } => {
                 assert_eq!(val.len(), item.bits.len());
                 val.chars()
                     .rev()
                     .map(|x| match x {
-                        '0' => item.invert,
-                        '1' => !item.invert,
+                        '0' => *invert,
+                        '1' => !*invert,
                         _ => unreachable!(),
                     })
                     .collect()
@@ -148,11 +141,11 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, ite
             (item, true)
         };
         let item = &tile.items[name];
-        match item {
-            TileItem::Enum(_) => unreachable!(),
-            TileItem::BitVec(item) => {
+        match &item.kind {
+            TileItemKind::Enum { .. } => unreachable!(),
+            TileItemKind::BitVec { invert } => {
                 assert_eq!(item.bits.len(), 1);
-                data.insert(name.to_string(), BitVec::repeat(val ^ item.invert, 1));
+                data.insert(name.to_string(), BitVec::repeat(val ^ *invert, 1));
             }
         }
     }

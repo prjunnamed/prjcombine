@@ -3,13 +3,14 @@ use core::hash::Hash;
 use std::collections::{hash_map::Entry, HashMap};
 
 use crate::types::{
-    BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FbnId, FclkId,
-    FoeId, FoeMuxVal, IBufMode, ImuxId, ImuxInput, IoId, IpadId, OeMode, OeMuxVal, OePadId,
-    PTermId, RegMode, Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
+    BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbnId, FclkId, FoeId, FoeMuxVal,
+    IBufMode, ImuxId, ImuxInput, IoId, IpadId, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew,
+    SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
 };
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
+use prjcombine_types::{FbId, FbMcId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 

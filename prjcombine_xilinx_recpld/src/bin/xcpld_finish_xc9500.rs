@@ -8,13 +8,14 @@ use std::{
 use bitvec::vec::BitVec;
 use clap::Parser;
 use itertools::Itertools;
-use prjcombine_xc9500::{self as xc9500, FbBitCoord, Tile, TileItem, TileItemBitVec, TileItemEnum};
+use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
+use prjcombine_xc9500::{self as xc9500, FbBitCoord};
 use prjcombine_xilinx_cpld::{
     bits::{BitPos, EnumData, FbBits, InvBit, McBits},
     device::{Device, DeviceKind, JtagPin, PkgPin},
     types::{
-        CeMuxVal, ClkMuxVal, ExportDir, FbId, FbMcId, ImuxInput, IoId, OeMode, OeMuxVal, RegMode,
-        Slew, SrMuxVal, TermMode, Xc9500McPt,
+        CeMuxVal, ClkMuxVal, ExportDir, ImuxInput, IoId, OeMode, OeMuxVal, RegMode, Slew, SrMuxVal,
+        TermMode, Xc9500McPt,
     },
 };
 use prjcombine_xilinx_recpld::{
@@ -35,11 +36,7 @@ struct Args {
     json: PathBuf,
 }
 
-fn merge_enum<T: Copy + Eq + Ord + Debug>(
-    a: &mut TileItemEnum<T>,
-    b: &TileItemEnum<T>,
-    neutral: bool,
-) {
+fn merge_enum<T: Copy + Eq + Ord + Debug>(a: &mut TileItem<T>, b: &TileItem<T>, neutral: bool) {
     if a == b {
         return;
     }
@@ -59,7 +56,13 @@ fn merge_enum<T: Copy + Eq + Ord + Debug>(
         .map(|&x| b.bits.iter().find_position(|&&y| x == y).map(|x| x.0))
         .collect();
     a.bits = bits;
-    for val in a.values.values_mut() {
+    let TileItemKind::Enum { values: av } = &mut a.kind else {
+        unreachable!()
+    };
+    let TileItemKind::Enum { values: bv } = &b.kind else {
+        unreachable!()
+    };
+    for val in av.values_mut() {
         *val = bit_map_a
             .iter()
             .map(|&x| match x {
@@ -68,7 +71,7 @@ fn merge_enum<T: Copy + Eq + Ord + Debug>(
             })
             .collect();
     }
-    for (key, val) in &b.values {
+    for (key, val) in bv {
         let val: BitVec = bit_map_b
             .iter()
             .map(|&x| match x {
@@ -77,7 +80,7 @@ fn merge_enum<T: Copy + Eq + Ord + Debug>(
             })
             .collect();
 
-        match a.values.entry(key.clone()) {
+        match av.entry(key.clone()) {
             btree_map::Entry::Vacant(e) => {
                 e.insert(val);
             }
@@ -95,13 +98,16 @@ fn merge_tile<T: Debug + Copy + Eq + Ord>(a: &mut Tile<T>, b: &Tile<T>, neutral:
             btree_map::Entry::Vacant(e) => {
                 e.insert(v.clone());
             }
-            btree_map::Entry::Occupied(mut e) => match (e.get_mut(), v) {
-                (TileItem::Enum(ref mut e1), TileItem::Enum(e2)) => {
-                    merge_enum(e1, e2, neutral);
+            btree_map::Entry::Occupied(mut e) => {
+                let tv = e.get_mut();
+                match (&tv.kind, &v.kind) {
+                    (TileItemKind::Enum { .. }, TileItemKind::Enum { .. }) => {
+                        merge_enum(tv, v, neutral);
+                    }
+                    (TileItemKind::BitVec { .. }, TileItemKind::BitVec { .. }) => assert_eq!(tv, v),
+                    _ => unreachable!(),
                 }
-                (TileItem::BitVec(v1), TileItem::BitVec(v2)) => assert_eq!(v1, v2),
-                _ => unreachable!(),
-            },
+            }
         }
     }
 }
@@ -192,7 +198,10 @@ fn extract_mc_enum<T: Clone + Debug + Eq + core::hash::Hash>(
                     assert_eq!(*e.get(), enum_.default);
                 }
             }
-            let data = TileItemEnum { bits, values };
+            let data = TileItem {
+                bits,
+                kind: TileItemKind::Enum { values },
+            };
             if res.is_none() {
                 res = Some(data);
             } else {
@@ -200,7 +209,7 @@ fn extract_mc_enum<T: Clone + Debug + Eq + core::hash::Hash>(
             }
         }
     }
-    TileItem::Enum(res.unwrap())
+    res.unwrap()
 }
 
 fn extract_mc_bool(
@@ -212,7 +221,10 @@ fn extract_mc_bool(
     for (fb, mc) in device.mcs() {
         if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb].mcs[mc]) {
             let bits = vec![map_mc_bit(device, fpart, fb, mc, bit)];
-            let data = TileItemBitVec { bits, invert: !pol };
+            let data = TileItem {
+                bits,
+                kind: TileItemKind::BitVec { invert: !pol },
+            };
             if res.is_none() {
                 res = Some(data);
             } else {
@@ -220,7 +232,7 @@ fn extract_mc_bool(
             }
         }
     }
-    TileItem::BitVec(res.unwrap())
+    res.unwrap()
 }
 
 fn extract_mc_bool_to_enum(
@@ -236,14 +248,16 @@ fn extract_mc_bool_to_enum(
     for (fb, mc) in device.mcs() {
         if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb].mcs[mc]) {
             let bits = vec![map_mc_bit(device, fpart, fb, mc, bit)];
-            let data = TileItemEnum {
+            let data = TileItem {
                 bits,
-                values: [
-                    (val_true.clone(), BitVec::repeat(pol, 1)),
-                    (val_false.clone(), BitVec::repeat(!pol, 1)),
-                ]
-                .into_iter()
-                .collect(),
+                kind: TileItemKind::Enum {
+                    values: [
+                        (val_true.clone(), BitVec::repeat(pol, 1)),
+                        (val_false.clone(), BitVec::repeat(!pol, 1)),
+                    ]
+                    .into_iter()
+                    .collect(),
+                },
             };
             if res.is_none() {
                 res = Some(data);
@@ -252,7 +266,7 @@ fn extract_mc_bool_to_enum(
             }
         }
     }
-    TileItem::Enum(res.unwrap())
+    res.unwrap()
 }
 
 fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
@@ -552,10 +566,12 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<Fb
             assert_eq!(res, Some(crd));
         }
     }
-    TileItem::BitVec(TileItemBitVec {
+    TileItem {
         bits: vec![res.unwrap()],
-        invert: device.kind == DeviceKind::Xc9500,
-    })
+        kind: TileItemKind::BitVec {
+            invert: device.kind == DeviceKind::Xc9500,
+        },
+    }
 }
 
 fn extract_fb_bool(
@@ -567,7 +583,10 @@ fn extract_fb_bool(
     for fb in device.fbs() {
         if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb]) {
             let bits = vec![map_fb_bit(device, fpart, fb, bit)];
-            let data = TileItemBitVec { bits, invert: !pol };
+            let data = TileItem {
+                bits,
+                kind: TileItemKind::BitVec { invert: !pol },
+            };
             if res.is_none() {
                 res = Some(data);
             } else {
@@ -575,7 +594,7 @@ fn extract_fb_bool(
             }
         }
     }
-    TileItem::BitVec(res.unwrap())
+    res.unwrap()
 }
 
 fn extract_fb_enum<T: Clone + Debug + Eq + core::hash::Hash>(
@@ -607,7 +626,10 @@ fn extract_fb_enum<T: Clone + Debug + Eq + core::hash::Hash>(
                     assert_eq!(*e.get(), enum_.default);
                 }
             }
-            let data = TileItemEnum { bits, values };
+            let data = TileItem {
+                bits,
+                kind: TileItemKind::Enum { values },
+            };
             if res.is_none() {
                 res = Some(data);
             } else {
@@ -615,7 +637,7 @@ fn extract_fb_enum<T: Clone + Debug + Eq + core::hash::Hash>(
             }
         }
     }
-    TileItem::Enum(res.unwrap())
+    res.unwrap()
 }
 
 fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
@@ -629,10 +651,12 @@ fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
             assert_eq!(res, Some(crd));
         }
     }
-    TileItem::BitVec(TileItemBitVec {
+    TileItem {
         bits: vec![res.unwrap()],
-        invert: device.kind == DeviceKind::Xc9500,
-    })
+        kind: TileItemKind::BitVec {
+            invert: device.kind == DeviceKind::Xc9500,
+        },
+    }
 }
 
 fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
@@ -687,7 +711,10 @@ fn extract_global_bool(
 ) -> TileItem<GlobalBitCoord> {
     let (bit, pol) = bit;
     let bits = vec![map_bit(device, fpart, bit)];
-    TileItem::BitVec(TileItemBitVec { bits, invert: !pol })
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec { invert: !pol },
+    }
 }
 
 fn extract_global_enum<T: Clone + Debug + Eq + core::hash::Hash>(
@@ -716,7 +743,10 @@ fn extract_global_enum<T: Clone + Debug + Eq + core::hash::Hash>(
             assert_eq!(*e.get(), enum_.default);
         }
     }
-    TileItem::Enum(TileItemEnum { bits, values })
+    TileItem {
+        bits,
+        kind: TileItemKind::Enum { values },
+    }
 }
 
 fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoord> {
@@ -792,21 +822,23 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoo
     }
     res.items.insert(
         "USERCODE".to_string(),
-        TileItem::BitVec(TileItemBitVec {
+        TileItem {
             bits: usercode
                 .into_iter()
                 .map(|(bit, _)| map_bit(device, fpart, bit))
                 .collect(),
-            invert: !usercode[1].1,
-        }),
+            kind: TileItemKind::BitVec {
+                invert: !usercode[1].1,
+            },
+        },
     );
     if device.kind == DeviceKind::Xc9500Xv {
         res.items.insert(
             "DONE".to_string(),
-            TileItem::BitVec(TileItemBitVec {
+            TileItem {
                 bits: vec![map_bit_raw(device, fpart.map.done.unwrap())],
-                invert: false,
-            }),
+                kind: TileItemKind::BitVec { invert: false },
+            },
         );
     }
     res
@@ -1000,18 +1032,18 @@ fn tile_to_json<T: Copy>(
     serde_json::Map::from_iter(tile.items.iter().map(|(k, v)| {
         (
             k.clone(),
-            match v {
-                TileItem::Enum(it) => json!({
-                    "bits": Vec::from_iter(it.bits.iter().copied().map(&bit_to_json)),
+            match &v.kind {
+                TileItemKind::Enum { values } => json!({
+                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
                     "values": serde_json::Map::from_iter(
-                        it.values.iter().map(|(vk, vv)| {
+                        values.iter().map(|(vk, vv)| {
                             (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
                         })
                     ),
                 }),
-                TileItem::BitVec(it) => json!({
-                    "bits": Vec::from_iter(it.bits.iter().copied().map(&bit_to_json)),
-                    "invert": it.invert,
+                TileItemKind::BitVec { invert } => json!({
+                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
+                    "invert": invert,
                 }),
             },
         )
@@ -1027,14 +1059,11 @@ fn global_bit_to_json(crd: GlobalBitCoord) -> serde_json::Value {
     json!([crd.fb, crd.row, crd.bit, crd.column])
 }
 
-fn convert_io(io: IoId) -> (xc9500::FbId, xc9500::FbMcId) {
+fn convert_io(io: IoId) -> (FbId, FbMcId) {
     let IoId::Mc((fb, mc)) = io else {
         unreachable!();
     };
-    (
-        xc9500::FbId::from_idx(fb.to_idx()),
-        xc9500::FbMcId::from_idx(mc.to_idx()),
-    )
+    (fb, mc)
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -1207,7 +1236,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                 .map(|(k, v)| {
                     (
                         k.clone(),
-                        match v {
+                        match *v {
                             PkgPin::Nc => xc9500::Pad::Nc,
                             PkgPin::Gnd => xc9500::Pad::Gnd,
                             PkgPin::VccInt => xc9500::Pad::VccInt,
@@ -1218,10 +1247,7 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                             PkgPin::Jtag(JtagPin::Tms) => xc9500::Pad::Tms,
                             PkgPin::Jtag(JtagPin::Tdi) => xc9500::Pad::Tdi,
                             PkgPin::Jtag(JtagPin::Tdo) => xc9500::Pad::Tdo,
-                            PkgPin::Io(io) => {
-                                let (fb, mc) = convert_io(*io);
-                                xc9500::Pad::Iob(fb, mc)
-                            }
+                            PkgPin::Io(IoId::Mc((fb, mc))) => xc9500::Pad::Iob(fb, mc),
                             _ => unreachable!(),
                         },
                     )

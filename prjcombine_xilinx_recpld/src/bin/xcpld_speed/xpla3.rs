@@ -2,10 +2,11 @@ use std::collections::BTreeMap;
 
 use prjcombine_sdf::Sdf;
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::FbId;
 use prjcombine_vm6::{InputNodeKind, NodeKind};
 use prjcombine_xilinx_cpld::{
     device::{Device, Package},
-    types::{FbId, PTermId, Ut},
+    types::{PTermId, Ut},
 };
 use prjcombine_xilinx_recpld::{db::Part, tsim::run_tsim, vm6::prep_vm6};
 use unnamed_entity::EntityId;

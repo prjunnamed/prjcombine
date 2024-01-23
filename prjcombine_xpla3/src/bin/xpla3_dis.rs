@@ -2,7 +2,8 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xpla3::{BitCoord, Database, Device, FbMcId, Tile, TileItem};
+use prjcombine_types::{FbMcId, Tile, TileItemKind};
+use prjcombine_xpla3::{BitCoord, Database, Device};
 use unnamed_entity::EntityId;
 
 struct Bitstream {
@@ -64,15 +65,10 @@ impl Bitstream {
                 }
             }
             for (bn, bi) in &db.jed_fb_bits {
-                let bits = fbd.misc.entry(bn.clone()).or_insert_with(|| {
-                    BitVec::repeat(
-                        false,
-                        match &db.fb_bits.items[bn] {
-                            TileItem::Enum(item) => item.bits.len(),
-                            TileItem::BitVec(item) => item.bits.len(),
-                        },
-                    )
-                });
+                let bits = fbd
+                    .misc
+                    .entry(bn.clone())
+                    .or_insert_with(|| BitVec::repeat(false, db.fb_bits.items[bn].bits.len()));
                 bits.set(*bi, fuses[pos]);
                 pos += 1;
             }
@@ -89,13 +85,7 @@ impl Bitstream {
                     };
                     for (bn, bi) in jed_bits {
                         let bits = mcd.entry(bn.clone()).or_insert_with(|| {
-                            BitVec::repeat(
-                                false,
-                                match &db.mc_bits.items[bn] {
-                                    TileItem::Enum(item) => item.bits.len(),
-                                    TileItem::BitVec(item) => item.bits.len(),
-                                },
-                            )
+                            BitVec::repeat(false, db.mc_bits.items[bn].bits.len())
                         });
                         bits.set(*bi, fuses[pos]);
                         pos += 1;
@@ -106,15 +96,9 @@ impl Bitstream {
         }
         let mut globals = BTreeMap::new();
         for (bn, bi) in &device.jed_global_bits {
-            let bits = globals.entry(bn.clone()).or_insert_with(|| {
-                BitVec::repeat(
-                    false,
-                    match &device.global_bits.items[bn] {
-                        TileItem::Enum(item) => item.bits.len(),
-                        TileItem::BitVec(item) => item.bits.len(),
-                    },
-                )
-            });
+            let bits = globals
+                .entry(bn.clone())
+                .or_insert_with(|| BitVec::repeat(false, device.global_bits.items[bn].bits.len()));
             bits.set(*bi, fuses[pos]);
             pos += 1;
         }
@@ -179,10 +163,10 @@ fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<BitCoord>) {
     for (k, v) in data {
         let item = &tile.items[k];
         print!(" {k}=");
-        match item {
-            TileItem::Enum(item) => {
+        match &item.kind {
+            TileItemKind::Enum { values } => {
                 let mut found = false;
-                for (vn, val) in &item.values {
+                for (vn, val) in values {
                     if val == v {
                         found = true;
                         print!("{vn}");
@@ -194,9 +178,9 @@ fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<BitCoord>) {
                     }
                 }
             }
-            TileItem::BitVec(item) => {
+            TileItemKind::BitVec { invert } => {
                 for bit in v.iter().rev() {
-                    print!("{}", u8::from(*bit ^ item.invert));
+                    print!("{}", u8::from(*bit ^ *invert));
                 }
             }
         }

@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+	"prjcombine_types",
 	"prjcombine_toolchain",
 	"prjcombine_rawdump",
 	"prjcombine_rdbuild",
@@ -53,7 +54,8 @@ members = [
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
 	"prjcombine_sdf",
-	"prjcombine_xc9500", "prjcombine_xpla3",
+	"prjcombine_xc9500",
+	"prjcombine_xpla3",
 ]
 resolver = "2"
 
@@ -62,6 +64,7 @@ edition = "2021"
 version = "0.1.0"
 
 [workspace.dependencies]
+prjcombine_types = { path = "prjcombine_types" }
 prjcombine_rawdump = { path = "prjcombine_rawdump" }
 prjcombine_rdbuild = { path = "prjcombine_rdbuild" }
 prjcombine_toolchain = { path = "prjcombine_toolchain" }

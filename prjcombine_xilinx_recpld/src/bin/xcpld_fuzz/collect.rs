@@ -6,6 +6,7 @@ use std::collections::{hash_map::Entry, HashMap};
 
 use enum_map::EnumMap;
 use itertools::Itertools;
+use prjcombine_types::{FbId, FbMcId};
 use prjcombine_vm6::NodeKind;
 use prjcombine_xilinx_cpld::{
     bits::{
@@ -14,9 +15,9 @@ use prjcombine_xilinx_cpld::{
     },
     device::DeviceKind,
     types::{
-        CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbId, FbMcId, FclkId, FoeId,
-        FoeMuxVal, IBufMode, ImuxId, ImuxInput, IoId, OeMode, OeMuxVal, OePadId, PTermId, RegMode,
-        Slew, SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
+        CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FclkId, FoeId, FoeMuxVal, IBufMode,
+        ImuxId, ImuxInput, IoId, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal,
+        TermMode, Ut, Xc9500McPt, XorMuxVal,
     },
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};

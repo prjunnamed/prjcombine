@@ -7,7 +7,9 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord, Tile, TileItem};
+use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
+
+use prjcombine_types::{Tile, TileItemKind};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -161,14 +163,14 @@ fn set_tile_item<T: Copy>(
         let item = tile.items.get(name).unwrap_or_else(|| {
             &tile.items[&format!("{}.{}", name, if is_large { "LARGE" } else { "SMALL" })]
         });
-        match item {
-            TileItem::Enum(item) => {
-                let val = &item.values[val];
+        match &item.kind {
+            TileItemKind::Enum { values } => {
+                let val = &values[val];
                 for (k, v) in item.bits.iter().zip(val.iter()) {
                     put_bit(*k, *v);
                 }
             }
-            TileItem::BitVec(item) => {
+            TileItemKind::BitVec { invert } => {
                 assert_eq!(val.len(), item.bits.len());
                 for (k, v) in item.bits.iter().zip(val.chars().rev()) {
                     put_bit(
@@ -177,7 +179,7 @@ fn set_tile_item<T: Copy>(
                             '0' => false,
                             '1' => true,
                             _ => unreachable!(),
-                        } ^ item.invert,
+                        } ^ invert,
                     )
                 }
             }
@@ -189,11 +191,11 @@ fn set_tile_item<T: Copy>(
             (item, true)
         };
         let item = &tile.items[name];
-        match item {
-            TileItem::Enum(_) => unreachable!(),
-            TileItem::BitVec(item) => {
+        match item.kind {
+            TileItemKind::Enum { .. } => unreachable!(),
+            TileItemKind::BitVec { invert } => {
                 assert_eq!(item.bits.len(), 1);
-                put_bit(item.bits[0], val ^ item.invert);
+                put_bit(item.bits[0], val ^ invert);
             }
         }
     }
