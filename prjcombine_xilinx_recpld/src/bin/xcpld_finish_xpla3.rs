@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 use std::{
-    collections::{btree_map, BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet},
     error::Error,
     path::PathBuf,
 };
@@ -9,7 +9,7 @@ use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
 use prjcombine_xilinx_cpld::{
-    bits::{EnumData, IBufOut, InvBit, McOut},
+    bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},
     device::{Device, JtagPin, PkgPin},
     types::{
         CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, IoId, OeMuxVal, PTermId, RegMode, Slew,
@@ -114,96 +114,6 @@ struct DevData {
     io_special: BTreeMap<String, (FbId, FbMcId)>,
 }
 
-fn extract_bool(bit: InvBit, xlat_bit: impl Fn(usize) -> BitCoord) -> TileItem<BitCoord> {
-    let (bit, pol) = bit;
-    let bits = vec![xlat_bit(bit)];
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert: !pol },
-    }
-}
-
-fn extract_bitvec(bits: &[InvBit], xlat_bit: impl Fn(usize) -> BitCoord) -> TileItem<BitCoord> {
-    let pol = bits[0].1;
-    let bits = bits
-        .iter()
-        .map(|&(bit, p)| {
-            assert_eq!(p, pol);
-            xlat_bit(bit)
-        })
-        .collect();
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert: !pol },
-    }
-}
-
-fn extract_bool_to_enum(
-    bit: InvBit,
-    xlat_bit: impl Fn(usize) -> BitCoord,
-    val_true: impl Into<String>,
-    val_false: impl Into<String>,
-) -> TileItem<BitCoord> {
-    let val_true = val_true.into();
-    let val_false = val_false.into();
-    let (bit, pol) = bit;
-    let bits = vec![xlat_bit(bit)];
-    TileItem {
-        bits,
-        kind: TileItemKind::Enum {
-            values: [
-                (val_true, BitVec::repeat(pol, 1)),
-                (val_false, BitVec::repeat(!pol, 1)),
-            ]
-            .into_iter()
-            .collect(),
-        },
-    }
-}
-
-fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash>(
-    enum_: &EnumData<T>,
-    xlat_val: impl Fn(&T) -> String,
-    xlat_bit: impl Fn(usize) -> BitCoord,
-    default: impl Into<String>,
-) -> TileItem<BitCoord> {
-    let default = default.into();
-    let bits = enum_.bits.iter().map(|&bit| xlat_bit(bit)).collect();
-    let mut values: BTreeMap<_, _> = enum_
-        .items
-        .iter()
-        .map(|(k, v)| (xlat_val(k), v.clone()))
-        .collect();
-    match values.entry(default.clone()) {
-        btree_map::Entry::Vacant(e) => {
-            e.insert(enum_.default.clone());
-        }
-        btree_map::Entry::Occupied(e) => {
-            assert_eq!(*e.get(), enum_.default);
-        }
-    }
-    TileItem {
-        bits,
-        kind: TileItemKind::Enum { values },
-    }
-}
-
-fn tile_insert<T: Copy + Eq + Debug>(
-    tile: &mut Tile<T>,
-    name: impl Into<String>,
-    item: TileItem<T>,
-) {
-    let name = name.into();
-    match tile.items.entry(name) {
-        btree_map::Entry::Vacant(e) => {
-            e.insert(item);
-        }
-        btree_map::Entry::Occupied(e) => {
-            assert_eq!(*e.get(), item);
-        }
-    }
-}
-
 fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
     let (plane_bit, row_mask) = match dd.fb_rows {
         1 => (6, 0x3f),
@@ -211,9 +121,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
         4 => (8, 0xff),
         _ => unreachable!(),
     };
-    let mut tile = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
     for (fb, mc) in device.mcs() {
         let mcb = &fpart.bits.fbs[fb].mcs[mc];
         let fbc = fb.to_idx() as u32 / (dd.fb_rows * 2);
@@ -236,8 +144,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
             };
             BitCoord { row, plane, column }
         };
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "CLK_MUX",
             extract_enum(
                 &mcb.clk_mux,
@@ -250,9 +157,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "FCLK0",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "RST_MUX",
             extract_enum(
                 &mcb.rst_mux,
@@ -265,9 +172,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "GND",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "SET_MUX",
             extract_enum(
                 &mcb.set_mux,
@@ -280,9 +187,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "GND",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "CE_MUX",
             extract_enum(
                 mcb.ce_mux.as_ref().unwrap(),
@@ -294,20 +201,16 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "LCT4",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "CLK_INV",
             extract_bool(mcb.clk_inv.unwrap(), xlat_bit),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
-            "LUT",
-            extract_bitvec(&mcb.lut.unwrap(), xlat_bit),
-        );
+        tile.insert("LUT", extract_bitvec(&mcb.lut.unwrap(), xlat_bit), |_| true);
 
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "REG_MODE",
             extract_enum(
                 &mcb.reg_mode,
@@ -323,9 +226,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "DFF",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "MC_ZIA_MUX",
             extract_enum(
                 mcb.mc_uim_out.as_ref().unwrap(),
@@ -339,28 +242,28 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "REG",
             ),
+            |_| true,
         );
 
         if mcb.slew.is_none() {
             continue;
         }
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "REG_D_MUX",
             extract_bool_to_enum(mcb.use_ireg.unwrap(), xlat_bit, "IBUF", "LUT"),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "UNK_REG_Q",
             extract_bool((mcb.use_ireg.unwrap().0 + 1, true), xlat_bit),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "UNK_SHIFT",
             extract_bool((mcb.use_ireg.unwrap().0 + 2, true), xlat_bit),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "OE_MUX",
             extract_enum(
                 mcb.oe_mux.as_ref().unwrap(),
@@ -375,9 +278,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "GND",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "MC_IOB_MUX",
             extract_enum(
                 mcb.mc_obuf_out.as_ref().unwrap(),
@@ -391,9 +294,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "LUT",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "IOB_ZIA_MUX",
             extract_enum(
                 mcb.ibuf_uim_out.as_ref().unwrap(),
@@ -407,9 +310,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "IBUF",
             ),
+            |_| true,
         );
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "IOB_SLEW",
             extract_enum(
                 mcb.slew.as_ref().unwrap(),
@@ -423,6 +326,7 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
                 xlat_bit,
                 "SLOW",
             ),
+            |_| true,
         );
     }
     tile
@@ -435,9 +339,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
         4 => (8, 0xff),
         _ => unreachable!(),
     };
-    let mut tile = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
     for fb in fpart.bits.fbs.ids() {
         let fbb = &fpart.bits.fbs[fb];
         let fbc = fb.to_idx() as u32 / (dd.fb_rows * 2);
@@ -455,8 +357,7 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
             };
             BitCoord { row, plane, column }
         };
-        tile_insert(
-            &mut tile,
+        tile.insert(
             "FCLK_MUX",
             extract_enum(
                 fbb.fbclk.as_ref().unwrap(),
@@ -469,12 +370,13 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile<BitCoord> {
                 xlat_bit,
                 "NONE",
             ),
+            |_| true,
         );
         for i in 0..8 {
-            tile_insert(
-                &mut tile,
+            tile.insert(
                 format!("LCT{i}_INV"),
                 extract_bool(fbb.ct_invert[PTermId::from_idx(i)], xlat_bit),
+                |_| true,
             );
         }
     }
@@ -501,16 +403,14 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
         let column = dd.bs_cols - 1 - column as u32;
         BitCoord { row, plane, column }
     };
-    let mut tile = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
     for (gclk, &io) in &device.clk_pads {
         let IoId::Ipad(ipad) = io else { unreachable!() };
         for (fbg, &bit) in &fpart.bits.ipads[ipad].uim_out_en {
-            tile_insert(
-                &mut tile,
+            tile.insert(
                 format!("FB_COL[{fbg}].ZIA_GCLK{gclk}_ENABLE"),
                 extract_bool(bit, xlat_bit),
+                |_| true,
             );
         }
     }
@@ -536,27 +436,26 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                             .collect(),
                     },
                 };
-                tile_insert(&mut tile, format!("FB_GROUP[{i}].UCT{idx}"), subitem);
+                tile.insert(format!("FB_GROUP[{i}].UCT{idx}"), subitem, |_| true);
             }
         } else {
-            tile_insert(&mut tile, format!("FB_GROUP[0].UCT{idx}"), item);
+            tile.insert(format!("FB_GROUP[0].UCT{idx}"), item, |_| true);
         }
     }
-    tile_insert(
-        &mut tile,
+    tile.insert(
         "ISP_DISABLE",
         extract_bool(fpart.bits.no_isp.unwrap(), xlat_bit),
+        |_| true,
     );
-    tile_insert(
-        &mut tile,
+    tile.insert(
         "READ_PROT",
         TileItem {
             bits: vec![xlat_bit_raw(fpart.map.rprot[0])],
             kind: TileItemKind::BitVec { invert: true },
         },
+        |_| true,
     );
-    tile_insert(
-        &mut tile,
+    tile.insert(
         "UES",
         TileItem {
             bits: fpart
@@ -569,6 +468,7 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                 .collect(),
             kind: TileItemKind::BitVec { invert: false },
         },
+        |_| true,
     );
     tile
 }
@@ -647,9 +547,7 @@ fn extract_imux_bits(
 }
 
 fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> Tile<BitCoord> {
-    let mut tile = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
     for i in 0..40 {
         let mut values = imux_bits[i].clone();
         values.insert(
@@ -666,7 +564,7 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
                 .collect(),
             kind: TileItemKind::Enum { values },
         };
-        tile_insert(&mut tile, format!("IM[{i}].MUX"), item);
+        tile.insert(format!("IM[{i}].MUX"), item, |_| true);
     }
     tile
 }

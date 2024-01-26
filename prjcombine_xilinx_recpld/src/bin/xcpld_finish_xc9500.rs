@@ -1,4 +1,3 @@
-use core::fmt::Debug;
 use std::{
     collections::{btree_map, BTreeMap},
     error::Error,
@@ -7,11 +6,10 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use itertools::Itertools;
 use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
 use prjcombine_xc9500::{self as xc9500, FbBitCoord};
 use prjcombine_xilinx_cpld::{
-    bits::{BitPos, EnumData, FbBits, InvBit, McBits},
+    bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, BitPos},
     device::{Device, DeviceKind, JtagPin, PkgPin},
     types::{
         CeMuxVal, ClkMuxVal, ExportDir, ImuxInput, IoId, OeMode, OeMuxVal, RegMode, Slew, SrMuxVal,
@@ -34,82 +32,6 @@ struct Args {
     sdb: PathBuf,
     out: PathBuf,
     json: PathBuf,
-}
-
-fn merge_enum<T: Copy + Eq + Ord + Debug>(a: &mut TileItem<T>, b: &TileItem<T>, neutral: bool) {
-    if a == b {
-        return;
-    }
-    let mut bits = a.bits.clone();
-    for &bit in &b.bits {
-        if !bits.contains(&bit) {
-            bits.push(bit);
-        }
-    }
-    bits.sort();
-    let bit_map_a: Vec<_> = bits
-        .iter()
-        .map(|&x| a.bits.iter().find_position(|&&y| x == y).map(|x| x.0))
-        .collect();
-    let bit_map_b: Vec<_> = bits
-        .iter()
-        .map(|&x| b.bits.iter().find_position(|&&y| x == y).map(|x| x.0))
-        .collect();
-    a.bits = bits;
-    let TileItemKind::Enum { values: av } = &mut a.kind else {
-        unreachable!()
-    };
-    let TileItemKind::Enum { values: bv } = &b.kind else {
-        unreachable!()
-    };
-    for val in av.values_mut() {
-        *val = bit_map_a
-            .iter()
-            .map(|&x| match x {
-                Some(idx) => val[idx],
-                None => neutral,
-            })
-            .collect();
-    }
-    for (key, val) in bv {
-        let val: BitVec = bit_map_b
-            .iter()
-            .map(|&x| match x {
-                Some(idx) => val[idx],
-                None => neutral,
-            })
-            .collect();
-
-        match av.entry(key.clone()) {
-            btree_map::Entry::Vacant(e) => {
-                e.insert(val);
-            }
-            btree_map::Entry::Occupied(e) => assert_eq!(*e.get(), val),
-        }
-    }
-}
-
-fn merge_tile<T: Debug + Copy + Eq + Ord>(a: &mut Tile<T>, b: &Tile<T>, neutral: bool) {
-    if a == b {
-        return;
-    }
-    for (k, v) in &b.items {
-        match a.items.entry(k.clone()) {
-            btree_map::Entry::Vacant(e) => {
-                e.insert(v.clone());
-            }
-            btree_map::Entry::Occupied(mut e) => {
-                let tv = e.get_mut();
-                match (&tv.kind, &v.kind) {
-                    (TileItemKind::Enum { .. }, TileItemKind::Enum { .. }) => {
-                        merge_enum(tv, v, neutral);
-                    }
-                    (TileItemKind::BitVec { .. }, TileItemKind::BitVec { .. }) => assert_eq!(tv, v),
-                    _ => unreachable!(),
-                }
-            }
-        }
-    }
 }
 
 fn map_bit_raw(device: &Device, bit: BitPos) -> GlobalBitCoord {
@@ -169,357 +91,265 @@ fn map_mc_bit(device: &Device, fpart: &FuzzDbPart, fb: FbId, mc: FbMcId, bit: us
     crd.row
 }
 
-fn extract_mc_enum<T: Clone + Debug + Eq + core::hash::Hash>(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    get_enum: impl Fn(&McBits) -> Option<&EnumData<T>>,
-    xlat_val: impl Fn(&T) -> String,
-    default: impl Into<String>,
-) -> TileItem<u32> {
-    let default = default.into();
-    let mut res = None;
-    for (fb, mc) in device.mcs() {
-        if let Some(enum_) = get_enum(&fpart.bits.fbs[fb].mcs[mc]) {
-            let bits = enum_
-                .bits
-                .iter()
-                .map(|&bit| map_mc_bit(device, fpart, fb, mc, bit))
-                .collect();
-            let mut values: BTreeMap<_, _> = enum_
-                .items
-                .iter()
-                .map(|(k, v)| (xlat_val(k), v.clone()))
-                .collect();
-            match values.entry(default.clone()) {
-                btree_map::Entry::Vacant(e) => {
-                    e.insert(enum_.default.clone());
-                }
-                btree_map::Entry::Occupied(e) => {
-                    assert_eq!(*e.get(), enum_.default);
-                }
-            }
-            let data = TileItem {
-                bits,
-                kind: TileItemKind::Enum { values },
-            };
-            if res.is_none() {
-                res = Some(data);
-            } else {
-                assert_eq!(res, Some(data));
-            }
-        }
-    }
-    res.unwrap()
-}
-
-fn extract_mc_bool(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    get_bit: impl Fn(&McBits) -> Option<InvBit>,
-) -> TileItem<u32> {
-    let mut res = None;
-    for (fb, mc) in device.mcs() {
-        if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb].mcs[mc]) {
-            let bits = vec![map_mc_bit(device, fpart, fb, mc, bit)];
-            let data = TileItem {
-                bits,
-                kind: TileItemKind::BitVec { invert: !pol },
-            };
-            if res.is_none() {
-                res = Some(data);
-            } else {
-                assert_eq!(res, Some(data));
-            }
-        }
-    }
-    res.unwrap()
-}
-
-fn extract_mc_bool_to_enum(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    get_bit: impl Fn(&McBits) -> Option<InvBit>,
-    val_true: impl Into<String>,
-    val_false: impl Into<String>,
-) -> TileItem<u32> {
-    let val_true = val_true.into();
-    let val_false = val_false.into();
-    let mut res = None;
-    for (fb, mc) in device.mcs() {
-        if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb].mcs[mc]) {
-            let bits = vec![map_mc_bit(device, fpart, fb, mc, bit)];
-            let data = TileItem {
-                bits,
-                kind: TileItemKind::Enum {
-                    values: [
-                        (val_true.clone(), BitVec::repeat(pol, 1)),
-                        (val_false.clone(), BitVec::repeat(!pol, 1)),
-                    ]
-                    .into_iter()
-                    .collect(),
-                },
-            };
-            if res.is_none() {
-                res = Some(data);
-            } else {
-                assert_eq!(res, Some(data));
-            }
-        }
-    }
-    res.unwrap()
-}
-
 fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<u32> {
-    let mut res = Tile {
-        items: BTreeMap::new(),
-    };
-    for (i, pt) in [
-        Xc9500McPt::Clk,
-        Xc9500McPt::Oe,
-        Xc9500McPt::Rst,
-        Xc9500McPt::Set,
-        Xc9500McPt::Xor,
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        res.items.insert(
-            format!("PT[{i}].ALLOC"),
-            extract_mc_enum(
-                device,
-                fpart,
-                |mcbits| Some(&mcbits.pt.as_ref().unwrap()[pt].alloc),
-                |alloc| match alloc {
-                    prjcombine_xilinx_cpld::bits::PtAlloc::OrMain => "SUM".to_string(),
-                    prjcombine_xilinx_cpld::bits::PtAlloc::OrExport => "EXPORT".to_string(),
-                    prjcombine_xilinx_cpld::bits::PtAlloc::Special => "SPECIAL".to_string(),
-                },
-                "NONE",
-            ),
-        );
-        res.items.insert(
-            format!("PT[{i}].HP"),
-            extract_mc_bool(device, fpart, |mcbits| {
-                Some(mcbits.pt.as_ref().unwrap()[pt].hp)
-            }),
-        );
-    }
-    for (dir, name) in [
-        (ExportDir::Up, "IMPORT_UP_ALLOC"),
-        (ExportDir::Down, "IMPORT_DOWN_ALLOC"),
-    ] {
-        res.items.insert(
-            name.to_string(),
-            extract_mc_bool_to_enum(
-                device,
-                fpart,
-                |mcbits| Some(mcbits.import.as_ref().unwrap()[dir]),
-                "SUM",
-                "EXPORT",
-            ),
-        );
-    }
-    res.items.insert(
-        "EXPORT_CHAIN_DIR".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| mcbits.exp_dir.as_ref(),
-            |val| {
-                match val {
-                    ExportDir::Up => "UP",
-                    ExportDir::Down => "DOWN",
-                }
-                .into()
-            },
-            "UP",
-        ),
-    );
-    res.items.insert(
-        "SUM_HP".to_string(),
-        extract_mc_bool(device, fpart, |mcbits| mcbits.hp),
-    );
-    res.items.insert(
-        "INV".to_string(),
-        extract_mc_bool(device, fpart, |mcbits| mcbits.inv),
-    );
-    res.items.insert(
-        "OE_MUX".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| mcbits.oe_mux.as_ref(),
-            |val| match val {
-                OeMuxVal::Pt => "PT".to_string(),
-                OeMuxVal::Foe(idx) => format!("FOE{}", idx.to_idx()),
-                _ => unreachable!(),
-            },
-            "PT",
-        ),
-    );
-    res.items.insert(
-        "OUT_MUX".to_string(),
-        extract_mc_bool_to_enum(device, fpart, |mcbits| mcbits.ff_en, "FF", "COMB"),
-    );
-    res.items.insert(
-        "CLK_MUX".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| Some(&mcbits.clk_mux),
-            |val| match val {
-                ClkMuxVal::Pt => "PT".to_string(),
-                ClkMuxVal::Fclk(idx) => format!("FCLK{}", idx.to_idx()),
-                _ => unreachable!(),
-            },
-            "FCLK1",
-        ),
-    );
-    if device.kind != DeviceKind::Xc9500 {
-        res.items.insert(
-            "CLK_INV".to_string(),
-            extract_mc_bool(device, fpart, |mcbits| mcbits.clk_inv),
-        );
-        res.items.insert(
-            "OE_INV".to_string(),
-            extract_mc_bool(device, fpart, |mcbits| mcbits.oe_inv),
-        );
-        res.items.insert(
-            "CE_MUX".to_string(),
-            extract_mc_enum(
-                device,
-                fpart,
-                |mcbits| mcbits.ce_mux.as_ref(),
+    let mut tile = Tile::new();
+    let neutral = device.kind == DeviceKind::Xc9500;
+    let neutral = |_| neutral;
+    for (fb, mc) in device.mcs() {
+        let mcbits = &fpart.bits.fbs[fb].mcs[mc];
+        let xlat_bit = |bit| map_mc_bit(device, fpart, fb, mc, bit);
+        for (i, pt) in [
+            Xc9500McPt::Clk,
+            Xc9500McPt::Oe,
+            Xc9500McPt::Rst,
+            Xc9500McPt::Set,
+            Xc9500McPt::Xor,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            tile.insert(
+                format!("PT[{i}].ALLOC"),
+                extract_enum(
+                    &mcbits.pt.as_ref().unwrap()[pt].alloc,
+                    |alloc| match alloc {
+                        prjcombine_xilinx_cpld::bits::PtAlloc::OrMain => "SUM".to_string(),
+                        prjcombine_xilinx_cpld::bits::PtAlloc::OrExport => "EXPORT".to_string(),
+                        prjcombine_xilinx_cpld::bits::PtAlloc::Special => "SPECIAL".to_string(),
+                    },
+                    xlat_bit,
+                    "NONE",
+                ),
+                neutral,
+            );
+            tile.insert(
+                format!("PT[{i}].HP"),
+                extract_bool(mcbits.pt.as_ref().unwrap()[pt].hp, xlat_bit),
+                neutral,
+            );
+        }
+        for (dir, name) in [
+            (ExportDir::Up, "IMPORT_UP_ALLOC"),
+            (ExportDir::Down, "IMPORT_DOWN_ALLOC"),
+        ] {
+            tile.insert(
+                name,
+                extract_bool_to_enum(
+                    mcbits.import.as_ref().unwrap()[dir],
+                    xlat_bit,
+                    "SUM",
+                    "EXPORT",
+                ),
+                neutral,
+            );
+        }
+        tile.insert(
+            "EXPORT_CHAIN_DIR",
+            extract_enum(
+                mcbits.exp_dir.as_ref().unwrap(),
                 |val| {
                     match val {
-                        CeMuxVal::PtRst => "PT2",
-                        CeMuxVal::PtSet => "PT3",
+                        ExportDir::Up => "UP",
+                        ExportDir::Down => "DOWN",
+                    }
+                    .into()
+                },
+                xlat_bit,
+                "UP",
+            ),
+            neutral,
+        );
+        tile.insert(
+            "SUM_HP",
+            extract_bool(mcbits.hp.unwrap(), xlat_bit),
+            neutral,
+        );
+        tile.insert("INV", extract_bool(mcbits.inv.unwrap(), xlat_bit), neutral);
+        if let Some(ref enum_) = mcbits.oe_mux {
+            tile.insert(
+                "OE_MUX",
+                extract_enum(
+                    enum_,
+                    |val| match val {
+                        OeMuxVal::Pt => "PT".to_string(),
+                        OeMuxVal::Foe(idx) => format!("FOE{}", idx.to_idx()),
+                        _ => unreachable!(),
+                    },
+                    xlat_bit,
+                    "PT",
+                ),
+                neutral,
+            );
+        }
+        tile.insert(
+            "OUT_MUX",
+            extract_bool_to_enum(mcbits.ff_en.unwrap(), xlat_bit, "FF", "COMB"),
+            neutral,
+        );
+        tile.insert(
+            "CLK_MUX",
+            extract_enum(
+                &mcbits.clk_mux,
+                |val| match val {
+                    ClkMuxVal::Pt => "PT".to_string(),
+                    ClkMuxVal::Fclk(idx) => format!("FCLK{}", idx.to_idx()),
+                    _ => unreachable!(),
+                },
+                xlat_bit,
+                "FCLK1",
+            ),
+            neutral,
+        );
+        if device.kind != DeviceKind::Xc9500 {
+            tile.insert(
+                "CLK_INV",
+                extract_bool(mcbits.clk_inv.unwrap(), xlat_bit),
+                neutral,
+            );
+            if let Some(bit) = mcbits.oe_inv {
+                tile.insert("OE_INV".to_string(), extract_bool(bit, xlat_bit), neutral);
+            }
+            tile.insert(
+                "CE_MUX",
+                extract_enum(
+                    mcbits.ce_mux.as_ref().unwrap(),
+                    |val| {
+                        match val {
+                            CeMuxVal::PtRst => "PT2",
+                            CeMuxVal::PtSet => "PT3",
+                            _ => unreachable!(),
+                        }
+                        .into()
+                    },
+                    xlat_bit,
+                    "NONE",
+                ),
+                neutral,
+            );
+        }
+        tile.insert(
+            "REG_MODE",
+            extract_enum(
+                &mcbits.reg_mode,
+                |val| {
+                    match val {
+                        RegMode::Dff => "DFF",
+                        RegMode::Tff => "TFF",
                         _ => unreachable!(),
                     }
                     .into()
                 },
-                "NONE",
+                xlat_bit,
+                "DFF",
             ),
+            neutral,
         );
-    }
-    res.items.insert(
-        "REG_MODE".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| Some(&mcbits.reg_mode),
-            |val| {
-                match val {
-                    RegMode::Dff => "DFF",
-                    RegMode::Tff => "TFF",
-                    _ => unreachable!(),
-                }
-                .into()
-            },
-            "DFF",
-        ),
-    );
-    res.items.insert(
-        "RST_MUX".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| Some(&mcbits.rst_mux),
-            |val| {
-                match val {
-                    SrMuxVal::Pt => "PT",
-                    SrMuxVal::Fsr => "FSR",
-                    _ => unreachable!(),
-                }
-                .into()
-            },
-            "PT",
-        ),
-    );
-    res.items.insert(
-        "SET_MUX".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| Some(&mcbits.set_mux),
-            |val| {
-                match val {
-                    SrMuxVal::Pt => "PT",
-                    SrMuxVal::Fsr => "FSR",
-                    _ => unreachable!(),
-                }
-                .into()
-            },
-            "PT",
-        ),
-    );
-    res.items.insert(
-        "REG_INIT".to_string(),
-        extract_mc_bool(device, fpart, |mcbits| mcbits.init),
-    );
-    if device.kind == DeviceKind::Xc9500 {
-        res.items.insert(
-            "IOB_OE_MUX".to_string(),
-            extract_mc_enum(
-                device,
-                fpart,
-                |mcbits| mcbits.obuf_oe_mode.as_ref(),
+        tile.insert(
+            "RST_MUX",
+            extract_enum(
+                &mcbits.rst_mux,
                 |val| {
                     match val {
-                        OeMode::Gnd => "GND",
-                        OeMode::Vcc => "VCC",
-                        OeMode::McOe => "OE_MUX",
+                        SrMuxVal::Pt => "PT",
+                        SrMuxVal::Fsr => "FSR",
+                        _ => unreachable!(),
                     }
                     .into()
                 },
-                "GND",
+                xlat_bit,
+                "PT",
             ),
+            neutral,
         );
-        res.items.insert(
-            "UIM_OE_MUX".to_string(),
-            extract_mc_enum(
-                device,
-                fpart,
-                |mcbits| mcbits.uim_oe_mode.as_ref(),
+        tile.insert(
+            "SET_MUX",
+            extract_enum(
+                &mcbits.set_mux,
                 |val| {
                     match val {
-                        OeMode::Gnd => "GND",
-                        OeMode::Vcc => "VCC",
-                        OeMode::McOe => "OE_MUX",
+                        SrMuxVal::Pt => "PT",
+                        SrMuxVal::Fsr => "FSR",
+                        _ => unreachable!(),
                     }
                     .into()
                 },
-                "GND",
+                xlat_bit,
+                "PT",
             ),
+            neutral,
         );
-        res.items.insert(
-            "UIM_OUT_INV".to_string(),
-            extract_mc_bool(device, fpart, |mcbits| mcbits.uim_out_inv),
+        tile.insert(
+            "REG_INIT",
+            extract_bool(mcbits.init.unwrap(), xlat_bit),
+            neutral,
         );
+        if device.kind == DeviceKind::Xc9500 {
+            if let Some(ref enum_) = mcbits.obuf_oe_mode {
+                tile.insert(
+                    "IOB_OE_MUX",
+                    extract_enum(
+                        enum_,
+                        |val| {
+                            match val {
+                                OeMode::Gnd => "GND",
+                                OeMode::Vcc => "VCC",
+                                OeMode::McOe => "OE_MUX",
+                            }
+                            .into()
+                        },
+                        xlat_bit,
+                        "GND",
+                    ),
+                    neutral,
+                );
+            }
+            tile.insert(
+                "UIM_OE_MUX",
+                extract_enum(
+                    mcbits.uim_oe_mode.as_ref().unwrap(),
+                    |val| {
+                        match val {
+                            OeMode::Gnd => "GND",
+                            OeMode::Vcc => "VCC",
+                            OeMode::McOe => "OE_MUX",
+                        }
+                        .into()
+                    },
+                    xlat_bit,
+                    "GND",
+                ),
+                neutral,
+            );
+            tile.insert(
+                "UIM_OUT_INV",
+                extract_bool(mcbits.uim_out_inv.unwrap(), xlat_bit),
+                neutral,
+            );
+        }
+        if let Some(bit) = mcbits.is_gnd {
+            tile.insert("IOB_GND", extract_bool(bit, xlat_bit), neutral);
+        }
+
+        if let Some(ref enum_) = mcbits.slew {
+            tile.insert(
+                "IOB_SLEW",
+                extract_enum(
+                    enum_,
+                    |val| {
+                        match val {
+                            Slew::Slow => "SLOW",
+                            Slew::Fast => "FAST",
+                        }
+                        .into()
+                    },
+                    xlat_bit,
+                    "SLOW",
+                ),
+                neutral,
+            );
+        }
     }
-    res.items.insert(
-        "IOB_GND".to_string(),
-        extract_mc_bool(device, fpart, |mcbits| mcbits.is_gnd),
-    );
-
-    res.items.insert(
-        "IOB_SLEW".to_string(),
-        extract_mc_enum(
-            device,
-            fpart,
-            |mcbits| mcbits.slew.as_ref(),
-            |val| {
-                match val {
-                    Slew::Slow => "SLOW",
-                    Slew::Fast => "FAST",
-                }
-                .into()
-            },
-            "SLOW",
-        ),
-    );
-
-    res
+    tile
 }
 
 fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<FbBitCoord> {
@@ -574,72 +404,6 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<Fb
     }
 }
 
-fn extract_fb_bool(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    get_bit: impl Fn(&FbBits) -> Option<InvBit>,
-) -> TileItem<FbBitCoord> {
-    let mut res = None;
-    for fb in device.fbs() {
-        if let Some((bit, pol)) = get_bit(&fpart.bits.fbs[fb]) {
-            let bits = vec![map_fb_bit(device, fpart, fb, bit)];
-            let data = TileItem {
-                bits,
-                kind: TileItemKind::BitVec { invert: !pol },
-            };
-            if res.is_none() {
-                res = Some(data);
-            } else {
-                assert_eq!(res, Some(data));
-            }
-        }
-    }
-    res.unwrap()
-}
-
-fn extract_fb_enum<T: Clone + Debug + Eq + core::hash::Hash>(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    get_enum: impl Fn(&FbBits) -> Option<&EnumData<T>>,
-    xlat_val: impl Fn(&T) -> String,
-    default: impl Into<String>,
-) -> TileItem<FbBitCoord> {
-    let default = default.into();
-    let mut res = None;
-    for fb in device.fbs() {
-        if let Some(enum_) = get_enum(&fpart.bits.fbs[fb]) {
-            let bits = enum_
-                .bits
-                .iter()
-                .map(|&bit| map_fb_bit(device, fpart, fb, bit))
-                .collect();
-            let mut values: BTreeMap<_, _> = enum_
-                .items
-                .iter()
-                .map(|(k, v)| (xlat_val(k), v.clone()))
-                .collect();
-            match values.entry(default.clone()) {
-                btree_map::Entry::Vacant(e) => {
-                    e.insert(enum_.default.clone());
-                }
-                btree_map::Entry::Occupied(e) => {
-                    assert_eq!(*e.get(), enum_.default);
-                }
-            }
-            let data = TileItem {
-                bits,
-                kind: TileItemKind::Enum { values },
-            };
-            if res.is_none() {
-                res = Some(data);
-            } else {
-                assert_eq!(res, Some(data));
-            }
-        }
-    }
-    res.unwrap()
-}
-
 fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
     assert_eq!(device.fbs, bits.len());
     let mut res = None;
@@ -660,23 +424,31 @@ fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
 }
 
 fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
-    let mut res = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
+    let neutral = device.kind == DeviceKind::Xc9500;
+    let neutral = |_| neutral;
 
-    res.items.insert(
-        "PULLUP_DISABLE".to_string(),
+    tile.insert(
+        "PULLUP_DISABLE",
         extract_fb_pullup_disable(device, fpart),
+        neutral,
     );
 
-    res.items.insert(
-        "ENABLE".to_string(),
-        extract_fb_bool(device, fpart, |fbbits| fbbits.en),
-    );
-    res.items.insert(
-        "EXPORT_ENABLE".to_string(),
-        extract_fb_bool(device, fpart, |fbbits| fbbits.exp_en),
-    );
+    for fb in device.fbs() {
+        let fbbits = &fpart.bits.fbs[fb];
+        let xlat_bit = |bit| map_fb_bit(device, fpart, fb, bit);
+        tile.insert(
+            "ENABLE",
+            extract_bool(fbbits.en.unwrap(), xlat_bit),
+            neutral,
+        );
+
+        tile.insert(
+            "EXPORT_ENABLE",
+            extract_bool(fbbits.exp_en.unwrap(), xlat_bit),
+            neutral,
+        );
+    }
 
     if device.kind == DeviceKind::Xc9500 {
         let a: Vec<_> = fpart.map.rprot.chunks(2).map(|x| x[0]).collect();
@@ -686,95 +458,46 @@ fn extract_fb_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
             assert_eq!(b[1].0, 0x3043);
             b[1].0 = 0x2883;
         }
-        res.items
-            .insert("READ_PROT_A".to_string(), extract_fb_prot(device, &a));
-        res.items
-            .insert("READ_PROT_B".to_string(), extract_fb_prot(device, &b));
+        tile.insert("READ_PROT_A", extract_fb_prot(device, &a), neutral);
+        tile.insert("READ_PROT_B", extract_fb_prot(device, &b), neutral);
     } else {
-        res.items.insert(
-            "READ_PROT".to_string(),
+        tile.insert(
+            "READ_PROT",
             extract_fb_prot(device, &fpart.map.rprot),
+            neutral,
         );
     }
-    res.items.insert(
-        "WRITE_PROT".to_string(),
+    tile.insert(
+        "WRITE_PROT",
         extract_fb_prot(device, &fpart.map.wprot),
+        neutral,
     );
 
-    res
-}
-
-fn extract_global_bool(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    bit: InvBit,
-) -> TileItem<GlobalBitCoord> {
-    let (bit, pol) = bit;
-    let bits = vec![map_bit(device, fpart, bit)];
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert: !pol },
-    }
-}
-
-fn extract_global_enum<T: Clone + Debug + Eq + core::hash::Hash>(
-    device: &Device,
-    fpart: &FuzzDbPart,
-    enum_: &EnumData<T>,
-    xlat_val: impl Fn(&T) -> String,
-    default: impl Into<String>,
-) -> TileItem<GlobalBitCoord> {
-    let default = default.into();
-    let bits = enum_
-        .bits
-        .iter()
-        .map(|&bit| map_bit(device, fpart, bit))
-        .collect();
-    let mut values: BTreeMap<_, _> = enum_
-        .items
-        .iter()
-        .map(|(k, v)| (xlat_val(k), v.clone()))
-        .collect();
-    match values.entry(default.clone()) {
-        btree_map::Entry::Vacant(e) => {
-            e.insert(enum_.default.clone());
-        }
-        btree_map::Entry::Occupied(e) => {
-            assert_eq!(*e.get(), enum_.default);
-        }
-    }
-    TileItem {
-        bits,
-        kind: TileItemKind::Enum { values },
-    }
+    tile
 }
 
 fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoord> {
-    let mut res = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
+    let neutral = device.kind == DeviceKind::Xc9500;
+    let neutral = |_| neutral;
+    let xlat_bit = |bit| map_bit(device, fpart, bit);
 
-    res.items.insert(
+    tile.items.insert(
         "FSR_INV".to_string(),
-        extract_global_bool(device, fpart, fpart.bits.fsr_inv.unwrap()),
+        extract_bool(fpart.bits.fsr_inv.unwrap(), xlat_bit),
     );
     if device.kind == DeviceKind::Xc9500 {
         for (i, &bit) in &fpart.bits.fclk_inv {
-            res.items.insert(
-                format!("FCLK{i}_INV"),
-                extract_global_bool(device, fpart, bit),
-            );
+            tile.insert(format!("FCLK{i}_INV"), extract_bool(bit, xlat_bit), neutral);
         }
         for (i, &bit) in &fpart.bits.foe_inv {
-            res.items.insert(
-                format!("FOE{i}_INV"),
-                extract_global_bool(device, fpart, bit),
-            );
+            tile.insert(format!("FOE{i}_INV"), extract_bool(bit, xlat_bit), neutral);
         }
         for (i, enum_) in &fpart.bits.fclk_mux {
-            res.items.insert(
+            tile.insert(
                 format!("FCLK{i}_MUX"),
-                extract_global_enum(device, fpart, enum_, |val| format!("GCLK{val}"), "NONE"),
+                extract_enum(enum_, |val| format!("GCLK{val}"), xlat_bit, "NONE"),
+                neutral,
             );
         }
         for (i, enum_) in &fpart.bits.foe_mux {
@@ -783,94 +506,94 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoo
                 4 => "LARGE",
                 _ => unreachable!(),
             };
-            res.items.insert(
+            tile.insert(
                 format!("FOE{i}_MUX.{kind}"),
-                extract_global_enum(device, fpart, enum_, |val| format!("GOE{val}"), "NONE"),
+                extract_enum(enum_, |val| format!("GOE{val}"), xlat_bit, "NONE"),
+                neutral,
             );
         }
     } else {
         for (i, &bit) in &fpart.bits.fclk_en {
-            res.items.insert(
+            tile.insert(
                 format!("FCLK{i}_ENABLE"),
-                extract_global_bool(device, fpart, bit),
+                extract_bool(bit, xlat_bit),
+                neutral,
             );
         }
         for (i, &bit) in &fpart.bits.foe_en {
-            res.items.insert(
+            tile.insert(
                 format!("FOE{i}_ENABLE"),
-                extract_global_bool(device, fpart, bit),
+                extract_bool(bit, xlat_bit),
+                neutral,
             );
         }
 
-        res.items.insert(
-            "TERM_MODE".to_string(),
-            extract_global_enum(
-                device,
-                fpart,
+        tile.insert(
+            "TERM_MODE",
+            extract_enum(
                 fpart.bits.term_mode.as_ref().unwrap(),
                 |val| match val {
                     TermMode::Pullup => unreachable!(),
                     TermMode::Keeper => "KEEPER".to_string(),
                 },
+                xlat_bit,
                 "FLOAT",
             ),
+            neutral,
         );
     }
-    let usercode = fpart.bits.usercode.unwrap();
-    for (_, pol) in usercode {
-        assert_eq!(pol, usercode[0].1);
-    }
-    res.items.insert(
-        "USERCODE".to_string(),
-        TileItem {
-            bits: usercode
-                .into_iter()
-                .map(|(bit, _)| map_bit(device, fpart, bit))
-                .collect(),
-            kind: TileItemKind::BitVec {
-                invert: !usercode[1].1,
-            },
-        },
+    tile.insert(
+        "USERCODE",
+        extract_bitvec(&fpart.bits.usercode.unwrap(), xlat_bit),
+        neutral,
     );
     if device.kind == DeviceKind::Xc9500Xv {
-        res.items.insert(
-            "DONE".to_string(),
+        tile.insert(
+            "DONE",
             TileItem {
                 bits: vec![map_bit_raw(device, fpart.map.done.unwrap())],
                 kind: TileItemKind::BitVec { invert: false },
             },
+            neutral,
         );
     }
-    res
+    tile
 }
 
 fn extract_imux_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<FbBitCoord> {
-    let mut tile = Tile {
-        items: BTreeMap::new(),
-    };
-    for im in device.fb_imuxes() {
-        let item = extract_fb_enum(
-            device,
-            fpart,
-            |fbbits| Some(&fbbits.imux[im]),
-            |val| match val {
-                ImuxInput::Fbk(mc) => format!("FBK_{mc}"),
-                ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
-                ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
-                ImuxInput::Uim => "UIM".to_string(),
-                _ => unreachable!(),
-            },
-            "NONE",
-        );
-        tile.items.insert(format!("IM[{im}].MUX"), item);
+    let mut tile = Tile::new();
+    let neutral = device.kind == DeviceKind::Xc9500;
+    let neutral = |_| neutral;
+
+    for fb in device.fbs() {
+        let fbbits = &fpart.bits.fbs[fb];
+        let xlat_bit = |bit| map_fb_bit(device, fpart, fb, bit);
+        for im in device.fb_imuxes() {
+            tile.insert(
+                format!("IM[{im}].MUX"),
+                extract_enum(
+                    &fbbits.imux[im],
+                    |val| match val {
+                        ImuxInput::Fbk(mc) => format!("FBK_{mc}"),
+                        ImuxInput::Mc((fb, mc)) => format!("MC_{fb}_{mc}"),
+                        ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("IOB_{fb}_{mc}"),
+                        ImuxInput::Uim => "UIM".to_string(),
+                        _ => unreachable!(),
+                    },
+                    xlat_bit,
+                    "NONE",
+                ),
+                neutral,
+            );
+        }
     }
     tile
 }
 
 fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoord> {
-    let mut res = Tile {
-        items: BTreeMap::new(),
-    };
+    let mut tile = Tile::new();
+    let neutral = device.kind == DeviceKind::Xc9500;
+    let neutral = |_| neutral;
     for (fb, mc) in device.mcs() {
         let bits = &fpart.bits.fbs[fb].mcs[mc].ibuf_uim_en;
         if bits.is_empty() {
@@ -878,13 +601,14 @@ fn extract_ibuf_uim_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitC
         }
         assert_eq!(bits.len(), 2);
         for (i, bit) in bits.iter().copied().enumerate() {
-            res.items.insert(
+            tile.insert(
                 format!("FB[{fb}].MC[{mc}].IBUF_UIM_ENABLE.{i}"),
-                extract_global_bool(device, fpart, bit),
+                extract_bool(bit, |bit| map_bit(device, fpart, bit)),
+                neutral,
             );
         }
     }
-    res
+    tile
 }
 
 fn validate_jed_map_xc9500(device: &Device, fpart: &FuzzDbPart) {
@@ -1072,11 +796,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     let fdb = FuzzDb::from_file(args.fdb)?;
     let sdb = SpeedDb::from_file(args.sdb)?;
 
-    let mut mc_bits = None;
-    let mut fb_bits = None;
-    let mut global_bits = None;
+    let mut mc_bits: Option<Tile<_>> = None;
+    let mut fb_bits: Option<Tile<_>> = None;
+    let mut global_bits: Option<Tile<_>> = None;
     let mut imux_bits = BTreeMap::new();
-    let mut ibuf_uim_bits = None;
+    let mut ibuf_uim_bits: Option<Tile<_>> = None;
 
     for fpart in &fdb.parts {
         let part = db
@@ -1094,29 +818,23 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         validate_pterm(device, fpart);
 
         if let Some(ref mut bits) = mc_bits {
-            merge_tile(
-                bits,
-                &extract_mc_bits(device, fpart),
-                device.kind == DeviceKind::Xc9500,
-            );
+            bits.merge(&extract_mc_bits(device, fpart), |_| {
+                device.kind == DeviceKind::Xc9500
+            });
         } else {
             mc_bits = Some(extract_mc_bits(device, fpart));
         }
         if let Some(ref mut bits) = fb_bits {
-            merge_tile(
-                bits,
-                &extract_fb_bits(device, fpart),
-                device.kind == DeviceKind::Xc9500,
-            );
+            bits.merge(&extract_fb_bits(device, fpart), |_| {
+                device.kind == DeviceKind::Xc9500
+            });
         } else {
             fb_bits = Some(extract_fb_bits(device, fpart));
         }
         if let Some(ref mut bits) = global_bits {
-            merge_tile(
-                bits,
-                &extract_global_bits(device, fpart),
-                device.kind == DeviceKind::Xc9500,
-            );
+            bits.merge(&extract_global_bits(device, fpart), |_| {
+                device.kind == DeviceKind::Xc9500
+            });
         } else {
             global_bits = Some(extract_global_bits(device, fpart));
         }
@@ -1125,17 +843,15 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             btree_map::Entry::Vacant(e) => {
                 e.insert(cur_imux_bits);
             }
-            btree_map::Entry::Occupied(mut e) => merge_tile(
-                e.get_mut(),
-                &cur_imux_bits,
-                device.kind == DeviceKind::Xc9500,
-            ),
+            btree_map::Entry::Occupied(mut e) => e
+                .get_mut()
+                .merge(&cur_imux_bits, |_| device.kind == DeviceKind::Xc9500),
         }
 
         if device.kind == DeviceKind::Xc9500 && device.fbs == 16 {
             let cur_bits = extract_ibuf_uim_bits(device, fpart);
             if let Some(ref mut bits) = ibuf_uim_bits {
-                merge_tile(bits, &cur_bits, true);
+                bits.merge(&cur_bits, |_| true);
             } else {
                 ibuf_uim_bits = Some(cur_bits);
             }

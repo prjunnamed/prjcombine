@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 use core::hash::Hash;
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::{btree_map, hash_map::Entry, BTreeMap, HashMap};
 
 use crate::types::{
     BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbnId, FclkId, FoeId, FoeMuxVal,
@@ -10,7 +10,7 @@ use crate::types::{
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
-use prjcombine_types::{FbId, FbMcId};
+use prjcombine_types::{FbId, FbMcId, TileItem, TileItemKind};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -1120,5 +1120,79 @@ impl Bits {
             Ok(())
         }
         Ok(())
+    }
+}
+
+pub fn extract_bool<T>(bit: InvBit, xlat_bit: impl Fn(usize) -> T) -> TileItem<T> {
+    let (bit, pol) = bit;
+    let bits = vec![xlat_bit(bit)];
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec { invert: !pol },
+    }
+}
+
+pub fn extract_bitvec<T>(bits: &[InvBit], xlat_bit: impl Fn(usize) -> T) -> TileItem<T> {
+    let pol = bits[0].1;
+    let bits = bits
+        .iter()
+        .map(|&(bit, p)| {
+            assert_eq!(p, pol);
+            xlat_bit(bit)
+        })
+        .collect();
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec { invert: !pol },
+    }
+}
+
+pub fn extract_bool_to_enum<T>(
+    bit: InvBit,
+    xlat_bit: impl Fn(usize) -> T,
+    val_true: impl Into<String>,
+    val_false: impl Into<String>,
+) -> TileItem<T> {
+    let val_true = val_true.into();
+    let val_false = val_false.into();
+    let (bit, pol) = bit;
+    let bits = vec![xlat_bit(bit)];
+    TileItem {
+        bits,
+        kind: TileItemKind::Enum {
+            values: [
+                (val_true, BitVec::repeat(pol, 1)),
+                (val_false, BitVec::repeat(!pol, 1)),
+            ]
+            .into_iter()
+            .collect(),
+        },
+    }
+}
+
+pub fn extract_enum<T: Clone + Debug + Eq + core::hash::Hash, C>(
+    enum_: &EnumData<T>,
+    xlat_val: impl Fn(&T) -> String,
+    xlat_bit: impl Fn(usize) -> C,
+    default: impl Into<String>,
+) -> TileItem<C> {
+    let default = default.into();
+    let bits = enum_.bits.iter().map(|&bit| xlat_bit(bit)).collect();
+    let mut values: BTreeMap<_, _> = enum_
+        .items
+        .iter()
+        .map(|(k, v)| (xlat_val(k), v.clone()))
+        .collect();
+    match values.entry(default.clone()) {
+        btree_map::Entry::Vacant(e) => {
+            e.insert(enum_.default.clone());
+        }
+        btree_map::Entry::Occupied(e) => {
+            assert_eq!(*e.get(), enum_.default);
+        }
+    }
+    TileItem {
+        bits,
+        kind: TileItemKind::Enum { values },
     }
 }
