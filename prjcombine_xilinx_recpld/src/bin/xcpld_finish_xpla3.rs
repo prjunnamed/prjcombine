@@ -724,32 +724,6 @@ fn verify_jed(
     assert_eq!(pos, fpart.map.main.len());
 }
 
-fn tile_to_json<T: Copy>(
-    tile: &Tile<T>,
-    bit_to_json: impl Fn(T) -> serde_json::Value,
-) -> serde_json::Value {
-    serde_json::Map::from_iter(tile.items.iter().map(|(k, v)| {
-        (
-            k.clone(),
-            match &v.kind {
-                TileItemKind::Enum { values } => json!({
-                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                    "values": serde_json::Map::from_iter(
-                        values.iter().map(|(vk, vv)| {
-                            (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
-                        })
-                    ),
-                }),
-                TileItemKind::BitVec { invert } => json!({
-                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                    "invert": *invert,
-                }),
-            },
-        )
-    }))
-    .into()
-}
-
 fn bit_to_json(crd: xpla3::BitCoord) -> serde_json::Value {
     json!([crd.row, crd.plane, crd.column])
 }
@@ -1032,9 +1006,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             "fb_cols": device.fb_cols,
             "io_mcs": device.io_mcs,
             "io_special": device.io_special,
-            "global_bits": tile_to_json(&device.global_bits, bit_to_json),
+            "global_bits": device.global_bits.to_json(bit_to_json),
             "jed_global_bits": device.jed_global_bits,
-            "imux_bits": tile_to_json(&device.imux_bits, bit_to_json),
+            "imux_bits": device.imux_bits.to_json(bit_to_json),
         }))),
         "bonds": Vec::from_iter(
             database.bonds.values().map(|bond| json!({
@@ -1055,8 +1029,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         ),
         "speeds": &database.speeds,
         "parts": &database.parts,
-        "mc_bits": tile_to_json(&database.mc_bits, bit_to_json),
-        "fb_bits": tile_to_json(&database.fb_bits, bit_to_json),
+        "mc_bits": database.mc_bits.to_json(bit_to_json),
+        "fb_bits": database.fb_bits.to_json(bit_to_json),
         "jed_mc_bits_iob": &database.jed_mc_bits_iob,
         "jed_mc_bits_buried": &database.jed_mc_bits_buried,
         "jed_fb_bits": &database.jed_fb_bits,

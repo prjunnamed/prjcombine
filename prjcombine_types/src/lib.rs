@@ -4,6 +4,7 @@ use std::collections::{btree_map, BTreeMap};
 use bitvec::vec::BitVec;
 use itertools::*;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use unnamed_entity::entity_id;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -54,6 +55,29 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
                 e.get_mut().merge(&item, neutral);
             }
         }
+    }
+
+    pub fn to_json(&self, bit_to_json: impl Fn(T) -> serde_json::Value) -> serde_json::Value {
+        serde_json::Map::from_iter(self.items.iter().map(|(k, v)| {
+            (
+                k.clone(),
+                match &v.kind {
+                    TileItemKind::Enum { values } => json!({
+                        "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
+                        "values": serde_json::Map::from_iter(
+                            values.iter().map(|(vk, vv)| {
+                                (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
+                            })
+                        ),
+                    }),
+                    TileItemKind::BitVec { invert } => json!({
+                        "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
+                        "invert": *invert,
+                    }),
+                },
+            )
+        }))
+        .into()
     }
 }
 

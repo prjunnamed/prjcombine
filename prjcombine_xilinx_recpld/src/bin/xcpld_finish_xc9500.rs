@@ -749,32 +749,6 @@ fn validate_pterm(device: &Device, fpart: &FuzzDbPart) {
     }
 }
 
-fn tile_to_json<T: Copy>(
-    tile: &Tile<T>,
-    bit_to_json: impl Fn(T) -> serde_json::Value,
-) -> serde_json::Value {
-    serde_json::Map::from_iter(tile.items.iter().map(|(k, v)| {
-        (
-            k.clone(),
-            match &v.kind {
-                TileItemKind::Enum { values } => json!({
-                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                    "values": serde_json::Map::from_iter(
-                        values.iter().map(|(vk, vv)| {
-                            (vk.clone(), Vec::from_iter(vv.iter().map(|x| *x)).into())
-                        })
-                    ),
-                }),
-                TileItemKind::BitVec { invert } => json!({
-                    "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                    "invert": invert,
-                }),
-            },
-        )
-    }))
-    .into()
-}
-
 fn fb_bit_to_json(crd: FbBitCoord) -> serde_json::Value {
     json!([crd.row, crd.bit, crd.column])
 }
@@ -1043,9 +1017,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             "banks": device.banks,
             "tdo_bank": device.tdo_bank,
             "io_special": device.io_special,
-            "imux_bits": tile_to_json(&device.imux_bits, fb_bit_to_json),
+            "imux_bits": device.imux_bits.to_json(fb_bit_to_json),
             "uim_ibuf_bits": if let Some(ref bits) = device.uim_ibuf_bits {
-                tile_to_json(bits, global_bit_to_json)
+                bits.to_json(global_bit_to_json)
             } else {
                 serde_json::Value::Null
             },
@@ -1074,9 +1048,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         ),
         "speeds": &database.speeds,
         "parts": &database.parts,
-        "mc_bits": tile_to_json(&database.mc_bits, |bit| bit.into()),
-        "fb_bits": tile_to_json(&database.fb_bits, fb_bit_to_json),
-        "global_bits": tile_to_json(&database.global_bits, global_bit_to_json),
+        "mc_bits": database.mc_bits.to_json(|bit| bit.into()),
+        "fb_bits": database.fb_bits.to_json(fb_bit_to_json),
+        "global_bits": database.global_bits.to_json(global_bit_to_json),
     });
     std::fs::write(args.json, json.to_string())?;
 
