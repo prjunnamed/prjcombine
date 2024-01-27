@@ -2,8 +2,9 @@ use std::{error::Error, path::PathBuf};
 
 use clap::Parser;
 use itertools::Itertools;
+use prjcombine_types::IoId;
 use prjcombine_xilinx_cpld::device::{DeviceKind, PkgPin};
-use prjcombine_xilinx_cpld::types::{ImuxInput, IoId};
+use prjcombine_xilinx_cpld::types::ImuxInput;
 use prjcombine_xilinx_recpld::db::Database;
 use unnamed_entity::EntityId;
 
@@ -45,12 +46,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         }
         for (&ioid, io) in device.device.io.iter().sorted_by_key(|a| a.0) {
             match ioid {
-                IoId::Ipad(ip) => {
-                    print!("\tIPAD{ip}:", ip = ip.to_idx());
-                }
-                IoId::Mc(mc) => {
-                    print!("\tIO{f}_{m}:", f = mc.0.to_idx(), m = mc.1.to_idx(),);
-                }
+                IoId::Ipad(ip) => print!("\tIPAD{ip}:"),
+                IoId::Mc((fb, mc)) => print!("\tIO{fb}_{mc}:"),
             }
             print!(
                 " PAD{pad} BANK {bank}",

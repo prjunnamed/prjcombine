@@ -7,13 +7,13 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
+use prjcombine_types::{FbId, FbMcId, IoId, Tile, TileItem, TileItemKind};
 use prjcombine_xilinx_cpld::{
     bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},
     device::{Device, JtagPin, PkgPin},
     types::{
-        CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, IoId, OeMuxVal, PTermId, RegMode, Slew,
-        SrMuxVal, Ut,
+        CeMuxVal, ClkMuxVal, FbnId, ImuxId, ImuxInput, OeMuxVal, PTermId, RegMode, Slew, SrMuxVal,
+        Ut,
     },
 };
 use prjcombine_xilinx_recpld::{

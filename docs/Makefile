@@ -16,7 +16,7 @@ help:
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-html: Makefile generated-xc9500 generated-xpla3
+html: Makefile generated-xc9500 generated-xpla3 generated-xc2c
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 generated-xc9500: gen_xc9500.py ../databases/xc9500.json ../databases/xc9500xl.json ../databases/xc9500xv.json
@@ -25,4 +25,7 @@ generated-xc9500: gen_xc9500.py ../databases/xc9500.json ../databases/xc9500xl.j
 generated-xpla3: gen_xpla3.py ../databases/xpla3.json
 	python gen_xpla3.py
 
-.PHONY: generated-xc9500 generated-xpla3
+generated-xc2c: gen_xc2c.py ../databases/xc2c.json
+	python gen_xc2c.py
+
+.PHONY: generated-xc9500 generated-xpla3 generated-xc2c

@@ -6,10 +6,8 @@ use std::{
 
 use enum_map::EnumMap;
 pub use parser::{ParseError, ParseErrorKind};
-use prjcombine_types::{FbId, FbMcId};
-use prjcombine_xilinx_cpld::types::{
-    ClkPadId, FbnId, FclkId, FoeId, ImuxId, IoId, IpadId, PTermId, Ut,
-};
+use prjcombine_types::{FbId, FbMcId, IoId, IpadId};
+use prjcombine_xilinx_cpld::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, PTermId, Ut};
 use unnamed_entity::{entity_id, EntityId, EntityMap, EntityPartVec, EntityVec};
 
 entity_id! {

@@ -27,6 +27,7 @@ enum-map.workspace = true
 prjcombine_sdf.workspace = true
 prjcombine_xc9500.workspace = true
 prjcombine_xpla3.workspace = true
+prjcombine_xc2c.workspace = true
 
 [lints]
 workspace = true

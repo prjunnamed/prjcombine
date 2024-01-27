@@ -1,10 +1,10 @@
 use prjcombine_hammer::{Fuzzer, Session};
-use prjcombine_types::{FbId, FbMcId, McId};
+use prjcombine_types::{FbId, FbMcId, IoId, McId};
 use prjcombine_vm6::{InputNodeKind, NodeKind};
 use prjcombine_xilinx_cpld::device::DeviceKind;
 use prjcombine_xilinx_cpld::types::{
-    ClkMuxVal, ClkPadId, ExportDir, FclkId, FoeId, ImuxId, ImuxInput, IoId, OeMuxVal, OePadId,
-    PTermId, SrMuxVal, Ut, Xc9500McPt,
+    ClkMuxVal, ClkPadId, ExportDir, FclkId, FoeId, ImuxId, ImuxInput, OeMuxVal, OePadId, PTermId,
+    SrMuxVal, Ut, Xc9500McPt,
 };
 use unnamed_entity::EntityId;
 

@@ -10,23 +10,7 @@ Devices
 
 The following devices exist:
 
-========= =============== ========= ==== ========= =============
-Device    Function Blocks I/O banks VREF Data Gate Clock divider
-========= =============== ========= ==== ========= =============
-XC2C32    2               1
-XC2C32A   2               2
-XC2C64    4               1
-XC2C64A   4               2
-XC2C128   8               2         X    X         X
-XC2C256   16              2         X    X         X
-XC2C384   24              4         X    X         X
-XC2C512   32              4         X    X         X
-XA2C32A   2               2
-XA2C64A   4               2
-XA2C128   8               2         X    X         X
-XA2C256   16              2         X    X         X
-XA2C384   24              4         X    X         X
-========= =============== ========= ==== ========= =============
+.. include:: gen-devices.inc
 
 The parts starting with XA are automotive versions.  They are functionally completely identical to corresponding XC versions.
 
@@ -86,23 +70,7 @@ The devices come in the following packages:
 
 - bare die (DI*)
 
-========= ==== ==== ==== ==== ===== ===== ===== ==== ===== ==== ===== ===== ===== ========
-Device    PC44 QF32 QF48 VQ44 VQ100 TQ144 PQ208 CP56 CP132 CV64 CV100 FT256 FG324 Bare die
-========= ==== ==== ==== ==== ===== ===== ===== ==== ===== ==== ===== ===== ===== ========
-XC2C32    X              X                      X                                 DI44
-XC2C32A   X    X         X                      X          X                      DI44
-XC2C64    X              X    X                 X                                 DI81
-XC2C64A   X         X    X    X                 X          X                      DI81
-XC2C128                       X     X                X          X                 DI126
-XC2C256                       X     X     X          X                X           DI222
-XC2C384                             X     X                           X     X     DI288
-XC2C512                                   X                           X     X     DI324
-XA2C32A                  X
-XA2C64A                  X    X
-XA2C128                       X                      X
-XA2C256                       X     X
-XA2C384                             X
-========= ==== ==== ==== ==== ===== ===== ===== ==== ===== ==== ===== ===== ===== ========
+.. include:: gen-devices-pkg.inc
 
 Pin compatibility is maintained across devices within a single package.
 

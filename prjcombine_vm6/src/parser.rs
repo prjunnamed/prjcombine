@@ -5,8 +5,8 @@ use std::{
 };
 
 use enum_map::EnumMap;
-use prjcombine_types::{FbId, FbMcId};
-use prjcombine_xilinx_cpld::types::{ClkPadId, FbnId, ImuxId, IpadId, PTermId};
+use prjcombine_types::{FbId, FbMcId, IpadId};
+use prjcombine_xilinx_cpld::types::{ClkPadId, FbnId, ImuxId, PTermId};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use crate::{

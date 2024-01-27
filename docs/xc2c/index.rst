@@ -8,4 +8,5 @@ Xilinx Coolrunner II CPLDs
    intro
    structure
    bitstream
+   db-devices
    jtag

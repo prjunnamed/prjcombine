@@ -5,9 +5,10 @@ use std::thread::available_parallelism;
 
 use itertools::Itertools;
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::IoId;
 use prjcombine_vm6::{FbImux, NodeKind};
 use prjcombine_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
-use prjcombine_xilinx_cpld::types::{ImuxInput, IoId};
+use prjcombine_xilinx_cpld::types::ImuxInput;
 use prjcombine_xilinx_recpld::{
     db::ImuxData,
     v2vm6::{v2vm6, FitOpts},

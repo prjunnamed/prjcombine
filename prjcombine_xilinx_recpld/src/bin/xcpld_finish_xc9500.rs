@@ -6,13 +6,13 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{FbId, FbMcId, Tile, TileItem, TileItemKind};
+use prjcombine_types::{FbId, FbMcId, IoId, Tile, TileItem, TileItemKind};
 use prjcombine_xc9500::{self as xc9500, FbBitCoord};
 use prjcombine_xilinx_cpld::{
     bits::{extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum, BitPos},
     device::{Device, DeviceKind, JtagPin, PkgPin},
     types::{
-        CeMuxVal, ClkMuxVal, ExportDir, ImuxInput, IoId, OeMode, OeMuxVal, RegMode, Slew, SrMuxVal,
+        CeMuxVal, ClkMuxVal, ExportDir, ImuxInput, OeMode, OeMuxVal, RegMode, Slew, SrMuxVal,
         TermMode, Xc9500McPt,
     },
 };

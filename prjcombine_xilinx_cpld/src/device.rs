@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
-use prjcombine_types::{FbId, FbMcId, McId};
+use prjcombine_types::{FbId, FbMcId, IoId, IpadId, McId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
-use crate::types::{
-    BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, IoId, IpadId, OePadId, PTermId,
-};
+use crate::types::{BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, OePadId, PTermId};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Device {

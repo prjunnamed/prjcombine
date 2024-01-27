@@ -4,13 +4,13 @@ use std::collections::{btree_map, hash_map::Entry, BTreeMap, HashMap};
 
 use crate::types::{
     BankId, CeMuxVal, ClkMuxVal, ClkPadId, ExportDir, FbGroupId, FbnId, FclkId, FoeId, FoeMuxVal,
-    IBufMode, ImuxId, ImuxInput, IoId, IpadId, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew,
-    SrMuxVal, TermMode, Ut, Xc9500McPt, XorMuxVal,
+    IBufMode, ImuxId, ImuxInput, OeMode, OeMuxVal, OePadId, PTermId, RegMode, Slew, SrMuxVal,
+    TermMode, Ut, Xc9500McPt, XorMuxVal,
 };
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
-use prjcombine_types::{FbId, FbMcId, TileItem, TileItemKind};
+use prjcombine_types::{FbId, FbMcId, IoId, IpadId, TileItem, TileItemKind};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -530,14 +530,10 @@ impl Bits {
             for (imid, data) in &fb.imux {
                 write!(o, "\tIMUX IM{imid}: ", imid = imid.to_idx())?;
                 write_enum(o, "\t", data, |k| match k {
-                    ImuxInput::Ibuf(IoId::Mc(mc)) => {
-                        format!("MC IBUF FB{f} MC{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
-                    }
-                    ImuxInput::Ibuf(IoId::Ipad(ip)) => format!("IPAD{ip}", ip = ip.to_idx()),
-                    ImuxInput::Fbk(mc) => format!("FBK MC{m}: ", m = mc.to_idx()),
-                    ImuxInput::Mc(mc) => {
-                        format!("MC FB{f} MC{m}", f = mc.0.to_idx(), m = mc.1.to_idx())
-                    }
+                    ImuxInput::Ibuf(IoId::Mc((fb, mc))) => format!("MC IBUF FB{fb} MC{mc}"),
+                    ImuxInput::Ibuf(IoId::Ipad(ip)) => format!("IPAD{ip}"),
+                    ImuxInput::Fbk(mc) => format!("FBK MC{mc}"),
+                    ImuxInput::Mc((fb, mc)) => format!("MC FB{fb} MC{mc}"),
                     ImuxInput::Pup => "PUP".to_string(),
                     ImuxInput::Uim => "UIM".to_string(),
                 })?;
