@@ -362,6 +362,10 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
         let column = dd.bs_cols - 1 - column as u32;
         BitCoord { row, column }
     };
+    let xlat_bit_raw = |(row, column)| {
+        let column = dd.bs_cols - 1 - column as u32;
+        BitCoord { row, column }
+    };
     for (fclk, bit) in &fpart.bits.fclk_en {
         dd.jed_global_bits.push((format!("FCLK{fclk}_ENABLE"), 0));
         dd.global_bits.insert(
@@ -572,6 +576,64 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
             neutral,
         );
     }
+    dd.global_bits.insert(
+        "USERCODE",
+        TileItem {
+            bits: fpart
+                .map
+                .usercode
+                .unwrap()
+                .iter()
+                .map(|&bit| xlat_bit_raw(bit))
+                .collect(),
+            kind: TileItemKind::BitVec { invert: false },
+        },
+        neutral,
+    );
+    dd.global_bits.insert(
+        "READ_PROT",
+        TileItem {
+            bits: if fpart.dev_name == "xa2c64a" {
+                // impact bug workaround
+                let done = xlat_bit_raw(fpart.map.done.unwrap());
+                vec![
+                    BitCoord {
+                        row: done.row,
+                        column: done.column - 2,
+                    },
+                    BitCoord {
+                        row: done.row,
+                        column: done.column - 4,
+                    },
+                    BitCoord {
+                        row: done.row,
+                        column: done.column - 6,
+                    },
+                    BitCoord {
+                        row: done.row,
+                        column: done.column - 8,
+                    },
+                ]
+            } else {
+                fpart
+                    .map
+                    .rprot
+                    .iter()
+                    .map(|&bit| xlat_bit_raw(bit))
+                    .collect()
+            },
+            kind: TileItemKind::BitVec { invert: true },
+        },
+        neutral,
+    );
+    dd.global_bits.insert(
+        "DONE",
+        TileItem {
+            bits: vec![xlat_bit_raw(fpart.map.done.unwrap())],
+            kind: TileItemKind::BitVec { invert: true },
+        },
+        neutral,
+    );
 }
 
 fn extract_imux_bits(
