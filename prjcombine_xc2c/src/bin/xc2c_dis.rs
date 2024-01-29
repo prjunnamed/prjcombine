@@ -2,8 +2,8 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{FbMcId, Tile, TileItemKind};
-use prjcombine_xpla3::{BitCoord, Database, Device};
+use prjcombine_types::{FbId, FbMcId, IoId, Tile, TileItemKind};
+use prjcombine_xc2c::{BitCoord, Database, Device};
 use unnamed_entity::EntityId;
 
 struct Bitstream {
@@ -12,30 +12,28 @@ struct Bitstream {
 }
 
 struct FbData {
-    misc: BTreeMap<String, BitVec>,
+    imux: BTreeMap<String, BitVec>,
     mcs: [BTreeMap<String, BitVec>; 16],
-    pla_and: [PTermData; 48],
+    pla_and: [PTermData; 56],
     pla_or: [BitVec; 16],
 }
 
 struct PTermData {
     im_t: BitVec,
     im_f: BitVec,
-    fbn: BitVec,
 }
 
 impl Bitstream {
     fn from_jed(fuses: &BitVec, device: &Device, db: &Database) -> Self {
         let mut fbs = vec![];
         let mut pos = 0;
-        for _ in 0..(device.fb_cols.len() * device.fb_rows as usize * 2) {
+        for fb in 0..(device.fb_cols.len() * device.fb_rows as usize * 2) {
             let mut fbd = FbData {
-                misc: BTreeMap::new(),
+                imux: BTreeMap::new(),
                 mcs: core::array::from_fn(|_| BTreeMap::new()),
                 pla_and: core::array::from_fn(|_| PTermData {
                     im_t: BitVec::new(),
                     im_f: BitVec::new(),
-                    fbn: BitVec::new(),
                 }),
                 pla_or: core::array::from_fn(|_| BitVec::new()),
             };
@@ -43,9 +41,9 @@ impl Bitstream {
                 let n = format!("IM[{i}].MUX");
                 let data = fuses[pos..(pos + device.imux_width as usize)].to_bitvec();
                 pos += device.imux_width as usize;
-                fbd.misc.insert(n, data);
+                fbd.imux.insert(n, data);
             }
-            for i in 0..48 {
+            for i in 0..56 {
                 let pt = &mut fbd.pla_and[i];
                 for _ in 0..40 {
                     pt.im_t.push(!fuses[pos]);
@@ -53,43 +51,31 @@ impl Bitstream {
                     pt.im_f.push(!fuses[pos]);
                     pos += 1;
                 }
-                for _ in 0..8 {
-                    pt.fbn.push(!fuses[pos]);
-                    pos += 1;
-                }
             }
-            for _ in 0..48 {
+            for _ in 0..56 {
                 for j in 0..16 {
                     fbd.pla_or[j].push(!fuses[pos]);
                     pos += 1;
                 }
             }
-            for (bn, bi) in &db.jed_fb_bits {
-                let bits = fbd
-                    .misc
-                    .entry(bn.clone())
-                    .or_insert_with(|| BitVec::repeat(false, db.fb_bits.items[bn].bits.len()));
-                bits.set(*bi, fuses[pos]);
-                pos += 1;
-            }
-            for iobful in [true, false] {
-                for mc in 0..16 {
-                    if device.io_mcs.contains(&FbMcId::from_idx(mc)) != iobful {
-                        continue;
-                    }
-                    let mcd = &mut fbd.mcs[mc];
-                    let jed_bits = if iobful {
-                        &db.jed_mc_bits_iob
-                    } else {
-                        &db.jed_mc_bits_buried
-                    };
-                    for (bn, bi) in jed_bits {
-                        let bits = mcd.entry(bn.clone()).or_insert_with(|| {
-                            BitVec::repeat(false, db.mc_bits.items[bn].bits.len())
-                        });
-                        bits.set(*bi, fuses[pos]);
-                        pos += 1;
-                    }
+            for mc in 0..16 {
+                let iobful = device
+                    .io
+                    .contains_key(&IoId::Mc((FbId::from_idx(fb), FbMcId::from_idx(mc))));
+                let mcd = &mut fbd.mcs[mc];
+                let jed_bits = if !device.has_vref {
+                    &db.jed_mc_bits_small
+                } else if iobful {
+                    &db.jed_mc_bits_large_iob
+                } else {
+                    &db.jed_mc_bits_large_buried
+                };
+                for (bn, bi) in jed_bits {
+                    let bits = mcd.entry(bn.clone()).or_insert_with(|| {
+                        BitVec::repeat(false, device.mc_bits.items[bn].bits.len())
+                    });
+                    bits.set(*bi, fuses[pos]);
+                    pos += 1;
                 }
             }
             fbs.push(fbd);
@@ -217,17 +203,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     print_tile(&bs.globals, &device.global_bits);
     for (i, fbd) in bs.fbs.iter().enumerate() {
         print!("FB {i}:");
-        let mut bits = db.fb_bits.clone();
-        for (k, v) in &device.imux_bits.items {
-            bits.items.insert(k.clone(), v.clone());
-        }
-        print_tile(&fbd.misc, &bits);
+        print_tile(&fbd.imux, &device.imux_bits);
         for j in 0..16 {
             print!("MC {i} {j}:");
-            print_tile(&fbd.mcs[j], &db.mc_bits);
+            print_tile(&fbd.mcs[j], &device.mc_bits);
         }
         for (j, pt) in fbd.pla_and.iter().enumerate() {
-            if pt.im_t.any() || pt.im_f.any() || pt.fbn.any() {
+            if pt.im_t.any() || pt.im_f.any() {
                 print!("PT {i} {j}:");
                 for k in 0..40 {
                     if pt.im_t[k] {
@@ -237,18 +219,13 @@ pub fn main() -> Result<(), Box<dyn Error>> {
                         print!(" !{k}");
                     }
                 }
-                for k in 0..8 {
-                    if pt.fbn[k] {
-                        print!(" FBN{k}");
-                    }
-                }
                 println!();
             }
         }
         for (j, st) in fbd.pla_or.iter().enumerate() {
             if st.any() {
                 print!("ST {i} {j}:");
-                for k in 0..48 {
+                for k in 0..56 {
                     if st[k] {
                         print!(" {k}");
                     }

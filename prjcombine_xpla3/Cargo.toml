@@ -3,8 +3,6 @@ name = "prjcombine_xpla3"
 edition.workspace = true
 version.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 bitvec.workspace = true
 unnamed_entity.workspace = true
