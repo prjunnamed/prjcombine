@@ -986,9 +986,9 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             ("xc2c32", "pc44") => 0x6c1d,
 
             ("xc2c32a", "di44") => 0x6e18,
+            ("xc2c32a", "qfg32") => 0x6e19,
             ("xc2c32a", "cv64") => 0x6e1a,
             ("xc2c32a", "cp56") => 0x6e1b,
-            ("xc2c32a", "qfg32") => 0x6e1b, // ???
             ("xc2c32a" | "xa2c32a", "vq44") => 0x6e1c,
             ("xc2c32a", "pc44") => 0x6e1d,
 

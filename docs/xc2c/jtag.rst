@@ -30,6 +30,7 @@ IR           Instruction          Register
 ``11101101`` ``ISC_ERASE``        ``DATAREG``
 ``11101110`` ``ISC_READ``         ``DATAREG``
 ``11110000`` ``ISC_INIT``         ``DATAREG``
+``11111010`` ``CLAMP``            ``BYPASS``
 ``11111100`` ``HIGHZ``            ``BYPASS``
 ``11111101`` ``USERCODE``         ``USERCODE``
 ``11111111`` ``BYPASS``           ``BYPASS``
