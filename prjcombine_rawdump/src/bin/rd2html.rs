@@ -3359,6 +3359,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("MISC_TERMR_HFSR_CORE", (0, 0, 59, 0), &["rterm"]),
     TileInfo("RBRK_CPIPE_TERMR_CORE", SINGLE, &["clk-brk"]),
     TileInfo("TERM_T_CPIPE_TERMR_CORE", SINGLE, &[]),
+    TileInfo("TERM_B_CPIPE_TERMR_CORE", SINGLE, &[]),
     TileInfo("TERM_T_CPIPE_TERMR_XPIO_CORE", SINGLE, &[]),
     TileInfo("TERM_B_CPIPE_TERMR_XPIO_CORE", SINGLE, &[]),
     // XPIO bottom row
@@ -3446,6 +3447,8 @@ const VERSAL_TILES: &[TileInfo] = &[
     // X5PHIO fifth row
     TileInfo("DDRMC5_DMC_CORE", SINGLE, &["hardip"]),
     TileInfo("DDRMC5_DMC_CORE_MY", SINGLE, &["hardip"]),
+    TileInfo("DDRMC5C_DMC_CORE", SINGLE, &["hardip"]),
+    TileInfo("DDRMC5C_DMC_CORE_MY", SINGLE, &["hardip"]),
     // NOC2
     TileInfo("NOC2_NPS5555_TOP", SINGLE, &["hardip"]),
     TileInfo("NOC2_NPS5555_TOP_MY", SINGLE, &["hardip"]),
@@ -3461,6 +3464,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("NOC2_XBR4X2_TOP_MY", SINGLE, &["hardip"]),
     TileInfo("NOC2_XBR2X4_TOP", SINGLE, &["hardip"]),
     TileInfo("NPI2_NIR_TILE", SINGLE, &["hardip"]),
+    TileInfo("NPI2_RPTR_CORE", SINGLE, &["hardip"]),
     TileInfo("NOC2_NPP_RPTR_TILE", SINGLE, &["hardip"]),
     TileInfo("NOC2_NSU512_BLI_TILE", SINGLE, &["hardip"]),
     TileInfo("NOC2_NMU512_BLI_TILE", SINGLE, &["hardip"]),
