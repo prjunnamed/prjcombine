@@ -291,6 +291,8 @@ Each macrocell has a register.  It has:
 
   - LUT output
   - pad input buffer (so-called fast input register)
+  - the Q output of the previous register in the FB (wrapping from 0 to 15) (so-called fast shift register)
+  - the Q output of the next register in the FB (wrapping from 15 to 0) (so-called fast shift register)
 
 - clock or gate input routable from one of:
 
@@ -357,6 +359,12 @@ The fuses involved are:
   - ``LATCH``
   - ``DFFCE``
 
+- ``FB[i].MC[j].REG_D_IREG``: if programmed, and the ``REG_D_SHIFT`` fuse is not programmed, the register D input is connected to ``FB[i].MC[j].IOB.I``; if neither is programmed, the register D input is connected to ``FB[i].MC[j].LUT_OUT``
+- ``FB[i].MC[j].REG_D_SHIFT``: if programmed, the register D input is connected to the previous or next MC's register Q output; otherwise, the connection is determined by ``REG_D_IREG`` fuse
+- ``FB[i].MC[j].REG_D_SHIFT_DIR``: when the previous fuse is programmed, determines which MC's register Q output is connected to this register's D input
+
+  - ``UP``: D input connected to ``FB[i].MC[(j - 1) % 16].REG``
+  - ``DOWN``: D input connected to ``FB[i].MC[(j + 1) % 16].REG``
 
 The register works as follows::
 
@@ -384,10 +392,15 @@ The register works as follows::
     LCT4: FB[i].MC[j].CE = FB[i].LCT4;
     endcase
 
-    case(FB[i].MC[j].REG_D_MUX)
-    LUT: FB[i].MC[j].REG_D = FB[i].MC[j].LUT_OUT;
-    IBUF: FB[i].MC[j].REG_D = FB[i].MC[j].IOB.I;
-    endcase
+    if (FB[i].MC[j].REG_D_SHIFT)
+        case(FB[i].MC[j].REG_D_SHIFT_DIR)
+        UP: FB[i].MC[j].REG_D = FB[i].MC[(j - 1) % 16].REG;
+        DOWN: FB[i].MC[j].REG_D = FB[i].MC[(j + 1) % 16].REG;
+        endcase
+    else if (FB[i].MC[j].REG_D_IREG)
+        FB[i].MC[j].REG_D = FB[i].MC[j].IOB.I;
+    else
+        FB[i].MC[j].REG_D = FB[i].MC[j].LUT_OUT;
 
     initial FB[i].MC[j].REG = 0;
 
@@ -426,8 +439,6 @@ The register works as follows::
             else if (FB[i].MC[j].CE)
                 FB[i].MC[j].REG = FB[i].MC[j].REG_D;
     endcase
-
-.. todo:: there are unknown bits involved
 
 
 Macrocell and IOB outputs

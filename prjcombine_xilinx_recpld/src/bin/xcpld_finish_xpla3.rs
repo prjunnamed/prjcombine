@@ -41,9 +41,9 @@ const JED_MC_BITS_IOB: &[(&str, usize)] = &[
     ("CLK_MUX", 0),
     ("CLK_MUX", 1),
     ("CLK_MUX", 2),
-    ("REG_D_MUX", 0),
-    ("UNK_REG_Q", 0),
-    ("UNK_SHIFT", 0),
+    ("REG_D_IREG", 0),
+    ("REG_D_SHIFT_DIR", 0),
+    ("REG_D_SHIFT", 0),
     ("IOB_ZIA_MUX", 0),
     ("RST_MUX", 0),
     ("RST_MUX", 1),
@@ -66,9 +66,9 @@ const JED_MC_BITS_BURIED: &[(&str, usize)] = &[
     ("CLK_MUX", 0),
     ("CLK_MUX", 1),
     ("CLK_MUX", 2),
-    ("REG_D_MUX", 0),
-    ("UNK_REG_Q", 0),
-    ("UNK_SHIFT", 0),
+    ("REG_D_IREG", 0),
+    ("REG_D_SHIFT_DIR", 0),
+    ("REG_D_SHIFT", 0),
     ("RST_MUX", 0),
     ("RST_MUX", 1),
     ("RST_MUX", 2),
@@ -249,17 +249,17 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile<Bi
             continue;
         }
         tile.insert(
-            "REG_D_MUX",
-            extract_bool_to_enum(mcb.use_ireg.unwrap(), xlat_bit, "IBUF", "LUT"),
+            "REG_D_IREG",
+            extract_bool(mcb.use_ireg.unwrap(), xlat_bit),
             |_| true,
         );
         tile.insert(
-            "UNK_REG_Q",
-            extract_bool((mcb.use_ireg.unwrap().0 + 1, true), xlat_bit),
+            "REG_D_SHIFT_DIR",
+            extract_bool_to_enum((mcb.use_ireg.unwrap().0 + 1, true), xlat_bit, "DOWN", "UP"),
             |_| true,
         );
         tile.insert(
-            "UNK_SHIFT",
+            "REG_D_SHIFT",
             extract_bool((mcb.use_ireg.unwrap().0 + 2, true), xlat_bit),
             |_| true,
         );
