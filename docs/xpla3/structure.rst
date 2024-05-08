@@ -153,13 +153,11 @@ at once:
 - ``FB[i].FCLK_MUX``: selects ``FCLK*`` routing for this FB.  The values are:
 
   - ``GCLK{j}_GCLK{k}``: routes ``FCLK0`` to ``GCLK{j}`` and ``FCLK1`` to ``GCLK{k}``
-  - ``GCLK{j}_NONE``: routes ``FCLK0`` to ``GCLK{j}`` and ``FCLK1`` to const XXX
-  - ``NONE_GCLK{j}``: routes ``FCLK0`` to const XXX and ``FCLK1`` to ``GCLK{j}``
-  - ``NONE``: routes ``FCLK[0-1]`` to const XXX
+  - ``GCLK{j}_NONE``: routes ``FCLK0`` to ``GCLK{j}`` and ``FCLK1`` to const 0
+  - ``NONE_GCLK{j}``: routes ``FCLK0`` to const 0 and ``FCLK1`` to ``GCLK{j}``
+  - ``NONE``: routes ``FCLK[0-1]`` to const 0
 
   See the database for the exact set of allowed values.
-
-.. todo:: check exact semantics of ``NONE``
 
 
 Product terms
