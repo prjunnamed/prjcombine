@@ -134,7 +134,7 @@ The gating is per-FB column, and is controlled by the following fuses:
   within this column.  Otherwise, the ``GCLK{i}`` option above is non-functional and will result
   in XXX.  Routing ``GCLK*`` to ``FCLK*`` is always possible, regardless of this fuse.
 
-.. todo:: check semantics of disabled ``GCLK*``
+.. todo:: while ISE sets the fuse as if the above is true, disabling the fuse doesn't actually seem to make ZIA GCLK routing not work. what's going on?
 
 The ``STARTUP`` net is a special device-wide net that is pulsed to ``1`` for a short time at device
 initialization, then remains at ``0`` afterwards.  It can be connected as the ``SET`` input
@@ -240,9 +240,7 @@ The relevant fuse sets are:
 - ``FB_GROUP[i].UCT{j}``: selects the signal routed to ``UCT{j}`` of FB group ``i`` (all devices other than XCR3512XL have only FB group 0)
 
   - ``FB{k}_LCT{l}``: the UCT is driven by the given LCT of the given FB
-  - ``NONE``: the UCT is unused and will be const-XXX
-
-.. todo:: const
+  - ``NONE``: the UCT is unused and will be const-0
 
 .. todo:: exact FB assignment to groups on XCR3512XL
 
