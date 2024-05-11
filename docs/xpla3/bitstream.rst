@@ -119,7 +119,7 @@ The per-MC bits are listed in the table below. The per-MC coordinates should be 
    :file: gen-tile-mc.html
 
 
-.. xpla3-mc-bits-jed-iob:
+.. _xpla3-mc-bits-jed-iob:
 
 JED mapping — macrocells with IOB
 ---------------------------------
@@ -128,7 +128,7 @@ JED mapping — macrocells with IOB
    :file: gen-jed-mc-iob.html
 
 
-.. xpla3-mc-bits-jed-buried:
+.. _xpla3-mc-bits-jed-buried:
 
 JED mapping — macrocells without IOB
 ------------------------------------
@@ -152,7 +152,7 @@ The per-FB bits are listed in the table below. The per-FB coordinates should be 
    :file: gen-tile-fb.html
 
 
-.. xpla3-fb-bits-jed:
+.. _xpla3-fb-bits-jed:
 
 JED mapping
 -----------
