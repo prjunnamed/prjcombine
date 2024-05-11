@@ -14,7 +14,9 @@ The bitstream is roughly divided into areas as follows:
 - the last row is used to store the UES (user electronic signature)
 - the second to last row is used to store the ``READ_PROT`` and ``ISP_DISABLE`` bits, which should generally be programmed last in the sequence
 - all other rows are used to store (mostly) per-FB data, with 52 bitstream rows per FB row
+
   - each FB column has three ranges of columns, the start of each range is stored in the database:
+
     - IMUX bits (includes per-FB input multiplexers and the per-column ``ZIA_GCLK*_ENABLE`` bits)
     - PT bits (includes product term bits and PLA sum term bits)
     - MC bits (includes per-MC config bits and misc per-FB config bits; also includes global bits configuring UCT muxes)
@@ -26,22 +28,37 @@ JED structure
 XPLA3 bitstreams are commonly stored in JED files. Bits in JED files are stored in a logical order completely unrelated to the physical structure of a bitstream. The order of bits in a JED file is as follows:
 
 - per-FB bits, for every FB ``i`` in order:
+
   - IMUX bits, for every ``j < 40``:
+
     - every bit of ``FB[i].IM[j].MUX`` in order
+
   - for every product term ``j < 48``, in order:
+
     - for every FB input ``k < 40``, in order:
+
       - ``FB[i].PT[i].IM[k].P``
       - ``FB[i].PT[i].IM[k].N``
+
     - for every feedback term ``k < 8``, in order:
+
       - ``FB[i].PT[i].FBN[k]``
+
   - for every product term ``j < 48``, in order:
+
     - for every macrocell ``k < 16``, in order:
+
       - ``FB[i].MC[k].SUM.PT[j]``
+
   - misc per-FB bits, in order :ref:`given below <xpla3-fb-bits-jed>`
   - for every macrocell with an IOB, in order (which macrocells have a IOB can be checked in the database ``io_mcs`` field):
+
     - misc per-MC bits, in order :ref:`given below <xpla3-mc-bits-jed-iob>`
+
   - for every macrocell without an IOB, in order:
+
     - misc per-MC bits, in order :ref:`given below <xpla3-mc-bits-jed-buried>`
+
 - all global bits, in order given in the per-device database
 
 Note that the UES bits and read protection bit are not included in the JED file, and must be provided out of band.
