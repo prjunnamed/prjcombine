@@ -32,15 +32,45 @@ IR        Instruction     Register
 The IR status is:
 
 - bit 0: const 1
-- bits 1-4: const 0 [?]
+- bit 1: const 0
+- bits 2-4: const 0 [?]
 
-.. todo:: completely unverified from BSDL
+
+IDCODE
+======
+
+The product ID part of idcode is given in the database in the per-package information. The low 3 bits of the product ID are the package, so if package is immaterial, only the high 13 bits should be used for matching the device. The vendor ID in the IDCODE can be either Philips (``0x02b`` in the low 12 bits) or Xilinx (``0x93`` in the low 12 bits), depending on when the device was manufactured.
 
 
 Boundary scan register
 ======================
 
-.. todo:: write me
+The boundary scan register contains the following bits, in order from **MSB**:
+
+- for every FB column, in order:
+
+  - for every even-numbered FB in the column in order, and then for every odd-numbered FB in order:
+
+    - for every MC, in order:
+
+      - one unknown-purpose bit
+      - if the MC has an associated IOB (see ``io_mcs`` field in the database):
+
+        - the input bit for the IOB
+        - the output bit for the IOB
+        - the active-high output-enable bit for the IOB
+
+- for every GCLK pin, in order:
+
+  - the input bit for the pin
+
+All bits of the register are ``BC_1`` type cells.
+
+.. note::
+
+    The GCLK cells can reliably capture pin state in EXTEST mode, but only partially override internal connections in INTEST mode: connections through ZIA are overriden by the boundary register value, but connections through per-FB ``FCLK`` lines are not.
+
+.. todo:: details on the cell connection, EXTEST, INTEST semantics
 
 
 ISP instructions
