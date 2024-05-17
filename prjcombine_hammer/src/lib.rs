@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
 use core::fmt::Debug;
 use core::hash::Hash;
-use derivative::Derivative;
+use derive_where::derive_where;
 use unnamed_entity::{entity_id, EntityVec};
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 
@@ -40,13 +40,7 @@ pub trait Backend: Debug + Sync {
     ) -> bool;
 }
 
-#[derive(Derivative)]
-#[derivative(
-    Debug(bound = ""),
-    Clone(bound = ""),
-    Eq(bound = ""),
-    PartialEq(bound = "")
-)]
+#[derive_where(Debug, Clone, PartialEq, Eq)]
 pub enum BatchValue<B: Backend> {
     Base(B::Value),
     BaseAny(HashSet<B::Value>),
@@ -54,13 +48,7 @@ pub enum BatchValue<B: Backend> {
     FuzzerMulti(BatchFuzzerId, B::MultiValue),
 }
 
-#[derive(Derivative)]
-#[derivative(
-    Debug(bound = ""),
-    Clone(bound = ""),
-    Eq(bound = ""),
-    PartialEq(bound = "")
-)]
+#[derive_where(Debug, Clone, PartialEq, Eq)]
 pub enum FuzzerValue<B: Backend> {
     Base(B::Value),
     BaseAny(HashSet<B::Value>),
