@@ -224,4 +224,21 @@ impl<'a> ExpandedDevice<'a> {
             false,
         )
     }
+
+    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+        let (width, height, height_single) = if self.grid.kind.is_virtex2() {
+            (64, 80 * 4, 80)
+        } else {
+            (19 * 4, 64 * 4, 64)
+        };
+        let bit = 16 + height_single * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.bram_frame[col],
+            width,
+            bit,
+            height,
+            false,
+        )
+    }
 }

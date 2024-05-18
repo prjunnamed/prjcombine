@@ -37,6 +37,9 @@ macro_rules! fuzz_diff_multi {
     ($ctx:ident, (attr_lut $attr:expr)) => {
         $crate::fgen::TileMultiFuzzKV::SiteAttr($ctx.bel, $attr, $crate::backend::MultiValue::Lut)
     };
+    ($ctx:ident, (attr_hex $attr:expr)) => {
+        $crate::fgen::TileMultiFuzzKV::SiteAttr($ctx.bel, $attr, $crate::backend::MultiValue::Hex)
+    };
 }
 
 #[macro_export]

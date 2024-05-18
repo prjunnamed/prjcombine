@@ -103,6 +103,7 @@ impl<'a> TileMultiFuzzKV<'a> {
 #[derive(Debug, Copy, Clone)]
 pub enum TileBits {
     Main(usize),
+    Bram,
 }
 
 impl TileBits {
@@ -126,6 +127,34 @@ impl TileBits {
                     .collect(),
                 prjcombine_xilinx_geom::ExpandedDevice::Ultrascale(_) => todo!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Versal(_) => todo!(),
+            },
+            TileBits::Bram => match backend.edev {
+                prjcombine_xilinx_geom::ExpandedDevice::Xc4k(_) => unreachable!(),
+                prjcombine_xilinx_geom::ExpandedDevice::Xc5200(_) => unreachable!(),
+                prjcombine_xilinx_geom::ExpandedDevice::Virtex(edev) => {
+                    todo!()
+                }
+                prjcombine_xilinx_geom::ExpandedDevice::Virtex2(edev) => {
+                    vec![
+                        edev.btile_main(col, row),
+                        edev.btile_main(col, row + 1),
+                        edev.btile_main(col, row + 2),
+                        edev.btile_main(col, row + 3),
+                        edev.btile_bram(col, row),
+                    ]
+                }
+                prjcombine_xilinx_geom::ExpandedDevice::Spartan6(edev) => {
+                    todo!()
+                }
+                prjcombine_xilinx_geom::ExpandedDevice::Virtex4(edev) => {
+                    todo!()
+                }
+                prjcombine_xilinx_geom::ExpandedDevice::Ultrascale(_) => {
+                    todo!()
+                }
+                prjcombine_xilinx_geom::ExpandedDevice::Versal(_) => {
+                    todo!()
+                }
             },
         }
     }

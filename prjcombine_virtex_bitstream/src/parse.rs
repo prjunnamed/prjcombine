@@ -388,7 +388,7 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
             packets.next();
             nops += 1;
         }
-        println!("NOPS {nops} FLR {flr}");
+        // println!("NOPS {nops} FLR {flr}");
 
         if packets.peek() == Some(Packet::CmdWcfg) {
             packets.next();

@@ -234,9 +234,9 @@ pub enum BitTile {
     // die, frame, width, bit, height, flip
     Main(DieId, usize, usize, usize, usize, bool),
     Fixup(DieId, usize, usize, usize, usize, bool),
-    // single whole frame
+    // Spartan 6 horrible; single whole frame
     Bram(DieId, usize),
-    // bit, width
+    // Spartan 6 horrible; bit, width
     Iob(DieId, usize, usize),
 }
 

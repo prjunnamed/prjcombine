@@ -65,6 +65,7 @@ impl<'a> From<bool> for Value<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum MultiValue {
     Lut,
+    Hex,
 }
 
 #[derive(Clone, Debug)]
@@ -317,6 +318,20 @@ impl<'a> Backend for IseBackend<'a> {
         match *mv {
             MultiValue::Lut => {
                 let mut v = "#LUT:0x".to_string();
+                let nc = y.len() / 4;
+                for i in 0..nc {
+                    let mut c = 0;
+                    for j in 0..4 {
+                        if y[(nc - 1 - i) * 4 + j] {
+                            c |= 1 << j;
+                        }
+                    }
+                    write!(v, "{c:x}").unwrap();
+                }
+                Value::String(v.into())
+            }
+            MultiValue::Hex => {
+                let mut v = String::new();
                 let nc = y.len() / 4;
                 for i in 0..nc {
                     let mut c = 0;
