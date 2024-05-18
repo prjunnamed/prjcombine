@@ -1,7 +1,7 @@
+use clap::Parser;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_vivado_dump::parts::get_parts;
 use std::error::Error;
-use clap::Parser;
 
 #[derive(Debug, Parser)]
 #[command(

@@ -10,6 +10,8 @@ use std::borrow::Cow;
 use std::collections::{hash_map, HashMap};
 use std::fmt::Write;
 
+use crate::diff::Diff;
+
 pub struct IseBackend<'a> {
     pub tc: &'a Toolchain,
     pub db: &'a GeomDb,
@@ -78,7 +80,7 @@ pub struct SimpleFeatureId<'a> {
     pub val: &'a str,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct FeatureBit {
     pub tile: usize,
     pub frame: usize,
@@ -87,7 +89,7 @@ pub struct FeatureBit {
 
 #[derive(Clone, Debug)]
 pub struct SimpleFeatureData {
-    pub bits: Vec<HashMap<FeatureBit, bool>>,
+    pub diffs: Vec<Diff>,
     pub fuzzers: Vec<FuzzerId>,
 }
 
@@ -96,10 +98,36 @@ pub enum PostProc {}
 
 #[derive(Debug)]
 pub struct State<'a> {
-    simple_features: HashMap<SimpleFeatureId<'a>, SimpleFeatureData>,
+    pub simple_features: HashMap<SimpleFeatureId<'a>, SimpleFeatureData>,
 }
 
-fn xlat_bits(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<HashMap<FeatureBit, bool>> {
+impl<'a> State<'a> {
+    pub fn get_diffs<'b: 'a>(
+        &mut self,
+        tile: &'b str,
+        bel: &'b str,
+        attr: &'b str,
+        val: &'b str,
+    ) -> Vec<Diff> {
+        self.simple_features
+            .remove(&SimpleFeatureId {
+                tile,
+                bel,
+                attr,
+                val,
+            })
+            .unwrap()
+            .diffs
+    }
+
+    pub fn get_diff(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) -> Diff {
+        let mut res = self.get_diffs(tile, bel, attr, val);
+        assert_eq!(res.len(), 1);
+        res.pop().unwrap()
+    }
+}
+
+fn xlat_diff(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<Diff> {
     let mut res = HashMap::new();
     'bits: for (&k, &v) in bits {
         for (i, t) in tiles.iter().enumerate() {
@@ -118,7 +146,7 @@ fn xlat_bits(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<HashMap<
         eprintln!("cannot xlat {k:?} in {tiles:?}");
         return None;
     }
-    Some(res)
+    Some(Diff { bits: res })
 }
 
 impl<'a> Backend for IseBackend<'a> {
@@ -188,9 +216,11 @@ impl<'a> Backend for IseBackend<'a> {
                 Key::SiteAttr(site, attr) => match v {
                     Value::None => (),
                     Value::String(s) => {
-                        let inst = insts.get_mut(site).unwrap();
-                        inst.cfg
-                            .push(vec![attr.to_string(), "".to_string(), s.to_string()]);
+                        if !s.is_empty() {
+                            let inst = insts.get_mut(site).unwrap();
+                            inst.cfg
+                                .push(vec![attr.to_string(), "".to_string(), s.to_string()]);
+                        }
                     }
                     _ => unreachable!(),
                 },
@@ -245,21 +275,21 @@ impl<'a> Backend for IseBackend<'a> {
     ) -> Option<Vec<FuzzerId>> {
         match *f {
             FuzzerInfo::Simple(ref btiles, sfid) => {
-                let mut xbits = vec![];
+                let mut xdiffs = vec![];
                 for bbits in &bits {
-                    let Some(bbits) = xlat_bits(bbits, btiles) else {
+                    let Some(diff) = xlat_diff(bbits, btiles) else {
                         eprintln!("failed to xlat bits {bits:?} for {f:?}");
                         return Some(vec![]);
                     };
-                    xbits.push(bbits);
+                    xdiffs.push(diff);
                 }
                 match state.simple_features.entry(sfid) {
                     hash_map::Entry::Occupied(mut e) => {
                         let v = e.get_mut();
-                        if v.bits != xbits {
+                        if v.diffs != xdiffs {
                             eprintln!(
-                                "bits mismatch for {f:?}: {vbits:?} vs {xbits:?}",
-                                vbits = v.bits
+                                "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
+                                vbits = v.diffs
                             );
                             Some(v.fuzzers.clone())
                         } else {
@@ -269,7 +299,7 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                     hash_map::Entry::Vacant(e) => {
                         e.insert(SimpleFeatureData {
-                            bits: xbits,
+                            diffs: xdiffs,
                             fuzzers: vec![fid],
                         });
                         None

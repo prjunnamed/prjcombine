@@ -2,8 +2,8 @@ use bitvec::vec::BitVec;
 use core::fmt::Debug;
 use core::hash::Hash;
 use derive_where::derive_where;
-use unnamed_entity::{entity_id, EntityVec};
 use std::collections::{hash_map::Entry, HashMap, HashSet};
+use unnamed_entity::{entity_id, EntityVec};
 
 entity_id! {
     pub id BatchFuzzerId u32;

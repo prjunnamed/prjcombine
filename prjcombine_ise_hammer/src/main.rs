@@ -1,13 +1,18 @@
 use clap::Parser;
 use prjcombine_hammer::Session;
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::TileItemKind;
 use prjcombine_xilinx_geom::{ExpandedDevice, GeomDb};
 use std::error::Error;
 use std::path::PathBuf;
+use tiledb::TileDb;
 
 mod backend;
 mod clb;
+mod diff;
 mod fgen;
+mod fuzz;
+mod tiledb;
 
 use backend::IseBackend;
 
@@ -23,6 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let tc = Toolchain::from_file(&args.toolchain)?;
     let db = GeomDb::from_file(args.geomdb)?;
+    let mut tiledb = TileDb::new();
     for part in &db.devices {
         if !args.parts.is_empty() && !args.parts.contains(&part.name) {
             continue;
@@ -67,8 +73,85 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
-        let state = hammer.run().unwrap();
-        println!("STATE {state:#?}");
+        let mut state = hammer.run().unwrap();
+        match gedev {
+            ExpandedDevice::Xc4k(_) => {}
+            ExpandedDevice::Xc5200(_) => {}
+            ExpandedDevice::Virtex(_) => {}
+            ExpandedDevice::Virtex2(ref edev) => {
+                clb::virtex2::collect_fuzzers(
+                    &mut state,
+                    &mut tiledb,
+                    if edev.grid.kind.is_virtex2() {
+                        clb::virtex2::Mode::Virtex2
+                    } else {
+                        clb::virtex2::Mode::Spartan3
+                    },
+                );
+            }
+            ExpandedDevice::Spartan6(_) => {}
+            ExpandedDevice::Virtex4(ref edev) => match edev.kind {
+                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    clb::virtex2::collect_fuzzers(
+                        &mut state,
+                        &mut tiledb,
+                        clb::virtex2::Mode::Virtex4,
+                    );
+                }
+                prjcombine_virtex4::grid::GridKind::Virtex5 => {}
+                prjcombine_virtex4::grid::GridKind::Virtex6 => {}
+                prjcombine_virtex4::grid::GridKind::Virtex7 => {}
+            },
+            ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
+            ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
+        }
+
+        for (feat, data) in &state.simple_features {
+            print!("{} {} {} {}: [", feat.tile, feat.bel, feat.attr, feat.val);
+            for diff in &data.diffs {
+                if data.diffs.len() != 1 {
+                    print!("[");
+                }
+                for (bit, val) in &diff.bits {
+                    print!("{}.{}.{}:{},", bit.tile, bit.frame, bit.bit, val);
+                }
+                if data.diffs.len() != 1 {
+                    print!("], ");
+                }
+            }
+            println!("]");
+        }
+    }
+    for (tname, tile) in &tiledb.tiles {
+        for (name, item) in &tile.items {
+            print!("ITEM {tname}.{name}:");
+            if let TileItemKind::BitVec { invert } = item.kind {
+                if invert {
+                    print!(" INVVEC");
+                } else {
+                    print!(" VEC");
+                }
+            } else {
+                print!(" ENUM");
+            }
+            for &bit in &item.bits {
+                print!(" {}.{}.{}", bit.tile, bit.frame, bit.bit);
+            }
+            println!();
+            if let TileItemKind::Enum { ref values } = item.kind {
+                for (vname, val) in values {
+                    print!("    {vname:10}: ");
+                    for b in val {
+                        if *b {
+                            print!("1");
+                        } else {
+                            print!("0");
+                        }
+                    }
+                    println!();
+                }
+            }
+        }
     }
     Ok(())
 }
