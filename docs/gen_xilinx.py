@@ -1,6 +1,6 @@
 import json
 
-for kind in ["xc2v", "xc3s"]:
+for kind in ["xc2v", "xc3s", "xc6s", "xc4v"]:
     with open(f"../databases/{kind}-tiledb.json") as f:
         db = json.load(f)
 

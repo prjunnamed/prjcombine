@@ -10,6 +10,7 @@ use tiledb::TileDb;
 mod backend;
 mod bram;
 mod clb;
+mod dsp;
 mod diff;
 mod fgen;
 mod fuzz;
@@ -52,12 +53,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
             }
-            ExpandedDevice::Virtex2(_) => {
+            ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
                 bram::virtex2::add_fuzzers(&mut hammer, &backend);
+                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
+                    dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend, dsp::spartan3adsp::Mode::Spartan3ADsp);
+                }
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend, dsp::spartan3adsp::Mode::Spartan6);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -92,8 +97,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     },
                 );
                 bram::virtex2::collect_fuzzers(&mut state, &mut tiledb, edev.grid.kind);
+                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
+                    dsp::spartan3adsp::collect_fuzzers(&mut state, &mut tiledb, dsp::spartan3adsp::Mode::Spartan3ADsp)
+                }
             }
-            ExpandedDevice::Spartan6(_) => {}
+            ExpandedDevice::Spartan6(_) => {
+                dsp::spartan3adsp::collect_fuzzers(&mut state, &mut tiledb, dsp::spartan3adsp::Mode::Spartan6)
+            }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
                     clb::virtex2::collect_fuzzers(

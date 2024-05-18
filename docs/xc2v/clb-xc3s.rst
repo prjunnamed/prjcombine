@@ -7,3 +7,10 @@ Bitstream — Spartan 3
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-CLB.html
+
+
+Bitstream — Virtex 4
+====================
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc4v-CLB.html

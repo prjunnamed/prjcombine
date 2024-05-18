@@ -10,3 +10,4 @@ Xilinx Virtex 2 and Spartan 3 FPGAs
    clb-xc2v
    clb-xc3s
    bram
+   dsp

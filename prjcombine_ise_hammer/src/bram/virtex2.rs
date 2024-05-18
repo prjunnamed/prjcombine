@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, State},
-    diff::{self, collect_bitvec, collect_enum, collect_inv, xlat_bitvec, xlat_enum, Diff},
+    diff::{collect_bitvec, collect_enum, collect_inv, xlat_bitvec, xlat_enum, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi,
