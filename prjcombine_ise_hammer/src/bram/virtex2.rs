@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, State},
-    diff::{self, collect_bitvec, collect_enum, xlat_bitvec, xlat_enum, Diff},
+    diff::{self, collect_bitvec, collect_enum, collect_inv, xlat_bitvec, xlat_enum, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi,
@@ -257,24 +257,16 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
     };
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
-    let mut invs = vec![
-        ("CLKAINV", "CLKA", "CLKA_B", false),
-        ("CLKBINV", "CLKB", "CLKB_B", false),
-        ("ENAINV", "ENA", "ENA_B", false),
-        ("ENBINV", "ENB", "ENB_B", false),
-    ];
+    for pin in ["CLKA", "CLKB", "ENA", "ENB"] {
+        collect_inv(state, tiledb, tile_name, "BRAM", pin);
+    }
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
-            invs.extend([
-                ("WEA0INV", "WEA0", "WEA0_B", false),
-                ("WEB0INV", "WEB0", "WEB0_B", false),
-                ("WEA1INV", "WEA1", "WEA1_B", false),
-                ("WEB1INV", "WEB1", "WEB1_B", false),
-                ("WEA2INV", "WEA2", "WEA2_B", false),
-                ("WEB2INV", "WEB2", "WEB2_B", false),
-                ("WEA3INV", "WEA3", "WEA3_B", false),
-                ("WEB3INV", "WEB3", "WEB3_B", false),
-            ]);
+            for pin in [
+                "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
+            ] {
+                collect_inv(state, tiledb, tile_name, "BRAM", pin);
+            }
             for i in 0..0x40 {
                 diffs_data.extend(state.get_diffs(
                     tile_name,
@@ -313,12 +305,10 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
                 );
             }
             if grid_kind == GridKind::Spartan3ADsp {
-                invs.extend([
-                    ("RSTAINV", "RSTA", "RSTA_B", false),
-                    ("RSTBINV", "RSTB", "RSTB_B", false),
-                    ("REGCEAINV", "REGCEA", "REGCEA_B", false),
-                    ("REGCEBINV", "REGCEB", "REGCEB_B", false),
-                ]);
+                for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
+                    collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                }
+
                 collect_enum(state, tiledb, tile_name, "BRAM", "DOA_REG", &["0", "1"]);
                 collect_enum(state, tiledb, tile_name, "BRAM", "DOB_REG", &["0", "1"]);
                 collect_enum(
@@ -330,19 +320,15 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
                     &["ASYNC", "SYNC"],
                 );
             } else {
-                invs.extend([
-                    ("SSRAINV", "SSRA", "SSRA_B", true),
-                    ("SSRBINV", "SSRB", "SSRB_B", true),
-                ]);
+                for pin in ["SSRA", "SSRB"] {
+                    collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                }
             }
         }
         _ => {
-            invs.extend([
-                ("WEAINV", "WEA", "WEA_B", false),
-                ("WEBINV", "WEB", "WEB_B", false),
-                ("SSRAINV", "SSRA", "SSRA_B", true),
-                ("SSRBINV", "SSRB", "SSRB_B", true),
-            ]);
+            for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
+                collect_inv(state, tiledb, tile_name, "BRAM", pin);
+            }
             for i in 0..0x40 {
                 diffs_data.extend(state.get_diffs(
                     tile_name,
@@ -424,18 +410,6 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
     collect_bitvec(state, tiledb, tile_name, "BRAM", "INIT_B", "");
     collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_A", "");
     collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_B", "");
-    for (pininv, pin, pin_b, def) in invs {
-        let f_pin = state.get_diff(tile_name, "BRAM", pininv, pin);
-        let f_pin_b = state.get_diff(tile_name, "BRAM", pininv, pin_b);
-        let inv = if !def {
-            f_pin.assert_empty();
-            f_pin_b
-        } else {
-            f_pin_b.assert_empty();
-            !f_pin
-        };
-        tiledb.insert(tile_name, "BRAM", pininv, xlat_bitvec(vec![inv]));
-    }
 
     if grid_kind != GridKind::Spartan3ADsp {
         if grid_kind.is_virtex2() || grid_kind == GridKind::Spartan3 {
@@ -445,41 +419,11 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
             f_clk.assert_empty();
             tiledb.insert(tile_name, "MULT", "REG", xlat_bitvec(vec![f_reg]));
             tiledb.insert(tile_name, "MULT", "CLKINV", xlat_bitvec(vec![f_clk_b]));
-            for (pininv, pin, pin_b, def) in [
-                ("CEINV", "CE", "CE_B", false),
-                ("RSTINV", "RST", "RST_B", true),
-            ] {
-                let f_pin = state.get_diff(tile_name, "MULT", pininv, pin);
-                let f_pin_b = state.get_diff(tile_name, "MULT", pininv, pin_b);
-                let inv = if !def {
-                    f_pin.assert_empty();
-                    f_pin_b
-                } else {
-                    f_pin_b.assert_empty();
-                    !f_pin
-                };
-                tiledb.insert(tile_name, "MULT", pininv, xlat_bitvec(vec![inv]));
-            }
+            collect_inv(state, tiledb, tile_name, "MULT", "CE");
+            collect_inv(state, tiledb, tile_name, "MULT", "RST");
         } else {
-            for (pininv, pin, pin_b, def) in [
-                ("CLKINV", "CLK", "CLK_B", false),
-                ("CEAINV", "CEA", "CEA_B", false),
-                ("CEBINV", "CEB", "CEB_B", false),
-                ("CEPINV", "CEP", "CEP_B", false),
-                ("RSTAINV", "RSTA", "RSTA_B", true),
-                ("RSTBINV", "RSTB", "RSTB_B", true),
-                ("RSTPINV", "RSTP", "RSTP_B", true),
-            ] {
-                let f_pin = state.get_diff(tile_name, "MULT", pininv, pin);
-                let f_pin_b = state.get_diff(tile_name, "MULT", pininv, pin_b);
-                let inv = if !def {
-                    f_pin.assert_empty();
-                    f_pin_b
-                } else {
-                    f_pin_b.assert_empty();
-                    !f_pin
-                };
-                tiledb.insert(tile_name, "MULT", pininv, xlat_bitvec(vec![inv]));
+            for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
+                collect_inv(state, tiledb, tile_name, "MULT", pin);
             }
             collect_enum(state, tiledb, tile_name, "MULT", "AREG", &["0", "1"]);
             collect_enum(state, tiledb, tile_name, "MULT", "BREG", &["0", "1"]);

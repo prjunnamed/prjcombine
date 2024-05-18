@@ -140,3 +140,24 @@ pub fn collect_enum<'a, 'b: 'a>(
     let ti = xlat_enum(diffs);
     tiledb.insert(tile, bel, attr, ti);
 }
+
+pub fn collect_inv<'a, 'b: 'a>(
+    state: &mut State<'a>,
+    tiledb: &mut TileDb,
+    tile: &'b str,
+    bel: &'b str,
+    pin: &'b str,
+) {
+    let pininv = format!("{pin}INV").leak();
+    let pin_b = format!("{pin}_B").leak();
+    let f_pin = state.get_diff(tile, bel, pininv, pin);
+    let f_pin_b = state.get_diff(tile, bel, pininv, pin_b);
+    let inv = if f_pin.bits.is_empty() {
+        f_pin.assert_empty();
+        f_pin_b
+    } else {
+        f_pin_b.assert_empty();
+        !f_pin
+    };
+    tiledb.insert(tile, bel, &*pininv, xlat_bitvec(vec![inv]));
+}
