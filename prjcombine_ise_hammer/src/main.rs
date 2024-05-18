@@ -22,6 +22,7 @@ use backend::IseBackend;
 struct Args {
     toolchain: PathBuf,
     geomdb: PathBuf,
+    json: PathBuf,
     parts: Vec<String>,
 }
 
@@ -125,6 +126,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("]");
         }
     }
+    std::fs::write(args.json, tiledb.to_json().to_string())?;
     for (tname, tile) in &tiledb.tiles {
         for (name, item) in &tile.items {
             print!("ITEM {tname}.{name}:");

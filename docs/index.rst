@@ -8,6 +8,7 @@ Project Combine
    xc9500/index
    xpla3/index
    xc2c/index
+   xc2v/index
 
 
 

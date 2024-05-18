@@ -22,6 +22,7 @@ bitvec.workspace = true
 clap.workspace = true
 rand.workspace = true
 simple-error.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true
