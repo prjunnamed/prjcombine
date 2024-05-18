@@ -601,6 +601,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pin "BY")
         ]);
     }
+    if mode == Mode::Virtex2 {
+        for i in 0..2 {
+            let bel = BelId::from_idx(4 + i);
+            let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
+            let ctx = FuzzCtx {
+                session,
+                node_kind,
+                bits: TileBits::Main,
+                tile_name: "CLB",
+                bel,
+                bel_name,
+            };
+            fuzz_enum!(ctx, "TINV", ["T", "T_B"], [
+                (mode "TBUF"),
+                (pin "T"),
+                (pin "O")
+            ]);
+            fuzz_enum!(ctx, "IINV", ["I", "I_B"], [
+                (mode "TBUF"),
+                (pin "I"),
+                (pin "O")
+            ]);
+        }
+        // TODO: TBUS joiner
+    }
 }
 
 pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
@@ -961,6 +986,24 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                 !f_pin
             };
             tiledb.insert("CLB", format!("{bel}.{pininv}"), xlat_bitvec(vec![inv]));
+        }
+    }
+    if mode == Mode::Virtex2 {
+        for bel in ["TBUF0", "TBUF1"] {
+            for (pininv, pin, pin_b, def) in
+                [("TINV", "T", "T_B", true), ("IINV", "I", "I_B", true)]
+            {
+                let f_pin = state.get_diff("CLB", bel, pininv, pin);
+                let f_pin_b = state.get_diff("CLB", bel, pininv, pin_b);
+                let inv = if !def {
+                    f_pin.assert_empty();
+                    f_pin_b
+                } else {
+                    f_pin_b.assert_empty();
+                    !f_pin
+                };
+                tiledb.insert("CLB", format!("{bel}.{pininv}"), xlat_bitvec(vec![inv]));
+            }
         }
     }
 }
