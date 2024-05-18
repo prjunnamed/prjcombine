@@ -102,28 +102,28 @@ impl<'a> TileMultiFuzzKV<'a> {
 
 #[derive(Debug, Copy, Clone)]
 pub enum TileBits {
-    Main,
+    Main(usize),
 }
 
 impl TileBits {
     fn get_bits(&self, backend: &IseBackend, loc: (DieId, ColId, RowId, LayerId)) -> Vec<BitTile> {
         let (die, col, row, _) = loc;
-        match self {
-            TileBits::Main => match backend.edev {
+        match *self {
+            TileBits::Main(n) => match backend.edev {
                 prjcombine_xilinx_geom::ExpandedDevice::Xc4k(_) => todo!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Xc5200(_) => todo!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex(edev) => {
-                    vec![edev.btile_main(col, row)]
+                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
                 }
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex2(edev) => {
-                    vec![edev.btile_main(col, row)]
+                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
                 }
                 prjcombine_xilinx_geom::ExpandedDevice::Spartan6(edev) => {
-                    vec![edev.btile_main(col, row)]
+                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
                 }
-                prjcombine_xilinx_geom::ExpandedDevice::Virtex4(edev) => {
-                    vec![edev.btile_main(die, col, row)]
-                }
+                prjcombine_xilinx_geom::ExpandedDevice::Virtex4(edev) => (0..n)
+                    .map(|idx| edev.btile_main(die, col, row + idx))
+                    .collect(),
                 prjcombine_xilinx_geom::ExpandedDevice::Ultrascale(_) => todo!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Versal(_) => todo!(),
             },

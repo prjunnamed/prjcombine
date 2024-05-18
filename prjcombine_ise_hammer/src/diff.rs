@@ -122,7 +122,7 @@ pub fn collect_bitvec<'a, 'b: 'a>(
 ) {
     let diffs = state.get_diffs(tile, bel, attr, val);
     let ti = xlat_bitvec(diffs);
-    tiledb.insert(tile, format!("{bel}.{attr}"), ti);
+    tiledb.insert(tile, bel, attr, ti);
 }
 
 pub fn collect_enum<'a, 'b: 'a>(
@@ -138,5 +138,5 @@ pub fn collect_enum<'a, 'b: 'a>(
         .map(|val| (val.to_string(), state.get_diff(tile, bel, attr, val)))
         .collect();
     let ti = xlat_enum(diffs);
-    tiledb.insert(tile, format!("{bel}.{attr}"), ti);
+    tiledb.insert(tile, bel, attr, ti);
 }

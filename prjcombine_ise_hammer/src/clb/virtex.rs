@@ -15,7 +15,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         for v in ["SYNC", "ASYNC"] {
             session.add_fuzzer(Box::new(TileFuzzerGen {
                 node: nk,
-                bits: TileBits::Main,
+                bits: TileBits::Main(1),
                 feature: SimpleFeatureId {
                     tile: "CLB",
                     bel: bname,
@@ -33,7 +33,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         for attr in ["F", "G"] {
             session.add_fuzzer(Box::new(TileMultiFuzzerGen {
                 node: nk,
-                bits: TileBits::Main,
+                bits: TileBits::Main(1),
                 feature: SimpleFeatureId {
                     tile: "CLB",
                     bel: bname,

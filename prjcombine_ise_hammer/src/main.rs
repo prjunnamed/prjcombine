@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use tiledb::TileDb;
 
 mod backend;
+mod bram;
 mod clb;
 mod diff;
 mod fgen;
@@ -52,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex2(_) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
+                bram::virtex2::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -88,6 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         clb::virtex2::Mode::Spartan3
                     },
                 );
+                bram::virtex2::collect_fuzzers(&mut state, &mut tiledb, edev.grid.kind);
             }
             ExpandedDevice::Spartan6(_) => {}
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {

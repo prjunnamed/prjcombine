@@ -18,13 +18,12 @@ impl TileDb {
     pub fn insert(
         &mut self,
         tile: impl Into<String>,
+        bel: impl Into<String>,
         name: impl Into<String>,
         item: TileItem<FeatureBit>,
     ) {
-        let tile = self
-            .tiles
-            .entry(tile.into())
-            .or_insert_with(Default::default);
+        let name = format!("{}:{}", bel.into(), name.into());
+        let tile = self.tiles.entry(tile.into()).or_default();
         tile.insert(name, item, |_| false);
     }
 }
