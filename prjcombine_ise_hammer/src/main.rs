@@ -52,6 +52,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Xc5200(_) => {}
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
+                bram::virtex::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
@@ -95,6 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Xc5200(_) => {}
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::collect_fuzzers(&mut state, &mut tiledb);
+                bram::virtex::collect_fuzzers(backend.egrid, &mut state, &mut tiledb);
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(

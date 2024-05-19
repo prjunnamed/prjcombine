@@ -182,7 +182,33 @@ impl<'a> Backend for IseBackend<'a> {
         let mut gopts = HashMap::new();
         let mut insts = HashMap::new();
         let mut nets = HashMap::new();
-        for (k, v) in kv {
+        let orig_kv = kv;
+        let mut kv = kv.clone();
+        // sigh. bitgen inserts nondeterministic defaults without this.
+        for (k, v) in orig_kv {
+            if let Key::SiteMode(site) = k {
+                let Value::String(s) = v else {
+                    continue;
+                };
+                if s == "BLOCKRAM" {
+                    for attr in [
+                        "INIT_00", "INIT_01", "INIT_02", "INIT_03", "INIT_04", "INIT_05",
+                        "INIT_06", "INIT_07", "INIT_08", "INIT_09", "INIT_0a", "INIT_0b",
+                        "INIT_0c", "INIT_0d", "INIT_0e", "INIT_0f",
+                    ] {
+                        let key = Key::SiteAttr(site, attr);
+                        let zero =
+                            "0000000000000000000000000000000000000000000000000000000000000000";
+                        let entry = kv.entry(key).or_insert(zero.into());
+                        if matches!(*entry, Value::None) {
+                            *entry = zero.into();
+                        }
+                    }
+                }
+            }
+        }
+
+        for (k, v) in &kv {
             match *k {
                 Key::GlobalOpt(opt) => match v {
                     Value::None => (),
@@ -212,7 +238,7 @@ impl<'a> Backend for IseBackend<'a> {
                 _ => (),
             }
         }
-        for (k, v) in kv {
+        for (k, v) in &kv {
             match *k {
                 Key::SiteAttr(site, attr) => match v {
                     Value::None => (),

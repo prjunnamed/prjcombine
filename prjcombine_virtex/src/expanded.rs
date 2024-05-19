@@ -101,4 +101,19 @@ impl<'a> ExpandedDevice<'a> {
             false,
         )
     }
+
+    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+        let width = 64;
+        let height = 18;
+
+        let bit = height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.bram_frame[col],
+            width,
+            bit,
+            height * 4,
+            false,
+        )
+    }
 }

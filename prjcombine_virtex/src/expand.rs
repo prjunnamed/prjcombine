@@ -811,7 +811,12 @@ impl<'a, 'b> Expander<'a, 'b> {
         // bram data
         major = u32::from(self.grid.kind != GridKind::Virtex);
         for dx in 0..(self.grid.columns / 2) {
-            for lr in ['R', 'L'] {
+            let lrorder = if self.grid.kind == GridKind::Virtex {
+                ['L', 'R']
+            } else {
+                ['R', 'L']
+            };
+            for lr in lrorder {
                 let col = if lr == 'R' {
                     self.grid.col_clk() + dx
                 } else {

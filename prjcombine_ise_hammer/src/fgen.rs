@@ -132,7 +132,13 @@ impl TileBits {
                 prjcombine_xilinx_geom::ExpandedDevice::Xc4k(_) => unreachable!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Xc5200(_) => unreachable!(),
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex(edev) => {
-                    todo!()
+                    vec![
+                        edev.btile_main(col, row),
+                        edev.btile_main(col, row + 1),
+                        edev.btile_main(col, row + 2),
+                        edev.btile_main(col, row + 3),
+                        edev.btile_bram(col, row),
+                    ]
                 }
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex2(edev) => {
                     vec![

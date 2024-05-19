@@ -8,3 +8,4 @@ Xilinx Virtex, Virtex E, Spartan 2, Spartan 2E FPGAs
    :caption: Contents:
 
    clb
+   bram
