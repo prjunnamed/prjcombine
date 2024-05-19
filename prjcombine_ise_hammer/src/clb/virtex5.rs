@@ -1038,10 +1038,12 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                     ] {
                         let d_o5 = state.get_diff(tile_name, bel, attr, "IN_A");
                         let d_byp = state.get_diff(tile_name, bel, attr, "IN_B");
-                        tiledb.insert(tile_name, bel, attr, xlat_enum(vec![
-                            ("O5".to_string(), d_o5),
-                            (byp.to_string(), d_byp),
-                        ]));
+                        tiledb.insert(
+                            tile_name,
+                            bel,
+                            attr,
+                            xlat_enum(vec![("O5".to_string(), d_o5), (byp.to_string(), d_byp)]),
+                        );
                     }
                 }
             }

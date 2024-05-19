@@ -3,47 +3,394 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, MultiValue, SimpleFeatureId},
-    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileMultiFuzzKV, TileMultiFuzzerGen},
+    backend::{IseBackend, State},
+    diff::{
+        collect_bitvec, collect_enum, collect_enum_bool, collect_enum_default, extract_enum_bool,
+        xlat_bitvec, xlat_bool, xlat_enum,
+    },
+    fgen::TileBits,
+    fuzz::FuzzCtx,
+    fuzz_enum, fuzz_multi,
+    tiledb::TileDb,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let nk = backend.egrid.db.get_node("CLB");
+    let node_kind = backend.egrid.db.get_node("CLB");
     for i in 0..2 {
         let bel = BelId::from_idx(i);
-        let bname = backend.egrid.db.nodes[nk].bels.key(bel);
-        for v in ["SYNC", "ASYNC"] {
-            session.add_fuzzer(Box::new(TileFuzzerGen {
-                node: nk,
-                bits: TileBits::Main(1),
-                feature: SimpleFeatureId {
-                    tile: "CLB",
-                    bel: bname,
-                    attr: "SYNC_ATTR",
-                    val: v,
-                },
-                base: vec![
-                    TileKV::SiteMode(bel, "SLICE"),
-                    TileKV::SiteAttr(bel, "FFX", "#FF"),
-                    TileKV::SitePin(bel, "XQ"),
-                ],
-                fuzz: vec![TileFuzzKV::SiteAttr(bel, "SYNC_ATTR", v)],
-            }));
-        }
+        let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
+        let ctx = FuzzCtx {
+            session,
+            node_kind,
+            bits: TileBits::Main(1),
+            tile_name: "CLB",
+            bel,
+            bel_name,
+        };
+
+        // inverters
+        fuzz_enum!(ctx, "CKINV", ["0", "1"], [
+            (mode "SLICE"),
+            (attr "FFX", "#FF"),
+            (pin "CLK")
+        ]);
+        fuzz_enum!(ctx, "CEMUX", ["0", "1", "CE", "CE_B"], [
+            (mode "SLICE"),
+            (attr "FFX", "#FF"),
+            (attr "CKINV", "1"),
+            (pin "CE"),
+            (pin "CLK"),
+            (pin "XQ")
+        ]);
+        fuzz_enum!(ctx, "SRMUX", ["0", "1", "SR", "SR_B"], [
+            (mode "SLICE"),
+            (attr "F", "#LUT:0"),
+            (attr "DXMUX", "1"),
+            (attr "SRFFMUX", "0"),
+            (attr "CEMUX", "0"),
+            (attr "FFX", "#FF"),
+            (attr "FFY", "#FF"),
+            (attr "CKINV", "1"),
+            (pin "SR"),
+            (pin "CLK"),
+            (pin "XQ")
+        ]);
+        fuzz_enum!(ctx, "BXMUX", ["0", "1", "BX", "BX_B"], [
+            (mode "SLICE"),
+            (attr "FFX", "#FF"),
+            (attr "DXMUX", "0"),
+            (pin "BX"),
+            (pin "XQ")
+        ]);
+        fuzz_enum!(ctx, "BYMUX", ["0", "1", "BY", "BY_B"], [
+            (mode "SLICE"),
+            (attr "FFY", "#FF"),
+            (attr "DYMUX", "0"),
+            (pin "BY"),
+            (pin "YQ")
+        ]);
+
+        // LUT
         for attr in ["F", "G"] {
-            session.add_fuzzer(Box::new(TileMultiFuzzerGen {
-                node: nk,
-                bits: TileBits::Main(1),
-                feature: SimpleFeatureId {
-                    tile: "CLB",
-                    bel: bname,
-                    attr,
-                    val: "#LUT",
-                },
-                base: vec![TileKV::SiteMode(bel, "SLICE")],
-                width: 16,
-                fuzz: TileMultiFuzzKV::SiteAttr(bel, attr, MultiValue::Lut),
-            }));
+            fuzz_multi!(ctx, attr, "#LUT", 16, [(mode "SLICE")], (attr_lut attr));
+        }
+        fuzz_enum!(ctx, "RAMCONFIG", ["16X1", "16X1DP", "16X2", "32X1", "1SHIFT", "2SHIFTS"], [
+            (mode "SLICE")
+        ]);
+
+        // carry chain
+        fuzz_enum!(ctx, "CYINIT", ["CIN", "BX"], [
+            (mode "SLICE"),
+            (attr "BXMUX", "BX"),
+            (attr "CYSELF", "1"),
+            (attr "CYSELG", "1"),
+            (attr "COUTUSED", "0"),
+            (pin "CIN"),
+            (pin "BX"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "CYSELF", ["F", "1"], [
+            (mode "SLICE"),
+            (attr "F", "#LUT:0"),
+            (attr "CY0F", "0"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "CYSELG", "1"),
+            (attr "COUTUSED", "0"),
+            (pin "BX"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "CYSELG", ["G", "1"], [
+            (mode "SLICE"),
+            (attr "G", "#LUT:0"),
+            (attr "CY0G", "0"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "CYSELF", "1"),
+            (attr "COUTUSED", "0"),
+            (pin "BX"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "CY0F", ["0", "1", "F1", "PROD"], [
+            (mode "SLICE"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "FXMUX", "FXOR"),
+            (attr "F", "#LUT:0"),
+            (attr "XUSED", "0"),
+            (attr "CYSELF", "F"),
+            (attr "CYSELG", "1"),
+            (attr "COUTUSED", "0"),
+            (pin "F1"),
+            (pin "F2"),
+            (pin "BX"),
+            (pin "X"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "CY0G", ["0", "1", "G1", "PROD"], [
+            (mode "SLICE"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "BYMUX", "BY"),
+            (attr "GYMUX", "GXOR"),
+            (attr "G", "#LUT:0"),
+            (attr "YUSED", "0"),
+            (attr "CYSELF", "1"),
+            (attr "CYSELG", "G"),
+            (attr "COUTUSED", "0"),
+            (pin "G1"),
+            (pin "G2"),
+            (pin "BX"),
+            (pin "BY"),
+            (pin "Y"),
+            (pin "COUT")
+        ]);
+
+        // muxes
+        fuzz_enum!(ctx, "YBMUX", ["0", "1"], [
+            (mode "SLICE"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "BYMUX", "BY"),
+            (attr "GYMUX", "GXOR"),
+            (attr "G", "#LUT:0"),
+            (attr "YUSED", "0"),
+            (attr "CYSELF", "1"),
+            (attr "CYSELG", "1"),
+            (attr "COUTUSED", "0"),
+            (pin "BX"),
+            (pin "BY"),
+            (pin "Y"),
+            (pin "YB"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "DXMUX", ["0", "1"], [
+            (mode "SLICE"),
+            (attr "F", "#LUT:0"),
+            (attr "XUSED", "0"),
+            (attr "FXMUX", "F"),
+            (attr "FFX", "#FF"),
+            (attr "BXMUX", "BX"),
+            (pin "X"),
+            (pin "XQ"),
+            (pin "BX")
+        ]);
+        fuzz_enum!(ctx, "DYMUX", ["0", "1"], [
+            (mode "SLICE"),
+            (attr "G", "#LUT:0"),
+            (attr "YUSED", "0"),
+            (attr "GYMUX", "G"),
+            (attr "FFY", "#FF"),
+            (attr "BYMUX", "BY"),
+            (pin "Y"),
+            (pin "YQ"),
+            (pin "BY")
+        ]);
+        fuzz_enum!(ctx, "FXMUX", ["F", "F5", "FXOR"], [
+            (mode "SLICE"),
+            (attr "F", "#LUT:0"),
+            (attr "CYSELF", "1"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "XUSED", "0"),
+            (attr "COUTUSED", "0"),
+            (pin "X"),
+            (pin "BX"),
+            (pin "COUT")
+        ]);
+        fuzz_enum!(ctx, "GYMUX", ["G", "F6", "GXOR"], [
+            (mode "SLICE"),
+            (attr "G", "#LUT:0"),
+            (attr "CYSELF", "1"),
+            (attr "CYSELG", "1"),
+            (attr "CYINIT", "BX"),
+            (attr "BXMUX", "BX"),
+            (attr "YUSED", "0"),
+            (attr "COUTUSED", "0"),
+            (pin "Y"),
+            (pin "BX"),
+            (pin "COUT")
+        ]);
+
+        // FFs
+        fuzz_enum!(ctx, "SYNC_ATTR", ["SYNC", "ASYNC"], [
+            (mode "SLICE"),
+            (pin "XQ"),
+            (attr "FFX", "#FF")
+        ]);
+        fuzz_enum!(ctx, "FFX", ["#FF", "#LATCH"], [
+            (mode "SLICE"),
+            (attr "FFY", ""),
+            (attr "CEMUX", "CE_B"),
+            (attr "INITX", "LOW"),
+            (pin "XQ"),
+            (pin "CE")
+        ]);
+        fuzz_enum!(ctx, "FFY", ["#FF", "#LATCH"], [
+            (mode "SLICE"),
+            (attr "FFX", ""),
+            (attr "CEMUX", "CE_B"),
+            (attr "INITY", "LOW"),
+            (pin "YQ"),
+            (pin "CE")
+        ]);
+        fuzz_enum!(ctx, "INITX", ["LOW", "HIGH"], [
+            (mode "SLICE"),
+            (attr "FFX", "#FF"),
+            (pin "XQ")
+        ]);
+        fuzz_enum!(ctx, "INITY", ["LOW", "HIGH"], [
+            (mode "SLICE"),
+            (attr "FFY", "#FF"),
+            (pin "YQ")
+        ]);
+        fuzz_enum!(ctx, "REVUSED", ["0"], [
+            (mode "SLICE"),
+            (attr "FFX", "#FF"),
+            (attr "BYMUX", "BY"),
+            (pin "XQ"),
+            (pin "BY")
+        ]);
+    }
+
+    for i in 0..2 {
+        let bel = BelId::from_idx(i + 2);
+        let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
+        let ctx = FuzzCtx {
+            session,
+            node_kind,
+            bits: TileBits::Main(1),
+            tile_name: "CLB",
+            bel,
+            bel_name,
+        };
+        fuzz_enum!(ctx, "IMUX", ["0", "1", "I", "I_B"], [
+            (mode "TBUF"),
+            (pin "I"),
+            (pin "O")
+        ]);
+        fuzz_enum!(ctx, "TMUX", ["0", "1", "T", "T_B"], [
+            (mode "TBUF"),
+            (pin "T"),
+            (pin "O")
+        ]);
+    }
+}
+
+pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
+    let tile = "CLB";
+    for bel in ["SLICE0", "SLICE1"] {
+        tiledb.insert(
+            tile,
+            bel,
+            "CLKINV",
+            extract_enum_bool(state, tile, bel, "CKINV", "1", "0"),
+        );
+        for (pininv, pinmux, pin, pin_b) in [
+            ("BXINV", "BXMUX", "BX", "BX_B"),
+            ("BYINV", "BYMUX", "BY", "BY_B"),
+            ("CEINV", "CEMUX", "CE", "CE_B"),
+            ("SRINV", "SRMUX", "SR", "SR_B"),
+        ] {
+            let d0 = state.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, state.get_diff(tile, bel, pinmux, "1"));
+            let d1 = state.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
+            tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+        }
+
+        collect_bitvec(state, tiledb, tile, bel, "F", "#LUT");
+        collect_bitvec(state, tiledb, tile, bel, "G", "#LUT");
+        collect_enum_default(
+            state,
+            tiledb,
+            tile,
+            bel,
+            "RAMCONFIG",
+            &["16X1", "16X1DP", "16X2", "32X1", "1SHIFT", "2SHIFTS"],
+            "ROM",
+        );
+
+        // carry chain
+        collect_enum(state, tiledb, tile, bel, "CYINIT", &["BX", "CIN"]);
+        collect_enum(state, tiledb, tile, bel, "CYSELF", &["F", "1"]);
+        collect_enum(state, tiledb, tile, bel, "CYSELG", &["G", "1"]);
+        let d_0 = state.get_diff(tile, bel, "CY0F", "0");
+        let d_1 = state.get_diff(tile, bel, "CY0F", "1");
+        let d_f1_g1 = state.get_diff(tile, bel, "CY0F", "F1");
+        let d_prod = state.get_diff(tile, bel, "CY0F", "PROD");
+        assert_eq!(d_0, state.get_diff(tile, bel, "CY0G", "0"));
+        assert_eq!(d_1, state.get_diff(tile, bel, "CY0G", "1"));
+        assert_eq!(d_f1_g1, state.get_diff(tile, bel, "CY0G", "G1"));
+        assert_eq!(d_prod, state.get_diff(tile, bel, "CY0G", "PROD"));
+        tiledb.insert(
+            tile,
+            bel,
+            "CY0",
+            xlat_enum(vec![
+                ("0".to_string(), d_0),
+                ("1".to_string(), d_1),
+                ("F1_G1".to_string(), d_f1_g1),
+                ("PROD".to_string(), d_prod),
+            ]),
+        );
+
+        // muxes
+        let yb_by = state.get_diff(tile, bel, "YBMUX", "0");
+        let yb_cy = state.get_diff(tile, bel, "YBMUX", "1");
+        tiledb.insert(
+            tile,
+            bel,
+            "YBMUX",
+            xlat_enum(vec![("BY".to_string(), yb_by), ("CY".to_string(), yb_cy)]),
+        );
+        let dx_bx = state.get_diff(tile, bel, "DXMUX", "0");
+        let dx_x = state.get_diff(tile, bel, "DXMUX", "1");
+        tiledb.insert(
+            tile,
+            bel,
+            "DXMUX",
+            xlat_enum(vec![("BX".to_string(), dx_bx), ("X".to_string(), dx_x)]),
+        );
+        let dy_by = state.get_diff(tile, bel, "DYMUX", "0");
+        let dy_y = state.get_diff(tile, bel, "DYMUX", "1");
+        tiledb.insert(
+            tile,
+            bel,
+            "DYMUX",
+            xlat_enum(vec![("BY".to_string(), dy_by), ("Y".to_string(), dy_y)]),
+        );
+        collect_enum(state, tiledb, tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
+        collect_enum(state, tiledb, tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
+
+        // FFs
+        let ff_sync = state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
+        state
+            .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
+            .assert_empty();
+        tiledb.insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+
+        let revused = state.get_diff(tile, bel, "REVUSED", "0");
+        tiledb.insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+
+        let ff_latch = state.get_diff(tile, bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, state.get_diff(tile, bel, "FFY", "#LATCH"));
+        state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
+        state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
+        tiledb.insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+
+        collect_enum_bool(state, tiledb, tile, bel, "INITX", "LOW", "HIGH");
+        collect_enum_bool(state, tiledb, tile, bel, "INITY", "LOW", "HIGH");
+    }
+    for bel in ["TBUF0", "TBUF1"] {
+        for (pininv, pinmux, pin, pin_b) in
+            [("IINV", "IMUX", "I", "I_B"), ("TINV", "TMUX", "T", "T_B")]
+        {
+            let d0 = state.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, state.get_diff(tile, bel, pinmux, "1"));
+            let d1 = state.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
+            tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
         }
     }
 }

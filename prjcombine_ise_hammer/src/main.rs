@@ -93,7 +93,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
             ExpandedDevice::Xc5200(_) => {}
-            ExpandedDevice::Virtex(_) => {}
+            ExpandedDevice::Virtex(_) => {
+                clb::virtex::collect_fuzzers(&mut state, &mut tiledb);
+            }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(
                     &mut state,
