@@ -141,6 +141,27 @@ pub fn collect_enum<'a, 'b: 'a>(
     tiledb.insert(tile, bel, attr, ti);
 }
 
+pub fn collect_enum_bool<'a, 'b: 'a>(
+    state: &mut State<'a>,
+    tiledb: &mut TileDb,
+    tile: &'b str,
+    bel: &'b str,
+    attr: &'b str,
+    val0: &'b str,
+    val1: &'b str,
+) {
+    let d0 = state.get_diff(tile, bel, attr, val0);
+    let d1 = state.get_diff(tile, bel, attr, val1);
+    let diff = if d0.bits.is_empty() {
+        d0.assert_empty();
+        d1
+    } else {
+        d1.assert_empty();
+        !d0
+    };
+    tiledb.insert(tile, bel, attr, xlat_bitvec(vec![diff]));
+}
+
 pub fn collect_inv<'a, 'b: 'a>(
     state: &mut State<'a>,
     tiledb: &mut TileDb,
@@ -150,14 +171,5 @@ pub fn collect_inv<'a, 'b: 'a>(
 ) {
     let pininv = format!("{pin}INV").leak();
     let pin_b = format!("{pin}_B").leak();
-    let f_pin = state.get_diff(tile, bel, pininv, pin);
-    let f_pin_b = state.get_diff(tile, bel, pininv, pin_b);
-    let inv = if f_pin.bits.is_empty() {
-        f_pin.assert_empty();
-        f_pin_b
-    } else {
-        f_pin_b.assert_empty();
-        !f_pin
-    };
-    tiledb.insert(tile, bel, &*pininv, xlat_bitvec(vec![inv]));
+    collect_enum_bool(state, tiledb, tile, bel, pininv, pin, pin_b);
 }

@@ -10,8 +10,8 @@ use tiledb::TileDb;
 mod backend;
 mod bram;
 mod clb;
-mod dsp;
 mod diff;
+mod dsp;
 mod fgen;
 mod fuzz;
 mod tiledb;
@@ -57,12 +57,20 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
                 bram::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
-                    dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend, dsp::spartan3adsp::Mode::Spartan3ADsp);
+                    dsp::spartan3adsp::add_fuzzers(
+                        &mut hammer,
+                        &backend,
+                        dsp::spartan3adsp::Mode::Spartan3ADsp,
+                    );
                 }
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend, dsp::spartan3adsp::Mode::Spartan6);
+                dsp::spartan3adsp::add_fuzzers(
+                    &mut hammer,
+                    &backend,
+                    dsp::spartan3adsp::Mode::Spartan6,
+                );
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -98,11 +106,24 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
                 bram::virtex2::collect_fuzzers(&mut state, &mut tiledb, edev.grid.kind);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
-                    dsp::spartan3adsp::collect_fuzzers(&mut state, &mut tiledb, dsp::spartan3adsp::Mode::Spartan3ADsp)
+                    dsp::spartan3adsp::collect_fuzzers(
+                        &mut state,
+                        &mut tiledb,
+                        dsp::spartan3adsp::Mode::Spartan3ADsp,
+                    )
                 }
             }
             ExpandedDevice::Spartan6(_) => {
-                dsp::spartan3adsp::collect_fuzzers(&mut state, &mut tiledb, dsp::spartan3adsp::Mode::Spartan6)
+                clb::virtex5::collect_fuzzers(
+                    &mut state,
+                    &mut tiledb,
+                    clb::virtex5::Mode::Spartan6,
+                );
+                dsp::spartan3adsp::collect_fuzzers(
+                    &mut state,
+                    &mut tiledb,
+                    dsp::spartan3adsp::Mode::Spartan6,
+                )
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -112,9 +133,27 @@ fn main() -> Result<(), Box<dyn Error>> {
                         clb::virtex2::Mode::Virtex4,
                     );
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => {}
-                prjcombine_virtex4::grid::GridKind::Virtex6 => {}
-                prjcombine_virtex4::grid::GridKind::Virtex7 => {}
+                prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    clb::virtex5::collect_fuzzers(
+                        &mut state,
+                        &mut tiledb,
+                        clb::virtex5::Mode::Virtex5,
+                    );
+                }
+                prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    clb::virtex5::collect_fuzzers(
+                        &mut state,
+                        &mut tiledb,
+                        clb::virtex5::Mode::Virtex6,
+                    );
+                }
+                prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                    clb::virtex5::collect_fuzzers(
+                        &mut state,
+                        &mut tiledb,
+                        clb::virtex5::Mode::Virtex7,
+                    );
+                }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
@@ -137,33 +176,35 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     std::fs::write(args.json, tiledb.to_json().to_string())?;
-    for (tname, tile) in &tiledb.tiles {
-        for (name, item) in &tile.items {
-            print!("ITEM {tname}.{name}:");
-            if let TileItemKind::BitVec { invert } = item.kind {
-                if invert {
-                    print!(" INVVEC");
-                } else {
-                    print!(" VEC");
-                }
-            } else {
-                print!(" ENUM");
-            }
-            for &bit in &item.bits {
-                print!(" {}.{}.{}", bit.tile, bit.frame, bit.bit);
-            }
-            println!();
-            if let TileItemKind::Enum { ref values } = item.kind {
-                for (vname, val) in values {
-                    print!("    {vname:10}: ");
-                    for b in val {
-                        if *b {
-                            print!("1");
-                        } else {
-                            print!("0");
-                        }
+    if false {
+        for (tname, tile) in &tiledb.tiles {
+            for (name, item) in &tile.items {
+                print!("ITEM {tname}.{name}:");
+                if let TileItemKind::BitVec { invert } = item.kind {
+                    if invert {
+                        print!(" INVVEC");
+                    } else {
+                        print!(" VEC");
                     }
-                    println!();
+                } else {
+                    print!(" ENUM");
+                }
+                for &bit in &item.bits {
+                    print!(" {}.{}.{}", bit.tile, bit.frame, bit.bit);
+                }
+                println!();
+                if let TileItemKind::Enum { ref values } = item.kind {
+                    for (vname, val) in values {
+                        print!("    {vname:10}: ");
+                        for b in val {
+                            if *b {
+                                print!("1");
+                            } else {
+                                print!("0");
+                            }
+                        }
+                        println!();
+                    }
                 }
             }
         }

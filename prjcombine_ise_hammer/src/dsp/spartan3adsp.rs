@@ -18,26 +18,30 @@ pub enum Mode {
 }
 
 const DSP48A_INVPINS: &[&str] = &[
-        "CLK",
-        "CEA",
-        "CEB",
-        "CEC",
-        "CED",
-        "CEM",
-        "CEP",
-        "CEOPMODE",
-        "CECARRYIN",
-        "RSTA",
-        "RSTB",
-        "RSTC",
-        "RSTD",
-        "RSTM",
-        "RSTP",
-        "RSTOPMODE",
-        "RSTCARRYIN",
+    "CLK",
+    "CEA",
+    "CEB",
+    "CEC",
+    "CED",
+    "CEM",
+    "CEP",
+    "CEOPMODE",
+    "CECARRYIN",
+    "RSTA",
+    "RSTB",
+    "RSTC",
+    "RSTD",
+    "RSTM",
+    "RSTP",
+    "RSTOPMODE",
+    "RSTCARRYIN",
 ];
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>, mode: Mode) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    mode: Mode,
+) {
     let node_kind = backend.egrid.db.get_node("DSP");
     let bel = BelId::from_idx(0);
     let ctx = FuzzCtx {
@@ -100,7 +104,21 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
     if mode == Mode::Spartan6 {
         collect_enum(state, tiledb, "DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
     }
-    collect_enum(state, tiledb, "DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
-    collect_enum(state, tiledb, "DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
+    collect_enum(
+        state,
+        tiledb,
+        "DSP",
+        "DSP",
+        "B_INPUT",
+        &["DIRECT", "CASCADE"],
+    );
+    collect_enum(
+        state,
+        tiledb,
+        "DSP",
+        "DSP",
+        "CARRYINSEL",
+        &["OPMODE5", "CARRYIN"],
+    );
     collect_enum(state, tiledb, "DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
 }

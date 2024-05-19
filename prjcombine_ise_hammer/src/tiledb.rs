@@ -29,10 +29,12 @@ impl TileDb {
     }
 
     pub fn to_json(&self) -> serde_json::Value {
-        serde_json::Map::from_iter(
-            self.tiles.iter().map(|(name, tile)| {
-                (name.clone(), tile.to_json(|crd| json!((crd.tile, crd.frame, crd.bit))))
-            })
-        ).into()
+        serde_json::Map::from_iter(self.tiles.iter().map(|(name, tile)| {
+            (
+                name.clone(),
+                tile.to_json(|crd| json!((crd.tile, crd.frame, crd.bit))),
+            )
+        }))
+        .into()
     }
 }
