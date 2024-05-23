@@ -55,14 +55,12 @@ impl<'a> TileKV<'a> {
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum TileFuzzKV<'a> {
-    #[allow(dead_code)]
     SiteMode(BelId, &'a str),
     SiteAttr(BelId, &'a str, &'a str),
     #[allow(dead_code)]
+    SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
-    #[allow(dead_code)]
-    SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
 }
 
 impl<'a> TileFuzzKV<'a> {

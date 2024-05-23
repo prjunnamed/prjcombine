@@ -61,6 +61,10 @@ impl TileDb {
         tile.insert(name, item, |_| false);
     }
 
+    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem<FeatureBit> {
+        &self.tiles[tile].items[&format!("{bel}:{attr}")]
+    }
+
     pub fn insert_device_data(
         &mut self,
         device: &str,

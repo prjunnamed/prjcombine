@@ -33,6 +33,9 @@ macro_rules! fuzz_base {
 
 #[macro_export]
 macro_rules! fuzz_diff {
+    ($ctx:ident, (mode $kind:expr)) => {
+        $crate::fgen::TileFuzzKV::SiteMode($ctx.bel, $kind)
+    };
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::SiteAttr($ctx.bel, $attr, $val)
     };

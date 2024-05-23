@@ -1,13 +1,15 @@
+use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::{Device, ExpandedDevice};
 use unnamed_entity::EntityId;
-use bitvec::prelude::*;
 
 use crate::{
     backend::{IseBackend, State},
-    diff::{collect_bitvec, collect_enum, collect_inv, extract_bitvec_val, xlat_bitvec, xlat_enum, Diff},
+    diff::{
+        collect_bitvec, collect_enum, collect_inv, extract_bitvec_val, xlat_bitvec, xlat_enum, Diff,
+    },
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
@@ -43,6 +45,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     };
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
+            fuzz_one!(ctx, "PRESENT", "1", [
+                (global_mutex_none "BRAM")
+            ], [
+                (mode bel_kind),
+                (attr "DATA_WIDTH_A", "36"),
+                (attr "DATA_WIDTH_B", "36"),
+                (attr "SRVAL_A", "fffffffff"),
+                (attr "SRVAL_B", "fffffffff"),
+                (attr "INIT_A", "fffffffff"),
+                (attr "INIT_B", "fffffffff")
+            ]);
             let mut invs = vec![
                 ("CLKAINV", "CLKA", "CLKA_B"),
                 ("CLKBINV", "CLKB", "CLKB_B"),
@@ -136,6 +149,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
         }
         _ => {
+            fuzz_one!(ctx, "PRESENT", "1", [
+                (global_mutex_none "BRAM")
+            ], [
+                (mode bel_kind),
+                (attr "PORTA_ATTR", "512X36"),
+                (attr "PORTB_ATTR", "512X36"),
+                (attr "SRVAL_A", "fffffffff"),
+                (attr "SRVAL_B", "fffffffff"),
+                (attr "INIT_A", "fffffffff"),
+                (attr "INIT_B", "fffffffff")
+            ]);
             for (pininv, pin, pin_b) in [
                 ("CLKAINV", "CLKA", "CLKA_B"),
                 ("CLKBINV", "CLKB", "CLKB_B"),
@@ -254,6 +278,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             bel,
             bel_name: "MULT",
         };
+        let bel_kind = if matches!(grid_kind, GridKind::Spartan3E | GridKind::Spartan3A) {
+            "MULT18X18SIO"
+        } else {
+            "MULT18X18"
+        };
+        fuzz_one!(ctx, "PRESENT", "1", [], [(mode bel_kind)]);
         if !matches!(grid_kind, GridKind::Spartan3E | GridKind::Spartan3A) {
             for (pininv, pin, pin_b) in [
                 ("CLKINV", "CLK", "CLK_B"),
@@ -299,7 +329,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, grid_kind: GridKind) {
+pub fn collect_fuzzers(
+    device: &Device,
+    state: &mut State,
+    tiledb: &mut TileDb,
+    grid_kind: GridKind,
+) {
     let tile_name = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
@@ -307,17 +342,21 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
     };
+    let mut present = state.get_diff(tile_name, "BRAM", "PRESENT", "1");
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
     for pin in ["CLKA", "CLKB", "ENA", "ENB"] {
         collect_inv(state, tiledb, tile_name, "BRAM", pin);
     }
+    present.discard_bits(tiledb.item(tile_name, "BRAM", "ENAINV"));
+    present.discard_bits(tiledb.item(tile_name, "BRAM", "ENBINV"));
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
                 collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
             }
             for i in 0..0x40 {
                 diffs_data.extend(state.get_diffs(
@@ -359,6 +398,7 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
             if grid_kind == GridKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
                     collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                    present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
                 }
 
                 collect_enum(state, tiledb, tile_name, "BRAM", "DOA_REG", &["0", "1"]);
@@ -380,6 +420,7 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
         _ => {
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
                 collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
             }
             for i in 0..0x40 {
                 diffs_data.extend(state.get_diffs(
@@ -484,14 +525,16 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
         let adef = extract_bitvec_val(&ddel_a, &bitvec![0, 0], !adef);
         tiledb.insert(tile_name, "BRAM", "DDEL_A", ddel_a);
         tiledb.insert_device_data(&device.name, "BRAM:DDEL_A_DEFAULT", adef);
+        present.discard_bits(tiledb.item(tile_name, "BRAM", "DDEL_A"));
         if grid_kind == GridKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
         } else {
             let ddel_b = xlat_bitvec(vec![b0, b1]);
-            let bdef = extract_bitvec_val(&ddel_b, &bitvec![0,  0], !bdef);
+            let bdef = extract_bitvec_val(&ddel_b, &bitvec![0, 0], !bdef);
             tiledb.insert(tile_name, "BRAM", "DDEL_B", ddel_b);
             tiledb.insert_device_data(&device.name, "BRAM:DDEL_B_DEFAULT", bdef);
+            present.discard_bits(tiledb.item(tile_name, "BRAM", "DDEL_B"));
         }
 
         let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel0", "1"));
@@ -502,6 +545,7 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
         let adef = extract_bitvec_val(&wdel_a, &bitvec![0, 0, 0], !adef);
         tiledb.insert_device_data(&device.name, "BRAM:WDEL_A_DEFAULT", adef);
         tiledb.insert(tile_name, "BRAM", "WDEL_A", wdel_a);
+        present.discard_bits(tiledb.item(tile_name, "BRAM", "WDEL_A"));
         if grid_kind == GridKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
@@ -511,6 +555,7 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
             let bdef = extract_bitvec_val(&wdel_b, &bitvec![0, 0, 0], !bdef);
             tiledb.insert(tile_name, "BRAM", "WDEL_B", wdel_b);
             tiledb.insert_device_data(&device.name, "BRAM:WDEL_B_DEFAULT", bdef);
+            present.discard_bits(tiledb.item(tile_name, "BRAM", "WDEL_B"));
         }
 
         let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ww_value", "0"));
@@ -542,8 +587,19 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
     collect_bitvec(state, tiledb, tile_name, "BRAM", "INIT_B", "");
     collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_A", "");
     collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_B", "");
+    present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_A"));
+    present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_B"));
+    if grid_kind.is_spartan3a() {
+        tiledb.insert(tile_name,"BRAM", "UNK_PRESENT", xlat_enum(vec![
+            ("0".to_string(), Diff::default()),
+            ("1".to_string(), present),
+        ]));
+    } else {
+        present.assert_empty();
+    }
 
     if grid_kind != GridKind::Spartan3ADsp {
+        let mut present = state.get_diff(tile_name, "MULT", "PRESENT", "1");
         if grid_kind.is_virtex2() || grid_kind == GridKind::Spartan3 {
             let f_clk = state.get_diff(tile_name, "MULT", "CLKINV", "CLK");
             let f_clk_b = state.get_diff(tile_name, "MULT", "CLKINV", "CLK_B");
@@ -553,6 +609,7 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
             tiledb.insert(tile_name, "MULT", "CLKINV", xlat_bitvec(vec![f_clk_b]));
             collect_inv(state, tiledb, tile_name, "MULT", "CE");
             collect_inv(state, tiledb, tile_name, "MULT", "RST");
+            present.discard_bits(tiledb.item(tile_name, "MULT", "CEINV"));
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
                 collect_inv(state, tiledb, tile_name, "MULT", pin);
@@ -582,6 +639,11 @@ pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, 
                     "1",
                 )]),
             );
+            present.discard_bits(tiledb.item(tile_name, "MULT", "PREG_CLKINVERSION"));
+            present.discard_bits(tiledb.item(tile_name, "MULT", "CEAINV"));
+            present.discard_bits(tiledb.item(tile_name, "MULT", "CEBINV"));
+            present.discard_bits(tiledb.item(tile_name, "MULT", "CEPINV"));
         }
+        present.assert_empty();
     }
 }

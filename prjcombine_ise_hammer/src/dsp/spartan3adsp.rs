@@ -3,12 +3,7 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_enum, collect_inv},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum,
-    tiledb::TileDb,
+    backend::{IseBackend, State}, diff::{collect_enum, collect_inv}, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one, tiledb::TileDb
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -56,6 +51,7 @@ pub fn add_fuzzers<'a>(
         Mode::Spartan3ADsp => "DSP48A",
         Mode::Spartan6 => "DSP48A1",
     };
+    fuzz_one!(ctx, "PRESENT", "1", [], [(mode bel_kind)]);
     for &pin in DSP48A_INVPINS {
         let pininv = format!("{pin}INV").leak();
         let pin_b = format!("{pin}_B").leak();
@@ -121,4 +117,5 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
         &["OPMODE5", "CARRYIN"],
     );
     collect_enum(state, tiledb, "DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
+    state.get_diff("DSP", "DSP", "PRESENT", "1").assert_empty();
 }

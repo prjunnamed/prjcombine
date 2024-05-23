@@ -46,6 +46,12 @@ impl Diff {
         });
         (a, b, common)
     }
+
+    pub fn discard_bits(&mut self, item: &TileItem<FeatureBit>) {
+        for bit in item.bits.iter() {
+            self.bits.remove(bit);
+        }
+    }
 }
 
 impl core::ops::Not for Diff {

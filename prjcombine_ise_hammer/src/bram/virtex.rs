@@ -3,12 +3,7 @@ use prjcombine_int::{db::BelId, grid::ExpandedGrid};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_enum, extract_enum_bool, xlat_bitvec, xlat_bool},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi,
-    tiledb::TileDb,
+    backend::{IseBackend, State}, diff::{collect_enum, extract_enum_bool, xlat_bitvec, xlat_bool}, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_multi, fuzz_one, tiledb::TileDb
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -27,6 +22,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             bel_name: "BRAM",
         };
 
+        fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BLOCKRAM")]);
         for (pinmux, pin) in [("CLKAMUX", "CLKA"), ("CLKBMUX", "CLKB")] {
             fuzz_enum!(ctx, pinmux, ["0", "1"], [
                 (mode "BLOCKRAM"),
@@ -114,5 +110,9 @@ pub fn collect_fuzzers(egrid: &ExpandedGrid, state: &mut State, tiledb: &mut Til
             );
         }
         tiledb.insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
+        let mut present = state.get_diff(tile, bel, "PRESENT", "1");
+        present.discard_bits(tiledb.item(tile, bel, "ENAINV"));
+        present.discard_bits(tiledb.item(tile, bel, "ENBINV"));
+        present.assert_empty();
     }
 }
