@@ -1,5 +1,6 @@
 use std::collections::{btree_map, hash_map, BTreeMap, HashMap};
 
+use bitvec::vec::BitVec;
 use prjcombine_types::{TileItem, TileItemKind};
 
 use crate::{
@@ -249,4 +250,19 @@ pub fn collect_inv<'a, 'b: 'a>(
     let pininv = format!("{pin}INV").leak();
     let pin_b = format!("{pin}_B").leak();
     collect_enum_bool(state, tiledb, tile, bel, pininv, pin, pin_b);
+}
+
+pub fn extract_bitvec_val(item: &TileItem<FeatureBit>, base: &BitVec, diff: Diff) -> BitVec {
+    let TileItemKind::BitVec {invert} = item.kind else {
+        unreachable!()
+    };
+    assert_eq!(item.bits.len(), base.len());
+    let mut res = base.clone();
+    let rev: HashMap<_, _> = item.bits.iter().copied().enumerate().map(|(i, v)| (v, i)).collect();
+    for (&bit, &val) in diff.bits.iter() {
+        let bitidx = rev[&bit];
+        assert_eq!(res[bitidx], !(val ^ invert));
+        res.set(bitidx, val ^ invert);
+    }
+    res
 }

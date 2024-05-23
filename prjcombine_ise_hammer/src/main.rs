@@ -108,7 +108,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         clb::virtex2::Mode::Spartan3
                     },
                 );
-                bram::virtex2::collect_fuzzers(&mut state, &mut tiledb, edev.grid.kind);
+                bram::virtex2::collect_fuzzers(part, &mut state, &mut tiledb, edev.grid.kind);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(
                         &mut state,

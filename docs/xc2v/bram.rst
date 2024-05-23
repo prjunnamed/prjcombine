@@ -36,3 +36,10 @@ Bitstream — Spartan 3A DSP
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-BRAM.S3ADSP.html
+
+
+Default option values
+=====================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-bram-opts.html

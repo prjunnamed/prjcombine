@@ -18,6 +18,8 @@ pub enum TileKV<'a> {
     SitePin(BelId, &'a str),
     #[allow(dead_code)]
     GlobalOpt(&'a str, &'a str),
+    GlobalMutexNone(&'a str),
+    GlobalMutexSite(&'a str, BelId),
 }
 
 impl<'a> TileKV<'a> {
@@ -41,6 +43,11 @@ impl<'a> TileKV<'a> {
                 fuzzer.base(Key::SitePin(site, pin), true)
             }
             TileKV::GlobalOpt(opt, val) => fuzzer.base(Key::GlobalOpt(opt), val),
+            TileKV::GlobalMutexNone(name) => fuzzer.base(Key::GlobalMutex(name), None),
+            TileKV::GlobalMutexSite(name, bel) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer.base(Key::GlobalMutex(name), &site[..])
+            }
         }
     }
 }
@@ -51,6 +58,9 @@ pub enum TileFuzzKV<'a> {
     #[allow(dead_code)]
     SiteMode(BelId, &'a str),
     SiteAttr(BelId, &'a str, &'a str),
+    #[allow(dead_code)]
+    GlobalOpt(&'a str, &'a str),
+    GlobalOptDiff(&'a str, &'a str, &'a str),
     #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
 }
@@ -74,6 +84,12 @@ impl<'a> TileFuzzKV<'a> {
             TileFuzzKV::SiteAttrDiff(bel, attr, va, vb) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr), va, vb)
+            }
+            TileFuzzKV::GlobalOpt(opt, val) => {
+                fuzzer.fuzz(Key::GlobalOpt(opt), None, val)
+            }
+            TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
+                fuzzer.fuzz(Key::GlobalOpt(opt), vala, valb)
             }
         }
     }

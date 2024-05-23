@@ -23,12 +23,24 @@ macro_rules! fuzz_base {
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileKV::SitePin($ctx.bel, $pin)
     };
+    ($ctx:ident, (global_mutex_none $name:expr)) => {
+        $crate::fgen::TileKV::GlobalMutexNone($name)
+    };
+    ($ctx:ident, (global_mutex_site $name:expr)) => {
+        $crate::fgen::TileKV::GlobalMutexSite($name, $ctx.bel)
+    };
 }
 
 #[macro_export]
 macro_rules! fuzz_diff {
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::SiteAttr($ctx.bel, $attr, $val)
+    };
+    ($ctx:ident, (global_opt $opt:expr, $val:expr)) => {
+        $crate::fgen::TileFuzzKV::GlobalOpt($opt, $val)
+    };
+    ($ctx:ident, (global_opt_diff $opt:expr, $vala:expr, $valb:expr)) => {
+        $crate::fgen::TileFuzzKV::GlobalOptDiff($opt, $vala, $valb)
     };
 }
 

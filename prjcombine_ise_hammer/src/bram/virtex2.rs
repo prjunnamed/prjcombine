@@ -1,15 +1,16 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_virtex2::grid::GridKind;
-use prjcombine_xilinx_geom::ExpandedDevice;
+use prjcombine_xilinx_geom::{Device, ExpandedDevice};
 use unnamed_entity::EntityId;
+use bitvec::prelude::*;
 
 use crate::{
     backend::{IseBackend, State},
-    diff::{collect_bitvec, collect_enum, collect_inv, xlat_bitvec, xlat_enum, Diff},
+    diff::{collect_bitvec, collect_enum, collect_inv, extract_bitvec_val, xlat_bitvec, xlat_enum, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi,
+    fuzz_enum, fuzz_multi, fuzz_one,
     tiledb::TileDb,
 };
 
@@ -35,13 +36,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         bel,
         bel_name: "BRAM",
     };
+    let bel_kind = match grid_kind {
+        GridKind::Spartan3ADsp => "RAMB16BWER",
+        GridKind::Spartan3A => "RAMB16BWE",
+        _ => "RAMB16",
+    };
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
-            let bel_kind = if grid_kind == GridKind::Spartan3ADsp {
-                "RAMB16BWER"
-            } else {
-                "RAMB16BWE"
-            };
             let mut invs = vec![
                 ("CLKAINV", "CLKA", "CLKA_B"),
                 ("CLKBINV", "CLKB", "CLKB_B"),
@@ -68,6 +69,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for (pininv, pin, pin_b) in invs {
                 fuzz_enum!(ctx, pininv, [pin, pin_b], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "DATA_WIDTH_A", "36"),
                     (attr "DATA_WIDTH_B", "36"),
@@ -76,6 +78,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
                 fuzz_enum!(ctx, attr, ["0", "1", "2", "4", "9", "18", "36"], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "INIT_A", "0"),
                     (attr "INIT_B", "0"),
@@ -85,6 +88,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
                 fuzz_enum!(ctx, attr, ["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "DATA_WIDTH_A", "36"),
                     (attr "DATA_WIDTH_B", "36")
@@ -92,17 +96,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             if grid_kind == GridKind::Spartan3ADsp {
                 fuzz_enum!(ctx, "RSTTYPE", ["SYNC", "ASYNC"], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind)
                 ]);
                 fuzz_enum!(ctx, "DOA_REG", ["0", "1"], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind)
                 ]);
                 fuzz_enum!(ctx, "DOB_REG", ["0", "1"], [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind)
                 ]);
             }
             for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
                 fuzz_multi!(ctx, attr, "", 36, [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "DATA_WIDTH_A", "36"),
                     (attr "DATA_WIDTH_B", "36")
@@ -111,6 +119,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for i in 0..0x40 {
                 let attr = format!("INIT_{i:02X}").leak();
                 fuzz_multi!(ctx, attr, "", 256, [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "DATA_WIDTH_A", "36"),
                     (attr "DATA_WIDTH_B", "36")
@@ -119,6 +128,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for i in 0..0x8 {
                 let attr = format!("INITP_{i:02X}").leak();
                 fuzz_multi!(ctx, attr, "", 256, [
+                    (global_mutex_none "BRAM"),
                     (mode bel_kind),
                     (attr "DATA_WIDTH_A", "36"),
                     (attr "DATA_WIDTH_B", "36")
@@ -137,6 +147,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ("ENBINV", "ENB", "ENB_B"),
             ] {
                 fuzz_enum!(ctx, pininv, [pin, pin_b], [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36"),
@@ -145,6 +156,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
                 fuzz_enum!(ctx, attr, ["16384X1", "8192X2", "4096X4", "2048X9", "1024X18", "512X36"], [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "INIT_A", "0"),
                     (attr "INIT_B", "0"),
@@ -154,6 +166,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for attr in ["WRITEMODEA", "WRITEMODEB"] {
                 fuzz_enum!(ctx, attr, ["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"], [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36")
@@ -161,6 +174,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             if grid_kind.is_virtex2() {
                 fuzz_enum!(ctx, "SAVEDATA", ["FALSE", "TRUE"], [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36")
@@ -168,6 +182,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
                 fuzz_multi!(ctx, attr, "", 36, [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36")
@@ -176,6 +191,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for i in 0..0x40 {
                 let attr = format!("INIT_{i:02x}").leak();
                 fuzz_multi!(ctx, attr, "", 256, [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36")
@@ -184,11 +200,47 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for i in 0..0x8 {
                 let attr = format!("INITP_{i:02x}").leak();
                 fuzz_multi!(ctx, attr, "", 256, [
+                    (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
                     (attr "PORTA_ATTR", "512X36"),
                     (attr "PORTB_ATTR", "512X36")
                 ], (attr_hex attr));
             }
+        }
+    }
+    if !grid_kind.is_virtex2() {
+        for opt in [
+            "Ibram_ddel0",
+            "Ibram_ddel1",
+            "Ibram_wdel0",
+            "Ibram_wdel1",
+            "Ibram_wdel2",
+        ] {
+            fuzz_one!(ctx, opt, "1", [
+                (global_mutex_site "BRAM"),
+                (mode bel_kind)
+            ], [(global_opt_diff opt, "0", "1")]);
+        }
+        fuzz_one!(ctx, "Ibram_ddel", "!default", [
+            (global_mutex_site "BRAM"),
+            (mode bel_kind)
+        ], [
+            (global_opt "Ibram_ddel0", "0"),
+            (global_opt "Ibram_ddel1", "0")
+        ]);
+        fuzz_one!(ctx, "Ibram_wdel", "!default", [
+            (global_mutex_site "BRAM"),
+            (mode bel_kind)
+        ], [
+            (global_opt "Ibram_wdel0", "0"),
+            (global_opt "Ibram_wdel1", "0"),
+            (global_opt "Ibram_wdel2", "0")
+        ]);
+        for val in ["0", "1"] {
+            fuzz_one!(ctx, "Ibram_ww_value", val, [
+                (global_mutex_site "BRAM"),
+                (mode bel_kind)
+            ], [(global_opt "Ibram_ww_value", val)]);
         }
     }
     if grid_kind != GridKind::Spartan3ADsp {
@@ -247,7 +299,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKind) {
+pub fn collect_fuzzers(device: &Device, state: &mut State, tiledb: &mut TileDb, grid_kind: GridKind) {
     let tile_name = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
@@ -403,6 +455,86 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, grid_kind: GridKi
                 )
             }
         }
+    }
+    if !grid_kind.is_virtex2() {
+        fn filter_ab(diff: Diff) -> (Diff, Diff) {
+            (
+                Diff {
+                    bits: diff
+                        .bits
+                        .iter()
+                        .filter(|&(&a, _)| a.tile < 2)
+                        .map(|(&a, &b)| (a, b))
+                        .collect(),
+                },
+                Diff {
+                    bits: diff
+                        .bits
+                        .iter()
+                        .filter(|&(&a, _)| a.tile >= 2)
+                        .map(|(&a, &b)| (a, b))
+                        .collect(),
+                },
+            )
+        }
+        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel0", "1"));
+        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel1", "1"));
+        let (adef, bdef) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel", "!default"));
+        let ddel_a = xlat_bitvec(vec![a0, a1]);
+        let adef = extract_bitvec_val(&ddel_a, &bitvec![0, 0], !adef);
+        tiledb.insert(tile_name, "BRAM", "DDEL_A", ddel_a);
+        tiledb.insert_device_data(&device.name, "BRAM:DDEL_A_DEFAULT", adef);
+        if grid_kind == GridKind::Spartan3 {
+            b0.assert_empty();
+            b1.assert_empty();
+        } else {
+            let ddel_b = xlat_bitvec(vec![b0, b1]);
+            let bdef = extract_bitvec_val(&ddel_b, &bitvec![0,  0], !bdef);
+            tiledb.insert(tile_name, "BRAM", "DDEL_B", ddel_b);
+            tiledb.insert_device_data(&device.name, "BRAM:DDEL_B_DEFAULT", bdef);
+        }
+
+        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel0", "1"));
+        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel1", "1"));
+        let (a2, b2) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel2", "1"));
+        let (adef, bdef) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel", "!default"));
+        let wdel_a = xlat_bitvec(vec![a0, a1, a2]);
+        let adef = extract_bitvec_val(&wdel_a, &bitvec![0, 0, 0], !adef);
+        tiledb.insert_device_data(&device.name, "BRAM:WDEL_A_DEFAULT", adef);
+        tiledb.insert(tile_name, "BRAM", "WDEL_A", wdel_a);
+        if grid_kind == GridKind::Spartan3 {
+            b0.assert_empty();
+            b1.assert_empty();
+            b2.assert_empty();
+        } else {
+            let wdel_b = xlat_bitvec(vec![b0, b1, b2]);
+            let bdef = extract_bitvec_val(&wdel_b, &bitvec![0, 0, 0], !bdef);
+            tiledb.insert(tile_name, "BRAM", "WDEL_B", wdel_b);
+            tiledb.insert_device_data(&device.name, "BRAM:WDEL_B_DEFAULT", bdef);
+        }
+
+        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ww_value", "0"));
+        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ww_value", "1"));
+        tiledb.insert(
+            tile_name,
+            "BRAM",
+            "WW_VALUE_A",
+            xlat_enum(vec![
+                ("NONE".to_string(), Diff::default()),
+                ("0".to_string(), a0),
+                ("1".to_string(), a1),
+            ]),
+        );
+        tiledb.insert(
+            tile_name,
+            "BRAM",
+            "WW_VALUE_B",
+            xlat_enum(vec![
+                ("NONE".to_string(), Diff::default()),
+                ("0".to_string(), b0),
+                ("1".to_string(), b1),
+            ]),
+        );
     }
     tiledb.insert(tile_name, "BRAM", "DATA", xlat_bitvec(diffs_data));
     tiledb.insert(tile_name, "BRAM", "DATAP", xlat_bitvec(diffs_datap));

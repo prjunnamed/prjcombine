@@ -35,6 +35,7 @@ pub enum Key<'a> {
     GlobalOpt(&'a str),
     SiteAttr(&'a str, &'a str),
     SitePin(&'a str, &'a str),
+    GlobalMutex(&'a str),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

@@ -1,10 +1,33 @@
 import json
 
 for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
-    with open(f"../databases/{kind}-tiledb.json") as f:
-        db = json.load(f)
+    with open(f"../databases/{kind}-tiledb.json") as dbf:
+        db = json.load(dbf)
 
-    for tile_name, tile in db.items():
+    def emit_dev_table_bitvec(f, name):
+        l = None
+        for dev, data in db["device_data"].items():
+            if name in data:
+                l = len(data[name])
+        if l is None:
+            return
+        f.write("<table class=\"docutils align-default\">\n")
+        f.write(f"<tr><th rowspan=\"2\">Device</th><th colspan=\"{l}\">{name}</th></tr>\n")
+        f.write(f"<tr>")
+        for i in reversed(range(l)):
+            f.write(f"<th>[{i}]</th>")
+        f.write(f"</tr>\n")
+        for dev, data in db["device_data"].items():
+            if name in data:
+                d = data[name]
+                assert len(d) == l
+                f.write(f"<tr><td>{dev}</td>")
+                for i in reversed(range(l)):
+                    f.write(f"<td>{int(d[i])}</td>")
+                f.write(f"</tr>\n")
+        f.write(f"</table>\n")
+
+    for tile_name, tile in db["tiles"].items():
         num_bittiles = 0
         for item in tile.values():
             for bt, _, _ in item["bits"]:
@@ -74,3 +97,10 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                         f.write(f"<td>{inv}[{i}]</td>")
                     f.write("</tr>\n")
                 f.write("</table>\n")
+
+    if kind == "xc3s":
+        with open("gen-xilinx-xc3s-bram-opts.html", "w") as f:
+            emit_dev_table_bitvec(f, "BRAM:DDEL_A_DEFAULT")
+            emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
+            emit_dev_table_bitvec(f, "BRAM:WDEL_A_DEFAULT")
+            emit_dev_table_bitvec(f, "BRAM:WDEL_B_DEFAULT")
