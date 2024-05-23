@@ -325,6 +325,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             fuzz_enum!(ctx, "B_INPUT", ["DIRECT", "CASCADE"], [
                 (mode "MULT18X18SIO")
             ]);
+            if grid_kind == GridKind::Spartan3A {
+                let bel_bram = BelId::from_idx(0);
+                for ab in ['A', 'B'] {
+                    for i in 0..18 {
+                        let name = format!("{ab}{i}MUX").leak();
+                        let bram_pin = if i < 16 {
+                            format!("DO{ab}{i}")
+                        } else {
+                            format!("DOP{ab}{ii}", ii = i - 16)
+                        }
+                        .leak();
+                        let mult_pin = format!("{ab}{i}").leak();
+                        fuzz_one!(ctx, name, "BRAM", [], [
+                            (pip (bel_pin bel_bram, bram_pin), (pin mult_pin))
+                        ]);
+                    }
+                }
+            }
         }
     }
 }
@@ -590,10 +608,15 @@ pub fn collect_fuzzers(
     present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_A"));
     present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_B"));
     if grid_kind.is_spartan3a() {
-        tiledb.insert(tile_name,"BRAM", "UNK_PRESENT", xlat_enum(vec![
-            ("0".to_string(), Diff::default()),
-            ("1".to_string(), present),
-        ]));
+        tiledb.insert(
+            tile_name,
+            "BRAM",
+            "UNK_PRESENT",
+            xlat_enum(vec![
+                ("0".to_string(), Diff::default()),
+                ("1".to_string(), present),
+            ]),
+        );
     } else {
         present.assert_empty();
     }
@@ -643,6 +666,25 @@ pub fn collect_fuzzers(
             present.discard_bits(tiledb.item(tile_name, "MULT", "CEAINV"));
             present.discard_bits(tiledb.item(tile_name, "MULT", "CEBINV"));
             present.discard_bits(tiledb.item(tile_name, "MULT", "CEPINV"));
+            if grid_kind == GridKind::Spartan3A {
+                for ab in ['A', 'B'] {
+                    for i in 0..18 {
+                        let name = &*format!("{ab}{i}MUX").leak();
+                        tiledb.insert(
+                            tile_name,
+                            "MULT",
+                            name,
+                            xlat_enum(vec![
+                                ("INT".to_string(), Diff::default()),
+                                (
+                                    "BRAM".to_string(),
+                                    state.get_diff(tile_name, "MULT", name, "BRAM"),
+                                ),
+                            ]),
+                        )
+                    }
+                }
+            }
         }
         present.assert_empty();
     }

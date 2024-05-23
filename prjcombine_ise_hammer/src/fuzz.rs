@@ -13,6 +13,16 @@ pub struct FuzzCtx<'sm, 's, 'a> {
 }
 
 #[macro_export]
+macro_rules! fuzz_wire {
+    ($ctx:ident, (pin $pin:expr)) => {
+        $crate::fgen::TileWire::BelPinNear($ctx.bel, $pin)
+    };
+    ($ctx:ident, (bel_pin $bel:expr, $pin:expr)) => {
+        $crate::fgen::TileWire::BelPinNear($bel, $pin)
+    };
+}
+
+#[macro_export]
 macro_rules! fuzz_base {
     ($ctx:ident, (mode $kind:expr)) => {
         $crate::fgen::TileKV::SiteMode($ctx.bel, $kind)
@@ -29,6 +39,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (global_mutex_site $name:expr)) => {
         $crate::fgen::TileKV::GlobalMutexSite($name, $ctx.bel)
     };
+    ($ctx:ident, (row_mutex_site $name:expr)) => {
+        $crate::fgen::TileKV::RowMutexSite($name, $ctx.bel)
+    };
 }
 
 #[macro_export]
@@ -44,6 +57,9 @@ macro_rules! fuzz_diff {
     };
     ($ctx:ident, (global_opt_diff $opt:expr, $vala:expr, $valb:expr)) => {
         $crate::fgen::TileFuzzKV::GlobalOptDiff($opt, $vala, $valb)
+    };
+    ($ctx:ident, (pip $wa:tt, $wb:tt)) => {
+        $crate::fgen::TileFuzzKV::Pip($crate::fuzz_wire!($ctx, $wa), $crate::fuzz_wire!($ctx, $wb))
     };
 }
 

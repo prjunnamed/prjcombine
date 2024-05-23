@@ -602,7 +602,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
     if mode == Mode::Virtex2 {
-        for i in 0..2 {
+        let tbus_bel = BelId::from_idx(6);
+        for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
             let bel = BelId::from_idx(4 + i);
             let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
             let ctx = FuzzCtx {
@@ -623,6 +624,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pin "I"),
                 (pin "O")
             ]);
+            fuzz_one!(ctx, "OUT_A", "1", [], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
+            fuzz_one!(ctx, "OUT_B", "1", [], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
         }
         // TODO: TBUS joiner
     }
@@ -975,6 +978,14 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                     !f_pin
                 };
                 tiledb.insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
+            }
+            for attr in ["OUT_A", "OUT_B"] {
+                tiledb.insert(
+                    "CLB",
+                    bel,
+                    attr,
+                    xlat_bitvec(vec![state.get_diff("CLB", bel, attr, "1")]),
+                );
             }
         }
     }

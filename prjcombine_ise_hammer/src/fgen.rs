@@ -11,6 +11,23 @@ use crate::backend::{FuzzerInfo, IseBackend, Key, MultiValue, SimpleFeatureId, S
 
 type Loc = (DieId, ColId, RowId, LayerId);
 
+#[derive(Debug, Copy, Clone)]
+pub enum TileWire<'a> {
+    BelPinNear(BelId, &'a str),
+}
+
+fn resolve_tile_wire<'a>(backend: &IseBackend<'a>, loc: Loc, wire: TileWire) -> (&'a str, &'a str) {
+    let node = backend.egrid.node(loc);
+    let intdb = backend.intdb();
+    let node_naming = &intdb.node_namings[node.naming];
+    match wire {
+        TileWire::BelPinNear(bel, pin) => {
+            let bel_naming = &node_naming.bels[bel];
+            (&node.names[bel_naming.tile], &bel_naming.pins[pin].name)
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum TileKV<'a> {
     SiteMode(BelId, &'a str),
@@ -20,6 +37,7 @@ pub enum TileKV<'a> {
     GlobalOpt(&'a str, &'a str),
     GlobalMutexNone(&'a str),
     GlobalMutexSite(&'a str, BelId),
+    RowMutexSite(&'a str, BelId),
 }
 
 impl<'a> TileKV<'a> {
@@ -48,6 +66,10 @@ impl<'a> TileKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::GlobalMutex(name), &site[..])
             }
+            TileKV::RowMutexSite(name, bel) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer.base(Key::RowMutex(name, loc.2), &site[..])
+            }
         }
     }
 }
@@ -59,6 +81,7 @@ pub enum TileFuzzKV<'a> {
     SiteAttr(BelId, &'a str, &'a str),
     #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
+    Pip(TileWire<'a>, TileWire<'a>),
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
 }
@@ -83,9 +106,13 @@ impl<'a> TileFuzzKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr), va, vb)
             }
-            TileFuzzKV::GlobalOpt(opt, val) => {
-                fuzzer.fuzz(Key::GlobalOpt(opt), None, val)
+            TileFuzzKV::Pip(wa, wb) => {
+                let (ta, wa) = resolve_tile_wire(backend, loc, wa);
+                let (tb, wb) = resolve_tile_wire(backend, loc, wb);
+                assert_eq!(ta, tb);
+                fuzzer.fuzz(Key::Pip(ta, wa, wb), None, true)
             }
+            TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt), None, val),
             TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
                 fuzzer.fuzz(Key::GlobalOpt(opt), vala, valb)
             }

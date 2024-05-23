@@ -3,7 +3,12 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State}, diff::{collect_enum, collect_inv}, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one, tiledb::TileDb
+    backend::{IseBackend, State},
+    diff::{collect_enum, collect_inv},
+    fgen::TileBits,
+    fuzz::FuzzCtx,
+    fuzz_enum, fuzz_one,
+    tiledb::TileDb,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

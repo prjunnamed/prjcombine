@@ -1,10 +1,11 @@
 use bitvec::vec::BitVec;
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::grid::ExpandedGrid;
+use prjcombine_int::db::IntDb;
+use prjcombine_int::grid::{ExpandedGrid, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::parse;
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
-use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetType, Placement};
+use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Placement};
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use std::borrow::Cow;
 use std::collections::{hash_map, HashMap};
@@ -35,7 +36,9 @@ pub enum Key<'a> {
     GlobalOpt(&'a str),
     SiteAttr(&'a str, &'a str),
     SitePin(&'a str, &'a str),
+    Pip(&'a str, &'a str, &'a str),
     GlobalMutex(&'a str),
+    RowMutex(&'a str, RowId),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -151,6 +154,33 @@ fn xlat_diff(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<Diff> {
     Some(Diff { bits: res })
 }
 
+impl<'a> IseBackend<'a> {
+    pub fn intdb(&self) -> &'a IntDb {
+        let kind = match self.edev {
+            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc5200(_) => todo!(),
+            ExpandedDevice::Virtex(_) => "virtex",
+            ExpandedDevice::Virtex2(edev) => {
+                if edev.grid.kind.is_virtex2() {
+                    "virtex2"
+                } else {
+                    "spartan3"
+                }
+            }
+            ExpandedDevice::Spartan6(_) => "spartan6",
+            ExpandedDevice::Virtex4(edev) => match edev.kind {
+                prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
+                prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
+                prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
+                prjcombine_virtex4::grid::GridKind::Virtex7 => "series7",
+            },
+            ExpandedDevice::Ultrascale(_) => todo!(),
+            ExpandedDevice::Versal(_) => todo!(),
+        };
+        &self.db.ints[kind]
+    }
+}
+
 impl<'a> Backend for IseBackend<'a> {
     type Key = Key<'a>;
     type Value = Value<'a>;
@@ -185,6 +215,7 @@ impl<'a> Backend for IseBackend<'a> {
         let mut nets = HashMap::new();
         let orig_kv = kv;
         let mut kv = kv.clone();
+        let mut single_pips = vec![];
         // sigh. bitgen inserts nondeterministic defaults without this.
         for (k, v) in orig_kv {
             if let Key::SiteMode(site) = k {
@@ -209,6 +240,32 @@ impl<'a> Backend for IseBackend<'a> {
             }
         }
 
+        insts.insert(
+            "DUMMY_SINGLE_PIPS".to_string(),
+            Instance {
+                name: "DUMMY_SINGLE_PIPS".to_string(),
+                kind: match self.edev {
+                    ExpandedDevice::Xc4k(_) => todo!(),
+                    ExpandedDevice::Xc5200(_) => todo!(),
+                    ExpandedDevice::Virtex(_) => "SLICE",
+                    ExpandedDevice::Virtex2(edev) => {
+                        if edev.grid.kind.is_virtex2() {
+                            "SLICE"
+                        } else {
+                            "SLICEL"
+                        }
+                    }
+                    ExpandedDevice::Spartan6(_) => "SLICEX",
+                    ExpandedDevice::Virtex4(_) => "SLICEL",
+                    ExpandedDevice::Ultrascale(_) => unreachable!(),
+                    ExpandedDevice::Versal(_) => unreachable!(),
+                }
+                .to_string(),
+                placement: Placement::Unplaced,
+                cfg: vec![],
+            },
+        );
+
         for (k, v) in &kv {
             match *k {
                 Key::GlobalOpt(opt) => match v {
@@ -222,7 +279,7 @@ impl<'a> Backend for IseBackend<'a> {
                     Value::None => (),
                     Value::String(s) => {
                         insts.insert(
-                            site,
+                            site.to_string(),
                             Instance {
                                 name: site.to_string(),
                                 kind: s.to_string(),
@@ -236,8 +293,34 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                     _ => unreachable!(),
                 },
+                Key::Pip(tile, wa, wb) => match v {
+                    Value::None => (),
+                    Value::Bool(true) => single_pips.push(NetPip {
+                        tile: tile.to_string(),
+                        wire_from: wa.to_string(),
+                        wire_to: wb.to_string(),
+                        dir: prjcombine_xdl::PipDirection::UniBuf,
+                    }),
+                    _ => unreachable!(),
+                },
                 _ => (),
             }
+        }
+        if !single_pips.is_empty() {
+            nets.insert(
+                "SINGLE_PIPS".to_string(),
+                Net {
+                    name: "SINGLE_PIPS".to_string(),
+                    typ: NetType::Plain,
+                    inpins: vec![NetPin {
+                        inst_name: "DUMMY_SINGLE_PIPS".to_string(),
+                        pin: "CLK".to_string(),
+                    }],
+                    outpins: vec![],
+                    pips: single_pips,
+                    cfg: vec![],
+                },
+            );
         }
         for (k, v) in &kv {
             match *k {
@@ -255,7 +338,7 @@ impl<'a> Backend for IseBackend<'a> {
                 Key::SitePin(site, pin) => match v {
                     Value::None | Value::Bool(false) => (),
                     Value::Bool(true) => {
-                        let name = format!("pin__{site}__{pin}");
+                        let name = format!("SINGLE_PIN__{site}__{pin}");
                         nets.insert(
                             name.clone(),
                             Net {

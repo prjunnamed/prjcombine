@@ -3,7 +3,12 @@ use prjcombine_int::{db::BelId, grid::ExpandedGrid};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State}, diff::{collect_enum, extract_enum_bool, xlat_bitvec, xlat_bool}, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_multi, fuzz_one, tiledb::TileDb
+    backend::{IseBackend, State},
+    diff::{collect_enum, extract_enum_bool, xlat_bitvec, xlat_bool},
+    fgen::TileBits,
+    fuzz::FuzzCtx,
+    fuzz_enum, fuzz_multi, fuzz_one,
+    tiledb::TileDb,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {

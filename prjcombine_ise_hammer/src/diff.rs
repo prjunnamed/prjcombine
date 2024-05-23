@@ -259,12 +259,18 @@ pub fn collect_inv<'a, 'b: 'a>(
 }
 
 pub fn extract_bitvec_val(item: &TileItem<FeatureBit>, base: &BitVec, diff: Diff) -> BitVec {
-    let TileItemKind::BitVec {invert} = item.kind else {
+    let TileItemKind::BitVec { invert } = item.kind else {
         unreachable!()
     };
     assert_eq!(item.bits.len(), base.len());
     let mut res = base.clone();
-    let rev: HashMap<_, _> = item.bits.iter().copied().enumerate().map(|(i, v)| (v, i)).collect();
+    let rev: HashMap<_, _> = item
+        .bits
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, v)| (v, i))
+        .collect();
     for (&bit, &val) in diff.bits.iter() {
         let bitidx = rev[&bit];
         assert_eq!(res[bitidx], !(val ^ invert));

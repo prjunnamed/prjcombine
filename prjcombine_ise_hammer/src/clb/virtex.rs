@@ -10,7 +10,7 @@ use crate::{
     },
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi,
+    fuzz_enum, fuzz_multi, fuzz_one,
     tiledb::TileDb,
 };
 
@@ -253,7 +253,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
 
-    for i in 0..2 {
+    let tbus_bel = BelId::from_idx(4);
+    for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
         let bel = BelId::from_idx(i + 2);
         let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
         let ctx = FuzzCtx {
@@ -274,6 +275,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pin "T"),
             (pin "O")
         ]);
+        fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
+        fuzz_one!(ctx, "OUT_B", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
     }
 }
 
@@ -391,6 +394,14 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
             let d1 = state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
             tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+        }
+        for attr in ["OUT_A", "OUT_B"] {
+            tiledb.insert(
+                tile,
+                bel,
+                attr,
+                xlat_bitvec(vec![state.get_diff(tile, bel, attr, "1")]),
+            );
         }
     }
 }
