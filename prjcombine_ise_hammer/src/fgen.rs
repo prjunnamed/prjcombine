@@ -31,6 +31,7 @@ fn resolve_tile_wire<'a>(backend: &IseBackend<'a>, loc: Loc, wire: TileWire) -> 
 #[derive(Debug)]
 pub enum TileKV<'a> {
     SiteMode(BelId, &'a str),
+    SiteUnused(BelId),
     SiteAttr(BelId, &'a str, &'a str),
     SitePin(BelId, &'a str),
     #[allow(dead_code)]
@@ -52,6 +53,10 @@ impl<'a> TileKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteMode(site), mode)
             }
+            TileKV::SiteUnused(bel) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer.base(Key::SiteMode(site), None)
+            },
             TileKV::SiteAttr(bel, attr, val) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteAttr(site, attr), val)

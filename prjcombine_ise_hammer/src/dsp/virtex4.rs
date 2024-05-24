@@ -1,0 +1,151 @@
+use prjcombine_hammer::Session;
+use prjcombine_int::db::BelId;
+use unnamed_entity::EntityId;
+
+use crate::{
+    backend::{IseBackend, State},
+    diff::{collect_enum, collect_inv, extract_enum_bool, xlat_enum, Diff},
+    fgen::TileBits,
+    fuzz::FuzzCtx,
+    fuzz_enum, fuzz_one,
+    tiledb::TileDb,
+};
+
+const DSP48_INVPINS: &[&str] = &[
+    "CLK",
+    "CEA",
+    "CEB",
+    "CEM",
+    "CEP",
+    "CECTRL",
+    "CECARRYIN",
+    "CECINSUB",
+    "RSTA",
+    "RSTB",
+    "RSTM",
+    "RSTP",
+    "RSTCTRL",
+    "RSTCARRYIN",
+    "CARRYINSEL0",
+    "CARRYINSEL1",
+    "CARRYIN",
+    "SUBTRACT",
+    "OPMODE0",
+    "OPMODE1",
+    "OPMODE2",
+    "OPMODE3",
+    "OPMODE4",
+    "OPMODE5",
+    "OPMODE6",
+];
+
+pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let node_kind = backend.egrid.db.get_node("DSP");
+    let tile = "DSP";
+    for (i, bel_name) in [(0, "DSP0"), (1, "DSP1")] {
+        let bel = BelId::from_idx(i);
+        let bel_other = BelId::from_idx(i ^ 1);
+        let ctx = FuzzCtx {
+            session,
+            node_kind,
+            bits: TileBits::Main(4),
+            tile_name: tile,
+            bel,
+            bel_name,
+        };
+        let bel_kind = "DSP48";
+        fuzz_one!(ctx, "PRESENT", "1", [(bel_unused bel_other)], [(mode bel_kind)]);
+        for &pin in DSP48_INVPINS {
+            let pininv = format!("{pin}INV").leak();
+            let pin_b = format!("{pin}_B").leak();
+            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (pin pin)]);
+        }
+        for pin in ["CEC", "RSTC"] {
+            let pininv = format!("{pin}INV").leak();
+            let pin_b = format!("{pin}_B").leak();
+            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (bel_unused bel_other), (pin pin)]);
+        }
+        for attr in ["AREG", "BREG"] {
+            fuzz_enum!(ctx, attr, ["0", "1", "2"], [(mode bel_kind)]);
+        }
+        fuzz_enum!(ctx, "CREG", ["0", "1"], [
+            (mode bel_kind),
+            (bel_mode bel_other, bel_kind),
+            (bel_attr bel_other, "CREG", "")
+        ]);
+        for attr in [
+            "MREG",
+            "PREG",
+            "OPMODEREG",
+            "CARRYINREG",
+            "CARRYINSELREG",
+            "SUBTRACTREG",
+        ] {
+            fuzz_enum!(ctx, attr, ["0", "1"], [(mode bel_kind)]);
+        }
+        fuzz_enum!(ctx, "B_INPUT", ["DIRECT", "CASCADE"], [(mode bel_kind)]);
+    }
+}
+
+pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
+    let tile = "DSP";
+    for (pininv, pin, pin_b) in [("CECINV", "CEC", "CEC_B"), ("RSTCINV", "RSTC", "RSTC_B")] {
+        let ti0 = extract_enum_bool(state, tile, "DSP0", pininv, pin, pin_b);
+        let ti1 = extract_enum_bool(state, tile, "DSP1", pininv, pin, pin_b);
+        assert_eq!(ti0, ti1);
+        tiledb.insert(tile, "DSP_COMMON", pininv, ti0);
+    }
+    let d0_0 = state.get_diff(tile, "DSP0", "CREG", "0");
+    let d0_1 = state.get_diff(tile, "DSP0", "CREG", "1");
+    let d1_0 = state.get_diff(tile, "DSP1", "CREG", "0");
+    let d1_1 = state.get_diff(tile, "DSP1", "CREG", "1");
+    let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
+    let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
+    tiledb.insert(
+        tile,
+        "DSP_COMMON",
+        "CREG",
+        xlat_enum(vec![("0".to_string(), dc_0), ("1".to_string(), dc_1)]),
+    );
+    d0_0.assert_empty();
+    d1_0.assert_empty();
+    tiledb.insert(
+        tile,
+        "DSP_COMMON",
+        "CLKC_MUX",
+        xlat_enum(vec![("DSP0".to_string(), d0_1), ("DSP1".to_string(), d1_1)]),
+    );
+    for bel in ["DSP0", "DSP1"] {
+        for &pin in DSP48_INVPINS {
+            collect_inv(state, tiledb, tile, bel, pin);
+        }
+        let mut present = state.get_diff(tile, bel, "PRESENT", "1");
+        for attr in ["AREG", "BREG"] {
+            collect_enum(state, tiledb, tile, bel, attr, &["0", "1", "2"]);
+            present.discard_bits(tiledb.item(tile, bel, attr));
+        }
+        for attr in [
+            "MREG",
+            "PREG",
+            "OPMODEREG",
+            "CARRYINREG",
+            "CARRYINSELREG",
+            "SUBTRACTREG",
+        ] {
+            collect_enum(state, tiledb, tile, bel, attr, &["0", "1"]);
+            present.discard_bits(tiledb.item(tile, bel, attr));
+        }
+        collect_enum(state, tiledb, tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
+        present.discard_bits(tiledb.item(tile, "DSP_COMMON", "CREG"));
+        present.discard_bits(tiledb.item(tile, "DSP_COMMON", "CLKC_MUX"));
+        tiledb.insert(
+            tile,
+            bel,
+            "UNK_PRESENT",
+            xlat_enum(vec![
+                ("0".to_string(), Diff::default()),
+                ("1".to_string(), present),
+            ]),
+        );
+    }
+}

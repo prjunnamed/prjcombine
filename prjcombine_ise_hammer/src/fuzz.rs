@@ -27,8 +27,17 @@ macro_rules! fuzz_base {
     ($ctx:ident, (mode $kind:expr)) => {
         $crate::fgen::TileKV::SiteMode($ctx.bel, $kind)
     };
+    ($ctx:ident, (bel_mode $bel:expr, $kind:expr)) => {
+        $crate::fgen::TileKV::SiteMode($bel, $kind)
+    };
+    ($ctx:ident, (bel_unused $bel:expr)) => {
+        $crate::fgen::TileKV::SiteUnused($bel)
+    };
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileKV::SiteAttr($ctx.bel, $attr, $val)
+    };
+    ($ctx:ident, (bel_attr $bel:expr, $attr:expr, $val:expr)) => {
+        $crate::fgen::TileKV::SiteAttr($bel, $attr, $val)
     };
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileKV::SitePin($ctx.bel, $pin)
