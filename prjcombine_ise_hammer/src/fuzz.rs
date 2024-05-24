@@ -42,6 +42,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileKV::SitePin($ctx.bel, $pin)
     };
+    ($ctx:ident, (mutex $attr:expr, $val:expr)) => {
+        $crate::fgen::TileKV::SiteMutex($ctx.bel, $attr, $val)
+    };
     ($ctx:ident, (global_mutex_none $name:expr)) => {
         $crate::fgen::TileKV::GlobalMutexNone($name)
     };
@@ -50,6 +53,9 @@ macro_rules! fuzz_base {
     };
     ($ctx:ident, (row_mutex_site $name:expr)) => {
         $crate::fgen::TileKV::RowMutexSite($name, $ctx.bel)
+    };
+    ($ctx:ident, (pip $wa:tt, $wb:tt)) => {
+        $crate::fgen::TileKV::Pip($crate::fuzz_wire!($ctx, $wa), $crate::fuzz_wire!($ctx, $wb))
     };
 }
 

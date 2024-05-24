@@ -3,12 +3,11 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_enum, collect_inv, extract_enum_bool, xlat_enum, Diff},
+    backend::IseBackend,
+    diff::{xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one,
-    tiledb::TileDb,
 };
 
 const DSP48_INVPINS: &[&str] = &[
@@ -87,21 +86,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
     for (pininv, pin, pin_b) in [("CECINV", "CEC", "CEC_B"), ("RSTCINV", "RSTC", "RSTC_B")] {
-        let ti0 = extract_enum_bool(state, tile, "DSP0", pininv, pin, pin_b);
-        let ti1 = extract_enum_bool(state, tile, "DSP1", pininv, pin, pin_b);
+        let ti0 = ctx.extract_enum_bool(tile, "DSP0", pininv, pin, pin_b);
+        let ti1 = ctx.extract_enum_bool(tile, "DSP1", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
-        tiledb.insert(tile, "DSP_COMMON", pininv, ti0);
+        ctx.tiledb.insert(tile, "DSP_COMMON", pininv, ti0);
     }
-    let d0_0 = state.get_diff(tile, "DSP0", "CREG", "0");
-    let d0_1 = state.get_diff(tile, "DSP0", "CREG", "1");
-    let d1_0 = state.get_diff(tile, "DSP1", "CREG", "0");
-    let d1_1 = state.get_diff(tile, "DSP1", "CREG", "1");
+    let d0_0 = ctx.state.get_diff(tile, "DSP0", "CREG", "0");
+    let d0_1 = ctx.state.get_diff(tile, "DSP0", "CREG", "1");
+    let d1_0 = ctx.state.get_diff(tile, "DSP1", "CREG", "0");
+    let d1_1 = ctx.state.get_diff(tile, "DSP1", "CREG", "1");
     let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
     let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
-    tiledb.insert(
+    ctx.tiledb.insert(
         tile,
         "DSP_COMMON",
         "CREG",
@@ -109,7 +108,7 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
     );
     d0_0.assert_empty();
     d1_0.assert_empty();
-    tiledb.insert(
+    ctx.tiledb.insert(
         tile,
         "DSP_COMMON",
         "CLKC_MUX",
@@ -117,12 +116,12 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
     );
     for bel in ["DSP0", "DSP1"] {
         for &pin in DSP48_INVPINS {
-            collect_inv(state, tiledb, tile, bel, pin);
+            ctx.collect_inv(tile, bel, pin);
         }
-        let mut present = state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for attr in ["AREG", "BREG"] {
-            collect_enum(state, tiledb, tile, bel, attr, &["0", "1", "2"]);
-            present.discard_bits(tiledb.item(tile, bel, attr));
+            ctx.collect_enum(tile, bel, attr, &["0", "1", "2"]);
+            present.discard_bits(ctx.tiledb.item(tile, bel, attr));
         }
         for attr in [
             "MREG",
@@ -132,13 +131,13 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
             "CARRYINSELREG",
             "SUBTRACTREG",
         ] {
-            collect_enum(state, tiledb, tile, bel, attr, &["0", "1"]);
-            present.discard_bits(tiledb.item(tile, bel, attr));
+            ctx.collect_enum(tile, bel, attr, &["0", "1"]);
+            present.discard_bits(ctx.tiledb.item(tile, bel, attr));
         }
-        collect_enum(state, tiledb, tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
-        present.discard_bits(tiledb.item(tile, "DSP_COMMON", "CREG"));
-        present.discard_bits(tiledb.item(tile, "DSP_COMMON", "CLKC_MUX"));
-        tiledb.insert(
+        ctx.collect_enum(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
+        present.discard_bits(ctx.tiledb.item(tile, "DSP_COMMON", "CREG"));
+        present.discard_bits(ctx.tiledb.item(tile, "DSP_COMMON", "CLKC_MUX"));
+        ctx.tiledb.insert(
             tile,
             bel,
             "UNK_PRESENT",

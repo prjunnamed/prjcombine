@@ -4,12 +4,11 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_bitvec, collect_enum, collect_enum_bool, collect_inv, xlat_bitvec, xlat_enum},
+    backend::IseBackend,
+    diff::{xlat_bitvec, xlat_enum, CollectorCtx},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi,
-    tiledb::TileDb,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -798,28 +797,39 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
-    for tile_name in if mode == Mode::Spartan6 {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let mode = match ctx.edev {
+        ExpandedDevice::Virtex4(ref edev) => match edev.kind {
+            prjcombine_virtex4::grid::GridKind::Virtex4 => unreachable!(),
+            prjcombine_virtex4::grid::GridKind::Virtex5 => Mode::Virtex5,
+            prjcombine_virtex4::grid::GridKind::Virtex6 => Mode::Virtex6,
+            prjcombine_virtex4::grid::GridKind::Virtex7 => Mode::Virtex7,
+        },
+        ExpandedDevice::Spartan6(_) => Mode::Spartan6,
+        _ => unreachable!(),
+    };
+
+    for tile in if mode == Mode::Spartan6 {
         ["CLEXL", "CLEXM"]
     } else {
         ["CLBLL", "CLBLM"]
     } {
         for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {
             let is_x = idx == 1 && mode == Mode::Spartan6;
-            let is_m = idx == 0 && tile_name.ends_with('M');
+            let is_m = idx == 0 && tile.ends_with('M');
 
             // LUTs
-            collect_bitvec(state, tiledb, tile_name, bel, "A6LUT", "#LUT");
-            collect_bitvec(state, tiledb, tile_name, bel, "B6LUT", "#LUT");
-            collect_bitvec(state, tiledb, tile_name, bel, "C6LUT", "#LUT");
-            collect_bitvec(state, tiledb, tile_name, bel, "D6LUT", "#LUT");
+            ctx.collect_bitvec(tile, bel, "A6LUT", "#LUT");
+            ctx.collect_bitvec(tile, bel, "B6LUT", "#LUT");
+            ctx.collect_bitvec(tile, bel, "C6LUT", "#LUT");
+            ctx.collect_bitvec(tile, bel, "D6LUT", "#LUT");
 
             // LUT RAM
             if is_m {
-                collect_enum(state, tiledb, tile_name, bel, "WEMUX", &["WE", "CE"]);
+                ctx.collect_enum(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
-                    let diff = state.get_diff(tile_name, bel, attr, "0");
-                    tiledb.insert(tile_name, bel, attr, xlat_bitvec(vec![diff]));
+                    let diff = ctx.state.get_diff(tile, bel, attr, "0");
+                    ctx.tiledb.insert(tile, bel, attr, xlat_bitvec(vec![diff]));
                 }
                 let di_muxes = match mode {
                     Mode::Virtex5 | Mode::Spartan6 => [
@@ -834,11 +844,11 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                     ],
                 };
                 for (attr, byp, alt_shift, alt_ram) in di_muxes {
-                    let d_byp = state.get_diff(tile_name, bel, attr, byp);
-                    let d_alt = state.get_diff(tile_name, bel, attr, alt_shift);
-                    assert_eq!(d_alt, state.get_diff(tile_name, bel, attr, alt_ram));
-                    tiledb.insert(
-                        tile_name,
+                    let d_byp = ctx.state.get_diff(tile, bel, attr, byp);
+                    let d_alt = ctx.state.get_diff(tile, bel, attr, alt_shift);
+                    assert_eq!(d_alt, ctx.state.get_diff(tile, bel, attr, alt_ram));
+                    ctx.tiledb.insert(
+                        tile,
                         bel,
                         attr,
                         xlat_enum(vec![(byp.to_string(), d_byp), ("ALT".to_string(), d_alt)]),
@@ -850,14 +860,14 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                     ("CRAMMODE", "C6RAMMODE"),
                     ("DRAMMODE", "D6RAMMODE"),
                 ] {
-                    let d_ram32 = state.get_diff(tile_name, bel, sattr, "SPRAM32");
-                    let d_ram64 = state.get_diff(tile_name, bel, sattr, "SPRAM64");
-                    let d_srl16 = state.get_diff(tile_name, bel, sattr, "SRL16");
-                    let d_srl32 = state.get_diff(tile_name, bel, sattr, "SRL32");
-                    assert_eq!(d_ram32, state.get_diff(tile_name, bel, sattr, "DPRAM32"));
-                    assert_eq!(d_ram64, state.get_diff(tile_name, bel, sattr, "DPRAM64"));
-                    tiledb.insert(
-                        tile_name,
+                    let d_ram32 = ctx.state.get_diff(tile, bel, sattr, "SPRAM32");
+                    let d_ram64 = ctx.state.get_diff(tile, bel, sattr, "SPRAM64");
+                    let d_srl16 = ctx.state.get_diff(tile, bel, sattr, "SRL16");
+                    let d_srl32 = ctx.state.get_diff(tile, bel, sattr, "SRL32");
+                    assert_eq!(d_ram32, ctx.state.get_diff(tile, bel, sattr, "DPRAM32"));
+                    assert_eq!(d_ram64, ctx.state.get_diff(tile, bel, sattr, "DPRAM64"));
+                    ctx.tiledb.insert(
+                        tile,
                         bel,
                         dattr,
                         xlat_enum(vec![
@@ -872,162 +882,75 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
 
             // carry chain
             if !is_x {
-                collect_enum(state, tiledb, tile_name, bel, "ACY0", &["O5", "AX"]);
-                collect_enum(state, tiledb, tile_name, bel, "BCY0", &["O5", "BX"]);
-                collect_enum(state, tiledb, tile_name, bel, "CCY0", &["O5", "CX"]);
-                collect_enum(state, tiledb, tile_name, bel, "DCY0", &["O5", "DX"]);
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    bel,
-                    "PRECYINIT",
-                    &["AX", "1", "0"],
-                );
+                ctx.collect_enum(tile, bel, "ACY0", &["O5", "AX"]);
+                ctx.collect_enum(tile, bel, "BCY0", &["O5", "BX"]);
+                ctx.collect_enum(tile, bel, "CCY0", &["O5", "CX"]);
+                ctx.collect_enum(tile, bel, "DCY0", &["O5", "DX"]);
+                ctx.collect_enum(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
             }
 
             // misc muxes
             if is_x {
-                collect_enum(state, tiledb, tile_name, bel, "AOUTMUX", &["O5", "A5Q"]);
-                collect_enum(state, tiledb, tile_name, bel, "BOUTMUX", &["O5", "B5Q"]);
-                collect_enum(state, tiledb, tile_name, bel, "COUTMUX", &["O5", "C5Q"]);
-                collect_enum(state, tiledb, tile_name, bel, "DOUTMUX", &["O5", "D5Q"]);
-                collect_enum(state, tiledb, tile_name, bel, "AFFMUX", &["O6", "AX"]);
-                collect_enum(state, tiledb, tile_name, bel, "BFFMUX", &["O6", "BX"]);
-                collect_enum(state, tiledb, tile_name, bel, "CFFMUX", &["O6", "CX"]);
-                collect_enum(state, tiledb, tile_name, bel, "DFFMUX", &["O6", "DX"]);
+                ctx.collect_enum(tile, bel, "AOUTMUX", &["O5", "A5Q"]);
+                ctx.collect_enum(tile, bel, "BOUTMUX", &["O5", "B5Q"]);
+                ctx.collect_enum(tile, bel, "COUTMUX", &["O5", "C5Q"]);
+                ctx.collect_enum(tile, bel, "DOUTMUX", &["O5", "D5Q"]);
+                ctx.collect_enum(tile, bel, "AFFMUX", &["O6", "AX"]);
+                ctx.collect_enum(tile, bel, "BFFMUX", &["O6", "BX"]);
+                ctx.collect_enum(tile, bel, "CFFMUX", &["O6", "CX"]);
+                ctx.collect_enum(tile, bel, "DFFMUX", &["O6", "DX"]);
             } else {
                 if mode == Mode::Virtex5 {
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
-                        bel,
-                        "AOUTMUX",
-                        &["O5", "O6", "XOR", "CY", "F7"],
-                    );
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
-                        bel,
-                        "BOUTMUX",
-                        &["O5", "O6", "XOR", "CY", "F8"],
-                    );
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
-                        bel,
-                        "COUTMUX",
-                        &["O5", "O6", "XOR", "CY", "F7"],
-                    );
+                    ctx.collect_enum(tile, bel, "AOUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
+                    ctx.collect_enum(tile, bel, "BOUTMUX", &["O5", "O6", "XOR", "CY", "F8"]);
+                    ctx.collect_enum(tile, bel, "COUTMUX", &["O5", "O6", "XOR", "CY", "F7"]);
                     if is_m {
-                        collect_enum(
-                            state,
-                            tiledb,
-                            tile_name,
-                            bel,
-                            "DOUTMUX",
-                            &["O5", "O6", "XOR", "CY", "MC31"],
-                        );
+                        ctx.collect_enum(tile, bel, "DOUTMUX", &["O5", "O6", "XOR", "CY", "MC31"]);
                     } else {
-                        collect_enum(
-                            state,
-                            tiledb,
-                            tile_name,
-                            bel,
-                            "DOUTMUX",
-                            &["O5", "O6", "XOR", "CY"],
-                        );
+                        ctx.collect_enum(tile, bel, "DOUTMUX", &["O5", "O6", "XOR", "CY"]);
                     }
                 } else {
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
+                    ctx.collect_enum(
+                        tile,
                         bel,
                         "AOUTMUX",
                         &["O5", "O6", "XOR", "CY", "A5Q", "F7"],
                     );
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
+                    ctx.collect_enum(
+                        tile,
                         bel,
                         "BOUTMUX",
                         &["O5", "O6", "XOR", "CY", "B5Q", "F8"],
                     );
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
+                    ctx.collect_enum(
+                        tile,
                         bel,
                         "COUTMUX",
                         &["O5", "O6", "XOR", "CY", "C5Q", "F7"],
                     );
                     if is_m {
-                        collect_enum(
-                            state,
-                            tiledb,
-                            tile_name,
+                        ctx.collect_enum(
+                            tile,
                             bel,
                             "DOUTMUX",
                             &["O5", "O6", "XOR", "CY", "D5Q", "MC31"],
                         );
                     } else {
-                        collect_enum(
-                            state,
-                            tiledb,
-                            tile_name,
-                            bel,
-                            "DOUTMUX",
-                            &["O5", "O6", "XOR", "CY", "D5Q"],
-                        );
+                        ctx.collect_enum(tile, bel, "DOUTMUX", &["O5", "O6", "XOR", "CY", "D5Q"]);
                     }
                 }
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    bel,
-                    "AFFMUX",
-                    &["O5", "O6", "XOR", "CY", "AX", "F7"],
-                );
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    bel,
-                    "BFFMUX",
-                    &["O5", "O6", "XOR", "CY", "BX", "F8"],
-                );
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    bel,
-                    "CFFMUX",
-                    &["O5", "O6", "XOR", "CY", "CX", "F7"],
-                );
+                ctx.collect_enum(tile, bel, "AFFMUX", &["O5", "O6", "XOR", "CY", "AX", "F7"]);
+                ctx.collect_enum(tile, bel, "BFFMUX", &["O5", "O6", "XOR", "CY", "BX", "F8"]);
+                ctx.collect_enum(tile, bel, "CFFMUX", &["O5", "O6", "XOR", "CY", "CX", "F7"]);
                 if is_m {
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
+                    ctx.collect_enum(
+                        tile,
                         bel,
                         "DFFMUX",
                         &["O5", "O6", "XOR", "CY", "DX", "MC31"],
                     );
                 } else {
-                    collect_enum(
-                        state,
-                        tiledb,
-                        tile_name,
-                        bel,
-                        "DFFMUX",
-                        &["O5", "O6", "XOR", "CY", "DX"],
-                    );
+                    ctx.collect_enum(tile, bel, "DFFMUX", &["O5", "O6", "XOR", "CY", "DX"]);
                 }
                 if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     for (attr, byp) in [
@@ -1036,10 +959,10 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                         ("C5FFMUX", "CX"),
                         ("D5FFMUX", "DX"),
                     ] {
-                        let d_o5 = state.get_diff(tile_name, bel, attr, "IN_A");
-                        let d_byp = state.get_diff(tile_name, bel, attr, "IN_B");
-                        tiledb.insert(
-                            tile_name,
+                        let d_o5 = ctx.state.get_diff(tile, bel, attr, "IN_A");
+                        let d_byp = ctx.state.get_diff(tile, bel, attr, "IN_B");
+                        ctx.tiledb.insert(
+                            tile,
                             bel,
                             attr,
                             xlat_enum(vec![("O5".to_string(), d_o5), (byp.to_string(), d_byp)]),
@@ -1049,54 +972,61 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
             }
 
             // FFs
-            let ff_sync = state.get_diff(tile_name, bel, "SYNC_ATTR", "SYNC");
-            state
-                .get_diff(tile_name, bel, "SYNC_ATTR", "ASYNC")
+            let ff_sync = ctx.state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
+            ctx.state
+                .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            tiledb.insert(tile_name, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
-            collect_inv(state, tiledb, tile_name, bel, "CLK");
+            ctx.tiledb
+                .insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+            ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
-                let revused = state.get_diff(tile_name, bel, "REVUSED", "0");
-                tiledb.insert(tile_name, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+                let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
+                ctx.tiledb
+                    .insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
-                let ceused = state.get_diff(tile_name, bel, "CEUSED", "0");
-                tiledb.insert(tile_name, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
-                let srused = state.get_diff(tile_name, bel, "SRUSED", "0");
-                tiledb.insert(tile_name, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
+                let ceused = ctx.state.get_diff(tile, bel, "CEUSED", "0");
+                ctx.tiledb
+                    .insert(tile, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
+                let srused = ctx.state.get_diff(tile, bel, "SRUSED", "0");
+                ctx.tiledb
+                    .insert(tile, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
             } else {
-                state
-                    .get_diff(tile_name, bel, "CEUSEDMUX", "1")
+                ctx.state
+                    .get_diff(tile, bel, "CEUSEDMUX", "1")
                     .assert_empty();
-                state
-                    .get_diff(tile_name, bel, "SRUSEDMUX", "0")
+                ctx.state
+                    .get_diff(tile, bel, "SRUSEDMUX", "0")
                     .assert_empty();
-                let ceused = state.get_diff(tile_name, bel, "CEUSEDMUX", "IN");
-                tiledb.insert(tile_name, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
-                let srused = state.get_diff(tile_name, bel, "SRUSEDMUX", "IN");
-                tiledb.insert(tile_name, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
+                let ceused = ctx.state.get_diff(tile, bel, "CEUSEDMUX", "IN");
+                ctx.tiledb
+                    .insert(tile, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
+                let srused = ctx.state.get_diff(tile, bel, "SRUSEDMUX", "IN");
+                ctx.tiledb
+                    .insert(tile, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
             }
             if mode != Mode::Virtex6 {
-                let ff_latch = state.get_diff(tile_name, bel, "AFF", "#LATCH");
+                let ff_latch = ctx.state.get_diff(tile, bel, "AFF", "#LATCH");
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    state.get_diff(tile_name, bel, attr, "#FF").assert_empty();
+                    ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
                     if attr != "AFF" {
-                        assert_eq!(ff_latch, state.get_diff(tile_name, bel, attr, "#LATCH"));
+                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "#LATCH"));
                     }
                     if mode != Mode::Virtex5 {
-                        assert_eq!(ff_latch, state.get_diff(tile_name, bel, attr, "AND2L"));
-                        assert_eq!(ff_latch, state.get_diff(tile_name, bel, attr, "OR2L"));
+                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
+                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
                     }
                 }
-                tiledb.insert(tile_name, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+                ctx.tiledb
+                    .insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    state.get_diff(tile_name, bel, attr, "#FF").assert_empty();
-                    let ff_latch = state.get_diff(tile_name, bel, attr, "#LATCH");
-                    assert_eq!(ff_latch, state.get_diff(tile_name, bel, attr, "AND2L"));
-                    assert_eq!(ff_latch, state.get_diff(tile_name, bel, attr, "OR2L"));
-                    tiledb.insert(
-                        tile_name,
+                    ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
+                    let ff_latch = ctx.state.get_diff(tile, bel, attr, "#LATCH");
+                    assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
+                    assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
+                    ctx.tiledb.insert(
+                        tile,
                         bel,
                         &format!("{attr}_LATCH"),
                         xlat_bitvec(vec![ff_latch]),
@@ -1106,10 +1036,10 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
             match mode {
                 Mode::Virtex5 => {
                     for attr in ["AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT"] {
-                        collect_enum_bool(state, tiledb, tile_name, bel, attr, "INIT0", "INIT1");
+                        ctx.collect_enum_bool(tile, bel, attr, "INIT0", "INIT1");
                     }
                     for attr in ["AFFSR", "BFFSR", "CFFSR", "DFFSR"] {
-                        collect_enum_bool(state, tiledb, tile_name, bel, attr, "SRLOW", "SRHIGH");
+                        ctx.collect_enum_bool(tile, bel, attr, "SRLOW", "SRHIGH");
                     }
                 }
                 Mode::Virtex6 | Mode::Virtex7 => {
@@ -1117,12 +1047,12 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                         "AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT", "A5FFINIT", "B5FFINIT",
                         "C5FFINIT", "D5FFINIT",
                     ] {
-                        collect_enum_bool(state, tiledb, tile_name, bel, attr, "INIT0", "INIT1");
+                        ctx.collect_enum_bool(tile, bel, attr, "INIT0", "INIT1");
                     }
                     for attr in [
                         "AFFSR", "BFFSR", "CFFSR", "DFFSR", "A5FFSR", "B5FFSR", "C5FFSR", "D5FFSR",
                     ] {
-                        collect_enum_bool(state, tiledb, tile_name, bel, attr, "SRLOW", "SRHIGH");
+                        ctx.collect_enum_bool(tile, bel, attr, "SRLOW", "SRHIGH");
                     }
                 }
                 Mode::Spartan6 => {
@@ -1136,9 +1066,7 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                         "C5FFSRINIT",
                         "D5FFSRINIT",
                     ] {
-                        collect_enum_bool(
-                            state, tiledb, tile_name, bel, attr, "SRINIT0", "SRINIT1",
-                        );
+                        ctx.collect_enum_bool(tile, bel, attr, "SRINIT0", "SRINIT1");
                     }
                 }
             }

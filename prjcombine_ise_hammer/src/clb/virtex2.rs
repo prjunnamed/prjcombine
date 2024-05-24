@@ -4,12 +4,11 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_bitvec, collect_enum, xlat_bitvec, xlat_enum, Diff},
+    backend::IseBackend,
+    diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
-    tiledb::TileDb,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -631,82 +630,74 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let mode = match ctx.edev {
+        ExpandedDevice::Virtex2(ref edev) => {
+            if edev.grid.kind.is_virtex2() {
+                Mode::Virtex2
+            } else {
+                Mode::Spartan3
+            }
+        }
+        ExpandedDevice::Virtex4(_) => Mode::Virtex4,
+        _ => unreachable!(),
+    };
+
     for (idx, bel) in ["SLICE0", "SLICE1", "SLICE2", "SLICE3"]
         .into_iter()
         .enumerate()
     {
-        collect_bitvec(state, tiledb, "CLB", bel, "F", "#LUT");
-        collect_bitvec(state, tiledb, "CLB", bel, "G", "#LUT");
+        ctx.collect_bitvec("CLB", bel, "F", "#LUT");
+        ctx.collect_bitvec("CLB", bel, "G", "#LUT");
 
         // carry
-        collect_enum(state, tiledb, "CLB", bel, "CYINIT", &["CIN", "BX"]);
+        ctx.collect_enum("CLB", bel, "CYINIT", &["CIN", "BX"]);
         if mode != Mode::Virtex4 {
-            collect_enum(state, tiledb, "CLB", bel, "CYSELF", &["F", "1"]);
-            collect_enum(state, tiledb, "CLB", bel, "CYSELG", &["G", "1"]);
-            collect_enum(
-                state,
-                tiledb,
-                "CLB",
-                bel,
-                "CY0F",
-                &["0", "1", "F1", "PROD", "F2", "BX"],
-            );
-            collect_enum(
-                state,
-                tiledb,
-                "CLB",
-                bel,
-                "CY0G",
-                &["0", "1", "G1", "PROD", "G2", "BY"],
-            );
+            ctx.collect_enum("CLB", bel, "CYSELF", &["F", "1"]);
+            ctx.collect_enum("CLB", bel, "CYSELG", &["G", "1"]);
+            ctx.collect_enum("CLB", bel, "CY0F", &["0", "1", "F1", "PROD", "F2", "BX"]);
+            ctx.collect_enum("CLB", bel, "CY0G", &["0", "1", "G1", "PROD", "G2", "BY"]);
         } else {
-            collect_enum(
-                state,
-                tiledb,
-                "CLB",
-                bel,
-                "CY0F",
-                &["0", "1", "F3", "PROD", "F2", "BX"],
-            );
-            collect_enum(
-                state,
-                tiledb,
-                "CLB",
-                bel,
-                "CY0G",
-                &["0", "1", "G3", "PROD", "G2", "BY"],
-            );
+            ctx.collect_enum("CLB", bel, "CY0F", &["0", "1", "F3", "PROD", "F2", "BX"]);
+            ctx.collect_enum("CLB", bel, "CY0G", &["0", "1", "G3", "PROD", "G2", "BY"]);
         }
 
         // LUT RAM
         let is_m = mode == Mode::Virtex2 || matches!(idx, 0 | 2);
         if is_m {
-            state.get_diff("CLB", bel, "F", "#LUT:0").assert_empty();
-            state.get_diff("CLB", bel, "G", "#LUT:0").assert_empty();
-            state
+            ctx.state.get_diff("CLB", bel, "F", "#LUT:0").assert_empty();
+            ctx.state.get_diff("CLB", bel, "G", "#LUT:0").assert_empty();
+            ctx.state
                 .get_diff("CLB", bel, "F_ATTR", "DUAL_PORT")
                 .assert_empty();
-            state
+            ctx.state
                 .get_diff("CLB", bel, "G_ATTR", "DUAL_PORT")
                 .assert_empty();
-            let f_ram = state.get_diff("CLB", bel, "F", "#RAM:0");
-            let g_ram = state.get_diff("CLB", bel, "G", "#RAM:0");
+            let f_ram = ctx.state.get_diff("CLB", bel, "F", "#RAM:0");
+            let g_ram = ctx.state.get_diff("CLB", bel, "G", "#RAM:0");
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
-            tiledb.insert("CLB", bel, "FF_SR_EN", xlat_bitvec(vec![!ram]));
-            let f_shift_d = state.get_diff("CLB", bel, "F_ATTR", "SHIFT_REG");
-            let g_shift_d = state.get_diff("CLB", bel, "G_ATTR", "SHIFT_REG");
+            ctx.tiledb
+                .insert("CLB", bel, "FF_SR_EN", xlat_bitvec(vec![!ram]));
+            let f_shift_d = ctx.state.get_diff("CLB", bel, "F_ATTR", "SHIFT_REG");
+            let g_shift_d = ctx.state.get_diff("CLB", bel, "G_ATTR", "SHIFT_REG");
             let f_shift = f_ram.combine(&f_shift_d);
             let g_shift = g_ram.combine(&g_shift_d);
-            tiledb.insert("CLB", bel, "F_RAM", xlat_bitvec(vec![f_ram]));
-            tiledb.insert("CLB", bel, "G_RAM", xlat_bitvec(vec![g_ram]));
-            tiledb.insert("CLB", bel, "F_SHIFT", xlat_bitvec(vec![f_shift]));
-            tiledb.insert("CLB", bel, "G_SHIFT", xlat_bitvec(vec![g_shift]));
+            ctx.tiledb
+                .insert("CLB", bel, "F_RAM", xlat_bitvec(vec![f_ram]));
+            ctx.tiledb
+                .insert("CLB", bel, "G_RAM", xlat_bitvec(vec![g_ram]));
+            ctx.tiledb
+                .insert("CLB", bel, "F_SHIFT", xlat_bitvec(vec![f_shift]));
+            ctx.tiledb
+                .insert("CLB", bel, "G_SHIFT", xlat_bitvec(vec![g_shift]));
 
-            let dif_bx = state.get_diff("CLB", bel, "DIF_MUX", "BX");
-            let dif_alt = state.get_diff("CLB", bel, "DIF_MUX", "ALTDIF");
-            assert_eq!(dif_alt, state.get_diff("CLB", bel, "DIF_MUX", "SHIFTIN"));
-            tiledb.insert(
+            let dif_bx = ctx.state.get_diff("CLB", bel, "DIF_MUX", "BX");
+            let dif_alt = ctx.state.get_diff("CLB", bel, "DIF_MUX", "ALTDIF");
+            assert_eq!(
+                dif_alt,
+                ctx.state.get_diff("CLB", bel, "DIF_MUX", "SHIFTIN")
+            );
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DIF_MUX",
@@ -716,10 +707,13 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                 ]),
             );
 
-            let dig_by = state.get_diff("CLB", bel, "DIG_MUX", "BY");
-            let dig_alt = state.get_diff("CLB", bel, "DIG_MUX", "ALTDIG");
-            assert_eq!(dig_alt, state.get_diff("CLB", bel, "DIG_MUX", "SHIFTIN"));
-            tiledb.insert(
+            let dig_by = ctx.state.get_diff("CLB", bel, "DIG_MUX", "BY");
+            let dig_alt = ctx.state.get_diff("CLB", bel, "DIG_MUX", "ALTDIG");
+            assert_eq!(
+                dig_alt,
+                ctx.state.get_diff("CLB", bel, "DIG_MUX", "SHIFTIN")
+            );
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DIG_MUX",
@@ -731,62 +725,79 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
 
             match mode {
                 Mode::Virtex2 => {
-                    state.get_diff("CLB", bel, "BXOUTUSED", "0").assert_empty();
-                    state
+                    ctx.state
+                        .get_diff("CLB", bel, "BXOUTUSED", "0")
+                        .assert_empty();
+                    ctx.state
                         .get_diff("CLB", bel, "SLICEWE1USED", "0")
                         .assert_empty();
-                    state
+                    ctx.state
                         .get_diff("CLB", bel, "SLICEWE2USED", "0")
                         .assert_empty();
-                    let slicewe0used = state.get_diff("CLB", bel, "SLICEWE0USED", "0");
-                    let byoutused = state.get_diff("CLB", bel, "BYOUTUSED", "0");
-                    assert_eq!(byoutused, state.get_diff("CLB", bel, "BYINVOUTUSED", "0"));
+                    let slicewe0used = ctx.state.get_diff("CLB", bel, "SLICEWE0USED", "0");
+                    let byoutused = ctx.state.get_diff("CLB", bel, "BYOUTUSED", "0");
+                    assert_eq!(
+                        byoutused,
+                        ctx.state.get_diff("CLB", bel, "BYINVOUTUSED", "0")
+                    );
                     // TODO should these have better names?
-                    tiledb.insert("CLB", bel, "SLICEWE0USED", xlat_bitvec(vec![slicewe0used]));
-                    tiledb.insert("CLB", bel, "BYOUTUSED", xlat_bitvec(vec![byoutused]));
+                    ctx.tiledb
+                        .insert("CLB", bel, "SLICEWE0USED", xlat_bitvec(vec![slicewe0used]));
+                    ctx.tiledb
+                        .insert("CLB", bel, "BYOUTUSED", xlat_bitvec(vec![byoutused]));
                 }
                 Mode::Spartan3 => {
-                    state.get_diff("CLB", bel, "BYOUTUSED", "0").assert_empty();
-                    state
+                    ctx.state
+                        .get_diff("CLB", bel, "BYOUTUSED", "0")
+                        .assert_empty();
+                    ctx.state
                         .get_diff("CLB", bel, "BYINVOUTUSED", "0")
                         .assert_empty();
-                    let slicewe0used = state.get_diff("CLB", bel, "SLICEWE0USED", "0");
-                    let slicewe1used = state.get_diff("CLB", bel, "SLICEWE1USED", "0");
-                    tiledb.insert("CLB", bel, "SLICEWE0USED", xlat_bitvec(vec![slicewe0used]));
+                    let slicewe0used = ctx.state.get_diff("CLB", bel, "SLICEWE0USED", "0");
+                    let slicewe1used = ctx.state.get_diff("CLB", bel, "SLICEWE1USED", "0");
+                    ctx.tiledb
+                        .insert("CLB", bel, "SLICEWE0USED", xlat_bitvec(vec![slicewe0used]));
                     if idx == 0 {
-                        tiledb.insert("CLB", bel, "SLICEWE1USED", xlat_bitvec(vec![slicewe1used]));
+                        ctx.tiledb.insert(
+                            "CLB",
+                            bel,
+                            "SLICEWE1USED",
+                            xlat_bitvec(vec![slicewe1used]),
+                        );
                     } else {
                         slicewe1used.assert_empty();
                     }
                 }
                 Mode::Virtex4 => {
-                    state.get_diff("CLB", bel, "BYOUTUSED", "0").assert_empty();
-                    state
+                    ctx.state
+                        .get_diff("CLB", bel, "BYOUTUSED", "0")
+                        .assert_empty();
+                    ctx.state
                         .get_diff("CLB", bel, "BYINVOUTUSED", "0")
                         .assert_empty();
-                    let f_slicewe0used = state.get_diff("CLB", bel, "SLICEWE0USED.F", "0");
-                    let f_slicewe1used = state.get_diff("CLB", bel, "SLICEWE1USED.F", "0");
-                    let g_slicewe0used = state.get_diff("CLB", bel, "SLICEWE0USED.G", "0");
-                    let g_slicewe1used = state.get_diff("CLB", bel, "SLICEWE1USED.G", "0");
-                    tiledb.insert(
+                    let f_slicewe0used = ctx.state.get_diff("CLB", bel, "SLICEWE0USED.F", "0");
+                    let f_slicewe1used = ctx.state.get_diff("CLB", bel, "SLICEWE1USED.F", "0");
+                    let g_slicewe0used = ctx.state.get_diff("CLB", bel, "SLICEWE0USED.G", "0");
+                    let g_slicewe1used = ctx.state.get_diff("CLB", bel, "SLICEWE1USED.G", "0");
+                    ctx.tiledb.insert(
                         "CLB",
                         bel,
                         "F_SLICEWE0USED",
                         xlat_bitvec(vec![f_slicewe0used]),
                     );
-                    tiledb.insert(
+                    ctx.tiledb.insert(
                         "CLB",
                         bel,
                         "F_SLICEWE1USED",
                         xlat_bitvec(vec![f_slicewe1used]),
                     );
-                    tiledb.insert(
+                    ctx.tiledb.insert(
                         "CLB",
                         bel,
                         "G_SLICEWE0USED",
                         xlat_bitvec(vec![g_slicewe0used]),
                     );
-                    tiledb.insert(
+                    ctx.tiledb.insert(
                         "CLB",
                         bel,
                         "G_SLICEWE1USED",
@@ -799,53 +810,46 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
         // muxes
         match mode {
             Mode::Virtex2 => {
-                collect_enum(state, tiledb, "CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                collect_enum(
-                    state,
-                    tiledb,
-                    "CLB",
-                    bel,
-                    "GYMUX",
-                    &["G", "FX", "GXOR", "SOPEXT"],
-                );
-                collect_enum(state, tiledb, "CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
+                ctx.collect_enum("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
+                ctx.collect_enum("CLB", bel, "GYMUX", &["G", "FX", "GXOR", "SOPEXT"]);
+                ctx.collect_enum("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
             }
             Mode::Spartan3 => {
-                collect_enum(state, tiledb, "CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                collect_enum(state, tiledb, "CLB", bel, "GYMUX", &["G", "FX", "GXOR"]);
+                ctx.collect_enum("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
+                ctx.collect_enum("CLB", bel, "GYMUX", &["G", "FX", "GXOR"]);
             }
             Mode::Virtex4 => {
-                collect_enum(state, tiledb, "CLB", bel, "FXMUX", &["F5", "FXOR"]);
-                collect_enum(state, tiledb, "CLB", bel, "GYMUX", &["FX", "GXOR"]);
+                ctx.collect_enum("CLB", bel, "FXMUX", &["F5", "FXOR"]);
+                ctx.collect_enum("CLB", bel, "GYMUX", &["FX", "GXOR"]);
             }
         }
         if mode != Mode::Virtex4 {
-            let dx_bx = state.get_diff("CLB", bel, "DXMUX", "0");
-            let dx_x = state.get_diff("CLB", bel, "DXMUX", "1");
-            tiledb.insert(
+            let dx_bx = ctx.state.get_diff("CLB", bel, "DXMUX", "0");
+            let dx_x = ctx.state.get_diff("CLB", bel, "DXMUX", "1");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DXMUX",
                 xlat_enum(vec![("BX".to_string(), dx_bx), ("X".to_string(), dx_x)]),
             );
-            let dy_by = state.get_diff("CLB", bel, "DYMUX", "0");
-            let dy_y = state.get_diff("CLB", bel, "DYMUX", "1");
-            tiledb.insert(
+            let dy_by = ctx.state.get_diff("CLB", bel, "DYMUX", "0");
+            let dy_y = ctx.state.get_diff("CLB", bel, "DYMUX", "1");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DYMUX",
                 xlat_enum(vec![("BY".to_string(), dy_by), ("Y".to_string(), dy_y)]),
             );
         } else {
-            let dxmux_bx = state.get_diff("CLB", bel, "DXMUX.F5", "BX");
-            let dxmux_x = state.get_diff("CLB", bel, "DXMUX.F5", "X");
-            let dxmux_xb = state.get_diff("CLB", bel, "DXMUX.F5", "XB");
-            let dxmux_f5 = state.get_diff("CLB", bel, "DXMUX.F5", "XMUX");
-            assert_eq!(dxmux_bx, state.get_diff("CLB", bel, "DXMUX.FXOR", "BX"));
-            assert_eq!(dxmux_x, state.get_diff("CLB", bel, "DXMUX.FXOR", "X"));
-            assert_eq!(dxmux_xb, state.get_diff("CLB", bel, "DXMUX.FXOR", "XB"));
-            let dxmux_fxor = state.get_diff("CLB", bel, "DXMUX.FXOR", "XMUX");
-            tiledb.insert(
+            let dxmux_bx = ctx.state.get_diff("CLB", bel, "DXMUX.F5", "BX");
+            let dxmux_x = ctx.state.get_diff("CLB", bel, "DXMUX.F5", "X");
+            let dxmux_xb = ctx.state.get_diff("CLB", bel, "DXMUX.F5", "XB");
+            let dxmux_f5 = ctx.state.get_diff("CLB", bel, "DXMUX.F5", "XMUX");
+            assert_eq!(dxmux_bx, ctx.state.get_diff("CLB", bel, "DXMUX.FXOR", "BX"));
+            assert_eq!(dxmux_x, ctx.state.get_diff("CLB", bel, "DXMUX.FXOR", "X"));
+            assert_eq!(dxmux_xb, ctx.state.get_diff("CLB", bel, "DXMUX.FXOR", "XB"));
+            let dxmux_fxor = ctx.state.get_diff("CLB", bel, "DXMUX.FXOR", "XMUX");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DXMUX",
@@ -858,15 +862,15 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                 ]),
             );
 
-            let dymux_by = state.get_diff("CLB", bel, "DYMUX.FX", "BY");
-            let dymux_y = state.get_diff("CLB", bel, "DYMUX.FX", "Y");
-            let dymux_yb = state.get_diff("CLB", bel, "DYMUX.FX", "YB");
-            let dymux_fx = state.get_diff("CLB", bel, "DYMUX.FX", "YMUX");
-            assert_eq!(dymux_by, state.get_diff("CLB", bel, "DYMUX.GXOR", "BY"));
-            assert_eq!(dymux_y, state.get_diff("CLB", bel, "DYMUX.GXOR", "Y"));
-            assert_eq!(dymux_yb, state.get_diff("CLB", bel, "DYMUX.GXOR", "YB"));
-            let dymux_gxor = state.get_diff("CLB", bel, "DYMUX.GXOR", "YMUX");
-            tiledb.insert(
+            let dymux_by = ctx.state.get_diff("CLB", bel, "DYMUX.FX", "BY");
+            let dymux_y = ctx.state.get_diff("CLB", bel, "DYMUX.FX", "Y");
+            let dymux_yb = ctx.state.get_diff("CLB", bel, "DYMUX.FX", "YB");
+            let dymux_fx = ctx.state.get_diff("CLB", bel, "DYMUX.FX", "YMUX");
+            assert_eq!(dymux_by, ctx.state.get_diff("CLB", bel, "DYMUX.GXOR", "BY"));
+            assert_eq!(dymux_y, ctx.state.get_diff("CLB", bel, "DYMUX.GXOR", "Y"));
+            assert_eq!(dymux_yb, ctx.state.get_diff("CLB", bel, "DYMUX.GXOR", "YB"));
+            let dymux_gxor = ctx.state.get_diff("CLB", bel, "DYMUX.GXOR", "YMUX");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "DYMUX",
@@ -880,9 +884,9 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
             );
         }
         if is_m {
-            let xbmux_shiftout = state.get_diff("CLB", bel, "XBMUX", "0");
-            let xbmux_cout = state.get_diff("CLB", bel, "XBMUX", "1");
-            tiledb.insert(
+            let xbmux_shiftout = ctx.state.get_diff("CLB", bel, "XBMUX", "0");
+            let xbmux_cout = ctx.state.get_diff("CLB", bel, "XBMUX", "1");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "XBMUX",
@@ -892,9 +896,9 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                 ]),
             );
 
-            let ybmux_shiftout = state.get_diff("CLB", bel, "YBMUX", "0");
-            let ybmux_cout = state.get_diff("CLB", bel, "YBMUX", "1");
-            tiledb.insert(
+            let ybmux_shiftout = ctx.state.get_diff("CLB", bel, "YBMUX", "0");
+            let ybmux_cout = ctx.state.get_diff("CLB", bel, "YBMUX", "1");
+            ctx.tiledb.insert(
                 "CLB",
                 bel,
                 "YBMUX",
@@ -906,42 +910,49 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
         }
 
         // FFs
-        let ff_sync = state.get_diff("CLB", bel, "SYNC_ATTR", "SYNC");
-        state
+        let ff_sync = ctx.state.get_diff("CLB", bel, "SYNC_ATTR", "SYNC");
+        ctx.state
             .get_diff("CLB", bel, "SYNC_ATTR", "ASYNC")
             .assert_empty();
-        tiledb.insert("CLB", bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+        ctx.tiledb
+            .insert("CLB", bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
 
-        let ff_latch = state.get_diff("CLB", bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, state.get_diff("CLB", bel, "FFY", "#LATCH"));
-        state.get_diff("CLB", bel, "FFX", "#FF").assert_empty();
-        state.get_diff("CLB", bel, "FFY", "#FF").assert_empty();
-        tiledb.insert("CLB", bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+        let ff_latch = ctx.state.get_diff("CLB", bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, ctx.state.get_diff("CLB", bel, "FFY", "#LATCH"));
+        ctx.state.get_diff("CLB", bel, "FFX", "#FF").assert_empty();
+        ctx.state.get_diff("CLB", bel, "FFY", "#FF").assert_empty();
+        ctx.tiledb
+            .insert("CLB", bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
 
-        let revused = state.get_diff("CLB", bel, "REVUSED", "0");
-        tiledb.insert("CLB", bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+        let revused = ctx.state.get_diff("CLB", bel, "REVUSED", "0");
+        ctx.tiledb
+            .insert("CLB", bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
 
-        let ffx_srval = !state.get_diff("CLB", bel, "FFX_SR_ATTR", "SRLOW");
-        let ffy_srval = !state.get_diff("CLB", bel, "FFY_SR_ATTR", "SRLOW");
-        state
+        let ffx_srval = !ctx.state.get_diff("CLB", bel, "FFX_SR_ATTR", "SRLOW");
+        let ffy_srval = !ctx.state.get_diff("CLB", bel, "FFY_SR_ATTR", "SRLOW");
+        ctx.state
             .get_diff("CLB", bel, "FFX_SR_ATTR", "SRHIGH")
             .assert_empty();
-        state
+        ctx.state
             .get_diff("CLB", bel, "FFY_SR_ATTR", "SRHIGH")
             .assert_empty();
-        tiledb.insert("CLB", bel, "FFX_SRVAL", xlat_bitvec(vec![ffx_srval]));
-        tiledb.insert("CLB", bel, "FFY_SRVAL", xlat_bitvec(vec![ffy_srval]));
+        ctx.tiledb
+            .insert("CLB", bel, "FFX_SRVAL", xlat_bitvec(vec![ffx_srval]));
+        ctx.tiledb
+            .insert("CLB", bel, "FFY_SRVAL", xlat_bitvec(vec![ffy_srval]));
 
-        let ffx_init = state.get_diff("CLB", bel, "FFX_INIT_ATTR", "INIT1");
-        let ffy_init = state.get_diff("CLB", bel, "FFY_INIT_ATTR", "INIT1");
-        state
+        let ffx_init = ctx.state.get_diff("CLB", bel, "FFX_INIT_ATTR", "INIT1");
+        let ffy_init = ctx.state.get_diff("CLB", bel, "FFY_INIT_ATTR", "INIT1");
+        ctx.state
             .get_diff("CLB", bel, "FFX_INIT_ATTR", "INIT0")
             .assert_empty();
-        state
+        ctx.state
             .get_diff("CLB", bel, "FFY_INIT_ATTR", "INIT0")
             .assert_empty();
-        tiledb.insert("CLB", bel, "FFX_INIT", xlat_bitvec(vec![ffx_init]));
-        tiledb.insert("CLB", bel, "FFY_INIT", xlat_bitvec(vec![ffy_init]));
+        ctx.tiledb
+            .insert("CLB", bel, "FFX_INIT", xlat_bitvec(vec![ffx_init]));
+        ctx.tiledb
+            .insert("CLB", bel, "FFY_INIT", xlat_bitvec(vec![ffy_init]));
 
         // inverts
         for (pininv, pin, pin_b, def) in [
@@ -951,8 +962,8 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
             ("BXINV", "BX", "BX_B", false),
             ("BYINV", "BY", "BY_B", false),
         ] {
-            let f_pin = state.get_diff("CLB", bel, pininv, pin);
-            let f_pin_b = state.get_diff("CLB", bel, pininv, pin_b);
+            let f_pin = ctx.state.get_diff("CLB", bel, pininv, pin);
+            let f_pin_b = ctx.state.get_diff("CLB", bel, pininv, pin_b);
             let inv = if !def {
                 f_pin.assert_empty();
                 f_pin_b
@@ -960,7 +971,8 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                 f_pin_b.assert_empty();
                 !f_pin
             };
-            tiledb.insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
+            ctx.tiledb
+                .insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
         }
     }
     if mode == Mode::Virtex2 {
@@ -968,8 +980,8 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
             for (pininv, pin, pin_b, def) in
                 [("TINV", "T", "T_B", true), ("IINV", "I", "I_B", true)]
             {
-                let f_pin = state.get_diff("CLB", bel, pininv, pin);
-                let f_pin_b = state.get_diff("CLB", bel, pininv, pin_b);
+                let f_pin = ctx.state.get_diff("CLB", bel, pininv, pin);
+                let f_pin_b = ctx.state.get_diff("CLB", bel, pininv, pin_b);
                 let inv = if !def {
                     f_pin.assert_empty();
                     f_pin_b
@@ -977,14 +989,15 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
                     f_pin_b.assert_empty();
                     !f_pin
                 };
-                tiledb.insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
+                ctx.tiledb
+                    .insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
             }
             for attr in ["OUT_A", "OUT_B"] {
-                tiledb.insert(
+                ctx.tiledb.insert(
                     "CLB",
                     bel,
                     attr,
-                    xlat_bitvec(vec![state.get_diff("CLB", bel, attr, "1")]),
+                    xlat_bitvec(vec![ctx.state.get_diff("CLB", bel, attr, "1")]),
                 );
             }
         }

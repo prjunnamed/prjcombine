@@ -1,14 +1,13 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::{db::BelId, grid::ExpandedGrid};
+use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_enum, extract_enum_bool, xlat_bitvec, xlat_bool},
+    backend::IseBackend,
+    diff::{xlat_bitvec, xlat_bool, CollectorCtx},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
-    tiledb::TileDb,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -67,25 +66,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(egrid: &ExpandedGrid, state: &mut State, tiledb: &mut TileDb) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let egrid = ctx.edev.egrid();
     for tile in ["LBRAM", "RBRAM", "MBRAM"] {
         let node_kind = egrid.db.get_node(tile);
         if egrid.node_index[node_kind].is_empty() {
             continue;
         }
         let bel = "BRAM";
-        tiledb.insert(
-            tile,
-            bel,
-            "CLKAINV",
-            extract_enum_bool(state, tile, bel, "CLKAMUX", "1", "0"),
-        );
-        tiledb.insert(
-            tile,
-            bel,
-            "CLKBINV",
-            extract_enum_bool(state, tile, bel, "CLKBMUX", "1", "0"),
-        );
+        let ti = ctx.extract_enum_bool(tile, bel, "CLKAMUX", "1", "0");
+        ctx.tiledb.insert(tile, bel, "CLKAINV", ti);
+        let ti = ctx.extract_enum_bool(tile, bel, "CLKBMUX", "1", "0");
+        ctx.tiledb.insert(tile, bel, "CLKBINV", ti);
         for (pininv, pinmux, pin, pin_b) in [
             ("ENAINV", "ENAMUX", "ENA", "ENA_B"),
             ("ENBINV", "ENBMUX", "ENB", "ENB_B"),
@@ -94,30 +86,32 @@ pub fn collect_fuzzers(egrid: &ExpandedGrid, state: &mut State, tiledb: &mut Til
             ("RSTAINV", "RSTAMUX", "RSTA", "RSTA_B"),
             ("RSTBINV", "RSTBMUX", "RSTB", "RSTB_B"),
         ] {
-            let d0 = state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
-            tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {
-            diffs_data.extend(state.get_diffs(tile, bel, format!("INIT_{i:02x}").leak(), ""));
+            diffs_data.extend(
+                ctx.state
+                    .get_diffs(tile, bel, format!("INIT_{i:02x}").leak(), ""),
+            );
         }
         for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
-            collect_enum(
-                state,
-                tiledb,
+            ctx.collect_enum(
                 tile,
                 bel,
                 attr,
                 &["4096X1", "2048X2", "1024X4", "512X8", "256X16"],
             );
         }
-        tiledb.insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
-        let mut present = state.get_diff(tile, bel, "PRESENT", "1");
-        present.discard_bits(tiledb.item(tile, bel, "ENAINV"));
-        present.discard_bits(tiledb.item(tile, bel, "ENBINV"));
+        ctx.tiledb
+            .insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
+        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        present.discard_bits(ctx.tiledb.item(tile, bel, "ENAINV"));
+        present.discard_bits(ctx.tiledb.item(tile, bel, "ENBINV"));
         present.assert_empty();
     }
 }

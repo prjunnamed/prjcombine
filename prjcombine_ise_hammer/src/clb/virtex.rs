@@ -3,15 +3,11 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{
-        collect_bitvec, collect_enum, collect_enum_bool, collect_enum_default, extract_enum_bool,
-        xlat_bitvec, xlat_bool, xlat_enum,
-    },
+    backend::IseBackend,
+    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
-    tiledb::TileDb,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -280,33 +276,27 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for bel in ["SLICE0", "SLICE1"] {
-        tiledb.insert(
-            tile,
-            bel,
-            "CLKINV",
-            extract_enum_bool(state, tile, bel, "CKINV", "1", "0"),
-        );
+        let ti = ctx.extract_enum_bool(tile, bel, "CKINV", "1", "0");
+        ctx.tiledb.insert(tile, bel, "CLKINV", ti);
         for (pininv, pinmux, pin, pin_b) in [
             ("BXINV", "BXMUX", "BX", "BX_B"),
             ("BYINV", "BYMUX", "BY", "BY_B"),
             ("CEINV", "CEMUX", "CE", "CE_B"),
             ("SRINV", "SRMUX", "SR", "SR_B"),
         ] {
-            let d0 = state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
-            tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
         }
 
-        collect_bitvec(state, tiledb, tile, bel, "F", "#LUT");
-        collect_bitvec(state, tiledb, tile, bel, "G", "#LUT");
-        collect_enum_default(
-            state,
-            tiledb,
+        ctx.collect_bitvec(tile, bel, "F", "#LUT");
+        ctx.collect_bitvec(tile, bel, "G", "#LUT");
+        ctx.collect_enum_default(
             tile,
             bel,
             "RAMCONFIG",
@@ -315,18 +305,18 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
         );
 
         // carry chain
-        collect_enum(state, tiledb, tile, bel, "CYINIT", &["BX", "CIN"]);
-        collect_enum(state, tiledb, tile, bel, "CYSELF", &["F", "1"]);
-        collect_enum(state, tiledb, tile, bel, "CYSELG", &["G", "1"]);
-        let d_0 = state.get_diff(tile, bel, "CY0F", "0");
-        let d_1 = state.get_diff(tile, bel, "CY0F", "1");
-        let d_f1_g1 = state.get_diff(tile, bel, "CY0F", "F1");
-        let d_prod = state.get_diff(tile, bel, "CY0F", "PROD");
-        assert_eq!(d_0, state.get_diff(tile, bel, "CY0G", "0"));
-        assert_eq!(d_1, state.get_diff(tile, bel, "CY0G", "1"));
-        assert_eq!(d_f1_g1, state.get_diff(tile, bel, "CY0G", "G1"));
-        assert_eq!(d_prod, state.get_diff(tile, bel, "CY0G", "PROD"));
-        tiledb.insert(
+        ctx.collect_enum(tile, bel, "CYINIT", &["BX", "CIN"]);
+        ctx.collect_enum(tile, bel, "CYSELF", &["F", "1"]);
+        ctx.collect_enum(tile, bel, "CYSELG", &["G", "1"]);
+        let d_0 = ctx.state.get_diff(tile, bel, "CY0F", "0");
+        let d_1 = ctx.state.get_diff(tile, bel, "CY0F", "1");
+        let d_f1_g1 = ctx.state.get_diff(tile, bel, "CY0F", "F1");
+        let d_prod = ctx.state.get_diff(tile, bel, "CY0F", "PROD");
+        assert_eq!(d_0, ctx.state.get_diff(tile, bel, "CY0G", "0"));
+        assert_eq!(d_1, ctx.state.get_diff(tile, bel, "CY0G", "1"));
+        assert_eq!(d_f1_g1, ctx.state.get_diff(tile, bel, "CY0G", "G1"));
+        assert_eq!(d_prod, ctx.state.get_diff(tile, bel, "CY0G", "PROD"));
+        ctx.tiledb.insert(
             tile,
             bel,
             "CY0",
@@ -339,68 +329,71 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb) {
         );
 
         // muxes
-        let yb_by = state.get_diff(tile, bel, "YBMUX", "0");
-        let yb_cy = state.get_diff(tile, bel, "YBMUX", "1");
-        tiledb.insert(
+        let yb_by = ctx.state.get_diff(tile, bel, "YBMUX", "0");
+        let yb_cy = ctx.state.get_diff(tile, bel, "YBMUX", "1");
+        ctx.tiledb.insert(
             tile,
             bel,
             "YBMUX",
             xlat_enum(vec![("BY".to_string(), yb_by), ("CY".to_string(), yb_cy)]),
         );
-        let dx_bx = state.get_diff(tile, bel, "DXMUX", "0");
-        let dx_x = state.get_diff(tile, bel, "DXMUX", "1");
-        tiledb.insert(
+        let dx_bx = ctx.state.get_diff(tile, bel, "DXMUX", "0");
+        let dx_x = ctx.state.get_diff(tile, bel, "DXMUX", "1");
+        ctx.tiledb.insert(
             tile,
             bel,
             "DXMUX",
             xlat_enum(vec![("BX".to_string(), dx_bx), ("X".to_string(), dx_x)]),
         );
-        let dy_by = state.get_diff(tile, bel, "DYMUX", "0");
-        let dy_y = state.get_diff(tile, bel, "DYMUX", "1");
-        tiledb.insert(
+        let dy_by = ctx.state.get_diff(tile, bel, "DYMUX", "0");
+        let dy_y = ctx.state.get_diff(tile, bel, "DYMUX", "1");
+        ctx.tiledb.insert(
             tile,
             bel,
             "DYMUX",
             xlat_enum(vec![("BY".to_string(), dy_by), ("Y".to_string(), dy_y)]),
         );
-        collect_enum(state, tiledb, tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
-        collect_enum(state, tiledb, tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
+        ctx.collect_enum(tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
+        ctx.collect_enum(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
 
         // FFs
-        let ff_sync = state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
-        state
+        let ff_sync = ctx.state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
+        ctx.state
             .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
             .assert_empty();
-        tiledb.insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+        ctx.tiledb
+            .insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
 
-        let revused = state.get_diff(tile, bel, "REVUSED", "0");
-        tiledb.insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+        let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
+        ctx.tiledb
+            .insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
 
-        let ff_latch = state.get_diff(tile, bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, state.get_diff(tile, bel, "FFY", "#LATCH"));
-        state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
-        state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
-        tiledb.insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+        let ff_latch = ctx.state.get_diff(tile, bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, "FFY", "#LATCH"));
+        ctx.state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
+        ctx.state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
+        ctx.tiledb
+            .insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
 
-        collect_enum_bool(state, tiledb, tile, bel, "INITX", "LOW", "HIGH");
-        collect_enum_bool(state, tiledb, tile, bel, "INITY", "LOW", "HIGH");
+        ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");
+        ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");
     }
     for bel in ["TBUF0", "TBUF1"] {
         for (pininv, pinmux, pin, pin_b) in
             [("IINV", "IMUX", "I", "I_B"), ("TINV", "TMUX", "T", "T_B")]
         {
-            let d0 = state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, state.get_diff(tile, bel, pinmux, "0"));
-            tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
         }
         for attr in ["OUT_A", "OUT_B"] {
-            tiledb.insert(
+            ctx.tiledb.insert(
                 tile,
                 bel,
                 attr,
-                xlat_bitvec(vec![state.get_diff(tile, bel, attr, "1")]),
+                xlat_bitvec(vec![ctx.state.get_diff(tile, bel, attr, "1")]),
             );
         }
     }

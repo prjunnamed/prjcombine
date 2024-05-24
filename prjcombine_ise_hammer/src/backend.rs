@@ -39,6 +39,7 @@ pub enum Key<'a> {
     Pip(&'a str, &'a str, &'a str),
     GlobalMutex(&'a str),
     RowMutex(&'a str, RowId),
+    SiteMutex(&'a str, &'a str),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

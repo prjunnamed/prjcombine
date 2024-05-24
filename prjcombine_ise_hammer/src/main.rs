@@ -18,6 +18,8 @@ mod tiledb;
 
 use backend::IseBackend;
 
+use crate::diff::CollectorCtx;
+
 #[derive(Debug, Parser)]
 #[command(name = "ise_hammer", about = "Swing the Massive Hammer on ISE parts.")]
 struct Args {
@@ -58,20 +60,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
                 bram::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
-                    dsp::spartan3adsp::add_fuzzers(
-                        &mut hammer,
-                        &backend,
-                        dsp::spartan3adsp::Mode::Spartan3ADsp,
-                    );
+                    dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                dsp::spartan3adsp::add_fuzzers(
-                    &mut hammer,
-                    &backend,
-                    dsp::spartan3adsp::Mode::Spartan6,
-                );
+                dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -84,90 +78,64 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                    dsp::virtex6::add_fuzzers(&mut hammer, &backend);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                    dsp::virtex6::add_fuzzers(&mut hammer, &backend);
                 }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
         let mut state = hammer.run().unwrap();
+        let mut ctx = CollectorCtx {
+            device: part,
+            edev: &gedev,
+            state: &mut state,
+            tiledb: &mut tiledb,
+        };
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
             ExpandedDevice::Xc5200(_) => {}
             ExpandedDevice::Virtex(_) => {
-                clb::virtex::collect_fuzzers(&mut state, &mut tiledb);
-                bram::virtex::collect_fuzzers(backend.egrid, &mut state, &mut tiledb);
+                clb::virtex::collect_fuzzers(&mut ctx);
+                bram::virtex::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex2(ref edev) => {
-                clb::virtex2::collect_fuzzers(
-                    &mut state,
-                    &mut tiledb,
-                    if edev.grid.kind.is_virtex2() {
-                        clb::virtex2::Mode::Virtex2
-                    } else {
-                        clb::virtex2::Mode::Spartan3
-                    },
-                );
-                bram::virtex2::collect_fuzzers(part, &mut state, &mut tiledb, edev.grid.kind);
+                clb::virtex2::collect_fuzzers(&mut ctx);
+                bram::virtex2::collect_fuzzers(&mut ctx);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
-                    dsp::spartan3adsp::collect_fuzzers(
-                        &mut state,
-                        &mut tiledb,
-                        dsp::spartan3adsp::Mode::Spartan3ADsp,
-                    )
+                    dsp::spartan3adsp::collect_fuzzers(&mut ctx)
                 }
             }
             ExpandedDevice::Spartan6(_) => {
-                clb::virtex5::collect_fuzzers(
-                    &mut state,
-                    &mut tiledb,
-                    clb::virtex5::Mode::Spartan6,
-                );
-                dsp::spartan3adsp::collect_fuzzers(
-                    &mut state,
-                    &mut tiledb,
-                    dsp::spartan3adsp::Mode::Spartan6,
-                )
+                clb::virtex5::collect_fuzzers(&mut ctx);
+                dsp::spartan3adsp::collect_fuzzers(&mut ctx)
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
-                    clb::virtex2::collect_fuzzers(
-                        &mut state,
-                        &mut tiledb,
-                        clb::virtex2::Mode::Virtex4,
-                    );
-                    dsp::virtex4::collect_fuzzers(&mut state, &mut tiledb);
+                    clb::virtex2::collect_fuzzers(&mut ctx);
+                    dsp::virtex4::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
-                    clb::virtex5::collect_fuzzers(
-                        &mut state,
-                        &mut tiledb,
-                        clb::virtex5::Mode::Virtex5,
-                    );
-                    dsp::virtex5::collect_fuzzers(&mut state, &mut tiledb);
+                    clb::virtex5::collect_fuzzers(&mut ctx);
+                    dsp::virtex5::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
-                    clb::virtex5::collect_fuzzers(
-                        &mut state,
-                        &mut tiledb,
-                        clb::virtex5::Mode::Virtex6,
-                    );
+                    clb::virtex5::collect_fuzzers(&mut ctx);
+                    dsp::virtex6::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                    clb::virtex5::collect_fuzzers(
-                        &mut state,
-                        &mut tiledb,
-                        clb::virtex5::Mode::Virtex7,
-                    );
+                    clb::virtex5::collect_fuzzers(&mut ctx);
+                    dsp::virtex6::collect_fuzzers(&mut ctx);
                 }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
 
-        for (feat, data) in &state.simple_features {
+        for (feat, data) in &ctx.state.simple_features {
             print!("{} {} {} {}: [", feat.tile, feat.bel, feat.attr, feat.val);
             for diff in &data.diffs {
                 if data.diffs.len() != 1 {

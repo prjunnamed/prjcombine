@@ -39,6 +39,8 @@ pub enum TileKV<'a> {
     GlobalMutexNone(&'a str),
     GlobalMutexSite(&'a str, BelId),
     RowMutexSite(&'a str, BelId),
+    SiteMutex(BelId, &'a str, &'a str),
+    Pip(TileWire<'a>, TileWire<'a>),
 }
 
 impl<'a> TileKV<'a> {
@@ -75,6 +77,16 @@ impl<'a> TileKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::RowMutex(name, loc.2), &site[..])
             }
+            TileKV::SiteMutex(bel, name, val) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer.base(Key::SiteMutex(&site[..], name), val)
+            }
+            TileKV::Pip(wa, wb) => {
+                let (ta, wa) = resolve_tile_wire(backend, loc, wa);
+                let (tb, wb) = resolve_tile_wire(backend, loc, wb);
+                assert_eq!(ta, tb);
+                fuzzer.base(Key::Pip(ta, wa, wb), true)
+            }
         }
     }
 }
@@ -86,9 +98,9 @@ pub enum TileFuzzKV<'a> {
     SiteAttr(BelId, &'a str, &'a str),
     #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
-    Pip(TileWire<'a>, TileWire<'a>),
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
+    Pip(TileWire<'a>, TileWire<'a>),
 }
 
 impl<'a> TileFuzzKV<'a> {
@@ -111,15 +123,15 @@ impl<'a> TileFuzzKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr), va, vb)
             }
+            TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt), None, val),
+            TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
+                fuzzer.fuzz(Key::GlobalOpt(opt), vala, valb)
+            }
             TileFuzzKV::Pip(wa, wb) => {
                 let (ta, wa) = resolve_tile_wire(backend, loc, wa);
                 let (tb, wb) = resolve_tile_wire(backend, loc, wb);
                 assert_eq!(ta, tb);
                 fuzzer.fuzz(Key::Pip(ta, wa, wb), None, true)
-            }
-            TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt), None, val),
-            TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
-                fuzzer.fuzz(Key::GlobalOpt(opt), vala, valb)
             }
         }
     }

@@ -1,14 +1,10 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
+use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{collect_enum, collect_inv},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_one,
-    tiledb::TileDb,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -37,11 +33,12 @@ const DSP48A_INVPINS: &[&str] = &[
     "RSTCARRYIN",
 ];
 
-pub fn add_fuzzers<'a>(
-    session: &mut Session<IseBackend<'a>>,
-    backend: &IseBackend<'a>,
-    mode: Mode,
-) {
+pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let mode = match backend.edev {
+        ExpandedDevice::Virtex2(_) => Mode::Spartan3ADsp,
+        ExpandedDevice::Spartan6(_) => Mode::Spartan6,
+        _ => unreachable!(),
+    };
     let node_kind = backend.egrid.db.get_node("DSP");
     let bel = BelId::from_idx(0);
     let ctx = FuzzCtx {
@@ -84,9 +81,15 @@ pub fn add_fuzzers<'a>(
     fuzz_enum!(ctx, "RSTTYPE", ["SYNC", "ASYNC"], [(mode bel_kind)]);
 }
 
-pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let mode = match ctx.edev {
+        ExpandedDevice::Virtex2(_) => Mode::Spartan3ADsp,
+        ExpandedDevice::Spartan6(_) => Mode::Spartan6,
+        _ => unreachable!(),
+    };
+
     for &pin in DSP48A_INVPINS {
-        collect_inv(state, tiledb, "DSP", "DSP", pin);
+        ctx.collect_inv("DSP", "DSP", pin);
     }
     for attr in [
         "A0REG",
@@ -100,27 +103,15 @@ pub fn collect_fuzzers(state: &mut State, tiledb: &mut TileDb, mode: Mode) {
         "OPMODEREG",
         "CARRYINREG",
     ] {
-        collect_enum(state, tiledb, "DSP", "DSP", attr, &["0", "1"]);
+        ctx.collect_enum("DSP", "DSP", attr, &["0", "1"]);
     }
     if mode == Mode::Spartan6 {
-        collect_enum(state, tiledb, "DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
+        ctx.collect_enum("DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
     }
-    collect_enum(
-        state,
-        tiledb,
-        "DSP",
-        "DSP",
-        "B_INPUT",
-        &["DIRECT", "CASCADE"],
-    );
-    collect_enum(
-        state,
-        tiledb,
-        "DSP",
-        "DSP",
-        "CARRYINSEL",
-        &["OPMODE5", "CARRYIN"],
-    );
-    collect_enum(state, tiledb, "DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
-    state.get_diff("DSP", "DSP", "PRESENT", "1").assert_empty();
+    ctx.collect_enum("DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
+    ctx.collect_enum("DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
+    ctx.collect_enum("DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
+    ctx.state
+        .get_diff("DSP", "DSP", "PRESENT", "1")
+        .assert_empty();
 }

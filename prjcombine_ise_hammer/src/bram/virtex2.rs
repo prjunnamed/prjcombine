@@ -2,18 +2,15 @@ use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_virtex2::grid::GridKind;
-use prjcombine_xilinx_geom::{Device, ExpandedDevice};
+use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, State},
-    diff::{
-        collect_bitvec, collect_enum, collect_inv, extract_bitvec_val, xlat_bitvec, xlat_enum, Diff,
-    },
+    backend::IseBackend,
+    diff::{extract_bitvec_val, xlat_bitvec, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
-    tiledb::TileDb,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -347,110 +344,94 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(
-    device: &Device,
-    state: &mut State,
-    tiledb: &mut TileDb,
-    grid_kind: GridKind,
-) {
-    let tile_name = match grid_kind {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let grid_kind = match ctx.edev {
+        ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
+        _ => unreachable!(),
+    };
+
+    let tile = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
         GridKind::Spartan3E => "BRAM.S3E",
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
     };
-    let mut present = state.get_diff(tile_name, "BRAM", "PRESENT", "1");
+    let mut present = ctx.state.get_diff(tile, "BRAM", "PRESENT", "1");
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
     for pin in ["CLKA", "CLKB", "ENA", "ENB"] {
-        collect_inv(state, tiledb, tile_name, "BRAM", pin);
+        ctx.collect_inv(tile, "BRAM", pin);
     }
-    present.discard_bits(tiledb.item(tile_name, "BRAM", "ENAINV"));
-    present.discard_bits(tiledb.item(tile_name, "BRAM", "ENBINV"));
+    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "ENAINV"));
+    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "ENBINV"));
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
-                collect_inv(state, tiledb, tile_name, "BRAM", pin);
-                present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
+                ctx.collect_inv(tile, "BRAM", pin);
+                present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
             }
             for i in 0..0x40 {
-                diffs_data.extend(state.get_diffs(
-                    tile_name,
+                diffs_data.extend(ctx.state.get_diffs(
+                    tile,
                     "BRAM",
                     format!("INIT_{i:02X}").leak(),
                     "",
                 ));
             }
             for i in 0..0x08 {
-                diffs_datap.extend(state.get_diffs(
-                    tile_name,
+                diffs_datap.extend(ctx.state.get_diffs(
+                    tile,
                     "BRAM",
                     format!("INITP_{i:02X}").leak(),
                     "",
                 ));
             }
             for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
+                ctx.collect_enum(
+                    tile,
                     "BRAM",
                     attr,
                     &["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"],
                 );
             }
             for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
-                state.get_diff(tile_name, "BRAM", attr, "0").assert_empty();
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    "BRAM",
-                    attr,
-                    &["1", "2", "4", "9", "18", "36"],
-                );
+                ctx.state.get_diff(tile, "BRAM", attr, "0").assert_empty();
+                ctx.collect_enum(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
             }
             if grid_kind == GridKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    collect_inv(state, tiledb, tile_name, "BRAM", pin);
-                    present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
+                    ctx.collect_inv(tile, "BRAM", pin);
+                    present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
                 }
 
-                collect_enum(state, tiledb, tile_name, "BRAM", "DOA_REG", &["0", "1"]);
-                collect_enum(state, tiledb, tile_name, "BRAM", "DOB_REG", &["0", "1"]);
-                collect_enum(
-                    state,
-                    tiledb,
-                    tile_name,
-                    "BRAM",
-                    "RSTTYPE",
-                    &["ASYNC", "SYNC"],
-                );
+                ctx.collect_enum(tile, "BRAM", "DOA_REG", &["0", "1"]);
+                ctx.collect_enum(tile, "BRAM", "DOB_REG", &["0", "1"]);
+                ctx.collect_enum(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
             } else {
                 for pin in ["SSRA", "SSRB"] {
-                    collect_inv(state, tiledb, tile_name, "BRAM", pin);
+                    ctx.collect_inv(tile, "BRAM", pin);
                 }
             }
         }
         _ => {
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
-                collect_inv(state, tiledb, tile_name, "BRAM", pin);
-                present.discard_bits(tiledb.item(tile_name, "BRAM", &format!("{pin}INV")));
+                ctx.collect_inv(tile, "BRAM", pin);
+                present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
             }
             for i in 0..0x40 {
-                diffs_data.extend(state.get_diffs(
-                    tile_name,
+                diffs_data.extend(ctx.state.get_diffs(
+                    tile,
                     "BRAM",
                     format!("INIT_{i:02x}").leak(),
                     "",
                 ));
             }
             for i in 0..0x08 {
-                diffs_datap.extend(state.get_diffs(
-                    tile_name,
+                diffs_datap.extend(ctx.state.get_diffs(
+                    tile,
                     "BRAM",
                     format!("INITP_{i:02x}").leak(),
                     "",
@@ -465,11 +446,11 @@ pub fn collect_fuzzers(
                     .map(|val| {
                         (
                             val.to_string(),
-                            state.get_diff(tile_name, "BRAM", sattr, val),
+                            ctx.state.get_diff(tile, "BRAM", sattr, val),
                         )
                     })
                     .collect();
-                tiledb.insert(tile_name, "BRAM", dattr, xlat_enum(diffs));
+                ctx.tiledb.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
             for (dattr, sattr) in [
                 ("DATA_WIDTH_A", "PORTA_ATTR"),
@@ -487,21 +468,21 @@ pub fn collect_fuzzers(
                 .map(|(dval, sval)| {
                     (
                         dval.to_string(),
-                        state.get_diff(tile_name, "BRAM", sattr, sval),
+                        ctx.state.get_diff(tile, "BRAM", sattr, sval),
                     )
                 })
                 .collect();
-                tiledb.insert(tile_name, "BRAM", dattr, xlat_enum(diffs));
+                ctx.tiledb.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
             if grid_kind.is_virtex2() {
-                state
-                    .get_diff(tile_name, "BRAM", "SAVEDATA", "FALSE")
+                ctx.state
+                    .get_diff(tile, "BRAM", "SAVEDATA", "FALSE")
                     .assert_empty();
-                let diff = state.get_diff(tile_name, "BRAM", "SAVEDATA", "TRUE");
+                let diff = ctx.state.get_diff(tile, "BRAM", "SAVEDATA", "TRUE");
                 let mut bits: Vec<_> = diff.bits.into_iter().collect();
                 bits.sort();
-                tiledb.insert(
-                    tile_name,
+                ctx.tiledb.insert(
+                    tile,
                     "BRAM",
                     "SAVEDATA",
                     xlat_bitvec(
@@ -536,34 +517,37 @@ pub fn collect_fuzzers(
                 },
             )
         }
-        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel0", "1"));
-        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel1", "1"));
-        let (adef, bdef) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ddel", "!default"));
+        let (a0, b0) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel0", "1"));
+        let (a1, b1) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel1", "1"));
+        let (adef, bdef) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel", "!default"));
         let ddel_a = xlat_bitvec(vec![a0, a1]);
         let adef = extract_bitvec_val(&ddel_a, &bitvec![0, 0], !adef);
-        tiledb.insert(tile_name, "BRAM", "DDEL_A", ddel_a);
-        tiledb.insert_device_data(&device.name, "BRAM:DDEL_A_DEFAULT", adef);
-        present.discard_bits(tiledb.item(tile_name, "BRAM", "DDEL_A"));
+        ctx.tiledb.insert(tile, "BRAM", "DDEL_A", ddel_a);
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "BRAM:DDEL_A_DEFAULT", adef);
+        present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DDEL_A"));
         if grid_kind == GridKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
         } else {
             let ddel_b = xlat_bitvec(vec![b0, b1]);
             let bdef = extract_bitvec_val(&ddel_b, &bitvec![0, 0], !bdef);
-            tiledb.insert(tile_name, "BRAM", "DDEL_B", ddel_b);
-            tiledb.insert_device_data(&device.name, "BRAM:DDEL_B_DEFAULT", bdef);
-            present.discard_bits(tiledb.item(tile_name, "BRAM", "DDEL_B"));
+            ctx.tiledb.insert(tile, "BRAM", "DDEL_B", ddel_b);
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "BRAM:DDEL_B_DEFAULT", bdef);
+            present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DDEL_B"));
         }
 
-        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel0", "1"));
-        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel1", "1"));
-        let (a2, b2) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel2", "1"));
-        let (adef, bdef) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_wdel", "!default"));
+        let (a0, b0) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_wdel0", "1"));
+        let (a1, b1) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_wdel1", "1"));
+        let (a2, b2) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_wdel2", "1"));
+        let (adef, bdef) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_wdel", "!default"));
         let wdel_a = xlat_bitvec(vec![a0, a1, a2]);
         let adef = extract_bitvec_val(&wdel_a, &bitvec![0, 0, 0], !adef);
-        tiledb.insert_device_data(&device.name, "BRAM:WDEL_A_DEFAULT", adef);
-        tiledb.insert(tile_name, "BRAM", "WDEL_A", wdel_a);
-        present.discard_bits(tiledb.item(tile_name, "BRAM", "WDEL_A"));
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "BRAM:WDEL_A_DEFAULT", adef);
+        ctx.tiledb.insert(tile, "BRAM", "WDEL_A", wdel_a);
+        present.discard_bits(ctx.tiledb.item(tile, "BRAM", "WDEL_A"));
         if grid_kind == GridKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
@@ -571,15 +555,16 @@ pub fn collect_fuzzers(
         } else {
             let wdel_b = xlat_bitvec(vec![b0, b1, b2]);
             let bdef = extract_bitvec_val(&wdel_b, &bitvec![0, 0, 0], !bdef);
-            tiledb.insert(tile_name, "BRAM", "WDEL_B", wdel_b);
-            tiledb.insert_device_data(&device.name, "BRAM:WDEL_B_DEFAULT", bdef);
-            present.discard_bits(tiledb.item(tile_name, "BRAM", "WDEL_B"));
+            ctx.tiledb.insert(tile, "BRAM", "WDEL_B", wdel_b);
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "BRAM:WDEL_B_DEFAULT", bdef);
+            present.discard_bits(ctx.tiledb.item(tile, "BRAM", "WDEL_B"));
         }
 
-        let (a0, b0) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ww_value", "0"));
-        let (a1, b1) = filter_ab(state.get_diff(tile_name, "BRAM", "Ibram_ww_value", "1"));
-        tiledb.insert(
-            tile_name,
+        let (a0, b0) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "0"));
+        let (a1, b1) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1"));
+        ctx.tiledb.insert(
+            tile,
             "BRAM",
             "WW_VALUE_A",
             xlat_enum(vec![
@@ -588,8 +573,8 @@ pub fn collect_fuzzers(
                 ("1".to_string(), a1),
             ]),
         );
-        tiledb.insert(
-            tile_name,
+        ctx.tiledb.insert(
+            tile,
             "BRAM",
             "WW_VALUE_B",
             xlat_enum(vec![
@@ -599,17 +584,19 @@ pub fn collect_fuzzers(
             ]),
         );
     }
-    tiledb.insert(tile_name, "BRAM", "DATA", xlat_bitvec(diffs_data));
-    tiledb.insert(tile_name, "BRAM", "DATAP", xlat_bitvec(diffs_datap));
-    collect_bitvec(state, tiledb, tile_name, "BRAM", "INIT_A", "");
-    collect_bitvec(state, tiledb, tile_name, "BRAM", "INIT_B", "");
-    collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_A", "");
-    collect_bitvec(state, tiledb, tile_name, "BRAM", "SRVAL_B", "");
-    present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_A"));
-    present.discard_bits(tiledb.item(tile_name, "BRAM", "DATA_WIDTH_B"));
+    ctx.tiledb
+        .insert(tile, "BRAM", "DATA", xlat_bitvec(diffs_data));
+    ctx.tiledb
+        .insert(tile, "BRAM", "DATAP", xlat_bitvec(diffs_datap));
+    ctx.collect_bitvec(tile, "BRAM", "INIT_A", "");
+    ctx.collect_bitvec(tile, "BRAM", "INIT_B", "");
+    ctx.collect_bitvec(tile, "BRAM", "SRVAL_A", "");
+    ctx.collect_bitvec(tile, "BRAM", "SRVAL_B", "");
+    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DATA_WIDTH_A"));
+    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "DATA_WIDTH_B"));
     if grid_kind.is_spartan3a() {
-        tiledb.insert(
-            tile_name,
+        ctx.tiledb.insert(
+            tile,
             "BRAM",
             "UNK_PRESENT",
             xlat_enum(vec![
@@ -622,63 +609,58 @@ pub fn collect_fuzzers(
     }
 
     if grid_kind != GridKind::Spartan3ADsp {
-        let mut present = state.get_diff(tile_name, "MULT", "PRESENT", "1");
+        let mut present = ctx.state.get_diff(tile, "MULT", "PRESENT", "1");
         if grid_kind.is_virtex2() || grid_kind == GridKind::Spartan3 {
-            let f_clk = state.get_diff(tile_name, "MULT", "CLKINV", "CLK");
-            let f_clk_b = state.get_diff(tile_name, "MULT", "CLKINV", "CLK_B");
+            let f_clk = ctx.state.get_diff(tile, "MULT", "CLKINV", "CLK");
+            let f_clk_b = ctx.state.get_diff(tile, "MULT", "CLKINV", "CLK_B");
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
-            tiledb.insert(tile_name, "MULT", "REG", xlat_bitvec(vec![f_reg]));
-            tiledb.insert(tile_name, "MULT", "CLKINV", xlat_bitvec(vec![f_clk_b]));
-            collect_inv(state, tiledb, tile_name, "MULT", "CE");
-            collect_inv(state, tiledb, tile_name, "MULT", "RST");
-            present.discard_bits(tiledb.item(tile_name, "MULT", "CEINV"));
+            ctx.tiledb
+                .insert(tile, "MULT", "REG", xlat_bitvec(vec![f_reg]));
+            ctx.tiledb
+                .insert(tile, "MULT", "CLKINV", xlat_bitvec(vec![f_clk_b]));
+            ctx.collect_inv(tile, "MULT", "CE");
+            ctx.collect_inv(tile, "MULT", "RST");
+            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEINV"));
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                collect_inv(state, tiledb, tile_name, "MULT", pin);
+                ctx.collect_inv(tile, "MULT", pin);
             }
-            collect_enum(state, tiledb, tile_name, "MULT", "AREG", &["0", "1"]);
-            collect_enum(state, tiledb, tile_name, "MULT", "BREG", &["0", "1"]);
-            collect_enum(state, tiledb, tile_name, "MULT", "PREG", &["0", "1"]);
-            collect_enum(
-                state,
-                tiledb,
-                tile_name,
-                "MULT",
-                "B_INPUT",
-                &["DIRECT", "CASCADE"],
-            );
-            state
-                .get_diff(tile_name, "MULT", "PREG_CLKINVERSION", "0")
+            ctx.collect_enum(tile, "MULT", "AREG", &["0", "1"]);
+            ctx.collect_enum(tile, "MULT", "BREG", &["0", "1"]);
+            ctx.collect_enum(tile, "MULT", "PREG", &["0", "1"]);
+            ctx.collect_enum(tile, "MULT", "B_INPUT", &["DIRECT", "CASCADE"]);
+            ctx.state
+                .get_diff(tile, "MULT", "PREG_CLKINVERSION", "0")
                 .assert_empty();
-            tiledb.insert(
-                tile_name,
+            ctx.tiledb.insert(
+                tile,
                 "MULT",
                 "PREG_CLKINVERSION",
-                xlat_bitvec(vec![state.get_diff(
-                    tile_name,
+                xlat_bitvec(vec![ctx.state.get_diff(
+                    tile,
                     "MULT",
                     "PREG_CLKINVERSION",
                     "1",
                 )]),
             );
-            present.discard_bits(tiledb.item(tile_name, "MULT", "PREG_CLKINVERSION"));
-            present.discard_bits(tiledb.item(tile_name, "MULT", "CEAINV"));
-            present.discard_bits(tiledb.item(tile_name, "MULT", "CEBINV"));
-            present.discard_bits(tiledb.item(tile_name, "MULT", "CEPINV"));
+            present.discard_bits(ctx.tiledb.item(tile, "MULT", "PREG_CLKINVERSION"));
+            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEAINV"));
+            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEBINV"));
+            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEPINV"));
             if grid_kind == GridKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
                         let name = &*format!("{ab}{i}MUX").leak();
-                        tiledb.insert(
-                            tile_name,
+                        ctx.tiledb.insert(
+                            tile,
                             "MULT",
                             name,
                             xlat_enum(vec![
                                 ("INT".to_string(), Diff::default()),
                                 (
                                     "BRAM".to_string(),
-                                    state.get_diff(tile_name, "MULT", name, "BRAM"),
+                                    ctx.state.get_diff(tile, "MULT", name, "BRAM"),
                                 ),
                             ]),
                         )
