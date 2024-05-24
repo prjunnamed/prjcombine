@@ -56,7 +56,7 @@ impl<'a> TileKV<'a> {
             TileKV::SiteUnused(bel) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteMode(site), None)
-            },
+            }
             TileKV::SiteAttr(bel, attr, val) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteAttr(site, attr), val)

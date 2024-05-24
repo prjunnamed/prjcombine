@@ -8,3 +8,4 @@ Xilinx Virtex 5 FPGAs
    :caption: Contents:
 
    clb
+   dsp
