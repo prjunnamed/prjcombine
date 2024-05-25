@@ -24,12 +24,6 @@ impl IntDb {
                 WireKind::Branch(d) => write!(o, "BRANCH {d}")?,
                 WireKind::PipBranch(d) => write!(o, "PIPBRANCH {d}")?,
                 WireKind::MultiBranch(d) => write!(o, "MULTIBRANCH {d}")?,
-                WireKind::CondAlias(nk, ow) => write!(
-                    o,
-                    "CONDALIAS {nkn} {own}",
-                    nkn = self.nodes.key(nk),
-                    own = self.wires.key(ow)
-                )?,
             }
             writeln!(o)?;
         }

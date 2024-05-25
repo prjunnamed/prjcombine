@@ -520,12 +520,6 @@ impl<'a> ExpandedGrid<'a> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::CondAlias(node, wf) => {
-                    if tile.nodes.first().unwrap().kind != node {
-                        break;
-                    }
-                    wire.2 = wf;
-                }
                 WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
                     if let Some(t) = &tile.terms[dir] {
                         let term = &self.db.terms[t.kind];
@@ -579,12 +573,6 @@ impl<'a> ExpandedGrid<'a> {
                 WireKind::ClkOut(_) => {
                     wire.1 = tile.clkroot;
                     break;
-                }
-                WireKind::CondAlias(node, wf) => {
-                    if tile.nodes.first().unwrap().kind != node {
-                        break;
-                    }
-                    wire.2 = wf;
                 }
                 WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
                     if let Some(t) = &tile.terms[dir] {
@@ -712,12 +700,6 @@ impl<'a> ExpandedGrid<'a> {
                     wire.1 = tile.clkroot;
                     break;
                 }
-                WireKind::CondAlias(node, wf) => {
-                    if tile.nodes.first().unwrap().kind != node {
-                        break;
-                    }
-                    wire.2 = wf;
-                }
                 WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
                     if let Some(t) = &tile.terms[dir] {
                         let term = &self.db.terms[t.kind];
@@ -776,13 +758,6 @@ impl<'a> ExpandedGrid<'a> {
             for &wt in &self.db_index.buf_ins[wire.2] {
                 queue.push((wire.0, wire.1, wt));
             }
-            for (&wt, &nk) in &self.db_index.cond_alias_ins[wire.2] {
-                if let Some(node) = tile.nodes.first() {
-                    if node.kind == nk {
-                        queue.push((wire.0, wire.1, wt));
-                    }
-                }
-            }
             for dir in Dir::DIRS {
                 if let Some(ref term) = tile.terms[dir] {
                     for &wt in &self.db_index.terms[term.kind].wire_ins_near[wire.2] {
@@ -808,7 +783,6 @@ impl<'a> ExpandedGrid<'a> {
                 | WireKind::MultiBranch(_)
                 | WireKind::PipOut
                 | WireKind::PipBranch(_)
-                | WireKind::CondAlias(_, _)
         ) {
             wires = self.wire_tree(wire);
         }

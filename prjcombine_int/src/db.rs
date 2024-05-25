@@ -179,7 +179,6 @@ pub enum WireKind {
     MultiBranch(Dir),
     PipBranch(Dir),
     Branch(Dir),
-    CondAlias(NodeKindId, WireId),
 }
 
 impl WireKind {
@@ -374,7 +373,6 @@ pub struct IntDbIndex {
     pub nodes: EntityVec<NodeKindId, NodeIndex>,
     pub terms: EntityVec<TermKindId, TermIndex>,
     pub buf_ins: EntityVec<WireId, HashSet<WireId>>,
-    pub cond_alias_ins: EntityVec<WireId, HashMap<WireId, NodeKindId>>,
 }
 
 #[derive(Clone, Debug)]
@@ -393,23 +391,15 @@ pub struct TermIndex {
 impl IntDbIndex {
     pub fn new(db: &IntDb) -> Self {
         let mut buf_ins: EntityVec<_, _> = db.wires.ids().map(|_| HashSet::new()).collect();
-        let mut cond_alias_ins: EntityVec<_, _> = db.wires.ids().map(|_| HashMap::new()).collect();
         for (w, _, wd) in &db.wires {
-            match *wd {
-                WireKind::Buf(wi) => {
-                    buf_ins[wi].insert(w);
-                }
-                WireKind::CondAlias(nk, wi) => {
-                    cond_alias_ins[wi].insert(w, nk);
-                }
-                _ => (),
+            if let WireKind::Buf(wi) = *wd {
+                buf_ins[wi].insert(w);
             }
         }
         Self {
             nodes: db.nodes.values().map(NodeIndex::new).collect(),
             terms: db.terms.values().map(|t| TermIndex::new(t, db)).collect(),
             buf_ins,
-            cond_alias_ins,
         }
     }
 }
