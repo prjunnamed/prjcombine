@@ -211,7 +211,24 @@ impl TileBits {
                     todo!()
                 }
                 prjcombine_xilinx_geom::ExpandedDevice::Virtex4(edev) => {
-                    todo!()
+                    if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4 {
+                        vec![
+                            edev.btile_main(die, col, row),
+                            edev.btile_main(die, col, row + 1),
+                            edev.btile_main(die, col, row + 2),
+                            edev.btile_main(die, col, row + 3),
+                            edev.btile_bram(die, col, row),
+                        ]
+                    } else {
+                        vec![
+                            edev.btile_main(die, col, row),
+                            edev.btile_main(die, col, row + 1),
+                            edev.btile_main(die, col, row + 2),
+                            edev.btile_main(die, col, row + 3),
+                            edev.btile_main(die, col, row + 4),
+                            edev.btile_bram(die, col, row),
+                        ]
+                    }
                 }
                 prjcombine_xilinx_geom::ExpandedDevice::Ultrascale(_) => {
                     todo!()

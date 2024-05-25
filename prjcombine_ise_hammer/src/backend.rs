@@ -70,7 +70,7 @@ impl<'a> From<bool> for Value<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum MultiValue {
     Lut,
-    Hex,
+    Hex(i32),
 }
 
 #[derive(Clone, Debug)]
@@ -441,7 +441,31 @@ impl<'a> Backend for IseBackend<'a> {
                 }
                 Value::String(v.into())
             }
-            MultiValue::Hex => {
+            MultiValue::Hex(delta) => {
+                let mut y = y.clone();
+                if delta != 0 {
+                    y.push(false);
+                }
+                if delta > 0 {
+                    for _ in 0..delta {
+                        for mut bit in &mut y {
+                            bit.set(!*bit);
+                            if *bit {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if delta < 0 {
+                    for _ in 0..-delta {
+                        for mut bit in &mut y {
+                            bit.set(!*bit);
+                            if !*bit {
+                                break;
+                            }
+                        }
+                    }
+                }
                 let mut v = String::new();
                 let nc = y.len() / 4;
                 for i in 0..nc {

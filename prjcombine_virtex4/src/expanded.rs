@@ -188,4 +188,33 @@ impl<'a> ExpandedDevice<'a> {
             flip,
         )
     }
+
+    pub fn btile_bram(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grids[die].row_to_reg(row);
+        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
+        let (width, bit, flip) = if self.kind == GridKind::Virtex4 {
+            let flip = reg < self.grids[die].reg_cfg;
+            let pos = if flip { 12 - rd } else { rd } * 80;
+            (64, if pos < 640 { pos } else { pos + 32 }, flip)
+        } else {
+            (
+                128,
+                64 * rd
+                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                        32
+                    } else {
+                        0
+                    },
+                false,
+            )
+        };
+        BitTile::Main(
+            die,
+            self.frames[die].bram_frame[reg][col],
+            width,
+            bit,
+            320,
+            flip,
+        )
+    }
 }

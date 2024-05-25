@@ -53,6 +53,27 @@ impl Diff {
             self.bits.remove(bit);
         }
     }
+
+    pub fn apply_enum_diff(&mut self, item: &TileItem<FeatureBit>, from: &str, to: &str) {
+        let TileItemKind::Enum { ref values } = item.kind else {
+            unreachable!()
+        };
+        let from = &values[from];
+        let to = &values[to];
+        for (idx, &bit) in item.bits.iter().enumerate() {
+            if from[idx] != to[idx] {
+                match self.bits.entry(bit) {
+                    hash_map::Entry::Occupied(e) => {
+                        assert_eq!(*e.get(), from[idx]);
+                        e.remove();
+                    }
+                    hash_map::Entry::Vacant(e) => {
+                        e.insert(to[idx]);
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl core::ops::Not for Diff {

@@ -70,6 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
                     clb::virtex2::add_fuzzers(&mut hammer, &backend);
+                    bram::virtex4::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex4::add_fuzzers(&mut hammer, &backend);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
@@ -116,6 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
                     clb::virtex2::collect_fuzzers(&mut ctx);
+                    bram::virtex4::collect_fuzzers(&mut ctx);
                     dsp::virtex4::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
