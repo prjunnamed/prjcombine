@@ -404,7 +404,7 @@ impl<'a, B: Backend> Session<'a, B> {
             fuzzers: EntityVec::new(),
         };
         let Some((fuzzer, chain)) = fgen.gen(self.backend, state, &batch.kv) else {
-            panic!("failed to generate fuzzer on empty batch");
+            panic!("failed to generate fuzzer {fgen:?} on empty batch");
         };
         if let Some(fid) = batch.install_fuzzer(fuzzer) {
             let bid = self.batches.push(batch);

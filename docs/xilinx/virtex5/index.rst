@@ -1,5 +1,5 @@
-Xilinx Virtex 2 and Spartan 3 FPGAs
-###################################
+Xilinx Virtex 5 FPGAs
+#####################
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -7,7 +7,6 @@ Xilinx Virtex 2 and Spartan 3 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
-   clb-xc2v
-   clb-xc3s
-   bram
+   int
+   clb
    dsp

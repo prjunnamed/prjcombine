@@ -623,8 +623,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pin "I"),
                 (pin "O")
             ]);
-            fuzz_one!(ctx, "OUT_A", "1", [], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
-            fuzz_one!(ctx, "OUT_B", "1", [], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
+            fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
+            fuzz_one!(ctx, "OUT_B", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
         }
         // TODO: TBUS joiner
     }

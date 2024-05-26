@@ -358,6 +358,8 @@ pub fn run_bitgen(
     std::mem::drop(xdl_file);
     let mut cmd = tc.command("xdl");
     cmd.current_dir(dir.path());
+    cmd.env("XIL_TEST_ARCS", "1");
+    cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
     cmd.arg("-xdl2ncd");
     cmd.arg("-force");
     cmd.arg("meow.xdl");
@@ -369,6 +371,8 @@ pub fn run_bitgen(
     }
     let mut cmd = tc.command("bitgen");
     cmd.current_dir(dir.path());
+    cmd.env("XIL_TEST_ARCS", "1");
+    cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
     cmd.arg("-d");
     for (k, v) in gopts {
         cmd.arg("-g");

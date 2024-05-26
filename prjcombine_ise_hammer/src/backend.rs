@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ExpandedGrid, RowId};
+use prjcombine_int::db::{IntDb, WireId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::parse;
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
@@ -12,6 +12,7 @@ use std::collections::{hash_map, HashMap};
 use std::fmt::Write;
 
 use crate::diff::Diff;
+use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
     pub tc: &'a Toolchain,
@@ -40,6 +41,7 @@ pub enum Key<'a> {
     GlobalMutex(&'a str),
     RowMutex(&'a str, RowId),
     SiteMutex(&'a str, &'a str),
+    NodeMutex((DieId, (ColId, RowId), WireId)),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

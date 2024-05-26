@@ -14,6 +14,7 @@ mod diff;
 mod dsp;
 mod fgen;
 mod fuzz;
+mod int;
 mod tiledb;
 
 use backend::IseBackend;
@@ -49,6 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             edev: &gedev,
         };
         let mut hammer = Session::new(&backend);
+        int::add_fuzzers(&mut hammer, &backend);
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
             ExpandedDevice::Xc5200(_) => {}
@@ -96,6 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             state: &mut state,
             tiledb: &mut tiledb,
         };
+        int::collect_fuzzers(&mut ctx);
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
             ExpandedDevice::Xc5200(_) => {}

@@ -7,5 +7,6 @@ Xilinx Virtex 4 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   int
    bram
    dsp

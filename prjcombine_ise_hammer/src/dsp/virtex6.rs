@@ -168,7 +168,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_enum!(ctx, "AUTORESET_PATDET", ["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"], [(mode bel_kind)]);
         fuzz_multi!(ctx, "PATTERN", "", 48, [(mode bel_kind)], (attr_hex "PATTERN"));
         fuzz_multi!(ctx, "MASK", "", 48, [(mode bel_kind)], (attr_hex "MASK"));
-        // TODO: pips
     }
 }
 

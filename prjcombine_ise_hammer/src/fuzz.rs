@@ -84,10 +84,18 @@ macro_rules! fuzz_diff_multi {
         $crate::fgen::TileMultiFuzzKV::SiteAttr($ctx.bel, $attr, $crate::backend::MultiValue::Lut)
     };
     ($ctx:ident, (attr_hex $attr:expr)) => {
-        $crate::fgen::TileMultiFuzzKV::SiteAttr($ctx.bel, $attr, $crate::backend::MultiValue::Hex(0))
+        $crate::fgen::TileMultiFuzzKV::SiteAttr(
+            $ctx.bel,
+            $attr,
+            $crate::backend::MultiValue::Hex(0),
+        )
     };
     ($ctx:ident, (attr_hex_delta $attr:expr, $delta:expr)) => {
-        $crate::fgen::TileMultiFuzzKV::SiteAttr($ctx.bel, $attr, $crate::backend::MultiValue::Hex($delta))
+        $crate::fgen::TileMultiFuzzKV::SiteAttr(
+            $ctx.bel,
+            $attr,
+            $crate::backend::MultiValue::Hex($delta),
+        )
     };
 }
 

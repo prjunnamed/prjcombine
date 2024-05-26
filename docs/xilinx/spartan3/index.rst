@@ -1,5 +1,5 @@
-Xilinx Virtex 5 FPGAs
-#####################
+Xilinx Spartan 3 FPGAs
+######################
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -7,5 +7,6 @@ Xilinx Virtex 5 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   int
    clb
    dsp

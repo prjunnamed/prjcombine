@@ -39,8 +39,8 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     max(frame + 1, bt_dims[bt][0]),
                     max(bit + 1, bt_dims[bt][1]),
                 )
-        
-        with open(f"gen-xilinx-tile-{kind}-{tile_name}.html", "w") as f:
+
+        with open(f"xilinx/gen-xilinx-tile-{kind}-{tile_name}.html", "w") as f:
             rev = {}
             for name, item in tile.items():
                 for j, bit in enumerate(item["bits"]):
@@ -99,7 +99,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 f.write("</table>\n")
 
     if kind == "xc3s":
-        with open("gen-xilinx-xc3s-bram-opts.html", "w") as f:
+        with open("xilinx/gen-xilinx-xc3s-bram-opts.html", "w") as f:
             emit_dev_table_bitvec(f, "BRAM:DDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_A_DEFAULT")
