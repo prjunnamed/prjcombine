@@ -68,4 +68,8 @@ impl ExpandedDevice<'_> {
             false,
         )
     }
+
+    pub fn btile_reg(&self, dir: Dir) -> BitTile {
+        BitTile::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
+    }
 }

@@ -903,13 +903,18 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &bels_int,
         );
     } else if rd.family == "spartan3a" {
-        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM0_SMALL_BOT", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL_TOP", "INT.BRAM.S3A", "INT.BRAM", &bels_int);
-        builder.extract_node("BRAM3_SMALL_BRK", "INT.BRAM.S3A", "INT.BRAM.BRK", &bels_int);
+        builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
+        builder.extract_node("BRAM0_SMALL_BOT", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
+        builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3A.12", "INT.BRAM", &bels_int);
+        builder.extract_node("BRAM2_SMALL", "INT.BRAM.S3A.12", "INT.BRAM", &bels_int);
+        builder.extract_node("BRAM3_SMALL", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
+        builder.extract_node("BRAM3_SMALL_TOP", "INT.BRAM.S3A.03", "INT.BRAM", &bels_int);
+        builder.extract_node(
+            "BRAM3_SMALL_BRK",
+            "INT.BRAM.S3A.03",
+            "INT.BRAM.BRK",
+            &bels_int,
+        );
     } else if rd.family == "spartan3e" {
         builder.extract_node("BRAM0_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);
         builder.extract_node("BRAM1_SMALL", "INT.BRAM.S3E", "INT.BRAM", &bels_int);

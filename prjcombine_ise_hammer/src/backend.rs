@@ -1,6 +1,6 @@
 use bitvec::vec::BitVec;
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::db::{IntDb, WireId};
+use prjcombine_int::db::WireId;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::parse;
@@ -12,7 +12,6 @@ use std::collections::{hash_map, HashMap};
 use std::fmt::Write;
 
 use crate::diff::Diff;
-use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
     pub tc: &'a Toolchain,
@@ -155,33 +154,6 @@ fn xlat_diff(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<Diff> {
         return None;
     }
     Some(Diff { bits: res })
-}
-
-impl<'a> IseBackend<'a> {
-    pub fn intdb(&self) -> &'a IntDb {
-        let kind = match self.edev {
-            ExpandedDevice::Xc4k(_) => todo!(),
-            ExpandedDevice::Xc5200(_) => todo!(),
-            ExpandedDevice::Virtex(_) => "virtex",
-            ExpandedDevice::Virtex2(edev) => {
-                if edev.grid.kind.is_virtex2() {
-                    "virtex2"
-                } else {
-                    "spartan3"
-                }
-            }
-            ExpandedDevice::Spartan6(_) => "spartan6",
-            ExpandedDevice::Virtex4(edev) => match edev.kind {
-                prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
-                prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
-                prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
-                prjcombine_virtex4::grid::GridKind::Virtex7 => "series7",
-            },
-            ExpandedDevice::Ultrascale(_) => todo!(),
-            ExpandedDevice::Versal(_) => todo!(),
-        };
-        &self.db.ints[kind]
-    }
 }
 
 impl<'a> Backend for IseBackend<'a> {

@@ -52,6 +52,9 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
                 e.insert(item);
             }
             btree_map::Entry::Occupied(mut e) => {
+                if e.get() != &item {
+                    println!("MERGE {name}", name=e.key());
+                }
                 e.get_mut().merge(&item, neutral);
             }
         }
@@ -138,7 +141,11 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
                 btree_map::Entry::Vacant(e) => {
                     e.insert(val);
                 }
-                btree_map::Entry::Occupied(e) => assert_eq!(*e.get(), val),
+                btree_map::Entry::Occupied(e) => {
+                    if *e.get() != val {
+                        panic!("tile merge failed at {key}: {cv} vs {val:?}", cv = e.get());
+                    }
+                },
             }
         }
     }

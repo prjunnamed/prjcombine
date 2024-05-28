@@ -1,5 +1,5 @@
 use prjcombine_int::{
-    db::{NodeRawTileId, NodeTileId, NodeWireId, WireKind},
+    db::{Dir, NodeRawTileId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, LayerId, RowId},
 };
 use prjcombine_virtex_bitstream::BitTile;
@@ -45,6 +45,34 @@ fn resolve_tile_wire<'a>(
     })
 }
 
+fn resolve_int_pip<'a>(
+    backend: &IseBackend<'a>,
+    loc: Loc,
+    wire_from: NodeWireId,
+    wire_to: NodeWireId,
+) -> Option<(&'a str, &'a str, &'a str)> {
+    let node = backend.egrid.node(loc);
+    let intdb = backend.egrid.db;
+    let node_naming = &intdb.node_namings[node.naming];
+    backend
+        .egrid
+        .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))?;
+    backend
+        .egrid
+        .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
+    Some(
+        if let Some(ext) = node_naming.ext_pips.get(&(wire_to, wire_from)) {
+            (&node.names[ext.tile], &ext.wire_from, &ext.wire_to)
+        } else {
+            (
+                &node.names[NodeRawTileId::from_idx(0)],
+                node_naming.wires.get(&wire_from)?,
+                node_naming.wires.get(&wire_to)?,
+            )
+        },
+    )
+}
+
 #[derive(Debug)]
 pub enum TileKV<'a> {
     SiteMode(BelId, &'a str),
@@ -59,8 +87,10 @@ pub enum TileKV<'a> {
     RowMutex(&'a str, &'a str),
     SiteMutex(BelId, &'a str, &'a str),
     Pip(TileWire<'a>, TileWire<'a>),
+    IntPip(NodeWireId, NodeWireId),
     NodeMutexShared(NodeWireId),
     NodeIntDstFilter(NodeWireId),
+    NodeIntSrcFilter(NodeWireId),
     NodeIntDistinct(NodeWireId, NodeWireId),
 }
 
@@ -69,7 +99,7 @@ impl<'a> TileKV<'a> {
         &self,
         backend: &IseBackend<'a>,
         loc: Loc,
-        fuzzer: Fuzzer<IseBackend<'a>>,
+        mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         Some(match *self {
             TileKV::SiteMode(bel, mode) => {
@@ -109,11 +139,12 @@ impl<'a> TileKV<'a> {
                 assert_eq!(ta, tb);
                 fuzzer.base(Key::Pip(ta, wa, wb), true)
             }
+            TileKV::IntPip(wa, wb) => {
+                let (tile, wa, wb) = resolve_int_pip(backend, loc, wa, wb)?;
+                fuzzer.base(Key::Pip(tile, wa, wb), true)
+            }
             TileKV::NodeMutexShared(wire) => {
                 let node = backend.egrid.node(loc);
-                let intdb = backend.egrid.db;
-                let node_naming = &intdb.node_namings[node.naming];
-                node_naming.wires.get(&wire)?;
                 let node = backend
                     .egrid
                     .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
@@ -125,17 +156,19 @@ impl<'a> TileKV<'a> {
                 match backend.edev {
                     ExpandedDevice::Virtex2(edev) => {
                         let node = backend.egrid.node(loc);
-                        if !edev.grid.kind.is_virtex2()
-                            && backend.egrid.db.nodes.key(node.kind) == "INT.BRAM"
-                            && (wire_name.starts_with("IMUX.CLK")
-                                || wire_name.starts_with("IMUX.SR")
-                                || wire_name.starts_with("IMUX.CE"))
+                        if backend
+                            .egrid
+                            .db
+                            .nodes
+                            .key(node.kind)
+                            .starts_with("INT.BRAM")
                         {
                             let mut tgt = None;
                             for i in 0..4 {
                                 if let Some(bram_node) =
-                                    backend.egrid.find_node(loc.0, (loc.1, loc.2), |node| {
+                                    backend.egrid.find_node(loc.0, (loc.1, loc.2 - i), |node| {
                                         intdb.nodes.key(node.kind).starts_with("BRAM")
+                                            || intdb.nodes.key(node.kind) == "DSP"
                                     })
                                 {
                                     tgt = Some((bram_node, i));
@@ -145,18 +178,63 @@ impl<'a> TileKV<'a> {
                             let (bram_node, idx) = tgt.unwrap();
                             let node_tile = NodeTileId::from_idx(idx);
                             let bram_node_kind = &intdb.nodes[bram_node.kind];
-                            let mut found = false;
-                            for bel in bram_node_kind.bels.values() {
-                                for pin in bel.pins.values() {
-                                    if pin.wires.contains(&(node_tile, wire.1)) {
-                                        found = true;
-                                        break;
+                            if (edev.grid.kind.is_virtex2()
+                                || edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3)
+                                && (wire_name.starts_with("IMUX.CLK")
+                                    || wire_name.starts_with("IMUX.SR")
+                                    || wire_name.starts_with("IMUX.CE")
+                                    || wire_name.starts_with("IMUX.TS"))
+                            {
+                                let mut found = false;
+                                for bel in bram_node_kind.bels.values() {
+                                    for pin in bel.pins.values() {
+                                        if pin.wires.contains(&(node_tile, wire.1)) {
+                                            found = true;
+                                            break;
+                                        }
                                     }
                                 }
+                                if !found {
+                                    return None;
+                                }
                             }
-                            if !found {
+                        }
+                        if backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3E"
+                            || backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3A.LR"
+                        {
+                            if matches!(
+                                &wire_name[..],
+                                "IMUX.DATA3"
+                                    | "IMUX.DATA7"
+                                    | "IMUX.DATA11"
+                                    | "IMUX.DATA15"
+                                    | "IMUX.DATA19"
+                                    | "IMUX.DATA23"
+                                    | "IMUX.DATA27"
+                                    | "IMUX.DATA31"
+                            ) && loc.2 != edev.grid.row_mid() - 1
+                                && loc.2 != edev.grid.row_mid()
+                            {
                                 return None;
                             }
+                            if wire_name == "IMUX.DATA13" && edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp && loc.1 == edev.grid.col_left() {
+                                // ISE bug. sigh.
+                                return None;
+                            }
+                            if matches!(
+                                &wire_name[..],
+                                "IMUX.DATA12" | "IMUX.DATA13" | "IMUX.DATA14"
+                            ) && loc.2 != edev.grid.row_mid()
+                            {
+                                return None;
+                            }
+                        }
+                        if backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3A.TB"
+                            && wire_name == "IMUX.DATA15"
+                            && loc.2 == edev.grid.row_top()
+                        {
+                            // also ISE bug.
+                            return None;
                         }
                         if edev.grid.kind.is_spartan3a()
                             && backend.egrid.db.nodes.key(node.kind) == "INT.CLB"
@@ -170,6 +248,13 @@ impl<'a> TileKV<'a> {
                                 return None;
                             }
                         }
+                        if matches!(&wire_name[..], "IMUX.DATA15" | "IMUX.DATA31")
+                            && intdb.node_namings.key(node.naming).starts_with("INT.MACC")
+                        {
+                            // ISE bug.
+                            return None;
+                        }
+
                         // TODO
                     }
                     ExpandedDevice::Virtex4(edev) => {
@@ -180,6 +265,72 @@ impl<'a> TileKV<'a> {
                             {
                                 return None;
                             }
+                        }
+                    }
+                    _ => (),
+                }
+                fuzzer
+            }
+            TileKV::NodeIntSrcFilter(wire) => {
+                let intdb = backend.egrid.db;
+                let wire_name = intdb.wires.key(wire.1);
+                let node = backend.egrid.node(loc);
+                #[allow(clippy::single_match)]
+                match backend.edev {
+                    ExpandedDevice::Virtex2(edev) => {
+                        if (edev.grid.kind.is_virtex2()
+                            || edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3)
+                            && wire_name.starts_with("OUT")
+                            && intdb.nodes.key(node.kind).starts_with("INT.DCM")
+                        {
+                            let dcm = backend
+                                .egrid
+                                .find_node(loc.0, (loc.1, loc.2), |node| {
+                                    intdb.nodes.key(node.kind).starts_with("DCM.")
+                                })
+                                .unwrap();
+                            let site = &dcm.bels[BelId::from_idx(0)];
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "DCM");
+                            for pin in [
+                                "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV",
+                                "CLKFX", "CLKFX180", "CONCUR", "STATUS1", "STATUS7",
+                            ] {
+                                fuzzer = fuzzer.base(Key::SitePin(site, pin), true);
+                            }
+                        }
+                        if wire_name == "OUT.PCI0"
+                            && loc.2 != edev.grid.row_pci.unwrap() - 2
+                            && loc.2 != edev.grid.row_pci.unwrap() - 1
+                            && loc.2 != edev.grid.row_pci.unwrap()
+                            && loc.2 != edev.grid.row_pci.unwrap() + 1
+                        {
+                            return None;
+                        }
+                        if wire_name == "OUT.PCI1"
+                            && loc.2 != edev.grid.row_pci.unwrap() - 1
+                            && loc.2 != edev.grid.row_pci.unwrap()
+                        {
+                            return None;
+                        }
+                        if (backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3E"
+                            || backend.egrid.db.nodes.key(node.kind) == "INT.IOI.S3A.LR")
+                            && matches!(
+                                &wire_name[..],
+                                "OUT.FAN3" | "OUT.FAN7" | "OUT.SEC11" | "OUT.SEC15"
+                            )
+                            && loc.2 != edev.grid.row_mid() - 1
+                            && loc.2 != edev.grid.row_mid()
+                        {
+                            return None;
+                        }
+                        if wire_name.starts_with("GCLK")
+                            && matches!(
+                                &intdb.node_namings.key(node.naming)[..],
+                                "INT.BRAM.BRK" | "INT.BRAM.S3ADSP.BRK" | "INT.MACC.BRK"
+                            )
+                        {
+                            // ISE bug.
+                            return None;
                         }
                     }
                     _ => (),
@@ -209,6 +360,7 @@ pub enum TileFuzzKV<'a> {
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
     Pip(TileWire<'a>, TileWire<'a>),
+    IntPip(NodeWireId, NodeWireId),
     NodeMutexExclusive(NodeWireId),
 }
 
@@ -242,11 +394,12 @@ impl<'a> TileFuzzKV<'a> {
                 assert_eq!(ta, tb);
                 fuzzer.fuzz(Key::Pip(ta, wa, wb), None, true)
             }
+            TileFuzzKV::IntPip(wa, wb) => {
+                let (tile, wa, wb) = resolve_int_pip(backend, loc, wa, wb)?;
+                fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true)
+            }
             TileFuzzKV::NodeMutexExclusive(wire) => {
                 let node = backend.egrid.node(loc);
-                let intdb = backend.egrid.db;
-                let node_naming = &intdb.node_namings[node.naming];
-                node_naming.wires.get(&wire)?;
                 let node = backend
                     .egrid
                     .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
@@ -280,7 +433,12 @@ impl<'a> TileMultiFuzzKV<'a> {
 #[derive(Debug, Copy, Clone)]
 pub enum TileBits {
     Main(usize),
+    MainUp,
+    MainDown,
     Bram,
+    BTTerm,
+    LRTerm,
+    BTSpine,
 }
 
 impl TileBits {
@@ -355,6 +513,46 @@ impl TileBits {
                 ExpandedDevice::Versal(_) => {
                     todo!()
                 }
+            },
+            TileBits::BTTerm => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_btterm(col, row)]
+            }
+            TileBits::LRTerm => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_lrterm(col, row)]
+            }
+            TileBits::MainUp => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_main(col, row + 1)]
+            }
+            TileBits::MainDown => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_main(col, row - 1)]
+            }
+            TileBits::BTSpine => match backend.edev {
+                ExpandedDevice::Virtex2(edev) => {
+                    vec![edev.btile_spine(row), edev.btile_btspine(row)]
+                }
+                ExpandedDevice::Spartan6(edev) => {
+                    let dir = if row == edev.grid.row_bio_outer() {
+                        Dir::S
+                    } else if row == edev.grid.row_tio_outer() {
+                        Dir::N
+                    } else {
+                        unreachable!()
+                    };
+                    vec![edev.btile_reg(dir)]
+                }
+                _ => unreachable!(),
             },
         }
     }

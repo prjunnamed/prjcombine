@@ -158,6 +158,7 @@ impl<'a> ExpandedGrid<'a> {
             }
             die.clk_root_tiles = clk_root_tiles;
         }
+        #[allow(unexpected_cfgs)]
         if cfg!(self_check_egrid) {
             println!("CHECK");
             for die in self.dies() {

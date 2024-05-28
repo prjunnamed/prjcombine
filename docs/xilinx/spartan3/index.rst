@@ -10,3 +10,4 @@ Xilinx Spartan 3 FPGAs
    int
    clb
    dsp
+   clk

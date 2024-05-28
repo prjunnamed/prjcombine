@@ -8,3 +8,4 @@ Xilinx Spartan 6 FPGAs
    :caption: Contents:
 
    int
+   clk

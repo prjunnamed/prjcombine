@@ -241,4 +241,81 @@ impl<'a> ExpandedDevice<'a> {
             false,
         )
     }
+
+    pub fn btile_lrterm(&self, col: ColId, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (4, 80)
+        } else {
+            (2, 64)
+        };
+        let bit = 16 + height * row.to_idx();
+        let frame = if col == self.grid.col_left() {
+            self.lterm_frame
+        } else if col == self.grid.col_right() {
+            self.rterm_frame
+        } else {
+            unreachable!()
+        };
+        BitTile::Main(DieId::from_idx(0), frame, width, bit, height, false)
+    }
+
+    pub fn btile_btterm(&self, col: ColId, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (22, 80)
+        } else {
+            (19, 64)
+        };
+        let bit = if row == self.grid.row_bot() {
+            0
+        } else if row == self.grid.row_top() {
+            16 + height * self.grid.rows.len()
+        } else {
+            unreachable!()
+        };
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[col],
+            width,
+            bit,
+            16,
+            false,
+        )
+    }
+
+    pub fn btile_spine(&self, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (4, 80)
+        } else if self.grid.has_ll || self.grid.kind.is_spartan3a() {
+            (2, 64)
+        } else {
+            (1, 64)
+        };
+        let bit = 16 + height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.spine_frame,
+            width,
+            bit,
+            height,
+            false,
+        )
+    }
+
+    pub fn btile_btspine(&self, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (4, 80)
+        } else if self.grid.has_ll || self.grid.kind.is_spartan3a() {
+            (2, 64)
+        } else {
+            (1, 64)
+        };
+        let bit = if row == self.grid.row_bot() {
+            0
+        } else if row == self.grid.row_top() {
+            16 + height * self.grid.rows.len()
+        } else {
+            unreachable!()
+        };
+        BitTile::Main(DieId::from_idx(0), self.spine_frame, width, bit, 16, false)
+    }
 }

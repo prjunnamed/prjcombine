@@ -811,7 +811,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         match mode {
             Mode::Virtex2 => {
                 ctx.collect_enum("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                ctx.collect_enum("CLB", bel, "GYMUX", &["G", "FX", "GXOR", "SOPEXT"]);
+                let gymux_g = ctx.state.get_diff("CLB", bel, "GYMUX", "G");
+                let gymux_fx = ctx.state.get_diff("CLB", bel, "GYMUX", "FX");
+                let gymux_gxor = ctx.state.get_diff("CLB", bel, "GYMUX", "GXOR");
+                let gymux_sopout = ctx.state.get_diff("CLB", bel, "GYMUX", "SOPEXT");
+                ctx.tiledb.insert("CLB", bel, "GYMUX", xlat_enum(vec![
+                    ("G".to_string(), gymux_g),
+                    ("FX".to_string(), gymux_fx),
+                    ("GXOR".to_string(), gymux_gxor),
+                    ("SOPOUT".to_string(), gymux_sopout),
+                ]));
                 ctx.collect_enum("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
             }
             Mode::Spartan3 => {
@@ -891,8 +900,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "XBMUX",
                 xlat_enum(vec![
-                    ("SHIFTOUT".to_string(), xbmux_shiftout),
-                    ("COUT".to_string(), xbmux_cout),
+                    ("FMC15".to_string(), xbmux_shiftout),
+                    ("FCY".to_string(), xbmux_cout),
                 ]),
             );
 
@@ -903,8 +912,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "YBMUX",
                 xlat_enum(vec![
-                    ("SHIFTOUT".to_string(), ybmux_shiftout),
-                    ("COUT".to_string(), ybmux_cout),
+                    ("GMC15".to_string(), ybmux_shiftout),
+                    ("GCY".to_string(), ybmux_cout),
                 ]),
             );
         }

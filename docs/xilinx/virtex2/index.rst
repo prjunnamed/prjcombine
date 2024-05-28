@@ -1,12 +1,15 @@
 Xilinx Virtex 2 FPGAs
 #####################
 
-.. todo:: intro document, bitstream format, other tiles, jtag, ...
+.. todo:: io, dcm, corner, ppc, pcilogic, bitstream format, jtag, ...
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   int
+   intro
+   structure
+   interconnect
    clb
    bram
+   clock

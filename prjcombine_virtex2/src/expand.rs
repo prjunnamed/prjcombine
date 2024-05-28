@@ -1498,11 +1498,16 @@ impl<'a, 'b> Expander<'a, 'b> {
 
     fn fill_bram_dsp(&mut self) {
         let bram_kind = match self.grid.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "INT.BRAM",
-            GridKind::Spartan3 => "INT.BRAM.S3",
-            GridKind::Spartan3E => "INT.BRAM.S3E",
-            GridKind::Spartan3A => "INT.BRAM.S3A",
-            GridKind::Spartan3ADsp => "INT.BRAM.S3ADSP",
+            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => ["INT.BRAM"; 4],
+            GridKind::Spartan3 => ["INT.BRAM.S3"; 4],
+            GridKind::Spartan3E => ["INT.BRAM.S3E"; 4],
+            GridKind::Spartan3A => [
+                "INT.BRAM.S3A.03",
+                "INT.BRAM.S3A.12",
+                "INT.BRAM.S3A.12",
+                "INT.BRAM.S3A.03",
+            ],
+            GridKind::Spartan3ADsp => ["INT.BRAM.S3ADSP"; 4],
         };
         let mut sx = 0;
         for (col, &cd) in self.grid.columns.iter() {
@@ -1584,7 +1589,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     }
                     self.die.fill_tile(
                         (col, row),
-                        bram_kind,
+                        bram_kind[i],
                         naming,
                         format!("BRAM{i}_SMALL{md}_X{x}Y{y}"),
                     );
@@ -1606,7 +1611,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let c = self.bramclut[col];
                     let r = self.rlut[row];
                     self.die
-                        .fill_tile((col, row), bram_kind, naming, format!("BRAMR{r}C{c}"));
+                        .fill_tile((col, row), bram_kind[i], naming, format!("BRAMR{r}C{c}"));
                 }
                 if i == 0 {
                     let is_bot =
@@ -2585,10 +2590,10 @@ impl<'a, 'b> Expander<'a, 'b> {
     fn fill_clkbt_v2(&mut self) {
         let row_b = self.grid.row_bot();
         let row_t = self.grid.row_top();
-        let (kind_b, kind_t) = match self.grid.kind {
-            GridKind::Virtex2 => ("CLKB", "CLKT"),
-            GridKind::Virtex2P => ("ML_CLKB", "ML_CLKT"),
-            GridKind::Virtex2PX => ("MK_CLKB", "MK_CLKT"),
+        let (kind_b, kind_t, tk_b, tk_t) = match self.grid.kind {
+            GridKind::Virtex2 => ("CLKB.V2", "CLKT.V2", "CLKB", "CLKT"),
+            GridKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P", "ML_CLKB", "ML_CLKT"),
+            GridKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX", "MK_CLKB", "MK_CLKT"),
             _ => unreachable!(),
         };
         let vx = self.vcc_xlut[self.grid.col_clk] - 1;
@@ -2596,7 +2601,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let node = self.die.add_xnode(
             (self.grid.col_clk, row_b),
             self.db.get_node(kind_b),
-            &[kind_b],
+            &[tk_b],
             self.db.get_node_naming(kind_b),
             &[(self.grid.col_clk - 1, row_b), (self.grid.col_clk, row_b)],
         );
@@ -2622,7 +2627,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let node = self.die.add_xnode(
             (self.grid.col_clk, row_t),
             self.db.get_node(kind_t),
-            &[kind_t],
+            &[tk_t],
             self.db.get_node_naming(kind_t),
             &[(self.grid.col_clk - 1, row_t), (self.grid.col_clk, row_t)],
         );

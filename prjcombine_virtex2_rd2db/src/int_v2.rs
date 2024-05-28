@@ -229,20 +229,72 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for i in 0..4 {
-        builder.mux_out(
+        let wire = builder.mux_out(
             format!("IMUX.CLK{i}"),
             &[
                 format!("CLK{i}"),
                 format!("IOIS_CK{j}_B{k}", j = [2, 1, 2, 1][i], k = [1, 1, 3, 3][i]),
                 format!("BRAM_CLK{i}"),
-                ["BRAM_IOIS_CLKFB", "BRAM_IOIS_CLKIN", "BRAM_IOIS_PSCLK", ""][i].to_string(),
                 format!("CNR_CLK{i}"),
                 format!("LRPPC_INT_CLK{i}"),
                 format!("BPPC_INT_CLK{i}"),
                 format!("TPPC_INT_CLK{i}"),
-                format!("GIGABIT_INT_CLK{i}"),
             ],
         );
+        let name = format!("GIGABIT_INT_CLK{i}");
+        for tile in [
+            "BGIGABIT_INT0",
+            "BGIGABIT_INT1",
+            "BGIGABIT_INT2",
+            "BGIGABIT_INT3",
+            "TGIGABIT_INT0",
+            "TGIGABIT_INT1",
+            "TGIGABIT_INT2",
+            "TGIGABIT_INT3",
+            "BGIGABIT10_INT0",
+            "BGIGABIT10_INT1",
+            "BGIGABIT10_INT2",
+            "BGIGABIT10_INT3",
+            "BGIGABIT10_INT4",
+            "BGIGABIT10_INT5",
+            "BGIGABIT10_INT6",
+            "BGIGABIT10_INT7",
+            "TGIGABIT10_INT0",
+            "TGIGABIT10_INT1",
+            "TGIGABIT10_INT2",
+            "TGIGABIT10_INT3",
+            "TGIGABIT10_INT4",
+            "TGIGABIT10_INT5",
+            "TGIGABIT10_INT6",
+            "TGIGABIT10_INT7",
+        ] {
+            builder.extra_name_tile(tile, &name, wire)
+        }
+    }
+    for i in 0..4 {
+        builder.mux_out(
+            format!("IMUX.IOI.ICLK{i}"),
+            &[format!(
+                "IOIS_CK{j}_B{k}",
+                j = [2, 1, 2, 1][i],
+                k = [0, 0, 2, 2][i]
+            )],
+        );
+    }
+    for i in 0..4 {
+        let wire = builder.mux_out(
+            format!("IMUX.DCMCLK{i}"),
+            &[["BRAM_IOIS_CLKFB", "BRAM_IOIS_CLKIN", "BRAM_IOIS_PSCLK", ""][i].to_string()],
+        );
+        let name = format!("GIGABIT_INT_CLK{i}");
+        for tile in [
+            "BGIGABIT_INT4",
+            "TGIGABIT_INT4",
+            "BGIGABIT10_INT8",
+            "TGIGABIT10_INT8",
+        ] {
+            builder.extra_name_tile(tile, &name, wire)
+        }
     }
     for i in 0..4 {
         builder.mux_out(
@@ -282,7 +334,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             format!("IMUX.TI{i}"),
             &[
                 format!("TI{i}"),
-                format!("IOIS_CK{j}_B0", j = [2, 1][i]),
                 format!("BRAM_TI{i}"),
                 format!("BRAM_IOIS_TI{i}"),
                 format!("CNR_TI{i}"),
@@ -298,7 +349,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             format!("IMUX.TS{i}"),
             &[
                 format!("TS{i}"),
-                format!("IOIS_CK{j}_B2", j = [2, 1][i]),
                 format!("BRAM_TS{i}"),
                 format!("CNR_TS{i}"),
                 format!("LRPPC_INT_TS{i}"),
@@ -308,6 +358,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ],
         );
     }
+
     // CLB inputs
     for i in 0..4 {
         for j in 1..5 {
@@ -1146,7 +1197,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_intf(name, Dir::E, tkn, naming, false);
     }
 
-    for tkn in ["CLKB", "ML_CLKB", "MK_CLKB"] {
+    for (nn, tkn) in [
+        ("CLKB.V2", "CLKB"),
+        ("CLKB.V2P", "ML_CLKB"),
+        ("CLKB.V2PX", "MK_CLKB"),
+    ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = xy.delta(-1, 0);
             let xy_r = xy.delta(1, 0);
@@ -1234,10 +1289,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire("BREFCLK2", &["ML_CLKB_BREFCLK2"]),
                 );
             }
-            builder.extract_xnode(tkn, xy, &[], &[xy_l, xy_r], tkn, &bels, &[]);
+            builder.extract_xnode(nn, xy, &[], &[xy_l, xy_r], nn, &bels, &[]);
         }
     }
-    for tkn in ["CLKT", "ML_CLKT", "MK_CLKT"] {
+    for (nn, tkn) in [
+        ("CLKT.V2", "CLKT"),
+        ("CLKT.V2P", "ML_CLKT"),
+        ("CLKT.V2PX", "MK_CLKT"),
+    ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let xy_l = xy.delta(-1, 0);
             let xy_r = xy.delta(1, 0);
@@ -1325,7 +1384,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire("BREFCLK2", &["ML_CLKT_BREFCLK2"]),
                 );
             }
-            builder.extract_xnode(tkn, xy, &[], &[xy_l, xy_r], tkn, &bels, &[]);
+            builder.extract_xnode(nn, xy, &[], &[xy_l, xy_r], nn, &bels, &[]);
         }
     }
 

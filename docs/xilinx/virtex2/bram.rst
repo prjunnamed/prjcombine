@@ -1,5 +1,9 @@
+.. _virtex2-bram:
+
 Block RAM — Virtex 2, Spartan 3
 ###############################
+
+.. todo:: document
 
 
 Bitstream — Virtex 2
@@ -14,7 +18,6 @@ Bitstream — Spartan 3
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-BRAM.S3.html
-
 
 
 Bitstream — Spartan 3E
