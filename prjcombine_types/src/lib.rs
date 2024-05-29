@@ -52,9 +52,6 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
                 e.insert(item);
             }
             btree_map::Entry::Occupied(mut e) => {
-                if e.get() != &item {
-                    println!("MERGE {name}", name=e.key());
-                }
                 e.get_mut().merge(&item, neutral);
             }
         }
@@ -95,6 +92,12 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
         if self == other {
             return;
         }
+        let TileItemKind::Enum { values: av } = &mut self.kind else {
+            panic!("weird merge: {self:?} {other:?}");
+        };
+        let TileItemKind::Enum { values: bv } = &other.kind else {
+            unreachable!()
+        };
         let mut bits = self.bits.clone();
         for &bit in &other.bits {
             if !bits.contains(&bit) {
@@ -111,12 +114,6 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
             .map(|&x| other.bits.iter().find_position(|&&y| x == y).map(|x| x.0))
             .collect();
         self.bits = bits;
-        let TileItemKind::Enum { values: av } = &mut self.kind else {
-            unreachable!()
-        };
-        let TileItemKind::Enum { values: bv } = &other.kind else {
-            unreachable!()
-        };
         for val in av.values_mut() {
             *val = bit_map_a
                 .iter()
@@ -145,7 +142,7 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
                     if *e.get() != val {
                         panic!("tile merge failed at {key}: {cv} vs {val:?}", cv = e.get());
                     }
-                },
+                }
             }
         }
     }

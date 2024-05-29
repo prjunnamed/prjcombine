@@ -1,10 +1,9 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::WireKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, SimpleFeatureId},
-    diff::{xlat_enum, CollectorCtx, Diff},
+    diff::{xlat_enum_inner, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 
@@ -32,12 +31,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             TileBits::MainUp
         } else if name == "PPC.S" {
             TileBits::MainDown
-        } else if name == "LLV" {
-            // TODO
-            continue;
-        } else if name == "LLH" {
-            // TODO
-            continue;
+        } else if name.starts_with("LLV") {
+            TileBits::LLV
+        } else if name.starts_with("LLH") {
+            TileBits::Spine
         } else {
             panic!("UNK INT TILE: {name}");
         };
@@ -65,19 +62,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ];
                 if let Some(inmux) = node.muxes.get(&wire_from) {
                     if inmux.ins.contains(&wire_to) {
-                        let mut wire_help = None;
-                        for &help in &inmux.ins {
-                            if let Some(helpmux) = node.muxes.get(&help) {
-                                if helpmux.ins.contains(&wire_from) {
-                                    continue;
+                        if name.starts_with("LLH") {
+                            base.extend([TileKV::DriveLLH(wire_from)]);
+                        } else if name.starts_with("LLV") {
+                            base.extend([TileKV::DriveLLV(wire_from)]);
+                        } else {
+                            let mut wire_help = None;
+                            for &help in &inmux.ins {
+                                if let Some(helpmux) = node.muxes.get(&help) {
+                                    if helpmux.ins.contains(&wire_from) {
+                                        continue;
+                                    }
                                 }
+                                // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
+                                wire_help = Some(help);
+                                break;
                             }
-                            // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
-                            wire_help = Some(help);
-                            break;
+                            let wire_help = wire_help.unwrap();
+                            base.extend([TileKV::IntPip(wire_help, wire_from)]);
                         }
-                        let wire_help = wire_help.unwrap();
-                        base.extend([TileKV::IntPip(wire_help, wire_from)]);
                     }
                 }
                 if intdb.wires.key(wire_from.1) == "OUT.TBUS" {
@@ -115,10 +118,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
 
-        // TODO: remove
-        if name.starts_with("LL") {
-            continue;
-        }
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.tiles.len() == 1 {
                 &*format!("MUX.{}", intdb.wires.key(wire_to.1)).leak()
@@ -156,6 +155,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             // these muxes don't actually exist.
                             continue;
                         }
+                        if name.starts_with("INT.IOI.S3")
+                            && mux_name.starts_with("MUX.IMUX.DATA")
+                            && (in_name.starts_with("OUT.FAN")
+                                || in_name.starts_with("IMUX.FAN")
+                                || in_name.starts_with("OMUX"))
+                        {
+                            // ISE is kind of bad. fill these from INT.CLB and verify later?
+                            continue;
+                        }
                         println!("UMMMMM PIP {name} {mux_name} {in_name} is empty");
                         continue;
                     }
@@ -166,7 +174,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if !got_empty {
                 inps.push(("NONE".to_string(), Diff::default()));
             }
-            let ti = xlat_enum(inps);
+            let ti = xlat_enum_inner(inps, OcdMode::Mux);
             if ti.bits.is_empty()
                 && !(name == "INT.GT.CLKPAD"
                     && matches!(

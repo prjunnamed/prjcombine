@@ -390,6 +390,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_l),
             Some("INT_BUFS.W"),
             None,
+            None,
             int_w_xy,
             &lh_all,
         );
@@ -400,6 +401,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_l),
             Some(xy_r),
             Some("INT_BUFS.E"),
+            None,
             None,
             int_e_xy,
             &lh_all,
@@ -420,6 +422,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_l),
             Some("PPC.W"),
             None,
+            None,
             int_w_xy,
             &lh_all,
         );
@@ -430,6 +433,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_l),
             Some(xy_r),
             Some("PPC.E"),
+            None,
             None,
             int_e_xy,
             &lh_all,

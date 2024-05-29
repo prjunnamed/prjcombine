@@ -349,7 +349,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
         _ => unreachable!(),
     };
-
+    let int_tiles = match grid_kind {
+        GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &["INT.BRAM"; 4],
+        GridKind::Spartan3 => &["INT.BRAM.S3"; 4],
+        GridKind::Spartan3E => &["INT.BRAM.S3E"; 4],
+        GridKind::Spartan3A => &[
+            "INT.BRAM.S3A.03",
+            "INT.BRAM.S3A.12",
+            "INT.BRAM.S3A.12",
+            "INT.BRAM.S3A.03",
+        ],
+        GridKind::Spartan3ADsp => &["INT.BRAM.S3ADSP"; 4],
+    };
     let tile = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
@@ -361,17 +372,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
     for pin in ["CLKA", "CLKB", "ENA", "ENB"] {
-        ctx.collect_inv(tile, "BRAM", pin);
+        ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
     }
-    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "ENAINV"));
-    present.discard_bits(ctx.tiledb.item(tile, "BRAM", "ENBINV"));
+    present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENA"));
+    present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENB"));
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
-                ctx.collect_inv(tile, "BRAM", pin);
-                present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
+                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
                 diffs_data.extend(ctx.state.get_diffs(
@@ -403,8 +414,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if grid_kind == GridKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    ctx.collect_inv(tile, "BRAM", pin);
-                    present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
+                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                    present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
                 }
 
                 ctx.collect_enum(tile, "BRAM", "DOA_REG", &["0", "1"]);
@@ -412,14 +423,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
             } else {
                 for pin in ["SSRA", "SSRB"] {
-                    ctx.collect_inv(tile, "BRAM", pin);
+                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
                 }
             }
         }
         _ => {
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
-                ctx.collect_inv(tile, "BRAM", pin);
-                present.discard_bits(ctx.tiledb.item(tile, "BRAM", &format!("{pin}INV")));
+                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
                 diffs_data.extend(ctx.state.get_diffs(
@@ -617,14 +628,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             f_clk.assert_empty();
             ctx.tiledb
                 .insert(tile, "MULT", "REG", xlat_bitvec(vec![f_reg]));
-            ctx.tiledb
-                .insert(tile, "MULT", "CLKINV", xlat_bitvec(vec![f_clk_b]));
-            ctx.collect_inv(tile, "MULT", "CE");
-            ctx.collect_inv(tile, "MULT", "RST");
-            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEINV"));
+            ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bitvec(vec![f_clk_b]));
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE");
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST");
+            present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CE"));
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                ctx.collect_inv(tile, "MULT", pin);
+                ctx.collect_int_inv(int_tiles, tile, "MULT", pin);
             }
             ctx.collect_enum(tile, "MULT", "AREG", &["0", "1"]);
             ctx.collect_enum(tile, "MULT", "BREG", &["0", "1"]);
@@ -645,9 +655,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 )]),
             );
             present.discard_bits(ctx.tiledb.item(tile, "MULT", "PREG_CLKINVERSION"));
-            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEAINV"));
-            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEBINV"));
-            present.discard_bits(ctx.tiledb.item(tile, "MULT", "CEPINV"));
+            present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEA"));
+            present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEB"));
+            present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEP"));
             if grid_kind == GridKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {

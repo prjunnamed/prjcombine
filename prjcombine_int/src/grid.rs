@@ -124,6 +124,22 @@ impl<'a> ExpandedGrid<'a> {
         tile.nodes.values().find(|x| f(x))
     }
 
+    pub fn find_node_loc(
+        &self,
+        die: DieId,
+        coord: Coord,
+        f: impl Fn(&ExpandedTileNode) -> bool,
+    ) -> Option<(LayerId, &ExpandedTileNode)> {
+        let die = self.die(die);
+        let tile = die.tile(coord);
+        for (id, val) in &tile.nodes {
+            if f(val) {
+                return Some((id, val));
+            }
+        }
+        None
+    }
+
     pub fn find_bel(
         &self,
         die: DieId,

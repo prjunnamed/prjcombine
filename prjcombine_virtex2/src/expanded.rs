@@ -318,4 +318,25 @@ impl<'a> ExpandedDevice<'a> {
         };
         BitTile::Main(DieId::from_idx(0), self.spine_frame, width, bit, 16, false)
     }
+
+    pub fn btile_llv_b(&self, col: ColId) -> BitTile {
+        assert_eq!(self.grid.kind, GridKind::Spartan3E);
+        assert!(self.grid.has_ll);
+        let bit = self.grid.rows_hclk.len() / 2;
+        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 1, false)
+    }
+
+    pub fn btile_llv_t(&self, col: ColId) -> BitTile {
+        assert_eq!(self.grid.kind, GridKind::Spartan3E);
+        assert!(self.grid.has_ll);
+        let bit = 16 + self.grid.rows.len() * 64 + 11 + self.grid.rows_hclk.len() / 2;
+        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 2, false)
+    }
+
+    pub fn btile_llv(&self, col: ColId) -> BitTile {
+        assert!(self.grid.kind.is_spartan3a());
+        assert!(self.grid.has_ll);
+        let bit = 16 + self.grid.rows.len() * 64 + 8;
+        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 3, false)
+    }
 }

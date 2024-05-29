@@ -7,7 +7,7 @@ Xilinx Spartan 3 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
-   int
+   interconnect
    clb
    dsp
-   clk
+   clock

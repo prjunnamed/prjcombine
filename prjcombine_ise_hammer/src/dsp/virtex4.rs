@@ -92,7 +92,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let ti0 = ctx.extract_enum_bool(tile, "DSP0", pininv, pin, pin_b);
         let ti1 = ctx.extract_enum_bool(tile, "DSP1", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
-        ctx.tiledb.insert(tile, "DSP_COMMON", pininv, ti0);
+        ctx.insert_int_inv(&["INT"; 4], tile, "DSP0", pin, ti0);
     }
     let d0_0 = ctx.state.get_diff(tile, "DSP0", "CREG", "0");
     let d0_1 = ctx.state.get_diff(tile, "DSP0", "CREG", "1");
@@ -116,7 +116,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     );
     for bel in ["DSP0", "DSP1"] {
         for &pin in DSP48_INVPINS {
-            ctx.collect_inv(tile, bel, pin);
+            if pin.starts_with("CLK") || pin.starts_with("RST") || pin.starts_with("CE") {
+                ctx.collect_int_inv(&["INT"; 4], tile, bel, pin);
+            } else {
+                ctx.collect_inv(tile, bel, pin);
+            }
         }
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for attr in ["AREG", "BREG"] {

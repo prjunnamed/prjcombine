@@ -1108,6 +1108,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_b),
             Some("PPC.S"),
             Some(("PPC.S", "PPC.S")),
+            None,
             int_s_xy,
             &[],
         );
@@ -1119,6 +1120,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             Some(xy_t),
             Some("PPC.N"),
             Some(("PPC.N", "PPC.N")),
+            None,
             int_n_xy,
             &[],
         );
@@ -1135,6 +1137,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Some(int_w_xy),
                 Some("PPC.W"),
                 Some(("PPC.W", "PPC.W")),
+                None,
                 int_w_xy,
                 &[],
             );
@@ -1146,6 +1149,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Some(xy_r),
                 Some("PPC.E"),
                 Some(("PPC.E", "PPC.E")),
+                None,
                 int_e_xy,
                 &[],
             );

@@ -164,7 +164,7 @@ impl Grid {
                 db.get_node(kind),
                 &[&tile],
                 db.get_node_naming(kind),
-                &[(col, row_n), (col, row_s)],
+                &[(col, row_s), (col, row_n)],
             );
         }
 
@@ -192,7 +192,7 @@ impl Grid {
                 db.get_node(kind),
                 &[&tile],
                 db.get_node_naming(kind),
-                &[(col_r, row), (col_l, row)],
+                &[(col_l, row), (col_r, row)],
             );
         }
 

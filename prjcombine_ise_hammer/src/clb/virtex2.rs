@@ -133,7 +133,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pin "BX"),
                 (pin "COUT")
             ]);
-            fuzz_enum!(ctx, "CY0F", ["0", "1", "F1", "PROD", "F2", "BX"], [
+            fuzz_enum!(ctx, "CY0F", ["BX", "F2", "F1", "PROD", "0", "1"], [
                 (mode bk_l),
                 (attr "CYINIT", "BX"),
                 (attr "BXINV", "BX"),
@@ -149,7 +149,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pin "X"),
                 (pin "COUT")
             ]);
-            fuzz_enum!(ctx, "CY0G", ["0", "1", "G1", "PROD", "G2", "BY"], [
+            fuzz_enum!(ctx, "CY0G", ["BY", "G2", "G1", "PROD", "0", "1"], [
                 (mode bk_l),
                 (attr "CYINIT", "BX"),
                 (attr "BXINV", "BX"),
@@ -655,11 +655,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if mode != Mode::Virtex4 {
             ctx.collect_enum("CLB", bel, "CYSELF", &["F", "1"]);
             ctx.collect_enum("CLB", bel, "CYSELG", &["G", "1"]);
-            ctx.collect_enum("CLB", bel, "CY0F", &["0", "1", "F1", "PROD", "F2", "BX"]);
-            ctx.collect_enum("CLB", bel, "CY0G", &["0", "1", "G1", "PROD", "G2", "BY"]);
+            ctx.collect_enum("CLB", bel, "CY0F", &["BX", "F2", "F1", "0", "1", "PROD"]);
+            ctx.collect_enum("CLB", bel, "CY0G", &["BY", "G2", "G1", "0", "1", "PROD"]);
         } else {
-            ctx.collect_enum("CLB", bel, "CY0F", &["0", "1", "F3", "PROD", "F2", "BX"]);
-            ctx.collect_enum("CLB", bel, "CY0G", &["0", "1", "G3", "PROD", "G2", "BY"]);
+            ctx.collect_enum("CLB", bel, "CY0F", &["1", "0", "PROD", "F2", "F3", "BX"]);
+            ctx.collect_enum("CLB", bel, "CY0G", &["1", "0", "PROD", "G2", "G3", "BY"]);
         }
 
         // LUT RAM
@@ -815,12 +815,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let gymux_fx = ctx.state.get_diff("CLB", bel, "GYMUX", "FX");
                 let gymux_gxor = ctx.state.get_diff("CLB", bel, "GYMUX", "GXOR");
                 let gymux_sopout = ctx.state.get_diff("CLB", bel, "GYMUX", "SOPEXT");
-                ctx.tiledb.insert("CLB", bel, "GYMUX", xlat_enum(vec![
-                    ("G".to_string(), gymux_g),
-                    ("FX".to_string(), gymux_fx),
-                    ("GXOR".to_string(), gymux_gxor),
-                    ("SOPOUT".to_string(), gymux_sopout),
-                ]));
+                ctx.tiledb.insert(
+                    "CLB",
+                    bel,
+                    "GYMUX",
+                    xlat_enum(vec![
+                        ("G".to_string(), gymux_g),
+                        ("FX".to_string(), gymux_fx),
+                        ("SOPOUT".to_string(), gymux_sopout),
+                        ("GXOR".to_string(), gymux_gxor),
+                    ]),
+                );
                 ctx.collect_enum("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
             }
             Mode::Spartan3 => {
@@ -863,11 +868,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "DXMUX",
                 xlat_enum(vec![
-                    ("BX".to_string(), dxmux_bx),
                     ("X".to_string(), dxmux_x),
-                    ("XB".to_string(), dxmux_xb),
                     ("F5".to_string(), dxmux_f5),
+                    ("XB".to_string(), dxmux_xb),
                     ("FXOR".to_string(), dxmux_fxor),
+                    ("BX".to_string(), dxmux_bx),
                 ]),
             );
 
@@ -884,11 +889,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "DYMUX",
                 xlat_enum(vec![
-                    ("BY".to_string(), dymux_by),
                     ("Y".to_string(), dymux_y),
-                    ("YB".to_string(), dymux_yb),
                     ("FX".to_string(), dymux_fx),
+                    ("YB".to_string(), dymux_yb),
                     ("GXOR".to_string(), dymux_gxor),
+                    ("BY".to_string(), dymux_by),
                 ]),
             );
         }
@@ -964,43 +969,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .insert("CLB", bel, "FFY_INIT", xlat_bitvec(vec![ffy_init]));
 
         // inverts
-        for (pininv, pin, pin_b, def) in [
-            ("CLKINV", "CLK", "CLK_B", mode == Mode::Virtex4),
-            ("CEINV", "CE", "CE_B", false),
-            ("SRINV", "SR", "SR_B", mode != Mode::Virtex2),
-            ("BXINV", "BX", "BX_B", false),
-            ("BYINV", "BY", "BY_B", false),
-        ] {
-            let f_pin = ctx.state.get_diff("CLB", bel, pininv, pin);
-            let f_pin_b = ctx.state.get_diff("CLB", bel, pininv, pin_b);
-            let inv = if !def {
-                f_pin.assert_empty();
-                f_pin_b
-            } else {
-                f_pin_b.assert_empty();
-                !f_pin
-            };
-            ctx.tiledb
-                .insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
+        let int = if mode == Mode::Virtex4 {
+            "INT"
+        } else {
+            "INT.CLB"
+        };
+        ctx.collect_int_inv(&[int], "CLB", bel, "CLK");
+        ctx.collect_int_inv(&[int], "CLB", bel, "SR");
+        ctx.collect_int_inv(&[int], "CLB", bel, "CE");
+        if mode == Mode::Virtex2 {
+            ctx.collect_int_inv(&[int], "CLB", bel, "BX");
+            ctx.collect_int_inv(&[int], "CLB", bel, "BY");
+        } else {
+            ctx.collect_inv("CLB", bel, "BX");
+            ctx.collect_inv("CLB", bel, "BY");
         }
     }
     if mode == Mode::Virtex2 {
         for bel in ["TBUF0", "TBUF1"] {
-            for (pininv, pin, pin_b, def) in
-                [("TINV", "T", "T_B", true), ("IINV", "I", "I_B", true)]
-            {
-                let f_pin = ctx.state.get_diff("CLB", bel, pininv, pin);
-                let f_pin_b = ctx.state.get_diff("CLB", bel, pininv, pin_b);
-                let inv = if !def {
-                    f_pin.assert_empty();
-                    f_pin_b
-                } else {
-                    f_pin_b.assert_empty();
-                    !f_pin
-                };
-                ctx.tiledb
-                    .insert("CLB", bel, pininv, xlat_bitvec(vec![inv]));
-            }
+            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "T");
+            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "I");
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.tiledb.insert(
                     "CLB",
@@ -1009,6 +997,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     xlat_bitvec(vec![ctx.state.get_diff("CLB", bel, attr, "1")]),
                 );
             }
+        }
+    }
+    let egrid = ctx.edev.egrid();
+    for (node_kind, name, node) in &egrid.db.nodes {
+        if !name.starts_with("INT.") {
+            continue;
+        }
+        if name == "INT.CLB" {
+            continue;
+        }
+        if egrid.node_index[node_kind].is_empty() {
+            continue;
+        }
+        for &wire in node.muxes.keys() {
+            let wire_name = egrid.db.wires.key(wire.1);
+            let inv_name = format!("INT:INV.{wire_name}");
+            let mux_name = format!("INT:MUX.{wire_name}");
+            if !ctx.tiledb.tiles[name].items.contains_key(&mux_name) {
+                continue;
+            }
+            let int_clb = &ctx.tiledb.tiles["INT.CLB"];
+            let Some(item) = int_clb.items.get(&inv_name) else {
+                continue;
+            };
+            let item = item.clone();
+            ctx.tiledb
+                .insert(name, "INT", format!("INV.{wire_name}"), item);
         }
     }
 }

@@ -89,7 +89,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
 
     for &pin in DSP48A_INVPINS {
-        ctx.collect_inv("DSP", "DSP", pin);
+        match mode {
+            Mode::Spartan3ADsp => ctx.collect_int_inv(&["INT.BRAM.S3ADSP"; 4], "DSP", "DSP", pin),
+            Mode::Spartan6 => ctx.collect_inv("DSP", "DSP", pin),
+        }
     }
     for attr in [
         "A0REG",

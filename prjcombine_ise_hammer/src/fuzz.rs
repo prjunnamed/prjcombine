@@ -67,6 +67,9 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::SiteAttr($ctx.bel, $attr, $val)
     };
+    ($ctx:ident, (pin $pin:expr)) => {
+        $crate::fgen::TileFuzzKV::SitePin($ctx.bel, $pin)
+    };
     ($ctx:ident, (global_opt $opt:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::GlobalOpt($opt, $val)
     };

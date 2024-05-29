@@ -2324,12 +2324,17 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             self.die
                 .fill_term_pair_anon((col, row_s), (col, row_n), term_n, term_s);
+            let node_kind = if self.grid.kind.is_spartan3a() {
+                "LLV.S3A"
+            } else {
+                "LLV.S3E"
+            };
             self.die.add_xnode(
                 (col, row_n),
-                self.db.get_node("LLV"),
+                self.db.get_node(node_kind),
                 &[&tile],
                 naming,
-                &[(col, row_n), (col, row_s)],
+                &[(col, row_s), (col, row_n)],
             );
         }
     }
@@ -2376,12 +2381,20 @@ impl<'a, 'b> Expander<'a, 'b> {
             };
             self.die
                 .fill_term_pair_anon((col_l, row), (col_r, row), term_e, term_w);
+            let node_kind = if self.grid.kind.is_spartan3a() && row == self.grid.row_bot() {
+                "LLH.CLKB.S3A"
+            } else if self.grid.kind.is_spartan3a() && row == self.grid.row_top() {
+                "LLH.CLKT.S3A"
+            } else {
+                "LLH"
+            };
+
             self.die.add_xnode(
                 (col_r, row),
-                self.db.get_node("LLH"),
+                self.db.get_node(node_kind),
                 &[&tile],
                 self.db.get_node_naming("LLH"),
-                &[(col_r, row), (col_l, row)],
+                &[(col_l, row), (col_r, row)],
             );
         }
     }

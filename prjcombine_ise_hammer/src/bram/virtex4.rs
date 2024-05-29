@@ -193,27 +193,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "BRAM";
-    for (pin, pin_fifo) in [
-        ("CLKA", "RDCLK"),
-        ("CLKB", "WRCLK"),
-        ("ENA", "RDEN"),
-        ("ENB", "WREN"),
-        ("SSRA", "RST"),
-    ] {
-        let pininv = &*format!("{pin}INV").leak();
-        let ti0 = ctx.extract_enum_bool(tile, "BRAM", pininv, pin, format!("{pin}_B").leak());
-        let ti1 = ctx.extract_enum_bool(
-            tile,
-            "FIFO",
-            format!("{pin_fifo}INV").leak(),
-            pin_fifo,
-            format!("{pin_fifo}_B").leak(),
-        );
-        assert_eq!(ti0, ti1);
-        ctx.tiledb.insert(tile, "BRAM", pininv, ti0);
+    for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
+        ctx.collect_int_inv(&["INT"; 4], tile, "FIFO", pin);
     }
     for pin in [
-        "SSRB", "REGCEA", "REGCEB", "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",
+        "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB",
+    ] {
+        ctx.collect_int_inv(&["INT"; 4], tile, "BRAM", pin);
+    }
+    for pin in [
+        "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",
     ] {
         ctx.collect_inv(tile, "BRAM", pin);
     }

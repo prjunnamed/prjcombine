@@ -1514,6 +1514,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 None,
                 Some("TERM.BRAM.S"),
                 None,
+                None,
                 int_s_xy,
                 &lv,
             );
@@ -1524,6 +1525,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Some(xy_b),
                 None,
                 Some("TERM.BRAM.N"),
+                None,
                 None,
                 int_n_xy,
                 &lv,
@@ -1550,6 +1552,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             llv_s = "LLV.CLKLR.S3E.S";
             llv_n = "LLV.CLKLR.S3E.N";
         }
+        let node = if rd.family == "spartan3e" {
+            "LLV.S3E"
+        } else {
+            "LLV.S3A"
+        };
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_fwd_xy = builder.walk_to_int(xy, Dir::S, false).unwrap();
             let int_bwd_xy = builder.walk_to_int(xy, Dir::N, false).unwrap();
@@ -1560,7 +1567,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Some(xy),
                 None,
                 None,
-                Some(("LLV", naming)),
+                None,
+                Some((node, naming)),
                 int_fwd_xy,
                 &[],
             );
@@ -1572,12 +1580,32 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 None,
                 None,
                 None,
+                None,
                 int_bwd_xy,
                 &[],
             );
         }
     }
-    for tkn in ["CLKV_DCM_LL", "CLKV_LL", "CLKT_LL", "CLKB_LL"] {
+    for (node, tkn) in [
+        ("LLH", "CLKV_DCM_LL"),
+        ("LLH", "CLKV_LL"),
+        (
+            if rd.family == "spartan3e" {
+                "LLH"
+            } else {
+                "LLH.CLKT.S3A"
+            },
+            "CLKT_LL",
+        ),
+        (
+            if rd.family == "spartan3e" {
+                "LLH"
+            } else {
+                "LLH.CLKB.S3A"
+            },
+            "CLKB_LL",
+        ),
+    ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let fix_xy = if tkn == "CLKB_LL" { xy.delta(0, 1) } else { xy };
             let int_fwd_xy = builder.walk_to_int(fix_xy, Dir::W, false).unwrap();
@@ -1595,7 +1623,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Some(xy),
                 None,
                 None,
-                Some(("LLH", "LLH")),
+                None,
+                Some((node, "LLH")),
                 int_fwd_xy,
                 &[],
             );
@@ -1604,6 +1633,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 Dir::E,
                 int_fwd_xy,
                 Some(xy),
+                None,
                 None,
                 None,
                 None,
@@ -1628,6 +1658,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 None,
                 None,
                 None,
+                None,
                 int_w_xy,
                 &lh,
             );
@@ -1635,6 +1666,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 "DSPHOLE.E",
                 Dir::E,
                 int_w_xy,
+                None,
                 None,
                 None,
                 None,
@@ -1654,6 +1686,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     None,
                     None,
                     None,
+                    None,
                     int_w_xy,
                     &lh,
                 );
@@ -1661,6 +1694,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "HDCM.E",
                     Dir::E,
                     int_w_xy,
+                    None,
                     None,
                     None,
                     None,
@@ -1682,6 +1716,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 None,
                 None,
                 None,
+                None,
                 int_w_xy,
                 &lh,
             );
@@ -1689,6 +1724,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 "DSPHOLE.E",
                 Dir::E,
                 int_w_xy,
+                None,
                 None,
                 None,
                 None,
@@ -1708,6 +1744,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     None,
                     None,
                     None,
+                    None,
                     int_w_xy,
                     &lh,
                 );
@@ -1715,6 +1752,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "HDCM.E",
                     Dir::E,
                     int_w_xy,
+                    None,
                     None,
                     None,
                     None,

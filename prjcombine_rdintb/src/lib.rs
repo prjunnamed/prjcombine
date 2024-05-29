@@ -2797,6 +2797,7 @@ impl<'a> IntBuilder<'a> {
         far: Option<Coord>,
         naming: Option<&str>,
         node: Option<(&str, &str)>,
+        splitter_node: Option<(&str, &str)>,
         src_xy: Coord,
         force_pass: &[WireId],
     ) {
@@ -3028,45 +3029,6 @@ impl<'a> IntBuilder<'a> {
                     );
                 }
             }
-            // splitters
-            let bufs = self.get_bufs(tk);
-            for (&wti, &wfi) in bufs.iter() {
-                if bufs.get(&wfi) != Some(&wti) {
-                    continue;
-                }
-                if let Some(wtl) = names.get(&wti) {
-                    for &wt in wtl {
-                        if self.db.wires[wt] != WireKind::MultiBranch(dir) {
-                            continue;
-                        }
-                        let wf = self.main_passes[dir][wt];
-                        assert!(!wires.contains_id(wt));
-                        if names_far.get(&wfi) != Some(&wf) {
-                            println!(
-                                "WEIRD SPLITTER {} {} {}",
-                                tkn, self.rd.wires[wti], self.rd.wires[wfi]
-                            );
-                        } else {
-                            node_names.insert((nt_near, wt), self.rd.wires[wti].clone());
-                            node_names.insert((nt_far, wf), self.rd.wires[wfi].clone());
-                            node_muxes.insert(
-                                (nt_near, wt),
-                                MuxInfo {
-                                    kind: MuxKind::Plain,
-                                    ins: [(nt_far, wf)].into_iter().collect(),
-                                },
-                            );
-                            node_muxes.insert(
-                                (nt_far, wf),
-                                MuxInfo {
-                                    kind: MuxKind::Plain,
-                                    ins: [(nt_near, wt)].into_iter().collect(),
-                                },
-                            );
-                        }
-                    }
-                }
-            }
             if let Some((nn, nnn)) = node {
                 self.insert_node_merge(
                     nn,
@@ -3093,6 +3055,76 @@ impl<'a> IntBuilder<'a> {
             } else {
                 assert!(node_muxes.is_empty());
             }
+            // splitters
+            let mut snode_muxes = BTreeMap::new();
+            let mut snode_tiles = EntityVec::new();
+            let mut snode_names = BTreeMap::new();
+            let snt_far = snode_tiles.push(());
+            let snt_near = snode_tiles.push(());
+            let bufs = self.get_bufs(tk);
+            for (&wti, &wfi) in bufs.iter() {
+                if bufs.get(&wfi) != Some(&wti) {
+                    continue;
+                }
+                if let Some(wtl) = names.get(&wti) {
+                    for &wt in wtl {
+                        if self.db.wires[wt] != WireKind::MultiBranch(dir) {
+                            continue;
+                        }
+                        let wf = self.main_passes[dir][wt];
+                        assert!(!wires.contains_id(wt));
+                        if names_far.get(&wfi) != Some(&wf) {
+                            println!(
+                                "WEIRD SPLITTER {} {} {}",
+                                tkn, self.rd.wires[wti], self.rd.wires[wfi]
+                            );
+                        } else {
+                            snode_names.insert((snt_near, wt), self.rd.wires[wti].clone());
+                            snode_names.insert((snt_far, wf), self.rd.wires[wfi].clone());
+                            snode_muxes.insert(
+                                (snt_near, wt),
+                                MuxInfo {
+                                    kind: MuxKind::Plain,
+                                    ins: [(snt_far, wf)].into_iter().collect(),
+                                },
+                            );
+                            snode_muxes.insert(
+                                (snt_far, wf),
+                                MuxInfo {
+                                    kind: MuxKind::Plain,
+                                    ins: [(snt_near, wt)].into_iter().collect(),
+                                },
+                            );
+                        }
+                    }
+                }
+            }
+            if let Some((nn, nnn)) = splitter_node {
+                self.insert_node_merge(
+                    nn,
+                    NodeKind {
+                        tiles: snode_tiles,
+                        muxes: snode_muxes,
+                        bels: Default::default(),
+                        iris: Default::default(),
+                        intfs: Default::default(),
+                    },
+                );
+                self.insert_node_naming(
+                    nnn,
+                    NodeNaming {
+                        wires: snode_names,
+                        wire_bufs: Default::default(),
+                        ext_pips: Default::default(),
+                        bels: Default::default(),
+                        iris: Default::default(),
+                        intf_wires_in: Default::default(),
+                        intf_wires_out: Default::default(),
+                    },
+                );
+            } else {
+                assert!(snode_muxes.is_empty());
+            }
         }
 
         let term = TermKind { dir, wires };
@@ -3117,6 +3149,7 @@ impl<'a> IntBuilder<'a> {
                         None,
                         None,
                         None,
+                        None,
                         int_fwd_xy,
                         force_pass,
                     );
@@ -3124,6 +3157,7 @@ impl<'a> IntBuilder<'a> {
                         format!("{}.{}", name.as_ref(), !dir),
                         !dir,
                         int_fwd_xy,
+                        None,
                         None,
                         None,
                         None,
@@ -3157,6 +3191,7 @@ impl<'a> IntBuilder<'a> {
                         None,
                         Some(&naming_bwd),
                         None,
+                        None,
                         int_fwd_xy,
                         force_pass,
                     );
@@ -3167,6 +3202,7 @@ impl<'a> IntBuilder<'a> {
                         Some(xy),
                         None,
                         Some(&naming_fwd),
+                        None,
                         None,
                         int_bwd_xy,
                         force_pass,

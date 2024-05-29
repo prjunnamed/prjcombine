@@ -84,3 +84,38 @@ Bitstream — dummy DCM
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-INT.DCM.S3E.DUMMY.html
+
+
+Bitstream — LLH
+===============
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-LLH.html
+
+
+Bitstream — Spartan 3A bottom LLH
+=================================
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-LLH.CLKB.S3A.html
+
+
+Bitstream — Spartan 3A top LLH
+==============================
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-LLH.CLKT.S3A.html
+
+
+Bitstream — Spartan 3E LLV
+==========================
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-LLV.S3E.html
+
+
+Bitstream — Spartan 3A LLV
+==========================
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-LLV.S3A.html
