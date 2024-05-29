@@ -61,17 +61,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let int_tiles = &["INT.PPC"; 48];
-            if egrid.db.wires.key(wire.1).starts_with("IMUX.CE")
-                || egrid.db.wires.key(wire.1).starts_with("IMUX.TI")
-            {
-                // yup. inverted polarity.
-                let pininv = format!("{pin}INV").leak();
-                let pin_b = format!("{pin}_B").leak();
-                let item = ctx.extract_enum_bool(tile, bel, pininv, pin_b, pin);
-                ctx.insert_int_inv(int_tiles, tile, bel, pin, item);
-            } else {
-                ctx.collect_int_inv(int_tiles, tile, bel, pin);
-            }
+            let flip =  egrid.db.wires.key(wire.1).starts_with("IMUX.SR");
+            ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
         ctx.state
             .get_diff(tile, bel, "PPC405_TEST_MODE", "CORE_TEST")

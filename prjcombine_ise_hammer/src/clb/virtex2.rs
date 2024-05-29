@@ -974,12 +974,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         } else {
             "INT.CLB"
         };
-        ctx.collect_int_inv(&[int], "CLB", bel, "CLK");
-        ctx.collect_int_inv(&[int], "CLB", bel, "SR");
-        ctx.collect_int_inv(&[int], "CLB", bel, "CE");
+        ctx.collect_int_inv(&[int], "CLB", bel, "CLK", false);
+        ctx.collect_int_inv(&[int], "CLB", bel, "SR", mode == Mode::Virtex2);
+        ctx.collect_int_inv(&[int], "CLB", bel, "CE", mode == Mode::Virtex2);
         if mode == Mode::Virtex2 {
-            ctx.collect_int_inv(&[int], "CLB", bel, "BX");
-            ctx.collect_int_inv(&[int], "CLB", bel, "BY");
+            ctx.collect_int_inv(&[int], "CLB", bel, "BX", false);
+            ctx.collect_int_inv(&[int], "CLB", bel, "BY", false);
         } else {
             ctx.collect_inv("CLB", bel, "BX");
             ctx.collect_inv("CLB", bel, "BY");
@@ -987,8 +987,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     if mode == Mode::Virtex2 {
         for bel in ["TBUF0", "TBUF1"] {
-            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "T");
-            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "I");
+            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "T", false);
+            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "I", true);
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.tiledb.insert(
                     "CLB",

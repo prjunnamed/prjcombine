@@ -194,12 +194,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "BRAM";
     for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-        ctx.collect_int_inv(&["INT"; 4], tile, "FIFO", pin);
+        ctx.collect_int_inv(&["INT"; 4], tile, "FIFO", pin, false);
     }
     for pin in [
         "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB",
     ] {
-        ctx.collect_int_inv(&["INT"; 4], tile, "BRAM", pin);
+        ctx.collect_int_inv(&["INT"; 4], tile, "BRAM", pin, false);
     }
     for pin in [
         "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",

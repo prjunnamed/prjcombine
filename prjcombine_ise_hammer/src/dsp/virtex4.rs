@@ -117,7 +117,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for bel in ["DSP0", "DSP1"] {
         for &pin in DSP48_INVPINS {
             if pin.starts_with("CLK") || pin.starts_with("RST") || pin.starts_with("CE") {
-                ctx.collect_int_inv(&["INT"; 4], tile, bel, pin);
+                ctx.collect_int_inv(&["INT"; 4], tile, bel, pin, false);
             } else {
                 ctx.collect_inv(tile, bel, pin);
             }

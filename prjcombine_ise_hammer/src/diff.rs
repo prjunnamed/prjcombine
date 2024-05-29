@@ -402,10 +402,17 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &'b str,
         bel: &'b str,
         pin: &'b str,
+        flip: bool,
     ) {
         let pininv = format!("{pin}INV").leak();
         let pin_b = format!("{pin}_B").leak();
-        let item = self.extract_enum_bool(tile, bel, pininv, pin, pin_b);
+        let item = self.extract_enum_bool(
+            tile,
+            bel,
+            pininv,
+            if flip { pin_b } else { pin },
+            if flip { pin } else { pin_b },
+        );
         self.insert_int_inv(int_tiles, tile, bel, pin, item);
     }
 }

@@ -371,9 +371,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut present = ctx.state.get_diff(tile, "BRAM", "PRESENT", "1");
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
-    for pin in ["CLKA", "CLKB", "ENA", "ENB"] {
-        ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
-    }
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKA", false);
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKB", false);
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENA", grid_kind.is_virtex2());
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENB", grid_kind.is_virtex2());
     present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENA"));
     present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENB"));
     match grid_kind {
@@ -381,7 +382,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
-                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
@@ -414,7 +415,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if grid_kind == GridKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
                     present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
                 }
 
@@ -423,13 +424,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
             } else {
                 for pin in ["SSRA", "SSRB"] {
-                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
+                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
                 }
             }
         }
         _ => {
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEA", false);
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEB", false);
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRA", grid_kind.is_virtex2());
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRB", grid_kind.is_virtex2());
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
-                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin);
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
@@ -629,12 +633,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb
                 .insert(tile, "MULT", "REG", xlat_bitvec(vec![f_reg]));
             ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bitvec(vec![f_clk_b]));
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE");
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST");
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE", grid_kind.is_virtex2());
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST", grid_kind.is_virtex2());
             present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CE"));
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                ctx.collect_int_inv(int_tiles, tile, "MULT", pin);
+                ctx.collect_int_inv(int_tiles, tile, "MULT", pin, false);
             }
             ctx.collect_enum(tile, "MULT", "AREG", &["0", "1"]);
             ctx.collect_enum(tile, "MULT", "BREG", &["0", "1"]);
