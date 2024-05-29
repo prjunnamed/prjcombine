@@ -557,6 +557,8 @@ pub enum TileBits {
     BTSpine,
     #[allow(clippy::upper_case_acronyms)]
     LLV,
+    #[allow(clippy::upper_case_acronyms)]
+    PPC,
 }
 
 impl TileBits {
@@ -688,6 +690,30 @@ impl TileBits {
                     vec![edev.btile_llv(col)]
                 }
             }
+            TileBits::PPC => match backend.edev {
+                ExpandedDevice::Virtex2(edev) => {
+                    let mut res = vec![];
+                    for i in 0..16 {
+                        res.push(edev.btile_main(col, row + i));
+                    }
+                    for i in 0..16 {
+                        res.push(edev.btile_main(col + 9, row + i));
+                    }
+                    for i in 1..9 {
+                        res.push(edev.btile_main(col + i, row));
+                    }
+                    for i in 1..9 {
+                        res.push(edev.btile_main(col + i, row + 15));
+                    }
+                    res
+                }
+                ExpandedDevice::Virtex4(edev) => match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                    _ => unreachable!(),
+                },
+                _ => unreachable!(),
+            },
         }
     }
 }
