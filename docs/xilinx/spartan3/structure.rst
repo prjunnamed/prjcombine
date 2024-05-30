@@ -1,7 +1,7 @@
 .. _spartan3-geometry:
 
-Device geomerey
-################
+Device geometry
+###############
 
 Spartan 3 geometry is largely the same as Virtex 2. The changes are:
 
