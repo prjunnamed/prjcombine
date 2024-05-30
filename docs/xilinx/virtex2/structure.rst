@@ -1,7 +1,7 @@
-.. _virtex2-structure:
+.. _virtex2-geometry:
 
-Device structure
-################
+Device geometry
+###############
 
 General structure
 =================
