@@ -369,127 +369,189 @@ They also have their own primitive outputs:
 They have eight ``OMUX`` lines, multiplexed from the 8 primitive outputs above. The ``OMUX`` wires are connected to the neighbouring general interconnect tiles as-if they came from the otherwise out-of-bounds tiles above or below them.
 
 
-Bitstream — CLB
-===============
+Bitstream — interconnect tiles
+==============================
+
+The interconnect tiles are 22×80 bits. The space on the left is unused by the interconnect tile, and contains data for whatever primitive is associated with the interconnect tile.
+
+
+``INT.CLB``
+-----------
+
+Used with ``CLB`` tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.CLB.html
 
 
-Bitstream — BRAM
-================
+``INT.BRAM``
+------------
+
+Used with ``BRAM`` tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.BRAM.html
 
 
-Bitstream — IOI
-===============
+``INT.IOI``
+-----------
+
+Used with ``IOI`` tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.IOI.html
 
 
-Bitstream — IOI.CLK_B
-=====================
+``INT.IOI.CLK_B``
+-----------------
+
+Used with the ``IOI.CLK_B`` tile (Virtex 2 Pro X special IOI tile used for the dedicated reference clock).
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.IOI.CLK_B.html
 
 
-Bitstream — IOI.CLK_T
-=====================
+``INT.IOI.CLK_T``
+-----------------
+
+Used with the ``IOI.CLK_T`` tile (Virtex 2 Pro X special IOI tile used for the dedicated reference clock).
+
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.IOI.CLK_T.html
 
 
-Bitstream — Virtex 2 DCM
-========================
+``INT.DCM.V2``
+--------------
+
+Used with the Virtex 2 ``DCM.V2`` tile.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.DCM.V2.html
 
 
-Bitstream — Virtex 2 Pro DCM
-============================
+``INT.DCM.V2P``
+---------------
+
+Used with the Virtex 2 Pro ``DCM.V2P`` tile.
+
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.DCM.V2P.html
 
 
-Bitstream — CNR
-===============
+``INT.CNR``
+-----------
+
+Used with the corner tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.CNR.html
 
 
-Bitstream — PPC
-===============
+``INT.PPC``
+-----------
+
+Used with the ``PPC`` tiles, and also for most of the interconnect for the multi-gigabit transceiver tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.PPC.html
 
 
-Bitstream — GT.CLKPAD
-=====================
+``INT.GT.CLKPAD``
+-----------------
+
+Used for the IO row of multi-gigabit transceiver tiles.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-INT.GT.CLKPAD.html
 
 
-Bitstream — TERM.E
-==================
+Bitstream — terminator tiles
+============================
 
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-TERM.E.html
+These tiles are placed at the edges of the device and deal with interconnect lines that go out-of-bounds. The associated bitstream tiles are shared with ``IOBS`` tiles and primitive data for corner tiles.
 
+``TERM.W``
+----------
 
-Bitstream — TERM.W
-==================
+Located at the left edge of every interconnect row, this tile is 4×80 bits.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-TERM.W.html
 
 
-Bitstream — TERM.S
-==================
+``TERM.E``
+----------
+
+Located at the right edge of every interconnect row, this tile is 4×80 bits.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-TERM.E.html
+
+
+``TERM.S``
+----------
+
+Located at the bottom edge of every interconnect column, this tile is 22×12 bits.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-TERM.S.html
 
 
-Bitstream — TERM.N
-==================
+``TERM.N``
+----------
+
+Located at the top edge of every interconnect column, this tile is 22×12 bits.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-TERM.N.html
 
 
-Bitstream — PPC.E
-=================
+Bitstream — PowerPC hole tiles
+==============================
 
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-PPC.E.html
+These tiles are located inside the PowerPC holes, and serve a similar function to the terminator tiles.
 
+``PPC.W``
+---------
 
-Bitstream — PPC.W
-=================
+This tile is located on the right of every interconnect row interrupted by the PowerPC hole. It reuses the bitstream tile of the rightmost ``INT.PPC`` tile of that row.
+
+The interconnect signals prefixed with ``0`` refer to signals in the rightmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the leftmost ``INT.PPC`` tile of the row.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-PPC.W.html
 
 
-Bitstream — PPC.S
-=================
+``PPC.E``
+---------
+
+This tile is located on the left of every interconnect row interrupted by the PowerPC hole. It reuses the bitstream tile of the leftmost ``INT.PPC`` tile of that row.
+
+The interconnect signals prefixed with ``0`` refer to signals in the leftmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the rightmost ``INT.PPC`` tile of the row.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-PPC.E.html
+
+
+``PPC.S``
+---------
+
+This tile is located on the top of every interconnect column interrupted by the PowerPC hole. It uses the bitstream tile corresponding to the interconnect tile below the topmost ``INT.PPC`` tile of the column (which is otherwise empty, as it doesn't contain an ``INT.*`` tile).
+
+The interconnect signals prefixed with ``0`` refer to signals in the topmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the bottommost ``INT.PPC`` tile of the row.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-PPC.S.html
 
 
-Bitstream — PPC.N
-=================
+``PPC.N``
+---------
+
+This tile is located on the bottom of every interconnect column interrupted by the PowerPC hole. It uses the bitstream tile corresponding to the interconnect tile above the bottommost ``INT.PPC`` tile of the column (which is otherwise empty, as it doesn't contain an ``INT.*`` tile).
+
+The interconnect signals prefixed with ``0`` refer to signals in the bottommost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the topmost ``INT.PPC`` tile of the row.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-PPC.N.html

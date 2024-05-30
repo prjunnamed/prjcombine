@@ -1,3 +1,5 @@
+.. _virtex2-structure:
+
 Device structure
 ################
 

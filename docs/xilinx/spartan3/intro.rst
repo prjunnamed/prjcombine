@@ -1,0 +1,78 @@
+.. _spartan3:
+
+Introduction
+############
+
+Spartan 3 is a family of SRAM-based FPGAs, based on a cut-down version of :ref:`Virtex 2 <virtex2>`.
+
+There are several kinds of Spartan 3 FPGAs:
+
+- Spartan 3, the base version
+- Spartan 3E, an updated version of Spartan 3, with higher logic-to-IO ratio
+- Spartan 3A, an updated version of Spartan 3E
+- Spartan 3AN, non-volatile version of Spartan 3A; it is literally Spartan 3A and stock SPI flash in a trenchcoat, with the FPGA die being exactly identical to Spartan 3A
+- Spartan 3A DSP, an updated version of Spartan 3A with added hard DSP blocks
+
+The base Spartan 3 FPGAs feature:
+
+- a :ref:`general interconnect structure <spartan3-interconnect>` derived from Virtex 2
+- a dedicated :ref:`clock interconnect <spartan3-clock>` with 8 global clocks and ``BUFGMUX`` primitives with clock multiplexing
+- :ref:`configurable logic blocks <spartan3-clb>`, derived from the Virtex 2 ones
+- :ref:`block RAM tiles <virtex2-bram>`, essentially identical to Virtex 2, containing:
+
+  - 18-kbit block RAM
+  - 18×18 multiplier blocks
+
+- :ref:`input-output tiles <spartan3-io>`, similar to Virtex 2
+- :ref:`digital clock managers <virtex2-dcm>`, essentially identical to Virtex 2
+- :ref:`corner tiles <spartan3-corner>`, with various global bits of logic:
+
+  - ``BSCAN`` primitive, allowing access to FPGA fabric via dedicated JTAG instructions
+  - ``STARTUP`` primitive, controlling the startup process
+  - ``CAPTURE`` primitive, for user-triggered FF state capture
+  - ``ICAP`` primitive, allowing access to the internal configuration port
+  - ``PMV`` primitive, an internal oscillator used for configuration
+  - per-IO bank:
+
+    - DCI control blocks
+    - LVDS bias generators
+
+Spartan 3E brings the following changes:
+
+- improved clock interconnect, with 24 global clock buffers that can be multiplexed to 8 clocks per region
+- improved hard multiplier blocks, with pipeline registers
+- :ref:`a new version of DCM <spartan3e-dcm>`
+- IO tile changes
+
+  - new set of IO standards supported
+  - improved DDR registers
+  - removed DCI support
+  - 4 banks per device, instead of 8
+
+- a new bit of :ref:`hard PCI logic <spartan3e-pcilogicse>`
+- support for SPI and BPI configuration modes
+
+Spartan 3A brings the following changes:
+
+- improved block RAM, with per-byte write enables
+- IO tile changes
+
+  - new set of IO standards supported
+  - improved DDR registers
+  - the IO banks are now specialized (top and bottom banks have differential termination support, left and right banks have higher drive strength)
+
+- more singleton special primitives in the corners:
+
+  - ``DNA_PORT`` allows access to unique per-device identifier
+  - ``SPI_ACCESS`` allows access to the SPI flash included in-package on Spartan 3AN devices
+
+Spartan 3A DSP brings the following changes:
+
+- improved block RAM, with pipeline registers and asynchronous reset
+- the hard multiplier blocks are removed and replaced with :ref:`a new DSP block <spartan3-dsp>`
+
+
+Device table
+============
+
+.. todo:: generate this

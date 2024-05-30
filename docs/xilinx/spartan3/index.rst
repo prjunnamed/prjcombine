@@ -7,6 +7,8 @@ Xilinx Spartan 3 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   intro
+   structure
    interconnect
    clb
    dsp

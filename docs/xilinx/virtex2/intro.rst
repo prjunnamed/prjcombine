@@ -21,7 +21,7 @@ The Virtex 2 FPGAs feature:
   - 18-kbit block RAM
   - 18×18 multiplier blocks
 
-- new :ref:`input-output tiles <virtex2-io>`, with DDR register support
+- new :ref:`input-output tiles <virtex2-io>`, with DDR register and DCI (digitally controlled impedance) support
 - new :ref:`digital clock managers <virtex2-dcm>`, a new version of the :ref:`Virtex DLLs <virtex-dll>` with added frequency synthesis capability
 - :ref:`corner tiles <virtex2-corner>`, with various global bits of logic:
 
