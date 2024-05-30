@@ -118,8 +118,8 @@ Thus, ``SLICE[01]`` can be used alone to implement single-port RAM, or together 
 
 The ``DIF_MUX`` determines the value of ``DIF``:
 
-- ``BX``: use the ``BX`` pin
-- ``ALT``: use the ``DIG`` value
+- ``BX``: use the ``BX`` pin (used for 16×X RAMs)
+- ``ALT``: use the ``DIG`` value (used for 32×X and larger RAMs)
 
 The ``DIG_MUX`` determines the value of ``DIG``:
 
@@ -228,8 +228,8 @@ Single-port 32×X RAM can be implemented as follows:
 
 - connect ``CLK`` to write clock
 - connect ``SR`` to write enable
-- ``F`` LUT corresponds to addresses ``0x0X``
-- ``G`` LUT corresponds to addresses ``0x1X``
+- ``F`` LUT corresponds to addresses ``0x1X``
+- ``G`` LUT corresponds to addresses ``0x0X``
 - connect ``F[1-4]`` and ``G[1-4]`` to low 4 bits of the read/write address
 - connect ``BX`` to bit 4 of read/write address
 - set ``SLICEWE0USED``
@@ -247,8 +247,8 @@ Dual-port 32×X RAM can be implemented as follows:
 - pick a pair of slices: either ``SLICE0+SLICE2`` or ``SLICE1+SLICE3``
 - connect ``CLK`` to write clock
 - connect ``SR`` to write enable
-- ``F`` LUTs correspond to addresses ``0x0X``
-- ``G`` LUTs correspond to addresses ``0x1X``
+- ``F`` LUTs correspond to addresses ``0x1X``
+- ``G`` LUTs correspond to addresses ``0x0X``
 - connect ``F[1-4]`` and ``G[1-4]`` of ``SLICE[01]`` to low 4 bits of the write address
 - connect ``F[1-4]`` and ``G[1-4]`` of ``SLICE[23]`` to low 4 bits of the read address
 - connect ``SLICE[01].BX`` to bit 4 of write address
