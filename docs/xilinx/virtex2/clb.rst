@@ -77,6 +77,8 @@ In summary, a single ``SLICE`` has the following pins:
 
 Additionally, some pins and circuitry are shared between ``SLICE``\ s within the same CLB.
 
+The ``CLK``, ``CE``, ``SR``, ``BX``, and ``BY`` inputs are invertible on the interconnect level. The ``CE`` and ``SR`` inputs are further inverted once within the CLB, which should be compensated for with interconnect inversion.
+
 
 LUTs
 ====

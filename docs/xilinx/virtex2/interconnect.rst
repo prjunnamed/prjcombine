@@ -3,7 +3,7 @@
 General interconnect
 ####################
 
-The general interconnect of Virtex 2 is made by several kinds of similar, but not identical interconnect tiles. The tile types include:
+The general interconnect of Virtex 2 is made of several kinds of similar, but not identical interconnect tiles. The tile types include:
 
 - ``INT.CLB``, the interconnect tile associated with :ref:`configurable logic blocks <virtex2-clb>`
 - ``INT.BRAM``, the interconnect tile associated with :ref:`block RAMs <virtex2-bram>`

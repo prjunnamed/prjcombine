@@ -87,6 +87,11 @@ Additionally, some pins and circuitry are shared between ``SLICEM``\ s within th
 
 Note that on Virtex 4, the CLB tile is interconnect-limitted: only up to 16 out of the ``[XY]Q``, ``[XY]MUX``, and ``[XY]B`` outputs within a single CLB can be used at a time due to the ``OMUX`` bottleneck. The main ``[XY]`` outputs don't count towards that limit, since they can use other interconnect resources.
 
+The ``CLK``, ``SR``, and ``CE`` inputs are invertible on the interconnect level.
+
+The ``BX`` and ``BY`` inputs are invertible within the CLB. The ``BXINV`` attribute, if set, inverts the ``BX`` signal from the interconnect. Likewise, ``BYINV`` inverts the ``BY`` signal.
+
+
 LUTs
 ====
 
