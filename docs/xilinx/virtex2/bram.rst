@@ -44,7 +44,7 @@ The ``BRAM`` tile corresponds to four vertically stacked interconnect tiles. The
 
 The ``BRAM`` tile is interconnect-limitted in two ways:
 
-- inputs ``MULT.B0`` through ``MULT.B15`` are shared with ``BRAM.DIB16`` through ``BRAM.DIB31`` (so it is not really possible to use the multiplier when both BRAM ports are used for writing with 36-bit data width, except on Spartan 3A when the bypass path is used)
+- inputs ``MULT.B0`` through ``MULT.B15`` are shared with ``BRAM.DIB16`` through ``BRAM.DIB31`` (so it is not really possible to use the multiplier when both BRAM ports are used for writing with 36-bit data width, except when the ``BCIN`` cascade is used, or on Spartan 3A when the bypass path is used)
 - each interconnect tile is limitted (through ``OMUX`` bottleneck) to 24 out of 28 output wires; the exact rules are very non-obvious, but effectively the following can be supported:
 
   - ``BRAM`` with full data output (36-bit on both ports), no ``MULT``
@@ -130,6 +130,93 @@ The bel has the following bitstream attributes:
 .. todo:: ``UNK_PRESENT``
 
 .. todo:: exact semantics of ``SAVEDATA`` are unclear
+
+
+The ``MULT`` bel — Virtex 2 and Spartan 3
+=========================================
+
+The ``MULT`` bel implements a 18×18 signed multiplier with an optional register.
+It corresponds to the ``MULT18X18`` and ``MULT18X18S`` library primitives.
+
+The bel has the following general interconnect inputs:
+
+- ``CLK`` (freely invertible via interconnect): the clock
+- ``CE`` (freely invertible via interconnect): the clock enable
+- ``RST`` (freely invertible via interconnect): the synchronous reset signal (sets the register to all-0)
+- ``A[0-17]``: first input
+- ``B[0-17]``: second input
+
+The bel has a single general interconnect output:
+
+- ``P[0-35]``: output
+
+The bel has a single attribute:
+
+- ``REG``:
+
+  - if set, the multiplier is in synchronous mode, implementing the ``MULT18X18S`` primitive
+  - if unset, the multiplier is in combinational mode, implementing the ``MULT18X18`` primitive; the ``CLK``, ``RST`` and ``CE`` inputs are unused
+
+The semantics of the primitive is pretty simple: it computes ``A * B``, either combinationally or with an output register.
+
+
+The ``MULT`` bel — Spartan 3E and Spartan 3A
+============================================
+
+The ``MULT`` bel implements a 18×18 signed multiplier with optional registers on inputs and output. 
+It corresponds to the ``MULT18X18SIO`` library primitive (and can also support the older primitives in an obvious way).
+
+The bel has the following general interconnect inputs:
+
+- ``CLK`` (freely invertible via interconnect): the clock
+- ``CE[ABP]`` (freely invertible via interconnect): the clock enables
+- ``RST[ABP]`` (freely invertible via interconnect): the synchronous reset signals (sets the corresponding register to all-0)
+- ``A[0-17]``: first input
+- ``B[0-17]``: second input
+
+On Spartan 3A, the ``A`` and ``B`` inputs can be switched (per-bit) between general interconnect and bypass from the corresponding ``DOA`` or ``DOB`` output from the colocated ``BRAM`` bel.
+
+The bel has a single general interconnect output:
+
+- ``P[0-35]``: output
+
+The bel also has special pins connected via dedicated interconnect:
+
+- ``BCOUT[0-17]``: cascade output; mirrors the ``B`` or ``BCIN`` input (if ``BREG == 0``), or the ``B`` register output (if ``BREG == 1``)
+- ``BCIN[0-17]``: cascade input; routed from ``BCOUT`` of the ``MULT`` in the tile immediately below; can be used instead of the ``B`` input to save up on routing resources
+
+When the BRAM column has a hole (for a DCM), the cascade chain jumps over the hole.
+
+The bel has the following attributes:
+
+- ``AREG``: selects the number of pipeline registers on the ``A`` input; either ``0`` or ``1``
+- ``BREG``: selects the number of pipeline registers on the ``B`` or ``BCIN`` input; either ``0`` or ``1``
+- ``PREG``: selects the number of pipeline registers on the ``P`` output; either ``0`` or ``1``
+- ``B_INPUT``: selects the second input to the multiplier
+
+  - ``DIRECT``: uses the general interconnect ``B`` input
+  - ``CASCADE``: uses the dedicated ``BCIN`` input
+
+- ``PREG_CLKINVERSION``: if set, the clock to the ``P`` register is inverted from ``CLK``
+
+- (Spartan 3A) ``[AB][0-17]MUX``: selects where the corresponding input pin comes from:
+
+  - ``INT``: general interconnect
+  - ``BRAM``: bypass from ``BRAM`` outputs
+
+    - ``[AB][0-15]`` are bypassed from ``DO[AB][0-15]``
+    - ``[AB][16-17]`` are bypassed from ``DOP[AB][0-1]``
+
+The semantics of the primitive are as follows:
+
+- ``A_Q = (AREG == 1 ? ff(A, CLK, CEA, RSTA) : A)``
+- ``B_MUX = (B_INPUT == "CASCADE" ? BCIN : B)``
+- ``B_Q = BCOUT = (BREG == 1 ? ff(B_MUX, CLK, CEB, RSTB) : B_MUX)``
+- ``P_D = A_Q * B_Q``
+- ``P = (PREG == 1 ? ff(P_D, CLK ^ PREG_CLKINVERSION, CEP, RSTP) : P_D)``
+- ``ff(d, clk, ce, rst)`` signifies a flip-flop with synchronous reset and reset-over-CE priority
+
+.. todo:: ``PREG_CLKINVERSION`` is not documented by Xilinx nor exposed via library primitive; test it
 
 
 Bitstream
