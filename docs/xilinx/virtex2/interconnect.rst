@@ -555,3 +555,58 @@ The interconnect signals prefixed with ``0`` refer to signals in the bottommost 
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc2v-PPC.N.html
+
+
+Bitstream — interface tiles
+===========================
+
+All of these tiles share their bitstream tiles with the corresponding ``INT`` tile.
+
+
+``INTF.PPC``
+------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.PPC.html
+
+
+``INTF.GT.B0``
+--------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.B0.html
+
+
+``INTF.GT.B123``
+----------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.B123.html
+
+
+``INTF.GT.BCLKPAD``
+-------------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.BCLKPAD.html
+
+
+``INTF.GT.T0``
+--------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.T0.html
+
+
+``INTF.GT.T123``
+----------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.T123.html
+
+
+``INTF.GT.TCLKPAD``
+-------------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-INTF.GT.TCLKPAD.html

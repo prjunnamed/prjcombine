@@ -15,6 +15,7 @@ mod dsp;
 mod fgen;
 mod fuzz;
 mod int;
+mod intf;
 mod ppc;
 mod tiledb;
 
@@ -95,6 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
+        intf::add_fuzzers(&mut hammer, &backend);
         let mut state = hammer.run().unwrap();
         let mut ctx = CollectorCtx {
             device: part,
@@ -146,6 +148,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
+        intf::collect_fuzzers(&mut ctx);
 
         for (feat, data) in &ctx.state.simple_features {
             print!("{} {} {} {}: [", feat.tile, feat.bel, feat.attr, feat.val);

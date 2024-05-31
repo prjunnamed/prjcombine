@@ -1,5 +1,5 @@
 use prjcombine_int::{
-    db::{Dir, NodeRawTileId, NodeTileId, NodeWireId},
+    db::{Dir, IntfWireInNaming, IntfWireOutNaming, NodeRawTileId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, LayerId, RowId},
 };
 use prjcombine_virtex_bitstream::BitTile;
@@ -73,6 +73,68 @@ fn resolve_int_pip<'a>(
     )
 }
 
+fn resolve_intf_test_pip<'a>(
+    backend: &IseBackend<'a>,
+    loc: Loc,
+    wire_from: NodeWireId,
+    wire_to: NodeWireId,
+) -> Option<(&'a str, &'a str, &'a str)> {
+    let node = backend.egrid.node(loc);
+    let intdb = backend.egrid.db;
+    let node_naming = &intdb.node_namings[node.naming];
+    backend
+        .egrid
+        .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))?;
+    backend
+        .egrid
+        .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
+    if let ExpandedDevice::Virtex4(edev) = backend.edev {
+        if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex5
+            && intdb.node_namings.key(node.naming) == "INTF.PPC_R"
+            && intdb.wires.key(wire_from.1).starts_with("TEST")
+        {
+            // ISE.
+            return None;
+        }
+    }
+    Some((
+        &node.names[NodeRawTileId::from_idx(0)],
+        match node_naming.intf_wires_in.get(&wire_from)? {
+            IntfWireInNaming::Simple { name } => name,
+            IntfWireInNaming::Buf { name_in, .. } => name_in,
+            IntfWireInNaming::TestBuf { name_out, .. } => name_out,
+            IntfWireInNaming::Delay { name_out, .. } => name_out,
+            _ => unreachable!(),
+        },
+        match node_naming.intf_wires_out.get(&wire_to)? {
+            IntfWireOutNaming::Simple { name } => name,
+            IntfWireOutNaming::Buf { name_out, .. } => name_out,
+        },
+    ))
+}
+
+fn resolve_intf_delay<'a>(
+    backend: &IseBackend<'a>,
+    loc: Loc,
+    wire: NodeWireId,
+) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
+    let node = backend.egrid.node(loc);
+    let intdb = backend.egrid.db;
+    let node_naming = &intdb.node_namings[node.naming];
+    backend
+        .egrid
+        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+    let IntfWireInNaming::Delay { name_out, name_in, name_delay } = node_naming.intf_wires_in.get(&wire)? else {
+        unreachable!()
+    };
+    Some((
+        &node.names[NodeRawTileId::from_idx(0)],
+        name_in,
+        name_delay,
+        name_out,
+    ))
+}
+
 #[derive(Debug)]
 pub enum TileKV<'a> {
     SiteMode(BelId, &'a str),
@@ -89,6 +151,7 @@ pub enum TileKV<'a> {
     Pip(TileWire<'a>, TileWire<'a>),
     IntPip(NodeWireId, NodeWireId),
     NodeMutexShared(NodeWireId),
+    IntMutexShared(&'a str),
     NodeIntDstFilter(NodeWireId),
     NodeIntSrcFilter(NodeWireId),
     NodeIntDistinct(NodeWireId, NodeWireId),
@@ -105,6 +168,10 @@ impl<'a> TileKV<'a> {
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         Some(match *self {
             TileKV::SiteMode(bel, mode) => {
+                let node = backend.egrid.node(loc);
+                for &(col, row) in node.tiles.values() {
+                    fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
+                }
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteMode(site), mode)
             }
@@ -151,6 +218,13 @@ impl<'a> TileKV<'a> {
                     .egrid
                     .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
                 fuzzer.base(Key::NodeMutex(node), "SHARED")
+            }
+            TileKV::IntMutexShared(val) => {
+                let node = backend.egrid.node(loc);
+                for &(col, row) in node.tiles.values() {
+                    fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), val);
+                }
+                fuzzer
             }
             TileKV::NodeIntDstFilter(wire) => {
                 let intdb = backend.egrid.db;
@@ -472,7 +546,10 @@ pub enum TileFuzzKV<'a> {
     GlobalOptDiff(&'a str, &'a str, &'a str),
     Pip(TileWire<'a>, TileWire<'a>),
     IntPip(NodeWireId, NodeWireId),
+    IntfTestPip(NodeWireId, NodeWireId),
+    IntfDelay(NodeWireId, bool),
     NodeMutexExclusive(NodeWireId),
+    TileMutexExclusive(&'a str),
 }
 
 impl<'a> TileFuzzKV<'a> {
@@ -480,10 +557,14 @@ impl<'a> TileFuzzKV<'a> {
         &self,
         backend: &IseBackend<'a>,
         loc: Loc,
-        fuzzer: Fuzzer<IseBackend<'a>>,
+        mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         Some(match *self {
             TileFuzzKV::SiteMode(bel, val) => {
+                let node = backend.egrid.node(loc);
+                for &(col, row) in node.tiles.values() {
+                    fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
+                }
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteMode(site), None, val)
             }
@@ -513,12 +594,31 @@ impl<'a> TileFuzzKV<'a> {
                 let (tile, wa, wb) = resolve_int_pip(backend, loc, wa, wb)?;
                 fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true)
             }
+            TileFuzzKV::IntfTestPip(wa, wb) => {
+                let (tile, wa, wb) = resolve_intf_test_pip(backend, loc, wa, wb)?;
+                fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true)
+            }
+            TileFuzzKV::IntfDelay(wire, state) => {
+                let (tile, wa, wb, wc) = resolve_intf_delay(backend, loc, wire)?;
+                if state {
+                    fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true).fuzz(
+                        Key::Pip(tile, wb, wc),
+                        None,
+                        true,
+                    )
+                } else {
+                    fuzzer.fuzz(Key::Pip(tile, wa, wc), None, true)
+                }
+            }
             TileFuzzKV::NodeMutexExclusive(wire) => {
                 let node = backend.egrid.node(loc);
                 let node = backend
                     .egrid
                     .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
                 fuzzer.fuzz(Key::NodeMutex(node), None, "EXCLUSIVE")
+            }
+            TileFuzzKV::TileMutexExclusive(name) => {
+                fuzzer.fuzz(Key::TileMutex(loc, name), None, "EXCLUSIVE")
             }
         })
     }

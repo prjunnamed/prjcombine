@@ -104,3 +104,17 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
             emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_B_DEFAULT")
+
+        intf_mux = []
+        for item, val in db["misc_data"].items():
+            if item.startswith("INTF.DSP:INTF_GROUP"):
+                _, _, mux, inp = item.split(":")
+                intf_mux.append((mux, inp, val))
+        if intf_mux:
+            with open("xilinx/gen-xilinx-xc3s-INTF.DSP.html", "w") as f:
+                f.write("<table class=\"docutils align-default\">\n")
+                f.write("<tr><th>Mux</th><th>Mux input</th><th>Test group</th></tr>\n")
+                for mux, inp, val in intf_mux:
+                    f.write(f"<tr><td>{mux}</td><td>{inp}</td><td>{val}</td></tr>")
+
+                f.write(f"</table>")

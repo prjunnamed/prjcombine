@@ -269,7 +269,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for (dir, tkn, naming) in [
         (Dir::E, "INT_INTERFACE", "INTF"),
-        (Dir::E, "INT_INTERFACE_CARRY", "INTF"),
         (Dir::E, "INT_INTERFACE_REGC", "INTF.REGC"),
         (Dir::W, "INT_INTERFACE_LTERM", "INTF.LTERM"),
         (Dir::E, "INT_INTERFACE_RTERM", "INTF.RTERM"),
@@ -282,10 +281,20 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         builder.extract_intf("INTF", dir, tkn, naming, true);
     }
+    builder.extract_intf("INTF.CMT", Dir::E, "INT_INTERFACE_CARRY", "INTF", true);
     for tkn in ["INT_INTERFACE_IOI", "INT_INTERFACE_IOI_DCMBOT"] {
-        builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF", true);
+        builder.extract_intf("INTF.CMT.IOI", Dir::E, tkn, "INTF", true);
     }
-    for tkn in ["LIOI", "LIOI_BRK", "RIOI", "RIOI_BRK"] {
+    for tkn in [
+        "LIOI",
+        "LIOI_BRK",
+        "RIOI",
+        "RIOI_BRK",
+        "TIOI_INNER",
+        "TIOI_OUTER",
+        "BIOI_INNER",
+        "BIOI_OUTER",
+    ] {
         builder.extract_intf("INTF.IOI", Dir::E, tkn, "INTF.IOI", true);
     }
 

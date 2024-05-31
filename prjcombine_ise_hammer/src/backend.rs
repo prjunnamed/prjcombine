@@ -12,6 +12,7 @@ use std::collections::{hash_map, HashMap};
 use std::fmt::Write;
 
 use crate::diff::Diff;
+use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
     pub tc: &'a Toolchain,
@@ -41,6 +42,8 @@ pub enum Key<'a> {
     RowMutex(&'a str, RowId),
     SiteMutex(&'a str, &'a str),
     NodeMutex((DieId, (ColId, RowId), WireId)),
+    TileMutex(Loc, &'a str),
+    IntMutex(DieId, ColId, RowId),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

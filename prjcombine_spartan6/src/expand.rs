@@ -1388,7 +1388,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 node.naming = self.db.get_node_naming("INT.IOI");
                 self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("INTF.IOI"),
+                    self.db.get_node("INTF.CMT.IOI"),
                     &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
                     self.db.get_node_naming("INTF"),
                     &[(col, row)],
@@ -1439,7 +1439,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let y = row.to_idx();
             self.die.add_xnode(
                 (col, row),
-                self.db.get_node("INTF"),
+                self.db.get_node("INTF.CMT"),
                 &[&format!("INT_INTERFACE_CARRY_X{x}Y{y}")],
                 self.db.get_node_naming("INTF"),
                 &[(col, row)],
@@ -1453,7 +1453,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.naming = self.db.get_node_naming("INT.IOI");
             self.die.add_xnode(
                 (col, row),
-                self.db.get_node("INTF.IOI"),
+                self.db.get_node("INTF.CMT.IOI"),
                 &[&format!("INT_INTERFACE_IOI_X{x}Y{y}")],
                 self.db.get_node_naming("INTF"),
                 &[(col, row)],

@@ -65,6 +65,23 @@ impl TileDb {
         &self.tiles[tile].items[&format!("{bel}:{attr}")]
     }
 
+    pub fn insert_misc_data(
+        &mut self,
+        key: impl Into<String>,
+        val: impl Into<DbValue>,
+    ) {
+        let key = key.into();
+        let val = val.into();
+        match self.misc_data.entry(key) {
+            btree_map::Entry::Vacant(e) => {
+                e.insert(val);
+            }
+            btree_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), val);
+            }
+        }
+    }
+
     pub fn insert_device_data(
         &mut self,
         device: &str,

@@ -90,6 +90,16 @@ impl core::ops::Not for Diff {
     }
 }
 
+impl core::ops::Not for &Diff {
+    type Output = Diff;
+
+    fn not(self) -> Self::Output {
+        Diff {
+            bits: self.bits.iter().map(|(&k, &v)| (k, !v)).collect(),
+        }
+    }
+}
+
 pub struct CollectorCtx<'a, 'b>
 where
     'b: 'a,

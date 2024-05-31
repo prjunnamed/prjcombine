@@ -368,3 +368,21 @@ On Spartan 3A and Spartan 3A DSP, the data for ``LLV`` tiles lives in 19×3 bits
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-LLV.S3A.html
+
+
+Bitstream — interface tiles
+===========================
+
+
+``INTF.DSP``
+------------
+
+This tile, unusually, takes up four interconnect tiles. It shares its bitstream tiles with the four corresponding ``INT.BRAM.S3ADSP`` tiles.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-INTF.DSP.html
+
+The associated groups are:
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-INTF.DSP.html

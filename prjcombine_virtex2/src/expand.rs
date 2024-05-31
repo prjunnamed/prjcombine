@@ -2150,7 +2150,11 @@ impl<'a, 'b> Expander<'a, 'b> {
                     .fill_tile((col, row), "INT.GT.CLKPAD", "INT.GT.CLKPAD", name.clone());
                 self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("INTF.GT.CLKPAD"),
+                    self.db.get_node(if row == row_b {
+                        "INTF.GT.BCLKPAD"
+                    } else {
+                        "INTF.GT.TCLKPAD"
+                    }),
                     &[&name],
                     self.db.get_node_naming("INTF.GT.CLKPAD"),
                     &[(col, row)],
@@ -2171,9 +2175,17 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.die.add_xnode(
                         (col, row),
                         self.db.get_node(if d % 4 == 0 {
-                            "INTF.GT.0"
+                            if br == row_b + 1 {
+                                "INTF.GT.B0"
+                            } else {
+                                "INTF.GT.T0"
+                            }
                         } else {
-                            "INTF.GT.123"
+                            if br == row_b + 1 {
+                                "INTF.GT.B123"
+                            } else {
+                                "INTF.GT.T123"
+                            }
                         }),
                         &[&name],
                         self.db.get_node_naming("INTF.GT"),
