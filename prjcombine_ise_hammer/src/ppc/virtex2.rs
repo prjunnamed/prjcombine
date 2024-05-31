@@ -61,7 +61,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let int_tiles = &["INT.PPC"; 48];
-            let flip =  egrid.db.wires.key(wire.1).starts_with("IMUX.SR");
+            let flip = egrid.db.wires.key(wire.1).starts_with("IMUX.SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
         ctx.state

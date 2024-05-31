@@ -65,11 +65,7 @@ impl TileDb {
         &self.tiles[tile].items[&format!("{bel}:{attr}")]
     }
 
-    pub fn insert_misc_data(
-        &mut self,
-        key: impl Into<String>,
-        val: impl Into<DbValue>,
-    ) {
+    pub fn insert_misc_data(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
         let key = key.into();
         let val = val.into();
         match self.misc_data.entry(key) {

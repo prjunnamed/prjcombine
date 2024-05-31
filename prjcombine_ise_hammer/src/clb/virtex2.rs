@@ -4,9 +4,9 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
+    backend::{IseBackend, SimpleFeatureId},
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
-    fgen::TileBits,
+    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileRelation, TileWire},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
 };
@@ -626,7 +626,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
             fuzz_one!(ctx, "OUT_B", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
         }
-        // TODO: TBUS joiner
+        let bel = BelId::from_idx(6);
+        session.add_fuzzer(Box::new(TileFuzzerGen {
+            node: node_kind,
+            bits: TileBits::Main(1),
+            feature: SimpleFeatureId {
+                tile: "CLB",
+                bel: "TBUS",
+                attr: "JOINER",
+                val: "1",
+            },
+            base: vec![],
+            fuzz: vec![TileFuzzKV::TileRelated(
+                TileRelation::ClbTbusRight,
+                Box::new(TileFuzzKV::Pip(
+                    TileWire::BelPinNear(bel, "BUS3"),
+                    TileWire::BelPinNear(bel, "BUS3_E"),
+                )),
+            )],
+        }));
     }
 }
 
@@ -998,6 +1016,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
             }
         }
+        ctx.tiledb.insert(
+            "CLB",
+            "TBUS",
+            "JOINER",
+            xlat_bitvec(vec![ctx.state.get_diff("CLB", "TBUS", "JOINER", "1")]),
+        );
     }
     let egrid = ctx.edev.egrid();
     for (node_kind, name, node) in &egrid.db.nodes {

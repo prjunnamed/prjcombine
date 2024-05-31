@@ -4,9 +4,9 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, CollectorCtx},
-    fgen::TileBits,
+    backend::{IseBackend, SimpleFeatureId},
+    diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
+    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileRelation, TileWire},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi,
 };
@@ -183,7 +183,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (pin "COUT")
                 ]);
 
-                // TODO: CIN special
+                ctx.session.add_fuzzer(Box::new(TileFuzzerGen {
+                    node: ctx.node_kind,
+                    bits: ctx.bits,
+                    feature: SimpleFeatureId {
+                        tile: ctx.tile_name,
+                        bel: ctx.bel_name,
+                        attr: "CINUSED",
+                        val: "1",
+                    },
+                    base: vec![],
+                    fuzz: vec![TileFuzzKV::TileRelated(
+                        TileRelation::ClbCinDown,
+                        Box::new(TileFuzzKV::Pip(
+                            TileWire::BelPinNear(bel, "COUT"),
+                            TileWire::BelPinFar(bel, "COUT"),
+                        )),
+                    )],
+                }));
             }
 
             // misc muxes
@@ -887,6 +904,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "CCY0", &["O5", "CX"]);
                 ctx.collect_enum(tile, bel, "DCY0", &["O5", "DX"]);
                 ctx.collect_enum(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
+                ctx.tiledb.insert(
+                    tile,
+                    bel,
+                    "CYINIT",
+                    xlat_enum(vec![
+                        (
+                            "CIN".to_string(),
+                            ctx.state.get_diff(tile, bel, "CINUSED", "1"),
+                        ),
+                        ("PRECYINIT".to_string(), Diff::default()),
+                    ]),
+                );
             }
 
             // misc muxes

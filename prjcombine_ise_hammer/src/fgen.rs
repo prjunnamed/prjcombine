@@ -19,7 +19,47 @@ pub type Loc = (DieId, ColId, RowId, LayerId);
 #[derive(Debug, Copy, Clone)]
 pub enum TileWire<'a> {
     BelPinNear(BelId, &'a str),
+    BelPinFar(BelId, &'a str),
     IntWire(NodeWireId),
+}
+
+fn resolve_tile_relation(
+    backend: &IseBackend,
+    mut loc: Loc,
+    relation: TileRelation,
+) -> Option<Loc> {
+    match relation {
+        TileRelation::ClbTbusRight => loop {
+            if loc.1 == backend.egrid.die(loc.0).cols().last().unwrap() {
+                return None;
+            }
+            loc.1 += 1;
+            if let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                backend.egrid.db.nodes.key(node.kind) == "CLB"
+            }) {
+                loc.3 = layer;
+                if let ExpandedDevice::Virtex2(edev) = backend.edev {
+                    if loc.1 == edev.grid.col_right() - 1 {
+                        return None;
+                    }
+                }
+                return Some(loc);
+            }
+        },
+        TileRelation::ClbCinDown => loop {
+            if loc.2 == backend.egrid.die(loc.0).rows().last().unwrap() {
+                return None;
+            }
+            loc.2 -= 1;
+            if let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                backend.egrid.db.nodes.key(node.kind).starts_with("CLB")
+                    || backend.egrid.db.nodes.key(node.kind).starts_with("CLEX")
+            }) {
+                loc.3 = layer;
+                return Some(loc);
+            }
+        },
+    }
 }
 
 fn resolve_tile_wire<'a>(
@@ -34,6 +74,10 @@ fn resolve_tile_wire<'a>(
         TileWire::BelPinNear(bel, pin) => {
             let bel_naming = &node_naming.bels[bel];
             (&node.names[bel_naming.tile], &bel_naming.pins[pin].name)
+        }
+        TileWire::BelPinFar(bel, pin) => {
+            let bel_naming = &node_naming.bels[bel];
+            (&node.names[bel_naming.tile], &bel_naming.pins[pin].name_far)
         }
         TileWire::IntWire(w) => {
             backend.egrid.resolve_wire((loc.0, node.tiles[w.0], w.1))?;
@@ -124,7 +168,12 @@ fn resolve_intf_delay<'a>(
     backend
         .egrid
         .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
-    let IntfWireInNaming::Delay { name_out, name_in, name_delay } = node_naming.intf_wires_in.get(&wire)? else {
+    let IntfWireInNaming::Delay {
+        name_out,
+        name_in,
+        name_delay,
+    } = node_naming.intf_wires_in.get(&wire)?
+    else {
         unreachable!()
     };
     Some((
@@ -133,6 +182,12 @@ fn resolve_intf_delay<'a>(
         name_delay,
         name_out,
     ))
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum TileRelation {
+    ClbTbusRight,
+    ClbCinDown,
 }
 
 #[derive(Debug)]
@@ -541,6 +596,7 @@ pub enum TileFuzzKV<'a> {
     SiteAttr(BelId, &'a str, &'a str),
     #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
+    #[allow(dead_code)]
     SitePin(BelId, &'a str),
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
@@ -550,6 +606,7 @@ pub enum TileFuzzKV<'a> {
     IntfDelay(NodeWireId, bool),
     NodeMutexExclusive(NodeWireId),
     TileMutexExclusive(&'a str),
+    TileRelated(TileRelation, Box<TileFuzzKV<'a>>),
 }
 
 impl<'a> TileFuzzKV<'a> {
@@ -619,6 +676,10 @@ impl<'a> TileFuzzKV<'a> {
             }
             TileFuzzKV::TileMutexExclusive(name) => {
                 fuzzer.fuzz(Key::TileMutex(loc, name), None, "EXCLUSIVE")
+            }
+            TileFuzzKV::TileRelated(relation, ref chain) => {
+                let loc = resolve_tile_relation(backend, loc, relation)?;
+                chain.apply(backend, loc, fuzzer)?
             }
         })
     }

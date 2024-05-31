@@ -134,11 +134,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut mux_groups = HashSet::new();
                 for (in_name, mut diff) in mux_inps {
                     if in_name.contains("IMUX.SR") || in_name.contains("IMUX.CE") {
-                        let mut item = ctx.tiledb.item(
-                            "INT.BRAM.S3ADSP",
-                            "INT",
-                            &format!("INV.{}", &in_name[2..]),
-                        ).clone();
+                        let mut item = ctx
+                            .tiledb
+                            .item("INT.BRAM.S3ADSP", "INT", &format!("INV.{}", &in_name[2..]))
+                            .clone();
                         assert_eq!(item.bits.len(), 1);
                         item.bits[0].tile = in_name[..1].parse().unwrap();
                         diff.discard_bits(&item);
