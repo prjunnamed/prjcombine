@@ -114,16 +114,15 @@ The bel has the following bitstream attributes:
   - ``0``: no pipeline registers, just output latches; same behavior as older FPGAs
   - ``1``: one additional pipeline register on the read port
 
+- ``DATA`` (16384-bit value): the initial data for the BRAM main plane; corresponds to concatenation of ``INIT_xx`` primitive attributes
+- ``DATAP`` (2048-bit value): the initial data for the BRAM parity plane; corresponds to concatenation of ``INITP_xx`` primitive attributes
 - (Virtex 2) ``SAVEDATA`` (64-bit value): if set, the BRAM data will not be written during partial reconfiguration; the attribute has one bit per frame of the bitstream BRAM data tile
-- (Spartan 3 and up) ``WW_VALUE_[AB]``: unknown purpose, must be set to 0
+- (Spartan 3 and up) ``WW_VALUE_[AB]``: unknown purpose, must be set to ``NONE``
 - (Spartan 3 and up) ``WDEL_A`` (3-bit value): unknown purpose, must be set to device-dependent value from the table below
 - (Spartan 3 and up) ``DDEL_A`` (2-bit value): unknown purpose, must be set to device-dependent value from the table below
 - (Spartan 3E and up) ``WDEL_B`` (3-bit value): unknown purpose, must be set to device-dependent value from the table below
 - (Spartan 3E and up) ``DDEL_B`` (2-bit value): unknown purpose, must be set to device-dependent value from the table below
 - (Spartan 3A, Spartan 3A DSP) ``UNK_PRESENT`` (2-bit value): unknown purpose, must be set to all-1
-
-- ``DATA`` (16384-bit value): the initial data for the BRAM main plane; corresponds to concatenation of ``INIT_xx`` primitive attributes
-- ``DATAP`` (2048-bit value): the initial data for the BRAM parity plane; corresponds to concatenation of ``INITP_xx`` primitive attributes
 
 .. todo:: the ``RSTTYPE`` attribute takes two bits in the bitstream, there's a good chance it's actually per-port
 

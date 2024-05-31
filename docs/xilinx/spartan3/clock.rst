@@ -1,7 +1,7 @@
 .. _spartan3-clock:
 
 Clock interconnect
-==================
+##################
 
 .. todo:: document
 
