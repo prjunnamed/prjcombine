@@ -141,16 +141,20 @@ The ``DIG_MUX`` determines the value of ``DIG``:
 
 Note that ``DI[FG]_MUX`` attributes are also used in the shift register mode, but with different meaning.
 
-When ``SLICEWE0USED`` is set, the ``BX`` signal is used as bit 4 of write address. The ``F`` LUT is written when it is 1, the ``G`` LUT is written when it is 0. Otherwise, the signal is ignored, and both LUTs are written at the same time.
+On Spartan 3, when ``SLICEWE0USED`` is set, the ``BX`` signal is used as bit 4 of write address. The ``F`` LUT is written when it is 1, the ``G`` LUT is written when it is 0. Otherwise, the signal is ignored, and both LUTs are written at the same time.
+
+On Virtex 4, the attribute is replaced with ``F_SLICEWE0USED`` and ``G_SLICEWE0USED``, which are per-LUT.
 
 The ``SLICEWE1`` signal is routed as follows:
 
 ``SLICE0.SLICEWE1 = SLICE0.BY``
 ``SLICE2.SLICEWE1 = !SLICE0.BY``
 
-If ``SLICE0.SLICEWE1USED`` is set, both ``SLICEM``\ s within the CLB will use their ``SLICEWE1`` signal as a write enable — the LUTs are only written when ``SLICEWE1`` is 1. Otherwise, all ``SLICEWE1`` signals are ignored.
+On Spartan 3, if ``SLICE0.SLICEWE1USED`` is set, both ``SLICEM``\ s within the CLB will use their ``SLICEWE1`` signal as a write enable — the LUTs are only written when ``SLICEWE1`` is 1. Otherwise, all ``SLICEWE1`` signals are ignored.
 
 Note that ``SLICE2`` doesn't have a ``SLICEWE1USED`` bit — it is controlled by the same configuration bit as ``SLICE0``.
+
+On Virtex 4, the attribute is replaced with ``F_SLICEWE1USED`` and ``G_SLICEWE1USED``, which are per-LUT, and appear in both slices.
 
 
 Single-port 16×X RAM

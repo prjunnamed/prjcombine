@@ -74,12 +74,64 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     f.write("</tr>\n")
                 f.write("</table>\n")
 
+            groups = {}
+            item_to_group = {}
+            for name, item in tile.items():
+                bel, _, akey = name.partition(":")
+                if bel.startswith("SLICE") and akey[0] in "ABCD":
+                    akey = akey[1:]
+                if name.startswith("SLICE") and akey.startswith("FFY"):
+                    akey = "FFX" + akey[3:]
+                if name.startswith("SLICE") and akey.endswith("Y"):
+                    akey = akey[:-1] + "X"
+                if name.startswith("SLICE") and akey.startswith("G"):
+                    akey = "F" + akey[1:]
+                if bel == "BRAM" and akey[-1] in "AB":
+                    akey = akey[:-1]
+                if bel == "BRAM" and akey == "PORTB_ATTR":
+                    akey = "PORTA_ATTR"
+                if bel == "BRAM" and akey.startswith("DOB"):
+                    akey = "DOA" + akey[3:]
+                if (bel == "MULT" or bel.startswith("DSP")) and akey.endswith("REG"):
+                    akey = "REG"
+                if (bel == "MULT" or bel.startswith("DSP")) and akey.endswith("MUX"):
+                    akey = "MUX"
+                if bel == "BRAM" and akey == "INVERT_CLK_DOB_REG":
+                    akey = "INVERT_CLK_DOA_REG"
+                if bel == "BRAM" and akey.startswith("READ_WIDTH"):
+                    akey = "WRITE_WIDTH" + akey[10:]
+                if bel == "BRAM" and akey.endswith("_OFFSET"):
+                    akey = "ALMOST_OFFSET"
+                if bel == "INT":
+                    akey = "INT"
+                if bel == "INTF" and akey.startswith("DELAY"):
+                    akey = "DELAY"
+                if akey.endswith("INV"):
+                    akey = "INV"
+                if "values" in item:
+                    vkey = str(sorted(item["values"].items(), key=lambda x: x[1][::-1]))
+                else:
+                    vkey = str((item["invert"], len(item["bits"])))
+                key = (akey, vkey)
+                item_to_group[name] = key
+                groups.setdefault(key, []).append(name)
+            
+            groups_done = set()
+
             for name, item in sorted(tile.items(), key=lambda x: x[1]["bits"]):
-                f.write(f"<table class=\"docutils align-default prjcombine-enum\" id=\"bits-{kind}-{tile_name}-{name}\">\n")
-                f.write(f"<tr><th>{name}</th>")
-                for bit in reversed(item["bits"]):
-                    f.write(f"<th>{bit}</th>")
-                f.write("</tr>\n")
+                group = item_to_group[name]
+                if group in groups_done:
+                    continue
+                groups_done.add(group)
+                for iname in groups[group]:
+                    f.write(f"<div id=\"bits-{kind}-{tile_name}-{iname}\"></div>\n")
+                f.write(f"<table class=\"docutils align-default prjcombine-enum\">\n")
+                for iname in groups[group]:
+                    citem = tile[iname]
+                    f.write(f"<tr><th>{iname}</th>")
+                    for bit in reversed(citem["bits"]):
+                        f.write(f"<th>{bit}</th>")
+                    f.write("</tr>\n")
                 if "values" in item:
                     for vname, val in sorted(item["values"].items(), key=lambda x: x[1][::-1]):
                         f.write(f"<tr><td>{vname}</td>")
