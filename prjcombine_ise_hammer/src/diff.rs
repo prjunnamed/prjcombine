@@ -277,6 +277,15 @@ pub fn xlat_enum_default(
     xlat_enum(diffs)
 }
 
+pub fn xlat_enum_default_ocd(
+    mut diffs: Vec<(String, Diff)>,
+    default: impl Into<String>,
+    ocd: OcdMode,
+) -> TileItem<FeatureBit> {
+    diffs.insert(0, (default.into(), Diff::default()));
+    xlat_enum_inner(diffs, ocd)
+}
+
 pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem<FeatureBit> {
     let diff = if diff0.bits.is_empty() {
         diff0.assert_empty();
@@ -317,6 +326,23 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
             .collect();
         let ti = xlat_enum_default(diffs, default);
+        self.tiledb.insert(tile, bel, attr, ti);
+    }
+
+    pub fn collect_enum_default_ocd(
+        &mut self,
+        tile: &'b str,
+        bel: &'b str,
+        attr: &'b str,
+        vals: &[&'b str],
+        default: &'b str,
+        ocd: OcdMode,
+    ) {
+        let diffs = vals
+            .iter()
+            .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .collect();
+        let ti = xlat_enum_default_ocd(diffs, default, ocd);
         self.tiledb.insert(tile, bel, attr, ti);
     }
 
