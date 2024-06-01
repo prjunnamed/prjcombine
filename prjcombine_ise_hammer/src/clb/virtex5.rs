@@ -930,42 +930,92 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "DFFMUX", &["O6", "DX"]);
             } else {
                 if mode == Mode::Virtex5 {
-                    ctx.collect_enum_default_ocd(tile, bel, "AOUTMUX", &["O6", "O5", "XOR", "CY", "F7"], "NONE", OcdMode::Mux);
-                    ctx.collect_enum_default_ocd(tile, bel, "BOUTMUX", &["O6", "O5", "XOR", "CY", "F8"], "NONE", OcdMode::Mux);
-                    ctx.collect_enum_default_ocd(tile, bel, "COUTMUX", &["O6", "O5", "XOR", "CY", "F7"], "NONE", OcdMode::Mux);
-                    if is_m {
-                        ctx.collect_enum_default_ocd(tile, bel, "DOUTMUX", &["O6", "O5", "XOR", "CY", "MC31"], "NONE", OcdMode::Mux);
-                    } else {
-                        ctx.collect_enum_default_ocd(tile, bel, "DOUTMUX", &["O6", "O5", "XOR", "CY"], "NONE", OcdMode::Mux);
-                    }
-                } else {
                     ctx.collect_enum_default_ocd(
                         tile,
                         bel,
                         "AOUTMUX",
-                        &["O6", "O5", "XOR", "CY", "A5Q", "F7"], "NONE", OcdMode::Mux,
+                        &["O6", "O5", "XOR", "CY", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
                     );
                     ctx.collect_enum_default_ocd(
                         tile,
                         bel,
                         "BOUTMUX",
-                        &["O6", "O5", "XOR", "CY", "B5Q", "F8"], "NONE", OcdMode::Mux,
+                        &["O6", "O5", "XOR", "CY", "F8"],
+                        "NONE",
+                        OcdMode::Mux,
                     );
                     ctx.collect_enum_default_ocd(
                         tile,
                         bel,
                         "COUTMUX",
-                        &["O6", "O5", "XOR", "CY", "C5Q", "F7"], "NONE", OcdMode::Mux,
+                        &["O6", "O5", "XOR", "CY", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
                     );
                     if is_m {
                         ctx.collect_enum_default_ocd(
                             tile,
                             bel,
                             "DOUTMUX",
-                            &["O6", "O5", "XOR", "CY", "D5Q", "MC31"], "NONE", OcdMode::Mux,
+                            &["O6", "O5", "XOR", "CY", "MC31"],
+                            "NONE",
+                            OcdMode::Mux,
                         );
                     } else {
-                        ctx.collect_enum_default_ocd(tile, bel, "DOUTMUX", &["O6", "O5", "XOR", "CY", "D5Q"], "NONE", OcdMode::Mux);
+                        ctx.collect_enum_default_ocd(
+                            tile,
+                            bel,
+                            "DOUTMUX",
+                            &["O6", "O5", "XOR", "CY"],
+                            "NONE",
+                            OcdMode::Mux,
+                        );
+                    }
+                } else {
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "AOUTMUX",
+                        &["O6", "O5", "XOR", "CY", "A5Q", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "BOUTMUX",
+                        &["O6", "O5", "XOR", "CY", "B5Q", "F8"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "COUTMUX",
+                        &["O6", "O5", "XOR", "CY", "C5Q", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
+                    if is_m {
+                        ctx.collect_enum_default_ocd(
+                            tile,
+                            bel,
+                            "DOUTMUX",
+                            &["O6", "O5", "XOR", "CY", "D5Q", "MC31"],
+                            "NONE",
+                            OcdMode::Mux,
+                        );
+                    } else {
+                        ctx.collect_enum_default_ocd(
+                            tile,
+                            bel,
+                            "DOUTMUX",
+                            &["O6", "O5", "XOR", "CY", "D5Q"],
+                            "NONE",
+                            OcdMode::Mux,
+                        );
                     }
                 }
                 if mode == Mode::Spartan6 {
@@ -983,18 +1033,48 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.collect_enum(tile, bel, "DFFMUX", &["O6", "O5", "XOR", "CY", "DX"]);
                     }
                 } else {
-                    ctx.collect_enum_default_ocd(tile, bel, "AFFMUX", &["O6", "O5", "XOR", "CY", "AX", "F7"], "NONE", OcdMode::Mux);
-                    ctx.collect_enum_default_ocd(tile, bel, "BFFMUX", &["O6", "O5", "XOR", "CY", "BX", "F8"], "NONE", OcdMode::Mux);
-                    ctx.collect_enum_default_ocd(tile, bel, "CFFMUX", &["O6", "O5", "XOR", "CY", "CX", "F7"], "NONE", OcdMode::Mux);
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "AFFMUX",
+                        &["O6", "O5", "XOR", "CY", "AX", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "BFFMUX",
+                        &["O6", "O5", "XOR", "CY", "BX", "F8"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
+                    ctx.collect_enum_default_ocd(
+                        tile,
+                        bel,
+                        "CFFMUX",
+                        &["O6", "O5", "XOR", "CY", "CX", "F7"],
+                        "NONE",
+                        OcdMode::Mux,
+                    );
                     if is_m {
                         ctx.collect_enum_default_ocd(
                             tile,
                             bel,
                             "DFFMUX",
-                            &["O6", "O5", "XOR", "CY", "DX", "MC31"], "NONE", OcdMode::Mux,
+                            &["O6", "O5", "XOR", "CY", "DX", "MC31"],
+                            "NONE",
+                            OcdMode::Mux,
                         );
                     } else {
-                        ctx.collect_enum_default_ocd(tile, bel, "DFFMUX", &["O6", "O5", "XOR", "CY", "DX"], "NONE", OcdMode::Mux);
+                        ctx.collect_enum_default_ocd(
+                            tile,
+                            bel,
+                            "DFFMUX",
+                            &["O6", "O5", "XOR", "CY", "DX"],
+                            "NONE",
+                            OcdMode::Mux,
+                        );
                     }
                 }
                 if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
@@ -1010,7 +1090,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             tile,
                             bel,
                             attr,
-                            xlat_enum_default(vec![("O5".to_string(), d_o5), (byp.to_string(), d_byp)], "NONE"),
+                            xlat_enum_default(
+                                vec![("O5".to_string(), d_o5), (byp.to_string(), d_byp)],
+                                "NONE",
+                            ),
                         );
                     }
                 }

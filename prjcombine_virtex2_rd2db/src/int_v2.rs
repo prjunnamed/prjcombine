@@ -1405,15 +1405,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for &xy in rd.tiles_by_kind_name("GCLKC") {
-        let mut bel = builder.bel_virtual("GCLKC");
-        for i in 0..8 {
-            bel = bel
-                .extra_wire(format!("IN_B{i}"), &[format!("GCLKC_GCLKB{i}")])
-                .extra_wire(format!("IN_T{i}"), &[format!("GCLKC_GCLKT{i}")])
-                .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
-                .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
+        for nn in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
+            let mut bel = builder.bel_virtual("GCLKC");
+            for i in 0..8 {
+                bel = bel
+                    .extra_wire(format!("IN_B{i}"), &[format!("GCLKC_GCLKB{i}")])
+                    .extra_wire(format!("IN_T{i}"), &[format!("GCLKC_GCLKT{i}")])
+                    .extra_wire(format!("OUT_L{i}"), &[format!("GCLKC_GCLKL{i}")])
+                    .extra_wire(format!("OUT_R{i}"), &[format!("GCLKC_GCLKR{i}")]);
+            }
+            builder.extract_xnode_bels(nn, xy, &[], &[xy], "GCLKC", &[bel]);
         }
-        builder.extract_xnode_bels("GCLKC", xy, &[], &[xy], "GCLKC", &[bel]);
     }
 
     for tkn in ["GCLKH", "LR_GCLKH"] {
@@ -1424,8 +1426,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK_B{i}")])
-                    .extra_int_out(format!("OUT_UP{i}"), &[format!("GCLKH_GCLK_UP{i}")])
-                    .extra_int_out(format!("OUT_DN{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
+                    .extra_int_out(format!("OUT_T{i}"), &[format!("GCLKH_GCLK_UP{i}")])
+                    .extra_int_out(format!("OUT_B{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
             }
             builder.extract_xnode_bels(
                 "GCLKH",

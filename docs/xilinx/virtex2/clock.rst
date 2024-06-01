@@ -88,7 +88,54 @@ The ``GCLKC`` clock spine distribution tiles
 .. todo:: document
 
 
+``GCLKC``
+---------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-GCLKC.html
+
+
+``GCLKC.B``
+-----------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-GCLKC.B.html
+
+
+``GCLKC.T``
+-----------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-GCLKC.T.html
+
+
 The clock row distribution tiles
 ================================
 
 .. todo:: document
+
+``GCLKH``
+---------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-GCLKH.html
+
+
+DCM output bus
+==============
+
+.. todo:: document
+
+
+``DCMCONN.BOT``
+---------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-DCMCONN.BOT.html
+
+
+``DCMCONN.TOP``
+---------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-DCMCONN.TOP.html

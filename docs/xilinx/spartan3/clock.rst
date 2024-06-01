@@ -94,6 +94,61 @@ Clock source — left and right
 .. todo:: document
 
 
+Bitstream — left tiles
+----------------------
+
+.. todo:: write
+
+
+``CLKL.S3E``
+++++++++++++
+
+This tile is used on Spartan 3E.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-CLKL.S3E.html
+
+
+``CLKL.S3A``
+++++++++++++
+
+This tile is used on Spartan 3A.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-CLKL.S3A.html
+
+
+Bitstream — right tiles
+-----------------------
+
+.. todo:: write
+
+
+``CLKR.S3E``
+++++++++++++
+
+This tile is used on Spartan 3E.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-CLKR.S3E.html
+
+
+``CLKR.S3A``
+++++++++++++
+
+This tile is used on Spartan 3A.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-CLKR.S3A.html
+
+
+Default option attributes
+-------------------------
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-pcilogicse-opts.html
+
+
 The ``CLKC`` clock center tile
 ==============================
 
@@ -102,16 +157,35 @@ The ``CLKC`` tile is located in the center of the FPGA (intersection of primary 
 .. todo:: describe exact forwarding
 
 
+The ``CLKC_50A`` clock center tile
+==================================
+
+.. todo:: document
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-CLKC_50A.html
+
+
 The ``GCLKVM`` secondary clock center tiles
 ===========================================
 
 The ``GCLKVM`` tiles are located on the intersection of secondary vertical clock spines and the horizontal clock spine.
 
-The Spartan 3 version has permanent buffers forwarding the clock signals from ``CLKC`` to ``GCLKVC`` tiles. It has no configuration.
+.. todo:: document 
 
-The Spartan 3E and 3A versions multiplex clock signals from ``CLK[LR]`` and ``CLKC`` tiles.
 
-.. todo:: document Spartan 3E/3A version
+``GCLKVM.S3``
+-------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKVM.S3.html
+
+
+``GCLKVM.S3E``
+--------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKVM.S3E.html
 
 
 The ``GCLKVC`` clock spine distribution tiles
@@ -124,3 +198,40 @@ The ``GCLKH`` clock row distribution tiles
 ==========================================
 
 .. todo:: document
+
+``GCLKH``
+---------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.html
+
+``GCLKH.S``
+-----------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.S.html
+
+``GCLKH.N``
+-----------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.N.html
+
+
+``GCLKH.UNI``
+-------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.html
+
+``GCLKH.UNI.S``
+---------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.S.html
+
+``GCLKH.UNI.N``
+---------------
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.N.html

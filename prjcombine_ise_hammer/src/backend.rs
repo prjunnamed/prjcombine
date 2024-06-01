@@ -126,7 +126,7 @@ impl<'a> State<'a> {
                 attr,
                 val,
             })
-            .unwrap()
+            .unwrap_or_else(|| panic!("NO DIFF: {tile} {bel} {attr} {val}"))
             .diffs
     }
 
@@ -372,26 +372,36 @@ impl<'a> Backend for IseBackend<'a> {
                     };
                     xdiffs.push(diff);
                 }
-                match state.simple_features.entry(sfid) {
-                    hash_map::Entry::Occupied(mut e) => {
-                        let v = e.get_mut();
-                        if v.diffs != xdiffs {
-                            eprintln!(
-                                "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
-                                vbits = v.diffs
-                            );
-                            Some(v.fuzzers.clone())
-                        } else {
-                            v.fuzzers.push(fid);
-                            None
+                if btiles.is_empty() {
+                    for diff in &xdiffs {
+                        if !diff.bits.is_empty() {
+                            eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");
+                            return Some(vec![]);
                         }
                     }
-                    hash_map::Entry::Vacant(e) => {
-                        e.insert(SimpleFeatureData {
-                            diffs: xdiffs,
-                            fuzzers: vec![fid],
-                        });
-                        None
+                    None
+                } else {
+                    match state.simple_features.entry(sfid) {
+                        hash_map::Entry::Occupied(mut e) => {
+                            let v = e.get_mut();
+                            if v.diffs != xdiffs {
+                                eprintln!(
+                                    "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
+                                    vbits = v.diffs
+                                );
+                                Some(v.fuzzers.clone())
+                            } else {
+                                v.fuzzers.push(fid);
+                                None
+                            }
+                        }
+                        hash_map::Entry::Vacant(e) => {
+                            e.insert(SimpleFeatureData {
+                                diffs: xdiffs,
+                                fuzzers: vec![fid],
+                            });
+                            None
+                        }
                     }
                 }
             }

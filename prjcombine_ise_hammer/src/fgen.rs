@@ -199,10 +199,12 @@ pub enum TileKV<'a> {
     #[allow(dead_code)]
     GlobalOpt(&'a str, &'a str),
     GlobalMutexNone(&'a str),
+    GlobalMutex(&'a str, &'a str),
     GlobalMutexSite(&'a str, BelId),
     RowMutexSite(&'a str, BelId),
     RowMutex(&'a str, &'a str),
     SiteMutex(BelId, &'a str, &'a str),
+    TileMutex(&'a str, &'a str),
     Pip(TileWire<'a>, TileWire<'a>),
     IntPip(NodeWireId, NodeWireId),
     NodeMutexShared(NodeWireId),
@@ -212,6 +214,7 @@ pub enum TileKV<'a> {
     NodeIntDistinct(NodeWireId, NodeWireId),
     DriveLLH(NodeWireId),
     DriveLLV(NodeWireId),
+    StabilizeGclkc,
 }
 
 impl<'a> TileKV<'a> {
@@ -244,6 +247,7 @@ impl<'a> TileKV<'a> {
             }
             TileKV::GlobalOpt(opt, val) => fuzzer.base(Key::GlobalOpt(opt), val),
             TileKV::GlobalMutexNone(name) => fuzzer.base(Key::GlobalMutex(name), None),
+            TileKV::GlobalMutex(name, val) => fuzzer.base(Key::GlobalMutex(name), val),
             TileKV::GlobalMutexSite(name, bel) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::GlobalMutex(name), &site[..])
@@ -257,6 +261,7 @@ impl<'a> TileKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteMutex(&site[..], name), val)
             }
+            TileKV::TileMutex(name, val) => fuzzer.base(Key::TileMutex(loc, name), val),
             TileKV::Pip(wa, wb) => {
                 let (ta, wa) = resolve_tile_wire(backend, loc, wa)?;
                 let (tb, wb) = resolve_tile_wire(backend, loc, wb)?;
@@ -585,6 +590,42 @@ impl<'a> TileKV<'a> {
                     }
                 }
             }
+            TileKV::StabilizeGclkc => {
+                for (node_kind, node_name, _) in &backend.egrid.db.nodes {
+                    if !node_name.starts_with("GCLKC") {
+                        continue;
+                    }
+                    for &loc in &backend.egrid.node_index[node_kind] {
+                        let bel = BelId::from_idx(0);
+                        for (o, i) in [
+                            ("OUT_L0", "IN_B0"),
+                            ("OUT_R0", "IN_B0"),
+                            ("OUT_L1", "IN_B1"),
+                            ("OUT_R1", "IN_B1"),
+                            ("OUT_L2", "IN_B2"),
+                            ("OUT_R2", "IN_B2"),
+                            ("OUT_L3", "IN_B3"),
+                            ("OUT_R3", "IN_B3"),
+                            ("OUT_L4", "IN_B4"),
+                            ("OUT_R4", "IN_B4"),
+                            ("OUT_L5", "IN_B5"),
+                            ("OUT_R5", "IN_B5"),
+                            ("OUT_L6", "IN_B6"),
+                            ("OUT_R6", "IN_B6"),
+                            ("OUT_L7", "IN_B7"),
+                            ("OUT_R7", "IN_B7"),
+                        ] {
+                            fuzzer = TileKV::TileMutex(o, i).apply(backend, loc, fuzzer)?;
+                            fuzzer = TileKV::Pip(
+                                TileWire::BelPinNear(bel, i),
+                                TileWire::BelPinNear(bel, o),
+                            )
+                            .apply(backend, loc, fuzzer)?;
+                        }
+                    }
+                }
+                fuzzer
+            }
         })
     }
 }
@@ -606,6 +647,7 @@ pub enum TileFuzzKV<'a> {
     IntfDelay(NodeWireId, bool),
     NodeMutexExclusive(NodeWireId),
     TileMutexExclusive(&'a str),
+    RowMutexExclusive(&'a str),
     TileRelated(TileRelation, Box<TileFuzzKV<'a>>),
 }
 
@@ -677,6 +719,9 @@ impl<'a> TileFuzzKV<'a> {
             TileFuzzKV::TileMutexExclusive(name) => {
                 fuzzer.fuzz(Key::TileMutex(loc, name), None, "EXCLUSIVE")
             }
+            TileFuzzKV::RowMutexExclusive(name) => {
+                fuzzer.fuzz(Key::RowMutex(name, loc.2), None, "EXCLUSIVE")
+            }
             TileFuzzKV::TileRelated(relation, ref chain) => {
                 let loc = resolve_tile_relation(backend, loc, relation)?;
                 chain.apply(backend, loc, fuzzer)?
@@ -708,6 +753,7 @@ impl<'a> TileMultiFuzzKV<'a> {
 
 #[derive(Debug, Copy, Clone)]
 pub enum TileBits {
+    Null,
     Main(usize),
     MainUp,
     MainDown,
@@ -720,12 +766,18 @@ pub enum TileBits {
     LLV,
     #[allow(clippy::upper_case_acronyms)]
     PPC,
+    Gclkc,
+    ClkLR,
+    Hclk,
+    Gclkvm,
+    Clkc,
 }
 
 impl TileBits {
     fn get_bits(&self, backend: &IseBackend, loc: (DieId, ColId, RowId, LayerId)) -> Vec<BitTile> {
         let (die, col, row, _) = loc;
         match *self {
+            TileBits::Null => vec![],
             TileBits::Main(n) => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
                 ExpandedDevice::Xc5200(_) => todo!(),
@@ -875,6 +927,68 @@ impl TileBits {
                 },
                 _ => unreachable!(),
             },
+            TileBits::Gclkc => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if row == edev.grid.row_bot() + 1 {
+                    vec![
+                        edev.btile_btspine(row - 1),
+                        edev.btile_spine(row - 1),
+                        edev.btile_spine(row),
+                        edev.btile_spine(row + 1),
+                    ]
+                } else if row == edev.grid.row_top() {
+                    vec![
+                        edev.btile_spine(row - 2),
+                        edev.btile_spine(row - 1),
+                        edev.btile_spine(row),
+                        edev.btile_btspine(row),
+                    ]
+                } else {
+                    vec![
+                        edev.btile_spine(row - 2),
+                        edev.btile_spine(row - 1),
+                        edev.btile_spine(row),
+                        edev.btile_spine(row + 1),
+                    ]
+                }
+            }
+            TileBits::ClkLR => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![
+                    edev.btile_main(col, row - 1),
+                    edev.btile_main(col, row),
+                    edev.btile_lrterm(col, row - 2),
+                    edev.btile_lrterm(col, row - 1),
+                    edev.btile_lrterm(col, row),
+                    edev.btile_lrterm(col, row + 1),
+                ]
+            }
+            TileBits::Hclk => match backend.edev {
+                ExpandedDevice::Virtex2(edev) => {
+                    vec![edev.btile_hclk(col, row)]
+                }
+                ExpandedDevice::Spartan6(_) => todo!(),
+                ExpandedDevice::Virtex4(_) => todo!(),
+                ExpandedDevice::Ultrascale(_) => todo!(),
+                ExpandedDevice::Versal(_) => todo!(),
+                _ => unreachable!(),
+            },
+            TileBits::Gclkvm => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_clkv(col, row - 1), edev.btile_clkv(col, row)]
+            }
+            TileBits::Clkc => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_spine(row - 1)]
+            }
         }
     }
 }

@@ -17,6 +17,9 @@ macro_rules! fuzz_wire {
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileWire::BelPinNear($ctx.bel, $pin)
     };
+    ($ctx:ident, (pin_far $pin:expr)) => {
+        $crate::fgen::TileWire::BelPinFar($ctx.bel, $pin)
+    };
     ($ctx:ident, (bel_pin $bel:expr, $pin:expr)) => {
         $crate::fgen::TileWire::BelPinNear($bel, $pin)
     };
@@ -45,8 +48,14 @@ macro_rules! fuzz_base {
     ($ctx:ident, (mutex $attr:expr, $val:expr)) => {
         $crate::fgen::TileKV::SiteMutex($ctx.bel, $attr, $val)
     };
+    ($ctx:ident, (tile_mutex $attr:expr, $val:expr)) => {
+        $crate::fgen::TileKV::TileMutex($attr, $val)
+    };
     ($ctx:ident, (global_mutex_none $name:expr)) => {
         $crate::fgen::TileKV::GlobalMutexNone($name)
+    };
+    ($ctx:ident, (global_mutex $name:expr, $val:expr)) => {
+        $crate::fgen::TileKV::GlobalMutex($name, $val)
     };
     ($ctx:ident, (global_mutex_site $name:expr)) => {
         $crate::fgen::TileKV::GlobalMutexSite($name, $ctx.bel)
@@ -56,6 +65,9 @@ macro_rules! fuzz_base {
     };
     ($ctx:ident, (pip $wa:tt, $wb:tt)) => {
         $crate::fgen::TileKV::Pip($crate::fuzz_wire!($ctx, $wa), $crate::fuzz_wire!($ctx, $wb))
+    };
+    ($ctx:ident, (special $val:expr)) => {
+        $val
     };
 }
 
@@ -78,6 +90,9 @@ macro_rules! fuzz_diff {
     };
     ($ctx:ident, (pip $wa:tt, $wb:tt)) => {
         $crate::fgen::TileFuzzKV::Pip($crate::fuzz_wire!($ctx, $wa), $crate::fuzz_wire!($ctx, $wb))
+    };
+    ($ctx:ident, (row_mutex $name:expr)) => {
+        $crate::fgen::TileFuzzKV::RowMutexExclusive($name)
     };
 }
 

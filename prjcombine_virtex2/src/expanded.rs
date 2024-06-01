@@ -301,6 +301,19 @@ impl<'a> ExpandedDevice<'a> {
         )
     }
 
+    pub fn btile_clkv(&self, col: ColId, row: RowId) -> BitTile {
+        assert!(!self.grid.kind.is_virtex2());
+        let bit = 16 + 64 * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.clkv_frame + if col < self.grid.col_clk { 0 } else { 1 },
+            1,
+            bit,
+            64,
+            false,
+        )
+    }
+
     pub fn btile_btspine(&self, row: RowId) -> BitTile {
         let (width, height) = if self.grid.kind.is_virtex2() {
             (4, 80)
@@ -338,5 +351,41 @@ impl<'a> ExpandedDevice<'a> {
         assert!(self.grid.has_ll);
         let bit = 16 + self.grid.rows.len() * 64 + 8;
         BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 3, false)
+    }
+
+    pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {
+        let (width, height) = if self.grid.kind.is_virtex2() {
+            (22, 80)
+        } else {
+            (19, 64)
+        };
+        let hclk_idx = self
+            .grid
+            .rows_hclk
+            .iter()
+            .position(|&(hrow, _, _)| hrow == row)
+            .unwrap();
+        let bit = if row <= self.grid.row_mid() {
+            if self.grid.kind.is_spartan3a() {
+                11 + hclk_idx
+            } else {
+                hclk_idx
+            }
+        } else {
+            let hclk_idx = self.grid.rows_hclk.len() - hclk_idx - 1;
+            if self.grid.kind.is_spartan3a() || self.grid.has_ll {
+                16 + height * self.grid.rows.len() + 11 + hclk_idx
+            } else {
+                16 + height * self.grid.rows.len() + 12 + hclk_idx
+            }
+        };
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[col],
+            width,
+            bit,
+            1,
+            false,
+        )
     }
 }

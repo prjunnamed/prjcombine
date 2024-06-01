@@ -10,6 +10,7 @@ use tiledb::TileDb;
 mod backend;
 mod bram;
 mod clb;
+mod clk;
 mod diff;
 mod dsp;
 mod fgen;
@@ -62,6 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
+                clk::virtex2::add_fuzzers(&mut hammer, &backend);
                 bram::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
@@ -114,6 +116,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(&mut ctx);
+                clk::virtex2::collect_fuzzers(&mut ctx);
                 bram::virtex2::collect_fuzzers(&mut ctx);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);

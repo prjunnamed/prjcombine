@@ -2448,8 +2448,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 0..8 {
             bel = bel
                 .extra_wire(format!("IN_CORE{i}"), &[format!("GCLKVM_GCLK{i}")])
-                .extra_wire(format!("OUT_DN{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
-                .extra_wire(format!("OUT_UP{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
+                .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVM_GCLK_DN{i}")])
+                .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVM_GCLK_UP{i}")]);
         }
         builder.extract_xnode_bels("GCLKVM.S3", xy, &[], &[xy], "GCLKVM.S3", &[bel]);
     }
@@ -2470,8 +2470,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         format!("IN_LR{i}"),
                         &[format!("GCLKVML_GCLKLR{i}"), format!("GCLKVMR_GCLKLR{i}")],
                     )
-                    .extra_wire(format!("OUT_DN{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
-                    .extra_wire(format!("OUT_UP{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
+                    .extra_wire(format!("OUT_B{i}"), &[format!("GCLKVMLR_GCLK_DN{i}")])
+                    .extra_wire(format!("OUT_T{i}"), &[format!("GCLKVMLR_GCLK_UP{i}")]);
             }
             builder.extract_xnode_bels("GCLKVM.S3E", xy, &[], &[xy], tkn, &[bel]);
         }
@@ -2501,8 +2501,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("IN{i}"), &[format!("GCLKH_GCLK{i}")])
-                    .extra_int_out(format!("OUT_UP{i}"), &[format!("GCLKH_GCLK_UP{i}")])
-                    .extra_int_out(format!("OUT_DN{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
+                    .extra_int_out(format!("OUT_T{i}"), &[format!("GCLKH_GCLK_UP{i}")])
+                    .extra_int_out(format!("OUT_B{i}"), &[format!("GCLKH_GCLK_DN{i}")]);
             }
             builder.extract_xnode_bels(
                 "GCLKH",
@@ -2523,18 +2523,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel = bel
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
-                    format!("OUT_UP{i}"),
+                    format!("OUT_T{i}"),
                     (NodeTileId::from_idx(1), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
                 .extra_int_out_force(
-                    format!("OUT_DN{i}"),
+                    format!("OUT_B{i}"),
                     (NodeTileId::from_idx(0), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
         builder.extract_xnode_bels(
-            "GCLKH",
+            if rd.family == "spartan3e" {
+                "GCLKH"
+            } else {
+                "GCLKH.UNI"
+            },
             dummy_xy,
             &[],
             &[dummy_xy, dummy_xy],
@@ -2546,13 +2550,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel = bel
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
-                    format!("OUT_DN{i}"),
+                    format!("OUT_B{i}"),
                     (NodeTileId::from_idx(0), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_DN{i}"),
                 );
         }
         builder.extract_xnode_bels(
-            "GCLKH.S",
+            if rd.family == "spartan3e" {
+                "GCLKH.S"
+            } else {
+                "GCLKH.UNI.S"
+            },
             dummy_xy,
             &[],
             &[dummy_xy, dummy_xy],
@@ -2564,13 +2572,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel = bel
                 .extra_wire_force(format!("IN{i}"), format!("BRAMSITE2_GCLKH_GCLK{i}"))
                 .extra_int_out_force(
-                    format!("OUT_UP{i}"),
+                    format!("OUT_T{i}"),
                     (NodeTileId::from_idx(1), gclk[i]),
                     format!("BRAMSITE2_GCLKH_GCLK_UP{i}"),
                 )
         }
         builder.extract_xnode_bels(
-            "GCLKH.N",
+            if rd.family == "spartan3e" {
+                "GCLKH.N"
+            } else {
+                "GCLKH.UNI.N"
+            },
             dummy_xy,
             &[],
             &[dummy_xy, dummy_xy],

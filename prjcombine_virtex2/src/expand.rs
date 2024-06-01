@@ -3078,6 +3078,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         },
                         ColumnKind::BramCont(x) => {
                             if row_m == self.grid.row_mid() {
+                                kind = "GCLKH.UNI";
                                 naming = "GCLKH.BRAM";
                                 [
                                     "BRAMSITE2_DN_GCLKH",
@@ -3085,15 +3086,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                                     "BRAM2_GCLKH_FEEDTHRUA",
                                 ][x as usize - 1]
                             } else if i == 0 {
-                                kind = "GCLKH.S";
                                 naming = "GCLKH.BRAM.S";
                                 if self.grid.kind == GridKind::Spartan3E {
+                                    kind = "GCLKH.S";
                                     [
                                         "BRAMSITE2_DN_GCLKH",
                                         "BRAM2_DN_GCLKH_FEEDTHRU",
                                         "BRAM2_DN_GCLKH_FEEDTHRUA",
                                     ][x as usize - 1]
                                 } else {
+                                    kind = "GCLKH.UNI.S";
                                     [
                                         "BRAMSITE2_DN_GCLKH",
                                         "BRAM2_GCLKH_FEEDTHRU",
@@ -3101,15 +3103,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                                     ][x as usize - 1]
                                 }
                             } else if i == self.grid.rows_hclk.len() - 1 {
-                                kind = "GCLKH.N";
                                 naming = "GCLKH.BRAM.N";
                                 if self.grid.kind == GridKind::Spartan3E {
+                                    kind = "GCLKH.N";
                                     [
                                         "BRAMSITE2_UP_GCLKH",
                                         "BRAM2_UP_GCLKH_FEEDTHRU",
                                         "BRAM2_UP_GCLKH_FEEDTHRUA",
                                     ][x as usize - 1]
                                 } else {
+                                    kind = "GCLKH.UNI.N";
                                     [
                                         "BRAMSITE2_UP_GCLKH",
                                         "BRAM2_GCLKH_FEEDTHRU",
@@ -3204,9 +3207,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     r -= 1;
                 }
                 let name = format!("GCLKCR{r}");
+                let node_kind = if row_m == self.grid.row_bot() + 1 {
+                    "GCLKC.B"
+                } else if row_m == self.grid.row_top() {
+                    "GCLKC.T"
+                } else {
+                    "GCLKC"
+                };
                 self.die.add_xnode(
                     (self.grid.col_clk, row_m),
-                    self.db.get_node("GCLKC"),
+                    self.db.get_node(node_kind),
                     &[&name],
                     self.db.get_node_naming("GCLKC"),
                     &[],

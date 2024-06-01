@@ -27,6 +27,22 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 f.write(f"</tr>\n")
         f.write(f"</table>\n")
 
+    def emit_dev_table_string(f, name):
+        found = False
+        for dev, data in db["device_data"].items():
+            if name in data:
+                found = True
+                break
+        if not found:
+            return
+        f.write("<table class=\"docutils align-default\">\n")
+        f.write(f"<tr><th>Device</th><th>Value</th></tr>\n")
+        for dev, data in db["device_data"].items():
+            if name in data:
+                f.write(f"<tr><td>{dev}</td><td>{data[name]}</td</tr>\n")
+        f.write(f"</table>\n")
+
+
     for tile_name, tile in db["tiles"].items():
         num_bittiles = 0
         for item in tile.values():
@@ -156,6 +172,10 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
             emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_B_DEFAULT")
+
+        with open("xilinx/gen-xilinx-xc3s-pcilogicse-opts.html", "w") as f:
+            emit_dev_table_string(f, "PCILOGICSE:DELAY_DEFAULT")
+
 
         intf_mux = []
         for item, val in db["misc_data"].items():

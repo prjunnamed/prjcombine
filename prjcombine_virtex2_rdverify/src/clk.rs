@@ -195,13 +195,13 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
 
 pub fn verify_gclkh(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
-        for ud in ["UP", "DN"] {
-            if matches!((bel.key, ud), ("GCLKH.S", "UP") | ("GCLKH.N", "DN")) {
+        for bt in ["B", "T"] {
+            if matches!((bel.key, bt), ("GCLKH.S", "T") | ("GCLKH.N", "B")) {
                 continue;
             }
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_{ud}{i}")),
+                bel.wire(&format!("OUT_{bt}{i}")),
                 bel.wire(&format!("IN{i}")),
             );
         }
@@ -357,17 +357,17 @@ pub fn verify_clkc_50a(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
 
 pub fn verify_gclkvm(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
-        for ud in ["UP", "DN"] {
-            vrf.claim_node(&[bel.fwire(&format!("OUT_{ud}{i}"))]);
+        for bt in ["B", "T"] {
+            vrf.claim_node(&[bel.fwire(&format!("OUT_{bt}{i}"))]);
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_{ud}{i}")),
+                bel.wire(&format!("OUT_{bt}{i}")),
                 bel.wire(&format!("IN_CORE{i}")),
             );
             if edev.grid.kind != GridKind::Spartan3 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("OUT_{ud}{i}")),
+                    bel.wire(&format!("OUT_{bt}{i}")),
                     bel.wire(&format!("IN_LR{i}")),
                 );
             }
@@ -404,9 +404,9 @@ pub fn verify_gclkvc(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
             );
         }
         let ud = if bel.row < edev.grid.row_mid() {
-            "DN"
+            "B"
         } else {
-            "UP"
+            "T"
         };
         let obel = vrf
             .find_bel(bel.die, (bel.col, edev.grid.row_mid()), "GCLKVM")
