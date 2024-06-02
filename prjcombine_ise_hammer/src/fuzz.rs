@@ -43,13 +43,19 @@ macro_rules! fuzz_base {
         $crate::fgen::TileKV::SiteAttr($bel, $attr, $val)
     };
     ($ctx:ident, (pin $pin:expr)) => {
-        $crate::fgen::TileKV::SitePin($ctx.bel, $pin)
+        $crate::fgen::TileKV::SitePin($ctx.bel, $pin, true)
+    };
+    ($ctx:ident, (nopin $pin:expr)) => {
+        $crate::fgen::TileKV::SitePin($ctx.bel, $pin, false)
     };
     ($ctx:ident, (mutex $attr:expr, $val:expr)) => {
         $crate::fgen::TileKV::SiteMutex($ctx.bel, $attr, $val)
     };
     ($ctx:ident, (tile_mutex $attr:expr, $val:expr)) => {
         $crate::fgen::TileKV::TileMutex($attr, $val)
+    };
+    ($ctx:ident, (global_opt $name:expr, $val:expr)) => {
+        $crate::fgen::TileKV::GlobalOpt($name, $val)
     };
     ($ctx:ident, (global_mutex_none $name:expr)) => {
         $crate::fgen::TileKV::GlobalMutexNone($name)
@@ -79,8 +85,14 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::SiteAttr($ctx.bel, $attr, $val)
     };
+    ($ctx:ident, (attr_diff $attr:expr, $vala:expr, $valb:expr)) => {
+        $crate::fgen::TileFuzzKV::SiteAttrDiff($ctx.bel, $attr, $vala, $valb)
+    };
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileFuzzKV::SitePin($ctx.bel, $pin)
+    };
+    ($ctx:ident, (pin_full $pin:expr)) => {
+        $crate::fgen::TileFuzzKV::SitePinFull($ctx.bel, $pin)
     };
     ($ctx:ident, (global_opt $opt:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::GlobalOpt($opt, $val)
@@ -113,6 +125,12 @@ macro_rules! fuzz_diff_multi {
             $ctx.bel,
             $attr,
             $crate::backend::MultiValue::Hex($delta),
+        )
+    };
+    ($ctx:ident, (global_hex_prefix $attr:expr)) => {
+        $crate::fgen::TileMultiFuzzKV::GlobalOpt(
+            $attr,
+            $crate::backend::MultiValue::HexPrefix,
         )
     };
 }

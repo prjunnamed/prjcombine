@@ -18,6 +18,12 @@ impl From<BitVec> for DbValue {
     }
 }
 
+impl<const N: usize> From<[bool; N]> for DbValue {
+    fn from(value: [bool; N]) -> Self {
+        Self::BitVec(BitVec::from_iter(value))
+    }
+}
+
 impl From<String> for DbValue {
     fn from(value: String) -> Self {
         Self::String(value)

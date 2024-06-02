@@ -11,6 +11,7 @@ mod backend;
 mod bram;
 mod clb;
 mod clk;
+mod misc;
 mod diff;
 mod dsp;
 mod fgen;
@@ -68,6 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
+                misc::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::add_fuzzers(&mut hammer, &backend);
                 }
@@ -121,6 +123,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 }
+                misc::virtex2::collect_fuzzers(&mut ctx);
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::collect_fuzzers(&mut ctx);
                 }

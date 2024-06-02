@@ -2,7 +2,7 @@ use prjcombine_int::{
     db::{Dir, IntfWireInNaming, IntfWireOutNaming, NodeRawTileId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, LayerId, RowId},
 };
-use prjcombine_virtex_bitstream::BitTile;
+use prjcombine_virtex_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -195,8 +195,7 @@ pub enum TileKV<'a> {
     SiteMode(BelId, &'a str),
     SiteUnused(BelId),
     SiteAttr(BelId, &'a str, &'a str),
-    SitePin(BelId, &'a str),
-    #[allow(dead_code)]
+    SitePin(BelId, &'a str, bool),
     GlobalOpt(&'a str, &'a str),
     GlobalMutexNone(&'a str),
     GlobalMutex(&'a str, &'a str),
@@ -241,9 +240,9 @@ impl<'a> TileKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteAttr(site, attr), val)
             }
-            TileKV::SitePin(bel, pin) => {
+            TileKV::SitePin(bel, pin, val) => {
                 let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::SitePin(site, pin), true)
+                fuzzer.base(Key::SitePin(site, pin), val)
             }
             TileKV::GlobalOpt(opt, val) => fuzzer.base(Key::GlobalOpt(opt), val),
             TileKV::GlobalMutexNone(name) => fuzzer.base(Key::GlobalMutex(name), None),
@@ -635,10 +634,10 @@ impl<'a> TileKV<'a> {
 pub enum TileFuzzKV<'a> {
     SiteMode(BelId, &'a str),
     SiteAttr(BelId, &'a str, &'a str),
-    #[allow(dead_code)]
     SiteAttrDiff(BelId, &'a str, &'a str, &'a str),
     #[allow(dead_code)]
     SitePin(BelId, &'a str),
+    SitePinFull(BelId, &'a str),
     GlobalOpt(&'a str, &'a str),
     GlobalOptDiff(&'a str, &'a str, &'a str),
     Pip(TileWire<'a>, TileWire<'a>),
@@ -658,6 +657,9 @@ impl<'a> TileFuzzKV<'a> {
         loc: Loc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
+        let node = backend.egrid.node(loc);
+        let node_data = &backend.egrid.db.nodes[node.kind];
+        let node_naming = &backend.egrid.db.node_namings[node.naming];
         Some(match *self {
             TileFuzzKV::SiteMode(bel, val) => {
                 let node = backend.egrid.node(loc);
@@ -678,6 +680,24 @@ impl<'a> TileFuzzKV<'a> {
             TileFuzzKV::SitePin(bel, pin) => {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SitePin(site, pin), false, true)
+            }
+            TileFuzzKV::SitePinFull(bel, pin) => {
+                let site = &backend.egrid.node(loc).bels[bel];
+                fuzzer = fuzzer.fuzz(Key::SitePin(site, pin), false, true);
+                let bel_data = &node_data.bels[bel];
+                let pin_data = &bel_data.pins[pin];
+                let bel_naming = &node_naming.bels[bel];
+                let pin_naming = &bel_naming.pins[pin];
+                assert_eq!(pin_data.wires.len(), 1);
+                let wire = *pin_data.wires.first().unwrap();
+                if let Some(pip) = pin_naming.int_pips.get(&wire) {
+                    fuzzer = fuzzer.fuzz(
+                        Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
+                        false,
+                        true,
+                    );
+                }
+                fuzzer
             }
             TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt), None, val),
             TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
@@ -710,7 +730,6 @@ impl<'a> TileFuzzKV<'a> {
                 }
             }
             TileFuzzKV::NodeMutexExclusive(wire) => {
-                let node = backend.egrid.node(loc);
                 let node = backend
                     .egrid
                     .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
@@ -733,6 +752,7 @@ impl<'a> TileFuzzKV<'a> {
 #[derive(Debug)]
 pub enum TileMultiFuzzKV<'a> {
     SiteAttr(BelId, &'a str, MultiValue),
+    GlobalOpt(&'a str, MultiValue),
 }
 
 impl<'a> TileMultiFuzzKV<'a> {
@@ -747,6 +767,7 @@ impl<'a> TileMultiFuzzKV<'a> {
                 let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz_multi(Key::SiteAttr(site, attr), val)
             }
+            TileMultiFuzzKV::GlobalOpt(attr, val) => fuzzer.fuzz_multi(Key::GlobalOpt(attr), val),
         }
     }
 }
@@ -771,6 +792,8 @@ pub enum TileBits {
     Hclk,
     Gclkvm,
     Clkc,
+    Corner,
+    CornerReg(Reg),
 }
 
 impl TileBits {
@@ -988,6 +1011,39 @@ impl TileBits {
                     unreachable!()
                 };
                 vec![edev.btile_spine(row - 1)]
+            }
+            TileBits::Corner => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if edev.grid.kind.is_virtex2() {
+                    vec![
+                        edev.btile_lrterm(col, row),
+                        edev.btile_btterm(col, row),
+                        edev.btile_main(col, row),
+                    ]
+                } else {
+                    vec![edev.btile_lrterm(col, row), edev.btile_main(col, row)]
+                }
+            }
+            TileBits::CornerReg(reg) => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if edev.grid.kind.is_virtex2() {
+                    vec![
+                        edev.btile_lrterm(col, row),
+                        edev.btile_btterm(col, row),
+                        edev.btile_main(col, row),
+                        BitTile::Reg(DieId::from_idx(0), reg),
+                    ]
+                } else {
+                    vec![
+                        edev.btile_lrterm(col, row),
+                        edev.btile_main(col, row),
+                        BitTile::Reg(DieId::from_idx(0), reg),
+                    ]
+                }
             }
         }
     }

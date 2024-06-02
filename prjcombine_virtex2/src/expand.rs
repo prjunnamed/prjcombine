@@ -323,7 +323,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let kind = match self.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LL",
             GridKind::Spartan3 => "LL.S3",
-            GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3E",
+            GridKind::Spartan3E => "LL.S3E",
+            GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3A",
         };
         let tile = &mut self.die[(col, row)];
         let name = tile.nodes.first().unwrap().names[NodeRawTileId::from_idx(0)].clone();

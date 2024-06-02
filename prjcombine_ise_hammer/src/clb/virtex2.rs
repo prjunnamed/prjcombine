@@ -429,21 +429,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "YBUSED", "0"),
                 (pin "YB")
             ]);
-            fuzz_enum!(ctx, "F", ["#LUT:0", "#RAM:0"], [
+            fuzz_one!(ctx, "F", "#RAM:0", [
                 (mode bk_m),
                 (attr "XUSED", "0"),
                 (attr "FXMUX", if mode == Mode::Virtex4 {""} else {"F"}),
                 (attr "G", "#LUT:0"),
                 (attr "F_ATTR", "DUAL_PORT"),
                 (pin "X")
+            ], [
+                (attr_diff "F", "#LUT:0", "#RAM:0")
             ]);
-            fuzz_enum!(ctx, "G", ["#LUT:0", "#RAM:0"], [
+            fuzz_one!(ctx, "G", "#RAM:0", [
                 (mode bk_m),
                 (attr "YUSED", "0"),
                 (attr "GYMUX", if mode == Mode::Virtex4 {""} else {"G"}),
                 (attr "F", "#LUT:0"),
                 (attr "G_ATTR", "DUAL_PORT"),
                 (pin "Y")
+            ], [
+                (attr_diff "G", "#LUT:0", "#RAM:0")
             ]);
             fuzz_enum!(ctx, "F_ATTR", ["DUAL_PORT", "SHIFT_REG"], [
                 (mode bk_m),
@@ -683,8 +687,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // LUT RAM
         let is_m = mode == Mode::Virtex2 || matches!(idx, 0 | 2);
         if is_m {
-            ctx.state.get_diff("CLB", bel, "F", "#LUT:0").assert_empty();
-            ctx.state.get_diff("CLB", bel, "G", "#LUT:0").assert_empty();
             ctx.state
                 .get_diff("CLB", bel, "F_ATTR", "DUAL_PORT")
                 .assert_empty();

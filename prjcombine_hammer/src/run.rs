@@ -266,15 +266,19 @@ fn diagnose_cw_fail<B: Backend>(
         "CW FAIL at {bitpos:?}; DIAGNOSING [{}]",
         batch.fuzzers.len()
     );
-    let mut rng = thread_rng();
     let mut skip: HashSet<BatchFuzzerId> = HashSet::new();
     'big: loop {
         let left: Vec<_> = batch.fuzzers.ids().filter(|f| !skip.contains(f)).collect();
-        if left.len() >= 9 {
-            for _ in 0..4 {
+        if left.len() >= 3 {
+            let cut_a = (left.len() + 1) / 3;
+            let cut_b = (left.len() * 2 + 1) / 3;
+            for cut in [
+                &left[..cut_a],
+                &left[cut_a..cut_b],
+                &left[cut_b..],
+            ] {
                 let mut nskip = skip.clone();
-                let n = left.len() / 3;
-                nskip.extend(left.choose_multiple(&mut rng, n));
+                nskip.extend(cut.iter().copied());
                 if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
                     skip = nskip;
                     println!("REDUCE FAST {}", batch.fuzzers.len() - skip.len());

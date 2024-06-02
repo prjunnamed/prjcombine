@@ -1356,10 +1356,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ],
         );
     } else {
-        // XXX LL
-        builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
-
         if rd.family == "spartan3e" {
+            builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
             builder.extract_node_bels(
                 "LR",
                 "LR.S3E",
@@ -1392,6 +1390,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 ],
             );
         } else {
+            builder.extract_node_bels("LL", "LL.S3A", "LL.S3A", &[]);
             builder.extract_node_bels(
                 "LR",
                 "LR.S3A",
