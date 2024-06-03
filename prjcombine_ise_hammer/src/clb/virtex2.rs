@@ -944,12 +944,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         // FFs
-        let ff_sync = ctx.state.get_diff("CLB", bel, "SYNC_ATTR", "SYNC");
-        ctx.state
-            .get_diff("CLB", bel, "SYNC_ATTR", "ASYNC")
-            .assert_empty();
-        ctx.tiledb
-            .insert("CLB", bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+        let item = ctx.extract_enum_bool("CLB", bel, "SYNC_ATTR", "ASYNC", "SYNC");
+        ctx.tiledb.insert("CLB", bel, "FF_SYNC", item);
 
         let ff_latch = ctx.state.get_diff("CLB", bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.state.get_diff("CLB", bel, "FFY", "#LATCH"));
@@ -958,35 +954,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb
             .insert("CLB", bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
 
-        let revused = ctx.state.get_diff("CLB", bel, "REVUSED", "0");
-        ctx.tiledb
-            .insert("CLB", bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+        let item = ctx.extract_bit("CLB", bel, "REVUSED", "0");
+        ctx.tiledb.insert("CLB", bel, "FF_REV_EN", item);
 
-        let ffx_srval = !ctx.state.get_diff("CLB", bel, "FFX_SR_ATTR", "SRLOW");
-        let ffy_srval = !ctx.state.get_diff("CLB", bel, "FFY_SR_ATTR", "SRLOW");
-        ctx.state
-            .get_diff("CLB", bel, "FFX_SR_ATTR", "SRHIGH")
-            .assert_empty();
-        ctx.state
-            .get_diff("CLB", bel, "FFY_SR_ATTR", "SRHIGH")
-            .assert_empty();
-        ctx.tiledb
-            .insert("CLB", bel, "FFX_SRVAL", xlat_bitvec(vec![ffx_srval]));
-        ctx.tiledb
-            .insert("CLB", bel, "FFY_SRVAL", xlat_bitvec(vec![ffy_srval]));
+        let item = ctx.extract_enum_bool("CLB", bel, "FFX_SR_ATTR", "SRLOW", "SRHIGH");
+        ctx.tiledb.insert("CLB", bel, "FFX_SRVAL", item);
+        let item = ctx.extract_enum_bool("CLB", bel, "FFY_SR_ATTR", "SRLOW", "SRHIGH");
+        ctx.tiledb.insert("CLB", bel, "FFY_SRVAL", item);
 
-        let ffx_init = ctx.state.get_diff("CLB", bel, "FFX_INIT_ATTR", "INIT1");
-        let ffy_init = ctx.state.get_diff("CLB", bel, "FFY_INIT_ATTR", "INIT1");
-        ctx.state
-            .get_diff("CLB", bel, "FFX_INIT_ATTR", "INIT0")
-            .assert_empty();
-        ctx.state
-            .get_diff("CLB", bel, "FFY_INIT_ATTR", "INIT0")
-            .assert_empty();
-        ctx.tiledb
-            .insert("CLB", bel, "FFX_INIT", xlat_bitvec(vec![ffx_init]));
-        ctx.tiledb
-            .insert("CLB", bel, "FFY_INIT", xlat_bitvec(vec![ffy_init]));
+        let item = ctx.extract_enum_bool("CLB", bel, "FFX_INIT_ATTR", "INIT0", "INIT1");
+        ctx.tiledb.insert("CLB", bel, "FFX_INIT", item);
+        let item = ctx.extract_enum_bool("CLB", bel, "FFY_INIT_ATTR", "INIT0", "INIT1");
+        ctx.tiledb.insert("CLB", bel, "FFY_INIT", item);
 
         // inverts
         let int = if mode == Mode::Virtex4 {

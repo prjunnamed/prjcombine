@@ -18,6 +18,7 @@ mod fgen;
 mod fuzz;
 mod int;
 mod intf;
+mod io;
 mod ppc;
 mod tiledb;
 
@@ -70,6 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
                 misc::virtex2::add_fuzzers(&mut hammer, &backend);
+                io::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::add_fuzzers(&mut hammer, &backend);
                 }
@@ -124,6 +126,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 }
                 misc::virtex2::collect_fuzzers(&mut ctx);
+                io::virtex2::collect_fuzzers(&mut ctx);
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::collect_fuzzers(&mut ctx);
                 }

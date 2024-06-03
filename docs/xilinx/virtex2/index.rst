@@ -13,4 +13,5 @@ Xilinx Virtex 2 FPGAs
    clb
    bram
    clock
+   io
    corner

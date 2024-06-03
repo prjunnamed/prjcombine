@@ -102,6 +102,16 @@ impl Diff {
         }
         res
     }
+
+    pub fn from_bool_item(item: &TileItem<FeatureBit>) -> Self {
+        assert_eq!(item.bits.len(), 1);
+        let TileItemKind::BitVec { invert } = item.kind else {
+            unreachable!()
+        };
+        let mut res = Diff::default();
+        res.bits.insert(item.bits[0], !invert);
+        res
+    }
 }
 
 impl core::ops::Not for Diff {
@@ -178,7 +188,7 @@ pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem<FeatureBit> {
     }
 }
 
-pub fn concat_bitvec(vecs: impl IntoIterator<Item=TileItem<FeatureBit>>) -> TileItem<FeatureBit> {
+pub fn concat_bitvec(vecs: impl IntoIterator<Item = TileItem<FeatureBit>>) -> TileItem<FeatureBit> {
     let mut invert = None;
     let mut bits = vec![];
     for vec in vecs {
@@ -192,7 +202,12 @@ pub fn concat_bitvec(vecs: impl IntoIterator<Item=TileItem<FeatureBit>>) -> Tile
         }
         bits.extend(vec.bits);
     }
-    TileItem { bits, kind: TileItemKind::BitVec { invert: invert.unwrap() } }
+    TileItem {
+        bits,
+        kind: TileItemKind::BitVec {
+            invert: invert.unwrap(),
+        },
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -378,6 +393,22 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             .collect();
         let ti = xlat_enum(diffs);
         self.tiledb.insert(tile, bel, attr, ti);
+    }
+
+    pub fn extract_bit(
+        &mut self,
+        tile: &'a str,
+        bel: &'a str,
+        attr: &'a str,
+        val: &'a str,
+    ) -> TileItem<FeatureBit> {
+        let diff = self.state.get_diff(tile, bel, attr, val);
+        xlat_bitvec(vec![diff])
+    }
+
+    pub fn collect_bit(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) {
+        let item = self.extract_bit(tile, bel, attr, val);
+        self.tiledb.insert(tile, bel, attr, item);
     }
 
     pub fn collect_enum_default(
