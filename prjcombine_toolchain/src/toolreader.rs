@@ -1,8 +1,10 @@
 use crate::toolchain::Toolchain;
-use rustix::fs::{mknodat, FileType, Mode, CWD};
-use rustix::pipe::fcntl_setpipe_size;
+use nix::fcntl::{fcntl, FcntlArg};
+use nix::sys::stat::Mode;
+use nix::unistd::mkfifo;
 use std::fs::{write, File};
 use std::io::{self, BufReader, Read};
+use std::os::unix::io::AsRawFd;
 use std::process::{Child, Stdio};
 use tempfile::TempDir;
 
@@ -27,7 +29,7 @@ impl ToolchainReader {
             write(path, v)?;
         }
         let path = dir.path().join(fifo_name);
-        mknodat(CWD, &path, FileType::Fifo, Mode::RUSR | Mode::WUSR, 0)?;
+        mkfifo(&path, Mode::S_IRUSR | Mode::S_IWUSR)?;
         let mut cmd = tc.command(cmd);
         cmd.current_dir(dir.path().as_os_str());
         cmd.stdin(Stdio::null());
@@ -41,7 +43,7 @@ impl ToolchainReader {
         }
         let child = cmd.spawn()?;
         let fifo = File::open(path)?;
-        let _ = fcntl_setpipe_size(&fifo, 1 << 20);
+        let _ = fcntl(fifo.as_raw_fd(), FcntlArg::F_SETPIPE_SZ(1 << 20));
         Ok(BufReader::new(ToolchainReader {
             fifo: Some(fifo),
             _dir: dir,

@@ -36,6 +36,16 @@ fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     Some((l, x, y))
 }
 
+fn split_sxy(s: &str) -> Option<(&str, u32, u32, u32)> {
+    let (l, r) = s.rsplit_once("_S")?;
+    let (s, xy) = r.rsplit_once('X')?;
+    let (x, y) = xy.rsplit_once('Y')?;
+    let s = s.parse().ok()?;
+    let x = x.parse().ok()?;
+    let y = y.parse().ok()?;
+    Some((l, s, x, y))
+}
+
 fn get_lastnum(s: &str) -> u8 {
     let mut num: Option<u8> = None;
     let mut res = None;
@@ -97,6 +107,16 @@ impl PartBuilder {
         let mut minxy: HashMap<SlotKindId, (u32, u32)> = HashMap::new();
         for (n, _, _) in sites {
             if let Some((base, x, y)) = split_xy(n) {
+                let base = self.part.slot_kinds.get_or_insert(base);
+                let e = minxy.entry(base).or_insert((x, y));
+                if x < e.0 {
+                    e.0 = x;
+                }
+                if y < e.1 {
+                    e.1 = y;
+                }
+            }
+            if let Some((base, _s, x, y)) = split_sxy(n) {
                 let base = self.part.slot_kinds.get_or_insert(base);
                 let e = minxy.entry(base).or_insert((x, y));
                 if x < e.0 {
@@ -240,6 +260,10 @@ impl PartBuilder {
                 };
                 TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), idx)
             } else if let Some((base, x, y)) = split_xy(n) {
+                let base = self.part.slot_kinds.get_or_insert(base);
+                let (bx, by) = minxy[&base];
+                TkSiteSlot::Xy(base, (x - bx) as u8, (y - by) as u8)
+            } else if let Some((base, _s, x, y)) = split_sxy(n) {
                 let base = self.part.slot_kinds.get_or_insert(base);
                 let (bx, by) = minxy[&base];
                 TkSiteSlot::Xy(base, (x - bx) as u8, (y - by) as u8)

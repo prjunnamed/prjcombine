@@ -2590,6 +2590,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLE_BC_CORE", SINGLE, &["clb"]),
     TileInfo("CLE_BC_CORE_MX", SINGLE, &["clb"]),
     TileInfo("SLL", SINGLE, &["int-buf"]),
+    TileInfo("SLL2", SINGLE, &["int-buf"]),
     TileInfo("BLI_CLE_TOP_CORE", (0, 0, 3, 0), &["int-buf"]),
     TileInfo("BLI_CLE_TOP_CORE_MY", (0, 0, 3, 0), &["int-buf"]),
     TileInfo("BLI_CLE_BOT_CORE", (0, 0, 3, 0), &["int-buf"]),
@@ -2612,6 +2613,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_T_CLE_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_B_CLE_LAG_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_CLE_LAG_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_P_CLE_LAG_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_B_BLI_CLE_TILE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_B_BLI_CLE_LAG_TILE", (2, 0, 0, 0), &[]),
     TileInfo("DSP_ROCF_T_TILE", (1, 0, 1, 0), &["dsp"]),
@@ -2846,6 +2848,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RBRK_GTCLK_CCA_CORE_MY", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("TERM_P_GTCLK_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTCLK_CORE2", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_P_GTCLK_CORE3", (2, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTCLK_CPM5_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTCLK_L_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTCLK_L_CORE2", (2, 0, 0, 0), &[]),
@@ -2896,6 +2899,8 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CFRM_CPIPE_TERM_CPM5_CORE", (0, 0, 239, 0), &[]),
     TileInfo("TERM_B_PSS_DECAP_CORE", (0, 0, 20, 0), &[]),
     TileInfo("TERM_B_PSS_TILE", (0, 0, 0, 0), &[]),
+    TileInfo("PSS_PMC_BUF_CORE", SINGLE, &["noc"]),
+    TileInfo("PSS_PMC_GTM_BUF_CORE", SINGLE, &["noc"]),
     TileInfo("NOC_PNOC_MONO_CORE", (0, 0, 0, 0), &["noc"]),
     TileInfo("NOC_PNOC_SSIT_CORE", (0, 0, 0, 0), &["noc"]),
     // BLI row bottom
@@ -3049,6 +3054,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLKE2_REBUF_VERT_GT_EDGE_AOO_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_GT_SSIT_BOT_OCO_TILE",
         (0, 0, 8, 0),
         &["clk-spine-buf"],
@@ -3081,6 +3091,9 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLK_GT_SSIT_AAA_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_BBA_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_GT_SSIT_CCA_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_AAO_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_BBO_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_CCO_TILE_MY", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("AMS_SAT_GT_TOP_TILE_MY", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("AMS_SAT_GT_BOT_TILE_MY", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("NPI_VNPI_TOP_TILE_MY", (0, 0, 5, 0), &["noc"]),
@@ -3222,6 +3235,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         (0, 0, 9, 0),
         &["clk-global-buf"],
     ),
+    TileInfo("CLKE2_VNOC_PSS_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_VNOC_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_VNOC_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_VNOC_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_VNOC_EDGE_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("MISR_TILE", (0, 0, 9, 0), &["hardip"]),
     TileInfo("NOC_NSU512_TOP", (1, 0, 8, 0), &["noc"]),
     TileInfo("NOC_NMU512_TOP", (1, 0, 10, 0), &["noc"]),
@@ -3337,6 +3355,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         (1, 0, 9, 0),
         &["clk-spine-buf"],
     ),
+    TileInfo(
+        "CLKE2_REBUF_VERT_EDGE_AOO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
     TileInfo("AMS_SAT_VNOC_TILE", (1, 0, 9, 0), &["sysmon"]),
     TileInfo(
         "CLK_VERT_TO_HSR_VNOC_TILE",
@@ -3362,6 +3385,12 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_B_CPIPE_TERMR_CORE", SINGLE, &[]),
     TileInfo("TERM_T_CPIPE_TERMR_XPIO_CORE", SINGLE, &[]),
     TileInfo("TERM_B_CPIPE_TERMR_XPIO_CORE", SINGLE, &[]),
+    // alt right terminator
+    TileInfo("RCLK_CIDB_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
+    TileInfo("RBRK_CIDB_CORE", SINGLE, &["clk-brk"]),
+    TileInfo("MISC_CIDB_HFSR_CORE", (0, 0, 58, 0), &["rterm"]),
+    TileInfo("TERM_B_CIDB_CORE", SINGLE, &[]),
+    TileInfo("TERM_T_CIDB_CORE", SINGLE, &[]),
     // XPIO bottom row
     TileInfo("XPIO_NIBBLE_SC", SINGLE, &["io-spec"]),
     TileInfo("XPIO_NIBBLE_SC_MY", SINGLE, &["io-spec"]),
@@ -3390,6 +3419,10 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("NOC_HNOC_S3_PL_CORE_MX", SINGLE, &["noc"]),
     TileInfo("CMT_MMCM", SINGLE, &["pll"]),
     TileInfo("CMT_MMCM_MX", SINGLE, &["pll"]), // top
+    TileInfo("PSS_PMC_HNIDB_BUF_CORE", SINGLE, &["noc"]),
+    TileInfo("NOC2_HNOC_NIDB_CORE", SINGLE, &["noc"]),
+    // ... and BLI row!
+    TileInfo("CLKE2_REBUF_HSR_EDGE_CORE", SINGLE, &["clk-spine-buf"]),
     // AI bot row
     TileInfo("CLK_REBUF_HSR_ME_TNOC_CORE_MX", SINGLE, &["clk-spine-buf"]),
     TileInfo("HSM_AMS_SAT_ME_MX", SINGLE, &["sysmon"]),
@@ -3422,6 +3455,8 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("NOC_TNOC_SSIT_S2_CORE", SINGLE, &["noc"]),
     TileInfo("NOC_TNOC_SSIT_NCRB_CORE", SINGLE, &["noc"]),
     TileInfo("NOC_TNOC_BRIDGE_BOT_CORE", SINGLE, &["noc"]),
+    // SSIT new top
+    TileInfo("NOC2_TNOC_NIDB_CORE", SINGLE, &["noc"]),
     // used in XPIO fifth row and GT
     TileInfo("CMT_DPLL", SINGLE, &["pll-alt"]),
     TileInfo("CMT_DPLL_MY", SINGLE, &["pll-alt"]),
@@ -3534,6 +3569,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         "versal" => (VERSAL_TILES, true),
         _ => panic!("unknown family {}", rd.family),
     };
+    let (mx_th, my_th) = if rd.part.contains("vp1902") {
+        (rd.width / 2, rd.height / 2)
+    } else {
+        (rd.width, rd.height)
+    };
     let tile_info_d = tile_info
         .iter()
         .map(|t| (t.0, t))
@@ -3543,7 +3583,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             None => (),
             Some(t) => {
                 if t.1 != SINGLE {
-                    let (er, el, eu, ed) = t.1;
+                    let (mut er, mut el, mut eu, mut ed) = t.1;
+                    if crd.x >= mx_th {
+                        core::mem::swap(&mut el, &mut er);
+                    }
+                    if crd.y >= my_th {
+                        core::mem::swap(&mut eu, &mut ed);
+                    }
                     for dx in -el..er + 1 {
                         for dy in -ed..eu + 1 {
                             let nc = (
