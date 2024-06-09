@@ -1168,10 +1168,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extra_wire_force("IBUF", "RIOIS_IBUF0")
                 .extra_wire_force("PCI_RDY_IN", "IOIS_PCI_IRDY_IN"),
         ];
-        let kind_l;
-        let kind_r;
-        let kind_b;
-        let kind_t;
         let naming_l;
         let naming_r;
         let naming_l_pci;
@@ -1179,10 +1175,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let naming_b;
         let naming_t;
         if rd.family == "spartan3adsp" {
-            kind_l = "IOI.S3ADSP.L";
-            kind_r = "IOI.S3ADSP.R";
-            kind_b = "IOI.S3ADSP.B";
-            kind_t = "IOI.S3ADSP.T";
             naming_l = "IOI.S3ADSP.L";
             naming_r = "IOI.S3ADSP.R";
             naming_l_pci = "IOI.S3ADSP.L.PCI";
@@ -1190,10 +1182,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             naming_b = "IOI.S3ADSP.B";
             naming_t = "IOI.S3ADSP.T";
         } else {
-            kind_l = "IOI.S3A.L";
-            kind_r = "IOI.S3A.R";
-            kind_b = "IOI.S3A.B";
-            kind_t = "IOI.S3A.T";
             naming_l = "IOI.S3A.L";
             naming_r = "IOI.S3A.R";
             naming_l_pci = "IOI.S3A.L.PCI";
@@ -1201,26 +1189,26 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             naming_b = "IOI.S3A.B";
             naming_t = "IOI.S3A.T";
         }
-        builder.extract_node_bels("LIOIS", kind_l, naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_BRK", kind_l, naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_PCI", kind_l, naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_CLK_PCI", kind_l, naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIOIS_CLK_PCI_BRK", kind_l, naming_l_pci, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS", kind_l, naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_PCI", kind_l, naming_l, &bels_ioi_l);
-        builder.extract_node_bels("LIBUFS_CLK_PCI", kind_l, naming_l, &bels_ioi_l);
-        builder.extract_node_bels("RIOIS", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_PCI", kind_r, naming_r_pci, &bels_ioi_r);
-        builder.extract_node_bels("RIOIS_CLK_PCI", kind_r, naming_r_pci, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_BRK", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_PCI", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_CLK_PCI", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("RIBUFS_CLK_PCI_BRK", kind_r, naming_r, &bels_ioi_r);
-        builder.extract_node_bels("BIOIS", kind_b, naming_b, &bels_ioi_tb);
-        builder.extract_node_bels("BIOIB", kind_b, naming_b, &bels_ioi_tb);
-        builder.extract_node_bels("TIOIS", kind_t, naming_t, &bels_ioi_tb);
-        builder.extract_node_bels("TIOIB", kind_t, naming_t, &bels_ioi_tb);
+        builder.extract_node_bels("LIOIS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels("LIOIS_BRK", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels("LIOIS_PCI", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
+        builder.extract_node_bels("LIOIS_CLK_PCI", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
+        builder.extract_node_bels("LIOIS_CLK_PCI_BRK", "IOI.S3A.LR", naming_l_pci, &bels_ioi_l);
+        builder.extract_node_bels("LIBUFS", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels("LIBUFS_PCI", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels("LIBUFS_CLK_PCI", "IOI.S3A.LR", naming_l, &bels_ioi_l);
+        builder.extract_node_bels("RIOIS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("RIOIS_PCI", "IOI.S3A.LR", naming_r_pci, &bels_ioi_r);
+        builder.extract_node_bels("RIOIS_CLK_PCI", "IOI.S3A.LR", naming_r_pci, &bels_ioi_r);
+        builder.extract_node_bels("RIBUFS", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("RIBUFS_BRK", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("RIBUFS_PCI", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("RIBUFS_CLK_PCI", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("RIBUFS_CLK_PCI_BRK", "IOI.S3A.LR", naming_r, &bels_ioi_r);
+        builder.extract_node_bels("BIOIS", "IOI.S3A.B", naming_b, &bels_ioi_tb);
+        builder.extract_node_bels("BIOIB", "IOI.S3A.B", naming_b, &bels_ioi_tb);
+        builder.extract_node_bels("TIOIS", "IOI.S3A.T", naming_t, &bels_ioi_tb);
+        builder.extract_node_bels("TIOIB", "IOI.S3A.T", naming_t, &bels_ioi_tb);
         for (kind, num) in [
             ("IOBS.S3A.B2", 2),
             ("IOBS.S3A.T2", 2),

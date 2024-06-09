@@ -944,23 +944,44 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_node_bels("MK_T_IOIS", "IOI.CLK_T", "IOI.CLK_T", &bels_ioi_clk_t);
     }
 
-    for (kind, num) in [
-        ("IOBS.B.L2", 2),
-        ("IOBS.B.R2", 2),
-        ("IOBS.B.R2.CLK", 2),
-        ("IOBS.B.L1", 1),
-        ("IOBS.B.R1", 1),
-        ("IOBS.T.L2", 2),
-        ("IOBS.T.R2", 2),
-        ("IOBS.T.R2.CLK", 2),
-        ("IOBS.T.L1", 1),
-        ("IOBS.T.R1", 1),
-        ("IOBS.L.B2", 2),
-        ("IOBS.L.T2", 2),
-        ("IOBS.R.B2", 2),
-        ("IOBS.R.T2", 2),
-    ] {
-        builder.make_marker_bel(kind, kind, kind, num);
+    if rd.family == "virtex2p" {
+        for (kind, num) in [
+            ("IOBS.V2P.B.L2", 2),
+            ("IOBS.V2P.B.R2", 2),
+            ("IOBS.V2P.B.R2.CLK", 2),
+            ("IOBS.V2P.B.L1", 1),
+            ("IOBS.V2P.B.L1.ALT", 1),
+            ("IOBS.V2P.B.R1", 1),
+            ("IOBS.V2P.B.R1.ALT", 1),
+            ("IOBS.V2P.T.L2", 2),
+            ("IOBS.V2P.T.R2", 2),
+            ("IOBS.V2P.T.R2.CLK", 2),
+            ("IOBS.V2P.T.L1", 1),
+            ("IOBS.V2P.T.L1.ALT", 1),
+            ("IOBS.V2P.T.R1", 1),
+            ("IOBS.V2P.T.R1.ALT", 1),
+            ("IOBS.V2P.L.B2", 2),
+            ("IOBS.V2P.L.T2", 2),
+            ("IOBS.V2P.R.B2", 2),
+            ("IOBS.V2P.R.T2", 2),
+        ] {
+            builder.make_marker_bel(kind, kind, kind, num);
+        }
+
+    } else {
+        for (kind, num) in [
+            ("IOBS.V2.B.L2", 2),
+            ("IOBS.V2.B.R2", 2),
+            ("IOBS.V2.T.L2", 2),
+            ("IOBS.V2.T.R2", 2),
+            ("IOBS.V2.L.B2", 2),
+            ("IOBS.V2.L.T2", 2),
+            ("IOBS.V2.R.B2", 2),
+            ("IOBS.V2.R.T2", 2),
+        ] {
+            builder.make_marker_bel(kind, kind, kind, num);
+        }
+
     }
 
     let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];

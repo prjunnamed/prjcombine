@@ -479,7 +479,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let mut int_naming;
             let mut ioi_kind;
             let mut ioi_naming;
-            let iobs_kind;
+            let mut iobs_kind;
             let iobs: &[usize];
             let mut term = "";
             let mut kind = "";
@@ -487,15 +487,37 @@ impl<'a, 'b> Expander<'a, 'b> {
                 GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                     (pads, iobs_kind) = match cd.io {
                         ColumnIoKind::None => (&[][..], None),
-                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => {
-                            (&[2, 1, 0][..], Some(("IOBS.T.L1", 1)))
+                        ColumnIoKind::SingleLeft => (&[2, 1, 0][..], Some(("IOBS.V2P.T.L1", 1))),
+                        ColumnIoKind::SingleLeftAlt => {
+                            (&[2, 1, 0][..], Some(("IOBS.V2P.T.L1.ALT", 1)))
                         }
-                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => {
-                            (&[3, 2, 1][..], Some(("IOBS.T.R1", 1)))
+                        ColumnIoKind::SingleRight => (&[3, 2, 1][..], Some(("IOBS.V2P.T.R1", 1))),
+                        ColumnIoKind::SingleRightAlt => {
+                            (&[3, 2, 1][..], Some(("IOBS.V2P.T.R1.ALT", 1)))
                         }
-                        ColumnIoKind::DoubleLeft(0) => (&[3, 2, 1, 0][..], Some(("IOBS.T.L2", 2))),
+                        ColumnIoKind::DoubleLeft(0) => (
+                            &[3, 2, 1, 0][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.T.L2"
+                                } else {
+                                    "IOBS.V2.T.L2"
+                                },
+                                2,
+                            )),
+                        ),
                         ColumnIoKind::DoubleLeft(1) => (&[1, 0][..], None),
-                        ColumnIoKind::DoubleRight(0) => (&[3, 2][..], Some(("IOBS.T.R2", 2))),
+                        ColumnIoKind::DoubleRight(0) => (
+                            &[3, 2][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.T.R2"
+                                } else {
+                                    "IOBS.V2.T.R2"
+                                },
+                                2,
+                            )),
+                        ),
                         ColumnIoKind::DoubleRight(1) => (&[3, 2, 1, 0][..], None),
                         _ => unreachable!(),
                     };
@@ -515,6 +537,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                         ioi_naming = "IOI.CLK_T";
                         int_kind = "INT.IOI.CLK_T";
                         int_naming = "INT.IOI.CLK_T";
+                    }
+                    if self.grid.kind == GridKind::Virtex2PX && col == self.grid.col_clk - 2 {
+                        iobs_kind = Some(("IOBS.V2P.T.R2.CLK", 2));
                     }
                     iobs = &[3, 2, 1, 0];
                 }
@@ -589,11 +614,10 @@ impl<'a, 'b> Expander<'a, 'b> {
                     };
                     int_kind = "INT.IOI.S3A.TB";
                     int_naming = "INT.IOI.S3A.TB";
+                    ioi_kind = "IOI.S3A.T";
                     if self.grid.kind == GridKind::Spartan3ADsp {
-                        ioi_kind = "IOI.S3ADSP.T";
                         ioi_naming = "IOI.S3ADSP.T";
                     } else {
-                        ioi_kind = "IOI.S3A.T";
                         ioi_naming = "IOI.S3A.T";
                     }
                     iobs = &[0, 1, 2];
@@ -723,9 +747,29 @@ impl<'a, 'b> Expander<'a, 'b> {
             match self.grid.kind {
                 GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                     (pads, iobs_kind) = match rd {
-                        RowIoKind::DoubleBot(0) => (&[3, 2, 1, 0][..], Some(("IOBS.R.B2", 2))),
+                        RowIoKind::DoubleBot(0) => (
+                            &[3, 2, 1, 0][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.R.B2"
+                                } else {
+                                    "IOBS.V2.R.B2"
+                                },
+                                2,
+                            )),
+                        ),
                         RowIoKind::DoubleBot(1) => (&[3, 2][..], None),
-                        RowIoKind::DoubleTop(0) => (&[1, 0][..], Some(("IOBS.R.T2", 2))),
+                        RowIoKind::DoubleTop(0) => (
+                            &[1, 0][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.R.T2"
+                                } else {
+                                    "IOBS.V2.R.T2"
+                                },
+                                2,
+                            )),
+                        ),
                         RowIoKind::DoubleTop(1) => (&[3, 2, 1, 0][..], None),
                         _ => unreachable!(),
                     };
@@ -834,8 +878,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     } else {
                         int_naming = "INT.IOI.S3A.LR";
                     }
+                    ioi_kind = "IOI.S3A.LR";
                     if self.grid.kind == GridKind::Spartan3ADsp {
-                        ioi_kind = "IOI.S3ADSP.R";
                         if row >= self.grid.row_mid() - 4
                             && row < self.grid.row_mid() + 4
                             && ipads.is_empty()
@@ -845,7 +889,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                             ioi_naming = "IOI.S3ADSP.R";
                         }
                     } else {
-                        ioi_kind = "IOI.S3A.R";
                         if row >= self.grid.row_mid() - 4
                             && row < self.grid.row_mid() + 4
                             && ipads.is_empty()
@@ -950,7 +993,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let mut int_naming;
             let mut ioi_kind;
             let mut ioi_naming;
-            let iobs_kind;
+            let mut iobs_kind;
             let iobs: &[usize];
             let mut term = "";
             let mut kind = "";
@@ -958,14 +1001,36 @@ impl<'a, 'b> Expander<'a, 'b> {
                 GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                     (pads, iobs_kind) = match cd.io {
                         ColumnIoKind::None => (&[][..], None),
-                        ColumnIoKind::SingleLeft | ColumnIoKind::SingleLeftAlt => {
-                            (&[3, 2, 1][..], Some(("IOBS.B.L1", 1)))
+                        ColumnIoKind::SingleLeft => (&[3, 2, 1][..], Some(("IOBS.V2P.B.L1", 1))),
+                        ColumnIoKind::SingleLeftAlt => {
+                            (&[3, 2, 1][..], Some(("IOBS.V2P.B.L1.ALT", 1)))
                         }
-                        ColumnIoKind::SingleRight | ColumnIoKind::SingleRightAlt => {
-                            (&[2, 1, 0][..], Some(("IOBS.B.R1", 1)))
+                        ColumnIoKind::SingleRight => (&[2, 1, 0][..], Some(("IOBS.V2P.B.R1", 1))),
+                        ColumnIoKind::SingleRightAlt => {
+                            (&[2, 1, 0][..], Some(("IOBS.V2P.B.R1.ALT", 1)))
                         }
-                        ColumnIoKind::DoubleLeft(0) => (&[3, 2, 1, 0][..], Some(("IOBS.B.L2", 2))),
-                        ColumnIoKind::DoubleRight(0) => (&[1, 0][..], Some(("IOBS.B.R2", 2))),
+                        ColumnIoKind::DoubleLeft(0) => (
+                            &[3, 2, 1, 0][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.B.L2"
+                                } else {
+                                    "IOBS.V2.B.L2"
+                                },
+                                2,
+                            )),
+                        ),
+                        ColumnIoKind::DoubleRight(0) => (
+                            &[1, 0][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.B.R2"
+                                } else {
+                                    "IOBS.V2.B.R2"
+                                },
+                                2,
+                            )),
+                        ),
                         ColumnIoKind::DoubleLeft(1) => (&[3, 2][..], None),
                         ColumnIoKind::DoubleRight(1) => (&[3, 2, 1, 0][..], None),
                         _ => unreachable!(),
@@ -986,6 +1051,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                         ioi_naming = "IOI.CLK_B";
                         int_kind = "INT.IOI.CLK_B";
                         int_naming = "INT.IOI.CLK_B";
+                    }
+                    if self.grid.kind == GridKind::Virtex2PX && col == self.grid.col_clk - 2 {
+                        iobs_kind = Some(("IOBS.V2P.B.R2.CLK", 2));
                     }
                     iobs = &[3, 2, 1, 0];
                 }
@@ -1060,11 +1128,10 @@ impl<'a, 'b> Expander<'a, 'b> {
                     };
                     int_kind = "INT.IOI.S3A.TB";
                     int_naming = "INT.IOI.S3A.TB";
+                    ioi_kind = "IOI.S3A.B";
                     if self.grid.kind == GridKind::Spartan3ADsp {
-                        ioi_kind = "IOI.S3ADSP.B";
                         ioi_naming = "IOI.S3ADSP.B";
                     } else {
-                        ioi_kind = "IOI.S3A.B";
                         ioi_naming = "IOI.S3A.B";
                     }
                     iobs = &[2, 1, 0];
@@ -1212,9 +1279,29 @@ impl<'a, 'b> Expander<'a, 'b> {
             match self.grid.kind {
                 GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => {
                     (pads, iobs_kind) = match rd {
-                        RowIoKind::DoubleBot(0) => (&[0, 1, 2, 3][..], Some(("IOBS.L.B2", 2))),
+                        RowIoKind::DoubleBot(0) => (
+                            &[0, 1, 2, 3][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.L.B2"
+                                } else {
+                                    "IOBS.V2.L.B2"
+                                },
+                                2,
+                            )),
+                        ),
                         RowIoKind::DoubleBot(1) => (&[2, 3][..], None),
-                        RowIoKind::DoubleTop(0) => (&[0, 1][..], Some(("IOBS.L.T2", 2))),
+                        RowIoKind::DoubleTop(0) => (
+                            &[0, 1][..],
+                            Some((
+                                if self.grid.kind.is_virtex2p() {
+                                    "IOBS.V2P.L.T2"
+                                } else {
+                                    "IOBS.V2.L.T2"
+                                },
+                                2,
+                            )),
+                        ),
                         RowIoKind::DoubleTop(1) => (&[0, 1, 2, 3][..], None),
                         _ => unreachable!(),
                     };
@@ -1332,8 +1419,8 @@ impl<'a, 'b> Expander<'a, 'b> {
                     } else {
                         int_naming = "INT.IOI.S3A.LR";
                     }
+                    ioi_kind = "IOI.S3A.LR";
                     if self.grid.kind == GridKind::Spartan3ADsp {
-                        ioi_kind = "IOI.S3ADSP.L";
                         if row >= self.grid.row_mid() - 4
                             && row < self.grid.row_mid() + 4
                             && ipads.is_empty()
@@ -1343,7 +1430,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                             ioi_naming = "IOI.S3ADSP.L";
                         }
                     } else {
-                        ioi_kind = "IOI.S3A.L";
                         if row >= self.grid.row_mid() - 4
                             && row < self.grid.row_mid() + 4
                             && ipads.is_empty()
