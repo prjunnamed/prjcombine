@@ -447,9 +447,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                         let name = format!("CLKV_DCM_{bt}_X{x}Y{y}");
                         self.die.add_xnode(
                             (col, row),
-                            self.db.get_node("CLK_DCM"),
+                            self.db.get_node(&format!("CLK_DCM_{bt}")),
                             &[&name],
-                            self.db.get_node_naming("CLK_DCM"),
+                            self.db.get_node_naming(&format!("CLK_DCM_{bt}")),
                             &[],
                         );
                     }
@@ -692,9 +692,9 @@ impl<'a, 'b> Expander<'a, 'b> {
             let name = format!("CLK_IOB_B_X{x}Y{y}", y = y + 7);
             self.die.add_xnode(
                 (col, row),
-                self.db.get_node("CLK_IOB"),
+                self.db.get_node("CLK_IOB_B"),
                 &[&name],
-                self.db.get_node_naming("CLK_IOB"),
+                self.db.get_node_naming("CLK_IOB_B"),
                 &[],
             );
         }
@@ -705,9 +705,9 @@ impl<'a, 'b> Expander<'a, 'b> {
             let name = format!("CLK_IOB_T_X{x}Y{y}", y = y + 7);
             self.die.add_xnode(
                 (col, row),
-                self.db.get_node("CLK_IOB"),
+                self.db.get_node("CLK_IOB_T"),
                 &[&name],
-                self.db.get_node_naming("CLK_IOB"),
+                self.db.get_node_naming("CLK_IOB_T"),
                 &[],
             );
         }

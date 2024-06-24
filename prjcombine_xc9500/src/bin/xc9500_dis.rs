@@ -197,7 +197,8 @@ fn print_tile<T: Copy>(tile: &Tile<T>, device: &Device, get_bit: impl Fn(T) -> b
                 let bits: BitVec = item
                     .bits
                     .iter()
-                    .map(|&crd| get_bit(crd) ^ *invert)
+                    .enumerate()
+                    .map(|(i, &crd)| get_bit(crd) ^ invert[i])
                     .collect();
                 if item.bits.len() == 1 {
                     if bits[0] {

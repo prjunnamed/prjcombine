@@ -3,7 +3,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, SimpleFeatureId},
-    diff::{xlat_enum_inner, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 
@@ -34,7 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         } else if name.starts_with("LLV") {
             TileBits::LLV
         } else if name.starts_with("LLH") {
-            TileBits::Spine
+            TileBits::Spine(1)
         } else {
             panic!("UNK INT TILE: {name}");
         };
@@ -84,13 +84,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         }
                     }
                 }
+                if matches!(backend.edev, ExpandedDevice::Virtex2(_)) {
+                    base.push(TileKV::NoGlobalOpt("TESTLL"));
+                }
                 if intdb.wires.key(wire_from.1) == "OUT.TBUS" {
                     base.push(TileKV::RowMutex("TBUF", "INT"));
                 }
 
                 session.add_fuzzer(Box::new(TileFuzzerGen {
                     node: node_kind,
-                    bits,
+                    bits: bits.clone(),
                     feature: SimpleFeatureId {
                         tile: name,
                         bel: "INT",
@@ -175,7 +178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if !got_empty {
                 inps.push(("NONE".to_string(), Diff::default()));
             }
-            let ti = xlat_enum_inner(inps, OcdMode::Mux);
+            let ti = xlat_enum_ocd(inps, OcdMode::Mux);
             if ti.bits.is_empty()
                 && !(name == "INT.GT.CLKPAD"
                     && matches!(

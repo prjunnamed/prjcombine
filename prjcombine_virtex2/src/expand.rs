@@ -321,7 +321,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_left();
         let row = self.grid.row_bot();
         let kind = match self.grid.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LL",
+            GridKind::Virtex2 => "LL.V2",
+            GridKind::Virtex2P | GridKind::Virtex2PX => "LL.V2P",
             GridKind::Spartan3 => "LL.S3",
             GridKind::Spartan3E => "LL.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3A",
@@ -350,7 +351,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_right();
         let row = self.grid.row_bot();
         let kind = match self.grid.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "LR",
+            GridKind::Virtex2 => "LR.V2",
+            GridKind::Virtex2P | GridKind::Virtex2PX => "LR.V2P",
             GridKind::Spartan3 => "LR.S3",
             GridKind::Spartan3E => "LR.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
@@ -392,7 +394,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         let col = self.grid.col_left();
         let row = self.grid.row_top();
         let kind = match self.grid.kind {
-            GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "UL",
+            GridKind::Virtex2 => "UL.V2",
+            GridKind::Virtex2P | GridKind::Virtex2PX => "UL.V2P",
             GridKind::Spartan3 => "UL.S3",
             GridKind::Spartan3E => "UL.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "UL.S3A",
@@ -2286,7 +2289,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if self.grid.kind == GridKind::Virtex2P {
                 node_b = self.die.add_xnode(
                     (col, row_b),
-                    self.db.get_node("GIGABIT"),
+                    self.db.get_node("GIGABIT.B"),
                     &[&format!("BMR{r}C{c}")],
                     self.db.get_node_naming("GIGABIT.B"),
                     &[
@@ -2301,7 +2304,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 node_b = self.die.add_xnode(
                     (col, row_b),
-                    self.db.get_node("GIGABIT10"),
+                    self.db.get_node("GIGABIT10.B"),
                     &[&format!("BMR{r}C{c}")],
                     self.db.get_node_naming("GIGABIT10.B"),
                     &[
@@ -2325,7 +2328,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             if self.grid.kind == GridKind::Virtex2P {
                 node_t = self.die.add_xnode(
                     (col, row_t),
-                    self.db.get_node("GIGABIT"),
+                    self.db.get_node("GIGABIT.T"),
                     &[&format!("BMR4C{c}")],
                     self.db.get_node_naming("GIGABIT.T"),
                     &[
@@ -2340,7 +2343,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else {
                 node_t = self.die.add_xnode(
                     (col, row_t),
-                    self.db.get_node("GIGABIT10"),
+                    self.db.get_node("GIGABIT10.T"),
                     &[&format!("BMR8C{c}")],
                     self.db.get_node_naming("GIGABIT10.T"),
                     &[

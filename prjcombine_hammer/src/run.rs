@@ -1,6 +1,7 @@
 #![allow(clippy::type_complexity)]
 use crate::*;
 use bimap::BiHashMap;
+use indicatif::ProgressBar;
 use itertools::Itertools;
 use rand::seq::{IteratorRandom, SliceRandom};
 use rand::thread_rng;
@@ -32,6 +33,7 @@ struct TaskQueue<'a, 'b, B: Backend> {
     items: Vec<(BatchId, Option<usize>)>,
     next: AtomicUsize,
     abort: AtomicBool,
+    bar: ProgressBar,
 }
 
 fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
@@ -173,6 +175,7 @@ fn work<B: Backend>(queue: &TaskQueue<B>) {
             idx,
             &queue.skip,
         );
+        queue.bar.inc(1);
     }
 }
 
@@ -272,11 +275,7 @@ fn diagnose_cw_fail<B: Backend>(
         if left.len() >= 3 {
             let cut_a = (left.len() + 1) / 3;
             let cut_b = (left.len() * 2 + 1) / 3;
-            for cut in [
-                &left[..cut_a],
-                &left[cut_a..cut_b],
-                &left[cut_b..],
-            ] {
+            for cut in [&left[..cut_a], &left[cut_a..cut_b], &left[cut_b..]] {
                 let mut nskip = skip.clone();
                 nskip.extend(cut.iter().copied());
                 if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
@@ -456,6 +455,7 @@ impl<'a, B: Backend> Session<'a, B> {
                 items.push((bid, Some(i)));
             }
         }
+        let num_runs: usize = batches.values().map(|x| x.width + 1).sum();
         let queue = TaskQueue {
             debug: self.debug,
             backend: self.backend,
@@ -465,12 +465,12 @@ impl<'a, B: Backend> Session<'a, B> {
             items,
             next: 0.into(),
             abort: false.into(),
+            bar: ProgressBar::new(num_runs.try_into().unwrap()),
         };
         if self.debug >= 1 {
-            let nf: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
-            let nr: usize = queue.bdata.values().map(|x| x.width + 1).sum();
+            let num_fuzzers: usize = self.batches.values().map(|x| x.fuzzers.len()).sum();
             let nb = self.batches.len();
-            eprintln!("Starting hammer run with {nf} fuzzers and {nr} runs in {nb} batches");
+            eprintln!("Starting hammer run with {num_fuzzers} fuzzers and {num_runs} runs in {nb} batches");
         }
         if self.debug >= 3 {
             for (bid, batch) in &self.batches {
@@ -516,6 +516,7 @@ impl<'a, B: Backend> Session<'a, B> {
                 }
             }
         });
+        queue.bar.finish();
         if self.debug >= 1 {
             eprintln!("Hammer done");
         }

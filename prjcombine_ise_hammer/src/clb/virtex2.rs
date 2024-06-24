@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{IseBackend, SimpleFeatureId},
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
-    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileRelation, TileWire},
+    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileRelation, TileWire},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
 };
@@ -650,6 +650,32 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             )],
         }));
     }
+    if mode == Mode::Spartan3 {
+        let node_kind = backend.egrid.db.get_node("RANDOR");
+        let mut ctx = FuzzCtx {
+            session,
+            node_kind,
+            bits: TileBits::Main(1),
+            tile_name: "RANDOR",
+            bel: BelId::from_idx(0),
+            bel_name: "RANDOR",
+        };
+        fuzz_enum!(ctx, "ANDORMUX", ["0", "1"], [
+            (mode "RESERVED_ANDOR"),
+            (special TileKV::IsLeftRandor(false)),
+            (pin "O")
+        ]);
+        ctx.bits = TileBits::RandorLeft;
+        for val in ["0", "1"] {
+            fuzz_one!(ctx, "ANDORMUX.LEFT", val, [
+                (mode "RESERVED_ANDOR"),
+                (special TileKV::IsLeftRandor(true)),
+                (pin "O")
+            ], [
+                (attr "ANDORMUX", val)
+            ]);
+        }
+    }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
@@ -697,7 +723,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let g_ram = ctx.state.get_diff("CLB", bel, "G", "#RAM:0");
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
             ctx.tiledb
-                .insert("CLB", bel, "FF_SR_EN", xlat_bitvec(vec![!ram]));
+                .insert("CLB", bel, "FF_SR_ENABLE", xlat_bitvec(vec![!ram]));
             let f_shift_d = ctx.state.get_diff("CLB", bel, "F_ATTR", "SHIFT_REG");
             let g_shift_d = ctx.state.get_diff("CLB", bel, "G_ATTR", "SHIFT_REG");
             let f_shift = f_ram.combine(&f_shift_d);
@@ -721,10 +747,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "DIF_MUX",
-                xlat_enum(vec![
-                    ("BX".to_string(), dif_bx),
-                    ("ALT".to_string(), dif_alt),
-                ]),
+                xlat_enum(vec![("BX", dif_bx), ("ALT", dif_alt)]),
             );
 
             let dig_by = ctx.state.get_diff("CLB", bel, "DIG_MUX", "BY");
@@ -737,10 +760,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "DIG_MUX",
-                xlat_enum(vec![
-                    ("BY".to_string(), dig_by),
-                    ("ALT".to_string(), dig_alt),
-                ]),
+                xlat_enum(vec![("BY", dig_by), ("ALT", dig_alt)]),
             );
 
             match mode {
@@ -840,10 +860,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     bel,
                     "GYMUX",
                     xlat_enum(vec![
-                        ("G".to_string(), gymux_g),
-                        ("FX".to_string(), gymux_fx),
-                        ("SOPOUT".to_string(), gymux_sopout),
-                        ("GXOR".to_string(), gymux_gxor),
+                        ("G", gymux_g),
+                        ("FX", gymux_fx),
+                        ("SOPOUT", gymux_sopout),
+                        ("GXOR", gymux_gxor),
                     ]),
                 );
                 ctx.collect_enum("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
@@ -864,7 +884,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "DXMUX",
-                xlat_enum(vec![("BX".to_string(), dx_bx), ("X".to_string(), dx_x)]),
+                xlat_enum(vec![("BX", dx_bx), ("X", dx_x)]),
             );
             let dy_by = ctx.state.get_diff("CLB", bel, "DYMUX", "0");
             let dy_y = ctx.state.get_diff("CLB", bel, "DYMUX", "1");
@@ -872,7 +892,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "DYMUX",
-                xlat_enum(vec![("BY".to_string(), dy_by), ("Y".to_string(), dy_y)]),
+                xlat_enum(vec![("BY", dy_by), ("Y", dy_y)]),
             );
         } else {
             let dxmux_bx = ctx.state.get_diff("CLB", bel, "DXMUX.F5", "BX");
@@ -888,11 +908,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "DXMUX",
                 xlat_enum(vec![
-                    ("X".to_string(), dxmux_x),
-                    ("F5".to_string(), dxmux_f5),
-                    ("XB".to_string(), dxmux_xb),
-                    ("FXOR".to_string(), dxmux_fxor),
-                    ("BX".to_string(), dxmux_bx),
+                    ("X", dxmux_x),
+                    ("F5", dxmux_f5),
+                    ("XB", dxmux_xb),
+                    ("FXOR", dxmux_fxor),
+                    ("BX", dxmux_bx),
                 ]),
             );
 
@@ -909,11 +929,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "DYMUX",
                 xlat_enum(vec![
-                    ("Y".to_string(), dymux_y),
-                    ("FX".to_string(), dymux_fx),
-                    ("YB".to_string(), dymux_yb),
-                    ("GXOR".to_string(), dymux_gxor),
-                    ("BY".to_string(), dymux_by),
+                    ("Y", dymux_y),
+                    ("FX", dymux_fx),
+                    ("YB", dymux_yb),
+                    ("GXOR", dymux_gxor),
+                    ("BY", dymux_by),
                 ]),
             );
         }
@@ -924,10 +944,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "XBMUX",
-                xlat_enum(vec![
-                    ("FMC15".to_string(), xbmux_shiftout),
-                    ("FCY".to_string(), xbmux_cout),
-                ]),
+                xlat_enum(vec![("FMC15", xbmux_shiftout), ("FCY", xbmux_cout)]),
             );
 
             let ybmux_shiftout = ctx.state.get_diff("CLB", bel, "YBMUX", "0");
@@ -936,10 +953,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CLB",
                 bel,
                 "YBMUX",
-                xlat_enum(vec![
-                    ("GMC15".to_string(), ybmux_shiftout),
-                    ("GCY".to_string(), ybmux_cout),
-                ]),
+                xlat_enum(vec![("GMC15", ybmux_shiftout), ("GCY", ybmux_cout)]),
             );
         }
 
@@ -955,7 +969,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .insert("CLB", bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
 
         let item = ctx.extract_bit("CLB", bel, "REVUSED", "0");
-        ctx.tiledb.insert("CLB", bel, "FF_REV_EN", item);
+        ctx.tiledb.insert("CLB", bel, "FF_REV_ENABLE", item);
 
         let item = ctx.extract_enum_bool("CLB", bel, "FFX_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.tiledb.insert("CLB", bel, "FFX_SRVAL", item);
@@ -1002,6 +1016,39 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TBUS",
             "JOINER",
             xlat_bitvec(vec![ctx.state.get_diff("CLB", "TBUS", "JOINER", "1")]),
+        );
+    }
+    if mode == Mode::Spartan3 {
+        let ExpandedDevice::Virtex2(edev) = ctx.edev else {
+            unreachable!()
+        };
+        let tile = "RANDOR";
+        let bel = "RANDOR";
+        ctx.state
+            .get_diff(tile, bel, "ANDORMUX", "0")
+            .assert_empty();
+        ctx.state
+            .get_diff(tile, bel, "ANDORMUX.LEFT", "0")
+            .assert_empty();
+        let diff = ctx.state.get_diff(tile, bel, "ANDORMUX", "1");
+        let diff_left = ctx.state.get_diff(tile, bel, "ANDORMUX.LEFT", "1");
+        let diff_left = diff_left.combine(&!&diff);
+        let diff_left = diff_left.split_tiles(&[&[1]]).pop().unwrap();
+        if edev.grid.kind.is_spartan3a() {
+            diff.assert_empty();
+        } else {
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                "MODE",
+                xlat_enum(vec![("OR", Diff::default()), ("AND", diff)]),
+            );
+        }
+        ctx.tiledb.insert(
+            "RANDOR_INIT",
+            "RANDOR_INIT",
+            "MODE",
+            xlat_enum(vec![("OR", Diff::default()), ("AND", diff_left)]),
         );
     }
     let egrid = ctx.edev.egrid();

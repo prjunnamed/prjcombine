@@ -14,4 +14,10 @@ Xilinx Virtex 2 FPGAs
    bram
    clock
    io
+   dcm
+   ppc
+   gt
+   gt10
+   pcilogic
    corner
+   config

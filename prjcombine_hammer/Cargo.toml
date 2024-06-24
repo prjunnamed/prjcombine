@@ -12,6 +12,7 @@ rand.workspace = true
 std-semaphore.workspace = true
 itertools.workspace = true
 derive-where.workspace = true
+indicatif.workspace = true
 
 [lints]
 workspace = true

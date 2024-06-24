@@ -72,7 +72,13 @@ impl<T: Debug + Copy + Eq + Ord> Tile<T> {
                     }),
                     TileItemKind::BitVec { invert } => json!({
                         "bits": Vec::from_iter(v.bits.iter().copied().map(&bit_to_json)),
-                        "invert": *invert,
+                        "invert": if invert.iter().all(|x| !*x) {
+                            json!(false)
+                        } else if invert.iter().all(|x| *x) {
+                            json!(true)
+                        } else {
+                            json!(Vec::from_iter(invert.iter().map(|x| *x)))
+                        },
                     }),
                 },
             )
@@ -151,7 +157,7 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TileItemKind {
     Enum { values: BTreeMap<String, BitVec> },
-    BitVec { invert: bool },
+    BitVec { invert: BitVec },
 }
 
 entity_id! {

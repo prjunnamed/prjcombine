@@ -227,10 +227,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "BRAM",
             attr,
-            xlat_enum(vec![
-                ("NONE_UPPER".to_string(), d_none),
-                ("LOWER".to_string(), d_lower),
-            ]),
+            xlat_enum(vec![("NONE_UPPER", d_none), ("LOWER", d_lower)]),
         );
     }
     ctx.collect_enum(
@@ -299,7 +296,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff = ctx.state.get_diff(tile, "FIFO", "DATA_WIDTH", val);
         diff.apply_enum_diff(item_ra, val, "1");
         diff.apply_enum_diff(item_wb, val, "1");
-        diffs.push((val.to_string(), diff));
+        diffs.push((val, diff));
     }
     ctx.tiledb
         .insert(tile, "BRAM", "FIFO_DATA_WIDTH", xlat_enum(diffs));
@@ -369,10 +366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         "BRAM",
         "MODE",
-        xlat_enum(vec![
-            ("RAM".to_string(), present_bram),
-            ("FIFO".to_string(), present_fifo),
-        ]),
+        xlat_enum(vec![("RAM", present_bram), ("FIFO", present_fifo)]),
     );
 
     ctx.tiledb.insert(
@@ -380,15 +374,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "BRAM",
         "WW_VALUE",
         xlat_enum(vec![
-            ("NONE".to_string(), Diff::default()),
-            (
-                "0".to_string(),
-                ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "0"),
-            ),
-            (
-                "1".to_string(),
-                ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1"),
-            ),
+            ("NONE", Diff::default()),
+            ("0", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "0")),
+            ("1", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1")),
         ]),
     );
 }

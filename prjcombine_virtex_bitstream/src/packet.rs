@@ -9,6 +9,7 @@ pub struct PacketParser<'a> {
     sync: bool,
     last_reg: Option<u32>,
     crc: u32,
+    bypass_crc: bool,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -69,6 +70,7 @@ impl<'a> PacketParser<'a> {
             sync: false,
             last_reg: None,
             crc: 0,
+            bypass_crc: false,
         }
     }
 
@@ -153,8 +155,13 @@ impl<'a> Iterator for PacketParser<'a> {
                         match (reg, num) {
                             (0, 2) => {
                                 let val = get_val32(0);
-                                if val != self.crc {
-                                    println!("CRC MISMATCH {val:08x} {ecrc:08x}", ecrc = self.crc);
+                                let ecrc = if self.bypass_crc {
+                                    0x9876defc
+                                } else {
+                                    self.crc
+                                };
+                                if val != ecrc {
+                                    println!("CRC MISMATCH {val:08x} {ecrc:08x}");
                                 }
                                 Some(Packet::Crc)
                             }
@@ -177,7 +184,11 @@ impl<'a> Iterator for PacketParser<'a> {
                             (6, 1) => Some(Packet::Ctl0(get_val(0))),
                             (7, 1) => Some(Packet::Mask(get_val(0))),
                             (9, 2) => Some(Packet::LoutDebug(get_val32(0))),
-                            (0xa, 1) => Some(Packet::Cor1(get_val(0))),
+                            (0xa, 1) => {
+                                let val = get_val(0);
+                                self.bypass_crc = (val & 0x10) != 0;
+                                Some(Packet::Cor1(val))
+                            }
                             (0xb, 1) => Some(Packet::Cor2(get_val(0))),
                             (0xc, 1) => Some(Packet::Powerdown(get_val(0))),
                             (0xd, 1) => Some(Packet::Flr(get_val(0))),
@@ -314,6 +325,7 @@ impl<'a> Iterator for PacketParser<'a> {
                             match (reg, num) {
                                 (0, 1) => {
                                     let val = get_val(0);
+                                    let ecrc = if self.bypass_crc { 0xdefc } else { ecrc };
                                     if val != ecrc {
                                         println!("CRC MISMATCH {val:08x} {ecrc:08x}");
                                     }
@@ -325,11 +337,9 @@ impl<'a> Iterator for PacketParser<'a> {
                                     if self.kind == DeviceKind::Virtex2 {
                                         let crc =
                                             u32::from_be_bytes(*array_ref!(self.data, epos, 4));
-                                        if crc != self.crc {
-                                            println!(
-                                                "AUTOCRC MISMATCH {crc:08x} {ecrc:08x}",
-                                                ecrc = self.crc
-                                            );
+                                        let ecrc = if self.bypass_crc { 0xdefc } else { self.crc };
+                                        if crc != ecrc {
+                                            println!("AUTOCRC MISMATCH {crc:08x} {ecrc:08x}",);
                                         }
                                         self.pos += 4;
                                         self.reset_crc();
@@ -354,7 +364,19 @@ impl<'a> Iterator for PacketParser<'a> {
                                 (5, 1) => Some(Packet::Ctl0(get_val(0))),
                                 (6, 1) => Some(Packet::Mask(get_val(0))),
                                 (8, 1) => Some(Packet::LoutDebug(get_val(0))),
-                                (9, 1) => Some(Packet::Cor0(get_val(0))),
+                                (9, 1) => {
+                                    let val = get_val(0);
+                                    match self.kind {
+                                        DeviceKind::Virtex2 => {
+                                            self.bypass_crc = (val & 1 << 29) != 0;
+                                        }
+                                        DeviceKind::Virtex4 | DeviceKind::Virtex5 => {
+                                            self.bypass_crc = (val & 1 << 28) != 0;
+                                        }
+                                        _ => (),
+                                    }
+                                    Some(Packet::Cor0(val))
+                                }
                                 (0xa, _) => {
                                     assert!(self.data[dpos..epos].iter().all(|&x| x == 0));
                                     Some(Packet::Mfwr(num))
@@ -386,11 +408,9 @@ impl<'a> Iterator for PacketParser<'a> {
                                     if self.kind == DeviceKind::Virtex2 {
                                         let crc =
                                             u32::from_be_bytes(*array_ref!(self.data, epos, 4));
-                                        if crc != self.crc {
-                                            println!(
-                                                "AUTOCRC MISMATCH {crc:08x} {ecrc:08x}",
-                                                ecrc = self.crc
-                                            );
+                                        let ecrc = if self.bypass_crc { 0xdefc } else { self.crc };
+                                        if crc != ecrc {
+                                            println!("AUTOCRC MISMATCH {crc:08x} {ecrc:08x}");
                                         }
                                         self.pos += 4;
                                         self.reset_crc();

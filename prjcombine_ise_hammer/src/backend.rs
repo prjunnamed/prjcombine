@@ -5,8 +5,9 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::parse;
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
-use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Placement};
+use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
+use rand::prelude::*;
 use std::borrow::Cow;
 use std::collections::{hash_map, HashMap};
 use std::fmt::Write;
@@ -33,11 +34,14 @@ impl<'a> std::fmt::Debug for IseBackend<'a> {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Key<'a> {
+    Package,
     SiteMode(&'a str),
     GlobalOpt(&'a str),
     SiteAttr(&'a str, &'a str),
     SitePin(&'a str, &'a str),
     Pip(&'a str, &'a str, &'a str),
+    VccAux,
+    AltVr,
     GlobalMutex(&'a str),
     RowMutex(&'a str, RowId),
     SiteMutex(&'a str, &'a str),
@@ -76,6 +80,8 @@ pub enum MultiValue {
     Lut,
     Hex(i32),
     HexPrefix,
+    Bin,
+    Dec,
 }
 
 #[derive(Clone, Debug)]
@@ -91,11 +97,17 @@ pub struct SimpleFeatureId<'a> {
     pub val: &'a str,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct FeatureBit {
     pub tile: usize,
     pub frame: usize,
     pub bit: usize,
+}
+
+impl core::fmt::Debug for FeatureBit {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}.{}.{}", self.tile, self.frame, self.bit)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -136,13 +148,38 @@ impl<'a> State<'a> {
         assert_eq!(res.len(), 1);
         res.pop().unwrap()
     }
+
+    pub fn peek_diffs<'b: 'a>(
+        &self,
+        tile: &'b str,
+        bel: &'b str,
+        attr: &'b str,
+        val: &'b str,
+    ) -> &Vec<Diff> {
+        &self
+            .simple_features
+            .get(&SimpleFeatureId {
+                tile,
+                bel,
+                attr,
+                val,
+            })
+            .unwrap_or_else(|| panic!("NO DIFF: {tile} {bel} {attr} {val}"))
+            .diffs
+    }
+
+    pub fn peek_diff(&self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) -> &Diff {
+        let res = self.peek_diffs(tile, bel, attr, val);
+        assert_eq!(res.len(), 1);
+        &res[0]
+    }
 }
 
 fn xlat_diff(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<Diff> {
     let mut res = HashMap::new();
     'bits: for (&k, &v) in bits {
         for (i, t) in tiles.iter().enumerate() {
-            if let Some(xk) = t.xlat_pos(k) {
+            if let Some(xk) = t.xlat_pos_rev(k) {
                 res.insert(
                     FeatureBit {
                         tile: i,
@@ -338,8 +375,19 @@ impl<'a> Backend for IseBackend<'a> {
                 _ => (),
             }
         }
-        let combo = &self.device.combos[0];
-        let xdl = Design {
+        let combo = if let Some(Value::String(package)) = kv.get(&Key::Package) {
+            'pkg: {
+                for combo in &self.device.combos {
+                    if self.device.bonds[combo.devbond_idx].name == *package {
+                        break 'pkg combo;
+                    }
+                }
+                panic!("pkg {package} not found");
+            }
+        } else {
+            &self.device.combos[0]
+        };
+        let mut xdl = Design {
             name: "meow".to_string(),
             part: format!(
                 "{d}{s}{p}",
@@ -352,7 +400,19 @@ impl<'a> Backend for IseBackend<'a> {
             instances: insts.into_values().collect(),
             nets: nets.into_values().collect(),
         };
-        let bitdata = run_bitgen(self.tc, &xdl, &gopts).unwrap();
+        xdl.instances.shuffle(&mut rand::thread_rng());
+        let vccaux = if let Some(Value::String(val)) = kv.get(&Key::VccAux) {
+            if val.is_empty() {
+                None
+            } else {
+                Some(val.to_string())
+            }
+        } else {
+            None
+        };
+        let altvr = kv.get(&Key::AltVr) == Some(&Value::Bool(true));
+        let pcf = Pcf { vccaux };
+        let bitdata = run_bitgen(self.tc, &xdl, &gopts, &pcf, altvr).unwrap();
         parse(self.bs_geom, &bitdata)
     }
 
@@ -480,6 +540,23 @@ impl<'a> Backend for IseBackend<'a> {
                     write!(v, "{c:x}").unwrap();
                 }
                 Value::String(v.into())
+            }
+            MultiValue::Bin => {
+                let mut v = String::new();
+                for bit in y.iter().rev() {
+                    write!(v, "{}", if *bit { "1" } else { "0" }).unwrap();
+                }
+                Value::String(v.into())
+            }
+            MultiValue::Dec => {
+                let mut val: u64 = 0;
+                assert!(y.len() <= 64);
+                for (i, v) in y.iter().enumerate() {
+                    if *v {
+                        val |= 1 << i;
+                    }
+                }
+                Value::String(format!("{}", val).into())
             }
         }
     }

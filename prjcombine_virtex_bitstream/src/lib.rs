@@ -161,6 +161,22 @@ impl Bitstream {
         }
         res
     }
+
+    pub fn get_bit(&self, bit: BitPos) -> bool {
+        match bit {
+            BitPos::Reg(die, reg, bit) => match self.die[die].regs[reg] {
+                Some(val) => (val >> bit & 1) != 0,
+                None => false,
+            },
+            BitPos::RegPresent(die, reg) => self.die[die].regs[reg].is_some(),
+            BitPos::Main(die, frame, bit) => self.die[die].frame(frame)[bit],
+            BitPos::Fixup(die, frame, bit) => {
+                self.die[die].frame_fixups.contains_key(&(frame, bit))
+            }
+            BitPos::Bram(die, frame, bit) => self.die[die].bram_frame(frame)[bit],
+            BitPos::Iob(die, bit) => self.die[die].iob[bit],
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -241,7 +257,7 @@ pub enum BitTile {
 }
 
 impl BitTile {
-    pub fn xlat_pos(&self, bit: BitPos) -> Option<(usize, usize)> {
+    pub fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
         match (*self, bit) {
             (BitTile::Reg(die, reg), BitPos::Reg(bdie, breg, pos))
                 if bdie == die && breg == reg =>
@@ -295,6 +311,50 @@ impl BitTile {
                 Some((0, bbit - bit))
             }
             _ => None,
+        }
+    }
+
+    pub fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
+        let (tframe, tbit) = bit;
+        match *self {
+            BitTile::Reg(die, reg) => {
+                assert_eq!(tframe, 0);
+                BitPos::Reg(die, reg, tbit)
+            }
+            BitTile::Main(die, frame, width, bit, height, flip) => {
+                assert!(tframe < width);
+                assert!(tbit < height);
+                BitPos::Main(
+                    die,
+                    frame + tframe,
+                    if flip {
+                        bit + height - 1 - tbit
+                    } else {
+                        bit + tbit
+                    },
+                )
+            }
+            BitTile::Fixup(die, frame, width, bit, height, flip) => {
+                assert!(tframe < width);
+                assert!(tbit < height);
+                BitPos::Fixup(
+                    die,
+                    frame + tframe,
+                    if flip {
+                        bit + height - 1 - tbit
+                    } else {
+                        bit + tbit
+                    },
+                )
+            }
+            BitTile::Bram(die, frame) => {
+                assert_eq!(tframe, 0);
+                BitPos::Bram(die, frame, tbit)
+            }
+            BitTile::Iob(die, bit, height) => {
+                assert!(tbit < height);
+                BitPos::Iob(die, bit + tbit)
+            }
         }
     }
 }

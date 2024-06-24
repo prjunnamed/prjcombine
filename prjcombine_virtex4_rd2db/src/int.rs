@@ -746,15 +746,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
                 bel = bel.extra_wire(format!("MUXBUS_O{i}"), &[format!("CLK_IOB_MUXED_CLKP{i}")]);
             }
-            builder
-                .xnode("CLK_IOB", "CLK_IOB", xy)
-                .num_tiles(0)
-                .bel(bel)
-                .extract();
+            builder.xnode(tkn, tkn, xy).num_tiles(0).bel(bel).extract();
         }
     }
 
-    for tkn in ["CLKV_DCM_B", "CLKV_DCM_T"] {
+    for (nn, tkn) in [("CLK_DCM_B", "CLKV_DCM_B"), ("CLK_DCM_T", "CLKV_DCM_T")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("CLK_DCM");
             for i in 0..12 {
@@ -774,7 +770,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
             builder
-                .xnode("CLK_DCM", "CLK_DCM", xy)
+                .xnode(nn, nn, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();

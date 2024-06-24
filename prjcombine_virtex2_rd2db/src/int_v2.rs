@@ -967,7 +967,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ] {
             builder.make_marker_bel(kind, kind, kind, num);
         }
-
     } else {
         for (kind, num) in [
             ("IOBS.V2.B.L2", 2),
@@ -981,17 +980,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ] {
             builder.make_marker_bel(kind, kind, kind, num);
         }
-
     }
 
     let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];
     builder.extract_node_bels("BRAM_IOIS", "DCM.V2", "DCM.V2", &bels_dcm);
     builder.extract_node_bels("ML_BRAM_IOIS", "DCM.V2P", "DCM.V2P", &bels_dcm);
 
+    let (ll, lr, ul, ur) = if rd.family == "virtex2p" {
+        ("LL.V2P", "LR.V2P", "UL.V2P", "UR.V2P")
+    } else {
+        ("LL.V2", "LR.V2", "UL.V2", "UR.V2")
+    };
     builder.extract_node_bels(
         "LL",
-        "LL",
-        "LL",
+        ll,
+        ll,
         &[
             builder.bel_indexed("DCI0", "DCI", 6),
             builder.bel_indexed("DCI1", "DCI", 5),
@@ -1000,8 +1003,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     builder.extract_node_bels(
         "LR",
-        "LR",
-        "LR",
+        lr,
+        lr,
         &[
             builder.bel_indexed("DCI0", "DCI", 3),
             builder.bel_indexed("DCI1", "DCI", 4),
@@ -1012,8 +1015,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     );
     builder.extract_node_bels(
         "UL",
-        "UL",
-        "UL",
+        ul,
+        ul,
         &[
             builder.bel_indexed("DCI0", "DCI", 7),
             builder.bel_indexed("DCI1", "DCI", 0),
@@ -1023,8 +1026,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if rd.family == "virtex2p" {
         builder.extract_node_bels(
             "UR",
-            "UR.V2P",
-            "UR.V2P",
+            ur,
+            ur,
             &[
                 builder.bel_indexed("DCI0", "DCI", 2),
                 builder.bel_indexed("DCI1", "DCI", 1),
@@ -1035,8 +1038,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     } else {
         builder.extract_node_bels(
             "UR",
-            "UR.V2",
-            "UR.V2",
+            ur,
+            ur,
             &[
                 builder.bel_indexed("DCI0", "DCI", 2),
                 builder.bel_indexed("DCI1", "DCI", 1),
@@ -1529,7 +1532,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels(
-            "GIGABIT",
+            "GIGABIT.B",
             xy,
             &[],
             &int_xy,
@@ -1563,7 +1566,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels(
-            "GIGABIT",
+            "GIGABIT.T",
             xy,
             &[],
             &int_xy,
@@ -1597,7 +1600,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels(
-            "GIGABIT10",
+            "GIGABIT10.B",
             xy,
             &[],
             &int_xy,
@@ -1631,7 +1634,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             int_xy.push(xy.delta(-1, dy));
         }
         builder.extract_xnode_bels(
-            "GIGABIT10",
+            "GIGABIT10.T",
             xy,
             &[],
             &int_xy,

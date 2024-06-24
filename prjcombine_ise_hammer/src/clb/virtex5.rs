@@ -4,11 +4,11 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, SimpleFeatureId},
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_default, CollectorCtx, Diff, OcdMode},
-    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileRelation, TileWire},
+    backend::IseBackend,
+    diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff, OcdMode},
+    fgen::{TileBits, TileRelation},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi,
+    fuzz_enum, fuzz_multi, fuzz_one,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -37,6 +37,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ["CLBLL", "CLBLM"]
     } {
         let node_kind = backend.egrid.db.get_node(tile_name);
+        if backend.egrid.node_index[node_kind].is_empty() {
+            continue;
+        }
         let bk_x = if mode == Mode::Spartan6 {
             "SLICEX"
         } else {
@@ -183,24 +186,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (pin "COUT")
                 ]);
 
-                ctx.session.add_fuzzer(Box::new(TileFuzzerGen {
-                    node: ctx.node_kind,
-                    bits: ctx.bits,
-                    feature: SimpleFeatureId {
-                        tile: ctx.tile_name,
-                        bel: ctx.bel_name,
-                        attr: "CINUSED",
-                        val: "1",
-                    },
-                    base: vec![],
-                    fuzz: vec![TileFuzzKV::TileRelated(
-                        TileRelation::ClbCinDown,
-                        Box::new(TileFuzzKV::Pip(
-                            TileWire::BelPinNear(bel, "COUT"),
-                            TileWire::BelPinFar(bel, "COUT"),
-                        )),
-                    )],
-                }));
+                fuzz_one!(ctx, "CINUSED", "1", [], [
+                    (related TileRelation::ClbCinDown, (pip (pin "COUT"), (pin_far "COUT")))
+                ]);
             }
 
             // misc muxes
@@ -831,6 +819,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     } else {
         ["CLBLL", "CLBLM"]
     } {
+        let node_kind = ctx.edev.egrid().db.get_node(tile);
+        if ctx.edev.egrid().node_index[node_kind].is_empty() {
+            continue;
+        }
         for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {
             let is_x = idx == 1 && mode == Mode::Spartan6;
             let is_m = idx == 0 && tile.ends_with('M');
@@ -868,7 +860,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         tile,
                         bel,
                         attr,
-                        xlat_enum(vec![(byp.to_string(), d_byp), ("ALT".to_string(), d_alt)]),
+                        xlat_enum(vec![(byp, d_byp), ("ALT", d_alt)]),
                     );
                 }
                 for (dattr, sattr) in [
@@ -888,10 +880,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         bel,
                         dattr,
                         xlat_enum(vec![
-                            ("RAM32".to_string(), d_ram32),
-                            ("RAM64".to_string(), d_ram64),
-                            ("SRL16".to_string(), d_srl16),
-                            ("SRL32".to_string(), d_srl32),
+                            ("RAM32", d_ram32),
+                            ("RAM64", d_ram64),
+                            ("SRL16", d_srl16),
+                            ("SRL32", d_srl32),
                         ]),
                     );
                 }
@@ -909,11 +901,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     bel,
                     "CYINIT",
                     xlat_enum(vec![
-                        (
-                            "CIN".to_string(),
-                            ctx.state.get_diff(tile, bel, "CINUSED", "1"),
-                        ),
-                        ("PRECYINIT".to_string(), Diff::default()),
+                        ("CIN", ctx.state.get_diff(tile, bel, "CINUSED", "1")),
+                        ("PRECYINIT", Diff::default()),
                     ]),
                 );
             }
@@ -1090,10 +1079,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             tile,
                             bel,
                             attr,
-                            xlat_enum_default(
-                                vec![("O5".to_string(), d_o5), (byp.to_string(), d_byp)],
-                                "NONE",
-                            ),
+                            xlat_enum(vec![("O5", d_o5), (byp, d_byp), ("NONE", Diff::default())]),
                         );
                     }
                 }
@@ -1110,15 +1096,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if mode == Mode::Virtex5 {
                 let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+                    .insert(tile, bel, "FF_REV_ENABLE", xlat_bitvec(vec![revused]));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
+                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bitvec(vec![ceused]));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
+                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bitvec(vec![srused]));
             } else {
                 ctx.state
                     .get_diff(tile, bel, "CEUSEDMUX", "1")
@@ -1128,10 +1114,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .assert_empty();
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSEDMUX", "IN");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_CE_EN", xlat_bitvec(vec![ceused]));
+                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bitvec(vec![ceused]));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSEDMUX", "IN");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_SR_EN", xlat_bitvec(vec![srused]));
+                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bitvec(vec![srused]));
             }
             if mode != Mode::Virtex6 {
                 let ff_latch = ctx.state.get_diff(tile, bel, "AFF", "#LATCH");

@@ -1,5 +1,9 @@
-Interconnect
-############
+.. _virtex4-interconnect:
+
+General Interconnect
+####################
+
+.. todo:: document
 
 
 Bitstream

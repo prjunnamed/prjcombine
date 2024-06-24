@@ -175,7 +175,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[&format!("LOGICIN_{dir}{i}")],
         );
     }
-    builder.mux_out(&"IMUX.LOGICIN63".to_string(), &["FAN_B"]);
+    builder.mux_out("IMUX.LOGICIN63", &["FAN_B"]);
 
     for i in 0..24 {
         builder.logic_out(

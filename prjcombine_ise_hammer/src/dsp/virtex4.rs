@@ -104,7 +104,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         "DSP_COMMON",
         "CREG",
-        xlat_enum(vec![("0".to_string(), dc_0), ("1".to_string(), dc_1)]),
+        xlat_enum(vec![("0", dc_0), ("1", dc_1)]),
     );
     d0_0.assert_empty();
     d1_0.assert_empty();
@@ -112,7 +112,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         "DSP_COMMON",
         "CLKC_MUX",
-        xlat_enum(vec![("DSP0".to_string(), d0_1), ("DSP1".to_string(), d1_1)]),
+        xlat_enum(vec![("DSP0", d0_1), ("DSP1", d1_1)]),
     );
     for bel in ["DSP0", "DSP1"] {
         for &pin in DSP48_INVPINS {
@@ -145,10 +145,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "UNK_PRESENT",
-            xlat_enum(vec![
-                ("0".to_string(), Diff::default()),
-                ("1".to_string(), present),
-            ]),
+            xlat_enum(vec![("0", Diff::default()), ("1", present)]),
         );
     }
 }

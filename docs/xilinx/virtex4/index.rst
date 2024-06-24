@@ -7,6 +7,9 @@ Xilinx Virtex 4 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
-   int
+   interconnect
    bram
    dsp
+   center
+   clock
+   config

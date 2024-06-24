@@ -504,3 +504,27 @@ This tile is used on Virtex 4 devices.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc4v-CLB.html
+
+
+``RESERVED_ANDOR``
+==================
+
+TODO: wtf is this even
+
+
+``RANDOR``
+----------
+
+This tile overlaps ``IOI.*``.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-RANDOR.html
+
+
+``RANDOR_INIT``
+---------------
+
+This tile overlaps top-left interconnect tile.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc3s-RANDOR_INIT.html

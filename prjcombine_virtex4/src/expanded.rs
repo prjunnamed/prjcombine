@@ -189,6 +189,77 @@ impl<'a> ExpandedDevice<'a> {
         )
     }
 
+    pub fn btile_hclk(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grids[die].row_to_reg(row);
+        let bit = if self.kind == GridKind::Virtex4 {
+            80 * self.grids[die].rows_per_reg() / 2
+        } else {
+            64 * self.grids[die].rows_per_reg() / 2
+        };
+        BitTile::Main(
+            die,
+            self.frames[die].col_frame[reg][col],
+            self.frames[die].col_width[reg][col],
+            bit,
+            32,
+            false,
+        )
+    }
+
+    pub fn btile_spine(&self, die: DieId, row: RowId) -> BitTile {
+        let reg = self.grids[die].row_to_reg(row);
+        let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;
+        let (height, bit, flip) = if self.kind == GridKind::Virtex4 {
+            let flip = reg < self.grids[die].reg_cfg;
+            let pos = if flip { 15 - rd } else { rd } * 80;
+            (80, if pos < 640 { pos } else { pos + 32 }, flip)
+        } else {
+            (
+                64,
+                64 * rd
+                    + if row >= self.grids[die].row_reg_hclk(reg) {
+                        32
+                    } else {
+                        0
+                    },
+                false,
+            )
+        };
+        BitTile::Main(
+            die,
+            self.frames[die].spine_frame[reg],
+            match self.kind {
+                GridKind::Virtex4 => 3,
+                GridKind::Virtex5 => 4,
+                _ => unreachable!(),
+            },
+            bit,
+            height,
+            flip,
+        )
+    }
+
+    pub fn btile_spine_hclk(&self, die: DieId, row: RowId) -> BitTile {
+        let reg = self.grids[die].row_to_reg(row);
+        let bit = if self.kind == GridKind::Virtex4 {
+            80 * self.grids[die].rows_per_reg() / 2
+        } else {
+            64 * self.grids[die].rows_per_reg() / 2
+        };
+        BitTile::Main(
+            die,
+            self.frames[die].spine_frame[reg],
+            match self.kind {
+                GridKind::Virtex4 => 3,
+                GridKind::Virtex5 => 4,
+                _ => unreachable!(),
+            },
+            bit,
+            32,
+            false,
+        )
+    }
+
     pub fn btile_bram(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
         let reg = self.grids[die].row_to_reg(row);
         let rd = (row - self.grids[die].row_reg_bot(reg)) as usize;

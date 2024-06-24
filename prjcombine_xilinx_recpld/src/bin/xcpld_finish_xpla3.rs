@@ -451,7 +451,9 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
         "READ_PROT",
         TileItem {
             bits: vec![xlat_bit_raw(fpart.map.rprot[0])],
-            kind: TileItemKind::BitVec { invert: true },
+            kind: TileItemKind::BitVec {
+                invert: BitVec::from_iter([true]),
+            },
         },
         |_| true,
     );
@@ -466,7 +468,9 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
                 .iter()
                 .map(|&bit| xlat_bit_raw(bit))
                 .collect(),
-            kind: TileItemKind::BitVec { invert: false },
+            kind: TileItemKind::BitVec {
+                invert: BitVec::from_iter([false]),
+            },
         },
         |_| true,
     );

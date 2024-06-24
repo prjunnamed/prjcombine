@@ -4,6 +4,41 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
     with open(f"../databases/{kind}-tiledb.json") as dbf:
         db = json.load(dbf)
 
+    def emit_misc_table_bitvec(fname, *prefixes):
+        items = []
+        for name, data in db["misc_data"].items():
+            if name.startswith(prefixes[0] + ":"):
+                name = name[len(prefixes[0])+1:]
+                data = []
+                lens = []
+                for pref in prefixes:
+                    xname = pref + ":" + name
+                    d = db["misc_data"][xname]
+                    lens.append(len(d))
+                    data.append(d)
+                items.append((name, data))
+        if not items:
+            return
+        with open(fname, "w") as f:
+            f.write("<table class=\"docutils align-default\">\n")
+            f.write(f"<tr><th rowspan=\"2\">Name</th>")
+            for (pref, l) in zip(prefixes, lens):
+                f.write(f"<th colspan=\"{l}\">{pref}</th>")
+            f.write(f"</tr>\n")
+            f.write(f"<tr>")
+            for l in lens:
+                for i in reversed(range(l)):
+                    f.write(f"<th>[{i}]</th>")
+            f.write(f"</tr>\n")
+            for name, data in items:
+                f.write(f"<tr><td>{name}</td>")
+                for (d, l) in zip(data, lens):
+                    assert len(d) == l
+                    for i in reversed(range(l)):
+                        f.write(f"<td>{int(d[i])}</td>")
+                f.write(f"</tr>\n")
+            f.write(f"</table>\n")
+
     def emit_dev_table_bitvec(f, name):
         l = None
         for dev, data in db["device_data"].items():
@@ -81,7 +116,10 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                                 title = name
                                 if bidx is not None:
                                     title = f"{name}[{bidx}]"
-                                if item.get("invert", False):
+                                invert = item.get("invert", False)
+                                if not isinstance(invert, bool):
+                                    invert = invert[bidx]
+                                if invert:
                                     title = f"~{title}"
                                 f.write(f"<a href=\"#bits-{kind}-{tile_name}-{name}\" title=\"{title}\">{title}</a>")
                         else:
@@ -122,8 +160,12 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     akey = "INT"
                 if bel == "INTF" and akey.startswith("DELAY"):
                     akey = "DELAY"
+                if akey.startswith("MUXBUS"):
+                    akey = "MUXBUS"
                 if akey.endswith("INV"):
                     akey = "INV"
+                if bel == "CLK_HROW":
+                    akey = "MUX"
                 if "values" in item:
                     vkey = str(sorted(item["values"].items(), key=lambda x: x[1][::-1]))
                 else:
@@ -131,7 +173,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 key = (akey, vkey)
                 item_to_group[name] = key
                 groups.setdefault(key, []).append(name)
-            
+
             groups_done = set()
 
             for name, item in sorted(tile.items(), key=lambda x: x[1]["bits"]):
@@ -155,18 +197,64 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                             f.write(f"<td>{int(v)}</td>")
                         f.write(f"</tr>\n")
                 else:
-                    if item["invert"]:
+                    invert = item["invert"]
+                    if invert is True:
                         f.write("<tr><td>Inverted</td>")
-                        inv = "~"
-                    else:
+                    elif invert is False:
                         f.write("<tr><td>Non-inverted</td>")
-                        inv = ""
+                    else:
+                        f.write("<tr><td>Mixed inversion</td>")
                     for i in reversed(range(len(item["bits"]))):
+                        if isinstance(invert, bool):
+                            inv = invert
+                        else:
+                            inv = invert[i]
+                        if inv:
+                            inv = "~"
+                        else:
+                            inv = ""
                         f.write(f"<td>{inv}[{i}]</td>")
                     f.write("</tr>\n")
                 f.write("</table>\n")
 
+    if kind == "xc2v":
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-drive.html", "IOSTD:V2:PDRIVE", "IOSTD:V2:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-slew.html", "IOSTD:V2:SLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-output-misc.html", "IOSTD:V2:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-output-diff.html", "IOSTD:V2:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-lvdsbias.html", "IOSTD:V2:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-dci-term-split.html", "IOSTD:V2:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-dci-term-vcc.html", "IOSTD:V2:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-drive.html", "IOSTD:V2P:PDRIVE", "IOSTD:V2P:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-slew.html", "IOSTD:V2P:SLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-output-misc.html", "IOSTD:V2P:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-output-diff.html", "IOSTD:V2P:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-lvdsbias.html", "IOSTD:V2P:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-dci-term-split.html", "IOSTD:V2P:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-dci-term-vcc.html", "IOSTD:V2P:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-gt10-PMA_SPEED.html", "GT10:PMA_SPEED")
+
     if kind == "xc3s":
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-drive.html", "IOSTD:S3:PDRIVE", "IOSTD:S3:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-slew.html", "IOSTD:S3:SLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-output-misc.html", "IOSTD:S3:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-output-diff.html", "IOSTD:S3:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-lvdsbias.html", "IOSTD:S3:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-dci-term-split.html", "IOSTD:S3:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-dci-term-vcc.html", "IOSTD:S3:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-drive.html", "IOSTD:S3E:PDRIVE", "IOSTD:S3E:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-slew.html", "IOSTD:S3E:SLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-output-misc.html", "IOSTD:S3E:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-output-diff.html", "IOSTD:S3E:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-lvdsbias-0.html", "IOSTD:S3E:LVDSBIAS_0")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-lvdsbias-1.html", "IOSTD:S3E:LVDSBIAS_1")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-drive.html", "IOSTD:S3A.TB:PDRIVE", "IOSTD:S3A.TB:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-slew.html", "IOSTD:S3A.TB:PSLEW", "IOSTD:S3A.TB:NSLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-output-diff.html", "IOSTD:S3A.TB:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-lr-drive.html", "IOSTD:S3A.LR:PDRIVE", "IOSTD:S3A.LR:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-lr-slew.html", "IOSTD:S3A.LR:PSLEW", "IOSTD:S3A.LR:NSLEW")
+        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-lvdsbias.html", "IOSTD:S3A.TB:LVDSBIAS")
+
         with open("xilinx/gen-xilinx-xc3s-bram-opts.html", "w") as f:
             emit_dev_table_bitvec(f, "BRAM:DDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
@@ -175,7 +263,6 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
 
         with open("xilinx/gen-xilinx-xc3s-pcilogicse-opts.html", "w") as f:
             emit_dev_table_string(f, "PCILOGICSE:DELAY_DEFAULT")
-
 
         intf_mux = []
         for item, val in db["misc_data"].items():

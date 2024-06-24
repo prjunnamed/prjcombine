@@ -12,13 +12,22 @@ Lower left
 .. todo:: document
 
 
-``LL`` — Virtex 2
------------------
+``LL.V2``
+---------
 
 This tile is used on Virtex 2.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-LL.html
+   :file: ../gen-xilinx-tile-xc2v-LL.V2.html
+
+
+``LL.V2P``
+----------
+
+This tile is used on Virtex 2 Pro.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-LL.V2P.html
 
 
 ``LL.S3``
@@ -54,13 +63,22 @@ Upper left
 .. todo:: document
 
 
-``UL`` — Virtex 2
------------------
+``UL.V2``
+---------
 
 This tile is used on Virtex 2.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-UL.html
+   :file: ../gen-xilinx-tile-xc2v-UL.V2.html
+
+
+``UL.V2P``
+----------
+
+This tile is used on Virtex 2 Pro.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-UL.V2P.html
 
 
 ``UL.S3``
@@ -96,13 +114,22 @@ Lower right
 .. todo:: document
 
 
-``LR`` — Virtex 2
------------------
+``LR.V2``
+---------
 
 This tile is used on Virtex 2.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-LR.html
+   :file: ../gen-xilinx-tile-xc2v-LR.V2.html
+
+
+``LR.V2P``
+----------
+
+This tile is used on Virtex 2 Pro.
+
+.. raw:: html
+   :file: ../gen-xilinx-tile-xc2v-LR.V2P.html
 
 
 ``LR.S3``
@@ -147,7 +174,6 @@ This tile is used on Virtex 2.
    :file: ../gen-xilinx-tile-xc2v-UR.V2.html
 
 
-
 ``UR.V2P``
 ----------
 
@@ -182,3 +208,59 @@ This tile is used on Spartan 3A.
 
 .. raw:: html
    :file: ../gen-xilinx-tile-xc3s-UR.S3A.html
+
+
+I/O data — Virtex 2
+===================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2v-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2v-iostd-dci-term-split.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2v-iostd-dci-term-vcc.html
+
+
+I/O data — Virtex 2 Pro
+=======================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2vp-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2vp-iostd-dci-term-split.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc2vp-iostd-dci-term-vcc.html
+
+
+I/O data — Spartan 3
+====================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-iostd-dci-term-split.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3s-iostd-dci-term-vcc.html
+
+
+I/O data — Spartan 3E
+=====================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3se-iostd-lvdsbias-0.html
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3se-iostd-lvdsbias-1.html
+
+
+I/O data — Spartan 3A
+=====================
+
+.. raw:: html
+   :file: ../gen-xilinx-xc3sa-iostd-tb-lvdsbias.html

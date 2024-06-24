@@ -399,7 +399,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem<Fb
     TileItem {
         bits: vec![res.unwrap()],
         kind: TileItemKind::BitVec {
-            invert: device.kind == DeviceKind::Xc9500,
+            invert: BitVec::from_iter([device.kind == DeviceKind::Xc9500]),
         },
     }
 }
@@ -418,7 +418,7 @@ fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem<FbBitCoord> {
     TileItem {
         bits: vec![res.unwrap()],
         kind: TileItemKind::BitVec {
-            invert: device.kind == DeviceKind::Xc9500,
+            invert: BitVec::from_iter([device.kind == DeviceKind::Xc9500]),
         },
     }
 }
@@ -552,7 +552,9 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart) -> Tile<GlobalBitCoo
             "DONE",
             TileItem {
                 bits: vec![map_bit_raw(device, fpart.map.done.unwrap())],
-                kind: TileItemKind::BitVec { invert: false },
+                kind: TileItemKind::BitVec {
+                    invert: BitVec::from_iter([false]),
+                },
             },
             neutral,
         );

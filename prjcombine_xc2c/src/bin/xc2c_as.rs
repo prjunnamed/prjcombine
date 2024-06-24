@@ -108,9 +108,10 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, ite
                 assert_eq!(val.len(), item.bits.len());
                 val.chars()
                     .rev()
-                    .map(|x| match x {
-                        '0' => *invert,
-                        '1' => !*invert,
+                    .enumerate()
+                    .map(|(i, x)| match x {
+                        '0' => invert[i],
+                        '1' => !invert[i],
                         _ => unreachable!(),
                     })
                     .collect()
@@ -126,9 +127,9 @@ fn set_tile_item(data: &mut BTreeMap<String, BitVec>, tile: &Tile<BitCoord>, ite
         let item = &tile.items[name];
         match &item.kind {
             TileItemKind::Enum { .. } => unreachable!(),
-            TileItemKind::BitVec { invert } => {
+            TileItemKind::BitVec { ref invert } => {
                 assert_eq!(item.bits.len(), 1);
-                data.insert(name.to_string(), BitVec::repeat(val ^ *invert, 1));
+                data.insert(name.to_string(), BitVec::repeat(val ^ invert[0], 1));
             }
         }
     }

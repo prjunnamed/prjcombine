@@ -13,3 +13,4 @@ Xilinx Spartan 3 FPGAs
    clb
    dsp
    clock
+   config-xc3sa

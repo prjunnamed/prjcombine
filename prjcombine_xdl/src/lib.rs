@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{self, Write};
+use std::mem;
 
 mod parser;
 
@@ -344,10 +345,16 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
     }
 }
 
+pub struct Pcf {
+    pub vccaux: Option<String>,
+}
+
 pub fn run_bitgen(
     tc: &Toolchain,
     design: &Design,
     gopts: &HashMap<String, String>,
+    pcf: &Pcf,
+    altvr: bool,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
     let dir = tempfile::Builder::new().prefix("xdl_bitgen").tempdir()?;
     let mut xdl_file = File::create(dir.path().join("meow.xdl"))?;
@@ -360,6 +367,9 @@ pub fn run_bitgen(
     cmd.current_dir(dir.path());
     cmd.env("XIL_TEST_ARCS", "1");
     cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
+    if altvr {
+        cmd.env("XIL_VIRTEX2_PKG_USEALT", "1");
+    }
     cmd.arg("-xdl2ncd");
     cmd.arg("-force");
     cmd.arg("meow.xdl");
@@ -367,12 +377,21 @@ pub fn run_bitgen(
     if !status.status.success() {
         let _ = std::io::stderr().write_all(&status.stdout);
         let _ = std::io::stderr().write_all(&status.stderr);
+        mem::forget(dir);
         panic!("non-zero xdl exit status");
     }
+    let mut pcf_file = File::create(dir.path().join("meow.pcf"))?;
+    if let Some(ref val) = pcf.vccaux {
+        writeln!(pcf_file, "CONFIG VCCAUX=\"{val}\";")?;
+    }
+    std::mem::drop(pcf_file);
     let mut cmd = tc.command("bitgen");
     cmd.current_dir(dir.path());
     cmd.env("XIL_TEST_ARCS", "1");
     cmd.env("XIL_DRM_EXCLUDE_ARCS", "1");
+    if altvr {
+        cmd.env("XIL_VIRTEX2_PKG_USEALT", "1");
+    }
     cmd.arg("-d");
     for (k, v) in gopts {
         cmd.arg("-g");
@@ -383,10 +402,13 @@ pub fn run_bitgen(
         }
     }
     cmd.arg("meow.ncd");
+    cmd.arg("meow.bit");
+    cmd.arg("meow.pcf");
     let status = cmd.output()?;
     if !status.status.success() {
         let _ = std::io::stderr().write_all(&status.stdout);
         let _ = std::io::stderr().write_all(&status.stderr);
+        mem::forget(dir);
         panic!("non-zero bitgen exit status");
     }
     let mut bitdata = std::fs::read(dir.path().join("meow.bit"))?;

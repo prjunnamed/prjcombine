@@ -1124,13 +1124,15 @@ pub fn extract_bool<T>(bit: InvBit, xlat_bit: impl Fn(usize) -> T) -> TileItem<T
     let bits = vec![xlat_bit(bit)];
     TileItem {
         bits,
-        kind: TileItemKind::BitVec { invert: !pol },
+        kind: TileItemKind::BitVec {
+            invert: BitVec::from_iter([!pol]),
+        },
     }
 }
 
 pub fn extract_bitvec<T>(bits: &[InvBit], xlat_bit: impl Fn(usize) -> T) -> TileItem<T> {
     let pol = bits[0].1;
-    let bits = bits
+    let new_bits = bits
         .iter()
         .map(|&(bit, p)| {
             assert_eq!(p, pol);
@@ -1138,8 +1140,10 @@ pub fn extract_bitvec<T>(bits: &[InvBit], xlat_bit: impl Fn(usize) -> T) -> Tile
         })
         .collect();
     TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert: !pol },
+        bits: new_bits,
+        kind: TileItemKind::BitVec {
+            invert: BitVec::repeat(!pol, bits.len()),
+        },
     }
 }
 

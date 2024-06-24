@@ -23,9 +23,9 @@ The base Spartan 3 FPGAs feature:
   - 18-kbit block RAM
   - 18×18 multiplier blocks
 
-- :ref:`input-output tiles <spartan3-io>`, similar to Virtex 2
+- :ref:`input-output tiles <virtex2-io>`, similar to Virtex 2
 - :ref:`digital clock managers <virtex2-dcm>`, essentially identical to Virtex 2
-- :ref:`corner tiles <spartan3-corner>`, with various global bits of logic:
+- :ref:`corner tiles <virtex2-corner>`, with various global bits of logic:
 
   - ``BSCAN`` primitive, allowing access to FPGA fabric via dedicated JTAG instructions
   - ``STARTUP`` primitive, controlling the startup process

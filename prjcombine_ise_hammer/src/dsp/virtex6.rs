@@ -185,11 +185,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel,
                 attr,
-                xlat_enum(vec![
-                    ("INT".to_string(), Diff::default()),
-                    ("GND".to_string(), gnd),
-                    ("VCC".to_string(), vcc),
-                ]),
+                xlat_enum(vec![("INT", Diff::default()), ("GND", gnd), ("VCC", vcc)]),
             );
         }
 

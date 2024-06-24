@@ -321,10 +321,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             "CY0",
             xlat_enum(vec![
-                ("0".to_string(), d_0),
-                ("1".to_string(), d_1),
-                ("F1_G1".to_string(), d_f1_g1),
-                ("PROD".to_string(), d_prod),
+                ("0", d_0),
+                ("1", d_1),
+                ("F1_G1", d_f1_g1),
+                ("PROD", d_prod),
             ]),
         );
 
@@ -335,7 +335,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "YBMUX",
-            xlat_enum(vec![("BY".to_string(), yb_by), ("CY".to_string(), yb_cy)]),
+            xlat_enum(vec![("BY", yb_by), ("CY", yb_cy)]),
         );
         let dx_bx = ctx.state.get_diff(tile, bel, "DXMUX", "0");
         let dx_x = ctx.state.get_diff(tile, bel, "DXMUX", "1");
@@ -343,7 +343,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "DXMUX",
-            xlat_enum(vec![("BX".to_string(), dx_bx), ("X".to_string(), dx_x)]),
+            xlat_enum(vec![("BX", dx_bx), ("X", dx_x)]),
         );
         let dy_by = ctx.state.get_diff(tile, bel, "DYMUX", "0");
         let dy_y = ctx.state.get_diff(tile, bel, "DYMUX", "1");
@@ -351,7 +351,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "DYMUX",
-            xlat_enum(vec![("BY".to_string(), dy_by), ("Y".to_string(), dy_y)]),
+            xlat_enum(vec![("BY", dy_by), ("Y", dy_y)]),
         );
         ctx.collect_enum(tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
         ctx.collect_enum(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
@@ -366,7 +366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
         ctx.tiledb
-            .insert(tile, bel, "FF_REV_EN", xlat_bitvec(vec![revused]));
+            .insert(tile, bel, "FF_REV_ENABLE", xlat_bitvec(vec![revused]));
 
         let ff_latch = ctx.state.get_diff(tile, bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, "FFY", "#LATCH"));

@@ -457,13 +457,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("WRITE_MODE_B", "WRITEMODEB"),
             ] {
                 let diffs = ["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"]
-                    .iter()
-                    .map(|val| {
-                        (
-                            val.to_string(),
-                            ctx.state.get_diff(tile, "BRAM", sattr, val),
-                        )
-                    })
+                    .into_iter()
+                    .map(|val| (val, ctx.state.get_diff(tile, "BRAM", sattr, val)))
                     .collect();
                 ctx.tiledb.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
@@ -479,13 +474,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("18", "1024X18"),
                     ("36", "512X36"),
                 ]
-                .iter()
-                .map(|(dval, sval)| {
-                    (
-                        dval.to_string(),
-                        ctx.state.get_diff(tile, "BRAM", sattr, sval),
-                    )
-                })
+                .into_iter()
+                .map(|(dval, sval)| (dval, ctx.state.get_diff(tile, "BRAM", sattr, sval)))
                 .collect();
                 ctx.tiledb.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
@@ -582,21 +572,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "BRAM",
             "WW_VALUE_A",
-            xlat_enum(vec![
-                ("NONE".to_string(), Diff::default()),
-                ("0".to_string(), a0),
-                ("1".to_string(), a1),
-            ]),
+            xlat_enum(vec![("NONE", Diff::default()), ("0", a0), ("1", a1)]),
         );
         ctx.tiledb.insert(
             tile,
             "BRAM",
             "WW_VALUE_B",
-            xlat_enum(vec![
-                ("NONE".to_string(), Diff::default()),
-                ("0".to_string(), b0),
-                ("1".to_string(), b1),
-            ]),
+            xlat_enum(vec![("NONE", Diff::default()), ("0", b0), ("1", b1)]),
         );
     }
     ctx.tiledb
@@ -614,10 +596,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "BRAM",
             "UNK_PRESENT",
-            xlat_enum(vec![
-                ("0".to_string(), Diff::default()),
-                ("1".to_string(), present),
-            ]),
+            xlat_enum(vec![("0", Diff::default()), ("1", present)]),
         );
     } else {
         present.assert_empty();
@@ -671,11 +650,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             "MULT",
                             name,
                             xlat_enum(vec![
-                                ("INT".to_string(), Diff::default()),
-                                (
-                                    "BRAM".to_string(),
-                                    ctx.state.get_diff(tile, "MULT", name, "BRAM"),
-                                ),
+                                ("INT", Diff::default()),
+                                ("BRAM", ctx.state.get_diff(tile, "MULT", name, "BRAM")),
                             ]),
                         )
                     }

@@ -172,14 +172,14 @@ fn set_tile_item<T: Copy>(
             }
             TileItemKind::BitVec { invert } => {
                 assert_eq!(val.len(), item.bits.len());
-                for (k, v) in item.bits.iter().zip(val.chars().rev()) {
+                for (i, (k, v)) in item.bits.iter().zip(val.chars().rev()).enumerate() {
                     put_bit(
                         *k,
                         match v {
                             '0' => false,
                             '1' => true,
                             _ => unreachable!(),
-                        } ^ invert,
+                        } ^ invert[i],
                     )
                 }
             }
@@ -193,9 +193,9 @@ fn set_tile_item<T: Copy>(
         let item = &tile.items[name];
         match item.kind {
             TileItemKind::Enum { .. } => unreachable!(),
-            TileItemKind::BitVec { invert } => {
+            TileItemKind::BitVec { ref invert } => {
                 assert_eq!(item.bits.len(), 1);
-                put_bit(item.bits[0], val ^ invert);
+                put_bit(item.bits[0], val ^ invert[0]);
             }
         }
     }

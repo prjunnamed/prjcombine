@@ -165,8 +165,8 @@ fn print_tile(data: &BTreeMap<String, BitVec>, tile: &Tile<BitCoord>) {
                 }
             }
             TileItemKind::BitVec { invert } => {
-                for bit in v.iter().rev() {
-                    print!("{}", u8::from(*bit ^ *invert));
+                for (i, bit) in v.iter().enumerate().rev() {
+                    print!("{}", u8::from(*bit ^ invert[i]));
                 }
             }
         }

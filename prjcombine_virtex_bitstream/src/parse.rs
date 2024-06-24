@@ -383,10 +383,10 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
     } else {
         assert!(bs.frame_present.all());
 
-        let mut nops = 0;
+        let mut _nops = 0;
         while let Some(Packet::Nop) = packets.peek() {
             packets.next();
-            nops += 1;
+            _nops += 1;
         }
         // println!("NOPS {nops} FLR {flr}");
 
@@ -495,16 +495,23 @@ fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8]) {
         p => panic!("expected pu gts got {p:?}"),
     }
     match packets.next() {
-        Some(Packet::Mode(val)) => bs.regs[Reg::Mode] = Some(val),
+        Some(Packet::Mode(val)) => {
+            bs.regs[Reg::Mode] = Some(val);
+            match packets.next() {
+                Some(Packet::General1(val)) => bs.regs[Reg::General1] = Some(val),
+                p => panic!("expected general1 got {p:?}"),
+            }
+            match packets.next() {
+                Some(Packet::General2(val)) => bs.regs[Reg::General2] = Some(val),
+                p => panic!("expected general2 got {p:?}"),
+            }
+        }
+        Some(Packet::Nop) => {
+            for _ in 0..5 {
+                assert_eq!(packets.next(), Some(Packet::Nop));
+            }
+        }
         p => panic!("expected mode got {p:?}"),
-    }
-    match packets.next() {
-        Some(Packet::General1(val)) => bs.regs[Reg::General1] = Some(val),
-        p => panic!("expected general1 got {p:?}"),
-    }
-    match packets.next() {
-        Some(Packet::General2(val)) => bs.regs[Reg::General2] = Some(val),
-        p => panic!("expected general2 got {p:?}"),
     }
     match packets.next() {
         Some(Packet::SeuOpt(val)) => bs.regs[Reg::SeuOpt] = Some(val),

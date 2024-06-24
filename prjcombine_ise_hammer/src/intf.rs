@@ -35,7 +35,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         };
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
-                            bits,
+                            bits: bits.clone(),
                             feature: SimpleFeatureId {
                                 tile: name,
                                 bel: "INTF",
@@ -58,7 +58,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     for val in ["0", "1"] {
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
-                            bits,
+                            bits: bits.clone(),
                             feature: SimpleFeatureId {
                                 tile: name,
                                 bel: "INTF",

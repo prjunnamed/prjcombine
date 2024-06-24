@@ -9,7 +9,7 @@ The general interconnect of Virtex 2 is made of several kinds of similar, but no
 
 - ``INT.CLB``, the interconnect tile associated with :ref:`configurable logic blocks <spartan3-clb>` and corner tiles
 - ``INT.BRAM.*``, the interconnect tile associated with :ref:`block RAMs <virtex2-bram>`
-- ``INT.IOI.*``, the interconnect tile associated with :ref:`I/O tiles <spartan3-io>`
+- ``INT.IOI.*``, the interconnect tile associated with :ref:`I/O tiles <virtex2-io>`
 - ``INT.DCM.*``, the interconnect tiles associated with :ref:`digital clock managers <virtex2-dcm>`
 
 The various tile types have the same backbone, but differ in the types of input multiplexers they have, mostly clock multiplexers.

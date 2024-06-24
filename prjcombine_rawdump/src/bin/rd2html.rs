@@ -3239,7 +3239,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLKE2_VNOC_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLKE2_VNOC_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLKE2_VNOC_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
-    TileInfo("CLKE2_VNOC_EDGE_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLKE2_VNOC_EDGE_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("MISR_TILE", (0, 0, 9, 0), &["hardip"]),
     TileInfo("NOC_NSU512_TOP", (1, 0, 8, 0), &["noc"]),
     TileInfo("NOC_NMU512_TOP", (1, 0, 10, 0), &["noc"]),
