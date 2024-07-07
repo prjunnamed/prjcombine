@@ -1,6 +1,6 @@
 use std::collections::{hash_map, HashMap, HashSet};
 
-use bitvec::vec::BitVec;
+use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_types::{TileItem, TileItemKind};
@@ -16,7 +16,7 @@ use crate::{
     },
     fgen::{BelKV, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -1000,18 +1000,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         if backend.egrid.node_index[node_kind].is_empty() {
             continue;
         }
-        for (bel_id, bel_name, _) in &node.bels {
-            if !bel_name.starts_with("IOI") {
+        for bel in node.bels.keys() {
+            if !bel.starts_with("IOI") {
                 continue;
             }
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Main(1),
-                tile_name: name,
-                bel: bel_id,
-                bel_name,
-            };
+            let ctx = FuzzCtx::new(session, backend, name, bel, TileBits::MainAuto);
             let mode = if edev.grid.kind.is_spartan3ea() {
                 "IBUF"
             } else {
@@ -1019,37 +1012,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             };
 
             // clock & SR invs
-            fuzz_enum!(ctx, "OTCLK1INV", ["OTCLK1", "OTCLK1_B"], [
+            fuzz_inv!(ctx, "OTCLK1", [
+                (mode mode),
+                (attr "OFF1", "#FF")
+            ]);
+            fuzz_inv!(ctx, "OTCLK2", [
+                (mode mode),
+                (attr "OFF2", "#FF")
+            ]);
+            fuzz_inv!(ctx, "ICLK1", [
+                (mode mode),
+                (attr "IFF1", "#FF")
+            ]);
+            fuzz_inv!(ctx, "ICLK2", [
+                (mode mode),
+                (attr "IFF2", "#FF")
+            ]);
+            fuzz_inv!(ctx, "SR", [
                 (mode mode),
                 (attr "OFF1", "#FF"),
-                (pin "OTCLK1")
+                (attr "OSR_USED", "0")
             ]);
-            fuzz_enum!(ctx, "OTCLK2INV", ["OTCLK2", "OTCLK2_B"], [
-                (mode mode),
-                (attr "OFF2", "#FF"),
-                (pin "OTCLK2")
-            ]);
-            fuzz_enum!(ctx, "ICLK1INV", ["ICLK1", "ICLK1_B"], [
-                (mode mode),
-                (attr "IFF1", "#FF"),
-                (pin "ICLK1")
-            ]);
-            fuzz_enum!(ctx, "ICLK2INV", ["ICLK2", "ICLK2_B"], [
-                (mode mode),
-                (attr "IFF2", "#FF"),
-                (pin "ICLK2")
-            ]);
-            fuzz_enum!(ctx, "SRINV", ["SR", "SR_B"], [
+            fuzz_inv!(ctx, "REV", [
                 (mode mode),
                 (attr "OFF1", "#FF"),
-                (attr "OSR_USED", "0"),
-                (pin "SR")
-            ]);
-            fuzz_enum!(ctx, "REVINV", ["REV", "REV_B"], [
-                (mode mode),
-                (attr "OFF1", "#FF"),
-                (attr "OREV_USED", "0"),
-                (pin "REV")
+                (attr "OREV_USED", "0")
             ]);
             // SR & rev enables
             fuzz_enum!(ctx, "ISR_USED", ["0"], [
@@ -1102,22 +1089,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
 
             // CE
-            fuzz_enum!(ctx, "ICEINV", ["ICE", "ICE_B"], [
+            fuzz_inv!(ctx, "ICE", [
                 (mode mode),
-                (attr "IFF1", "#FF"),
-                (pin "ICE")
+                (attr "IFF1", "#FF")
             ]);
-            fuzz_enum!(ctx, "TCEINV", ["TCE", "TCE_B"], [
+            fuzz_inv!(ctx, "TCE", [
                 (mode mode),
-                (attr "TFF1", "#FF"),
-                (pin "TCE")
+                (attr "TFF1", "#FF")
             ]);
             if edev.grid.kind.is_spartan3ea() {
-                fuzz_enum!(ctx, "OCEINV", ["OCE", "OCE_B"], [
+                fuzz_inv!(ctx, "OCE", [
                     (mode mode),
                     (attr "OFF1", "#FF"),
-                    (attr "PCICE_MUX", "OCE"),
-                    (pin "OCE")
+                    (attr "PCICE_MUX", "OCE")
                 ]);
                 fuzz_enum!(ctx, "PCICE_MUX", ["OCE", "PCICE"], [
                     (mode mode),
@@ -1127,43 +1111,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (pin "PCI_CE")
                 ]);
             } else {
-                fuzz_enum!(ctx, "OCEINV", ["OCE", "OCE_B"], [
+                fuzz_inv!(ctx, "OCE", [
                     (mode mode),
-                    (attr "OFF1", "#FF"),
-                    (pin "OCE")
+                    (attr "OFF1", "#FF")
                 ]);
             }
             // Output path
             if edev.grid.kind.is_spartan3ea() {
-                fuzz_enum!(ctx, "O1INV", ["O1", "O1_B"], [
+                fuzz_inv!(ctx, "O1", [
                     (mode mode),
                     (attr "O1_DDRMUX", "1"),
                     (attr "OFF1", "#FF"),
-                    (attr "OMUX", "OFF1"),
-                    (pin "O1")
+                    (attr "OMUX", "OFF1")
                 ]);
-                fuzz_enum!(ctx, "O2INV", ["O2", "O2_B"], [
+                fuzz_inv!(ctx, "O2", [
                     (mode mode),
                     (attr "O2_DDRMUX", "1"),
                     (attr "OFF2", "#FF"),
-                    (attr "OMUX", "OFF2"),
-                    (pin "O2")
+                    (attr "OMUX", "OFF2")
                 ]);
             } else {
-                fuzz_enum!(ctx, "O1INV", ["O1", "O1_B"], [
+                fuzz_inv!(ctx, "O1", [
                     (mode mode),
                     (attr "OFF1", "#FF"),
-                    (attr "OMUX", "OFF1"),
-                    (pin "O1")
+                    (attr "OMUX", "OFF1")
                 ]);
-                fuzz_enum!(ctx, "O2INV", ["O2", "O2_B"], [
+                fuzz_inv!(ctx, "O2", [
                     (mode mode),
                     (attr "OFF2", "#FF"),
-                    (attr "OMUX", "OFF2"),
-                    (pin "O2")
+                    (attr "OMUX", "OFF2")
                 ]);
             }
-            fuzz_enum!(ctx, "T1INV", ["T1", "T1_B"], [
+            fuzz_inv!(ctx, "T1", [
                 (mode mode),
                 (attr "T_USED", "0"),
                 (attr "TFF1", "#FF"),
@@ -1172,10 +1151,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "OFF1", "#OFF"),
                 (attr "OFF2", "#OFF"),
                 (attr "OMUX", "#OFF"),
-                (pin "T1"),
                 (pin "T")
             ]);
-            fuzz_enum!(ctx, "T2INV", ["T2", "T2_B"], [
+            fuzz_inv!(ctx, "T2", [
                 (mode mode),
                 (attr "T_USED", "0"),
                 (attr "TFF1", "#OFF"),
@@ -1184,7 +1162,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "OFF1", "#OFF"),
                 (attr "OFF2", "#OFF"),
                 (attr "OMUX", "#OFF"),
-                (pin "T2"),
                 (pin "T")
             ]);
             fuzz_enum!(ctx, "TMUX", ["T1", "T2", "TFF1", "TFF2", "TFFDDR"], [
@@ -1251,8 +1228,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     ], [
                         (attr_diff "OMUX", "OFFDDR", val)
                     ]);
-                    if bel_id.to_idx() != 2 {
-                        let obel = BelId::from_idx(bel_id.to_idx() ^ 1);
+                    if ctx.bel.to_idx() != 2 {
+                        let obel = BelId::from_idx(ctx.bel.to_idx() ^ 1);
                         fuzz_enum!(ctx, "O1_DDRMUX", ["0", "1"], [
                             (mode mode),
                             (bel_unused obel),
@@ -1311,8 +1288,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     ], [
                         (attr_diff "OMUX", "OFFDDR", val)
                     ]);
-                    if bel_id.to_idx() != 2 {
-                        let obel = BelId::from_idx(bel_id.to_idx() ^ 1);
+                    if ctx.bel.to_idx() != 2 {
+                        let obel = BelId::from_idx(ctx.bel.to_idx() ^ 1);
                         fuzz_enum!(ctx, "O1_DDRMUX", ["0", "1"], [
                             (mode mode),
                             (bel_unused obel),
@@ -1930,17 +1907,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         let iobs = iobs_data(name);
         for (i, &iob) in iobs.iter().enumerate() {
-            let bel_name = [
-                "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
-            ][i];
-            let ctx = FuzzCtx {
+            let ctx = FuzzCtx::new_fake_bel(
                 session,
-                node_kind,
-                bits: TileBits::Iob(node_data.tiles.len()),
-                tile_name: name,
-                bel: BelId::from_idx(i), // dummy
-                bel_name,
-            };
+                backend,
+                name,
+                format!("IOB{i}"),
+                TileBits::Iob(node_data.tiles.len()),
+            );
             let ibuf_mode = if edev.grid.kind.is_spartan3ea() {
                 "IBUF"
             } else {
@@ -2121,24 +2094,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             continue;
                         } else if edev.grid.kind == GridKind::Spartan3E {
                             // I hate ISE.
-                            BelKV::OtherIobDiffOutput(std.name)
+                            BelKV::OtherIobDiffOutput(std.name.to_string())
                         } else {
                             BelKV::Nop
                         }
                     } else if std.vref.is_some() || is_input_dci {
-                        BelKV::OtherIobInput(std.name)
+                        BelKV::OtherIobInput(std.name.to_string())
                     } else {
                         BelKV::Nop
                     };
                     let vref_mutex = if std.vref.is_some() {
-                        TileKV::GlobalMutex("VREF", "YES")
+                        TileKV::GlobalMutex("VREF".to_string(), "YES".to_string())
                     } else {
                         TileKV::Nop
                     };
                     let dci_mutex = if std.dci == DciKind::None {
                         TileKV::Nop
                     } else {
-                        TileKV::GlobalMutex("DCI", std.name)
+                        TileKV::GlobalMutex("DCI".to_string(), std.name.to_string())
                     };
                     let attr = match vccaux {
                         "2.5" => "ISTD.2.5",
@@ -2252,7 +2225,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (package pkg),
                     (global_mutex "VREF", "YES"),
                     (iob_special iob, BelKV::IsVref),
-                    (iob_special iob, BelKV::OtherIobInput("SSTL2_I"))
+                    (iob_special iob, BelKV::OtherIobInput("SSTL2_I".to_string()))
                 ], [
                     (iob_mode iob, ibuf_mode)
                 ]);
@@ -2268,7 +2241,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (global_mutex "DCI", "YES"),
                     (special spec),
                     (iob_special iob, BelKV::IsVr),
-                    (iob_special iob, BelKV::OtherIobInput("GTL_DCI"))
+                    (iob_special iob, BelKV::OtherIobInput("GTL_DCI".to_string()))
                 ], [
                     (iob_mode iob, ibuf_mode)
                 ]);
@@ -2391,30 +2364,29 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                                 let vccaux_spec = if vccaux.is_empty() {
                                     TileKV::Nop
                                 } else {
-                                    TileKV::VccAux(vccaux)
+                                    TileKV::VccAux(vccaux.to_string())
                                 };
                                 let dci_spec = if std.dci == DciKind::None {
                                     BelKV::Nop
                                 } else if matches!(std.dci, DciKind::Output | DciKind::OutputHalf) {
-                                    BelKV::OtherIobInput("SSTL2_I_DCI")
+                                    BelKV::OtherIobInput("SSTL2_I_DCI".into())
                                 } else if std.diff == DiffKind::None {
-                                    BelKV::OtherIobInput(std.name)
+                                    BelKV::OtherIobInput(std.name.to_string())
                                 } else {
                                     // can't be bothered to get it working.
                                     continue;
                                 };
                                 let name = if vccaux.is_empty() {
                                     if drive.is_empty() {
-                                        std.name
+                                        std.name.to_string()
                                     } else {
-                                        &*format!("{s}.{drive}.{slew}", s = std.name).leak()
+                                        format!("{s}.{drive}.{slew}", s = std.name)
                                     }
                                 } else {
                                     if drive.is_empty() {
-                                        &*format!("{s}.{vccaux}", s = std.name).leak()
+                                        format!("{s}.{vccaux}", s = std.name)
                                     } else {
-                                        &*format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
-                                            .leak()
+                                        format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
                                     }
                                 };
                                 let mode = if std.diff == DiffKind::None {
@@ -2492,7 +2464,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             (package &package.name),
                             (global_mutex "DCI", "YES"),
                             (global_mutex "DIFF", "OUTPUT"),
-                            (iob_special iob, BelKV::BankDiffOutput(std.name, None)),
+                            (iob_special iob, BelKV::BankDiffOutput(std.name.to_string(), None)),
                             (iob_attr iob, "PULL", "PULLDOWN"),
                             (iob_attr iob_n, "PULL", "PULLDOWN"),
                             (iob_attr iob, "TMUX", "#OFF"),
@@ -2535,7 +2507,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                                 (package &package.name),
                                 (global_mutex "DCI", "YES"),
                                 (global_mutex "DIFF", "OUTPUT"),
-                                (iob_special iob, BelKV::BankDiffOutput(altstd, Some(std.name))),
+                                (iob_special iob, BelKV::BankDiffOutput(altstd.to_string(), Some(std.name.to_string()))),
                                 (iob_attr iob, "PULL", "PULLDOWN"),
                                 (iob_attr iob_n, "PULL", "PULLDOWN"),
                                 (iob_attr iob, "TMUX", "#OFF"),
@@ -2583,7 +2555,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             (global_opt "DCIUPDATEMODE", val),
                             (package &package.name),
                             (global_mutex "DCI", "UPDATEMODE"),
-                            (iob_special iob, BelKV::OtherIobInput("SSTL2_I_DCI")),
+                            (iob_special iob, BelKV::OtherIobInput("SSTL2_I_DCI".into())),
                             (iob_attr iob, "PULL", "PULLDOWN"),
                             (iob_attr iob, "TMUX", "#OFF"),
                             (iob_attr iob, "IMUX", "#OFF"),
@@ -2621,19 +2593,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         if name.ends_with("CLK") {
             // Virtex 2 Pro X special!
-            let clk_bel_id = BelId::from_idx(if name == "IOBS.V2P.B.R2.CLK" { 2 } else { 0 });
             let bel_id = BelId::from_idx(4);
-            let bel_name = "BREFCLK_INT";
-            let ctx = FuzzCtx {
+            let clk_bel_id = BelId::from_idx(if name == "IOBS.V2P.B.R2.CLK" { 2 } else { 0 });
+            let ctx = FuzzCtx::new_fake_bel(
                 session,
-                node_kind,
-                bits: TileBits::Iob(node_data.tiles.len()),
-                tile_name: name,
-                bel: bel_id,
-                bel_name,
-            };
+                backend,
+                name,
+                "BREFCLK_INT",
+                TileBits::Iob(node_data.tiles.len()),
+            );
             fuzz_one!(ctx, "ENABLE", "1", [], [
-                (related TileRelation::IoiBrefclk, (pip (bel_pin_far clk_bel_id, "I"), (pin "BREFCLK")))
+                (related TileRelation::IoiBrefclk, (pip (bel_pin_far clk_bel_id, "I"), (bel_pin bel_id, "BREFCLK")))
             ]);
         }
     }
@@ -2942,6 +2912,59 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     },
                 )
             }
+            // these could be extracted automatically from .ll files but I'm not setting up
+            // a while another kind of fuzzer for a handful of bits.
+            let bit = if edev.grid.kind.is_virtex2() {
+                [
+                    FeatureBit {
+                        tile: 0,
+                        frame: 2,
+                        bit: 13,
+                    },
+                    FeatureBit {
+                        tile: 0,
+                        frame: 2,
+                        bit: 33,
+                    },
+                    FeatureBit {
+                        tile: 0,
+                        frame: 2,
+                        bit: 53,
+                    },
+                    FeatureBit {
+                        tile: 0,
+                        frame: 2,
+                        bit: 73,
+                    },
+                ][bel_id.to_idx()]
+            } else {
+                [
+                    FeatureBit {
+                        tile: 0,
+                        frame: 3,
+                        bit: 0,
+                    },
+                    FeatureBit {
+                        tile: 0,
+                        frame: 3,
+                        bit: 39,
+                    },
+                    FeatureBit {
+                        tile: 0,
+                        frame: 3,
+                        bit: 40,
+                    },
+                ][bel_id.to_idx()]
+            };
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                "READBACK_I",
+                TileItem {
+                    bits: vec![bit],
+                    kind: TileItemKind::BitVec { invert: bitvec![0] },
+                },
+            );
         }
         // specials. need cross-bel discard.
         if edev.grid.kind.is_spartan3ea() {
@@ -3480,12 +3503,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             let mut base: Option<Diff> = None;
                             for &slew in slews {
-                                let name = &*if edev.grid.kind.is_spartan3a() {
+                                let name = if edev.grid.kind.is_spartan3a() {
                                     format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
                                 } else {
                                     format!("{s}.{drive}.{slew}", s = std.name)
-                                }
-                                .leak();
+                                };
                                 let diff = ctx.state.peek_diff(tile, bel, "OSTD", name);
                                 if let Some(ref base) = base {
                                     let ddiff = diff.combine(&!base);
@@ -3501,13 +3523,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         for &slew in slews {
                             let mut base: Option<Diff> = None;
                             for &drive in std.drive {
-                                let name = &*if edev.grid.kind.is_spartan3a() {
+                                let name = if edev.grid.kind.is_spartan3a() {
                                     format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
                                 } else {
                                     format!("{s}.{drive}.{slew}", s = std.name)
-                                }
-                                .leak();
-                                let diff = ctx.state.peek_diff(tile, bel, "OSTD", name);
+                                };
+                                let diff = ctx.state.peek_diff(tile, bel, "OSTD", &name);
                                 if let Some(ref base) = base {
                                     let ddiff = diff.combine(&!base);
                                     for &bit in ddiff.bits.keys() {
@@ -3561,17 +3582,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         &["2", "4", "6", "8", "12", "16", "24"][..]
                     };
                     for drive in drives {
-                        let ttl = ctx.state.peek_diff(
-                            tile,
-                            bel,
-                            "OSTD",
-                            format!("LVTTL.{drive}.SLOW").leak(),
-                        );
+                        let ttl =
+                            ctx.state
+                                .peek_diff(tile, bel, "OSTD", &format!("LVTTL.{drive}.SLOW"));
                         let cmos = ctx.state.peek_diff(
                             tile,
                             bel,
                             "OSTD",
-                            format!("LVCMOS33.{drive}.SLOW").leak(),
+                            &format!("LVCMOS33.{drive}.SLOW"),
                         );
                         let diff = ttl.combine(&!cmos);
                         for &bit in diff.bits.keys() {
@@ -3706,19 +3724,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             for &slew in slews {
                                 let name = if vccaux.is_empty() {
                                     if drive.is_empty() {
-                                        std.name
+                                        std.name.to_string()
                                     } else {
-                                        &*format!("{s}.{drive}.{slew}", s = std.name).leak()
+                                        format!("{s}.{drive}.{slew}", s = std.name)
                                     }
                                 } else {
                                     if drive.is_empty() {
-                                        &*format!("{s}.{vccaux}", s = std.name).leak()
+                                        format!("{s}.{vccaux}", s = std.name)
                                     } else {
-                                        &*format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
-                                            .leak()
+                                        format!("{s}.{drive}.{slew}.{vccaux}", s = std.name)
                                     }
                                 };
-                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", name);
+                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", &name);
                                 if edev.grid.kind.is_virtex2p()
                                     && std.name == "LVCMOS33"
                                     && drive == "8"

@@ -271,18 +271,22 @@ fn diagnose_cw_fail<B: Backend>(
     );
     let mut skip: HashSet<BatchFuzzerId> = HashSet::new();
     'big: loop {
-        let left: Vec<_> = batch.fuzzers.ids().filter(|f| !skip.contains(f)).collect();
-        if left.len() >= 3 {
-            let cut_a = (left.len() + 1) / 3;
-            let cut_b = (left.len() * 2 + 1) / 3;
-            for cut in [&left[..cut_a], &left[cut_a..cut_b], &left[cut_b..]] {
-                let mut nskip = skip.clone();
-                nskip.extend(cut.iter().copied());
-                if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
-                    skip = nskip;
-                    println!("REDUCE FAST {}", batch.fuzzers.len() - skip.len());
-                    continue 'big;
+        let mut left: Vec<_> = batch.fuzzers.ids().filter(|f| !skip.contains(f)).collect();
+        let mut rng = thread_rng();
+        if left.len() > 3 {
+            for _try in 0..3 {
+                let cut_a = (left.len() + 1) / 3;
+                let cut_b = (left.len() * 2 + 1) / 3;
+                for cut in [&left[..cut_a], &left[cut_a..cut_b], &left[cut_b..]] {
+                    let mut nskip = skip.clone();
+                    nskip.extend(cut.iter().copied());
+                    if try_cw_fail(backend, state, batch, bd, &nskip).is_err() {
+                        skip = nskip;
+                        println!("REDUCE FAST {}", batch.fuzzers.len() - skip.len());
+                        continue 'big;
+                    }
                 }
+                left.shuffle(&mut rng);
             }
         }
         for &f in &left {

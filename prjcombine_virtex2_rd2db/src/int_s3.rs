@@ -1278,16 +1278,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     ],
                 ),
         ];
-        builder.extract_node_bels("DCM_BL_CENTER", "DCM.S3E", "DCM.S3E.L", &bels_dcm);
-        builder.extract_node_bels("DCM_TL_CENTER", "DCM.S3E", "DCM.S3E.L", &bels_dcm);
-        builder.extract_node_bels("DCM_BR_CENTER", "DCM.S3E", "DCM.S3E.R", &bels_dcm);
-        builder.extract_node_bels("DCM_TR_CENTER", "DCM.S3E", "DCM.S3E.R", &bels_dcm);
-        builder.extract_node_bels("DCM_H_BL_CENTER", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_TL_CENTER", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_BR_CENTER", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_H_TR_CENTER", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_BGAP", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
-        builder.extract_node_bels("DCM_SPLY", "DCM.S3E", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_BL_CENTER", "DCM.S3E.BL", "DCM.S3E.L", &bels_dcm);
+        builder.extract_node_bels("DCM_TL_CENTER", "DCM.S3E.TL", "DCM.S3E.L", &bels_dcm);
+        builder.extract_node_bels("DCM_BR_CENTER", "DCM.S3E.BR", "DCM.S3E.R", &bels_dcm);
+        builder.extract_node_bels("DCM_TR_CENTER", "DCM.S3E.TR", "DCM.S3E.R", &bels_dcm);
+        builder.extract_node_bels("DCM_H_BL_CENTER", "DCM.S3E.LB", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_H_TL_CENTER", "DCM.S3E.LT", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_H_BR_CENTER", "DCM.S3E.RB", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_H_TR_CENTER", "DCM.S3E.RT", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_BGAP", "DCM.S3E.LB", "DCM.S3E.H", &bels_dcm);
+        builder.extract_node_bels("DCM_SPLY", "DCM.S3E.LT", "DCM.S3E.H", &bels_dcm);
     }
 
     if rd.family == "spartan3" {

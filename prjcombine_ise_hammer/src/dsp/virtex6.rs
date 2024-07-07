@@ -7,7 +7,7 @@ use crate::{
     diff::{xlat_bool, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
 
 const DSP48E1_INVPINS: &[&str] = &[
@@ -59,40 +59,29 @@ const DSP48E1_TIEPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let node_kind = backend.egrid.db.get_node("DSP");
     let tile = "DSP";
-    for (i, bel_name) in [(0, "DSP0"), (1, "DSP1")] {
-        let bel = BelId::from_idx(i);
+    for (i, bel) in [(0, "DSP0"), (1, "DSP1")] {
         let bel_other = BelId::from_idx(i ^ 1);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Main(5),
-            tile_name: tile,
-            bel,
-            bel_name,
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::MainAuto);
         let bel_kind = "DSP48E1";
         fuzz_one!(ctx, "PRESENT", "1", [(bel_unused bel_other)], [(mode bel_kind)]);
         for &pin in DSP48E1_INVPINS {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode bel_kind)]);
         }
         let bel_tie = BelId::from_idx(2);
         for &pin in DSP48E1_TIEPINS {
-            let name = format!("{pin}_MUX").leak();
-            fuzz_one!(ctx, name, "GND", [
+            let name = format!("{pin}_MUX");
+            fuzz_one!(ctx, &name, "GND", [
                 (mode bel_kind),
-                (mutex name, "HARD0"),
+                (mutex &name, "HARD0"),
                 (attr "AREG", "0"),
                 (attr "BREG", "0")
             ], [
                 (pip (bel_pin bel_tie, "HARD0"), (pin pin))
             ]);
-            fuzz_one!(ctx, name, "VCC", [
+            fuzz_one!(ctx, &name, "VCC", [
                 (mode bel_kind),
-                (mutex name, "HARD1"),
+                (mutex &name, "HARD1"),
                 (attr "AREG", "0"),
                 (attr "BREG", "0")
             ], [
@@ -178,9 +167,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, pin);
         }
         for &pin in DSP48E1_TIEPINS {
-            let attr = &*format!("{pin}_MUX").leak();
-            let gnd = ctx.state.get_diff(tile, bel, attr, "GND");
-            let vcc = ctx.state.get_diff(tile, bel, attr, "VCC");
+            let attr = format!("{pin}_MUX");
+            let gnd = ctx.state.get_diff(tile, bel, &attr, "GND");
+            let vcc = ctx.state.get_diff(tile, bel, &attr, "VCC");
             ctx.tiledb.insert(
                 tile,
                 bel,

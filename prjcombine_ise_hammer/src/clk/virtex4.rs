@@ -6,9 +6,9 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::IseBackend,
     diff::{xlat_bit_wide, xlat_bitvec, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
-    fgen::{BelRelation, TileBits, TileRelation},
+    fgen::{BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_one,
+    fuzz_enum, fuzz_one, fuzz_one_extras,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -16,71 +16,54 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         unreachable!()
     };
     for tile in ["CLK_IOB_B", "CLK_IOB_T"] {
-        let node_kind = backend.egrid.db.get_node(tile);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::ClkIob,
-            tile_name: tile,
-            bel: BelId::from_idx(0),
-            bel_name: "CLK_IOB",
-        };
-        let pad_buf: Vec<_> = (0..16).map(|i| &*format!("PAD_BUF{i}").leak()).collect();
-        let giob: Vec<_> = (0..16).map(|i| &*format!("GIOB{i}").leak()).collect();
+        let ctx = FuzzCtx::new(session, backend, tile, "CLK_IOB", TileBits::ClkIob);
+        let giob: Vec<_> = (0..16).map(|i| format!("GIOB{i}")).collect();
         for i in 0..16 {
-            fuzz_one!(ctx, giob[i], "1", [
+            fuzz_one!(ctx, &giob[i], "1", [
                 (global_mutex "GIOB", "TEST"),
-                (tile_mutex "GIOB_TEST", giob[i])
+                (tile_mutex "GIOB_TEST", &giob[i])
             ], [
-                (pip (pin pad_buf[i]), (pin giob[i]))
+                (pip (pin format!("PAD_BUF{i}")), (pin &giob[i]))
             ]);
         }
         for i in 0..32 {
-            let mux = &*format!("MUXBUS{i}").leak();
-            let mout = &*format!("MUXBUS_O{i}").leak();
-            let min = &*format!("MUXBUS_I{i}").leak();
+            let mux = format!("MUXBUS{i}");
+            let mout = format!("MUXBUS_O{i}");
+            let min = format!("MUXBUS_I{i}");
             for j in 0..16 {
-                fuzz_one!(ctx, mux, giob[j], [
+                fuzz_one!(ctx, &mux, &giob[j], [
                     (global_mutex "CLK_IOB_MUXBUS", "TEST"),
-                    (tile_mutex mout, giob[j])
+                    (tile_mutex &mout, &giob[j])
                 ], [
-                    (pip (pin pad_buf[j]), (pin mout))
+                    (pip (pin format!("PAD_BUF{j}")), (pin &mout))
                 ]);
             }
             let obel = BelId::from_idx(0);
-            fuzz_one!(ctx, mux, "PASS", [
+            fuzz_one!(ctx, &mux, "PASS", [
                 (global_mutex "CLK_IOB_MUXBUS", "TEST"),
-                (tile_mutex mout, min),
+                (tile_mutex &mout, &min),
                 (related TileRelation::ClkDcm,
-                    (pip (bel_pin obel, "DCM0"), (bel_pin obel, mout))),
+                    (pip (bel_pin obel, "DCM0"), (bel_pin obel, &mout))),
                 (related TileRelation::ClkDcm,
                     (tile_mutex "MUXBUS", "USE"))
             ], [
-                (pip (pin min), (pin mout))
+                (pip (pin &min), (pin &mout))
             ]);
         }
     }
     for tile in ["CLK_DCM_B", "CLK_DCM_T"] {
-        let node_kind = backend.egrid.db.get_node(tile);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Spine(8),
-            tile_name: tile,
-            bel: BelId::from_idx(0),
-            bel_name: "CLK_DCM",
-        };
-        let dcm: Vec<_> = (0..24).map(|i| &*format!("DCM{i}").leak()).collect();
+        let ctx = FuzzCtx::new(session, backend, tile, "CLK_DCM", TileBits::Spine(8));
+        let dcm: Vec<_> = (0..24).map(|i| format!("DCM{i}")).collect();
         for i in 0..32 {
-            let mux = &*format!("MUXBUS{i}").leak();
-            let mout = &*format!("MUXBUS_O{i}").leak();
-            let min = &*format!("MUXBUS_I{i}").leak();
+            let mux = format!("MUXBUS{i}");
+            let mout = format!("MUXBUS_O{i}");
+            let min = format!("MUXBUS_I{i}");
             for j in 0..24 {
-                fuzz_one!(ctx, mux, dcm[j], [
+                fuzz_one!(ctx, &mux, &dcm[j], [
                     (tile_mutex "MUXBUS", "TEST"),
-                    (tile_mutex mout, dcm[j])
+                    (tile_mutex &mout, &dcm[j])
                 ], [
-                    (pip (pin dcm[j]), (pin mout))
+                    (pip (pin &dcm[j]), (pin &mout))
                 ]);
             }
             let has_other = if tile == "CLK_DCM_T" {
@@ -92,90 +75,72 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             };
             if has_other {
                 let obel = BelId::from_idx(0);
-                fuzz_one!(ctx, mux, "PASS", [
+                fuzz_one!(ctx, &mux, "PASS", [
                     (tile_mutex "MUXBUS", "TEST"),
-                    (tile_mutex mout, min),
+                    (tile_mutex &mout, &min),
                     (related TileRelation::ClkDcm,
-                        (pip (bel_pin obel, "DCM0"), (bel_pin obel, mout))),
+                        (pip (bel_pin obel, "DCM0"), (bel_pin obel, &mout))),
                     (related TileRelation::ClkDcm,
                         (tile_mutex "MUXBUS", "USE"))
                 ], [
-                    (pip (pin min), (pin mout))
+                    (pip (pin &min), (pin &mout))
                 ]);
             }
         }
     }
     {
-        let tile = "CLK_HROW";
-        let node_kind = backend.egrid.db.get_node(tile);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::ClkHrow,
-            tile_name: tile,
-            bel: BelId::from_idx(0),
-            bel_name: "CLK_HROW",
-        };
-        let gclk_i: Vec<_> = (0..32).map(|i| &*format!("GCLK_I{i}").leak()).collect();
+        let ctx = FuzzCtx::new(session, backend, "CLK_HROW", "CLK_HROW", TileBits::ClkHrow);
+        let gclk: Vec<_> = (0..32).map(|i| format!("GCLK{i}")).collect();
         for lr in ['L', 'R'] {
             for i in 0..8 {
-                let gclk_o = &*format!("GCLK_O_{lr}{i}").leak();
+                let hclk = format!("HCLK_{lr}{i}");
                 for j in 0..32 {
                     let bel_bufg = BelId::from_idx(j);
-                    fuzz_one!(ctx, gclk_o, gclk_i[j], [
+                    fuzz_one!(ctx, &hclk, &gclk[j], [
                         (global_mutex "BUFGCTRL_OUT", "USE"),
                         (tile_mutex "MODE", "TEST"),
-                        (tile_mutex "IN", gclk_i[j]),
-                        (tile_mutex "OUT", gclk_o),
+                        (tile_mutex "IN", &gclk[j]),
+                        (tile_mutex "OUT", &hclk),
                         (related TileRelation::Cfg,
                             (pip (bel_pin bel_bufg, "O"), (bel_pin bel_bufg, "GCLK")))
                     ], [
-                        (pip (pin gclk_i[j]), (pin gclk_o))
+                        (pip (pin &gclk[j]), (pin &hclk))
                     ]);
                 }
             }
         }
     }
     {
-        let tile = "HCLK";
-        let node_kind = backend.egrid.db.get_node(tile);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Hclk,
-            tile_name: tile,
-            bel: BelId::from_idx(1),
-            bel_name: "HCLK",
-        };
+        let ctx = FuzzCtx::new(session, backend, "HCLK", "HCLK", TileBits::Hclk);
         for i in 0..8 {
-            let gclk_i = &*format!("GCLK_I{i}").leak();
-            let gclk_o = &*format!("GCLK_O{i}").leak();
-            let gclk_o_l = &*format!("GCLK_O_L{i}").leak();
-            let gclk_o_r = &*format!("GCLK_O_R{i}").leak();
-            let hclk = &*format!("HCLK{i}").leak();
+            let hclk_i = format!("HCLK_I{i}");
+            let hclk_o = format!("HCLK_O{i}");
+            let hclk_l = format!("HCLK_L{i}");
+            let hclk_r = format!("HCLK_R{i}");
+            let hclk = format!("HCLK{i}");
             let obel = BelId::from_idx(0);
             fuzz_one!(ctx, hclk, "1", [
                 (global_mutex "BUFGCTRL_OUT", "USE"),
                 (related TileRelation::ClkHrow,
                     (tile_mutex "MODE", "USE")),
                 (related TileRelation::ClkHrow,
-                    (pip (bel_pin obel, "GCLK_I0"), (bel_pin obel, gclk_o_l))),
+                    (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_l))),
                 (related TileRelation::ClkHrow,
-                    (pip (bel_pin obel, "GCLK_I0"), (bel_pin obel, gclk_o_r)))
+                    (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_r)))
             ], [
-                (pip (pin gclk_i), (pin gclk_o))
+                (pip (pin hclk_i), (pin hclk_o))
             ]);
         }
         for i in 0..2 {
-            let rclk_i = &*format!("RCLK_I{i}").leak();
-            let rclk_o = &*format!("RCLK_O{i}").leak();
-            let rclk = &*format!("RCLK{i}").leak();
-            fuzz_one!(ctx, rclk, "1", [
+            let rclk_i = format!("RCLK_I{i}");
+            let rclk_o = format!("RCLK_O{i}");
+            let rclk = format!("RCLK{i}");
+            fuzz_one!(ctx, &rclk, "1", [
                 (related TileRelation::Rclk,
                     (tile_mutex "RCLK_MODE", "USE")),
                 (pip
                     (related_pin BelRelation::Rclk, "VRCLK0"),
-                    (related_pin BelRelation::Rclk, rclk))
+                    (related_pin BelRelation::Rclk, &rclk))
             ], [
                 (pip (pin rclk_i), (pin rclk_o))
             ]);
@@ -192,14 +157,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         let node_kind = backend.egrid.db.get_node(tile);
         let node_data = &backend.egrid.db.nodes[node_kind];
         if let Some((bel, _)) = node_data.bels.get("RCLK") {
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Hclk,
-                tile_name: tile,
-                bel,
-                bel_name: "RCLK",
-            };
+            let ctx = FuzzCtx::new(session, backend, tile, "RCLK", TileBits::Hclk);
             for opin in ["RCLK0", "RCLK1"] {
                 for ipin in [
                     "VRCLK0", "VRCLK1", "VRCLK_S0", "VRCLK_S1", "VRCLK_N0", "VRCLK_N1",
@@ -213,16 +171,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 }
             }
             let obel_rclk = bel;
-            for bel_name in ["BUFR0", "BUFR1"] {
-                let bel = node_data.bels.get(bel_name).unwrap().0;
-                let ctx = FuzzCtx {
-                    session,
-                    node_kind,
-                    bits: TileBits::Hclk,
-                    tile_name: tile,
-                    bel,
-                    bel_name,
-                };
+            for bel in ["BUFR0", "BUFR1"] {
+                let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::Hclk);
                 fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BUFR")]);
                 fuzz_one!(ctx, "ENABLE", "1", [(mode "BUFR")], [(pin "O")]);
                 fuzz_enum!(ctx, "BUFR_DIVIDE", ["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"], [(mode "BUFR")]);
@@ -246,43 +196,36 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
         }
         {
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Hclk,
-                tile_name: tile,
-                bel: node_data.bels.get("IOCLK").unwrap().0,
-                bel_name: "IOCLK",
-            };
+            let ctx = FuzzCtx::new(session, backend, tile, "IOCLK", TileBits::Hclk);
             for i in 0..8 {
-                let gclk_i = &*format!("GCLK_I{i}").leak();
-                let gclk_o = &*format!("GCLK_O{i}").leak();
-                let gclk_o_l = &*format!("GCLK_O_L{i}").leak();
-                let gclk_o_r = &*format!("GCLK_O_R{i}").leak();
-                let hclk = &*format!("HCLK{i}").leak();
+                let hclk_i = format!("HCLK_I{i}");
+                let hclk_o = format!("HCLK_O{i}");
+                let hclk_l = format!("HCLK_L{i}");
+                let hclk_r = format!("HCLK_R{i}");
+                let hclk = format!("HCLK{i}");
                 let obel = BelId::from_idx(0);
                 fuzz_one!(ctx, hclk, "1", [
                     (global_mutex "BUFGCTRL_OUT", "USE"),
                     (related TileRelation::ClkHrow,
                         (tile_mutex "MODE", "USE")),
                     (related TileRelation::ClkHrow,
-                        (pip (bel_pin obel, "GCLK_I0"), (bel_pin obel, gclk_o_l))),
+                        (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_l))),
                     (related TileRelation::ClkHrow,
-                        (pip (bel_pin obel, "GCLK_I0"), (bel_pin obel, gclk_o_r)))
+                        (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_r)))
                 ], [
-                    (pip (pin gclk_i), (pin gclk_o))
+                    (pip (pin hclk_i), (pin hclk_o))
                 ]);
             }
             for i in 0..2 {
-                let rclk_i = &*format!("RCLK_I{i}").leak();
-                let rclk_o = &*format!("RCLK_O{i}").leak();
-                let rclk = &*format!("RCLK{i}").leak();
-                fuzz_one!(ctx, rclk, "1", [
+                let rclk_i = format!("RCLK_I{i}");
+                let rclk_o = format!("RCLK_O{i}");
+                let rclk = format!("RCLK{i}");
+                fuzz_one!(ctx, &rclk, "1", [
                     (related TileRelation::Rclk,
                         (tile_mutex "RCLK_MODE", "USE")),
                     (pip
                         (related_pin BelRelation::Rclk, "VRCLK0"),
-                        (related_pin BelRelation::Rclk, rclk))
+                        (related_pin BelRelation::Rclk, &rclk))
                 ], [
                     (pip (pin rclk_i), (pin rclk_o))
                 ]);
@@ -338,24 +281,159 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
         }
         {
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Hclk,
-                tile_name: tile,
-                bel: node_data.bels.get("IDELAYCTRL").unwrap().0,
-                bel_name: "IDELAYCTRL",
-            };
+            let ctx = FuzzCtx::new(session, backend, tile, "IDELAYCTRL", TileBits::Hclk);
             fuzz_one!(ctx, "ENABLE", "1", [], [(mode "IDELAYCTRL")]);
             let obel = node_data.bels.get("IOCLK").unwrap().0;
             for i in 0..8 {
-                let hclk = &*format!("HCLK{i}").leak();
-                let gclk_o = &*format!("GCLK_O{i}").leak();
-                fuzz_one!(ctx, "REFCLK", hclk, [
-                    (mutex "REFCLK", hclk)
+                let hclk = format!("HCLK{i}");
+                let hclk_o = format!("HCLK_O{i}");
+                fuzz_one!(ctx, "REFCLK", &hclk, [
+                    (mutex "REFCLK", &hclk)
                 ], [
-                    (pip (bel_pin obel, gclk_o), (pin "REFCLK"))
+                    (pip (bel_pin obel, hclk_o), (pin "REFCLK"))
                 ]);
+            }
+        }
+    }
+
+    let ccm = backend.egrid.db.get_node("CCM");
+    let num_ccms = backend.egrid.node_index[ccm].len();
+    let sysmon = backend.egrid.db.get_node("SYSMON");
+    let has_hclk_dcm = !backend.egrid.node_index[sysmon].is_empty();
+    let has_gt = edev.col_lgt.is_some();
+    for (tile, bel) in [
+        ("HCLK_DCM", "HCLK_DCM"),
+        ("HCLK_DCMIOB", "HCLK_DCM_S"),
+        ("HCLK_IOBDCM", "HCLK_DCM_N"),
+    ] {
+        if tile == "HCLK_DCM" && !has_hclk_dcm {
+            continue;
+        }
+        let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::Hclk);
+        for dir in [Dir::S, Dir::N] {
+            if dir == Dir::S && bel == "HCLK_DCM_N" {
+                continue;
+            }
+            if dir == Dir::N && bel == "HCLK_DCM_S" {
+                continue;
+            }
+            let ud = match dir {
+                Dir::S => 'D',
+                Dir::N => 'U',
+                _ => unreachable!(),
+            };
+            for i in 0..16 {
+                let mut extras = vec![];
+                if tile == "HCLK_DCM" || num_ccms < 4 {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::HclkDcm(dir),
+                        "DCM",
+                        "DCM",
+                        format!("GIOB{i}_USED"),
+                        "1",
+                    ));
+                }
+                if tile != "HCLK_DCM" && num_ccms != 0 {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::HclkCcm(dir),
+                        "CCM",
+                        "CCM",
+                        format!("GIOB{i}_USED"),
+                        "1",
+                    ))
+                }
+                fuzz_one_extras!(ctx, format!("GIOB_O_{ud}{i}"), "1", [
+                    (global_mutex "HCLK_DCM", "TEST"),
+                    (tile_mutex "HCLK_DCM", format!("GIOB_O_{ud}{i}"))
+                ], [
+                    (pip (pin format!("GIOB_I{i}")), (pin format!("GIOB_O_{ud}{i}")))
+                ], extras);
+            }
+            for i in 0..8 {
+                let mut extras = vec![];
+                if tile == "HCLK_DCM" || num_ccms < 4 {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::HclkDcm(dir),
+                        "DCM",
+                        "DCM",
+                        format!("HCLK{i}_USED"),
+                        "1",
+                    ));
+                }
+                if tile != "HCLK_DCM" && num_ccms != 0 {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::HclkCcm(dir),
+                        "CCM",
+                        "CCM",
+                        format!("HCLK{i}_USED"),
+                        "1",
+                    ))
+                }
+                let obel = BelId::from_idx(0);
+                fuzz_one_extras!(ctx, format!("HCLK_O_{ud}{i}"), "1", [
+                    (global_mutex "HCLK_DCM", "TEST"),
+                    (tile_mutex "HCLK_DCM", format!("HCLK_O_{ud}{i}")),
+                    (global_mutex "BUFGCTRL_OUT", "USE"),
+                    (related TileRelation::ClkHrow,
+                        (tile_mutex "MODE", "USE")),
+                    (related TileRelation::ClkHrow,
+                        (pip (bel_pin obel, "GCLK0"), (bel_pin obel, format!("HCLK_L{i}")))),
+                    (special TileKV::HclkHasDcm(dir))
+                ], [
+                    (pip (pin format!("HCLK_I{i}")), (pin format!("HCLK_O_{ud}{i}")))
+                ], extras);
+            }
+            if has_gt || tile == "HCLK_DCM" {
+                for i in 0..4 {
+                    let mut extras = vec![];
+                    if tile == "HCLK_DCM" || num_ccms < 4 {
+                        extras.push(ExtraFeature::new(
+                            ExtraFeatureKind::HclkDcm(dir),
+                            "DCM",
+                            "DCM",
+                            format!("MGT{i}_USED"),
+                            "1",
+                        ));
+                    }
+                    if tile != "HCLK_DCM" && num_ccms != 0 {
+                        extras.push(ExtraFeature::new(
+                            ExtraFeatureKind::HclkCcm(dir),
+                            "CCM",
+                            "CCM",
+                            format!("MGT{i}_USED"),
+                            "1",
+                        ))
+                    }
+                    if tile == "HCLK_DCM" {
+                        fuzz_one_extras!(ctx, format!("MGT_O_{ud}{i}"), "1", [
+                            (global_mutex "HCLK_DCM", "TEST"),
+                            (tile_mutex "HCLK_DCM", format!("MGT_O_{ud}{i}")),
+                            (special TileKV::HclkHasDcm(Dir::S)),
+                            (special TileKV::HclkHasDcm(Dir::N))
+                        ], [
+                            (pip (pin format!("MGT{i}")), (pin format!("MGT_O_{ud}{i}")))
+                        ], extras);
+                    } else {
+                        if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+                            extras.push(ExtraFeature::new(
+                                ExtraFeatureKind::MgtRepeater(
+                                    if i < 2 { Dir::W } else { Dir::E },
+                                    None,
+                                ),
+                                "HCLK_MGT_REPEATER",
+                                "CLK_MGT_REPEATER",
+                                format!("MGT{idx}", idx = i % 2),
+                                "1",
+                            ));
+                        }
+                        fuzz_one_extras!(ctx, format!("MGT_O_{ud}{i}"), "1", [
+                            (global_mutex "HCLK_DCM", "TEST"),
+                            (tile_mutex "HCLK_DCM", format!("MGT_O_{ud}{i}"))
+                        ], [
+                            (pip (pin format!("MGT_I{i}")), (pin format!("MGT_O_{ud}{i}")))
+                        ], extras);
+                    }
+                }
             }
         }
     }
@@ -368,8 +446,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for (tile, term) in [("CLK_IOB_B", "CLK_TERM_B"), ("CLK_IOB_T", "CLK_TERM_T")] {
         let bel = "CLK_IOB";
         for i in 0..16 {
-            let giob = &*format!("GIOB{i}").leak();
-            let diff = ctx.state.get_diff(tile, bel, giob, "1");
+            let giob = format!("GIOB{i}");
+            let diff = ctx.state.get_diff(tile, bel, &giob, "1");
             let [diff, diff_term] = &diff.split_tiles(&[
                 &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
                 &[16],
@@ -386,13 +464,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         for i in 0..32 {
-            let mux = &*format!("MUXBUS{i}").leak();
-            let mut vals = vec![("NONE", Diff::default())];
+            let mux = format!("MUXBUS{i}");
+            let mut vals = vec![("NONE".to_string(), Diff::default())];
             for j in 0..16 {
-                let giob = &*format!("GIOB{j}").leak();
-                vals.push((giob, ctx.state.get_diff(tile, bel, mux, giob)));
+                let giob = format!("GIOB{j}");
+                vals.push((giob.clone(), ctx.state.get_diff(tile, bel, &mux, &giob)));
             }
-            vals.push(("PASS", ctx.state.get_diff(tile, bel, mux, "PASS")));
+            vals.push((
+                "PASS".to_string(),
+                ctx.state.get_diff(tile, bel, &mux, "PASS"),
+            ));
             ctx.tiledb
                 .insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
         }
@@ -400,11 +481,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["CLK_DCM_B", "CLK_DCM_T"] {
         let bel = "CLK_DCM";
         for i in 0..32 {
-            let mux = &*format!("MUXBUS{i}").leak();
-            let mut vals = vec![("NONE", Diff::default())];
+            let mux = format!("MUXBUS{i}");
+            let mut vals = vec![("NONE".to_string(), Diff::default())];
             for j in 0..24 {
-                let giob = &*format!("DCM{j}").leak();
-                vals.push((giob, ctx.state.get_diff(tile, bel, mux, giob)));
+                let dcm = format!("DCM{j}");
+                vals.push((dcm.clone(), ctx.state.get_diff(tile, bel, &mux, &dcm)));
             }
             let has_other = if tile == "CLK_DCM_T" {
                 edev.grids
@@ -414,7 +495,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 edev.grids.values().any(|grid| grid.reg_clk.to_idx() > 2)
             };
             if has_other {
-                vals.push(("PASS", ctx.state.get_diff(tile, bel, mux, "PASS")));
+                vals.push((
+                    "PASS".to_string(),
+                    ctx.state.get_diff(tile, bel, &mux, "PASS"),
+                ));
             }
             ctx.tiledb
                 .insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
@@ -423,32 +507,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tile = "CLK_HROW";
         let bel = "CLK_HROW";
-        let gclk_i: Vec<_> = (0..32).map(|i| &*format!("GCLK_I{i}").leak()).collect();
-        let gclk_o_l: Vec<_> = (0..8).map(|i| &*format!("GCLK_O_L{i}").leak()).collect();
-        let gclk_o_r: Vec<_> = (0..8).map(|i| &*format!("GCLK_O_R{i}").leak()).collect();
+        let gclk: Vec<_> = (0..32).map(|i| format!("GCLK{i}")).collect();
+        let hclk_l: Vec<_> = (0..8).map(|i| format!("HCLK_L{i}")).collect();
+        let hclk_r: Vec<_> = (0..8).map(|i| format!("HCLK_R{i}")).collect();
         let mut inp_diffs = vec![];
         for i in 0..32 {
-            let diff_l = ctx
-                .state
-                .peek_diff(tile, bel, gclk_o_l[0], gclk_i[i])
-                .clone();
-            let diff_r = ctx
-                .state
-                .peek_diff(tile, bel, gclk_o_r[0], gclk_i[i])
-                .clone();
+            let diff_l = ctx.state.peek_diff(tile, bel, &hclk_l[0], &gclk[i]).clone();
+            let diff_r = ctx.state.peek_diff(tile, bel, &hclk_r[0], &gclk[i]).clone();
             let (_, _, diff) = Diff::split(diff_l, diff_r);
             inp_diffs.push(diff);
         }
-        for (gclk_o, ttile, ttidx) in [(gclk_o_l, "HCLK_TERM_L", 3), (gclk_o_r, "HCLK_TERM_R", 4)] {
+        for (hclk, ttile, ttidx) in [(hclk_l, "HCLK_TERM_L", 3), (hclk_r, "HCLK_TERM_R", 4)] {
             for i in 0..8 {
                 let mut inps = vec![("NONE", Diff::default())];
                 for j in 0..32 {
-                    let mut diff = ctx.state.get_diff(tile, bel, gclk_o[i], gclk_i[j]);
+                    let mut diff = ctx.state.get_diff(tile, bel, &hclk[i], &gclk[j]);
                     diff = diff.combine(&!&inp_diffs[j]);
                     let [diff, diff_term] = &diff.split_tiles(&[&[0, 1, 2], &[ttidx]])[..] else {
                         unreachable!()
                     };
-                    inps.push((gclk_i[j], diff.clone()));
+                    inps.push((&gclk[j], diff.clone()));
                     ctx.tiledb.insert(
                         ttile,
                         "HCLK_TERM",
@@ -457,14 +535,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
                 }
                 ctx.tiledb
-                    .insert(tile, bel, gclk_o[i], xlat_enum_ocd(inps, OcdMode::Mux));
+                    .insert(tile, bel, &hclk[i], xlat_enum_ocd(inps, OcdMode::Mux));
             }
         }
         for (i, diff) in inp_diffs.into_iter().enumerate() {
             ctx.tiledb.insert(
                 tile,
                 bel,
-                format!("GCLK_I{i}_ENABLE"),
+                format!("GCLK{i}_ENABLE"),
                 xlat_bitvec(vec![diff]),
             );
         }
@@ -473,10 +551,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK";
         let bel = "HCLK";
         for i in 0..8 {
-            ctx.collect_bit(tile, bel, &*format!("HCLK{i}").leak(), "1");
+            ctx.collect_bit(tile, bel, &format!("HCLK{i}"), "1");
         }
         for i in 0..2 {
-            ctx.collect_bit(tile, bel, &*format!("RCLK{i}").leak(), "1");
+            ctx.collect_bit(tile, bel, &format!("RCLK{i}"), "1");
         }
     }
     for tile in [
@@ -518,10 +596,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         {
             let bel = "IOCLK";
             for i in 0..8 {
-                ctx.collect_bit(tile, bel, &*format!("HCLK{i}").leak(), "1");
+                ctx.collect_bit(tile, bel, &format!("HCLK{i}"), "1");
             }
             for i in 0..2 {
-                ctx.collect_bit(tile, bel, &*format!("RCLK{i}").leak(), "1");
+                ctx.collect_bit(tile, bel, &format!("RCLK{i}"), "1");
             }
             let diff0 = ctx.state.get_diff(tile, bel, "VIOCLK0", "1");
             let diff1 = ctx.state.get_diff(tile, bel, "VIOCLK1", "1");
@@ -575,6 +653,134 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for attr in ["IOCLK_N0", "IOCLK_N1", "IOCLK_S0", "IOCLK_S1"] {
             let item = ctx.tiledb.item("HCLK_IOIS_LVDS", "IOCLK", attr);
             ctx.tiledb.insert(tile, "IOCLK", attr, item.clone());
+        }
+    }
+    {
+        let tile = "HCLK_DCM";
+        let bel = "HCLK_DCM";
+        let (_, _, common) = Diff::split(
+            ctx.state.peek_diff(tile, bel, "MGT_O_D0", "1").clone(),
+            ctx.state.peek_diff(tile, bel, "GIOB_O_D0", "1").clone(),
+        );
+        let (_, _, hclk_giob) = Diff::split(
+            ctx.state.peek_diff(tile, bel, "HCLK_O_D0", "1").clone(),
+            ctx.state.peek_diff(tile, bel, "GIOB_O_D0", "1").clone(),
+        );
+        let (_, _, common_mgt) = Diff::split(
+            ctx.state.peek_diff(tile, bel, "MGT_O_D0", "1").clone(),
+            ctx.state.peek_diff(tile, bel, "MGT_O_D1", "1").clone(),
+        );
+        for ud in ['U', 'D'] {
+            for i in 0..8 {
+                let diff = ctx
+                    .state
+                    .get_diff(tile, bel, format!("HCLK_O_{ud}{i}"), "1");
+                let diff = diff.combine(&!&hclk_giob);
+                ctx.tiledb
+                    .insert(tile, bel, format!("HCLK_{ud}{i}"), xlat_bitvec(vec![diff]));
+            }
+            for i in 0..16 {
+                let diff = ctx
+                    .state
+                    .get_diff(tile, bel, format!("GIOB_O_{ud}{i}"), "1");
+                let diff = diff.combine(&!&hclk_giob);
+                ctx.tiledb
+                    .insert(tile, bel, format!("GIOB_{ud}{i}"), xlat_bitvec(vec![diff]));
+            }
+            for i in 0..4 {
+                let diff = ctx.state.get_diff(tile, bel, format!("MGT_O_{ud}{i}"), "1");
+                let diff = diff.combine(&!&common_mgt);
+                ctx.tiledb
+                    .insert(tile, bel, format!("MGT_{ud}{i}"), xlat_bitvec(vec![diff]));
+            }
+        }
+        let hclk_giob = hclk_giob.combine(&!&common);
+        let common_mgt = common_mgt.combine(&!&common);
+        ctx.tiledb
+            .insert(tile, bel, "COMMON", xlat_bit_wide(common));
+        ctx.tiledb
+            .insert(tile, bel, "COMMON_HCLK_GIOB", xlat_bit_wide(hclk_giob));
+        ctx.tiledb
+            .insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
+    }
+    for (tile, bel, ud) in [
+        ("HCLK_DCMIOB", "HCLK_DCM_S", 'D'),
+        ("HCLK_IOBDCM", "HCLK_DCM_N", 'U'),
+    ] {
+        let (_, _, common) = Diff::split(
+            ctx.state
+                .peek_diff(tile, bel, format!("HCLK_O_{ud}0"), "1")
+                .clone(),
+            ctx.state
+                .peek_diff(tile, bel, format!("GIOB_O_{ud}0"), "1")
+                .clone(),
+        );
+        for i in 0..8 {
+            let diff = ctx
+                .state
+                .get_diff(tile, bel, format!("HCLK_O_{ud}{i}"), "1");
+            let diff = diff.combine(&!&common);
+            ctx.tiledb
+                .insert(tile, bel, format!("HCLK_{ud}{i}"), xlat_bitvec(vec![diff]));
+        }
+        for i in 0..16 {
+            let diff = ctx
+                .state
+                .get_diff(tile, bel, format!("GIOB_O_{ud}{i}"), "1");
+            let diff = diff.combine(&!&common);
+            ctx.tiledb
+                .insert(tile, bel, format!("GIOB_{ud}{i}"), xlat_bitvec(vec![diff]));
+        }
+        if edev.col_lgt.is_some() {
+            let (_, _, common_mgt) = Diff::split(
+                ctx.state
+                    .peek_diff(tile, bel, format!("MGT_O_{ud}0"), "1")
+                    .clone(),
+                ctx.state
+                    .peek_diff(tile, bel, format!("MGT_O_{ud}1"), "1")
+                    .clone(),
+            );
+            for i in 0..4 {
+                let diff = ctx.state.get_diff(tile, bel, format!("MGT_O_{ud}{i}"), "1");
+                let diff = diff.combine(&!&common_mgt);
+                ctx.tiledb
+                    .insert(tile, bel, format!("MGT_{ud}{i}"), xlat_bitvec(vec![diff]));
+            }
+            let common_mgt = common_mgt.combine(&!&common);
+            ctx.tiledb
+                .insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
+        }
+        ctx.tiledb
+            .insert(tile, bel, "COMMON", xlat_bit_wide(common));
+    }
+    {
+        let tile = "DCM";
+        let bel = "DCM";
+        for i in 0..16 {
+            ctx.collect_bit(tile, bel, &format!("GIOB{i}_USED"), "1");
+        }
+        for i in 0..8 {
+            ctx.collect_bit(tile, bel, &format!("HCLK{i}_USED"), "1");
+        }
+        for i in 0..4 {
+            ctx.collect_bit(tile, bel, &format!("MGT{i}_USED"), "1");
+        }
+    }
+    let ccm = edev.egrid.db.get_node("CCM");
+    let num_ccms = edev.egrid.node_index[ccm].len();
+    if num_ccms != 0 {
+        let tile = "CCM";
+        let bel = "CCM";
+        for i in 0..16 {
+            ctx.collect_bit(tile, bel, &format!("GIOB{i}_USED"), "1");
+        }
+        for i in 0..8 {
+            ctx.collect_bit(tile, bel, &format!("HCLK{i}_USED"), "1");
+        }
+        if edev.col_lgt.is_some() {
+            for i in 0..4 {
+                ctx.collect_bit(tile, bel, &format!("MGT{i}_USED"), "1");
+            }
         }
     }
 }

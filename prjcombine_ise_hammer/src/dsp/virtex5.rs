@@ -3,8 +3,8 @@ use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_multi,
-    fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi, fuzz_one,
 };
 
 const DSP48E_INVPINS: &[&str] = &[
@@ -13,25 +13,14 @@ const DSP48E_INVPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let node_kind = backend.egrid.db.get_node("DSP");
     let tile = "DSP";
-    for (i, bel_name) in [(0, "DSP0"), (1, "DSP1")] {
-        let bel = BelId::from_idx(i);
+    for (i, bel) in [(0, "DSP0"), (1, "DSP1")] {
         let bel_other = BelId::from_idx(i ^ 1);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Main(5),
-            tile_name: tile,
-            bel,
-            bel_name,
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::MainAuto);
         let bel_kind = "DSP48E";
         fuzz_one!(ctx, "PRESENT", "1", [(bel_unused bel_other)], [(mode bel_kind)]);
         for &pin in DSP48E_INVPINS {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode bel_kind)]);
         }
         for (aname, attr, attrcasc) in [
             ("AREG_ACASCREG", "AREG", "ACASCREG"),
@@ -85,7 +74,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_enum!(ctx, "TEST_SET_P", ["SET", "DONT_SET"], [(mode bel_kind)]);
         fuzz_enum!(ctx, "TEST_SETVAL_M", ["1", "0"], [(mode bel_kind)]);
         fuzz_enum!(ctx, "TEST_SETVAL_P", ["1", "0"], [(mode bel_kind)]);
-        if bel_name == "DSP0" {
+        if i == 0 {
             fuzz_enum!(ctx, "LFSR_EN_SET", ["SET", "DONT_SET"], [
                 (mode bel_kind),
                 (bel_mode bel_other, bel_kind),

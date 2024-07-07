@@ -25,16 +25,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
     };
-    let node_kind = backend.egrid.db.get_node(tile_name);
-    let bel = BelId::from_idx(0);
-    let ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Bram,
-        tile_name,
-        bel,
-        bel_name: "BRAM",
-    };
+    let ctx = FuzzCtx::new(session, backend, tile_name, "BRAM", TileBits::Bram);
     let bel_kind = match grid_kind {
         GridKind::Spartan3ADsp => "RAMB16BWER",
         GridKind::Spartan3A => "RAMB16BWE",
@@ -127,7 +118,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ], (attr_hex attr));
             }
             for i in 0..0x40 {
-                let attr = format!("INIT_{i:02X}").leak();
+                let attr = format!("INIT_{i:02X}");
                 fuzz_multi!(ctx, attr, "", 256, [
                     (global_mutex_none "BRAM"),
                     (mode bel_kind),
@@ -136,7 +127,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ], (attr_hex attr));
             }
             for i in 0..0x8 {
-                let attr = format!("INITP_{i:02X}").leak();
+                let attr = format!("INITP_{i:02X}");
                 fuzz_multi!(ctx, attr, "", 256, [
                     (global_mutex_none "BRAM"),
                     (mode bel_kind),
@@ -210,7 +201,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ], (attr_hex attr));
             }
             for i in 0..0x40 {
-                let attr = format!("INIT_{i:02x}").leak();
+                let attr = format!("INIT_{i:02x}");
                 fuzz_multi!(ctx, attr, "", 256, [
                     (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
@@ -219,7 +210,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ], (attr_hex attr));
             }
             for i in 0..0x8 {
-                let attr = format!("INITP_{i:02x}").leak();
+                let attr = format!("INITP_{i:02x}");
                 fuzz_multi!(ctx, attr, "", 256, [
                     (global_mutex_none "BRAM"),
                     (mode "RAMB16"),
@@ -266,15 +257,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
     if grid_kind != GridKind::Spartan3ADsp {
         // mult
-        let bel = BelId::from_idx(1);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Main(4),
-            tile_name,
-            bel,
-            bel_name: "MULT",
-        };
+        let ctx = FuzzCtx::new(session, backend, tile_name, "MULT", TileBits::MainAuto);
         let bel_kind = if matches!(grid_kind, GridKind::Spartan3E | GridKind::Spartan3A) {
             "MULT18X18SIO"
         } else {
@@ -326,14 +309,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 let bel_bram = BelId::from_idx(0);
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
-                        let name = format!("{ab}{i}MUX").leak();
+                        let name = format!("{ab}{i}MUX");
                         let bram_pin = if i < 16 {
                             format!("DO{ab}{i}")
                         } else {
                             format!("DOP{ab}{ii}", ii = i - 16)
-                        }
-                        .leak();
-                        let mult_pin = format!("{ab}{i}").leak();
+                        };
+                        let mult_pin = format!("{ab}{i}");
                         fuzz_one!(ctx, name, "BRAM", [], [
                             (pip (bel_pin bel_bram, bram_pin), (pin mult_pin))
                         ]);
@@ -386,20 +368,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
-                diffs_data.extend(ctx.state.get_diffs(
-                    tile,
-                    "BRAM",
-                    format!("INIT_{i:02X}").leak(),
-                    "",
-                ));
+                diffs_data.extend(
+                    ctx.state
+                        .get_diffs(tile, "BRAM", format!("INIT_{i:02X}"), ""),
+                );
             }
             for i in 0..0x08 {
-                diffs_datap.extend(ctx.state.get_diffs(
-                    tile,
-                    "BRAM",
-                    format!("INITP_{i:02X}").leak(),
-                    "",
-                ));
+                diffs_datap.extend(
+                    ctx.state
+                        .get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""),
+                );
             }
             for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
                 ctx.collect_enum(
@@ -437,20 +415,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
-                diffs_data.extend(ctx.state.get_diffs(
-                    tile,
-                    "BRAM",
-                    format!("INIT_{i:02x}").leak(),
-                    "",
-                ));
+                diffs_data.extend(
+                    ctx.state
+                        .get_diffs(tile, "BRAM", format!("INIT_{i:02x}"), ""),
+                );
             }
             for i in 0..0x08 {
-                diffs_datap.extend(ctx.state.get_diffs(
-                    tile,
-                    "BRAM",
-                    format!("INITP_{i:02x}").leak(),
-                    "",
-                ));
+                diffs_datap.extend(
+                    ctx.state
+                        .get_diffs(tile, "BRAM", format!("INITP_{i:02x}"), ""),
+                );
             }
             for (dattr, sattr) in [
                 ("WRITE_MODE_A", "WRITEMODEA"),
@@ -644,7 +618,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if grid_kind == GridKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
-                        let name = &*format!("{ab}{i}MUX").leak();
+                        let name = &*format!("{ab}{i}MUX");
                         ctx.tiledb.insert(
                             tile,
                             "MULT",

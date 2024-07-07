@@ -7,24 +7,15 @@ use crate::{
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let tile_name = "BRAM";
-    let node_kind = backend.egrid.db.get_node(tile_name);
     let bel_bram = BelId::from_idx(0);
     let bel_fifo = BelId::from_idx(1);
     {
         // RAMB16
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Bram,
-            tile_name,
-            bel: bel_bram,
-            bel_name: "BRAM",
-        };
+        let ctx = FuzzCtx::new(session, backend, "BRAM", "BRAM", TileBits::Bram);
         fuzz_one!(ctx, "PRESENT", "1", [
             (global_mutex_none "BRAM"),
             (bel_unused bel_fifo)
@@ -35,13 +26,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB", "WEA0", "WEA1",
             "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",
         ] {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [
+            fuzz_inv!(ctx, pin, [
                 (global_mutex_none "BRAM"),
                 (mode "RAMB16"),
-                (bel_unused bel_fifo),
-                (pin pin)
+                (bel_unused bel_fifo)
             ]);
         }
         for attr in [
@@ -103,14 +91,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ], (attr_hex attr));
         }
         for i in 0..0x40 {
-            let attr = format!("INIT_{i:02X}").leak();
+            let attr = format!("INIT_{i:02X}");
             fuzz_multi!(ctx, attr, "", 256, [
                 (global_mutex_none "BRAM"),
                 (mode "RAMB16")
             ], (attr_hex attr));
         }
         for i in 0..0x8 {
-            let attr = format!("INITP_{i:02X}").leak();
+            let attr = format!("INITP_{i:02X}");
             fuzz_multi!(ctx, attr, "", 256, [
                 (global_mutex_none "BRAM"),
                 (mode "RAMB16")
@@ -125,14 +113,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
     {
         // FIFO16
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Bram,
-            tile_name,
-            bel: bel_fifo,
-            bel_name: "FIFO",
-        };
+        let ctx = FuzzCtx::new(session, backend, "BRAM", "FIFO", TileBits::Bram);
         fuzz_one!(ctx, "PRESENT", "1", [
             (global_mutex_none "BRAM"),
             (bel_unused bel_bram)
@@ -140,14 +121,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "FIFO16")
         ]);
         for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [
+            fuzz_inv!(ctx, pin, [
                 (global_mutex_none "BRAM"),
                 (mode "FIFO16"),
                 (bel_unused bel_bram),
-                (attr "DATA_WIDTH", "36"),
-                (pin pin)
+                (attr "DATA_WIDTH", "36")
             ]);
         }
         fuzz_enum!(ctx, "DATA_WIDTH", ["4", "9", "18", "36"], [
@@ -251,13 +229,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..0x40 {
         diffs_data.extend(
             ctx.state
-                .get_diffs(tile, "BRAM", format!("INIT_{i:02X}").leak(), ""),
+                .get_diffs(tile, "BRAM", format!("INIT_{i:02X}"), ""),
         );
     }
     for i in 0..0x08 {
         diffs_datap.extend(
             ctx.state
-                .get_diffs(tile, "BRAM", format!("INITP_{i:02X}").leak(), ""),
+                .get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""),
         );
     }
     ctx.tiledb

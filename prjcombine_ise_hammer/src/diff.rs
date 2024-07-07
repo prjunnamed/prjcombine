@@ -1,6 +1,8 @@
 use std::{
     cmp::Ordering,
     collections::{btree_map, hash_map, BTreeMap, BTreeSet, HashMap, HashSet},
+    fmt::Debug,
+    ops::Range,
 };
 
 use bitvec::vec::BitVec;
@@ -15,13 +17,24 @@ use crate::{
     tiledb::TileDb,
 };
 
-#[derive(Clone, Debug, Eq, PartialEq, Default)]
+#[derive(Clone, Eq, PartialEq, Default)]
 pub struct Diff {
     pub bits: HashMap<FeatureBit, bool>,
 }
 
+impl Debug for Diff {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        for (&k, &v) in self.bits.iter().sorted() {
+            write!(f, "{k:?}:{v}, ")?;
+        }
+        write!(f, "]")?;
+        Ok(())
+    }
+}
+
 impl Diff {
-    pub fn assert_empty(self) {
+    pub fn assert_empty(&self) {
         assert!(self.bits.is_empty());
     }
 
@@ -90,6 +103,23 @@ impl Diff {
                 }
             }
         }
+    }
+
+    pub fn apply_bitvec_diff_int(&mut self, item: &TileItem<FeatureBit>, from: u64, to: u64) {
+        fn to_bitvec(n: u64, len: usize) -> BitVec {
+            let mut res = BitVec::repeat(false, len);
+            for i in 0..64 {
+                if (n & 1 << i) != 0 {
+                    res.set(i, true);
+                }
+            }
+            res
+        }
+        self.apply_bitvec_diff(
+            item,
+            &to_bitvec(from, item.bits.len()),
+            &to_bitvec(to, item.bits.len()),
+        );
     }
 
     pub fn apply_bit_diff(&mut self, item: &TileItem<FeatureBit>, from: bool, to: bool) {
@@ -202,7 +232,7 @@ where
     pub device: &'a Device,
     pub db: &'a GeomDb,
     pub edev: &'a ExpandedDevice<'a>,
-    pub state: &'b mut State<'a>,
+    pub state: &'b mut State,
     pub tiledb: &'b mut TileDb,
     pub empty_bs: &'a Bitstream,
 }
@@ -472,6 +502,57 @@ pub fn xlat_enum_default_ocd(
     xlat_enum_ocd(diffs, ocd)
 }
 
+pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem<FeatureBit> {
+    let mut bits: Vec<Option<FeatureBit>> = vec![];
+    let mut xor = 0;
+    for (val, diff) in &diffs {
+        if diff.bits.is_empty() {
+            xor = *val;
+        }
+    }
+    loop {
+        let mut progress = false;
+        let mut done = true;
+        for &(mut val, ref diff) in &diffs {
+            let mut mdiff = diff.clone();
+            val ^= xor;
+            for (i, &bit) in bits.iter().enumerate() {
+                let Some(bit) = bit else { continue };
+                if (val & 1 << i) != 0 {
+                    val &= !(1 << i);
+                    assert_eq!(mdiff.bits.remove(&bit), Some((xor >> i & 1) == 0));
+                }
+            }
+            if val == 0 {
+                mdiff.assert_empty();
+            } else if val.is_power_of_two() {
+                let bidx: usize = val.ilog2().try_into().unwrap();
+                while bits.len() <= bidx {
+                    bits.push(None);
+                }
+                assert_eq!(mdiff.bits.len(), 1);
+                let (bit, pol) = mdiff.bits.into_iter().next().unwrap();
+                bits[bidx] = Some(bit);
+                assert_eq!(pol, (xor >> bidx & 1) == 0);
+                progress = true;
+            } else {
+                done = false;
+            }
+        }
+        if done {
+            return TileItem {
+                bits: bits.iter().map(|bit| bit.unwrap()).collect(),
+                kind: TileItemKind::BitVec {
+                    invert: BitVec::repeat(false, bits.len()),
+                },
+            };
+        }
+        if !progress {
+            panic!("NO PROGRESS: {bits:?} {diffs:?}")
+        }
+    }
+}
+
 pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem<FeatureBit>, bool) {
     let (diff, res) = if diff0.bits.is_empty() {
         diff0.assert_empty();
@@ -491,15 +572,15 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_bitvec(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        val: &'a str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val: &str,
     ) -> TileItem<FeatureBit> {
         xlat_bitvec(self.state.get_diffs(tile, bel, attr, val))
     }
 
-    pub fn collect_bitvec(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) {
+    pub fn collect_bitvec(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
         self.tiledb.insert(
             tile,
             bel,
@@ -511,14 +592,14 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        vals: &[&'a str],
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
             .collect();
         xlat_enum(diffs)
     }
@@ -526,43 +607,76 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum_ocd(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        vals: &[&'a str],
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
         ocd: OcdMode,
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
             .collect();
         xlat_enum_ocd(diffs, ocd)
     }
 
-    pub fn collect_enum(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, vals: &[&'a str]) {
+    #[must_use]
+    pub fn extract_enum_int(
+        &mut self,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: Range<u32>,
+        delta: u32,
+    ) -> TileItem<FeatureBit> {
+        let diffs = vals
+            .map(|val| {
+                (
+                    val,
+                    self.state
+                        .get_diff(tile, bel, attr, format!("{v}", v = val + delta)),
+                )
+            })
+            .collect();
+        xlat_enum_int(diffs)
+    }
+
+    pub fn collect_enum(&mut self, tile: &str, bel: &str, attr: &str, vals: &[&str]) {
         let item = self.extract_enum(tile, bel, attr, vals);
         self.tiledb.insert(tile, bel, attr, item);
     }
 
     pub fn collect_enum_ocd(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        vals: &[&'a str],
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
         ocd: OcdMode,
     ) {
         let item = self.extract_enum_ocd(tile, bel, attr, vals, ocd);
         self.tiledb.insert(tile, bel, attr, item);
     }
 
+    pub fn collect_enum_int(
+        &mut self,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: Range<u32>,
+        delta: u32,
+    ) {
+        let item = self.extract_enum_int(tile, bel, attr, vals, delta);
+        self.tiledb.insert(tile, bel, attr, item);
+    }
+
     #[must_use]
     pub fn extract_bit(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        val: &'a str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val: &str,
     ) -> TileItem<FeatureBit> {
         let diff = self.state.get_diff(tile, bel, attr, val);
         xlat_bitvec(vec![diff])
@@ -571,21 +685,21 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_bit_wide(
         &mut self,
-        tile: &'a str,
-        bel: &'a str,
-        attr: &'a str,
-        val: &'a str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val: &str,
     ) -> TileItem<FeatureBit> {
         let diff = self.state.get_diff(tile, bel, attr, val);
         xlat_bit_wide(diff)
     }
 
-    pub fn collect_bit(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) {
+    pub fn collect_bit(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
         let item = self.extract_bit(tile, bel, attr, val);
         self.tiledb.insert(tile, bel, attr, item);
     }
 
-    pub fn collect_bit_wide(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) {
+    pub fn collect_bit_wide(&mut self, tile: &str, bel: &str, attr: &str, val: &str) {
         let item = self.extract_bit_wide(tile, bel, attr, val);
         self.tiledb.insert(tile, bel, attr, item);
     }
@@ -593,26 +707,26 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum_default(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        vals: &[&'b str],
-        default: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
+        default: &str,
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
             .collect();
         xlat_enum_default(diffs, default)
     }
 
     pub fn collect_enum_default(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        vals: &[&'b str],
-        default: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
+        default: &str,
     ) {
         let item = self.extract_enum_default(tile, bel, attr, vals, default);
         self.tiledb.insert(tile, bel, attr, item);
@@ -620,16 +734,16 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn collect_enum_default_ocd(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        vals: &[&'b str],
-        default: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
+        default: &str,
         ocd: OcdMode,
     ) {
         let diffs = vals
             .iter()
-            .map(|val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
             .collect();
         let ti = xlat_enum_default_ocd(diffs, default, ocd);
         self.tiledb.insert(tile, bel, attr, ti);
@@ -638,11 +752,11 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum_bool_default(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
     ) -> (TileItem<FeatureBit>, bool) {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
@@ -652,11 +766,11 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum_bool(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
     ) -> TileItem<FeatureBit> {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
@@ -665,25 +779,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn collect_enum_bool_default(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
     ) -> bool {
         let (item, res) = self.extract_enum_bool_default(tile, bel, attr, val0, val1);
         self.tiledb.insert(tile, bel, attr, item);
         res
     }
 
-    pub fn collect_enum_bool(
-        &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
-    ) {
+    pub fn collect_enum_bool(&mut self, tile: &str, bel: &str, attr: &str, val0: &str, val1: &str) {
         let item = self.extract_enum_bool(tile, bel, attr, val0, val1);
         self.tiledb.insert(tile, bel, attr, item);
     }
@@ -691,11 +798,11 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     #[must_use]
     pub fn extract_enum_bool_wide(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
     ) -> TileItem<FeatureBit> {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
@@ -712,31 +819,30 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         } else {
             panic!("not a bool: {tile} {bel} {attr} {values:?}");
         };
+        let invert = BitVec::from_iter(vec![invert; item.bits.len()]);
         TileItem {
             bits: item.bits,
-            kind: TileItemKind::BitVec {
-                invert: BitVec::from_iter([invert]),
-            },
+            kind: TileItemKind::BitVec { invert },
         }
     }
 
     pub fn collect_enum_bool_wide(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val0: &'b str,
-        val1: &'b str,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
     ) {
         let item = self.extract_enum_bool_wide(tile, bel, attr, val0, val1);
 
         self.tiledb.insert(tile, bel, attr, item);
     }
 
-    pub fn collect_inv(&mut self, tile: &'b str, bel: &'b str, pin: &'b str) {
-        let pininv = format!("{pin}INV").leak();
-        let pin_b = format!("{pin}_B").leak();
-        self.collect_enum_bool(tile, bel, pininv, pin, pin_b);
+    pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
+        let pininv = format!("{pin}INV");
+        let pin_b = format!("{pin}_B");
+        self.collect_enum_bool(tile, bel, &pininv, pin, &pin_b);
     }
 
     pub fn insert_int_inv(
@@ -768,10 +874,10 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn item_int_inv(
         &self,
-        int_tiles: &[&'b str],
-        tile: &'b str,
-        bel: &'b str,
-        pin: &'b str,
+        int_tiles: &[&str],
+        tile: &str,
+        bel: &str,
+        pin: &str,
     ) -> TileItem<FeatureBit> {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
@@ -796,23 +902,46 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn collect_int_inv(
         &mut self,
-        int_tiles: &[&'b str],
-        tile: &'b str,
-        bel: &'b str,
-        pin: &'b str,
+        int_tiles: &[&str],
+        tile: &str,
+        bel: &str,
+        pin: &str,
         flip: bool,
     ) {
-        let pininv = format!("{pin}INV").leak();
-        let pin_b = format!("{pin}_B").leak();
+        let pininv = format!("{pin}INV");
+        let pin_b = format!("{pin}_B");
         let item = self.extract_enum_bool(
             tile,
             bel,
-            pininv,
-            if flip { pin_b } else { pin },
-            if flip { pin } else { pin_b },
+            &pininv,
+            if flip { &pin_b } else { pin },
+            if flip { pin } else { &pin_b },
         );
         self.insert_int_inv(int_tiles, tile, bel, pin, item);
     }
+}
+
+pub fn extract_bitvec_val_part(item: &TileItem<FeatureBit>, base: &BitVec, diff: &Diff) -> BitVec {
+    let TileItemKind::BitVec { ref invert } = item.kind else {
+        unreachable!()
+    };
+    assert_eq!(item.bits.len(), base.len());
+    let mut res = base.clone();
+    let rev: HashMap<_, _> = item
+        .bits
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, v)| (v, i))
+        .collect();
+    for (&bit, &val) in diff.bits.iter() {
+        let Some(&bitidx) = rev.get(&bit) else {
+            continue;
+        };
+        assert_eq!(res[bitidx], !(val ^ invert[bitidx]));
+        res.set(bitidx, val ^ invert[bitidx]);
+    }
+    res
 }
 
 pub fn extract_bitvec_val(item: &TileItem<FeatureBit>, base: &BitVec, diff: Diff) -> BitVec {

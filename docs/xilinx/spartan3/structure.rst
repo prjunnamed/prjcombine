@@ -333,11 +333,11 @@ Each bitstream frame within a device has the same size. The size is ``32 + num_i
   - Spartan 3 and Spartan 3E:
 
     - bits 0-3: clock rows in bottom half of the device (one bit per clock row, in order from bottom), then one bit for ``LLV`` tiles (if any)
-    - bits 7-12: bottom IOB row
+    - bits 7-11: bottom IOB row
 
   - Spartan 3A (and 3A DSP):
 
-    - bits 0-7: bottom IOB row
+    - bits 0-5: bottom IOB row
     - bits 11-15: clock rows in bottom half of the device (one bit per clock row, in order from bottom)
     
 - 64 bits for every interconnect row, in order
@@ -345,19 +345,19 @@ Each bitstream frame within a device has the same size. The size is ``32 + num_i
 
   - Spartan 3 and Spartan 3E:
 
-    - bits 0-5: bottom IOB row
+    - bits 0-4: bottom IOB row
     - bits 12-15 (devices without ``LLV`` tiles): clock rows in top half of the device (one bit per clock row, in order from top)
     - bits 11-15 (devices with ``LLV`` tiles): clock rows in top half of the device (one bit per clock row, in order from top), then two bits for ``LLV`` tiles
 
   - Spartan 3A (and 3A DSP):
 
-    - bits 0-7: bottom IOB row
+    - bits 0-5: bottom IOB row
     - bits 8-10: ``LLV`` tiles
     - bits 11-15: clock rows in top half of the device (one bit per clock row, in order from top)
 
 Thus, every interconnect tile corresponds to a bitstream tile of 19×64 bits. Such bitstream tiles are shared between the interconnect tiles and their associated primitives.
 
-The IOB row tiles are 19×5 or 19×8 bits, and belong to ``IOBS.*`` tiles. Likewise, IOB column tiles are 2×64 bits and are belong to ``IOBS.*``.  The corner tiles also reuse some tiles in IOB area with the same dimensions.
+The IOB row tiles are 19×5 or 19×6 bits, and belong to ``IOBS.*`` tiles. Likewise, IOB column tiles are 2×64 bits and are belong to ``IOBS.*``.  The corner tiles also reuse some tiles in IOB area with the same dimensions.
 
 Blockram data tiles are 76×256 bits (corresponding to 4 interconnect rows). The blockram data frame space to non-BRAM rows is repurposed for interconnect tile storage as described above.
 

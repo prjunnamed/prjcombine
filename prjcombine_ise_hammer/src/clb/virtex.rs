@@ -11,18 +11,14 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let node_kind = backend.egrid.db.get_node("CLB");
     for i in 0..2 {
-        let bel = BelId::from_idx(i);
-        let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
-        let ctx = FuzzCtx {
+        let ctx = FuzzCtx::new(
             session,
-            node_kind,
-            bits: TileBits::Main(1),
-            tile_name: "CLB",
-            bel,
-            bel_name,
-        };
+            backend,
+            "CLB",
+            format!("SLICE{i}"),
+            TileBits::MainAuto,
+        );
 
         // inverters
         fuzz_enum!(ctx, "CKINV", ["0", "1"], [
@@ -251,16 +247,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
     let tbus_bel = BelId::from_idx(4);
     for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
-        let bel = BelId::from_idx(i + 2);
-        let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
-        let ctx = FuzzCtx {
+        let ctx = FuzzCtx::new(
             session,
-            node_kind,
-            bits: TileBits::Main(1),
-            tile_name: "CLB",
-            bel,
-            bel_name,
-        };
+            backend,
+            "CLB",
+            format!("TBUF{i}"),
+            TileBits::MainAuto,
+        );
         fuzz_enum!(ctx, "IMUX", ["0", "1", "I", "I_B"], [
             (mode "TBUF"),
             (pin "I"),

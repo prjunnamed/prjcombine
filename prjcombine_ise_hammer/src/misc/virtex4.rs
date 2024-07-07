@@ -1,6 +1,6 @@
-use bitvec::vec::BitVec;
+use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_int::{db::BelId, grid::DieId};
+use prjcombine_int::db::{BelId, Dir};
 use prjcombine_types::{TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
@@ -9,24 +9,16 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{xlat_bitvec, xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode},
-    fgen::{TileBits, TileRelation},
+    fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let ExpandedDevice::Virtex4(edev) = backend.edev else {
         unreachable!()
     };
-    let node_kind = backend.egrid.db.get_node("CFG");
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: "CFG",
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    let ctx = FuzzCtx::new_fake_bel(session, backend, "CFG", "MISC", TileBits::Cfg);
     for val in ["0", "1", "2", "3"] {
         fuzz_one!(ctx, "PROBESEL", val, [], [(global_opt "PROBESEL", val)]);
     }
@@ -54,8 +46,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 
     for i in 0..32 {
-        ctx.bel = BelId::from_idx(i);
-        ctx.bel_name = &*format!("BUFGCTRL{i}").leak();
+        let ctx = FuzzCtx::new(
+            session,
+            backend,
+            "CFG",
+            format!("BUFGCTRL{i}"),
+            TileBits::Cfg,
+        );
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BUFGCTRL")]);
         for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
             fuzz_inv!(ctx, pin, [(mode "BUFGCTRL")]);
@@ -76,12 +73,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             }
             let obel = BelId::from_idx(0);
             let mb_idx = 2 * (i % 16) + midx;
-            let mb_out = &*format!("MUXBUS_O{mb_idx}").leak();
+            let mb_out = format!("MUXBUS_O{mb_idx}");
             fuzz_one!(ctx, mux, "MUXBUS", [
                 (mutex "IxMUX", mux),
                 (mutex mux, "MUXBUS"),
                 (global_mutex "CLK_IOB_MUXBUS", "USE"),
-                (related TileRelation::ClkIob(i >= 16),
+                (related TileRelation::ClkIob(if i >= 16 { Dir::N } else { Dir::S }),
                     (pip (bel_pin obel, "PAD_BUF0"), (bel_pin obel, mb_out)))
             ], [
                 (pip (pin bus), (pin mux))
@@ -89,8 +86,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for j in 0..16 {
                 let jj = if i < 16 { j } else { j + 16 };
                 let obel = BelId::from_idx(jj);
-                let val = &*format!("GFB{j}").leak();
-                fuzz_one!(ctx, mux, val, [
+                let val = format!("GFB{j}");
+                fuzz_one!(ctx, mux, val.clone(), [
                     (mutex "IxMUX", mux),
                     (mutex mux, val)
                 ], [
@@ -112,8 +109,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ]);
             }
         }
-        fuzz_one!(ctx, "ENABLE", "1", [(mode "BUFGCTRL")], [(pin "O")]);
+        fuzz_one!(ctx, "ENABLE", "1", [
+            (global_mutex "BUFGCTRL_OUT", "TEST"),
+            (mode "BUFGCTRL")
+        ], [(pin "O")]);
         fuzz_one!(ctx, "PIN_O_GFB", "1", [
+            (global_mutex "BUFGCTRL_OUT", "TEST"),
             (mode "BUFGCTRL"),
             (pin "O")
         ], [
@@ -130,30 +131,26 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 
     for i in 0..4 {
-        ctx.bel = BelId::from_idx(32 + i);
-        ctx.bel_name = ["BSCAN0", "BSCAN1", "BSCAN2", "BSCAN3"][i];
+        let ctx = FuzzCtx::new(session, backend, "CFG", format!("BSCAN{i}"), TileBits::Cfg);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BSCAN")]);
     }
-    ctx.bel_name = "BSCAN_COMMON";
+    let ctx = FuzzCtx::new_fake_bel(session, backend, "CFG", "BSCAN_COMMON", TileBits::Cfg);
     fuzz_multi!(ctx, "USERID", "", 32, [], (global_hex_prefix "USERID"));
 
     for i in 0..2 {
-        ctx.bel = BelId::from_idx(36 + i);
+        let ctx = FuzzCtx::new(session, backend, "CFG", format!("ICAP{i}"), TileBits::Cfg);
         let obel = BelId::from_idx(36 + (i ^ 1));
-        ctx.bel_name = ["ICAP0", "ICAP1"][i];
         fuzz_one!(ctx, "PRESENT", "1", [(bel_unused obel)], [(mode "ICAP")]);
-        fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [(mode "ICAP"), (pin "CLK")]);
-        fuzz_enum!(ctx, "CEINV", ["CE", "CE_B"], [(mode "ICAP"), (pin "CE")]);
-        fuzz_enum!(ctx, "WRITEINV", ["WRITE", "WRITE_B"], [(mode "ICAP"), (pin "WRITE")]);
+        fuzz_inv!(ctx, "CLK", [(mode "ICAP")]);
+        fuzz_inv!(ctx, "CE", [(mode "ICAP")]);
+        fuzz_inv!(ctx, "WRITE", [(mode "ICAP")]);
         fuzz_enum!(ctx, "ICAP_WIDTH", ["X8", "X32"], [(mode "ICAP"), (bel_unused obel)]);
     }
 
-    ctx.bel = BelId::from_idx(38);
-    ctx.bel_name = "PMV";
+    let ctx = FuzzCtx::new(session, backend, "CFG", "PMV", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PMV")]);
 
-    ctx.bel = BelId::from_idx(39);
-    ctx.bel_name = "STARTUP";
+    let mut ctx = FuzzCtx::new(session, backend, "CFG", "STARTUP", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "STARTUP")]);
     for pin in [
         "CLK",
@@ -164,9 +161,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         "USRDONETS",
         "USRDONEO",
     ] {
-        let pin_b = &*format!("{pin}_B").leak();
-        let pininv = &*format!("{pin}INV").leak();
-        fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode "STARTUP"), (pin pin)]);
+        fuzz_inv!(ctx, pin, [(mode "STARTUP")]);
     }
     fuzz_one!(ctx, "PIN.GTS", "1", [(mode "STARTUP"), (nopin "GSR")], [(pin "GTS")]);
     fuzz_one!(ctx, "PIN.GSR", "1", [(mode "STARTUP"), (nopin "GTS")], [(pin "GSR")]);
@@ -177,45 +172,36 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
     ctx.bits = TileBits::Reg(Reg::Cor0);
-    ctx.tile_name = "REG.COR";
+    ctx.tile_name = "REG.COR".into();
     for val in ["CCLK", "USERCLK", "JTAGCLK"] {
         fuzz_one!(ctx, "STARTUPCLK", val, [(mode "STARTUP"), (pin "CLK")], [(global_opt "STARTUPCLK", val)]);
     }
-    ctx.bits = TileBits::Cfg;
-    ctx.tile_name = "CFG";
 
-    ctx.bel = BelId::from_idx(40);
-    ctx.bel_name = "JTAGPPC";
+    let ctx = FuzzCtx::new(session, backend, "CFG", "JTAGPPC", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "JTAGPPC")]);
 
-    ctx.bel = BelId::from_idx(41);
-    ctx.bel_name = "FRAME_ECC";
+    let ctx = FuzzCtx::new(session, backend, "CFG", "FRAME_ECC", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "FRAME_ECC")]);
 
-    ctx.bel = BelId::from_idx(42);
-    ctx.bel_name = "DCIRESET";
+    let ctx = FuzzCtx::new(session, backend, "CFG", "DCIRESET", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "DCIRESET")]);
 
-    ctx.bel = BelId::from_idx(43);
-    ctx.bel_name = "CAPTURE";
+    let mut ctx = FuzzCtx::new(session, backend, "CFG", "CAPTURE", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "CAPTURE")]);
-    fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [(mode "CAPTURE"), (pin "CLK")]);
-    fuzz_enum!(ctx, "CAPINV", ["CAP", "CAP_B"], [(mode "CAPTURE"), (pin "CAP")]);
+    fuzz_inv!(ctx, "CLK", [(mode "CAPTURE")]);
+    fuzz_inv!(ctx, "CAP", [(mode "CAPTURE")]);
     ctx.bits = TileBits::CfgReg(Reg::Cor0);
     fuzz_enum!(ctx, "ONESHOT", ["FALSE", "TRUE"], [(mode "CAPTURE")]);
-    ctx.bits = TileBits::Cfg;
 
-    ctx.bel = BelId::from_idx(44);
-    ctx.bel_name = "USR_ACCESS";
+    let ctx = FuzzCtx::new(session, backend, "CFG", "USR_ACCESS", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "USR_ACCESS")]);
 
     if edev.col_lgt.is_some() {
-        for (bel, bel_name) in [
+        for (bel_id, bel) in [
             (BelId::from_idx(47), "BUFG_MGTCLK_B"),
             (BelId::from_idx(48), "BUFG_MGTCLK_T"),
         ] {
-            ctx.bel = bel;
-            ctx.bel_name = bel_name;
+            let ctx = FuzzCtx::new_force_bel(session, backend, "CFG", bel, TileBits::Cfg, bel_id);
             for (name, o, i) in [
                 ("MGT_L0", "MGT_L0_O", "MGT_L0_I"),
                 ("MGT_L1", "MGT_L1_O", "MGT_L1_I"),
@@ -229,49 +215,51 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ]);
             }
         }
-        for (bel, bel_name, row) in [
-            (
-                BelId::from_idx(49),
-                "BUFG_MGTCLK_SRC_B",
-                edev.grids[edev.grid_master].row_bufg() - 8,
-            ),
-            (
-                BelId::from_idx(50),
-                "BUFG_MGTCLK_SRC_T",
-                edev.grids[edev.grid_master].row_bufg() + 8,
-            ),
+        for (bel_id, bel, dir_row) in [
+            (BelId::from_idx(49), "BUFG_MGTCLK_SRC_B", Dir::S),
+            (BelId::from_idx(50), "BUFG_MGTCLK_SRC_T", Dir::N),
         ] {
-            ctx.bel = bel;
-            ctx.bel_name = bel_name;
+            let ctx = FuzzCtx::new_force_bel(session, backend, "CFG", bel, TileBits::Null, bel_id);
             for (name, o, i) in [
                 ("MGT_L0", "MGT_L0_O", "MGT_L0_I"),
                 ("MGT_L1", "MGT_L1_O", "MGT_L1_I"),
                 ("MGT_R0", "MGT_R0_O", "MGT_R0_I"),
                 ("MGT_R1", "MGT_R1_O", "MGT_R1_I"),
             ] {
-                let mut btiles = vec![];
-                let is_l = name.starts_with("MGT_L");
-                for &col in &edev.grids[edev.grid_master].cols_vbrk {
-                    if (col < edev.col_cfg) == is_l {
-                        btiles.push(edev.btile_hclk(
-                            DieId::from_idx(0),
-                            if is_l { col } else { col - 1 },
-                            row,
-                        ));
-                    }
+                let idx = if name.ends_with('1') { 1 } else { 0 };
+                let mut extras = vec![];
+                if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::MgtRepeater(
+                            if name.starts_with("MGT_L") {
+                                Dir::W
+                            } else {
+                                Dir::E
+                            },
+                            Some(dir_row),
+                        ),
+                        "HCLK_MGT_REPEATER",
+                        "CLK_MGT_REPEATER",
+                        format!("MGT{idx}"),
+                        "1",
+                    ));
                 }
-                ctx.bits = TileBits::Raw(btiles);
-                fuzz_one!(ctx, name, "1", [], [(pip (pin i), (pin o))]);
+                fuzz_one_extras!(ctx, name, "1", [], [
+                    (pip (pin i), (pin o))
+                ], extras);
             }
         }
-        ctx.bits = TileBits::Cfg;
     }
 
     // TODO: global DCI enable
 
-    ctx.bits = TileBits::Reg(Reg::Cor0);
-    ctx.tile_name = "REG.COR";
-    ctx.bel_name = "STARTUP";
+    let ctx = FuzzCtx::new_fake_tile(
+        session,
+        backend,
+        "REG.COR",
+        "STARTUP",
+        TileBits::Reg(Reg::Cor0),
+    );
     for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
         fuzz_one!(ctx, "GWE_CYCLE", val, [], [(global_opt "GWE_CYCLE", val)]);
         fuzz_one!(ctx, "GTS_CYCLE", val, [], [(global_opt "GTS_CYCLE", val)]);
@@ -299,9 +287,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "POWERDOWN_STATUS", val, [], [(global_opt "POWERDOWNSTATUS", val)]);
     }
 
-    ctx.bits = TileBits::Reg(Reg::Ctl0);
-    ctx.tile_name = "REG.CTL";
-    ctx.bel_name = "MISC";
+    let ctx = FuzzCtx::new_fake_tile(
+        session,
+        backend,
+        "REG.CTL",
+        "MISC",
+        TileBits::Reg(Reg::Ctl0),
+    );
     for val in ["NO", "YES"] {
         fuzz_one!(ctx, "GTS_USR_B", val, [], [(global_opt "GTS_USR_B", val)]);
         fuzz_one!(ctx, "VGG_TEST", val, [], [(global_opt "VGG_TEST", val)]);
@@ -314,12 +306,87 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 
     // TODO: more crap
-    ctx.bits = TileBits::Null;
+    let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
     for val in ["NO", "YES"] {
         fuzz_one!(ctx, "DISABLE_BANDGAP", val, [], [(global_opt "DISABLEBANDGAP", val)]);
     }
     for val in ["DISABLE", "ENABLE"] {
         fuzz_one!(ctx, "DCI_SHUTDOWN", val, [], [(global_opt "DCISHUTDOWN", val)]);
+    }
+
+    if let Some(ctx) = FuzzCtx::try_new(session, backend, "SYSMON", "SYSMON", TileBits::MainAuto) {
+        fuzz_one!(ctx, "PRESENT", "1", [], [(mode "MONITOR")]);
+        for i in 0x40..0x70 {
+            fuzz_multi!(ctx, format!("INIT_{i:02X}"), "", 16, [(mode "MONITOR")], (attr_hex format!("INIT_{i:02X}")));
+        }
+        fuzz_enum!(ctx, "MONITOR_MODE", ["TEST", "MONITOR", "ADC"], [
+            (global_mutex_none "MONITOR_GLOBAL"),
+            (mode "MONITOR")
+        ]);
+        for pin in [
+            "DEN",
+            // DCLK?
+            "DWE",
+            "SCANTESTENA",
+            "SCANTESTENB",
+            // SCANMEMCLK?
+            "SCANMEMWE",
+            "ROMTESTENABLE",
+            "RST",
+            "CONVST",
+            // SCLK[AB]?
+            "SEA",
+            "SEB",
+        ] {
+            fuzz_inv!(ctx, pin, [(mode "MONITOR")]);
+        }
+        for (attr, len) in [
+            ("DCLK_DIVID_2", 1),
+            ("LW_DIVID_2_4", 1),
+            ("MCCLK_DIVID", 8),
+            ("OVER_TEMPERATURE", 10),
+            ("OVER_TEMPERATURE_OFF", 1),
+            ("OVER_TEMPERATURE_DELAY", 8),
+            ("BLOCK_ENABLE", 5),
+            ("DCLK_MISSING", 10),
+            ("FEATURE_ENABLE", 8),
+            ("PROM_DATA", 8),
+        ] {
+            fuzz_multi!(ctx, attr, "", len, [
+                (global_mutex_site "MONITOR_GLOBAL"),
+                (mode "MONITOR"),
+                (attr "MONITOR_MODE", "ADC")
+            ], (global_bin format!("ADC_{attr}")));
+        }
+        for out in ["CONVST", "CONVST_TEST"] {
+            fuzz_one!(ctx, out, "INT_CLK", [
+                (mutex "CONVST_OUT", out),
+                (mutex "CONVST_IN", "INT_CLK")
+            ], [
+                (pip (pin "CONVST_INT_CLK"), (pin out))
+            ]);
+            fuzz_one!(ctx, out, "INT_IMUX", [
+                (mutex "CONVST_OUT", out),
+                (mutex "CONVST_IN", "INT_IMUX")
+            ], [
+                (pip (pin "CONVST_INT_IMUX"), (pin out))
+            ]);
+            for i in 0..16 {
+                let obel = BelId::from_idx(0);
+                fuzz_one!(ctx, out, format!("GIOB{i}"), [
+                    (mutex "CONVST_OUT", out),
+                    (mutex "CONVST_IN", format!("GIOB{i}")),
+                    (related TileRelation::HclkDcm,
+                        (tile_mutex "HCLK_DCM", "USE")),
+                    (related TileRelation::HclkDcm,
+                        (pip (pin format!("GIOB_I{i}")), (pin format!("GIOB_O_D{i}")))),
+                    (related TileRelation::HclkDcm,
+                        (pip (bel_pin obel, format!("GIOB_I{i}")), (bel_pin obel, format!("GIOB_O_U{i}"))))
+                ], [
+                    (pip (pin format!("GIOB{i}")), (pin out))
+                ]);
+            }
+        }
     }
 }
 
@@ -351,7 +418,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     for i in 0..32 {
-        let bel = &*format!("BUFGCTRL{i}").leak();
+        let bel = format!("BUFGCTRL{i}");
+        let bel = &bel;
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
             ctx.collect_inv(tile, bel, pin);
@@ -476,29 +544,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, attr, "1");
             }
         }
-        for bel in ["BUFG_MGTCLK_SRC_B", "BUFG_MGTCLK_SRC_T"] {
-            for attr in ["MGT_L0", "MGT_L1", "MGT_R0", "MGT_R1"] {
-                let mut ctr = 0;
-                let is_l = attr.starts_with("MGT_L");
-                for &col in &edev.grids[edev.grid_master].cols_vbrk {
-                    if (col < edev.col_cfg) == is_l {
-                        ctr += 1;
-                    }
-                }
-                if ctr != 0 {
-                    let diff = ctx.state.get_diff(tile, bel, attr, "1");
-                    for i in 0..ctr {
-                        let sub_diff = diff.filter_tiles(&[i]);
-                        let sub_attr = if attr.ends_with('0') { "MGT0" } else { "MGT1" };
-                        ctx.tiledb.insert(
-                            "HCLK_MGT_REPEATER",
-                            "CLK_MGT_REPEATER",
-                            sub_attr,
-                            xlat_bitvec(vec![sub_diff]),
-                        );
-                    }
-                }
-            }
+        if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+            let tile = "HCLK_MGT_REPEATER";
+            let bel = "CLK_MGT_REPEATER";
+            ctx.collect_bit(tile, bel, "MGT0", "1");
+            ctx.collect_bit(tile, bel, "MGT1", "1");
         }
     }
 
@@ -590,4 +640,72 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         },
     );
+
+    let sysmon = edev.egrid.db.get_node("SYSMON");
+    if !edev.egrid.node_index[sysmon].is_empty() {
+        let tile = "SYSMON";
+        let bel = "SYSMON";
+        ctx.collect_enum(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
+        for i in 0x40..0x70 {
+            ctx.collect_bitvec(tile, bel, &format!("INIT_{i:02X}"), "");
+        }
+        for pin in [
+            "DEN",
+            "DWE",
+            "SCANTESTENA",
+            "SCANTESTENB",
+            "SCANMEMWE",
+            "ROMTESTENABLE",
+            "RST",
+            "SEA",
+            "SEB",
+        ] {
+            ctx.collect_int_inv(&["INT"; 8], tile, bel, pin, false);
+        }
+        ctx.collect_inv(tile, bel, "CONVST");
+        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        for (attr, val) in [
+            ("DCLK_DIVID_2", 0),
+            ("LW_DIVID_2_4", 0),
+            ("MCCLK_DIVID", 0xc8),
+            ("OVER_TEMPERATURE", 0x31e),
+            ("OVER_TEMPERATURE_OFF", 0),
+            ("OVER_TEMPERATURE_DELAY", 0),
+            ("BLOCK_ENABLE", 0x1e),
+            ("DCLK_MISSING", 0x320),
+            ("FEATURE_ENABLE", 0),
+            ("PROM_DATA", 0),
+        ] {
+            ctx.collect_bitvec(tile, bel, attr, "");
+            present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, attr), val, 0);
+        }
+        present.assert_empty();
+
+        let mut diffs = vec![];
+        let diff = ctx.state.get_diff(tile, bel, "CONVST", "INT_IMUX");
+        assert_eq!(
+            diff,
+            ctx.state.get_diff(tile, bel, "CONVST_TEST", "INT_IMUX")
+        );
+        diffs.push(("INT_IMUX".to_string(), diff));
+        let mut diff = ctx.state.get_diff(tile, bel, "CONVST", "INT_CLK");
+        assert_eq!(
+            diff,
+            ctx.state.get_diff(tile, bel, "CONVST_TEST", "INT_CLK")
+        );
+        let item = ctx.item_int_inv(&["INT"; 8], tile, bel, "CONVST_INT_CLK");
+        diff.apply_bit_diff(&item, false, true);
+        diffs.push(("INT_CLK".to_string(), diff));
+        for i in 0..16 {
+            let diff = ctx.state.get_diff(tile, bel, "CONVST", format!("GIOB{i}"));
+            assert_eq!(
+                diff,
+                ctx.state
+                    .get_diff(tile, bel, "CONVST_TEST", format!("GIOB{i}"))
+            );
+            diffs.push((format!("GIOB{i}"), diff));
+        }
+        ctx.tiledb
+            .insert(tile, bel, "CONVST_MUX", xlat_enum_ocd(diffs, OcdMode::Mux));
+    }
 }

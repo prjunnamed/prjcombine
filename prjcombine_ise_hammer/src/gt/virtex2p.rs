@@ -8,24 +8,15 @@ use crate::{
     diff::{CollectorCtx, OcdMode},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let intdb = backend.egrid.db;
     for tile in ["GIGABIT.B", "GIGABIT.T"] {
-        let node_kind = intdb.get_node(tile);
-        let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::MainAuto,
-            tile_name: tile,
-            bel,
-            bel_name: "GT",
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, "GT", TileBits::MainAuto);
         fuzz_one!(ctx, "ENABLE", "1", [], [(mode "GT")]);
-        let bel_data = &intdb.nodes[node_kind].bels[bel];
+        let bel_data = &intdb.nodes[ctx.node_kind].bels[ctx.bel];
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;
@@ -35,9 +26,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if intdb.wires.key(wire.1).starts_with("IMUX.G") {
                 continue;
             }
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = &*format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode "GT"), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode "GT")]);
         }
         fuzz_enum!(ctx, "IOSTANDARD", [
             "FIBRE_CHAN", "ETHERNET", "XAUI", "INFINIBAND", "AURORA"
@@ -147,7 +136,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if egrid.db.wires.key(wire.1).starts_with("IMUX.G") {
                 continue;
             }
-            let int_tiles = &["INT.PPC"; 48];
+            let int_tiles = &["INT.GT.CLKPAD", "INT.PPC", "INT.PPC", "INT.PPC", "INT.PPC"];
             let flip = egrid.db.wires.key(wire.1).starts_with("IMUX.SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
@@ -185,7 +174,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff(tile, bel, "IOSTANDARD", val)
                 .assert_empty();
         }
-        ctx.collect_enum(tile, bel, "TX_PREEMPHASIS", &["0", "1", "2", "3"]);
+        ctx.collect_enum_int(tile, bel, "TX_PREEMPHASIS", 0..4, 0);
         ctx.collect_enum(tile, bel, "TERMINATION_IMP", &["50", "75"]);
         ctx.collect_enum(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4"]);
         ctx.collect_enum(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4"]);
@@ -197,24 +186,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             &["MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"],
             "NONE",
         );
-        ctx.collect_enum(
-            tile,
-            bel,
-            "CHAN_BOND_WAIT",
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-            ],
-        );
-        ctx.collect_enum(
-            tile,
-            bel,
-            "CHAN_BOND_LIMIT",
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-                "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-                "30", "31",
-            ],
-        );
+        ctx.collect_enum_int(tile, bel, "CHAN_BOND_WAIT", 1..16, 0);
+        ctx.collect_enum_int(tile, bel, "CHAN_BOND_LIMIT", 1..32, 0);
         ctx.collect_bitvec(tile, bel, "CHAN_BOND_OFFSET", "");
         ctx.collect_enum(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_enum(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);

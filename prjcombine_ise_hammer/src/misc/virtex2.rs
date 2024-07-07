@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_int::{db::BelId, grid::DieId};
+use prjcombine_int::grid::DieId;
 use prjcombine_types::{TileItem, TileItemKind};
 use prjcombine_virtex2::{
     expanded::{IoDiffKind, IoPadKind},
@@ -13,14 +13,14 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend, Key, SimpleFeatureId},
+    backend::{FeatureBit, FeatureId, IseBackend, Key},
     diff::{
         concat_bitvec, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum,
         xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode,
     },
     fgen::{get_bonded_ios_v2_pkg, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
     io::virtex2::{get_iostds, DciKind, DiffKind},
 };
 
@@ -54,7 +54,7 @@ pub fn add_fuzzers<'a>(
     };
 
     fn fuzz_global(ctx: &mut FuzzCtx, name: &'static str, vals: &'static [&'static str]) {
-        for val in vals {
+        for &val in vals {
             fuzz_one!(ctx, name, val, [], [(global_opt name, val)]);
         }
     }
@@ -64,31 +64,15 @@ pub fn add_fuzzers<'a>(
 
     if edev.grid.kind == GridKind::Spartan3 {
         for tile in [ll, ul, lr, ur] {
-            let node_kind = backend.egrid.db.get_node(tile);
-            for i in 0..2 {
-                let ctx = FuzzCtx {
-                    session,
-                    node_kind,
-                    bits: TileBits::Cfg,
-                    tile_name: tile,
-                    bel: BelId::from_idx(2 + i),
-                    bel_name: ["DCIRESET0", "DCIRESET1"][i],
-                };
+            for bel in ["DCIRESET0", "DCIRESET1"] {
+                let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::Cfg);
                 fuzz_one!(ctx, "PRESENT", "1", [], [(mode "DCIRESET")]);
             }
         }
     }
 
     // LL
-    let node_kind = backend.egrid.db.get_node(ll);
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: ll,
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    let mut ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::Cfg);
     if edev.grid.kind.is_virtex2() {
         fuzz_global(&mut ctx, "DISABLEBANDGAP", &["YES", "NO"]);
         fuzz_global(&mut ctx, "RAISEVGG", &["YES", "NO"]);
@@ -138,17 +122,17 @@ pub fn add_fuzzers<'a>(
         fuzz_pull(&mut ctx, "M1PIN");
         fuzz_pull(&mut ctx, "M2PIN");
     }
+    if edev.grid.kind.is_virtex2() {
+        let ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::FreezeDci);
+        fuzz_one!(ctx, "FREEZE_DCI", "1", [
+            (global_mutex "DCI", "FREEZE")
+        ], [
+            (global_opt "FREEZEDCI", "YES")
+        ]);
+    }
 
     // UL
-    let node_kind = backend.egrid.db.get_node(ul);
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: ul,
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    let mut ctx = FuzzCtx::new_fake_bel(session, backend, ul, "MISC", TileBits::Cfg);
     fuzz_global(&mut ctx, "PROGPIN", &["PULLUP", "PULLNONE"]);
     fuzz_pull(&mut ctx, "TDIPIN");
     if edev.grid.kind.is_spartan3a() {
@@ -165,31 +149,15 @@ pub fn add_fuzzers<'a>(
     }
     ctx.bits = TileBits::Cfg;
 
-    ctx.bel_name = "PMV";
-    ctx.bel = BelId::from_idx(if edev.grid.kind.is_virtex2() {
-        2
-    } else if !edev.grid.kind.is_spartan3ea() {
-        4
-    } else {
-        0
-    });
+    let ctx = FuzzCtx::new(session, backend, ul, "PMV", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PMV")]);
     if edev.grid.kind.is_spartan3a() {
-        ctx.bel_name = "DNA_PORT";
-        ctx.bel = BelId::from_idx(ctx.bel.to_idx() + 1);
+        let ctx = FuzzCtx::new(session, backend, ul, "DNA_PORT", TileBits::Cfg);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "DNA_PORT")]);
     }
 
     // LR
-    let node_kind = backend.egrid.db.get_node(lr);
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: lr,
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    let mut ctx = FuzzCtx::new_fake_bel(session, backend, lr, "MISC", TileBits::Cfg);
     fuzz_global(&mut ctx, "DONEPIN", &["PULLUP", "PULLNONE"]);
     if !edev.grid.kind.is_spartan3a() {
         fuzz_global(&mut ctx, "CCLKPIN", &["PULLUP", "PULLNONE"]);
@@ -197,33 +165,11 @@ pub fn add_fuzzers<'a>(
     if edev.grid.kind.is_virtex2() {
         fuzz_global(&mut ctx, "POWERDOWNPIN", &["PULLUP", "PULLNONE"]);
     }
-    ctx.bel_name = "STARTUP";
-    ctx.bel = BelId::from_idx(if edev.grid.kind.is_virtex2() {
-        2
-    } else if !edev.grid.kind.is_spartan3ea() {
-        4
-    } else {
-        0
-    });
+    let mut ctx = FuzzCtx::new(session, backend, lr, "STARTUP", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "STARTUP")]);
-    fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [(mode "STARTUP"), (global_opt "STARTUPCLK", "JTAGCLK"), (pin "CLK")]);
-    if edev.grid.kind.is_spartan3a() {
-        ctx.bits = TileBits::Reg(Reg::Cor1);
-        ctx.tile_name = "REG.COR1.S3A";
-    } else {
-        ctx.bits = TileBits::Reg(Reg::Cor0);
-        ctx.tile_name = reg_cor;
-    }
-    if edev.grid.kind == GridKind::Spartan3E {
-        fuzz_one!(ctx, "MULTIBOOT_ENABLE", "1", [(mode "STARTUP")], [(pin "MBT")]);
-    }
-    for val in ["CCLK", "USERCLK", "JTAGCLK"] {
-        fuzz_one!(ctx, "STARTUPCLK", val, [(mode "STARTUP"), (pin "CLK")], [(global_opt "STARTUPCLK", val)]);
-    }
-    ctx.bits = TileBits::Cfg;
-    ctx.tile_name = lr;
-    fuzz_enum!(ctx, "GTSINV", ["GTS", "GTS_B"], [(mode "STARTUP"), (pin "GTS"), (nopin "GSR")]);
-    fuzz_enum!(ctx, "GSRINV", ["GSR", "GSR_B"], [(mode "STARTUP"), (pin "GSR"), (nopin "GTS")]);
+    fuzz_inv!(ctx, "CLK", [(mode "STARTUP"), (global_opt "STARTUPCLK", "JTAGCLK")]);
+    fuzz_inv!(ctx, "GTS", [(mode "STARTUP"), (nopin "GSR")]);
+    fuzz_inv!(ctx, "GSR", [(mode "STARTUP"), (nopin "GTS")]);
     for attr in ["GTS_SYNC", "GSR_SYNC", "GWE_SYNC"] {
         if !edev.grid.kind.is_virtex2() && attr == "GWE_SYNC" {
             continue;
@@ -232,48 +178,54 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, attr, val, [(mode "STARTUP")], [(global_opt attr, val)]);
         }
     }
-    ctx.bel_name = "CAPTURE";
-    ctx.bel = BelId::from_idx(ctx.bel.to_idx() + 1);
+    if edev.grid.kind.is_spartan3a() {
+        ctx.bits = TileBits::Reg(Reg::Cor1);
+        ctx.tile_name = "REG.COR1.S3A".to_string();
+    } else {
+        ctx.bits = TileBits::Reg(Reg::Cor0);
+        ctx.tile_name = reg_cor.to_string();
+    }
+    if edev.grid.kind == GridKind::Spartan3E {
+        fuzz_one!(ctx, "MULTIBOOT_ENABLE", "1", [(mode "STARTUP")], [(pin "MBT")]);
+    }
+    for val in ["CCLK", "USERCLK", "JTAGCLK"] {
+        fuzz_one!(ctx, "STARTUPCLK", val, [(mode "STARTUP"), (pin "CLK")], [(global_opt "STARTUPCLK", val)]);
+    }
+    let mut ctx = FuzzCtx::new(session, backend, lr, "CAPTURE", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "CAPTURE")]);
-    fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [(mode "CAPTURE"), (pin "CLK")]);
-    fuzz_enum!(ctx, "CAPINV", ["CAP", "CAP_B"], [(mode "CAPTURE"), (pin "CAP")]);
+    fuzz_inv!(ctx, "CLK", [(mode "CAPTURE")]);
+    fuzz_inv!(ctx, "CAP", [(mode "CAPTURE")]);
     if edev.grid.kind.is_spartan3a() {
         ctx.bits = TileBits::Reg(Reg::Cor2);
-        ctx.tile_name = "REG.COR2.S3A";
+        ctx.tile_name = "REG.COR2.S3A".to_string();
         fuzz_enum!(ctx, "ONESHOT", ["FALSE", "TRUE"], [(mode "CAPTURE")]);
     } else {
         ctx.bits = TileBits::Reg(Reg::Cor0);
-        ctx.tile_name = reg_cor;
+        ctx.tile_name = reg_cor.to_string();
         fuzz_enum!(ctx, "ONESHOT_ATTR", ["ONE_SHOT"], [(mode "CAPTURE")]);
     }
-    ctx.bits = TileBits::Cfg;
-    ctx.tile_name = lr;
-    ctx.bel_name = "ICAP";
-    ctx.bel = BelId::from_idx(ctx.bel.to_idx() + 1);
-    if edev.grid.kind.is_spartan3a() {
-        ctx.bits = TileBits::CfgReg(Reg::Ctl0);
-    }
+    let ctx = FuzzCtx::new(
+        session,
+        backend,
+        lr,
+        "ICAP",
+        if edev.grid.kind.is_spartan3a() {
+            TileBits::CfgReg(Reg::Ctl0)
+        } else {
+            TileBits::Cfg
+        },
+    );
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "ICAP")]);
-    fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [(mode "ICAP"), (pin "CLK")]);
-    fuzz_enum!(ctx, "CEINV", ["CE", "CE_B"], [(mode "ICAP"), (pin "CE")]);
-    fuzz_enum!(ctx, "WRITEINV", ["WRITE", "WRITE_B"], [(mode "ICAP"), (pin "WRITE")]);
-    ctx.bits = TileBits::Cfg;
+    fuzz_inv!(ctx, "CLK", [(mode "ICAP")]);
+    fuzz_inv!(ctx, "CE", [(mode "ICAP")]);
+    fuzz_inv!(ctx, "WRITE", [(mode "ICAP")]);
     if edev.grid.kind.is_spartan3a() {
-        ctx.bel_name = "SPI_ACCESS";
-        ctx.bel = BelId::from_idx(ctx.bel.to_idx() + 1);
+        let ctx = FuzzCtx::new(session, backend, lr, "SPI_ACCESS", TileBits::Cfg);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "SPI_ACCESS")]);
     }
 
     // UR
-    let node_kind = backend.egrid.db.get_node(ur);
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: ur,
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    let mut ctx = FuzzCtx::new_fake_bel(session, backend, ur, "MISC", TileBits::Cfg);
     fuzz_pull(&mut ctx, "TCKPIN");
     fuzz_pull(&mut ctx, "TDOPIN");
     if !edev.grid.kind.is_spartan3a() {
@@ -282,21 +234,13 @@ pub fn add_fuzzers<'a>(
         fuzz_pull(&mut ctx, "MISO2PIN");
         fuzz_pull(&mut ctx, "CSO2PIN");
     }
-    ctx.bel_name = "BSCAN";
-    ctx.bel = BelId::from_idx(if edev.grid.kind.is_virtex2() {
-        2
-    } else if !edev.grid.kind.is_spartan3ea() {
-        4
-    } else {
-        0
-    });
+    let ctx = FuzzCtx::new(session, backend, ur, "BSCAN", TileBits::Cfg);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BSCAN")]);
     fuzz_multi!(ctx, "USERID", "", 32, [], (global_hex_prefix "USERID"));
     fuzz_one!(ctx, "TDO1", "1", [(mode "BSCAN"), (nopin "TDO2")], [(pin_full "TDO1")]);
     fuzz_one!(ctx, "TDO2", "1", [(mode "BSCAN"), (nopin "TDO1")], [(pin_full "TDO2")]);
     if edev.grid.kind.is_virtex2p() {
-        ctx.bel_name = "JTAGPPC";
-        ctx.bel = BelId::from_idx(3);
+        let ctx = FuzzCtx::new(session, backend, ur, "JTAGPPC", TileBits::Cfg);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "JTAGPPC")]);
     }
 
@@ -327,7 +271,6 @@ pub fn add_fuzzers<'a>(
                 (ll, 0, 6),
             ] {
                 let bel_name = ["DCI0", "DCI1"][bel];
-                let bel = BelId::from_idx(bel);
                 let node_kind = backend.egrid.db.get_node(tile_name);
                 let col = if tile_name == ul || tile_name == ll {
                     edev.grid.col_left()
@@ -391,37 +334,42 @@ pub fn add_fuzzers<'a>(
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: tile_name,
-                                bel: bel_name,
-                                attr: "LVDSBIAS",
-                                val: std.name,
+                            feature: FeatureId {
+                                tile: tile_name.to_string(),
+                                bel: bel_name.to_string(),
+                                attr: "LVDSBIAS".into(),
+                                val: std.name.into(),
                             },
                             base: vec![
-                                TileKV::Package(&package.name),
-                                TileKV::GlobalMutex("DIFF", "BANK"),
-                                TileKV::GlobalMutex("VREF", "NO"),
-                                TileKV::GlobalMutex("DCI", "YES"),
+                                TileKV::Package(package.name.clone()),
+                                TileKV::GlobalMutex("DIFF".into(), "BANK".into()),
+                                TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                                TileKV::GlobalMutex("DCI".into(), "YES".into()),
                             ],
                             fuzz: vec![
                                 TileFuzzKV::Raw(Key::SiteMode(site), None.into(), "DIFFM".into()),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "OMUX"),
+                                    Key::SiteAttr(site, "OMUX".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "O1INV"),
+                                    Key::SiteAttr(site, "O1INV".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "IOATTRBOX"),
+                                    Key::SiteAttr(site, "IOATTRBOX".into()),
                                     None.into(),
                                     std.name.into(),
                                 ),
-                                TileFuzzKV::Raw(Key::SitePin(site, "O1"), None.into(), true.into()),
+                                TileFuzzKV::Raw(
+                                    Key::SitePin(site, "O1".into()),
+                                    None.into(),
+                                    true.into(),
+                                ),
                             ],
+                            extras: vec![],
                         }));
                     }
                     if matches!(
@@ -432,37 +380,38 @@ pub fn add_fuzzers<'a>(
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: tile_name,
-                                bel: bel_name,
-                                attr: "DCI_TERM",
-                                val: std.name,
+                            feature: FeatureId {
+                                tile: tile_name.into(),
+                                bel: bel_name.into(),
+                                attr: "DCI_TERM".into(),
+                                val: std.name.into(),
                             },
                             base: vec![
-                                TileKV::Package(&package.name),
-                                TileKV::GlobalMutex("VREF", "NO"),
-                                TileKV::GlobalMutex("DCI", "BANK_TERM"),
+                                TileKV::Package(package.name.clone()),
+                                TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                                TileKV::GlobalMutex("DCI".into(), "BANK_TERM".into()),
                                 TileKV::Raw(Key::SiteMode(site_other), "IOB".into()),
-                                TileKV::Raw(Key::SiteAttr(site_other, "OMUX"), "O1".into()),
-                                TileKV::Raw(Key::SiteAttr(site_other, "O1INV"), "O1".into()),
+                                TileKV::Raw(Key::SiteAttr(site_other, "OMUX".into()), "O1".into()),
+                                TileKV::Raw(Key::SiteAttr(site_other, "O1INV".into()), "O1".into()),
                                 TileKV::Raw(
-                                    Key::SiteAttr(site_other, "IOATTRBOX"),
+                                    Key::SiteAttr(site_other, "IOATTRBOX".into()),
                                     "LVDCI_33".into(),
                                 ),
-                                TileKV::Raw(Key::SitePin(site_other, "O1"), true.into()),
+                                TileKV::Raw(Key::SitePin(site_other, "O1".into()), true.into()),
                                 TileKV::Raw(Key::SiteMode(site_vrp), None.into()),
                                 TileKV::Raw(Key::SiteMode(site_vrn), None.into()),
-                                TileKV::Raw(Key::SiteAttr(site, "IMUX"), "1".into()),
-                                TileKV::Raw(Key::SitePin(site, "I"), true.into()),
+                                TileKV::Raw(Key::SiteAttr(site, "IMUX".into()), "1".into()),
+                                TileKV::Raw(Key::SitePin(site, "I".into()), true.into()),
                             ],
                             fuzz: vec![
                                 TileFuzzKV::Raw(Key::SiteMode(site), "IOB".into(), "IOB".into()),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "IOATTRBOX"),
+                                    Key::SiteAttr(site, "IOATTRBOX".into()),
                                     "GTL".into(),
                                     std.name.into(),
                                 ),
                             ],
+                            extras: vec![],
                         }));
                     }
                 }
@@ -471,118 +420,152 @@ pub fn add_fuzzers<'a>(
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: tile_name,
-                                bel: bel_name,
-                                attr: "DCI_OUT",
-                                val,
+                            feature: FeatureId {
+                                tile: tile_name.to_string(),
+                                bel: bel_name.to_string(),
+                                attr: "DCI_OUT".into(),
+                                val: val.into(),
                             },
                             base: vec![
-                                TileKV::Package(&package.name),
-                                TileKV::GlobalMutex("VREF", "NO"),
-                                TileKV::GlobalMutex("DCI", "BANK"),
+                                TileKV::Package(package.name.clone()),
+                                TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                                TileKV::GlobalMutex("DCI".into(), "BANK".into()),
                                 TileKV::Raw(Key::SiteMode(site_other), "IOB".into()),
-                                TileKV::Raw(Key::SiteAttr(site_other, "OMUX"), "O1".into()),
-                                TileKV::Raw(Key::SiteAttr(site_other, "O1INV"), "O1".into()),
+                                TileKV::Raw(Key::SiteAttr(site_other, "OMUX".into()), "O1".into()),
+                                TileKV::Raw(Key::SiteAttr(site_other, "O1INV".into()), "O1".into()),
                                 TileKV::Raw(
-                                    Key::SiteAttr(site_other, "IOATTRBOX"),
+                                    Key::SiteAttr(site_other, "IOATTRBOX".into()),
                                     "LVDCI_33".into(),
                                 ),
-                                TileKV::Raw(Key::SitePin(site_other, "O1"), true.into()),
+                                TileKV::Raw(Key::SitePin(site_other, "O1".into()), true.into()),
                                 TileKV::Raw(Key::SiteMode(site_vrp), None.into()),
                                 TileKV::Raw(Key::SiteMode(site_vrn), None.into()),
-                                TileKV::GlobalOpt("DCIUPDATEMODE", val),
+                                TileKV::GlobalOpt("DCIUPDATEMODE".into(), val.into()),
                             ],
                             fuzz: vec![
                                 TileFuzzKV::Raw(Key::SiteMode(site), None.into(), "IOB".into()),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "OMUX"),
+                                    Key::SiteAttr(site, "OMUX".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "O1INV"),
+                                    Key::SiteAttr(site, "O1INV".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site, "IOATTRBOX"),
+                                    Key::SiteAttr(site, "IOATTRBOX".into()),
                                     None.into(),
                                     "LVDCI_33".into(),
                                 ),
-                                TileFuzzKV::Raw(Key::SitePin(site, "O1"), None.into(), true.into()),
+                                TileFuzzKV::Raw(
+                                    Key::SitePin(site, "O1".into()),
+                                    None.into(),
+                                    true.into(),
+                                ),
                             ],
+                            extras: vec![],
                         }));
                     }
                 } else {
                     session.add_fuzzer(Box::new(TileFuzzerGen {
                         node: node_kind,
                         bits: bits.clone(),
-                        feature: SimpleFeatureId {
-                            tile: tile_name,
-                            bel: bel_name,
-                            attr: "DCI_OUT",
-                            val: "1",
+                        feature: FeatureId {
+                            tile: tile_name.to_string(),
+                            bel: bel_name.to_string(),
+                            attr: "DCI_OUT".into(),
+                            val: "1".into(),
                         },
                         base: vec![
-                            TileKV::Package(&package.name),
-                            TileKV::GlobalMutex("VREF", "NO"),
-                            TileKV::GlobalMutex("DCI", "BANK"),
+                            TileKV::Package(package.name.clone()),
+                            TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                            TileKV::GlobalMutex("DCI".into(), "BANK".into()),
                             TileKV::Raw(Key::SiteMode(site_other), "IOB".into()),
-                            TileKV::Raw(Key::SiteAttr(site_other, "OMUX"), "O1".into()),
-                            TileKV::Raw(Key::SiteAttr(site_other, "O1INV"), "O1".into()),
-                            TileKV::Raw(Key::SiteAttr(site_other, "IOATTRBOX"), "LVDCI_33".into()),
-                            TileKV::Raw(Key::SitePin(site_other, "O1"), true.into()),
+                            TileKV::Raw(Key::SiteAttr(site_other, "OMUX".into()), "O1".into()),
+                            TileKV::Raw(Key::SiteAttr(site_other, "O1INV".into()), "O1".into()),
+                            TileKV::Raw(
+                                Key::SiteAttr(site_other, "IOATTRBOX".into()),
+                                "LVDCI_33".into(),
+                            ),
+                            TileKV::Raw(Key::SitePin(site_other, "O1".into()), true.into()),
                             TileKV::Raw(Key::SiteMode(site_vrp), None.into()),
                             TileKV::Raw(Key::SiteMode(site_vrn), None.into()),
                         ],
                         fuzz: vec![
                             TileFuzzKV::Raw(Key::SiteMode(site), None.into(), "IOB".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "OMUX"), None.into(), "O1".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "O1INV"), None.into(), "O1".into()),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site, "IOATTRBOX"),
+                                Key::SiteAttr(site, "OMUX".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "O1INV".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "IOATTRBOX".into()),
                                 None.into(),
                                 "LVDCI_33".into(),
                             ),
-                            TileFuzzKV::Raw(Key::SitePin(site, "O1"), None.into(), true.into()),
+                            TileFuzzKV::Raw(
+                                Key::SitePin(site, "O1".into()),
+                                None.into(),
+                                true.into(),
+                            ),
                         ],
+                        extras: vec![],
                     }));
                 }
                 if bank == 6 {
                     session.add_fuzzer(Box::new(TileFuzzerGen {
                         node: node_kind,
                         bits: bits.clone(),
-                        feature: SimpleFeatureId {
-                            tile: tile_name,
-                            bel: bel_name,
-                            attr: "DCI_OUT_ALONE",
-                            val: "1",
+                        feature: FeatureId {
+                            tile: tile_name.to_string(),
+                            bel: bel_name.to_string(),
+                            attr: "DCI_OUT_ALONE".into(),
+                            val: "1".into(),
                         },
                         base: vec![
-                            TileKV::Package(&package.name),
-                            TileKV::GlobalMutex("VREF", "NO"),
-                            TileKV::GlobalMutex("DCI", "GLOBAL"),
-                            TileKV::GlobalOpt("MATCH_CYCLE", "NOWAIT"),
+                            TileKV::Package(package.name.clone()),
+                            TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                            TileKV::GlobalMutex("DCI".into(), "GLOBAL".into()),
+                            TileKV::GlobalOpt("MATCH_CYCLE".into(), "NOWAIT".into()),
                             if edev.grid.kind == GridKind::Spartan3 {
                                 TileKV::Nop
                             } else {
-                                TileKV::GlobalOpt("FREEZEDCI", "NO")
+                                TileKV::GlobalOpt("FREEZEDCI".into(), "NO".into())
                             },
                             TileKV::Raw(Key::SiteMode(site_vrp), None.into()),
                             TileKV::Raw(Key::SiteMode(site_vrn), None.into()),
                         ],
                         fuzz: vec![
                             TileFuzzKV::Raw(Key::SiteMode(site), None.into(), "IOB".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "OMUX"), None.into(), "O1".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "O1INV"), None.into(), "O1".into()),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site, "IOATTRBOX"),
+                                Key::SiteAttr(site, "OMUX".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "O1INV".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "IOATTRBOX".into()),
                                 None.into(),
                                 "LVDCI_33".into(),
                             ),
-                            TileFuzzKV::Raw(Key::SitePin(site, "O1"), None.into(), true.into()),
+                            TileFuzzKV::Raw(
+                                Key::SitePin(site, "O1".into()),
+                                None.into(),
+                                true.into(),
+                            ),
                         ],
+                        extras: vec![],
                     }));
                 } else if bank == 5 && edev.grid.dci_io_alt.contains_key(&5) {
                     let (io_alt_vrp, io_alt_vrn) = edev.grid.dci_io_alt[&5];
@@ -591,18 +574,18 @@ pub fn add_fuzzers<'a>(
                     session.add_fuzzer(Box::new(TileFuzzerGen {
                         node: node_kind,
                         bits: bits.clone(),
-                        feature: SimpleFeatureId {
-                            tile: tile_name,
-                            bel: bel_name,
-                            attr: "DCI_OUT_ALONE",
-                            val: "1",
+                        feature: FeatureId {
+                            tile: tile_name.to_string(),
+                            bel: bel_name.to_string(),
+                            attr: "DCI_OUT_ALONE".into(),
+                            val: "1".into(),
                         },
                         base: vec![
-                            TileKV::Package(&package.name),
+                            TileKV::Package(package.name.clone()),
                             TileKV::AltVr(true),
-                            TileKV::GlobalMutex("VREF", "NO"),
-                            TileKV::GlobalMutex("DCI", "GLOBAL_ALT"),
-                            TileKV::GlobalOpt("MATCH_CYCLE", "NOWAIT"),
+                            TileKV::GlobalMutex("VREF".into(), "NO".into()),
+                            TileKV::GlobalMutex("DCI".into(), "GLOBAL_ALT".into()),
+                            TileKV::GlobalOpt("MATCH_CYCLE".into(), "NOWAIT".into()),
                             if site == site_alt_vrp {
                                 TileKV::Nop
                             } else {
@@ -616,25 +599,31 @@ pub fn add_fuzzers<'a>(
                         ],
                         fuzz: vec![
                             TileFuzzKV::Raw(Key::SiteMode(site), None.into(), "IOB".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "OMUX"), None.into(), "O1".into()),
-                            TileFuzzKV::Raw(Key::SiteAttr(site, "O1INV"), None.into(), "O1".into()),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site, "IOATTRBOX"),
+                                Key::SiteAttr(site, "OMUX".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "O1INV".into()),
+                                None.into(),
+                                "O1".into(),
+                            ),
+                            TileFuzzKV::Raw(
+                                Key::SiteAttr(site, "IOATTRBOX".into()),
                                 None.into(),
                                 "LVDCI_33".into(),
                             ),
-                            TileFuzzKV::Raw(Key::SitePin(site, "O1"), None.into(), true.into()),
+                            TileFuzzKV::Raw(
+                                Key::SitePin(site, "O1".into()),
+                                None.into(),
+                                true.into(),
+                            ),
                         ],
+                        extras: vec![],
                     }));
                 }
-                let ctx = FuzzCtx {
-                    session,
-                    node_kind,
-                    bits: TileBits::Cfg,
-                    tile_name,
-                    bel,
-                    bel_name,
-                };
+                let ctx = FuzzCtx::new(session, backend, tile_name, bel_name, TileBits::Cfg);
                 if edev.grid.kind == GridKind::Spartan3 {
                     fuzz_one!(ctx, "PRESENT", "1", [
                         (global_mutex "DCI", "PRESENT")
@@ -649,8 +638,8 @@ pub fn add_fuzzers<'a>(
                         (pip (pin "DATA"), (pin_far "DATA"))
                     ]);
                     for i in 0..13 {
-                        let name = &*format!("LVDSBIAS_OPT{i}").leak();
-                        let gname = &*format!("LVDSBIAS_OPT{i}_{bank}").leak();
+                        let name = format!("LVDSBIAS_OPT{i}");
+                        let gname = format!("LVDSBIAS_OPT{i}_{bank}");
                         fuzz_one!(ctx, name, "1", [
                             (global_mutex "DIFF", "MANUAL")
                         ], [
@@ -678,16 +667,7 @@ pub fn add_fuzzers<'a>(
                     (attr "FORCE_DONE_HIGH", "#OFF")
                 ]);
             }
-            let tile_name = ll;
-            let node_kind = backend.egrid.db.get_node(tile_name);
-            let mut ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Cfg,
-                tile_name,
-                bel: BelId::from_idx(0),
-                bel_name: "MISC",
-            };
+            let mut ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::Cfg);
 
             if edev.grid.kind.is_virtex2p()
                 && !backend.device.name.ends_with("2vp4")
@@ -822,45 +802,51 @@ pub fn add_fuzzers<'a>(
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: tile_name,
-                                bel: "BANK",
-                                attr: "LVDSBIAS_0",
-                                val: std.name,
+                            feature: FeatureId {
+                                tile: tile_name.into(),
+                                bel: "BANK".into(),
+                                attr: "LVDSBIAS_0".into(),
+                                val: std.name.to_string(),
                             },
                             base: vec![
-                                TileKV::Package(&package.name),
-                                TileKV::GlobalMutex("DIFF", "BANK"),
-                                TileKV::GlobalMutex("VREF", "NO"),
+                                TileKV::Package(package.name.clone()),
+                                TileKV::GlobalMutex("DIFF".into(), "BANK".into()),
+                                TileKV::GlobalMutex("VREF".into(), "NO".into()),
                             ],
                             fuzz: vec![
                                 TileFuzzKV::Raw(Key::SiteMode(site_a), None.into(), diffm.into()),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site_a, "OMUX"),
+                                    Key::SiteAttr(site_a, "OMUX".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site_a, "O1INV"),
+                                    Key::SiteAttr(site_a, "O1INV".into()),
                                     None.into(),
                                     "O1".into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site_a, "IOATTRBOX"),
+                                    Key::SiteAttr(site_a, "IOATTRBOX".into()),
                                     None.into(),
                                     std.name.into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SiteAttr(site_a, "SUSPEND"),
+                                    Key::SiteAttr(site_a, "SUSPEND".into()),
                                     None.into(),
-                                    if edev.grid.kind.is_spartan3a() {"3STATE"} else {""}.into(),
+                                    if edev.grid.kind.is_spartan3a() {
+                                        "3STATE"
+                                    } else {
+                                        ""
+                                    }
+                                    .into(),
                                 ),
                                 TileFuzzKV::Raw(
-                                    Key::SitePin(site_a, "O1"),
+                                    Key::SitePin(site_a, "O1".into()),
                                     None.into(),
                                     true.into(),
                                 ),
                             ],
+                            extras: vec![],
                         }));
                     }
                     let alt_std = if std.name == "RSDS_25" {
@@ -871,69 +857,79 @@ pub fn add_fuzzers<'a>(
                     session.add_fuzzer(Box::new(TileFuzzerGen {
                         node: node_kind,
                         bits: bits.clone(),
-                        feature: SimpleFeatureId {
-                            tile: tile_name,
-                            bel: "BANK",
-                            attr: "LVDSBIAS_1",
-                            val: std.name,
+                        feature: FeatureId {
+                            tile: tile_name.into(),
+                            bel: "BANK".into(),
+                            attr: "LVDSBIAS_1".into(),
+                            val: std.name.into(),
                         },
                         base: vec![
-                            TileKV::Package(&package.name),
-                            TileKV::GlobalMutex("DIFF", "BANK"),
+                            TileKV::Package(package.name.clone()),
+                            TileKV::GlobalMutex("DIFF".into(), "BANK".into()),
                             TileKV::Raw(Key::SiteMode(site_a), diffm.into()),
-                            TileKV::Raw(Key::SiteAttr(site_a, "OMUX"), "O1".into()),
-                            TileKV::Raw(Key::SiteAttr(site_a, "O1INV"), "O1".into()),
-                            TileKV::Raw(Key::SiteAttr(site_a, "IOATTRBOX"), alt_std.into()),
+                            TileKV::Raw(Key::SiteAttr(site_a, "OMUX".into()), "O1".into()),
+                            TileKV::Raw(Key::SiteAttr(site_a, "O1INV".into()), "O1".into()),
+                            TileKV::Raw(Key::SiteAttr(site_a, "IOATTRBOX".into()), alt_std.into()),
                             TileKV::Raw(
-                                Key::SiteAttr(site_a, "SUSPEND"),
-                                if edev.grid.kind.is_spartan3a() {"3STATE"} else {""}.into(),
+                                Key::SiteAttr(site_a, "SUSPEND".into()),
+                                if edev.grid.kind.is_spartan3a() {
+                                    "3STATE"
+                                } else {
+                                    ""
+                                }
+                                .into(),
                             ),
-                            TileKV::Raw(Key::SitePin(site_a, "O1"), true.into()),
+                            TileKV::Raw(Key::SitePin(site_a, "O1".into()), true.into()),
                         ],
                         fuzz: vec![
                             TileFuzzKV::Raw(Key::SiteMode(site_b), None.into(), diffm.into()),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site_b, "OMUX"),
+                                Key::SiteAttr(site_b, "OMUX".into()),
                                 None.into(),
                                 "O1".into(),
                             ),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site_b, "O1INV"),
+                                Key::SiteAttr(site_b, "O1INV".into()),
                                 None.into(),
                                 "O1".into(),
                             ),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site_b, "IOATTRBOX"),
+                                Key::SiteAttr(site_b, "IOATTRBOX".into()),
                                 None.into(),
                                 std.name.into(),
                             ),
                             TileFuzzKV::Raw(
-                                Key::SiteAttr(site_b, "SUSPEND"),
+                                Key::SiteAttr(site_b, "SUSPEND".into()),
                                 None.into(),
-                                if edev.grid.kind.is_spartan3a() {"3STATE"} else {""}.into(),
+                                if edev.grid.kind.is_spartan3a() {
+                                    "3STATE"
+                                } else {
+                                    ""
+                                }
+                                .into(),
                             ),
-                            TileFuzzKV::Raw(Key::SitePin(site_b, "O1"), None.into(), true.into()),
+                            TileFuzzKV::Raw(
+                                Key::SitePin(site_b, "O1".into()),
+                                None.into(),
+                                true.into(),
+                            ),
                         ],
+                        extras: vec![],
                     }));
                 }
             }
         }
     }
 
-    // config regs; pick dummy corner to anchor the fuzzers
-    let node_kind = backend.egrid.db.get_node(ll);
-    let mut ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Cfg,
-        tile_name: ll,
-        bel: BelId::from_idx(0),
-        bel_name: "MISC",
-    };
+    // config regs
     if !edev.grid.kind.is_spartan3a() {
-        ctx.bits = TileBits::Reg(Reg::Cor0);
-        ctx.tile_name = reg_cor;
-        ctx.bel_name = "STARTUP";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            reg_cor,
+            "STARTUP",
+            TileBits::Reg(Reg::Cor0),
+        );
         for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
             fuzz_one!(ctx, "GWE_CYCLE", val, [], [(global_opt "GWE_CYCLE", val)]);
             fuzz_one!(ctx, "GTS_CYCLE", val, [], [(global_opt "GTS_CYCLE", val)]);
@@ -988,13 +984,18 @@ pub fn add_fuzzers<'a>(
                 fuzz_one!(ctx, "VRDSEL", val, [], [(global_opt "VRDSEL", val)]);
             }
         }
-        ctx.bits = TileBits::Reg(Reg::Ctl0);
-        ctx.tile_name = if edev.grid.kind.is_virtex2() {
-            "REG.CTL"
-        } else {
-            "REG.CTL.S3"
-        };
-        ctx.bel_name = "MISC";
+
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            if edev.grid.kind.is_virtex2() {
+                "REG.CTL"
+            } else {
+                "REG.CTL.S3"
+            },
+            "MISC",
+            TileBits::Reg(Reg::Ctl0),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "GTS_USR_B", val, [], [(global_opt "GTS_USR_B", val)]);
             fuzz_one!(ctx, "VGG_TEST", val, [], [(global_opt "VGG_TEST", val)]);
@@ -1004,12 +1005,25 @@ pub fn add_fuzzers<'a>(
         // decrypt not fuzzed — too much effort
         for val in ["NONE", "LEVEL1", "LEVEL2"] {
             // disables FreezeDCI?
-            fuzz_one!(ctx, "SECURITY", val, [(global_mutex "DCI", "NO")], [(global_opt "SECURITY", val)]);
+            if edev.grid.kind == GridKind::Virtex2 {
+                fuzz_one!(ctx, "SECURITY", val, [
+                    (global_mutex "DCI", "NO"),
+                    (global_opt "EARLYGHIGH", "YES")
+                ], [
+                    (global_opt "SECURITY", val)
+                ]);
+            } else {
+                fuzz_one!(ctx, "SECURITY", val, [(global_mutex "DCI", "NO")], [(global_opt "SECURITY", val)]);
+            }
         }
     } else {
-        ctx.bel_name = "STARTUP";
-        ctx.bits = TileBits::Reg(Reg::Cor1);
-        ctx.tile_name = "REG.COR1.S3A";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.COR1.S3A",
+            "STARTUP",
+            TileBits::Reg(Reg::Cor1),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "DRIVE_DONE", val, [], [(global_opt "DRIVEDONE", val)]);
             fuzz_one!(ctx, "DONE_PIPE", val, [], [(global_opt "DONEPIPE", val)]);
@@ -1020,8 +1034,13 @@ pub fn add_fuzzers<'a>(
         }
         fuzz_multi!(ctx, "VRDSEL", "", 3, [], (global_bin "VRDSEL"));
 
-        ctx.bits = TileBits::Reg(Reg::Cor2);
-        ctx.tile_name = "REG.COR2.S3A";
+        let mut ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.COR2.S3A",
+            "STARTUP",
+            TileBits::Reg(Reg::Cor2),
+        );
         for val in ["1", "2", "3", "4", "5", "6", "DONE", "KEEP"] {
             fuzz_one!(ctx, "GWE_CYCLE", val, [], [(global_opt "GWE_CYCLE", val)]);
             fuzz_one!(ctx, "GTS_CYCLE", val, [], [(global_opt "GTS_CYCLE", val)]);
@@ -1036,14 +1055,18 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "BPI_DIV8", val, [], [(global_opt "BPI_DIV8", val)]);
             fuzz_one!(ctx, "RESET_ON_ERR", val, [], [(global_opt "RESET_ON_ERR", val)]);
         }
-        ctx.bel_name = "ICAP";
+        ctx.bel_name = "ICAP".into();
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "BYPASS", val, [], [(global_opt "ICAP_BYPASS", val)]);
         }
 
-        ctx.bits = TileBits::Reg(Reg::Ctl0);
-        ctx.tile_name = "REG.CTL.S3A";
-        ctx.bel_name = "MISC";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.CTL.S3A",
+            "MISC",
+            TileBits::Reg(Reg::Ctl0),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "GTS_USR_B", val, [], [(global_opt "GTS_USR_B", val)]);
             fuzz_one!(ctx, "VGG_TEST", val, [], [(global_opt "VGG_TEST", val)]);
@@ -1054,9 +1077,13 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "SECURITY", val, [], [(global_opt "SECURITY", val)]);
         }
 
-        ctx.bits = TileBits::Reg(Reg::CclkFrequency);
-        ctx.tile_name = "REG.CCLK_FREQ";
-        ctx.bel_name = "STARTUP";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.CCLK_FREQ",
+            "STARTUP",
+            TileBits::Reg(Reg::CclkFrequency),
+        );
         for val in [
             "6", "1", "3", "7", "8", "10", "12", "13", "17", "22", "25", "27", "33", "44", "50",
             "100",
@@ -1069,20 +1096,29 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "CLK_SWITCH_OPT", val, [], [(global_opt "CLK_SWITCH_OPT", val)]);
         }
 
-        ctx.bits = TileBits::Reg(Reg::HcOpt);
-        ctx.tile_name = "REG.HC_OPT";
-        ctx.bel_name = "MISC";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.HC_OPT",
+            "MISC",
+            TileBits::Reg(Reg::HcOpt),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "BRAM_SKIP", val, [], [(global_opt "BRAM_SKIP", val)]);
             fuzz_one!(ctx, "TWO_ROUND", val, [], [(global_opt "TWO_ROUND", val)]);
         }
         for i in 1..16 {
-            let val = &*format!("{i}").leak();
-            fuzz_one!(ctx, "HC_CYCLE", val, [], [(global_opt "HC_CYCLE", val)]);
+            let val = format!("{i}");
+            fuzz_one!(ctx, "HC_CYCLE", &val, [], [(global_opt "HC_CYCLE", &val)]);
         }
 
-        ctx.bits = TileBits::Reg(Reg::Powerdown);
-        ctx.tile_name = "REG.POWERDOWN";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.POWERDOWN",
+            "MISC",
+            TileBits::Reg(Reg::Powerdown),
+        );
         for val in ["STARTUPCLK", "INTERNALCLK"] {
             fuzz_one!(ctx, "SW_CLK", val, [], [(global_opt "SW_CLK", val)]);
         }
@@ -1093,24 +1129,39 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "EN_SW_GSR", val, [], [(global_opt "EN_SW_GSR", val)]);
         }
         for i in 1..8 {
-            let val = &*format!("{i}").leak();
-            fuzz_one!(ctx, "WAKE_DELAY1", val, [], [(global_opt "WAKE_DELAY1", val)]);
+            let val = format!("{i}");
+            fuzz_one!(ctx, "WAKE_DELAY1", &val, [], [(global_opt "WAKE_DELAY1", val)]);
         }
         for i in 1..32 {
-            let val = &*format!("{i}").leak();
-            fuzz_one!(ctx, "WAKE_DELAY2", val, [], [(global_opt "WAKE_DELAY2", val)]);
+            let val = format!("{i}");
+            fuzz_one!(ctx, "WAKE_DELAY2", &val, [], [(global_opt "WAKE_DELAY2", val)]);
         }
 
-        ctx.bits = TileBits::Reg(Reg::PuGwe);
-        ctx.tile_name = "REG.PU_GWE";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.PU_GWE",
+            "MISC",
+            TileBits::Reg(Reg::PuGwe),
+        );
         fuzz_multi!(ctx, "SW_GWE_CYCLE", "", 10, [], (global_dec "SW_GWE_CYCLE"));
 
-        ctx.bits = TileBits::Reg(Reg::PuGts);
-        ctx.tile_name = "REG.PU_GTS";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.PU_GTS",
+            "MISC",
+            TileBits::Reg(Reg::PuGts),
+        );
         fuzz_multi!(ctx, "SW_GTS_CYCLE", "", 10, [], (global_dec "SW_GTS_CYCLE"));
 
-        ctx.bits = TileBits::Reg(Reg::Mode);
-        ctx.tile_name = "REG.MODE";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.MODE",
+            "MISC",
+            TileBits::Reg(Reg::Mode),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "TESTMODE_EN", val, [], [(global_opt "TESTMODE_EN", val)]);
             fuzz_one!(ctx, "NEXT_CONFIG_NEW_MODE", val, [], [(global_opt "NEXT_CONFIG_NEW_MODE", val)]);
@@ -1118,16 +1169,25 @@ pub fn add_fuzzers<'a>(
         fuzz_multi!(ctx, "NEXT_CONFIG_BOOT_MODE", "", 3, [], (global_bin "NEXT_CONFIG_BOOT_MODE"));
         fuzz_multi!(ctx, "BOOTVSEL", "", 3, [], (global_bin "BOOTVSEL"));
 
-        ctx.bits = TileBits::Raw(vec![
-            BitTile::Reg(DieId::from_idx(0), Reg::General1),
-            BitTile::Reg(DieId::from_idx(0), Reg::General2),
-        ]);
-        ctx.tile_name = "REG.GENERAL";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.GENERAL",
+            "MISC",
+            TileBits::Raw(vec![
+                BitTile::Reg(DieId::from_idx(0), Reg::General1),
+                BitTile::Reg(DieId::from_idx(0), Reg::General2),
+            ]),
+        );
         fuzz_multi!(ctx, "NEXT_CONFIG_ADDR", "", 32, [], (global_hex_prefix "NEXT_CONFIG_ADDR"));
 
-        ctx.bits = TileBits::Reg(Reg::SeuOpt);
-        ctx.tile_name = "REG.SEU_OPT";
-        ctx.bel_name = "MISC";
+        let ctx = FuzzCtx::new_fake_tile(
+            session,
+            backend,
+            "REG.SEU_OPT",
+            "MISC",
+            TileBits::Reg(Reg::SeuOpt),
+        );
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "GLUTMASK", val, [], [(global_opt "GLUTMASK", val)]);
             fuzz_one!(ctx, "POST_CRC_KEEP", val, [], [(global_opt "POST_CRC_KEEP", val)]);
@@ -1139,7 +1199,7 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "POST_CRC_FREQ", val, [], [(global_opt "POST_CRC_FREQ", val)]);
         }
 
-        ctx.bits = TileBits::Null;
+        let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
         for val in ["NO", "YES"] {
             fuzz_one!(ctx, "SPI2_EN", val, [], [(global_opt "SPI2_EN", val)]);
             fuzz_one!(ctx, "BRAMMASK", val, [], [(global_opt "BRAMMASK", val)]);
@@ -1330,6 +1390,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         ctx.collect_enum(tile, bel, "M0PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "M1PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "M2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
+    }
+    if edev.grid.kind.is_virtex2() {
+        let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
+        let diff = diff.filter_tiles(&[4]);
+        let mut freeze_dci_nops = 0;
+        for (bit, val) in diff.bits {
+            assert!(val);
+            freeze_dci_nops |= 1 << bit.bit;
+        }
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "FREEZE_DCI_NOPS", freeze_dci_nops);
     }
 
     // UL
@@ -1565,7 +1636,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                     let diffs = (0..13)
                         .map(|i| {
                             ctx.state
-                                .get_diff(tile, bel, &*format!("LVDSBIAS_OPT{i}").leak(), "1")
+                                .get_diff(tile, bel, &format!("LVDSBIAS_OPT{i}"), "1")
                         })
                         .collect();
                     let item = xlat_bitvec(diffs);
@@ -2120,20 +2191,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
             val.push(false);
         }
         ctx.tiledb.insert(tile, bel, "CONFIG_RATE", item);
-        ctx.collect_enum(tile, bel, "CCLK_DLY", &["0", "1", "2", "3"]);
-        ctx.collect_enum(tile, bel, "CCLK_SEP", &["0", "1", "2", "3"]);
-        ctx.collect_enum(tile, bel, "CLK_SWITCH_OPT", &["0", "1", "2", "3"]);
+        ctx.collect_enum_int(tile, bel, "CCLK_DLY", 0..4, 0);
+        ctx.collect_enum_int(tile, bel, "CCLK_SEP", 0..4, 0);
+        ctx.collect_enum_int(tile, bel, "CLK_SWITCH_OPT", 0..4, 0);
 
         let tile = "REG.HC_OPT";
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "BRAM_SKIP", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "TWO_ROUND", "NO", "YES");
-        ctx.collect_enum(
-            tile,
-            bel,
-            "HC_CYCLE",
-            &Vec::from_iter((1..16).map(|x| &*format!("{x}").leak())),
-        );
+        ctx.collect_enum_int(tile, bel, "HC_CYCLE", 1..16, 0);
 
         let tile = "REG.POWERDOWN";
         let bel = "MISC";
@@ -2142,18 +2208,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         ctx.collect_enum_bool(tile, bel, "EN_PORB", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "EN_SW_GSR", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "SUSPEND_FILTER", "NO", "YES");
-        ctx.collect_enum(
-            tile,
-            bel,
-            "WAKE_DELAY1",
-            &Vec::from_iter((1..8).map(|x| &*format!("{x}").leak())),
-        );
-        ctx.collect_enum(
-            tile,
-            bel,
-            "WAKE_DELAY2",
-            &Vec::from_iter((1..32).map(|x| &*format!("{x}").leak())),
-        );
+        ctx.collect_enum_int(tile, bel, "WAKE_DELAY1", 1..8, 0);
+        ctx.collect_enum_int(tile, bel, "WAKE_DELAY2", 1..32, 0);
 
         let tile = "REG.PU_GWE";
         ctx.collect_bitvec(tile, bel, "SW_GWE_CYCLE", "");
@@ -2227,5 +2283,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         ctx.tiledb.insert(tile, bel, "POST_CRC_FREQ", item);
 
         // TODO
+    }
+
+    if edev.grid.kind.is_virtex2() {
+        let is_double_grestore =
+            ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
+        ctx.tiledb.insert_device_data(
+            &ctx.device.name,
+            "DOUBLE_GRESTORE",
+            BitVec::repeat(is_double_grestore, 1),
+        );
     }
 }

@@ -8,9 +8,8 @@ use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use rand::prelude::*;
-use std::borrow::Cow;
 use std::collections::{hash_map, HashMap};
-use std::fmt::Write;
+use std::fmt::{Debug, Write};
 
 use crate::diff::Diff;
 use crate::fgen::Loc;
@@ -36,40 +35,66 @@ impl<'a> std::fmt::Debug for IseBackend<'a> {
 pub enum Key<'a> {
     Package,
     SiteMode(&'a str),
-    GlobalOpt(&'a str),
-    SiteAttr(&'a str, &'a str),
-    SitePin(&'a str, &'a str),
+    GlobalOpt(String),
+    SiteAttr(&'a str, String),
+    SitePin(&'a str, String),
+    SitePinFrom(&'a str, String),
     Pip(&'a str, &'a str, &'a str),
     VccAux,
     AltVr,
-    GlobalMutex(&'a str),
-    RowMutex(&'a str, RowId),
-    SiteMutex(&'a str, &'a str),
+    GlobalMutex(String),
+    RowMutex(String, RowId),
+    SiteMutex(&'a str, String),
     NodeMutex((DieId, (ColId, RowId), WireId)),
-    TileMutex(Loc, &'a str),
+    TileMutex(Loc, String),
     IntMutex(DieId, ColId, RowId),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum Value<'a> {
-    None,
-    Bool(bool),
-    String(Cow<'a, str>),
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum PinFromKind {
+    Iob,
+    Bufg,
 }
 
-impl<'a> From<Option<core::convert::Infallible>> for Value<'a> {
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum Value {
+    None,
+    Bool(bool),
+    String(String),
+    PinFrom(PinFromKind),
+}
+
+impl From<Option<core::convert::Infallible>> for Value {
     fn from(_: Option<core::convert::Infallible>) -> Self {
         Self::None
     }
 }
 
-impl<'a> From<&'a str> for Value<'a> {
+impl<'a> From<&'a str> for Value {
     fn from(value: &'a str) -> Self {
         Self::String(value.into())
     }
 }
 
-impl<'a> From<bool> for Value<'a> {
+impl<'a> From<&'a String> for Value {
+    fn from(value: &'a String) -> Self {
+        Self::String(value.clone())
+    }
+}
+
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Self::String(value)
+    }
+}
+
+impl From<PinFromKind> for Value {
+    fn from(value: PinFromKind) -> Self {
+        Self::PinFrom(value)
+    }
+}
+
+impl From<bool> for Value {
     fn from(value: bool) -> Self {
         Self::Bool(value)
     }
@@ -81,20 +106,38 @@ pub enum MultiValue {
     Hex(i32),
     HexPrefix,
     Bin,
-    Dec,
+    Dec(i32),
 }
 
 #[derive(Clone, Debug)]
-pub enum FuzzerInfo<'a> {
-    Simple(Vec<BitTile>, SimpleFeatureId<'a>),
+pub struct FuzzerFeature {
+    pub id: FeatureId,
+    pub tiles: Vec<BitTile>,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct SimpleFeatureId<'a> {
-    pub tile: &'a str,
-    pub bel: &'a str,
-    pub attr: &'a str,
-    pub val: &'a str,
+#[derive(Clone)]
+pub struct FuzzerInfo {
+    pub features: Vec<FuzzerFeature>,
+}
+
+impl Debug for FuzzerInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.features[0].id)
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash)]
+pub struct FeatureId {
+    pub tile: String,
+    pub bel: String,
+    pub attr: String,
+    pub val: String,
+}
+
+impl Debug for FeatureId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}:{}", self.tile, self.bel, self.attr, self.val)
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -120,114 +163,130 @@ pub struct SimpleFeatureData {
 pub enum PostProc {}
 
 #[derive(Debug)]
-pub struct State<'a> {
-    pub simple_features: HashMap<SimpleFeatureId<'a>, SimpleFeatureData>,
+pub struct State {
+    pub simple_features: HashMap<FeatureId, SimpleFeatureData>,
 }
 
-impl<'a> State<'a> {
-    pub fn get_diffs<'b: 'a>(
+impl State {
+    pub fn get_diffs(
         &mut self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val: &'b str,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        val: impl Into<String>,
     ) -> Vec<Diff> {
+        let tile = tile.into();
+        let bel = bel.into();
+        let attr = attr.into();
+        let val = val.into();
+        let id = FeatureId {
+            tile,
+            bel,
+            attr,
+            val,
+        };
         self.simple_features
-            .remove(&SimpleFeatureId {
-                tile,
-                bel,
-                attr,
-                val,
+            .remove(&id)
+            .unwrap_or_else(|| {
+                panic!(
+                    "NO DIFF: {tile} {bel} {attr} {val}",
+                    tile = id.tile,
+                    bel = id.bel,
+                    attr = id.attr,
+                    val = id.val
+                )
             })
-            .unwrap_or_else(|| panic!("NO DIFF: {tile} {bel} {attr} {val}"))
             .diffs
     }
 
-    pub fn get_diff(&mut self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) -> Diff {
+    pub fn get_diff(
+        &mut self,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        val: impl Into<String>,
+    ) -> Diff {
         let mut res = self.get_diffs(tile, bel, attr, val);
         assert_eq!(res.len(), 1);
         res.pop().unwrap()
     }
 
-    pub fn peek_diffs<'b: 'a>(
+    pub fn peek_diffs(
         &self,
-        tile: &'b str,
-        bel: &'b str,
-        attr: &'b str,
-        val: &'b str,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        val: impl Into<String>,
     ) -> &Vec<Diff> {
+        let tile = tile.into();
+        let bel = bel.into();
+        let attr = attr.into();
+        let val = val.into();
+        let id = FeatureId {
+            tile,
+            bel,
+            attr,
+            val,
+        };
         &self
             .simple_features
-            .get(&SimpleFeatureId {
-                tile,
-                bel,
-                attr,
-                val,
+            .get(&id)
+            .unwrap_or_else(|| {
+                panic!(
+                    "NO DIFF: {tile} {bel} {attr} {val}",
+                    tile = id.tile,
+                    bel = id.bel,
+                    attr = id.attr,
+                    val = id.val
+                )
             })
-            .unwrap_or_else(|| panic!("NO DIFF: {tile} {bel} {attr} {val}"))
             .diffs
     }
 
-    pub fn peek_diff(&self, tile: &'a str, bel: &'a str, attr: &'a str, val: &'a str) -> &Diff {
+    pub fn peek_diff(
+        &self,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        val: impl Into<String>,
+    ) -> &Diff {
         let res = self.peek_diffs(tile, bel, attr, val);
         assert_eq!(res.len(), 1);
         &res[0]
     }
 }
 
-fn xlat_diff(bits: &HashMap<BitPos, bool>, tiles: &[BitTile]) -> Option<Diff> {
-    let mut res = HashMap::new();
-    'bits: for (&k, &v) in bits {
-        for (i, t) in tiles.iter().enumerate() {
-            if let Some(xk) = t.xlat_pos_rev(k) {
-                res.insert(
-                    FeatureBit {
-                        tile: i,
-                        frame: xk.0,
-                        bit: xk.1,
-                    },
-                    v,
-                );
-                continue 'bits;
-            }
-        }
-        eprintln!("cannot xlat {k:?} in {tiles:?}");
-        return None;
-    }
-    Some(Diff { bits: res })
-}
-
 impl<'a> Backend for IseBackend<'a> {
     type Key = Key<'a>;
-    type Value = Value<'a>;
+    type Value = Value;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
-    type FuzzerInfo = FuzzerInfo<'a>;
+    type FuzzerInfo = FuzzerInfo;
     type PostProc = PostProc;
     type BitPos = BitPos;
-    type State = State<'a>;
+    type State = State;
 
     fn postproc(
         &self,
-        _state: &State<'a>,
+        _state: &State,
         _bs: &mut Bitstream,
         pp: &PostProc,
-        _kv: &HashMap<Key, Value>,
+        _kv: &HashMap<Key<'a>, Value>,
     ) -> bool {
         match *pp {
             // XXX
         }
     }
 
-    fn make_state(&self) -> State<'a> {
+    fn make_state(&self) -> State {
         State {
             simple_features: HashMap::new(),
         }
     }
 
-    fn bitgen(&self, kv: &HashMap<Key<'a>, Value<'a>>) -> Bitstream {
+    fn bitgen(&self, kv: &HashMap<Key, Value>) -> Bitstream {
         let mut gopts = HashMap::new();
-        let mut insts = HashMap::new();
+        let mut insts: HashMap<String, Instance> = HashMap::new();
         let mut nets = HashMap::new();
         let orig_kv = kv;
         let mut kv = kv.clone();
@@ -244,7 +303,7 @@ impl<'a> Backend for IseBackend<'a> {
                         "INIT_06", "INIT_07", "INIT_08", "INIT_09", "INIT_0a", "INIT_0b",
                         "INIT_0c", "INIT_0d", "INIT_0e", "INIT_0f",
                     ] {
-                        let key = Key::SiteAttr(site, attr);
+                        let key = Key::SiteAttr(site, attr.into());
                         let zero =
                             "0000000000000000000000000000000000000000000000000000000000000000";
                         let entry = kv.entry(key).or_insert(zero.into());
@@ -283,7 +342,7 @@ impl<'a> Backend for IseBackend<'a> {
         );
 
         for (k, v) in &kv {
-            match *k {
+            match k {
                 Key::GlobalOpt(opt) => match v {
                     Value::None => (),
                     Value::String(s) => {
@@ -339,12 +398,12 @@ impl<'a> Backend for IseBackend<'a> {
             );
         }
         for (k, v) in &kv {
-            match *k {
+            match k {
                 Key::SiteAttr(site, attr) => match v {
                     Value::None => (),
                     Value::String(s) => {
                         if !s.is_empty() {
-                            let inst = insts.get_mut(site).unwrap();
+                            let inst = insts.get_mut(&**site).unwrap();
                             inst.cfg
                                 .push(vec![attr.to_string(), "".to_string(), s.to_string()]);
                         }
@@ -355,20 +414,78 @@ impl<'a> Backend for IseBackend<'a> {
                     Value::None | Value::Bool(false) => (),
                     Value::Bool(true) => {
                         let name = format!("SINGLE_PIN__{site}__{pin}");
-                        nets.insert(
-                            name.clone(),
-                            Net {
-                                name,
-                                typ: NetType::Plain,
-                                inpins: vec![NetPin {
-                                    inst_name: site.to_string(),
-                                    pin: pin.to_string(),
-                                }],
-                                outpins: vec![],
-                                pips: vec![],
-                                cfg: vec![],
-                            },
-                        );
+                        let mut net = Net {
+                            name: name.clone(),
+                            typ: NetType::Plain,
+                            inpins: vec![NetPin {
+                                inst_name: site.to_string(),
+                                pin: pin.to_string(),
+                            }],
+                            outpins: vec![],
+                            pips: vec![],
+                            cfg: vec![],
+                        };
+                        match kv.get(&Key::SitePinFrom(site, pin.clone())) {
+                            None => (),
+                            Some(Value::None) => (),
+                            Some(Value::PinFrom(kind)) => {
+                                let inst_name = format!("FAKEINST__{site}__{pin}");
+                                let (fi_kind, fi_pin, fi_cfg) = match kind {
+                                    PinFromKind::Iob => match self.edev {
+                                        ExpandedDevice::Xc4k(_) => todo!(),
+                                        ExpandedDevice::Xc5200(_) => todo!(),
+                                        ExpandedDevice::Virtex(_) => todo!(),
+                                        ExpandedDevice::Virtex2(edev) => {
+                                            let mut cfg = vec![("IMUX", "1")];
+                                            if edev.grid.kind.is_spartan3a() {
+                                                cfg.extend([
+                                                    ("IBUF_DELAY_VALUE", "DLY0"),
+                                                    ("DELAY_ADJ_ATTRBOX", "FIXED"),
+                                                    ("SEL_MUX", "0"),
+                                                ]);
+                                            }
+                                            ("IOB", "I", cfg)
+                                        }
+                                        ExpandedDevice::Spartan6(_) => todo!(),
+                                        ExpandedDevice::Virtex4(_) => {
+                                            ("IOB", "I", vec![("INBUFUSED", "0")])
+                                        }
+                                        ExpandedDevice::Ultrascale(_) => todo!(),
+                                        ExpandedDevice::Versal(_) => todo!(),
+                                    },
+                                    PinFromKind::Bufg => match self.edev {
+                                        ExpandedDevice::Xc4k(_) => todo!(),
+                                        ExpandedDevice::Xc5200(_) => todo!(),
+                                        ExpandedDevice::Virtex(_) => todo!(),
+                                        ExpandedDevice::Virtex2(_) => ("BUFGMUX", "O", vec![]),
+                                        ExpandedDevice::Spartan6(_) => todo!(),
+                                        ExpandedDevice::Virtex4(_) => ("BUFGCTRL", "O", vec![]),
+                                        ExpandedDevice::Ultrascale(_) => todo!(),
+                                        ExpandedDevice::Versal(_) => todo!(),
+                                    },
+                                };
+                                insts.insert(
+                                    inst_name.clone(),
+                                    Instance {
+                                        name: inst_name.clone(),
+                                        kind: fi_kind.into(),
+                                        placement: Placement::Unplaced,
+                                        cfg: fi_cfg
+                                            .iter()
+                                            .map(|(a, b)| {
+                                                vec![a.to_string(), "".to_string(), b.to_string()]
+                                            })
+                                            .collect(),
+                                    },
+                                );
+                                net.outpins.push(NetPin {
+                                    inst_name,
+                                    pin: fi_pin.into(),
+                                });
+                            }
+                            _ => unreachable!(),
+                        }
+                        nets.insert(name, net);
                     }
                     _ => unreachable!(),
                 },
@@ -418,62 +535,79 @@ impl<'a> Backend for IseBackend<'a> {
 
     fn return_fuzzer(
         &self,
-        state: &mut State<'a>,
-        f: &FuzzerInfo<'a>,
+        state: &mut State,
+        f: &FuzzerInfo,
         fid: FuzzerId,
         bits: Vec<HashMap<BitPos, bool>>,
     ) -> Option<Vec<FuzzerId>> {
-        match *f {
-            FuzzerInfo::Simple(ref btiles, sfid) => {
-                let mut xdiffs = vec![];
-                for bbits in &bits {
-                    let Some(diff) = xlat_diff(bbits, btiles) else {
-                        eprintln!("failed to xlat bits {bits:?} for {f:?}");
-                        return Some(vec![]);
-                    };
-                    xdiffs.push(diff);
-                }
-                if btiles.is_empty() {
-                    for diff in &xdiffs {
-                        if !diff.bits.is_empty() {
-                            eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");
-                            return Some(vec![]);
+        let mut fdiffs: Vec<_> = f
+            .features
+            .iter()
+            .map(|_| vec![Diff::default(); bits.len()])
+            .collect();
+        for (bitidx, bbits) in bits.iter().enumerate() {
+            'bits: for (&k, &v) in bbits {
+                for (fidx, feat) in f.features.iter().enumerate() {
+                    for (i, t) in feat.tiles.iter().enumerate() {
+                        if let Some(xk) = t.xlat_pos_rev(k) {
+                            fdiffs[fidx][bitidx].bits.insert(
+                                FeatureBit {
+                                    tile: i,
+                                    frame: xk.0,
+                                    bit: xk.1,
+                                },
+                                v,
+                            );
+                            continue 'bits;
                         }
                     }
-                    None
-                } else {
-                    match state.simple_features.entry(sfid) {
-                        hash_map::Entry::Occupied(mut e) => {
-                            let v = e.get_mut();
-                            if v.diffs != xdiffs {
-                                eprintln!(
-                                    "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
-                                    vbits = v.diffs
-                                );
-                                Some(v.fuzzers.clone())
-                            } else {
-                                v.fuzzers.push(fid);
-                                None
-                            }
+                }
+                eprintln!("failed to xlat bit {k:?} [bits {bbits:?}] for {f:?}, candidates:");
+                for feat in &f.features {
+                    println!("{:?}: {:?}", feat.id, feat.tiles);
+                }
+                return Some(vec![]);
+            }
+        }
+        for (feat, xdiffs) in f.features.iter().zip(fdiffs) {
+            if feat.tiles.is_empty() {
+                for diff in &xdiffs {
+                    if !diff.bits.is_empty() {
+                        eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");
+                        return Some(vec![]);
+                    }
+                }
+            } else {
+                match state.simple_features.entry(feat.id.clone()) {
+                    hash_map::Entry::Occupied(mut e) => {
+                        let v = e.get_mut();
+                        if v.diffs != xdiffs {
+                            eprintln!(
+                                "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
+                                vbits = v.diffs
+                            );
+                            return Some(v.fuzzers.clone());
+                        } else {
+                            v.fuzzers.push(fid);
                         }
-                        hash_map::Entry::Vacant(e) => {
-                            e.insert(SimpleFeatureData {
-                                diffs: xdiffs,
-                                fuzzers: vec![fid],
-                            });
-                            None
-                        }
+                    }
+                    hash_map::Entry::Vacant(e) => {
+                        e.insert(SimpleFeatureData {
+                            diffs: xdiffs,
+                            fuzzers: vec![fid],
+                        });
                     }
                 }
             }
         }
+        None
     }
 
     fn diff(bs1: &Bitstream, bs2: &Bitstream) -> HashMap<BitPos, bool> {
         Bitstream::diff(bs1, bs2)
     }
 
-    fn assemble_multi(mv: &MultiValue, y: &BitVec) -> Value<'a> {
+    fn assemble_multi(mv: &MultiValue, y: &BitVec) -> Value {
         match *mv {
             MultiValue::Lut => {
                 let mut v = "#LUT:0x".to_string();
@@ -487,7 +621,7 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                     write!(v, "{c:x}").unwrap();
                 }
-                Value::String(v.into())
+                Value::String(v)
             }
             MultiValue::Hex(delta) => {
                 let mut y = y.clone();
@@ -515,40 +649,42 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                 }
                 let mut v = String::new();
-                let nc = y.len() / 4;
+                let nc = y.len().div_ceil(4);
                 for i in 0..nc {
                     let mut c = 0;
                     for j in 0..4 {
-                        if y[(nc - 1 - i) * 4 + j] {
+                        let bitidx = (nc - 1 - i) * 4 + j;
+                        if bitidx < y.len() && y[bitidx] {
                             c |= 1 << j;
                         }
                     }
                     write!(v, "{c:x}").unwrap();
                 }
-                Value::String(v.into())
+                Value::String(v)
             }
             MultiValue::HexPrefix => {
                 let mut v = "0x".to_string();
-                let nc = y.len() / 4;
+                let nc = y.len().div_ceil(4);
                 for i in 0..nc {
                     let mut c = 0;
                     for j in 0..4 {
-                        if y[(nc - 1 - i) * 4 + j] {
+                        let bitidx = (nc - 1 - i) * 4 + j;
+                        if bitidx < y.len() && y[bitidx] {
                             c |= 1 << j;
                         }
                     }
                     write!(v, "{c:x}").unwrap();
                 }
-                Value::String(v.into())
+                Value::String(v)
             }
             MultiValue::Bin => {
                 let mut v = String::new();
                 for bit in y.iter().rev() {
                     write!(v, "{}", if *bit { "1" } else { "0" }).unwrap();
                 }
-                Value::String(v.into())
+                Value::String(v)
             }
-            MultiValue::Dec => {
+            MultiValue::Dec(delta) => {
                 let mut val: u64 = 0;
                 assert!(y.len() <= 64);
                 for (i, v) in y.iter().enumerate() {
@@ -556,7 +692,8 @@ impl<'a> Backend for IseBackend<'a> {
                         val |= 1 << i;
                     }
                 }
-                Value::String(format!("{}", val).into())
+                val = val.checked_add_signed(delta.into()).unwrap();
+                Value::String(format!("{}", val))
             }
         }
     }

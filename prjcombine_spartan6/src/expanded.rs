@@ -69,6 +69,12 @@ impl ExpandedDevice<'_> {
         )
     }
 
+    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grid.row_to_reg(row);
+        let rd: usize = (row - self.grid.row_reg_bot(reg)).try_into().unwrap();
+        BitTile::Bram(DieId::from_idx(0), self.bram_frame[reg][col] + rd / 4)
+    }
+
     pub fn btile_reg(&self, dir: Dir) -> BitTile {
         BitTile::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
     }

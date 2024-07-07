@@ -10,6 +10,7 @@ use crate::backend::FeatureBit;
 pub enum DbValue {
     String(String),
     BitVec(BitVec),
+    Int(u32),
 }
 
 impl From<BitVec> for DbValue {
@@ -30,10 +31,17 @@ impl From<String> for DbValue {
     }
 }
 
+impl From<u32> for DbValue {
+    fn from(value: u32) -> Self {
+        Self::Int(value)
+    }
+}
+
 impl DbValue {
     pub fn to_json(&self) -> serde_json::Value {
         match self {
             DbValue::String(s) => (&s[..]).into(),
+            DbValue::Int(i) => (*i).into(),
             DbValue::BitVec(bv) => Vec::from_iter(bv.iter().map(|x| *x)).into(),
         }
     }

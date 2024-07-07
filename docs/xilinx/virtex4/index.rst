@@ -12,4 +12,7 @@ Xilinx Virtex 4 FPGAs
    dsp
    center
    clock
+   dcm
+   ccm
    config
+   sysmon

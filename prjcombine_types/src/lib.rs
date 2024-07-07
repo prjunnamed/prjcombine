@@ -152,6 +152,23 @@ impl<T: Debug + Copy + Eq + Ord> TileItem<T> {
             }
         }
     }
+
+    pub fn from_bit(bit: T, invert: bool) -> Self {
+        Self {
+            bits: vec![bit],
+            kind: TileItemKind::BitVec {
+                invert: BitVec::from_iter([invert]),
+            },
+        }
+    }
+
+    pub fn from_bitvec(bits: Vec<T>, invert: bool) -> Self {
+        let invert = BitVec::repeat(invert, bits.len());
+        Self {
+            bits,
+            kind: TileItemKind::BitVec { invert },
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]

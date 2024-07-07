@@ -2,7 +2,7 @@ use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{IseBackend, SimpleFeatureId},
+    backend::{FeatureId, IseBackend},
     diff::{xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
@@ -40,22 +40,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         };
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.tiles.len() == 1 {
-                &*format!("MUX.{}", intdb.wires.key(wire_to.1)).leak()
+                format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
-                &*format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1)).leak()
+                format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             for &wire_from in &mux.ins {
                 let in_name = if node.tiles.len() == 1 {
-                    &intdb.wires.key(wire_from.1)[..]
+                    intdb.wires.key(wire_from.1).to_string()
                 } else {
-                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1)).leak()
+                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                 };
                 let mut base = vec![
                     TileKV::NodeIntDistinct(wire_to, wire_from),
                     TileKV::NodeIntDstFilter(wire_to),
                     TileKV::NodeIntSrcFilter(wire_from),
                     TileKV::NodeMutexShared(wire_from),
-                    TileKV::IntMutexShared("MAIN"),
+                    TileKV::IntMutexShared("MAIN".to_string()),
                 ];
                 let fuzz = vec![
                     TileFuzzKV::NodeMutexExclusive(wire_to),
@@ -85,23 +85,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     }
                 }
                 if matches!(backend.edev, ExpandedDevice::Virtex2(_)) {
-                    base.push(TileKV::NoGlobalOpt("TESTLL"));
+                    base.push(TileKV::NoGlobalOpt("TESTLL".to_string()));
                 }
                 if intdb.wires.key(wire_from.1) == "OUT.TBUS" {
-                    base.push(TileKV::RowMutex("TBUF", "INT"));
+                    base.push(TileKV::RowMutex("TBUF".to_string(), "INT".to_string()));
                 }
 
                 session.add_fuzzer(Box::new(TileFuzzerGen {
                     node: node_kind,
                     bits: bits.clone(),
-                    feature: SimpleFeatureId {
-                        tile: name,
-                        bel: "INT",
-                        attr: mux_name,
-                        val: in_name,
+                    feature: FeatureId {
+                        tile: name.to_string(),
+                        bel: "INT".to_string(),
+                        attr: mux_name.to_string(),
+                        val: in_name.to_string(),
                     },
                     base,
                     fuzz,
+                    extras: vec![],
                 }));
             }
         }
@@ -124,19 +125,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.tiles.len() == 1 {
-                &*format!("MUX.{}", intdb.wires.key(wire_to.1)).leak()
+                format!("MUX.{}", intdb.wires.key(wire_to.1))
             } else {
-                &*format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1)).leak()
+                format!("MUX.{}.{}", wire_to.0, intdb.wires.key(wire_to.1))
             };
             let mut inps = vec![];
             let mut got_empty = false;
             for &wire_from in &mux.ins {
                 let in_name = if node.tiles.len() == 1 {
-                    &intdb.wires.key(wire_from.1)[..]
+                    intdb.wires.key(wire_from.1).to_string()
                 } else {
-                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1)).leak()
+                    format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                 };
-                let diff = ctx.state.get_diff(name, "INT", mux_name, in_name);
+                let diff = ctx.state.get_diff(name, "INT", &mux_name, &in_name);
                 if let ExpandedDevice::Virtex2(ref edev) = ctx.edev {
                     if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp
                         && name == "INT.IOI.S3A.LR"
@@ -182,7 +183,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if ti.bits.is_empty()
                 && !(name == "INT.GT.CLKPAD"
                     && matches!(
-                        mux_name,
+                        &mux_name[..],
                         "MUX.IMUX.CE0" | "MUX.IMUX.CE1" | "MUX.IMUX.TS0" | "MUX.IMUX.TS1"
                     ))
                 && !(name == "INT.BRAM.S3A.03"

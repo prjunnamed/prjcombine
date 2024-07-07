@@ -1085,38 +1085,31 @@ impl<'a, 'b> Expander<'a, 'b> {
                         ),
                     ],
                 };
-                {
-                    let row = row + 16;
-                    let y = row.to_idx();
-                    let node = self.die.add_xnode(
-                        (col, row),
-                        self.db.get_node("MGTCLK"),
-                        &[&format!("BRKH_MGT11CLK_{lr}_X{x}Y{y}", y = y - 1)],
-                        self.db.get_node_naming(&format!("BRKH_MGT11CLK_{lr}")),
-                        &[],
-                    );
-                    node.add_bel(0, format!("GT11CLK_X{gtx}Y{gty}"));
-                    node.add_bel(1, gt.pads_clk[0].0.clone());
-                    node.add_bel(2, gt.pads_clk[0].1.clone());
+                let crds: [_; 32] = core::array::from_fn(|i| (col, row + i));
+                let y = row.to_idx();
+                let node = self.die.add_xnode(
+                    (col, row),
+                    self.db.get_node("MGT"),
+                    &[
+                        &format!("MGT_B{lr}_X{x}Y{y}", y = y + 8),
+                        &format!("MGT_A{lr}_X{x}Y{y}", y = y + 24),
+                        &format!("BRKH_MGT11CLK_{lr}_X{x}Y{y}", y = y + 15),
+                    ],
+                    self.db.get_node_naming(&format!("MGT.{lr}")),
+                    &crds,
+                );
+                for i in 0..2 {
+                    node.add_bel(i, format!("GT11_X{gtx}Y{gty}", gty = gty * 2 + i));
                 }
                 for i in 0..2 {
-                    let row = row + 16 * i;
-                    let y = row.to_idx();
-                    let ab = if i == 0 { 'B' } else { 'A' };
-                    let crds: [_; 16] = core::array::from_fn(|i| (col, row + i));
-                    let node = self.die.add_xnode(
-                        (col, row),
-                        self.db.get_node("MGT"),
-                        &[&format!("MGT_{ab}{lr}_X{x}Y{y}", y = y + 8)],
-                        self.db.get_node_naming(&format!("MGT_{ab}{lr}")),
-                        &crds,
-                    );
-                    node.add_bel(0, format!("GT11_X{gtx}Y{gty}", gty = gty * 2 + i));
-                    node.add_bel(1, gt.pads_rx[i].0.clone());
-                    node.add_bel(2, gt.pads_rx[i].1.clone());
-                    node.add_bel(3, gt.pads_tx[i].0.clone());
-                    node.add_bel(4, gt.pads_tx[i].1.clone());
+                    node.add_bel(2 + i * 4, gt.pads_rx[i].0.clone());
+                    node.add_bel(2 + i * 4 + 1, gt.pads_rx[i].1.clone());
+                    node.add_bel(2 + i * 4 + 2, gt.pads_tx[i].0.clone());
+                    node.add_bel(2 + i * 4 + 3, gt.pads_tx[i].1.clone());
                 }
+                node.add_bel(10, format!("GT11CLK_X{gtx}Y{gty}"));
+                node.add_bel(11, gt.pads_clk[0].0.clone());
+                node.add_bel(12, gt.pads_clk[0].1.clone());
                 self.gt.push(gt);
                 ipy += 6;
                 gty += 1;

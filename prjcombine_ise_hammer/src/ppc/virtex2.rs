@@ -3,7 +3,8 @@ use prjcombine_int::db::{BelId, PinDir};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -14,14 +15,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             continue;
         }
         let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::PPC,
-            tile_name: tile,
-            bel,
-            bel_name: "PPC405",
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, "PPC405", TileBits::MainAuto);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PPC405")]);
         let bel_data = &intdb.nodes[node_kind].bels[bel];
         for (pin, pin_data) in &bel_data.pins {
@@ -33,9 +27,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if intdb.wires.key(wire.1).starts_with("IMUX.G") {
                 continue;
             }
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = &*format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode "PPC405"), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode "PPC405")]);
         }
         fuzz_enum!(ctx, "PPC405_TEST_MODE", ["CORE_TEST", "GASKET_TEST"], [(mode "PPC405")]);
     }

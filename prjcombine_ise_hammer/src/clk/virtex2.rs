@@ -9,7 +9,7 @@ use crate::{
     diff::{xlat_bitvec, xlat_enum, xlat_enum_default, CollectorCtx},
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -30,26 +30,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     };
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
-        let node_kind = backend.egrid.db.get_node(tile);
         for i in 0..bufg_num {
-            let bel = BelId::from_idx(i);
-            let ctx = FuzzCtx {
+            let ctx = FuzzCtx::new(
                 session,
-                node_kind,
-                bits: TileBits::BTSpine,
-                tile_name: tile,
-                bel,
-                bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
-            };
+                backend,
+                tile,
+                format!("BUFGMUX{i}"),
+                TileBits::BTSpine,
+            );
             fuzz_one!(ctx, "PRESENT", "1", [(special TileKV::StabilizeGclkc)], [(mode "BUFGMUX")]);
-            fuzz_enum!(ctx, "SINV", ["S", "S_B"], [(mode "BUFGMUX"), (pin "S"), (attr "DISABLE_ATTR", "LOW")]);
-            fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [(mode "BUFGMUX"), (pin "S")]);
+            fuzz_inv!(ctx, "S", [
+                (global_mutex "BUFG", "TEST"),
+                (mode "BUFGMUX"),
+                (attr "DISABLE_ATTR", "LOW")
+            ]);
+            fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [
+                (global_mutex "BUFG", "TEST"),
+                (mode "BUFGMUX"),
+                (pin "S")
+            ]);
             let inps = if grid_kind.is_spartan3ea() {
                 &["CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
             } else {
                 &["CKI", "DCM_OUT_L", "DCM_OUT_R"]
             };
-            for inp in inps {
+            for &inp in inps {
                 fuzz_one!(ctx, "CLKMUX", inp, [
                     (mutex "CLKMUX", inp)
                 ], [(pip (pin inp), (pin "CLK"))]);
@@ -59,31 +64,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ], [(pip (pin_far "CLK"), (pin "CLK"))]);
         }
         if grid_kind.is_virtex2() {
-            for i in 0..2 {
-                let bel = BelId::from_idx(8 + i);
-                let ctx = FuzzCtx {
-                    session,
-                    node_kind,
-                    bits: TileBits::Null,
-                    tile_name: tile,
-                    bel,
-                    bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
-                };
+            let bels = if tile.starts_with("CLKB") {
+                ["GLOBALSIG.B0", "GLOBALSIG.B1"]
+            } else {
+                ["GLOBALSIG.T0", "GLOBALSIG.T1"]
+            };
+            for bel in bels {
+                let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::Null);
                 fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GLOBALSIG")]);
                 for attr in ["DOWN1MUX", "UP1MUX", "DOWN2MUX", "UP2MUX"] {
                     fuzz_enum!(ctx, attr, ["0", "1"], [(mode "GLOBALSIG")]);
                 }
             }
         } else {
-            let bel = BelId::from_idx(4);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Null,
-                tile_name: tile,
-                bel,
-                bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
+            let bel = if tile.starts_with("CLKB") {
+                "GLOBALSIG.B"
+            } else {
+                "GLOBALSIG.T"
             };
+            let ctx = FuzzCtx::new(session, backend, tile, bel, TileBits::Null);
             fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GLOBALSIG")]);
             fuzz_enum!(ctx, "ENABLE_GLOBALS", ["0", "1"], [(mode "GLOBALSIG")]);
         }
@@ -98,19 +97,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             _ => unreachable!(),
         };
         for tile in [clkl, clkr] {
-            let node_kind = backend.egrid.db.get_node(tile);
             for i in 0..8 {
-                let bel = BelId::from_idx(i);
-                let ctx = FuzzCtx {
+                let ctx = FuzzCtx::new(
                     session,
-                    node_kind,
-                    bits: TileBits::ClkLR,
-                    tile_name: tile,
-                    bel,
-                    bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
-                };
+                    backend,
+                    tile,
+                    format!("BUFGMUX{i}"),
+                    TileBits::ClkLR,
+                );
                 fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BUFGMUX")]);
-                fuzz_enum!(ctx, "SINV", ["S", "S_B"], [(mode "BUFGMUX"), (pin "S"), (attr "DISABLE_ATTR", "LOW")]);
+                fuzz_inv!(ctx, "S", [(mode "BUFGMUX"), (attr "DISABLE_ATTR", "LOW")]);
                 fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [(mode "BUFGMUX"), (pin "S")]);
                 for inp in ["CKI", "DCM_OUT"] {
                     fuzz_one!(ctx, "CLKMUX", inp, [
@@ -121,15 +117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (mutex "CLKMUX", "INT")
                 ], [(pip (pin_far "CLK"), (pin "CLK"))]);
             }
-            let bel = BelId::from_idx(8);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::ClkLR,
-                tile_name: tile,
-                bel,
-                bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
-            };
+            let ctx = FuzzCtx::new(session, backend, tile, "PCILOGICSE", TileBits::ClkLR);
             fuzz_one!(ctx, "PRESENT", "1", [
                 (global_mutex_none "PCILOGICSE")
             ], [(mode "PCILOGICSE")]);
@@ -145,15 +133,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 }
             }
 
-            let bel = BelId::from_idx(10);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Null,
-                tile_name: tile,
-                bel,
-                bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
-            };
+            let ctx = FuzzCtx::new(session, backend, tile, "GLOBALSIG.LR", TileBits::Null);
             fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GLOBALSIG")]);
             fuzz_enum!(ctx, "ENABLE_GLOBALS", ["0", "1"], [(mode "GLOBALSIG")]);
         }
@@ -161,67 +141,43 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
     if grid_kind.is_virtex2() {
         // CLKC
-        let bel = BelId::from_idx(0);
-        let node_kind = backend.egrid.db.get_node("CLKC");
-        let tile = "CLKC";
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Null,
-            tile_name: tile,
-            bel,
-            bel_name: "CLKC",
-        };
+        let ctx = FuzzCtx::new(session, backend, "CLKC", "CLKC", TileBits::Null);
         for i in 0..8 {
             for bt in ["B", "T"] {
-                fuzz_one!(ctx, format!("FWD_{bt}{i}").leak(), "1", [], [
-                    (pip (pin format!("IN_{bt}{i}").leak()), (pin format!("OUT_{bt}{i}").leak()))
+                fuzz_one!(ctx, format!("FWD_{bt}{i}"), "1", [], [
+                    (pip (pin format!("IN_{bt}{i}")), (pin format!("OUT_{bt}{i}")))
                 ]);
             }
         }
 
         // GCLKC
         for tile in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
-            let node_kind = backend.egrid.db.get_node(tile);
-            let bel = BelId::from_idx(0);
-            if backend.egrid.node_index[node_kind].is_empty() {
-                continue;
-            }
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Gclkc,
-                tile_name: tile,
-                bel,
-                bel_name: "GCLKC",
-            };
-            for i in 0..8 {
-                for lr in ["L", "R"] {
-                    let out_name = &*format!("OUT_{lr}{i}").leak();
-                    for bt in ["B", "T"] {
-                        let inp_name = &*format!("IN_{bt}{i}").leak();
-                        fuzz_one!(ctx, out_name, inp_name, [
-                            (tile_mutex out_name, inp_name)
-                        ], [
-                            (pip (pin inp_name), (pin out_name))
-                        ]);
+            if let Some(ctx) = FuzzCtx::try_new(session, backend, tile, "GCLKC", TileBits::Gclkc) {
+                for i in 0..8 {
+                    for lr in ["L", "R"] {
+                        let out_name = format!("OUT_{lr}{i}");
+                        for bt in ["B", "T"] {
+                            let inp_name = format!("IN_{bt}{i}");
+                            fuzz_one!(
+                                ctx,
+                                &out_name,
+                                &inp_name,
+                                [
+                                    (global_mutex "BUFG", "USE"),
+                                    (tile_mutex &out_name, &inp_name)
+                                ],
+                                [
+                                    (pip(pin &inp_name), (pin &out_name))
+                                ]
+                            );
+                        }
                     }
                 }
             }
         }
     } else if edev.grid.cols_clkv.is_none() {
         // CLKC_50A
-        let bel = BelId::from_idx(0);
-        let node_kind = backend.egrid.db.get_node("CLKC_50A");
-        let tile = "CLKC_50A";
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Clkc,
-            tile_name: tile,
-            bel,
-            bel_name: "CLKC_50A",
-        };
+        let ctx = FuzzCtx::new(session, backend, "CLKC_50A", "CLKC_50A", TileBits::Clkc);
         for (out_l, out_r, in_l, in_r, in_bt) in [
             ("OUT_L0", "OUT_R0", "IN_L0", "IN_R0", "IN_B0"),
             ("OUT_L1", "OUT_R1", "IN_L1", "IN_R1", "IN_B1"),
@@ -242,17 +198,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     } else {
         // CLKC
-        let bel = BelId::from_idx(0);
-        let node_kind = backend.egrid.db.get_node("CLKC");
-        let tile = "CLKC";
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Null,
-            tile_name: tile,
-            bel,
-            bel_name: "CLKC",
-        };
+        let ctx = FuzzCtx::new(session, backend, "CLKC", "CLKC", TileBits::Null);
         for (out, inp) in [
             ("OUT0", "IN_B0"),
             ("OUT1", "IN_B1"),
@@ -270,74 +216,52 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
         // GCLKVM
         if grid_kind.is_spartan3ea() {
-            let tile = "GCLKVM.S3E";
-            let node_kind = backend.egrid.db.get_node(tile);
-            let bel = BelId::from_idx(0);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Gclkvm,
-                tile_name: tile,
-                bel,
-                bel_name: "GCLKVM",
-            };
+            let ctx = FuzzCtx::new(session, backend, "GCLKVM.S3E", "GCLKVM", TileBits::Gclkvm);
             for i in 0..8 {
                 for bt in ["B", "T"] {
-                    let out_name = &*format!("OUT_{bt}{i}").leak();
+                    let out_name = format!("OUT_{bt}{i}");
                     for lr in ["LR", "CORE"] {
-                        let inp_name = &*format!("IN_{lr}{i}").leak();
-                        fuzz_one!(ctx, out_name, inp_name, [
-                            (tile_mutex out_name, inp_name)
-                        ], [
-                            (pip (pin inp_name), (pin out_name))
-                        ]);
+                        let inp_name = format!("IN_{lr}{i}");
+                        fuzz_one!(
+                            ctx,
+                            &out_name,
+                            &inp_name,
+                            [(tile_mutex & out_name, &inp_name)],
+                            [(pip(pin & inp_name), (pin & out_name))]
+                        );
                     }
                 }
             }
         } else {
-            let tile = "GCLKVM.S3";
-            let node_kind = backend.egrid.db.get_node(tile);
-            let bel = BelId::from_idx(0);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Gclkvm,
-                tile_name: tile,
-                bel,
-                bel_name: "GCLKVM",
-            };
+            let ctx = FuzzCtx::new(session, backend, "GCLKVM.S3", "GCLKVM", TileBits::Gclkvm);
             for i in 0..8 {
                 for bt in ["B", "T"] {
-                    let out_name = &*format!("OUT_{bt}{i}").leak();
-                    let inp_name = &*format!("IN_CORE{i}").leak();
-                    fuzz_one!(ctx, out_name, inp_name, [], [
-                        (pip (pin inp_name), (pin out_name))
-                    ]);
+                    let out_name = format!("OUT_{bt}{i}");
+                    let inp_name = format!("IN_CORE{i}");
+                    fuzz_one!(
+                        ctx,
+                        &out_name,
+                        &inp_name,
+                        [],
+                        [(pip(pin & inp_name), (pin & out_name))]
+                    );
                 }
             }
         }
 
         // GCLKVC
-        let tile = "GCLKVC";
-        let node_kind = backend.egrid.db.get_node(tile);
-        let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Null,
-            tile_name: tile,
-            bel,
-            bel_name: "GCLKVC",
-        };
+        let ctx = FuzzCtx::new(session, backend, "GCLKVC", "GCLKVC", TileBits::Null);
         for i in 0..8 {
-            let inp_name = &*format!("IN{i}").leak();
+            let inp_name = format!("IN{i}");
             for lr in ["L", "R"] {
-                let out_name = &*format!("OUT_{lr}{i}").leak();
-                fuzz_one!(ctx, out_name, inp_name, [
-                    (tile_mutex out_name, inp_name)
-                ], [
-                    (pip (pin inp_name), (pin out_name))
-                ]);
+                let out_name = format!("OUT_{lr}{i}");
+                fuzz_one!(
+                    ctx,
+                    &out_name,
+                    &inp_name,
+                    [(tile_mutex & out_name, &inp_name)],
+                    [(pip(pin & inp_name), (pin & out_name))]
+                );
             }
         }
     }
@@ -361,17 +285,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             continue;
         }
         if tile != "GCLKH.0" && tile != "GCLKH.DSP" {
-            let bel = BelId::from_idx(1);
-            let ctx = FuzzCtx {
+            let ctx = FuzzCtx::new_force_bel(
                 session,
-                node_kind,
-                bits: TileBits::Hclk,
-                tile_name: tile,
-                bel,
-                bel_name: "GCLKH",
-            };
+                backend,
+                tile,
+                "GCLKH",
+                TileBits::Hclk,
+                BelId::from_idx(1),
+            );
             for i in 0..8 {
-                let inp_name = &*format!("IN{i}").leak();
+                let inp_name = format!("IN{i}");
                 for bt in ["B", "T"] {
                     if bt == "T" && tile.ends_with(".S") {
                         continue;
@@ -379,24 +302,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     if bt == "B" && tile.ends_with(".N") {
                         continue;
                     }
-                    let out_name = &*format!("OUT_{bt}{i}").leak();
-                    fuzz_one!(ctx, out_name, inp_name, [
-                        (tile_mutex inp_name, out_name)
-                    ], [
-                        (pip (pin inp_name), (pin out_name))
-                    ]);
+                    let out_name = format!("OUT_{bt}{i}");
+                    fuzz_one!(
+                        ctx,
+                        &out_name,
+                        &inp_name,
+                        [(tile_mutex & inp_name, &out_name)],
+                        [(pip(pin & inp_name), (pin & out_name))]
+                    );
                 }
             }
         }
-        let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Null,
-            tile_name: tile,
-            bel,
-            bel_name: backend.egrid.db.nodes[node_kind].bels.key(bel),
+        let bel_name = if tile == "GCLKH.DSP" {
+            "GLOBALSIG.DSP"
+        } else {
+            "GLOBALSIG"
         };
+        let ctx = FuzzCtx::new(session, backend, tile, bel_name, TileBits::Null);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GLOBALSIG")]);
         if grid_kind.is_virtex2() {
             for attr in ["DOWN1MUX", "UP1MUX", "DOWN2MUX", "UP2MUX"] {
@@ -410,58 +332,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     if !grid_kind.is_spartan3ea() {
         // DCMCONN
         for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
-            let node_kind = backend.egrid.db.get_node(tile);
-            let bel = BelId::from_idx(0);
-            let mut ctx = FuzzCtx {
+            let mut ctx = FuzzCtx::new(
                 session,
-                node_kind,
-                bits: if grid_kind.is_virtex2() {
+                backend,
+                tile,
+                "DCMCONN",
+                if grid_kind.is_virtex2() {
                     TileBits::BTTerm
                 } else {
                     TileBits::Null
                 },
-                tile_name: tile,
-                bel,
-                bel_name: "DCMCONN",
-            };
+            );
             let num_bus = if grid_kind.is_virtex2() { 8 } else { 4 };
             for i in 0..num_bus {
-                let out_name = &*format!("OUTBUS{i}").leak();
-                let in_name = &*format!("OUT{ii}", ii = i % 4).leak();
-                fuzz_one!(ctx, out_name, "1", [], [
+                let out_name = format!("OUTBUS{i}");
+                let in_name = format!("OUT{ii}", ii = i % 4);
+                fuzz_one!(ctx, &out_name, "1", [], [
                     (row_mutex "DCMCONN"),
-                    (pip (pin in_name), (pin out_name))
+                    (pip (pin &in_name), (pin &out_name))
                 ]);
             }
             ctx.bits = TileBits::Null;
             for i in 0..num_bus {
-                let out_name = &*format!("CLKPAD{i}").leak();
-                let in_name = &*format!("CLKPADBUS{i}").leak();
-                fuzz_one!(ctx, out_name, "1", [], [
-                    (pip (pin in_name), (pin out_name))
-                ]);
+                let out_name = format!("CLKPAD{i}");
+                let in_name = format!("CLKPADBUS{i}");
+                fuzz_one!(
+                    ctx,
+                    &out_name,
+                    "1",
+                    [],
+                    [(pip(pin & in_name), (pin & out_name))]
+                );
             }
         }
     } else {
         // PCI_CE_*
         for tile in ["PCI_CE_S", "PCI_CE_N", "PCI_CE_W", "PCI_CE_E", "PCI_CE_CNR"] {
-            let node_kind = backend.egrid.db.get_node(tile);
-            if backend.egrid.node_index[node_kind].is_empty() {
-                continue;
+            if let Some(ctx) = FuzzCtx::try_new(session, backend, tile, tile, TileBits::Null) {
+                fuzz_one!(ctx, "O", "1", [], [
+                    (row_mutex "DCMCONN"),
+                    (pip (pin "I"), (pin "O"))
+                ]);
             }
-            let bel = BelId::from_idx(0);
-            let ctx = FuzzCtx {
-                session,
-                node_kind,
-                bits: TileBits::Null,
-                tile_name: tile,
-                bel,
-                bel_name: "PCI_CE",
-            };
-            fuzz_one!(ctx, "O", "1", [], [
-                (row_mutex "DCMCONN"),
-                (pip (pin "I"), (pin "O"))
-            ]);
         }
     }
 
@@ -472,23 +384,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if backend.egrid.node_index[node_kind].is_empty() {
                 continue;
             }
-            for i in 1..5 {
-                let bel = BelId::from_idx(i);
-                let bel_data = &backend.egrid.db.nodes[node_kind].bels[bel];
-                let ctx = FuzzCtx {
+            for i in 0..4 {
+                let ctx = FuzzCtx::new_force_bel(
                     session,
-                    node_kind,
-                    bits: TileBits::Main(1),
-                    tile_name: tile,
-                    bel,
-                    bel_name: "PTE2OMUX",
-                };
-                let mux_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
+                    backend,
+                    tile,
+                    "PTE2OMUX",
+                    TileBits::MainAuto,
+                    BelId::from_idx(i + 1),
+                );
+                let bel_data = &backend.egrid.db.nodes[ctx.node_kind].bels[ctx.bel];
+                let mux_name = backend.egrid.db.nodes[ctx.node_kind].bels.key(ctx.bel);
                 for (pin_name, pin_data) in &bel_data.pins {
                     if pin_data.dir == PinDir::Output {
                         continue;
                     }
-                    fuzz_one!(ctx, mux_name, pin_name, [], [
+                    fuzz_one!(ctx, mux_name, pin_name, [
+                        (global_mutex "PSCLK", "PTE2OMUX")
+                    ], [
                         (row_mutex "PTE2OMUX"),
                         (pip (pin pin_name), (pin "OUT"))
                     ]);
@@ -521,7 +434,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let node_kind = intdb.get_node(tile);
             let bel = &intdb.nodes[node_kind].bels[BelId::from_idx(i)];
             let pin = &bel.pins["S"];
-            let bel = format!("BUFGMUX{i}").leak();
+            let bel = format!("BUFGMUX{i}");
+            let bel = &bel;
             ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
             assert_eq!(pin.wires.len(), 1);
             let wire = pin.wires.first().unwrap();
@@ -552,11 +466,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         };
         for tile in [clkl, clkr] {
             for i in 0..8 {
-                let bel = &*format!("BUFGMUX{i}").leak();
-                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-                ctx.collect_inv(tile, bel, "S");
-                ctx.collect_enum(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
-                ctx.collect_enum(tile, bel, "CLKMUX", &["INT", "CKI", "DCM_OUT"]);
+                let bel = format!("BUFGMUX{i}");
+                ctx.state
+                    .get_diff(tile, &bel, "PRESENT", "1")
+                    .assert_empty();
+                ctx.collect_inv(tile, &bel, "S");
+                ctx.collect_enum(tile, &bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
+                ctx.collect_enum(tile, &bel, "CLKMUX", &["INT", "CKI", "DCM_OUT"]);
             }
             let bel = "PCILOGICSE";
             let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
@@ -595,12 +511,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             for i in 0..8 {
                 for lr in ["L", "R"] {
-                    let out_name = &*format!("OUT_{lr}{i}").leak();
+                    let out_name = format!("OUT_{lr}{i}");
                     ctx.collect_enum(
                         tile,
                         bel,
-                        out_name,
-                        &[&*format!("IN_B{i}").leak(), &*format!("IN_T{i}").leak()],
+                        &out_name,
+                        &[&format!("IN_B{i}"), &format!("IN_T{i}")],
                     );
                 }
             }
@@ -628,12 +544,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GCLKVM";
         for i in 0..8 {
             for bt in ["B", "T"] {
-                let out_name = &*format!("OUT_{bt}{i}").leak();
+                let out_name = format!("OUT_{bt}{i}");
                 ctx.collect_enum_default(
                     tile,
                     bel,
-                    out_name,
-                    &[format!("IN_LR{i}").leak(), format!("IN_CORE{i}").leak()],
+                    &out_name,
+                    &[&format!("IN_LR{i}"), &format!("IN_CORE{i}")],
                     "NONE",
                 );
             }
@@ -644,9 +560,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GCLKVM";
         for i in 0..8 {
             for bt in ["B", "T"] {
-                let out_name = &*format!("OUT_{bt}{i}").leak();
-                let in_name = &*format!("IN_CORE{i}").leak();
-                let diff = ctx.state.get_diff(tile, bel, out_name, in_name);
+                let out_name = format!("OUT_{bt}{i}");
+                let in_name = format!("IN_CORE{i}");
+                let diff = ctx.state.get_diff(tile, bel, &out_name, in_name);
                 ctx.tiledb
                     .insert(tile, bel, out_name, xlat_bitvec(vec![diff]));
             }
@@ -671,8 +587,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "GCLKH";
         for i in 0..8 {
-            let inp_name = &*format!("IN{i}").leak();
-            let uni_name = &*format!("OUT{i}").leak();
+            let inp_name = format!("IN{i}");
+            let uni_name = format!("OUT{i}");
             for bt in ["B", "T"] {
                 if bt == "T" && tile.ends_with(".S") {
                     continue;
@@ -680,13 +596,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 if bt == "B" && tile.ends_with(".N") {
                     continue;
                 }
-                let out_name = &*format!("OUT_{bt}{i}").leak();
+                let out_name = format!("OUT_{bt}{i}");
                 let attr = if tile.starts_with("GCLKH.UNI") {
-                    uni_name
+                    &uni_name
                 } else {
-                    out_name
+                    &out_name
                 };
-                let diff = ctx.state.get_diff(tile, bel, out_name, inp_name);
+                let diff = ctx.state.get_diff(tile, bel, &out_name, &inp_name);
                 let item = xlat_bitvec(vec![diff]);
                 ctx.tiledb.insert(tile, bel, attr, item);
             }

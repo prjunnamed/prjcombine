@@ -1,10 +1,9 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
-use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_one,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -39,25 +38,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ExpandedDevice::Spartan6(_) => Mode::Spartan6,
         _ => unreachable!(),
     };
-    let node_kind = backend.egrid.db.get_node("DSP");
-    let bel = BelId::from_idx(0);
-    let ctx = FuzzCtx {
-        session,
-        node_kind,
-        bits: TileBits::Main(4),
-        tile_name: "DSP",
-        bel,
-        bel_name: "DSP",
-    };
+    let ctx = FuzzCtx::new(session, backend, "DSP", "DSP", TileBits::MainAuto);
     let bel_kind = match mode {
         Mode::Spartan3ADsp => "DSP48A",
         Mode::Spartan6 => "DSP48A1",
     };
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode bel_kind)]);
     for &pin in DSP48A_INVPINS {
-        let pininv = format!("{pin}INV").leak();
-        let pin_b = format!("{pin}_B").leak();
-        fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (pin pin)]);
+        fuzz_inv!(ctx, pin, [(mode bel_kind)]);
     }
     for attr in [
         "A0REG",

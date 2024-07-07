@@ -8,24 +8,15 @@ use crate::{
     diff::{extract_bitvec_val, CollectorCtx, OcdMode},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     let intdb = backend.egrid.db;
     for tile in ["GIGABIT10.B", "GIGABIT10.T"] {
-        let node_kind = intdb.get_node(tile);
-        let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::MainAuto,
-            tile_name: tile,
-            bel,
-            bel_name: "GT10",
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, "GT10", TileBits::MainAuto);
         fuzz_one!(ctx, "ENABLE", "1", [], [(mode "GT10")]);
-        let bel_data = &intdb.nodes[node_kind].bels[bel];
+        let bel_data = &intdb.nodes[ctx.node_kind].bels[ctx.bel];
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {
                 continue;
@@ -35,9 +26,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if intdb.wires.key(wire.1).starts_with("IMUX.G") {
                 continue;
             }
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = &*format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode "GT10"), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode "GT10")]);
         }
         fuzz_enum!(ctx, "IOSTANDARD", [
             "XAUI", "TEST", "PCI_EXPRESS", "OC192", "OC48", "INFINIBAND", "CUSTOM", "AURORA", "10GFC", "10GE"
@@ -134,7 +123,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if egrid.db.wires.key(wire.1).starts_with("IMUX.G") {
                 continue;
             }
-            let int_tiles = &["INT.PPC"; 48];
+            let int_tiles = &[
+                "INT.GT.CLKPAD",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+                "INT.PPC",
+            ];
             let flip = egrid.db.wires.key(wire.1).starts_with("IMUX.SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }

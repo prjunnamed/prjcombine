@@ -12,7 +12,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for i in 0..8 {
         builder.wire(
-            format!("GCLK{i}"),
+            format!("HCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK{i}")],
         );
@@ -718,11 +718,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("CLK_HROW").iter().next() {
         let mut bel = builder.bel_virtual("CLK_HROW");
         for i in 0..32 {
-            bel = bel.extra_wire(format!("GCLK_I{i}"), &[format!("CLK_HROW_GCLK_BUFP{i}")]);
+            bel = bel.extra_wire(format!("GCLK{i}"), &[format!("CLK_HROW_GCLK_BUFP{i}")]);
         }
         for i in 0..8 {
-            bel = bel.extra_wire(format!("GCLK_O_L{i}"), &[format!("CLK_HROW_HCLK_LP{i}")]);
-            bel = bel.extra_wire(format!("GCLK_O_R{i}"), &[format!("CLK_HROW_HCLK_RP{i}")]);
+            bel = bel.extra_wire(format!("HCLK_L{i}"), &[format!("CLK_HROW_HCLK_LP{i}")]);
+            bel = bel.extra_wire(format!("HCLK_R{i}"), &[format!("CLK_HROW_HCLK_RP{i}")]);
         }
         builder
             .xnode("CLK_HROW", "CLK_HROW", xy)
@@ -769,11 +769,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     &[format!("CLKV_DCM_MUXED_CLKP_OUT{i}")],
                 );
             }
-            builder
-                .xnode(nn, nn, xy)
-                .num_tiles(0)
-                .bel(bel)
-                .extract();
+            builder.xnode(nn, nn, xy).num_tiles(0).bel(bel).extract();
         }
     }
 
@@ -782,8 +778,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut bel = builder.bel_virtual("HCLK");
         for i in 0..8 {
             bel = bel
-                .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_G_HCLKP{i}")])
-                .extra_int_out(format!("GCLK_O{i}"), &[format!("HCLK_LEAF_GCLK{i}")]);
+                .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_G_HCLKP{i}")])
+                .extra_int_out(format!("HCLK_O{i}"), &[format!("HCLK_LEAF_GCLK{i}")]);
         }
         for i in 0..2 {
             bel = bel
@@ -812,44 +808,44 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         .extra_wire_force("VIOCLK_N1", "HCLK_IOIS_VIOCLKP_N1")
         .extra_wire_force("VIOCLK_S0", "HCLK_IOIS_VIOCLKP_S0")
         .extra_wire_force("VIOCLK_S1", "HCLK_IOIS_VIOCLKP_S1")
-        .extra_wire("GCLK_I0", &["HCLK_IOIS_G_HCLKP0", "HCLK_DCM_G_HCLKP0"])
-        .extra_wire("GCLK_I1", &["HCLK_IOIS_G_HCLKP1", "HCLK_DCM_G_HCLKP1"])
-        .extra_wire("GCLK_I2", &["HCLK_IOIS_G_HCLKP2", "HCLK_DCM_G_HCLKP2"])
-        .extra_wire("GCLK_I3", &["HCLK_IOIS_G_HCLKP3", "HCLK_DCM_G_HCLKP3"])
-        .extra_wire("GCLK_I4", &["HCLK_IOIS_G_HCLKP4", "HCLK_DCM_G_HCLKP4"])
-        .extra_wire("GCLK_I5", &["HCLK_IOIS_G_HCLKP5", "HCLK_DCM_G_HCLKP5"])
-        .extra_wire("GCLK_I6", &["HCLK_IOIS_G_HCLKP6", "HCLK_DCM_G_HCLKP6"])
-        .extra_wire("GCLK_I7", &["HCLK_IOIS_G_HCLKP7", "HCLK_DCM_G_HCLKP7"])
+        .extra_wire("HCLK_I0", &["HCLK_IOIS_G_HCLKP0", "HCLK_DCM_G_HCLKP0"])
+        .extra_wire("HCLK_I1", &["HCLK_IOIS_G_HCLKP1", "HCLK_DCM_G_HCLKP1"])
+        .extra_wire("HCLK_I2", &["HCLK_IOIS_G_HCLKP2", "HCLK_DCM_G_HCLKP2"])
+        .extra_wire("HCLK_I3", &["HCLK_IOIS_G_HCLKP3", "HCLK_DCM_G_HCLKP3"])
+        .extra_wire("HCLK_I4", &["HCLK_IOIS_G_HCLKP4", "HCLK_DCM_G_HCLKP4"])
+        .extra_wire("HCLK_I5", &["HCLK_IOIS_G_HCLKP5", "HCLK_DCM_G_HCLKP5"])
+        .extra_wire("HCLK_I6", &["HCLK_IOIS_G_HCLKP6", "HCLK_DCM_G_HCLKP6"])
+        .extra_wire("HCLK_I7", &["HCLK_IOIS_G_HCLKP7", "HCLK_DCM_G_HCLKP7"])
         .extra_wire(
-            "GCLK_O0",
+            "HCLK_O0",
             &["HCLK_IOIS_LEAF_GCLK_P0", "HCLK_DCM_LEAF_GCLK_P0"],
         )
         .extra_wire(
-            "GCLK_O1",
+            "HCLK_O1",
             &["HCLK_IOIS_LEAF_GCLK_P1", "HCLK_DCM_LEAF_GCLK_P1"],
         )
         .extra_wire(
-            "GCLK_O2",
+            "HCLK_O2",
             &["HCLK_IOIS_LEAF_GCLK_P2", "HCLK_DCM_LEAF_GCLK_P2"],
         )
         .extra_wire(
-            "GCLK_O3",
+            "HCLK_O3",
             &["HCLK_IOIS_LEAF_GCLK_P3", "HCLK_DCM_LEAF_GCLK_P3"],
         )
         .extra_wire(
-            "GCLK_O4",
+            "HCLK_O4",
             &["HCLK_IOIS_LEAF_GCLK_P4", "HCLK_DCM_LEAF_GCLK_P4"],
         )
         .extra_wire(
-            "GCLK_O5",
+            "HCLK_O5",
             &["HCLK_IOIS_LEAF_GCLK_P5", "HCLK_DCM_LEAF_GCLK_P5"],
         )
         .extra_wire(
-            "GCLK_O6",
+            "HCLK_O6",
             &["HCLK_IOIS_LEAF_GCLK_P6", "HCLK_DCM_LEAF_GCLK_P6"],
         )
         .extra_wire(
-            "GCLK_O7",
+            "HCLK_O7",
             &["HCLK_IOIS_LEAF_GCLK_P7", "HCLK_DCM_LEAF_GCLK_P7"],
         )
         .extra_wire("RCLK_I0", &["HCLK_IOIS_RCLK0", "HCLK_DCM_RCLK0"])
@@ -986,9 +982,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     let mut bel = builder.bel_virtual("HCLK_DCM_S");
                     for i in 0..8 {
                         bel = bel
-                            .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
+                            .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
                             .extra_wire(
-                                format!("GCLK_O_D{i}"),
+                                format!("HCLK_O_D{i}"),
                                 &[format!("HCLK_DCM_LEAF_DIRECT_HCLKP{i}")],
                             );
                     }
@@ -1014,9 +1010,9 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     let mut bel = builder.bel_virtual("HCLK_DCM_N");
                     for i in 0..8 {
                         bel = bel
-                            .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
+                            .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
                             .extra_wire(
-                                format!("GCLK_O_U{i}"),
+                                format!("HCLK_O_U{i}"),
                                 &[format!("HCLK_DCM_LEAF_DIRECT_HCLKP{i}")],
                             )
                     }
@@ -1067,13 +1063,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let mut bel = builder.bel_virtual("HCLK_DCM");
         for i in 0..8 {
             bel = bel
-                .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
+                .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_DCM_G_HCLKP{i}")])
                 .extra_wire(
-                    format!("GCLK_O_U{i}"),
+                    format!("HCLK_O_U{i}"),
                     &[format!("HCLK_DCM_LEAF_DIRECT_UP_HCLKP{i}")],
                 )
                 .extra_wire(
-                    format!("GCLK_O_D{i}"),
+                    format!("HCLK_O_D{i}"),
                     &[format!("HCLK_DCM_LEAF_DIRECT_HCLKP{i}")],
                 );
         }
@@ -1218,14 +1214,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         ),
                     builder
                         .bel_virtual("IOIS_CLK")
-                        .extra_wire("GCLK0", &["IOIS_GCLKP0"])
-                        .extra_wire("GCLK1", &["IOIS_GCLKP1"])
-                        .extra_wire("GCLK2", &["IOIS_GCLKP2"])
-                        .extra_wire("GCLK3", &["IOIS_GCLKP3"])
-                        .extra_wire("GCLK4", &["IOIS_GCLKP4"])
-                        .extra_wire("GCLK5", &["IOIS_GCLKP5"])
-                        .extra_wire("GCLK6", &["IOIS_GCLKP6"])
-                        .extra_wire("GCLK7", &["IOIS_GCLKP7"])
+                        .extra_wire("HCLK0", &["IOIS_GCLKP0"])
+                        .extra_wire("HCLK1", &["IOIS_GCLKP1"])
+                        .extra_wire("HCLK2", &["IOIS_GCLKP2"])
+                        .extra_wire("HCLK3", &["IOIS_GCLKP3"])
+                        .extra_wire("HCLK4", &["IOIS_GCLKP4"])
+                        .extra_wire("HCLK5", &["IOIS_GCLKP5"])
+                        .extra_wire("HCLK6", &["IOIS_GCLKP6"])
+                        .extra_wire("HCLK7", &["IOIS_GCLKP7"])
                         .extra_wire("RCLK0", &["IOIS_RCLK_FORIO_P0"])
                         .extra_wire("RCLK1", &["IOIS_RCLK_FORIO_P1"])
                         .extra_wire("IOCLK0", &["IOIS_IOCLKP0"])
@@ -1276,7 +1272,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     );
             }
             for i in 0..8 {
-                bel = bel.extra_wire(format!("GCLK{i}"), &[format!("DCM_BUFG{i}")]);
+                bel = bel.extra_wire(format!("HCLK{i}"), &[format!("DCM_BUFG{i}")]);
             }
             for i in 0..16 {
                 bel = bel.extra_wire(format!("GIOB{i}"), &[format!("DCM_GIOB{i}")]);
@@ -1368,7 +1364,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             bel = bel.extra_wire(format!("BUSIN{i}"), &[format!("CCM_DCM{i}")]);
         }
         for i in 0..8 {
-            bel = bel.extra_wire(format!("GCLK{i}"), &[format!("CCM_BUFG{i}")]);
+            bel = bel.extra_wire(format!("HCLK{i}"), &[format!("CCM_BUFG{i}")]);
         }
         for i in 0..16 {
             bel = bel.extra_wire(format!("GIOB{i}"), &[format!("CCM_GIOB{i}")]);
@@ -1418,108 +1414,99 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for (tkn, naming) in [
-        ("MGT_AL", "MGT_AL"),
-        ("MGT_AL_BOT", "MGT_AL"),
-        ("MGT_AL_MID", "MGT_AL"),
-        ("MGT_BL", "MGT_BL"),
-        ("MGT_AR", "MGT_AR"),
-        ("MGT_AR_BOT", "MGT_AR"),
-        ("MGT_AR_MID", "MGT_AR"),
-        ("MGT_BR", "MGT_BR"),
+        ("MGT_AL", "MGT.L"),
+        ("MGT_AL_BOT", "MGT.L"),
+        ("MGT_AL_MID", "MGT.L"),
+        ("MGT_AR", "MGT.R"),
+        ("MGT_AR_BOT", "MGT.R"),
+        ("MGT_AR_MID", "MGT.R"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut int_xy = Vec::new();
-            for dy in 0..17 {
-                if dy == 8 {
-                    continue;
+            let mut bels = vec![];
+            for i in 0..2 {
+                let ab = ['B', 'A'][i];
+                let mut bel = builder
+                    .bel_xy(format!("GT11{ab}"), "GT11", 0, 0)
+                    .raw_tile(i)
+                    .pins_name_only(&["TX1P", "TX1N", "RX1P", "RX1N", "RXMCLK"])
+                    .pin_name_only("REFCLK1", 1)
+                    .pin_name_only("REFCLK2", 1)
+                    .pin_name_only("GREFCLK", 1)
+                    .pin_name_only("TXPCSHCLKOUT", 1)
+                    .pin_name_only("RXPCSHCLKOUT", 1)
+                    .extra_wire("REFCLK", &["MGT_REFCLK"])
+                    .extra_wire("PMACLK", &["MGT_PMACLK_OUT"])
+                    .extra_wire("MGT0", &["MGT_MGT0"])
+                    .extra_wire("MGT1", &["MGT_MGT1"])
+                    .extra_wire("SYNCLK_OUT", &["MGT_SYNCLK_OUT"])
+                    .extra_wire(
+                        "SYNCLK1_OUT",
+                        &["MGT_SYNCLK1_OUT", "MGT_SYNCLK1_LB", "MGT_SYNCLK1_RB"],
+                    )
+                    .extra_wire(
+                        "SYNCLK2_OUT",
+                        &["MGT_SYNCLK2_OUT", "MGT_SYNCLK2_LB", "MGT_SYNCLK2_RB"],
+                    )
+                    .extra_wire(
+                        "FWDCLK0_OUT",
+                        &[
+                            "MGT_FWDCLK0A_L",
+                            "MGT_FWDCLK0A_R",
+                            "MGT_FWDCLK0B_L",
+                            "MGT_FWDCLK0B_R",
+                        ],
+                    )
+                    .extra_wire(
+                        "FWDCLK1_OUT",
+                        &[
+                            "MGT_FWDCLK1A_L",
+                            "MGT_FWDCLK1A_R",
+                            "MGT_FWDCLK1B_L",
+                            "MGT_FWDCLK1B_R",
+                        ],
+                    )
+                    .extra_wire("FWDCLK1_B", &["MGT_FWDCLK1_B"])
+                    .extra_wire("FWDCLK2_B", &["MGT_FWDCLK2_B"])
+                    .extra_wire("FWDCLK3_B", &["MGT_FWDCLK3_B"])
+                    .extra_wire("FWDCLK4_B", &["MGT_FWDCLK4_B"])
+                    .extra_wire("FWDCLK1_T", &["MGT_FWDCLK1_T"])
+                    .extra_wire("FWDCLK2_T", &["MGT_FWDCLK2_T"])
+                    .extra_wire("FWDCLK3_T", &["MGT_FWDCLK3_T"])
+                    .extra_wire("FWDCLK4_T", &["MGT_FWDCLK4_T"]);
+                for i in 0..16 {
+                    bel = bel.pins_name_only(&[format!("COMBUSIN{i}"), format!("COMBUSOUT{i}")]);
                 }
-                int_xy.push(xy.delta(if xy.x == 0 { 1 } else { -1 }, -9 + dy));
+                for i in 0..8 {
+                    bel = bel.extra_wire(format!("HCLK{i}"), &[format!("MGT_G_HCLKP{i}")]);
+                }
+                if i == 0 {
+                    bel = bel.pin_name_only("RXMCLK", 1);
+                }
+                bels.push(bel);
             }
-            let mut bel = builder
-                .bel_xy("GT11", "GT11", 0, 0)
-                .pins_name_only(&["TX1P", "TX1N", "RX1P", "RX1N", "RXMCLK"])
-                .pin_name_only("REFCLK1", 1)
-                .pin_name_only("REFCLK2", 1)
-                .pin_name_only("GREFCLK", 1)
-                .pin_name_only("TXPCSHCLKOUT", 1)
-                .pin_name_only("RXPCSHCLKOUT", 1)
-                .extra_wire("REFCLK", &["MGT_REFCLK"])
-                .extra_wire("PMACLK", &["MGT_PMACLK_OUT"])
-                .extra_wire("MGT0", &["MGT_MGT0"])
-                .extra_wire("MGT1", &["MGT_MGT1"])
-                .extra_wire("SYNCLK_OUT", &["MGT_SYNCLK_OUT"])
-                .extra_wire(
-                    "SYNCLK1_OUT",
-                    &["MGT_SYNCLK1_OUT", "MGT_SYNCLK1_LB", "MGT_SYNCLK1_RB"],
-                )
-                .extra_wire(
-                    "SYNCLK2_OUT",
-                    &["MGT_SYNCLK2_OUT", "MGT_SYNCLK2_LB", "MGT_SYNCLK2_RB"],
-                )
-                .extra_wire(
-                    "FWDCLK0_OUT",
-                    &[
-                        "MGT_FWDCLK0A_L",
-                        "MGT_FWDCLK0A_R",
-                        "MGT_FWDCLK0B_L",
-                        "MGT_FWDCLK0B_R",
-                    ],
-                )
-                .extra_wire(
-                    "FWDCLK1_OUT",
-                    &[
-                        "MGT_FWDCLK1A_L",
-                        "MGT_FWDCLK1A_R",
-                        "MGT_FWDCLK1B_L",
-                        "MGT_FWDCLK1B_R",
-                    ],
-                )
-                .extra_wire("FWDCLK1_B", &["MGT_FWDCLK1_B"])
-                .extra_wire("FWDCLK2_B", &["MGT_FWDCLK2_B"])
-                .extra_wire("FWDCLK3_B", &["MGT_FWDCLK3_B"])
-                .extra_wire("FWDCLK4_B", &["MGT_FWDCLK4_B"])
-                .extra_wire("FWDCLK1_T", &["MGT_FWDCLK1_T"])
-                .extra_wire("FWDCLK2_T", &["MGT_FWDCLK2_T"])
-                .extra_wire("FWDCLK3_T", &["MGT_FWDCLK3_T"])
-                .extra_wire("FWDCLK4_T", &["MGT_FWDCLK4_T"]);
-            for i in 0..16 {
-                bel = bel.pins_name_only(&[format!("COMBUSIN{i}"), format!("COMBUSOUT{i}")]);
-            }
-            for i in 0..8 {
-                bel = bel.extra_wire(format!("GCLK{i}"), &[format!("MGT_G_HCLKP{i}")]);
-            }
-            if naming.starts_with("MGT_B") {
-                bel = bel.pin_name_only("RXMCLK", 1);
-            }
-            builder.extract_xnode_bels(
-                "MGT",
-                xy,
-                &[],
-                &int_xy,
-                naming,
-                &[
-                    bel,
+            for i in 0..2 {
+                bels.extend([
                     builder
-                        .bel_xy("IPAD.RXP", "IPAD", 0, 0)
+                        .bel_xy(format!("IPAD.RXP{i}"), "IPAD", 0, 0)
+                        .raw_tile(i)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy("IPAD.RXN", "IPAD", 0, 1)
+                        .bel_xy(format!("IPAD.RXN{i}"), "IPAD", 0, 1)
+                        .raw_tile(i)
                         .pins_name_only(&["O"]),
                     builder
-                        .bel_xy("OPAD.TXP", "OPAD", 0, 0)
+                        .bel_xy(format!("OPAD.TXP{i}"), "OPAD", 0, 0)
+                        .raw_tile(i)
                         .pins_name_only(&["I"]),
                     builder
-                        .bel_xy("OPAD.TXN", "OPAD", 0, 1)
+                        .bel_xy(format!("OPAD.TXN{i}"), "OPAD", 0, 1)
+                        .raw_tile(i)
                         .pins_name_only(&["I"]),
-                ],
-            );
-        }
-    }
-
-    for tkn in ["BRKH_MGT11CLK_L", "BRKH_MGT11CLK_R"] {
-        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+                ]);
+            }
             let mut bel = builder
                 .bel_xy("GT11CLK", "GT11CLK", 0, 0)
+                .raw_tile(2)
                 .pins_name_only(&[
                     "SYNCLK1IN",
                     "SYNCLK2IN",
@@ -1604,22 +1591,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         ],
                     );
             }
-            builder.extract_xnode_bels(
-                "MGTCLK",
-                xy,
-                &[],
-                &[],
-                tkn,
-                &[
-                    bel,
-                    builder
-                        .bel_xy("IPAD.CLKP", "IPAD", 0, 1)
-                        .pins_name_only(&["O"]),
-                    builder
-                        .bel_xy("IPAD.CLKN", "IPAD", 0, 0)
-                        .pins_name_only(&["O"]),
-                ],
-            );
+            bels.extend([
+                bel,
+                builder
+                    .bel_xy("IPAD.CLKP", "IPAD", 0, 1)
+                    .raw_tile(2)
+                    .pins_name_only(&["O"]),
+                builder
+                    .bel_xy("IPAD.CLKN", "IPAD", 0, 0)
+                    .raw_tile(2)
+                    .pins_name_only(&["O"]),
+            ]);
+
+            let mut xn = builder
+                .xnode("MGT", naming, xy.delta(0, -18))
+                .raw_tile(xy)
+                .raw_tile(xy.delta(0, -10))
+                .num_tiles(32);
+            for i in 0..32 {
+                xn = xn.ref_int(
+                    xy.delta(if xy.x == 0 { 1 } else { -1 }, -27 + (i + i / 8) as i32),
+                    i,
+                );
+            }
+            for bel in bels {
+                xn = xn.bel(bel);
+            }
+            xn.extract();
         }
     }
 

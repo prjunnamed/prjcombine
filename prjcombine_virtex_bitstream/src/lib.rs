@@ -35,6 +35,9 @@ pub enum Reg {
     General3,
     General4,
     General5,
+    FakeEarlyGhigh,
+    FakeDoubleGrestore,
+    FakeFreezeDciNops,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -134,7 +137,7 @@ impl Bitstream {
                 if fa == fb {
                     continue;
                 }
-                for j in 0..da.frame_len {
+                for j in 0..da.bram_frame_len {
                     if fa[j] != fb[j] {
                         res.insert(BitPos::Bram(die, i, j), fb[j]);
                     }
@@ -247,6 +250,7 @@ pub enum BitPos {
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum BitTile {
     Reg(DieId, Reg),
+    RegPresent(DieId, Reg),
     // die, frame, width, bit, height, flip
     Main(DieId, usize, usize, usize, usize, bool),
     Fixup(DieId, usize, usize, usize, usize, bool),
@@ -263,6 +267,11 @@ impl BitTile {
                 if bdie == die && breg == reg =>
             {
                 Some((0, pos))
+            }
+            (BitTile::RegPresent(die, reg), BitPos::RegPresent(bdie, breg))
+                if bdie == die && breg == reg =>
+            {
+                Some((0, 0))
             }
             (
                 BitTile::Main(die, frame, width, bit, height, flip),
@@ -321,6 +330,11 @@ impl BitTile {
                 assert_eq!(tframe, 0);
                 BitPos::Reg(die, reg, tbit)
             }
+            BitTile::RegPresent(die, reg) => {
+                assert_eq!(tframe, 0);
+                assert_eq!(tbit, 0);
+                BitPos::RegPresent(die, reg)
+            }
             BitTile::Main(die, frame, width, bit, height, flip) => {
                 assert!(tframe < width);
                 assert!(tbit < height);
@@ -355,6 +369,15 @@ impl BitTile {
                 assert!(tbit < height);
                 BitPos::Iob(die, bit + tbit)
             }
+        }
+    }
+
+    pub fn to_fixup(self) -> BitTile {
+        match self {
+            BitTile::Main(die, frame, width, bit, height, flip) => {
+                BitTile::Fixup(die, frame, width, bit, height, flip)
+            }
+            _ => unreachable!(),
         }
     }
 }

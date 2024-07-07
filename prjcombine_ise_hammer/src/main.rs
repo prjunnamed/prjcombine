@@ -1,7 +1,8 @@
+use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_hammer::{Backend, Session};
 use prjcombine_toolchain::Toolchain;
-use prjcombine_types::TileItemKind;
+use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::{ExpandedDevice, GeomDb};
 use std::collections::HashMap;
 use std::error::Error;
@@ -10,8 +11,10 @@ use tiledb::TileDb;
 
 mod backend;
 mod bram;
+mod ccm;
 mod clb;
 mod clk;
+mod dcm;
 mod diff;
 mod dsp;
 mod fgen;
@@ -38,6 +41,14 @@ struct Args {
     #[arg(long)]
     skip_io: bool,
     #[arg(long)]
+    skip_clk: bool,
+    #[arg(long)]
+    skip_ccm: bool,
+    #[arg(long)]
+    skip_dcm: bool,
+    #[arg(long)]
+    skip_misc: bool,
+    #[arg(long)]
     no_dup: bool,
 }
 
@@ -60,13 +71,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             egrid: gedev.egrid(),
             edev: &gedev,
         };
-        let empty_bs = backend.bitgen(&HashMap::new());
         let mut hammer = Session::new(&backend);
         if args.no_dup {
             hammer.dup_factor = 1;
         }
         int::add_fuzzers(&mut hammer, &backend);
         let mut skip_io = args.skip_io;
+        let mut skip_dcm = args.skip_dcm;
         // sigh. Spartan 3AN cannot do VCCAUX == 2.5 and this causes a *ridiculously annoying*
         // problem in the I/O fuzzers, which cannot easily identify IBUF_MODE == CMOS_VCCO
         // without that. it could be fixed, but it's easier to just rely on the fuzzers being
@@ -80,12 +91,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         if part.name == "xc3s2000" {
             skip_io = true;
         }
+        // Apparently ISE applies virtex2 programming to those instead of virtex2p programming.
+        // Just skip.
+        if part.name.starts_with("xq2vp") {
+            skip_dcm = true;
+        }
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
-            ExpandedDevice::Xc5200(_) => {}
+            ExpandedDevice::Xc5200(_) => {
+                // TODO: int
+                // TODO: clb
+                // TODO: clk
+                // TODO: misc
+                // TODO: io
+            }
             ExpandedDevice::Virtex(_) => {
+                // TODO: int
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
+                // TODO: clk
                 bram::virtex::add_fuzzers(&mut hammer, &backend);
+                // TODO: misc
+                // TODO: io
+                // TODO: dll
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
@@ -94,9 +121,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
-                misc::virtex2::add_fuzzers(&mut hammer, &backend, skip_io);
+                if !args.skip_misc {
+                    misc::virtex2::add_fuzzers(&mut hammer, &backend, skip_io);
+                }
                 if !skip_io {
                     io::virtex2::add_fuzzers(&mut hammer, &backend);
+                }
+                if !skip_dcm {
+                    if !edev.grid.kind.is_spartan3ea() {
+                        dcm::virtex2::add_fuzzers(&mut hammer, &backend);
+                    } else {
+                        dcm::spartan3e::add_fuzzers(&mut hammer, &backend);
+                    }
                 }
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::add_fuzzers(&mut hammer, &backend);
@@ -110,35 +146,92 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                // TODO: clk
+                // TODO: bram
                 dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
+                // TODO: misc
+                // TODO: io
+                // TODO: mcb
+                // TODO: dcm
+                // TODO: pll
+                // TODO: pcie
+                // TODO: gtp
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
                     clb::virtex2::add_fuzzers(&mut hammer, &backend);
-                    clk::virtex4::add_fuzzers(&mut hammer, &backend);
+                    if !args.skip_clk {
+                        clk::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
                     bram::virtex4::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex4::add_fuzzers(&mut hammer, &backend);
+                    if !args.skip_misc {
+                        misc::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
+                    // TODO: io
+                    if !args.skip_dcm {
+                        dcm::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
+                    if !args.skip_ccm {
+                        ccm::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
                     ppc::virtex4::add_fuzzers(&mut hammer, &backend);
-                    misc::virtex4::add_fuzzers(&mut hammer, &backend);
+                    // TODO: gt
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                    // TODO: clk
+                    // TODO: bram
                     dsp::virtex5::add_fuzzers(&mut hammer, &backend);
+                    // TODO: misc
+                    // TODO: io
+                    // TODO: dcm
+                    // TODO: pll
+                    // TODO: ppc
+                    // TODO: pcie
+                    // TODO: emac
+                    // TODO: gtp
+                    // TODO: gtx
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                    // TODO: clk
+                    // TODO: bram
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
+                    // TODO: misc
+                    // TODO: io
+                    // TODO: pll
+                    // TODO: pcie
+                    // TODO: emac
+                    // TODO: gtx
+                    // TODO: gth
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
+                    // TODO: clk
+                    // TODO: bram
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
+                    // TODO: misc
+                    // TODO: io
+                    // TODO: io_fifo
+                    // TODO: pll
+                    // TODO: pcie2
+                    // TODO: pcie3
+                    // TODO: gtp
+                    // TODO: gtx
+                    // TODO: gth
                 }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
         intf::add_fuzzers(&mut hammer, &backend);
-        let mut state = hammer.run().unwrap();
+        let (empty_bs, mut state) = std::thread::scope(|s| {
+            let empty_bs_t = s.spawn(|| backend.bitgen(&HashMap::new()));
+            let state = hammer.run().unwrap();
+            let empty_bs = empty_bs_t.join().unwrap();
+            (empty_bs, state)
+        });
         let mut ctx = CollectorCtx {
             device: part,
             edev: &gedev,
@@ -162,9 +255,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 }
-                misc::virtex2::collect_fuzzers(&mut ctx, skip_io);
+                if !args.skip_misc {
+                    misc::virtex2::collect_fuzzers(&mut ctx, skip_io);
+                }
                 if !skip_io {
                     io::virtex2::collect_fuzzers(&mut ctx);
+                }
+                if !skip_dcm {
+                    if !edev.grid.kind.is_spartan3ea() {
+                        dcm::virtex2::collect_fuzzers(&mut ctx);
+                    } else {
+                        dcm::spartan3e::collect_fuzzers(&mut ctx);
+                    }
                 }
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::collect_fuzzers(&mut ctx);
@@ -183,10 +285,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
                     clb::virtex2::collect_fuzzers(&mut ctx);
-                    clk::virtex4::collect_fuzzers(&mut ctx);
+                    if !args.skip_clk {
+                        clk::virtex4::collect_fuzzers(&mut ctx);
+                    }
                     bram::virtex4::collect_fuzzers(&mut ctx);
                     dsp::virtex4::collect_fuzzers(&mut ctx);
-                    misc::virtex4::collect_fuzzers(&mut ctx);
+                    if !args.skip_misc {
+                        misc::virtex4::collect_fuzzers(&mut ctx);
+                    }
+                    if !args.skip_dcm {
+                        dcm::virtex4::collect_fuzzers(&mut ctx);
+                    }
+                    if !args.skip_ccm {
+                        ccm::virtex4::collect_fuzzers(&mut ctx);
+                    }
                     ppc::virtex4::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
@@ -206,58 +318,50 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
         }
         intf::collect_fuzzers(&mut ctx);
+        for (die, dbs) in &ctx.empty_bs.die {
+            if let Some(val) = dbs.regs[Reg::Idcode] {
+                let mut idcode = BitVec::new();
+                for i in 0..32 {
+                    idcode.push((val & 1 << i) != 0);
+                }
+                ctx.tiledb
+                    .insert_device_data(&part.name, format!("IDCODE:{die}"), idcode);
+            }
+        }
 
         for (feat, data) in &ctx.state.simple_features {
-            print!("{} {} {} {}: [", feat.tile, feat.bel, feat.attr, feat.val);
-            for diff in &data.diffs {
-                if data.diffs.len() != 1 {
-                    print!("[");
-                }
-                for (bit, val) in &diff.bits {
-                    print!("{}.{}.{}:{},", bit.tile, bit.frame, bit.bit, val);
-                }
-                if data.diffs.len() != 1 {
-                    print!("], ");
+            println!(
+                "{} {} {} {}: {:?}",
+                feat.tile, feat.bel, feat.attr, feat.val, data.diffs
+            );
+        }
+    }
+    // inter-part fixups!
+    for part in Vec::from_iter(tiledb.device_data.keys().cloned()) {
+        if part.starts_with("xq2vp") {
+            let xc_part = "xc".to_string() + &part[2..];
+            if tiledb.device_data.contains_key(&xc_part) {
+                for key in ["DCM:DESKEW_ADJUST", "DCM:VBG_SEL", "DCM:VBG_PD"] {
+                    if let Some(val) = tiledb.device_data[&xc_part].get(key) {
+                        let val = val.clone();
+                        tiledb.insert_device_data(&part, key, val);
+                    }
                 }
             }
-            println!("]");
+        }
+    }
+    if let Some(tile) = tiledb.tiles.get("INT.GT.CLKPAD") {
+        let dcmclk0 = tile.items["INT:INV.IMUX.DCMCLK0"].clone();
+        let dcmclk1 = tile.items["INT:INV.IMUX.DCMCLK1"].clone();
+        let dcmclk2 = tile.items["INT:INV.IMUX.DCMCLK2"].clone();
+        for tile in ["INT.DCM.V2", "INT.DCM.V2P"] {
+            if tiledb.tiles.contains_key(tile) {
+                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK0", dcmclk0.clone());
+                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK1", dcmclk1.clone());
+                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK2", dcmclk2.clone());
+            }
         }
     }
     std::fs::write(args.json, tiledb.to_json().to_string())?;
-    if false {
-        for (tname, tile) in &tiledb.tiles {
-            for (name, item) in &tile.items {
-                print!("ITEM {tname}.{name}:");
-                if let TileItemKind::BitVec { ref invert } = item.kind {
-                    if invert.iter().all(|x| *x) {
-                        print!(" INVVEC");
-                    } else if invert.iter().all(|x| !*x) {
-                        print!(" VEC");
-                    } else {
-                        print!(" MIXVEC {:?}", Vec::from_iter(invert.iter().map(|x| *x)));
-                    }
-                } else {
-                    print!(" ENUM");
-                }
-                for &bit in &item.bits {
-                    print!(" {}.{}.{}", bit.tile, bit.frame, bit.bit);
-                }
-                println!();
-                if let TileItemKind::Enum { ref values } = item.kind {
-                    for (vname, val) in values {
-                        print!("    {vname:10}: ");
-                        for b in val {
-                            if *b {
-                                print!("1");
-                            } else {
-                                print!("0");
-                            }
-                        }
-                        println!();
-                    }
-                }
-            }
-        }
-    }
     Ok(())
 }

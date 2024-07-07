@@ -112,7 +112,10 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                         f.write("<td>")
                         crd = (bt, col, row)
                         if crd in rev:
+                            first = True
                             for name, item, bidx in rev[crd]:
+                                if not first:
+                                    f.write(f"<br>")
                                 title = name
                                 if bidx is not None:
                                     title = f"{name}[{bidx}]"
@@ -122,6 +125,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                                 if invert:
                                     title = f"~{title}"
                                 f.write(f"<a href=\"#bits-{kind}-{tile_name}-{name}\" title=\"{title}\">{title}</a>")
+                                first = False
                         else:
                             f.write("-")
                         f.write("</td>")
@@ -166,6 +170,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     akey = "INV"
                 if bel == "CLK_HROW":
                     akey = "MUX"
+                akey = ""
                 if "values" in item:
                     vkey = str(sorted(item["values"].items(), key=lambda x: x[1][::-1]))
                 else:
@@ -234,6 +239,9 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
         emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-dci-term-vcc.html", "IOSTD:V2P:TERM_VCC")
         emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-gt10-PMA_SPEED.html", "GT10:PMA_SPEED")
 
+        with open("xilinx/gen-xilinx-xc2v-dcm-deskew-adjust.html", "w") as f:
+            emit_dev_table_bitvec(f, "DCM:DESKEW_ADJUST")
+
     if kind == "xc3s":
         emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-drive.html", "IOSTD:S3:PDRIVE", "IOSTD:S3:NDRIVE")
         emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-slew.html", "IOSTD:S3:SLEW")
@@ -263,6 +271,9 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
 
         with open("xilinx/gen-xilinx-xc3s-pcilogicse-opts.html", "w") as f:
             emit_dev_table_string(f, "PCILOGICSE:DELAY_DEFAULT")
+
+        with open("xilinx/gen-xilinx-xc3s-dcm-deskew-adjust.html", "w") as f:
+            emit_dev_table_bitvec(f, "DCM:DESKEW_ADJUST")
 
         intf_mux = []
         for item, val in db["misc_data"].items():

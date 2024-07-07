@@ -1,14 +1,12 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
-use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileRelation},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -46,16 +44,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             "SLICEL"
         };
         for i in 0..2 {
-            let bel = BelId::from_idx(i);
-            let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
-            let ctx = FuzzCtx {
+            let ctx = FuzzCtx::new(
                 session,
-                node_kind,
-                bits: TileBits::Main(1),
+                backend,
                 tile_name,
-                bel,
-                bel_name,
-            };
+                format!("SLICE{i}"),
+                TileBits::MainAuto,
+            );
             let is_x = i == 1 && mode == Mode::Spartan6;
             let is_m = i == 0 && tile_name.ends_with('M');
 
@@ -443,11 +438,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (attr "AFF", "#FF"),
                 (pin "AQ")
             ]);
-            fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [
+            fuzz_inv!(ctx, "CLK", [
                 (mode bk_x),
                 (attr "AFF", "#FF"),
-                (pin "AQ"),
-                (pin "CLK")
+                (pin "AQ")
             ]);
             match mode {
                 Mode::Virtex5 => {

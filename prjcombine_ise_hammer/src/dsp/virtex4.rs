@@ -7,7 +7,7 @@ use crate::{
     diff::{xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_one,
 };
 
 const DSP48_INVPINS: &[&str] = &[
@@ -39,30 +39,17 @@ const DSP48_INVPINS: &[&str] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let node_kind = backend.egrid.db.get_node("DSP");
     let tile = "DSP";
     for (i, bel_name) in [(0, "DSP0"), (1, "DSP1")] {
-        let bel = BelId::from_idx(i);
         let bel_other = BelId::from_idx(i ^ 1);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Main(4),
-            tile_name: tile,
-            bel,
-            bel_name,
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, bel_name, TileBits::MainAuto);
         let bel_kind = "DSP48";
         fuzz_one!(ctx, "PRESENT", "1", [(bel_unused bel_other)], [(mode bel_kind)]);
         for &pin in DSP48_INVPINS {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode bel_kind)]);
         }
         for pin in ["CEC", "RSTC"] {
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode bel_kind), (bel_unused bel_other), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode bel_kind), (bel_unused bel_other)]);
         }
         for attr in ["AREG", "BREG"] {
             fuzz_enum!(ctx, attr, ["0", "1", "2"], [(mode bel_kind)]);

@@ -3,7 +3,8 @@ use prjcombine_int::db::PinDir;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_one,
 };
 
 const EMAC_INVPINS: &[&str] = &[
@@ -33,14 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
     let node_data = &intdb.nodes[node_kind];
     for (bel, bel_name, bel_data) in &node_data.bels {
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::PPC,
-            tile_name: tile,
-            bel,
-            bel_name,
-        };
+        let ctx = FuzzCtx::new(session, backend, tile, bel_name, TileBits::MainAuto);
         let mode = if bel.to_idx() == 0 {
             "PPC405_ADV"
         } else {
@@ -62,9 +56,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if intdb.wires.key(wire.1).starts_with("IMUX.IMUX") {
                 continue;
             }
-            let pininv = format!("{pin}INV").leak();
-            let pin_b = &*format!("{pin}_B").leak();
-            fuzz_enum!(ctx, pininv, [pin, pin_b], [(mode mode), (pin pin)]);
+            fuzz_inv!(ctx, pin, [(mode mode)]);
         }
         if bel_name == "PPC" {
             fuzz_enum!(ctx, "PLB_SYNC_MODE", ["SYNCBYPASS", "SYNCACTIVE"], [(mode "PPC405_ADV")]);

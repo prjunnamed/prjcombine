@@ -4,11 +4,11 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{IseBackend, SimpleFeatureId},
+    backend::{FeatureId, IseBackend},
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileRelation, TileWire},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -38,59 +38,51 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ("SLICEL", "SLICEM")
     };
     for i in 0..4 {
-        let bel = BelId::from_idx(i);
-        let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
-        let ctx = FuzzCtx {
+        let ctx = FuzzCtx::new(
             session,
-            node_kind,
-            bits: TileBits::Main(1),
-            tile_name: "CLB",
-            bel,
-            bel_name,
-        };
+            backend,
+            "CLB",
+            format!("SLICE{i}"),
+            TileBits::MainAuto,
+        );
         let is_m = match mode {
             Mode::Virtex2 => true,
             Mode::Spartan3 | Mode::Virtex4 => matches!(i, 0 | 2),
         };
 
         // inverters
-        fuzz_enum!(ctx, "CEINV", ["CE", "CE_B"], [
+        fuzz_inv!(ctx, "CE", [
             (mode bk_l),
             (attr "FFX", "#FF"),
-            (pin "CE"),
             (pin "XQ")
         ]);
-        fuzz_enum!(ctx, "CLKINV", ["CLK", "CLK_B"], [
+        fuzz_inv!(ctx, "CLK", [
             (mode bk_l),
             (attr "FFX", "#FF"),
-            (pin "CLK"),
             (pin "XQ")
         ]);
-        fuzz_enum!(ctx, "SRINV", ["SR", "SR_B"], [
+        fuzz_inv!(ctx, "SR", [
             (mode bk_l),
             (attr "FFX", "#FF"),
             (attr "FFY", "#FF"),
             (attr "SRFFMUX", if mode == Mode::Virtex2 {"0"} else {""}),
-            (pin "SR"),
             (pin "XQ"),
             (pin "YQ")
         ]);
-        fuzz_enum!(ctx, "BXINV", ["BX", "BX_B"], [
+        fuzz_inv!(ctx, "BX", [
             (mode bk_l),
             (attr "FFX", "#FF"),
             (attr "XUSED", "0"),
             (attr "DXMUX", if mode == Mode::Virtex4 {"BX"} else {"0"}),
             (pin "X"),
-            (pin "BX"),
             (pin "XQ")
         ]);
-        fuzz_enum!(ctx, "BYINV", ["BY", "BY_B"], [
+        fuzz_inv!(ctx, "BY", [
             (mode bk_l),
             (attr "FFY", "#FF"),
             (attr "YUSED", "0"),
             (attr "DYMUX", if mode == Mode::Virtex4 {"BY"} else {"0"}),
             (pin "Y"),
-            (pin "BY"),
             (pin "YQ")
         ]);
 
@@ -607,24 +599,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     if mode == Mode::Virtex2 {
         let tbus_bel = BelId::from_idx(6);
         for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
-            let bel = BelId::from_idx(4 + i);
-            let bel_name = backend.egrid.db.nodes[node_kind].bels.key(bel);
-            let ctx = FuzzCtx {
+            let ctx = FuzzCtx::new(
                 session,
-                node_kind,
-                bits: TileBits::Main(1),
-                tile_name: "CLB",
-                bel,
-                bel_name,
-            };
-            fuzz_enum!(ctx, "TINV", ["T", "T_B"], [
+                backend,
+                "CLB",
+                format!("TBUF{i}"),
+                TileBits::MainAuto,
+            );
+            fuzz_inv!(ctx, "T", [
                 (mode "TBUF"),
-                (pin "T"),
                 (pin "O")
             ]);
-            fuzz_enum!(ctx, "IINV", ["I", "I_B"], [
+            fuzz_inv!(ctx, "I", [
                 (mode "TBUF"),
-                (pin "I"),
                 (pin "O")
             ]);
             fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
@@ -634,32 +621,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         session.add_fuzzer(Box::new(TileFuzzerGen {
             node: node_kind,
             bits: TileBits::Main(1),
-            feature: SimpleFeatureId {
-                tile: "CLB",
-                bel: "TBUS",
-                attr: "JOINER",
-                val: "1",
+            feature: FeatureId {
+                tile: "CLB".into(),
+                bel: "TBUS".into(),
+                attr: "JOINER".into(),
+                val: "1".into(),
             },
             base: vec![],
             fuzz: vec![TileFuzzKV::TileRelated(
                 TileRelation::ClbTbusRight,
                 Box::new(TileFuzzKV::Pip(
-                    TileWire::BelPinNear(bel, "BUS3"),
-                    TileWire::BelPinNear(bel, "BUS3_E"),
+                    TileWire::BelPinNear(bel, "BUS3".into()),
+                    TileWire::BelPinNear(bel, "BUS3_E".into()),
                 )),
             )],
+            extras: vec![],
         }));
     }
     if mode == Mode::Spartan3 {
-        let node_kind = backend.egrid.db.get_node("RANDOR");
-        let mut ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Main(1),
-            tile_name: "RANDOR",
-            bel: BelId::from_idx(0),
-            bel_name: "RANDOR",
-        };
+        let mut ctx = FuzzCtx::new(session, backend, "RANDOR", "RANDOR", TileBits::Main(1));
         fuzz_enum!(ctx, "ANDORMUX", ["0", "1"], [
             (mode "RESERVED_ANDOR"),
             (special TileKV::IsLeftRandor(false)),
@@ -1064,6 +1044,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for &wire in node.muxes.keys() {
             let wire_name = egrid.db.wires.key(wire.1);
+            if name == "INT.GT.CLKPAD"
+                && matches!(
+                    &wire_name[..],
+                    "IMUX.CE0" | "IMUX.CE1" | "IMUX.TS0" | "IMUX.TS1"
+                )
+            {
+                continue;
+            }
+            if name == "INT.BRAM.S3A.03"
+                && (wire_name.starts_with("IMUX.CLK") || wire_name.starts_with("IMUX.CE"))
+            {
+                continue;
+            }
             let inv_name = format!("INT:INV.{wire_name}");
             let mux_name = format!("INT:MUX.{wire_name}");
             if !ctx.tiledb.tiles[name].items.contains_key(&mux_name) {

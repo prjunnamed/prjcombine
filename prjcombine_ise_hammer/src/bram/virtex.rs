@@ -1,6 +1,4 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
-use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -16,15 +14,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         if backend.egrid.node_index[node_kind].is_empty() {
             continue;
         }
-        let bel = BelId::from_idx(0);
-        let ctx = FuzzCtx {
-            session,
-            node_kind,
-            bits: TileBits::Bram,
-            tile_name,
-            bel,
-            bel_name: "BRAM",
-        };
+        let ctx = FuzzCtx::new(session, backend, tile_name, "BRAM", TileBits::Bram);
 
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BLOCKRAM")]);
         for (pinmux, pin) in [("CLKAMUX", "CLKA"), ("CLKBMUX", "CLKB")] {
@@ -56,7 +46,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
         }
         for i in 0..0x10 {
-            let attr = format!("INIT_{i:02x}").leak();
+            let attr = format!("INIT_{i:02x}");
             fuzz_multi!(ctx, attr, "", 256, [
                 (mode "BLOCKRAM"),
                 (attr "PORTA_ATTR", "256X16"),
@@ -94,10 +84,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {
-            diffs_data.extend(
-                ctx.state
-                    .get_diffs(tile, bel, format!("INIT_{i:02x}").leak(), ""),
-            );
+            diffs_data.extend(ctx.state.get_diffs(tile, bel, format!("INIT_{i:02x}"), ""));
         }
         for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
             ctx.collect_enum(

@@ -4,7 +4,7 @@ use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{IseBackend, SimpleFeatureId},
+    backend::{FeatureId, IseBackend},
     diff::{xlat_bitvec, xlat_enum, xlat_enum_default, CollectorCtx, Diff},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
@@ -23,54 +23,56 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             match intf {
                 prjcombine_int::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.tiles.len() == 1 {
-                        &*format!("MUX.{}", intdb.wires.key(wire.1)).leak()
+                        format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
-                        &*format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1)).leak()
+                        format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     for &wire_from in inps {
                         let in_name = if node.tiles.len() == 1 {
-                            &intdb.wires.key(wire_from.1)[..]
+                            intdb.wires.key(wire_from.1).to_string()
                         } else {
-                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1)).leak()
+                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                         };
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: name,
-                                bel: "INTF",
-                                attr: mux_name,
+                            feature: FeatureId {
+                                tile: name.to_string(),
+                                bel: "INTF".into(),
+                                attr: mux_name.clone(),
                                 val: in_name,
                             },
-                            base: vec![TileKV::IntMutexShared("INTF")],
+                            base: vec![TileKV::IntMutexShared("INTF".into())],
                             fuzz: vec![
-                                TileFuzzKV::TileMutexExclusive("INTF"),
+                                TileFuzzKV::TileMutexExclusive("INTF".into()),
                                 TileFuzzKV::NodeMutexExclusive(wire),
                                 TileFuzzKV::NodeMutexExclusive(wire_from),
                                 TileFuzzKV::IntfTestPip(wire_from, wire),
                             ],
+                            extras: vec![],
                         }));
                     }
                 }
                 prjcombine_int::db::IntfInfo::InputDelay => {
                     assert_eq!(node.tiles.len(), 1);
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1)).leak();
+                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
                     for val in ["0", "1"] {
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
                             bits: bits.clone(),
-                            feature: SimpleFeatureId {
-                                tile: name,
-                                bel: "INTF",
-                                attr: del_name,
-                                val,
+                            feature: FeatureId {
+                                tile: name.to_string(),
+                                bel: "INTF".into(),
+                                attr: del_name.clone(),
+                                val: val.to_string(),
                             },
-                            base: vec![TileKV::IntMutexShared("INTF")],
+                            base: vec![TileKV::IntMutexShared("INTF".into())],
                             fuzz: vec![
-                                TileFuzzKV::TileMutexExclusive("INTF"),
+                                TileFuzzKV::TileMutexExclusive("INTF".into()),
                                 TileFuzzKV::NodeMutexExclusive(wire),
                                 TileFuzzKV::IntfDelay(wire, val == "1"),
                             ],
+                            extras: vec![],
                         }));
                     }
                 }
@@ -96,18 +98,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             match intf {
                 prjcombine_int::db::IntfInfo::OutputTestMux(inps) => {
                     let mux_name = if node.tiles.len() == 1 {
-                        &*format!("MUX.{}", intdb.wires.key(wire.1)).leak()
+                        format!("MUX.{}", intdb.wires.key(wire.1))
                     } else {
-                        &*format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1)).leak()
+                        format!("MUX.{}.{}", wire.0, intdb.wires.key(wire.1))
                     };
                     let mut mux_inps = vec![];
                     for &wire_from in inps {
                         let in_name = if node.tiles.len() == 1 {
-                            &intdb.wires.key(wire_from.1)[..]
+                            intdb.wires.key(wire_from.1).to_string()
                         } else {
-                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1)).leak()
+                            format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1))
                         };
-                        let diff = ctx.state.get_diff(name, "INTF", mux_name, in_name);
+                        let diff = ctx.state.get_diff(name, "INTF", &mux_name, &in_name);
 
                         match test_bits {
                             Some(ref mut bits) => bits.retain(|bit, _| diff.bits.contains_key(bit)),
@@ -121,8 +123,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     test_muxes.push((mux_name, mux_inps));
                 }
                 prjcombine_int::db::IntfInfo::InputDelay => {
-                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1)).leak();
-                    ctx.collect_enum_bool(name, "INTF", del_name, "0", "1");
+                    let del_name = format!("DELAY.{}", intdb.wires.key(wire.1));
+                    ctx.collect_enum_bool(name, "INTF", &del_name, "0", "1");
                 }
                 _ => unreachable!(),
             }
@@ -203,11 +205,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     let mut new_test_muxes = vec![];
                     let mut known_bits = HashSet::new();
-                    for &(mux_name, ref mux_inps) in &test_muxes {
+                    for (mux_name, mux_inps) in &test_muxes {
                         let (_, _, common) =
                             Diff::split(mux_inps[0].1.clone(), mux_inps[1].1.clone());
                         let mut new_mux_inps = vec![];
-                        for &(in_name, ref diff) in mux_inps {
+                        for (in_name, diff) in mux_inps {
                             let (diff, empty, check_common) =
                                 Diff::split(diff.clone(), common.clone());
                             assert_eq!(check_common, common);
@@ -215,9 +217,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             for &bit in diff.bits.keys() {
                                 known_bits.insert(bit);
                             }
-                            new_mux_inps.push((in_name, diff));
+                            new_mux_inps.push((in_name.clone(), diff));
                         }
-                        new_test_muxes.push((mux_name, new_mux_inps));
+                        new_test_muxes.push((mux_name.clone(), new_mux_inps));
                     }
                     for (_, mux_inps) in test_muxes {
                         for (_, diff) in mux_inps {

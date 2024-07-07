@@ -7,21 +7,23 @@ use prjcombine_virtex_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::{Bond, ExpandedDevice};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use unnamed_entity::EntityId;
 
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen, FuzzerValue};
 use prjcombine_int::db::{BelId, NodeKindId};
 
-use crate::backend::{FuzzerInfo, IseBackend, Key, MultiValue, SimpleFeatureId, State, Value};
+use crate::backend::{
+    FeatureId, FuzzerFeature, FuzzerInfo, IseBackend, Key, MultiValue, PinFromKind, State, Value,
+};
 
 pub type Loc = (DieId, ColId, RowId, LayerId);
 
-#[derive(Debug, Copy, Clone)]
-pub enum TileWire<'a> {
-    BelPinNear(BelId, &'a str),
-    BelPinFar(BelId, &'a str),
-    RelatedBelPinNear(BelId, BelRelation, &'a str),
+#[derive(Debug, Clone)]
+pub enum TileWire {
+    BelPinNear(BelId, String),
+    BelPinFar(BelId, String),
+    RelatedBelPinNear(BelId, BelRelation, String),
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -30,12 +32,13 @@ pub enum TileRelation {
     ClbCinDown,
     IoiBrefclk,
     IobBrefclkClkBT,
-    ClkIob(bool),
+    ClkIob(Dir),
     ClkDcm,
     ClkHrow,
     Rclk,
     Ioclk(Dir),
     Cfg,
+    HclkDcm,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -106,16 +109,16 @@ fn resolve_tile_relation(
             loc.3 = layer;
             Some(loc)
         }
-        TileRelation::ClkIob(is_t) => {
+        TileRelation::ClkIob(dir) => {
             let ExpandedDevice::Virtex4(edev) = backend.edev else {
                 unreachable!()
             };
             match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
-                    loc.2 = if is_t {
-                        edev.row_iobdcm.unwrap() - 16
-                    } else {
-                        edev.row_dcmiob.unwrap()
+                    loc.2 = match dir {
+                        Dir::N => edev.row_iobdcm.unwrap() - 16,
+                        Dir::S => edev.row_dcmiob.unwrap(),
+                        _ => unreachable!(),
                     };
                     let Some((layer, _)) =
                         backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
@@ -219,13 +222,33 @@ fn resolve_tile_relation(
         TileRelation::Ioclk(dir) => {
             Some(resolve_bel_relation(backend, loc, BelId::from_idx(0), BelRelation::Ioclk(dir))?.0)
         }
+        TileRelation::HclkDcm => match backend.edev {
+            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc5200(_) => todo!(),
+            ExpandedDevice::Virtex(_) => todo!(),
+            ExpandedDevice::Virtex2(_) => todo!(),
+            ExpandedDevice::Spartan6(_) => todo!(),
+            ExpandedDevice::Virtex4(edev) => {
+                loc.1 = edev.col_clk;
+                loc.2 = edev.grids[loc.0].row_hclk(loc.2);
+                let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                    backend.egrid.db.nodes.key(node.kind) == "HCLK_DCM"
+                }) else {
+                    unreachable!()
+                };
+                loc.3 = layer;
+                Some(loc)
+            }
+            ExpandedDevice::Ultrascale(_) => todo!(),
+            ExpandedDevice::Versal(_) => todo!(),
+        },
     }
 }
 
 fn resolve_bel_relation(
     backend: &IseBackend,
     mut loc: Loc,
-    mut bel: BelId,
+    _bel: BelId,
     relation: BelRelation,
 ) -> Option<(Loc, BelId)> {
     match relation {
@@ -253,7 +276,7 @@ fn resolve_bel_relation(
                         unreachable!()
                     };
                     loc.3 = layer;
-                    bel = backend.egrid.db.nodes[node.kind]
+                    let bel = backend.egrid.db.nodes[node.kind]
                         .bels
                         .get("RCLK")
                         .unwrap()
@@ -305,7 +328,7 @@ fn resolve_bel_relation(
                             )
                         })?;
                     loc.3 = layer;
-                    bel = backend.egrid.db.nodes[node.kind]
+                    let bel = backend.egrid.db.nodes[node.kind]
                         .bels
                         .get("IOCLK")
                         .unwrap()
@@ -342,22 +365,22 @@ fn find_ioi(backend: &IseBackend, loc: Loc, tile: usize) -> Loc {
 fn resolve_tile_wire<'a>(
     backend: &IseBackend<'a>,
     loc: Loc,
-    wire: TileWire,
+    wire: &TileWire,
 ) -> Option<(&'a str, &'a str)> {
     let node = backend.egrid.node(loc);
     let intdb = backend.egrid.db;
     let node_naming = &intdb.node_namings[node.naming];
     Some(match wire {
         TileWire::BelPinNear(bel, pin) => {
-            let bel_naming = &node_naming.bels[bel];
+            let bel_naming = &node_naming.bels[*bel];
             (&node.names[bel_naming.tile], &bel_naming.pins[pin].name)
         }
         TileWire::BelPinFar(bel, pin) => {
-            let bel_naming = &node_naming.bels[bel];
+            let bel_naming = &node_naming.bels[*bel];
             (&node.names[bel_naming.tile], &bel_naming.pins[pin].name_far)
         }
         TileWire::RelatedBelPinNear(bel, relation, pin) => {
-            let (loc, bel) = resolve_bel_relation(backend, loc, bel, relation)?;
+            let (loc, bel) = resolve_bel_relation(backend, loc, *bel, *relation)?;
             let node = backend.egrid.node(loc);
             let intdb = backend.egrid.db;
             let node_naming = &intdb.node_namings[node.naming];
@@ -501,21 +524,21 @@ fn get_bonded_ios_v2(
 #[derive(Debug, Clone)]
 pub enum TileKV<'a> {
     Nop,
-    Bel(BelId, BelKV<'a>),
-    IobBel(usize, BelId, BelKV<'a>),
-    Package(&'a str),
+    Bel(BelId, BelKV),
+    IobBel(usize, BelId, BelKV),
+    Package(String),
     AltVr(bool),
-    GlobalOpt(&'a str, &'a str),
-    NoGlobalOpt(&'a str),
-    VccAux(&'a str),
-    GlobalMutexNone(&'a str),
-    GlobalMutex(&'a str, &'a str),
-    RowMutex(&'a str, &'a str),
-    TileMutex(&'a str, &'a str),
-    Pip(TileWire<'a>, TileWire<'a>),
+    GlobalOpt(String, String),
+    NoGlobalOpt(String),
+    VccAux(String),
+    GlobalMutexNone(String),
+    GlobalMutex(String, String),
+    RowMutex(String, String),
+    TileMutex(String, String),
+    Pip(TileWire, TileWire),
     IntPip(NodeWireId, NodeWireId),
     NodeMutexShared(NodeWireId),
-    IntMutexShared(&'a str),
+    IntMutexShared(String),
     NodeIntDstFilter(NodeWireId),
     NodeIntSrcFilter(NodeWireId),
     NodeIntDistinct(NodeWireId, NodeWireId),
@@ -523,25 +546,28 @@ pub enum TileKV<'a> {
     DriveLLV(NodeWireId),
     StabilizeGclkc,
     IsLeftRandor(bool),
-    Raw(Key<'a>, Value<'a>),
+    HclkHasDcm(Dir),
+    Raw(Key<'a>, Value),
     TileRelated(TileRelation, Box<TileKV<'a>>),
 }
 
 #[derive(Debug, Clone)]
-pub enum BelKV<'a> {
+pub enum BelKV {
     Nop,
-    Mode(&'a str),
+    Mode(String),
     Unused,
-    Attr(&'a str, &'a str),
-    Pin(&'a str, bool),
-    GlobalMutexHere(&'a str),
-    RowMutexHere(&'a str),
-    Mutex(&'a str, &'a str),
+    Attr(String, String),
+    Global(BelGlobalKind, String, String),
+    Pin(String, bool),
+    PinFrom(String, PinFromKind),
+    GlobalMutexHere(String),
+    RowMutexHere(String),
+    Mutex(String, String),
     IsVref,
     IsVr,
-    OtherIobInput(&'a str),
-    OtherIobDiffOutput(&'a str),
-    BankDiffOutput(&'a str, Option<&'a str>),
+    OtherIobInput(String),
+    OtherIobDiffOutput(String),
+    BankDiffOutput(String, Option<String>),
     NotIbuf,
 }
 
@@ -552,22 +578,22 @@ impl<'a> TileKV<'a> {
         loc: Loc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
-        Some(match *self {
+        Some(match self {
             TileKV::Nop => fuzzer,
-            TileKV::Bel(bel, ref inner) => inner.apply(backend, loc, bel, fuzzer)?,
+            TileKV::Bel(bel, ref inner) => inner.apply(backend, loc, *bel, fuzzer)?,
             TileKV::IobBel(tile, bel, ref inner) => {
-                let ioi_loc = find_ioi(backend, loc, tile);
-                inner.apply(backend, ioi_loc, bel, fuzzer)?
+                let ioi_loc = find_ioi(backend, loc, *tile);
+                inner.apply(backend, ioi_loc, *bel, fuzzer)?
             }
-            TileKV::Package(pkg) => fuzzer.base(Key::Package, pkg),
-            TileKV::AltVr(alt) => fuzzer.base(Key::AltVr, alt),
-            TileKV::GlobalOpt(opt, val) => fuzzer.base(Key::GlobalOpt(opt), val),
-            TileKV::NoGlobalOpt(opt) => fuzzer.base(Key::GlobalOpt(opt), None),
+            TileKV::Package(pkg) => fuzzer.base(Key::Package, pkg.clone()),
+            TileKV::AltVr(alt) => fuzzer.base(Key::AltVr, *alt),
+            TileKV::GlobalOpt(opt, val) => fuzzer.base(Key::GlobalOpt(opt.clone()), val),
+            TileKV::NoGlobalOpt(opt) => fuzzer.base(Key::GlobalOpt(opt.clone()), None),
             TileKV::VccAux(val) => fuzzer.base(Key::VccAux, val),
-            TileKV::GlobalMutexNone(name) => fuzzer.base(Key::GlobalMutex(name), None),
-            TileKV::GlobalMutex(name, val) => fuzzer.base(Key::GlobalMutex(name), val),
-            TileKV::RowMutex(name, val) => fuzzer.base(Key::RowMutex(name, loc.2), val),
-            TileKV::TileMutex(name, val) => fuzzer.base(Key::TileMutex(loc, name), val),
+            TileKV::GlobalMutexNone(name) => fuzzer.base(Key::GlobalMutex(name.clone()), None),
+            TileKV::GlobalMutex(name, val) => fuzzer.base(Key::GlobalMutex(name.clone()), val),
+            TileKV::RowMutex(name, val) => fuzzer.base(Key::RowMutex(name.clone(), loc.2), val),
+            TileKV::TileMutex(name, val) => fuzzer.base(Key::TileMutex(loc, name.clone()), val),
             TileKV::Pip(wa, wb) => {
                 let (ta, wa) = resolve_tile_wire(backend, loc, wa)?;
                 let (tb, wb) = resolve_tile_wire(backend, loc, wb)?;
@@ -575,7 +601,7 @@ impl<'a> TileKV<'a> {
                 fuzzer.base(Key::Pip(ta, wa, wb), true)
             }
             TileKV::IntPip(wa, wb) => {
-                let (tile, wa, wb) = resolve_int_pip(backend, loc, wa, wb)?;
+                let (tile, wa, wb) = resolve_int_pip(backend, loc, *wa, *wb)?;
                 fuzzer.base(Key::Pip(tile, wa, wb), true)
             }
             TileKV::NodeMutexShared(wire) => {
@@ -734,12 +760,14 @@ impl<'a> TileKV<'a> {
                                 })
                                 .unwrap();
                             let site = &dcm.bels[BelId::from_idx(0)];
-                            fuzzer = fuzzer.base(Key::SiteMode(site), "DCM");
+                            fuzzer = fuzzer
+                                .base(Key::SiteMode(site), "DCM")
+                                .base(Key::SiteMutex(site, "MODE".into()), "INT");
                             for pin in [
                                 "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV",
                                 "CLKFX", "CLKFX180", "CONCUR", "STATUS1", "STATUS7",
                             ] {
-                                fuzzer = fuzzer.base(Key::SitePin(site, pin), true);
+                                fuzzer = fuzzer.base(Key::SitePin(site, pin.into()), true);
                             }
                         }
                         if wire_name == "OUT.PCI0"
@@ -919,10 +947,11 @@ impl<'a> TileKV<'a> {
                             ("OUT_L7", "IN_B7"),
                             ("OUT_R7", "IN_B7"),
                         ] {
-                            fuzzer = TileKV::TileMutex(o, i).apply(backend, loc, fuzzer)?;
+                            fuzzer = TileKV::TileMutex(o.into(), i.into())
+                                .apply(backend, loc, fuzzer)?;
                             fuzzer = TileKV::Pip(
-                                TileWire::BelPinNear(bel, i),
-                                TileWire::BelPinNear(bel, o),
+                                TileWire::BelPinNear(bel, i.into()),
+                                TileWire::BelPinNear(bel, o.into()),
                             )
                             .apply(backend, loc, fuzzer)?;
                         }
@@ -931,7 +960,7 @@ impl<'a> TileKV<'a> {
                 fuzzer
             }
             TileKV::IsLeftRandor(val) => {
-                if val != (loc.1.to_idx() == 1) {
+                if *val != (loc.1.to_idx() == 1) {
                     return None;
                 }
                 if loc.2.to_idx() == 0 {
@@ -939,16 +968,27 @@ impl<'a> TileKV<'a> {
                 }
                 fuzzer
             }
+            TileKV::HclkHasDcm(dir) => {
+                let row = match dir {
+                    Dir::N => loc.2,
+                    Dir::S => loc.2 - 8,
+                    _ => unreachable!(),
+                };
+                backend.egrid.find_node(loc.0, (loc.1, row), |node| {
+                    matches!(&backend.egrid.db.nodes.key(node.kind)[..], "CCM" | "DCM")
+                })?;
+                fuzzer
+            }
             TileKV::Raw(ref key, ref val) => fuzzer.base(key.clone(), val.clone()),
             TileKV::TileRelated(relation, ref chain) => {
-                let loc = resolve_tile_relation(backend, loc, relation)?;
+                let loc = resolve_tile_relation(backend, loc, *relation)?;
                 chain.apply(backend, loc, fuzzer)?
             }
         })
     }
 }
 
-impl<'a> BelKV<'a> {
+impl<'a> BelKV {
     fn apply(
         &self,
         backend: &IseBackend<'a>,
@@ -956,40 +996,26 @@ impl<'a> BelKV<'a> {
         bel: BelId,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
-        Some(match *self {
+        let node = backend.egrid.node(loc);
+        let site = &node.bels[bel];
+        Some(match self {
             BelKV::Nop => fuzzer,
             BelKV::Mode(mode) => {
-                let node = backend.egrid.node(loc);
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
-                let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.base(Key::SiteMode(site), mode)
             }
-            BelKV::Unused => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::SiteMode(site), None)
+            BelKV::Unused => fuzzer.base(Key::SiteMode(site), None),
+            BelKV::Attr(attr, val) => fuzzer.base(Key::SiteAttr(site, attr.clone()), val),
+            BelKV::Global(kind, opt, val) => {
+                fuzzer.base(Key::GlobalOpt(kind.apply(opt, site)), val)
             }
-            BelKV::Attr(attr, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::SiteAttr(site, attr), val)
-            }
-            BelKV::Pin(pin, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::SitePin(site, pin), val)
-            }
-            BelKV::GlobalMutexHere(name) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::GlobalMutex(name), &site[..])
-            }
-            BelKV::RowMutexHere(name) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::RowMutex(name, loc.2), &site[..])
-            }
-            BelKV::Mutex(name, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.base(Key::SiteMutex(&site[..], name), val)
-            }
+            BelKV::Pin(pin, val) => fuzzer.base(Key::SitePin(site, pin.clone()), *val),
+            BelKV::PinFrom(pin, kind) => fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind),
+            BelKV::GlobalMutexHere(name) => fuzzer.base(Key::GlobalMutex(name.clone()), &site[..]),
+            BelKV::RowMutexHere(name) => fuzzer.base(Key::RowMutex(name.clone(), loc.2), &site[..]),
+            BelKV::Mutex(name, val) => fuzzer.base(Key::SiteMutex(site, name.clone()), val),
             BelKV::IsVref => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
                 ExpandedDevice::Xc5200(_) => todo!(),
@@ -1096,7 +1122,7 @@ impl<'a> BelKV<'a> {
                                     })
                                     .unwrap();
                                 let obel = BelId::from_idx(io.iob.to_idx());
-                                let site = &node.bels[obel][..];
+                                let site = &node.bels[obel];
 
                                 fuzzer = fuzzer.base(
                                     Key::SiteMode(site),
@@ -1132,23 +1158,27 @@ impl<'a> BelKV<'a> {
                                         }
                                     },
                                 );
-                                fuzzer = fuzzer.base(Key::SiteAttr(site, "IOATTRBOX"), iostd);
+                                fuzzer =
+                                    fuzzer.base(Key::SiteAttr(site, "IOATTRBOX".into()), iostd);
                                 if !is_out {
-                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX"), "1");
-                                    fuzzer = fuzzer.base(Key::SitePin(site, "I"), true);
+                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), "1");
+                                    fuzzer = fuzzer.base(Key::SitePin(site, "I".into()), true);
                                     if edev.grid.kind.is_spartan3a() {
-                                        fuzzer = fuzzer
-                                            .base(Key::SiteAttr(site, "IBUF_DELAY_VALUE"), "DLY0");
                                         fuzzer = fuzzer.base(
-                                            Key::SiteAttr(site, "DELAY_ADJ_ATTRBOX"),
+                                            Key::SiteAttr(site, "IBUF_DELAY_VALUE".into()),
+                                            "DLY0",
+                                        );
+                                        fuzzer = fuzzer.base(
+                                            Key::SiteAttr(site, "DELAY_ADJ_ATTRBOX".into()),
                                             "FIXED",
                                         );
-                                        fuzzer = fuzzer.base(Key::SiteAttr(site, "SEL_MUX"), "0");
+                                        fuzzer =
+                                            fuzzer.base(Key::SiteAttr(site, "SEL_MUX".into()), "0");
                                     }
                                 } else {
-                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "OMUX"), "O1");
-                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "O1INV"), "O1");
-                                    fuzzer = fuzzer.base(Key::SitePin(site, "O1"), true);
+                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "OMUX".into()), "O1");
+                                    fuzzer = fuzzer.base(Key::SiteAttr(site, "O1INV".into()), "O1");
+                                    fuzzer = fuzzer.base(Key::SitePin(site, "O1".into()), true);
                                 }
                                 return Some(fuzzer);
                             }
@@ -1234,18 +1264,18 @@ impl<'a> BelKV<'a> {
                                         "DIFFS"
                                     },
                                 )
-                                .base(Key::SiteAttr(site_p, "IOATTRBOX"), std)
-                                .base(Key::SiteAttr(site_n, "IOATTRBOX"), std)
-                                .base(Key::SiteAttr(site_p, "OMUX"), "O1")
-                                .base(Key::SiteAttr(site_p, "O1INV"), "O1")
-                                .base(Key::SitePin(site_p, "O1"), true)
-                                .base(Key::SitePin(site_p, "DIFFO_OUT"), true)
-                                .base(Key::SitePin(site_n, "DIFFO_IN"), true)
-                                .base(Key::SiteAttr(site_n, "DIFFO_IN_USED"), "0");
+                                .base(Key::SiteAttr(site_p, "IOATTRBOX".into()), std)
+                                .base(Key::SiteAttr(site_n, "IOATTRBOX".into()), std)
+                                .base(Key::SiteAttr(site_p, "OMUX".into()), "O1")
+                                .base(Key::SiteAttr(site_p, "O1INV".into()), "O1")
+                                .base(Key::SitePin(site_p, "O1".into()), true)
+                                .base(Key::SitePin(site_p, "DIFFO_OUT".into()), true)
+                                .base(Key::SitePin(site_n, "DIFFO_IN".into()), true)
+                                .base(Key::SiteAttr(site_n, "DIFFO_IN_USED".into()), "0");
                             if edev.grid.kind.is_spartan3a() {
                                 fuzzer = fuzzer
-                                    .base(Key::SiteAttr(site_p, "SUSPEND"), "3STATE")
-                                    .base(Key::SiteAttr(site_n, "SUSPEND"), "3STATE");
+                                    .base(Key::SiteAttr(site_p, "SUSPEND".into()), "3STATE")
+                                    .base(Key::SiteAttr(site_n, "SUSPEND".into()), "3STATE");
                             }
                             done += 1;
                             if done == stds.len() {
@@ -1264,7 +1294,6 @@ impl<'a> BelKV<'a> {
                 }
             }
             BelKV::NotIbuf => {
-                let node = backend.egrid.node(loc);
                 if !node.names[NodeRawTileId::from_idx(0)].contains("IOIS") {
                     return None;
                 }
@@ -1274,31 +1303,49 @@ impl<'a> BelKV<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TileFuzzKV<'a> {
-    Bel(BelId, BelFuzzKV<'a>),
-    IobBel(usize, BelId, BelFuzzKV<'a>),
-    GlobalOpt(&'a str, &'a str),
-    GlobalOptDiff(&'a str, &'a str, &'a str),
-    Pip(TileWire<'a>, TileWire<'a>),
+    Bel(BelId, BelFuzzKV),
+    IobBel(usize, BelId, BelFuzzKV),
+    GlobalOpt(String, String),
+    GlobalOptDiff(String, String, String),
+    Pip(TileWire, TileWire),
     IntPip(NodeWireId, NodeWireId),
     IntfTestPip(NodeWireId, NodeWireId),
     IntfDelay(NodeWireId, bool),
     NodeMutexExclusive(NodeWireId),
-    TileMutexExclusive(&'a str),
-    RowMutexExclusive(&'a str),
+    TileMutexExclusive(String),
+    RowMutexExclusive(String),
     TileRelated(TileRelation, Box<TileFuzzKV<'a>>),
-    Raw(Key<'a>, Value<'a>, Value<'a>),
+    Raw(Key<'a>, Value, Value),
 }
 
-#[derive(Debug)]
-pub enum BelFuzzKV<'a> {
-    Mode(&'a str),
-    ModeDiff(&'a str, &'a str),
-    Attr(&'a str, &'a str),
-    AttrDiff(&'a str, &'a str, &'a str),
-    Pin(&'a str),
-    PinFull(&'a str),
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum BelGlobalKind {
+    Xy,
+}
+
+impl BelGlobalKind {
+    pub fn apply(self, opt: &str, site: &str) -> String {
+        match self {
+            BelGlobalKind::Xy => {
+                let xy = &site[site.rfind('X').unwrap()..];
+                format!("{opt}{xy}")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BelFuzzKV {
+    Mode(String),
+    ModeDiff(String, String),
+    Attr(String, String),
+    AttrDiff(String, String, String),
+    Pin(String),
+    PinFull(String),
+    PinFrom(String, PinFromKind, PinFromKind),
+    Global(BelGlobalKind, String, String),
 }
 
 impl<'a> TileFuzzKV<'a> {
@@ -1309,15 +1356,15 @@ impl<'a> TileFuzzKV<'a> {
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
-        Some(match *self {
-            TileFuzzKV::Bel(bel, ref inner) => inner.apply(backend, loc, bel, fuzzer)?,
+        Some(match self {
+            TileFuzzKV::Bel(bel, ref inner) => inner.apply(backend, loc, *bel, fuzzer)?,
             TileFuzzKV::IobBel(tile, bel, ref inner) => {
-                let ioi_loc = find_ioi(backend, loc, tile);
-                inner.apply(backend, ioi_loc, bel, fuzzer)?
+                let ioi_loc = find_ioi(backend, loc, *tile);
+                inner.apply(backend, ioi_loc, *bel, fuzzer)?
             }
-            TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt), None, val),
+            TileFuzzKV::GlobalOpt(opt, val) => fuzzer.fuzz(Key::GlobalOpt(opt.clone()), None, val),
             TileFuzzKV::GlobalOptDiff(opt, vala, valb) => {
-                fuzzer.fuzz(Key::GlobalOpt(opt), vala, valb)
+                fuzzer.fuzz(Key::GlobalOpt(opt.clone()), vala, valb)
             }
             TileFuzzKV::Pip(wa, wb) => {
                 let (ta, wa) = resolve_tile_wire(backend, loc, wa)?;
@@ -1326,7 +1373,7 @@ impl<'a> TileFuzzKV<'a> {
                 fuzzer.fuzz(Key::Pip(ta, wa, wb), None, true)
             }
             TileFuzzKV::IntPip(wa, wb) => {
-                let (tile, wa, wb) = resolve_int_pip(backend, loc, wa, wb)?;
+                let (tile, wa, wb) = resolve_int_pip(backend, loc, *wa, *wb)?;
                 fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true)
             }
             TileFuzzKV::IntfTestPip(wa, wb) => {
@@ -1339,12 +1386,12 @@ impl<'a> TileFuzzKV<'a> {
                         return None;
                     }
                 }
-                let (tile, wa, wb) = resolve_intf_test_pip(backend, loc, wa, wb)?;
+                let (tile, wa, wb) = resolve_intf_test_pip(backend, loc, *wa, *wb)?;
                 fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true)
             }
             TileFuzzKV::IntfDelay(wire, state) => {
-                let (tile, wa, wb, wc) = resolve_intf_delay(backend, loc, wire)?;
-                if state {
+                let (tile, wa, wb, wc) = resolve_intf_delay(backend, loc, *wire)?;
+                if *state {
                     fuzzer.fuzz(Key::Pip(tile, wa, wb), None, true).fuzz(
                         Key::Pip(tile, wb, wc),
                         None,
@@ -1361,13 +1408,13 @@ impl<'a> TileFuzzKV<'a> {
                 fuzzer.fuzz(Key::NodeMutex(node), None, "EXCLUSIVE")
             }
             TileFuzzKV::TileMutexExclusive(name) => {
-                fuzzer.fuzz(Key::TileMutex(loc, name), None, "EXCLUSIVE")
+                fuzzer.fuzz(Key::TileMutex(loc, name.clone()), None, "EXCLUSIVE")
             }
             TileFuzzKV::RowMutexExclusive(name) => {
-                fuzzer.fuzz(Key::RowMutex(name, loc.2), None, "EXCLUSIVE")
+                fuzzer.fuzz(Key::RowMutex(name.clone(), loc.2), None, "EXCLUSIVE")
             }
             TileFuzzKV::TileRelated(relation, ref chain) => {
-                let loc = resolve_tile_relation(backend, loc, relation)?;
+                let loc = resolve_tile_relation(backend, loc, *relation)?;
                 chain.apply(backend, loc, fuzzer)?
             }
             TileFuzzKV::Raw(ref key, ref vala, ref valb) => {
@@ -1377,8 +1424,8 @@ impl<'a> TileFuzzKV<'a> {
     }
 }
 
-impl<'a> BelFuzzKV<'a> {
-    fn apply(
+impl BelFuzzKV {
+    fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
         loc: Loc,
@@ -1388,38 +1435,30 @@ impl<'a> BelFuzzKV<'a> {
         let node = backend.egrid.node(loc);
         let node_data = &backend.egrid.db.nodes[node.kind];
         let node_naming = &backend.egrid.db.node_namings[node.naming];
-        Some(match *self {
+        let site = &backend.egrid.node(loc).bels[bel];
+        Some(match self {
             BelFuzzKV::Mode(val) => {
-                let node = backend.egrid.node(loc);
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
-                let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteMode(site), None, val)
             }
             BelFuzzKV::ModeDiff(vala, valb) => {
-                let node = backend.egrid.node(loc);
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
-                let site = &backend.egrid.node(loc).bels[bel];
                 fuzzer.fuzz(Key::SiteMode(site), vala, valb)
             }
-            BelFuzzKV::Attr(attr, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.fuzz(Key::SiteAttr(site, attr), None, val)
-            }
+            BelFuzzKV::Attr(attr, val) => fuzzer.fuzz(Key::SiteAttr(site, attr.clone()), None, val),
             BelFuzzKV::AttrDiff(attr, va, vb) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.fuzz(Key::SiteAttr(site, attr), va, vb)
+                fuzzer.fuzz(Key::SiteAttr(site, attr.clone()), va, vb)
             }
-            BelFuzzKV::Pin(pin) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.fuzz(Key::SitePin(site, pin), false, true)
+            BelFuzzKV::Pin(pin) => fuzzer.fuzz(Key::SitePin(site, pin.clone()), false, true),
+            BelFuzzKV::PinFrom(pin, kind_a, kind_b) => {
+                fuzzer.fuzz(Key::SitePinFrom(site, pin.clone()), *kind_a, *kind_b)
             }
             BelFuzzKV::PinFull(pin) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer = fuzzer.fuzz(Key::SitePin(site, pin), false, true);
+                fuzzer = fuzzer.fuzz(Key::SitePin(site, pin.clone()), false, true);
                 let bel_data = &node_data.bels[bel];
                 let pin_data = &bel_data.pins[pin];
                 let bel_naming = &node_naming.bels[bel];
@@ -1435,35 +1474,46 @@ impl<'a> BelFuzzKV<'a> {
                 }
                 fuzzer
             }
+            BelFuzzKV::Global(kind, name, val) => {
+                fuzzer.fuzz(Key::GlobalOpt(kind.apply(name, site)), None, val)
+            }
         })
     }
 }
 
-#[derive(Debug)]
-pub enum TileMultiFuzzKV<'a> {
-    SiteAttr(BelId, &'a str, MultiValue),
-    IobSiteAttr(usize, BelId, &'a str, MultiValue),
-    GlobalOpt(&'a str, MultiValue),
+#[derive(Debug, Clone)]
+pub enum TileMultiFuzzKV {
+    SiteAttr(BelId, String, MultiValue),
+    IobSiteAttr(usize, BelId, String, MultiValue),
+    GlobalOpt(String, MultiValue),
+    BelGlobalOpt(BelId, BelGlobalKind, String, MultiValue),
 }
 
-impl<'a> TileMultiFuzzKV<'a> {
-    fn apply(
+impl TileMultiFuzzKV {
+    fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
         loc: Loc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Fuzzer<IseBackend<'a>> {
-        match *self {
+        match self {
             TileMultiFuzzKV::SiteAttr(bel, attr, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
-                fuzzer.fuzz_multi(Key::SiteAttr(site, attr), val)
+                let site = &backend.egrid.node(loc).bels[*bel];
+                fuzzer.fuzz_multi(Key::SiteAttr(site, attr.clone()), *val)
             }
             TileMultiFuzzKV::IobSiteAttr(tile, bel, attr, val) => {
-                let ioi_loc = find_ioi(backend, loc, tile);
-                let site = &backend.egrid.node(ioi_loc).bels[bel];
-                fuzzer.fuzz_multi(Key::SiteAttr(site, attr), val)
+                let ioi_loc = find_ioi(backend, loc, *tile);
+                let site = &backend.egrid.node(ioi_loc).bels[*bel];
+                fuzzer.fuzz_multi(Key::SiteAttr(site, attr.clone()), *val)
             }
-            TileMultiFuzzKV::GlobalOpt(attr, val) => fuzzer.fuzz_multi(Key::GlobalOpt(attr), val),
+            TileMultiFuzzKV::GlobalOpt(attr, val) => {
+                fuzzer.fuzz_multi(Key::GlobalOpt(attr.clone()), *val)
+            }
+            TileMultiFuzzKV::BelGlobalOpt(bel, kind, opt, val) => {
+                let site = &backend.egrid.node(loc).bels[*bel];
+                let name = kind.apply(opt, site);
+                fuzzer.fuzz_multi(Key::GlobalOpt(name), *val)
+            }
         }
     }
 }
@@ -1483,8 +1533,6 @@ pub enum TileBits {
     BTSpine,
     #[allow(clippy::upper_case_acronyms)]
     LLV,
-    #[allow(clippy::upper_case_acronyms)]
-    PPC,
     Gclkc,
     ClkLR,
     Hclk,
@@ -1498,6 +1546,8 @@ pub enum TileBits {
     MainAuto,
     ClkIob,
     ClkHrow,
+    Dcm,
+    FreezeDci,
 }
 
 impl TileBits {
@@ -1546,8 +1596,18 @@ impl TileBits {
                         edev.btile_bram(col, row),
                     ]
                 }
-                ExpandedDevice::Spartan6(_edev) => {
-                    todo!()
+                ExpandedDevice::Spartan6(edev) => {
+                    vec![
+                        edev.btile_main(col, row),
+                        edev.btile_main(col, row + 1),
+                        edev.btile_main(col, row + 2),
+                        edev.btile_main(col, row + 3),
+                        edev.btile_bram(col, row),
+                        edev.btile_main(col, row).to_fixup(),
+                        edev.btile_main(col, row + 1).to_fixup(),
+                        edev.btile_main(col, row + 2).to_fixup(),
+                        edev.btile_main(col, row + 3).to_fixup(),
+                    ]
                 }
                 ExpandedDevice::Virtex4(edev) => {
                     if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex4 {
@@ -1635,45 +1695,6 @@ impl TileBits {
                     vec![edev.btile_llv(col)]
                 }
             }
-            TileBits::PPC => match backend.edev {
-                ExpandedDevice::Virtex2(edev) => {
-                    let mut res = vec![];
-                    for i in 0..16 {
-                        res.push(edev.btile_main(col, row + i));
-                    }
-                    for i in 0..16 {
-                        res.push(edev.btile_main(col + 9, row + i));
-                    }
-                    for i in 1..9 {
-                        res.push(edev.btile_main(col + i, row));
-                    }
-                    for i in 1..9 {
-                        res.push(edev.btile_main(col + i, row + 15));
-                    }
-                    res
-                }
-                ExpandedDevice::Virtex4(edev) => match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => {
-                        let mut res = vec![];
-                        for i in 0..24 {
-                            res.push(edev.btile_main(die, col, row + i));
-                        }
-                        for i in 0..24 {
-                            res.push(edev.btile_main(die, col + 8, row + i));
-                        }
-                        for i in 1..8 {
-                            res.push(edev.btile_main(die, col + i, row));
-                        }
-                        for i in 1..8 {
-                            res.push(edev.btile_main(die, col + i, row + 23));
-                        }
-                        res
-                    }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
-                    _ => unreachable!(),
-                },
-                _ => unreachable!(),
-            },
             TileBits::Gclkc => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
@@ -1823,7 +1844,11 @@ impl TileBits {
                 match backend.edev {
                     ExpandedDevice::Xc4k(_) => todo!(),
                     ExpandedDevice::Xc5200(_) => todo!(),
-                    ExpandedDevice::Virtex(_) => todo!(),
+                    ExpandedDevice::Virtex(edev) => node
+                        .tiles
+                        .values()
+                        .map(|&(col, row)| edev.btile_main(col, row))
+                        .collect(),
                     ExpandedDevice::Virtex2(edev) => node
                         .tiles
                         .values()
@@ -1884,17 +1909,294 @@ impl TileBits {
                     | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
                 }
             }
+            TileBits::Dcm => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                match edev.grid.kind {
+                    prjcombine_virtex2::grid::GridKind::Virtex2
+                    | prjcombine_virtex2::grid::GridKind::Virtex2P
+                    | prjcombine_virtex2::grid::GridKind::Virtex2PX => {
+                        vec![edev.btile_main(col, row), edev.btile_btterm(col, row)]
+                    }
+                    prjcombine_virtex2::grid::GridKind::Spartan3 => vec![edev.btile_main(col, row)],
+                    prjcombine_virtex2::grid::GridKind::Spartan3E
+                    | prjcombine_virtex2::grid::GridKind::Spartan3A
+                    | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => {
+                        let node = backend
+                            .egrid
+                            .find_node(die, (col, row), |n| {
+                                backend.egrid.db.nodes.key(n.kind).starts_with("DCM.S3E")
+                            })
+                            .unwrap();
+                        match &backend.egrid.db.nodes.key(node.kind)[..] {
+                            "DCM.S3E.BL" | "DCM.S3E.RT" => vec![
+                                edev.btile_main(col, row),
+                                edev.btile_main(col, row + 1),
+                                edev.btile_main(col, row + 2),
+                                edev.btile_main(col, row + 3),
+                                edev.btile_main(col - 3, row),
+                                edev.btile_main(col - 3, row + 1),
+                                edev.btile_main(col - 3, row + 2),
+                                edev.btile_main(col - 3, row + 3),
+                            ],
+                            "DCM.S3E.BR" | "DCM.S3E.LT" => vec![
+                                edev.btile_main(col, row),
+                                edev.btile_main(col, row + 1),
+                                edev.btile_main(col, row + 2),
+                                edev.btile_main(col, row + 3),
+                                edev.btile_main(col + 3, row),
+                                edev.btile_main(col + 3, row + 1),
+                                edev.btile_main(col + 3, row + 2),
+                                edev.btile_main(col + 3, row + 3),
+                            ],
+                            "DCM.S3E.TL" | "DCM.S3E.RB" => vec![
+                                edev.btile_main(col, row),
+                                edev.btile_main(col, row - 3),
+                                edev.btile_main(col, row - 2),
+                                edev.btile_main(col, row - 1),
+                                edev.btile_main(col - 3, row - 3),
+                                edev.btile_main(col - 3, row - 2),
+                                edev.btile_main(col - 3, row - 1),
+                                edev.btile_main(col - 3, row),
+                            ],
+                            "DCM.S3E.TR" | "DCM.S3E.LB" => vec![
+                                edev.btile_main(col, row),
+                                edev.btile_main(col, row - 3),
+                                edev.btile_main(col, row - 2),
+                                edev.btile_main(col, row - 1),
+                                edev.btile_main(col + 3, row - 3),
+                                edev.btile_main(col + 3, row - 2),
+                                edev.btile_main(col + 3, row - 1),
+                                edev.btile_main(col + 3, row),
+                            ],
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+            }
+            TileBits::FreezeDci => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![
+                    edev.btile_lrterm(col, row),
+                    edev.btile_btterm(col, row),
+                    edev.btile_lrterm(col, row).to_fixup(),
+                    edev.btile_btterm(col, row).to_fixup(),
+                    BitTile::Reg(die, Reg::FakeFreezeDciNops),
+                    BitTile::RegPresent(die, Reg::FakeFreezeDciNops),
+                ]
+            }
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum ExtraFeatureKind {
+    AllDcms,
+    DcmVreg,
+    DcmLL,
+    DcmUL,
+    DcmLR,
+    DcmUR,
+    HclkDcm(Dir),
+    HclkCcm(Dir),
+    MgtRepeater(Dir, Option<Dir>),
+}
+
+impl ExtraFeatureKind {
+    pub fn get_tiles(self, backend: &IseBackend, loc: Loc) -> Vec<Vec<BitTile>> {
+        match self {
+            ExtraFeatureKind::AllDcms => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let node = match edev.grid.kind {
+                    prjcombine_virtex2::grid::GridKind::Virtex2 => "DCM.V2",
+                    prjcombine_virtex2::grid::GridKind::Virtex2P
+                    | prjcombine_virtex2::grid::GridKind::Virtex2PX => "DCM.V2P",
+                    prjcombine_virtex2::grid::GridKind::Spartan3 => "DCM.S3",
+                    prjcombine_virtex2::grid::GridKind::Spartan3E => todo!(),
+                    prjcombine_virtex2::grid::GridKind::Spartan3A => todo!(),
+                    prjcombine_virtex2::grid::GridKind::Spartan3ADsp => todo!(),
+                };
+                let node = backend.egrid.db.get_node(node);
+                backend.egrid.node_index[node]
+                    .iter()
+                    .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
+                    .collect()
+            }
+            ExtraFeatureKind::DcmLL => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1.to_idx() != 3 || loc.2.to_idx() != 0 {
+                    vec![]
+                } else {
+                    vec![vec![edev.btile_lrterm(loc.1 - 3, loc.2)]]
+                }
+            }
+            ExtraFeatureKind::DcmUL => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1.to_idx() != 3 || loc.2.to_idx() == 0 {
+                    vec![]
+                } else {
+                    vec![vec![edev.btile_lrterm(loc.1 - 3, loc.2)]]
+                }
+            }
+            ExtraFeatureKind::DcmLR => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1.to_idx() == 3 || loc.2.to_idx() != 0 {
+                    vec![]
+                } else {
+                    vec![vec![edev.btile_lrterm(loc.1 + 3, loc.2)]]
+                }
+            }
+            ExtraFeatureKind::DcmUR => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1.to_idx() == 3 || loc.2.to_idx() == 0 {
+                    vec![]
+                } else {
+                    vec![vec![edev.btile_lrterm(loc.1 + 3, loc.2)]]
+                }
+            }
+            ExtraFeatureKind::DcmVreg => {
+                let node = backend
+                    .egrid
+                    .find_node(loc.0, (loc.1, loc.2), |n| {
+                        backend.egrid.db.nodes.key(n.kind).starts_with("DCM.S3E")
+                    })
+                    .unwrap();
+                let (col, row) = match &backend.egrid.db.nodes.key(node.kind)[..] {
+                    "DCM.S3E.BL" | "DCM.S3E.TL" => (loc.1 + 1, loc.2),
+                    "DCM.S3E.LB" => (loc.1, loc.2 + 1),
+                    "DCM.S3E.RT" => (loc.1, loc.2 - 1),
+                    _ => unreachable!(),
+                };
+                let (layer, _) = backend
+                    .egrid
+                    .find_node_loc(loc.0, (col, row), |n| {
+                        backend.egrid.db.nodes.key(n.kind).starts_with("DCM.S3E")
+                    })
+                    .unwrap();
+                vec![TileBits::Dcm.get_bits(backend, (loc.0, col, row, layer))]
+            }
+            ExtraFeatureKind::HclkDcm(dir) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let rows = match dir {
+                    Dir::N => [loc.2, loc.2 + 4],
+                    Dir::S => [loc.2 - 8, loc.2 - 4],
+                    _ => unreachable!(),
+                };
+                let mut res = vec![];
+                for row in rows {
+                    if backend.egrid.find_bel(loc.0, (loc.1, row), "DCM").is_some() {
+                        res.push(vec![
+                            edev.btile_main(loc.0, loc.1, row),
+                            edev.btile_main(loc.0, loc.1, row + 1),
+                            edev.btile_main(loc.0, loc.1, row + 2),
+                            edev.btile_main(loc.0, loc.1, row + 3),
+                        ]);
+                    }
+                }
+                res
+            }
+            ExtraFeatureKind::HclkCcm(dir) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let rows = match dir {
+                    Dir::N => [loc.2, loc.2 + 4],
+                    Dir::S => [loc.2 - 8, loc.2 - 4],
+                    _ => unreachable!(),
+                };
+                let mut res = vec![];
+                for row in rows {
+                    if backend.egrid.find_bel(loc.0, (loc.1, row), "CCM").is_some() {
+                        res.push(vec![
+                            edev.btile_main(loc.0, loc.1, row),
+                            edev.btile_main(loc.0, loc.1, row + 1),
+                            edev.btile_main(loc.0, loc.1, row + 2),
+                            edev.btile_main(loc.0, loc.1, row + 3),
+                        ]);
+                    }
+                }
+                res
+            }
+            ExtraFeatureKind::MgtRepeater(dir_gt, dir_row) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let row = match dir_row {
+                    None => loc.2,
+                    Some(Dir::S) => edev.grids[edev.grid_master].row_bufg() - 8,
+                    Some(Dir::N) => edev.grids[edev.grid_master].row_bufg() + 8,
+                    _ => unreachable!(),
+                };
+                let mut res = vec![];
+                let is_l = match dir_gt {
+                    Dir::W => true,
+                    Dir::E => false,
+                    _ => unreachable!(),
+                };
+                for &col in &edev.grids[edev.grid_master].cols_vbrk {
+                    if (col < edev.col_cfg) == is_l {
+                        res.push(vec![edev.btile_hclk(
+                            DieId::from_idx(0),
+                            if is_l { col } else { col - 1 },
+                            row,
+                        )]);
+                    }
+                }
+                res
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ExtraFeature {
+    pub kind: ExtraFeatureKind,
+    pub id: FeatureId,
+}
+
+impl ExtraFeature {
+    pub fn new(
+        kind: ExtraFeatureKind,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        val: impl Into<String>,
+    ) -> Self {
+        Self {
+            kind,
+            id: FeatureId {
+                tile: tile.into(),
+                bel: bel.into(),
+                attr: attr.into(),
+                val: val.into(),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct TileFuzzerGen<'a> {
     pub node: NodeKindId,
     pub bits: TileBits,
-    pub feature: SimpleFeatureId<'a>,
+    pub feature: FeatureId,
     pub base: Vec<TileKV<'a>>,
     pub fuzz: Vec<TileFuzzKV<'a>>,
+    pub extras: Vec<ExtraFeature>,
 }
 
 impl<'b> TileFuzzerGen<'b> {
@@ -1903,20 +2205,37 @@ impl<'b> TileFuzzerGen<'b> {
         backend: &IseBackend<'b>,
         kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
         loc: (DieId, ColId, RowId, LayerId),
-    ) -> Option<Fuzzer<IseBackend<'b>>> {
-        let bits = self.bits.get_bits(backend, loc);
-        let mut fuzzer = Fuzzer::new(FuzzerInfo::Simple(bits, self.feature));
+    ) -> Option<(Fuzzer<IseBackend<'b>>, Vec<usize>)> {
+        let tiles = self.bits.get_bits(backend, loc);
+        let mut fuzzer = Fuzzer::new(FuzzerInfo {
+            features: vec![FuzzerFeature {
+                tiles,
+                id: self.feature.clone(),
+            }],
+        });
         for x in &self.base {
             fuzzer = x.apply(backend, loc, fuzzer)?;
         }
         for x in &self.fuzz {
             fuzzer = x.apply(backend, loc, fuzzer)?;
         }
-        if fuzzer.is_ok(kv) {
-            Some(fuzzer)
-        } else {
-            None
+        if !fuzzer.is_ok(kv) {
+            return None;
         }
+        let mut got_extras = vec![];
+        for (eidx, extra) in self.extras.iter().enumerate() {
+            let extra_insts = extra.kind.get_tiles(backend, loc);
+            if !extra_insts.is_empty() {
+                got_extras.push(eidx);
+            }
+            for tiles in extra_insts {
+                fuzzer.info.features.push(FuzzerFeature {
+                    id: extra.id.clone(),
+                    tiles,
+                });
+            }
+        }
+        Some((fuzzer, got_extras))
     }
 }
 
@@ -1932,30 +2251,105 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerGen<'b> {
     )> {
         let locs = &backend.egrid.node_index[self.node];
         let mut rng = thread_rng();
-        if locs.len() > 20 {
-            for &loc in locs.choose_multiple(&mut rng, 20) {
-                if let Some(res) = self.try_gen(backend, kv, loc) {
-                    return Some((res, None));
+        let (res, extras) = 'find: {
+            if locs.len() > 20 {
+                for &loc in locs.choose_multiple(&mut rng, 20) {
+                    if let Some(x) = self.try_gen(backend, kv, loc) {
+                        break 'find x;
+                    }
                 }
             }
-        }
-        for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-            if let Some(res) = self.try_gen(backend, kv, loc) {
-                return Some((res, None));
+            for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                if let Some(x) = self.try_gen(backend, kv, loc) {
+                    break 'find x;
+                }
             }
+            return None;
+        };
+        let mut needed_extras = BTreeSet::from_iter(0..self.extras.len());
+        for extra in extras {
+            needed_extras.remove(&extra);
         }
-        None
+        if !needed_extras.is_empty() {
+            return Some((
+                res,
+                Some(Box::new(TileFuzzerChainGen {
+                    orig: self.clone(),
+                    needed_extras,
+                })),
+            ));
+        }
+        Some((res, None))
     }
 }
 
 #[derive(Debug)]
+struct TileFuzzerChainGen<'a> {
+    orig: TileFuzzerGen<'a>,
+    needed_extras: BTreeSet<usize>,
+}
+
+impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerChainGen<'b> {
+    fn gen<'a>(
+        &self,
+        backend: &'a IseBackend<'b>,
+        _state: &mut State,
+        kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
+    ) -> Option<(
+        Fuzzer<IseBackend<'b>>,
+        Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
+    )> {
+        let locs = &backend.egrid.node_index[self.orig.node];
+        let mut rng = thread_rng();
+        let (res, extras) = 'find: {
+            if locs.len() > 20 {
+                for &loc in locs.choose_multiple(&mut rng, 20) {
+                    if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                        for &extra in &extras {
+                            if self.needed_extras.contains(&extra) {
+                                break 'find (res, extras);
+                            }
+                        }
+                    }
+                }
+            }
+            for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                    for &extra in &extras {
+                        if self.needed_extras.contains(&extra) {
+                            break 'find (res, extras);
+                        }
+                    }
+                }
+            }
+            return None;
+        };
+        let mut needed_extras = self.needed_extras.clone();
+        for extra in extras {
+            needed_extras.remove(&extra);
+        }
+        if !needed_extras.is_empty() {
+            return Some((
+                res,
+                Some(Box::new(TileFuzzerChainGen {
+                    orig: self.orig.clone(),
+                    needed_extras,
+                })),
+            ));
+        }
+        Some((res, None))
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct TileMultiFuzzerGen<'a> {
     pub node: NodeKindId,
     pub bits: TileBits,
-    pub feature: SimpleFeatureId<'a>,
+    pub feature: FeatureId,
     pub base: Vec<TileKV<'a>>,
     pub width: usize,
-    pub fuzz: TileMultiFuzzKV<'a>,
+    pub fuzz: TileMultiFuzzKV,
+    pub extras: Vec<ExtraFeature>,
 }
 
 impl<'b> TileMultiFuzzerGen<'b> {
@@ -1964,19 +2358,36 @@ impl<'b> TileMultiFuzzerGen<'b> {
         backend: &IseBackend<'b>,
         kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
         loc: (DieId, ColId, RowId, LayerId),
-    ) -> Option<Fuzzer<IseBackend<'b>>> {
-        let bits = self.bits.get_bits(backend, loc);
-        let mut fuzzer = Fuzzer::new(FuzzerInfo::Simple(bits, self.feature));
+    ) -> Option<(Fuzzer<IseBackend<'b>>, Vec<usize>)> {
+        let tiles = self.bits.get_bits(backend, loc);
+        let mut fuzzer = Fuzzer::new(FuzzerInfo {
+            features: vec![FuzzerFeature {
+                tiles,
+                id: self.feature.clone(),
+            }],
+        });
         for x in &self.base {
             fuzzer = x.apply(backend, loc, fuzzer)?;
         }
         fuzzer = fuzzer.bits(self.width);
         fuzzer = self.fuzz.apply(backend, loc, fuzzer);
-        if fuzzer.is_ok(kv) {
-            Some(fuzzer)
-        } else {
-            None
+        if !fuzzer.is_ok(kv) {
+            return None;
         }
+        let mut got_extras = vec![];
+        for (eidx, extra) in self.extras.iter().enumerate() {
+            let extra_insts = extra.kind.get_tiles(backend, loc);
+            if !extra_insts.is_empty() {
+                got_extras.push(eidx);
+            }
+            for tiles in extra_insts {
+                fuzzer.info.features.push(FuzzerFeature {
+                    id: extra.id.clone(),
+                    tiles,
+                });
+            }
+        }
+        Some((fuzzer, got_extras))
     }
 }
 
@@ -1992,18 +2403,92 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerGen<'b> {
     )> {
         let locs = &backend.egrid.node_index[self.node];
         let mut rng = thread_rng();
-        if locs.len() > 20 {
-            for &loc in locs.choose_multiple(&mut rng, 20) {
-                if let Some(res) = self.try_gen(backend, kv, loc) {
-                    return Some((res, None));
+        let (res, extras) = 'find: {
+            if locs.len() > 20 {
+                for &loc in locs.choose_multiple(&mut rng, 20) {
+                    if let Some(x) = self.try_gen(backend, kv, loc) {
+                        break 'find x;
+                    }
                 }
             }
-        }
-        for &loc in locs.choose_multiple(&mut rng, locs.len()) {
-            if let Some(res) = self.try_gen(backend, kv, loc) {
-                return Some((res, None));
+            for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                if let Some(x) = self.try_gen(backend, kv, loc) {
+                    break 'find x;
+                }
             }
+            return None;
+        };
+        let mut needed_extras = BTreeSet::from_iter(0..self.extras.len());
+        for extra in extras {
+            needed_extras.remove(&extra);
         }
-        None
+        if !needed_extras.is_empty() {
+            return Some((
+                res,
+                Some(Box::new(TileMultiFuzzerChainGen {
+                    orig: self.clone(),
+                    needed_extras,
+                })),
+            ));
+        }
+        Some((res, None))
+    }
+}
+
+#[derive(Debug)]
+struct TileMultiFuzzerChainGen<'a> {
+    orig: TileMultiFuzzerGen<'a>,
+    needed_extras: BTreeSet<usize>,
+}
+
+impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerChainGen<'b> {
+    fn gen<'a>(
+        &self,
+        backend: &'a IseBackend<'b>,
+        _state: &mut State,
+        kv: &HashMap<Key<'b>, BatchValue<IseBackend<'b>>>,
+    ) -> Option<(
+        Fuzzer<IseBackend<'b>>,
+        Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
+    )> {
+        let locs = &backend.egrid.node_index[self.orig.node];
+        let mut rng = thread_rng();
+        let (res, extras) = 'find: {
+            if locs.len() > 20 {
+                for &loc in locs.choose_multiple(&mut rng, 20) {
+                    if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                        for &extra in &extras {
+                            if self.needed_extras.contains(&extra) {
+                                break 'find (res, extras);
+                            }
+                        }
+                    }
+                }
+            }
+            for &loc in locs.choose_multiple(&mut rng, locs.len()) {
+                if let Some((res, extras)) = self.orig.try_gen(backend, kv, loc) {
+                    for &extra in &extras {
+                        if self.needed_extras.contains(&extra) {
+                            break 'find (res, extras);
+                        }
+                    }
+                }
+            }
+            return None;
+        };
+        let mut needed_extras = self.needed_extras.clone();
+        for extra in extras {
+            needed_extras.remove(&extra);
+        }
+        if !needed_extras.is_empty() {
+            return Some((
+                res,
+                Some(Box::new(TileMultiFuzzerChainGen {
+                    orig: self.orig.clone(),
+                    needed_extras,
+                })),
+            ));
+        }
+        Some((res, None))
     }
 }

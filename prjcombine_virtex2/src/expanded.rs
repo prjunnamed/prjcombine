@@ -266,7 +266,13 @@ impl<'a> ExpandedDevice<'a> {
             (19, 64)
         };
         let bit = if row == self.grid.row_bot() {
-            0
+            if self.grid.kind.is_virtex2() {
+                4
+            } else if !self.grid.kind.is_spartan3a() {
+                7
+            } else {
+                0
+            }
         } else if row == self.grid.row_top() {
             16 + height * self.grid.rows.len()
         } else {
@@ -277,7 +283,13 @@ impl<'a> ExpandedDevice<'a> {
             self.col_frame[col],
             width,
             bit,
-            16,
+            if self.grid.kind.is_virtex2() {
+                12
+            } else if !self.grid.kind.is_spartan3a() {
+                5
+            } else {
+                6
+            },
             false,
         )
     }

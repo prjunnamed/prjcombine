@@ -243,6 +243,18 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
     };
     let frame_bytes = frame_words * 4;
     let flr = (frame_words - 1) as u32;
+    let mut early_dghigh = false;
+    if packets.peek() == Some(Packet::CmdDGHigh) {
+        packets.next();
+        early_dghigh = true;
+        bs.regs[Reg::FakeEarlyGhigh] = Some(1);
+        let mut nops = 0;
+        while let Some(Packet::Nop) = packets.peek() {
+            packets.next();
+            nops += 1;
+        }
+        assert_eq!(nops, flr + 1);
+    }
     assert_eq!(packets.next(), Some(Packet::Flr(flr)));
     match packets.next() {
         Some(Packet::Cor0(val)) => bs.regs[Reg::Cor0] = Some(val),
@@ -254,6 +266,7 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
             p => panic!("expected idcode got {p:?}"),
         }
     }
+    // TODO: validate?
     let _mask = match packets.next() {
         Some(Packet::Mask(val)) => val,
         p => panic!("expected mask got {p:?}"),
@@ -366,7 +379,9 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
     if kind != DeviceKind::Virtex {
         assert_eq!(packets.next(), Some(Packet::CmdGRestore));
     }
-    assert_eq!(packets.next(), Some(Packet::CmdDGHigh));
+    if !early_dghigh {
+        assert_eq!(packets.next(), Some(Packet::CmdDGHigh));
+    }
 
     if kind == DeviceKind::Virtex {
         match packets.next() {
@@ -383,36 +398,40 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
     } else {
         assert!(bs.frame_present.all());
 
-        let mut _nops = 0;
-        while let Some(Packet::Nop) = packets.peek() {
-            packets.next();
-            _nops += 1;
-        }
-        // println!("NOPS {nops} FLR {flr}");
-
-        if packets.peek() == Some(Packet::CmdWcfg) {
-            packets.next();
-            while let Some(Packet::Far(far)) = packets.peek() {
+        if !early_dghigh {
+            let mut nops = 0;
+            while let Some(Packet::Nop) = packets.peek() {
                 packets.next();
-                match packets.next() {
-                    Some(Packet::Fdri(val)) => {
-                        let frames = val.len() / frame_bytes;
-                        assert_eq!(val.len() % frame_bytes, 0);
-                        fi = far_dict[&far];
-                        for i in 0..(frames - 1) {
-                            let pos = i * frame_bytes;
-                            fixup_virtex_frame(kind, bs, fi, &val[pos..pos + frame_bytes]);
-                            fi += 1;
+                nops += 1;
+            }
+
+            if packets.peek() == Some(Packet::CmdWcfg) {
+                bs.regs[Reg::FakeFreezeDciNops] = Some(nops);
+                packets.next();
+                while let Some(Packet::Far(far)) = packets.peek() {
+                    packets.next();
+                    match packets.next() {
+                        Some(Packet::Fdri(val)) => {
+                            let frames = val.len() / frame_bytes;
+                            assert_eq!(val.len() % frame_bytes, 0);
+                            fi = far_dict[&far];
+                            for i in 0..(frames - 1) {
+                                let pos = i * frame_bytes;
+                                fixup_virtex_frame(kind, bs, fi, &val[pos..pos + frame_bytes]);
+                                fi += 1;
+                            }
                         }
+                        p => panic!("expected fdri got {p:?}"),
                     }
-                    p => panic!("expected fdri got {p:?}"),
                 }
+            } else {
+                assert_eq!(nops, flr + 1);
             }
         }
 
         if packets.peek() == Some(Packet::CmdGRestore) {
+            bs.regs[Reg::FakeDoubleGrestore] = Some(1);
             packets.next();
-            println!("GOT DOUBLE GRESTORE");
         }
     }
 

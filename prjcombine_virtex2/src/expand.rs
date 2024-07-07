@@ -1935,7 +1935,35 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let dy = dcm_rows.binary_search(&row).unwrap();
                 let node = self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("DCM.S3E"),
+                    self.db.get_node(if is_h {
+                        if col < self.grid.col_clk || self.grid.kind.is_spartan3a() {
+                            if row < self.grid.row_mid() {
+                                "DCM.S3E.LB"
+                            } else {
+                                "DCM.S3E.LT"
+                            }
+                        } else {
+                            if row < self.grid.row_mid() {
+                                "DCM.S3E.RB"
+                            } else {
+                                "DCM.S3E.RT"
+                            }
+                        }
+                    } else {
+                        if row < self.grid.row_mid() {
+                            if col < self.grid.col_clk {
+                                "DCM.S3E.BL"
+                            } else {
+                                "DCM.S3E.BR"
+                            }
+                        } else {
+                            if col < self.grid.col_clk {
+                                "DCM.S3E.TL"
+                            } else {
+                                "DCM.S3E.TR"
+                            }
+                        }
+                    }),
                     &[&name],
                     self.db.get_node_naming(if is_h {
                         "DCM.S3E.H"
