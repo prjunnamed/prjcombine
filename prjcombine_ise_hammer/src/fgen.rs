@@ -1995,6 +1995,7 @@ impl TileBits {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ExtraFeatureKind {
     AllDcms,
+    AllBrams,
     DcmVreg,
     DcmLL,
     DcmUL,
@@ -2025,6 +2026,23 @@ impl ExtraFeatureKind {
                 backend.egrid.node_index[node]
                     .iter()
                     .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
+                    .collect()
+            }
+            ExtraFeatureKind::AllBrams => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let node = backend.egrid.db.get_node("BRAM");
+                backend.egrid.node_index[node]
+                    .iter()
+                    .map(|loc| {
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 + 1),
+                            edev.btile_main(loc.1, loc.2 + 2),
+                            edev.btile_main(loc.1, loc.2 + 3),
+                        ]
+                    })
                     .collect()
             }
             ExtraFeatureKind::DcmLL => {

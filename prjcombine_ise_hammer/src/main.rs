@@ -147,7 +147,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
                 // TODO: clk
-                // TODO: bram
+                bram::spartan6::add_fuzzers(&mut hammer, &backend);
                 dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 // TODO: misc
                 // TODO: io
@@ -280,7 +280,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::collect_fuzzers(&mut ctx);
-                dsp::spartan3adsp::collect_fuzzers(&mut ctx)
+                bram::spartan6::collect_fuzzers(&mut ctx);
+                dsp::spartan3adsp::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
