@@ -24,6 +24,7 @@ mod int;
 mod intf;
 mod io;
 mod misc;
+mod pcie;
 mod ppc;
 mod tiledb;
 
@@ -154,7 +155,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // TODO: mcb
                 // TODO: dcm
                 // TODO: pll
-                // TODO: pcie
+                pcie::spartan6::add_fuzzers(&mut hammer, &backend);
                 // TODO: gtp
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
@@ -282,6 +283,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clb::virtex5::collect_fuzzers(&mut ctx);
                 bram::spartan6::collect_fuzzers(&mut ctx);
                 dsp::spartan3adsp::collect_fuzzers(&mut ctx);
+                pcie::spartan6::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {

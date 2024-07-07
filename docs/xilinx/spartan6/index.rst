@@ -10,3 +10,4 @@ Xilinx Spartan 6 FPGAs
    int
    bram
    clk
+   pcie
