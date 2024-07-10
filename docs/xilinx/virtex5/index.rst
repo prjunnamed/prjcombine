@@ -9,4 +9,5 @@ Xilinx Virtex 5 FPGAs
 
    int
    clb
+   bram
    dsp

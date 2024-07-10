@@ -182,7 +182,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     // TODO: clk
-                    // TODO: bram
+                    bram::virtex5::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex5::add_fuzzers(&mut hammer, &backend);
                     // TODO: misc
                     // TODO: io
@@ -306,6 +306,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
+                    bram::virtex5::collect_fuzzers(&mut ctx);
                     dsp::virtex5::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {

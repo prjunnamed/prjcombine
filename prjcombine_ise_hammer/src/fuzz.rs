@@ -554,10 +554,28 @@ macro_rules! fuzz_enum {
 }
 
 #[macro_export]
+macro_rules! fuzz_enum_suffix {
+    ($ctx:ident, $attr:expr, $suffix:expr, $vals:expr, [$($base:tt),*]) => {
+        for val in $vals {
+            $crate::fuzz_one!($ctx, format!("{}.{}", $attr, $suffix), val, [$($base),*], [(attr $attr, val)]);
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! fuzz_inv {
     ($ctx:ident, $pin:expr, [$($base:tt),*]) => {
         let pininv = format!("{}INV", $pin);
         let pin_b = format!("{}_B", $pin);
         $crate::fuzz_enum!($ctx, &pininv, [$pin, &pin_b], [(pin $pin), $($base),*]);
+    }
+}
+
+#[macro_export]
+macro_rules! fuzz_inv_suffix {
+    ($ctx:ident, $pin:expr, $suffix:expr, [$($base:tt),*]) => {
+        let pininv = format!("{}INV", $pin);
+        let pin_b = format!("{}_B", $pin);
+        $crate::fuzz_enum_suffix!($ctx, &pininv, $suffix, [$pin, &pin_b], [(pin $pin), $($base),*]);
     }
 }
