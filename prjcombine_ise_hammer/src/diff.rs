@@ -569,6 +569,12 @@ pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem<FeatureBit> {
 }
 
 impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
+    pub fn has_tile(&self, tile: &str) -> bool {
+        let egrid = self.edev.egrid();
+        let node = egrid.db.get_node(tile);
+        !egrid.node_index[node].is_empty()
+    }
+
     #[must_use]
     pub fn extract_bitvec(
         &mut self,

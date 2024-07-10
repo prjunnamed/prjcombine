@@ -26,6 +26,7 @@ mod io;
 mod misc;
 mod pcie;
 mod ppc;
+mod emac;
 mod tiledb;
 
 use backend::IseBackend;
@@ -188,9 +189,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // TODO: io
                     // TODO: dcm
                     // TODO: pll
-                    // TODO: ppc
-                    // TODO: pcie
-                    // TODO: emac
+                    ppc::virtex5::add_fuzzers(&mut hammer, &backend);
+                    emac::virtex5::add_fuzzers(&mut hammer, &backend);
+                    pcie::virtex5::add_fuzzers(&mut hammer, &backend);
                     // TODO: gtp
                     // TODO: gtx
                 }
@@ -308,6 +309,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     clb::virtex5::collect_fuzzers(&mut ctx);
                     bram::virtex5::collect_fuzzers(&mut ctx);
                     dsp::virtex5::collect_fuzzers(&mut ctx);
+                    ppc::virtex5::collect_fuzzers(&mut ctx);
+                    emac::virtex5::collect_fuzzers(&mut ctx);
+                    pcie::virtex5::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);

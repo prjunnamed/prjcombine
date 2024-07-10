@@ -11,3 +11,6 @@ Xilinx Virtex 5 FPGAs
    clb
    bram
    dsp
+   ppc
+   emac
+   pcie
