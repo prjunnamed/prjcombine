@@ -1054,10 +1054,16 @@ impl<'a, 'b> Expander<'a, 'b> {
         let node = self.die.add_xnode(
             (col, row),
             self.db.get_node("CLKC"),
-            &[&format!(
-                "CLKC_X{x}Y{y}",
-                y = if self.grid.is_25() { y } else { y - 1 }
-            )],
+            &[
+                &format!(
+                    "CLKC_X{x}Y{y}",
+                    y = if self.grid.is_25() { y } else { y - 1 }
+                ),
+                &format!(
+                    "REG_C_CMT_X{x}Y{y}",
+                    y = if self.grid.is_25() { y } else { y - 1 }
+                ),
+            ],
             self.db.get_node_naming("CLKC"),
             &[(col, row)],
         );
@@ -1071,17 +1077,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 ),
             );
         }
-
-        self.die.add_xnode(
-            (col, row),
-            self.db.get_node("CLKC_BUFPLL"),
-            &[&format!(
-                "REG_C_CMT_X{x}Y{y}",
-                y = if self.grid.is_25() { y } else { y - 1 }
-            )],
-            self.db.get_node_naming("CLKC_BUFPLL"),
-            &[],
-        );
 
         for (row, tk) in [
             (self.grid.rows_hclkbuf.0, "REG_V_HCLKBUF_BOT"),
@@ -1415,19 +1410,19 @@ impl<'a, 'b> Expander<'a, 'b> {
 
         for (py, (br, kind)) in self.grid.get_plls().into_iter().enumerate() {
             let (tk, out) = match kind {
-                PllKind::BotOut0 => ("CMT_PLL2_BOT", Some("PLL_BUFPLL_OUT0")),
+                PllKind::BotOut0 => ("CMT_PLL2_BOT", "PLL_BUFPLL_OUT0"),
                 PllKind::BotOut1 => (
                     if self.grid.rows.len() < 128 {
                         "CMT_PLL_BOT"
                     } else {
                         "CMT_PLL1_BOT"
                     },
-                    Some("PLL_BUFPLL_OUT1"),
+                    "PLL_BUFPLL_OUT1",
                 ),
-                PllKind::BotNoOut => ("CMT_PLL3_BOT", None),
-                PllKind::TopOut0 => ("CMT_PLL2_TOP", Some("PLL_BUFPLL_OUT0")),
-                PllKind::TopOut1 => ("CMT_PLL_TOP", Some("PLL_BUFPLL_OUT1")),
-                PllKind::TopNoOut => ("CMT_PLL3_TOP", None),
+                PllKind::BotNoOut => ("CMT_PLL3_BOT", "PLL_BUFPLL_B"),
+                PllKind::TopOut0 => ("CMT_PLL2_TOP", "PLL_BUFPLL_OUT0"),
+                PllKind::TopOut1 => ("CMT_PLL_TOP", "PLL_BUFPLL_OUT1"),
+                PllKind::TopNoOut => ("CMT_PLL3_TOP", "PLL_BUFPLL_T"),
             };
             self.site_holes.push(Rect {
                 col_l: col,
@@ -1476,15 +1471,13 @@ impl<'a, 'b> Expander<'a, 'b> {
                     y = br.to_idx() * 2 + 1
                 ),
             );
-            if let Some(out) = out {
-                self.die.add_xnode(
-                    (col, br),
-                    self.db.get_node("PLL_BUFPLL_OUT"),
-                    &[&name],
-                    self.db.get_node_naming(out),
-                    &[],
-                );
-            }
+            self.die.add_xnode(
+                (col, br),
+                self.db.get_node(out),
+                &[&name],
+                self.db.get_node_naming(out),
+                &[],
+            );
         }
     }
 

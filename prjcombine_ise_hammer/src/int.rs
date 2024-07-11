@@ -22,7 +22,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         let bits = if name.starts_with("INT") || name == "PPC.E" || name == "PPC.W" {
             TileBits::Main(1)
         } else if name.starts_with("CLKB") || name.starts_with("CLKT") || name.starts_with("REG_") {
-            TileBits::BTSpine
+            TileBits::SpineEnd
         } else if matches!(&name[..], "TERM.S" | "TERM.N") {
             TileBits::BTTerm
         } else if matches!(&name[..], "TERM.E" | "TERM.W") {
@@ -34,7 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         } else if name.starts_with("LLV") {
             TileBits::LLV
         } else if name.starts_with("LLH") {
-            TileBits::Spine(1)
+            TileBits::Spine(0, 1)
         } else {
             panic!("UNK INT TILE: {name}");
         };

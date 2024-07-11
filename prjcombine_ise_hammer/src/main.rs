@@ -148,7 +148,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                // TODO: clk
+                if !args.skip_clk {
+                    clk::spartan6::add_fuzzers(&mut hammer, &backend);
+                }
                 bram::spartan6::add_fuzzers(&mut hammer, &backend);
                 dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 // TODO: misc
@@ -282,6 +284,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Spartan6(_) => {
                 clb::virtex5::collect_fuzzers(&mut ctx);
+                if !args.skip_clk {
+                    clk::spartan6::collect_fuzzers(&mut ctx);
+                }
                 bram::spartan6::collect_fuzzers(&mut ctx);
                 dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 pcie::spartan6::collect_fuzzers(&mut ctx);

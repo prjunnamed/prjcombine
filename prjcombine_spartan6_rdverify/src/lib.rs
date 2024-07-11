@@ -1982,7 +1982,7 @@ fn verify_bufpll_ins_bt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCont
             vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
         }
     } else {
-        let obel = vrf.find_bel_delta(bel, 0, -7, "PLL_BUFPLL_OUT").unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, -7, "PLL_BUFPLL").unwrap();
         for (pin, opin) in [
             ("PLLIN2", "CLKOUT0_U"),
             ("PLLIN3", "CLKOUT1_U"),
@@ -2441,7 +2441,7 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("TEST_CLK_OUT"), bel.wire("TEST_CLK"));
 }
 
-fn verify_pll_bufpll_out(vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pll_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_sibling(bel, "PLL");
     for pin in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
         let pin_d = format!("{pin}_D");
@@ -2486,7 +2486,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
                     vrf.claim_node(&[bel.fwire(&format!("PLL0_{pin}_I"))]);
                 }
             } else {
-                let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL_OUT").unwrap();
+                let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL").unwrap();
                 for pin in PINS {
                     vrf.verify_node(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
@@ -2505,7 +2505,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
             }
         }
         if bel.key == "DCM_BUFPLL_BUF_BOT" {
-            let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL_OUT").unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL").unwrap();
             for pin in PINS {
                 vrf.verify_node(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
@@ -2520,7 +2520,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
                 ]);
             }
         } else {
-            let obel = vrf.find_bel_delta(bel, 0, -16, "PLL_BUFPLL_OUT").unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, -16, "PLL_BUFPLL").unwrap();
             for pin in PINS {
                 vrf.verify_node(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
@@ -2537,7 +2537,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
                 ]);
             }
             if bel.key == "DCM_BUFPLL_BUF_TOP" {
-                let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL_OUT").unwrap();
+                let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL").unwrap();
                 for pin in PINS {
                     vrf.verify_node(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
@@ -2546,7 +2546,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
                 }
             }
         } else {
-            let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL_OUT").unwrap();
+            let obel = vrf.find_bel_delta(bel, 0, 16, "PLL_BUFPLL").unwrap();
             for pin in PINS {
                 vrf.verify_node(&[
                     bel.fwire(&format!("PLL1_{pin}_I")),
@@ -2583,7 +2583,7 @@ fn verify_dcm_bufpll_buf(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
                     ]);
                 }
             } else {
-                let obel = vrf.find_bel_delta(bel, 0, -16, "PLL_BUFPLL_OUT").unwrap();
+                let obel = vrf.find_bel_delta(bel, 0, -16, "PLL_BUFPLL").unwrap();
                 for pin in PINS {
                     vrf.verify_node(&[
                         bel.fwire(&format!("PLL0_{pin}_I")),
@@ -2656,7 +2656,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ] {
             vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
         }
-        let obel = vrf.find_bel_walk(bel, 0, -8, "PLL_BUFPLL_OUT").unwrap();
+        let obel = vrf.find_bel_walk(bel, 0, -8, "PLL_BUFPLL").unwrap();
         for (pin, opin) in [
             ("PLL0D_CLKOUT0", "CLKOUT0_U"),
             ("PLL0D_CLKOUT1", "CLKOUT1_U"),
@@ -2673,7 +2673,7 @@ fn verify_clkc_bufpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ] {
             vrf.verify_node(&[bel.fwire(pin), obel.fwire(opin)]);
         }
-        let obel = vrf.find_bel_walk(bel, 0, -8, "PLL_BUFPLL_OUT").unwrap();
+        let obel = vrf.find_bel_walk(bel, 0, -8, "PLL_BUFPLL").unwrap();
         for (pin, opin) in [
             ("PLL1D_CLKOUT0", "CLKOUT0_U"),
             ("PLL1D_CLKOUT1", "CLKOUT1_U"),
@@ -3144,7 +3144,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "DCM0" | "DCM1" => verify_dcm(vrf, bel),
         "CMT" => verify_cmt(edev, vrf, bel),
         "PLL" => verify_pll(vrf, bel),
-        "PLL_BUFPLL_OUT" => verify_pll_bufpll_out(vrf, bel),
+        "PLL_BUFPLL" => verify_pll_bufpll(vrf, bel),
         _ if bel.key.starts_with("DCM_BUFPLL_BUF") => verify_dcm_bufpll_buf(edev, vrf, bel),
         "CLKC_BUFPLL" => verify_clkc_bufpll(vrf, bel),
 

@@ -288,3 +288,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     f.write(f"<tr><td>{mux}</td><td>{inp}</td><td>{val}</td></tr>")
 
                 f.write(f"</table>")
+
+    if kind == "xc6s":
+        with open("xilinx/gen-xilinx-xc6s-pci-ce-delay.html", "w") as f:
+            emit_dev_table_string(f, "PCI_CE_DELAY")

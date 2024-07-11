@@ -1426,8 +1426,39 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .extra_wire(format!("CMT_D{i}"), &[format!("CLKC_PLL_L{i}")]);
         }
         bels.push(bel);
+        let bel = builder
+            .bel_virtual("CLKC_BUFPLL")
+            .raw_tile(1)
+            .extra_wire("PLL0D_CLKOUT0", &["REGC_PLLCLK_DN_IN0"])
+            .extra_wire("PLL0D_CLKOUT1", &["REGC_PLLCLK_DN_IN1"])
+            .extra_wire("PLL1D_CLKOUT0", &["REGC_PLLCLK_DN_IN2"])
+            .extra_wire("PLL1D_CLKOUT1", &["REGC_PLLCLK_DN_IN3"])
+            .extra_wire("PLL0U_CLKOUT0", &["REGC_PLLCLK_UP_IN0"])
+            .extra_wire("PLL0U_CLKOUT1", &["REGC_PLLCLK_UP_IN1"])
+            .extra_wire("PLL1U_CLKOUT0", &["REGC_PLLCLK_UP_IN2"])
+            .extra_wire("PLL1U_CLKOUT1", &["REGC_PLLCLK_UP_IN3"])
+            .extra_wire("OUTD_CLKOUT0", &["REGC_PLLCLK_DN_OUT0"])
+            .extra_wire("OUTD_CLKOUT1", &["REGC_PLLCLK_DN_OUT1"])
+            .extra_wire("OUTU_CLKOUT0", &["REGC_PLLCLK_UP_OUT0"])
+            .extra_wire("OUTU_CLKOUT1", &["REGC_PLLCLK_UP_OUT1"])
+            .extra_wire("OUTL_CLKOUT0", &["REGC_CLKPLL_IO_LT0"])
+            .extra_wire("OUTL_CLKOUT1", &["REGC_CLKPLL_IO_LT1"])
+            .extra_wire("OUTR_CLKOUT0", &["REGC_CLKPLL_IO_RT0"])
+            .extra_wire("OUTR_CLKOUT1", &["REGC_CLKPLL_IO_RT1"])
+            .extra_wire("PLL0D_LOCKED", &["PLL_LOCK_BOT0"])
+            .extra_wire("PLL1D_LOCKED", &["PLL_LOCK_BOT1"])
+            .extra_wire("PLL0U_LOCKED", &["PLL_LOCK_TOP0"])
+            .extra_wire("PLL1U_LOCKED", &["PLL_LOCK_TOP1"])
+            .extra_wire("OUTD_LOCKED", &["PLL_LOCK_BOT2"])
+            .extra_wire("OUTU_LOCKED", &["PLL_LOCK_TOP2"])
+            .extra_wire("OUTL_LOCKED0", &["CLK_PLL_LOCK_LT0"])
+            .extra_wire("OUTL_LOCKED1", &["CLK_PLL_LOCK_LT1"])
+            .extra_wire("OUTR_LOCKED0", &["CLK_PLL_LOCK_RT0"])
+            .extra_wire("OUTR_LOCKED1", &["CLK_PLL_LOCK_RT1"]);
+        bels.push(bel);
         builder
             .xnode("CLKC", "CLKC", xy)
+            .raw_tile(xy.delta(-1, 0))
             .ref_int(xy.delta(-3, 1), 0)
             .bels(bels)
             .extract();
@@ -2365,13 +2396,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bel(bel)
                 .extract();
             if let Some(out) = out {
-                let naming = match out {
+                let node = match out {
                     0 => "PLL_BUFPLL_OUT0",
                     1 => "PLL_BUFPLL_OUT1",
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_virtual("PLL_BUFPLL_OUT")
+                    .bel_virtual("PLL_BUFPLL")
                     .extra_wire("CLKOUT0", &["PLLCASC_CLKOUT0"])
                     .extra_wire("CLKOUT1", &["PLLCASC_CLKOUT1"])
                     .extra_wire("LOCKED", &["CMT_PLL_LOCKED"]);
@@ -2393,48 +2424,21 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire("LOCKED_U", &["CMT_PLL_LOCK_UP1"]);
                 }
                 builder
-                    .xnode("PLL_BUFPLL_OUT", naming, xy)
+                    .xnode(node, node, xy)
                     .num_tiles(0)
                     .bel(bel)
                     .extract();
+            } else {
+                builder
+                    .xnode("PLL_BUFPLL_B", "PLL_BUFPLL_B", xy)
+                    .num_tiles(0)
+                    .extract();
+                builder
+                    .xnode("PLL_BUFPLL_T", "PLL_BUFPLL_T", xy)
+                    .num_tiles(0)
+                    .extract();
             }
         }
-    }
-
-    if let Some(&xy) = rd.tiles_by_kind_name("REG_C_CMT").iter().next() {
-        let bel = builder
-            .bel_virtual("CLKC_BUFPLL")
-            .extra_wire("PLL0D_CLKOUT0", &["REGC_PLLCLK_DN_IN0"])
-            .extra_wire("PLL0D_CLKOUT1", &["REGC_PLLCLK_DN_IN1"])
-            .extra_wire("PLL1D_CLKOUT0", &["REGC_PLLCLK_DN_IN2"])
-            .extra_wire("PLL1D_CLKOUT1", &["REGC_PLLCLK_DN_IN3"])
-            .extra_wire("PLL0U_CLKOUT0", &["REGC_PLLCLK_UP_IN0"])
-            .extra_wire("PLL0U_CLKOUT1", &["REGC_PLLCLK_UP_IN1"])
-            .extra_wire("PLL1U_CLKOUT0", &["REGC_PLLCLK_UP_IN2"])
-            .extra_wire("PLL1U_CLKOUT1", &["REGC_PLLCLK_UP_IN3"])
-            .extra_wire("OUTD_CLKOUT0", &["REGC_PLLCLK_DN_OUT0"])
-            .extra_wire("OUTD_CLKOUT1", &["REGC_PLLCLK_DN_OUT1"])
-            .extra_wire("OUTU_CLKOUT0", &["REGC_PLLCLK_UP_OUT0"])
-            .extra_wire("OUTU_CLKOUT1", &["REGC_PLLCLK_UP_OUT1"])
-            .extra_wire("OUTL_CLKOUT0", &["REGC_CLKPLL_IO_LT0"])
-            .extra_wire("OUTL_CLKOUT1", &["REGC_CLKPLL_IO_LT1"])
-            .extra_wire("OUTR_CLKOUT0", &["REGC_CLKPLL_IO_RT0"])
-            .extra_wire("OUTR_CLKOUT1", &["REGC_CLKPLL_IO_RT1"])
-            .extra_wire("PLL0D_LOCKED", &["PLL_LOCK_BOT0"])
-            .extra_wire("PLL1D_LOCKED", &["PLL_LOCK_BOT1"])
-            .extra_wire("PLL0U_LOCKED", &["PLL_LOCK_TOP0"])
-            .extra_wire("PLL1U_LOCKED", &["PLL_LOCK_TOP1"])
-            .extra_wire("OUTD_LOCKED", &["PLL_LOCK_BOT2"])
-            .extra_wire("OUTU_LOCKED", &["PLL_LOCK_TOP2"])
-            .extra_wire("OUTL_LOCKED0", &["CLK_PLL_LOCK_LT0"])
-            .extra_wire("OUTL_LOCKED1", &["CLK_PLL_LOCK_LT1"])
-            .extra_wire("OUTR_LOCKED0", &["CLK_PLL_LOCK_RT0"])
-            .extra_wire("OUTR_LOCKED1", &["CLK_PLL_LOCK_RT1"]);
-        builder
-            .xnode("CLKC_BUFPLL", "CLKC_BUFPLL", xy)
-            .num_tiles(0)
-            .bel(bel)
-            .extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {

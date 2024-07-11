@@ -52,7 +52,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
     for tile in ["CLK_DCM_B", "CLK_DCM_T"] {
-        let ctx = FuzzCtx::new(session, backend, tile, "CLK_DCM", TileBits::Spine(8));
+        let ctx = FuzzCtx::new(session, backend, tile, "CLK_DCM", TileBits::Spine(0, 8));
         let dcm: Vec<_> = (0..24).map(|i| format!("DCM{i}")).collect();
         for i in 0..32 {
             let mux = format!("MUXBUS{i}");

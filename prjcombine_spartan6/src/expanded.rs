@@ -69,6 +69,32 @@ impl ExpandedDevice<'_> {
         )
     }
 
+    pub fn btile_spine(&self, row: RowId) -> BitTile {
+        let reg = self.grid.row_to_reg(row);
+        let rd = row - self.grid.row_reg_bot(reg);
+        let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.spine_frame[reg],
+            4,
+            bit,
+            64,
+            false,
+        )
+    }
+
+    pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {
+        let reg = self.grid.row_to_reg(row);
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.col_frame[reg][col],
+            self.col_width[col],
+            64 * 8,
+            16,
+            false,
+        )
+    }
+
     pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
         let reg = self.grid.row_to_reg(row);
         let rd: usize = (row - self.grid.row_reg_bot(reg)).try_into().unwrap();

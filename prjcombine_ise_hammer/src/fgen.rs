@@ -82,6 +82,9 @@ fn resolve_tile_relation(
                 loc.3 = layer;
                 return Some(loc);
             }
+            if !matches!(backend.edev, ExpandedDevice::Spartan6(_)) {
+                return None;
+            }
         },
         TileRelation::IoiBrefclk => {
             loc.1 += 1;
@@ -547,6 +550,8 @@ pub enum TileKV<'a> {
     StabilizeGclkc,
     IsLeftRandor(bool),
     HclkHasDcm(Dir),
+    HclkHasInt(Dir),
+    HclkHasCmt,
     Raw(Key<'a>, Value),
     TileRelated(TileRelation, Box<TileKV<'a>>),
 }
@@ -760,9 +765,13 @@ impl<'a> TileKV<'a> {
                                 })
                                 .unwrap();
                             let site = &dcm.bels[BelId::from_idx(0)];
-                            fuzzer = fuzzer
-                                .base(Key::SiteMode(site), "DCM")
-                                .base(Key::SiteMutex(site, "MODE".into()), "INT");
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
+                                Key::BelMutex(
+                                    (loc.0, loc.1, loc.2, loc.3, BelId::from_idx(0)),
+                                    "MODE".into(),
+                                ),
+                                "INT",
+                            );
                             for pin in [
                                 "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV",
                                 "CLKFX", "CLKFX180", "CONCUR", "STATUS1", "STATUS7",
@@ -979,6 +988,26 @@ impl<'a> TileKV<'a> {
                 })?;
                 fuzzer
             }
+            TileKV::HclkHasInt(dir) => {
+                let row = match dir {
+                    Dir::N => loc.2,
+                    Dir::S => loc.2 - 1,
+                    _ => unreachable!(),
+                };
+                backend.egrid.find_node(loc.0, (loc.1, row), |node| {
+                    backend.egrid.db.nodes.key(node.kind).starts_with("INT")
+                })?;
+                fuzzer
+            }
+            TileKV::HclkHasCmt => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.2 == edev.grid.row_clk() {
+                    return None;
+                }
+                fuzzer
+            }
             TileKV::Raw(ref key, ref val) => fuzzer.base(key.clone(), val.clone()),
             TileKV::TileRelated(relation, ref chain) => {
                 let loc = resolve_tile_relation(backend, loc, *relation)?;
@@ -997,25 +1026,47 @@ impl<'a> BelKV {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
-        let site = &node.bels[bel];
         Some(match self {
             BelKV::Nop => fuzzer,
             BelKV::Mode(mode) => {
+                let site = &node.bels[bel];
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
                 fuzzer.base(Key::SiteMode(site), mode)
             }
-            BelKV::Unused => fuzzer.base(Key::SiteMode(site), None),
-            BelKV::Attr(attr, val) => fuzzer.base(Key::SiteAttr(site, attr.clone()), val),
+            BelKV::Unused => {
+                let site = &node.bels[bel];
+                fuzzer.base(Key::SiteMode(site), None)
+            }
+            BelKV::Attr(attr, val) => {
+                let site = &node.bels[bel];
+                fuzzer.base(Key::SiteAttr(site, attr.clone()), val)
+            }
             BelKV::Global(kind, opt, val) => {
+                let site = &node.bels[bel];
                 fuzzer.base(Key::GlobalOpt(kind.apply(opt, site)), val)
             }
-            BelKV::Pin(pin, val) => fuzzer.base(Key::SitePin(site, pin.clone()), *val),
-            BelKV::PinFrom(pin, kind) => fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind),
-            BelKV::GlobalMutexHere(name) => fuzzer.base(Key::GlobalMutex(name.clone()), &site[..]),
-            BelKV::RowMutexHere(name) => fuzzer.base(Key::RowMutex(name.clone(), loc.2), &site[..]),
-            BelKV::Mutex(name, val) => fuzzer.base(Key::SiteMutex(site, name.clone()), val),
+            BelKV::Pin(pin, val) => {
+                let site = &node.bels[bel];
+                fuzzer.base(Key::SitePin(site, pin.clone()), *val)
+            }
+            BelKV::PinFrom(pin, kind) => {
+                let site = &node.bels[bel];
+                fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind)
+            }
+            BelKV::GlobalMutexHere(name) => fuzzer.base(
+                Key::GlobalMutex(name.clone()),
+                Value::Bel(loc.0, loc.1, loc.2, loc.3, bel),
+            ),
+            BelKV::RowMutexHere(name) => fuzzer.base(
+                Key::RowMutex(name.clone(), loc.2),
+                Value::Bel(loc.0, loc.1, loc.2, loc.3, bel),
+            ),
+            BelKV::Mutex(name, val) => fuzzer.base(
+                Key::BelMutex((loc.0, loc.1, loc.2, loc.3, bel), name.clone()),
+                val,
+            ),
             BelKV::IsVref => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
                 ExpandedDevice::Xc5200(_) => todo!(),
@@ -1527,10 +1578,10 @@ pub enum TileBits {
     MainUp,
     MainDown,
     Bram,
-    Spine(usize),
+    Spine(usize, usize),
     BTTerm,
     LRTerm,
-    BTSpine,
+    SpineEnd,
     #[allow(clippy::upper_case_acronyms)]
     LLV,
     Gclkc,
@@ -1636,13 +1687,16 @@ impl TileBits {
                     todo!()
                 }
             },
-            TileBits::Spine(n) => match backend.edev {
+            TileBits::Spine(d, n) => match backend.edev {
                 ExpandedDevice::Virtex2(edev) => {
-                    (0..n).map(|idx| edev.btile_spine(row + idx)).collect()
+                    (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
                 }
-                ExpandedDevice::Virtex4(edev) => {
-                    (0..n).map(|idx| edev.btile_spine(die, row + idx)).collect()
+                ExpandedDevice::Spartan6(edev) => {
+                    (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
                 }
+                ExpandedDevice::Virtex4(edev) => (0..n)
+                    .map(|idx| edev.btile_spine(die, row - d + idx))
+                    .collect(),
                 _ => unreachable!(),
             },
             TileBits::BTTerm => {
@@ -1669,7 +1723,7 @@ impl TileBits {
                 };
                 vec![edev.btile_main(col, row - 1)]
             }
-            TileBits::BTSpine => match backend.edev {
+            TileBits::SpineEnd => match backend.edev {
                 ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_spine(row), edev.btile_btspine(row)]
                 }
@@ -1678,6 +1732,10 @@ impl TileBits {
                         Dir::S
                     } else if row == edev.grid.row_tio_outer() {
                         Dir::N
+                    } else if col == edev.grid.col_lio() {
+                        Dir::W
+                    } else if col == edev.grid.col_rio() {
+                        Dir::E
                     } else {
                         unreachable!()
                     };
@@ -1739,7 +1797,9 @@ impl TileBits {
                 ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_hclk(col, row)]
                 }
-                ExpandedDevice::Spartan6(_) => todo!(),
+                ExpandedDevice::Spartan6(edev) => {
+                    vec![edev.btile_hclk(col, row)]
+                }
                 ExpandedDevice::Virtex4(edev) => {
                     vec![edev.btile_hclk(die, col, row)]
                 }
@@ -2004,6 +2064,7 @@ pub enum ExtraFeatureKind {
     HclkDcm(Dir),
     HclkCcm(Dir),
     MgtRepeater(Dir, Option<Dir>),
+    BufpllPll(Dir, &'static str),
 }
 
 impl ExtraFeatureKind {
@@ -2176,6 +2237,37 @@ impl ExtraFeatureKind {
                     }
                 }
                 res
+            }
+            ExtraFeatureKind::BufpllPll(dir, kind) => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let mut row = loc.2;
+                loop {
+                    match dir {
+                        Dir::S => {
+                            if row.to_idx() == 0 {
+                                return vec![];
+                            }
+                            row -= 1;
+                        }
+                        Dir::N => {
+                            row += 1;
+                            if row == edev.grid.rows.next_id() {
+                                return vec![];
+                            }
+                        }
+                        _ => unreachable!(),
+                    }
+                    if let Some(node) = backend.egrid.find_node(loc.0, (loc.1, row), |node| {
+                        edev.egrid.db.nodes.key(node.kind).starts_with("PLL_BUFPLL")
+                    }) {
+                        if edev.egrid.db.nodes.key(node.kind) != kind {
+                            return vec![];
+                        }
+                        return vec![vec![edev.btile_spine(row - 7)]];
+                    }
+                }
             }
         }
     }

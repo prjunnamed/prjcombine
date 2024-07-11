@@ -1,7 +1,7 @@
 use bitvec::vec::BitVec;
 use prjcombine_hammer::{Backend, FuzzerId};
-use prjcombine_int::db::WireId;
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_int::db::{BelId, WireId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::parse;
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
@@ -44,7 +44,7 @@ pub enum Key<'a> {
     AltVr,
     GlobalMutex(String),
     RowMutex(String, RowId),
-    SiteMutex(&'a str, String),
+    BelMutex((DieId, ColId, RowId, LayerId, BelId), String),
     NodeMutex((DieId, (ColId, RowId), WireId)),
     TileMutex(Loc, String),
     IntMutex(DieId, ColId, RowId),
@@ -62,6 +62,7 @@ pub enum Value {
     Bool(bool),
     String(String),
     PinFrom(PinFromKind),
+    Bel(DieId, ColId, RowId, LayerId, BelId),
 }
 
 impl From<Option<core::convert::Infallible>> for Value {

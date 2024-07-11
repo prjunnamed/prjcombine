@@ -36,7 +36,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 backend,
                 tile,
                 format!("BUFGMUX{i}"),
-                TileBits::BTSpine,
+                TileBits::SpineEnd,
             );
             fuzz_one!(ctx, "PRESENT", "1", [(special TileKV::StabilizeGclkc)], [(mode "BUFGMUX")]);
             fuzz_inv!(ctx, "S", [
