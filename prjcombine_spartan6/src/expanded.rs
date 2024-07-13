@@ -73,14 +73,7 @@ impl ExpandedDevice<'_> {
         let reg = self.grid.row_to_reg(row);
         let rd = row - self.grid.row_reg_bot(reg);
         let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
-        BitTile::Main(
-            DieId::from_idx(0),
-            self.spine_frame[reg],
-            4,
-            bit,
-            64,
-            false,
-        )
+        BitTile::Main(DieId::from_idx(0), self.spine_frame[reg], 4, bit, 64, false)
     }
 
     pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {

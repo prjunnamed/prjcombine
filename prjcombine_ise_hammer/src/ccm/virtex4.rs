@@ -482,7 +482,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "DPM_OSCOUT2",
                     "CKINT",
                 ],
-                OcdMode::Mux
+                OcdMode::Mux,
             );
         }
     }

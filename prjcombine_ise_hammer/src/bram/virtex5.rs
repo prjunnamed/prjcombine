@@ -193,7 +193,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
         if mode != "FIFO36_72_EXP" {
             fuzz_enum_suffix!(ctx, "EN_ECC_SCRUB", mode, ["FALSE", "TRUE"], [
-                (mode mode)
+                (mode mode),
+                (global_mutex "BRAM_OPT", "NONE")
             ]);
         }
     }
@@ -306,6 +307,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
         fuzz_enum_suffix!(ctx, format!("WRITE_WIDTH_{ab}"), "RAMBFIFO18", ["0", "1", "2", "4", "9", "18"], [
             (mode "RAMBFIFO18"),
+            (attr format!("DO{ab}_REG"), "0"),
             (pin format!("WE{ab}0")),
             (pin format!("WE{ab}1")),
             (pin format!("WE{ab}2")),
@@ -827,20 +829,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_ramb18x2sdp.apply_enum_diff(item, "READ_FIRST", "WRITE_FIRST");
         present_ramb36sdp.apply_enum_diff(item, "READ_FIRST", "WRITE_FIRST");
     }
-    for attr in [
-        "WRITE_MODE_A_L",
-        "WRITE_MODE_B_L",
-    ] {
+    for attr in ["WRITE_MODE_A_L", "WRITE_MODE_B_L"] {
         let item = ctx.tiledb.item(tile, bel, attr);
         present_rambfifo18.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
         present_rambfifo18_36.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36_72.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
     }
-    for attr in [
-        "WRITE_MODE_A_U",
-        "WRITE_MODE_B_U",
-    ] {
+    for attr in ["WRITE_MODE_A_U", "WRITE_MODE_B_U"] {
         let item = ctx.tiledb.item(tile, bel, attr);
         present_rambfifo18_36.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo36.apply_enum_diff(item, "NO_CHANGE", "WRITE_FIRST");
@@ -1032,20 +1028,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum(tile, bel, &format!("{attr}.{mode}"), &["0", "1"]);
         ctx.tiledb.insert(tile, bel, hwattr, item);
     }
-    for attr in [
-        "DOA_REG_L",
-        "DOB_REG_L",
-    ] {
+    for attr in ["DOA_REG_L", "DOB_REG_L"] {
         let item = ctx.tiledb.item(tile, bel, attr);
         present_rambfifo18.apply_enum_diff(item, "1", "0");
         present_rambfifo18_36.apply_enum_diff(item, "1", "0");
         present_fifo36.apply_enum_diff(item, "1", "0");
         present_fifo36_72.apply_enum_diff(item, "1", "0");
     }
-    for attr in [
-        "DOA_REG_U",
-        "DOB_REG_U",
-    ] {
+    for attr in ["DOA_REG_U", "DOB_REG_U"] {
         let item = ctx.tiledb.item(tile, bel, attr);
         present_fifo36.apply_enum_diff(item, "1", "0");
         present_fifo36_72.apply_enum_diff(item, "1", "0");
@@ -1375,5 +1365,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     present_ramb36sdp.assert_empty();
 
     assert_eq!(present_fifo36, present_fifo36_72);
-    ctx.tiledb.insert(tile, bel, "IS_FIFO_U", xlat_bitvec(vec![present_fifo36]));
+    ctx.tiledb
+        .insert(tile, bel, "IS_FIFO_U", xlat_bitvec(vec![present_fifo36]));
 }

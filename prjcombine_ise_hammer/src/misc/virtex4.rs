@@ -37,6 +37,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         "BUSYPIN",
         "RDWRPIN",
         "TCKPIN",
+        "TDIPIN",
         "TDOPIN",
         "TMSPIN",
     ] {
@@ -411,6 +412,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "BUSYPIN",
         "RDWRPIN",
         "TCKPIN",
+        "TDIPIN",
         "TDOPIN",
         "TMSPIN",
     ] {
@@ -610,33 +612,51 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool(tile, bel, "EN_VTEST", "NO", "YES");
     ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
     // these are too much trouble to deal with the normal way.
+    for (attr, bit) in [("PERSIST", 3), ("DECRYPT", 6)] {
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            attr,
+            TileItem {
+                bits: vec![FeatureBit {
+                    tile: 0,
+                    frame: 0,
+                    bit,
+                }],
+                kind: TileItemKind::BitVec { invert: bitvec![0] },
+            },
+        );
+    }
     ctx.tiledb.insert(
         tile,
         bel,
-        "PERSIST",
+        "GLUTMASK",
         TileItem {
             bits: vec![FeatureBit {
                 tile: 0,
                 frame: 0,
-                bit: 3,
+                bit: 8,
             }],
-            kind: TileItemKind::BitVec {
-                invert: BitVec::from_iter([false]),
-            },
+            kind: TileItemKind::BitVec { invert: bitvec![1] },
         },
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "DECRYPT",
+        "ICAP_SELECT",
         TileItem {
             bits: vec![FeatureBit {
                 tile: 0,
                 frame: 0,
-                bit: 6,
+                bit: 30,
             }],
-            kind: TileItemKind::BitVec {
-                invert: BitVec::from_iter([false]),
+            kind: TileItemKind::Enum {
+                values: [
+                    ("TOP".to_string(), bitvec![0]),
+                    ("BOTTOM".to_string(), bitvec![1]),
+                ]
+                .into_iter()
+                .collect(),
             },
         },
     );

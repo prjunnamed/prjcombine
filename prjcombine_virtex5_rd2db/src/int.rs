@@ -13,7 +13,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for i in 0..10 {
         builder.wire(
-            format!("GCLK{i}"),
+            format!("HCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK{i}")],
         );
@@ -876,7 +876,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
         for i in 0..10 {
             bel_ioi_clk =
-                bel_ioi_clk.extra_wire(format!("GCLK{i}"), &[format!("IOI_LEAF_GCLK_P{i}")]);
+                bel_ioi_clk.extra_wire(format!("HCLK{i}"), &[format!("IOI_LEAF_GCLK_P{i}")]);
         }
         builder
             .xnode("IOI", "IOI", xy)
@@ -1002,7 +1002,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 bel = bel
                     .extra_wire(format!("GIOB{i}"), &[format!("CMT_GIOB{i}")])
                     .extra_wire(
-                        format!("GCLK{i}"),
+                        format!("HCLK{i}"),
                         &[
                             format!("CMT_BUFG{i}"),
                             format!("CMT_BUFG{i}_BOT"),
@@ -1019,7 +1019,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     continue;
                 }
                 bel = bel.extra_wire(
-                    format!("GCLK{i}_TO_CLKIN2"),
+                    format!("HCLK{i}_TO_CLKIN2"),
                     &[format!("CMT_BUFG{i}_TO_CLKIN2")],
                 );
             }
@@ -1050,11 +1050,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("CLK_HROW");
             for i in 0..32 {
-                bel = bel.extra_wire(format!("GCLK_I{i}"), &[format!("CLK_HROW_GCLK_BUF{i}")]);
+                bel = bel.extra_wire(format!("GCLK{i}"), &[format!("CLK_HROW_GCLK_BUF{i}")]);
             }
             for i in 0..10 {
-                bel = bel.extra_wire(format!("GCLK_O_L{i}"), &[format!("CLK_HROW_HCLKL_P{i}")]);
-                bel = bel.extra_wire(format!("GCLK_O_R{i}"), &[format!("CLK_HROW_HCLKR_P{i}")]);
+                bel = bel.extra_wire(format!("HCLK_L{i}"), &[format!("CLK_HROW_HCLKL_P{i}")]);
+                bel = bel.extra_wire(format!("HCLK_R{i}"), &[format!("CLK_HROW_HCLKR_P{i}")]);
             }
             for i in 0..5 {
                 bel = bel
@@ -1076,8 +1076,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bel = builder.bel_virtual("HCLK");
             for i in 0..10 {
                 bel = bel
-                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_G_HCLK_P{i}")])
-                    .extra_int_out(format!("GCLK_O{i}"), &[format!("HCLK_LEAF_GCLK{i}")]);
+                    .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_G_HCLK_P{i}")])
+                    .extra_int_out(format!("HCLK_O{i}"), &[format!("HCLK_LEAF_GCLK{i}")]);
             }
             for i in 0..4 {
                 bel = bel
@@ -1207,8 +1207,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for i in 0..10 {
                 bel_ioclk = bel_ioclk
-                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_IOI_G_HCLK_P{i}")])
-                    .extra_wire(format!("GCLK_O{i}"), &[format!("HCLK_IOI_LEAF_GCLK_P{i}")]);
+                    .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_IOI_G_HCLK_P{i}")])
+                    .extra_wire(format!("HCLK_O{i}"), &[format!("HCLK_IOI_LEAF_GCLK_P{i}")]);
             }
             if has_rclk {
                 bel_ioclk = bel_ioclk
@@ -1326,11 +1326,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         "HCLK_IOB_CMT_TOP_MGT",
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel_gclk = builder.bel_virtual("HCLK_CMT_GCLK");
+            let mut bel_hclk = builder.bel_virtual("HCLK_CMT_HCLK");
             for i in 0..10 {
-                bel_gclk = bel_gclk
-                    .extra_wire(format!("GCLK_I{i}"), &[format!("HCLK_IOB_CMT_GCLK_B{i}")])
-                    .extra_wire(format!("GCLK_O{i}"), &[format!("HCLK_IOB_CMT_BUFG{i}")]);
+                bel_hclk = bel_hclk
+                    .extra_wire(format!("HCLK_I{i}"), &[format!("HCLK_IOB_CMT_GCLK_B{i}")])
+                    .extra_wire(format!("HCLK_O{i}"), &[format!("HCLK_IOB_CMT_BUFG{i}")]);
             }
             let mut bel_giob = builder.bel_virtual("HCLK_CMT_GIOB").raw_tile(1);
             for i in 0..10 {
@@ -1345,7 +1345,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .xnode("HCLK_CMT", "HCLK_CMT", xy)
                 .num_tiles(0)
                 .raw_tile(xy.delta(1, 0))
-                .bel(bel_gclk)
+                .bel(bel_hclk)
                 .bel(bel_giob)
                 .extract();
         }
@@ -1383,20 +1383,20 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
             builder
-                .xnode("CLK_IOB", tkn, xy)
+                .xnode(tkn, tkn, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
         }
     }
 
-    for (tkn, naming) in [
-        ("CLK_CMT_BOT", "CLK_CMT_BOT"),
-        ("CLK_CMT_BOT_MGT", "CLK_CMT_BOT"),
-        ("CLK_CMT_TOP", "CLK_CMT_TOP"),
-        ("CLK_CMT_TOP_MGT", "CLK_CMT_TOP"),
+    for (tkn, node) in [
+        ("CLK_CMT_BOT", "CLK_CMT_B"),
+        ("CLK_CMT_BOT_MGT", "CLK_CMT_B"),
+        ("CLK_CMT_TOP", "CLK_CMT_T"),
+        ("CLK_CMT_TOP_MGT", "CLK_CMT_T"),
     ] {
-        let bt = if naming == "CLK_CMT_BOT" { 'B' } else { 'T' };
+        let bt = if node == "CLK_CMT_B" { 'B' } else { 'T' };
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("CLK_CMT");
             for i in 0..28 {
@@ -1423,20 +1423,20 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
             builder
-                .xnode("CLK_CMT", naming, xy)
+                .xnode(node, node, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
         }
     }
 
-    for (tkn, naming) in [
-        ("CLK_MGT_BOT", "CLK_MGT_BOT"),
-        ("CLK_MGT_BOT_MGT", "CLK_MGT_BOT"),
-        ("CLK_MGT_TOP", "CLK_MGT_TOP"),
-        ("CLK_MGT_TOP_MGT", "CLK_MGT_TOP"),
+    for (tkn, node) in [
+        ("CLK_MGT_BOT", "CLK_MGT_B"),
+        ("CLK_MGT_BOT_MGT", "CLK_MGT_B"),
+        ("CLK_MGT_TOP", "CLK_MGT_T"),
+        ("CLK_MGT_TOP_MGT", "CLK_MGT_T"),
     ] {
-        let bt = if naming == "CLK_MGT_BOT" { 'B' } else { 'T' };
+        let bt = if node == "CLK_MGT_B" { 'B' } else { 'T' };
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("CLK_MGT");
             for i in 0..5 {
@@ -1455,7 +1455,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 );
             }
             builder
-                .xnode("CLK_MGT", naming, xy)
+                .xnode(node, node, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();

@@ -34,6 +34,7 @@ impl Debug for Diff {
 }
 
 impl Diff {
+    #[track_caller]
     pub fn assert_empty(&self) {
         assert!(self.bits.is_empty());
     }
@@ -726,6 +727,23 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         xlat_enum_default(diffs, default)
     }
 
+    #[must_use]
+    pub fn extract_enum_default_ocd(
+        &mut self,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        vals: &[&str],
+        default: &str,
+        ocd: OcdMode,
+    ) -> TileItem<FeatureBit> {
+        let diffs = vals
+            .iter()
+            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .collect();
+        xlat_enum_default_ocd(diffs, default, ocd)
+    }
+
     pub fn collect_enum_default(
         &mut self,
         tile: &str,
@@ -747,12 +765,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         default: &str,
         ocd: OcdMode,
     ) {
-        let diffs = vals
-            .iter()
-            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
-            .collect();
-        let ti = xlat_enum_default_ocd(diffs, default, ocd);
-        self.tiledb.insert(tile, bel, attr, ti);
+        let item = self.extract_enum_default_ocd(tile, bel, attr, vals, default, ocd);
+        self.tiledb.insert(tile, bel, attr, item);
     }
 
     #[must_use]

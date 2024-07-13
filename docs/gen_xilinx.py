@@ -101,6 +101,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     rev[key].append((name, item, None if len(item["bits"]) == 1 else j))
             for bt, (columns, rows) in enumerate(bt_dims):
                 f.write("<table class=\"docutils align-default prjcombine-tile\">\n")
+                f.write(f"<tr><th colspan=\"{columns + 1}\">{tile_name} bittile {bt}</th></tr>")
                 f.write(f"<tr><th rowspan=\"2\">Row</th><th colspan=\"{columns}\">Column</th></tr>")
                 f.write("<tr>")
                 for col in range(columns):

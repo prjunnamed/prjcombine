@@ -7,10 +7,13 @@ Xilinx Virtex 5 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
-   int
+   interconnect
    clb
    bram
    dsp
+   center
+   clock
    ppc
    emac
    pcie
+   config

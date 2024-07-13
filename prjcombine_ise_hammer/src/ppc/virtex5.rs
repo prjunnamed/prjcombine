@@ -1,8 +1,9 @@
+use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 
 use crate::{
-    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
-    fuzz_multi_attr_hex, fuzz_one,
+    backend::IseBackend, diff::{extract_bitvec_val, CollectorCtx}, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi, fuzz_multi_attr_hex, fuzz_one,
 };
 
 const PPC_INVPINS: &[&str] = &[
@@ -23,7 +24,6 @@ const PPC_INVPINS: &[&str] = &[
 ];
 
 const PPC_BOOL_ATTRS: &[&str] = &[
-    "CLOCK_DELAY",
     "DCR_AUTOLOCK_ENABLE",
     "MI_CONTROL_BIT6",
     "PPCDM_ASYNCMODE",
@@ -105,17 +105,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         return;
     };
 
-    fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PPC440")]);
+    fuzz_one!(ctx, "PRESENT", "1", [
+        (no_global_opt "PPCCLKDLY")
+    ], [
+        (mode "PPC440")
+    ]);
 
     for &pin in PPC_INVPINS {
-        fuzz_inv!(ctx, pin, [(mode "PPC440")]);
+        fuzz_inv!(ctx, pin, [
+            (no_global_opt "PPCCLKDLY"),
+            (mode "PPC440")
+        ]);
     }
     for &attr in PPC_BOOL_ATTRS {
-        fuzz_enum!(ctx, attr, ["FALSE", "TRUE"], [(mode "PPC440")]);
+        fuzz_enum!(ctx, attr, ["FALSE", "TRUE"], [
+            (no_global_opt "PPCCLKDLY"),
+            (mode "PPC440")
+        ]);
     }
     for &(attr, width) in PPC_HEX_ATTRS {
-        fuzz_multi_attr_hex!(ctx, attr, width, [(mode "PPC440")]);
+        fuzz_multi_attr_hex!(ctx, attr, width, [
+            (no_global_opt "PPCCLKDLY"),
+            (mode "PPC440")
+        ]);
     }
+    fuzz_multi!(ctx, "CLOCK_DELAY", "", 5, [
+        (mode "PPC440"),
+        (attr "CLOCK_DELAY", "TRUE")
+    ], (global_bin "PPCCLKDLY"));
+    fuzz_enum!(ctx, "CLOCK_DELAY", ["FALSE", "TRUE"], [
+        (no_global_opt "PPCCLKDLY"),
+        (mode "PPC440")
+    ]);
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
@@ -128,6 +149,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &pin in PPC_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }
+    ctx.collect_bitvec(tile, bel, "CLOCK_DELAY", "");
     for &attr in PPC_BOOL_ATTRS {
         if attr == "MI_CONTROL_BIT6" {
             ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
@@ -139,4 +161,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &(attr, _) in PPC_HEX_ATTRS {
         ctx.collect_bitvec(tile, bel, attr, "");
     }
+    ctx.state
+        .get_diff(tile, bel, "CLOCK_DELAY", "TRUE")
+        .assert_empty();
+    let diff = ctx.state.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
+    let val = extract_bitvec_val(ctx.tiledb.item(tile, bel, "CLOCK_DELAY"), &bitvec![0; 5], diff);
+    ctx.tiledb.insert_device_data(&ctx.device.name, "PPC:CLOCK_DELAY", val);
 }

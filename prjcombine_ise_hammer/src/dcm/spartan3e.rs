@@ -642,7 +642,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 },
             },
         );
-        diff_b.apply_bitvec_diff(ctx.tiledb.item(tile, bel, "PERIOD_LF"), &bitvec![1; 2], &bitvec![0; 2]);
+        diff_b.apply_bitvec_diff(
+            ctx.tiledb.item(tile, bel, "PERIOD_LF"),
+            &bitvec![1; 2],
+            &bitvec![0; 2],
+        );
         diff_b.assert_empty();
 
         ctx.tiledb.insert(tile, bel, "DLL_C", cfg_dll_c);

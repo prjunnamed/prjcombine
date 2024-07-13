@@ -17,6 +17,7 @@ mod clk;
 mod dcm;
 mod diff;
 mod dsp;
+mod emac;
 mod fgen;
 mod fuzz;
 mod gt;
@@ -26,7 +27,6 @@ mod io;
 mod misc;
 mod pcie;
 mod ppc;
-mod emac;
 mod tiledb;
 
 use backend::IseBackend;
@@ -184,10 +184,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                    // TODO: clk
+                    if !args.skip_clk {
+                        clk::virtex5::add_fuzzers(&mut hammer, &backend);
+                    }
                     bram::virtex5::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex5::add_fuzzers(&mut hammer, &backend);
-                    // TODO: misc
+                    if !args.skip_misc {
+                        misc::virtex5::add_fuzzers(&mut hammer, &backend);
+                    }
                     // TODO: io
                     // TODO: dcm
                     // TODO: pll
@@ -312,8 +316,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
+                    if !args.skip_clk {
+                        clk::virtex5::collect_fuzzers(&mut ctx);
+                    }
                     bram::virtex5::collect_fuzzers(&mut ctx);
                     dsp::virtex5::collect_fuzzers(&mut ctx);
+                    if !args.skip_misc {
+                        misc::virtex5::collect_fuzzers(&mut ctx);
+                    }
                     ppc::virtex5::collect_fuzzers(&mut ctx);
                     emac::virtex5::collect_fuzzers(&mut ctx);
                     pcie::virtex5::collect_fuzzers(&mut ctx);

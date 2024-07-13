@@ -603,8 +603,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs.push((val, diff_mr));
         }
     }
-    ctx.tiledb
-        .insert(tile, bel, "DCM_VREF_SOURCE", xlat_enum_ocd(diffs, OcdMode::BitOrder));
+    ctx.tiledb.insert(
+        tile,
+        bel,
+        "DCM_VREF_SOURCE",
+        xlat_enum_ocd(diffs, OcdMode::BitOrder),
+    );
 
     ctx.collect_enum(
         tile,

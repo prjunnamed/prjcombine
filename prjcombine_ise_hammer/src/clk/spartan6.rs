@@ -694,7 +694,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
         }
     }
-    for tile in ["PCI_CE_TRUNK_BUF", "PCI_CE_V_BUF", "PCI_CE_SPLIT", "PCI_CE_H_BUF"] {
+    for tile in [
+        "PCI_CE_TRUNK_BUF",
+        "PCI_CE_V_BUF",
+        "PCI_CE_SPLIT",
+        "PCI_CE_H_BUF",
+    ] {
         if let Some(ctx) = FuzzCtx::try_new(session, backend, tile, tile, TileBits::Null) {
             fuzz_one!(ctx, "BUF", "1", [], [
                 (pip (pin "PCI_CE_I"), (pin "PCI_CE_O"))
@@ -1020,10 +1025,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let enable = ctx.extract_bit(tile, bel, "ENABLE", "1");
             let mut diff = ctx.state.get_diff(tile, bel, "ENABLE_NONE_SYNC", "1");
             diff.apply_bit_diff(&enable, true, false);
-            ctx.tiledb.insert(tile, bel, "ENABLE_NONE_SYNC", xlat_bit_wide(diff));
+            ctx.tiledb
+                .insert(tile, bel, "ENABLE_NONE_SYNC", xlat_bit_wide(diff));
             let mut diff = ctx.state.get_diff(tile, bel, "ENABLE_BOTH_SYNC", "1");
             diff.apply_bit_diff(&enable, true, false);
-            ctx.tiledb.insert(tile, bel, "ENABLE_BOTH_SYNC", xlat_bit_wide(diff));
+            ctx.tiledb
+                .insert(tile, bel, "ENABLE_BOTH_SYNC", xlat_bit_wide(diff));
             ctx.tiledb.insert(tile, "BUFPLL_COMMON", "ENABLE", enable);
             ctx.collect_enum_bool(tile, bel, "ENABLE_SYNC", "FALSE", "TRUE");
 

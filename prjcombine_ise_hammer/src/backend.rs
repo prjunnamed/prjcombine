@@ -370,7 +370,7 @@ impl<'a> Backend for IseBackend<'a> {
                     _ => unreachable!(),
                 },
                 Key::Pip(tile, wa, wb) => match v {
-                    Value::None => (),
+                    Value::None | Value::Bool(false) => (),
                     Value::Bool(true) => single_pips.push(NetPip {
                         tile: tile.to_string(),
                         wire_from: wa.to_string(),

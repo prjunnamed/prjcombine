@@ -59,8 +59,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
             tile_name: tile,
             bel: backend.egrid.db.nodes[node_kind]
                 .bels
-                .get(&bel_name)
-                .unwrap()
+                .get(&bel_name)?
                 .0,
             bel_name,
         })
@@ -197,7 +196,10 @@ macro_rules! fuzz_base {
         $crate::fgen::TileKV::Bel($ctx.bel, $crate::fgen::BelKV::Pin($pin.to_string(), true))
     };
     ($ctx:ident, (pin_from $pin:expr, $kind:expr)) => {
-        $crate::fgen::TileKV::Bel($ctx.bel, $crate::fgen::BelKV::PinFrom($pin.to_string(), $kind))
+        $crate::fgen::TileKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelKV::PinFrom($pin.to_string(), $kind),
+        )
     };
     ($ctx:ident, (iob_pin $iob:expr, $pin:expr)) => {
         $crate::fgen::TileKV::IobBel(
@@ -308,8 +310,14 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (pin_full $pin:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::PinFull($pin.to_string()))
     };
+    ($ctx:ident, (pin_pips $pin:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::PinPips($pin.to_string()))
+    };
     ($ctx:ident, (pin_from $pin:expr, $kind_a:expr, $kind_b:expr)) => {
-        $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::PinFrom($pin.to_string(), $kind_a, $kind_b))
+        $crate::fgen::TileFuzzKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelFuzzKV::PinFrom($pin.to_string(), $kind_a, $kind_b),
+        )
     };
     ($ctx:ident, (iob_mode $iob:expr, $kind:expr)) => {
         $crate::fgen::TileFuzzKV::IobBel(
@@ -434,6 +442,12 @@ macro_rules! fuzz_diff_multi {
             $iob.bel,
             $attr.to_string(),
             $crate::backend::MultiValue::Bin,
+        )
+    };
+    ($ctx:ident, (global_hex $attr:expr)) => {
+        $crate::fgen::TileMultiFuzzKV::GlobalOpt(
+            $attr.to_string(),
+            $crate::backend::MultiValue::Hex(0),
         )
     };
     ($ctx:ident, (global_hex_prefix $attr:expr)) => {

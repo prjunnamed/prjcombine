@@ -286,7 +286,27 @@ fn resolve_bel_relation(
                         .0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    loc.1 = if loc.1 <= edev.col_clk {
+                        edev.col_lio?
+                    } else {
+                        edev.col_rio?
+                    };
+                    let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                            backend.egrid.db.nodes.key(node.kind) == "HCLK_IOI"
+                        })
+                    else {
+                        unreachable!()
+                    };
+                    loc.3 = layer;
+                    let bel = backend.egrid.db.nodes[node.kind]
+                        .bels
+                        .get("IOCLK")
+                        .unwrap()
+                        .0;
+                    Some((loc, bel))
+                }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
                 prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
             }
@@ -1395,6 +1415,7 @@ pub enum BelFuzzKV {
     AttrDiff(String, String, String),
     Pin(String),
     PinFull(String),
+    PinPips(String),
     PinFrom(String, PinFromKind, PinFromKind),
     Global(BelGlobalKind, String, String),
 }
@@ -1517,6 +1538,18 @@ impl BelFuzzKV {
                 assert_eq!(pin_data.wires.len(), 1);
                 let wire = *pin_data.wires.first().unwrap();
                 if let Some(pip) = pin_naming.int_pips.get(&wire) {
+                    fuzzer = fuzzer.fuzz(
+                        Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
+                        false,
+                        true,
+                    );
+                }
+                fuzzer
+            }
+            BelFuzzKV::PinPips(pin) => {
+                let bel_naming = &node_naming.bels[bel];
+                let pin_naming = &bel_naming.pins[pin];
+                for pip in &pin_naming.pips {
                     fuzzer = fuzzer.fuzz(
                         Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
                         false,
@@ -1854,7 +1887,16 @@ impl TileBits {
                         ));
                         res
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        let mut res = vec![];
+                        for i in 0..20 {
+                            res.push(edev.btile_main(die, col, row + i));
+                        }
+                        for i in 0..20 {
+                            res.push(edev.btile_spine(die, row + i));
+                        }
+                        res
+                    }
                     prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
                     prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                 },
@@ -1964,7 +2006,13 @@ impl TileBits {
                             edev.btile_hclk(die, edev.grids[die].columns.last_id().unwrap(), row),
                         ]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        vec![
+                            edev.btile_spine(die, row - 1),
+                            edev.btile_spine(die, row),
+                            edev.btile_spine_hclk(die, row),
+                        ]
+                    }
                     prjcombine_virtex4::grid::GridKind::Virtex6
                     | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
                 }
@@ -2065,6 +2113,10 @@ pub enum ExtraFeatureKind {
     HclkCcm(Dir),
     MgtRepeater(Dir, Option<Dir>),
     BufpllPll(Dir, &'static str),
+    Reg(Reg),
+    HclkIoiTopCen,
+    HclkIoiCenter(&'static str),
+    HclkBramMgtPrev,
 }
 
 impl ExtraFeatureKind {
@@ -2269,6 +2321,54 @@ impl ExtraFeatureKind {
                     }
                 }
             }
+            ExtraFeatureKind::Reg(reg) => backend
+                .egrid
+                .die
+                .ids()
+                .map(|die| vec![BitTile::Reg(die, reg)])
+                .collect(),
+            ExtraFeatureKind::HclkIoiTopCen => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
+            }
+            ExtraFeatureKind::HclkIoiCenter(kind) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1 > edev.col_clk {
+                    return vec![];
+                }
+                if backend
+                    .egrid
+                    .find_node(loc.0, (edev.col_clk, loc.2), |node| {
+                        edev.egrid.db.nodes.key(node.kind) == kind
+                    })
+                    .is_some()
+                {
+                    vec![vec![edev.btile_hclk(loc.0, edev.col_clk, loc.2)]]
+                } else {
+                    vec![]
+                }
+            }
+            ExtraFeatureKind::HclkBramMgtPrev => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let grid = edev.grids[loc.0];
+                let col = if loc.1 < edev.col_clk {
+                    let mut range = grid.cols_mgt_buf.range(..loc.1);
+                    range.next_back()
+                } else {
+                    let mut range = grid.cols_mgt_buf.range((loc.1 + 1)..);
+                    range.next()
+                };
+                match col {
+                    Some(&col) => vec![vec![edev.btile_hclk(loc.0, col, loc.2)]],
+                    None => vec![],
+                }
+            }            
         }
     }
 }

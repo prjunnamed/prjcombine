@@ -612,17 +612,17 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             let rx = self.rxlut[col] + 4;
             let ry = y / 10 * 11 + 1;
-            let naming = if row < self.grid.row_bufg() {
-                "CLK_CMT_BOT"
+            let (kind, naming) = if row < self.grid.row_bufg() {
+                ("CLK_CMT_B", "CLK_CMT_BOT")
             } else {
-                "CLK_CMT_TOP"
+                ("CLK_CMT_T", "CLK_CMT_TOP")
             };
             let name = format!("{naming}{mgt}_X{rx}Y{ry}");
             self.die.add_xnode(
                 (col, row),
-                self.db.get_node("CLK_CMT"),
+                self.db.get_node(kind),
                 &[&name],
-                self.db.get_node_naming(naming),
+                self.db.get_node_naming(kind),
                 &[],
             );
         }
@@ -865,7 +865,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("CLK_IOB_B_X{x}Y{y}");
                             self.die.add_xnode(
                                 (col, row),
-                                self.db.get_node("CLK_IOB"),
+                                self.db.get_node("CLK_IOB_B"),
                                 &[&name],
                                 self.db.get_node_naming("CLK_IOB_B"),
                                 &[],
@@ -898,7 +898,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let name = format!("CLK_IOB_T_X{x}Y{y}", y = y - 10);
                             self.die.add_xnode(
                                 (col, row - 10),
-                                self.db.get_node("CLK_IOB"),
+                                self.db.get_node("CLK_IOB_T"),
                                 &[&name],
                                 self.db.get_node_naming("CLK_IOB_T"),
                                 &[],
@@ -937,18 +937,18 @@ impl<'a, 'b> Expander<'a, 'b> {
                                 let name = format!("CLK_MGT_BOT{mgt}_X{x}Y{y}");
                                 self.die.add_xnode(
                                     (col, row),
-                                    self.db.get_node("CLK_MGT"),
+                                    self.db.get_node("CLK_MGT_B"),
                                     &[&name],
-                                    self.db.get_node_naming("CLK_MGT_BOT"),
+                                    self.db.get_node_naming("CLK_MGT_B"),
                                     &[],
                                 );
                             } else {
                                 let name = format!("CLK_MGT_TOP{mgt}_X{x}Y{y}", y = y - 10);
                                 self.die.add_xnode(
                                     (col, row - 10),
-                                    self.db.get_node("CLK_MGT"),
+                                    self.db.get_node("CLK_MGT_T"),
                                     &[&name],
-                                    self.db.get_node_naming("CLK_MGT_TOP"),
+                                    self.db.get_node_naming("CLK_MGT_T"),
                                     &[],
                                 );
                             }
