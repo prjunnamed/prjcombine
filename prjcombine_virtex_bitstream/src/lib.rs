@@ -13,12 +13,15 @@ pub enum Reg {
     Idcode,
     Ctl0,
     Ctl1,
+    Unk1C,
     Cor0,
     Cor1,
     Cor2,
     Key,
     WbStar,
     Timer,
+    Trim,
+    Testmode,
     Axss,
     RbCrcSw,
     CclkFrequency,
@@ -38,6 +41,7 @@ pub enum Reg {
     FakeEarlyGhigh,
     FakeDoubleGrestore,
     FakeFreezeDciNops,
+    FakeIgnoreCrc,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -93,6 +97,9 @@ impl Bitstream {
         let mut res = HashMap::new();
         for ((die, da), db) in a.die.iter().zip(b.die.values()) {
             for (reg, &va) in &da.regs {
+                if reg == Reg::RbCrcSw {
+                    continue;
+                }
                 let vb = db.regs[reg];
                 if va.is_some() != vb.is_some() {
                     res.insert(BitPos::RegPresent(die, reg), vb.is_some());

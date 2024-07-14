@@ -206,7 +206,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // TODO: clk
                     bram::virtex6::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
-                    // TODO: misc
+                    if !args.skip_misc {
+                        misc::virtex6::add_fuzzers(&mut hammer, &backend);
+                    }
                     // TODO: io
                     // TODO: pll
                     emac::virtex6::add_fuzzers(&mut hammer, &backend);
@@ -331,6 +333,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     clb::virtex5::collect_fuzzers(&mut ctx);
                     bram::virtex6::collect_fuzzers(&mut ctx);
                     dsp::virtex6::collect_fuzzers(&mut ctx);
+                    if !args.skip_misc {
+                        misc::virtex6::collect_fuzzers(&mut ctx);
+                    }
                     emac::virtex6::collect_fuzzers(&mut ctx);
                     pcie::virtex6::collect_fuzzers(&mut ctx);
                 }

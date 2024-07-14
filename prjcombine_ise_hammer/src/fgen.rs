@@ -1607,6 +1607,7 @@ pub enum TileBits {
     Null,
     Main(usize),
     Reg(Reg),
+    RegPresent(Reg),
     Raw(Vec<BitTile>),
     MainUp,
     MainDown,
@@ -2098,6 +2099,12 @@ impl TileBits {
                     BitTile::RegPresent(die, Reg::FakeFreezeDciNops),
                 ]
             }
+            TileBits::RegPresent(reg) => {
+                vec![
+                    BitTile::Reg(die, reg),
+                    BitTile::RegPresent(die, reg),
+                ]
+            }
             TileBits::Pcie => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
@@ -2142,7 +2149,7 @@ pub enum ExtraFeatureKind {
     MgtRepeater(Dir, Option<Dir>),
     BufpllPll(Dir, &'static str),
     Reg(Reg),
-    HclkIoiTopCen,
+    HclkSysmonDrp,
     HclkIoiCenter(&'static str),
     HclkBramMgtPrev,
     PcieHclk,
@@ -2373,11 +2380,20 @@ impl ExtraFeatureKind {
                 .ids()
                 .map(|die| vec![BitTile::Reg(die, reg)])
                 .collect(),
-            ExtraFeatureKind::HclkIoiTopCen => {
+            ExtraFeatureKind::HclkSysmonDrp => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                }
             }
             ExtraFeatureKind::HclkIoiCenter(kind) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {

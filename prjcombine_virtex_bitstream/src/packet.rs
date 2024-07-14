@@ -41,6 +41,7 @@ pub enum Packet<'a> {
     Cor2(u32),
     Ctl0(u32),
     Ctl1(u32),
+    Unk1c(u32),
     Idcode(u32),
     Timer(u32),
     Powerdown(u32),
@@ -57,6 +58,8 @@ pub enum Packet<'a> {
     General5(u32),
     EyeMask(u32),
     WBStar(u32),
+    Testmode(u32),
+    Trim(u32),
     Fdri(&'a [u8]),
     BugFdri(&'a [u8]),
 }
@@ -388,7 +391,10 @@ impl<'a> Iterator for PacketParser<'a> {
                                 (0x10, 1) if is_v4 => Some(Packet::WBStar(get_val(0))),
                                 (0x11, 1) if is_v4 => Some(Packet::Timer(get_val(0))),
                                 (0x13, 1) if is_v4 => Some(Packet::RbCrcSw(get_val(0))),
+                                (0x17, 1) if is_v4 => Some(Packet::Testmode(get_val(0))),
                                 (0x18, 1) if is_v4 => Some(Packet::Ctl1(get_val(0))),
+                                (0x1b, 1) if is_v4 => Some(Packet::Trim(get_val(0))),
+                                (0x1c, 1) if is_v4 => Some(Packet::Unk1c(get_val(0))),
                                 _ => panic!("unk write: {reg} times {num}"),
                             }
                         } else if (ph >> 27) == 0xa {

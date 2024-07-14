@@ -188,7 +188,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     {
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::Null);
         fuzz_one_extras!(ctx, "ENABLE", "1", [], [(mode "SYSMON")], vec![
-            ExtraFeature::new(ExtraFeatureKind::HclkIoiTopCen, "HCLK_IOI_TOPCEN", "SYSMON", "ENABLE", "1"),
+            ExtraFeature::new(ExtraFeatureKind::HclkSysmonDrp, "HCLK_IOI_TOPCEN", "SYSMON", "ENABLE", "1"),
         ]);
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::Cfg);
         fuzz_inv!(ctx, "DCLK", [(mode "SYSMON")]);
@@ -334,6 +334,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     fuzz_multi!(ctx, "TIMER", "", 24, [
         (no_global_opt "TIMER_USR")
     ], (global_hex "TIMER_CFG"));
+
+    let ctx = FuzzCtx::new_fake_tile(
+        session,
+        backend,
+        "REG.TESTMODE",
+        "MISC",
+        TileBits::RegPresent(Reg::Testmode),
+    );
+    fuzz_one!(ctx, "DD_OVERRIDE", "YES", [], [(global_opt "DD_OVERRIDE", "YES")]);
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
@@ -570,4 +579,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec(tile, bel, "TIMER", "");
     ctx.collect_bit(tile, bel, "TIMER_CFG", "1");
     ctx.collect_bit(tile, bel, "TIMER_USR", "1");
+
+    let tile = "REG.TESTMODE";
+    let bel = "MISC";
+    let mut diff = ctx.state.get_diff(tile, bel, "DD_OVERRIDE", "YES");
+    diff.bits.remove(&FeatureBit::new(1, 0, 0));
+    ctx.tiledb
+        .insert(tile, bel, "DD_OVERRIDE", xlat_bitvec(vec![diff]));
 }

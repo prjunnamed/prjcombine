@@ -11,5 +11,7 @@ Virtex 6
    clb
    bram
    dsp
+   center
    emac
    pcie
+   config

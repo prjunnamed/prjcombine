@@ -1000,6 +1000,23 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
         }
         assert_eq!(packets.next(), Some(Packet::CmdNull));
         assert_eq!(packets.next(), Some(Packet::Nop));
+        while matches!(packets.peek(), Some(Packet::Mask(_))) {
+            let _mask = match packets.next() {
+                Some(Packet::Mask(val)) => val,
+                p => panic!("expected mask got {p:?}"),
+            };
+            match packets.next() {
+                Some(Packet::Unk1c(val)) => bs.regs[Reg::Unk1C] = Some(val),
+                Some(Packet::Trim(val)) => bs.regs[Reg::Trim] = Some(val),
+                p => panic!("expected ctl2 or trim got {p:?}"),
+            }
+        }
+        if kind != DeviceKind::Virtex5 && matches!(packets.peek(), Some(Packet::Testmode(_))) {
+            match packets.next() {
+                Some(Packet::Testmode(val)) => bs.regs[Reg::Testmode] = Some(val),
+                p => panic!("expected testmode got {p:?}"),
+            }
+        }
         assert_eq!(packets.next(), Some(Packet::CmdRcrc));
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1012,6 +1029,12 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
         match packets.next() {
             Some(Packet::RbCrcSw(val)) => bs.regs[Reg::RbCrcSw] = Some(val),
             p => panic!("expected rbcrcsw got {p:?}"),
+        }
+        if kind == DeviceKind::Virtex5 && matches!(packets.peek(), Some(Packet::Testmode(_))) {
+            match packets.next() {
+                Some(Packet::Testmode(val)) => bs.regs[Reg::Testmode] = Some(val),
+                p => panic!("expected testmode got {p:?}"),
+            }
         }
         match packets.next() {
             Some(Packet::Cor0(val)) => bs.regs[Reg::Cor0] = Some(val),
@@ -1163,7 +1186,13 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
             }
         }
     }
-    assert_eq!(packets.next(), Some(Packet::Crc));
+    match packets.next() {
+        Some(Packet::Crc) => (),
+        Some(Packet::CmdRcrc) => {
+            bs.regs[Reg::FakeIgnoreCrc] = Some(1);
+        }
+        p => panic!("expected CRC or RCRC got {p:?}"),
+    }
     if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Virtex7) {
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1233,17 +1262,30 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 Some(Packet::Ctl0(val)) => bs.regs[Reg::Ctl0] = Some(val),
                 p => panic!("expected ctl0 got {p:?}"),
             }
-            assert_eq!(packets.next(), Some(Packet::Crc));
+            if bs.regs[Reg::FakeIgnoreCrc].is_some() {
+                assert_eq!(packets.next(), Some(Packet::CmdRcrc));
+            } else {
+                assert_eq!(packets.next(), Some(Packet::Crc));
+            }
             if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Virtex7) {
                 assert_eq!(packets.next(), Some(Packet::Nop));
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
             assert_eq!(packets.next(), Some(Packet::CmdDesynch));
-            let num_nops = match kind {
+            let mut num_nops = match kind {
                 DeviceKind::Virtex5 => 61,
                 DeviceKind::Virtex6 | DeviceKind::Virtex7 => 400,
                 _ => unreachable!(),
             };
+            if bs.regs[Reg::Unk1C].is_some() {
+                num_nops -= 4;
+            }
+            if bs.regs[Reg::Trim].is_some() {
+                num_nops -= 4;
+            }
+            if bs.regs[Reg::Testmode].is_some() {
+                num_nops -= 2;
+            }
             for _ in 0..num_nops {
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }

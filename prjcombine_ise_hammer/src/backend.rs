@@ -148,6 +148,12 @@ pub struct FeatureBit {
     pub bit: usize,
 }
 
+impl FeatureBit {
+    pub fn new(tile: usize, frame: usize, bit: usize) -> Self {
+        Self { tile, frame, bit }
+    }
+}
+
 impl core::fmt::Debug for FeatureBit {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}.{}.{}", self.tile, self.frame, self.bit)
