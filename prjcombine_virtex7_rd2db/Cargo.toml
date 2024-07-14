@@ -1,5 +1,5 @@
 [package]
-name = "prjcombine_series7_rd2db"
+name = "prjcombine_virtex7_rd2db"
 version.workspace = true
 edition.workspace = true
 

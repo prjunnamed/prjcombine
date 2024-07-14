@@ -6,4 +6,4 @@ Bitstream
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-PCIE.html
+   :file: ../gen/tile-xc6s-PCIE.html

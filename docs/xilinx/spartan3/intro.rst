@@ -18,14 +18,14 @@ The base Spartan 3 FPGAs feature:
 - a :ref:`general interconnect structure <spartan3-interconnect>` derived from Virtex 2
 - a dedicated :ref:`clock interconnect <spartan3-clock>` with 8 global clocks and ``BUFGMUX`` primitives with clock multiplexing
 - :ref:`configurable logic blocks <spartan3-clb>`, derived from the Virtex 2 ones
-- :ref:`block RAM tiles <virtex2-bram>`, essentially identical to Virtex 2, containing:
+- :ref:`block RAM tiles <spartan3-bram>`, essentially identical to Virtex 2, containing:
 
   - 18-kbit block RAM
   - 18×18 multiplier blocks
 
-- :ref:`input-output tiles <virtex2-io>`, similar to Virtex 2
-- :ref:`digital clock managers <virtex2-dcm>`, essentially identical to Virtex 2
-- :ref:`corner tiles <virtex2-corner>`, with various global bits of logic:
+- :ref:`input-output tiles <spartan3-io>`, similar to Virtex 2
+- :ref:`digital clock managers <spartan3-dcm-s3>`, essentially identical to Virtex 2
+- :ref:`corner tiles <spartan3-corner>`, with various global bits of logic:
 
   - ``BSCAN`` primitive, allowing access to FPGA fabric via dedicated JTAG instructions
   - ``STARTUP`` primitive, controlling the startup process
@@ -41,7 +41,7 @@ Spartan 3E brings the following changes:
 
 - improved clock interconnect, with 24 global clock buffers that can be multiplexed to 8 clocks per region
 - improved hard multiplier blocks, with pipeline registers
-- :ref:`a new version of DCM <spartan3e-dcm>`
+- :ref:`a new version of DCM <spartan3-dcm-s3e>`
 - IO tile changes
 
   - new set of IO standards supported
@@ -49,7 +49,7 @@ Spartan 3E brings the following changes:
   - removed DCI support
   - 4 banks per device, instead of 8
 
-- a new bit of :ref:`hard PCI logic <spartan3e-pcilogicse>`
+- a new bit of :ref:`hard PCI logic <spartan3-pcilogicse>`
 - support for SPI and BPI configuration modes
 
 Spartan 3A brings the following changes:

@@ -27,7 +27,7 @@ The ``CLKB.*`` tiles use two bitstream tiles:
 This tile is used on Virtex 2 devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKB.V2.html
+   :file: ../gen/tile-xc2v-CLKB.V2.html
 
 ``CLKB.V2P``
 ++++++++++++
@@ -35,7 +35,7 @@ This tile is used on Virtex 2 devices.
 This tile is used on Virtex 2 Pro devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKB.V2P.html
+   :file: ../gen/tile-xc2v-CLKB.V2P.html
 
 ``CLKB.V2PX``
 +++++++++++++
@@ -43,7 +43,7 @@ This tile is used on Virtex 2 Pro devices.
 This tile is used on Virtex 2 Pro X devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKB.V2PX.html
+   :file: ../gen/tile-xc2v-CLKB.V2PX.html
 
 
 Bitstream — top tiles
@@ -61,7 +61,7 @@ The ``CLKT.*`` tiles use two bitstream tiles:
 This tile is used on Virtex 2 devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKT.V2.html
+   :file: ../gen/tile-xc2v-CLKT.V2.html
 
 
 ``CLKT.V2P``
@@ -70,7 +70,7 @@ This tile is used on Virtex 2 devices.
 This tile is used on Virtex 2 Pro devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKT.V2P.html
+   :file: ../gen/tile-xc2v-CLKT.V2P.html
 
 
 ``CLKT.V2PX``
@@ -79,7 +79,7 @@ This tile is used on Virtex 2 Pro devices.
 This tile is used on Virtex 2 Pro X devices.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLKT.V2PX.html
+   :file: ../gen/tile-xc2v-CLKT.V2PX.html
 
 
 The ``GCLKC`` clock spine distribution tiles
@@ -92,21 +92,21 @@ The ``GCLKC`` clock spine distribution tiles
 ---------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GCLKC.html
+   :file: ../gen/tile-xc2v-GCLKC.html
 
 
 ``GCLKC.B``
 -----------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GCLKC.B.html
+   :file: ../gen/tile-xc2v-GCLKC.B.html
 
 
 ``GCLKC.T``
 -----------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GCLKC.T.html
+   :file: ../gen/tile-xc2v-GCLKC.T.html
 
 
 The clock row distribution tiles
@@ -118,7 +118,7 @@ The clock row distribution tiles
 ---------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GCLKH.html
+   :file: ../gen/tile-xc2v-GCLKH.html
 
 
 DCM output bus
@@ -131,11 +131,11 @@ DCM output bus
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-DCMCONN.BOT.html
+   :file: ../gen/tile-xc2v-DCMCONN.BOT.html
 
 
 ``DCMCONN.TOP``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-DCMCONN.TOP.html
+   :file: ../gen/tile-xc2v-DCMCONN.TOP.html

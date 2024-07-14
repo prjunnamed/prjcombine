@@ -91,7 +91,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                     max(bit + 1, bt_dims[bt][1]),
                 )
 
-        with open(f"xilinx/gen-xilinx-tile-{kind}-{tile_name}.html", "w") as f:
+        with open(f"xilinx/gen/tile-{kind}-{tile_name}.html", "w") as f:
             rev = {}
             for name, item in tile.items():
                 for j, bit in enumerate(item["bits"]):
@@ -224,56 +224,56 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 f.write("</table>\n")
 
     if kind == "xc2v":
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-drive.html", "IOSTD:V2:PDRIVE", "IOSTD:V2:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-slew.html", "IOSTD:V2:SLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-output-misc.html", "IOSTD:V2:OUTPUT_MISC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-output-diff.html", "IOSTD:V2:OUTPUT_DIFF")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-lvdsbias.html", "IOSTD:V2:LVDSBIAS")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-dci-term-split.html", "IOSTD:V2:TERM_SPLIT")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-iostd-dci-term-vcc.html", "IOSTD:V2:TERM_VCC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-drive.html", "IOSTD:V2P:PDRIVE", "IOSTD:V2P:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-slew.html", "IOSTD:V2P:SLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-output-misc.html", "IOSTD:V2P:OUTPUT_MISC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-output-diff.html", "IOSTD:V2P:OUTPUT_DIFF")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-lvdsbias.html", "IOSTD:V2P:LVDSBIAS")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-dci-term-split.html", "IOSTD:V2P:TERM_SPLIT")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2vp-iostd-dci-term-vcc.html", "IOSTD:V2P:TERM_VCC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc2v-gt10-PMA_SPEED.html", "GT10:PMA_SPEED")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-drive.html", "IOSTD:V2:PDRIVE", "IOSTD:V2:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-slew.html", "IOSTD:V2:SLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-output-misc.html", "IOSTD:V2:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-output-diff.html", "IOSTD:V2:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-lvdsbias.html", "IOSTD:V2:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-dci-term-split.html", "IOSTD:V2:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-iostd-dci-term-vcc.html", "IOSTD:V2:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-drive.html", "IOSTD:V2P:PDRIVE", "IOSTD:V2P:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-slew.html", "IOSTD:V2P:SLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-output-misc.html", "IOSTD:V2P:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-output-diff.html", "IOSTD:V2P:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-lvdsbias.html", "IOSTD:V2P:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-dci-term-split.html", "IOSTD:V2P:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen/xc2vp-iostd-dci-term-vcc.html", "IOSTD:V2P:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen/xc2v-gt10-PMA_SPEED.html", "GT10:PMA_SPEED")
 
-        with open("xilinx/gen-xilinx-xc2v-dcm-deskew-adjust.html", "w") as f:
+        with open("xilinx/gen/xc2v-dcm-deskew-adjust.html", "w") as f:
             emit_dev_table_bitvec(f, "DCM:DESKEW_ADJUST")
 
     if kind == "xc3s":
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-drive.html", "IOSTD:S3:PDRIVE", "IOSTD:S3:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-slew.html", "IOSTD:S3:SLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-output-misc.html", "IOSTD:S3:OUTPUT_MISC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-output-diff.html", "IOSTD:S3:OUTPUT_DIFF")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-lvdsbias.html", "IOSTD:S3:LVDSBIAS")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-dci-term-split.html", "IOSTD:S3:TERM_SPLIT")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3s-iostd-dci-term-vcc.html", "IOSTD:S3:TERM_VCC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-drive.html", "IOSTD:S3E:PDRIVE", "IOSTD:S3E:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-slew.html", "IOSTD:S3E:SLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-output-misc.html", "IOSTD:S3E:OUTPUT_MISC")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-output-diff.html", "IOSTD:S3E:OUTPUT_DIFF")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-lvdsbias-0.html", "IOSTD:S3E:LVDSBIAS_0")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3se-iostd-lvdsbias-1.html", "IOSTD:S3E:LVDSBIAS_1")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-drive.html", "IOSTD:S3A.TB:PDRIVE", "IOSTD:S3A.TB:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-slew.html", "IOSTD:S3A.TB:PSLEW", "IOSTD:S3A.TB:NSLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-output-diff.html", "IOSTD:S3A.TB:OUTPUT_DIFF")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-lr-drive.html", "IOSTD:S3A.LR:PDRIVE", "IOSTD:S3A.LR:NDRIVE")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-lr-slew.html", "IOSTD:S3A.LR:PSLEW", "IOSTD:S3A.LR:NSLEW")
-        emit_misc_table_bitvec("xilinx/gen-xilinx-xc3sa-iostd-tb-lvdsbias.html", "IOSTD:S3A.TB:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-drive.html", "IOSTD:S3:PDRIVE", "IOSTD:S3:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-slew.html", "IOSTD:S3:SLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-output-misc.html", "IOSTD:S3:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-output-diff.html", "IOSTD:S3:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-lvdsbias.html", "IOSTD:S3:LVDSBIAS")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-dci-term-split.html", "IOSTD:S3:TERM_SPLIT")
+        emit_misc_table_bitvec("xilinx/gen/xc3s-iostd-dci-term-vcc.html", "IOSTD:S3:TERM_VCC")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-drive.html", "IOSTD:S3E:PDRIVE", "IOSTD:S3E:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-slew.html", "IOSTD:S3E:SLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-output-misc.html", "IOSTD:S3E:OUTPUT_MISC")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-output-diff.html", "IOSTD:S3E:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-lvdsbias-0.html", "IOSTD:S3E:LVDSBIAS_0")
+        emit_misc_table_bitvec("xilinx/gen/xc3se-iostd-lvdsbias-1.html", "IOSTD:S3E:LVDSBIAS_1")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-tb-drive.html", "IOSTD:S3A.TB:PDRIVE", "IOSTD:S3A.TB:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-tb-slew.html", "IOSTD:S3A.TB:PSLEW", "IOSTD:S3A.TB:NSLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-tb-output-diff.html", "IOSTD:S3A.TB:OUTPUT_DIFF")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-lr-drive.html", "IOSTD:S3A.LR:PDRIVE", "IOSTD:S3A.LR:NDRIVE")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-lr-slew.html", "IOSTD:S3A.LR:PSLEW", "IOSTD:S3A.LR:NSLEW")
+        emit_misc_table_bitvec("xilinx/gen/xc3sa-iostd-tb-lvdsbias.html", "IOSTD:S3A.TB:LVDSBIAS")
 
-        with open("xilinx/gen-xilinx-xc3s-bram-opts.html", "w") as f:
+        with open("xilinx/gen/xc3s-bram-opts.html", "w") as f:
             emit_dev_table_bitvec(f, "BRAM:DDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:DDEL_B_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_A_DEFAULT")
             emit_dev_table_bitvec(f, "BRAM:WDEL_B_DEFAULT")
 
-        with open("xilinx/gen-xilinx-xc3s-pcilogicse-opts.html", "w") as f:
+        with open("xilinx/gen/xc3s-pcilogicse-opts.html", "w") as f:
             emit_dev_table_string(f, "PCILOGICSE:DELAY_DEFAULT")
 
-        with open("xilinx/gen-xilinx-xc3s-dcm-deskew-adjust.html", "w") as f:
+        with open("xilinx/gen/xc3s-dcm-deskew-adjust.html", "w") as f:
             emit_dev_table_bitvec(f, "DCM:DESKEW_ADJUST")
 
         intf_mux = []
@@ -282,7 +282,7 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 _, _, mux, inp = item.split(":")
                 intf_mux.append((mux, inp, val))
         if intf_mux:
-            with open("xilinx/gen-xilinx-xc3s-INTF.DSP.html", "w") as f:
+            with open("xilinx/gen/xc3s-INTF.DSP.html", "w") as f:
                 f.write("<table class=\"docutils align-default\">\n")
                 f.write("<tr><th>Mux</th><th>Mux input</th><th>Test group</th></tr>\n")
                 for mux, inp, val in intf_mux:
@@ -291,5 +291,5 @@ for kind in ["xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7v"]:
                 f.write(f"</table>")
 
     if kind == "xc6s":
-        with open("xilinx/gen-xilinx-xc6s-pci-ce-delay.html", "w") as f:
+        with open("xilinx/gen/xc6s-pci-ce-delay.html", "w") as f:
             emit_dev_table_string(f, "PCI_CE_DELAY")

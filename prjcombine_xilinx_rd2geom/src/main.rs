@@ -7,7 +7,6 @@ use std::sync::Mutex;
 use std_semaphore::Semaphore;
 
 mod db;
-mod series7;
 mod spartan6;
 mod ultrascale;
 mod versal;
@@ -16,6 +15,7 @@ mod virtex2;
 mod virtex4;
 mod virtex5;
 mod virtex6;
+mod virtex7;
 mod xc4k;
 mod xc5200;
 
@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         "virtex4" => virtex4::ingest(&rd, verify),
                         "virtex5" => virtex5::ingest(&rd, verify),
                         "virtex6" => virtex6::ingest(&rd, verify),
-                        "7series" => series7::ingest(&rd, verify),
+                        "7series" => virtex7::ingest(&rd, verify),
                         "ultrascale" | "ultrascaleplus" => ultrascale::ingest(&rd, verify),
                         "versal" => versal::ingest(&rd, verify),
                         _ => panic!("unknown family {}", rd.family),

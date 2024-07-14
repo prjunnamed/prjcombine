@@ -1,5 +1,5 @@
-Xilinx Virtex, Virtex E, Spartan 2, Spartan 2E FPGAs
-####################################################
+Virtex
+######
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 

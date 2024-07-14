@@ -381,7 +381,7 @@ The interconnect tiles are 22×80 bits. The space on the left is unused by the i
 Used with ``CLB`` tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.CLB.html
+   :file: ../gen/tile-xc2v-INT.CLB.html
 
 
 ``INT.BRAM``
@@ -390,7 +390,7 @@ Used with ``CLB`` tiles.
 Used with ``BRAM`` tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.BRAM.html
+   :file: ../gen/tile-xc2v-INT.BRAM.html
 
 
 ``INT.IOI``
@@ -399,7 +399,7 @@ Used with ``BRAM`` tiles.
 Used with ``IOI`` tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.IOI.html
+   :file: ../gen/tile-xc2v-INT.IOI.html
 
 
 ``INT.IOI.CLK_B``
@@ -408,7 +408,7 @@ Used with ``IOI`` tiles.
 Used with the ``IOI.CLK_B`` tile (Virtex 2 Pro X special IOI tile used for the dedicated reference clock).
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.IOI.CLK_B.html
+   :file: ../gen/tile-xc2v-INT.IOI.CLK_B.html
 
 
 ``INT.IOI.CLK_T``
@@ -418,7 +418,7 @@ Used with the ``IOI.CLK_T`` tile (Virtex 2 Pro X special IOI tile used for the d
 
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.IOI.CLK_T.html
+   :file: ../gen/tile-xc2v-INT.IOI.CLK_T.html
 
 
 ``INT.DCM.V2``
@@ -427,7 +427,7 @@ Used with the ``IOI.CLK_T`` tile (Virtex 2 Pro X special IOI tile used for the d
 Used with the Virtex 2 ``DCM.V2`` tile.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.DCM.V2.html
+   :file: ../gen/tile-xc2v-INT.DCM.V2.html
 
 
 ``INT.DCM.V2P``
@@ -437,7 +437,7 @@ Used with the Virtex 2 Pro ``DCM.V2P`` tile.
 
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.DCM.V2P.html
+   :file: ../gen/tile-xc2v-INT.DCM.V2P.html
 
 
 ``INT.CNR``
@@ -446,7 +446,7 @@ Used with the Virtex 2 Pro ``DCM.V2P`` tile.
 Used with the corner tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.CNR.html
+   :file: ../gen/tile-xc2v-INT.CNR.html
 
 
 ``INT.PPC``
@@ -455,7 +455,7 @@ Used with the corner tiles.
 Used with the ``PPC`` tiles, and also for most of the interconnect for the multi-gigabit transceiver tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.PPC.html
+   :file: ../gen/tile-xc2v-INT.PPC.html
 
 
 ``INT.GT.CLKPAD``
@@ -464,7 +464,7 @@ Used with the ``PPC`` tiles, and also for most of the interconnect for the multi
 Used for the IO row of multi-gigabit transceiver tiles.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INT.GT.CLKPAD.html
+   :file: ../gen/tile-xc2v-INT.GT.CLKPAD.html
 
 
 Bitstream — terminator tiles
@@ -478,7 +478,7 @@ These tiles are placed at the edges of the device and deal with interconnect lin
 Located at the left edge of every interconnect row, this tile is 4×80 bits.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-TERM.W.html
+   :file: ../gen/tile-xc2v-TERM.W.html
 
 
 ``TERM.E``
@@ -487,7 +487,7 @@ Located at the left edge of every interconnect row, this tile is 4×80 bits.
 Located at the right edge of every interconnect row, this tile is 4×80 bits.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-TERM.E.html
+   :file: ../gen/tile-xc2v-TERM.E.html
 
 
 ``TERM.S``
@@ -496,7 +496,7 @@ Located at the right edge of every interconnect row, this tile is 4×80 bits.
 Located at the bottom edge of every interconnect column, this tile is 22×12 bits.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-TERM.S.html
+   :file: ../gen/tile-xc2v-TERM.S.html
 
 
 ``TERM.N``
@@ -505,7 +505,7 @@ Located at the bottom edge of every interconnect column, this tile is 22×12 bit
 Located at the top edge of every interconnect column, this tile is 22×12 bits.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-TERM.N.html
+   :file: ../gen/tile-xc2v-TERM.N.html
 
 
 Bitstream — PowerPC hole tiles
@@ -521,7 +521,7 @@ This tile is located on the right of every interconnect row interrupted by the P
 The interconnect signals prefixed with ``0`` refer to signals in the rightmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the leftmost ``INT.PPC`` tile of the row.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-PPC.W.html
+   :file: ../gen/tile-xc2v-PPC.W.html
 
 
 ``PPC.E``
@@ -532,7 +532,7 @@ This tile is located on the left of every interconnect row interrupted by the Po
 The interconnect signals prefixed with ``0`` refer to signals in the leftmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the rightmost ``INT.PPC`` tile of the row.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-PPC.E.html
+   :file: ../gen/tile-xc2v-PPC.E.html
 
 
 ``PPC.S``
@@ -543,7 +543,7 @@ This tile is located on the top of every interconnect column interrupted by the 
 The interconnect signals prefixed with ``0`` refer to signals in the topmost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the bottommost ``INT.PPC`` tile of the row.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-PPC.S.html
+   :file: ../gen/tile-xc2v-PPC.S.html
 
 
 ``PPC.N``
@@ -554,7 +554,7 @@ This tile is located on the bottom of every interconnect column interrupted by t
 The interconnect signals prefixed with ``0`` refer to signals in the bottommost ``INT.PPC`` tile of the row.  The interconnect signals prefixed with ``1`` refer to signals in the topmost ``INT.PPC`` tile of the row.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-PPC.N.html
+   :file: ../gen/tile-xc2v-PPC.N.html
 
 
 Bitstream — interface tiles
@@ -567,46 +567,46 @@ All of these tiles share their bitstream tiles with the corresponding ``INT`` ti
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.PPC.html
+   :file: ../gen/tile-xc2v-INTF.PPC.html
 
 
 ``INTF.GT.B0``
 --------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.B0.html
+   :file: ../gen/tile-xc2v-INTF.GT.B0.html
 
 
 ``INTF.GT.B123``
 ----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.B123.html
+   :file: ../gen/tile-xc2v-INTF.GT.B123.html
 
 
 ``INTF.GT.BCLKPAD``
 -------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.BCLKPAD.html
+   :file: ../gen/tile-xc2v-INTF.GT.BCLKPAD.html
 
 
 ``INTF.GT.T0``
 --------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.T0.html
+   :file: ../gen/tile-xc2v-INTF.GT.T0.html
 
 
 ``INTF.GT.T123``
 ----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.T123.html
+   :file: ../gen/tile-xc2v-INTF.GT.T123.html
 
 
 ``INTF.GT.TCLKPAD``
 -------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-INTF.GT.TCLKPAD.html
+   :file: ../gen/tile-xc2v-INTF.GT.TCLKPAD.html

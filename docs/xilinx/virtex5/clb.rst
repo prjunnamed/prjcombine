@@ -1,66 +1,18 @@
-Configurable Logic Block — Virtex 5, Virtex 6, Series 7, Spartan 6
-##################################################################
+Configurable Logic Block
+########################
+
+.. todo:: document
 
 
-Bitstream — Virtex 5
-====================
-
-CLBLL
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLBLL.html
-
-CLBLM
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLBLM.html
-
-
-Bitstream — Virtex 6
-====================
-
-CLBLL
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc6v-CLBLL.html
-
-CLBLM
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc6v-CLBLM.html
-
-
-Bitstream — Series 7
-====================
-
-CLBLL
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-CLBLL.html
-
-CLBLM
------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-CLBLM.html
-
-
-Bitstream — Spartan 6
+Bitstream — ``CLBLL``
 =====================
 
-CLEXL
------
+.. raw:: html
+   :file: ../gen/tile-xc5v-CLBLL.html
 
-.. raw:: html   
-   :file: ../gen-xilinx-tile-xc6s-CLEXL.html
 
-CLEXM
------
+Bitstream — ``CLBLM``
+=====================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-CLEXM.html
+   :file: ../gen/tile-xc5v-CLBLM.html

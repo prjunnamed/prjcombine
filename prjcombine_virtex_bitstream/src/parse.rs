@@ -932,7 +932,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 match kind {
                     DeviceKind::Virtex4 => virtex4_far(f.addr),
                     DeviceKind::Virtex5 | DeviceKind::Virtex6 => virtex5_far(f.addr),
-                    DeviceKind::Series7 => virtex7_far(f.addr),
+                    DeviceKind::Virtex7 => virtex7_far(f.addr),
                     _ => unreachable!(),
                 },
                 i,
@@ -988,7 +988,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
         assert_eq!(packets.next(), Some(Packet::DummyWord));
         assert_eq!(packets.next(), Some(Packet::SyncWord));
         assert_eq!(packets.next(), Some(Packet::Nop));
-        if kind == DeviceKind::Series7 {
+        if kind == DeviceKind::Virtex7 {
             match packets.next() {
                 Some(Packet::Timer(val)) => bs.regs[Reg::Timer] = Some(val),
                 p => panic!("expected timer got {p:?}"),
@@ -1003,7 +1003,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
         assert_eq!(packets.next(), Some(Packet::CmdRcrc));
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
-        if kind != DeviceKind::Series7 {
+        if kind != DeviceKind::Virtex7 {
             match packets.next() {
                 Some(Packet::Timer(val)) => bs.regs[Reg::Timer] = Some(val),
                 p => panic!("expected timer got {p:?}"),
@@ -1065,7 +1065,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
             Some(Packet::CmdWcfg) => {
                 packets.next();
                 assert_eq!(packets.next(), Some(Packet::Nop));
-                if kind != DeviceKind::Series7 {
+                if kind != DeviceKind::Virtex7 {
                     assert_ne!(state, State::Wcfg);
                 }
                 state = State::Wcfg;
@@ -1095,7 +1095,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 packets.next();
                 let num_nops = match kind {
                     DeviceKind::Virtex4 | DeviceKind::Virtex5 => 1,
-                    DeviceKind::Virtex6 | DeviceKind::Series7 => 12,
+                    DeviceKind::Virtex6 | DeviceKind::Virtex7 => 12,
                     _ => unreachable!(),
                 };
                 for _ in 0..num_nops {
@@ -1140,7 +1140,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                             } else {
                                 2
                             },
-                        DeviceKind::Series7 =>
+                        DeviceKind::Virtex7 =>
                             if first_mf {
                                 8
                             } else {
@@ -1152,7 +1152,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 first_mf = false;
                 packets.next();
                 insert_virtex4_frame(bs, fi, last_frame.unwrap());
-                if kind == DeviceKind::Series7 && bs.frame_info[fi].addr.typ == 1 {
+                if kind == DeviceKind::Virtex7 && bs.frame_info[fi].addr.typ == 1 {
                     for _ in 0..8 {
                         assert_eq!(packets.next(), Some(Packet::Nop));
                     }
@@ -1164,7 +1164,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
         }
     }
     assert_eq!(packets.next(), Some(Packet::Crc));
-    if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Series7) {
+    if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Virtex7) {
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
     }
@@ -1213,7 +1213,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
             }
             assert_eq!(packets.next(), None);
         }
-        DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Series7 => {
+        DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
             if kind == DeviceKind::Virtex5 {
                 for _ in 0..30 {
                     assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1234,14 +1234,14 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 p => panic!("expected ctl0 got {p:?}"),
             }
             assert_eq!(packets.next(), Some(Packet::Crc));
-            if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Series7) {
+            if matches!(kind, DeviceKind::Virtex6 | DeviceKind::Virtex7) {
                 assert_eq!(packets.next(), Some(Packet::Nop));
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
             assert_eq!(packets.next(), Some(Packet::CmdDesynch));
             let num_nops = match kind {
                 DeviceKind::Virtex5 => 61,
-                DeviceKind::Virtex6 | DeviceKind::Series7 => 400,
+                DeviceKind::Virtex6 | DeviceKind::Virtex7 => 400,
                 _ => unreachable!(),
             };
             for _ in 0..num_nops {
@@ -1293,7 +1293,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8]) -> Bitstream {
         DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data),
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data),
         DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data),
-        DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Series7 => {
+        DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
             parse_virtex4_bitstream(&mut res, data)
         }
         DeviceKind::Ultrascale => parse_ultrascale_bitstream(&res, data),

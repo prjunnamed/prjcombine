@@ -11,7 +11,7 @@ pub enum Mode {
     Virtex4,
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
 }
 
 fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
@@ -25,7 +25,7 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         Mode::Virtex4 => "DSP48",
         Mode::Virtex5 => "DSP48E",
         Mode::Virtex6 => "DSP48E1",
-        Mode::Series7 => "DSP48E1",
+        Mode::Virtex7 => "DSP48E1",
     };
     let mut ti = TgtInst::new(&[hwprim]);
 
@@ -53,13 +53,13 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     }
 
     let tieval_ce = mode == Mode::Virtex6;
-    let tieval_rst = !matches!(mode, Mode::Virtex6 | Mode::Series7);
+    let tieval_rst = !matches!(mode, Mode::Virtex6 | Mode::Virtex7);
 
     if sync {
         let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
         let (ce_v, ce_x, ce_inv);
         let (rst_v, rst_x, rst_inv);
-        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7) {
             ce_v = test.make_in(ctx);
             ce_x = ce_v.clone();
             ce_inv = false;
@@ -113,7 +113,7 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 ti.pin_in("CEM", &ce_x);
                 ti.pin_in("RSTM", &rst_x);
             }
-            Mode::Virtex6 | Mode::Series7 => {
+            Mode::Virtex6 | Mode::Virtex7 => {
                 ti.cfg("USE_MULT", "MULTIPLY");
                 ti.cfg_int("MREG", 1);
                 ti.pin_in_inv("CLK", &clk_x, clk_inv);
@@ -158,7 +158,7 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 ti.pin_tie("CEM", false);
                 ti.pin_tie("RSTM", tieval_rst);
             }
-            Mode::Virtex6 | Mode::Series7 => {
+            Mode::Virtex6 | Mode::Virtex7 => {
                 ti.cfg("USE_MULT", "MULTIPLY");
                 ti.cfg_int("MREG", 0);
                 ti.pin_tie_inv("CLK", false, false);
@@ -244,7 +244,7 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         ti.pin_tie_inv("CARRYIN", false, false);
         ti.pin_tie_inv("CARRYINSEL0", false, false);
         ti.pin_tie_inv("CARRYINSEL1", false, false);
-    } else if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+    } else if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg_int("AREG", 0);
         ti.cfg_int("BREG", 0);
         ti.cfg_int("ACASCREG", 0);
@@ -349,7 +349,7 @@ fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             for i in 18..25 {
                 ti.pin_in(&format!("A{i}"), &a[17]);
             }
-            if mode == Mode::Series7 {
+            if mode == Mode::Virtex7 {
                 for i in 25..30 {
                     ti.pin_tie(&format!("A{i}"), true);
                 }
@@ -609,7 +609,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
     let mut carry: Option<(String, String)> = None;
     let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
     let tieval_ce = mode == Mode::Virtex6;
-    let tieval_rst = !matches!(mode, Mode::Virtex6 | Mode::Series7);
+    let tieval_rst = !matches!(mode, Mode::Virtex6 | Mode::Virtex7);
     for midx in 0..num {
         let prim = match pk {
             4 => "DSP48",
@@ -620,7 +620,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         let hwprim = match mode {
             Mode::Virtex4 => "DSP48",
             Mode::Virtex5 => "DSP48E",
-            Mode::Virtex6 | Mode::Series7 => "DSP48E1",
+            Mode::Virtex6 | Mode::Virtex7 => "DSP48E1",
             _ => unreachable!(),
         };
         let mut inst = SrcInst::new(ctx, prim);
@@ -841,7 +841,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         }
 
         // D path
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             if pk == 6 {
                 let d = test.make_ins(ctx, 25);
                 inst.connect_bus("D", &d);
@@ -1348,14 +1348,14 @@ pub fn gen_dsp(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
         }
         if matches!(
             mode,
-            Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+            Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7
         ) {
             gen_dsp48(test, ctx, mode, 4, num);
         }
-        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7) {
             gen_dsp48(test, ctx, mode, 5, num);
         }
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             gen_dsp48(test, ctx, mode, 6, num);
         }
     }

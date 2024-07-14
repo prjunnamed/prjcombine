@@ -29,7 +29,7 @@ On Spartan 3A devices that have long line splitters, bitstream tile 0 is shared 
 This tile is used on Spartan 3.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKB.S3.html
+   :file: ../gen/tile-xc3s-CLKB.S3.html
 
 
 ``CLKB.S3E``
@@ -38,7 +38,7 @@ This tile is used on Spartan 3.
 This tile is used on Spartan 3E.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKB.S3E.html
+   :file: ../gen/tile-xc3s-CLKB.S3E.html
 
 
 ``CLKB.S3A``
@@ -47,7 +47,7 @@ This tile is used on Spartan 3E.
 This tile is used on Spartan 3A and 3A DSP.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKB.S3A.html
+   :file: ../gen/tile-xc3s-CLKB.S3A.html
 
 
 Bitstream — top tiles
@@ -67,7 +67,7 @@ On Spartan 3A devices that have long line splitters, bitstream tile 0 is shared 
 This tile is used on Spartan 3.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKT.S3.html
+   :file: ../gen/tile-xc3s-CLKT.S3.html
 
 
 ``CLKT.S3E``
@@ -76,7 +76,7 @@ This tile is used on Spartan 3.
 This tile is used on Spartan 3E.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKT.S3E.html
+   :file: ../gen/tile-xc3s-CLKT.S3E.html
 
 
 ``CLKT.S3A``
@@ -85,7 +85,7 @@ This tile is used on Spartan 3E.
 This tile is used on Spartan 3A and 3A DSP.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKT.S3A.html
+   :file: ../gen/tile-xc3s-CLKT.S3A.html
 
 
 Clock source — left and right
@@ -106,7 +106,7 @@ Bitstream — left tiles
 This tile is used on Spartan 3E.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKL.S3E.html
+   :file: ../gen/tile-xc3s-CLKL.S3E.html
 
 
 ``CLKL.S3A``
@@ -115,7 +115,7 @@ This tile is used on Spartan 3E.
 This tile is used on Spartan 3A.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKL.S3A.html
+   :file: ../gen/tile-xc3s-CLKL.S3A.html
 
 
 Bitstream — right tiles
@@ -130,7 +130,7 @@ Bitstream — right tiles
 This tile is used on Spartan 3E.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKR.S3E.html
+   :file: ../gen/tile-xc3s-CLKR.S3E.html
 
 
 ``CLKR.S3A``
@@ -139,14 +139,14 @@ This tile is used on Spartan 3E.
 This tile is used on Spartan 3A.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKR.S3A.html
+   :file: ../gen/tile-xc3s-CLKR.S3A.html
 
 
 Default option attributes
 -------------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-xc3s-pcilogicse-opts.html
+   :file: ../gen/xc3s-pcilogicse-opts.html
 
 
 The ``CLKC`` clock center tile
@@ -163,7 +163,7 @@ The ``CLKC_50A`` clock center tile
 .. todo:: document
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLKC_50A.html
+   :file: ../gen/tile-xc3s-CLKC_50A.html
 
 
 The ``GCLKVM`` secondary clock center tiles
@@ -178,14 +178,14 @@ The ``GCLKVM`` tiles are located on the intersection of secondary vertical clock
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKVM.S3.html
+   :file: ../gen/tile-xc3s-GCLKVM.S3.html
 
 
 ``GCLKVM.S3E``
 --------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKVM.S3E.html
+   :file: ../gen/tile-xc3s-GCLKVM.S3E.html
 
 
 The ``GCLKVC`` clock spine distribution tiles
@@ -203,35 +203,35 @@ The ``GCLKH`` clock row distribution tiles
 ---------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.html
+   :file: ../gen/tile-xc3s-GCLKH.html
 
 ``GCLKH.S``
 -----------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.S.html
+   :file: ../gen/tile-xc3s-GCLKH.S.html
 
 ``GCLKH.N``
 -----------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.N.html
+   :file: ../gen/tile-xc3s-GCLKH.N.html
 
 
 ``GCLKH.UNI``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.html
+   :file: ../gen/tile-xc3s-GCLKH.UNI.html
 
 ``GCLKH.UNI.S``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.S.html
+   :file: ../gen/tile-xc3s-GCLKH.UNI.S.html
 
 ``GCLKH.UNI.N``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-GCLKH.UNI.N.html
+   :file: ../gen/tile-xc3s-GCLKH.UNI.N.html

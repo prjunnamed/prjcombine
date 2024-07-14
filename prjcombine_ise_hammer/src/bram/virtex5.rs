@@ -1358,10 +1358,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     diffs.push(("36", present_rambfifo18_36));
     ctx.tiledb
-        .insert(tile, bel, "FIFO_DATA_WIDTH", xlat_enum(diffs));
+        .insert(tile, bel, "FIFO_WIDTH", xlat_enum(diffs));
 
-    present_ramb36sdp.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_DATA_WIDTH"), "36", "2");
-    present_fifo36_72.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_DATA_WIDTH"), "36", "2");
+    present_ramb36sdp.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_WIDTH"), "36", "2");
+    present_fifo36_72.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_WIDTH"), "36", "2");
     present_ramb36sdp.assert_empty();
 
     assert_eq!(present_fifo36, present_fifo36_72);

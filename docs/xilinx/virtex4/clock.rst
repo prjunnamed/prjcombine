@@ -10,14 +10,14 @@ Clock interconnect
 ============
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_HROW.html
+   :file: ../gen/tile-xc4v-CLK_HROW.html
 
 
 ``HCLK``
 ========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK.html
+   :file: ../gen/tile-xc4v-HCLK.html
 
 
 Spine clock terminators
@@ -28,14 +28,14 @@ Spine clock terminators
 --------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_TERM_B.html
+   :file: ../gen/tile-xc4v-CLK_TERM_B.html
 
 
 ``CLK_TERM_T``
 --------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_TERM_T.html
+   :file: ../gen/tile-xc4v-CLK_TERM_T.html
 
 
 Spine muxes — IOB
@@ -46,14 +46,14 @@ Spine muxes — IOB
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_IOB_B.html
+   :file: ../gen/tile-xc4v-CLK_IOB_B.html
 
 
 ``CLK_IOB_T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_IOB_T.html
+   :file: ../gen/tile-xc4v-CLK_IOB_T.html
 
 
 Spine muxes — DCM
@@ -64,21 +64,21 @@ Spine muxes — DCM
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_DCM_B.html
+   :file: ../gen/tile-xc4v-CLK_DCM_B.html
 
 
 ``CLK_DCM_T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLK_DCM_T.html
+   :file: ../gen/tile-xc4v-CLK_DCM_T.html
 
 
 MGT clock repeater
 ==================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_MGT_REPEATER.html
+   :file: ../gen/tile-xc4v-HCLK_MGT_REPEATER.html
 
 
 Row clock terminators
@@ -89,14 +89,14 @@ Row clock terminators
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_TERM_L.html
+   :file: ../gen/tile-xc4v-HCLK_TERM_L.html
 
 
 ``HCLK_TERM_R``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_TERM_R.html
+   :file: ../gen/tile-xc4v-HCLK_TERM_R.html
 
 
 IO clock nodes
@@ -107,46 +107,46 @@ IO clock nodes
 ------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_IOIS_LVDS.html
+   :file: ../gen/tile-xc4v-HCLK_IOIS_LVDS.html
 
 
 ``HCLK_IOIS_DCI``
 -----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_IOIS_DCI.html
+   :file: ../gen/tile-xc4v-HCLK_IOIS_DCI.html
 
 
 ``HCLK_CENTER``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_CENTER.html
+   :file: ../gen/tile-xc4v-HCLK_CENTER.html
 
 
 ``HCLK_CENTER_ABOVE_CFG``
 -------------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_CENTER_ABOVE_CFG.html
+   :file: ../gen/tile-xc4v-HCLK_CENTER_ABOVE_CFG.html
 
 
 ``HCLK_IOBDCM``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_IOBDCM.html
+   :file: ../gen/tile-xc4v-HCLK_IOBDCM.html
 
 
 ``HCLK_DCMIOB``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_DCMIOB.html
+   :file: ../gen/tile-xc4v-HCLK_DCMIOB.html
 
 
 ``HCLK_DCM``
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-HCLK_DCM.html
+   :file: ../gen/tile-xc4v-HCLK_DCM.html

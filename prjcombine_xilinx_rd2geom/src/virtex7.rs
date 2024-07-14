@@ -4,8 +4,8 @@ use prjcombine_virtex4::expand_grid;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, ExtraDie, Grid};
 
 use crate::db::{make_device_multi, PreDevice};
-use prjcombine_series7_rd2db::{bond, grid, int};
-use prjcombine_series7_rdverify::verify_device;
+use prjcombine_virtex7_rd2db::{bond, grid, int};
+use prjcombine_virtex7_rdverify::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
     let (grids, grid_master, extras, disabled) = grid::make_grids(rd);

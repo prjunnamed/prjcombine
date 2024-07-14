@@ -561,4 +561,4 @@ Bitstream
 The data for a CLB is located in the same bitstream tile as the associated ``INT.CLB`` tile.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-CLB.html
+   :file: ../gen/tile-xc2v-CLB.html

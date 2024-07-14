@@ -1,72 +1,25 @@
-Interconnect — Virtex 5, Virtex 6, Series 7
-###########################################
+Interconnect
+############
+
+.. todo:: document
 
 
-Bitstream — Virtex 5
+Bitstream
+=========
+
+.. raw:: html
+   :file: ../gen/tile-xc5v-INT.html
+
+
+Bitstream — ``INTF``
 ====================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-INT.html
+   :file: ../gen/tile-xc5v-INTF.html
 
 
-``INTF``
---------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-INTF.html
-
-
-``INTF.DELAY``
---------------
+Bitstream — ``INTF.DELAY``
+==========================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-INTF.DELAY.html
-
-
-Bitstream — Virtex 6
-====================
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc6v-INT.html
-
-
-``INTF``
---------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc6v-INTF.html
-
-
-``INTF.DELAY``
---------------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc6v-INTF.DELAY.html
-
-
-Bitstream — Series 7
-====================
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-INT.html
-
-
-``INTF``
---------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-INTF.html
-
-
-``INTF.BRAM``
--------------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-INTF.BRAM.html
-
-
-``INTF.DELAY``
---------------
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc7v-INTF.DELAY.html
+   :file: ../gen/tile-xc5v-INTF.DELAY.html

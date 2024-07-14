@@ -9,25 +9,25 @@ Configuration registers
 =======
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-REG.COR.html
+   :file: ../gen/tile-xc5v-REG.COR.html
 
 
 ``COR1``
 ========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-REG.COR1.html
+   :file: ../gen/tile-xc5v-REG.COR1.html
 
 
 ``CTL``
 =======
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-REG.CTL.html
+   :file: ../gen/tile-xc5v-REG.CTL.html
 
 
 ``TIMER``
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-REG.TIMER.html
+   :file: ../gen/tile-xc5v-REG.TIMER.html

@@ -6,7 +6,7 @@ use rand::{seq::SliceRandom, Rng};
 pub enum Mode {
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
     Spartan6,
 }
 
@@ -156,7 +156,7 @@ fn make_ffs(
     let ce = if ctx.rng.gen() {
         let ce = test.make_in(ctx);
         ti.pin_in("CE", &ce);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.cfg("CEUSEDMUX", "IN");
         } else {
             ti.cfg("CEUSED", "0");
@@ -168,7 +168,7 @@ fn make_ffs(
     let sr = if ctx.rng.gen() {
         let sr = test.make_in(ctx);
         ti.pin_in("SR", &sr);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.cfg("SRUSEDMUX", "IN");
         } else {
             ti.cfg("SRUSED", "0");
@@ -236,7 +236,7 @@ fn make_ffs(
                 ""
             },
         );
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             inst.attr_str("BEL", &bel);
         } else {
             if n == 6 {
@@ -317,7 +317,7 @@ fn gen_lut(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
             make_ffs(test, ctx, mode, &mut ti, &[(c, 6, &out)], None, false, None);
         } else {
             out = test.make_wire(ctx);
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{c}5FFMUX"), "IN_A");
             }
             make_ffs(test, ctx, mode, &mut ti, &[(c, 5, &out)], None, false, None);
@@ -386,7 +386,7 @@ fn gen_lut6_2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         inst.connect("O5", &o5);
         inst.connect("O6", &o6);
         ti.cfg(&format!("{c}FFMUX"), "O6");
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.cfg(&format!("{c}5FFMUX"), "IN_A");
         }
         make_ffs(
@@ -605,7 +605,7 @@ fn gen_carry4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
                     ti.cfg("CLKINV", "CLK_B");
                     ti.pin_tie("CLK", true);
                 }
-                if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+                if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     ti.cfg("CEUSEDMUX", "1");
                     ti.bel("CEUSEDVCC", "DUMMY", "");
                     ti.cfg("SRUSEDMUX", "0");
@@ -763,7 +763,7 @@ fn gen_rom32x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             make_ffs(test, ctx, mode, &mut ti, &[(c, 6, &out)], None, false, None);
         } else {
             out = test.make_wire(ctx);
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{c}5FFMUX"), "IN_A");
             }
             make_ffs(test, ctx, mode, &mut ti, &[(c, 5, &out)], None, false, None);
@@ -1009,7 +1009,7 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         ti.pin_tie(&format!("{c}6"), true);
         let di = test.make_ins(ctx, 2);
         inst.connect_bus(&format!("DI{c}"), &di);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.pin_in(&format!("{c}I"), &di[0]);
             ti.pin_in(&format!("{c}X"), &di[1]);
         } else {
@@ -1021,7 +1021,7 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             inst.connect_bus(&format!("DO{c}"), &do_);
             ffs.push((c, do_));
             ti.cfg(&format!("{c}FFMUX"), "O6");
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{c}5FFMUX"), "IN_A");
             }
         } else {
@@ -1061,7 +1061,7 @@ fn gen_ram32m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ram6,
         );
         if c != 'D' {
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}I"));
             } else {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}X"));
@@ -1157,7 +1157,7 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         }
         let di = test.make_in(ctx);
         inst.connect(&format!("DI{c}"), &di);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.pin_in(&format!("{c}I"), &di);
         } else {
             ti.pin_in(&format!("{c}X"), &di);
@@ -1190,7 +1190,7 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ram6,
         );
         if c != 'D' {
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}I"));
             } else {
                 ti.cfg(&format!("{c}DI1MUX"), &format!("{c}X"));
@@ -1203,7 +1203,7 @@ fn gen_ram64m(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         for i in 0..6 {
             ti.pin_in(&format!("D{ii}", ii = i + 1), &addrd[i]);
         }
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.pin_tie("DI", false);
         } else {
             ti.pin_tie("DX", false);
@@ -1272,7 +1272,7 @@ fn gen_ram32x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1341,7 +1341,7 @@ fn gen_ram64x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1426,7 +1426,7 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
     ti.pin_in("CX", &addr[6]);
     let di = test.make_in(ctx);
     insts[0].connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1435,7 +1435,7 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
         ti.pin_in("AX", &addr[6]);
         let di = test.make_in(ctx);
         insts[1].connect("D", &di);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.pin_in("BI", &di);
         } else {
             ti.pin_in("BX", &di);
@@ -1497,7 +1497,7 @@ fn gen_ram128x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
         let c = ['C', 'A'][i];
         let d = ['D', 'B'][i];
 
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             if i == 0 {
                 ti.cfg("CDI1MUX", "DI");
             } else {
@@ -1574,7 +1574,7 @@ fn gen_ram256x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1603,7 +1603,7 @@ fn gen_ram256x1s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     inst.param_bits("INIT", &init);
 
     ti.cfg("ADI1MUX", "BDI1");
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg("BDI1MUX", "DI");
         ti.cfg("CDI1MUX", "DI");
     } else {
@@ -1665,7 +1665,7 @@ fn gen_ram32x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
-    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) {
+    let c = if matches!(mode, Mode::Virtex7 | Mode::Spartan6) {
         'B'
     } else {
         'C'
@@ -1684,7 +1684,7 @@ fn gen_ram32x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1721,7 +1721,7 @@ fn gen_ram32x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     ti.cfg(&format!("{c}6RAMMODE"), "DPRAM64");
     ti.cfg("D6RAMMODE", "DPRAM64");
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg(&format!("{c}DI1MUX"), "DI");
     } else {
         ti.cfg(&format!("{c}DI1MUX"), "DX");
@@ -1758,7 +1758,7 @@ fn gen_ram64x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.cfg("CLKINV", if wclk_inv { "CLK_B" } else { "CLK" });
     ti.pin_in("CLK", &wclk_x);
     let mut ceused = false;
-    let c = if matches!(mode, Mode::Series7 | Mode::Spartan6) {
+    let c = if matches!(mode, Mode::Virtex7 | Mode::Spartan6) {
         'B'
     } else {
         'C'
@@ -1775,7 +1775,7 @@ fn gen_ram64x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1812,7 +1812,7 @@ fn gen_ram64x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     ti.cfg(&format!("{c}6RAMMODE"), "DPRAM64");
     ti.cfg("D6RAMMODE", "DPRAM64");
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg(&format!("{c}DI1MUX"), "DI");
     } else {
         ti.cfg(&format!("{c}DI1MUX"), "DX");
@@ -1865,7 +1865,7 @@ fn gen_ram128x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let di = test.make_in(ctx);
     inst.connect("D", &di);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in("DI", &di);
     } else {
         ti.pin_in("DX", &di);
@@ -1905,7 +1905,7 @@ fn gen_ram128x1d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.cfg("C6RAMMODE", "DPRAM64");
     ti.cfg("D6RAMMODE", "DPRAM64");
     ti.cfg("ADI1MUX", "BDI1");
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg("BDI1MUX", "DI");
         ti.cfg("CDI1MUX", "DI");
     } else {
@@ -1969,7 +1969,7 @@ fn gen_srl16(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
     let d = test.make_in(ctx);
     insts[0].connect("D", &d);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in(&format!("{l}X"), &d);
     } else {
         ti.pin_in(&format!("{l}I"), &d);
@@ -1977,7 +1977,7 @@ fn gen_srl16(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     if num == 2 {
         let d = test.make_in(ctx);
         insts[1].connect("D", &d);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.pin_in(&format!("{l}I"), &d);
         } else {
             ti.pin_in(&format!("{l}X"), &d);
@@ -2020,7 +2020,7 @@ fn gen_srl16(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         ti.bel_ram(&format!("{l}5LUT"), &insts[1].name, 5, val6);
         ti.cfg(&format!("{l}5RAMMODE"), "SRL16");
         if l != 'D' {
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.cfg(&format!("{l}DI1MUX"), &format!("{l}I"));
             } else {
                 ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
@@ -2085,7 +2085,7 @@ fn gen_srl32(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     let d = test.make_in(ctx);
     inst.connect("D", &d);
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in(&format!("{l}I"), &d);
     } else {
         ti.pin_in(&format!("{l}X"), &d);
@@ -2109,7 +2109,7 @@ fn gen_srl32(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.bel_ram(&format!("{l}6LUT"), &inst.name, 6, val6);
     ti.cfg(&format!("{l}6RAMMODE"), "SRL32");
     if l != 'D' {
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             ti.cfg(&format!("{l}DI1MUX"), &format!("{l}I"));
         } else {
             ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
@@ -2175,7 +2175,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
         cd.push(test.make_wire(ctx));
     }
     cd.push(test.make_in(ctx));
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         if sz == 16 {
             ti.pin_in(&format!("{l}X", l = lets[num - 1]), &cd[num - 1]);
         } else {
@@ -2235,7 +2235,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize, sz: u
         );
         if i < 3 && sz == 32 {
             if i == num - 1 {
-                if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+                if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}I"));
                 } else {
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
@@ -2340,7 +2340,7 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         cd.push(test.make_wire(ctx));
     }
     cd.push(test.make_in(ctx));
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.pin_in(&format!("{l}I", l = lets[num - 1]), &cd[num - 1]);
     } else {
         ti.pin_in(&format!("{l}X", l = lets[num - 1]), &cd[num - 1]);
@@ -2375,7 +2375,7 @@ fn gen_cfglut5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         ti.cfg(&format!("{l}6RAMMODE"), "SRL32");
         if i < 3 {
             if i == num - 1 {
-                if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+                if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}I"));
                 } else {
                     ti.cfg(&format!("{l}DI1MUX"), &format!("{l}X"));
@@ -2472,7 +2472,7 @@ fn gen_ff(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let uset = ctx.gen_name();
     for i in 0..num {
         let l = ['A', 'B', 'C', 'D'][i];
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) && ctx.rng.gen() {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) && ctx.rng.gen() {
             ti.cfg(&format!("{l}5FFMUX"), "IN_B");
             ti.pin_in(&format!("{l}X"), &inps[i]);
             stuff.push((l, 5, &inps[i][..]));

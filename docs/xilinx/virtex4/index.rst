@@ -1,5 +1,5 @@
-Xilinx Virtex 4 FPGAs
-#####################
+Virtex 4
+########
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -8,6 +8,7 @@ Xilinx Virtex 4 FPGAs
    :caption: Contents:
 
    interconnect
+   clb
    bram
    dsp
    center

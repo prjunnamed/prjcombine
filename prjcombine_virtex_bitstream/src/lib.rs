@@ -49,7 +49,7 @@ pub enum DeviceKind {
     Virtex4,
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
     Ultrascale,
     UltrascalePlus,
     Versal,
@@ -120,7 +120,7 @@ impl Bitstream {
                         let is_ecc = match a.kind {
                             DeviceKind::Virtex4 | DeviceKind::Virtex5 => (640..652).contains(&j),
                             DeviceKind::Virtex6 => (1280..1293).contains(&j),
-                            DeviceKind::Series7 => (1600..1613).contains(&j),
+                            DeviceKind::Virtex7 => (1600..1613).contains(&j),
                             _ => false,
                         };
                         if !is_ecc {

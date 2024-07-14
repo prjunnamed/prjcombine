@@ -57,10 +57,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
             node_kind,
             bits,
             tile_name: tile,
-            bel: backend.egrid.db.nodes[node_kind]
-                .bels
-                .get(&bel_name)?
-                .0,
+            bel: backend.egrid.db.nodes[node_kind].bels.get(&bel_name)?.0,
             bel_name,
         })
     }
@@ -509,8 +506,8 @@ macro_rules! fuzz_one {
 }
 
 #[macro_export]
-macro_rules! fuzz_multi {
-    ($ctx:ident, $attr:expr, $val:expr, $width:expr, [$($base:tt),*], $diff:tt) => {
+macro_rules! fuzz_multi_extras {
+    ($ctx:ident, $attr:expr, $val:expr, $width:expr, [$($base:tt),*], $diff:tt, $extras:expr) => {
         $ctx.session.add_fuzzer(Box::new($crate::fgen::TileMultiFuzzerGen {
             node: $ctx.node_kind,
             bits: $ctx.bits.clone(),
@@ -525,8 +522,15 @@ macro_rules! fuzz_multi {
             ],
             width: $width,
             fuzz: $crate::fuzz_diff_multi!($ctx, $diff),
-            extras: vec![],
+            extras: $extras,
         }));
+    };
+}
+
+#[macro_export]
+macro_rules! fuzz_multi {
+    ($ctx:ident, $attr:expr, $val:expr, $width:expr, [$($base:tt),*], $diff:tt) => {
+        $crate::fuzz_multi_extras!($ctx, $attr, $val, $width, [$($base),*], $diff, vec![]);
     };
 }
 

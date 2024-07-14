@@ -216,17 +216,17 @@ fn get_7series_tests() -> Vec<Test> {
     let part = "xc7k70t-1-fbg676";
     for i in 0..10 {
         let mut test = Test::new(&format!("clb{i}"), part);
-        clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Series7, &mut test);
+        clb_lut6::gen_clb(&mut ctx, clb_lut6::Mode::Virtex7, &mut test);
         res.push(test);
         let mut test = Test::new(&format!("ramb{i}"), part);
-        ramb::gen_ramb(&mut ctx, ramb::Mode::Series7, &mut test);
+        ramb::gen_ramb(&mut ctx, ramb::Mode::Virtex7, &mut test);
         res.push(test);
         let mut test = Test::new(&format!("dsp{i}"), part);
-        dsp::gen_dsp(&mut ctx, dsp::Mode::Series7, &mut test);
+        dsp::gen_dsp(&mut ctx, dsp::Mode::Virtex7, &mut test);
         res.push(test);
         let mut test = Test::new(&format!("hard{i}"), part);
-        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Series7);
-        cfg::gen_cfg(&mut test, &mut ctx, cfg::Mode::Series7);
+        clkbuf::gen_clkbuf(&mut test, &mut ctx, clkbuf::Mode::Virtex7);
+        cfg::gen_cfg(&mut test, &mut ctx, cfg::Mode::Virtex7);
         res.push(test);
     }
     res

@@ -12,4 +12,5 @@ Xilinx FPGAs
    virtex4/index
    virtex5/index
    virtex6/index
+   virtex7/index
 

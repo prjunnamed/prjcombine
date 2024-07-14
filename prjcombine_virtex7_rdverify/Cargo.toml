@@ -1,5 +1,5 @@
 [package]
-name = "prjcombine_series7_rdverify"
+name = "prjcombine_virtex7_rdverify"
 version.workspace = true
 edition.workspace = true
 

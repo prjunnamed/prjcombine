@@ -1632,6 +1632,8 @@ pub enum TileBits {
     ClkHrow,
     Dcm,
     FreezeDci,
+    Pcie,
+    Pcie3,
 }
 
 impl TileBits {
@@ -2096,6 +2098,32 @@ impl TileBits {
                     BitTile::RegPresent(die, Reg::FakeFreezeDciNops),
                 ]
             }
+            TileBits::Pcie => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => (0..20)
+                        .map(|i| edev.btile_main(die, col + 3, row + i))
+                        .collect(),
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                }
+            }
+            TileBits::Pcie3 => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let mut res = vec![];
+                for i in 0..50 {
+                    res.push(edev.btile_main(die, col, row + i));
+                }
+                for i in 0..50 {
+                    res.push(edev.btile_main(die, col + 4, row + i));
+                }
+                res
+            }
         }
     }
 }
@@ -2117,6 +2145,9 @@ pub enum ExtraFeatureKind {
     HclkIoiTopCen,
     HclkIoiCenter(&'static str),
     HclkBramMgtPrev,
+    PcieHclk,
+    PcieHclkPair,
+    Pcie3HclkPair,
 }
 
 impl ExtraFeatureKind {
@@ -2141,23 +2172,38 @@ impl ExtraFeatureKind {
                     .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
                     .collect()
             }
-            ExtraFeatureKind::AllBrams => {
-                let ExpandedDevice::Spartan6(edev) = backend.edev else {
-                    unreachable!()
-                };
-                let node = backend.egrid.db.get_node("BRAM");
-                backend.egrid.node_index[node]
-                    .iter()
-                    .map(|loc| {
-                        vec![
-                            edev.btile_main(loc.1, loc.2),
-                            edev.btile_main(loc.1, loc.2 + 1),
-                            edev.btile_main(loc.1, loc.2 + 2),
-                            edev.btile_main(loc.1, loc.2 + 3),
-                        ]
-                    })
-                    .collect()
-            }
+            ExtraFeatureKind::AllBrams => match backend.edev {
+                ExpandedDevice::Spartan6(edev) => {
+                    let node = backend.egrid.db.get_node("BRAM");
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| {
+                            vec![
+                                edev.btile_main(loc.1, loc.2),
+                                edev.btile_main(loc.1, loc.2 + 1),
+                                edev.btile_main(loc.1, loc.2 + 2),
+                                edev.btile_main(loc.1, loc.2 + 3),
+                            ]
+                        })
+                        .collect()
+                }
+                ExpandedDevice::Virtex4(edev) => {
+                    let node = backend.egrid.db.get_node("BRAM");
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| {
+                            vec![
+                                edev.btile_main(loc.0, loc.1, loc.2),
+                                edev.btile_main(loc.0, loc.1, loc.2 + 1),
+                                edev.btile_main(loc.0, loc.1, loc.2 + 2),
+                                edev.btile_main(loc.0, loc.1, loc.2 + 3),
+                                edev.btile_main(loc.0, loc.1, loc.2 + 4),
+                            ]
+                        })
+                        .collect()
+                }
+                _ => unreachable!(),
+            },
             ExtraFeatureKind::DcmLL => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
@@ -2368,7 +2414,43 @@ impl ExtraFeatureKind {
                     Some(&col) => vec![vec![edev.btile_hclk(loc.0, col, loc.2)]],
                     None => vec![],
                 }
-            }            
+            }
+            ExtraFeatureKind::PcieHclk => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![vec![edev.btile_hclk(
+                    loc.0,
+                    loc.1 + 3,
+                    loc.2 + edev.grids[loc.0].rows_per_reg() / 2,
+                )]]
+            }
+            ExtraFeatureKind::PcieHclkPair => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let col = loc.1 - 1;
+                let row = loc.2 + edev.grids[loc.0].rows_per_reg() / 2;
+                vec![vec![
+                    edev.btile_hclk(loc.0, col, row),
+                    edev.btile_hclk(loc.0, col + 1, row),
+                ]]
+            }
+            ExtraFeatureKind::Pcie3HclkPair => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![
+                    vec![
+                        edev.btile_hclk(loc.0, loc.1 + 3, loc.2),
+                        edev.btile_hclk(loc.0, loc.1 + 4, loc.2),
+                    ],
+                    vec![
+                        edev.btile_hclk(loc.0, loc.1 + 3, loc.2 + 50),
+                        edev.btile_hclk(loc.0, loc.1 + 4, loc.2 + 50),
+                    ],
+                ]
+            }
         }
     }
 }

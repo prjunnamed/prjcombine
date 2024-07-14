@@ -1,13 +1,13 @@
 .. _spartan3-clb:
 
-Configurable Logic Block — Spartan 3, Virtex 4
-##############################################
+Configurable Logic Block
+########################
 
 .. note::
 
    This document describes Spartan 3 and Virtex 4 CLBs, since they are very similar.
 
-The main logic resource in Spartan 3 and Virte 4 devices is the CLB (Configurable Logic Block). It is based on the :ref:`Virtex 2 CLB <virtex2-clb>`, but has significant changes, particularly to the LUT RAM structures.
+The main logic resource in Spartan 3 and Virtex 4 devices is the CLB (Configurable Logic Block). It is based on the :ref:`Virtex 2 CLB <virtex2-clb>`, but has significant changes, particularly to the LUT RAM structures.
 
 A CLB corresponds one-to-one with the ``INT.CLB`` interconnect tile (on Spartan 3), or to an ``INT`` interconnect tile (on Virtex 4). Every CLB has four ``SLICE``\ s. The ``SLICE``\ s come in two kinds:
 
@@ -486,24 +486,10 @@ The following attributes determine register function:
 Bitstream
 =========
 
-The data for a CLB is located in the same bitstream tile as the associated ``INT.CLB`` or ``INT`` tile.
-
-Spartan 3
----------
-
-This tile is used on Spartan 3 devices (all kinds).
+The data for a CLB is located in the same bitstream tile as the associated ``INT.CLB`` tile.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-CLB.html
-
-
-Virtex 4
---------
-
-This tile is used on Virtex 4 devices.
-
-.. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CLB.html
+   :file: ../gen/tile-xc3s-CLB.html
 
 
 ``RESERVED_ANDOR``
@@ -518,7 +504,7 @@ TODO: wtf is this even
 This tile overlaps ``IOI.*``.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-RANDOR.html
+   :file: ../gen/tile-xc3s-RANDOR.html
 
 
 ``RANDOR_INIT``
@@ -527,4 +513,4 @@ This tile overlaps ``IOI.*``.
 This tile overlaps top-left interconnect tile.
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc3s-RANDOR_INIT.html
+   :file: ../gen/tile-xc3s-RANDOR_INIT.html

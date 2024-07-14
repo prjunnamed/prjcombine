@@ -15,7 +15,7 @@ pub enum Mode {
     Virtex4,
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
 }
 
 fn make_in(
@@ -170,7 +170,7 @@ fn gen_bscan_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         Mode::Virtex5 => "BSCAN_VIRTEX5",
         Mode::Virtex6 => "BSCAN_VIRTEX6",
         Mode::Spartan6 => "BSCAN_SPARTAN6",
-        Mode::Series7 => "BSCANE2",
+        Mode::Virtex7 => "BSCANE2",
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -183,7 +183,7 @@ fn gen_bscan_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     make_out(test, ctx, &mut inst, &mut ti, "TDI");
     make_out(test, ctx, &mut inst, &mut ti, "SEL");
     make_out(test, ctx, &mut inst, &mut ti, "DRCK");
-    if matches!(pk, Mode::Virtex6 | Mode::Series7 | Mode::Spartan6) {
+    if matches!(pk, Mode::Virtex6 | Mode::Virtex7 | Mode::Spartan6) {
         make_out(test, ctx, &mut inst, &mut ti, "TCK");
         make_out(test, ctx, &mut inst, &mut ti, "TMS");
         make_out(test, ctx, &mut inst, &mut ti, "RUNTEST");
@@ -193,11 +193,11 @@ fn gen_bscan_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     let chain = ctx.rng.gen_range(1..5);
     inst.param_int("JTAG_CHAIN", chain);
     ti.cfg_int("JTAG_CHAIN", chain);
-    if matches!(pk, Mode::Virtex6 | Mode::Series7) {
+    if matches!(pk, Mode::Virtex6 | Mode::Virtex7) {
         let dis = ctx.rng.gen();
         inst.param_bool("DISABLE_JTAG", dis);
         ti.cfg_bool("DISABLE_JTAG", dis);
-    } else if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    } else if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg_bool("DISABLE_JTAG", false);
     }
 
@@ -285,7 +285,7 @@ fn gen_startup_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         Mode::Virtex4 => "STARTUP_VIRTEX4",
         Mode::Virtex5 => "STARTUP_VIRTEX5",
         Mode::Virtex6 => "STARTUP_VIRTEX6",
-        Mode::Series7 => "STARTUPE2",
+        Mode::Virtex7 => "STARTUPE2",
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -320,18 +320,18 @@ fn gen_startup_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
             make_out(test, ctx, &mut inst, &mut ti, "CFGMCLK");
         }
     }
-    if matches!(pk, Mode::Virtex5 | Mode::Virtex6) && mode != Mode::Series7 {
+    if matches!(pk, Mode::Virtex5 | Mode::Virtex6) && mode != Mode::Virtex7 {
         make_out(test, ctx, &mut inst, &mut ti, "TCKSPI");
         make_out(test, ctx, &mut inst, &mut ti, "DINSPI");
     }
-    if matches!(pk, Mode::Virtex6 | Mode::Series7) {
+    if matches!(pk, Mode::Virtex6 | Mode::Virtex7) {
         make_in(test, ctx, &mut inst, &mut ti, "KEYCLEARB");
         make_in(test, ctx, &mut inst, &mut ti, "PACK");
         make_out(test, ctx, &mut inst, &mut ti, "PREQ");
         let prog_usr = ctx.rng.gen();
         inst.param_bool("PROG_USR", prog_usr);
         ti.cfg_bool("PROG_USR", prog_usr);
-    } else if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    } else if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg_bool("PROG_USR", false);
         ti.pin_tie("KEYCLEARB", true);
         ti.pin_tie("PACK", false);
@@ -350,7 +350,7 @@ fn gen_capture(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         Mode::Virtex4 => "CAPTURE_VIRTEX4",
         Mode::Virtex5 => "CAPTURE_VIRTEX5",
         Mode::Virtex6 => "CAPTURE_VIRTEX6",
-        Mode::Series7 => "CAPTUREE2",
+        Mode::Virtex7 => "CAPTUREE2",
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -426,13 +426,13 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         Mode::Virtex4 => ("ICAP_VIRTEX4", 32),
         Mode::Virtex5 => ("ICAP_VIRTEX5", 32),
         Mode::Virtex6 => ("ICAP_VIRTEX6", 32),
-        Mode::Series7 => ("ICAPE2", 32),
+        Mode::Virtex7 => ("ICAPE2", 32),
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
     let mut ti = TgtInst::new(&["ICAP"]);
 
-    if matches!(pk, Mode::Virtex4 | Mode::Virtex5) && mode == Mode::Series7 {
+    if matches!(pk, Mode::Virtex4 | Mode::Virtex5) && mode == Mode::Virtex7 {
         ti.bel("ICAP", &format!("{}/ICAP_VIRTEX6", inst.name), "");
     } else {
         ti.bel("ICAP", &inst.name, "");
@@ -448,7 +448,7 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         make_in(test, ctx, &mut inst, &mut ti, "CLK");
         let ce = test.make_in(ctx);
         let write = test.make_in(ctx);
-        if pk == Mode::Series7 {
+        if pk == Mode::Virtex7 {
             inst.connect("CSIB", &ce);
             inst.connect("RDWRB", &write);
         } else if pk == Mode::Virtex6 {
@@ -458,7 +458,7 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
             inst.connect("CE", &ce);
             inst.connect("WRITE", &write);
         }
-        if mode == Mode::Series7 {
+        if mode == Mode::Virtex7 {
             ti.pin_in("CSIB", &ce);
             ti.pin_in("RDWRB", &write);
         } else if mode == Mode::Virtex6 {
@@ -471,12 +471,12 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     }
     make_ins(test, ctx, &mut inst, &mut ti, "I", w - 1, 0);
     make_outs(test, ctx, &mut inst, &mut ti, "O", w - 1, 0);
-    if mode != Mode::Series7 {
+    if mode != Mode::Virtex7 {
         make_out(test, ctx, &mut inst, &mut ti, "BUSY");
     }
     if matches!(
         mode,
-        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7
     ) {
         let width = if mode == Mode::Virtex4 {
             *["X8", "X32"].choose(&mut ctx.rng).unwrap()
@@ -486,7 +486,7 @@ fn gen_icap(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         inst.param_str("ICAP_WIDTH", width);
         ti.cfg("ICAP_WIDTH", width);
     }
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         ti.cfg("ICAP_AUTO_SWITCH", "DISABLE");
     }
 
@@ -499,7 +499,7 @@ fn gen_usr_access(test: &mut Test, ctx: &mut TestGenCtx, pk: Mode) {
         Mode::Virtex4 => "USR_ACCESS_VIRTEX4",
         Mode::Virtex5 => "USR_ACCESS_VIRTEX5",
         Mode::Virtex6 => "USR_ACCESS_VIRTEX6",
-        Mode::Series7 => "USR_ACCESSE2",
+        Mode::Virtex7 => "USR_ACCESSE2",
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -521,7 +521,7 @@ fn gen_frame_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         Mode::Virtex4 => "FRAME_ECC_VIRTEX4",
         Mode::Virtex5 => "FRAME_ECC_VIRTEX5",
         Mode::Virtex6 => "FRAME_ECC_VIRTEX6",
-        Mode::Series7 => "FRAME_ECCE2",
+        Mode::Virtex7 => "FRAME_ECCE2",
         _ => unimplemented!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -542,7 +542,7 @@ fn gen_frame_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     if pk != Mode::Virtex4 {
         make_out(test, ctx, &mut inst, &mut ti, "CRCERROR");
     }
-    if matches!(pk, Mode::Virtex6 | Mode::Series7) {
+    if matches!(pk, Mode::Virtex6 | Mode::Virtex7) {
         make_out(test, ctx, &mut inst, &mut ti, "ECCERRORSINGLE");
         make_outs(test, ctx, &mut inst, &mut ti, "SYNDROME", 12, 0);
         make_outs(test, ctx, &mut inst, &mut ti, "SYNBIT", 4, 0);
@@ -794,16 +794,16 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             gen_dna_port(test, ctx);
             gen_efuse_usr(test, ctx);
         }
-        Mode::Series7 => {
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+        Mode::Virtex7 => {
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
             gen_bscan_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
             gen_startup_v4(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
             if ctx.rng.gen() {
@@ -811,11 +811,11 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);
             }
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
             gen_icap(test, ctx, mode, pk);
-            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Series7]
+            let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
             gen_usr_access(test, ctx, pk);

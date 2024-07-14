@@ -1,5 +1,5 @@
-Xilinx Virtex 6 FPGAs
-#####################
+Virtex 6
+########
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -7,4 +7,9 @@ Xilinx Virtex 6 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   interconnect
+   clb
+   bram
    dsp
+   emac
+   pcie

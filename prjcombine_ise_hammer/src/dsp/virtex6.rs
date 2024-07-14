@@ -70,7 +70,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
         let bel_tie = BelId::from_idx(2);
         for &pin in DSP48E1_TIEPINS {
-            let name = format!("{pin}_MUX");
+            let name = format!("MUX.{pin}");
             fuzz_one!(ctx, &name, "GND", [
                 (mode bel_kind),
                 (mutex &name, "HARD0"),
@@ -167,7 +167,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, pin);
         }
         for &pin in DSP48E1_TIEPINS {
-            let attr = format!("{pin}_MUX");
+            let attr = format!("MUX.{pin}");
             let gnd = ctx.state.get_diff(tile, bel, &attr, "GND");
             let vcc = ctx.state.get_diff(tile, bel, &attr, "VCC");
             ctx.tiledb.insert(

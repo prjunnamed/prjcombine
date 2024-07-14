@@ -6,18 +6,18 @@ Bitstream — left side
 =====================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xcv-LBRAM.html
+   :file: ../gen/tile-xcv-LBRAM.html
 
 
 Bitstream — right side
 ======================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xcv-RBRAM.html
+   :file: ../gen/tile-xcv-RBRAM.html
 
 
 Bitstream — middle
 ==================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xcv-MBRAM.html
+   :file: ../gen/tile-xcv-MBRAM.html

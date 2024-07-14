@@ -12,7 +12,7 @@ pub enum Mode {
     Virtex4,
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
 }
 
 const ZERO_INIT: &str = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -111,7 +111,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 "RAMB18X2"
             }
         }
-        Mode::Virtex6 | Mode::Series7 => {
+        Mode::Virtex6 | Mode::Virtex7 => {
             if is_36 {
                 "RAMB36E1"
             } else {
@@ -259,7 +259,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 }
             }
         }
-    } else if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    } else if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         if is_36 {
             ti.bel("RAMB36E1", &inst.name, "");
             ti.cfg("EN_ECC_READ", "FALSE");
@@ -287,7 +287,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         ti.cfg("RDADDR_COLLISION_HWCONFIG", "DELAYED_WRITE");
         ti.cfg("RSTREG_PRIORITY_A", "REGCE");
         ti.cfg("RSTREG_PRIORITY_B", "REGCE");
-        if mode == Mode::Series7 {
+        if mode == Mode::Virtex7 {
             ti.cfg("EN_PWRGATE", "NONE");
         }
         for &ul in &uls {
@@ -416,7 +416,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             }
         }
     }
-    if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) && is_36 {
+    if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7) && is_36 {
         for i in 64..128 {
             ti.cfg(&format!("INIT_{i:02X}"), ZERO_INIT);
         }
@@ -432,7 +432,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         let top = if sz == 4 { 12 } else { 14 };
         let addr = test.make_ins(ctx, top - wlog2);
         inst.connect_bus(&format!("ADDR{vl}"), &addr);
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             for ul in &uls {
                 for i in 0..wlog2 {
                     if xl == "A" {
@@ -521,7 +521,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         let di = test.make_ins(ctx, w);
         inst.connect_bus(&format!("DI{vl}"), &di);
         for i in 0..w {
-            if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+            if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                 ti.pin_in(&format!("DI{xl}DI{i}"), &di[i]);
                 ti.pin_out(&format!("DO{xl}DO{i}"), &do_[i]);
             } else if mode == Mode::Virtex5 && !is_36 {
@@ -532,7 +532,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                 ti.pin_out(&format!("DO{xl}{i}"), &do_[i]);
             }
         }
-        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7)
+        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7)
             && xl == "A"
             && w == 1
             && is_36
@@ -562,7 +562,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
             let dip = test.make_ins(ctx, pw);
             inst.connect_bus(&format!("DIP{vl}"), &dip);
             for i in 0..pw {
-                if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+                if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
                     ti.pin_in(&format!("DIP{xl}DIP{i}"), &dip[i]);
                     ti.pin_out(&format!("DOP{xl}DOP{i}"), &dop[i]);
                 } else if mode == Mode::Virtex5 && !is_36 {
@@ -573,7 +573,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
                     ti.pin_out(&format!("DOP{xl}{i}"), &dop[i]);
                 }
             }
-            if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7)
+            if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7)
                 && xl == "A"
                 && w == 8
                 && is_36
@@ -597,7 +597,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         } else {
             inst.connect(&format!("SSR{vl}"), &rst_v);
         }
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             let we = test.make_in(ctx);
             inst.connect(&format!("WE{vl}"), &we);
             for ul in &uls {
@@ -1460,7 +1460,7 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.cfg("RAM_EXTENSION_A", "NONE");
             ti.cfg("RAM_EXTENSION_B", "NONE");
             ti.cfg("RDADDR_COLLISION_HWCONFIG", "DELAYED_WRITE");
-            if mode == Mode::Series7 {
+            if mode == Mode::Virtex7 {
                 ti.cfg("EN_PWRGATE", "NONE");
             }
             ti.pin_tie("REGCEAREGCEL", true);
@@ -2431,7 +2431,7 @@ fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     }
 
     ti.cfg("SAVEDATA", "FALSE");
-    if mode == Mode::Series7 {
+    if mode == Mode::Virtex7 {
         ti.cfg("EN_PWRGATE", "NONE");
     }
 
@@ -2453,7 +2453,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         let mut awwlog2 = ctx.rng.gen_range(0..6);
         let mut brwlog2 = ctx.rng.gen_range(0..6);
         let mut bwwlog2 = ctx.rng.gen_range(0..7);
-        if mode == Mode::Series7 && num == 2 {
+        if mode == Mode::Virtex7 && num == 2 {
             arwlog2 = 0;
             awwlog2 = 0;
             brwlog2 = 0;
@@ -2674,7 +2674,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             }
 
             let mut addr = test.make_ins(ctx, 16);
-            if mode == Mode::Series7 && num == 1 {
+            if mode == Mode::Virtex7 && num == 1 {
                 addr[15] = "1'b1".to_string();
             }
             inst.connect_bus(&format!("ADDR{l}{rw}ADDR"), &addr);
@@ -2683,7 +2683,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
                     if ul == 'U' && i == 15 {
                         continue;
                     }
-                    if mode == Mode::Series7 && num == 1 && i == 15 {
+                    if mode == Mode::Virtex7 && num == 1 && i == 15 {
                         ti.pin_tie(&format!("ADDR{l}{rw}ADDR{ul}{i}"), true);
                     } else {
                         ti.pin_in(&format!("ADDR{l}{rw}ADDR{ul}{i}"), &addr[i]);
@@ -2734,7 +2734,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         }
 
         ti.cfg("SAVEDATA", "FALSE");
-        if mode == Mode::Series7 {
+        if mode == Mode::Virtex7 {
             ti.cfg("EN_PWRGATE", "NONE");
         }
         insts.push(inst);
@@ -2798,8 +2798,8 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         (Mode::Virtex5, 16, true) => "RAMBFIFO18_36",
         (Mode::Virtex5, 32, false) => "FIFO36_EXP",
         (Mode::Virtex5, 32, true) => "FIFO36_72_EXP",
-        (Mode::Virtex6 | Mode::Series7, 16, _) => "FIFO18E1",
-        (Mode::Virtex6 | Mode::Series7, 32, _) => "FIFO36E1",
+        (Mode::Virtex6 | Mode::Virtex7, 16, _) => "FIFO18E1",
+        (Mode::Virtex6 | Mode::Virtex7, 32, _) => "FIFO36E1",
         _ => unreachable!(),
     };
     let mut inst = SrcInst::new(ctx, prim);
@@ -2938,7 +2938,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         }
         ti.cfg_int("DATA_WIDTH", WIDTHS[wlog2]);
         ti.cfg_int("DO_REG", do_reg);
-        if mode == Mode::Series7 {
+        if mode == Mode::Virtex7 {
             ti.cfg("EN_PWRGATE", "NONE");
         } else {
             ti.cfg("RSTREG_PRIORITY", "RSTREG");
@@ -3288,7 +3288,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
                 }
                 af_off = ctx.rng.gen_range(4..(num_e - 4));
             }
-            Mode::Series7 => {
+            Mode::Virtex7 => {
                 if fwft == "TRUE" {
                     ae_off = ctx.rng.gen_range(6..(num_e - 4));
                 } else {
@@ -3304,7 +3304,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     }
     inst.param_int("ALMOST_EMPTY_OFFSET", ae_off);
     inst.param_int("ALMOST_FULL_OFFSET", af_off);
-    if mode == Mode::Virtex6 || (sz == 32 && !is_sdp) || (mode == Mode::Series7 && pk != 4) {
+    if mode == Mode::Virtex6 || (sz == 32 && !is_sdp) || (mode == Mode::Virtex7 && pk != 4) {
         ti.cfg("ALMOST_EMPTY_OFFSET", &format!("{ae_off:04X}"));
         ti.cfg("ALMOST_FULL_OFFSET", &format!("{af_off:04X}"));
     } else {
@@ -3438,7 +3438,7 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
         }
         if matches!(
             mode,
-            Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+            Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7
         ) {
             if mode == Mode::Virtex4 {
                 // these have retarget rules but they're more trouble than they're worth
@@ -3448,7 +3448,7 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
             gen_ramb32_ecc(test, ctx, mode);
             gen_fifo(test, ctx, mode, 16, 4);
         }
-        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7) {
             if mode == Mode::Virtex5 {
                 gen_ramb18(test, ctx);
                 gen_ramb18sdp(test, ctx);
@@ -3459,14 +3459,14 @@ pub fn gen_ramb(ctx: &mut TestGenCtx, mode: Mode, test: &mut Test) {
             gen_fifo(test, ctx, mode, 16, 5);
             gen_fifo(test, ctx, mode, 32, 5);
         }
-        if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+        if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
             gen_fifo(test, ctx, mode, 16, 6);
             gen_fifo(test, ctx, mode, 32, 6);
             gen_ramb18e1(test, ctx, mode);
             gen_ramb36e1(test, ctx, mode, 1);
             gen_ramb36e1(test, ctx, mode, 2);
         }
-        if mode == Mode::Series7 {
+        if mode == Mode::Virtex7 {
             gen_io_fifo(test, ctx, false);
             gen_io_fifo(test, ctx, true);
         }

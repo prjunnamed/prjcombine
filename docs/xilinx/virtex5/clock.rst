@@ -10,14 +10,14 @@ Clock interconnect
 ============
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_HROW.html
+   :file: ../gen/tile-xc5v-CLK_HROW.html
 
 
 ``HCLK``
 ========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK.html
+   :file: ../gen/tile-xc5v-HCLK.html
 
 
 Spine muxes — IOB
@@ -28,14 +28,14 @@ Spine muxes — IOB
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_IOB_B.html
+   :file: ../gen/tile-xc5v-CLK_IOB_B.html
 
 
 ``CLK_IOB_T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_IOB_T.html
+   :file: ../gen/tile-xc5v-CLK_IOB_T.html
 
 
 Spine muxes — CMT
@@ -46,14 +46,14 @@ Spine muxes — CMT
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_CMT_B.html
+   :file: ../gen/tile-xc5v-CLK_CMT_B.html
 
 
 ``CLK_CMT_T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_CMT_T.html
+   :file: ../gen/tile-xc5v-CLK_CMT_T.html
 
 
 Spine muxes — MGT
@@ -64,21 +64,21 @@ Spine muxes — MGT
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_MGT_B.html
+   :file: ../gen/tile-xc5v-CLK_MGT_B.html
 
 
 ``CLK_MGT_T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-CLK_MGT_T.html
+   :file: ../gen/tile-xc5v-CLK_MGT_T.html
 
 
 MGT clock repeater
 ==================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_BRAM_MGT.html
+   :file: ../gen/tile-xc5v-HCLK_BRAM_MGT.html
 
 
 IO clock nodes
@@ -89,46 +89,46 @@ IO clock nodes
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_IOI.html
+   :file: ../gen/tile-xc5v-HCLK_IOI.html
 
 
 ``HCLK_IOI_CENTER``
 -------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_IOI_CENTER.html
+   :file: ../gen/tile-xc5v-HCLK_IOI_CENTER.html
 
 
 ``HCLK_IOI_BOTCEN``
 -------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_IOI_BOTCEN.html
+   :file: ../gen/tile-xc5v-HCLK_IOI_BOTCEN.html
 
 
 ``HCLK_IOI_TOPCEN``
 -------------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_IOI_TOPCEN.html
+   :file: ../gen/tile-xc5v-HCLK_IOI_TOPCEN.html
 
 
 ``HCLK_IOI_CMT``
 ----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_IOI_CMT.html
+   :file: ../gen/tile-xc5v-HCLK_IOI_CMT.html
 
 
 ``HCLK_CMT_IOI``
 ----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_CMT_IOI.html
+   :file: ../gen/tile-xc5v-HCLK_CMT_IOI.html
 
 
 ``HCLK_CMT``
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc5v-HCLK_CMT.html
+   :file: ../gen/tile-xc5v-HCLK_CMT.html

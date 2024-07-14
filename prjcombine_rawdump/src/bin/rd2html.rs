@@ -1305,7 +1305,7 @@ const VIRTEX6_TILES: &[TileInfo] = &[
     TileInfo("NULL", SINGLE, &[]),
 ];
 
-const SERIES7_TILES: &[TileInfo] = &[
+const VIRTEX7_TILES: &[TileInfo] = &[
     TileInfo("INT_L", SINGLE, &["int"]),
     TileInfo("INT_R", SINGLE, &["int"]),
     TileInfo("INT_L_SLV", SINGLE, &["int", "int-buf"]),
@@ -3567,7 +3567,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "virtex4" => (VIRTEX4_TILES, false),
         "virtex5" => (VIRTEX5_TILES, true),
         "virtex6" => (VIRTEX6_TILES, true),
-        "7series" => (SERIES7_TILES, true),
+        "7series" => (VIRTEX7_TILES, true),
         "ultrascale" => (ULTRASCALE_TILES, true),
         "ultrascaleplus" => (ULTRASCALEPLUS_TILES, true),
         "versal" => (VERSAL_TILES, true),

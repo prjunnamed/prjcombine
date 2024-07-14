@@ -6,14 +6,14 @@ Bitstream — normal tile
 =======================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INT.html
+   :file: ../gen/tile-xc6s-INT.html
 
 
 Bitstream — IOI tile
 ====================
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INT.IOI.html
+   :file: ../gen/tile-xc6s-INT.IOI.html
 
 
 Bitsteam — interface tiles
@@ -24,25 +24,25 @@ Bitsteam — interface tiles
 --------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INTF.html
+   :file: ../gen/tile-xc6s-INTF.html
 
 
 ``INTF.IOI``
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INTF.IOI.html
+   :file: ../gen/tile-xc6s-INTF.IOI.html
 
 
 ``INTF.CMT``
 ------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INTF.CMT.html
+   :file: ../gen/tile-xc6s-INTF.CMT.html
 
 
 ``INTF.CMT.IOI``
 ----------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc6s-INTF.CMT.IOI.html
+   :file: ../gen/tile-xc6s-INTF.CMT.IOI.html

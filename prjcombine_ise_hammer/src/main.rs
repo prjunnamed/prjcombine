@@ -204,27 +204,26 @@ fn main() -> Result<(), Box<dyn Error>> {
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     // TODO: clk
-                    // TODO: bram
+                    bram::virtex6::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
                     // TODO: misc
                     // TODO: io
                     // TODO: pll
-                    // TODO: pcie
-                    // TODO: emac
+                    emac::virtex6::add_fuzzers(&mut hammer, &backend);
+                    pcie::virtex6::add_fuzzers(&mut hammer, &backend);
                     // TODO: gtx
                     // TODO: gth
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
                     // TODO: clk
-                    // TODO: bram
+                    bram::virtex6::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
                     // TODO: misc
                     // TODO: io
                     // TODO: io_fifo
                     // TODO: pll
-                    // TODO: pcie2
-                    // TODO: pcie3
+                    pcie::virtex7::add_fuzzers(&mut hammer, &backend);
                     // TODO: gtp
                     // TODO: gtx
                     // TODO: gth
@@ -330,11 +329,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
+                    bram::virtex6::collect_fuzzers(&mut ctx);
                     dsp::virtex6::collect_fuzzers(&mut ctx);
+                    emac::virtex6::collect_fuzzers(&mut ctx);
+                    pcie::virtex6::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
+                    bram::virtex6::collect_fuzzers(&mut ctx);
                     dsp::virtex6::collect_fuzzers(&mut ctx);
+                    pcie::virtex7::collect_fuzzers(&mut ctx);
                 }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),

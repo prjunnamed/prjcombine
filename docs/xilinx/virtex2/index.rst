@@ -1,5 +1,5 @@
-Xilinx Virtex 2 FPGAs
-#####################
+Virtex 2
+########
 
 .. todo:: io, dcm, corner, ppc, pcilogic, bitstream format, jtag, ...
 

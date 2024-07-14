@@ -6,4 +6,4 @@ Bitstream
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-DCM.html
+   :file: ../gen/tile-xc4v-DCM.html

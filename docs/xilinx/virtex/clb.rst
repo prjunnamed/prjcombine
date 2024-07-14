@@ -6,4 +6,4 @@ Bitstream
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xcv-CLB.html
+   :file: ../gen/tile-xcv-CLB.html

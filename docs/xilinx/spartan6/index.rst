@@ -1,5 +1,5 @@
-Xilinx Spartan 6 FPGAs
-######################
+Spartan 6
+#########
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -7,7 +7,9 @@ Xilinx Spartan 6 FPGAs
    :maxdepth: 2
    :caption: Contents:
 
-   int
+   interconnect
+   clb
    bram
-   clk
+   dsp
+   clock
    pcie

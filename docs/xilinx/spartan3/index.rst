@@ -1,5 +1,5 @@
-Xilinx Spartan 3 FPGAs
-######################
+Spartan 3
+#########
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 
@@ -11,7 +11,12 @@ Xilinx Spartan 3 FPGAs
    structure
    interconnect
    clb
+   bram
    dsp
    clock
-   dcm-xc3se
-   config-xc3sa
+   io
+   dcm-s3
+   dcm-s3e
+   corner
+   config-s3
+   config-s3a

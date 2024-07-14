@@ -68,7 +68,7 @@ The attributes of the ``BRAM`` bel are:
   - ``18``: ``DI[AB][0-15]`` and ``DIP[AB][01]`` are used for data, ``ADDR[AB][4-14]`` is used for address
   - ``36``: ``DI[AB][0-31]`` and ``DIP[AB][0-3]`` are used for data, ``ADDR[AB][5-14]`` is used for address
 
-- ``FIFO_DATA_WIDTH``: selects the data width when in FIFO mode; must be equal to ``READ_WIDTH_A`` and ``WRITE_WIDTH_B``
+- ``FIFO_WIDTH``: selects the data width when in FIFO mode; must be equal to ``READ_WIDTH_A`` and ``WRITE_WIDTH_B``
 
 - ``WRITE_MODE_[AB]``: selects behavior of the read port when writing, the values are:
 
@@ -195,4 +195,4 @@ The data for a BRAM is spread across 5 bitstream tiles:
 
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-BRAM.html
+   :file: ../gen/tile-xc4v-BRAM.html

@@ -1,5 +1,5 @@
-Xilinx Virtex 5 FPGAs
-#####################
+Virtex 5
+########
 
 .. todo:: intro document, bitstream format, other tiles, jtag, ...
 

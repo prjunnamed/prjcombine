@@ -14,18 +14,18 @@ Bitstream
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GIGABIT10.B.html
+   :file: ../gen/tile-xc2v-GIGABIT10.B.html
 
 
 ``GIGABIT10.T``
 ---------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GIGABIT10.T.html
+   :file: ../gen/tile-xc2v-GIGABIT10.T.html
 
 
 ``PMA_SPEED`` values
 ====================
 
 .. raw:: html
-   :file: ../gen-xilinx-xc2v-gt10-PMA_SPEED.html
+   :file: ../gen/xc2v-gt10-PMA_SPEED.html

@@ -11,7 +11,7 @@ pub enum Mode {
     Virtex4,
     Virtex5,
     Virtex6,
-    Series7,
+    Virtex7,
 }
 
 fn make_clk_out(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) -> String {
@@ -392,7 +392,7 @@ fn gen_bufh(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             ti.pin_in("I", &i);
             ti.pin_out("O", &o);
             ti.pin_tie_inv("CE", true, false);
-            if mode == Mode::Series7 {
+            if mode == Mode::Virtex7 {
                 ti.cfg("CE_TYPE", "SYNC");
             }
             ti.cfg("INIT_OUT", "0");
@@ -422,7 +422,7 @@ fn gen_bufhce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.pin_out("O", &o);
     ti.cfg_hex("INIT_OUT", &init, true);
 
-    if mode == Mode::Series7 {
+    if mode == Mode::Virtex7 {
         let cet = *["SYNC", "ASYNC"].choose(&mut ctx.rng).unwrap();
         inst.param_str("CE_TYPE", cet);
         ti.cfg("CE_TYPE", cet);
@@ -488,19 +488,19 @@ pub fn gen_clkbuf(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     }
     if matches!(
         mode,
-        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Series7
+        Mode::Virtex4 | Mode::Virtex5 | Mode::Virtex6 | Mode::Virtex7
     ) {
         gen_bufgmux_ctrl(test, ctx, mode);
         gen_bufgctrl(test, ctx, mode);
         gen_bufr(test, ctx, mode);
     }
-    if matches!(mode, Mode::Spartan6 | Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Spartan6 | Mode::Virtex6 | Mode::Virtex7) {
         gen_bufh(test, ctx, mode);
     }
-    if matches!(mode, Mode::Virtex6 | Mode::Series7) {
+    if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
         gen_bufhce(test, ctx, mode);
     }
-    if mode == Mode::Series7 {
+    if mode == Mode::Virtex7 {
         gen_bufmr(test, ctx, mode);
         gen_bufmrce(test, ctx, mode);
     }

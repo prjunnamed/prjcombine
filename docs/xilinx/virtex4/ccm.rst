@@ -6,4 +6,4 @@ Bitstream
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CCM.html
+   :file: ../gen/tile-xc4v-CCM.html

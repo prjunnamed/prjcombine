@@ -14,11 +14,11 @@ Bitstream
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GIGABIT.B.html
+   :file: ../gen/tile-xc2v-GIGABIT.B.html
 
 
 ``GIGABIT.T``
 -------------
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc2v-GIGABIT.T.html
+   :file: ../gen/tile-xc2v-GIGABIT.T.html

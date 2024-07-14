@@ -9,4 +9,4 @@ Bitstream
 =========
 
 .. raw:: html
-   :file: ../gen-xilinx-tile-xc4v-CFG.html
+   :file: ../gen/tile-xc4v-CFG.html

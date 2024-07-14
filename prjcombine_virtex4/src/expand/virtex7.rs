@@ -2064,8 +2064,9 @@ impl DieExpander<'_, '_, '_> {
             for (col, cd) in &self.grid.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 if let Some(gtcol) = self.grid.get_col_gt(col) {
-                    if gtcol.col != self.grid.columns.last_id().unwrap()
-                        && gtcol.regs[reg].is_some()
+                    if gtcol.regs[reg].is_some()
+                        && (gtcol.col == self.grid.columns.last_id().unwrap()
+                            || gtcol.col == self.grid.columns.last_id().unwrap() - 6)
                     {
                         self.frames.col_width[reg].push(32);
                         for minor in 0..32 {
@@ -2110,6 +2111,13 @@ impl DieExpander<'_, '_, '_> {
             for (col, &cd) in &self.grid.columns {
                 if cd != ColumnKind::Bram {
                     continue;
+                }
+                if let Some(gtcol) = self.grid.get_col_gt(col) {
+                    if gtcol.col != self.grid.columns.last_id().unwrap()
+                        && gtcol.regs[reg].is_some()
+                    {
+                        break;
+                    }
                 }
                 self.frames.bram_frame[reg].insert(col, self.frame_info.len());
                 for minor in 0..128 {
@@ -2373,7 +2381,7 @@ pub fn expand_grid<'a>(
     }
 
     let bs_geom = BitstreamGeom {
-        kind: DeviceKind::Series7,
+        kind: DeviceKind::Virtex7,
         die: die_bs_geom,
         die_order,
     };

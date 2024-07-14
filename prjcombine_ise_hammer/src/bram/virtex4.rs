@@ -277,7 +277,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diffs.push((val, diff));
     }
     ctx.tiledb
-        .insert(tile, "BRAM", "FIFO_DATA_WIDTH", xlat_enum(diffs));
+        .insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
     ctx.state
         .get_diff(tile, "FIFO", "EN_ECC_READ", "FALSE")
         .assert_empty();
