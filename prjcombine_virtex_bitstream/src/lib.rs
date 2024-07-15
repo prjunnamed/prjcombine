@@ -62,7 +62,8 @@ pub enum DeviceKind {
 #[derive(Clone, Debug)]
 pub enum KeyData {
     None,
-    Virtex2(KeyDataVirtex2),
+    Des(KeyDataDes),
+    Aes(KeyDataAes),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -74,9 +75,14 @@ pub enum KeySeq {
 }
 
 #[derive(Clone, Debug)]
-pub struct KeyDataVirtex2 {
+pub struct KeyDataDes {
     pub key: [[u8; 7]; 6],
     pub keyseq: [KeySeq; 6],
+}
+
+#[derive(Clone, Debug)]
+pub struct KeyDataAes {
+    pub key: [u8; 32],
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]

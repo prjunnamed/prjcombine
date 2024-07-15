@@ -299,9 +299,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "GTS_USR_B", val, [], [(global_opt "GTS_USR_B", val)]);
         fuzz_one!(ctx, "VGG_TEST", val, [], [(global_opt "VGG_TEST", val)]);
         fuzz_one!(ctx, "EN_VTEST", val, [], [(global_opt "EN_VTEST", val)]);
+        fuzz_one!(ctx, "ENCRYPT", val, [], [(global_opt "ENCRYPT", val)]);
     }
     // persist not fuzzed — too much effort
-    // decrypt not fuzzed — too much effort
     for val in ["NONE", "LEVEL1", "LEVEL2"] {
         fuzz_one!(ctx, "SECURITY", val, [], [(global_opt "SECURITY", val)]);
     }
@@ -610,33 +610,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool(tile, bel, "GTS_USR_B", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "VGG_TEST", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "EN_VTEST", "NO", "YES");
+    ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
     ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
     // these are too much trouble to deal with the normal way.
-    for (attr, bit) in [("PERSIST", 3), ("DECRYPT", 6)] {
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            attr,
-            TileItem {
-                bits: vec![FeatureBit {
-                    tile: 0,
-                    frame: 0,
-                    bit,
-                }],
-                kind: TileItemKind::BitVec { invert: bitvec![0] },
-            },
-        );
-    }
+    ctx.tiledb.insert(
+        tile,
+        bel,
+        "PERSIST",
+        TileItem {
+            bits: vec![FeatureBit::new(0, 0, 3)],
+            kind: TileItemKind::BitVec { invert: bitvec![0] },
+        },
+    );
     ctx.tiledb.insert(
         tile,
         bel,
         "GLUTMASK",
         TileItem {
-            bits: vec![FeatureBit {
-                tile: 0,
-                frame: 0,
-                bit: 8,
-            }],
+            bits: vec![FeatureBit::new(0, 0, 8)],
             kind: TileItemKind::BitVec { invert: bitvec![1] },
         },
     );
@@ -645,11 +636,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "ICAP_SELECT",
         TileItem {
-            bits: vec![FeatureBit {
-                tile: 0,
-                frame: 0,
-                bit: 30,
-            }],
+            bits: vec![FeatureBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
                     ("TOP".to_string(), bitvec![0]),

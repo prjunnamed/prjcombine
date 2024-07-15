@@ -143,6 +143,7 @@ derive-where = "1.2"
 hex = "0.4.3"
 des = "0.8.1"
 cbc = "0.1.2"
+aes = "0.8.4"
 
 [profile.dev]
 opt-level = 2

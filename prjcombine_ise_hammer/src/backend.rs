@@ -3,7 +3,7 @@ use prjcombine_hammer::{Backend, FuzzerId};
 use prjcombine_int::db::{BelId, WireId};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
 use prjcombine_toolchain::Toolchain;
-use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataVirtex2, KeySeq};
+use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
@@ -265,14 +265,12 @@ impl State {
 
 impl<'a> IseBackend<'a> {
     fn gen_key(&self, gopts: &mut HashMap<String, String>) -> KeyData {
+        let mut rng = thread_rng();
         match self.edev {
             ExpandedDevice::Virtex2(_) => {
-                let mut rng = thread_rng();
-                // let key_passes = rng.gen_range(1..6);
-                // TODO
-                let key_passes = 2;
+                let key_passes = rng.gen_range(1..=6);
                 let start_key = rng.gen_range(0..(6 - key_passes + 1));
-                let mut key = KeyDataVirtex2 {
+                let mut key = KeyDataDes {
                     key: rng.gen(),
                     keyseq: core::array::from_fn(|_| {
                         *[KeySeq::First, KeySeq::Middle, KeySeq::Last, KeySeq::Single]
@@ -289,13 +287,6 @@ impl<'a> IseBackend<'a> {
                     key.keyseq[start_key] = KeySeq::First;
                     key.keyseq[start_key + key_passes - 1] = KeySeq::Last;
                 }
-                // TODO: kill
-                // key.key = [[0; 7]; 6];
-                // key.key[0][0] = 1;
-                // key.keyseq[0] = KeySeq::Single;
-                // let start_key = 0;
-                // let key_passes = 1;
-                // TODO: kill ^
                 for i in 0..6 {
                     gopts.insert(format!("KEY{i}"), hex::encode(key.key[i]));
                     gopts.insert(
@@ -311,10 +302,14 @@ impl<'a> IseBackend<'a> {
                 }
                 gopts.insert("STARTKEY".into(), start_key.to_string());
                 gopts.insert("KEYPASSES".into(), key_passes.to_string());
-                KeyData::Virtex2(key)
+                KeyData::Des(key)
             }
             ExpandedDevice::Spartan6(_) => todo!(),
-            ExpandedDevice::Virtex4(_) => todo!(),
+            ExpandedDevice::Virtex4(_) => {
+                let key = KeyDataAes { key: rng.gen() };
+                gopts.insert("KEY0".into(), hex::encode(key.key));
+                KeyData::Aes(key)
+            }
             _ => unreachable!(),
         }
     }

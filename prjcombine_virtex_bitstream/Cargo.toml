@@ -12,6 +12,7 @@ prjcombine_int.workspace = true
 des.workspace = true
 cbc.workspace = true
 hex.workspace = true
+aes.workspace = true
 
 [lints]
 workspace = true

@@ -1,6 +1,7 @@
 use crate::{DeviceKind, KeyData, KeySeq};
+use aes::cipher::{inout::InOutBuf, KeyIvInit};
 use arrayref::array_ref;
-use cbc::cipher::{BlockDecrypt, BlockEncrypt, KeyInit};
+use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, KeyInit};
 
 #[derive(Debug, Clone)]
 pub struct PacketParser<'a> {
@@ -8,6 +9,8 @@ pub struct PacketParser<'a> {
     key: &'a KeyData,
     start_key: Option<usize>,
     iv: Option<Vec<u8>>,
+    mask: u32,
+    ctl0: u32,
     data: &'a [u8],
     pos: usize,
     sync: bool,
@@ -71,6 +74,19 @@ pub enum Packet {
     BugFdri(Vec<u8>),
 }
 
+fn bitswap32(data: &mut [u8]) {
+    for i in (0..data.len()).step_by(4) {
+        let a = data[i].reverse_bits();
+        let b = data[i + 1].reverse_bits();
+        let c = data[i + 2].reverse_bits();
+        let d = data[i + 3].reverse_bits();
+        data[i + 3] = a;
+        data[i + 2] = b;
+        data[i + 1] = c;
+        data[i] = d;
+    }
+}
+
 impl<'a> PacketParser<'a> {
     pub fn new(kind: DeviceKind, data: &'a [u8], key: &'a KeyData) -> Self {
         Self {
@@ -84,6 +100,8 @@ impl<'a> PacketParser<'a> {
             last_reg: None,
             crc: 0,
             bypass_crc: false,
+            mask: 0,
+            ctl0: 0,
         }
     }
 
@@ -128,6 +146,25 @@ impl<'a> PacketParser<'a> {
                 }
             }
         }
+    }
+
+    fn decrypt_v4(&self, data: &[u8]) -> Vec<u8> {
+        let mut data = data.to_vec();
+        assert_eq!(data.len() % 16, 0);
+        bitswap32(&mut data);
+        let mut iv: [u8; 16] = *array_ref!(self.iv.as_ref().unwrap(), 0, 16);
+        bitswap32(&mut iv);
+        let KeyData::Aes(key) = self.key else {
+            unreachable!();
+        };
+        let mut cipher: cbc::Decryptor<aes::Aes256> =
+            cbc::Decryptor::new((&key.key).into(), (&iv).into());
+        let iodata: InOutBuf<_> = (&mut data[..]).into();
+        let (mut blocks, tail) = iodata.into_chunks();
+        assert!(tail.is_empty());
+        cipher.decrypt_blocks_inout_mut(blocks.reborrow());
+        bitswap32(&mut data);
+        data
     }
 
     pub fn peek(&self) -> Option<Packet> {
@@ -194,8 +231,16 @@ impl<'a> Iterator for PacketParser<'a> {
                                 13 => Some(Packet::CmdDesynch),
                                 val => panic!("unk cmd: {val}"),
                             },
-                            (6, 1) => Some(Packet::Ctl0(get_val(0))),
-                            (7, 1) => Some(Packet::Mask(get_val(0))),
+                            (6, 1) => {
+                                let val = get_val(0);
+                                self.ctl0 = (self.ctl0 & !self.mask) | (val & self.mask);
+                                Some(Packet::Ctl0(val))
+                            }
+                            (7, 1) => {
+                                let val = get_val(0);
+                                self.mask = val;
+                                Some(Packet::Mask(val))
+                            }
                             (9, 2) => Some(Packet::LoutDebug(get_val32(0))),
                             (0xa, 1) => {
                                 let val = get_val(0);
@@ -295,6 +340,7 @@ impl<'a> Iterator for PacketParser<'a> {
                     let ph = u32::from_be_bytes(*array_ref!(self.data, self.pos, 4));
                     self.pos += 4;
                     break if self.sync {
+                        let prev_crc = self.crc;
                         if ph == 0x00000000 && self.kind == DeviceKind::Virtex {
                             Some(Packet::Nop)
                         } else if ph == 0x00000000 && is_v4 {
@@ -329,7 +375,6 @@ impl<'a> Iterator for PacketParser<'a> {
                             let get_val = |i: usize| {
                                 u32::from_be_bytes(*array_ref!(self.data, dpos + i * 4, 4))
                             };
-                            let ecrc = self.crc;
                             if !matches!(reg, 8 | 0xf | 0x1e) {
                                 for i in 0..num {
                                     self.update_crc(reg, get_val(i));
@@ -338,7 +383,7 @@ impl<'a> Iterator for PacketParser<'a> {
                             match (reg, num) {
                                 (0, 1) => {
                                     let val = get_val(0);
-                                    let ecrc = if self.bypass_crc { 0xdefc } else { ecrc };
+                                    let ecrc = if self.bypass_crc { 0xdefc } else { prev_crc };
                                     if val != ecrc {
                                         println!("CRC MISMATCH {val:08x} {ecrc:08x}");
                                     }
@@ -357,7 +402,24 @@ impl<'a> Iterator for PacketParser<'a> {
                                         self.pos += 4;
                                         self.reset_crc();
                                     }
-                                    Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
+                                    if matches!(
+                                        self.kind,
+                                        DeviceKind::Virtex4 | DeviceKind::Virtex5
+                                    ) && (self.ctl0 & 0x40) != 0
+                                    {
+                                        // rollback CRC changes.
+                                        self.crc = prev_crc;
+                                        let data = self.decrypt_v4(&self.data[dpos..epos]);
+                                        for i in 0..num {
+                                            self.update_crc(
+                                                reg,
+                                                u32::from_be_bytes(*array_ref!(data, i * 4, 4)),
+                                            );
+                                        }
+                                        Some(Packet::EncFdri(data))
+                                    } else {
+                                        Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
+                                    }
                                 }
                                 (4, 1) => match get_val(0) {
                                     0 => Some(Packet::CmdNull),
@@ -374,8 +436,16 @@ impl<'a> Iterator for PacketParser<'a> {
                                     13 => Some(Packet::CmdDesynch),
                                     val => panic!("unk cmd: {val}"),
                                 },
-                                (5, 1) => Some(Packet::Ctl0(get_val(0))),
-                                (6, 1) => Some(Packet::Mask(get_val(0))),
+                                (5, 1) => {
+                                    let val = get_val(0);
+                                    self.ctl0 = (self.ctl0 & !self.mask) | (val & self.mask);
+                                    Some(Packet::Ctl0(val))
+                                }
+                                (6, 1) => {
+                                    let val = get_val(0);
+                                    self.mask = val;
+                                    Some(Packet::Mask(val))
+                                }
                                 (8, 1) => Some(Packet::LoutDebug(get_val(0))),
                                 (9, 1) => {
                                     let val = get_val(0);
@@ -408,6 +478,11 @@ impl<'a> Iterator for PacketParser<'a> {
                                     Some(Packet::Cbc(data))
                                 }
                                 (0xe, 1) if !is_v4 => Some(Packet::Idcode(get_val(0))),
+                                (0xb, 4) if is_v4 => {
+                                    let data = self.data[dpos..epos].to_vec();
+                                    self.iv = Some(data.clone());
+                                    Some(Packet::Cbc(data))
+                                }
                                 (0xc, 1) if is_v4 => Some(Packet::Idcode(get_val(0))),
                                 (0xe, 1) if is_v4 => Some(Packet::Cor1(get_val(0))),
                                 (0x10, 1) if is_v4 => Some(Packet::WBStar(get_val(0))),
@@ -450,7 +525,24 @@ impl<'a> Iterator for PacketParser<'a> {
                                         self.pos += 4;
                                         self.reset_crc();
                                     }
-                                    Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
+                                    if matches!(
+                                        self.kind,
+                                        DeviceKind::Virtex4 | DeviceKind::Virtex5
+                                    ) && (self.ctl0 & 0x40) != 0
+                                    {
+                                        // rollback CRC changes.
+                                        self.crc = prev_crc;
+                                        let data = self.decrypt_v4(&self.data[dpos..epos]);
+                                        for i in 0..num {
+                                            self.update_crc(
+                                                reg,
+                                                u32::from_be_bytes(*array_ref!(data, i * 4, 4)),
+                                            );
+                                        }
+                                        Some(Packet::EncFdri(data))
+                                    } else {
+                                        Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
+                                    }
                                 }
                                 _ => panic!("unk long write: {reg} times {num}"),
                             }
@@ -464,7 +556,7 @@ impl<'a> Iterator for PacketParser<'a> {
                             assert_eq!(num % 2, 0);
                             let mut pt = vec![];
 
-                            let KeyData::Virtex2(key) = self.key else {
+                            let KeyData::Des(key) = self.key else {
                                 unreachable!()
                             };
                             let start_key = self.start_key.unwrap();

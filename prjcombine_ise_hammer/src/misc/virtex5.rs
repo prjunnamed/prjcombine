@@ -295,7 +295,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         TileBits::Reg(Reg::Ctl0),
     );
     // persist not fuzzed — too much effort
-    // decrypt not fuzzed — too much effort
+    for val in ["NO", "YES"] {
+        fuzz_one!(ctx, "ENCRYPT", val, [
+            (global_opt "CONFIGFALLBACK", "DISABLE")
+        ], [
+            (global_opt "ENCRYPT", val)
+        ]);
+    }
     for val in ["NONE", "LEVEL1", "LEVEL2"] {
         fuzz_one!(ctx, "SECURITY", val, [], [(global_opt "SECURITY", val)]);
     }
@@ -529,6 +535,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "REG.CTL";
     let bel = "MISC";
     ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
+    ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "OVERTEMP_POWERDOWN", "DISABLE", "ENABLE");
     ctx.collect_enum_bool(tile, bel, "CONFIG_FALLBACK", "DISABLE", "ENABLE");
     ctx.collect_enum_bool(tile, bel, "SELECTMAP_ABORT", "DISABLE", "ENABLE");
@@ -538,7 +545,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec(tile, bel, "VBG_DLL_SEL", "");
     ctx.collect_bitvec(tile, bel, "VGG_SEL", "");
     // these are too much trouble to deal with the normal way.
-    for (attr, bit) in [("GTS_USR_B", 0), ("PERSIST", 3), ("DECRYPT", 6)] {
+    for (attr, bit) in [("GTS_USR_B", 0), ("PERSIST", 3)] {
         ctx.tiledb.insert(
             tile,
             bel,
