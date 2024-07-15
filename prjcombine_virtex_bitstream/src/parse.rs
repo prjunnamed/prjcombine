@@ -1,5 +1,7 @@
 use crate::packet::{Packet, PacketParser};
-use crate::{Bitstream, BitstreamGeom, BitstreamMode, DeviceKind, DieBitstream, FrameAddr, Reg};
+use crate::{
+    Bitstream, BitstreamGeom, BitstreamMode, DeviceKind, DieBitstream, FrameAddr, KeyData, Reg,
+};
 use arrayref::array_ref;
 use bitvec::prelude::*;
 use std::collections::HashMap;
@@ -218,8 +220,8 @@ fn insert_virtex4_frame(bs: &mut DieBitstream, fi: usize, data: &[u8]) {
     bs.frame_present.set(fi, true);
 }
 
-fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
-    let mut packets = PacketParser::new(bs.kind, data);
+fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
+    let mut packets = PacketParser::new(bs.kind, data, key);
     let kind = bs.kind;
     let bs = bs.die.first_mut().unwrap();
     let far_dict: HashMap<_, _> = bs
@@ -304,7 +306,7 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
             if let Some(Packet::LoutDebug(far)) = packets.peek() {
                 assert_eq!(far_dict[&far], fi);
                 packets.next();
-                insert_virtex_frame(kind, bs, fi, val);
+                insert_virtex_frame(kind, bs, fi, &val);
                 fi += 1;
             } else {
                 if kind == DeviceKind::Virtex {
@@ -358,14 +360,41 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
                         insert_virtex_frame(kind, bs, fi, &val[pos..pos + frame_bytes]);
                         fi += 1;
                     }
-                    let last = &val[(frames - 1) * frame_bytes..];
+                    let last = val[(frames - 1) * frame_bytes..].to_vec();
                     last_frame = Some(last);
                 }
                 (Some(Packet::Mfwr(2)), State::Mfwr) => {
                     packets.next();
-                    insert_virtex_frame(kind, bs, fi, last_frame.unwrap());
+                    insert_virtex_frame(kind, bs, fi, last_frame.as_ref().unwrap());
                 }
                 (Some(Packet::Far(_)), _) => continue,
+                (Some(Packet::Key(key)), State::Wcfg) => {
+                    bs.mode = BitstreamMode::Encrypt;
+                    bs.regs[Reg::Key] = Some(key);
+                    packets.next();
+                    assert_eq!(packets.next(), Some(Packet::Nop));
+                    match packets.next() {
+                        Some(Packet::Cbc(iv)) => {
+                            bs.iv = iv;
+                        }
+                        p => panic!("expected iv got {p:?}"),
+                    }
+                    match packets.next() {
+                        Some(Packet::EncFdri(val)) => {
+                            let frames = val.len() / frame_bytes;
+                            assert_eq!(val.len() % frame_bytes, 0);
+                            for i in 0..(frames - 1) {
+                                let pos = i * frame_bytes;
+                                insert_virtex_frame(kind, bs, fi, &val[pos..pos + frame_bytes]);
+                                fi += 1;
+                            }
+                            let last = val[(frames - 1) * frame_bytes..].to_vec();
+                            last_frame = Some(last);
+                        }
+                        p => panic!("expected fdri got {p:?}"),
+                    }
+                    break;
+                }
                 (p, _) => {
                     panic!("UNEXPECTED PACKET IN STATE {state:?}: {p:#x?}");
                 }
@@ -392,7 +421,7 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
             p => panic!("expected fdri got {p:?}"),
         }
         if !bs.frame_present[fi] {
-            insert_virtex_frame(kind, bs, fi, last_frame.unwrap());
+            insert_virtex_frame(kind, bs, fi, &last_frame.unwrap());
         }
         assert!(bs.frame_present.all());
     } else {
@@ -450,8 +479,8 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8]) {
     assert_eq!(packets.next(), None);
 }
 
-fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8]) {
-    let mut packets = PacketParser::new(bs.kind, data);
+fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
+    let mut packets = PacketParser::new(bs.kind, data, key);
     let bs = bs.die.first_mut().unwrap();
     let far_dict: HashMap<_, _> = bs
         .frame_info
@@ -557,7 +586,7 @@ fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8]) {
             if let Some(Packet::LoutDebug(far)) = packets.peek() {
                 assert_eq!(far_dict[&far], fi);
                 packets.next();
-                insert_spartan3a_frame(bs, fi, val);
+                insert_spartan3a_frame(bs, fi, &val);
                 fi += 1;
             } else {
                 assert!(val.iter().all(|&x| x == 0));
@@ -609,17 +638,17 @@ fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8]) {
                             insert_spartan3a_frame(bs, fi + i, &val[pos..pos + frame_bytes]);
                         }
                     }
-                    mfwr_frame = Some(&val[(frames - 1) * frame_bytes..]);
+                    mfwr_frame = Some(val[(frames - 1) * frame_bytes..].to_vec());
                 }
                 (Some(Packet::Mfwr(4)), State::Mfwr) => {
                     let fi = far_dict[&far];
                     assert_ne!(bs.frame_info[fi].addr.typ, 1);
-                    insert_spartan3a_frame(bs, fi, mfwr_frame.unwrap());
+                    insert_spartan3a_frame(bs, fi, mfwr_frame.as_ref().unwrap());
                 }
                 (Some(Packet::Mfwr(14)), State::Mfwr) => {
                     let fi = far_dict[&far];
                     assert_eq!(bs.frame_info[fi].addr.typ, 1);
-                    insert_spartan3a_frame(bs, fi, mfwr_frame.unwrap());
+                    insert_spartan3a_frame(bs, fi, mfwr_frame.as_ref().unwrap());
                 }
                 p => {
                     panic!("UNEXPECTED PACKET IN STATE {state:?}: {p:#x?}");
@@ -653,8 +682,8 @@ fn parse_spartan3a_bitstream(bs: &mut Bitstream, data: &[u8]) {
     assert_eq!(packets.next(), None);
 }
 
-fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
-    let mut packets = PacketParser::new(bs.kind, data);
+fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
+    let mut packets = PacketParser::new(bs.kind, data, key);
     let bs = bs.die.first_mut().unwrap();
     let far_dict: HashMap<_, _> = bs
         .frame_info
@@ -777,7 +806,7 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
     let iob_frame_bytes = bs.iob.len() / 8;
     let mut frame = Frame::None;
     let mut skip = 0;
-    let mut last_frame = None;
+    let mut last_frame: Option<Vec<u8>> = None;
     let mut state = State::None;
     loop {
         match packets.peek() {
@@ -817,9 +846,10 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 let Frame::Main(fi) = frame else {
                     panic!("mfwr in weird frame {frame:?}");
                 };
-                insert_spartan3a_frame(bs, fi, last_frame.unwrap());
+                insert_spartan3a_frame(bs, fi, last_frame.as_ref().unwrap());
             }
-            Some(Packet::Fdri(mut data)) => {
+            Some(Packet::Fdri(orig_data)) => {
+                let mut data = &orig_data[..];
                 packets.next();
                 while !data.is_empty() {
                     match frame {
@@ -832,7 +862,7 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
                                     frame = Frame::Bram(0);
                                 }
                             } else {
-                                insert_spartan3a_frame(bs, fi, last_frame.unwrap());
+                                insert_spartan3a_frame(bs, fi, last_frame.as_ref().unwrap());
                                 frame = Frame::Main(fi + 1);
                                 if fi == bs.frame_info.len() - 1
                                     || bs.frame_info[fi + 1].addr.region
@@ -841,7 +871,7 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
                                     skip = 2;
                                 }
                             }
-                            last_frame = Some(cur);
+                            last_frame = Some(cur.to_vec());
                         }
                         Frame::Bram(fi) => {
                             let cur = &data[..bram_frame_bytes];
@@ -919,8 +949,8 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8]) {
     assert_eq!(packets.next(), None);
 }
 
-fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
-    let mut packets = PacketParser::new(bs.kind, data);
+fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
+    let mut packets = PacketParser::new(bs.kind, data, key);
     let kind = bs.kind;
     let bs = bs.die.first_mut().unwrap();
     let far_dict: HashMap<_, _> = bs
@@ -1149,7 +1179,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                         skip = 2;
                     }
                 }
-                let last = &val[(frames - 1) * frame_bytes..];
+                let last = val[(frames - 1) * frame_bytes..].to_vec();
                 last_frame = Some(last);
             }
             (Some(Packet::Mfwr(mf)), State::Mfwr) => {
@@ -1174,7 +1204,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 );
                 first_mf = false;
                 packets.next();
-                insert_virtex4_frame(bs, fi, last_frame.unwrap());
+                insert_virtex4_frame(bs, fi, last_frame.as_ref().unwrap());
                 if kind == DeviceKind::Virtex7 && bs.frame_info[fi].addr.typ == 1 {
                     for _ in 0..8 {
                         assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1295,8 +1325,8 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8]) {
     }
 }
 
-fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8]) {
-    let packets = PacketParser::new(bs.kind, data);
+fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8], key: &KeyData) {
+    let packets = PacketParser::new(bs.kind, data, key);
     for packet in packets {
         if let Packet::Fdri(data) = packet {
             println!("PACKET FDRI {l}", l = data.len());
@@ -1307,16 +1337,13 @@ fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8]) {
     todo!()
 }
 
-fn parse_ultrascaleplus_bitstream(_bs: &mut Bitstream, _data: &[u8]) {
-    todo!()
-}
-
-pub fn parse(geom: &BitstreamGeom, data: &[u8]) -> Bitstream {
+pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
     let mut res = Bitstream {
         kind: geom.kind,
         die: geom.die.map_values(|dg| DieBitstream {
             regs: Default::default(),
             mode: BitstreamMode::Plain,
+            iv: vec![],
             frame_len: dg.frame_len,
             frame_data: BitVec::repeat(false, dg.frame_len * dg.frame_info.len()),
             frame_info: dg.frame_info.clone(),
@@ -1331,15 +1358,15 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8]) -> Bitstream {
         }),
     };
     match res.kind {
-        DeviceKind::Virtex => parse_virtex_bitstream(&mut res, data),
-        DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data),
-        DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data),
-        DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data),
+        DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),
+        DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),
+        DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data, key),
         DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
-            parse_virtex4_bitstream(&mut res, data)
+            parse_virtex4_bitstream(&mut res, data, key)
         }
-        DeviceKind::Ultrascale => parse_ultrascale_bitstream(&res, data),
-        DeviceKind::UltrascalePlus => parse_ultrascaleplus_bitstream(&mut res, data),
+        DeviceKind::Ultrascale | DeviceKind::UltrascalePlus => {
+            parse_ultrascale_bitstream(&res, data, key)
+        }
         DeviceKind::Versal => panic!("versal bitstreams not supported through generic code"),
     }
     res

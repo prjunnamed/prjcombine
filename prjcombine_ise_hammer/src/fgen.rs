@@ -778,16 +778,16 @@ impl<'a> TileKV<'a> {
                             && wire_name.starts_with("OUT")
                             && intdb.nodes.key(node.kind).starts_with("INT.DCM")
                         {
-                            let dcm = backend
+                            let (layer, dcm) = backend
                                 .egrid
-                                .find_node(loc.0, (loc.1, loc.2), |node| {
+                                .find_node_loc(loc.0, (loc.1, loc.2), |node| {
                                     intdb.nodes.key(node.kind).starts_with("DCM.")
                                 })
                                 .unwrap();
                             let site = &dcm.bels[BelId::from_idx(0)];
                             fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
                                 Key::BelMutex(
-                                    (loc.0, loc.1, loc.2, loc.3, BelId::from_idx(0)),
+                                    (loc.0, loc.1, loc.2, layer, BelId::from_idx(0)),
                                     "MODE".into(),
                                 ),
                                 "INT",

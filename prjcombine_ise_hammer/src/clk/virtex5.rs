@@ -326,8 +326,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let mut diff = ctx.state.get_diff(
                         tile,
                         bel,
-                        &format!("MUX.HCLK_{lr}{i}"),
-                        &format!("GCLK{j}"),
+                        format!("MUX.HCLK_{lr}{i}"),
+                        format!("GCLK{j}"),
                     );
                     diff = diff.combine(&!&inp_diffs[j]);
                     inps.push((format!("GCLK{j}"), diff));

@@ -3584,12 +3584,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     for drive in drives {
                         let ttl =
                             ctx.state
-                                .peek_diff(tile, bel, "OSTD", &format!("LVTTL.{drive}.SLOW"));
+                                .peek_diff(tile, bel, "OSTD", format!("LVTTL.{drive}.SLOW"));
                         let cmos = ctx.state.peek_diff(
                             tile,
                             bel,
                             "OSTD",
-                            &format!("LVCMOS33.{drive}.SLOW"),
+                            format!("LVCMOS33.{drive}.SLOW"),
                         );
                         let diff = ttl.combine(&!cmos);
                         for &bit in diff.bits.keys() {

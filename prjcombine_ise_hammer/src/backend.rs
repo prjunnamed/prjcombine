@@ -3,7 +3,7 @@ use prjcombine_hammer::{Backend, FuzzerId};
 use prjcombine_int::db::{BelId, WireId};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
 use prjcombine_toolchain::Toolchain;
-use prjcombine_virtex_bitstream::parse;
+use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataVirtex2, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
@@ -260,6 +260,63 @@ impl State {
         let res = self.peek_diffs(tile, bel, attr, val);
         assert_eq!(res.len(), 1);
         &res[0]
+    }
+}
+
+impl<'a> IseBackend<'a> {
+    fn gen_key(&self, gopts: &mut HashMap<String, String>) -> KeyData {
+        match self.edev {
+            ExpandedDevice::Virtex2(_) => {
+                let mut rng = thread_rng();
+                // let key_passes = rng.gen_range(1..6);
+                // TODO
+                let key_passes = 2;
+                let start_key = rng.gen_range(0..(6 - key_passes + 1));
+                let mut key = KeyDataVirtex2 {
+                    key: rng.gen(),
+                    keyseq: core::array::from_fn(|_| {
+                        *[KeySeq::First, KeySeq::Middle, KeySeq::Last, KeySeq::Single]
+                            .choose(&mut rng)
+                            .unwrap()
+                    }),
+                };
+                if key_passes == 1 {
+                    key.keyseq[start_key] = KeySeq::Single;
+                } else {
+                    for i in start_key..(start_key + key_passes) {
+                        key.keyseq[i] = KeySeq::Middle;
+                    }
+                    key.keyseq[start_key] = KeySeq::First;
+                    key.keyseq[start_key + key_passes - 1] = KeySeq::Last;
+                }
+                // TODO: kill
+                // key.key = [[0; 7]; 6];
+                // key.key[0][0] = 1;
+                // key.keyseq[0] = KeySeq::Single;
+                // let start_key = 0;
+                // let key_passes = 1;
+                // TODO: kill ^
+                for i in 0..6 {
+                    gopts.insert(format!("KEY{i}"), hex::encode(key.key[i]));
+                    gopts.insert(
+                        format!("KEYSEQ{i}"),
+                        match key.keyseq[i] {
+                            KeySeq::First => "F",
+                            KeySeq::Middle => "M",
+                            KeySeq::Last => "L",
+                            KeySeq::Single => "S",
+                        }
+                        .into(),
+                    );
+                }
+                gopts.insert("STARTKEY".into(), start_key.to_string());
+                gopts.insert("KEYPASSES".into(), key_passes.to_string());
+                KeyData::Virtex2(key)
+            }
+            ExpandedDevice::Spartan6(_) => todo!(),
+            ExpandedDevice::Virtex4(_) => todo!(),
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -536,8 +593,14 @@ impl<'a> Backend for IseBackend<'a> {
         };
         let altvr = kv.get(&Key::AltVr) == Some(&Value::Bool(true));
         let pcf = Pcf { vccaux };
+        let mut key = KeyData::None;
+        if let Some(encrypt) = gopts.get("ENCRYPT") {
+            if encrypt == "YES" {
+                key = self.gen_key(&mut gopts);
+            }
+        }
         let bitdata = run_bitgen(self.tc, &xdl, &gopts, &pcf, altvr).unwrap();
-        parse(self.bs_geom, &bitdata)
+        parse(self.bs_geom, &bitdata, &key)
     }
 
     fn return_fuzzer(

@@ -921,28 +921,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for val in ["0", "1", "2", "4", "9", "18"] {
                 let diff = ctx
                     .state
-                    .get_diff(tile, bel, &format!("{rw}_WIDTH_{ab}.SDP"), val);
+                    .get_diff(tile, bel, format!("{rw}_WIDTH_{ab}.SDP"), val);
                 assert_eq!(
                     &diff,
                     ctx.state
-                        .peek_diff(tile, bel, &format!("{rw}_WIDTH_{ab}"), val)
+                        .peek_diff(tile, bel, format!("{rw}_WIDTH_{ab}"), val)
                 );
             }
             let mut diff = ctx
                 .state
-                .get_diff(tile, bel, &format!("{rw}_WIDTH_{ab}.SDP"), "36");
+                .get_diff(tile, bel, format!("{rw}_WIDTH_{ab}.SDP"), "36");
             if ul == 'U' || rw == "WRITE" {
                 diff = diff.combine(&!ctx.state.peek_diff(
                     tile,
                     bel,
-                    &format!("{rw}_WIDTH_{ab}"),
+                    format!("{rw}_WIDTH_{ab}"),
                     "18",
                 ));
             }
             diff = diff.combine(&!ctx.state.peek_diff(
                 tile,
                 bel,
-                &format!("{rw}_WIDTH_{ba}"),
+                format!("{rw}_WIDTH_{ba}"),
                 "18",
             ));
             ctx.tiledb.insert(
@@ -955,26 +955,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for val in ["0", "1", "2", "4", "9", "18", "36"] {
             let diff = ctx
                 .state
-                .get_diff(tile, "BRAM_F", &format!("{rw}_WIDTH_{ab}.SDP"), val);
+                .get_diff(tile, "BRAM_F", format!("{rw}_WIDTH_{ab}.SDP"), val);
             assert_eq!(
                 &diff,
                 ctx.state
-                    .peek_diff(tile, "BRAM_F", &format!("{rw}_WIDTH_{ab}"), val)
+                    .peek_diff(tile, "BRAM_F", format!("{rw}_WIDTH_{ab}"), val)
             );
         }
         let mut diff = ctx
             .state
-            .get_diff(tile, "BRAM_F", &format!("{rw}_WIDTH_{ab}.SDP"), "72");
+            .get_diff(tile, "BRAM_F", format!("{rw}_WIDTH_{ab}.SDP"), "72");
         diff = diff.combine(&!ctx.state.peek_diff(
             tile,
             "BRAM_F",
-            &format!("{rw}_WIDTH_{ab}"),
+            format!("{rw}_WIDTH_{ab}"),
             "36",
         ));
         diff = diff.combine(&!ctx.state.peek_diff(
             tile,
             "BRAM_F",
-            &format!("{rw}_WIDTH_{ba}"),
+            format!("{rw}_WIDTH_{ba}"),
             "36",
         ));
         diff.apply_bit_diff(
@@ -993,7 +993,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for ab in ['A', 'B'] {
             let diff_mux = ctx
                 .state
-                .get_diff(tile, "BRAM_F", &format!("{rw}_WIDTH_{ab}"), "1");
+                .get_diff(tile, "BRAM_F", format!("{rw}_WIDTH_{ab}"), "1");
             for (val_h, val_f) in [
                 ("0", "0"),
                 ("1", "2"),
@@ -1004,17 +1004,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ] {
                 let mut diff =
                     ctx.state
-                        .get_diff(tile, "BRAM_F", &format!("{rw}_WIDTH_{ab}"), val_f);
+                        .get_diff(tile, "BRAM_F", format!("{rw}_WIDTH_{ab}"), val_f);
                 diff = diff.combine(&!ctx.state.peek_diff(
                     tile,
                     "BRAM_H0",
-                    &format!("{rw}_WIDTH_{ab}"),
+                    format!("{rw}_WIDTH_{ab}"),
                     val_h,
                 ));
                 diff = diff.combine(&!ctx.state.peek_diff(
                     tile,
                     "BRAM_H1",
-                    &format!("{rw}_WIDTH_{ab}"),
+                    format!("{rw}_WIDTH_{ab}"),
                     val_h,
                 ));
                 if val_f == "9" {

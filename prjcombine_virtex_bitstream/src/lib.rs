@@ -59,12 +59,33 @@ pub enum DeviceKind {
     Versal,
 }
 
+#[derive(Clone, Debug)]
+pub enum KeyData {
+    None,
+    Virtex2(KeyDataVirtex2),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+pub enum KeySeq {
+    First,
+    Middle,
+    Last,
+    Single,
+}
+
+#[derive(Clone, Debug)]
+pub struct KeyDataVirtex2 {
+    pub key: [[u8; 7]; 6],
+    pub keyseq: [KeySeq; 6],
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum BitstreamMode {
     Plain,
     Debug,
     Compress,
     PerFrameCrc,
+    Encrypt,
 }
 
 #[derive(Clone, Debug)]
@@ -97,7 +118,7 @@ impl Bitstream {
         let mut res = HashMap::new();
         for ((die, da), db) in a.die.iter().zip(b.die.values()) {
             for (reg, &va) in &da.regs {
-                if reg == Reg::RbCrcSw {
+                if reg == Reg::RbCrcSw || reg == Reg::Key {
                     continue;
                 }
                 let vb = db.regs[reg];
@@ -193,6 +214,7 @@ impl Bitstream {
 pub struct DieBitstream {
     pub regs: EnumMap<Reg, Option<u32>>,
     pub mode: BitstreamMode,
+    pub iv: Vec<u8>,
     pub frame_len: usize,
     pub frame_data: BitVec,
     pub frame_info: Vec<FrameInfo>,

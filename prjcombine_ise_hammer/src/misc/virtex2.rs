@@ -125,7 +125,8 @@ pub fn add_fuzzers<'a>(
     if edev.grid.kind.is_virtex2() {
         let ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::FreezeDci);
         fuzz_one!(ctx, "FREEZE_DCI", "1", [
-            (global_mutex "DCI", "FREEZE")
+            (global_mutex "DCI", "FREEZE"),
+            (no_global_opt "ENCRYPT")
         ], [
             (global_opt "FREEZEDCI", "YES")
         ]);
@@ -1002,7 +1003,6 @@ pub fn add_fuzzers<'a>(
             fuzz_one!(ctx, "BCLK_TEST", val, [], [(global_opt "BCLK_TEST", val)]);
         }
         // persist not fuzzed — too much effort
-        // decrypt not fuzzed — too much effort
         for val in ["NONE", "LEVEL1", "LEVEL2"] {
             // disables FreezeDCI?
             if edev.grid.kind == GridKind::Virtex2 {
@@ -1015,6 +1015,15 @@ pub fn add_fuzzers<'a>(
             } else {
                 fuzz_one!(ctx, "SECURITY", val, [(global_mutex "DCI", "NO")], [(global_opt "SECURITY", val)]);
             }
+        }
+
+        if edev.grid.kind.is_virtex2() {
+            let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
+            fuzz_one!(ctx, "ENCRYPT", "YES", [
+                (global_mutex "DCI", "NO")
+            ], [
+                (global_opt "ENCRYPT", "YES")
+            ]);
         }
     } else {
         let ctx = FuzzCtx::new_fake_tile(
@@ -1636,7 +1645,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                     let diffs = (0..13)
                         .map(|i| {
                             ctx.state
-                                .get_diff(tile, bel, &format!("LVDSBIAS_OPT{i}"), "1")
+                                .get_diff(tile, bel, format!("LVDSBIAS_OPT{i}"), "1")
                         })
                         .collect();
                     let item = xlat_bitvec(diffs);
@@ -2077,23 +2086,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                 },
             },
         );
-        if edev.grid.kind.is_virtex2() {
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "DECRYPT",
-                TileItem {
-                    bits: vec![FeatureBit {
-                        tile: 0,
-                        frame: 0,
-                        bit: 6,
-                    }],
-                    kind: TileItemKind::BitVec {
-                        invert: BitVec::from_iter([false]),
-                    },
-                },
-            );
-        }
     } else {
         let tile = "REG.COR1.S3A";
         let bel = "STARTUP";

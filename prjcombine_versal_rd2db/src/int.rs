@@ -1170,7 +1170,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(&format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y as u8)
+                    .bel_xy(format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y as u8)
                     .pin_name_only("I", 1)
                     .pin_name_only("O_CASC", 1);
                 if i != 0 {
@@ -1368,7 +1368,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(&format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y as u8)
+                    .bel_xy(format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y as u8)
                     .pin_name_only("I", 1)
                     .pin_name_only("O_CASC", 1);
                 if i != 0 {
@@ -1401,8 +1401,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let half = if is_full { "" } else { ".HALF" };
             let mut xn = builder
                 .xnode(
-                    &format!("RCLK_INTF.{dir}{half}"),
-                    &format!("RCLK_INTF.{dir}{half}.{naming}"),
+                    format!("RCLK_INTF.{dir}{half}"),
+                    format!("RCLK_INTF.{dir}{half}.{naming}"),
                     xy,
                 )
                 .num_tiles(if is_full { 2 } else { 1 })
@@ -1416,8 +1416,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 let bel = builder.bel_xy(format!("RCLK_DFX_TEST.{dir}"), "RCLK", 0, 0);
                 builder
                     .xnode(
-                        &format!("RCLK_DFX.{dir}"),
-                        &format!("RCLK_DFX.{dir}.{naming}"),
+                        format!("RCLK_DFX.{dir}"),
+                        format!("RCLK_DFX.{dir}.{naming}"),
                         xy,
                     )
                     .ref_single(int_xy, 0, rclk_int)

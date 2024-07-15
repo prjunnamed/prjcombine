@@ -24,6 +24,7 @@ rand.workspace = true
 simple-error.workspace = true
 serde_json.workspace = true
 itertools.workspace = true
+hex.workspace = true
 
 [lints]
 workspace = true

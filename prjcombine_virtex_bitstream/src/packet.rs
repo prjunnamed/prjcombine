@@ -1,9 +1,13 @@
-use crate::DeviceKind;
+use crate::{DeviceKind, KeyData, KeySeq};
 use arrayref::array_ref;
+use cbc::cipher::{BlockDecrypt, BlockEncrypt, KeyInit};
 
 #[derive(Debug, Clone)]
 pub struct PacketParser<'a> {
     kind: DeviceKind,
+    key: &'a KeyData,
+    start_key: Option<usize>,
+    iv: Option<Vec<u8>>,
     data: &'a [u8],
     pos: usize,
     sync: bool,
@@ -12,8 +16,8 @@ pub struct PacketParser<'a> {
     bypass_crc: bool,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum Packet<'a> {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum Packet {
     // unsynced
     DummyWord,
     WidthDetect,
@@ -36,6 +40,8 @@ pub enum Packet<'a> {
     Far(u32),
     Mfwr(usize),
     LoutDebug(u32),
+    Key(u32),
+    Cbc(Vec<u8>),
     Cor0(u32),
     Cor1(u32),
     Cor2(u32),
@@ -60,14 +66,18 @@ pub enum Packet<'a> {
     WBStar(u32),
     Testmode(u32),
     Trim(u32),
-    Fdri(&'a [u8]),
-    BugFdri(&'a [u8]),
+    Fdri(Vec<u8>),
+    EncFdri(Vec<u8>),
+    BugFdri(Vec<u8>),
 }
 
 impl<'a> PacketParser<'a> {
-    pub fn new(kind: DeviceKind, data: &'a [u8]) -> Self {
+    pub fn new(kind: DeviceKind, data: &'a [u8], key: &'a KeyData) -> Self {
         Self {
             kind,
+            key,
+            start_key: None,
+            iv: None,
             data,
             pos: 0,
             sync: false,
@@ -120,15 +130,15 @@ impl<'a> PacketParser<'a> {
         }
     }
 
-    pub fn peek(&self) -> Option<Packet<'a>> {
+    pub fn peek(&self) -> Option<Packet> {
         self.clone().next()
     }
 }
 
 impl<'a> Iterator for PacketParser<'a> {
-    type Item = Packet<'a>;
+    type Item = Packet;
 
-    fn next(&mut self) -> Option<Packet<'a>> {
+    fn next(&mut self) -> Option<Packet> {
         if matches!(self.kind, DeviceKind::Spartan3A | DeviceKind::Spartan6) {
             let is_s6 = self.kind == DeviceKind::Spartan6;
             if self.pos + 2 > self.data.len() {
@@ -251,7 +261,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                     }
                                     self.pos += 4;
                                 }
-                                Some(Packet::Fdri(&self.data[dpos..epos]))
+                                Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
                             }
                             _ => panic!("unk long write: {reg} times {num}"),
                         }
@@ -306,7 +316,7 @@ impl<'a> Iterator for PacketParser<'a> {
                             for i in 0..num {
                                 self.update_crc(2, get_val(i));
                             }
-                            Some(Packet::BugFdri(&self.data[dpos..epos]))
+                            Some(Packet::BugFdri(self.data[dpos..epos].to_vec()))
                         } else if ph == 0x20000000 {
                             Some(Packet::Nop)
                         } else if (ph >> 27) == 6 {
@@ -347,7 +357,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                         self.pos += 4;
                                         self.reset_crc();
                                     }
-                                    Some(Packet::Fdri(&self.data[dpos..epos]))
+                                    Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
                                 }
                                 (4, 1) => match get_val(0) {
                                     0 => Some(Packet::CmdNull),
@@ -385,6 +395,18 @@ impl<'a> Iterator for PacketParser<'a> {
                                     Some(Packet::Mfwr(num))
                                 }
                                 (0xb, 1) if !is_v4 => Some(Packet::Flr(get_val(0))),
+                                (0xc, 1) if !is_v4 => {
+                                    let val = get_val(0);
+                                    self.start_key = Some(val as usize);
+                                    Some(Packet::Key(val))
+                                }
+                                (0xd, 2) if !is_v4 => {
+                                    let mut data = vec![];
+                                    data.extend(&self.data[dpos + 4..dpos + 8]);
+                                    data.extend(&self.data[dpos..dpos + 4]);
+                                    self.iv = Some(data.clone());
+                                    Some(Packet::Cbc(data))
+                                }
                                 (0xe, 1) if !is_v4 => Some(Packet::Idcode(get_val(0))),
                                 (0xc, 1) if is_v4 => Some(Packet::Idcode(get_val(0))),
                                 (0xe, 1) if is_v4 => Some(Packet::Cor1(get_val(0))),
@@ -397,6 +419,13 @@ impl<'a> Iterator for PacketParser<'a> {
                                 (0x1c, 1) if is_v4 => Some(Packet::Unk1c(get_val(0))),
                                 _ => panic!("unk write: {reg} times {num}"),
                             }
+                        } else if (ph >> 27) == 7 {
+                            let reg = ph >> 13 & 0x3fff;
+                            let num = (ph & 0x1fff) as usize;
+                            self.last_reg = Some(reg);
+                            assert_eq!(reg, 2);
+                            assert_eq!(num, 0);
+                            continue;
                         } else if (ph >> 27) == 0xa {
                             let reg = self.last_reg.unwrap();
                             let num = (ph & 0x7ffffff) as usize;
@@ -421,9 +450,93 @@ impl<'a> Iterator for PacketParser<'a> {
                                         self.pos += 4;
                                         self.reset_crc();
                                     }
-                                    Some(Packet::Fdri(&self.data[dpos..epos]))
+                                    Some(Packet::Fdri(self.data[dpos..epos].to_vec()))
                                 }
                                 _ => panic!("unk long write: {reg} times {num}"),
+                            }
+                        } else if (ph >> 27) == 0xb {
+                            let reg = self.last_reg.unwrap();
+                            let num = (ph & 0x7ffffff) as usize;
+                            let dpos = self.pos;
+                            self.pos += num * 4;
+                            let epos = self.pos;
+                            let ct = &self.data[dpos..epos];
+                            assert_eq!(num % 2, 0);
+                            let mut pt = vec![];
+
+                            let KeyData::Virtex2(key) = self.key else {
+                                unreachable!()
+                            };
+                            let start_key = self.start_key.unwrap();
+                            let iv = self.iv.as_ref().unwrap();
+                            let mut chain: [u8; 8] = *array_ref!(iv, 0, 8);
+                            // what in the name of fuck.
+                            chain[5] &= 0xfc;
+                            chain[6] = 0;
+                            chain[7] = 0;
+                            let cipher = key.key.map(|k| {
+                                let mut val: u64 = 0;
+                                for bi in 0..7 {
+                                    val |= (k[6 - bi] as u64) << (8 * bi);
+                                }
+                                let mut ek: [u8; 8] = [0; 8];
+                                for bi in 0..8 {
+                                    ek[7 - bi] = (((val >> (7 * bi)) & 0x7f) as u8) << 1;
+                                }
+                                des::Des::new(&ek.into())
+                            });
+                            let mut last_key = start_key;
+                            loop {
+                                if last_key == start_key {
+                                    assert!(matches!(
+                                        key.keyseq[last_key],
+                                        KeySeq::First | KeySeq::Single
+                                    ));
+                                } else {
+                                    assert!(matches!(
+                                        key.keyseq[last_key],
+                                        KeySeq::Middle | KeySeq::Last
+                                    ));
+                                }
+                                if matches!(key.keyseq[last_key], KeySeq::Last | KeySeq::Single) {
+                                    break;
+                                }
+                                last_key += 1;
+                            }
+                            for i in 0..(num / 2) {
+                                let ctb: [u8; 8] = core::array::from_fn(|j| ct[i * 8 + (j ^ 4)]);
+                                let mut ptb = ctb;
+                                for kidx in start_key..=last_key {
+                                    if (kidx - start_key) % 2 == 0 {
+                                        cipher[kidx].decrypt_block((&mut ptb).into());
+                                    } else {
+                                        cipher[kidx].encrypt_block((&mut ptb).into());
+                                    }
+                                }
+                                for j in 0..8 {
+                                    pt.push(ptb[j ^ 4] ^ chain[j ^ 4]);
+                                }
+                                chain = ctb;
+                            }
+                            let get_val = |i: usize| u32::from_be_bytes(*array_ref!(pt, i * 4, 4));
+                            for i in 0..num {
+                                self.update_crc(reg, get_val(i));
+                            }
+                            match reg {
+                                2 => {
+                                    if self.kind == DeviceKind::Virtex2 {
+                                        let crc =
+                                            u32::from_be_bytes(*array_ref!(self.data, epos, 4));
+                                        let ecrc = if self.bypass_crc { 0xdefc } else { self.crc };
+                                        if crc != ecrc {
+                                            println!("AUTOCRC MISMATCH {crc:08x} {ecrc:08x}");
+                                        }
+                                        self.pos += 4;
+                                        self.reset_crc();
+                                    }
+                                    Some(Packet::EncFdri(pt))
+                                }
+                                _ => panic!("unk encrypted long write: {reg} times {num}"),
                             }
                         } else {
                             panic!("unk word: {ph:08x}")

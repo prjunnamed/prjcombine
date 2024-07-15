@@ -1136,7 +1136,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.tiledb.insert(
                         tile,
                         bel,
-                        &format!("{attr}_LATCH"),
+                        format!("{attr}_LATCH"),
                         xlat_bitvec(vec![ff_latch]),
                     );
                 }

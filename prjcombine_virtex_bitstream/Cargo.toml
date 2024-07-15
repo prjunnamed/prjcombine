@@ -9,6 +9,9 @@ enum-map.workspace = true
 arrayref.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
+des.workspace = true
+cbc.workspace = true
+hex.workspace = true
 
 [lints]
 workspace = true
