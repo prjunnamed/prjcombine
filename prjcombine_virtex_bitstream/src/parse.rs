@@ -1041,6 +1041,31 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 p => panic!("expected timer got {p:?}"),
             }
         }
+        if matches!(packets.peek(), Some(Packet::Mask(_))) {
+            let mask = match packets.next() {
+                Some(Packet::Mask(val)) => val,
+                p => panic!("expected mask got {p:?}"),
+            };
+            match packets.next() {
+                Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
+                p => panic!("expected ctl0 got {p:?}"),
+            }
+            assert_eq!(ctl0 & 0x40, 0x40);
+            for _ in 0..16 {
+                assert_eq!(packets.next(), Some(Packet::Nop));
+            }
+            match packets.next() {
+                Some(Packet::Cbc(val)) => bs.iv = val,
+                p => panic!("expected fdri got {p:?}"),
+            };
+
+            match packets.next() {
+                Some(Packet::Dwc(_)) => (),
+                p => panic!("expected dwc got {p:?}"),
+            };
+
+            bs.regs[Reg::FakeEncrypted] = Some(1);
+        }
         match packets.next() {
             Some(Packet::WBStar(val)) => bs.regs[Reg::WbStar] = Some(val),
             p => panic!("expected wbstar got {p:?}"),
@@ -1392,12 +1417,20 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 assert_eq!(packets.next(), Some(Packet::Nop));
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
-            assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+            if bs.regs[Reg::FakeEncrypted].is_none() {
+                assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+            }
             let mut num_nops = match kind {
                 DeviceKind::Virtex5 => 61,
                 DeviceKind::Virtex6 | DeviceKind::Virtex7 => 400,
                 _ => unreachable!(),
             };
+            if bs.regs[Reg::FakeEncrypted].is_some() {
+                num_nops += 2; // desync
+                num_nops -= 27; // mask+ctl+cbc+dwc
+                num_nops -= 0x10; // encrypted header
+                num_nops -= 0x78; // encrypted trailer
+            }
             if bs.regs[Reg::Unk1C].is_some() {
                 num_nops -= 4;
             }

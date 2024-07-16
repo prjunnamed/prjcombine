@@ -105,6 +105,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "PIN.GTS", "1", [(mode "STARTUP"), (nopin "GSR")], [(pin "GTS")]);
         fuzz_one!(ctx, "PIN.GSR", "1", [(mode "STARTUP"), (nopin "GTS")], [(pin "GSR")]);
         fuzz_one!(ctx, "PIN.USRCCLKO", "1", [(mode "STARTUP")], [(pin "USRCCLKO")]);
+        fuzz_one!(ctx, "PIN.KEYCLEARB", "1", [
+            (mode "STARTUP"),
+            (global_opt "ENCRYPT", "YES")
+        ], [
+            (pin "KEYCLEARB")
+        ]);
         for attr in ["GSR_SYNC", "GTS_SYNC"] {
             for val in ["YES", "NO"] {
                 fuzz_one!(ctx, attr, val, [], [(global_opt attr, val)]);
@@ -294,7 +300,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         TileBits::Reg(Reg::Ctl0),
     );
     // persist not fuzzed — too much effort
-    // decrypt not fuzzed — too much effort
     for val in ["NONE", "LEVEL1", "LEVEL2"] {
         fuzz_one!(ctx, "SECURITY", val, [], [(global_opt "SECURITY", val)]);
     }
@@ -318,6 +323,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_one!(ctx, "SEC_ALL", val, [], [(global_opt "SECALL", val)]);
         fuzz_one!(ctx, "SEC_ERROR", val, [], [(global_opt "SECERROR", val)]);
         fuzz_one!(ctx, "SEC_STATUS", val, [], [(global_opt "SECSTATUS", val)]);
+        fuzz_one!(ctx, "ENCRYPT", val, [], [(global_opt "ENCRYPT", val)]);
     }
 
     let ctx = FuzzCtx::new_fake_tile(
@@ -469,6 +475,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool_wide(tile, bel, "PROG_USR", "FALSE", "TRUE");
     let item = ctx.extract_bit_wide(tile, bel, "PIN.USRCCLKO", "1");
     ctx.tiledb.insert(tile, bel, "USRCCLK_ENABLE", item);
+    let item = ctx.extract_bit_wide(tile, bel, "PIN.KEYCLEARB", "1");
+    ctx.tiledb.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
 
     let item0 = ctx.extract_enum(tile, "ICAP0", "ICAP_WIDTH", &["X8", "X16", "X32"]);
     let item1 = ctx.extract_enum(tile, "ICAP1", "ICAP_WIDTH", &["X8", "X16", "X32"]);
@@ -607,18 +615,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool(tile, bel, "SEC_ALL", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "SEC_ERROR", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "SEC_STATUS", "NO", "YES");
+    ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
     // these are too much trouble to deal with the normal way.
-    for (attr, bit) in [("PERSIST", 3), ("DECRYPT", 6)] {
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            attr,
-            TileItem {
-                bits: vec![FeatureBit::new(0, 0, bit)],
-                kind: TileItemKind::BitVec { invert: bitvec![0] },
-            },
-        );
-    }
+    ctx.tiledb.insert(
+        tile,
+        bel,
+        "PERSIST",
+        TileItem {
+            bits: vec![FeatureBit::new(0, 0, 3)],
+            kind: TileItemKind::BitVec { invert: bitvec![0] },
+        },
+    );
     ctx.tiledb.insert(
         tile,
         bel,

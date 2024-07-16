@@ -13,6 +13,7 @@ des.workspace = true
 cbc.workspace = true
 hex.workspace = true
 aes.workspace = true
+sha2.workspace = true
 
 [lints]
 workspace = true
