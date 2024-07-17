@@ -259,7 +259,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     };
 
     let extras = vec![ExtraFeature::new(
-        ExtraFeatureKind::PcieHclk,
+        ExtraFeatureKind::Hclk(3, 20),
         "HCLK",
         "HCLK",
         "DRP_MASK_PCIE",

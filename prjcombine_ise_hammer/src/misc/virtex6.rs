@@ -181,7 +181,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     {
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::Null);
         fuzz_one_extras!(ctx, "ENABLE", "1", [], [(mode "SYSMON")], vec![
-            ExtraFeature::new(ExtraFeatureKind::HclkSysmonDrp, "HCLK", "HCLK", "DRP_MASK_SYSMON", "1"),
+            ExtraFeature::new(ExtraFeatureKind::Hclk(0, 20), "HCLK", "HCLK", "DRP_MASK_SYSMON", "1"),
         ]);
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::MainAuto);
         fuzz_inv!(ctx, "DCLK", [(mode "SYSMON")]);

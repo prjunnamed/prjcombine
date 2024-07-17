@@ -121,11 +121,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             let obel = BelId::from_idx(0);
             fuzz_one!(ctx, hclk, "1", [
                 (global_mutex "BUFGCTRL_OUT", "USE"),
-                (related TileRelation::ClkHrow,
+                (related TileRelation::ClkHrow(0),
                     (tile_mutex "MODE", "USE")),
-                (related TileRelation::ClkHrow,
+                (related TileRelation::ClkHrow(0),
                     (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_l))),
-                (related TileRelation::ClkHrow,
+                (related TileRelation::ClkHrow(0),
                     (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_r)))
             ], [
                 (pip (pin hclk_i), (pin hclk_o))
@@ -206,11 +206,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 let obel = BelId::from_idx(0);
                 fuzz_one!(ctx, hclk, "1", [
                     (global_mutex "BUFGCTRL_OUT", "USE"),
-                    (related TileRelation::ClkHrow,
+                    (related TileRelation::ClkHrow(0),
                         (tile_mutex "MODE", "USE")),
-                    (related TileRelation::ClkHrow,
+                    (related TileRelation::ClkHrow(0),
                         (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_l))),
-                    (related TileRelation::ClkHrow,
+                    (related TileRelation::ClkHrow(0),
                         (pip (bel_pin obel, "GCLK0"), (bel_pin obel, hclk_r)))
                 ], [
                     (pip (pin hclk_i), (pin hclk_o))
@@ -374,9 +374,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (global_mutex "HCLK_DCM", "TEST"),
                     (tile_mutex "HCLK_DCM", format!("HCLK_O_{ud}{i}")),
                     (global_mutex "BUFGCTRL_OUT", "USE"),
-                    (related TileRelation::ClkHrow,
+                    (related TileRelation::ClkHrow(0),
                         (tile_mutex "MODE", "USE")),
-                    (related TileRelation::ClkHrow,
+                    (related TileRelation::ClkHrow(0),
                         (pip (bel_pin obel, "GCLK0"), (bel_pin obel, format!("HCLK_L{i}")))),
                     (special TileKV::HclkHasDcm(dir))
                 ], [
@@ -421,12 +421,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                                     None,
                                 ),
                                 "HCLK_MGT_REPEATER",
-                                "CLK_MGT_REPEATER",
-                                format!("MGT{idx}", idx = i % 2),
+                                "HCLK_MGT_REPEATER",
+                                format!("BUF.MGT{idx}.DCM", idx = i % 2),
                                 "1",
                             ));
                         }
                         fuzz_one_extras!(ctx, format!("MGT_O_{ud}{i}"), "1", [
+                            (global_mutex "MGT_OUT", "USE"),
                             (global_mutex "HCLK_DCM", "TEST"),
                             (tile_mutex "HCLK_DCM", format!("MGT_O_{ud}{i}"))
                         ], [
@@ -782,5 +783,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, &format!("MGT{i}_USED"), "1");
             }
         }
+    }
+    if edev.col_lgt.is_some() && !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+        let tile = "HCLK_MGT_REPEATER";
+        let bel = "HCLK_MGT_REPEATER";
+        let item = ctx.extract_bit(tile, bel, "BUF.MGT0.DCM", "1");
+        ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
+        let item = ctx.extract_bit(tile, bel, "BUF.MGT1.DCM", "1");
+        ctx.tiledb.insert(tile, bel, "BUF.MGT1", item);
     }
 }

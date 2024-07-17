@@ -17,3 +17,4 @@ Virtex 4
    ccm
    config
    sysmon
+   gt

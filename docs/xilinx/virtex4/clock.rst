@@ -150,3 +150,10 @@ IO clock nodes
 
 .. raw:: html
    :file: ../gen/tile-xc4v-HCLK_DCM.html
+
+
+``HCLK_MGT``
+============
+
+.. raw:: html
+   :file: ../gen/tile-xc4v-HCLK_MGT.html

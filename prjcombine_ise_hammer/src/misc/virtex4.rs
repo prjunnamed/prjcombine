@@ -240,12 +240,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             Some(dir_row),
                         ),
                         "HCLK_MGT_REPEATER",
-                        "CLK_MGT_REPEATER",
-                        format!("MGT{idx}"),
+                        "HCLK_MGT_REPEATER",
+                        format!("BUF.MGT{idx}.CFG"),
                         "1",
                     ));
                 }
-                fuzz_one_extras!(ctx, name, "1", [], [
+                fuzz_one_extras!(ctx, name, "1", [
+                    (global_mutex "MGT_OUT", "USE")
+                ], [
                     (pip (pin i), (pin o))
                 ], extras);
             }
@@ -548,9 +550,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
             let tile = "HCLK_MGT_REPEATER";
-            let bel = "CLK_MGT_REPEATER";
-            ctx.collect_bit(tile, bel, "MGT0", "1");
-            ctx.collect_bit(tile, bel, "MGT1", "1");
+            let bel = "HCLK_MGT_REPEATER";
+            let item = ctx.extract_bit(tile, bel, "BUF.MGT0.CFG", "1");
+            ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
+            let item = ctx.extract_bit(tile, bel, "BUF.MGT1.CFG", "1");
+            ctx.tiledb.insert(tile, bel, "BUF.MGT1", item);
         }
     }
 

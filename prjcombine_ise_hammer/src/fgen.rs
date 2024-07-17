@@ -34,11 +34,12 @@ pub enum TileRelation {
     IobBrefclkClkBT,
     ClkIob(Dir),
     ClkDcm,
-    ClkHrow,
+    ClkHrow(usize),
     Rclk,
     Ioclk(Dir),
     Cfg,
     HclkDcm,
+    Mgt(Dir),
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -172,7 +173,7 @@ fn resolve_tile_relation(
                 | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
             }
         }
-        TileRelation::ClkHrow => match backend.edev {
+        TileRelation::ClkHrow(delta) => match backend.edev {
             ExpandedDevice::Xc4k(_) => todo!(),
             ExpandedDevice::Xc5200(_) => todo!(),
             ExpandedDevice::Virtex(_) => todo!(),
@@ -180,6 +181,7 @@ fn resolve_tile_relation(
             ExpandedDevice::Spartan6(_) => todo!(),
             ExpandedDevice::Virtex4(edev) => {
                 loc.1 = edev.col_clk;
+                loc.2 += delta;
                 let Some((layer, _)) = backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
                     backend
                         .egrid
@@ -245,6 +247,42 @@ fn resolve_tile_relation(
             ExpandedDevice::Ultrascale(_) => todo!(),
             ExpandedDevice::Versal(_) => todo!(),
         },
+        TileRelation::Mgt(dir) => {
+            let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                unreachable!()
+            };
+            match edev.kind {
+                prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                    match dir {
+                        Dir::S => {
+                            if loc.2.to_idx() == 0 {
+                                return None;
+                            }
+                            loc.2 -= 32
+                        }
+                        Dir::N => {
+                            loc.2 += 32;
+                            if loc.2.to_idx() >= edev.grids[loc.0].rows().len() {
+                                return None;
+                            }
+                        }
+                        _ => unreachable!(),
+                    }
+                    let Some((layer, _)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                            backend.egrid.db.nodes.key(node.kind) == "MGT"
+                        })
+                    else {
+                        unreachable!()
+                    };
+                    loc.3 = layer;
+                    Some(loc)
+                }
+                prjcombine_virtex4::grid::GridKind::Virtex5 => todo!(),
+                prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+            }
+        }
     }
 }
 
@@ -2100,10 +2138,7 @@ impl TileBits {
                 ]
             }
             TileBits::RegPresent(reg) => {
-                vec![
-                    BitTile::Reg(die, reg),
-                    BitTile::RegPresent(die, reg),
-                ]
+                vec![BitTile::Reg(die, reg), BitTile::RegPresent(die, reg)]
             }
             TileBits::Pcie => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -2147,12 +2182,12 @@ pub enum ExtraFeatureKind {
     HclkDcm(Dir),
     HclkCcm(Dir),
     MgtRepeater(Dir, Option<Dir>),
+    MgtRepeaterMgt(usize),
     BufpllPll(Dir, &'static str),
     Reg(Reg),
-    HclkSysmonDrp,
+    Hclk(usize, usize),
     HclkIoiCenter(&'static str),
     HclkBramMgtPrev,
-    PcieHclk,
     PcieHclkPair,
     Pcie3HclkPair,
 }
@@ -2343,6 +2378,24 @@ impl ExtraFeatureKind {
                 }
                 res
             }
+            ExtraFeatureKind::MgtRepeaterMgt(delta) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let row = loc.2 + delta;
+                let mut res = vec![];
+                let is_l = loc.1 < edev.col_cfg;
+                for &col in &edev.grids[edev.grid_master].cols_vbrk {
+                    if (col < edev.col_cfg) == is_l {
+                        res.push(vec![edev.btile_hclk(
+                            DieId::from_idx(0),
+                            if is_l { col } else { col - 1 },
+                            row,
+                        )]);
+                    }
+                }
+                res
+            }
             ExtraFeatureKind::BufpllPll(dir, kind) => {
                 let ExpandedDevice::Spartan6(edev) = backend.edev else {
                     unreachable!()
@@ -2380,20 +2433,11 @@ impl ExtraFeatureKind {
                 .ids()
                 .map(|die| vec![BitTile::Reg(die, reg)])
                 .collect(),
-            ExtraFeatureKind::HclkSysmonDrp => {
+            ExtraFeatureKind::Hclk(dx, dy) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
-                        vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
-                    }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
-                        vec![vec![edev.btile_hclk(loc.0, loc.1, loc.2 + 20)]]
-                    }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
-                }
+                vec![vec![edev.btile_hclk(loc.0, loc.1 + dx, loc.2 + dy)]]
             }
             ExtraFeatureKind::HclkIoiCenter(kind) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -2430,16 +2474,6 @@ impl ExtraFeatureKind {
                     Some(&col) => vec![vec![edev.btile_hclk(loc.0, col, loc.2)]],
                     None => vec![],
                 }
-            }
-            ExtraFeatureKind::PcieHclk => {
-                let ExpandedDevice::Virtex4(edev) = backend.edev else {
-                    unreachable!()
-                };
-                vec![vec![edev.btile_hclk(
-                    loc.0,
-                    loc.1 + 3,
-                    loc.2 + edev.grids[loc.0].rows_per_reg() / 2,
-                )]]
             }
             ExtraFeatureKind::PcieHclkPair => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {

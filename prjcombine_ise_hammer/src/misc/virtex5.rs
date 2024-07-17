@@ -188,7 +188,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     {
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::Null);
         fuzz_one_extras!(ctx, "ENABLE", "1", [], [(mode "SYSMON")], vec![
-            ExtraFeature::new(ExtraFeatureKind::HclkSysmonDrp, "HCLK_IOI_TOPCEN", "SYSMON", "ENABLE", "1"),
+            ExtraFeature::new(ExtraFeatureKind::Hclk(0, 20), "HCLK_IOI_TOPCEN", "SYSMON", "ENABLE", "1"),
         ]);
         let ctx = FuzzCtx::new(session, backend, "CFG", "SYSMON", TileBits::Cfg);
         fuzz_inv!(ctx, "DCLK", [(mode "SYSMON")]);
