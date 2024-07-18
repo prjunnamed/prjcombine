@@ -13,3 +13,4 @@ Spartan 6
    dsp
    clock
    pcie
+   gtp

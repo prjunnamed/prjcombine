@@ -159,7 +159,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // TODO: dcm
                 // TODO: pll
                 pcie::spartan6::add_fuzzers(&mut hammer, &backend);
-                // TODO: gtp
+                gt::spartan6::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -295,6 +295,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 bram::spartan6::collect_fuzzers(&mut ctx);
                 dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 pcie::spartan6::collect_fuzzers(&mut ctx);
+                gt::spartan6::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
