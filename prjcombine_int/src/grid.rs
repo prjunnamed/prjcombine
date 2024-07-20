@@ -570,6 +570,12 @@ impl<'a> ExpandedGrid<'a> {
                 _ => break,
             }
         }
+        // special hack!
+        if self.db.wires.key(wire.2).starts_with("BRAM.QUAD.")
+            && wire.1 .1 == self.die(wire.0).rows().next_back().unwrap()
+        {
+            return None;
+        }
         if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
             wire = twire;
         }
@@ -697,6 +703,12 @@ impl<'a> ExpandedGrid<'a> {
                 _ => break,
             }
         }
+        // special hack!
+        if self.db.wires.key(wire.2).starts_with("BRAM.QUAD.")
+            && wire.1 .1 == self.die(wire.0).rows().next_back().unwrap()
+        {
+            return None;
+        }
         if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
             wire = twire;
         }
@@ -740,6 +752,12 @@ impl<'a> ExpandedGrid<'a> {
                 }
                 _ => break,
             }
+        }
+        // special hack!
+        if self.db.wires.key(wire.2).starts_with("BRAM.QUAD.")
+            && wire.1 .1 == self.die(wire.0).rows().next_back().unwrap()
+        {
+            return None;
         }
         if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
             wire = twire;

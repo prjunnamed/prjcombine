@@ -40,6 +40,7 @@ pub enum TileRelation {
     Cfg,
     HclkDcm,
     Mgt(Dir),
+    Delta(isize, isize, NodeKindId),
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -282,6 +283,35 @@ fn resolve_tile_relation(
                 prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
                 prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
             }
+        }
+        TileRelation::Delta(dx, dy, kind) => {
+            if dx < 0 {
+                if loc.1.to_idx() < (-dx) as usize {
+                    return None;
+                }
+                loc.1 -= (-dx) as usize;
+            } else {
+                loc.1 += dx as usize;
+                if loc.1.to_idx() >= backend.egrid.die(loc.0).cols().len() {
+                    return None;
+                }
+            }
+            if dy < 0 {
+                if loc.2.to_idx() < (-dy) as usize {
+                    return None;
+                }
+                loc.2 -= (-dy) as usize;
+            } else {
+                loc.2 += dy as usize;
+                if loc.2.to_idx() >= backend.egrid.die(loc.0).rows().len() {
+                    return None;
+                }
+            }
+            let (layer, _) = backend
+                .egrid
+                .find_node_loc(loc.0, (loc.1, loc.2), |node| node.kind == kind)?;
+            loc.3 = layer;
+            Some(loc)
         }
     }
 }
@@ -612,6 +642,13 @@ pub enum TileKV<'a> {
     HclkHasCmt,
     Raw(Key<'a>, Value),
     TileRelated(TileRelation, Box<TileKV<'a>>),
+    VirtexPinBramLv(NodeWireId),
+    VirtexPinLh(NodeWireId),
+    VirtexPinIoLh(NodeWireId),
+    VirtexPinHexH(NodeWireId),
+    VirtexPinHexV(NodeWireId),
+    VirtexDriveHexH(NodeWireId),
+    VirtexDriveHexV(NodeWireId),
 }
 
 #[derive(Debug, Clone)]
@@ -1070,6 +1107,426 @@ impl<'a> TileKV<'a> {
             TileKV::TileRelated(relation, ref chain) => {
                 let loc = resolve_tile_relation(backend, loc, *relation)?;
                 chain.apply(backend, loc, fuzzer)?
+            }
+            TileKV::VirtexPinBramLv(wire) => {
+                let node = backend.egrid.node(loc);
+                let wire = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let mut loc = loc;
+                loc.2 = RowId::from_idx(1);
+                loc.3 = LayerId::from_idx(0);
+                for i in 0..12 {
+                    let wire_pin = (
+                        NodeTileId::from_idx(0),
+                        backend.egrid.db.get_wire(&format!("LV.{i}")),
+                    );
+
+                    let resolved_pin = backend
+                        .egrid
+                        .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                        .unwrap();
+                    let wire_clk = (
+                        NodeTileId::from_idx(0),
+                        backend.egrid.db.get_wire("IMUX.BRAM.CLKA"),
+                    );
+                    let resolved_clk = backend
+                        .egrid
+                        .resolve_wire((loc.0, (loc.1, loc.2), wire_clk.1))
+                        .unwrap();
+                    if resolved_pin == wire {
+                        let (tile, wa, wb) =
+                            resolve_int_pip(backend, loc, wire_pin, wire_clk).unwrap();
+                        fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                        fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_clk), None, "EXCLUSIVE");
+                        return Some(fuzzer);
+                    }
+                }
+                panic!("UMM FAILED TO PIN BRAM LV");
+            }
+            TileKV::VirtexPinLh(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let mut loc = (loc.0, ColId::from_idx(0), node.tiles[wire.0].1, loc.3);
+                let (layer, node) = backend
+                    .egrid
+                    .find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                        backend.egrid.db.nodes.key(n.kind) == "IO.L"
+                    })
+                    .unwrap();
+                loc.3 = layer;
+                let node_data = &backend.egrid.db.nodes[node.kind];
+                for i in 0..12 {
+                    let wire_pin = (
+                        NodeTileId::from_idx(0),
+                        backend.egrid.db.get_wire(&format!("LH.{i}")),
+                    );
+                    let resolved_pin = backend
+                        .egrid
+                        .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                        .unwrap();
+                    if resolved_pin != resolved_wire {
+                        continue;
+                    }
+                    for (&wire_out, mux_data) in &node_data.muxes {
+                        if mux_data.ins.contains(&wire_pin) {
+                            // FOUND
+                            let resolved_out = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_out.1))
+                                .unwrap();
+                            let (tile, wa, wb) =
+                                resolve_int_pip(backend, loc, wire_pin, wire_out).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                            fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_out), None, "EXCLUSIVE");
+                            return Some(fuzzer);
+                        }
+                    }
+                }
+                unreachable!()
+            }
+            TileKV::VirtexPinIoLh(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let mut loc = (loc.0, ColId::from_idx(0), node.tiles[wire.0].1, loc.3);
+                loop {
+                    if let Some((layer, _)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                            matches!(&backend.egrid.db.nodes.key(n.kind)[..], "IO.B" | "IO.T")
+                        })
+                    {
+                        loc.3 = layer;
+                        for i in [0, 6] {
+                            let wire_pin = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("LH.{i}")),
+                            );
+                            let resolved_pin = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                                .unwrap();
+                            if resolved_pin != resolved_wire {
+                                continue;
+                            }
+                            // FOUND
+                            let wire_buf = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("LH.{i}.FAKE")),
+                            );
+                            let resolved_buf = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_buf.1))
+                                .unwrap();
+                            let (tile, wa, wb) =
+                                resolve_int_pip(backend, loc, wire_pin, wire_buf).unwrap();
+                            fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                            fuzzer = fuzzer.fuzz(Key::NodeMutex(resolved_buf), None, "EXCLUSIVE");
+                            return Some(fuzzer);
+                        }
+                    }
+                    loc.1 += 1;
+                }
+            }
+            TileKV::VirtexPinHexH(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let wire_name = backend.egrid.db.wires.key(wire.1);
+                let h = wire_name[4..5].chars().next().unwrap();
+                let i: usize = wire_name[5..6].parse().unwrap();
+                let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
+                if loc.1.to_idx() >= 7 {
+                    loc.1 -= 7;
+                } else {
+                    loc.1 = ColId::from_idx(0)
+                };
+                loop {
+                    if let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                            matches!(
+                                &backend.egrid.db.nodes.key(n.kind)[..],
+                                "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB" | "CNR.BR" | "CNR.TR"
+                            )
+                        })
+                    {
+                        loc.3 = layer;
+                        let node_data = &backend.egrid.db.nodes[node.kind];
+                        for j in 0..=6 {
+                            let wire_pin = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                            );
+                            let resolved_pin = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                                .unwrap();
+                            if resolved_pin != resolved_wire {
+                                continue;
+                            }
+                            for (&wire_out, mux_data) in &node_data.muxes {
+                                if mux_data.ins.contains(&wire_pin) {
+                                    let out_name = backend.egrid.db.wires.key(wire_out.1);
+                                    if out_name.starts_with("SINGLE")
+                                        || (out_name.starts_with("LV") && i >= 4)
+                                        || (out_name.starts_with("HEX.E")
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.L")
+                                        || (out_name.starts_with("HEX.W")
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.R")
+                                    {
+                                        // FOUND
+                                        let resolved_out = backend
+                                            .egrid
+                                            .resolve_wire((loc.0, (loc.1, loc.2), wire_out.1))
+                                            .unwrap();
+                                        let (tile, wa, wb) =
+                                            resolve_int_pip(backend, loc, wire_pin, wire_out)
+                                                .unwrap();
+                                        fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_out),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        return Some(fuzzer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    loc.1 += 1;
+                }
+            }
+            TileKV::VirtexPinHexV(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let wire_name = backend.egrid.db.wires.key(wire.1);
+                let v = wire_name[4..5].chars().next().unwrap();
+                let i: usize = wire_name[5..6].parse().unwrap();
+                let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
+                if loc.2.to_idx() >= 6 {
+                    loc.2 -= 6;
+                } else {
+                    loc.2 = RowId::from_idx(0)
+                };
+                loop {
+                    if let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                            matches!(
+                                &backend.egrid.db.nodes.key(n.kind)[..],
+                                "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
+                            )
+                        })
+                    {
+                        loc.3 = layer;
+                        let node_data = &backend.egrid.db.nodes[node.kind];
+                        for j in 0..=6 {
+                            let wire_pin = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                            );
+                            let resolved_pin = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                                .unwrap();
+                            if resolved_pin != resolved_wire {
+                                continue;
+                            }
+                            for (&wire_out, mux_data) in &node_data.muxes {
+                                if mux_data.ins.contains(&wire_pin) {
+                                    let out_name = backend.egrid.db.wires.key(wire_out.1);
+                                    if out_name.starts_with("SINGLE")
+                                        || (out_name.starts_with("HEX.N")
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.B")
+                                        || (out_name.starts_with("HEX.S")
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.T")
+                                    {
+                                        // FOUND
+                                        let resolved_out = backend
+                                            .egrid
+                                            .resolve_wire((loc.0, (loc.1, loc.2), wire_out.1))
+                                            .unwrap();
+                                        let (tile, wa, wb) =
+                                            resolve_int_pip(backend, loc, wire_pin, wire_out)
+                                                .unwrap();
+                                        fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_out),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        return Some(fuzzer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    loc.2 += 1;
+                }
+            }
+            TileKV::VirtexDriveHexH(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let wire_name = backend.egrid.db.wires.key(wire.1);
+                let h = wire_name[4..5].chars().next().unwrap();
+                let i: usize = wire_name[5..6].parse().unwrap();
+                let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
+                if loc.1.to_idx() >= 7 {
+                    loc.1 -= 7;
+                } else {
+                    loc.1 = ColId::from_idx(0)
+                };
+                loop {
+                    if let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                            matches!(
+                                &backend.egrid.db.nodes.key(n.kind)[..],
+                                "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB"
+                            )
+                        })
+                    {
+                        loc.3 = layer;
+                        let node_data = &backend.egrid.db.nodes[node.kind];
+                        for j in 0..=6 {
+                            let wire_pin = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                            );
+                            let resolved_pin = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                                .unwrap();
+                            if resolved_pin != resolved_wire {
+                                continue;
+                            }
+                            if let Some(mux_data) = node_data.muxes.get(&wire_pin) {
+                                for &inp in &mux_data.ins {
+                                    let inp_name = backend.egrid.db.wires.key(inp.1);
+                                    if inp_name.starts_with("OMUX")
+                                        || inp_name.starts_with("OUT")
+                                        || (h == 'E'
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.L"
+                                            && inp_name.starts_with("HEX"))
+                                        || (h == 'W'
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.R"
+                                            && inp_name.starts_with("HEX"))
+                                    {
+                                        // FOUND
+                                        let resolved_inp = backend
+                                            .egrid
+                                            .resolve_wire((loc.0, (loc.1, loc.2), inp.1))
+                                            .unwrap();
+                                        let (tile, wa, wb) =
+                                            resolve_int_pip(backend, loc, inp, wire_pin).unwrap();
+                                        fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_inp),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_pin),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        return Some(fuzzer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    loc.1 += 1;
+                }
+            }
+            TileKV::VirtexDriveHexV(wire) => {
+                let node = backend.egrid.node(loc);
+                let resolved_wire =
+                    backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                let wire_name = backend.egrid.db.wires.key(wire.1);
+                let v = wire_name[4..5].chars().next().unwrap();
+                let i: usize = wire_name[5..6].parse().unwrap();
+                let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
+                if loc.2.to_idx() >= 6 {
+                    loc.2 -= 6;
+                } else {
+                    loc.2 = RowId::from_idx(0)
+                };
+                loop {
+                    if let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |n| {
+                            matches!(
+                                &backend.egrid.db.nodes.key(n.kind)[..],
+                                "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
+                            )
+                        })
+                    {
+                        loc.3 = layer;
+                        let node_data = &backend.egrid.db.nodes[node.kind];
+                        for j in 0..=6 {
+                            let wire_pin = (
+                                NodeTileId::from_idx(0),
+                                backend.egrid.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                            );
+                            let resolved_pin = backend
+                                .egrid
+                                .resolve_wire((loc.0, (loc.1, loc.2), wire_pin.1))
+                                .unwrap();
+                            if resolved_pin != resolved_wire {
+                                continue;
+                            }
+                            if let Some(mux_data) = node_data.muxes.get(&wire_pin) {
+                                for &inp in &mux_data.ins {
+                                    let inp_name = backend.egrid.db.wires.key(inp.1);
+                                    if inp_name.starts_with("OMUX")
+                                        || inp_name.starts_with("OUT")
+                                        || (v == 'N'
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.B"
+                                            && inp_name.starts_with("HEX"))
+                                        || (v == 'S'
+                                            && backend.egrid.db.nodes.key(node.kind) == "IO.T"
+                                            && inp_name.starts_with("HEX"))
+                                    {
+                                        // FOUND
+                                        let resolved_inp = backend
+                                            .egrid
+                                            .resolve_wire((loc.0, (loc.1, loc.2), inp.1))
+                                            .unwrap();
+                                        let (tile, wa, wb) =
+                                            resolve_int_pip(backend, loc, inp, wire_pin).unwrap();
+                                        fuzzer = fuzzer.base(Key::Pip(tile, wa, wb), true);
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_inp),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        fuzzer = fuzzer.fuzz(
+                                            Key::NodeMutex(resolved_pin),
+                                            None,
+                                            "EXCLUSIVE",
+                                        );
+                                        return Some(fuzzer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    loc.2 += 1;
+                }
             }
         })
     }
@@ -1762,6 +2219,9 @@ impl TileBits {
                 }
             },
             TileBits::Spine(d, n) => match backend.edev {
+                ExpandedDevice::Virtex(edev) => {
+                    (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
+                }
                 ExpandedDevice::Virtex2(edev) => {
                     (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
                 }
@@ -2174,6 +2634,7 @@ impl TileBits {
 pub enum ExtraFeatureKind {
     AllDcms,
     AllBrams,
+    Pcilogic(Dir),
     DcmVreg,
     DcmLL,
     DcmUL,
@@ -2246,6 +2707,17 @@ impl ExtraFeatureKind {
                 }
                 _ => unreachable!(),
             },
+            ExtraFeatureKind::Pcilogic(dir) => {
+                let ExpandedDevice::Virtex(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let col = match dir {
+                    Dir::W => edev.grid.col_lio(),
+                    Dir::E => edev.grid.col_rio(),
+                    _ => unreachable!(),
+                };
+                vec![vec![edev.btile_main(col, edev.grid.row_clk())]]
+            }
             ExtraFeatureKind::DcmLL => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()

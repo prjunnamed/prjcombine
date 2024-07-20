@@ -15,7 +15,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     let mut bram_forbidden = Vec::new();
     let mut bram_bt_forbidden = Vec::new();
     let mut dll_forbidden = Vec::new();
-    let mut bram_extra_pips = BTreeMap::new();
 
     let mut gclk = Vec::new();
     for i in 0..4 {
@@ -115,39 +114,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
-    let def_t = NodeTileId::from_idx(0);
     for name in ["ADDR", "DIN", "DOUT"] {
-        let mut l = Vec::new();
-        let mut ln = Vec::new();
         for i in 0..32 {
-            let w = builder.mux_out(
-                format!("BRAM.SINGLE.{name}{i}"),
+            let w = builder.multi_out(
+                format!("BRAM.QUAD.{name}{i}"),
                 &[format!("BRAM_R{name}S{i}")],
             );
-            let s = builder.branch(
+            builder.multi_branch(
                 w,
                 Dir::S,
-                format!("BRAM.SINGLE.{name}{i}.S"),
+                format!("BRAM.QUAD.{name}{i}.S"),
                 &[format!("BRAM_R{name}N{i}")],
-            );
-            bram_forbidden.push(s);
-            let n = builder.branch(w, Dir::N, format!("BRAM.SINGLE.{name}{i}.N"), &[""]);
-            l.push(w);
-            ln.push(n);
-        }
-        for i in 0..32 {
-            let si = if name == "ADDR" {
-                i
-            } else {
-                i & 0x10 | (i + 0xf) & 0xf
-            };
-            bram_extra_pips.insert(
-                ((def_t, l[i]), (def_t, ln[si])),
-                NodeExtPipNaming {
-                    tile: NodeRawTileId::from_idx(1),
-                    wire_to: format!("BRAM_R{name}N{i}"),
-                    wire_from: format!("BRAM_R{name}S{si}"),
-                },
             );
         }
     }
@@ -730,14 +707,6 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 &[builder.bel_single("BRAM", "BLOCKRAM")],
                 &bram_forbidden,
             );
-        }
-        if let Some((_, n)) = builder.db.nodes.get_mut(tkn) {
-            let (_, naming) = builder.db.node_namings.get_mut(tkn).unwrap();
-            for (&k, v) in &bram_extra_pips {
-                let (wt, wf) = k;
-                n.muxes.get_mut(&wt).unwrap().ins.insert(wf);
-                naming.ext_pips.insert(k, v.clone());
-            }
         }
     }
 

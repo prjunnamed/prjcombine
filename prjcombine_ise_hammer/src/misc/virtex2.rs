@@ -2075,16 +2075,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
             tile,
             bel,
             "PERSIST",
-            TileItem {
-                bits: vec![FeatureBit {
-                    tile: 0,
-                    frame: 0,
-                    bit: 3,
-                }],
-                kind: TileItemKind::BitVec {
-                    invert: BitVec::from_iter([false]),
-                },
-            },
+            TileItem::from_bit(FeatureBit::new(0, 0, 3), false),
         );
     } else {
         let tile = "REG.COR1.S3A";

@@ -9,3 +9,9 @@ Virtex
 
    clb
    bram
+   io
+   corner
+   dll
+   pcilogic
+   clock
+   config

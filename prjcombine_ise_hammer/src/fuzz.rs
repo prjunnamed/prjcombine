@@ -105,7 +105,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
         let node_kind = backend.egrid.db.get_node(match backend.edev {
             ExpandedDevice::Xc4k(_) => "LL",
             ExpandedDevice::Xc5200(_) => "LL",
-            ExpandedDevice::Virtex(_) => "LL",
+            ExpandedDevice::Virtex(_) => "CNR.BL",
             ExpandedDevice::Virtex2(edev) => match edev.grid.kind {
                 prjcombine_virtex2::grid::GridKind::Virtex2 => "LL.V2",
                 prjcombine_virtex2::grid::GridKind::Virtex2P

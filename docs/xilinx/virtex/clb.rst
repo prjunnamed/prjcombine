@@ -1,5 +1,5 @@
-Configurable Logic Block — Virtex
-#################################
+Configurable Logic Block
+########################
 
 
 Bitstream

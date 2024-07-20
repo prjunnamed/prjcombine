@@ -65,22 +65,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "BRAM";
         let ti = ctx.extract_enum_bool(tile, bel, "CLKAMUX", "1", "0");
-        ctx.tiledb.insert(tile, bel, "CLKAINV", ti);
+        ctx.tiledb.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);
         let ti = ctx.extract_enum_bool(tile, bel, "CLKBMUX", "1", "0");
-        ctx.tiledb.insert(tile, bel, "CLKBINV", ti);
-        for (pininv, pinmux, pin, pin_b) in [
-            ("ENAINV", "ENAMUX", "ENA", "ENA_B"),
-            ("ENBINV", "ENBMUX", "ENB", "ENB_B"),
-            ("WEAINV", "WEAMUX", "WEA", "WEA_B"),
-            ("WEBINV", "WEBMUX", "WEB", "WEB_B"),
-            ("RSTAINV", "RSTAMUX", "RSTA", "RSTA_B"),
-            ("RSTBINV", "RSTBMUX", "RSTB", "RSTB_B"),
+        ctx.tiledb.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKB", ti);
+        for (wire, pinmux, pin, pin_b) in [
+            ("SELA", "ENAMUX", "ENA", "ENA_B"),
+            ("SELB", "ENBMUX", "ENB", "ENB_B"),
+            ("WEA", "WEAMUX", "WEA", "WEA_B"),
+            ("WEB", "WEBMUX", "WEB", "WEB_B"),
+            ("RSTA", "RSTAMUX", "RSTA", "RSTA_B"),
+            ("RSTB", "RSTBMUX", "RSTB", "RSTB_B"),
         ] {
             let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
             assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
             let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            ctx.tiledb.insert(tile, "INT", format!("INV.0.IMUX.BRAM.{wire}"), xlat_bool(d0, d1));
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {
@@ -97,8 +97,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb
             .insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-        present.discard_bits(ctx.tiledb.item(tile, bel, "ENAINV"));
-        present.discard_bits(ctx.tiledb.item(tile, bel, "ENBINV"));
+        present.discard_bits(ctx.tiledb.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
+        present.discard_bits(ctx.tiledb.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
         present.assert_empty();
     }
 }

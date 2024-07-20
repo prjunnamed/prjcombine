@@ -102,6 +102,21 @@ impl<'a> ExpandedDevice<'a> {
         )
     }
 
+    pub fn btile_spine(&self, row: RowId) -> BitTile {
+        let width = 8;
+        let height = 18;
+
+        let bit = height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.spine_frame,
+            width,
+            bit,
+            height,
+            false,
+        )
+    }
+
     pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
         let width = 64;
         let height = 18;

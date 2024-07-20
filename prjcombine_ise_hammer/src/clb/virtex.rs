@@ -272,19 +272,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for bel in ["SLICE0", "SLICE1"] {
-        let ti = ctx.extract_enum_bool(tile, bel, "CKINV", "1", "0");
-        ctx.tiledb.insert(tile, bel, "CLKINV", ti);
-        for (pininv, pinmux, pin, pin_b) in [
-            ("BXINV", "BXMUX", "BX", "BX_B"),
-            ("BYINV", "BYMUX", "BY", "BY_B"),
-            ("CEINV", "CEMUX", "CE", "CE_B"),
-            ("SRINV", "SRMUX", "SR", "SR_B"),
+        let item = ctx.extract_enum_bool(tile, bel, "CKINV", "1", "0");
+        ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
+        for (pinmux, pin, pin_b) in [
+            ("BXMUX", "BX", "BX_B"),
+            ("BYMUX", "BY", "BY_B"),
+            ("CEMUX", "CE", "CE_B"),
+            ("SRMUX", "SR", "SR_B"),
         ] {
             let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
             assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
             let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bool(d0, d1));
         }
 
         ctx.collect_bitvec(tile, bel, "F", "#LUT");
@@ -372,14 +372,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");
     }
     for bel in ["TBUF0", "TBUF1"] {
-        for (pininv, pinmux, pin, pin_b) in
-            [("IINV", "IMUX", "I", "I_B"), ("TINV", "TMUX", "T", "T_B")]
+        for (pinmux, pin, pin_b) in
+            [("IMUX", "I", "I_B"), ("TMUX", "T", "T_B")]
         {
             let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
             assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
             let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.tiledb.insert(tile, bel, pininv, xlat_bool(d0, d1));
+            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bool(d0, d1));
         }
         for attr in ["OUT_A", "OUT_B"] {
             ctx.tiledb.insert(

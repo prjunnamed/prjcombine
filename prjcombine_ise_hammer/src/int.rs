@@ -7,8 +7,11 @@ use crate::{
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 
+pub mod virtex;
+
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     if matches!(backend.edev, ExpandedDevice::Virtex(_)) {
+        virtex::add_fuzzers(session, backend);
         return;
     }
     let intdb = backend.egrid.db;
@@ -111,6 +114,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if matches!(ctx.edev, ExpandedDevice::Virtex(_)) {
+        virtex::collect_fuzzers(ctx);
         return;
     }
     let egrid = ctx.edev.egrid();
