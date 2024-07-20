@@ -27,6 +27,7 @@ mod io;
 mod misc;
 mod pcie;
 mod ppc;
+mod tbus;
 mod tiledb;
 
 use backend::IseBackend;
@@ -109,6 +110,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
+                tbus::add_fuzzers(&mut hammer, &backend);
                 // TODO: clk
                 bram::virtex::add_fuzzers(&mut hammer, &backend);
                 if !args.skip_misc {
@@ -119,6 +121,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
+                if edev.grid.kind.is_virtex2() {
+                    tbus::add_fuzzers(&mut hammer, &backend);
+                }
                 clk::virtex2::add_fuzzers(&mut hammer, &backend);
                 bram::virtex2::add_fuzzers(&mut hammer, &backend);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
@@ -256,6 +261,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Xc5200(_) => {}
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::collect_fuzzers(&mut ctx);
+                tbus::collect_fuzzers(&mut ctx);
                 bram::virtex::collect_fuzzers(&mut ctx);
                 if !args.skip_misc {
                     misc::virtex::collect_fuzzers(&mut ctx);
@@ -263,6 +269,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(&mut ctx);
+                if edev.grid.kind.is_virtex2() {
+                    tbus::collect_fuzzers(&mut ctx);
+                }
                 clk::virtex2::collect_fuzzers(&mut ctx);
                 bram::virtex2::collect_fuzzers(&mut ctx);
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {

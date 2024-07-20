@@ -2916,55 +2916,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // a while another kind of fuzzer for a handful of bits.
             let bit = if edev.grid.kind.is_virtex2() {
                 [
-                    FeatureBit {
-                        tile: 0,
-                        frame: 2,
-                        bit: 13,
-                    },
-                    FeatureBit {
-                        tile: 0,
-                        frame: 2,
-                        bit: 33,
-                    },
-                    FeatureBit {
-                        tile: 0,
-                        frame: 2,
-                        bit: 53,
-                    },
-                    FeatureBit {
-                        tile: 0,
-                        frame: 2,
-                        bit: 73,
-                    },
+                    FeatureBit::new(0, 2, 13),
+                    FeatureBit::new(0, 2, 33),
+                    FeatureBit::new(0, 2, 53),
+                    FeatureBit::new(0, 2, 73),
                 ][bel_id.to_idx()]
             } else {
                 [
-                    FeatureBit {
-                        tile: 0,
-                        frame: 3,
-                        bit: 0,
-                    },
-                    FeatureBit {
-                        tile: 0,
-                        frame: 3,
-                        bit: 39,
-                    },
-                    FeatureBit {
-                        tile: 0,
-                        frame: 3,
-                        bit: 40,
-                    },
+                    FeatureBit::new(0, 3, 0),
+                    FeatureBit::new(0, 3, 39),
+                    FeatureBit::new(0, 3, 40),
                 ][bel_id.to_idx()]
             };
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "READBACK_I",
-                TileItem {
-                    bits: vec![bit],
-                    kind: TileItemKind::BitVec { invert: bitvec![0] },
-                },
-            );
+            ctx.tiledb
+                .insert(tile, bel, "READBACK_I", TileItem::from_bit(bit, false));
         }
         // specials. need cross-bel discard.
         if edev.grid.kind.is_spartan3ea() {

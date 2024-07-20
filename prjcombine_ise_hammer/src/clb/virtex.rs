@@ -1,13 +1,12 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
-use unnamed_entity::EntityId;
+use prjcombine_types::TileItem;
 
 use crate::{
-    backend::IseBackend,
+    backend::{FeatureBit, IseBackend},
     diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
     fgen::TileBits,
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    fuzz_enum, fuzz_multi,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -244,29 +243,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pin "BY")
         ]);
     }
-
-    let tbus_bel = BelId::from_idx(4);
-    for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
-        let ctx = FuzzCtx::new(
-            session,
-            backend,
-            "CLB",
-            format!("TBUF{i}"),
-            TileBits::MainAuto,
-        );
-        fuzz_enum!(ctx, "IMUX", ["0", "1", "I", "I_B"], [
-            (mode "TBUF"),
-            (pin "I"),
-            (pin "O")
-        ]);
-        fuzz_enum!(ctx, "TMUX", ["0", "1", "T", "T_B"], [
-            (mode "TBUF"),
-            (pin "T"),
-            (pin "O")
-        ]);
-        fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
-        fuzz_one!(ctx, "OUT_B", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
-    }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
@@ -371,23 +347,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");
         ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");
     }
-    for bel in ["TBUF0", "TBUF1"] {
-        for (pinmux, pin, pin_b) in
-            [("IMUX", "I", "I_B"), ("TMUX", "T", "T_B")]
-        {
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bool(d0, d1));
-        }
-        for attr in ["OUT_A", "OUT_B"] {
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                attr,
-                xlat_bitvec(vec![ctx.state.get_diff(tile, bel, attr, "1")]),
-            );
-        }
+    // extracted manually from .ll
+    for (bel, attr, frame, bit) in [
+        ("SLICE0", "READBACK_XQ", 45, 16),
+        ("SLICE0", "READBACK_YQ", 39, 16),
+        ("SLICE1", "READBACK_XQ", 2, 16),
+        ("SLICE1", "READBACK_YQ", 8, 16),
+    ] {
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            attr,
+            TileItem::from_bit(FeatureBit::new(0, frame, bit), false),
+        );
     }
 }

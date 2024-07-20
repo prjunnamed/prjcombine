@@ -1,12 +1,10 @@
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
-use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureId, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
-    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileRelation, TileWire},
+    fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
 };
@@ -19,7 +17,6 @@ pub enum Mode {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let node_kind = backend.egrid.db.get_node("CLB");
     let mode = match backend.edev {
         ExpandedDevice::Virtex2(ref edev) => {
             if edev.grid.kind.is_virtex2() {
@@ -596,48 +593,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pin "BY")
         ]);
     }
-    if mode == Mode::Virtex2 {
-        let tbus_bel = BelId::from_idx(6);
-        for (i, out_a, out_b) in [(0, "BUS0", "BUS2"), (1, "BUS1", "BUS3")] {
-            let ctx = FuzzCtx::new(
-                session,
-                backend,
-                "CLB",
-                format!("TBUF{i}"),
-                TileBits::MainAuto,
-            );
-            fuzz_inv!(ctx, "T", [
-                (mode "TBUF"),
-                (pin "O")
-            ]);
-            fuzz_inv!(ctx, "I", [
-                (mode "TBUF"),
-                (pin "O")
-            ]);
-            fuzz_one!(ctx, "OUT_A", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_a))]);
-            fuzz_one!(ctx, "OUT_B", "1", [(row_mutex_site "TBUF")], [(pip (pin "O"), (bel_pin tbus_bel, out_b))]);
-        }
-        let bel = BelId::from_idx(6);
-        session.add_fuzzer(Box::new(TileFuzzerGen {
-            node: node_kind,
-            bits: TileBits::Main(1),
-            feature: FeatureId {
-                tile: "CLB".into(),
-                bel: "TBUS".into(),
-                attr: "JOINER".into(),
-                val: "1".into(),
-            },
-            base: vec![],
-            fuzz: vec![TileFuzzKV::TileRelated(
-                TileRelation::ClbTbusRight,
-                Box::new(TileFuzzKV::Pip(
-                    TileWire::BelPinNear(bel, "BUS3".into()),
-                    TileWire::BelPinNear(bel, "BUS3_E".into()),
-                )),
-            )],
-            extras: vec![],
-        }));
-    }
     if mode == Mode::Spartan3 {
         let mut ctx = FuzzCtx::new(session, backend, "RANDOR", "RANDOR", TileBits::Main(1));
         fuzz_enum!(ctx, "ANDORMUX", ["0", "1"], [
@@ -977,26 +932,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv("CLB", bel, "BX");
             ctx.collect_inv("CLB", bel, "BY");
         }
-    }
-    if mode == Mode::Virtex2 {
-        for bel in ["TBUF0", "TBUF1"] {
-            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "T", false);
-            ctx.collect_int_inv(&["INT.CLB"], "CLB", bel, "I", true);
-            for attr in ["OUT_A", "OUT_B"] {
-                ctx.tiledb.insert(
-                    "CLB",
-                    bel,
-                    attr,
-                    xlat_bitvec(vec![ctx.state.get_diff("CLB", bel, attr, "1")]),
-                );
-            }
-        }
-        ctx.tiledb.insert(
-            "CLB",
-            "TBUS",
-            "JOINER",
-            xlat_bitvec(vec![ctx.state.get_diff("CLB", "TBUS", "JOINER", "1")]),
-        );
     }
     if mode == Mode::Spartan3 {
         let ExpandedDevice::Virtex2(edev) = ctx.edev else {
