@@ -484,7 +484,12 @@ impl<'a, B: Backend> Session<'a, B> {
                     nr = queue.bdata[bid].width
                 );
                 for f in batch.fuzzers.values() {
-                    eprintln!("{f:?}", f = f.info);
+                    eprintln!("  {f:?}", f = f.info);
+                    if self.debug >= 4 {
+                        for (k, v) in &f.kv {
+                            eprintln!("    {k:?} = {v:?}");
+                        }
+                    }
                 }
             }
         }

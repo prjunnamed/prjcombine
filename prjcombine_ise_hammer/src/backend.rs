@@ -15,6 +15,7 @@ use crate::diff::Diff;
 use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
+    pub debug: u8,
     pub tc: &'a Toolchain,
     pub db: &'a GeomDb,
     pub device: &'a Device,
@@ -635,6 +636,9 @@ impl<'a> Backend for IseBackend<'a> {
             }
         }
         for (feat, xdiffs) in f.features.iter().zip(fdiffs) {
+            if self.debug >= 3 {
+                eprintln!("RETURN {feat:?} {xdiffs:?}");
+            }
             if feat.tiles.is_empty() {
                 for diff in &xdiffs {
                     if !diff.bits.is_empty() {

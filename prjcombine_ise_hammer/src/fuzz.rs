@@ -198,6 +198,12 @@ macro_rules! fuzz_base {
             $crate::fgen::BelKV::PinFrom($pin.to_string(), $kind),
         )
     };
+    ($ctx:ident, (pin_node_mutex_shared $pin:expr)) => {
+        $crate::fgen::TileKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelKV::PinNodeMutexShared($pin.to_string()),
+        )
+    };
     ($ctx:ident, (iob_pin $iob:expr, $pin:expr)) => {
         $crate::fgen::TileKV::IobBel(
             $iob.tile,
@@ -246,6 +252,16 @@ macro_rules! fuzz_base {
             $ctx.bel,
             $crate::fgen::BelKV::Global(
                 $crate::fgen::BelGlobalKind::Xy,
+                $opt.to_string(),
+                $val.to_string(),
+            ),
+        )
+    };
+    ($ctx:ident, (global_dll $opt:expr, $val:expr)) => {
+        $crate::fgen::TileKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelKV::Global(
+                $crate::fgen::BelGlobalKind::Dll,
                 $opt.to_string(),
                 $val.to_string(),
             ),
@@ -363,6 +379,16 @@ macro_rules! fuzz_diff {
             $ctx.bel,
             $crate::fgen::BelFuzzKV::Global(
                 $crate::fgen::BelGlobalKind::Xy,
+                $opt.to_string(),
+                $val.to_string(),
+            ),
+        )
+    };
+    ($ctx:ident, (global_dll $opt:expr, $val:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelFuzzKV::Global(
+                $crate::fgen::BelGlobalKind::Dll,
                 $opt.to_string(),
                 $val.to_string(),
             ),

@@ -53,6 +53,8 @@ struct Args {
     skip_misc: bool,
     #[arg(long)]
     no_dup: bool,
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    debug: u8,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -67,6 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("part {name}", name = part.name);
         let gedev = db.expand_grid(part);
         let backend = IseBackend {
+            debug: args.debug,
             tc: &tc,
             db: &db,
             device: part,
@@ -75,6 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             edev: &gedev,
         };
         let mut hammer = Session::new(&backend);
+        hammer.debug = args.debug;
         if args.no_dup {
             hammer.dup_factor = 1;
         }
@@ -115,7 +119,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 bram::virtex::add_fuzzers(&mut hammer, &backend);
                 misc::virtex::add_fuzzers(&mut hammer, &backend);
                 // TODO: io
-                // TODO: dll
+                dcm::virtex::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::add_fuzzers(&mut hammer, &backend);
@@ -263,6 +267,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clk::virtex::collect_fuzzers(&mut ctx);
                 bram::virtex::collect_fuzzers(&mut ctx);
                 misc::virtex::collect_fuzzers(&mut ctx);
+                dcm::virtex::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(&mut ctx);

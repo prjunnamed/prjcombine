@@ -649,6 +649,7 @@ pub enum TileKV<'a> {
     VirtexPinHexV(NodeWireId),
     VirtexDriveHexH(NodeWireId),
     VirtexDriveHexV(NodeWireId),
+    DeviceSide(Dir),
 }
 
 #[derive(Debug, Clone)]
@@ -660,6 +661,7 @@ pub enum BelKV {
     Global(BelGlobalKind, String, String),
     Pin(String, bool),
     PinFrom(String, PinFromKind),
+    PinNodeMutexShared(String),
     GlobalMutexHere(String),
     RowMutexHere(String),
     Mutex(String, String),
@@ -1528,6 +1530,34 @@ impl<'a> TileKV<'a> {
                     loc.2 += 1;
                 }
             }
+            TileKV::DeviceSide(dir) => match backend.edev {
+                ExpandedDevice::Virtex(edev) => {
+                    match dir {
+                        Dir::W => {
+                            if loc.1 >= edev.grid.col_clk() {
+                                return None;
+                            }
+                        }
+                        Dir::E => {
+                            if loc.1 < edev.grid.col_clk() {
+                                return None;
+                            }
+                        }
+                        Dir::S => {
+                            if loc.2 >= edev.grid.row_mid() {
+                                return None;
+                            }
+                        }
+                        Dir::N => {
+                            if loc.2 < edev.grid.row_mid() {
+                                return None;
+                            }
+                        }
+                    }
+                    fuzzer
+                }
+                _ => todo!(),
+            },
         })
     }
 }
@@ -1560,7 +1590,7 @@ impl<'a> BelKV {
             }
             BelKV::Global(kind, opt, val) => {
                 let site = &node.bels[bel];
-                fuzzer.base(Key::GlobalOpt(kind.apply(opt, site)), val)
+                fuzzer.base(Key::GlobalOpt(kind.apply(backend, opt, site)), val)
             }
             BelKV::Pin(pin, val) => {
                 let site = &node.bels[bel];
@@ -1569,6 +1599,19 @@ impl<'a> BelKV {
             BelKV::PinFrom(pin, kind) => {
                 let site = &node.bels[bel];
                 fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind)
+            }
+            BelKV::PinNodeMutexShared(pin) => {
+                let node_data = &backend.egrid.db.nodes[node.kind];
+                let bel_data = &node_data.bels[bel];
+                let pin_data = &bel_data.pins[pin];
+                for &wire in &pin_data.wires {
+                    let node = backend.egrid.node(loc);
+                    let node = backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                    fuzzer = fuzzer.base(Key::NodeMutex(node), "SHARED");
+                }
+                fuzzer
             }
             BelKV::GlobalMutexHere(name) => fuzzer.base(
                 Key::GlobalMutex(name.clone()),
@@ -1889,14 +1932,28 @@ pub enum TileFuzzKV<'a> {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum BelGlobalKind {
     Xy,
+    Dll,
 }
 
 impl BelGlobalKind {
-    pub fn apply(self, opt: &str, site: &str) -> String {
+    pub fn apply(self, backend: &IseBackend, opt: &str, site: &str) -> String {
         match self {
             BelGlobalKind::Xy => {
                 let xy = &site[site.rfind('X').unwrap()..];
                 format!("{opt}{xy}")
+            }
+            BelGlobalKind::Dll => {
+                let ExpandedDevice::Virtex(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if opt == "TESTZD2OSC*"
+                    && site.len() == 4
+                    && edev.grid.kind != prjcombine_virtex::grid::GridKind::Virtex
+                {
+                    opt.replace('*', &format!("{}S", &site[3..]))
+                } else {
+                    opt.replace('*', &site[3..])
+                }
             }
         }
     }
@@ -2054,7 +2111,7 @@ impl BelFuzzKV {
                 fuzzer
             }
             BelFuzzKV::Global(kind, name, val) => {
-                fuzzer.fuzz(Key::GlobalOpt(kind.apply(name, site)), None, val)
+                fuzzer.fuzz(Key::GlobalOpt(kind.apply(backend, name, site)), None, val)
             }
         })
     }
@@ -2090,7 +2147,7 @@ impl TileMultiFuzzKV {
             }
             TileMultiFuzzKV::BelGlobalOpt(bel, kind, opt, val) => {
                 let site = &backend.egrid.node(loc).bels[*bel];
-                let name = kind.apply(opt, site);
+                let name = kind.apply(backend, opt, site);
                 fuzzer.fuzz_multi(Key::GlobalOpt(name), *val)
             }
         }
@@ -2646,6 +2703,7 @@ impl TileBits {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ExtraFeatureKind {
+    MainFixed(ColId, RowId),
     AllDcms,
     AllBrams,
     Pcilogic(Dir),
@@ -2670,25 +2728,42 @@ pub enum ExtraFeatureKind {
 impl ExtraFeatureKind {
     pub fn get_tiles(self, backend: &IseBackend, loc: Loc) -> Vec<Vec<BitTile>> {
         match self {
-            ExtraFeatureKind::AllDcms => {
-                let ExpandedDevice::Virtex2(edev) = backend.edev else {
-                    unreachable!()
-                };
-                let node = match edev.grid.kind {
-                    prjcombine_virtex2::grid::GridKind::Virtex2 => "DCM.V2",
-                    prjcombine_virtex2::grid::GridKind::Virtex2P
-                    | prjcombine_virtex2::grid::GridKind::Virtex2PX => "DCM.V2P",
-                    prjcombine_virtex2::grid::GridKind::Spartan3 => "DCM.S3",
-                    prjcombine_virtex2::grid::GridKind::Spartan3E => todo!(),
-                    prjcombine_virtex2::grid::GridKind::Spartan3A => todo!(),
-                    prjcombine_virtex2::grid::GridKind::Spartan3ADsp => todo!(),
-                };
-                let node = backend.egrid.db.get_node(node);
-                backend.egrid.node_index[node]
-                    .iter()
-                    .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
-                    .collect()
-            }
+            ExtraFeatureKind::MainFixed(col, row) => match backend.edev {
+                ExpandedDevice::Virtex(edev) => {
+                    vec![vec![edev.btile_main(col, row)]]
+                }
+                _ => todo!(),
+            },
+            ExtraFeatureKind::AllDcms => match backend.edev {
+                ExpandedDevice::Virtex(edev) => {
+                    let mut res = vec![];
+                    for (node, name, _) in &backend.egrid.db.nodes {
+                        if name.starts_with("DLL") {
+                            for &loc in &backend.egrid.node_index[node] {
+                                res.push(vec![edev.btile_main(loc.1, loc.2)]);
+                            }
+                        }
+                    }
+                    res
+                }
+                ExpandedDevice::Virtex2(edev) => {
+                    let node = match edev.grid.kind {
+                        prjcombine_virtex2::grid::GridKind::Virtex2 => "DCM.V2",
+                        prjcombine_virtex2::grid::GridKind::Virtex2P
+                        | prjcombine_virtex2::grid::GridKind::Virtex2PX => "DCM.V2P",
+                        prjcombine_virtex2::grid::GridKind::Spartan3 => "DCM.S3",
+                        prjcombine_virtex2::grid::GridKind::Spartan3E => todo!(),
+                        prjcombine_virtex2::grid::GridKind::Spartan3A => todo!(),
+                        prjcombine_virtex2::grid::GridKind::Spartan3ADsp => todo!(),
+                    };
+                    let node = backend.egrid.db.get_node(node);
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
+                        .collect()
+                }
+                _ => todo!(),
+            },
             ExtraFeatureKind::AllBrams => match backend.edev {
                 ExpandedDevice::Spartan6(edev) => {
                     let node = backend.egrid.db.get_node("BRAM");
