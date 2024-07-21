@@ -687,26 +687,51 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["LBRAM", "RBRAM", "MBRAM"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let mut dx = -1;
+            let mut dxl = -1;
+            let mut dxr = 1;
             if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&((xy.x - 1) as i32)) {
-                dx -= 1;
+                dxl -= 1;
+            }
+            if find_columns(rd, &["GCLKV", "GBRKV"]).contains(&((xy.x + 1) as i32)) {
+                dxr += 1;
             }
             let mut coords = Vec::new();
             for dy in 0..4 {
                 coords.push(xy.delta(0, dy));
             }
             for dy in 0..4 {
-                coords.push(xy.delta(dx, dy));
+                coords.push(xy.delta(dxl, dy));
             }
-            builder.extract_xnode(
-                tkn,
-                xy,
-                &[],
-                &coords,
-                tkn,
-                &[builder.bel_single("BRAM", "BLOCKRAM")],
-                &bram_forbidden,
-            );
+            for dy in 0..4 {
+                coords.push(xy.delta(dxr, dy));
+            }
+            let mut bels = vec![builder.bel_single("BRAM", "BLOCKRAM")];
+            if tkn != "MBRAM" {
+                let mut bel = builder.bel_virtual("CLKV_BRAM");
+                for i in 0..4 {
+                    bel = bel.extra_int_in(format!("IN{i}"), &[format!("BRAM_GCLKIN{i}")]);
+                }
+                for (i, l) in ['D', 'C', 'B', 'A'].into_iter().enumerate() {
+                    for j in 0..4 {
+                        bel = bel.extra_int_out(
+                            format!("OUT_L{i}_{j}"),
+                            &[
+                                format!("LBRAM_GCLK_IOB{l}{j}"),
+                                format!("RBRAM_GCLK_CLB{l}{j}"),
+                            ],
+                        );
+                        bel = bel.extra_int_out(
+                            format!("OUT_R{i}_{j}"),
+                            &[
+                                format!("LBRAM_GCLK_CLB{l}{j}"),
+                                format!("RBRAM_GCLK_IOB{l}{j}"),
+                            ],
+                        );
+                    }
+                }
+                bels.push(bel);
+            }
+            builder.extract_xnode(tkn, xy, &[], &coords, tkn, &bels, &bram_forbidden);
         }
     }
 
@@ -1162,17 +1187,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
-    for (tkn, naming) in [
-        ("CLKV", "CLKV.CLKV"),
-        ("CLKB", "CLKV.CLKB"),
-        ("CLKB_4DLL", "CLKV.CLKB"),
-        ("CLKB_2DLL", "CLKV.CLKB"),
-        ("CLKT", "CLKV.CLKT"),
-        ("CLKT_4DLL", "CLKV.CLKT"),
-        ("CLKT_2DLL", "CLKV.CLKT"),
-        ("GCLKV", "CLKV.GCLKV"),
-        ("GCLKB", "CLKV.GCLKB"),
-        ("GCLKT", "CLKV.GCLKT"),
+    for (tkn, kind, naming) in [
+        ("CLKV", "CLKV.CLKV", "CLKV.CLKV"),
+        ("CLKB", "CLKV.NULL", "CLKV.CLKB"),
+        ("CLKB_4DLL", "CLKV.NULL", "CLKV.CLKB"),
+        ("CLKB_2DLL", "CLKV.NULL", "CLKV.CLKB"),
+        ("CLKT", "CLKV.NULL", "CLKV.CLKT"),
+        ("CLKT_4DLL", "CLKV.NULL", "CLKV.CLKT"),
+        ("CLKT_2DLL", "CLKV.NULL", "CLKV.CLKT"),
+        ("GCLKV", "CLKV.GCLKV", "CLKV.GCLKV"),
+        ("GCLKB", "CLKV.NULL", "CLKV.GCLKB"),
+        ("GCLKT", "CLKV.NULL", "CLKV.GCLKT"),
     ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy_l = builder.walk_to_int(xy, Dir::W, false).unwrap();
@@ -1213,42 +1238,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     ],
                 );
             }
-            builder.extract_xnode_bels("CLKV", xy, &[], &[int_xy_l, int_xy_r], naming, &[bel]);
-        }
-    }
-
-    for (tkn, naming) in [("LBRAM", "CLKV_BRAM.L"), ("RBRAM", "CLKV_BRAM.R")] {
-        for &xy in rd.tiles_by_kind_name(tkn) {
-            let mut bel = builder.bel_virtual("CLKV_BRAM");
-            let mut coords = vec![xy];
-            for i in 0..4 {
-                bel = bel.extra_int_in(format!("IN{i}"), &[format!("BRAM_GCLKIN{i}")]);
-            }
-            for (i, l) in ['D', 'C', 'B', 'A'].into_iter().enumerate() {
-                for j in 0..4 {
-                    bel = bel.extra_int_out(
-                        format!("OUT_L{i}_{j}"),
-                        &[
-                            format!("LBRAM_GCLK_IOB{l}{j}"),
-                            format!("RBRAM_GCLK_CLB{l}{j}"),
-                        ],
-                    );
-                    bel = bel.extra_int_out(
-                        format!("OUT_R{i}_{j}"),
-                        &[
-                            format!("LBRAM_GCLK_CLB{l}{j}"),
-                            format!("RBRAM_GCLK_IOB{l}{j}"),
-                        ],
-                    );
-                }
-            }
-            for i in 0..4 {
-                coords.push(xy.delta(-1, i));
-            }
-            for i in 0..4 {
-                coords.push(xy.delta(1, i));
-            }
-            builder.extract_xnode_bels("CLKV_BRAM", xy, &[], &coords, naming, &[bel]);
+            builder.extract_xnode_bels(kind, xy, &[], &[int_xy_l, int_xy_r], naming, &[bel]);
         }
     }
 

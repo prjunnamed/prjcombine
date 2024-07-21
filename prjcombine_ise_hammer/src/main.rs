@@ -111,11 +111,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
                 tbus::add_fuzzers(&mut hammer, &backend);
-                // TODO: clk
+                clk::virtex::add_fuzzers(&mut hammer, &backend);
                 bram::virtex::add_fuzzers(&mut hammer, &backend);
-                if !args.skip_misc {
-                    misc::virtex::add_fuzzers(&mut hammer, &backend);
-                }
+                misc::virtex::add_fuzzers(&mut hammer, &backend);
                 // TODO: io
                 // TODO: dll
             }
@@ -262,10 +260,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::collect_fuzzers(&mut ctx);
                 tbus::collect_fuzzers(&mut ctx);
+                clk::virtex::collect_fuzzers(&mut ctx);
                 bram::virtex::collect_fuzzers(&mut ctx);
-                if !args.skip_misc {
-                    misc::virtex::collect_fuzzers(&mut ctx);
-                }
+                misc::virtex::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex2(ref edev) => {
                 clb::virtex2::collect_fuzzers(&mut ctx);

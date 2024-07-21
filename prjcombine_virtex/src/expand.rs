@@ -23,6 +23,7 @@ struct Expander<'a, 'b> {
     frame_info: Vec<FrameInfo>,
     col_frame: EntityVec<ColId, usize>,
     bram_frame: EntityPartVec<ColId, usize>,
+    clkv_frame: EntityPartVec<ColId, usize>,
 }
 
 impl<'a, 'b> Expander<'a, 'b> {
@@ -308,6 +309,10 @@ impl<'a, 'b> Expander<'a, 'b> {
                         (col - 1, row + 1),
                         (col - 1, row + 2),
                         (col - 1, row + 3),
+                        (col + 1, row),
+                        (col + 1, row + 1),
+                        (col + 1, row + 2),
+                        (col + 1, row + 3),
                     ],
                 );
                 let r = (self.grid.rows - 1 - row.to_idx() - 4) / 4;
@@ -625,61 +630,40 @@ impl<'a, 'b> Expander<'a, 'b> {
                             let col = ColId::from_idx(c);
                             self.die[(col, row)].clkroot = (col_m + 1, row);
                         }
-                        if row.to_idx() % 4 == 1 {
-                            let name = if self.grid.kind == GridKind::Virtex {
-                                format!("{lr}BRAMR{r}", r = self.rlut[row])
-                            } else {
-                                let c = self.bramclut[col_m];
-                                format!("BRAMR{r}C{c}", r = self.rlut[row])
-                            };
-                            self.die.add_xnode(
-                                (col_m, row),
-                                self.db.get_node("CLKV_BRAM"),
-                                &[&name],
-                                self.db.get_node_naming(if lr == 'L' {
-                                    "CLKV_BRAM.L"
-                                } else {
-                                    "CLKV_BRAM.R"
-                                }),
-                                &[
-                                    (col_m, row),
-                                    (col_m - 1, row),
-                                    (col_m - 1, row + 1),
-                                    (col_m - 1, row + 2),
-                                    (col_m - 1, row + 3),
-                                    (col_m + 1, row),
-                                    (col_m + 1, row + 1),
-                                    (col_m + 1, row + 2),
-                                    (col_m + 1, row + 3),
-                                ],
-                            );
-                        }
                     }
                 } else {
                     for c in col_m.to_idx()..col_r.to_idx() {
                         let col = ColId::from_idx(c);
                         self.die[(col, row)].clkroot = (col_m, row);
                     }
-                    let (name, naming) = if col_m == self.grid.col_clk() {
+                    let (name, kind, naming) = if col_m == self.grid.col_clk() {
                         if row == self.grid.row_bio() {
-                            ("BM".to_string(), "CLKV.CLKB")
+                            ("BM".to_string(), "CLKV.NULL", "CLKV.CLKB")
                         } else if row == self.grid.row_tio() {
-                            ("TM".to_string(), "CLKV.CLKT")
+                            ("TM".to_string(), "CLKV.NULL", "CLKV.CLKT")
                         } else {
-                            (format!("VMR{r}", r = self.rlut[row]), "CLKV.CLKV")
+                            (
+                                format!("VMR{r}", r = self.rlut[row]),
+                                "CLKV.CLKV",
+                                "CLKV.CLKV",
+                            )
                         }
                     } else {
                         if row == self.grid.row_bio() {
-                            (format!("GCLKBC{cc}"), "CLKV.GCLKB")
+                            (format!("GCLKBC{cc}"), "CLKV.NULL", "CLKV.GCLKB")
                         } else if row == self.grid.row_tio() {
-                            (format!("GCLKTC{cc}"), "CLKV.GCLKT")
+                            (format!("GCLKTC{cc}"), "CLKV.NULL", "CLKV.GCLKT")
                         } else {
-                            (format!("GCLKVR{r}C{cc}", r = self.rlut[row]), "CLKV.GCLKV")
+                            (
+                                format!("GCLKVR{r}C{cc}", r = self.rlut[row]),
+                                "CLKV.GCLKV",
+                                "CLKV.GCLKV",
+                            )
                         }
                     };
                     self.die.add_xnode(
                         (col_m, row),
-                        self.db.get_node("CLKV"),
+                        self.db.get_node(kind),
                         &[&name],
                         self.db.get_node_naming(naming),
                         &[(col_m - 1, row), (col_m, row)],
@@ -741,12 +725,14 @@ impl<'a, 'b> Expander<'a, 'b> {
             });
         }
         major += 1;
+        self.clkv_frame.insert(self.grid.col_clk(), 7);
 
         for _ in self.grid.columns() {
             self.col_frame.push(0);
         }
 
         let split_bram = self.grid.kind != GridKind::VirtexE;
+        let mut clkv_frame = 0;
 
         for dx in 0..(self.grid.columns / 2) {
             for lr in ['R', 'L'] {
@@ -757,6 +743,17 @@ impl<'a, 'b> Expander<'a, 'b> {
                 };
                 if self.grid.cols_bram.contains(&col) && split_bram {
                     continue;
+                }
+                if col != self.grid.col_clk()
+                    && !self.grid.cols_bram.contains(&col)
+                    && self
+                        .grid
+                        .cols_clkv
+                        .iter()
+                        .any(|&(col_m, _, _)| col_m == col)
+                {
+                    self.clkv_frame.insert(col, clkv_frame);
+                    clkv_frame += 1;
                 }
                 self.col_frame[col] = self.frame_info.len();
                 let width = if col == self.grid.col_lio() || col == self.grid.col_rio() {
@@ -865,6 +862,7 @@ impl Grid {
             spine_frame: 0,
             col_frame: EntityVec::new(),
             bram_frame: EntityPartVec::new(),
+            clkv_frame: EntityPartVec::new(),
         };
         expander.fill_clut();
         expander.fill_rlut();
@@ -881,6 +879,7 @@ impl Grid {
         let spine_frame = expander.spine_frame;
         let col_frame = expander.col_frame;
         let bram_frame = expander.bram_frame;
+        let clkv_frame = expander.clkv_frame;
 
         let die_bs_geom = DieBitstreamGeom {
             frame_len: self.rows * 18,
@@ -904,6 +903,7 @@ impl Grid {
             spine_frame,
             col_frame,
             bram_frame,
+            clkv_frame,
         }
     }
 }

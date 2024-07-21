@@ -1243,8 +1243,8 @@ impl<'a> TileKV<'a> {
                 let h = wire_name[4..5].chars().next().unwrap();
                 let i: usize = wire_name[5..6].parse().unwrap();
                 let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
-                if loc.1.to_idx() >= 7 {
-                    loc.1 -= 7;
+                if loc.1.to_idx() >= 8 {
+                    loc.1 -= 8;
                 } else {
                     loc.1 = ColId::from_idx(0)
                 };
@@ -1384,8 +1384,8 @@ impl<'a> TileKV<'a> {
                 let h = wire_name[4..5].chars().next().unwrap();
                 let i: usize = wire_name[5..6].parse().unwrap();
                 let mut loc = (loc.0, node.tiles[wire.0].0, node.tiles[wire.0].1, loc.3);
-                if loc.1.to_idx() >= 7 {
-                    loc.1 -= 7;
+                if loc.1.to_idx() >= 8 {
+                    loc.1 -= 8;
                 } else {
                     loc.1 = ColId::from_idx(0)
                 };
@@ -2130,6 +2130,7 @@ pub enum TileBits {
     FreezeDci,
     Pcie,
     Pcie3,
+    VirtexClkv,
 }
 
 impl TileBits {
@@ -2258,6 +2259,13 @@ impl TileBits {
                 vec![edev.btile_main(col, row - 1)]
             }
             TileBits::SpineEnd => match backend.edev {
+                ExpandedDevice::Virtex(edev) => {
+                    if row.to_idx() == 0 {
+                        vec![edev.btile_spine(row), edev.btile_spine(row + 1)]
+                    } else {
+                        vec![edev.btile_spine(row), edev.btile_spine(row - 1)]
+                    }
+                }
                 ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_spine(row), edev.btile_btspine(row)]
                 }
@@ -2625,6 +2633,12 @@ impl TileBits {
                     res.push(edev.btile_main(die, col + 4, row + i));
                 }
                 res
+            }
+            TileBits::VirtexClkv => {
+                let ExpandedDevice::Virtex(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_clkv(col, row)]
             }
         }
     }

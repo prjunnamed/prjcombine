@@ -21,6 +21,7 @@ pub struct ExpandedDevice<'a> {
     pub spine_frame: usize,
     pub col_frame: EntityVec<ColId, usize>,
     pub bram_frame: EntityPartVec<ColId, usize>,
+    pub clkv_frame: EntityPartVec<ColId, usize>,
 }
 
 impl<'a> ExpandedDevice<'a> {
@@ -111,6 +112,20 @@ impl<'a> ExpandedDevice<'a> {
             DieId::from_idx(0),
             self.spine_frame,
             width,
+            bit,
+            height,
+            false,
+        )
+    }
+
+    pub fn btile_clkv(&self, col: ColId, row: RowId) -> BitTile {
+        let height = 18;
+
+        let bit = height * row.to_idx();
+        BitTile::Main(
+            DieId::from_idx(0),
+            self.clkv_frame[col],
+            1,
             bit,
             height,
             false,
