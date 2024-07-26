@@ -369,44 +369,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ],
         ),
         (
-            "LR_LOWER",
-            vec![
-                builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
-                builder.bel_xy("ICAP", "ICAP", 0, 0),
-                builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
-            ],
-        ),
-        (
-            "LR_UPPER",
-            vec![
-                builder.bel_single("SUSPEND_SYNC", "SUSPEND_SYNC"),
-                builder.bel_single("POST_CRC_INTERNAL", "POST_CRC_INTERNAL"),
-                builder.bel_single("STARTUP", "STARTUP"),
-                builder.bel_single("SLAVE_SPI", "SLAVE_SPI"),
-            ],
-        ),
-        (
             "UL",
             vec![
                 builder.bel_xy("OCT_CAL0", "OCT_CAL", 0, 0),
                 builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 1),
                 builder.bel_single("PMV", "PMV"),
                 builder.bel_single("DNA_PORT", "DNA_PORT"),
-            ],
-        ),
-        (
-            "UR_LOWER",
-            vec![
-                builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
-                builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
-                builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
-            ],
-        ),
-        (
-            "UR_UPPER",
-            vec![
-                builder.bel_xy("BSCAN0", "BSCAN", 0, 0),
-                builder.bel_xy("BSCAN1", "BSCAN", 0, 1),
             ],
         ),
     ] {
@@ -417,6 +385,44 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .bels(bels)
                 .extract();
         }
+    }
+    if let Some(&xy) = rd.tiles_by_kind_name("LR_LOWER").iter().next() {
+        let bels = vec![
+            builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+            builder.bel_xy("ICAP", "ICAP", 0, 0),
+            builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
+            builder
+                .bel_single("SUSPEND_SYNC", "SUSPEND_SYNC")
+                .raw_tile(1),
+            builder
+                .bel_single("POST_CRC_INTERNAL", "POST_CRC_INTERNAL")
+                .raw_tile(1),
+            builder.bel_single("STARTUP", "STARTUP").raw_tile(1),
+            builder.bel_single("SLAVE_SPI", "SLAVE_SPI").raw_tile(1),
+        ];
+        builder
+            .xnode("LR", "LR", xy)
+            .raw_tile(xy.delta(0, 1))
+            .ref_single(xy, 0, intf_cnr)
+            .ref_single(xy.delta(0, 1), 1, intf_cnr)
+            .bels(bels)
+            .extract();
+    }
+    if let Some(&xy) = rd.tiles_by_kind_name("UR_LOWER").iter().next() {
+        let bels = vec![
+            builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+            builder.bel_xy("BSCAN0", "BSCAN", 0, 0).raw_tile(1),
+            builder.bel_xy("BSCAN1", "BSCAN", 0, 1).raw_tile(1),
+            builder.bel_xy("BSCAN2", "BSCAN", 0, 0),
+            builder.bel_xy("BSCAN3", "BSCAN", 0, 1),
+        ];
+        builder
+            .xnode("UR", "UR", xy)
+            .raw_tile(xy.delta(0, 1))
+            .ref_single(xy, 0, intf_cnr)
+            .ref_single(xy.delta(0, 1), 1, intf_cnr)
+            .bels(bels)
+            .extract();
     }
 
     let intf_ioi = builder.db.get_node_naming("INTF.IOI");
@@ -2190,36 +2196,70 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire(format!("CASC{i}_I"), &[format!("PLL_CLK_CASC_TOP{i}")]);
                 }
             }
-            for i in 0..8 {
-                bel = bel
-                    .extra_wire(
-                        format!("BUFIO2_BOT{i}"),
-                        &[
-                            format!("DCM_CLK_INDIRECT_TB_BOT{i}"),
-                            format!("DCM2_CLK_INDIRECT_TB_BOT{i}"),
-                        ],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2_TOP{i}"),
-                        &[
-                            format!("DCM_CLK_INDIRECT_LR_TOP{i}"),
-                            format!("DCM2_CLK_INDIRECT_LR_TOP{i}"),
-                        ],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2FB_BOT{i}"),
-                        &[
-                            format!("DCM_CLK_FEEDBACK_TB_BOT{i}"),
-                            format!("DCM2_CLK_FEEDBACK_TB_BOT{i}"),
-                        ],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2FB_TOP{i}"),
-                        &[
-                            format!("DCM_CLK_FEEDBACK_LR_TOP{i}"),
-                            format!("DCM2_CLK_FEEDBACK_LR_TOP{i}"),
-                        ],
-                    );
+            if bt == 'B' {
+                for i in 0..8 {
+                    bel = bel
+                        .extra_wire(
+                            format!("BUFIO2_BT{i}"),
+                            &[
+                                format!("DCM_CLK_INDIRECT_TB_BOT{i}"),
+                                format!("DCM2_CLK_INDIRECT_TB_BOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2_LR{i}"),
+                            &[
+                                format!("DCM_CLK_INDIRECT_LR_TOP{i}"),
+                                format!("DCM2_CLK_INDIRECT_LR_TOP{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_BT{i}"),
+                            &[
+                                format!("DCM_CLK_FEEDBACK_TB_BOT{i}"),
+                                format!("DCM2_CLK_FEEDBACK_TB_BOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_LR{i}"),
+                            &[
+                                format!("DCM_CLK_FEEDBACK_LR_TOP{i}"),
+                                format!("DCM2_CLK_FEEDBACK_LR_TOP{i}"),
+                            ],
+                        );
+                }
+            } else {
+                for i in 0..8 {
+                    bel = bel
+                        .extra_wire(
+                            format!("BUFIO2_LR{i}"),
+                            &[
+                                format!("DCM_CLK_INDIRECT_TB_BOT{i}"),
+                                format!("DCM2_CLK_INDIRECT_TB_BOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2_BT{i}"),
+                            &[
+                                format!("DCM_CLK_INDIRECT_LR_TOP{i}"),
+                                format!("DCM2_CLK_INDIRECT_LR_TOP{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_LR{i}"),
+                            &[
+                                format!("DCM_CLK_FEEDBACK_TB_BOT{i}"),
+                                format!("DCM2_CLK_FEEDBACK_TB_BOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_BT{i}"),
+                            &[
+                                format!("DCM_CLK_FEEDBACK_LR_TOP{i}"),
+                                format!("DCM2_CLK_FEEDBACK_LR_TOP{i}"),
+                            ],
+                        );
+                }
             }
             bels.push(bel);
             builder
@@ -2361,30 +2401,58 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_wire(format!("CASC{i}_I"), &[format!("PLL_CLK_CASC_IN{i}")]);
                 }
             }
-            for i in 0..8 {
-                bel = bel
-                    .extra_wire(
-                        format!("BUFIO2_BOT{i}"),
-                        &[
-                            format!("CMT_PLL_CLK_INDIRECT_LRBOT{i}"),
-                            format!("CMT_PLL2_CLK_INDIRECT_LRBOT{i}"),
-                        ],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2_TOP{i}"),
-                        &[format!("PLL_CLK_INDIRECT_TB{i}")],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2FB_BOT{i}"),
-                        &[
-                            format!("CMT_PLL_CLK_FEEDBACK_LRBOT{i}"),
-                            format!("CMT_PLL2_CLK_FEEDBACK_LRBOT{i}"),
-                        ],
-                    )
-                    .extra_wire(
-                        format!("BUFIO2FB_TOP{i}"),
-                        &[format!("PLL_CLK_FEEDBACK_TB{i}")],
-                    );
+            if bt == 'B' {
+                for i in 0..8 {
+                    bel = bel
+                        .extra_wire(
+                            format!("BUFIO2_BT{i}"),
+                            &[
+                                format!("CMT_PLL_CLK_INDIRECT_LRBOT{i}"),
+                                format!("CMT_PLL2_CLK_INDIRECT_LRBOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2_LR{i}"),
+                            &[format!("PLL_CLK_INDIRECT_TB{i}")],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_BT{i}"),
+                            &[
+                                format!("CMT_PLL_CLK_FEEDBACK_LRBOT{i}"),
+                                format!("CMT_PLL2_CLK_FEEDBACK_LRBOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_LR{i}"),
+                            &[format!("PLL_CLK_FEEDBACK_TB{i}")],
+                        );
+                }
+            } else {
+                for i in 0..8 {
+                    bel = bel
+                        .extra_wire(
+                            format!("BUFIO2_LR{i}"),
+                            &[
+                                format!("CMT_PLL_CLK_INDIRECT_LRBOT{i}"),
+                                format!("CMT_PLL2_CLK_INDIRECT_LRBOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2_BT{i}"),
+                            &[format!("PLL_CLK_INDIRECT_TB{i}")],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_LR{i}"),
+                            &[
+                                format!("CMT_PLL_CLK_FEEDBACK_LRBOT{i}"),
+                                format!("CMT_PLL2_CLK_FEEDBACK_LRBOT{i}"),
+                            ],
+                        )
+                        .extra_wire(
+                            format!("BUFIO2FB_BT{i}"),
+                            &[format!("PLL_CLK_FEEDBACK_TB{i}")],
+                        );
+                }
             }
             builder
                 .xnode("CMT_PLL", tkn, xy)

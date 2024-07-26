@@ -176,6 +176,15 @@ macro_rules! fuzz_base {
             $crate::fgen::BelKV::Attr($attr.to_string(), $val.to_string()),
         )
     };
+    ($ctx:ident, (attr_any $attr:expr, $vals:expr)) => {
+        $crate::fgen::TileKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelKV::AttrAny(
+                $attr.to_string(),
+                $vals.into_iter().map(|x| x.into()).collect(),
+            ),
+        )
+    };
     ($ctx:ident, (bel_attr $bel:expr, $attr:expr, $val:expr)) => {
         $crate::fgen::TileKV::Bel(
             $bel,
@@ -246,6 +255,12 @@ macro_rules! fuzz_base {
     };
     ($ctx:ident, (no_global_opt $name:expr)) => {
         $crate::fgen::TileKV::NoGlobalOpt($name.into())
+    };
+    ($ctx:ident, (global_opt_any $attr:expr, $vals:expr)) => {
+        $crate::fgen::TileKV::GlobalOptAny(
+            $attr.to_string(),
+            $vals.into_iter().map(|x| x.into()).collect(),
+        )
     };
     ($ctx:ident, (global_xy $opt:expr, $val:expr)) => {
         $crate::fgen::TileKV::Bel(

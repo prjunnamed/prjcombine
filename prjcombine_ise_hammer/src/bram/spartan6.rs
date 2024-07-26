@@ -320,7 +320,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &format!("{hpin}_B"),
             )
         );
-        ctx.tiledb.insert(tile, hbel, format!("{hpin}INV"), item);
+        ctx.tiledb.insert(tile, hbel, format!("INV.{hpin}"), item);
     }
 
     for (fpin, hpin) in [
@@ -356,13 +356,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(
             tile,
             "BRAM_H0",
-            format!("{hpin}INV"),
+            format!("INV.{hpin}"),
             xlat_bool(diff0_h0, diff1_h0),
         );
         ctx.tiledb.insert(
             tile,
             "BRAM_H1",
-            format!("{hpin}INV"),
+            format!("INV.{hpin}"),
             xlat_bool(diff0_h1, diff1_h1),
         );
     }
@@ -498,10 +498,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "ENAWREN",
         "ENBRDEN",
     ] {
-        let item = ctx.tiledb.item(tile, "BRAM_H0", &format!("{pin}INV"));
+        let item = ctx.tiledb.item(tile, "BRAM_H0", &format!("INV.{pin}"));
         present_f.apply_bit_diff(item, false, true);
         present_h0.apply_bit_diff(item, false, true);
-        let item = ctx.tiledb.item(tile, "BRAM_H1", &format!("{pin}INV"));
+        let item = ctx.tiledb.item(tile, "BRAM_H1", &format!("INV.{pin}"));
         present_f.apply_bit_diff(item, false, true);
         present_h1.apply_bit_diff(item, false, true);
     }

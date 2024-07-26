@@ -1,8 +1,8 @@
 use crate::{DeviceKind, KeyData, KeySeq};
 use aes::cipher::{inout::InOutBuf, KeyIvInit};
-use sha2::Digest;
 use arrayref::{array_mut_ref, array_ref};
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, KeyInit};
+use sha2::Digest;
 
 #[derive(Debug, Clone)]
 pub struct PacketParser<'a> {
@@ -222,6 +222,7 @@ impl<'a> Iterator for PacketParser<'a> {
                 let ph = u16::from_be_bytes(*array_ref!(src_data, self.pos, 2));
                 self.pos += 2;
                 if self.sync {
+                    let prev_crc = self.crc.get();
                     if ph == 0x2000 {
                         Some(Packet::Nop)
                     } else if (ph >> 11) == 6 {
@@ -291,6 +292,7 @@ impl<'a> Iterator for PacketParser<'a> {
                             (0xe, 2) => Some(Packet::Idcode(get_val32(0))),
                             (0xf, 1) if is_s6 => Some(Packet::Timer(get_val(0))),
                             (0x10, 1) => Some(Packet::HcOpt(get_val(0))),
+                            (0x11, 1) => Some(Packet::Testmode(get_val(0))),
                             (0x13, 1) => Some(Packet::General1(get_val(0))),
                             (0x14, 1) => Some(Packet::General2(get_val(0))),
                             (0x15, 1) if !is_s6 => Some(Packet::Mode(get_val(0))),
@@ -317,6 +319,11 @@ impl<'a> Iterator for PacketParser<'a> {
                             (0x1d, 1) if is_s6 => Some(Packet::SeuOpt(get_val(0))),
                             (0x1e, 2) if is_s6 => Some(Packet::RbCrcSw(get_val32(0))),
                             (0x21, 1) if is_s6 => Some(Packet::EyeMask(get_val(0))),
+                            (0x22, 8) if is_s6 => {
+                                let data = src_data[dpos..epos].to_vec();
+                                self.iv = Some(data.clone());
+                                Some(Packet::Cbc(data))
+                            }
                             _ => panic!("unk write: {reg} times {num}"),
                         }
                     } else if (ph >> 11) == 0xa {
@@ -334,17 +341,54 @@ impl<'a> Iterator for PacketParser<'a> {
                         }
                         match reg {
                             3 => {
-                                if self.kind == DeviceKind::Spartan6 {
-                                    let crc = u32::from_be_bytes(*array_ref!(src_data, epos, 4));
-                                    if crc != self.crc.get() {
-                                        println!(
-                                            "AUTOCRC MISMATCH {crc:08x} {ecrc:08x}",
-                                            ecrc = self.crc.get()
+                                if is_s6 && (self.ctl0 & 0x40) != 0 {
+                                    // rollback CRC changes.
+                                    self.crc.set(prev_crc);
+                                    let mut real_num = num + 2;
+                                    while real_num % 8 != 0 {
+                                        real_num += 1;
+                                    }
+                                    let epos = dpos + real_num * 2;
+                                    self.pos = epos;
+                                    let data = self.decrypt_v4(&src_data[dpos..epos]);
+                                    for i in 0..num {
+                                        self.crc.update(
+                                            reg as u32,
+                                            u16::from_be_bytes(*array_ref!(data, i * 2, 2)) as u32,
                                         );
                                     }
-                                    self.pos += 4;
+                                    let crc = u32::from_be_bytes(*array_ref!(data, num * 2, 4));
+                                    let ecrc = if self.bypass_crc {
+                                        0x9876defc
+                                    } else {
+                                        self.crc.get()
+                                    };
+                                    if crc != ecrc {
+                                        println!("AUTOCRC MISMATCH {crc:08x} {ecrc:08x}");
+                                    }
+                                    for i in (num + 2)..real_num {
+                                        assert_eq!(
+                                            u16::from_be_bytes(*array_ref!(data, i * 2, 2)),
+                                            0x2000
+                                        );
+                                    }
+                                    Some(Packet::EncFdri(data[..num * 2].to_vec()))
+                                } else {
+                                    if self.kind == DeviceKind::Spartan6 {
+                                        let crc =
+                                            u32::from_be_bytes(*array_ref!(src_data, epos, 4));
+                                        let ecrc = if self.bypass_crc {
+                                            0x9876defc
+                                        } else {
+                                            self.crc.get()
+                                        };
+                                        if crc != ecrc {
+                                            println!("AUTOCRC MISMATCH {crc:08x} {ecrc:08x}");
+                                        }
+                                        self.pos += 4;
+                                    }
+                                    Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                                 }
-                                Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                             }
                             _ => panic!("unk long write: {reg} times {num}"),
                         }

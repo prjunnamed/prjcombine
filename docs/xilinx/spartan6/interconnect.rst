@@ -16,8 +16,8 @@ Bitstream — IOI tile
    :file: ../gen/tile-xc6s-INT.IOI.html
 
 
-Bitsteam — interface tiles
-==========================
+Bitstream — interface tiles
+===========================
 
 
 ``INTF``

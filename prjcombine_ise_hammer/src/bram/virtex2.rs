@@ -309,7 +309,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 let bel_bram = BelId::from_idx(0);
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
-                        let name = format!("{ab}{i}MUX");
+                        let name = format!("MUX.{ab}{i}");
                         let bram_pin = if i < 16 {
                             format!("DO{ab}{i}")
                         } else {
@@ -618,7 +618,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if grid_kind == GridKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
-                        let name = &*format!("{ab}{i}MUX");
+                        let name = &*format!("MUX.{ab}{i}");
                         ctx.tiledb.insert(
                             tile,
                             "MULT",

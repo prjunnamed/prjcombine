@@ -1,5 +1,7 @@
-CCM
-###
+.. _virtex4-ccm:
+
+Clock Companion Modules
+#######################
 
 
 Bitstream

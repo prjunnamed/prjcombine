@@ -8,7 +8,7 @@ use crate::{
     diff::{xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_enum_suffix, fuzz_multi_attr_hex, fuzz_multi_extras, fuzz_one,
+    fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_hex, fuzz_multi_extras, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -24,6 +24,35 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ], [
             (mode "RAMB36E1")
         ]);
+
+        for pin in [
+            "CLKARDCLKL",
+            "CLKARDCLKU",
+            "CLKBWRCLKL",
+            "CLKBWRCLKU",
+            "REGCLKARDRCLKL",
+            "REGCLKARDRCLKU",
+            "REGCLKBL",
+            "REGCLKBU",
+            "ENARDENL",
+            "ENARDENU",
+            "ENBWRENL",
+            "ENBWRENU",
+            "RSTREGARSTREGL",
+            "RSTREGARSTREGU",
+            "RSTREGBL",
+            "RSTREGBU",
+            "RSTRAMARSTRAML",
+            "RSTRAMARSTRAMU",
+            "RSTRAMBL",
+            "RSTRAMBU",
+        ] {
+            fuzz_inv!(ctx, pin, [
+                (global_mutex "BRAM_OPT", "NONE"),
+                (tile_mutex "MODE", "FULL"),
+                (mode "RAMB36E1")
+            ]);
+        }
 
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
             fuzz_multi_attr_hex!(ctx, attr, 36, [
@@ -306,6 +335,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "FIFO36E1")
         ]);
 
+        for pin in ["RDCLK", "WRCLK", "RDRCLK", "RDEN", "WREN", "RSTREG"] {
+            for ul in ['U', 'L'] {
+                fuzz_inv!(ctx, &format!("{pin}{ul}"), [
+                    (global_mutex "BRAM_OPT", "NONE"),
+                    (tile_mutex "MODE", "FULL"),
+                    (mode "FIFO36E1")
+                ]);
+            }
+        }
+        fuzz_inv!(ctx, "RST", [
+            (global_mutex "BRAM_OPT", "NONE"),
+            (tile_mutex "MODE", "FULL"),
+            (mode "FIFO36E1")
+        ]);
+
         for attr in ["INIT", "SRVAL"] {
             fuzz_multi_attr_hex!(ctx, attr, 72, [
                 (global_mutex "BRAM_OPT", "NONE"),
@@ -446,6 +490,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "RAMB18E1")
         ]);
 
+        for pin in [
+            "CLKARDCLK",
+            "CLKBWRCLK",
+            "REGCLKARDRCLK",
+            "REGCLKB",
+            "ENARDEN",
+            "ENBWREN",
+            "RSTREGARSTREG",
+            "RSTREGB",
+            "RSTRAMARSTRAM",
+            "RSTRAMB",
+        ] {
+            fuzz_inv!(ctx, pin, [
+                (global_mutex "BRAM_OPT", "NONE"),
+                (tile_mutex "MODE", "HALF"),
+                (mode "RAMB18E1")
+            ]);
+        }
+
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
             fuzz_multi_attr_hex!(ctx, attr, 18, [
                 (global_mutex "BRAM_OPT", "NONE"),
@@ -581,6 +644,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ], [
                 (mode "FIFO18E1")
             ]);
+
+            for pin in ["RDCLK", "WRCLK", "RDRCLK", "RDEN", "WREN", "RST", "RSTREG"] {
+                fuzz_inv!(ctx, pin, [
+                    (global_mutex "BRAM_OPT", "NONE"),
+                    (tile_mutex "MODE", "HALF"),
+                    (mode "FIFO18E1")
+                ]);
+            }
 
             for attr in ["INIT", "SRVAL"] {
                 fuzz_multi_attr_hex!(ctx, attr, 36, [
@@ -718,6 +789,50 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut present_ramb18_l = ctx.state.get_diff(tile, "BRAM_H0", "PRESENT", "1");
     let mut present_ramb18_u = ctx.state.get_diff(tile, "BRAM_H1", "PRESENT", "1");
     let mut present_fifo18 = ctx.state.get_diff(tile, "FIFO_H0", "PRESENT", "1");
+
+    for pin in [
+        "CLKARDCLK",
+        "CLKBWRCLK",
+        "REGCLKARDRCLK",
+        "REGCLKB",
+        "ENARDEN",
+        "ENBWREN",
+        "RSTREGARSTREG",
+        "RSTREGB",
+        "RSTRAMARSTRAM",
+        "RSTRAMB",
+    ] {
+        for (bel, ul) in [("BRAM_H0", 'L'), ("BRAM_H1", 'U')] {
+            let item = ctx.extract_inv(tile, "BRAM_F", &format!("{pin}{ul}"));
+            ctx.tiledb
+                .insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
+            let item = ctx.extract_inv(tile, bel, pin);
+            ctx.tiledb
+                .insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
+        }
+    }
+
+    for (hwpin, pin) in [
+        ("CLKARDCLK", "RDCLK"),
+        ("CLKBWRCLK", "WRCLK"),
+        ("REGCLKARDRCLK", "RDRCLK"),
+        ("ENARDEN", "RDEN"),
+        ("ENBWREN", "WREN"),
+        ("RSTREGARSTREG", "RSTREG"),
+    ] {
+        let item = ctx.extract_inv(tile, "FIFO_H0", pin);
+        ctx.tiledb
+            .insert(tile, "BRAM", format!("INV.{hwpin}L"), item);
+        for ul in ['U', 'L'] {
+            let item = ctx.extract_inv(tile, "FIFO_F", &format!("{pin}{ul}"));
+            ctx.tiledb
+                .insert(tile, "BRAM", format!("INV.{hwpin}{ul}"), item);
+        }
+    }
+    for bel in ["FIFO_H0", "FIFO_F"] {
+        let item = ctx.extract_inv(tile, bel, "RST");
+        ctx.tiledb.insert(tile, "BRAM", "INV.RSTRAMARSTRAML", item);
+    }
 
     for (attr, attr_a, attr_b) in [
         ("INIT", "INIT_A", "INIT_B"),
@@ -939,12 +1054,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "18",
                 ));
             }
-            diff = diff.combine(&!ctx.state.peek_diff(
-                tile,
-                bel,
-                format!("{rw}_WIDTH_{ba}"),
-                "18",
-            ));
+            diff = diff.combine(
+                &!ctx
+                    .state
+                    .peek_diff(tile, bel, format!("{rw}_WIDTH_{ba}"), "18"),
+            );
             ctx.tiledb.insert(
                 tile,
                 "BRAM",
@@ -1382,7 +1496,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
                 }
                 let item = ctx.extract_bit(tile, bel, &format!("CASCADE_OUT.ADDR{ab}{i}"), "1");
-                ctx.tiledb.insert(tile, bel, format!("ADDR_CASCADE_OUT_{ab}"), item);
+                ctx.tiledb
+                    .insert(tile, bel, format!("ADDR_CASCADE_OUT_{ab}"), item);
             }
         }
     }

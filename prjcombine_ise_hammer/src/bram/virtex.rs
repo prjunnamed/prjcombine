@@ -80,7 +80,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
             let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.tiledb.insert(tile, "INT", format!("INV.0.IMUX.BRAM.{wire}"), xlat_bool(d0, d1));
+            ctx.tiledb.insert(
+                tile,
+                "INT",
+                format!("INV.0.IMUX.BRAM.{wire}"),
+                xlat_bool(d0, d1),
+            );
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {

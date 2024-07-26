@@ -557,56 +557,59 @@ impl<'a, 'b> Expander<'a, 'b> {
                 self.fill_iob((col, row), tk, tk, bank);
             } else {
                 let cnr = if row == self.grid.row_bio_outer() {
-                    Some("LR_LOWER")
-                } else if row == self.grid.row_bio_inner() {
-                    Some("LR_UPPER")
+                    Some("LR")
                 } else if row == self.grid.row_tio_inner() {
-                    Some("UR_LOWER")
-                } else if row == self.grid.row_tio_outer() {
-                    Some("UR_UPPER")
+                    Some("UR")
                 } else {
                     None
                 };
                 if let Some(cnr) = cnr {
                     rtt = "CNR_TR_RTERM";
-                    let name = format!("{cnr}_X{x}Y{y}");
+                    let name0 = format!("{cnr}_LOWER_X{x}Y{y}");
+                    let name1 = format!("{cnr}_UPPER_X{x}Y{yy}", yy = y + 1);
                     self.die.add_xnode(
                         (col, row),
                         self.db.get_node("INTF"),
-                        &[&name],
+                        &[&name0],
                         self.db.get_node_naming("INTF.CNR"),
                         &[(col, row)],
+                    );
+                    self.die.add_xnode(
+                        (col, row + 1),
+                        self.db.get_node("INTF"),
+                        &[&name1],
+                        self.db.get_node_naming("INTF.CNR"),
+                        &[(col, row + 1)],
                     );
                     let node = self.die.add_xnode(
                         (col, row),
                         self.db.get_node(cnr),
-                        &[&name],
+                        &[&name0, &name1],
                         self.db.get_node_naming(cnr),
-                        &[(col, row)],
+                        &[(col, row), (col, row + 1)],
                     );
                     match cnr {
-                        "LR_LOWER" => {
+                        "LR" => {
                             node.add_bel(0, "OCT_CAL_X1Y0".to_string());
                             node.add_bel(1, "ICAP_X0Y0".to_string());
                             node.add_bel(2, "SPI_ACCESS".to_string());
+                            node.add_bel(3, "SUSPEND_SYNC".to_string());
+                            node.add_bel(4, "POST_CRC_INTERNAL".to_string());
+                            node.add_bel(5, "STARTUP".to_string());
+                            node.add_bel(6, "SLAVE_SPI".to_string());
                         }
-                        "LR_UPPER" => {
-                            node.add_bel(0, "SUSPEND_SYNC".to_string());
-                            node.add_bel(1, "POST_CRC_INTERNAL".to_string());
-                            node.add_bel(2, "STARTUP".to_string());
-                            node.add_bel(3, "SLAVE_SPI".to_string());
-                        }
-                        "UR_LOWER" => {
+                        "UR" => {
                             node.add_bel(0, "OCT_CAL_X1Y1".to_string());
-                            node.add_bel(1, "BSCAN_X0Y2".to_string());
-                            node.add_bel(2, "BSCAN_X0Y3".to_string());
-                        }
-                        "UR_UPPER" => {
-                            node.add_bel(0, "BSCAN_X0Y0".to_string());
-                            node.add_bel(1, "BSCAN_X0Y1".to_string());
+                            node.add_bel(1, "BSCAN_X0Y0".to_string());
+                            node.add_bel(2, "BSCAN_X0Y1".to_string());
+                            node.add_bel(3, "BSCAN_X0Y2".to_string());
+                            node.add_bel(4, "BSCAN_X0Y3".to_string());
                         }
                         _ => unreachable!(),
                     }
+                } else if row == self.grid.row_bio_inner() || row == self.grid.row_tio_outer() {
+                    rtt = "CNR_TR_RTERM";
+                    // already handled
                 } else {
                     let carry = if is_brk { "_CARRY" } else { "" };
                     self.die.add_xnode(

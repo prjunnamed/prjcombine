@@ -473,7 +473,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_fb = diff_fb.combine(&!&diff);
             ctx.tiledb.insert(tile, bel, pin, xlat_bitvec(vec![diff]));
             ctx.tiledb
-                .insert(tile, bel, "CLKFB", xlat_bitvec(vec![diff_fb]));
+                .insert(tile, bel, "DLL_ENABLE", xlat_bitvec(vec![diff_fb]));
             ctx.tiledb
                 .insert(tile, bel, "DFS_FEEDBACK", xlat_bitvec(vec![diff_fx]));
         }
@@ -485,7 +485,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .state
             .get_diff(tile, bel, "VERY_HIGH_FREQUENCY", "1.CLKFB");
         ctx.tiledb
-            .insert(tile, bel, "CLKFB", xlat_bitvec(vec![!diff]));
+            .insert(tile, bel, "DLL_ENABLE", xlat_bitvec(vec![!diff]));
 
         let (_, _, dfs_en) = Diff::split(
             ctx.state.peek_diff(tile, bel, "CLKFX", "1").clone(),

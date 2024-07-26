@@ -2128,16 +2128,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
             tile,
             bel,
             "PERSIST",
-            TileItem {
-                bits: vec![FeatureBit {
-                    tile: 0,
-                    frame: 0,
-                    bit: 3,
-                }],
-                kind: TileItemKind::BitVec {
-                    invert: BitVec::from_iter([false]),
-                },
-            },
+            TileItem::from_bit(FeatureBit::new(0, 0, 3), false),
         );
 
         let tile = "REG.CCLK_FREQ";
@@ -2154,19 +2145,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         );
         // a little fixup.
         assert_eq!(item.bits.len(), 9);
-        assert_eq!(
-            item.bits[8],
-            FeatureBit {
-                tile: 0,
-                frame: 0,
-                bit: 8
-            }
-        );
-        item.bits.push(FeatureBit {
-            tile: 0,
-            frame: 0,
-            bit: 9,
-        });
+        assert_eq!(item.bits[8], FeatureBit::new(0, 0, 8));
+        item.bits.push(FeatureBit::new(0, 0, 9));
         let TileItemKind::Enum { ref mut values } = item.kind else {
             unreachable!()
         };
@@ -2220,16 +2200,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
             tile,
             bel,
             "POST_CRC_EN",
-            TileItem {
-                bits: vec![FeatureBit {
-                    tile: 0,
-                    frame: 0,
-                    bit: 0,
-                }],
-                kind: TileItemKind::BitVec {
-                    invert: BitVec::from_iter([false]),
-                },
-            },
+            TileItem::from_bit(FeatureBit::new(0, 0, 0), false),
         );
 
         let mut item = ctx.extract_enum_ocd(
@@ -2244,19 +2215,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         );
         // a little fixup.
         assert_eq!(item.bits.len(), 9);
-        assert_eq!(
-            item.bits[8],
-            FeatureBit {
-                tile: 0,
-                frame: 0,
-                bit: 12
-            }
-        );
-        item.bits.push(FeatureBit {
-            tile: 0,
-            frame: 0,
-            bit: 13,
-        });
+        assert_eq!(item.bits[8], FeatureBit::new(0, 0, 12));
+        item.bits.push(FeatureBit::new(0, 0, 13));
         let TileItemKind::Enum { ref mut values } = item.kind else {
             unreachable!()
         };

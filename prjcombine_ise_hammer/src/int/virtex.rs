@@ -805,11 +805,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .get_diff(tile, "INT", &mux_name, format!("{in_name}.NOALT"));
                         let (alt, noalt, common) = Diff::split(diff, noalt_diff);
                         if mux_name.contains("CLKIN") {
-                            ctx.tiledb.insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![noalt]));
-                            ctx.tiledb.insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![!alt]));
+                            ctx.tiledb
+                                .insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![noalt]));
+                            ctx.tiledb
+                                .insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![!alt]));
                         } else {
-                            ctx.tiledb.insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![noalt]));
-                            ctx.tiledb.insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![!alt]));
+                            ctx.tiledb
+                                .insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![noalt]));
+                            ctx.tiledb
+                                .insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![!alt]));
                         }
                         diff = common;
                     }

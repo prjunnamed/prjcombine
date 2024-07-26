@@ -1,14 +1,16 @@
 use core::ops::Range;
 
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
+use prjcombine_int::db::{BelId, Dir};
+use prjcombine_spartan6::grid::Gts;
 use prjcombine_types::TileItem;
+use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{xlat_bitvec, xlat_enum, CollectorCtx, OcdMode},
-    fgen::TileBits,
+    fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
 };
@@ -205,6 +207,9 @@ const GTP_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let ExpandedDevice::Spartan6(edev) = backend.edev else {
+        unreachable!()
+    };
     let Some(ctx) = FuzzCtx::try_new(session, backend, "GTP", "GTP", TileBits::MainAuto) else {
         return;
     };
@@ -273,15 +278,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 
     for pin in ["REFCLKPLL0", "REFCLKPLL1"] {
-        fuzz_one!(ctx, "MUX.CLKOUT_EW", pin, [
-            (mutex "MUX.CLKOUT_EW", pin)
+        fuzz_one!(ctx, "MUX.CLKOUT_EAST", pin, [
+            (mutex "MUX.CLKOUT_EW", pin),
+            (special TileKV::DeviceSide(Dir::W))
         ], [
             (pip (pin pin), (pin "CLKOUT_EW"))
         ]);
+        if matches!(edev.grid.gts, Gts::Double(..) | Gts::Quad(..)) {
+            fuzz_one!(ctx, "MUX.CLKOUT_WEST", pin, [
+                (mutex "MUX.CLKOUT_EW", pin),
+                (special TileKV::DeviceSide(Dir::E))
+            ], [
+                (pip (pin pin), (pin "CLKOUT_EW"))
+            ]);
+        }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let ExpandedDevice::Spartan6(edev) = ctx.edev else {
+        unreachable!()
+    };
+
     let tile = "GTP";
     let bel = "GTP";
 
@@ -361,7 +379,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec(tile, bel, "PMA_COM_CFG_EAST", "");
     ctx.collect_bitvec(tile, bel, "PMA_COM_CFG_WEST", "");
 
-    ctx.collect_enum(tile, bel, "MUX.CLKOUT_EW", &["REFCLKPLL0", "REFCLKPLL1"]);
+    ctx.collect_enum(tile, bel, "MUX.CLKOUT_EAST", &["REFCLKPLL0", "REFCLKPLL1"]);
+    if matches!(edev.grid.gts, Gts::Double(..) | Gts::Quad(..)) {
+        ctx.collect_enum(tile, bel, "MUX.CLKOUT_WEST", &["REFCLKPLL0", "REFCLKPLL1"]);
+    }
 
     for i in 0..2 {
         let refselpll_static = ctx

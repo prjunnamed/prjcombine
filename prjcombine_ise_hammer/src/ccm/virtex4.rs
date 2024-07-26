@@ -120,7 +120,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             (pin pin),
                             (mutex format!("{pin}_OUT"), &rpin),
                             (mutex format!("{pin}_IN"), format!("CKINT{abc}{i}")),
-                            (mutex format!("CKINT{abc}{i}"), &rpin)
+                            (tile_mutex format!("CKINT{abc}{i}"), format!("{bel}_{rpin}"))
                         ], [
                             (pip (pin format!("CKINT{abc}{i}")), (pin rpin))
                         ]);
@@ -272,7 +272,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ("DPM_OSCOUT2", BelId::from_idx(2), "OSCOUT2"),
                 ("CKINT", BelId::from_idx(3), "CKINT"),
             ] {
-                fuzz_one!(ctx, &opin, name, [
+                fuzz_one!(ctx, format!("MUX.TO_BUFG{i}"), name, [
                     (tile_mutex &opin, name)
                 ], [
                     (pip (bel_pin bel, pin), (pin &opin))
@@ -376,8 +376,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.state.get_diff(tile, bel, pin, "REL_INT");
                 diffs.push(("REL_INT".to_string(), diff));
             }
-            ctx.tiledb
-                .insert(tile, bel, pin, xlat_enum_ocd(diffs, OcdMode::Mux));
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                format!("MUX.{pin}"),
+                xlat_enum_ocd(diffs, OcdMode::Mux),
+            );
         }
     }
     {
@@ -441,8 +445,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
-            ctx.tiledb
-                .insert(tile, bel, pin, xlat_enum_ocd(diffs, OcdMode::Mux));
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                format!("MUX.{pin}"),
+                xlat_enum_ocd(diffs, OcdMode::Mux),
+            );
         }
     }
     for bel in ["PMCD0", "PMCD1", "DPM"] {
@@ -461,7 +469,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_ocd(
                 tile,
                 bel,
-                &format!("TO_BUFG{i}"),
+                &format!("MUX.TO_BUFG{i}"),
                 &[
                     "PMCD0_CLKA1",
                     "PMCD0_CLKA1D2",

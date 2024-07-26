@@ -32,6 +32,8 @@ This is the Spartan 3A version of ``CTL``.
 .. raw:: html
    :file: ../gen/tile-xc3s-REG.CTL.S3A.html
 
+
+``CCLK_FREQ``
 =============
 
 .. raw:: html

@@ -2075,12 +2075,12 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(opin),
-                obel.wire(&format!("BUFIO2_BOT{i}")),
+                obel.wire(&format!("BUFIO2_BT{i}")),
             );
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(opin),
-                obel.wire(&format!("BUFIO2_TOP{i}")),
+                obel.wire(&format!("BUFIO2_LR{i}")),
             );
         }
     }
@@ -2091,12 +2091,12 @@ fn verify_dcm(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(opin),
-                obel.wire(&format!("BUFIO2FB_BOT{i}")),
+                obel.wire(&format!("BUFIO2FB_BT{i}")),
             );
             vrf.claim_pip(
                 bel.crd(),
                 bel.wire(opin),
-                obel.wire(&format!("BUFIO2FB_TOP{i}")),
+                obel.wire(&format!("BUFIO2FB_LR{i}")),
             );
         }
     }
@@ -2215,7 +2215,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2_{i}"),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BOT{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
             let obel = vrf
                 .find_bel(
                     bel.die,
@@ -2223,7 +2223,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2FB_{i}"),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BOT{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
             let scol = if i < 4 {
                 edev.grid.col_rio()
             } else {
@@ -2236,7 +2236,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2_{ii}", ii = i ^ 4),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_TOP{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf
                 .find_bel(
                     bel.die,
@@ -2244,7 +2244,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2FB_{ii}", ii = i ^ 4),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_TOP{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
         } else {
             let scol = if i < 4 {
                 edev.grid.col_rio()
@@ -2254,7 +2254,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             let obel = vrf
                 .find_bel(bel.die, (scol, edev.grid.row_clk()), &format!("BUFIO2_{i}"))
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BOT{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf
                 .find_bel(
                     bel.die,
@@ -2262,7 +2262,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2FB_{i}"),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BOT{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_LR{i}")), obel.fwire("CMT")]);
             let obel = vrf
                 .find_bel(
                     bel.die,
@@ -2270,7 +2270,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2_{i}"),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_TOP{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2_BT{i}")), obel.fwire("CMT")]);
             let obel = vrf
                 .find_bel(
                     bel.die,
@@ -2278,7 +2278,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
                     &format!("BUFIO2FB_{i}"),
                 )
                 .unwrap();
-            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_TOP{i}")), obel.fwire("CMT")]);
+            vrf.verify_node(&[bel.fwire(&format!("BUFIO2FB_BT{i}")), obel.fwire("CMT")]);
         }
     }
 }
@@ -2341,24 +2341,24 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKIN1"),
-            obel.wire(&format!("BUFIO2_BOT{i}")),
+            obel.wire(&format!("BUFIO2_BT{i}")),
         );
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKIN1"),
-            obel.wire(&format!("BUFIO2_TOP{i}")),
+            obel.wire(&format!("BUFIO2_LR{i}")),
         );
     }
     for i in 4..8 {
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKIN2"),
-            obel.wire(&format!("BUFIO2_BOT{i}")),
+            obel.wire(&format!("BUFIO2_BT{i}")),
         );
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKIN2"),
-            obel.wire(&format!("BUFIO2_TOP{i}")),
+            obel.wire(&format!("BUFIO2_LR{i}")),
         );
     }
 
@@ -2381,12 +2381,12 @@ fn verify_pll(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKFBIN"),
-            obel.wire(&format!("BUFIO2FB_BOT{i}")),
+            obel.wire(&format!("BUFIO2FB_BT{i}")),
         );
         vrf.claim_pip(
             bel.crd(),
             bel.wire_far("CLKFBIN"),
-            obel.wire(&format!("BUFIO2FB_TOP{i}")),
+            obel.wire(&format!("BUFIO2FB_LR{i}")),
         );
     }
 

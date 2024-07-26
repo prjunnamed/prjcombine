@@ -12,5 +12,9 @@ Spartan 6
    bram
    dsp
    clock
+   mcb
    pcie
    gtp
+   dcm
+   corner
+   config

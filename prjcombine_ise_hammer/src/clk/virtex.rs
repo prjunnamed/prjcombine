@@ -29,20 +29,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             };
             // fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GCLKIOB")]);
             // let iostds = if !tile.ends_with("DLL") {
-                // &[
-                    // "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
-                    // "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I", "SSTL2_II", "CTT",
-                    // "AGP",
-                // ][..]
+            // &[
+            // "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
+            // "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I", "SSTL2_II", "CTT",
+            // "AGP",
+            // ][..]
             // } else {
-                // &[
-                    // "LVTTL", "LVCMOS2", "LVCMOS18", "PCI33_3", "PCI66_3", "PCIX66_3", "GTL",
-                    // "GTLP", "HSTL_I", "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I",
-                    // "SSTL2_II", "CTT", "AGP", "LVDS", "LVPECL",
-                // ][..]
+            // &[
+            // "LVTTL", "LVCMOS2", "LVCMOS18", "PCI33_3", "PCI66_3", "PCIX66_3", "GTL",
+            // "GTLP", "HSTL_I", "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I",
+            // "SSTL2_II", "CTT", "AGP", "LVDS", "LVPECL",
+            // ][..]
             // };
             // fuzz_enum!(ctx, "IOATTRBOX", iostds.iter().copied(), [
-                // (mode "GCLKIOB")
+            // (mode "GCLKIOB")
             // ]);
             let idx = if tile.starts_with("CLKB") { i } else { 2 + i };
             for val in ["11110", "11101", "11011", "10111", "01111"] {

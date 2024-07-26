@@ -68,10 +68,10 @@ impl Diff {
         (a, b, common)
     }
 
-    pub fn split_bits(&mut self, bits: &HashSet<FeatureBit>) -> Diff {
+    pub fn split_bits_by(&mut self, mut f: impl FnMut(FeatureBit) -> bool) -> Diff {
         let mut res = Diff::default();
         self.bits.retain(|&k, &mut v| {
-            if bits.contains(&k) {
+            if f(k) {
                 res.bits.insert(k, v);
                 false
             } else {
@@ -79,6 +79,10 @@ impl Diff {
             }
         });
         res
+    }
+
+    pub fn split_bits(&mut self, bits: &HashSet<FeatureBit>) -> Diff {
+        self.split_bits_by(|bit| bits.contains(&bit))
     }
 
     pub fn discard_bits(&mut self, item: &TileItem<FeatureBit>) {
@@ -859,10 +863,15 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.tiledb.insert(tile, bel, attr, item);
     }
 
-    pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
+    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem<FeatureBit> {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
-        self.collect_enum_bool(tile, bel, &pininv, pin, &pin_b);
+        self.extract_enum_bool(tile, bel, &pininv, pin, &pin_b)
+    }
+
+    pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
+        let item = self.extract_inv(tile, bel, pin);
+        self.tiledb.insert(tile, bel, format!("INV.{pin}"), item);
     }
 
     pub fn insert_int_inv(

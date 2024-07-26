@@ -24,6 +24,7 @@ mod gt;
 mod int;
 mod intf;
 mod io;
+mod mcb;
 mod misc;
 mod pcie;
 mod ppc;
@@ -161,10 +162,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 bram::spartan6::add_fuzzers(&mut hammer, &backend);
                 dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
-                // TODO: misc
+                if !args.skip_misc {
+                    misc::spartan6::add_fuzzers(&mut hammer, &backend);
+                }
                 // TODO: io
-                // TODO: mcb
-                // TODO: dcm
+                mcb::add_fuzzers(&mut hammer, &backend);
+                if !args.skip_dcm {
+                    dcm::spartan6::add_fuzzers(&mut hammer, &backend);
+                }
                 // TODO: pll
                 pcie::spartan6::add_fuzzers(&mut hammer, &backend);
                 gt::spartan6::add_fuzzers(&mut hammer, &backend);
@@ -309,6 +314,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 bram::spartan6::collect_fuzzers(&mut ctx);
                 dsp::spartan3adsp::collect_fuzzers(&mut ctx);
+                if !args.skip_misc {
+                    misc::spartan6::collect_fuzzers(&mut ctx);
+                }
+                mcb::collect_fuzzers(&mut ctx);
+                if !args.skip_dcm {
+                    dcm::spartan6::collect_fuzzers(&mut ctx);
+                }
                 pcie::spartan6::collect_fuzzers(&mut ctx);
                 gt::spartan6::collect_fuzzers(&mut ctx);
             }

@@ -1382,11 +1382,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     &[format!("CLK_IOB_MUXED_CLKOUT{i}")],
                 );
             }
-            builder
-                .xnode(tkn, tkn, xy)
-                .num_tiles(0)
-                .bel(bel)
-                .extract();
+            builder.xnode(tkn, tkn, xy).num_tiles(0).bel(bel).extract();
         }
     }
 

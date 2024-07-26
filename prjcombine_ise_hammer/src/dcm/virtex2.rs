@@ -694,7 +694,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
         let (d0, d1, dc) = Diff::split(d0, d1);
         ctx.tiledb
-            .insert(tile, bel, format!("{pin}INV"), xlat_bool(d0, d1));
+            .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
         if edev.grid.kind.is_virtex2() {
             ctx.tiledb
                 .insert(tile, bel, "TEST_ENABLE", xlat_bitvec(vec![dc]));
@@ -1032,7 +1032,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     );
 
     if edev.grid.kind.is_virtex2() {
-        present.apply_bit_diff(ctx.tiledb.item(tile, bel, "DSSENINV"), false, true);
+        present.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.DSSEN"), false, true);
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "EN_OSC_COARSE"), true, false);
         present.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, "EN_DUMMY_OSC"),

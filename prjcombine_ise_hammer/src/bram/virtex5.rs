@@ -667,7 +667,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             pin,
             &format!("{pin}_B"),
         );
-        ctx.tiledb.insert(tile, bel, format!("{hwpin}INV"), item);
+        ctx.tiledb.insert(tile, bel, format!("INV.{hwpin}"), item);
     }
     for hwpin in [
         "CLKARDCLKL",
@@ -687,7 +687,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "ENBWRENL",
         "ENBU",
     ] {
-        let item = ctx.tiledb.item(tile, bel, &format!("{hwpin}INV"));
+        let item = ctx.tiledb.item(tile, bel, &format!("INV.{hwpin}"));
         present_rambfifo36.apply_bit_diff(item, false, true);
         present_ramb18x2.apply_bit_diff(item, false, true);
         present_ramb18x2sdp.apply_bit_diff(item, false, true);
@@ -1357,8 +1357,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diffs.push((hwval, diff));
     }
     diffs.push(("36", present_rambfifo18_36));
-    ctx.tiledb
-        .insert(tile, bel, "FIFO_WIDTH", xlat_enum(diffs));
+    ctx.tiledb.insert(tile, bel, "FIFO_WIDTH", xlat_enum(diffs));
 
     present_ramb36sdp.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_WIDTH"), "36", "2");
     present_fifo36_72.apply_enum_diff(ctx.tiledb.item(tile, bel, "FIFO_WIDTH"), "36", "2");

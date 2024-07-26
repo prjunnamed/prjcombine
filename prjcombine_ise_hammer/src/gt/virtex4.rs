@@ -788,19 +788,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         .assert_empty();
 
     let (_, _, mut synclk_drive_enable) = Diff::split(
-        ctx.state.peek_diff(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN").clone(),
-        ctx.state.peek_diff(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN").clone(),
+        ctx.state
+            .peek_diff(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
+            .clone(),
+        ctx.state
+            .peek_diff(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
+            .clone(),
     );
     for attr in ["SYNCLK1", "SYNCLK2"] {
-        let mut diffs = vec![
-            ("NONE", Diff::default()),
-        ];
+        let mut diffs = vec![("NONE", Diff::default())];
         for val in ["BUF_UP", "BUF_DOWN", "DRIVE_UP", "DRIVE_DOWN", "DRIVE_BOTH"] {
             let mut diff = ctx.state.get_diff(tile, "GT11CLK", attr, val);
             diff = diff.combine(&!&synclk_drive_enable);
             diffs.push((val, diff));
         }
-        ctx.tiledb.insert(tile, "GT11_COMMON", attr, xlat_enum(diffs)); 
+        ctx.tiledb
+            .insert(tile, "GT11_COMMON", attr, xlat_enum(diffs));
     }
     synclk_drive_enable = synclk_drive_enable.combine(&!&synclk_enable);
     ctx.tiledb.insert(

@@ -3418,7 +3418,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // Output path.
             if !iob.is_ibuf {
                 let mut diff = ctx.state.get_diff(tile, bel, "OUTPUT_ENABLE", "1");
-                for attr in ["OMUX", "TMUX", "T1INV"] {
+                for attr in ["OMUX", "TMUX", "INV.T1"] {
                     let item = ctx.tiledb.item(ioi_tile, ioi_bel, attr);
                     let item =
                         xlat_item_tile_fwd(item.clone(), &[node_data.tiles.len() + iob.tile]);

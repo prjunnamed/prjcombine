@@ -43,6 +43,7 @@ pub enum Reg {
     FakeFreezeDciNops,
     FakeIgnoreCrc,
     FakeEncrypted,
+    FakeDoubleCclkFrequency,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -125,11 +126,14 @@ impl Bitstream {
         let mut res = HashMap::new();
         for ((die, da), db) in a.die.iter().zip(b.die.values()) {
             for (reg, &va) in &da.regs {
-                if matches!(reg, Reg::RbCrcSw | Reg::Key | Reg::FakeEncrypted) {
+                if matches!(
+                    reg,
+                    Reg::RbCrcSw | Reg::Key | Reg::FakeEncrypted | Reg::FakeDoubleCclkFrequency
+                ) {
                     continue;
                 }
                 let vb = db.regs[reg];
-                if va.is_some() != vb.is_some() {
+                if va.is_some() != vb.is_some() && reg != Reg::Testmode {
                     res.insert(BitPos::RegPresent(die, reg), vb.is_some());
                 }
                 let va = va.unwrap_or(0);

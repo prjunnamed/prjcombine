@@ -726,13 +726,30 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         Some(Packet::Ctl0(val)) => bs.regs[Reg::Ctl0] = Some(val),
         p => panic!("expected ctl0 got {p:?}"),
     }
-    for _ in 0..17 {
+    for _ in 0..8 {
         assert_eq!(packets.next(), Some(Packet::Nop));
     }
-
+    match packets.next() {
+        Some(Packet::Cbc(_)) => {
+            assert_eq!(bs.regs[Reg::Ctl0].unwrap() & 0x40, 0x40);
+            bs.mode = BitstreamMode::Encrypt;
+        }
+        Some(Packet::Nop) => {
+            assert_eq!(bs.regs[Reg::Ctl0].unwrap() & 0x40, 0);
+            for _ in 0..8 {
+                assert_eq!(packets.next(), Some(Packet::Nop));
+            }
+        }
+        p => panic!("expected cbc or nop got {p:?}"),
+    }
     match packets.next() {
         Some(Packet::CclkFrequency(val)) => bs.regs[Reg::CclkFrequency] = Some(val),
         p => panic!("expected cclk frequency got {p:?}"),
+    }
+    if let Some(Packet::CclkFrequency(val)) = packets.peek() {
+        packets.next();
+        bs.regs[Reg::CclkFrequency] = Some(val);
+        bs.regs[Reg::FakeDoubleCclkFrequency] = Some(1);
     }
     match packets.next() {
         Some(Packet::Powerdown(val)) => bs.regs[Reg::Powerdown] = Some(val),
@@ -790,8 +807,13 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         Some(Packet::RbCrcSw(val)) => bs.regs[Reg::RbCrcSw] = Some(val),
         p => panic!("expected rbcrcsw got {p:?}"),
     }
-    assert_eq!(packets.next(), Some(Packet::Nop));
-    assert_eq!(packets.next(), Some(Packet::Nop));
+    if let Some(Packet::Testmode(val)) = packets.peek() {
+        packets.next();
+        bs.regs[Reg::Testmode] = Some(val);
+    } else if bs.regs[Reg::FakeDoubleCclkFrequency].is_none() {
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+    }
 
     // main loop
     #[derive(Debug, Copy, Clone)]
@@ -808,49 +830,109 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     let mut skip = 0;
     let mut last_frame: Option<Vec<u8>> = None;
     let mut state = State::None;
-    loop {
-        match packets.peek() {
-            Some(Packet::Far(far)) => {
-                frame = if let Some(&fi) = far_dict.get(&far) {
-                    if bs.frame_present[fi] {
-                        break;
-                    }
-                    Frame::Main(fi)
-                } else if let Some(&fi) = bram_far_dict.get(&far) {
-                    Frame::Bram(fi)
-                } else if far == 0x20000000 {
-                    Frame::Iob
-                } else {
-                    panic!("weird FAR {far:08x}")
-                };
-                packets.next();
-                skip = 1;
-            }
-            Some(Packet::CmdWcfg) => {
-                packets.next();
-                assert_ne!(state, State::Wcfg);
-                state = State::Wcfg;
-            }
-            Some(Packet::CmdMfwr) => {
-                packets.next();
-                assert_ne!(state, State::Mfwr);
-                state = State::Mfwr;
-                for _ in 0..8 {
-                    assert_eq!(packets.next(), Some(Packet::Nop));
+    if bs.mode != BitstreamMode::Encrypt {
+        loop {
+            match packets.peek() {
+                Some(Packet::Far(far)) => {
+                    frame = if let Some(&fi) = far_dict.get(&far) {
+                        if bs.frame_present[fi] {
+                            break;
+                        }
+                        Frame::Main(fi)
+                    } else if let Some(&fi) = bram_far_dict.get(&far) {
+                        Frame::Bram(fi)
+                    } else if far == 0x20000000 {
+                        Frame::Iob
+                    } else {
+                        panic!("weird FAR {far:08x}")
+                    };
+                    packets.next();
+                    skip = 1;
                 }
+                Some(Packet::CmdWcfg) => {
+                    packets.next();
+                    assert_ne!(state, State::Wcfg);
+                    state = State::Wcfg;
+                }
+                Some(Packet::CmdMfwr) => {
+                    packets.next();
+                    assert_ne!(state, State::Mfwr);
+                    state = State::Mfwr;
+                    for _ in 0..8 {
+                        assert_eq!(packets.next(), Some(Packet::Nop));
+                    }
+                }
+                Some(Packet::Mfwr(4)) => {
+                    packets.next();
+                    bs.mode = BitstreamMode::Compress;
+                    assert_eq!(state, State::Mfwr);
+                    let Frame::Main(fi) = frame else {
+                        panic!("mfwr in weird frame {frame:?}");
+                    };
+                    insert_spartan3a_frame(bs, fi, last_frame.as_ref().unwrap());
+                }
+                Some(Packet::Fdri(orig_data)) => {
+                    let mut data = &orig_data[..];
+                    packets.next();
+                    while !data.is_empty() {
+                        match frame {
+                            Frame::Main(fi) => {
+                                let cur = &data[..frame_bytes];
+                                data = &data[frame_bytes..];
+                                if skip != 0 {
+                                    skip -= 1;
+                                    if fi == bs.frame_info.len() {
+                                        frame = Frame::Bram(0);
+                                    }
+                                } else {
+                                    insert_spartan3a_frame(bs, fi, last_frame.as_ref().unwrap());
+                                    frame = Frame::Main(fi + 1);
+                                    if fi == bs.frame_info.len() - 1
+                                        || bs.frame_info[fi + 1].addr.region
+                                            != bs.frame_info[fi].addr.region
+                                    {
+                                        skip = 2;
+                                    }
+                                }
+                                last_frame = Some(cur.to_vec());
+                            }
+                            Frame::Bram(fi) => {
+                                let cur = &data[..bram_frame_bytes];
+                                data = &data[bram_frame_bytes..];
+                                insert_spartan6_bram_frame(bs, fi, cur);
+                                if fi == bs.bram_frame_info.len() - 1 {
+                                    frame = Frame::Iob;
+                                } else {
+                                    frame = Frame::Bram(fi + 1)
+                                }
+                            }
+                            Frame::Iob => {
+                                assert_eq!(data.len(), iob_frame_bytes + 2);
+                                insert_spartan6_iob_frame(bs, &data[..iob_frame_bytes]);
+                                data = &[];
+                                frame = Frame::None;
+                            }
+                            _ => panic!("fdri {l} with no frame", l = data.len()),
+                        }
+                    }
+                }
+                _ => break,
             }
-            Some(Packet::Mfwr(4)) => {
-                packets.next();
-                bs.mode = BitstreamMode::Compress;
-                assert_eq!(state, State::Mfwr);
-                let Frame::Main(fi) = frame else {
-                    panic!("mfwr in weird frame {frame:?}");
-                };
-                insert_spartan3a_frame(bs, fi, last_frame.as_ref().unwrap());
+        }
+        if bs.mode != BitstreamMode::Compress {
+            for _ in 0..24 {
+                assert_eq!(packets.next(), Some(Packet::Nop));
             }
-            Some(Packet::Fdri(orig_data)) => {
+        }
+    } else {
+        assert_eq!(packets.next(), Some(Packet::Far(0)));
+        assert_eq!(packets.next(), Some(Packet::CmdWcfg));
+        match packets.next() {
+            Some(Packet::EncFdri(orig_data)) => {
+                let num = orig_data.len() / 2;
                 let mut data = &orig_data[..];
-                packets.next();
+                frame = Frame::Main(0);
+                skip = 1;
                 while !data.is_empty() {
                     match frame {
                         Frame::Main(fi) => {
@@ -892,16 +974,19 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                         _ => panic!("fdri {l} with no frame", l = data.len()),
                     }
                 }
+                let mut real_num = num + 2;
+                while real_num % 8 != 0 {
+                    real_num += 1;
+                }
+                let exp_nops = 24 - (real_num - num - 2);
+                for _ in 0..exp_nops {
+                    assert_eq!(packets.next(), Some(Packet::Nop));
+                }
             }
-            _ => break,
+            p => panic!("expected enc fdri got {p:?}"),
         }
     }
 
-    if bs.mode != BitstreamMode::Compress {
-        for _ in 0..24 {
-            assert_eq!(packets.next(), Some(Packet::Nop));
-        }
-    }
     let mut first = true;
     while let Some(Packet::Far(far)) = packets.peek() {
         packets.next();

@@ -385,7 +385,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 
     for i in 0..24 {
-        fuzz_one!(ctx, format!("BUSOUT{i}"), "PASS", [
+        fuzz_one!(ctx, format!("MUX.BUSOUT{i}"), "PASS", [
             (mutex format!("BUSOUT{i}"), format!("BUSIN{i}"))
         ], [
             (pip (pin format!("BUSIN{i}")), (pin format!("BUSOUT{i}")))
@@ -405,7 +405,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             "CLK_IN0",
         ] {
             let sname = inp.strip_suffix("_BUF").unwrap_or(inp);
-            fuzz_one!(ctx, format!("BUSOUT{i}"), sname, [
+            fuzz_one!(ctx, format!("MUX.BUSOUT{i}"), sname, [
                 (mutex format!("BUSOUT{i}"), inp)
             ], [
                 (pip (pin inp), (pin format!("BUSOUT{i}")))
@@ -922,14 +922,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff, diff_test);
             diffs.push((format!("CKINT{i}"), diff));
         }
-        ctx.tiledb
-            .insert(tile, bel, pin, xlat_enum_ocd(diffs, OcdMode::Mux));
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            format!("MUX.{pin}"),
+            xlat_enum_ocd(diffs, OcdMode::Mux),
+        );
     }
     for i in 0..24 {
         ctx.collect_enum_ocd(
             tile,
             bel,
-            &format!("BUSOUT{i}"),
+            &format!("MUX.BUSOUT{i}"),
             &[
                 "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
                 "CLKFX180", "CONCUR", "LOCKED", "CLK_IN0", "PASS",

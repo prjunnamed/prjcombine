@@ -55,12 +55,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 &["CKI", "DCM_OUT_L", "DCM_OUT_R"]
             };
             for &inp in inps {
-                fuzz_one!(ctx, "CLKMUX", inp, [
-                    (mutex "CLKMUX", inp)
+                fuzz_one!(ctx, "MUX.CLK", inp, [
+                    (mutex "MUX.CLK", inp)
                 ], [(pip (pin inp), (pin "CLK"))]);
             }
-            fuzz_one!(ctx, "CLKMUX", "INT", [
-                (mutex "CLKMUX", "INT")
+            fuzz_one!(ctx, "MUX.CLK", "INT", [
+                (mutex "MUX.CLK", "INT")
             ], [(pip (pin_far "CLK"), (pin "CLK"))]);
         }
         if grid_kind.is_virtex2() {
@@ -109,12 +109,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 fuzz_inv!(ctx, "S", [(mode "BUFGMUX"), (attr "DISABLE_ATTR", "LOW")]);
                 fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [(mode "BUFGMUX"), (pin "S")]);
                 for inp in ["CKI", "DCM_OUT"] {
-                    fuzz_one!(ctx, "CLKMUX", inp, [
-                    (mutex "CLKMUX", inp)
+                    fuzz_one!(ctx, "MUX.CLK", inp, [
+                    (mutex "MUX.CLK", inp)
                 ], [(pip (pin inp), (pin "CLK"))]);
                 }
-                fuzz_one!(ctx, "CLKMUX", "INT", [
-                    (mutex "CLKMUX", "INT")
+                fuzz_one!(ctx, "MUX.CLK", "INT", [
+                    (mutex "MUX.CLK", "INT")
                 ], [(pip (pin_far "CLK"), (pin "CLK"))]);
             }
             let ctx = FuzzCtx::new(session, backend, tile, "PCILOGICSE", TileBits::ClkLR);
@@ -160,7 +160,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             let inp_name = format!("IN_{bt}{i}");
                             fuzz_one!(
                                 ctx,
-                                &out_name,
+                                format!("MUX.OUT_{lr}{i}"),
                                 &inp_name,
                                 [
                                     (global_mutex "BUFG", "USE"),
@@ -189,7 +189,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ("OUT_L7", "OUT_R7", "IN_L7", "IN_R7", "IN_T3"),
         ] {
             for (out, inp) in [(out_l, in_l), (out_l, in_bt), (out_r, in_r), (out_r, in_bt)] {
-                fuzz_one!(ctx, out, inp, [
+                fuzz_one!(ctx, format!("MUX.{out}"), inp, [
                     (tile_mutex out, inp)
                 ], [
                     (pip (pin inp), (pin out))
@@ -224,7 +224,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         let inp_name = format!("IN_{lr}{i}");
                         fuzz_one!(
                             ctx,
-                            &out_name,
+                            format!("MUX.{out_name}"),
                             &inp_name,
                             [(tile_mutex & out_name, &inp_name)],
                             [(pip(pin & inp_name), (pin & out_name))]
@@ -240,7 +240,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     let inp_name = format!("IN_CORE{i}");
                     fuzz_one!(
                         ctx,
-                        &out_name,
+                        format!("BUF.{out_name}"),
                         &inp_name,
                         [],
                         [(pip(pin & inp_name), (pin & out_name))]
@@ -347,7 +347,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             for i in 0..num_bus {
                 let out_name = format!("OUTBUS{i}");
                 let in_name = format!("OUT{ii}", ii = i % 4);
-                fuzz_one!(ctx, &out_name, "1", [], [
+                fuzz_one!(ctx, format!("BUF.{out_name}"), "1", [], [
                     (row_mutex "DCMCONN"),
                     (pip (pin &in_name), (pin &out_name))
                 ]);
@@ -394,12 +394,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     BelId::from_idx(i + 1),
                 );
                 let bel_data = &backend.egrid.db.nodes[ctx.node_kind].bels[ctx.bel];
-                let mux_name = backend.egrid.db.nodes[ctx.node_kind].bels.key(ctx.bel);
                 for (pin_name, pin_data) in &bel_data.pins {
                     if pin_data.dir == PinDir::Output {
                         continue;
                     }
-                    fuzz_one!(ctx, mux_name, pin_name, [
+                    fuzz_one!(ctx, format!("MUX.PTE2OMUX{i}"), pin_name, [
                         (global_mutex "PSCLK", "PTE2OMUX")
                     ], [
                         (row_mutex "PTE2OMUX"),
@@ -452,7 +451,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             } else {
                 &["INT", "CKI", "DCM_OUT_L", "DCM_OUT_R"]
             };
-            ctx.collect_enum(tile, bel, "CLKMUX", inps);
+            ctx.collect_enum(tile, bel, "MUX.CLK", inps);
         }
     }
 
@@ -472,7 +471,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .assert_empty();
                 ctx.collect_inv(tile, &bel, "S");
                 ctx.collect_enum(tile, &bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
-                ctx.collect_enum(tile, &bel, "CLKMUX", &["INT", "CKI", "DCM_OUT"]);
+                ctx.collect_enum(tile, &bel, "MUX.CLK", &["INT", "CKI", "DCM_OUT"]);
             }
             let bel = "PCILOGICSE";
             let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
@@ -511,7 +510,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             for i in 0..8 {
                 for lr in ["L", "R"] {
-                    let out_name = format!("OUT_{lr}{i}");
+                    let out_name = format!("MUX.OUT_{lr}{i}");
                     ctx.collect_enum(
                         tile,
                         bel,
@@ -526,14 +525,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "CLKC_50A";
         let bel = "CLKC_50A";
         for (out_l, out_r, in_l, in_r, in_bt) in [
-            ("OUT_L0", "OUT_R0", "IN_L0", "IN_R0", "IN_B0"),
-            ("OUT_L1", "OUT_R1", "IN_L1", "IN_R1", "IN_B1"),
-            ("OUT_L2", "OUT_R2", "IN_L2", "IN_R2", "IN_B2"),
-            ("OUT_L3", "OUT_R3", "IN_L3", "IN_R3", "IN_B3"),
-            ("OUT_L4", "OUT_R4", "IN_L4", "IN_R4", "IN_T0"),
-            ("OUT_L5", "OUT_R5", "IN_L5", "IN_R5", "IN_T1"),
-            ("OUT_L6", "OUT_R6", "IN_L6", "IN_R6", "IN_T2"),
-            ("OUT_L7", "OUT_R7", "IN_L7", "IN_R7", "IN_T3"),
+            ("MUX.OUT_L0", "MUX.OUT_R0", "IN_L0", "IN_R0", "IN_B0"),
+            ("MUX.OUT_L1", "MUX.OUT_R1", "IN_L1", "IN_R1", "IN_B1"),
+            ("MUX.OUT_L2", "MUX.OUT_R2", "IN_L2", "IN_R2", "IN_B2"),
+            ("MUX.OUT_L3", "MUX.OUT_R3", "IN_L3", "IN_R3", "IN_B3"),
+            ("MUX.OUT_L4", "MUX.OUT_R4", "IN_L4", "IN_R4", "IN_T0"),
+            ("MUX.OUT_L5", "MUX.OUT_R5", "IN_L5", "IN_R5", "IN_T1"),
+            ("MUX.OUT_L6", "MUX.OUT_R6", "IN_L6", "IN_R6", "IN_T2"),
+            ("MUX.OUT_L7", "MUX.OUT_R7", "IN_L7", "IN_R7", "IN_T3"),
         ] {
             ctx.collect_enum(tile, bel, out_l, &[in_l, in_bt]);
             ctx.collect_enum(tile, bel, out_r, &[in_r, in_bt]);
@@ -544,7 +543,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GCLKVM";
         for i in 0..8 {
             for bt in ["B", "T"] {
-                let out_name = format!("OUT_{bt}{i}");
+                let out_name = format!("MUX.OUT_{bt}{i}");
                 ctx.collect_enum_default(
                     tile,
                     bel,
@@ -560,11 +559,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GCLKVM";
         for i in 0..8 {
             for bt in ["B", "T"] {
-                let out_name = format!("OUT_{bt}{i}");
-                let in_name = format!("IN_CORE{i}");
-                let diff = ctx.state.get_diff(tile, bel, &out_name, in_name);
-                ctx.tiledb
-                    .insert(tile, bel, out_name, xlat_bitvec(vec![diff]));
+                ctx.collect_bit(
+                    tile,
+                    bel,
+                    &format!("BUF.OUT_{bt}{i}"),
+                    &format!("IN_CORE{i}"),
+                );
             }
         }
     }
@@ -598,12 +598,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 let out_name = format!("OUT_{bt}{i}");
                 let attr = if tile.starts_with("GCLKH.UNI") {
-                    &uni_name
+                    format!("BUF.{uni_name}")
                 } else {
-                    &out_name
+                    format!("BUF.{out_name}")
                 };
-                let diff = ctx.state.get_diff(tile, bel, &out_name, &inp_name);
-                let item = xlat_bitvec(vec![diff]);
+                let item = ctx.extract_bit(tile, bel, &out_name, &inp_name);
                 ctx.tiledb.insert(tile, bel, attr, item);
             }
         }
@@ -613,16 +612,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if grid_kind.is_virtex2() {
         for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
             let bel = "DCMCONN";
-            for attr in [
-                "OUTBUS0", "OUTBUS1", "OUTBUS2", "OUTBUS3", "OUTBUS4", "OUTBUS5", "OUTBUS6",
-                "OUTBUS7",
-            ] {
-                ctx.tiledb.insert(
-                    tile,
-                    bel,
-                    attr,
-                    xlat_bitvec(vec![ctx.state.get_diff(tile, bel, attr, "1")]),
-                );
+            for i in 0..8 {
+                ctx.collect_bit(tile, bel, &format!("BUF.OUTBUS{i}"), "1");
             }
         }
     }
@@ -635,8 +626,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let bel = "PTE2OMUX";
-            for i in 1..5 {
-                let bel_id = BelId::from_idx(i);
+            for i in 0..4 {
+                let bel_id = BelId::from_idx(1 + i);
                 let bel_data = &intdb.nodes[node_kind].bels[bel_id];
                 let mux_name = intdb.nodes[node_kind].bels.key(bel_id);
                 let mut diffs = vec![];
@@ -644,14 +635,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if pin_data.dir == PinDir::Output {
                         continue;
                     }
-                    let mut diff = ctx.state.get_diff(tile, bel, mux_name, pin_name);
+                    let mut diff =
+                        ctx.state
+                            .get_diff(tile, bel, format!("MUX.{mux_name}"), pin_name);
                     if matches!(&pin_name[..], "CLKFB" | "CLKIN" | "PSCLK") {
                         diff.discard_bits(&ctx.item_int_inv(&[tile], tile, mux_name, pin_name));
                     }
                     diffs.push((pin_name.to_string(), diff));
                 }
-                ctx.tiledb
-                    .insert(tile, bel, mux_name, xlat_enum_default(diffs, "NONE"));
+                ctx.tiledb.insert(
+                    tile,
+                    bel,
+                    format!("MUX.{mux_name}"),
+                    xlat_enum_default(diffs, "NONE"),
+                );
             }
         }
     }

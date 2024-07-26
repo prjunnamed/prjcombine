@@ -305,8 +305,7 @@ impl<'a> IseBackend<'a> {
                 gopts.insert("KEYPASSES".into(), key_passes.to_string());
                 KeyData::Des(key)
             }
-            ExpandedDevice::Spartan6(_) => todo!(),
-            ExpandedDevice::Virtex4(_) => {
+            ExpandedDevice::Spartan6(_) | ExpandedDevice::Virtex4(_) => {
                 let key = KeyDataAes { key: rng.gen() };
                 gopts.insert("KEY0".into(), hex::encode(key.key));
                 KeyData::Aes(key)
@@ -369,6 +368,36 @@ impl<'a> Backend for IseBackend<'a> {
                         let entry = kv.entry(key).or_insert(zero.into());
                         if matches!(*entry, Value::None) {
                             *entry = zero.into();
+                        }
+                    }
+                }
+            }
+        }
+        let dummy_kind = match self.edev {
+            ExpandedDevice::Virtex2(_) => Some("VCC"),
+            ExpandedDevice::Spartan6(_) | ExpandedDevice::Virtex4(_) => Some("TIEOFF"),
+            _ => None,
+        };
+        if let Some(dummy_kind) = dummy_kind {
+            'add_dummy: for die in self.egrid.dies() {
+                for col in die.cols() {
+                    for row in die.rows() {
+                        for node in die[(col, row)].nodes.values() {
+                            if let Some(ref name) = node.tie_name {
+                                insts.insert(
+                                    "DUMMY_INST".to_string(),
+                                    Instance {
+                                        name: "DUMMY_INST".to_string(),
+                                        kind: dummy_kind.to_string(),
+                                        placement: Placement::Placed {
+                                            tile: "DUMMY".to_string(),
+                                            site: name.to_string(),
+                                        },
+                                        cfg: vec![],
+                                    },
+                                );
+                                break 'add_dummy;
+                            }
                         }
                     }
                 }
@@ -506,7 +535,9 @@ impl<'a> Backend for IseBackend<'a> {
                                             }
                                             ("IOB", "I", cfg)
                                         }
-                                        ExpandedDevice::Spartan6(_) => todo!(),
+                                        ExpandedDevice::Spartan6(_) => {
+                                            ("IOB", "I", vec![("IMUX", "I"), ("BYPASS_MUX", "I")])
+                                        }
                                         ExpandedDevice::Virtex4(_) => {
                                             ("IOB", "I", vec![("INBUFUSED", "0")])
                                         }
@@ -517,8 +548,8 @@ impl<'a> Backend for IseBackend<'a> {
                                         ExpandedDevice::Xc4k(_) => todo!(),
                                         ExpandedDevice::Xc5200(_) => todo!(),
                                         ExpandedDevice::Virtex(_) => todo!(),
-                                        ExpandedDevice::Virtex2(_) => ("BUFGMUX", "O", vec![]),
-                                        ExpandedDevice::Spartan6(_) => todo!(),
+                                        ExpandedDevice::Virtex2(_)
+                                        | ExpandedDevice::Spartan6(_) => ("BUFGMUX", "O", vec![]),
                                         ExpandedDevice::Virtex4(_) => ("BUFGCTRL", "O", vec![]),
                                         ExpandedDevice::Ultrascale(_) => todo!(),
                                         ExpandedDevice::Versal(_) => todo!(),

@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
+use prjcombine_spartan6::grid::Gts;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
@@ -672,6 +673,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pip (pin "IOCLK1"), (bel_pin obel, "PLLCLK1"))
             ]);
         }
+        if !is_lr {
+            let ctx = FuzzCtx::new_fake_bel(session, backend, tile, "MISC", TileBits::SpineEnd);
+            let n = &tile[4..];
+            fuzz_one!(ctx, "MISR_ENABLE", "1", [
+                (global_opt "ENABLEMISR", "Y"),
+                (global_opt "MISRRESET", "N")
+            ], [
+                (global_opt format!("MISR_{n}M_EN"), "Y")
+            ]);
+            fuzz_one!(ctx, "MISR_ENABLE_RESET", "1", [
+                (global_opt "ENABLEMISR", "Y"),
+                (global_opt "MISRRESET", "Y")
+            ], [
+                (global_opt format!("MISR_{n}M_EN"), "Y")
+            ]);
+        }
     }
     {
         let ctx = FuzzCtx::new(
@@ -709,6 +726,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let ExpandedDevice::Spartan6(edev) = ctx.edev else {
+        unreachable!()
+    };
     {
         let tile = "HCLK";
         let bel = "HCLK";
@@ -1068,6 +1088,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL0", "ENABLE_BOTH_SYNC"), 7, 0);
             diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL1", "ENABLE_BOTH_SYNC"), 7, 0);
             diff.assert_empty();
+        }
+        if !is_lr {
+            let bel = "MISC";
+            let has_gt = match tile {
+                "REG_B" => matches!(edev.grid.gts, Gts::Quad(_, _)),
+                "REG_T" => edev.grid.gts != Gts::None,
+                _ => unreachable!(),
+            };
+            if has_gt {
+                ctx.collect_bit(tile, bel, "MISR_ENABLE", "1");
+                let mut diff = ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1");
+                diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "MISR_ENABLE"), true, false);
+                ctx.tiledb
+                    .insert(tile, bel, "MISR_RESET", xlat_bitvec(vec![diff]));
+
+            } else {
+                ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1").assert_empty();
+                ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1").assert_empty();
+            }
         }
     }
     {

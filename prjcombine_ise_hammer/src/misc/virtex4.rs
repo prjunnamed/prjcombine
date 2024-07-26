@@ -63,50 +63,53 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_enum!(ctx, "CREATE_EDGE", ["FALSE", "TRUE"], [(mode "BUFGCTRL")]);
         fuzz_enum!(ctx, "INIT_OUT", ["0", "1"], [(mode "BUFGCTRL")]);
 
-        for (midx, mux, bus) in [(0, "I0MUX", "MUXBUS0"), (1, "I1MUX", "MUXBUS1")] {
+        for midx in 0..2 {
+            let bus = format!("MUXBUS{midx}");
+            let mux = format!("MUX.I{midx}");
+            let opin = format!("I{midx}MUX");
             for val in ["CKINT0", "CKINT1"] {
-                fuzz_one!(ctx, mux, val, [
-                    (mutex "IxMUX", mux),
-                    (mutex mux, val)
+                fuzz_one!(ctx, &mux, val, [
+                    (mutex "IxMUX", &mux),
+                    (mutex &mux, val)
                 ], [
-                    (pip (pin val), (pin mux))
+                    (pip (pin val), (pin opin))
                 ]);
             }
             let obel = BelId::from_idx(0);
             let mb_idx = 2 * (i % 16) + midx;
             let mb_out = format!("MUXBUS_O{mb_idx}");
-            fuzz_one!(ctx, mux, "MUXBUS", [
-                (mutex "IxMUX", mux),
-                (mutex mux, "MUXBUS"),
+            fuzz_one!(ctx, &mux, "MUXBUS", [
+                (mutex "IxMUX", &mux),
+                (mutex &mux, "MUXBUS"),
                 (global_mutex "CLK_IOB_MUXBUS", "USE"),
                 (related TileRelation::ClkIob(if i >= 16 { Dir::N } else { Dir::S }),
                     (pip (bel_pin obel, "PAD_BUF0"), (bel_pin obel, mb_out)))
             ], [
-                (pip (pin bus), (pin mux))
+                (pip (pin bus), (pin opin))
             ]);
             for j in 0..16 {
                 let jj = if i < 16 { j } else { j + 16 };
                 let obel = BelId::from_idx(jj);
                 let val = format!("GFB{j}");
-                fuzz_one!(ctx, mux, val.clone(), [
-                    (mutex "IxMUX", mux),
-                    (mutex mux, val)
+                fuzz_one!(ctx, &mux, &val, [
+                    (mutex "IxMUX", &mux),
+                    (mutex &mux, val)
                 ], [
-                    (pip (bel_pin obel, "GFB"), (pin mux))
+                    (pip (bel_pin obel, "GFB"), (pin opin))
                 ]);
             }
             for val in ["MGT_L0", "MGT_L1", "MGT_R0", "MGT_R1"] {
                 let obel = BelId::from_idx(45 + i / 16);
                 let obel_bufg = BelId::from_idx(i ^ 1);
-                fuzz_one!(ctx, mux, val, [
-                    (mutex "IxMUX", mux),
-                    (mutex mux, val),
+                fuzz_one!(ctx, &mux, val, [
+                    (mutex "IxMUX", &mux),
+                    (mutex &mux, val),
                     (global_mutex "BUFG_MGTCLK", "USE"),
-                    (bel_mutex obel_bufg, "IxMUX", mux),
-                    (bel_mutex obel_bufg, mux, val),
-                    (pip (bel_pin obel, val), (bel_pin obel_bufg, mux))
+                    (bel_mutex obel_bufg, "IxMUX", &mux),
+                    (bel_mutex obel_bufg, &mux, val),
+                    (pip (bel_pin obel, val), (bel_pin obel_bufg, opin))
                 ], [
-                    (pip (bel_pin obel, val), (pin mux))
+                    (pip (bel_pin obel, val), (pin opin))
                 ]);
             }
         }
@@ -204,10 +207,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ] {
             let ctx = FuzzCtx::new_force_bel(session, backend, "CFG", bel, TileBits::Cfg, bel_id);
             for (name, o, i) in [
-                ("MGT_L0", "MGT_L0_O", "MGT_L0_I"),
-                ("MGT_L1", "MGT_L1_O", "MGT_L1_I"),
-                ("MGT_R0", "MGT_R0_O", "MGT_R0_I"),
-                ("MGT_R1", "MGT_R1_O", "MGT_R1_I"),
+                ("BUF.MGT_L0", "MGT_L0_O", "MGT_L0_I"),
+                ("BUF.MGT_L1", "MGT_L1_O", "MGT_L1_I"),
+                ("BUF.MGT_R0", "MGT_R0_O", "MGT_R0_I"),
+                ("BUF.MGT_R1", "MGT_R1_O", "MGT_R1_I"),
             ] {
                 fuzz_one!(ctx, name, "1", [
                     (global_mutex "BUFG_MGTCLK", "TEST")
@@ -434,11 +437,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
 
         let (_, _, ien_diff) = Diff::split(
-            ctx.state.peek_diff(tile, bel, "I0MUX", "CKINT0").clone(),
-            ctx.state.peek_diff(tile, bel, "I1MUX", "CKINT0").clone(),
+            ctx.state.peek_diff(tile, bel, "MUX.I0", "CKINT0").clone(),
+            ctx.state.peek_diff(tile, bel, "MUX.I1", "CKINT0").clone(),
         );
         let ien_item = xlat_bitvec(vec![ien_diff]);
-        for mux in ["I0MUX", "I1MUX"] {
+        for mux in ["MUX.I0", "MUX.I1"] {
             let mut vals = vec![("NONE", Diff::default())];
             for val in [
                 "GFB0", "GFB1", "GFB2", "GFB3", "GFB4", "GFB5", "GFB6", "GFB7", "GFB8", "GFB9",
@@ -544,7 +547,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     if edev.col_lgt.is_some() {
         for bel in ["BUFG_MGTCLK_B", "BUFG_MGTCLK_T"] {
-            for attr in ["MGT_L0", "MGT_L1", "MGT_R0", "MGT_R1"] {
+            for attr in ["BUF.MGT_L0", "BUF.MGT_L1", "BUF.MGT_R0", "BUF.MGT_R1"] {
                 ctx.collect_bit(tile, bel, attr, "1");
             }
         }
@@ -717,6 +720,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs.push((format!("GIOB{i}"), diff));
         }
         ctx.tiledb
-            .insert(tile, bel, "CONVST_MUX", xlat_enum_ocd(diffs, OcdMode::Mux));
+            .insert(tile, bel, "MUX.CONVST", xlat_enum_ocd(diffs, OcdMode::Mux));
     }
 }

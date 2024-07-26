@@ -1,5 +1,7 @@
-DCM
-###
+.. _virtex4-dcm:
+
+Digital Clock Managers
+######################
 
 
 Bitstream
