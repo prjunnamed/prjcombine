@@ -6,6 +6,71 @@ use arrayref::array_ref;
 use bitvec::prelude::*;
 use std::collections::HashMap;
 
+fn parse_xc5200_bitstream(bs: &mut Bitstream, data: &[u8]) {
+    let bs = bs.die.first_mut().unwrap();
+    assert_eq!(data[0], 0xff);
+    assert_eq!(data[1], 0xf2);
+    let bit_length = (data[2] as usize) << 16 | (data[3] as usize) << 8 | (data[4] as usize);
+    assert_eq!(data[5], 0xff);
+    assert_eq!(bit_length, data.len() * 8 - 7);
+    let mut pos = 6;
+    let frame_len = bs.frame_len;
+    let mut crc_enable = false;
+    let frames_num = bs.frame_info.len();
+    let frame_bytes = frame_len.div_ceil(8);
+    for fi in 0..frames_num {
+        assert_eq!(data[pos], 0xfe);
+        pos += 1;
+        let frame = bs.frame_mut(fi);
+        for j in 0..(frame_bytes * 8) {
+            let bit = ((data[pos + j / 8] << (j % 8)) & 0x80) != 0;
+            if fi == 0 && j == 0 {
+                crc_enable = bit;
+            }
+            if fi == frames_num - 1 && crc_enable && j >= frame_len - 12 {
+                if j < frame_len {
+                    frame.set(j, true);
+                }
+                if j < frame_bytes * 8 - 12 {
+                    assert!(!bit);
+                }
+            } else if j < frame_len {
+                frame.set(j, bit);
+            } else {
+                assert!(!bit);
+            }
+        }
+        let _fdata = &data[pos..(pos + frame_bytes)];
+        pos += frame_bytes;
+        let crc = data[pos] >> 4;
+        if !crc_enable {
+            assert_eq!(crc, 6);
+        } else {
+            // TODO: CRC algo
+            if fi == frames_num - 1 {
+                let _final_crc = ((data[frame_bytes - 2] as u16 & 0xf) << 12
+                    | (data[frame_bytes - 1] as u16) << 4)
+                    | (crc as u16);
+                // println!("{f} FINAL CRC: {_final_crc:04x}", f = hex::encode(_fdata));
+            } else {
+                // println!("{f} CRC: {crc:x}", f = hex::encode(_fdata));
+            }
+        }
+        assert_eq!(data[pos] & 0xf, 0xf);
+        assert_eq!(data[pos + 1], 0xff);
+        assert_eq!(data[pos + 2], 0xff);
+        assert_eq!(data[pos + 3], 0xff);
+        pos += 4;
+    }
+    assert_eq!(data[pos], 0xfe);
+    pos += 1;
+    for _ in 0..31 {
+        assert_eq!(data[pos], 0xff);
+        pos += 1;
+    }
+    assert_eq!(data.len(), pos);
+}
+
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 enum State {
     None,
@@ -1568,6 +1633,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         }),
     };
     match res.kind {
+        DeviceKind::Xc5200 => parse_xc5200_bitstream(&mut res, data),
         DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),
         DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data, key),

@@ -6,7 +6,7 @@ use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
-use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
+use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use rand::prelude::*;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{Debug, Write};
@@ -105,6 +105,7 @@ impl From<bool> for Value {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum MultiValue {
     Lut,
+    OldLut,
     Hex(i32),
     HexPrefix,
     Bin,
@@ -350,6 +351,61 @@ impl<'a> Backend for IseBackend<'a> {
         let orig_kv = kv;
         let mut kv = kv.clone();
         let mut single_pips = vec![];
+
+        let combo = if let Some(Value::String(package)) = kv.get(&Key::Package) {
+            'pkg: {
+                for combo in &self.device.combos {
+                    if self.device.bonds[combo.devbond_idx].name == *package {
+                        break 'pkg combo;
+                    }
+                }
+                panic!("pkg {package} not found");
+            }
+        } else {
+            &self.device.combos[0]
+        };
+
+        let mut site_to_tile = HashMap::new();
+        for die in self.egrid.dies() {
+            for col in die.cols() {
+                for row in die.rows() {
+                    let tile = &die[(col, row)];
+                    for node in tile.nodes.values() {
+                        for (id, name) in &node.bels {
+                            let rt = self.egrid.db.node_namings[node.naming].bels[id].tile;
+                            site_to_tile.insert(name.to_string(), node.names[rt].to_string());
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut site_to_place = HashMap::new();
+        let bond = &self.db.bonds[self.device.bonds[combo.devbond_idx].bond];
+        if let Bond::Xc5200(bond) = bond {
+            let ExpandedDevice::Xc5200(edev) = self.edev else {
+                unreachable!()
+            };
+            for (k, v) in &bond.pins {
+                #[allow(irrefutable_let_patterns)]
+                if let prjcombine_xc5200::bond::BondPin::Io(io) = v {
+                    let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
+                    site_to_place.insert(name.to_string(), k.to_string());
+                }
+            }
+            for io in edev.get_bonded_ios() {
+                match site_to_place.entry(io.name.to_string()) {
+                    hash_map::Entry::Occupied(_) => (),
+                    hash_map::Entry::Vacant(e) => {
+                        e.insert(format!(
+                            "UNB{suf}",
+                            suf = io.name.strip_prefix("PAD").unwrap()
+                        ));
+                    }
+                }
+            }
+        }
+
         // sigh. bitgen inserts nondeterministic defaults without this.
         for (k, v) in orig_kv {
             if let Key::SiteMode(site) = k {
@@ -404,27 +460,28 @@ impl<'a> Backend for IseBackend<'a> {
             }
         }
 
+        let (dummy_inst_kind, dummy_inst_port) = match self.edev {
+            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc5200(_) => ("LC5A", "CK"),
+            ExpandedDevice::Virtex(_) => ("SLICE", "CLK"),
+            ExpandedDevice::Virtex2(edev) => (
+                if edev.grid.kind.is_virtex2() {
+                    "SLICE"
+                } else {
+                    "SLICEL"
+                },
+                "CLK",
+            ),
+            ExpandedDevice::Spartan6(_) => ("SLICEX", "CLK"),
+            ExpandedDevice::Virtex4(_) => ("SLICEL", "CLK"),
+            ExpandedDevice::Ultrascale(_) => unreachable!(),
+            ExpandedDevice::Versal(_) => unreachable!(),
+        };
         insts.insert(
             "DUMMY_SINGLE_PIPS".to_string(),
             Instance {
                 name: "DUMMY_SINGLE_PIPS".to_string(),
-                kind: match self.edev {
-                    ExpandedDevice::Xc4k(_) => todo!(),
-                    ExpandedDevice::Xc5200(_) => todo!(),
-                    ExpandedDevice::Virtex(_) => "SLICE",
-                    ExpandedDevice::Virtex2(edev) => {
-                        if edev.grid.kind.is_virtex2() {
-                            "SLICE"
-                        } else {
-                            "SLICEL"
-                        }
-                    }
-                    ExpandedDevice::Spartan6(_) => "SLICEX",
-                    ExpandedDevice::Virtex4(_) => "SLICEL",
-                    ExpandedDevice::Ultrascale(_) => unreachable!(),
-                    ExpandedDevice::Versal(_) => unreachable!(),
-                }
-                .to_string(),
+                kind: dummy_inst_kind.to_string(),
                 placement: Placement::Unplaced,
                 cfg: vec![],
             },
@@ -448,8 +505,11 @@ impl<'a> Backend for IseBackend<'a> {
                                 name: site.to_string(),
                                 kind: s.to_string(),
                                 placement: Placement::Placed {
-                                    site: site.to_string(),
-                                    tile: "meow".to_string(),
+                                    site: match site_to_place.get(*site) {
+                                        Some(place) => place.to_string(),
+                                        None => site.to_string(),
+                                    },
+                                    tile: site_to_tile[*site].to_string(),
                                 },
                                 cfg: vec![],
                             },
@@ -478,7 +538,7 @@ impl<'a> Backend for IseBackend<'a> {
                     typ: NetType::Plain,
                     inpins: vec![NetPin {
                         inst_name: "DUMMY_SINGLE_PIPS".to_string(),
-                        pin: "CLK".to_string(),
+                        pin: dummy_inst_port.to_string(),
                     }],
                     outpins: vec![],
                     pips: single_pips,
@@ -493,8 +553,20 @@ impl<'a> Backend for IseBackend<'a> {
                     Value::String(s) => {
                         if !s.is_empty() {
                             let inst = insts.get_mut(&**site).unwrap();
-                            inst.cfg
-                                .push(vec![attr.to_string(), "".to_string(), s.to_string()]);
+                            if let Some(suf) = s.strip_prefix("#LUT:") {
+                                inst.cfg.push(vec![
+                                    attr.to_string(),
+                                    "".to_string(),
+                                    "#LUT".to_string(),
+                                    suf.to_string(),
+                                ]);
+                            } else {
+                                inst.cfg.push(vec![
+                                    attr.to_string(),
+                                    "".to_string(),
+                                    s.to_string(),
+                                ]);
+                            }
                         }
                     }
                     _ => unreachable!(),
@@ -583,28 +655,29 @@ impl<'a> Backend for IseBackend<'a> {
                 _ => (),
             }
         }
-        let combo = if let Some(Value::String(package)) = kv.get(&Key::Package) {
-            'pkg: {
-                for combo in &self.device.combos {
-                    if self.device.bonds[combo.devbond_idx].name == *package {
-                        break 'pkg combo;
-                    }
-                }
-                panic!("pkg {package} not found");
-            }
+        let part = if matches!(self.edev, ExpandedDevice::Xc5200(_)) {
+            format!(
+                "{d}{p}",
+                d = &self.device.name[2..],
+                p = self.device.bonds[combo.devbond_idx].name,
+            )
         } else {
-            &self.device.combos[0]
-        };
-        let mut xdl = Design {
-            name: "meow".to_string(),
-            part: format!(
+            format!(
                 "{d}{s}{p}",
                 d = self.device.name,
                 s = self.device.speeds[combo.speed_idx],
                 p = self.device.bonds[combo.devbond_idx].name
-            ),
+            )
+        };
+        let mut xdl = Design {
+            name: "meow".to_string(),
+            part,
             cfg: vec![],
-            version: "v3.2".to_string(),
+            version: if matches!(self.edev, ExpandedDevice::Xc5200(_)) {
+                "".to_string()
+            } else {
+                "v3.2".to_string()
+            },
             instances: insts.into_values().collect(),
             nets: nets.into_values().collect(),
         };
@@ -711,6 +784,20 @@ impl<'a> Backend for IseBackend<'a> {
         match *mv {
             MultiValue::Lut => {
                 let mut v = "#LUT:0x".to_string();
+                let nc = y.len() / 4;
+                for i in 0..nc {
+                    let mut c = 0;
+                    for j in 0..4 {
+                        if y[(nc - 1 - i) * 4 + j] {
+                            c |= 1 << j;
+                        }
+                    }
+                    write!(v, "{c:x}").unwrap();
+                }
+                Value::String(v)
+            }
+            MultiValue::OldLut => {
+                let mut v = "#LUT:F=0x".to_string();
                 let nc = y.len() / 4;
                 for i in 0..nc {
                     let mut c = 0;

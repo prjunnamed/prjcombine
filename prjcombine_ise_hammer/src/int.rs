@@ -8,11 +8,20 @@ use crate::{
 };
 
 pub mod virtex;
+pub mod xc5200;
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    if matches!(backend.edev, ExpandedDevice::Virtex(_)) {
-        virtex::add_fuzzers(session, backend);
-        return;
+    match backend.edev {
+        ExpandedDevice::Xc4k(_) => todo!(),
+        ExpandedDevice::Xc5200(_) => {
+            xc5200::add_fuzzers(session, backend);
+            return;
+        }
+        ExpandedDevice::Virtex(_) => {
+            virtex::add_fuzzers(session, backend);
+            return;
+        }
+        _ => (),
     }
     let intdb = backend.egrid.db;
     for (node_kind, name, node) in &intdb.nodes {
@@ -113,9 +122,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    if matches!(ctx.edev, ExpandedDevice::Virtex(_)) {
-        virtex::collect_fuzzers(ctx);
-        return;
+    match ctx.edev {
+        ExpandedDevice::Xc4k(_) => todo!(),
+        ExpandedDevice::Xc5200(_) => {
+            xc5200::collect_fuzzers(ctx);
+            return;
+        }
+        ExpandedDevice::Virtex(_) => {
+            virtex::collect_fuzzers(ctx);
+            return;
+        }
+        _ => (),
     }
     let egrid = ctx.edev.egrid();
     let intdb = egrid.db;

@@ -5,8 +5,9 @@ use unnamed_entity::EntityId;
 
 use crate::{backend::IseBackend, fgen::TileBits};
 
-pub struct FuzzCtx<'sm, 's, 'a> {
+pub struct FuzzCtx<'sm, 's, 'a, 'b> {
     pub session: &'sm mut Session<'s, IseBackend<'a>>,
+    pub backend: &'b IseBackend<'a>,
     pub node_kind: NodeKindId,
     pub bits: TileBits,
     pub tile_name: String,
@@ -14,10 +15,10 @@ pub struct FuzzCtx<'sm, 's, 'a> {
     pub bel_name: String,
 }
 
-impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
+impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
     pub fn new(
         session: &'sm mut Session<'s, IseBackend<'a>>,
-        backend: &IseBackend<'a>,
+        backend: &'b IseBackend<'a>,
         tile: impl Into<String>,
         bel: impl Into<String>,
         bits: TileBits,
@@ -27,6 +28,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
         let bel_name = bel.into();
         Self {
             session,
+            backend,
             node_kind,
             bits,
             tile_name: tile,
@@ -41,7 +43,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
 
     pub fn try_new(
         session: &'sm mut Session<'s, IseBackend<'a>>,
-        backend: &IseBackend<'a>,
+        backend: &'b IseBackend<'a>,
         tile: impl Into<String>,
         bel: impl Into<String>,
         bits: TileBits,
@@ -54,6 +56,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
         let bel_name = bel.into();
         Some(Self {
             session,
+            backend,
             node_kind,
             bits,
             tile_name: tile,
@@ -64,7 +67,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
 
     pub fn new_force_bel(
         session: &'sm mut Session<'s, IseBackend<'a>>,
-        backend: &IseBackend<'a>,
+        backend: &'b IseBackend<'a>,
         tile: impl Into<String>,
         bel: impl Into<String>,
         bits: TileBits,
@@ -77,7 +80,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
 
     pub fn new_fake_bel(
         session: &'sm mut Session<'s, IseBackend<'a>>,
-        backend: &IseBackend<'a>,
+        backend: &'b IseBackend<'a>,
         tile: impl Into<String>,
         bel: impl Into<String>,
         bits: TileBits,
@@ -87,6 +90,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
         let bel_name = bel.into();
         Self {
             session,
+            backend,
             node_kind,
             bits,
             tile_name: tile,
@@ -97,7 +101,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
 
     pub fn new_fake_tile(
         session: &'sm mut Session<'s, IseBackend<'a>>,
-        backend: &IseBackend<'a>,
+        backend: &'b IseBackend<'a>,
         tile: impl Into<String>,
         bel: impl Into<String>,
         bits: TileBits,
@@ -124,6 +128,7 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
         let bel_name = bel.into();
         Self {
             session,
+            backend,
             node_kind,
             bits,
             tile_name: tile,
@@ -135,6 +140,9 @@ impl<'sm, 's, 'a> FuzzCtx<'sm, 's, 'a> {
 
 #[macro_export]
 macro_rules! fuzz_wire {
+    ($ctx:ident, (int $tile:expr, $wire:expr)) => {
+        $crate::fgen::TileWire::IntWire((<prjcombine_int::db::NodeTileId as unnamed_entity::EntityId>::from_idx($tile), $ctx.backend.egrid.db.get_wire(&$wire[..])))
+    };
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileWire::BelPinNear($ctx.bel, $pin.to_string())
     };
@@ -437,6 +445,13 @@ macro_rules! fuzz_diff_multi {
             $ctx.bel,
             $attr.to_string(),
             $crate::backend::MultiValue::Lut,
+        )
+    };
+    ($ctx:ident, (attr_oldlut $attr:expr)) => {
+        $crate::fgen::TileMultiFuzzKV::SiteAttr(
+            $ctx.bel,
+            $attr.to_string(),
+            $crate::backend::MultiValue::OldLut,
         )
     };
     ($ctx:ident, (attr_hex $attr:expr)) => {

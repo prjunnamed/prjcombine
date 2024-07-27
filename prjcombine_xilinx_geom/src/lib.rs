@@ -125,7 +125,7 @@ impl<'a> ExpandedDevice<'a> {
     pub fn bs_geom(&self) -> &BitstreamGeom {
         match self {
             ExpandedDevice::Xc4k(_) => todo!(),
-            ExpandedDevice::Xc5200(_) => todo!(),
+            ExpandedDevice::Xc5200(edev) => &edev.bs_geom,
             ExpandedDevice::Virtex(edev) => &edev.bs_geom,
             ExpandedDevice::Virtex2(edev) => &edev.bs_geom,
             ExpandedDevice::Spartan6(edev) => &edev.bs_geom,

@@ -1,6 +1,7 @@
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::ExpandedGrid;
-use unnamed_entity::EntityId;
+use prjcombine_int::grid::{DieId, ExpandedGrid};
+use prjcombine_virtex_bitstream::{BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo};
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::expanded::ExpandedDevice;
 use crate::grid::Grid;
@@ -202,7 +203,85 @@ impl Grid {
         grid.fill_term_anon((col_l, row_t), "CNR.UL");
         grid.fill_term_anon((col_r, row_t), "CNR.UR");
 
+        let mut spine_framebit = None;
+        let mut row_framebit = EntityVec::new();
+        let mut frame_len = 0;
+        for row in grid.rows() {
+            if row == self.row_mid() {
+                spine_framebit = Some(frame_len);
+                frame_len += 4;
+            }
+            row_framebit.push(frame_len);
+            let height = if row == self.row_bio() || row == self.row_tio() {
+                28
+            } else {
+                34
+            };
+            frame_len += height;
+        }
+        let spine_framebit = spine_framebit.unwrap();
+
+        let mut frame_info = vec![];
+        let mut spine_frame = None;
+        let mut col_frame: EntityVec<_, _> = grid.cols().map(|_| 0).collect();
+        for col in grid.cols().rev() {
+            let width = if col == self.col_lio() {
+                7
+            } else if col == self.col_rio() {
+                8
+            } else {
+                12
+            };
+            col_frame[col] = frame_info.len();
+            for _ in 0..width {
+                let minor = frame_info.len();
+                frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major: 0,
+                        minor: minor as u32,
+                    },
+                });
+            }
+            if col == self.col_mid() {
+                let minor = frame_info.len();
+                spine_frame = Some(minor);
+                frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major: 0,
+                        minor: minor as u32,
+                    },
+                });
+            }
+        }
+        let spine_frame = spine_frame.unwrap();
+
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len,
+            frame_info,
+            bram_frame_len: 0,
+            bram_frame_info: vec![],
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Xc5200,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![DieId::from_idx(0)],
+        };
+
         egrid.finish();
-        ExpandedDevice { grid: self, egrid }
+
+        ExpandedDevice {
+            grid: self,
+            egrid,
+            bs_geom,
+            spine_frame,
+            spine_framebit,
+            col_frame,
+            row_framebit,
+        }
     }
 }

@@ -194,7 +194,7 @@ impl Design {
                 fmt_string(&inst.kind)
             )?;
             match &inst.placement {
-                Placement::Placed { tile, site } => write!(f, "placed {tile} {site}")?,
+                Placement::Placed { tile, site } => write!(f, "placed \"{tile}\" \"{site}\"")?,
                 Placement::Unplaced => write!(f, "unplaced")?,
                 Placement::Bonded => write!(f, "unplaced bonded")?,
                 Placement::Unbonded => write!(f, "unplaced unbonded")?,
@@ -228,7 +228,7 @@ impl Design {
                 };
                 writeln!(
                     f,
-                    " pip {} {} {} {},",
+                    " pip \"{}\" \"{}\" {} \"{}\",",
                     pip.tile, pip.wire_from, dir, pip.wire_to
                 )?;
             }

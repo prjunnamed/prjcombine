@@ -21,6 +21,7 @@ pub type Loc = (DieId, ColId, RowId, LayerId);
 
 #[derive(Debug, Clone)]
 pub enum TileWire {
+    IntWire(NodeWireId),
     BelPinNear(BelId, String),
     BelPinFar(BelId, String),
     RelatedBelPinNear(BelId, BelRelation, String),
@@ -462,6 +463,18 @@ fn resolve_tile_wire<'a>(
     let intdb = backend.egrid.db;
     let node_naming = &intdb.node_namings[node.naming];
     Some(match wire {
+        TileWire::IntWire(wire) => {
+            let node = backend.egrid.node(loc);
+            let intdb = backend.egrid.db;
+            let node_naming = &intdb.node_namings[node.naming];
+            backend
+                .egrid
+                .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+            (
+                &node.names[NodeRawTileId::from_idx(0)],
+                node_naming.wires.get(wire)?,
+            )
+        }
         TileWire::BelPinNear(bel, pin) => {
             let bel_naming = &node_naming.bels[*bel];
             (&node.names[bel_naming.tile], &bel_naming.pins[pin].name)
@@ -930,110 +943,210 @@ impl<'a> TileKV<'a> {
                 }
                 fuzzer
             }
-            TileKV::DriveLLH(wire) => {
-                let ExpandedDevice::Virtex2(edev) = backend.edev else {
-                    unreachable!()
-                };
-                let node = backend.egrid.node(loc);
-                let wnode = backend
-                    .egrid
-                    .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
-                let mut src_col = node.tiles[wire.0].0;
-                loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_node_loc(loc.0, (src_col, loc.2), |src_node| {
-                                backend.egrid.db.nodes.key(src_node.kind).starts_with("INT")
-                            })
-                    {
-                        let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
-                        for (&dwire, mux) in &src_node_kind.muxes {
-                            if !backend.egrid.db.wires.key(dwire.1).starts_with("LH") {
-                                continue;
+            TileKV::DriveLLH(wire) => match backend.edev {
+                ExpandedDevice::Xc5200(edev) => {
+                    let node = backend.egrid.node(loc);
+                    let wnode = backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                    let mut src_col = if node.tiles[wire.0].0 < edev.grid.col_mid() {
+                        edev.grid.col_mid() - 1
+                    } else {
+                        edev.grid.col_mid()
+                    };
+                    loop {
+                        if let Some((src_layer, src_node)) =
+                            backend
+                                .egrid
+                                .find_node_loc(loc.0, (src_col, loc.2), |src_node| {
+                                    backend.egrid.db.nodes.key(src_node.kind).starts_with("IO")
+                                        || backend.egrid.db.nodes.key(src_node.kind) == "CLB"
+                                })
+                        {
+                            let dwire = (NodeTileId::from_idx(0), wire.1);
+                            let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
+                            if let Some(mux) = src_node_kind.muxes.get(&dwire) {
+                                let Some(dnode) = backend.egrid.resolve_wire((
+                                    loc.0,
+                                    src_node.tiles[dwire.0],
+                                    dwire.1,
+                                )) else {
+                                    continue;
+                                };
+                                assert_eq!(dnode, wnode);
+                                let swire = *mux.ins.first().unwrap();
+                                let (tile, wa, wb) = resolve_int_pip(
+                                    backend,
+                                    (loc.0, src_col, loc.2, src_layer),
+                                    swire,
+                                    dwire,
+                                )?;
+                                return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                loc.0,
-                                src_node.tiles[dwire.0],
-                                dwire.1,
-                            )) else {
-                                continue;
-                            };
-                            if dnode != wnode {
-                                continue;
-                            }
-                            let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (loc.0, src_col, loc.2, src_layer),
-                                swire,
-                                dwire,
-                            )?;
-                            return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
+                        }
+                        if src_col == edev.grid.col_lio() || src_col == edev.grid.col_rio() {
+                            return None;
+                        }
+                        if src_col < edev.grid.col_mid() {
+                            src_col -= 1;
+                        } else {
+                            src_col += 1;
                         }
                     }
-                    if src_col == edev.grid.col_left() || src_col == edev.grid.col_right() {
-                        return None;
-                    }
-                    if wire.0.to_idx() == 0 {
-                        src_col -= 1;
-                    } else {
-                        src_col += 1;
-                    }
                 }
-            }
-            TileKV::DriveLLV(wire) => {
-                let ExpandedDevice::Virtex2(edev) = backend.edev else {
-                    unreachable!()
-                };
-                let node = backend.egrid.node(loc);
-                let wnode = backend
-                    .egrid
-                    .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
-                let mut src_row = node.tiles[wire.0].1;
-                loop {
-                    if let Some((src_layer, src_node)) =
-                        backend
-                            .egrid
-                            .find_node_loc(loc.0, (loc.1, src_row), |src_node| {
-                                backend.egrid.db.nodes.key(src_node.kind).starts_with("INT")
-                            })
-                    {
-                        let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
-                        for (&dwire, mux) in &src_node_kind.muxes {
-                            if !backend.egrid.db.wires.key(dwire.1).starts_with("LV") {
-                                continue;
+                ExpandedDevice::Virtex2(edev) => {
+                    let node = backend.egrid.node(loc);
+                    let wnode = backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                    let mut src_col = node.tiles[wire.0].0;
+                    loop {
+                        if let Some((src_layer, src_node)) =
+                            backend
+                                .egrid
+                                .find_node_loc(loc.0, (src_col, loc.2), |src_node| {
+                                    backend.egrid.db.nodes.key(src_node.kind).starts_with("INT")
+                                })
+                        {
+                            let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
+                            for (&dwire, mux) in &src_node_kind.muxes {
+                                if !backend.egrid.db.wires.key(dwire.1).starts_with("LH") {
+                                    continue;
+                                }
+                                let Some(dnode) = backend.egrid.resolve_wire((
+                                    loc.0,
+                                    src_node.tiles[dwire.0],
+                                    dwire.1,
+                                )) else {
+                                    continue;
+                                };
+                                if dnode != wnode {
+                                    continue;
+                                }
+                                let swire = *mux.ins.first().unwrap();
+                                let (tile, wa, wb) = resolve_int_pip(
+                                    backend,
+                                    (loc.0, src_col, loc.2, src_layer),
+                                    swire,
+                                    dwire,
+                                )?;
+                                return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
                             }
-                            let Some(dnode) = backend.egrid.resolve_wire((
-                                loc.0,
-                                src_node.tiles[dwire.0],
-                                dwire.1,
-                            )) else {
-                                continue;
-                            };
-                            if dnode != wnode {
-                                continue;
-                            }
-                            let swire = *mux.ins.first().unwrap();
-                            let (tile, wa, wb) = resolve_int_pip(
-                                backend,
-                                (loc.0, loc.1, src_row, src_layer),
-                                swire,
-                                dwire,
-                            )?;
-                            return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
+                        }
+                        if src_col == edev.grid.col_left() || src_col == edev.grid.col_right() {
+                            return None;
+                        }
+                        if wire.0.to_idx() == 0 {
+                            src_col -= 1;
+                        } else {
+                            src_col += 1;
                         }
                     }
-                    if src_row == edev.grid.row_bot() || src_row == edev.grid.row_top() {
-                        return None;
-                    }
-                    if wire.0.to_idx() == 0 {
-                        src_row -= 1;
+                }
+                _ => todo!(),
+            },
+            TileKV::DriveLLV(wire) => match backend.edev {
+                ExpandedDevice::Xc5200(edev) => {
+                    let node = backend.egrid.node(loc);
+                    let wnode = backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                    let mut src_row = if node.tiles[wire.0].1 < edev.grid.row_mid() {
+                        edev.grid.row_mid() - 1
                     } else {
-                        src_row += 1;
+                        edev.grid.row_mid()
+                    };
+                    loop {
+                        if let Some((src_layer, src_node)) =
+                            backend
+                                .egrid
+                                .find_node_loc(loc.0, (loc.1, src_row), |src_node| {
+                                    backend.egrid.db.nodes.key(src_node.kind).starts_with("IO")
+                                        || backend.egrid.db.nodes.key(src_node.kind) == "CLB"
+                                })
+                        {
+                            let dwire = (NodeTileId::from_idx(0), wire.1);
+                            let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
+                            if let Some(mux) = src_node_kind.muxes.get(&dwire) {
+                                let Some(dnode) = backend.egrid.resolve_wire((
+                                    loc.0,
+                                    src_node.tiles[dwire.0],
+                                    dwire.1,
+                                )) else {
+                                    continue;
+                                };
+                                assert_eq!(dnode, wnode);
+                                let swire = *mux.ins.first().unwrap();
+                                let (tile, wa, wb) = resolve_int_pip(
+                                    backend,
+                                    (loc.0, loc.1, src_row, src_layer),
+                                    swire,
+                                    dwire,
+                                )?;
+                                return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
+                            }
+                        }
+                        if src_row == edev.grid.row_bio() || src_row == edev.grid.row_tio() {
+                            return None;
+                        }
+                        if src_row < edev.grid.row_mid() {
+                            src_row -= 1;
+                        } else {
+                            src_row += 1;
+                        }
                     }
                 }
-            }
+                ExpandedDevice::Virtex2(edev) => {
+                    let node = backend.egrid.node(loc);
+                    let wnode = backend
+                        .egrid
+                        .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
+                    let mut src_row = node.tiles[wire.0].1;
+                    loop {
+                        if let Some((src_layer, src_node)) =
+                            backend
+                                .egrid
+                                .find_node_loc(loc.0, (loc.1, src_row), |src_node| {
+                                    backend.egrid.db.nodes.key(src_node.kind).starts_with("INT")
+                                })
+                        {
+                            let src_node_kind = &backend.egrid.db.nodes[src_node.kind];
+                            for (&dwire, mux) in &src_node_kind.muxes {
+                                if !backend.egrid.db.wires.key(dwire.1).starts_with("LV") {
+                                    continue;
+                                }
+                                let Some(dnode) = backend.egrid.resolve_wire((
+                                    loc.0,
+                                    src_node.tiles[dwire.0],
+                                    dwire.1,
+                                )) else {
+                                    continue;
+                                };
+                                if dnode != wnode {
+                                    continue;
+                                }
+                                let swire = *mux.ins.first().unwrap();
+                                let (tile, wa, wb) = resolve_int_pip(
+                                    backend,
+                                    (loc.0, loc.1, src_row, src_layer),
+                                    swire,
+                                    dwire,
+                                )?;
+                                return Some(fuzzer.base(Key::Pip(tile, wa, wb), true));
+                            }
+                        }
+                        if src_row == edev.grid.row_bot() || src_row == edev.grid.row_top() {
+                            return None;
+                        }
+                        if wire.0.to_idx() == 0 {
+                            src_row -= 1;
+                        } else {
+                            src_row += 1;
+                        }
+                    }
+                }
+                _ => todo!(),
+            },
             TileKV::StabilizeGclkc => {
                 for (node_kind, node_name, _) in &backend.egrid.db.nodes {
                     if !node_name.starts_with("GCLKC") {
@@ -2236,7 +2349,9 @@ impl TileBits {
             TileBits::Null => vec![],
             TileBits::Main(n) => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
-                ExpandedDevice::Xc5200(_) => todo!(),
+                ExpandedDevice::Xc5200(edev) => {
+                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
+                }
                 ExpandedDevice::Virtex(edev) => {
                     (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
                 }
@@ -2316,6 +2431,9 @@ impl TileBits {
                 }
             },
             TileBits::Spine(d, n) => match backend.edev {
+                ExpandedDevice::Xc5200(edev) => {
+                    (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
+                }
                 ExpandedDevice::Virtex(edev) => {
                     (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
                 }
@@ -2432,6 +2550,9 @@ impl TileBits {
                 ]
             }
             TileBits::Hclk => match backend.edev {
+                ExpandedDevice::Xc5200(edev) => {
+                    vec![edev.btile_hclk(col)]
+                }
                 ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_hclk(col, row)]
                 }
@@ -2550,7 +2671,11 @@ impl TileBits {
                 let node = backend.egrid.node(loc);
                 match backend.edev {
                     ExpandedDevice::Xc4k(_) => todo!(),
-                    ExpandedDevice::Xc5200(_) => todo!(),
+                    ExpandedDevice::Xc5200(edev) => node
+                        .tiles
+                        .values()
+                        .map(|&(col, row)| edev.btile_main(col, row))
+                        .collect(),
                     ExpandedDevice::Virtex(edev) => node
                         .tiles
                         .values()
@@ -2760,6 +2885,7 @@ pub enum ExtraFeatureKind {
     AllDcms,
     AllOtherDcms,
     AllBrams,
+    AllColumnIo,
     Pcilogic(Dir),
     DcmVreg,
     DcmLL,
@@ -2882,6 +3008,24 @@ impl ExtraFeatureKind {
                 }
                 _ => unreachable!(),
             },
+            ExtraFeatureKind::AllColumnIo => {
+                let ExpandedDevice::Xc5200(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let mut res = vec![];
+                for row in backend.egrid.die(loc.0).rows() {
+                    if backend
+                        .egrid
+                        .find_node(loc.0, (loc.1, row), |node| {
+                            backend.egrid.db.nodes.key(node.kind).starts_with("IO")
+                        })
+                        .is_some()
+                    {
+                        res.push(vec![BitTile::Null, edev.btile_main(loc.1, row)]);
+                    }
+                }
+                res
+            }
             ExtraFeatureKind::Pcilogic(dir) => {
                 let ExpandedDevice::Virtex(edev) = backend.edev else {
                     unreachable!()

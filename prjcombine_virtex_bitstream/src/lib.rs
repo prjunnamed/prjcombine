@@ -48,6 +48,7 @@ pub enum Reg {
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum DeviceKind {
+    Xc5200,
     Virtex,
     Virtex2,
     Spartan3A,
@@ -289,6 +290,7 @@ pub enum BitPos {
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum BitTile {
+    Null,
     Reg(DieId, Reg),
     RegPresent(DieId, Reg),
     // die, frame, width, bit, height, flip
@@ -366,6 +368,7 @@ impl BitTile {
     pub fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
         let (tframe, tbit) = bit;
         match *self {
+            BitTile::Null => unreachable!(),
             BitTile::Reg(die, reg) => {
                 assert_eq!(tframe, 0);
                 BitPos::Reg(die, reg, tbit)

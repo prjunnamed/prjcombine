@@ -107,11 +107,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
             ExpandedDevice::Xc5200(_) => {
-                // TODO: int
-                // TODO: clb
-                // TODO: clk
-                // TODO: misc
-                // TODO: io
+                clb::xc5200::add_fuzzers(&mut hammer, &backend);
+                io::xc5200::add_fuzzers(&mut hammer, &backend);
+                misc::xc5200::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::add_fuzzers(&mut hammer, &backend);
@@ -265,7 +263,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         int::collect_fuzzers(&mut ctx);
         match gedev {
             ExpandedDevice::Xc4k(_) => {}
-            ExpandedDevice::Xc5200(_) => {}
+            ExpandedDevice::Xc5200(_) => {
+                clb::xc5200::collect_fuzzers(&mut ctx);
+                io::xc5200::collect_fuzzers(&mut ctx);
+                misc::xc5200::collect_fuzzers(&mut ctx);
+            }
             ExpandedDevice::Virtex(_) => {
                 clb::virtex::collect_fuzzers(&mut ctx);
                 tbus::collect_fuzzers(&mut ctx);

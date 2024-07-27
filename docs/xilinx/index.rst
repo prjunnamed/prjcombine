@@ -5,6 +5,7 @@ Xilinx FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   xc5200/index
    virtex/index
    virtex2/index
    spartan3/index
