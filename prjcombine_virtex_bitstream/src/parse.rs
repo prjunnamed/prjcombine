@@ -6,20 +6,53 @@ use arrayref::array_ref;
 use bitvec::prelude::*;
 use std::collections::HashMap;
 
+struct Xc5200Crc {
+    crc: u16,
+}
+
+impl Xc5200Crc {
+    fn new() -> Self {
+        Self { crc: 0 }
+    }
+
+    fn feed_byte(&mut self, b: u8) {
+        for i in (0..8).rev() {
+            if ((b >> i) & 1) == 0 {
+                self.crc ^= 0x8000;
+            }
+            if (self.crc & 0x8000) != 0 {
+                self.crc <<= 1;
+                self.crc ^= 0x8005;
+            } else {
+                self.crc <<= 1;
+            }
+        }
+    }
+}
+
 fn parse_xc5200_bitstream(bs: &mut Bitstream, data: &[u8]) {
     let bs = bs.die.first_mut().unwrap();
+    let mut crc = Xc5200Crc::new();
     assert_eq!(data[0], 0xff);
     assert_eq!(data[1], 0xf2);
     let bit_length = (data[2] as usize) << 16 | (data[3] as usize) << 8 | (data[4] as usize);
     assert_eq!(data[5], 0xff);
-    assert_eq!(bit_length, data.len() * 8 - 7);
+    if bit_length == data.len() * 8 - 7 {
+        // OK
+    } else if bit_length == data.len() * 8 - 3 {
+        bs.regs[Reg::FakeLcAlignmentDone] = Some(1);
+    } else {
+        panic!("weird length {bit_length} [total {total}]", total = data.len() * 8);
+    }
     let mut pos = 6;
     let frame_len = bs.frame_len;
     let mut crc_enable = false;
     let frames_num = bs.frame_info.len();
     let frame_bytes = frame_len.div_ceil(8);
+    // crc.crc = 0x468f;
     for fi in 0..frames_num {
         assert_eq!(data[pos], 0xfe);
+        crc.feed_byte(data[pos]);
         pos += 1;
         let frame = bs.frame_mut(fi);
         for j in 0..(frame_bytes * 8) {
@@ -40,27 +73,27 @@ fn parse_xc5200_bitstream(bs: &mut Bitstream, data: &[u8]) {
                 assert!(!bit);
             }
         }
-        let _fdata = &data[pos..(pos + frame_bytes)];
+        for &b in &data[pos..(pos + frame_bytes)] {
+            crc.feed_byte(b);
+        }
         pos += frame_bytes;
-        let crc = data[pos] >> 4;
+        let fcrc = data[pos] >> 4;
         if !crc_enable {
-            assert_eq!(crc, 6);
+            assert_eq!(fcrc, 6);
         } else {
-            // TODO: CRC algo
-            if fi == frames_num - 1 {
-                let _final_crc = ((data[frame_bytes - 2] as u16 & 0xf) << 12
-                    | (data[frame_bytes - 1] as u16) << 4)
-                    | (crc as u16);
-                // println!("{f} FINAL CRC: {_final_crc:04x}", f = hex::encode(_fdata));
-            } else {
-                // println!("{f} CRC: {crc:x}", f = hex::encode(_fdata));
-            }
+            assert_eq!(fcrc, (!crc.crc >> 12) as u8);
         }
         assert_eq!(data[pos] & 0xf, 0xf);
         assert_eq!(data[pos + 1], 0xff);
         assert_eq!(data[pos + 2], 0xff);
         assert_eq!(data[pos + 3], 0xff);
+        for &b in &data[pos..(pos + 4)] {
+            crc.feed_byte(b);
+        }
         pos += 4;
+    }
+    if crc_enable {
+        assert_eq!(crc.crc, 0);
     }
     assert_eq!(data[pos], 0xfe);
     pos += 1;

@@ -38,6 +38,7 @@ pub enum Reg {
     General3,
     General4,
     General5,
+    FakeLcAlignmentDone,
     FakeEarlyGhigh,
     FakeDoubleGrestore,
     FakeFreezeDciNops,
