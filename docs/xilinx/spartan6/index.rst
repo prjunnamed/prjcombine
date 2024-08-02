@@ -16,5 +16,6 @@ Spartan 6
    pcie
    gtp
    dcm
+   pll
    corner
    config

@@ -1096,7 +1096,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "REG_T" => edev.grid.gts != Gts::None,
                 _ => unreachable!(),
             };
-            if has_gt {
+            if has_gt && !ctx.device.name.starts_with("xa") {
                 ctx.collect_bit(tile, bel, "MISR_ENABLE", "1");
                 let mut diff = ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1");
                 diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "MISR_ENABLE"), true, false);
@@ -1104,8 +1104,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .insert(tile, bel, "MISR_RESET", xlat_bitvec(vec![diff]));
 
             } else {
-                ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1").assert_empty();
-                ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1").assert_empty();
+                // they're sometimes working, sometimes not, in nonsensical ways; just kill them
+                ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1");
+                ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1");
             }
         }
     }

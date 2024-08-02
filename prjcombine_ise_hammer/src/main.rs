@@ -27,6 +27,7 @@ mod io;
 mod mcb;
 mod misc;
 mod pcie;
+mod pll;
 mod ppc;
 mod tbus;
 mod tiledb;
@@ -50,6 +51,8 @@ struct Args {
     skip_ccm: bool,
     #[arg(long)]
     skip_dcm: bool,
+    #[arg(long)]
+    skip_pll: bool,
     #[arg(long)]
     skip_misc: bool,
     #[arg(long)]
@@ -168,7 +171,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if !args.skip_dcm {
                     dcm::spartan6::add_fuzzers(&mut hammer, &backend);
                 }
-                // TODO: pll
+                if !args.skip_pll {
+                    pll::spartan6::add_fuzzers(&mut hammer, &backend);
+                }
                 pcie::spartan6::add_fuzzers(&mut hammer, &backend);
                 gt::spartan6::add_fuzzers(&mut hammer, &backend);
             }
@@ -322,6 +327,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 mcb::collect_fuzzers(&mut ctx);
                 if !args.skip_dcm {
                     dcm::spartan6::collect_fuzzers(&mut ctx);
+                }
+                if !args.skip_pll {
+                    pll::spartan6::collect_fuzzers(&mut ctx, args.skip_dcm);
                 }
                 pcie::spartan6::collect_fuzzers(&mut ctx);
                 gt::spartan6::collect_fuzzers(&mut ctx);

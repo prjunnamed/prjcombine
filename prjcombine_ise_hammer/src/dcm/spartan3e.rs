@@ -75,28 +75,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_multi!(ctx, "DLL_C", "", 32, [
             (global_mutex "DCM", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DLL_C_"));
+        ], (global_xy_bin "CFG_DLL_C_*"));
         fuzz_multi!(ctx, "DLL_S", "", 32, [
             (global_mutex "DCM", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DLL_S_"));
+        ], (global_xy_bin "CFG_DLL_S_*"));
         fuzz_multi!(ctx, "DFS_C", "", 12, [
             (global_mutex "DCM", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DFS_C_"));
+        ], (global_xy_bin "CFG_DFS_C_*"));
         fuzz_multi!(ctx, "DFS_S", "", 76, [
             (global_mutex "DCM", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DFS_S_"));
+        ], (global_xy_bin "CFG_DFS_S_*"));
         fuzz_multi!(ctx, "INTERFACE", "", 16, [
             (global_mutex "DCM", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_INTERFACE_"));
+        ], (global_xy_bin "CFG_INTERFACE_*"));
         if vreg.is_none() {
             fuzz_multi!(ctx, "VREG", "", 36, [
                 (global_mutex "DCM", "CFG"),
                 (mode "DCM")
-            ], (global_xy_bin "CFG_REG_"));
+            ], (global_xy_bin "CFG_REG_*"));
         }
         for pin in [
             "RST",

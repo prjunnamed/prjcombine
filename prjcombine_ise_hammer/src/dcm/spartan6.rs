@@ -9,7 +9,7 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{IseBackend, PinFromKind},
     diff::{xlat_bitvec, xlat_enum_default, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
-    fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
+    fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
 };
@@ -43,35 +43,35 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_multi!(ctx, "DLL_C", "", 32, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DLL_C_"));
+        ], (global_xy_bin "CFG_DLL_C_*"));
         fuzz_multi!(ctx, "DLL_S", "", 32, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DLL_S_"));
+        ], (global_xy_bin "CFG_DLL_S_*"));
         fuzz_multi!(ctx, "DFS_C", "", 3, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DFS_C_"));
+        ], (global_xy_bin "CFG_DFS_C_*"));
         fuzz_multi!(ctx, "DFS_S", "", 87, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_DFS_S_"));
+        ], (global_xy_bin "CFG_DFS_S_*"));
         fuzz_multi!(ctx, "INTERFACE", "", 40, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_INTERFACE_"));
+        ], (global_xy_bin "CFG_INTERFACE_*"));
         fuzz_multi!(ctx, "OPT_INV", "", 20, [
             (global_mutex "CMT", "CFG"),
             (mode "DCM")
-        ], (global_xy_bin "CFG_OPT_INV_"));
+        ], (global_xy_bin "CFG_OPT_INV_*"));
         fuzz_multi!(ctx, "REG", "", 9, [
             (global_mutex "CMT", format!("CFG_DCM{i}")),
             (mode "DCM")
-        ], (global_xy_bin "CFG_REG_"));
+        ], (global_xy_bin "CFG_REG_*"));
         fuzz_multi!(ctx, "BG", "", 11, [
             (global_mutex "CMT", format!("CFG_DCM{i}")),
             (mode "DCM")
-        ], (global_xy_bin "CFG_BG_"));
+        ], (global_xy_bin "CFG_BG_*"));
 
         let obel_dcm = BelId::from_idx(i ^ 1);
         for opin in ["CLKIN", "CLKIN_TEST"] {
@@ -80,12 +80,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 ("CKINT1", "CLKIN_CKINT1"),
                 ("CLK_FROM_PLL", "CLK_FROM_PLL"),
             ] {
+                let related_pll = TileRelation::Delta(0, 16, backend.egrid.db.get_node("CMT_PLL"));
+                let bel_pll = BelId::from_idx(0);
                 fuzz_one!(ctx, format!("MUX.{opin}"), val, [
                     (mode "DCM"),
                     (global_mutex "CMT", "TEST"),
                     (mutex "CLKIN_OUT", opin),
                     (mutex "CLKIN_IN", pin),
-                    (tile_mutex "CLKIN_BEL", format!("DCM{i}"))
+                    (tile_mutex "CLKIN_BEL", format!("DCM{i}")),
+                    (related related_pll,
+                        (pip (bel_pin bel_pll, "CLKOUTDCM0"), (bel_pin bel_pll, format!("CLK_TO_DCM{i}")))
+                    ),
+                    (related related_pll,
+                        (mutex "CLK_TO_DCM", "USE")
+                    )
                 ], [
                     (pip (pin pin), (pin opin))
                 ]);

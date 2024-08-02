@@ -2089,10 +2089,7 @@ pub enum BelGlobalKind {
 impl BelGlobalKind {
     pub fn apply(self, backend: &IseBackend, opt: &str, site: &str) -> String {
         match self {
-            BelGlobalKind::Xy => {
-                let xy = &site[site.rfind('X').unwrap()..];
-                format!("{opt}{xy}")
-            }
+            BelGlobalKind::Xy => opt.replace('*', &site[site.rfind('X').unwrap()..]),
             BelGlobalKind::Dll => {
                 let ExpandedDevice::Virtex(edev) = backend.edev else {
                     unreachable!()
@@ -2903,6 +2900,7 @@ pub enum ExtraFeatureKind {
     HclkBramMgtPrev,
     PcieHclkPair,
     Pcie3HclkPair,
+    PllDcm,
 }
 
 impl ExtraFeatureKind {
@@ -3291,6 +3289,14 @@ impl ExtraFeatureKind {
                         edev.btile_hclk(loc.0, loc.1 + 4, loc.2 + 50),
                     ],
                 ]
+            }
+            ExtraFeatureKind::PllDcm => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![Vec::from_iter(
+                    (0..16).map(|i| edev.btile_main(loc.1, loc.2 - 24 + i)),
+                )]
             }
         }
     }

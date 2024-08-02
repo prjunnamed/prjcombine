@@ -165,7 +165,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     fuzz_enum!(ctx, "MEM_DDR1_2_ODS", ["REDUCED", "FULL"], [
         (global_mutex "MCB", "TEST"),
         (mode "MCB"),
-        (attr_any "MEM_TYPE", ["DDR", "DDR2"])
+        // sigh. doesn't actually work for plain DDR.
+        (attr "MEM_TYPE", "DDR2")
     ]);
     fuzz_enum!(ctx, "MEM_DDR2_ADD_LATENCY", ["0", "1", "2", "3", "4", "5"], [
         (global_mutex "MCB", "TEST"),

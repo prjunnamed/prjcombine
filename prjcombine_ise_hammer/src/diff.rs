@@ -950,7 +950,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     }
 }
 
-pub fn extract_bitvec_val_part(item: &TileItem<FeatureBit>, base: &BitVec, diff: &Diff) -> BitVec {
+pub fn extract_bitvec_val_part(item: &TileItem<FeatureBit>, base: &BitVec, diff: &mut Diff) -> BitVec {
     let TileItemKind::BitVec { ref invert } = item.kind else {
         unreachable!()
     };
@@ -963,13 +963,15 @@ pub fn extract_bitvec_val_part(item: &TileItem<FeatureBit>, base: &BitVec, diff:
         .enumerate()
         .map(|(i, v)| (v, i))
         .collect();
-    for (&bit, &val) in diff.bits.iter() {
-        let Some(&bitidx) = rev.get(&bit) else {
-            continue;
-        };
-        assert_eq!(res[bitidx], !(val ^ invert[bitidx]));
-        res.set(bitidx, val ^ invert[bitidx]);
-    }
+    diff.bits.retain(|&bit, &mut val| {
+        if let Some(&bitidx) = rev.get(&bit) {
+            assert_eq!(res[bitidx], !(val ^ invert[bitidx]));
+            res.set(bitidx, val ^ invert[bitidx]);
+            false
+        } else {
+            true
+        }
+    });
     res
 }
 

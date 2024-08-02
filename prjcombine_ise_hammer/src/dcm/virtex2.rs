@@ -332,13 +332,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "DCM"),
             (mutex "MODE", "GLOBALS")
         ], [
-            (global_xy "COINWINDOW_", val)
+            (global_xy "COINWINDOW_*", val)
         ]);
         fuzz_one!(ctx, "SEL_PL_DLY", val, [
             (mode "DCM"),
             (mutex "MODE", "GLOBALS")
         ], [
-            (global_xy "SELPLDLY_", val)
+            (global_xy "SELPLDLY_*", val)
         ]);
     }
     for val in ["0", "1"] {
@@ -346,48 +346,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (mode "DCM"),
             (mutex "MODE", "GLOBALS")
         ], [
-            (global_xy "ENOSCCOARSE_", val)
+            (global_xy "ENOSCCOARSE_*", val)
         ]);
         fuzz_one!(ctx, "EN_DUMMY_OSC", val, [
             (mode "DCM"),
             (mutex "MODE", "GLOBALS"),
-            (global_xy "NONSTOP_", "0")
+            (global_xy "NONSTOP_*", "0")
         ], [
-            (global_xy "ENDUMMYOSC_", val)
+            (global_xy "ENDUMMYOSC_*", val)
         ]);
         fuzz_one!(ctx, "PL_CENTERED", val, [
             (mode "DCM"),
             (mutex "MODE", "GLOBALS")
         ], [
-            (global_xy "PLCENTERED_", val)
+            (global_xy "PLCENTERED_*", val)
         ]);
         fuzz_one!(ctx, "NON_STOP", val, [
             (mode "DCM"),
             (mutex "MODE", "GLOBALS"),
-            (global_xy "ENDUMMYOSC_", "0")
+            (global_xy "ENDUMMYOSC_*", "0")
         ], [
-            (global_xy "NONSTOP_", val)
+            (global_xy "NONSTOP_*", val)
         ]);
         fuzz_one!(ctx, "ZD2_BY1", val, [
             (mode "DCM"),
             (mutex "MODE", "GLOBALS"),
             (mutex "ZD2", "PLAIN")
         ], [
-            (global_xy "ZD2_BY1_", val)
+            (global_xy "ZD2_BY1_*", val)
         ]);
         if edev.grid.kind.is_virtex2() {
             fuzz_one!(ctx, "PS_CENTERED", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "CENTERED_", val)
+                (global_xy "CENTERED_*", val)
             ]);
             fuzz_one!(ctx, "ZD2_HF_BY1", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS"),
                 (mutex "ZD2", "HF")
             ], [
-                (global_xy "ZD2_HF_BY1_", val)
+                (global_xy "ZD2_HF_BY1_*", val)
             ]);
         }
         if edev.grid.kind != GridKind::Virtex2 {
@@ -395,13 +395,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "ZD1_BY1_", val)
+                (global_xy "ZD1_BY1_*", val)
             ]);
             fuzz_one!(ctx, "RESET_PS_SEL", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "RESETPS_SEL_", val)
+                (global_xy "RESETPS_SEL_*", val)
             ]);
         }
         if edev.grid.kind == GridKind::Spartan3 {
@@ -409,38 +409,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "SPLY_IDC0_", val)
+                (global_xy "SPLY_IDC0_*", val)
             ]);
             fuzz_one!(ctx, "SPLY_IDC1", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "SPLY_IDC1_", val)
+                (global_xy "SPLY_IDC1_*", val)
             ]);
             fuzz_one!(ctx, "EXTENDED_FLUSH_TIME", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "EXTENDEDFLUSHTIME_", val)
+                (global_xy "EXTENDEDFLUSHTIME_*", val)
             ]);
             fuzz_one!(ctx, "EXTENDED_HALT_TIME", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "EXTENDEDHALTTIME_", val)
+                (global_xy "EXTENDEDHALTTIME_*", val)
             ]);
             fuzz_one!(ctx, "EXTENDED_RUN_TIME", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "EXTENDEDRUNTIME_", val)
+                (global_xy "EXTENDEDRUNTIME_*", val)
             ]);
             for i in 0..=8 {
                 fuzz_one!(ctx, format!("CFG_DLL_PS{i}"), val, [
                     (mode "DCM"),
                     (mutex "MODE", "GLOBALS")
                 ], [
-                    (global_xy format!("CFG_DLL_PS{i}_"), val)
+                    (global_xy format!("CFG_DLL_PS{i}_*"), val)
                 ]);
             }
             for i in 0..=2 {
@@ -448,7 +448,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (mode "DCM"),
                     (mutex "MODE", "GLOBALS")
                 ], [
-                    (global_xy format!("CFG_DLL_LP{i}_"), val)
+                    (global_xy format!("CFG_DLL_LP{i}_*"), val)
                 ]);
             }
             for i in 0..=1 {
@@ -456,7 +456,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (mode "DCM"),
                     (mutex "MODE", "GLOBALS")
                 ], [
-                    (global_xy format!("SELHSYNC_B{i}_"), val)
+                    (global_xy format!("SELHSYNC_B{i}_*"), val)
                 ]);
             }
             for i in 0..=1 {
@@ -464,57 +464,57 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (mode "DCM"),
                     (mutex "MODE", "GLOBALS")
                 ], [
-                    (global_xy format!("LPON_B_DFS{i}_"), val)
+                    (global_xy format!("LPON_B_DFS{i}_*"), val)
                 ]);
             }
             fuzz_one!(ctx, "EN_PWCTL", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "ENPWCTL_", val)
+                (global_xy "ENPWCTL_*", val)
             ]);
             fuzz_one!(ctx, "M1D1", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "M1D1_", val)
+                (global_xy "M1D1_*", val)
             ]);
             fuzz_one!(ctx, "MIS1", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "MIS1_", val)
+                (global_xy "MIS1_*", val)
             ]);
             fuzz_one!(ctx, "EN_RELRST_B", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "ENRELRST_B_", val)
+                (global_xy "ENRELRST_B_*", val)
             ]);
             fuzz_one!(ctx, "EN_OLD_OSCCTL", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "ENOLDOSCCTL_", val)
+                (global_xy "ENOLDOSCCTL_*", val)
             ]);
             fuzz_one!(ctx, "TRIM_LP_B", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "TRIM_LP_B_", val)
+                (global_xy "TRIM_LP_B_*", val)
             ]);
             fuzz_one!(ctx, "INVERT_ZD1_CUSTOM", val, [
                 (mode "DCM"),
                 (mutex "MODE", "GLOBALS")
             ], [
-                (global_xy "INVERT_ZD1_CUSTOM_", val)
+                (global_xy "INVERT_ZD1_CUSTOM_*", val)
             ]);
             for i in 0..=4 {
                 fuzz_one!(ctx, format!("VREG_PROBE{i}"), val, [
                     (mode "DCM"),
                     (mutex "MODE", "GLOBALS")
                 ], [
-                    (global_xy format!("VREG_PROBE{i}_"), val)
+                    (global_xy format!("VREG_PROBE{i}_*"), val)
                 ]);
             }
         }
@@ -987,22 +987,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let vbg_sel = extract_bitvec_val_part(
         ctx.tiledb.item(tile, bel, "VBG_SEL"),
         &bitvec![0; 3],
-        &present,
+        &mut present,
     );
     let vbg_pd = extract_bitvec_val_part(
         ctx.tiledb.item(tile, bel, "VBG_PD"),
         &bitvec![0; 2],
-        &present,
-    );
-    present.apply_bitvec_diff(
-        ctx.tiledb.item(tile, bel, "VBG_SEL"),
-        &vbg_sel,
-        &bitvec![0; 3],
-    );
-    present.apply_bitvec_diff(
-        ctx.tiledb.item(tile, bel, "VBG_PD"),
-        &vbg_pd,
-        &bitvec![0; 3],
+        &mut present,
     );
     ctx.tiledb
         .insert_device_data(&ctx.device.name, "DCM:VBG_SEL", vbg_sel);
