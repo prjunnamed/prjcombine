@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use crate::grid::{HdioIobId, HpioIobId};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
     Tck,
     Tdi,
@@ -24,7 +24,7 @@ pub enum CfgPin {
     PorOverride,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtPin {
     RxP(u8),
     RxN(u8),
@@ -38,7 +38,7 @@ pub enum GtPin {
     AVttRCal,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtRegion {
     All,
     L,
@@ -55,7 +55,7 @@ pub enum GtRegion {
     RN,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtRegionPin {
     AVtt,
     AVcc,
@@ -63,13 +63,13 @@ pub enum GtRegionPin {
     VccInt,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum SysMonPin {
     VP,
     VN,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum PsPin {
     Mio(u32),
     Clk,
@@ -106,7 +106,7 @@ pub enum PsPin {
     DdrZq,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum HbmPin {
     Vcc,
     VccIo,
@@ -115,7 +115,7 @@ pub enum HbmPin {
     RsvdGnd,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum RfDacPin {
     VOutP(u8),
     VOutN(u8),
@@ -126,7 +126,7 @@ pub enum RfDacPin {
     SysRefN,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum RfAdcPin {
     VInP(u8),
     VInN(u8),
@@ -140,7 +140,7 @@ pub enum RfAdcPin {
     PllTestOutN,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     // bank, bel idx
     Hpio(u32, HpioIobId),
@@ -224,4 +224,46 @@ pub enum SharedCfgPin {
     SmbAlert, // Ultrascale+ only
     PerstN0,
     PerstN1, // Ultrascale only (shared with I2C_SDA on Ultrascale+)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ExpandedBond<'a> {
+    pub bond: &'a Bond,
+    pub hpios: BTreeMap<(u32, HpioIobId), String>,
+    pub hdios: BTreeMap<(u32, HdioIobId), String>,
+    pub gts: BTreeMap<(u32, GtPin), String>,
+    pub sysmons: BTreeMap<(DieId, SysMonPin), String>,
+}
+
+impl Bond {
+    pub fn expand(&self) -> ExpandedBond {
+        let mut hpios = BTreeMap::new();
+        let mut hdios = BTreeMap::new();
+        let mut gts = BTreeMap::new();
+        let mut sysmons = BTreeMap::new();
+        for (name, pad) in &self.pins {
+            match *pad {
+                BondPin::Hpio(bank, idx) => {
+                    hpios.insert((bank, idx), name.clone());
+                }
+                BondPin::Hdio(bank, idx) => {
+                    hdios.insert((bank, idx), name.clone());
+                }
+                BondPin::Gt(bank, gtpin) => {
+                    gts.insert((bank, gtpin), name.clone());
+                }
+                BondPin::SysMon(bank, smpin) => {
+                    sysmons.insert((bank, smpin), name.clone());
+                }
+                _ => (),
+            }
+        }
+        ExpandedBond {
+            bond: self,
+            hpios,
+            hdios,
+            gts,
+            sysmons,
+        }
+    }
 }

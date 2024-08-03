@@ -1,5 +1,5 @@
 use clap::Parser;
-use prjcombine_xilinx_geom::{DeviceNaming, GeomDb, Grid};
+use prjcombine_xilinx_geom::{Bond, DeviceNaming, GeomDb, Grid};
 use std::{error::Error, path::PathBuf};
 use unnamed_entity::EntityId;
 
@@ -19,9 +19,19 @@ struct Args {
     namings: bool,
 }
 
+pub fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
 mod xc4k {
-    use prjcombine_xc4k::grid::Grid;
-    use unnamed_entity::EntityId;
+    use itertools::Itertools;
+    use prjcombine_xc4k::{
+        bond::{Bond, BondPin, CfgPin},
+        grid::Grid,
+    };
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -30,27 +40,73 @@ mod xc4k {
         println!("\tCFG PINS:");
         for (k, v) in &grid.cfg_io {
             println!(
-                "\t\t{k:?}: X{x}Y{y}B{b}",
-                x = v.col.to_idx(),
-                y = v.row.to_idx(),
-                b = v.iob.to_idx()
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
+                x = v.col,
+                y = v.row,
+                b = v.iob
             );
+        }
+    }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccO => print!("VCCO"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::M0) => print!("M0"),
+                BondPin::Cfg(CfgPin::M1) => print!("M1"),
+                BondPin::Cfg(CfgPin::M2) => print!("M2"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Cfg(CfgPin::PwrdwnB) => print!("PWRDWN_B"),
+            }
+            println!();
         }
     }
 }
 
 mod xc5200 {
-    use prjcombine_xc5200::grid::Grid;
+    use itertools::Itertools;
+    use prjcombine_xc5200::{
+        bond::{Bond, BondPin},
+        grid::Grid,
+    };
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Xc5200");
         println!("\tDIMS: {c}×{r}", c = grid.columns, r = grid.rows);
     }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+            }
+            println!();
+        }
+    }
 }
 
 mod virtex {
-    use prjcombine_virtex::grid::Grid;
+    use itertools::Itertools;
+    use prjcombine_virtex::{
+        bond::{Bond, BondPin, CfgPin},
+        grid::Grid,
+    };
     use unnamed_entity::EntityId;
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -82,16 +138,58 @@ mod virtex {
         println!("\tCFG PINS:");
         for (k, v) in &grid.cfg_io {
             println!(
-                "\t\t{k:?}: X{x}Y{y}B{b}",
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
                 b = v.iob.to_idx()
             );
         }
+    }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tBANKS:");
+        for (k, v) in &bond.io_banks {
+            println!("\t\t{k}: {v}");
+        }
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+                BondPin::Clk(idx) => print!("CLK{idx}"),
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccAux => print!("VCCAUX"),
+                BondPin::VccO(bank) => print!("VCCO{bank}"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::M0) => print!("M0"),
+                BondPin::Cfg(CfgPin::M1) => print!("M1"),
+                BondPin::Cfg(CfgPin::M2) => print!("M2"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::Tck) => print!("TCK"),
+                BondPin::Cfg(CfgPin::Tms) => print!("TMS"),
+                BondPin::Cfg(CfgPin::Tdi) => print!("TDI"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Dxn => print!("DXN"),
+                BondPin::Dxp => print!("DXP"),
+            }
+            println!();
+        }
         println!("\tVREF:");
-        for v in &grid.vref {
+        for v in &bond.vref {
             println!(
-                "\t\tX{x}Y{y}B{b}",
+                "\t\tIOB_X{x}Y{y}B{b}",
+                x = v.col.to_idx(),
+                y = v.row.to_idx(),
+                b = v.iob.to_idx()
+            );
+        }
+        println!("\tDIFFP:");
+        for v in &bond.diffp {
+            println!(
+                "\t\tIOB_X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
                 b = v.iob.to_idx()
@@ -101,8 +199,14 @@ mod virtex {
 }
 
 mod virtex2 {
-    use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, Grid, RowIoKind};
+    use itertools::Itertools;
+    use prjcombine_virtex2::{
+        bond::{Bond, BondPin, CfgPin, GtPin},
+        grid::{ColumnIoKind, ColumnKind, Grid, RowIoKind},
+    };
     use unnamed_entity::EntityId;
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {k:?}", k = grid.kind);
@@ -200,16 +304,7 @@ mod virtex2 {
         println!("\tCFG PINS:");
         for (k, v) in &grid.cfg_io {
             println!(
-                "\t\t{k:?}: X{x}Y{y}B{b}",
-                x = v.col.to_idx(),
-                y = v.row.to_idx(),
-                b = v.iob.to_idx()
-            );
-        }
-        println!("\tVREF:");
-        for v in &grid.vref {
-            println!(
-                "\t\tX{x}Y{y}B{b}",
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
                 b = v.iob.to_idx()
@@ -250,11 +345,77 @@ mod virtex2 {
             }
         }
     }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tBANKS:");
+        for (k, v) in &bond.io_banks {
+            println!("\t\t{k}: {v}");
+        }
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+                BondPin::Gt(bank, gtpin) => {
+                    print!("GT{bank}.");
+                    match gtpin {
+                        GtPin::RxP => print!("RXP"),
+                        GtPin::RxN => print!("RXN"),
+                        GtPin::TxP => print!("TXP"),
+                        GtPin::TxN => print!("TXN"),
+                        GtPin::GndA => print!("GNDA"),
+                        GtPin::VtRx => print!("VTRX"),
+                        GtPin::VtTx => print!("VTTX"),
+                        GtPin::AVccAuxRx => print!("AVCCAUXRX"),
+                        GtPin::AVccAuxTx => print!("AVCCAUXTX"),
+                    }
+                }
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccAux => print!("VCCAUX"),
+                BondPin::VccO(bank) => print!("VCCO{bank}"),
+                BondPin::VccBatt => print!("VCC_BATT"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::M0) => print!("M0"),
+                BondPin::Cfg(CfgPin::M1) => print!("M1"),
+                BondPin::Cfg(CfgPin::M2) => print!("M2"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::Tck) => print!("TCK"),
+                BondPin::Cfg(CfgPin::Tms) => print!("TMS"),
+                BondPin::Cfg(CfgPin::Tdi) => print!("TDI"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Cfg(CfgPin::PwrdwnB) => print!("PWRDWN_B"),
+                BondPin::Cfg(CfgPin::HswapEn) => print!("HSWAP_EN"),
+                BondPin::Cfg(CfgPin::Suspend) => print!("SUSPEND"),
+                BondPin::Dxn => print!("DXN"),
+                BondPin::Dxp => print!("DXP"),
+                BondPin::Rsvd => print!("RSVD"),
+            }
+            println!();
+        }
+        println!("\tVREF:");
+        for v in &bond.vref {
+            println!(
+                "\t\tIOB_X{x}Y{y}B{b}",
+                x = v.col.to_idx(),
+                y = v.row.to_idx(),
+                b = v.iob.to_idx()
+            );
+        }
+    }
 }
 
 mod spartan6 {
-    use prjcombine_spartan6::grid::{ColumnIoKind, ColumnKind, Grid, Gts};
+    use itertools::Itertools;
+    use prjcombine_spartan6::{
+        bond::{Bond, BondPin, CfgPin, GtPin},
+        grid::{ColumnIoKind, ColumnKind, Grid, Gts},
+    };
     use unnamed_entity::EntityId;
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Spartan6");
@@ -411,16 +572,7 @@ mod spartan6 {
         println!("\tCFG PINS:");
         for (k, v) in &grid.cfg_io {
             println!(
-                "\t\t{k:?}: X{x}Y{y}B{b}",
-                x = v.col.to_idx(),
-                y = v.row.to_idx(),
-                b = v.iob.to_idx()
-            );
-        }
-        println!("\tVREF:");
-        for v in &grid.vref {
-            println!(
-                "\t\tX{x}Y{y}B{b}",
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
                 x = v.col.to_idx(),
                 y = v.row.to_idx(),
                 b = v.iob.to_idx()
@@ -430,11 +582,74 @@ mod spartan6 {
             println!("\tHAS ENCRYPT");
         }
     }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tBANKS:");
+        for (k, v) in &bond.io_banks {
+            println!("\t\t{k}: {v}");
+        }
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+                BondPin::Gt(bank, gtpin) => {
+                    print!("GT{bank}.");
+                    match gtpin {
+                        GtPin::RxP(idx) => print!("RXP{idx}"),
+                        GtPin::RxN(idx) => print!("RXN{idx}"),
+                        GtPin::TxP(idx) => print!("TXP{idx}"),
+                        GtPin::TxN(idx) => print!("TXN{idx}"),
+                        GtPin::VtRx => print!("VTRX"),
+                        GtPin::VtTx => print!("VTTX"),
+                        GtPin::ClkP(idx) => print!("CLKP{idx}"),
+                        GtPin::ClkN(idx) => print!("CLKN{idx}"),
+                        GtPin::AVcc => print!("AVCC"),
+                        GtPin::AVccPll(idx) => print!("AVCCPLL{idx}"),
+                        GtPin::RRef => print!("RREF"),
+                        GtPin::AVttRCal => print!("AVTTRCAL"),
+                    }
+                }
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccAux => print!("VCCAUX"),
+                BondPin::VccO(bank) => print!("VCCO{bank}"),
+                BondPin::VccBatt => print!("VCC_BATT"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::Tck) => print!("TCK"),
+                BondPin::Cfg(CfgPin::Tms) => print!("TMS"),
+                BondPin::Cfg(CfgPin::Tdi) => print!("TDI"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Cfg(CfgPin::Suspend) => print!("SUSPEND"),
+                BondPin::Cfg(CfgPin::CmpCsB) => print!("CMPCS_B"),
+                BondPin::Vfs => print!("VFS"),
+                BondPin::RFuse => print!("RFUSE"),
+            }
+            println!();
+        }
+        println!("\tVREF:");
+        for v in &bond.vref {
+            println!(
+                "\t\tIOB_X{x}Y{y}B{b}",
+                x = v.col.to_idx(),
+                y = v.row.to_idx(),
+                b = v.iob.to_idx()
+            );
+        }
+    }
 }
 
 mod virtex4 {
-    use prjcombine_virtex4::grid::{ColumnKind, Grid, GridKind, Pcie2Kind};
+    use itertools::Itertools;
+    use prjcombine_virtex4::{
+        bond::{Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, GtzPin, PsPin, SysMonPin},
+        grid::{ColumnKind, Grid, GridKind, Pcie2Kind},
+    };
     use unnamed_entity::EntityId;
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {v:?}", v = grid.kind);
@@ -548,13 +763,183 @@ mod virtex4 {
         }
         println!("\tHAS BRAM_FX: {v:?}", v = grid.has_bram_fx);
     }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Io(bank, idx) => print!("IOB_{bank}_{idx}"),
+                BondPin::Gt(bank, gtpin) => {
+                    print!("GT{bank}.");
+                    match gtpin {
+                        GtPin::RxP(idx) => print!("RXP{idx}"),
+                        GtPin::RxN(idx) => print!("RXN{idx}"),
+                        GtPin::TxP(idx) => print!("TXP{idx}"),
+                        GtPin::TxN(idx) => print!("TXN{idx}"),
+                        GtPin::ClkP(idx) => print!("CLKP{idx}"),
+                        GtPin::ClkN(idx) => print!("CLKN{idx}"),
+                        GtPin::GndA => print!("GNDA"),
+                        GtPin::AVccAuxTx => print!("AVCCAUXTX"),
+                        GtPin::AVccAuxRx(idx) => print!("AVCCAUXRX{idx}"),
+                        GtPin::AVccAuxMgt => print!("AVCCAUXMGT"),
+                        GtPin::RTerm => print!("RTERM"),
+                        GtPin::MgtVRef => print!("MGTVREF"),
+                        GtPin::VtRx(idx) => print!("VTRX{idx}"),
+                        GtPin::VtTx(idx) => print!("VTTX{idx}"),
+                        GtPin::AVcc => print!("AVCC"),
+                        GtPin::AVccPll => print!("AVCCPLL"),
+                        GtPin::RRef => print!("RREF"),
+                        GtPin::AVttRCal => print!("AVTTRCAL"),
+                        GtPin::RBias => print!("RBIAS"),
+                    }
+                }
+                BondPin::Gtz(bank, gtpin) => {
+                    print!("GTZ{bank}.");
+                    match gtpin {
+                        GtzPin::RxP(idx) => print!("RXP{idx}"),
+                        GtzPin::RxN(idx) => print!("RXN{idx}"),
+                        GtzPin::TxP(idx) => print!("TXP{idx}"),
+                        GtzPin::TxN(idx) => print!("TXN{idx}"),
+                        GtzPin::ClkP(idx) => print!("CLKP{idx}"),
+                        GtzPin::ClkN(idx) => print!("CLKN{idx}"),
+                        GtzPin::AGnd => print!("AGND"),
+                        GtzPin::AVcc => print!("AVCC"),
+                        GtzPin::VccH => print!("VCCH"),
+                        GtzPin::VccL => print!("VCCL"),
+                        GtzPin::ObsClkP => print!("OBSCLKP"),
+                        GtzPin::ObsClkN => print!("OBSCLKN"),
+                        GtzPin::ThermIn => print!("THERM_IN"),
+                        GtzPin::ThermOut => print!("THERM_OUT"),
+                        GtzPin::SenseAGnd => print!("SENSE_AGND"),
+                        GtzPin::SenseGnd => print!("SENSE_GND"),
+                        GtzPin::SenseGndL => print!("SENSE_GNDL"),
+                        GtzPin::SenseAVcc => print!("SENSE_AVCC"),
+                        GtzPin::SenseVcc => print!("SENSE_VCC"),
+                        GtzPin::SenseVccL => print!("SENSE_VCCL"),
+                        GtzPin::SenseVccH => print!("SENSE_VCCH"),
+                    }
+                }
+                BondPin::GtRegion(region, gtpin) => {
+                    print!("GTREG");
+                    match region {
+                        GtRegion::All => (),
+                        GtRegion::S => print!("S"),
+                        GtRegion::N => print!("N"),
+                        GtRegion::L => print!("L"),
+                        GtRegion::R => print!("R"),
+                        GtRegion::LS => print!("LS"),
+                        GtRegion::RS => print!("RS"),
+                        GtRegion::LN => print!("LN"),
+                        GtRegion::RN => print!("RN"),
+                        GtRegion::H => print!("H"),
+                        GtRegion::LH => print!("LH"),
+                        GtRegion::RH => print!("RH"),
+                        GtRegion::Num(n) => print!("{n}"),
+                    }
+                    print!(".");
+                    match gtpin {
+                        GtRegionPin::AVtt => print!("AVTT"),
+                        GtRegionPin::AGnd => print!("AGND"),
+                        GtRegionPin::AVcc => print!("AVCC"),
+                        GtRegionPin::AVccRx => print!("AVCCRX"),
+                        GtRegionPin::AVccPll => print!("AVCCPLL"),
+                        GtRegionPin::AVttRxC => print!("AVTTRXC"),
+                        GtRegionPin::VccAux => print!("VCCAUX"),
+                    }
+                }
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccAux => print!("VCCAUX"),
+                BondPin::VccAuxIo(idx) => print!("VCCAUX_IO{idx}"),
+                BondPin::VccBram => print!("VCCBRAM"),
+                BondPin::VccO(bank) => print!("VCCO{bank}"),
+                BondPin::VccBatt => print!("VCC_BATT"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::M0) => print!("M0"),
+                BondPin::Cfg(CfgPin::M1) => print!("M1"),
+                BondPin::Cfg(CfgPin::M2) => print!("M2"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::InitB) => print!("INIT_B"),
+                BondPin::Cfg(CfgPin::RdWrB) => print!("RDWR_B"),
+                BondPin::Cfg(CfgPin::CsiB) => print!("CSI_B"),
+                BondPin::Cfg(CfgPin::Tck) => print!("TCK"),
+                BondPin::Cfg(CfgPin::Tms) => print!("TMS"),
+                BondPin::Cfg(CfgPin::Tdi) => print!("TDI"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Cfg(CfgPin::PwrdwnB) => print!("PWRDWN_B"),
+                BondPin::Cfg(CfgPin::HswapEn) => print!("HSWAP_EN"),
+                BondPin::Cfg(CfgPin::Din) => print!("DIN"),
+                BondPin::Cfg(CfgPin::Dout) => print!("DOUT"),
+                BondPin::Cfg(CfgPin::CfgBvs) => print!("CFGBVS"),
+                BondPin::Dxn => print!("DXN"),
+                BondPin::Dxp => print!("DXP"),
+                BondPin::Rsvd => print!("RSVD"),
+                BondPin::RsvdGnd => print!("RSVDGND"),
+                BondPin::Vfs => print!("VFS"),
+                BondPin::SysMon(bank, pin) => {
+                    print!("SYSMON{bank}.");
+                    match pin {
+                        SysMonPin::VP => print!("VP"),
+                        SysMonPin::VN => print!("VN"),
+                        SysMonPin::AVss => print!("AVSS"),
+                        SysMonPin::AVdd => print!("AVDD"),
+                        SysMonPin::VRefP => print!("VREFP"),
+                        SysMonPin::VRefN => print!("VREFN"),
+                    }
+                }
+                BondPin::VccPsInt => print!("VCC_PS_INT"),
+                BondPin::VccPsAux => print!("VCC_PS_AUX"),
+                BondPin::VccPsPll => print!("VCC_PS_PLL"),
+                BondPin::PsVref(bank, idx) => print!("PS{bank}.VREF{idx}"),
+                BondPin::PsIo(bank, pin) => {
+                    print!("PS{bank}.");
+                    match pin {
+                        PsPin::Mio(i) => print!("MIO{i}"),
+                        PsPin::Clk => print!("CLK"),
+                        PsPin::PorB => print!("POR_B"),
+                        PsPin::SrstB => print!("SRST_B"),
+                        PsPin::DdrDq(i) => print!("DDR_DQ{i}"),
+                        PsPin::DdrDm(i) => print!("DDR_DM{i}"),
+                        PsPin::DdrDqsP(i) => print!("DDR_DQS_P{i}"),
+                        PsPin::DdrDqsN(i) => print!("DDR_DQS_N{i}"),
+                        PsPin::DdrA(i) => print!("DDR_A{i}"),
+                        PsPin::DdrBa(i) => print!("DDR_BA{i}"),
+                        PsPin::DdrVrP => print!("DDR_VRP"),
+                        PsPin::DdrVrN => print!("DDR_VRN"),
+                        PsPin::DdrCkP => print!("DDR_CKP"),
+                        PsPin::DdrCkN => print!("DDR_CKN"),
+                        PsPin::DdrCke => print!("DDR_CKE"),
+                        PsPin::DdrOdt => print!("DDR_ODT"),
+                        PsPin::DdrDrstB => print!("DDR_DRST_B"),
+                        PsPin::DdrCsB => print!("DDR_CS_B"),
+                        PsPin::DdrRasB => print!("DDR_RAS_B"),
+                        PsPin::DdrCasB => print!("DDR_CAS_B"),
+                        PsPin::DdrWeB => print!("DDR_WE_B"),
+                    }
+                }
+            }
+            println!();
+        }
+    }
 }
 
 mod ultrascale {
-    use prjcombine_ultrascale::grid::{
-        BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid, HardKind,
+    use itertools::Itertools;
+    use prjcombine_ultrascale::{
+        bond::{
+            Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
+            SysMonPin,
+        },
+        grid::{
+            BramKind, CleLKind, CleMKind, ColumnKindLeft, ColumnKindRight, DspKind, Grid, HardKind,
+        },
     };
     use unnamed_entity::EntityId;
+
+    use crate::pad_sort_key;
 
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: {v:?}", v = grid.kind);
@@ -699,10 +1084,203 @@ mod ultrascale {
         }
         println!("\tREGS: {r}", r = grid.regs);
     }
+
+    pub fn print_bond(bond: &Bond) {
+        println!("\tPINS:");
+        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            print!("\t\t{pin:4}: ");
+            match pad {
+                BondPin::Hpio(bank, idx) => print!("HPIOB_{bank}_{idx}"),
+                BondPin::Hdio(bank, idx) => print!("HDIOB_{bank}_{idx}"),
+                BondPin::IoVref(bank) => print!("IO_{bank}_VREF"),
+                BondPin::Gt(bank, gtpin) => {
+                    print!("GT{bank}.");
+                    match gtpin {
+                        GtPin::RxP(idx) => print!("RXP{idx}"),
+                        GtPin::RxN(idx) => print!("RXN{idx}"),
+                        GtPin::TxP(idx) => print!("TXP{idx}"),
+                        GtPin::TxN(idx) => print!("TXN{idx}"),
+                        GtPin::ClkP(idx) => print!("CLKP{idx}"),
+                        GtPin::ClkN(idx) => print!("CLKN{idx}"),
+                        GtPin::AVcc => print!("AVCC"),
+                        GtPin::RRef => print!("RREF"),
+                        GtPin::AVttRCal => print!("AVTTRCAL"),
+                        GtPin::AVtt => print!("AVTT"),
+                    }
+                }
+                BondPin::GtRegion(region, gtpin) => {
+                    print!("GTREG");
+                    match region {
+                        GtRegion::All => (),
+                        GtRegion::L => print!("L"),
+                        GtRegion::R => print!("R"),
+                        GtRegion::LS => print!("LS"),
+                        GtRegion::RS => print!("RS"),
+                        GtRegion::LN => print!("LN"),
+                        GtRegion::RN => print!("RN"),
+                        GtRegion::LLC => print!("LLC"),
+                        GtRegion::RLC => print!("RLC"),
+                        GtRegion::LC => print!("LC"),
+                        GtRegion::RC => print!("RC"),
+                        GtRegion::LUC => print!("LUC"),
+                        GtRegion::RUC => print!("RUC"),
+                    }
+                    print!(".");
+                    match gtpin {
+                        GtRegionPin::AVtt => print!("AVTT"),
+                        GtRegionPin::AVcc => print!("AVCC"),
+                        GtRegionPin::VccAux => print!("VCCAUX"),
+                        GtRegionPin::VccInt => print!("VCCINT"),
+                    }
+                }
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::VccInt => print!("VCCINT"),
+                BondPin::VccAux => print!("VCCAUX"),
+                BondPin::VccBram => print!("VCCBRAM"),
+                BondPin::VccO(bank) => print!("VCCO{bank}"),
+                BondPin::VccBatt => print!("VCC_BATT"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::M0) => print!("M0"),
+                BondPin::Cfg(CfgPin::M1) => print!("M1"),
+                BondPin::Cfg(CfgPin::M2) => print!("M2"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
+                BondPin::Cfg(CfgPin::InitB) => print!("INIT_B"),
+                BondPin::Cfg(CfgPin::RdWrB) => print!("RDWR_B"),
+                BondPin::Cfg(CfgPin::Tck) => print!("TCK"),
+                BondPin::Cfg(CfgPin::Tms) => print!("TMS"),
+                BondPin::Cfg(CfgPin::Tdi) => print!("TDI"),
+                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
+                BondPin::Cfg(CfgPin::HswapEn) => print!("HSWAP_EN"),
+                BondPin::Cfg(CfgPin::Data(idx)) => print!("DATA{idx}"),
+                BondPin::Cfg(CfgPin::CfgBvs) => print!("CFGBVS"),
+                BondPin::Cfg(CfgPin::PorOverride) => print!("POR_OVERRIDE"),
+                BondPin::Dxn => print!("DXN"),
+                BondPin::Dxp => print!("DXP"),
+                BondPin::Rsvd => print!("RSVD"),
+                BondPin::RsvdGnd => print!("RSVDGND"),
+                BondPin::SysMon(bank, pin) => {
+                    print!("SYSMON{bank}.");
+                    match pin {
+                        SysMonPin::VP => print!("VP"),
+                        SysMonPin::VN => print!("VN"),
+                    }
+                }
+                BondPin::VccPsAux => print!("VCC_PS_AUX"),
+                BondPin::VccPsPll => print!("VCC_PS_PLL"),
+                BondPin::IoPs(bank, pin) => {
+                    print!("PS{bank}.");
+                    match pin {
+                        PsPin::Mio(i) => print!("MIO{i}"),
+                        PsPin::Clk => print!("CLK"),
+                        PsPin::PorB => print!("POR_B"),
+                        PsPin::SrstB => print!("SRST_B"),
+                        PsPin::DdrDq(i) => print!("DDR_DQ{i}"),
+                        PsPin::DdrDm(i) => print!("DDR_DM{i}"),
+                        PsPin::DdrDqsP(i) => print!("DDR_DQS_P{i}"),
+                        PsPin::DdrDqsN(i) => print!("DDR_DQS_N{i}"),
+                        PsPin::DdrA(i) => print!("DDR_A{i}"),
+                        PsPin::DdrBa(i) => print!("DDR_BA{i}"),
+                        PsPin::DdrCkP(idx) => print!("DDR_CKP{idx}"),
+                        PsPin::DdrCkN(idx) => print!("DDR_CKN{idx}"),
+                        PsPin::DdrCke(idx) => print!("DDR_CKE{idx}"),
+                        PsPin::DdrOdt(idx) => print!("DDR_ODT{idx}"),
+                        PsPin::DdrCsB(idx) => print!("DDR_CS_B{idx}"),
+                        PsPin::DdrDrstB => print!("DDR_DRST_B"),
+                        PsPin::DdrActN => print!("DDR_ACT_N"),
+                        PsPin::DdrAlertN => print!("DDR_ALERT_N"),
+                        PsPin::DdrBg(idx) => print!("DDR_BG{idx}"),
+                        PsPin::DdrParity => print!("DDR_PARITY"),
+                        PsPin::DdrZq => print!("DDR_ZQ"),
+                        PsPin::ErrorOut => print!("ERROR_OUT"),
+                        PsPin::ErrorStatus => print!("ERROR_STATUS"),
+                        PsPin::Done => print!("DONE"),
+                        PsPin::InitB => print!("INIT_B"),
+                        PsPin::ProgB => print!("PROG_B"),
+                        PsPin::JtagTck => print!("JTAG_TCK"),
+                        PsPin::JtagTdi => print!("JTAG_TDI"),
+                        PsPin::JtagTdo => print!("JTAG_TDO"),
+                        PsPin::JtagTms => print!("JTAG_TMS"),
+                        PsPin::Mode(i) => print!("MODE{i}"),
+                        PsPin::PadI => print!("PAD_I"),
+                        PsPin::PadO => print!("PAD_O"),
+                    }
+                }
+                BondPin::SysMonVRefP => print!("SYSMON_VREFP"),
+                BondPin::SysMonVRefN => print!("SYSMON_VREFN"),
+                BondPin::SysMonGnd => print!("SYSMON_GND"),
+                BondPin::SysMonVcc => print!("SYSMON_VCC"),
+                BondPin::PsSysMonGnd => print!("PS_SYSMON_GND"),
+                BondPin::PsSysMonVcc => print!("PS_SYSMON_VCC"),
+                BondPin::VccAuxHpio => print!("VCCAUX_HPIO"),
+                BondPin::VccAuxHdio => print!("VCCAUX_HDIO"),
+                BondPin::VccAuxIo => print!("VCCAUX_IO"),
+                BondPin::VccIntIo => print!("VCCINT_IO"),
+                BondPin::VccPsIntLp => print!("VCC_PS_INT_LP"),
+                BondPin::VccPsIntFp => print!("VCC_PS_INT_FP"),
+                BondPin::VccPsIntFpDdr => print!("VCC_PS_INT_FP_DDR"),
+                BondPin::VccPsBatt => print!("VCC_PS_BATT"),
+                BondPin::VccPsDdrPll => print!("VCC_PS_DDR_PLL"),
+                BondPin::VccIntVcu => print!("VCCINT_VCU"),
+                BondPin::GndSense => print!("GND_SENSE"),
+                BondPin::VccIntSense => print!("VCCINT_SENSE"),
+                BondPin::VccIntAms => print!("VCCINT_AMS"),
+                BondPin::VccSdfec => print!("VCC_SDFEC"),
+                BondPin::RfDacGnd => print!("RFDAC_GND"),
+                BondPin::RfDacSubGnd => print!("RFDAC_AGND"),
+                BondPin::RfDacAVcc => print!("RFDAC_AVCC"),
+                BondPin::RfDacAVccAux => print!("RFDAC_AVCCAUX"),
+                BondPin::RfDacAVtt => print!("RFDAC_AVTT"),
+                BondPin::RfAdcGnd => print!("RFADC_GND"),
+                BondPin::RfAdcSubGnd => print!("RFADC_SUBGND"),
+                BondPin::RfAdcAVcc => print!("RFADC_AVCC"),
+                BondPin::RfAdcAVccAux => print!("RFADC_AVCCAUX"),
+                BondPin::Hbm(bank, pin) => {
+                    print!("HBM{bank}.");
+                    match pin {
+                        HbmPin::Vcc => print!("VCC"),
+                        HbmPin::VccIo => print!("VCCIO"),
+                        HbmPin::VccAux => print!("VCCAUX"),
+                        HbmPin::Rsvd => print!("RSVD"),
+                        HbmPin::RsvdGnd => print!("RSVD_GND"),
+                    }
+                }
+                BondPin::RfDac(bank, pin) => {
+                    print!("RFDAC{bank}.");
+                    match pin {
+                        RfDacPin::VOutP(idx) => print!("VOUT{idx}P"),
+                        RfDacPin::VOutN(idx) => print!("VOUT{idx}N"),
+                        RfDacPin::ClkP => print!("CLKP"),
+                        RfDacPin::ClkN => print!("CLKN"),
+                        RfDacPin::RExt => print!("REXT"),
+                        RfDacPin::SysRefP => print!("SYSREFP"),
+                        RfDacPin::SysRefN => print!("SYSREFN"),
+                    }
+                }
+                BondPin::RfAdc(bank, pin) => {
+                    print!("RFADC{bank}.");
+                    match pin {
+                        RfAdcPin::VInP(idx) => print!("VIN{idx}_P"),
+                        RfAdcPin::VInN(idx) => print!("VIN{idx}_N"),
+                        RfAdcPin::VInPairP(idx) => print!("VIN_PAIR{idx}_P"),
+                        RfAdcPin::VInPairN(idx) => print!("VIN_PAIR{idx}_N"),
+                        RfAdcPin::ClkP => print!("CLKP"),
+                        RfAdcPin::ClkN => print!("CLKN"),
+                        RfAdcPin::VCm(idx) => print!("VCM{idx}"),
+                        RfAdcPin::RExt => print!("REXT"),
+                        RfAdcPin::PllTestOutP => print!("PLL_TEST_OUT_P"),
+                        RfAdcPin::PllTestOutN => print!("PLL_TEST_OUT_N"),
+                    }
+                }
+            }
+            println!();
+        }
+    }
 }
 
 mod versal {
-    use prjcombine_versal::grid::{ColumnKind, Grid};
+    use prjcombine_versal::{bond::Bond, grid::{ColumnKind, Grid}};
     use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {
@@ -812,6 +1390,10 @@ mod versal {
         }
         println!("\tREGS: {r}", r = grid.regs);
     }
+
+    pub fn print_bond(_bond: &Bond) {
+        // well.
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -863,8 +1445,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.pkgs {
-                // XXX pretty
-                println!("{bond:#?}");
+                match bond {
+                    Bond::Xc4k(bond) => xc4k::print_bond(bond),
+                    Bond::Xc5200(bond) => xc5200::print_bond(bond),
+                    Bond::Virtex(bond) => virtex::print_bond(bond),
+                    Bond::Virtex2(bond) => virtex2::print_bond(bond),
+                    Bond::Spartan6(bond) => spartan6::print_bond(bond),
+                    Bond::Virtex4(bond) => virtex4::print_bond(bond),
+                    Bond::Ultrascale(bond) => ultrascale::print_bond(bond),
+                    Bond::Versal(bond) => versal::print_bond(bond),
+                }
             }
         }
     }

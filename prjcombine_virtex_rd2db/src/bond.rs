@@ -1,11 +1,13 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex::bond::{Bond, BondPin, CfgPin};
 use prjcombine_virtex::expanded::ExpandedDevice;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
+    let mut vref = BTreeSet::new();
+    let mut diffp = BTreeSet::new();
     let io_lookup: HashMap<_, _> = edev
         .get_bonded_ios()
         .into_iter()
@@ -29,6 +31,18 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
+                if pin.func.starts_with("IO_VREF_") {
+                    vref.insert(io.coord);
+                }
+                if let Some(pos) = pin.func.find("_L") {
+                    let diff = &pin.func[pos..];
+                    if diff.contains('P') {
+                        diffp.insert(io.coord);
+                    }
+                }
+                if pin.func.contains("_L") && pin.func.contains("P") {
+                    vref.insert(io.coord);
+                }
                 BondPin::Io(io.coord)
             }
         } else if pin.func.starts_with("VCCO_") {
@@ -61,5 +75,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     Bond {
         pins: bond_pins,
         io_banks,
+        vref,
+        diffp,
     }
 }

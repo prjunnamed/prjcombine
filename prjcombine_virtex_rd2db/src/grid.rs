@@ -88,7 +88,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             }
         }
     }
-    let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         for pin in pins {
             if let Some(ref pad) = pin.pad {
@@ -101,9 +100,8 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                     func = &func[..pos];
                 }
                 if func.starts_with("IO_VREF_") {
-                    grid.vref.insert(coord);
+                    // pass
                 } else {
-                    novref.insert(coord);
                     let cfg = match func {
                         "IO" => continue,
                         "IO_DIN_D0" => SharedCfgPin::Data(0),
@@ -136,9 +134,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             }
         }
     }
-    for c in novref {
-        assert!(!grid.vref.contains(&c));
-    }
 }
 
 pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
@@ -160,7 +155,6 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         cols_bram: get_cols_bram(rd, &int),
         cols_clkv: get_cols_clkv(rd, &int),
         rows: int.rows.len(),
-        vref: BTreeSet::new(),
         cfg_io: BTreeMap::new(),
     };
     handle_spec_io(rd, &mut grid, &int);

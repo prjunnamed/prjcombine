@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_rawdump::PkgPin;
 use prjcombine_spartan6::bond::{Bond, BondPin, CfgPin, GtPin};
@@ -9,6 +9,7 @@ use prjcombine_rdgrid::split_num;
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
+    let mut vref = BTreeSet::new();
     let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
     let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
     for gt in &edev.gt {
@@ -50,6 +51,9 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 //assert_eq!(pin.vref_bank, Some(bank));
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
+                if pin.func.contains("VREF") {
+                    vref.insert(io.crd);
+                }
                 BondPin::Io(io.crd)
             } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
                 if *exp_func != pin.func {
@@ -105,5 +109,6 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     Bond {
         pins: bond_pins,
         io_banks,
+        vref,
     }
 }

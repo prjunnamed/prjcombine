@@ -357,7 +357,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             }
         }
     }
-    let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         for pin in pins {
             if let Some(ref pad) = pin.pad {
@@ -365,7 +364,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                     continue;
                 }
                 let coord = io_lookup[pad];
-                let mut is_vref = false;
                 let mut f = pin.func.strip_prefix("IO_L").unwrap();
                 f = &f[f.find('_').unwrap() + 1..];
                 if f.starts_with("GCLK") {
@@ -424,7 +422,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                 }
                 if let Some(nf) = f.strip_prefix("VREF_") {
                     f = nf;
-                    is_vref = true;
                 }
                 if f.starts_with('M') {
                     let (col, mi) = match &f[0..2] {
@@ -518,16 +515,8 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                 if !matches!(f, "0" | "1" | "2" | "3" | "4" | "5") {
                     println!("FUNC {f}");
                 }
-                if is_vref {
-                    grid.vref.insert(coord);
-                } else {
-                    novref.insert(coord);
-                }
             }
         }
-    }
-    for c in novref {
-        assert!(!grid.vref.contains(&c));
     }
 }
 
@@ -590,7 +579,6 @@ pub fn make_grid(rd: &Part) -> (Grid, BTreeSet<DisabledPart>) {
         row_mcb_split: get_row_mcb_split(rd, &int),
         gts: get_gts(rd, &int),
         mcbs: get_mcbs(rd, &int),
-        vref: BTreeSet::new(),
         cfg_io: BTreeMap::new(),
         has_encrypt: has_encrypt(rd),
     };

@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex2::bond::{Bond, BondPin, CfgPin, GtPin};
@@ -9,6 +9,7 @@ use prjcombine_rdgrid::split_num;
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
+    let mut vref = BTreeSet::new();
     let io_lookup: HashMap<_, _> = edev
         .get_bonded_ios()
         .into_iter()
@@ -21,6 +22,9 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 assert_eq!(pin.vref_bank, Some(io.bank));
                 let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
+                if pin.func.contains("VREF_") {
+                    vref.insert(io.coord);
+                }
                 BondPin::Io(io.coord)
             } else if let Some((n, b)) = split_num(pad) {
                 let pk = match n {
@@ -84,5 +88,6 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     Bond {
         pins: bond_pins,
         io_banks,
+        vref,
     }
 }

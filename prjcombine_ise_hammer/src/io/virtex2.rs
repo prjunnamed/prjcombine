@@ -296,7 +296,9 @@ fn has_any_vref<'a>(
         };
         for pin in bond.pins.values() {
             if let prjcombine_virtex2::bond::BondPin::Io(io) = pin {
-                bonded_ios.insert(io, &devbond.name[..]);
+                if bond.vref.contains(io) {
+                    bonded_ios.insert(io, &devbond.name[..]);
+                }
             }
         }
     }
@@ -311,9 +313,6 @@ fn has_any_vref<'a>(
             row,
             iob: TileIobId::from_idx(ioi_bel.to_idx()),
         };
-        if !edev.grid.vref.contains(&crd) {
-            continue;
-        }
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
         }

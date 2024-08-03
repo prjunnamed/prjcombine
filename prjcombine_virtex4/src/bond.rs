@@ -26,7 +26,7 @@ pub enum CfgPin {
     CfgBvs,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtPin {
     RxP(u8),
     RxN(u8),
@@ -55,7 +55,7 @@ pub enum GtPin {
     RBias,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtRegion {
     All,
     S,
@@ -72,7 +72,7 @@ pub enum GtRegion {
     Num(u32),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtRegionPin {
     AVtt,
     AGnd,
@@ -83,7 +83,7 @@ pub enum GtRegionPin {
     VccAux,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum SysMonPin {
     VP,
     VN,
@@ -93,7 +93,7 @@ pub enum SysMonPin {
     VRefN,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GtzPin {
     RxP(u8),
     RxN(u8),
@@ -143,7 +143,7 @@ pub enum PsPin {
     DdrWeB,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     // bank, pin within bank
     Io(u32, u32),
@@ -197,4 +197,46 @@ pub enum SharedCfgPin {
     EmCclk,
     PudcB,
     AdvB,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ExpandedBond<'a> {
+    pub bond: &'a Bond,
+    pub ios: BTreeMap<(u32, u32), String>,
+    pub gts: BTreeMap<(u32, GtPin), String>,
+    pub gtzs: BTreeMap<(u32, GtzPin), String>,
+    pub sysmons: BTreeMap<(u32, SysMonPin), String>,
+}
+
+impl Bond {
+    pub fn expand(&self) -> ExpandedBond {
+        let mut ios = BTreeMap::new();
+        let mut gts = BTreeMap::new();
+        let mut gtzs = BTreeMap::new();
+        let mut sysmons = BTreeMap::new();
+        for (name, pad) in &self.pins {
+            match *pad {
+                BondPin::Io(bank, idx) => {
+                    ios.insert((bank, idx), name.clone());
+                }
+                BondPin::Gt(bank, gtpin) => {
+                    gts.insert((bank, gtpin), name.clone());
+                }
+                BondPin::Gtz(bank, gtpin) => {
+                    gtzs.insert((bank, gtpin), name.clone());
+                }
+                BondPin::SysMon(bank, smpin) => {
+                    sysmons.insert((bank, smpin), name.clone());
+                }
+                _ => (),
+            }
+        }
+        ExpandedBond {
+            bond: self,
+            ios,
+            gts,
+            gtzs,
+            sysmons,
+        }
+    }
 }

@@ -72,6 +72,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         println!("part {name}", name = part.name);
         let gedev = db.expand_grid(part);
+        let mut ebonds = HashMap::new();
+        for devbond in part.bonds.values() {
+            let bond = &db.bonds[devbond.bond];
+            ebonds.insert(devbond.name.clone(), bond.expand());
+        }
         let backend = IseBackend {
             debug: args.debug,
             tc: &tc,
@@ -80,6 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bs_geom: gedev.bs_geom(),
             egrid: gedev.egrid(),
             edev: &gedev,
+            ebonds: &ebonds,
         };
         let mut hammer = Session::new(&backend);
         hammer.debug = args.debug;

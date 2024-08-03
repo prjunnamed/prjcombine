@@ -1,6 +1,6 @@
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
@@ -22,7 +22,6 @@ pub struct Grid {
     pub row_mcb_split: Option<RowId>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
-    pub vref: BTreeSet<IoCoord>,
     pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
     pub has_encrypt: bool,
 }

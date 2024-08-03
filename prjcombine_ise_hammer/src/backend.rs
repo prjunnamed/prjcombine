@@ -6,7 +6,7 @@ use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
-use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
+use prjcombine_xilinx_geom::{Bond, Device, ExpandedBond, ExpandedDevice, GeomDb};
 use rand::prelude::*;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{Debug, Write};
@@ -22,6 +22,7 @@ pub struct IseBackend<'a> {
     pub bs_geom: &'a BitstreamGeom,
     pub egrid: &'a ExpandedGrid<'a>,
     pub edev: &'a ExpandedDevice<'a>,
+    pub ebonds: &'a HashMap<String, ExpandedBond<'a>>,
 }
 
 impl<'a> std::fmt::Debug for IseBackend<'a> {

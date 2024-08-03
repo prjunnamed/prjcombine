@@ -9,7 +9,7 @@ use prjcombine_virtex2::{
     grid::GridKind,
 };
 use prjcombine_virtex_bitstream::{BitTile, Reg};
-use prjcombine_xilinx_geom::ExpandedDevice;
+use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -18,7 +18,7 @@ use crate::{
         concat_bitvec, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum,
         xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode,
     },
-    fgen::{get_bonded_ios_v2_pkg, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
+    fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
     io::virtex2::{get_iostds, DciKind, DiffKind},
@@ -259,7 +259,9 @@ pub fn add_fuzzers<'a>(
                 bdata.pins.len()
             })
             .unwrap();
-        let bonded_io = get_bonded_ios_v2_pkg(backend, &package.name);
+        let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[&package.name] else {
+            unreachable!()
+        };
         if !edev.grid.kind.is_spartan3ea() {
             for (tile_name, bel, bank) in [
                 (ul, 0, 7),
@@ -293,7 +295,7 @@ pub fn add_fuzzers<'a>(
                 let other_bank = if bank == 4 { 5 } else { 4 };
                 let mut io_vr = None;
                 if let Some(&(vrp, vrn)) = edev.grid.dci_io.get(&bank) {
-                    if bonded_io.contains(&vrp) && bonded_io.contains(&vrn) {
+                    if ebond.ios.contains_key(&vrp) && ebond.ios.contains_key(&vrn) {
                         io_vr = Some((vrp, vrn));
                     }
                 }
@@ -313,7 +315,7 @@ pub fn add_fuzzers<'a>(
                             btiles.push(edev.btile_btterm(io.col, io.row));
                         }
                     }
-                    if bonded_io.contains(&io)
+                    if ebond.ios.contains_key(&io)
                         && matches!(ioinfo.diff, IoDiffKind::P(_))
                         && ioinfo.pad_kind == IoPadKind::Io
                         && io != io_vrp
@@ -776,7 +778,7 @@ pub fn add_fuzzers<'a>(
                 let mut ios = vec![];
                 for &io in edev.bonded_ios.iter().rev() {
                     let ioinfo = edev.get_io(io);
-                    if bonded_io.contains(&io)
+                    if ebond.ios.contains_key(&io)
                         && matches!(ioinfo.diff, IoDiffKind::P(_))
                         && ioinfo.pad_kind == IoPadKind::Io
                         && ioinfo.bank == bank

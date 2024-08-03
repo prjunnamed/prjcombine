@@ -81,6 +81,32 @@ pub enum Bond {
     Versal(prjcombine_versal::bond::Bond),
 }
 
+pub enum ExpandedBond<'a> {
+    Xc4k(prjcombine_xc4k::bond::ExpandedBond<'a>),
+    Xc5200(prjcombine_xc5200::bond::ExpandedBond<'a>),
+    Virtex(prjcombine_virtex::bond::ExpandedBond<'a>),
+    Virtex2(prjcombine_virtex2::bond::ExpandedBond<'a>),
+    Spartan6(prjcombine_spartan6::bond::ExpandedBond<'a>),
+    Virtex4(prjcombine_virtex4::bond::ExpandedBond<'a>),
+    Ultrascale(prjcombine_ultrascale::bond::ExpandedBond<'a>),
+    Versal(prjcombine_versal::bond::ExpandedBond<'a>),
+}
+
+impl Bond {
+    pub fn expand (&self) -> ExpandedBond {
+        match self {
+            Bond::Xc4k(bond) => ExpandedBond::Xc4k(bond.expand()),
+            Bond::Xc5200(bond) => ExpandedBond::Xc5200(bond.expand()),
+            Bond::Virtex(bond) => ExpandedBond::Virtex(bond.expand()),
+            Bond::Virtex2(bond) => ExpandedBond::Virtex2(bond.expand()),
+            Bond::Spartan6(bond) => ExpandedBond::Spartan6(bond.expand()),
+            Bond::Virtex4(bond) => ExpandedBond::Virtex4(bond.expand()),
+            Bond::Ultrascale(bond) => ExpandedBond::Ultrascale(bond.expand()),
+            Bond::Versal(bond) => ExpandedBond::Versal(bond.expand()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
     pub grids: EntityVec<GridId, Grid>,

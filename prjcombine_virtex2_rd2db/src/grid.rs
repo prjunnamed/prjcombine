@@ -412,7 +412,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             }
         }
     }
-    let mut novref = BTreeSet::new();
     for pins in rd.packages.values() {
         let mut vrp = BTreeMap::new();
         let mut vrn = BTreeMap::new();
@@ -424,11 +423,8 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                     continue;
                 }
                 let coord = io_lookup[pad];
-                let mut is_vref = false;
                 for f in pin.func.split('/').skip(1) {
-                    if f.starts_with("VREF_") {
-                        is_vref = true;
-                    } else if f.starts_with("VRP_") {
+                    if f.starts_with("VRP_") {
                         vrp.insert(pin.vref_bank.unwrap(), coord);
                     } else if f.starts_with("VRN_") {
                         vrn.insert(pin.vref_bank.unwrap(), coord);
@@ -441,6 +437,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         || f.starts_with("RHCLK")
                         || f.starts_with("IRDY")
                         || f.starts_with("TRDY")
+                        || f.starts_with("VREF_")
                     {
                         // ignore
                     } else {
@@ -487,11 +484,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         assert!(old.is_none() || old == Some(coord));
                     }
                 }
-                if is_vref {
-                    grid.vref.insert(coord);
-                } else {
-                    novref.insert(coord);
-                }
             }
         }
         assert_eq!(vrp.len(), vrn.len());
@@ -506,9 +498,6 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             let old = grid.dci_io_alt.insert(k, (p, n));
             assert!(old.is_none() || old == Some((p, n)));
         }
-    }
-    for c in novref {
-        assert!(!grid.vref.contains(&c));
     }
 }
 
@@ -549,7 +538,6 @@ pub fn make_grid(rd: &Part) -> Grid {
         dcms: get_dcms(rd, kind),
         has_ll: get_has_ll(rd),
         has_small_int: get_has_small_int(rd),
-        vref: BTreeSet::new(),
         cfg_io: BTreeMap::new(),
         dci_io: BTreeMap::new(),
         dci_io_alt: BTreeMap::new(),

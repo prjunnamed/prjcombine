@@ -30,7 +30,6 @@ pub struct Grid {
     pub cols_bram: BTreeSet<ColId>,
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
-    pub vref: BTreeSet<IoCoord>,
     pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
 }
 

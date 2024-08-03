@@ -1,7 +1,7 @@
 use prjcombine_int::db::Dir;
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use unnamed_entity::{entity_id, EntityId, EntityVec};
 
 entity_id! {
@@ -62,7 +62,6 @@ pub struct Grid {
     pub dcms: Option<Dcms>,
     pub has_ll: bool,
     pub has_small_int: bool,
-    pub vref: BTreeSet<IoCoord>,
     pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
     pub dci_io: BTreeMap<u32, (IoCoord, IoCoord)>,
     pub dci_io_alt: BTreeMap<u32, (IoCoord, IoCoord)>,

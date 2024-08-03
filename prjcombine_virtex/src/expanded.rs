@@ -10,7 +10,6 @@ pub struct Io<'a> {
     pub bank: u32,
     pub coord: IoCoord,
     pub name: &'a str,
-    pub is_vref: bool,
 }
 
 pub struct ExpandedDevice<'a> {
@@ -70,7 +69,6 @@ impl<'a> ExpandedDevice<'a> {
             coord,
             bank,
             name,
-            is_vref: self.grid.vref.contains(&coord),
         }
     }
 

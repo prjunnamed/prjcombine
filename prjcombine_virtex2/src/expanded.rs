@@ -28,7 +28,6 @@ pub struct Io<'a> {
     pub diff: IoDiffKind,
     pub pad_kind: IoPadKind,
     pub name: &'a str,
-    pub is_vref: bool,
 }
 
 pub struct ExpandedDevice<'a> {
@@ -196,7 +195,6 @@ impl<'a> ExpandedDevice<'a> {
             diff,
             pad_kind,
             name,
-            is_vref: self.grid.vref.contains(&coord),
         }
     }
 

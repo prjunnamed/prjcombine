@@ -4,10 +4,10 @@ use prjcombine_int::{
 };
 use prjcombine_virtex2::expanded::IoPadKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
-use prjcombine_xilinx_geom::{Bond, ExpandedDevice};
+use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen, FuzzerValue};
@@ -587,42 +587,6 @@ fn resolve_intf_delay<'a>(
         name_delay,
         name_out,
     ))
-}
-
-pub fn get_bonded_ios_v2_pkg(
-    backend: &IseBackend,
-    pkg: &str,
-) -> HashSet<prjcombine_virtex2::grid::IoCoord> {
-    let bond_id = backend
-        .device
-        .bonds
-        .values()
-        .find(|bond| bond.name == *pkg)
-        .unwrap()
-        .bond;
-    let Bond::Virtex2(ref bond) = backend.db.bonds[bond_id] else {
-        unreachable!()
-    };
-    bond.pins
-        .values()
-        .filter_map(|pin| {
-            if let prjcombine_virtex2::bond::BondPin::Io(io) = pin {
-                Some(*io)
-            } else {
-                None
-            }
-        })
-        .collect()
-}
-
-fn get_bonded_ios_v2(
-    backend: &IseBackend,
-    fuzzer: &Fuzzer<IseBackend>,
-) -> HashSet<prjcombine_virtex2::grid::IoCoord> {
-    let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
-        unreachable!()
-    };
-    get_bonded_ios_v2_pkg(backend, pkg)
 }
 
 #[derive(Debug, Clone)]
@@ -1777,35 +1741,45 @@ impl<'a> BelKV {
                 Key::BelMutex((loc.0, loc.1, loc.2, loc.3, bel), name.clone()),
                 val,
             ),
-            BelKV::IsVref => match backend.edev {
-                ExpandedDevice::Xc4k(_) => todo!(),
-                ExpandedDevice::Xc5200(_) => todo!(),
-                ExpandedDevice::Virtex(_) => todo!(),
-                ExpandedDevice::Virtex2(edev) => {
-                    let crd = prjcombine_virtex2::grid::IoCoord {
-                        col: loc.1,
-                        row: loc.2,
-                        iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
-                    };
-                    if !edev.grid.vref.contains(&crd) {
-                        return None;
+            BelKV::IsVref => {
+                let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
+                    unreachable!()
+                };
+                match &backend.ebonds[pkg] {
+                    ExpandedBond::Xc4k(_) => todo!(),
+                    ExpandedBond::Xc5200(_) => todo!(),
+                    ExpandedBond::Virtex(_) => todo!(),
+                    ExpandedBond::Virtex2(ebond) => {
+                        let crd = prjcombine_virtex2::grid::IoCoord {
+                            col: loc.1,
+                            row: loc.2,
+                            iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
+                        };
+                        if !ebond.bond.vref.contains(&crd) {
+                            return None;
+                        }
+                        if !ebond.ios.contains_key(&crd) {
+                            return None;
+                        }
+                        fuzzer
                     }
-                    let bonded_ios = get_bonded_ios_v2(backend, &fuzzer);
-                    if !bonded_ios.contains(&crd) {
-                        return None;
-                    }
-                    fuzzer
+                    ExpandedBond::Spartan6(_) => todo!(),
+                    ExpandedBond::Virtex4(_) => todo!(),
+                    ExpandedBond::Ultrascale(_) => todo!(),
+                    ExpandedBond::Versal(_) => todo!(),
                 }
-                ExpandedDevice::Spartan6(_) => todo!(),
-                ExpandedDevice::Virtex4(_) => todo!(),
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
-            },
+            }
             BelKV::IsVr => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
                 ExpandedDevice::Xc5200(_) => todo!(),
                 ExpandedDevice::Virtex(_) => todo!(),
                 ExpandedDevice::Virtex2(edev) => {
+                    let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
+                        unreachable!()
+                    };
+                    let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
+                        unreachable!()
+                    };
                     let crd = prjcombine_virtex2::grid::IoCoord {
                         col: loc.1,
                         row: loc.2,
@@ -1841,8 +1815,7 @@ impl<'a> BelKV {
                     if !is_vr {
                         return None;
                     }
-                    let bonded_ios = get_bonded_ios_v2(backend, &fuzzer);
-                    if !bonded_ios.contains(&crd) {
+                    if !ebond.ios.contains_key(&crd) {
                         return None;
                     }
                     fuzzer
@@ -1860,7 +1833,13 @@ impl<'a> BelKV {
                     ExpandedDevice::Xc5200(_) => todo!(),
                     ExpandedDevice::Virtex(_) => todo!(),
                     ExpandedDevice::Virtex2(edev) => {
-                        let bonded_ios = get_bonded_ios_v2(backend, &fuzzer);
+                        let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package]
+                        else {
+                            unreachable!()
+                        };
+                        let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
+                            unreachable!()
+                        };
                         let crd = prjcombine_virtex2::grid::IoCoord {
                             col: loc.1,
                             row: loc.2,
@@ -1868,13 +1847,14 @@ impl<'a> BelKV {
                         };
                         let orig_io = edev.get_io(crd);
                         for &io in &edev.bonded_ios {
+                            let io_info = edev.get_io(io);
                             if io != crd
-                                && orig_io.bank == edev.get_io(io).bank
-                                && edev.get_io(io).pad_kind != IoPadKind::Clk
+                                && orig_io.bank == io_info.bank
+                                && io_info.pad_kind != IoPadKind::Clk
                                 && (!is_diff
-                                    || edev.get_io(io).diff
+                                    || io_info.diff
                                         != prjcombine_virtex2::expanded::IoDiffKind::None)
-                                && bonded_ios.contains(&io)
+                                && ebond.ios.contains_key(&io)
                             {
                                 let node = backend
                                     .egrid
@@ -1888,7 +1868,7 @@ impl<'a> BelKV {
                                 fuzzer = fuzzer.base(
                                     Key::SiteMode(site),
                                     if is_diff {
-                                        match edev.get_io(io).diff {
+                                        match io_info.diff {
                                             prjcombine_virtex2::expanded::IoDiffKind::P(_) => {
                                                 if edev.grid.kind.is_spartan3a() {
                                                     "DIFFMI_NDT"
@@ -1958,7 +1938,13 @@ impl<'a> BelKV {
                     ExpandedDevice::Xc5200(_) => todo!(),
                     ExpandedDevice::Virtex(_) => todo!(),
                     ExpandedDevice::Virtex2(edev) => {
-                        let bonded_ios = get_bonded_ios_v2(backend, &fuzzer);
+                        let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package]
+                        else {
+                            unreachable!()
+                        };
+                        let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
+                            unreachable!()
+                        };
                         let crd = prjcombine_virtex2::grid::IoCoord {
                             col: loc.1,
                             row: loc.2,
@@ -1985,7 +1971,7 @@ impl<'a> BelKV {
                                 }
                             }
                             let io_info = edev.get_io(io);
-                            if !bonded_ios.contains(&io)
+                            if !ebond.ios.contains_key(&io)
                                 || io_info.bank != bank
                                 || io_info.pad_kind != IoPadKind::Io
                             {

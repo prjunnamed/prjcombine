@@ -29,3 +29,21 @@ pub enum BondPin {
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ExpandedBond<'a> {
+    pub bond: &'a Bond,
+    pub ios: BTreeMap<IoCoord, String>,
+}
+
+impl Bond {
+    pub fn expand(&self) -> ExpandedBond {
+        let mut ios = BTreeMap::new();
+        for (name, pad) in &self.pins {
+            if let BondPin::Io(io) = *pad {
+                ios.insert(io, name.clone());
+            }
+        }
+        ExpandedBond { bond: self, ios }
+    }
+}

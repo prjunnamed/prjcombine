@@ -42,7 +42,9 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 }
             }
         };
-        bond_pins.insert(pin.pin.clone(), bpin);
+        // ???
+        let pname = pin.pin.strip_suffix('*').unwrap_or(&pin.pin[..]);
+        bond_pins.insert(pname.to_string(), bpin);
     }
     Bond { pins: bond_pins }
 }
