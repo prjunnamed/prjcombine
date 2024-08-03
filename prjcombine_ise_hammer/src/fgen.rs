@@ -687,6 +687,7 @@ pub enum BelKV {
     OtherIobDiffOutput(String),
     BankDiffOutput(String, Option<String>),
     NotIbuf,
+    VirtexIsDllIob(bool),
 }
 
 impl<'a> TileKV<'a> {
@@ -2055,6 +2056,18 @@ impl<'a> BelKV {
             }
             BelKV::NotIbuf => {
                 if !node.names[NodeRawTileId::from_idx(0)].contains("IOIS") {
+                    return None;
+                }
+                fuzzer
+            }
+            BelKV::VirtexIsDllIob(val) => {
+                let ExpandedDevice::Virtex(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let is_dll = edev.grid.kind != prjcombine_virtex::grid::GridKind::Virtex
+                    && ((loc.1 == edev.grid.col_clk() - 1 && bel.to_idx() == 1)
+                        || (loc.1 == edev.grid.col_clk() && bel.to_idx() == 2));
+                if *val != is_dll {
                     return None;
                 }
                 fuzzer

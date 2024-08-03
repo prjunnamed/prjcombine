@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clk::virtex::add_fuzzers(&mut hammer, &backend);
                 bram::virtex::add_fuzzers(&mut hammer, &backend);
                 misc::virtex::add_fuzzers(&mut hammer, &backend);
-                // TODO: io
+                io::virtex::add_fuzzers(&mut hammer, &backend);
                 dcm::virtex::add_fuzzers(&mut hammer, &backend);
             }
             ExpandedDevice::Virtex2(ref edev) => {
@@ -279,6 +279,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 clk::virtex::collect_fuzzers(&mut ctx);
                 bram::virtex::collect_fuzzers(&mut ctx);
                 misc::virtex::collect_fuzzers(&mut ctx);
+                io::virtex::collect_fuzzers(&mut ctx);
                 dcm::virtex::collect_fuzzers(&mut ctx);
             }
             ExpandedDevice::Virtex2(ref edev) => {
