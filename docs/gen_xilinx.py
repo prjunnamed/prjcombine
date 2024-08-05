@@ -27,9 +27,9 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7
             f.write(f"<tr><th rowspan=\"2\">Name</th>")
             for (pref, l) in zip(prefixes, lens):
                 if l == -1:
-                    f.write(f"<th colspan=\"{l}\">{pref}</th>")
-                else:
                     f.write(f"<th rowspan=\"2\">{pref}</th>")
+                else:
+                    f.write(f"<th colspan=\"{l}\">{pref}</th>")
             f.write(f"</tr>\n")
             f.write(f"<tr>")
             for l in lens:
@@ -232,6 +232,14 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xc6s", "xc4v", "xc5v", "xc6v", "xc7
                         f.write(f"<td>{inv}[{i}]</td>")
                     f.write("</tr>\n")
                 f.write("</table>\n")
+
+    if kind == "xcv":
+        emit_misc_table("xilinx/gen/xcv-iostd-misc.html", "IOSTD:V:IOSTD_MISC", "IOSTD:V:OUTPUT_MISC")
+        emit_misc_table("xilinx/gen/xcv-iostd-drive.html", "IOSTD:V:PDRIVE", "IOSTD:V:NDRIVE")
+        emit_misc_table("xilinx/gen/xcv-iostd-slew.html", "IOSTD:V:SLEW")
+        emit_misc_table("xilinx/gen/xcve-iostd-misc.html", "IOSTD:VE:IOSTD_MISC", "IOSTD:VE:OUTPUT_MISC")
+        emit_misc_table("xilinx/gen/xcve-iostd-drive.html", "IOSTD:VE:PDRIVE", "IOSTD:VE:NDRIVE")
+        emit_misc_table("xilinx/gen/xcve-iostd-slew.html", "IOSTD:VE:SLEW")
 
     if kind == "xc2v":
         emit_misc_table("xilinx/gen/xc2v-iostd-drive.html", "IOSTD:V2:PDRIVE", "IOSTD:V2:NDRIVE")

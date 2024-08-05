@@ -1,5 +1,6 @@
 use bitvec::vec::BitVec;
 use clap::Parser;
+use itertools::Itertools;
 use prjcombine_hammer::{Backend, Session};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_virtex_bitstream::Reg;
@@ -407,7 +408,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        for (feat, data) in &ctx.state.simple_features {
+        for (feat, data) in ctx.state.simple_features.iter().sorted_by_key(|&(k, _)| k) {
             println!(
                 "{} {} {} {}: {:?}",
                 feat.tile, feat.bel, feat.attr, feat.val, data.diffs

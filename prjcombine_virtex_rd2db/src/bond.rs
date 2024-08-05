@@ -8,6 +8,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut io_banks = BTreeMap::new();
     let mut vref = BTreeSet::new();
     let mut diffp = BTreeSet::new();
+    let mut diffn = BTreeSet::new();
     let io_lookup: HashMap<_, _> = edev
         .get_bonded_ios()
         .into_iter()
@@ -39,9 +40,9 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     if diff.contains('P') {
                         diffp.insert(io.coord);
                     }
-                }
-                if pin.func.contains("_L") && pin.func.contains("P") {
-                    vref.insert(io.coord);
+                    if diff.contains('N') {
+                        diffn.insert(io.coord);
+                    }
                 }
                 BondPin::Io(io.coord)
             }
@@ -77,5 +78,6 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
         io_banks,
         vref,
         diffp,
+        diffn,
     }
 }

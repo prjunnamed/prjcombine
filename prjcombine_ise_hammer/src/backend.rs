@@ -130,7 +130,7 @@ impl Debug for FuzzerInfo {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct FeatureId {
     pub tile: String,
     pub bel: String,

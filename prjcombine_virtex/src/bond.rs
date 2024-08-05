@@ -38,31 +38,31 @@ pub struct Bond {
     pub io_banks: BTreeMap<u32, u32>,
     pub vref: BTreeSet<IoCoord>,
     pub diffp: BTreeSet<IoCoord>,
+    pub diffn: BTreeSet<IoCoord>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
     pub ios: BTreeMap<IoCoord, String>,
-    pub clks: [String; 4],
+    pub clks: BTreeMap<u32, String>,
 }
 
 impl Bond {
     pub fn expand(&self) -> ExpandedBond {
         let mut ios = BTreeMap::new();
-        let mut clks = [const {None}; 4];
+        let mut clks = BTreeMap::new();
         for (name, pad) in &self.pins {
             match *pad {
                 BondPin::Io(io) => {
                     ios.insert(io, name.clone());
                 }
-                BondPin::Clk(which) => {
-                    clks[which as usize] = Some(name.clone());
+                BondPin::Clk(bank) => {
+                    clks.insert(bank, name.clone());
                 }
                 _ => (),
             }
         }
-        let clks = clks.map(|x| x.unwrap());
         ExpandedBond {
             bond: self,
             ios,

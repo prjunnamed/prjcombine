@@ -33,8 +33,8 @@ I/O interface
    :file: ../gen/tile-xc2v-IOI.CLK_T.html
 
 
-I/O buffers
-===========
+I/O buffers — Virtex 2
+======================
 
 .. todo:: document
 

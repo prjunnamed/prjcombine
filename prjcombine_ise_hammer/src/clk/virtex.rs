@@ -2,13 +2,14 @@ use prjcombine_hammer::Session;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_bool, CollectorCtx},
-    fgen::TileBits,
+    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
+    fgen::{BelKV, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let package = backend.ebonds.keys().next().unwrap();
     for tile in [
         "CLKB",
         "CLKT",
@@ -27,23 +28,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ) else {
                 continue;
             };
-            // fuzz_one!(ctx, "PRESENT", "1", [], [(mode "GCLKIOB")]);
-            // let iostds = if !tile.ends_with("DLL") {
-            // &[
-            // "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
-            // "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I", "SSTL2_II", "CTT",
-            // "AGP",
-            // ][..]
-            // } else {
-            // &[
-            // "LVTTL", "LVCMOS2", "LVCMOS18", "PCI33_3", "PCI66_3", "PCIX66_3", "GTL",
-            // "GTLP", "HSTL_I", "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I",
-            // "SSTL2_II", "CTT", "AGP", "LVDS", "LVPECL",
-            // ][..]
-            // };
-            // fuzz_enum!(ctx, "IOATTRBOX", iostds.iter().copied(), [
-            // (mode "GCLKIOB")
-            // ]);
+            let iostds = if !tile.ends_with("DLL") {
+                &[
+                    "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
+                    "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I", "SSTL2_II", "CTT",
+                    "AGP",
+                ][..]
+            } else {
+                &[
+                    "LVTTL", "LVCMOS2", "LVCMOS18", "PCI33_3", "PCI66_3", "PCIX66_3", "GTL",
+                    "GTLP", "HSTL_I", "HSTL_III", "HSTL_IV", "SSTL3_I", "SSTL3_II", "SSTL2_I",
+                    "SSTL2_II", "CTT", "AGP", "LVDS", "LVPECL",
+                ][..]
+            };
+            for &iostd in iostds {
+                fuzz_one!(ctx, "IOATTRBOX", iostd, [
+                    (global_mutex "GCLKIOB", "YES"),
+                    (package package),
+                    (global_mutex "VREF", "YES"),
+                    (bel_special BelKV::OtherIobInput("GTL".into())),
+                    (global_opt "UNUSEDPIN", "PULLNONE")
+                ], [
+                    (mode "GCLKIOB"),
+                    (attr "IOATTRBOX", iostd)
+                ]);
+            }
             let idx = if tile.starts_with("CLKB") { i } else { 2 + i };
             for val in ["11110", "11101", "11011", "10111", "01111"] {
                 fuzz_one!(ctx, "DELAY", val, [
@@ -157,7 +166,54 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.state.get_diff(tile, bel, "DELAY", val);
                 diffs.push(!diff);
             }
-            ctx.tiledb.insert(tile, bel, "DELAY", xlat_bitvec(diffs))
+            ctx.tiledb.insert(tile, bel, "DELAY", xlat_bitvec(diffs));
+            let iostds = if !tile.ends_with("DLL") {
+                &[
+                    ("CMOS", "LVTTL"),
+                    ("CMOS", "LVCMOS2"),
+                    ("CMOS", "PCI33_3"),
+                    ("CMOS", "PCI33_5"),
+                    ("CMOS", "PCI66_3"),
+                    ("VREF_LV", "GTL"),
+                    ("VREF_LV", "HSTL_I"),
+                    ("VREF_LV", "HSTL_III"),
+                    ("VREF_LV", "HSTL_IV"),
+                    ("VREF_HV", "GTLP"),
+                    ("VREF_HV", "SSTL3_I"),
+                    ("VREF_HV", "SSTL3_II"),
+                    ("VREF_HV", "SSTL2_I"),
+                    ("VREF_HV", "SSTL2_II"),
+                    ("VREF_HV", "CTT"),
+                    ("VREF_HV", "AGP"),
+                ][..]
+            } else {
+                &[
+                    ("CMOS", "LVTTL"),
+                    ("CMOS", "LVCMOS2"),
+                    ("CMOS", "LVCMOS18"),
+                    ("CMOS", "PCI33_3"),
+                    ("CMOS", "PCI66_3"),
+                    ("CMOS", "PCIX66_3"),
+                    ("VREF", "GTL"),
+                    ("VREF", "GTLP"),
+                    ("VREF", "HSTL_I"),
+                    ("VREF", "HSTL_III"),
+                    ("VREF", "HSTL_IV"),
+                    ("VREF", "SSTL3_I"),
+                    ("VREF", "SSTL3_II"),
+                    ("VREF", "SSTL2_I"),
+                    ("VREF", "SSTL2_II"),
+                    ("VREF", "CTT"),
+                    ("VREF", "AGP"),
+                    ("DIFF", "LVDS"),
+                    ("DIFF", "LVPECL"),
+                ][..]
+            };
+            let mut diffs = vec![("NONE", Diff::default())];
+            for &(val, iostd) in iostds {
+                diffs.push((val, ctx.state.get_diff(tile, bel, "IOATTRBOX", iostd)));
+            }
+            ctx.tiledb.insert(tile, bel, "IBUF", xlat_enum(diffs));
         }
         for i in 0..2 {
             let bel = format!("BUFG{i}");

@@ -195,6 +195,15 @@ mod virtex {
                 b = v.iob.to_idx()
             );
         }
+        println!("\tDIFFN:");
+        for v in &bond.diffn {
+            println!(
+                "\t\tIOB_X{x}Y{y}B{b}",
+                x = v.col.to_idx(),
+                y = v.row.to_idx(),
+                b = v.iob.to_idx()
+            );
+        }
     }
 }
 

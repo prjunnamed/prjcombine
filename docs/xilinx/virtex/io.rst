@@ -84,3 +84,29 @@ Input/Output
 
 .. raw:: html
    :file: ../gen/tile-xcv-IOB.T.VE.html
+
+
+I/O buffers — Virtex
+====================
+
+.. raw:: html
+   :file: ../gen/xcv-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xcv-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xcv-iostd-misc.html
+
+
+I/O buffers — Virtex E
+======================
+
+.. raw:: html
+   :file: ../gen/xcve-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xcve-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xcve-iostd-misc.html

@@ -294,12 +294,8 @@ fn has_any_vref<'a>(
         let Bond::Virtex2(bond) = bond else {
             unreachable!()
         };
-        for pin in bond.pins.values() {
-            if let prjcombine_virtex2::bond::BondPin::Io(io) = pin {
-                if bond.vref.contains(io) {
-                    bonded_ios.insert(io, &devbond.name[..]);
-                }
-            }
+        for &io in &bond.vref {
+            bonded_ios.insert(io, &devbond.name[..]);
         }
     }
     for &(_, mut col, mut row, _) in &edev.egrid.node_index[node_kind] {
