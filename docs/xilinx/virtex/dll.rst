@@ -1,3 +1,5 @@
+.. _virtex-dll:
+
 Delay Locked Loop
 #################
 

@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_default, CollectorCtx},
+    diff::{xlat_bit, xlat_enum, xlat_enum_default, CollectorCtx},
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one,
@@ -24,6 +24,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         GridKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
         GridKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
         GridKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
+        GridKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
         GridKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
         GridKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
         GridKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
@@ -31,37 +32,54 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
-            let ctx = FuzzCtx::new(
-                session,
-                backend,
-                tile,
-                format!("BUFGMUX{i}"),
-                TileBits::SpineEnd,
-            );
-            fuzz_one!(ctx, "PRESENT", "1", [(special TileKV::StabilizeGclkc)], [(mode "BUFGMUX")]);
-            fuzz_inv!(ctx, "S", [
-                (global_mutex "BUFG", "TEST"),
-                (mode "BUFGMUX"),
-                (attr "DISABLE_ATTR", "LOW")
-            ]);
-            fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [
-                (global_mutex "BUFG", "TEST"),
-                (mode "BUFGMUX"),
-                (pin "S")
-            ]);
-            let inps = if grid_kind.is_spartan3ea() {
-                &["CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
+            if edev.grid.kind != GridKind::FpgaCore {
+                let ctx = FuzzCtx::new(
+                    session,
+                    backend,
+                    tile,
+                    format!("BUFGMUX{i}"),
+                    TileBits::SpineEnd,
+                );
+                fuzz_one!(ctx, "PRESENT", "1", [(special TileKV::StabilizeGclkc)], [(mode "BUFGMUX")]);
+                fuzz_inv!(ctx, "S", [
+                    (global_mutex "BUFG", "TEST"),
+                    (mode "BUFGMUX"),
+                    (attr "DISABLE_ATTR", "LOW")
+                ]);
+                fuzz_enum!(ctx, "DISABLE_ATTR", ["HIGH", "LOW"], [
+                    (global_mutex "BUFG", "TEST"),
+                    (mode "BUFGMUX"),
+                    (pin "S")
+                ]);
+                let inps = if grid_kind.is_spartan3ea() {
+                    &["CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
+                } else {
+                    &["CKI", "DCM_OUT_L", "DCM_OUT_R"]
+                };
+                for &inp in inps {
+                    fuzz_one!(ctx, "MUX.CLK", inp, [
+                        (mutex "MUX.CLK", inp)
+                    ], [(pip (pin inp), (pin "CLK"))]);
+                }
+                fuzz_one!(ctx, "MUX.CLK", "INT", [
+                    (mutex "MUX.CLK", "INT")
+                ], [(pip (pin_far "CLK"), (pin "CLK"))]);
             } else {
-                &["CKI", "DCM_OUT_L", "DCM_OUT_R"]
-            };
-            for &inp in inps {
-                fuzz_one!(ctx, "MUX.CLK", inp, [
-                    (mutex "MUX.CLK", inp)
-                ], [(pip (pin inp), (pin "CLK"))]);
+                let ctx = FuzzCtx::new(
+                    session,
+                    backend,
+                    tile,
+                    format!("BUFG{i}"),
+                    TileBits::SpineEnd,
+                );
+                fuzz_one!(ctx, "PRESENT", "1", [], [(mode "BUFG")]);
+                fuzz_one!(ctx, "MUX.CLK", "CKI", [
+                    (mutex "MUX.CLK", "CKI")
+                ], [(pip (pin "CKI"), (pin "CLK"))]);
+                fuzz_one!(ctx, "MUX.CLK", "INT", [
+                    (mutex "MUX.CLK", "INT")
+                ], [(pip (pin_far "CLK"), (pin "CLK"))]);
             }
-            fuzz_one!(ctx, "MUX.CLK", "INT", [
-                (mutex "MUX.CLK", "INT")
-            ], [(pip (pin_far "CLK"), (pin "CLK"))]);
         }
         if grid_kind.is_virtex2() {
             let bels = if tile.starts_with("CLKB") {
@@ -238,13 +256,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 for bt in ["B", "T"] {
                     let out_name = format!("OUT_{bt}{i}");
                     let inp_name = format!("IN_CORE{i}");
-                    fuzz_one!(
-                        ctx,
-                        format!("BUF.{out_name}"),
-                        &inp_name,
-                        [],
-                        [(pip(pin & inp_name), (pin & out_name))]
-                    );
+                    fuzz_one!(ctx, format!("BUF.{out_name}"), &inp_name, [
+                        (global_mutex_none "MISR_CLOCK")
+                    ], [
+                        (pip(pin & inp_name), (pin & out_name))
+                    ]);
                 }
             }
         }
@@ -277,7 +293,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         "GCLKH.0",
         "GCLKH.DSP",
     ] {
-        if tile != "GCLKH" && grid_kind.is_virtex2() {
+        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == GridKind::FpgaCore) {
             continue;
         }
         let node_kind = backend.egrid.db.get_node(tile);
@@ -303,13 +319,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         continue;
                     }
                     let out_name = format!("OUT_{bt}{i}");
-                    fuzz_one!(
-                        ctx,
-                        &out_name,
-                        &inp_name,
-                        [(tile_mutex & inp_name, &out_name)],
-                        [(pip(pin & inp_name), (pin & out_name))]
-                    );
+                    fuzz_one!(ctx, &out_name, &inp_name, [
+                        (global_mutex_none "MISR_CLOCK"),
+                        (tile_mutex &inp_name, &out_name)
+                    ], [
+                        (pip (pin &inp_name), (pin &out_name))
+                    ]);
                 }
             }
         }
@@ -329,7 +344,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
 
-    if !grid_kind.is_spartan3ea() {
+    if !grid_kind.is_spartan3ea() && grid_kind != GridKind::FpgaCore {
         // DCMCONN
         for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
             let mut ctx = FuzzCtx::new(
@@ -365,7 +380,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 );
             }
         }
-    } else {
+    }
+    if grid_kind.is_spartan3ea() {
         // PCI_CE_*
         for tile in ["PCI_CE_S", "PCI_CE_N", "PCI_CE_W", "PCI_CE_E", "PCI_CE_CNR"] {
             if let Some(ctx) = FuzzCtx::try_new(session, backend, tile, tile, TileBits::Null) {
@@ -377,7 +393,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
 
-    if !grid_kind.is_virtex2() {
+    if !grid_kind.is_virtex2() && grid_kind != GridKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
             let node_kind = backend.egrid.db.get_node(tile);
@@ -423,6 +439,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         GridKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
         GridKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
         GridKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
+        GridKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
         GridKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
         GridKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
         GridKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
@@ -430,28 +447,35 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
-            let node_kind = intdb.get_node(tile);
-            let bel = &intdb.nodes[node_kind].bels[BelId::from_idx(i)];
-            let pin = &bel.pins["S"];
-            let bel = format!("BUFGMUX{i}");
-            let bel = &bel;
-            ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-            assert_eq!(pin.wires.len(), 1);
-            let wire = pin.wires.first().unwrap();
-            let sinv = ctx.extract_enum_bool(tile, bel, "SINV", "S", "S_B");
-            ctx.tiledb.insert(
-                tile,
-                "INT",
-                format!("INV.{}.{}", wire.0, intdb.wires.key(wire.1)),
-                sinv,
-            );
-            ctx.collect_enum(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
-            let inps = if grid_kind.is_spartan3ea() {
-                &["INT", "CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
+            if edev.grid.kind != GridKind::FpgaCore {
+                let node_kind = intdb.get_node(tile);
+                let bel = &intdb.nodes[node_kind].bels[BelId::from_idx(i)];
+                let pin = &bel.pins["S"];
+                let bel = format!("BUFGMUX{i}");
+                let bel = &bel;
+                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+                assert_eq!(pin.wires.len(), 1);
+                let wire = pin.wires.first().unwrap();
+                let sinv = ctx.extract_enum_bool(tile, bel, "SINV", "S", "S_B");
+                ctx.tiledb.insert(
+                    tile,
+                    "INT",
+                    format!("INV.{}.{}", wire.0, intdb.wires.key(wire.1)),
+                    sinv,
+                );
+                ctx.collect_enum(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
+                let inps = if grid_kind.is_spartan3ea() {
+                    &["INT", "CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
+                } else {
+                    &["INT", "CKI", "DCM_OUT_L", "DCM_OUT_R"]
+                };
+                ctx.collect_enum(tile, bel, "MUX.CLK", inps);
             } else {
-                &["INT", "CKI", "DCM_OUT_L", "DCM_OUT_R"]
-            };
-            ctx.collect_enum(tile, bel, "MUX.CLK", inps);
+                let bel = format!("BUFG{i}");
+                let bel = &bel;
+                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+                ctx.collect_enum(tile, bel, "MUX.CLK", &["INT", "CKI"]);
+            }
         }
     }
 
@@ -495,8 +519,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 present.discard_bits(&item);
                 ctx.tiledb.insert(tile, bel, "DELAY", item);
             }
-            ctx.tiledb
-                .insert(tile, bel, "ENABLE", xlat_bitvec(vec![present]));
+            ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
         }
     }
 
@@ -578,7 +601,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "GCLKH.UNI.S",
         "GCLKH.UNI.N",
     ] {
-        if tile != "GCLKH" && grid_kind.is_virtex2() {
+        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == GridKind::FpgaCore) {
             continue;
         }
         let node_kind = intdb.get_node(tile);
@@ -618,7 +641,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
 
-    if !grid_kind.is_virtex2() {
+    if !grid_kind.is_virtex2() && grid_kind != GridKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
             let node_kind = intdb.get_node(tile);

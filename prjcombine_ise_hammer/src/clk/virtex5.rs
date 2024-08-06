@@ -5,7 +5,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit_wide, xlat_bitvec, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
@@ -342,7 +342,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for (i, diff) in inp_diffs.into_iter().enumerate() {
             ctx.tiledb
-                .insert(tile, bel, format!("BUF.GCLK{i}"), xlat_bitvec(vec![diff]));
+                .insert(tile, bel, format!("BUF.GCLK{i}"), xlat_bit(diff));
         }
     }
     for (tile, bel) in [
@@ -370,12 +370,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .peek_diff(tile, bel, "MUX.MUXBUS1", format!("MGT_{lr}{i}"))
                     .clone();
                 let (_, _, diff) = Diff::split(diff_a, diff_b);
-                ctx.tiledb.insert(
-                    tile,
-                    bel,
-                    format!("BUF.MGT_{lr}{i}"),
-                    xlat_bitvec(vec![diff]),
-                );
+                ctx.tiledb
+                    .insert(tile, bel, format!("BUF.MGT_{lr}{i}"), xlat_bit(diff));
             }
         }
         for i in 0..32 {
@@ -470,8 +466,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let (_, _, enable) = Diff::split(diffs[0].1.clone(), diffs[1].1.clone());
         for (bel, mut diff) in diffs {
             diff = diff.combine(&!&enable);
-            ctx.tiledb
-                .insert(tile, bel, "ENABLE", xlat_bitvec(vec![diff]));
+            ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
         }
         ctx.tiledb
             .insert(tile, "IOCLK", "IOCLK_ENABLE", xlat_bit_wide(enable));

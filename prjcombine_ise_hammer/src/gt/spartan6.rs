@@ -9,7 +9,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_enum, CollectorCtx, OcdMode},
+    diff::{xlat_bit, xlat_bitvec, xlat_enum, CollectorCtx, OcdMode},
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
@@ -410,7 +410,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             format!("REFSELPLL{i}_STATIC_ENABLE"),
-            xlat_bitvec(vec![refselpll_static]),
+            xlat_bit(refselpll_static),
         );
     }
 }

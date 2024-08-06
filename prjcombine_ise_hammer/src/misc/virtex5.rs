@@ -8,7 +8,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, CollectorCtx, OcdMode},
+    diff::{xlat_bit, xlat_bitvec, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_multi_attr_hex, fuzz_one, fuzz_one_extras,
@@ -591,6 +591,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let bel = "MISC";
     let mut diff = ctx.state.get_diff(tile, bel, "DD_OVERRIDE", "YES");
     diff.bits.remove(&FeatureBit::new(1, 0, 0));
-    ctx.tiledb
-        .insert(tile, bel, "DD_OVERRIDE", xlat_bitvec(vec![diff]));
+    ctx.tiledb.insert(tile, bel, "DD_OVERRIDE", xlat_bit(diff));
 }

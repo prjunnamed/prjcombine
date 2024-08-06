@@ -5,7 +5,14 @@ use unnamed_entity::EntityId;
 use prjcombine_rdintb::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("spartan3", rd);
+    let mut builder = IntBuilder::new(
+        if rd.family == "fpgacore" {
+            "fpgacore"
+        } else {
+            "spartan3"
+        },
+        rd,
+    );
 
     builder.wire(
         "PULLUP",
@@ -167,7 +174,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    let lh: Vec<_> = (0..24)
+    let ll_len = if rd.family == "fpgacore" { 12 } else { 24 };
+    let lh: Vec<_> = (0..ll_len)
         .map(|i| {
             builder.wire(
                 format!("LH.{i}"),
@@ -176,11 +184,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             )
         })
         .collect();
-    for i in 0..24 {
-        builder.conn_branch(lh[i], Dir::E, lh[(i + 1) % 24]);
+    for i in 0..ll_len {
+        builder.conn_branch(lh[i], Dir::E, lh[(i + 1) % ll_len]);
     }
 
-    let lv: Vec<_> = (0..24)
+    let lv: Vec<_> = (0..ll_len)
         .map(|i| {
             builder.wire(
                 format!("LV.{i}"),
@@ -189,8 +197,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             )
         })
         .collect();
-    for i in 0..24 {
-        builder.conn_branch(lv[i], Dir::N, lv[(i + 23) % 24]);
+    for i in 0..ll_len {
+        builder.conn_branch(lv[i], Dir::N, lv[(i + ll_len - 1) % ll_len]);
     }
 
     // The set/reset inputs.
@@ -200,6 +208,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[
                 format!("SR{i}"),
                 format!("IOIS_SR{i}"),
+                format!("IOIS_OSR{i}"),
                 format!("CNR_SR{i}"),
                 format!("BRAM_SR{i}"),
                 format!("MACC_SR{i}"),
@@ -225,7 +234,17 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for i in 0..8 {
-        builder.mux_out(format!("IMUX.IOCLK{i}"), &[format!("IOIS_CLK{i}")]);
+        builder.mux_out(
+            format!("IMUX.IOCLK{i}"),
+            &[
+                format!("IOIS_CLK{i}"),
+                if i % 2 == 0 {
+                    format!("IOIS_ICLK{ii}", ii = i / 2)
+                } else {
+                    format!("IOIS_OCLK{ii}", ii = i / 2)
+                },
+            ],
+        );
     }
 
     // The clock enables.
@@ -235,6 +254,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             &[
                 format!("CE_B{i}"),
                 format!("IOIS_CE_B{i}"),
+                format!("IOIS_OCE_B{i}"),
                 format!("CNR_CE_B{i}"),
                 format!("BRAM_CE_B{i}"),
                 format!("MACC_CE_B{i}"),
@@ -287,6 +307,42 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     (i >> 2 & 3) + 1,
                     i & 3
                 ),
+                // FPGACORE
+                [
+                    "IOIS_IREV0",
+                    "IOIS_IREV1",
+                    "IOIS_IREV2",
+                    "IOIS_IREV3",
+                    "IOIS_OREV0",
+                    "IOIS_OREV1",
+                    "IOIS_OREV2",
+                    "IOIS_OREV3",
+                    "IOIS_ICE_B0",
+                    "IOIS_ICE_B1",
+                    "IOIS_ICE_B2",
+                    "IOIS_ICE_B3",
+                    "IOIS_ISR0",
+                    "IOIS_ISR1",
+                    "IOIS_ISR2",
+                    "IOIS_ISR3",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "IOIS_O0",
+                    "IOIS_O1",
+                    "IOIS_O2",
+                    "IOIS_O3",
+                    "",
+                    "",
+                    "",
+                    "",
+                ][i]
+                    .to_string(),
                 format!("CNR_DATA_IN{i}"),
                 [
                     "BRAM_DIA_B18",
@@ -453,6 +509,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     "IOIS_X0", "IOIS_X1", "IOIS_X2", "IOIS_X3", "IOIS_Y0", "IOIS_Y1", "IOIS_Y2",
                     "IOIS_Y3",
                 ][i],
+                ["", "", "", "", "IOIS_I0", "IOIS_I1", "IOIS_I2", "IOIS_I3"][i],
                 // In BRAM, used for low data outputs.
                 [
                     "BRAM_DOA0",
@@ -510,6 +567,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 [
                     "", "", "", "", "", "", "", "", "IOIS_XQ0", "IOIS_XQ1", "IOIS_XQ2", "IOIS_XQ3",
                     "IOIS_YQ0", "IOIS_YQ1", "IOIS_YQ2", "IOIS_YQ3",
+                ][i],
+                [
+                    "", "", "", "", "", "", "", "", "IOIS_IQ0", "IOIS_IQ1", "IOIS_IQ2", "IOIS_IQ3",
+                    "", "", "", "",
                 ][i],
                 // sigh. this does not appear to actually be true.
                 [
@@ -837,6 +898,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_node("BIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node("TIOIS", "INT.IOI.S3E", "INT.IOI", &bels_int);
         builder.extract_node("TIBUFS", "INT.IOI.S3E", "INT.IOI", &bels_int);
+    } else if rd.family == "fpgacore" {
+        builder.extract_node("LIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node("RIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node("BIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
+        builder.extract_node("TIOIS", "INT.IOI.FC", "INT.IOI.FC", &bels_int);
     } else {
         // NOTE: could be unified by pulling extra muxes from CLB
         builder.extract_node("LIOIS", "INT.IOI.S3", "INT.IOI", &bels_int);
@@ -1032,6 +1098,33 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ] {
             builder.make_marker_bel(kind, kind, kind, num);
         }
+    } else if rd.family == "fpgacore" {
+        let bels_ioi = [
+            builder
+                .bel_indexed("IBUF0", "IBUF", 0)
+                .extra_wire_force("IBUF", "IOIS_IBUF0"),
+            builder
+                .bel_indexed("IBUF1", "IBUF", 1)
+                .extra_wire_force("IBUF", "IOIS_IBUF1"),
+            builder.bel_indexed("IBUF2", "IBUF", 2),
+            builder.bel_indexed("IBUF3", "IBUF", 3),
+            builder.bel_indexed("OBUF0", "OBUF", 0),
+            builder.bel_indexed("OBUF1", "OBUF", 1),
+            builder.bel_indexed("OBUF2", "OBUF", 2),
+            builder.bel_indexed("OBUF3", "OBUF", 3),
+        ];
+        builder.extract_node_bels("LIOIS", "IOI.FC", "IOI.FC.L", &bels_ioi);
+        builder.extract_node_bels("RIOIS", "IOI.FC", "IOI.FC.R", &bels_ioi);
+        builder.extract_node_bels("BIOIS", "IOI.FC", "IOI.FC.B", &bels_ioi);
+        builder.extract_node_bels("TIOIS", "IOI.FC", "IOI.FC.T", &bels_ioi);
+        for (kind, num) in [
+            ("IOBS.FC.B", 1),
+            ("IOBS.FC.T", 1),
+            ("IOBS.FC.L", 1),
+            ("IOBS.FC.R", 1),
+        ] {
+            builder.make_marker_bel(kind, kind, kind, num);
+        }
     } else if rd.family == "spartan3e" {
         let bels_ioi_tb = [
             builder
@@ -1218,17 +1311,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             builder.make_marker_bel(kind, kind, kind, num);
         }
     }
-    let bels_randor_b = [builder
-        .bel_xy("RANDOR", "RANDOR", 0, 0)
-        .pins_name_only(&["CIN0", "CIN1", "CPREV", "O"])];
+    if rd.family != "fpgacore" {
+        let bels_randor_b = [builder
+            .bel_xy("RANDOR", "RANDOR", 0, 0)
+            .pins_name_only(&["CIN0", "CIN1", "CPREV", "O"])];
+        builder.extract_node_bels("BIOIS", "RANDOR", "RANDOR.B", &bels_randor_b);
+        builder.extract_node_bels("BIOIB", "RANDOR", "RANDOR.B", &bels_randor_b);
+        builder.extract_node_bels("BIBUFS", "RANDOR", "RANDOR.B", &bels_randor_b);
+    }
     let bels_randor_t = [builder
         .bel_xy("RANDOR", "RANDOR", 0, 0)
         .pins_name_only(&["CIN0", "CIN1"])
         .pin_name_only("CPREV", 1)
         .pin_name_only("O", 1)];
-    builder.extract_node_bels("BIOIS", "RANDOR", "RANDOR.B", &bels_randor_b);
-    builder.extract_node_bels("BIOIB", "RANDOR", "RANDOR.B", &bels_randor_b);
-    builder.extract_node_bels("BIBUFS", "RANDOR", "RANDOR.B", &bels_randor_b);
     builder.extract_node_bels("TIOIS", "RANDOR", "RANDOR.T", &bels_randor_t);
     builder.extract_node_bels("TIOIB", "RANDOR", "RANDOR.T", &bels_randor_t);
     builder.extract_node_bels("TIBUFS", "RANDOR", "RANDOR.T", &bels_randor_t);
@@ -1236,7 +1331,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if rd.family == "spartan3" {
         let bels_dcm = [builder.bel_xy("DCM", "DCM", 0, 0)];
         builder.extract_node_bels("BRAM_IOIS", "DCM.S3", "DCM.S3", &bels_dcm);
-    } else {
+    } else if rd.family != "fpgacore" {
         let bels_dcm = [
             builder.bel_xy("DCM", "DCM", 0, 0),
             builder
@@ -1343,74 +1438,96 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_int_out("O", &["UR_CARRY_IN"]),
             ],
         );
+    } else if rd.family == "fpgacore" {
+        builder.extract_node_bels("LL", "LL.FC", "LL.FC", &[]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.FC",
+            "LR.FC",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP"),
+            ],
+        );
+        builder.extract_node_bels("UL", "UL.FC", "UL.FC", &[builder.bel_single("PMV", "PMV")]);
+        builder.extract_node_bels(
+            "UR",
+            "UR.FC",
+            "UR.FC",
+            &[
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
+            ],
+        );
+    } else if rd.family == "spartan3e" {
+        builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.S3E",
+            "LR.S3E",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP").pin_force_int(
+                    "I2",
+                    (NodeTileId::from_idx(0), lr_di2.unwrap()),
+                    "CNR_DATA_IN2",
+                ),
+            ],
+        );
+        builder.extract_node_bels(
+            "UL",
+            "UL.S3E",
+            "UL.S3E",
+            &[builder.bel_single("PMV", "PMV")],
+        );
+        builder.extract_node_bels(
+            "UR",
+            "UR.S3E",
+            "UR.S3E",
+            &[
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
+            ],
+        );
     } else {
-        if rd.family == "spartan3e" {
-            builder.extract_node_bels("LL", "LL.S3E", "LL.S3E", &[]);
-            builder.extract_node_bels(
-                "LR",
-                "LR.S3E",
-                "LR.S3E",
-                &[
-                    builder.bel_single("STARTUP", "STARTUP"),
-                    builder.bel_single("CAPTURE", "CAPTURE"),
-                    builder.bel_single("ICAP", "ICAP").pin_force_int(
-                        "I2",
-                        (NodeTileId::from_idx(0), lr_di2.unwrap()),
-                        "CNR_DATA_IN2",
-                    ),
-                ],
-            );
-            builder.extract_node_bels(
-                "UL",
-                "UL.S3E",
-                "UL.S3E",
-                &[builder.bel_single("PMV", "PMV")],
-            );
-            builder.extract_node_bels(
-                "UR",
-                "UR.S3E",
-                "UR.S3E",
-                &[
-                    builder.bel_single("BSCAN", "BSCAN"),
-                    builder
-                        .bel_virtual("RANDOR_OUT")
-                        .extra_int_out("O", &["UR_CARRY_IN"]),
-                ],
-            );
-        } else {
-            builder.extract_node_bels("LL", "LL.S3A", "LL.S3A", &[]);
-            builder.extract_node_bels(
-                "LR",
-                "LR.S3A",
-                "LR.S3A",
-                &[
-                    builder.bel_single("STARTUP", "STARTUP"),
-                    builder.bel_single("CAPTURE", "CAPTURE"),
-                    builder.bel_single("ICAP", "ICAP"),
-                    builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
-                ],
-            );
-            builder.extract_node_bels(
-                "UL",
-                "UL.S3A",
-                "UL.S3A",
-                &[
-                    builder.bel_single("PMV", "PMV"),
-                    builder.bel_single("DNA_PORT", "DNA_PORT"),
-                ],
-            );
-            builder.extract_node_bels(
-                "UR",
-                "UR.S3A",
-                "UR.S3A",
-                &[
-                    builder.bel_single("BSCAN", "BSCAN"),
-                    builder
-                        .bel_virtual("RANDOR_OUT")
-                        .extra_int_out("O", &["UR_CARRY_IN"]),
-                ],
-            );
-        }
+        builder.extract_node_bels("LL", "LL.S3A", "LL.S3A", &[]);
+        builder.extract_node_bels(
+            "LR",
+            "LR.S3A",
+            "LR.S3A",
+            &[
+                builder.bel_single("STARTUP", "STARTUP"),
+                builder.bel_single("CAPTURE", "CAPTURE"),
+                builder.bel_single("ICAP", "ICAP"),
+                builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
+            ],
+        );
+        builder.extract_node_bels(
+            "UL",
+            "UL.S3A",
+            "UL.S3A",
+            &[
+                builder.bel_single("PMV", "PMV"),
+                builder.bel_single("DNA_PORT", "DNA_PORT"),
+            ],
+        );
+        builder.extract_node_bels(
+            "UR",
+            "UR.S3A",
+            "UR.S3A",
+            &[
+                builder.bel_single("BSCAN", "BSCAN"),
+                builder
+                    .bel_virtual("RANDOR_OUT")
+                    .extra_int_out("O", &["UR_CARRY_IN"]),
+            ],
+        );
     }
 
     for tkn in [
@@ -1753,7 +1870,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["CLKB", "CLKB_LL"] {
         for &xy in rd.tiles_by_kind_name(tkn) {
-            let xy_l = xy.delta(-1, if rd.family == "spartan3" { 0 } else { 1 });
+            let xy_l = xy.delta(
+                -1,
+                if rd.family == "spartan3" || rd.family == "fpgacore" {
+                    0
+                } else {
+                    1
+                },
+            );
             if rd.family == "spartan3" {
                 builder.extract_xnode(
                     "CLKB.S3",
@@ -1793,6 +1917,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             .extra_wire("DCM_PAD", &["CLKB_DLL_CLKPAD3"])
                             .extra_wire("DCM_OUT_L", &["CLKB_DLL_OUTL3"])
                             .extra_wire("DCM_OUT_R", &["CLKB_DLL_OUTR3"])
+                            .extra_int_in("CLK", &["CLKB_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.B"),
+                    ],
+                    &lh,
+                );
+            } else if rd.family == "fpgacore" {
+                builder.extract_xnode(
+                    "CLKB.FC",
+                    xy,
+                    &[],
+                    &[xy_l],
+                    "CLKB.FC",
+                    &[
+                        builder
+                            .bel_indexed("BUFG0", "BUFG", 0)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKB_CKI0"])
+                            .extra_int_in("CLK", &["CLKB_GCLK0"]),
+                        builder
+                            .bel_indexed("BUFG1", "BUFG", 1)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKB_CKI1"])
+                            .extra_int_in("CLK", &["CLKB_GCLK1"]),
+                        builder
+                            .bel_indexed("BUFG2", "BUFG", 2)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKB_CKI2"])
+                            .extra_int_in("CLK", &["CLKB_GCLK2"]),
+                        builder
+                            .bel_indexed("BUFG3", "BUFG", 3)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKB_CKI3"])
                             .extra_int_in("CLK", &["CLKB_GCLK3"]),
                         builder.bel_virtual("GLOBALSIG.B"),
                     ],
@@ -1964,6 +2120,38 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             .extra_wire("DCM_PAD", &["CLKT_DLL_CLKPAD3"])
                             .extra_wire("DCM_OUT_L", &["CLKT_DLL_OUTL3"])
                             .extra_wire("DCM_OUT_R", &["CLKT_DLL_OUTR3"])
+                            .extra_int_in("CLK", &["CLKT_GCLK3"]),
+                        builder.bel_virtual("GLOBALSIG.T"),
+                    ],
+                    &lh,
+                );
+            } else if rd.family == "fpgacore" {
+                builder.extract_xnode(
+                    "CLKT.FC",
+                    xy,
+                    &[],
+                    &[xy_l],
+                    "CLKT.FC",
+                    &[
+                        builder
+                            .bel_indexed("BUFG0", "BUFG", 4)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKT_CKI0"])
+                            .extra_int_in("CLK", &["CLKT_GCLK0"]),
+                        builder
+                            .bel_indexed("BUFG1", "BUFG", 5)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKT_CKI1"])
+                            .extra_int_in("CLK", &["CLKT_GCLK1"]),
+                        builder
+                            .bel_indexed("BUFG2", "BUFG", 6)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKT_CKI2"])
+                            .extra_int_in("CLK", &["CLKT_GCLK2"]),
+                        builder
+                            .bel_indexed("BUFG3", "BUFG", 7)
+                            .pin_name_only("I", 0)
+                            .extra_wire("CKI", &["CLKT_CKI3"])
                             .extra_int_in("CLK", &["CLKT_GCLK3"]),
                         builder.bel_virtual("GLOBALSIG.T"),
                     ],
@@ -2156,7 +2344,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    if rd.family != "spartan3" {
+    if rd.family != "spartan3" && rd.family != "fpgacore" {
         for tkn in ["CLKL", "CLKR"] {
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let xy_o = xy.delta(if xy.x == 0 { 1 } else { -1 }, 0);
@@ -2367,7 +2555,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 builder.extract_intf_tile_multi("INTF.DSP", xy, &int_xy, "INTF.DSP", false);
             }
         }
-    } else {
+    } else if rd.family != "fpgacore" {
         let kind = match &*rd.family {
             "spartan3" => "BRAM.S3",
             "spartan3e" => "BRAM.S3E",
@@ -2502,7 +2690,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    if rd.family != "spartan3" {
+    if rd.family != "spartan3" && rd.family != "fpgacore" {
         let dummy_xy = Coord { x: 0, y: 0 };
         let bel_globalsig = builder.bel_virtual("GLOBALSIG");
         let mut bel = builder.bel_virtual("GCLKH");

@@ -7,7 +7,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{extract_bitvec_val, xlat_bitvec, xlat_enum, CollectorCtx, Diff},
+    diff::{extract_bitvec_val, xlat_bit, xlat_bitvec, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
@@ -21,6 +21,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     let tile_name = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
+        GridKind::FpgaCore => unreachable!(),
         GridKind::Spartan3E => "BRAM.S3E",
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
@@ -334,6 +335,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let int_tiles = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => &["INT.BRAM"; 4],
         GridKind::Spartan3 => &["INT.BRAM.S3"; 4],
+        GridKind::FpgaCore => unreachable!(),
         GridKind::Spartan3E => &["INT.BRAM.S3E"; 4],
         GridKind::Spartan3A => &[
             "INT.BRAM.S3A.03",
@@ -346,6 +348,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = match grid_kind {
         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
         GridKind::Spartan3 => "BRAM.S3",
+        GridKind::FpgaCore => unreachable!(),
         GridKind::Spartan3E => "BRAM.S3E",
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
@@ -583,9 +586,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let f_clk_b = ctx.state.get_diff(tile, "MULT", "CLKINV", "CLK_B");
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
-            ctx.tiledb
-                .insert(tile, "MULT", "REG", xlat_bitvec(vec![f_reg]));
-            ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bitvec(vec![f_clk_b]));
+            ctx.tiledb.insert(tile, "MULT", "REG", xlat_bit(f_reg));
+            ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bit(f_clk_b));
             ctx.collect_int_inv(int_tiles, tile, "MULT", "CE", grid_kind.is_virtex2());
             ctx.collect_int_inv(int_tiles, tile, "MULT", "RST", grid_kind.is_virtex2());
             present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CE"));

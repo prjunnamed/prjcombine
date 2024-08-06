@@ -3,7 +3,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
@@ -832,7 +832,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
                     let diff = ctx.state.get_diff(tile, bel, attr, "0");
-                    ctx.tiledb.insert(tile, bel, attr, xlat_bitvec(vec![diff]));
+                    ctx.tiledb.insert(tile, bel, attr, xlat_bit(diff));
                 }
                 let di_muxes = match mode {
                     Mode::Virtex5 | Mode::Spartan6 => [
@@ -1084,21 +1084,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.state
                 .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            ctx.tiledb
-                .insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+            ctx.tiledb.insert(tile, bel, "FF_SYNC", xlat_bit(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_REV_ENABLE", xlat_bitvec(vec![revused]));
+                    .insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bitvec(vec![ceused]));
+                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSED", "0");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bitvec(vec![srused]));
+                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             } else {
                 ctx.state
                     .get_diff(tile, bel, "CEUSEDMUX", "1")
@@ -1108,10 +1107,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .assert_empty();
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSEDMUX", "IN");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bitvec(vec![ceused]));
+                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSEDMUX", "IN");
                 ctx.tiledb
-                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bitvec(vec![srused]));
+                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             }
             if mode != Mode::Virtex6 {
                 let ff_latch = ctx.state.get_diff(tile, bel, "AFF", "#LATCH");
@@ -1125,20 +1124,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
                     }
                 }
-                ctx.tiledb
-                    .insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+                ctx.tiledb.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
                     ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
                     let ff_latch = ctx.state.get_diff(tile, bel, attr, "#LATCH");
                     assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
                     assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
-                    ctx.tiledb.insert(
-                        tile,
-                        bel,
-                        format!("{attr}_LATCH"),
-                        xlat_bitvec(vec![ff_latch]),
-                    );
+                    ctx.tiledb
+                        .insert(tile, bel, format!("{attr}_LATCH"), xlat_bit(ff_latch));
                 }
             }
             match mode {

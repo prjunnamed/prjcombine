@@ -68,6 +68,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     TileKV::NodeIntSrcFilter(wire_from),
                     TileKV::NodeMutexShared(wire_from),
                     TileKV::IntMutexShared("MAIN".to_string()),
+                    TileKV::GlobalMutexNone("MISR_CLOCK".to_string()),
                 ];
                 let fuzz = vec![
                     TileFuzzKV::NodeMutexExclusive(wire_to),

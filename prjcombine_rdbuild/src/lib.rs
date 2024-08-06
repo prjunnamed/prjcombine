@@ -267,6 +267,16 @@ impl PartBuilder {
                 let base = self.part.slot_kinds.get_or_insert(base);
                 let (bx, by) = minxy[&base];
                 TkSiteSlot::Xy(base, (x - bx) as u8, (y - by) as u8)
+            } else if self.part.family == "fpgacore" && k.starts_with("IBUF") {
+                TkSiteSlot::Indexed(
+                    self.part.slot_kinds.get_or_insert("IBUF"),
+                    from_pinnum(p, "I"),
+                )
+            } else if self.part.family == "fpgacore" && k.starts_with("OBUF") {
+                TkSiteSlot::Indexed(
+                    self.part.slot_kinds.get_or_insert("OBUF"),
+                    from_pinnum(p, "O"),
+                )
             } else if (self.part.family.starts_with("virtex2")
                 || self.part.family.starts_with("spartan3"))
                 && (k.starts_with("IOB") || k.starts_with("IBUF") || k.starts_with("DIFF"))
@@ -278,6 +288,7 @@ impl PartBuilder {
             } else if ((self.part.family.starts_with("virtex2") || self.part.family == "spartan3")
                 && k.starts_with("DCI"))
                 || (self.part.family == "spartan3" && k == "BUFGMUX")
+                || (self.part.family == "fpgacore" && k == "BUFG")
             {
                 TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), get_lastnum(n))
             } else if self.part.family.starts_with("virtex2") && k == "BUFGMUX" {

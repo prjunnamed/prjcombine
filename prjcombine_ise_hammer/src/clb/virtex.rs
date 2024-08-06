@@ -3,7 +3,7 @@ use prjcombine_types::TileItem;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
+    diff::{xlat_bit, xlat_bool, xlat_enum, CollectorCtx},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi,
@@ -330,19 +330,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.state
             .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
             .assert_empty();
-        ctx.tiledb
-            .insert(tile, bel, "FF_SYNC", xlat_bitvec(vec![ff_sync]));
+        ctx.tiledb.insert(tile, bel, "FF_SYNC", xlat_bit(ff_sync));
 
         let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
         ctx.tiledb
-            .insert(tile, bel, "FF_REV_ENABLE", xlat_bitvec(vec![revused]));
+            .insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
 
         let ff_latch = ctx.state.get_diff(tile, bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, "FFY", "#LATCH"));
         ctx.state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
         ctx.state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
-        ctx.tiledb
-            .insert(tile, bel, "FF_LATCH", xlat_bitvec(vec![ff_latch]));
+        ctx.tiledb.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
 
         ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");
         ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");

@@ -136,7 +136,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     tbus::add_fuzzers(&mut hammer, &backend);
                 }
                 clk::virtex2::add_fuzzers(&mut hammer, &backend);
-                bram::virtex2::add_fuzzers(&mut hammer, &backend);
+                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                    bram::virtex2::add_fuzzers(&mut hammer, &backend);
+                }
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::add_fuzzers(&mut hammer, &backend);
                 }
@@ -144,9 +146,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     misc::virtex2::add_fuzzers(&mut hammer, &backend, skip_io);
                 }
                 if !skip_io {
-                    io::virtex2::add_fuzzers(&mut hammer, &backend);
+                    if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                        io::virtex2::add_fuzzers(&mut hammer, &backend);
+                    } else {
+                        io::fpgacore::add_fuzzers(&mut hammer, &backend);
+                    }
                 }
-                if !skip_dcm {
+                if !skip_dcm && edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
                     if !edev.grid.kind.is_spartan3ea() {
                         dcm::virtex2::add_fuzzers(&mut hammer, &backend);
                     } else {
@@ -295,7 +301,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     tbus::collect_fuzzers(&mut ctx);
                 }
                 clk::virtex2::collect_fuzzers(&mut ctx);
-                bram::virtex2::collect_fuzzers(&mut ctx);
+                if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                    bram::virtex2::collect_fuzzers(&mut ctx);
+                }
                 if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                     dsp::spartan3adsp::collect_fuzzers(&mut ctx);
                 }
@@ -303,9 +311,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     misc::virtex2::collect_fuzzers(&mut ctx, skip_io);
                 }
                 if !skip_io {
-                    io::virtex2::collect_fuzzers(&mut ctx);
+                    if edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
+                        io::virtex2::collect_fuzzers(&mut ctx);
+                    } else {
+                        io::fpgacore::collect_fuzzers(&mut ctx);
+                    }
                 }
-                if !skip_dcm {
+                if !skip_dcm && edev.grid.kind != prjcombine_virtex2::grid::GridKind::FpgaCore {
                     if !edev.grid.kind.is_spartan3ea() {
                         dcm::virtex2::collect_fuzzers(&mut ctx);
                     } else {

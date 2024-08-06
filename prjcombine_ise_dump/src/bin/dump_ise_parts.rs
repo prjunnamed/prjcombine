@@ -65,6 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "virtex2" => vec!["virtex2", "qvirtex2", "qrvirtex2"],
             "virtex2p" => vec!["virtex2p", "qvirtex2p"],
             "spartan3" => vec!["spartan3", "aspartan3"],
+            "fpgacore" => vec!["fpgacore"],
             "spartan3e" => vec!["spartan3e", "aspartan3e"],
             "spartan3a" => vec!["spartan3a", "aspartan3a"],
             "spartan3adsp" => vec!["spartan3adsp", "aspartan3adsp"],

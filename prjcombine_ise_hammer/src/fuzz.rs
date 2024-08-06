@@ -115,6 +115,7 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
                 prjcombine_virtex2::grid::GridKind::Virtex2P
                 | prjcombine_virtex2::grid::GridKind::Virtex2PX => "LL.V2P",
                 prjcombine_virtex2::grid::GridKind::Spartan3 => "LL.S3",
+                prjcombine_virtex2::grid::GridKind::FpgaCore => "LL.FC",
                 prjcombine_virtex2::grid::GridKind::Spartan3E => "LL.S3E",
                 prjcombine_virtex2::grid::GridKind::Spartan3A
                 | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => "LL.S3A",
@@ -141,7 +142,10 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
 #[macro_export]
 macro_rules! fuzz_wire {
     ($ctx:ident, (int $tile:expr, $wire:expr)) => {
-        $crate::fgen::TileWire::IntWire((<prjcombine_int::db::NodeTileId as unnamed_entity::EntityId>::from_idx($tile), $ctx.backend.egrid.db.get_wire(&$wire[..])))
+        $crate::fgen::TileWire::IntWire((
+            <prjcombine_int::db::NodeTileId as unnamed_entity::EntityId>::from_idx($tile),
+            $ctx.backend.egrid.db.get_wire(&$wire[..]),
+        ))
     };
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileWire::BelPinNear($ctx.bel, $pin.to_string())

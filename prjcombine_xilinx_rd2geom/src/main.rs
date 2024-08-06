@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         "xc5200" => xc5200::ingest(&rd, verify),
                         "virtex" | "virtexe" => virtex::ingest(&rd, verify),
                         "virtex2" | "virtex2p" | "spartan3" | "spartan3e" | "spartan3a"
-                        | "spartan3adsp" => virtex2::ingest(&rd, verify),
+                        | "spartan3adsp" | "fpgacore" => virtex2::ingest(&rd, verify),
                         "spartan6" => spartan6::ingest(&rd, verify),
                         "virtex4" => virtex4::ingest(&rd, verify),
                         "virtex5" => virtex5::ingest(&rd, verify),

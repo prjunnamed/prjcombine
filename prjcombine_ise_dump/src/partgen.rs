@@ -151,6 +151,7 @@ const PATTERNS: &[(&str, &str, &str)] = &[
     ("x[cq]2vpx?[0-9]+", "[a-z]{2}[0-9]+", "virtex2p"),
     ("xc3s[0-9]+l?", "[a-z]{2}[0-9]+", "spartan3"),
     ("xa3s[0-9]+l?", "[a-z]{2}g[0-9]+", "spartan3"),
+    ("xcexf[0-9]+", "die", "fpgacore"),
     ("xc3s[0-9]+e", "[a-z]{2}[0-9]+", "spartan3e"),
     ("xa3s[0-9]+e", "[a-z]{2}g[0-9]+", "spartan3e"),
     ("xc3s[0-9]+a", "[a-z]{2}[0-9]+", "spartan3a"),

@@ -324,6 +324,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Virtex2 => "LL.V2",
             GridKind::Virtex2P | GridKind::Virtex2PX => "LL.V2P",
             GridKind::Spartan3 => "LL.S3",
+            GridKind::FpgaCore => "LL.FC",
             GridKind::Spartan3E => "LL.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "LL.S3A",
         };
@@ -354,6 +355,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Virtex2 => "LR.V2",
             GridKind::Virtex2P | GridKind::Virtex2PX => "LR.V2P",
             GridKind::Spartan3 => "LR.S3",
+            GridKind::FpgaCore => "LR.FC",
             GridKind::Spartan3E => "LR.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "LR.S3A",
         };
@@ -397,6 +399,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Virtex2 => "UL.V2",
             GridKind::Virtex2P | GridKind::Virtex2PX => "UL.V2P",
             GridKind::Spartan3 => "UL.S3",
+            GridKind::FpgaCore => "UL.FC",
             GridKind::Spartan3E => "UL.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "UL.S3A",
         };
@@ -434,6 +437,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             GridKind::Virtex2 => "UR.V2",
             GridKind::Virtex2P | GridKind::Virtex2PX => "UR.V2P",
             GridKind::Spartan3 => "UR.S3",
+            GridKind::FpgaCore => "UR.FC",
             GridKind::Spartan3E => "UR.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => "UR.S3A",
         };
@@ -558,6 +562,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ioi_kind = "IOI.S3";
                     ioi_naming = "IOI.S3.T";
                     iobs = &[2, 1, 0];
+                }
+                GridKind::FpgaCore => {
+                    pads = &[3, 7, 2, 6, 1, 5, 0, 4];
+                    iobs_kind = Some(("IOBS.FC.T", 1));
+                    ipads = &[];
+                    int_kind = "INT.IOI.FC";
+                    int_naming = "INT.IOI.FC";
+                    ioi_kind = "IOI.FC";
+                    ioi_naming = "IOI.FC.T";
+                    iobs = &[3, 7, 2, 6, 1, 5, 0, 4];
                 }
                 GridKind::Spartan3E => {
                     (pads, ipads, term, iobs_kind) = match cd.io {
@@ -726,7 +740,11 @@ impl<'a, 'b> Expander<'a, 'b> {
                 } else {
                     col.to_idx() - 1
                 };
-                node.add_bel(0, format!("RANDOR_X{x}Y1"));
+                if self.grid.kind == GridKind::FpgaCore {
+                    node.add_bel(0, format!("RANDOR_X{x}Y0"));
+                } else {
+                    node.add_bel(0, format!("RANDOR_X{x}Y1"));
+                }
             }
         }
     }
@@ -797,6 +815,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ioi_kind = "IOI.S3";
                     ioi_naming = "IOI.S3.R";
                     iobs = &[2, 1, 0];
+                }
+                GridKind::FpgaCore => {
+                    pads = &[3, 7, 2, 6, 1, 5, 0, 4];
+                    iobs_kind = Some(("IOBS.FC.R", 1));
+                    ipads = &[];
+                    int_kind = "INT.IOI.FC";
+                    int_naming = "INT.IOI.FC";
+                    ioi_kind = "IOI.FC";
+                    ioi_naming = "IOI.FC.R";
+                    iobs = &[3, 7, 2, 6, 1, 5, 0, 4];
                 }
                 GridKind::Spartan3E => {
                     (pads, ipads, term, iobs_kind) = match rd {
@@ -1073,6 +1101,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ioi_naming = "IOI.S3.B";
                     iobs = &[2, 1, 0];
                 }
+                GridKind::FpgaCore => {
+                    pads = &[3, 7, 2, 6, 1, 5, 0, 4];
+                    iobs_kind = Some(("IOBS.FC.B", 1));
+                    ipads = &[];
+                    int_kind = "INT.IOI.FC";
+                    int_naming = "INT.IOI.FC";
+                    ioi_kind = "IOI.FC";
+                    ioi_naming = "IOI.FC.B";
+                    iobs = &[3, 7, 2, 6, 1, 5, 0, 4];
+                }
                 GridKind::Spartan3E => {
                     (pads, ipads, term, iobs_kind) = match cd.io {
                         ColumnIoKind::Single => {
@@ -1245,7 +1283,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &coords,
                 );
             }
-            if !self.grid.kind.is_virtex2() {
+            if !self.grid.kind.is_virtex2() && self.grid.kind != GridKind::FpgaCore {
                 let node = self.die.add_xnode(
                     (col, row),
                     self.db.get_node("RANDOR"),
@@ -1329,6 +1367,16 @@ impl<'a, 'b> Expander<'a, 'b> {
                     ioi_kind = "IOI.S3";
                     ioi_naming = "IOI.S3.L";
                     iobs = &[0, 1, 2];
+                }
+                GridKind::FpgaCore => {
+                    pads = &[0, 4, 1, 5, 2, 6, 3, 7];
+                    iobs_kind = Some(("IOBS.FC.L", 1));
+                    ipads = &[];
+                    int_kind = "INT.IOI.FC";
+                    int_naming = "INT.IOI.FC";
+                    ioi_kind = "IOI.FC";
+                    ioi_naming = "IOI.FC.L";
+                    iobs = &[0, 4, 1, 5, 2, 6, 3, 7];
                 }
                 GridKind::Spartan3E => {
                     (pads, ipads, term, iobs_kind) = match rd {
@@ -1590,6 +1638,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         let bram_kind = match self.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => ["INT.BRAM"; 4],
             GridKind::Spartan3 => ["INT.BRAM.S3"; 4],
+            GridKind::FpgaCore => return,
             GridKind::Spartan3E => ["INT.BRAM.S3E"; 4],
             GridKind::Spartan3A => [
                 "INT.BRAM.S3A.03",
@@ -1644,6 +1693,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     | GridKind::Virtex2P
                     | GridKind::Virtex2PX
                     | GridKind::Spartan3 => "INT.BRAM",
+                    GridKind::FpgaCore => unreachable!(),
                     GridKind::Spartan3E | GridKind::Spartan3A => {
                         if self.rows_brk.contains(&row) {
                             "INT.BRAM.BRK"
@@ -1715,6 +1765,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     let kind = match self.grid.kind {
                         GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "BRAM",
                         GridKind::Spartan3 => "BRAM.S3",
+                        GridKind::FpgaCore => unreachable!(),
                         GridKind::Spartan3E => "BRAM.S3E",
                         GridKind::Spartan3A => "BRAM.S3A",
                         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
@@ -2838,6 +2889,11 @@ impl<'a, 'b> Expander<'a, 'b> {
     }
 
     fn fill_clkbt_s3(&mut self) {
+        let (clkb, clkt, bufg) = match self.grid.kind {
+            GridKind::Spartan3 => ("CLKB.S3", "CLKT.S3", "BUFGMUX"),
+            GridKind::FpgaCore => ("CLKB.FC", "CLKT.FC", "BUFG"),
+            _ => unreachable!(),
+        };
         let row_b = self.grid.row_bot();
         let row_t = self.grid.row_top();
         let vyb = 0;
@@ -2845,29 +2901,29 @@ impl<'a, 'b> Expander<'a, 'b> {
         let vx = self.vcc_xlut[self.grid.col_clk] - 1;
         let node = self.die.add_xnode(
             (self.grid.col_clk, row_b),
-            self.db.get_node("CLKB.S3"),
+            self.db.get_node(clkb),
             &["CLKB"],
-            self.db.get_node_naming("CLKB.S3"),
+            self.db.get_node_naming(clkb),
             &[(self.grid.col_clk - 1, row_b)],
         );
         node.tie_name = Some(format!("VCC_X{vx}Y{vyb}"));
-        node.add_bel(0, "BUFGMUX0".to_string());
-        node.add_bel(1, "BUFGMUX1".to_string());
-        node.add_bel(2, "BUFGMUX2".to_string());
-        node.add_bel(3, "BUFGMUX3".to_string());
+        node.add_bel(0, format!("{bufg}0"));
+        node.add_bel(1, format!("{bufg}1"));
+        node.add_bel(2, format!("{bufg}2"));
+        node.add_bel(3, format!("{bufg}3"));
         node.add_bel(4, format!("GSIG_X{x}Y0", x = self.grid.col_clk.to_idx()));
         let node = self.die.add_xnode(
             (self.grid.col_clk, row_t),
-            self.db.get_node("CLKT.S3"),
+            self.db.get_node(clkt),
             &["CLKT"],
-            self.db.get_node_naming("CLKT.S3"),
+            self.db.get_node_naming(clkt),
             &[(self.grid.col_clk - 1, row_t)],
         );
         node.tie_name = Some(format!("VCC_X{vx}Y{vyt}"));
-        node.add_bel(0, "BUFGMUX4".to_string());
-        node.add_bel(1, "BUFGMUX5".to_string());
-        node.add_bel(2, "BUFGMUX6".to_string());
-        node.add_bel(3, "BUFGMUX7".to_string());
+        node.add_bel(0, format!("{bufg}4"));
+        node.add_bel(1, format!("{bufg}5"));
+        node.add_bel(2, format!("{bufg}6"));
+        node.add_bel(3, format!("{bufg}7"));
         node.add_bel(4, format!("GSIG_X{x}Y1", x = self.grid.col_clk.to_idx()));
     }
 
@@ -3164,7 +3220,9 @@ impl<'a, 'b> Expander<'a, 'b> {
                 }
                 let mut kind = "GCLKH";
                 let mut naming = "GCLKH";
-                let name = if self.grid.kind.is_virtex2() || self.grid.kind == GridKind::Spartan3 {
+                let name = if self.grid.kind.is_virtex2()
+                    || matches!(self.grid.kind, GridKind::Spartan3 | GridKind::FpgaCore)
+                {
                     let mut r = self.grid.rows_hclk.len() - i;
                     if self.grid.columns[col].kind == ColumnKind::Bram {
                         let c = self.bramclut[col];
@@ -3274,10 +3332,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     self.db.get_node_naming(naming),
                     &[(col, row_m - 1), (col, row_m)],
                 );
-                if self.grid.kind.is_virtex2() || self.grid.kind == GridKind::Spartan3 {
+                if self.grid.kind.is_virtex2()
+                    || matches!(self.grid.kind, GridKind::Spartan3 | GridKind::FpgaCore)
+                {
                     let gsx = if col < self.grid.col_clk {
                         col.to_idx()
-                    } else if self.grid.kind == GridKind::Spartan3 {
+                    } else if !self.grid.kind.is_spartan3ea() {
                         col.to_idx() + 1
                     } else {
                         col.to_idx() + 2
@@ -3342,7 +3402,8 @@ impl<'a, 'b> Expander<'a, 'b> {
             } else if let Some((col_cl, col_cr)) = self.grid.cols_clkv {
                 let r = self.grid.rows_hclk.len() - i;
                 for (lr, col) in [('L', col_cl), ('R', col_cr)] {
-                    let name = if self.grid.kind == GridKind::Spartan3 {
+                    let name = if matches!(self.grid.kind, GridKind::Spartan3 | GridKind::FpgaCore)
+                    {
                         format!("{lr}CLKVCR{r}")
                     } else {
                         let x = self.xlut[col] - 1;
@@ -3389,7 +3450,7 @@ impl<'a, 'b> Expander<'a, 'b> {
 
     fn fill_gclkvm(&mut self) {
         if let Some((col_cl, col_cr)) = self.grid.cols_clkv {
-            if self.grid.kind == GridKind::Spartan3 {
+            if matches!(self.grid.kind, GridKind::Spartan3 | GridKind::FpgaCore) {
                 self.die.add_xnode(
                     (col_cl, self.grid.row_mid()),
                     self.db.get_node("GCLKVM.S3"),
@@ -3625,7 +3686,7 @@ impl Grid {
         expander.fill_int_sites();
         if self.kind.is_virtex2() {
             expander.fill_clkbt_v2();
-        } else if self.kind == GridKind::Spartan3 {
+        } else if matches!(self.kind, GridKind::Spartan3 | GridKind::FpgaCore) {
             expander.fill_clkbt_s3();
         } else {
             expander.fill_clkbt_s3e();

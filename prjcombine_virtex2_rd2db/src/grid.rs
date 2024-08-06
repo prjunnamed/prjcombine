@@ -23,6 +23,7 @@ fn get_kind(rd: &Part) -> GridKind {
             }
         }
         "spartan3" => GridKind::Spartan3,
+        "fpgacore" => GridKind::FpgaCore,
         "spartan3e" => GridKind::Spartan3E,
         "spartan3a" => GridKind::Spartan3A,
         "spartan3adsp" => GridKind::Spartan3ADsp,
@@ -135,6 +136,10 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                         col += 1;
                     }
                 }
+            }
+            GridKind::FpgaCore => {
+                cols[col].io = ColumnIoKind::Single;
+                col += 1;
             }
             GridKind::Spartan3A | GridKind::Spartan3ADsp => {
                 for i in 0..2 {
@@ -260,7 +265,7 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: GridKind) -> EntityVec<RowId, RowIoK
                     }
                 }
             }
-            GridKind::Spartan3 => {
+            GridKind::Spartan3 | GridKind::FpgaCore => {
                 res.push(RowIoKind::Single);
             }
             GridKind::Spartan3E => {
@@ -394,6 +399,9 @@ fn get_has_small_int(rd: &Part) -> bool {
 }
 
 fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
+    if grid.kind == GridKind::FpgaCore {
+        return;
+    }
     let mut io_lookup = HashMap::new();
     for (&crd, tile) in &rd.tiles {
         let tk = &rd.tile_kinds[tile.kind];

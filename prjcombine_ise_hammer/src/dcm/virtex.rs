@@ -10,7 +10,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
+    diff::{xlat_bit, xlat_bool, xlat_enum, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
@@ -340,8 +340,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CFG_O_14"), true, false);
         if ctx.device.name.ends_with('e') {
-            ctx.tiledb
-                .insert(tile, bel, "ENABLE", xlat_bitvec(vec![present]));
+            ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
         } else {
             present.assert_empty();
         }

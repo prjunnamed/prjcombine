@@ -1,6 +1,8 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
-use prjcombine_virtex_bitstream::{BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo};
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::expanded::ExpandedDevice;

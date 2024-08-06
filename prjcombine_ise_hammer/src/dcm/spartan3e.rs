@@ -9,7 +9,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
-    diff::{extract_bitvec_val, xlat_bitvec, CollectorCtx, Diff},
+    diff::{extract_bitvec_val, xlat_bit, xlat_bitvec, CollectorCtx, Diff},
     fgen::{ExtraFeature, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -471,11 +471,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_fx = ctx.state.get_diff(tile, bel, pin, "1.CLKFX");
             let diff_fx = diff_fx.combine(&!&diff_fb);
             let diff_fb = diff_fb.combine(&!&diff);
-            ctx.tiledb.insert(tile, bel, pin, xlat_bitvec(vec![diff]));
+            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
             ctx.tiledb
-                .insert(tile, bel, "DLL_ENABLE", xlat_bitvec(vec![diff_fb]));
+                .insert(tile, bel, "DLL_ENABLE", xlat_bit(diff_fb));
             ctx.tiledb
-                .insert(tile, bel, "DFS_FEEDBACK", xlat_bitvec(vec![diff_fx]));
+                .insert(tile, bel, "DFS_FEEDBACK", xlat_bit(diff_fx));
         }
 
         ctx.state
@@ -484,8 +484,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff = ctx
             .state
             .get_diff(tile, bel, "VERY_HIGH_FREQUENCY", "1.CLKFB");
-        ctx.tiledb
-            .insert(tile, bel, "DLL_ENABLE", xlat_bitvec(vec![!diff]));
+        ctx.tiledb.insert(tile, bel, "DLL_ENABLE", xlat_bit(!diff));
 
         let (_, _, dfs_en) = Diff::split(
             ctx.state.peek_diff(tile, bel, "CLKFX", "1").clone(),
@@ -497,10 +496,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff, diff_fb);
             let diff = diff.combine(&!&dfs_en);
             let pin = if pin == "CONCUR" { pin } else { "CLKFX" };
-            ctx.tiledb.insert(tile, bel, pin, xlat_bitvec(vec![diff]));
+            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
         }
-        ctx.tiledb
-            .insert(tile, bel, "DFS_ENABLE", xlat_bitvec(vec![dfs_en]));
+        ctx.tiledb.insert(tile, bel, "DFS_ENABLE", xlat_bit(dfs_en));
 
         let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
         let val = extract_bitvec_val(
@@ -518,7 +516,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_bitvec_diff_int(&item, 2, 0);
         ctx.tiledb.insert(tile, bel, "PHASE_SHIFT", item);
         ctx.tiledb
-            .insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bitvec(vec![diff]));
+            .insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bit(diff));
 
         ctx.state
             .get_diff(tile, bel, "CLKOUT_PHASE_SHIFT", "NONE")
@@ -528,10 +526,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .state
             .get_diff(tile, bel, "CLKOUT_PHASE_SHIFT", "VARIABLE");
         let diff_v = diff_v.combine(&!&diff_f);
+        ctx.tiledb.insert(tile, bel, "PS_ENABLE", xlat_bit(diff_f));
         ctx.tiledb
-            .insert(tile, bel, "PS_ENABLE", xlat_bitvec(vec![diff_f]));
-        ctx.tiledb
-            .insert(tile, bel, "PS_VARIABLE", xlat_bitvec(vec![diff_v]));
+            .insert(tile, bel, "PS_VARIABLE", xlat_bit(diff_v));
 
         for (attr, bits) in [
             ("CLKDV_COUNT_MAX", &cfg_dll_c.bits[1..5]),
@@ -630,7 +627,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let mut diff_b = diff_b.combine(&!&diff_a);
         ctx.tiledb
-            .insert(tile, bel, "PERIOD_NOT_HF", xlat_bitvec(vec![!diff_a]));
+            .insert(tile, bel, "PERIOD_NOT_HF", xlat_bit(!diff_a));
         ctx.tiledb.insert(
             tile,
             bel,

@@ -1289,7 +1289,10 @@ mod ultrascale {
 }
 
 mod versal {
-    use prjcombine_versal::{bond::Bond, grid::{ColumnKind, Grid}};
+    use prjcombine_versal::{
+        bond::Bond,
+        grid::{ColumnKind, Grid},
+    };
     use unnamed_entity::EntityId;
 
     pub fn print_grid(grid: &Grid) {

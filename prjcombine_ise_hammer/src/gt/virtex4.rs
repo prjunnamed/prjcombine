@@ -6,7 +6,10 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::{
+        xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, CollectorCtx, Diff,
+        OcdMode,
+    },
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
@@ -757,7 +760,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "GT11_COMMON",
             "FWDCLK_OUT_ENABLE",
-            xlat_bitvec(vec![fwdclk_out_enable]),
+            xlat_bit(fwdclk_out_enable),
         );
 
         for i in 0..2 {
@@ -810,13 +813,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         "GT11_COMMON",
         "SYNCLK_DRIVE_ENABLE",
-        xlat_bitvec(vec![synclk_drive_enable]),
+        xlat_bit(synclk_drive_enable),
     );
     ctx.tiledb.insert(
         tile,
         "GT11_COMMON",
         "SYNCLK_ENABLE",
-        xlat_bitvec(vec![synclk_enable]),
+        xlat_bit(synclk_enable),
     );
 
     let item = ctx.extract_enum(

@@ -5,7 +5,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx},
+    diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_hex, fuzz_multi_extras, fuzz_one,
@@ -1059,12 +1059,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .state
                     .peek_diff(tile, bel, format!("{rw}_WIDTH_{ba}"), "18"),
             );
-            ctx.tiledb.insert(
-                tile,
-                "BRAM",
-                format!("{rw}_SDP_{ul}"),
-                xlat_bitvec(vec![diff]),
-            );
+            ctx.tiledb
+                .insert(tile, "BRAM", format!("{rw}_SDP_{ul}"), xlat_bit(diff));
         }
         for val in ["0", "1", "2", "4", "9", "18", "36"] {
             let diff = ctx
@@ -1140,7 +1136,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 "BRAM",
                 format!("{rw}_MUX_UL_{ab}"),
-                xlat_bitvec(vec![diff_mux]),
+                xlat_bit(diff_mux),
             );
         }
     }
@@ -1267,12 +1263,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .assert_empty();
             let mut diff = ctx.state.get_diff(tile, bel, "EN_ECC_WRITE", "TRUE");
             diff.apply_bit_diff(&item, true, false);
-            ctx.tiledb.insert(
-                tile,
-                "BRAM",
-                "EN_ECC_WRITE_NO_READ",
-                xlat_bitvec(vec![diff]),
-            );
+            ctx.tiledb
+                .insert(tile, "BRAM", "EN_ECC_WRITE_NO_READ", xlat_bit(diff));
         }
         ctx.tiledb.insert(tile, "BRAM", "EN_ECC_WRITE", item);
     }
@@ -1359,9 +1351,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     present_ramb18_u.assert_empty();
     let is_fifo_u = present_fifo36.combine(&!&present_fifo18);
     ctx.tiledb
-        .insert(tile, "BRAM", "IS_FIFO", xlat_bitvec(vec![present_fifo18]));
+        .insert(tile, "BRAM", "IS_FIFO", xlat_bit(present_fifo18));
     ctx.tiledb
-        .insert(tile, "BRAM", "IS_FIFO_U", xlat_bitvec(vec![is_fifo_u]));
+        .insert(tile, "BRAM", "IS_FIFO_U", xlat_bit(is_fifo_u));
 
     for (bel, attr) in [
         ("BRAM_F", "BYPASS_RSR"),

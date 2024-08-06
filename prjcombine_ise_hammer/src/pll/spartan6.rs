@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{extract_bitvec_val_part, xlat_bitvec, xlat_enum_ocd, CollectorCtx, OcdMode},
+    diff::{extract_bitvec_val_part, xlat_bit, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,
@@ -718,7 +718,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
         let diff2 = diff2.combine(&!&diff1);
         diffs.push((val, diff1));
         ctx.tiledb
-            .insert(tile, bel, "CLKINSEL_STATIC", xlat_bitvec(vec![diff2]));
+            .insert(tile, bel, "CLKINSEL_STATIC", xlat_bit(diff2));
     }
     for val in ["CKINT1", "CLK_FROM_DCM0", "CLK_FROM_DCM1"] {
         let mut diff = ctx.state.get_diff(tile, bel, "MUX.CLKIN2", val);
@@ -730,7 +730,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
 
     let diff = ctx.state.get_diff(tile, bel, "PLL_CLKCNTRL", "");
     ctx.tiledb
-        .insert(tile, bel, "CLKIN_CLKFBIN_USED", xlat_bitvec(vec![!diff]));
+        .insert(tile, bel, "CLKIN_CLKFBIN_USED", xlat_bit(!diff));
 
     let mut diffs = ctx.state.get_diffs(tile, bel, "PLL_IO_CLKSRC", "");
     diffs[0].apply_enum_diff(
@@ -854,8 +854,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CP"), 2, 0);
     present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CP_REPL"), 2, 0);
 
-    ctx.tiledb
-        .insert(tile, bel, "ENABLE", xlat_bitvec(vec![present]));
+    ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
 
     ctx.state
         .get_diff(tile, bel, "COMPENSATION", "SYSTEM_SYNCHRONOUS")

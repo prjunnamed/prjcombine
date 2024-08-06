@@ -45,6 +45,7 @@ pub enum Reg {
     FakeIgnoreCrc,
     FakeEncrypted,
     FakeDoubleCclkFrequency,
+    FakeHasSwitch,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]

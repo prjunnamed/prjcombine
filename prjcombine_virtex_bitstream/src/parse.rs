@@ -42,7 +42,10 @@ fn parse_xc5200_bitstream(bs: &mut Bitstream, data: &[u8]) {
     } else if bit_length == data.len() * 8 - 3 {
         bs.regs[Reg::FakeLcAlignmentDone] = Some(1);
     } else {
-        panic!("weird length {bit_length} [total {total}]", total = data.len() * 8);
+        panic!(
+            "weird length {bit_length} [total {total}]",
+            total = data.len() * 8
+        );
     }
     let mut pos = 6;
     let frame_len = bs.frame_len;
@@ -371,7 +374,13 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         Some(Packet::Mask(val)) => val,
         p => panic!("expected mask got {p:?}"),
     };
-    assert_eq!(packets.next(), Some(Packet::CmdSwitch));
+    match packets.next() {
+        Some(Packet::CmdSwitch) => {
+            bs.regs[Reg::FakeHasSwitch] = Some(1);
+        }
+        Some(Packet::CmdNull) => (),
+        p => panic!("expected switch or null got {p:?}"),
+    }
 
     // main loop
     let mut fi = 0;

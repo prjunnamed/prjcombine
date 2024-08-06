@@ -5,6 +5,7 @@ use prjcombine_virtex2::bond::{Bond, BondPin, CfgPin, GtPin};
 use prjcombine_virtex2::expanded::ExpandedDevice;
 
 use prjcombine_rdgrid::split_num;
+use prjcombine_virtex2::grid::GridKind;
 
 pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
@@ -19,11 +20,16 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
         let bpin = if let Some(ref pad) = pin.pad {
             if pad.starts_with("PAD") || pad.starts_with("IPAD") || pad.starts_with("CLK") {
                 let io = io_lookup[pad];
-                assert_eq!(pin.vref_bank, Some(io.bank));
-                let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
-                assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
-                if pin.func.contains("VREF_") {
-                    vref.insert(io.coord);
+                if edev.grid.kind != GridKind::FpgaCore {
+                    assert_eq!(pin.vref_bank, Some(io.bank));
+                    let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
+                    assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
+                    if pin.func.contains("VREF_") {
+                        vref.insert(io.coord);
+                    }
+                } else {
+                    assert_eq!(pin.vref_bank, None);
+                    assert_eq!(pin.vcco_bank, None);
                 }
                 BondPin::Io(io.coord)
             } else if let Some((n, b)) = split_num(pad) {

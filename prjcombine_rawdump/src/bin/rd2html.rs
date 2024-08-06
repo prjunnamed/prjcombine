@@ -526,6 +526,11 @@ const SPARTAN3_TILES: &[TileInfo] = &[
     TileInfo("EMPTY16X2", SINGLE, &[]),
     TileInfo("EMPTY0X3", SINGLE, &[]),
     TileInfo("EMPTY0X2", SINGLE, &[]),
+    // FPGACORE
+    TileInfo("BTERM", SINGLE, &["bterm", "iob"]),
+    TileInfo("TTERM", SINGLE, &["tterm", "iob"]),
+    TileInfo("BCLKTERM", SINGLE, &["bterm", "iob"]),
+    TileInfo("TCLKTERM", SINGLE, &["tterm", "iob"]),
 ];
 
 const SPARTAN3E_TILES: &[TileInfo] = &[
@@ -3561,7 +3566,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "xc5200" => (XC5200_TILES, true),
         "virtex" | "virtexe" => (VIRTEX_TILES, false),
         "virtex2" | "virtex2p" => (VIRTEX2_TILES, false),
-        "spartan3" => (SPARTAN3_TILES, false),
+        "spartan3" | "fpgacore" => (SPARTAN3_TILES, false),
         "spartan3e" | "spartan3a" | "spartan3adsp" => (SPARTAN3E_TILES, false),
         "spartan6" => (SPARTAN6_TILES, true),
         "virtex4" => (VIRTEX4_TILES, false),

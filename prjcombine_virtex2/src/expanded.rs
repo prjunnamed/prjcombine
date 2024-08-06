@@ -102,6 +102,7 @@ impl<'a> ExpandedDevice<'a> {
                     unreachable!()
                 }
             }
+            GridKind::FpgaCore => 0,
             GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp => {
                 if coord.row == self.grid.row_top() {
                     0
@@ -156,6 +157,7 @@ impl<'a> ExpandedDevice<'a> {
                     }
                 }
             }
+            GridKind::FpgaCore => IoDiffKind::None,
             GridKind::Spartan3E => match coord.iob.to_idx() {
                 0 => IoDiffKind::P(TileIobId::from_idx(1)),
                 1 => IoDiffKind::N(TileIobId::from_idx(0)),

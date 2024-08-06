@@ -6,7 +6,7 @@ use prjcombine_types::TileItem;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
+    diff::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_multi_attr_hex, fuzz_one, fuzz_one_extras,
@@ -421,10 +421,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff1_h0 = ctx.state.get_diff(tile, "BRAM_H0", attr, val1);
         let diff1_h1 = ctx.state.get_diff(tile, "BRAM_H1", attr, val1);
         assert_eq!(diff1_f, diff1_h0.combine(&diff1_h1));
-        ctx.tiledb
-            .insert(tile, "BRAM_H0", attr, xlat_bitvec(vec![diff1_h0]));
-        ctx.tiledb
-            .insert(tile, "BRAM_H1", attr, xlat_bitvec(vec![diff1_h1]));
+        ctx.tiledb.insert(tile, "BRAM_H0", attr, xlat_bit(diff1_h0));
+        ctx.tiledb.insert(tile, "BRAM_H1", attr, xlat_bit(diff1_h1));
     }
     for (attr, bel, sattr) in [
         ("BW_EN_A", "BRAM_H0", "BW_EN_A_D"),
@@ -433,7 +431,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("BW_EN_B", "BRAM_H1", "BW_EN_B_U"),
     ] {
         let diff = ctx.state.get_diff(tile, "BRAM_F", sattr, "1");
-        ctx.tiledb.insert(tile, bel, attr, xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, attr, xlat_bit(diff));
     }
 
     for (attr, bel, sattr) in [

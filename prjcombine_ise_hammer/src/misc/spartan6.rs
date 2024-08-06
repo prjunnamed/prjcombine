@@ -6,7 +6,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{concat_bitvec, xlat_bitvec, CollectorCtx, OcdMode},
+    diff::{concat_bitvec, xlat_bit, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,
@@ -430,12 +430,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit(tile, bel, "MISR_V_ENABLE", "1");
         let mut diff = ctx.state.get_diff(tile, bel, "MISR_H_ENABLE_RESET", "1");
         diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "MISR_H_ENABLE"), true, false);
-        ctx.tiledb
-            .insert(tile, bel, "MISR_H_RESET", xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, "MISR_H_RESET", xlat_bit(diff));
         let mut diff = ctx.state.get_diff(tile, bel, "MISR_V_ENABLE_RESET", "1");
         diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "MISR_V_ENABLE"), true, false);
-        ctx.tiledb
-            .insert(tile, bel, "MISR_V_RESET", xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, "MISR_V_RESET", xlat_bit(diff));
     }
 
     {
@@ -631,7 +629,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_bitvec_diff_int(&item, 1, 0xc8);
         ctx.tiledb.insert(tile, bel, "CCLK_DIVISOR", item);
         ctx.tiledb
-            .insert(tile, bel, "EXT_CCLK_ENABLE", xlat_bitvec(vec![diff]));
+            .insert(tile, bel, "EXT_CCLK_ENABLE", xlat_bit(diff));
         ctx.collect_enum_int(tile, bel, "CCLK_DLY", 0..4, 0);
         ctx.collect_enum_int(tile, bel, "CCLK_SEP", 0..4, 0);
         for val in ["0", "1", "2", "3"] {

@@ -7,7 +7,13 @@ use crate::{
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     for tile in ["IO.L", "IO.R", "IO.B", "IO.T"] {
         for i in 0..4 {
-            let ctx = FuzzCtx::new(session, backend, tile, format!("IOB{i}"), TileBits::MainAuto);
+            let ctx = FuzzCtx::new(
+                session,
+                backend,
+                tile,
+                format!("IOB{i}"),
+                TileBits::MainAuto,
+            );
             fuzz_enum!(ctx, "SLEW", ["SLOW", "FAST"], [(mode "IOB")]);
             fuzz_enum!(ctx, "PULL", ["PULLUP", "PULLDOWN"], [(mode "IOB")]);
             fuzz_enum!(ctx, "IMUX", ["I", "INOT"], [(mode "IOB"), (attr "DELAYMUX", "NODELAY"), (pin "I")]);

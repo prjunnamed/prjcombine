@@ -10,7 +10,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
+    diff::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
@@ -499,7 +499,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, "SHORTEN_JTAG_CHAIN", "0")
                 .combine(&!&present);
-            let item = xlat_bitvec(vec![!diff]);
+            let item = xlat_bit(!diff);
             ctx.tiledb.insert(tile, bel, "SHORTEN_JTAG_CHAIN", item);
             for (pin, pin_b, pinmux) in [
                 ("SR", "SR_B", "SRMUX"),
@@ -684,8 +684,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             if has_any_vref(edev, ctx.device, ctx.db, tile, BelId::from_idx(i)).is_some() {
                 let diff = present.combine(&!&ctx.state.get_diff(tile, bel, "PRESENT", "NOT_VREF"));
-                ctx.tiledb
-                    .insert(tile_iob, bel, "VREF", xlat_bitvec(vec![diff]));
+                ctx.tiledb.insert(tile_iob, bel, "VREF", xlat_bit(diff));
             }
 
             let mut diffs_istd = vec![];

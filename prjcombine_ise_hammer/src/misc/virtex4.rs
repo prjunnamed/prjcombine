@@ -8,7 +8,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
-    diff::{xlat_bitvec, xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_bit, xlat_bitvec, xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -440,7 +440,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.state.peek_diff(tile, bel, "MUX.I0", "CKINT0").clone(),
             ctx.state.peek_diff(tile, bel, "MUX.I1", "CKINT0").clone(),
         );
-        let ien_item = xlat_bitvec(vec![ien_diff]);
+        let ien_item = xlat_bit(ien_diff);
         for mux in ["MUX.I0", "MUX.I1"] {
             let mut vals = vec![("NONE", Diff::default())];
             for val in [
@@ -468,18 +468,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         } else {
             let diffs = diff.split_tiles(&[&[32], &[33]]);
             let [diff_b, diff_t] = diffs.try_into().unwrap();
-            ctx.tiledb.insert(
-                "CLK_TERM_B",
-                "CLK_TERM",
-                "GCLK_ENABLE",
-                xlat_bitvec(vec![diff_b]),
-            );
-            ctx.tiledb.insert(
-                "CLK_TERM_T",
-                "CLK_TERM",
-                "GCLK_ENABLE",
-                xlat_bitvec(vec![diff_t]),
-            );
+            ctx.tiledb
+                .insert("CLK_TERM_B", "CLK_TERM", "GCLK_ENABLE", xlat_bit(diff_b));
+            ctx.tiledb
+                .insert("CLK_TERM_T", "CLK_TERM", "GCLK_ENABLE", xlat_bit(diff_t));
         }
     }
 

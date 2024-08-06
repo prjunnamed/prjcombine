@@ -65,11 +65,7 @@ impl<'a> ExpandedDevice<'a> {
         } else {
             unreachable!()
         };
-        Io {
-            coord,
-            bank,
-            name,
-        }
+        Io { coord, bank, name }
     }
 
     pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {

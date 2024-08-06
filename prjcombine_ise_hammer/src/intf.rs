@@ -5,7 +5,7 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{FeatureId, IseBackend},
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_default, CollectorCtx, Diff},
+    diff::{xlat_bit, xlat_enum, xlat_enum_default, CollectorCtx, Diff},
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 
@@ -183,7 +183,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
         ctx.tiledb
-            .insert(name, "INTF", "TEST_ENABLE", xlat_bitvec(vec![test_diff]));
+            .insert(name, "INTF", "TEST_ENABLE", xlat_bit(test_diff));
         if let ExpandedDevice::Virtex4(edev) = ctx.edev {
             match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {

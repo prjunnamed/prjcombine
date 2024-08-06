@@ -193,6 +193,38 @@ pub fn verify_bufgmux(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
     }
 }
 
+pub fn verify_bufg(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(bel, "BUFG", &[("I", SitePinDir::In)], &["CLK"]);
+    vrf.claim_node(&[bel.fwire("I")]);
+    vrf.claim_pip(bel.crd(), bel.wire("I"), bel.wire("CLK"));
+    let edge = if bel.row == edev.grid.row_bot() {
+        Dir::S
+    } else if bel.row == edev.grid.row_top() {
+        Dir::N
+    } else {
+        unreachable!()
+    };
+    let crd = edev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
+    let obel = vrf
+        .find_bel(
+            bel.die,
+            (crd.col, crd.row),
+            match crd.iob.to_idx() {
+                0 => "IBUF0",
+                1 => "IBUF1",
+                2 => "IBUF2",
+                3 => "IBUF3",
+                _ => unreachable!(),
+            },
+        )
+        .unwrap();
+    vrf.claim_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
+    vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
+    vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKI"));
+    // let obel = vrf.find_bel_sibling(bel, "VCC");
+    // vrf.claim_pip(bel.crd(), bel.wire_far("CLK"), obel.wire("VCCOUT"));
+}
+
 pub fn verify_gclkh(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for i in 0..8 {
         for bt in ["B", "T"] {
@@ -311,8 +343,13 @@ pub fn verify_clkc_s3(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCo
         } else {
             edev.grid.row_top()
         };
+        let bufg = if edev.grid.kind == GridKind::FpgaCore {
+            "BUFG"
+        } else {
+            "BUFGMUX"
+        };
         let obel = vrf
-            .find_bel(bel.die, (edev.grid.col_clk, srow), &format!("BUFGMUX{j}"))
+            .find_bel(bel.die, (edev.grid.col_clk, srow), &format!("{bufg}{j}"))
             .unwrap();
         vrf.verify_node(&[bel.fwire(&format!("IN_{bt}{j}")), obel.fwire_far("O")]);
     }
@@ -364,7 +401,7 @@ pub fn verify_gclkvm(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
                 bel.wire(&format!("OUT_{bt}{i}")),
                 bel.wire(&format!("IN_CORE{i}")),
             );
-            if edev.grid.kind != GridKind::Spartan3 {
+            if edev.grid.kind.is_spartan3ea() {
                 vrf.claim_pip(
                     bel.crd(),
                     bel.wire(&format!("OUT_{bt}{i}")),
@@ -379,7 +416,7 @@ pub fn verify_gclkvm(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
             bel.fwire(&format!("IN_CORE{i}")),
             obel.fwire(&format!("OUT{i}")),
         ]);
-        if edev.grid.kind != GridKind::Spartan3 {
+        if edev.grid.kind.is_spartan3ea() {
             let scol = if bel.col < edev.grid.col_clk {
                 edev.grid.col_left()
             } else {

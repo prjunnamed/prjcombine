@@ -10,7 +10,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureId, IseBackend},
-    diff::{xlat_bitvec, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_bit, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{BelFuzzKV, BelKV, TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileRelation},
 };
 
@@ -770,7 +770,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         println!("UMM {out_name} {in_name} PASS IS EMPTY");
                         continue;
                     }
-                    let item = xlat_bitvec(vec![diff]);
+                    let item = xlat_bit(diff);
                     let name = if matches!(
                         intdb.wires[wire_from.1],
                         WireKind::PipOut | WireKind::PipBranch(_)
@@ -805,15 +805,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .get_diff(tile, "INT", &mux_name, format!("{in_name}.NOALT"));
                         let (alt, noalt, common) = Diff::split(diff, noalt_diff);
                         if mux_name.contains("CLKIN") {
-                            ctx.tiledb
-                                .insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![noalt]));
-                            ctx.tiledb
-                                .insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![!alt]));
+                            ctx.tiledb.insert(tile, "DLL", "CLKIN_PAD", xlat_bit(noalt));
+                            ctx.tiledb.insert(tile, "DLL", "CLKFB_PAD", xlat_bit(!alt));
                         } else {
-                            ctx.tiledb
-                                .insert(tile, "DLL", "CLKFB_PAD", xlat_bitvec(vec![noalt]));
-                            ctx.tiledb
-                                .insert(tile, "DLL", "CLKIN_PAD", xlat_bitvec(vec![!alt]));
+                            ctx.tiledb.insert(tile, "DLL", "CLKFB_PAD", xlat_bit(noalt));
+                            ctx.tiledb.insert(tile, "DLL", "CLKIN_PAD", xlat_bit(!alt));
                         }
                         diff = common;
                     }
@@ -835,7 +831,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             tile,
                             "INT",
                             format!("BUF.{out_name}.{in_name}"),
-                            xlat_bitvec(vec![diff]),
+                            xlat_bit(diff),
                         );
                     } else {
                         if diff.bits.is_empty() {
@@ -895,12 +891,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     let item = xlat_enum_ocd(inps, OcdMode::Mux);
                     ctx.tiledb.insert(tile, "INT", mux_name, item);
-                    ctx.tiledb.insert(
-                        tile,
-                        "INT",
-                        format!("DRIVE.{out_name}"),
-                        xlat_bitvec(vec![drive]),
-                    );
+                    ctx.tiledb
+                        .insert(tile, "INT", format!("DRIVE.{out_name}"), xlat_bit(drive));
                 } else {
                     if !got_empty {
                         inps.push(("NONE".to_string(), Diff::default()));

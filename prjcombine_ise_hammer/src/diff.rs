@@ -304,6 +304,10 @@ pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem<FeatureBit> {
     }
 }
 
+pub fn xlat_bit(diff: Diff) -> TileItem<FeatureBit> {
+    xlat_bitvec(vec![diff])
+}
+
 pub fn xlat_bit_wide(diff: Diff) -> TileItem<FeatureBit> {
     let mut invert = BitVec::new();
     let mut bits = vec![];
@@ -566,7 +570,7 @@ pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem<FeatureBit>, boo
         diff1.assert_empty();
         (!diff0, true)
     };
-    (xlat_bitvec(vec![diff]), res)
+    (xlat_bit(diff), res)
 }
 
 pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem<FeatureBit> {
@@ -690,7 +694,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         val: &str,
     ) -> TileItem<FeatureBit> {
         let diff = self.state.get_diff(tile, bel, attr, val);
-        xlat_bitvec(vec![diff])
+        xlat_bit(diff)
     }
 
     #[must_use]
@@ -950,7 +954,11 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     }
 }
 
-pub fn extract_bitvec_val_part(item: &TileItem<FeatureBit>, base: &BitVec, diff: &mut Diff) -> BitVec {
+pub fn extract_bitvec_val_part(
+    item: &TileItem<FeatureBit>,
+    base: &BitVec,
+    diff: &mut Diff,
+) -> BitVec {
     let TileItemKind::BitVec { ref invert } = item.kind else {
         unreachable!()
     };

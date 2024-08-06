@@ -199,6 +199,8 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
 
         _ if bel.key.starts_with("IOI") => io::verify_ioi(edev, vrf, bel),
         _ if bel.key.starts_with("IOBS") => (),
+        _ if bel.key.starts_with("IBUF") => vrf.verify_bel(bel, "IBUF", &[], &[]),
+        _ if bel.key.starts_with("OBUF") => vrf.verify_bel(bel, "OBUF", &[], &[]),
         "CLK_P" | "CLK_N" => {
             vrf.verify_bel(bel, bel.key, &[("I", SitePinDir::Out)], &[]);
             vrf.claim_node(&[bel.fwire("I")]);
@@ -218,6 +220,7 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
 
         "BREFCLK" => clk::verify_brefclk(edev, vrf, bel),
         _ if bel.key.starts_with("BUFGMUX") => clk::verify_bufgmux(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFG") => clk::verify_bufg(edev, vrf, bel),
         _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(edev, vrf, bel),
         "GCLKC" => clk::verify_gclkc(edev, vrf, bel),
         "CLKC" => {

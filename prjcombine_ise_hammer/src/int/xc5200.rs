@@ -3,7 +3,7 @@ use prjcombine_int::db::WireKind;
 
 use crate::{
     backend::{FeatureBit, FeatureId, IseBackend},
-    diff::{xlat_bitvec, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::{xlat_bit, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 
@@ -188,7 +188,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         _ => (),
                     }
-                    let item = xlat_bitvec(vec![diff]);
+                    let item = xlat_bit(diff);
                     let name =
                         if intdb.wires[wire_from.1] != WireKind::MuxOut && wire_from < wire_to {
                             format!("PASS.{in_name}.{out_name}")

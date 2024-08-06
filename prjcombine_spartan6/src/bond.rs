@@ -76,6 +76,10 @@ impl Bond {
                 _ => (),
             }
         }
-        ExpandedBond { bond: self, ios, gts }
+        ExpandedBond {
+            bond: self,
+            ios,
+            gts,
+        }
     }
 }

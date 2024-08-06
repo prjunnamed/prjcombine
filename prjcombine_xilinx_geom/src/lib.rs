@@ -93,7 +93,7 @@ pub enum ExpandedBond<'a> {
 }
 
 impl Bond {
-    pub fn expand (&self) -> ExpandedBond {
+    pub fn expand(&self) -> ExpandedBond {
         match self {
             Bond::Xc4k(bond) => ExpandedBond::Xc4k(bond.expand()),
             Bond::Xc5200(bond) => ExpandedBond::Xc5200(bond.expand()),
@@ -212,6 +212,8 @@ impl GeomDb {
             Grid::Virtex2(grid) => {
                 let intdb = if grid.kind.is_virtex2() {
                     &self.ints["virtex2"]
+                } else if grid.kind == prjcombine_virtex2::grid::GridKind::FpgaCore {
+                    &self.ints["fpgacore"]
                 } else {
                     &self.ints["spartan3"]
                 };

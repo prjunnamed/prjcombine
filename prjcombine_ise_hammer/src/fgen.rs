@@ -2847,6 +2847,7 @@ impl TileBits {
                         vec![edev.btile_main(col, row), edev.btile_btterm(col, row)]
                     }
                     prjcombine_virtex2::grid::GridKind::Spartan3 => vec![edev.btile_main(col, row)],
+                    prjcombine_virtex2::grid::GridKind::FpgaCore => unreachable!(),
                     prjcombine_virtex2::grid::GridKind::Spartan3E
                     | prjcombine_virtex2::grid::GridKind::Spartan3A
                     | prjcombine_virtex2::grid::GridKind::Spartan3ADsp => {
@@ -2971,11 +2972,14 @@ impl TileBits {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ExtraFeatureKind {
     MainFixed(ColId, RowId),
+    Corner(ColId, RowId),
     AllDcms,
     AllOtherDcms,
     AllBrams,
     AllColumnIo,
     AllIobs,
+    AllGclkvm,
+    AllHclk,
     Pcilogic(Dir),
     VirtexClkBt,
     DcmVreg,
@@ -2983,6 +2987,7 @@ pub enum ExtraFeatureKind {
     DcmUL,
     DcmLR,
     DcmUR,
+    FpgaCoreIob(Dir),
     HclkDcm(Dir),
     HclkCcm(Dir),
     MgtRepeater(Dir, Option<Dir>),
@@ -3004,6 +3009,15 @@ impl ExtraFeatureKind {
                 ExpandedDevice::Virtex(edev) => {
                     vec![vec![edev.btile_main(col, row)]]
                 }
+                ExpandedDevice::Virtex2(edev) => {
+                    vec![vec![edev.btile_main(col, row)]]
+                }
+                _ => todo!(),
+            },
+            ExtraFeatureKind::Corner(col, row) => match backend.edev {
+                ExpandedDevice::Virtex2(edev) => {
+                    vec![vec![edev.btile_lrterm(col, row)]]
+                }
                 _ => todo!(),
             },
             ExtraFeatureKind::AllDcms => match backend.edev {
@@ -3024,9 +3038,10 @@ impl ExtraFeatureKind {
                         prjcombine_virtex2::grid::GridKind::Virtex2P
                         | prjcombine_virtex2::grid::GridKind::Virtex2PX => "DCM.V2P",
                         prjcombine_virtex2::grid::GridKind::Spartan3 => "DCM.S3",
-                        prjcombine_virtex2::grid::GridKind::Spartan3E => todo!(),
-                        prjcombine_virtex2::grid::GridKind::Spartan3A => todo!(),
-                        prjcombine_virtex2::grid::GridKind::Spartan3ADsp => todo!(),
+                        prjcombine_virtex2::grid::GridKind::FpgaCore => unreachable!(),
+                        prjcombine_virtex2::grid::GridKind::Spartan3E => unreachable!(),
+                        prjcombine_virtex2::grid::GridKind::Spartan3A => unreachable!(),
+                        prjcombine_virtex2::grid::GridKind::Spartan3ADsp => unreachable!(),
                     };
                     let node = backend.egrid.db.get_node(node);
                     backend.egrid.node_index[node]
@@ -3128,6 +3143,31 @@ impl ExtraFeatureKind {
                     .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
                     .collect()
             }
+            ExtraFeatureKind::AllGclkvm => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let node = backend.egrid.db.get_node("GCLKVM.S3");
+                backend.egrid.node_index[node]
+                    .iter()
+                    .map(|loc| {
+                        vec![
+                            edev.btile_clkv(loc.1, loc.2 - 1),
+                            edev.btile_clkv(loc.1, loc.2),
+                        ]
+                    })
+                    .collect()
+            }
+            ExtraFeatureKind::AllHclk => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let node = backend.egrid.db.get_node("GCLKH");
+                backend.egrid.node_index[node]
+                    .iter()
+                    .map(|loc| vec![edev.btile_hclk(loc.1, loc.2)])
+                    .collect()
+            }
             ExtraFeatureKind::Pcilogic(dir) => {
                 let ExpandedDevice::Virtex(edev) = backend.edev else {
                     unreachable!()
@@ -3212,6 +3252,41 @@ impl ExtraFeatureKind {
                     })
                     .unwrap();
                 vec![TileBits::Dcm.get_bits(backend, (loc.0, col, row, layer))]
+            }
+            ExtraFeatureKind::FpgaCoreIob(dir) => {
+                let ExpandedDevice::Virtex2(edev) = backend.edev else {
+                    unreachable!()
+                };
+                match dir {
+                    Dir::W => {
+                        if loc.1 != edev.grid.col_left() {
+                            vec![]
+                        } else {
+                            vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
+                        }
+                    }
+                    Dir::E => {
+                        if loc.1 != edev.grid.col_right() {
+                            vec![]
+                        } else {
+                            vec![vec![edev.btile_lrterm(loc.1, loc.2)]]
+                        }
+                    }
+                    Dir::S => {
+                        if loc.2 != edev.grid.row_bot() {
+                            vec![]
+                        } else {
+                            vec![vec![edev.btile_btterm(loc.1, loc.2)]]
+                        }
+                    }
+                    Dir::N => {
+                        if loc.2 != edev.grid.row_top() {
+                            vec![]
+                        } else {
+                            vec![vec![edev.btile_btterm(loc.1, loc.2)]]
+                        }
+                    }
+                }
             }
             ExtraFeatureKind::HclkDcm(dir) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {

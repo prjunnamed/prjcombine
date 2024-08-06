@@ -9,8 +9,8 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use crate::{
     backend::{FeatureBit, IseBackend, PinFromKind},
     diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit_wide, xlat_bitvec, xlat_bool,
-        xlat_enum, CollectorCtx, Diff,
+        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
+        xlat_bool, xlat_enum, CollectorCtx, Diff,
     },
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -590,16 +590,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let en_dummy_osc = !ctx.state.get_diff(tile, bel, "EN_DUMMY_OSC", "0");
         let non_stop = ctx.state.get_diff(tile, bel, "NON_STOP", "1");
         let (en_dummy_osc, non_stop, common) = Diff::split(en_dummy_osc, non_stop);
-        ctx.tiledb
-            .insert(tile, bel, "NON_STOP", xlat_bitvec(vec![non_stop]));
+        ctx.tiledb.insert(tile, bel, "NON_STOP", xlat_bit(non_stop));
         ctx.tiledb
             .insert(tile, bel, "EN_DUMMY_OSC", xlat_bit_wide(en_dummy_osc));
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "EN_DUMMY_OSC_OR_NON_STOP",
-            xlat_bitvec(vec![common]),
-        );
+        ctx.tiledb
+            .insert(tile, bel, "EN_DUMMY_OSC_OR_NON_STOP", xlat_bit(common));
     } else {
         ctx.collect_enum_bool(tile, bel, "EN_DUMMY_OSC", "0", "1");
         ctx.collect_enum_bool(tile, bel, "NON_STOP", "0", "1");
@@ -696,8 +691,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb
             .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
         if edev.grid.kind.is_virtex2() {
-            ctx.tiledb
-                .insert(tile, bel, "TEST_ENABLE", xlat_bitvec(vec![dc]));
+            ctx.tiledb.insert(tile, bel, "TEST_ENABLE", xlat_bit(dc));
         } else {
             dc.assert_empty();
         }
@@ -731,21 +725,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(diff, diff_fb);
         assert_eq!(diff, diff_fx);
         let diff = diff.combine(&!&en_dll);
-        ctx.tiledb.insert(tile, bel, pin, xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
     }
     for pin in ["CLKFX", "CLKFX180", "CONCUR"] {
         let diff = ctx.state.get_diff(tile, bel, pin, "1");
         let diff_fb = ctx.state.get_diff(tile, bel, pin, "1.CLKFB");
         let diff_fb = diff_fb.combine(&!&diff);
         let diff = diff.combine(&!&en_dfs);
-        ctx.tiledb.insert(tile, bel, pin, xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
         ctx.tiledb
-            .insert(tile, bel, "DFS_FEEDBACK", xlat_bitvec(vec![diff_fb]));
+            .insert(tile, bel, "DFS_FEEDBACK", xlat_bit(diff_fb));
     }
-    ctx.tiledb
-        .insert(tile, bel, "DLL_ENABLE", xlat_bitvec(vec![en_dll]));
-    ctx.tiledb
-        .insert(tile, bel, "DFS_ENABLE", xlat_bitvec(vec![en_dfs]));
+    ctx.tiledb.insert(tile, bel, "DLL_ENABLE", xlat_bit(en_dll));
+    ctx.tiledb.insert(tile, bel, "DFS_ENABLE", xlat_bit(en_dfs));
     ctx.collect_bit(tile, bel, "CLKFB", "1");
 
     ctx.collect_bit(tile, bel, "CLKIN_IOB", "1");
@@ -764,7 +756,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         &bitvec![0; 8],
     );
     ctx.tiledb
-        .insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bitvec(vec![diff]));
+        .insert(tile, bel, "PHASE_SHIFT_NEGATIVE", xlat_bit(diff));
 
     ctx.state
         .get_diff(tile, bel, "CLKOUT_PHASE_SHIFT", "NONE")
@@ -782,8 +774,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     assert_eq!(variable, variable_n);
     let fixed_n = fixed_n.combine(&!&fixed);
     let (fixed, variable, en_ps) = Diff::split(fixed, variable);
-    ctx.tiledb
-        .insert(tile, bel, "PS_ENABLE", xlat_bitvec(vec![en_ps]));
+    ctx.tiledb.insert(tile, bel, "PS_ENABLE", xlat_bit(en_ps));
     ctx.tiledb
         .insert(tile, bel, "PS_CENTERED", xlat_bool(fixed, variable));
 
@@ -959,7 +950,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         dss_base.apply_bit_diff(ctx.tiledb.item(tile, bel, "PS_ENABLE"), true, false);
         dss_base.apply_bit_diff(ctx.tiledb.item(tile, bel, "PS_CENTERED"), true, false);
         ctx.tiledb
-            .insert(tile, bel, "DSS_ENABLE", xlat_bitvec(vec![dss_base]));
+            .insert(tile, bel, "DSS_ENABLE", xlat_bit(dss_base));
     } else {
         for val in ["NONE", "SPREAD_2", "SPREAD_4", "SPREAD_6", "SPREAD_8"] {
             ctx.state

@@ -21,6 +21,7 @@ pub enum GridKind {
     Virtex2P,
     Virtex2PX,
     Spartan3,
+    FpgaCore,
     Spartan3E,
     Spartan3A,
     Spartan3ADsp,
@@ -296,7 +297,7 @@ impl Grid {
                 }
                 _ => None,
             }
-        } else if self.kind == GridKind::Spartan3 {
+        } else if matches!(self.kind, GridKind::Spartan3 | GridKind::FpgaCore) {
             match edge {
                 Dir::S => {
                     if idx < 2 {

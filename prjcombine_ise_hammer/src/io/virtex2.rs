@@ -11,7 +11,7 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{
-        enum_ocd_swap_bits, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+        enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
         xlat_item_tile_fwd, CollectorCtx, Diff, OcdMode,
     },
     fgen::{BelKV, TileBits, TileKV, TileRelation},
@@ -2625,6 +2625,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 _ => "INT.IOI",
             },
             GridKind::Spartan3 => "INT.IOI.S3",
+            GridKind::FpgaCore => unreachable!(),
             GridKind::Spartan3E => "INT.IOI.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => {
                 if tile == "IOI.S3A.LR" {
@@ -2825,7 +2826,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.tiledb
                         .insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
                     ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bitvec(vec![!common]));
+                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                     let item = ctx.extract_bit(tile, bel, "DELAY_ADJ_ATTRBOX", "VARIABLE");
                     ctx.tiledb.insert(tile, bel, "DELAY_VARIABLE", item);
                 }
@@ -2854,14 +2855,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let en = ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1");
                 let en_rst = ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1");
                 let rst = en_rst.combine(&!&en);
-                ctx.tiledb
-                    .insert(tile, bel, "MISR_RESET", xlat_bitvec(vec![rst]));
+                ctx.tiledb.insert(tile, bel, "MISR_RESET", xlat_bit(rst));
                 let clk1 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK1", "1");
                 let clk2 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK2", "1");
                 assert_eq!(en, clk1);
                 let (clk1, clk2, en) = Diff::split(clk1, clk2);
-                ctx.tiledb
-                    .insert(tile, bel, "MISR_ENABLE", xlat_bitvec(vec![en]));
+                ctx.tiledb.insert(tile, bel, "MISR_ENABLE", xlat_bit(en));
                 ctx.tiledb.insert(
                     tile,
                     bel,
@@ -2969,6 +2968,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let ioi_tile = match edev.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX => "IOI",
             GridKind::Spartan3 => "IOI.S3",
+            GridKind::FpgaCore => unreachable!(),
             GridKind::Spartan3E => "IOI.S3E",
             GridKind::Spartan3A | GridKind::Spartan3ADsp => match &tile[..] {
                 "IOBS.S3A.B2" => "IOI.S3A.B",
@@ -3103,7 +3103,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
 
                     ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bitvec(vec![!common]));
+                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 } else {
                     for val in ["DLY14", "DLY15", "DLY16"] {
                         ctx.state
@@ -3212,7 +3212,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
 
                     ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bitvec(vec![!common]));
+                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 }
             }
             if edev.grid.kind.is_spartan3a()
@@ -3269,7 +3269,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.tiledb
                     .insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
                 ctx.tiledb
-                    .insert(tile, bel, "DELAY_COMMON", xlat_bitvec(vec![!common]));
+                    .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 let item = ctx.extract_bit(tile, bel, "DELAY_ADJ_ATTRBOX", "VARIABLE");
                 ctx.tiledb.insert(tile, bel, "DELAY_VARIABLE", item);
             }
@@ -3386,8 +3386,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
                 let mut vref = present.combine(&!present_vref);
                 vref.discard_bits(ctx.tiledb.item(tile, bel, "PULL"));
-                ctx.tiledb
-                    .insert(tile, bel, "VREF", xlat_bitvec(vec![vref]));
+                ctx.tiledb.insert(tile, bel, "VREF", xlat_bit(vref));
             }
 
             // PCI cruft
@@ -3396,7 +3395,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ibuf_diff.discard_bits(ctx.tiledb.item(tile, bel, "IBUF_MODE"));
                 if iob.is_ibuf {
                     ctx.tiledb
-                        .insert(tile, bel, "PCI_INPUT", xlat_bitvec(vec![ibuf_diff]));
+                        .insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
                 } else {
                     let obuf_diff = ctx
                         .state
@@ -3404,9 +3403,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .clone();
                     let (ibuf_diff, _, common) = Diff::split(ibuf_diff, obuf_diff);
                     ctx.tiledb
-                        .insert(tile, bel, "PCI_INPUT", xlat_bitvec(vec![ibuf_diff]));
-                    ctx.tiledb
-                        .insert(tile, bel, "PCI_CLAMP", xlat_bitvec(vec![common]));
+                        .insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
+                    ctx.tiledb.insert(tile, bel, "PCI_CLAMP", xlat_bit(common));
                 }
             }
 
@@ -3613,7 +3611,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diff.apply_enum_diff(item, "NONE", "TERM_SPLIT");
                     diff = !diff;
                     vr_slew = Some(diff.split_bits(&slew_bits));
-                    ctx.tiledb.insert(tile, bel, "VR", xlat_bitvec(vec![diff]));
+                    ctx.tiledb.insert(tile, bel, "VR", xlat_bit(diff));
                 }
                 if matches!(
                     edev.grid.kind,
@@ -3626,12 +3624,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let diff_q = ctx.state.get_diff(tile, bel, "DCIUPDATEMODE", "QUIET");
                     assert_eq!(diff_c, diff_q);
                     let diff = diff_a.combine(&!diff_c);
-                    ctx.tiledb.insert(
-                        tile,
-                        bel,
-                        "DCIUPDATEMODE_ASREQUIRED",
-                        xlat_bitvec(vec![diff]),
-                    );
+                    ctx.tiledb
+                        .insert(tile, bel, "DCIUPDATEMODE_ASREQUIRED", xlat_bit(diff));
                 }
                 let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "IOB");
                 if edev.grid.kind.is_spartan3ea() {
@@ -3820,6 +3814,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     GridKind::Virtex2 => "V2",
                     GridKind::Virtex2P | GridKind::Virtex2PX => "V2P",
                     GridKind::Spartan3 => "S3",
+                    GridKind::FpgaCore => unreachable!(),
                     GridKind::Spartan3E => "S3E",
                     GridKind::Spartan3A | GridKind::Spartan3ADsp => {
                         if is_s3a_lr {
@@ -3945,8 +3940,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diff.assert_empty();
                 } else {
                     // ???
-                    ctx.tiledb
-                        .insert(tile, bel, "ENABLE", xlat_bitvec(vec![diff]));
+                    ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
                 }
             }
             if has_any_brefclk(edev, tile, i).is_some() {

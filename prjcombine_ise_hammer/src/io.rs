@@ -1,3 +1,4 @@
-pub mod xc5200;
+pub mod fpgacore;
 pub mod virtex;
 pub mod virtex2;
+pub mod xc5200;

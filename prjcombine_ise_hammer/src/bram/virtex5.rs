@@ -3,7 +3,7 @@ use prjcombine_hammer::Session;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx, Diff},
+    diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv_suffix, fuzz_multi, fuzz_one,
@@ -460,7 +460,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .state
             .get_diff(tile, bel, "PRESENT", format!("FIFO36_EXP.{opt}"));
         diff = diff.combine(&!&present_fifo36);
-        ctx.tiledb.insert(tile, bel, opt, xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, opt, xlat_bit(diff));
     }
     let mut diffs = vec![("NONE", Diff::default())];
     for val in ["WW0", "WW1"] {
@@ -550,9 +550,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if matches!(val, "1010" | "1111") {
             let (diff_l, diff_u) = split_diff_ul(diff);
             ctx.tiledb
-                .insert(tile, bel, "TSCRUB_DLY_L", xlat_bitvec(vec![diff_l]));
+                .insert(tile, bel, "TSCRUB_DLY_L", xlat_bit(diff_l));
             ctx.tiledb
-                .insert(tile, bel, "TSCRUB_DLY_U", xlat_bitvec(vec![diff_u]));
+                .insert(tile, bel, "TSCRUB_DLY_U", xlat_bit(diff_u));
         } else {
             diff.assert_empty();
         }
@@ -723,7 +723,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff(tile, bel, format!("EN_ECC_WRITE.{mode}"), "TRUE");
             diff.apply_bit_diff(&item, true, false);
             ctx.tiledb
-                .insert(tile, bel, "EN_ECC_WRITE_NO_READ", xlat_bitvec(vec![diff]));
+                .insert(tile, bel, "EN_ECC_WRITE_NO_READ", xlat_bit(diff));
         }
         ctx.tiledb.insert(tile, bel, "EN_ECC_WRITE", item);
     }
@@ -1061,8 +1061,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, bel, format!("EN_SYN.{mode}"), "TRUE");
         diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DOA_REG_L"), "0", "1");
         diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DOB_REG_L"), "0", "1");
-        ctx.tiledb
-            .insert(tile, bel, "EN_SYN", xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, "EN_SYN", xlat_bit(diff));
     }
     for mode in ["FIFO36_EXP", "FIFO36_72_EXP"] {
         let mut diff = ctx
@@ -1072,8 +1071,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DOA_REG_U"), "0", "1");
         diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DOB_REG_L"), "0", "1");
         diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DOB_REG_U"), "0", "1");
-        ctx.tiledb
-            .insert(tile, bel, "EN_SYN", xlat_bitvec(vec![diff]));
+        ctx.tiledb.insert(tile, bel, "EN_SYN", xlat_bit(diff));
     }
     let mut d0 = ctx.state.get_diff(tile, bel, "DO_REG_U.RAMBFIFO18_36", "0");
     let mut d1 = ctx.state.get_diff(tile, bel, "DO_REG_U.RAMBFIFO18_36", "1");
@@ -1218,7 +1216,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
                 if ab == 'A' {
                     ctx.tiledb
-                        .insert(tile, bel, format!("{rw}_SDP_{ul}"), xlat_bitvec(vec![diff]));
+                        .insert(tile, bel, format!("{rw}_SDP_{ul}"), xlat_bit(diff));
                 } else {
                     diff.assert_empty();
                 }
@@ -1365,5 +1363,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     assert_eq!(present_fifo36, present_fifo36_72);
     ctx.tiledb
-        .insert(tile, bel, "IS_FIFO_U", xlat_bitvec(vec![present_fifo36]));
+        .insert(tile, bel, "IS_FIFO_U", xlat_bit(present_fifo36));
 }
