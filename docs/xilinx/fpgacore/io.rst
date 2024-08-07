@@ -19,8 +19,8 @@ I/O interface
    :file: ../gen/tile-xcexf-IOI.FC.html
 
 
-I/O buffers — Spartan 3
-=======================
+I/O buffer tiles
+================
 
 .. todo:: document
 

@@ -201,7 +201,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if !args.skip_misc {
                         misc::virtex4::add_fuzzers(&mut hammer, &backend);
                     }
-                    // TODO: io
+                    if !skip_io {
+                        io::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
                     if !args.skip_dcm {
                         dcm::virtex4::add_fuzzers(&mut hammer, &backend);
                     }
@@ -364,6 +366,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     dsp::virtex4::collect_fuzzers(&mut ctx);
                     if !args.skip_misc {
                         misc::virtex4::collect_fuzzers(&mut ctx);
+                    }
+                    if !skip_io {
+                        io::virtex4::collect_fuzzers(&mut ctx);
                     }
                     if !args.skip_dcm {
                         dcm::virtex4::collect_fuzzers(&mut ctx);

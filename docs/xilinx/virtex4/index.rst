@@ -11,6 +11,7 @@ Virtex 4
    clb
    bram
    dsp
+   io
    center
    clock
    dcm
