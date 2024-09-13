@@ -3,7 +3,7 @@ use crate::grid::{DisabledPart, ExtraDie, Grid, GridKind, GtKind, GtzLoc, IoKind
 use bimap::BiHashMap;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
 
 entity_id! {
@@ -40,6 +40,7 @@ pub struct ExpandedDevice<'a> {
     pub row_dcmiob: Option<RowId>,
     pub row_iobdcm: Option<RowId>,
     pub io: Vec<Io>,
+    pub io_by_crd: HashMap<IoCoord, Io>,
     pub gt: Vec<Gt>,
     pub gtz: Vec<Gtz>,
     pub sysmon: Vec<SysMon>,
@@ -62,7 +63,7 @@ pub enum IoVrKind {
     VrN,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Io {
     pub crd: IoCoord,
     pub name: String,

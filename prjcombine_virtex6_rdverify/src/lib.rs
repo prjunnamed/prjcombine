@@ -467,7 +467,7 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
             3 => -2,
             _ => unreachable!(),
         };
-        let obel = vrf.find_bel_delta(bel, 0, dy, "ILOGIC0").unwrap();
+        let obel = vrf.find_bel_delta(bel, 0, dy, "ILOGIC1").unwrap();
         vrf.verify_node(&[bel.fwire(&format!("IOCLK_PAD{i}")), obel.fwire("CLKOUT")]);
     }
     let obel_cmt = vrf
@@ -680,8 +680,8 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     vrf.claim_pip(bel.crd(), bel.wire("IOB_I_BUF"), bel.wire("IOB_I"));
     vrf.verify_node(&[bel.fwire("IOB_I"), obel_iob.fwire("I")]);
 
-    if bel.key == "ILOGIC1" {
-        let obel = vrf.find_bel_sibling(bel, "ILOGIC0");
+    if bel.key == "ILOGIC0" {
+        let obel = vrf.find_bel_sibling(bel, "ILOGIC1");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
@@ -693,7 +693,7 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             || bel.row == edev.grids[bel.die].row_bufg() - 2
             || bel.row == edev.grids[bel.die].row_bufg()
             || bel.row == edev.grids[bel.die].row_bufg() + 2);
-    if (is_rclk || is_gclk) && bel.key == "ILOGIC0" {
+    if (is_rclk || is_gclk) && bel.key == "ILOGIC1" {
         vrf.claim_node(&[bel.fwire("CLKOUT")]);
         vrf.claim_pip(bel.crd(), bel.wire("CLKOUT"), bel.wire("O"));
         if is_inner {
@@ -805,8 +805,8 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_node(&[bel.fwire("IOB_O"), obel_iob.fwire("O")]);
     vrf.verify_node(&[bel.fwire("IOB_T"), obel_iob.fwire("T")]);
 
-    if bel.key == "OLOGIC0" {
-        let obel = vrf.find_bel_sibling(bel, "OLOGIC1");
+    if bel.key == "OLOGIC1" {
+        let obel = vrf.find_bel_sibling(bel, "OLOGIC0");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
@@ -854,8 +854,8 @@ fn verify_iodelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match bel.key {
-        "IOB0" => "IOBM",
-        "IOB1" => "IOBS",
+        "IOB1" => "IOBM",
+        "IOB0" => "IOBS",
         _ => unreachable!(),
     };
     let mut pins = vec![
@@ -950,10 +950,10 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_node(&[bel.fwire(&vauxn)]);
         vrf.claim_pip(bel.crd(), bel.wire(&vauxp), bel.wire_far(&vauxp));
         vrf.claim_pip(bel.crd(), bel.wire(&vauxn), bel.wire_far(&vauxn));
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxp), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxn), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
     }
@@ -1445,7 +1445,7 @@ pub fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     for (col, lr) in [(edev.col_lcio.unwrap(), 'L'), (edev.col_rcio.unwrap(), 'R')] {
         for (i, dy) in [(0, 0), (1, 2), (2, 4), (3, 6)] {
             let obel = vrf
-                .find_bel(bel.die, (col, bel.row - 4 + dy), "ILOGIC0")
+                .find_bel(bel.die, (col, bel.row - 4 + dy), "ILOGIC1")
                 .unwrap();
             vrf.verify_node(&[
                 bel.fwire(&format!("CCIO{i}_{lr}")),
@@ -1636,7 +1636,7 @@ pub fn verify_gio_bot(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
             bel.wire(&format!("GIO{i}_CMT")),
             bel.wire(&format!("GIO{i}")),
         );
-        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC0").unwrap();
+        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC1").unwrap();
         vrf.verify_node(&[bel.fwire(&format!("GIO{i}")), obel_io.fwire("CLKOUT_CMT")]);
     }
 }
@@ -1664,7 +1664,7 @@ pub fn verify_gio_top(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
             bel.wire(&format!("GIO{i}_CMT")),
             bel.wire(&format!("GIO{i}")),
         );
-        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC0").unwrap();
+        let obel_io = vrf.find_bel(bel.die, (col, row), "ILOGIC1").unwrap();
         vrf.verify_node(&[bel.fwire(&format!("GIO{i}")), obel_io.fwire("CLKOUT_CMT")]);
     }
 }

@@ -17,7 +17,10 @@ use crate::{
     fgen::{BelKV, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
+    io::iostd::Iostd,
 };
+
+use super::iostd::{DciKind, DiffKind};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum IobDiff {
@@ -389,474 +392,240 @@ fn has_any_brefclk(
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum DiffKind {
-    None,
-    Pseudo,
-    True,
-    TrueTerm,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum DciKind {
-    None,
-    Output,
-    OutputHalf,
-    InputVcc,
-    InputSplit,
-    BiVcc,
-    BiSplit,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct Iostd {
-    pub name: &'static str,
-    pub vcco: Option<u16>,
-    pub vref: Option<u16>,
-    pub diff: DiffKind,
-    pub dci: DciKind,
-    pub drive: &'static [&'static str],
-    pub input_only: bool,
-}
-
 #[allow(clippy::nonminimal_bool)]
 pub fn get_iostds(edev: &prjcombine_virtex2::expanded::ExpandedDevice, lr: bool) -> Vec<Iostd> {
     let mut res = vec![];
     // plain push-pull
     if edev.grid.kind.is_virtex2() {
-        res.push(Iostd {
-            name: "LVTTL",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS33",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS25",
-            vcco: Some(2500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS18",
-            vcco: Some(1800),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS15",
-            vcco: Some(1500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-    } else if edev.grid.kind == GridKind::Spartan3 || (edev.grid.kind.is_spartan3a() && lr) {
-        res.push(Iostd {
-            name: "LVTTL",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS33",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS25",
-            vcco: Some(2500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS18",
-            vcco: Some(1800),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS15",
-            vcco: Some(1500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS12",
-            vcco: Some(1200),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6"],
-            input_only: false,
-        });
+        res.extend([
+            Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("PCI33_3", 3300, &[]),
+            Iostd::cmos("PCI66_3", 3300, &[]),
+            Iostd::cmos("PCIX", 3300, &[]),
+        ]);
+    } else if edev.grid.kind == GridKind::Spartan3 {
+        res.extend([
+            Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8", "12"]),
+            Iostd::cmos("LVCMOS12", 1200, &["2", "4", "6"]),
+            Iostd::cmos("PCI33_3", 3300, &[]),
+            Iostd::cmos("PCI66_3", 3300, &[]),
+        ]);
     } else if edev.grid.kind == GridKind::Spartan3E {
-        res.push(Iostd {
-            name: "LVTTL",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS33",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS25",
-            vcco: Some(2500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS18",
-            vcco: Some(1800),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS15",
-            vcco: Some(1500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS12",
-            vcco: Some(1200),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2"],
-            input_only: false,
-        });
+        res.extend([
+            Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12"]),
+            Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8"]),
+            Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6"]),
+            Iostd::cmos("LVCMOS12", 1200, &["2"]),
+            Iostd::cmos("PCI33_3", 3300, &[]),
+            Iostd::cmos("PCI66_3", 3300, &[]),
+            Iostd::cmos("PCIX", 3300, &[]),
+        ]);
+    } else if lr {
+        // spartan3a lr
+        res.extend([
+            Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8", "12"]),
+            Iostd::cmos("LVCMOS12", 1200, &["2", "4", "6"]),
+            Iostd::cmos("PCI33_3", 3300, &[]),
+            Iostd::cmos("PCI66_3", 3300, &[]),
+            Iostd::cmos("PCIX", 3300, &[]),
+        ]);
     } else {
         // spartan3a tb
-        res.push(Iostd {
-            name: "LVTTL",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16", "24"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS33",
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12", "16"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS25",
-            vcco: Some(2500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8", "12"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS18",
-            vcco: Some(1800),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6", "8"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS15",
-            vcco: Some(1500),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2", "4", "6"],
-            input_only: false,
-        });
-        res.push(Iostd {
-            name: "LVCMOS12",
-            vcco: Some(1200),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &["2"],
-            input_only: false,
-        });
-    }
-    for std in ["PCI33_3", "PCI66_3", "PCIX"] {
-        if std == "PCIX" && edev.grid.kind == GridKind::Spartan3 {
-            continue;
-        }
-        res.push(Iostd {
-            name: std,
-            vcco: Some(3300),
-            vref: None,
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        });
+        res.extend([
+            Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+            Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16"]),
+            Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12"]),
+            Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8"]),
+            Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6"]),
+            Iostd::cmos("LVCMOS12", 1200, &["2"]),
+            Iostd::cmos("PCI33_3", 3300, &[]),
+            Iostd::cmos("PCI66_3", 3300, &[]),
+            Iostd::cmos("PCIX", 3300, &[]),
+        ]);
     }
     // DCI output
     if !edev.grid.kind.is_spartan3ea() {
-        fn std_odci(name: &'static str, vcco: u16) -> Iostd {
-            Iostd {
-                name,
-                vcco: Some(vcco),
-                vref: None,
-                diff: DiffKind::None,
-                dci: DciKind::Output,
-                drive: &[],
-                input_only: false,
-            }
-        }
-        fn std_odci_half(name: &'static str, vcco: u16) -> Iostd {
-            Iostd {
-                name,
-                vcco: Some(vcco),
-                vref: None,
-                diff: DiffKind::None,
-                dci: DciKind::OutputHalf,
-                drive: &[],
-                input_only: false,
-            }
-        }
-        fn std_odci_vref(name: &'static str, vcco: u16, vref: u16) -> Iostd {
-            Iostd {
-                name,
-                vcco: Some(vcco),
-                vref: Some(vref),
-                diff: DiffKind::None,
-                dci: DciKind::Output,
-                drive: &[],
-                input_only: false,
-            }
-        }
-        res.push(std_odci("LVDCI_33", 3300));
-        res.push(std_odci("LVDCI_25", 2500));
-        res.push(std_odci("LVDCI_18", 1800));
-        res.push(std_odci("LVDCI_15", 1500));
+        res.push(Iostd::odci("LVDCI_33", 3300));
+        res.push(Iostd::odci("LVDCI_25", 2500));
+        res.push(Iostd::odci("LVDCI_18", 1800));
+        res.push(Iostd::odci("LVDCI_15", 1500));
         if !edev.grid.kind.is_virtex2p() {
-            res.push(std_odci_half("LVDCI_DV2_33", 3300));
+            res.push(Iostd::odci_half("LVDCI_DV2_33", 3300));
         }
-        res.push(std_odci_half("LVDCI_DV2_25", 2500));
-        res.push(std_odci_half("LVDCI_DV2_18", 1800));
-        res.push(std_odci_half("LVDCI_DV2_15", 1500));
-        res.push(std_odci_vref("HSLVDCI_33", 3300, 1650));
-        res.push(std_odci_vref("HSLVDCI_25", 2500, 1250));
-        res.push(std_odci_vref("HSLVDCI_18", 1800, 900));
-        res.push(std_odci_vref("HSLVDCI_15", 1500, 750));
+        res.push(Iostd::odci_half("LVDCI_DV2_25", 2500));
+        res.push(Iostd::odci_half("LVDCI_DV2_18", 1800));
+        res.push(Iostd::odci_half("LVDCI_DV2_15", 1500));
+        res.push(Iostd::odci_vref("HSLVDCI_33", 3300, 1650));
+        res.push(Iostd::odci_vref("HSLVDCI_25", 2500, 1250));
+        res.push(Iostd::odci_vref("HSLVDCI_18", 1800, 900));
+        res.push(Iostd::odci_vref("HSLVDCI_15", 1500, 750));
     }
     // VREF-based
-    fn std_vref_od(name: &'static str, vref: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: None,
-            vref: Some(vref),
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        }
-    }
-    fn std_vref(name: &'static str, vcco: u16, vref: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: Some(vref),
-            diff: DiffKind::None,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        }
-    }
     if !edev.grid.kind.is_spartan3ea() {
-        res.push(std_vref_od("GTL", 800));
-        res.push(std_vref_od("GTLP", 1000));
+        res.push(Iostd::vref_od("GTL", 800));
+        res.push(Iostd::vref_od("GTLP", 1000));
     }
     if edev.grid.kind == GridKind::Virtex2 {
-        res.push(std_vref("AGP", 3300, 1320));
+        res.push(Iostd::vref("AGP", 3300, 1320));
     }
     if edev.grid.kind == GridKind::Virtex2 || edev.grid.kind.is_spartan3a() {
-        res.push(std_vref("SSTL3_I", 3300, 1500));
-        res.push(std_vref("SSTL3_II", 3300, 1500));
+        res.push(Iostd::vref("SSTL3_I", 3300, 1500));
+        res.push(Iostd::vref("SSTL3_II", 3300, 1500));
     }
-    res.push(std_vref("SSTL2_I", 2500, 1250));
-    res.push(std_vref("SSTL18_I", 1800, 900));
+    res.push(Iostd::vref("SSTL2_I", 2500, 1250));
+    res.push(Iostd::vref("SSTL18_I", 1800, 900));
     if edev.grid.kind != GridKind::Spartan3E && !(edev.grid.kind.is_spartan3a() && !lr) {
-        res.push(std_vref("SSTL2_II", 2500, 1250));
-        res.push(std_vref("SSTL18_II", 1800, 900));
+        res.push(Iostd::vref("SSTL2_II", 2500, 1250));
+        res.push(Iostd::vref("SSTL18_II", 1800, 900));
     }
-    res.push(std_vref("HSTL_I_18", 1800, 900));
+    res.push(Iostd::vref("HSTL_I_18", 1800, 900));
     if edev.grid.kind != GridKind::Spartan3E && !(edev.grid.kind.is_spartan3a() && !lr) {
-        res.push(std_vref("HSTL_II_18", 1800, 900));
+        res.push(Iostd::vref("HSTL_II_18", 1800, 900));
     }
-    res.push(std_vref("HSTL_III_18", 1800, 1100));
+    res.push(Iostd::vref("HSTL_III_18", 1800, 1100));
     if edev.grid.kind.is_virtex2() {
-        res.push(std_vref("HSTL_IV_18", 1800, 1100));
+        res.push(Iostd::vref("HSTL_IV_18", 1800, 1100));
     }
     if edev.grid.kind != GridKind::Spartan3E && !(edev.grid.kind.is_spartan3a() && !lr) {
-        res.push(std_vref("HSTL_I", 1500, 750));
-        res.push(std_vref("HSTL_III", 1500, 900));
+        res.push(Iostd::vref("HSTL_I", 1500, 750));
+        res.push(Iostd::vref("HSTL_III", 1500, 900));
     }
     if edev.grid.kind.is_virtex2() {
-        res.push(std_vref("HSTL_II", 1500, 750));
-        res.push(std_vref("HSTL_IV", 1500, 900));
+        res.push(Iostd::vref("HSTL_II", 1500, 750));
+        res.push(Iostd::vref("HSTL_IV", 1500, 900));
     }
     // VREF-based with DCI
-    fn std_vref_dci_od(name: &'static str, vref: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: None,
-            vref: Some(vref),
-            diff: DiffKind::None,
-            dci: DciKind::BiVcc,
-            drive: &[],
-            input_only: false,
-        }
-    }
-    fn std_vref_dci(name: &'static str, vcco: u16, vref: u16, dci: DciKind) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: Some(vref),
-            diff: DiffKind::None,
-            dci,
-            drive: &[],
-            input_only: false,
-        }
-    }
     if !edev.grid.kind.is_spartan3ea() {
-        res.push(std_vref_dci_od("GTL_DCI", 800));
-        res.push(std_vref_dci_od("GTLP_DCI", 1000));
+        res.push(Iostd::vref_dci_od("GTL_DCI", 1200, 800));
+        res.push(Iostd::vref_dci_od("GTLP_DCI", 1500, 1000));
         if edev.grid.kind == GridKind::Virtex2 {
-            res.push(std_vref_dci("SSTL3_I_DCI", 3300, 1500, DciKind::InputSplit));
-            res.push(std_vref_dci("SSTL3_II_DCI", 3300, 1500, DciKind::BiSplit));
+            res.push(Iostd::vref_dci(
+                "SSTL3_I_DCI",
+                3300,
+                1500,
+                DciKind::InputSplit,
+            ));
+            res.push(Iostd::vref_dci(
+                "SSTL3_II_DCI",
+                3300,
+                1500,
+                DciKind::BiSplit,
+            ));
         }
-        res.push(std_vref_dci("SSTL2_I_DCI", 2500, 1250, DciKind::InputSplit));
-        res.push(std_vref_dci("SSTL2_II_DCI", 2500, 1250, DciKind::BiSplit));
-        res.push(std_vref_dci("SSTL18_I_DCI", 1800, 900, DciKind::InputSplit));
+        res.push(Iostd::vref_dci(
+            "SSTL2_I_DCI",
+            2500,
+            1250,
+            DciKind::InputSplit,
+        ));
+        res.push(Iostd::vref_dci(
+            "SSTL2_II_DCI",
+            2500,
+            1250,
+            DciKind::BiSplit,
+        ));
+        res.push(Iostd::vref_dci(
+            "SSTL18_I_DCI",
+            1800,
+            900,
+            DciKind::InputSplit,
+        ));
         if edev.grid.kind.is_virtex2() {
-            res.push(std_vref_dci("SSTL18_II_DCI", 1800, 900, DciKind::BiSplit));
+            res.push(Iostd::vref_dci(
+                "SSTL18_II_DCI",
+                1800,
+                900,
+                DciKind::BiSplit,
+            ));
         }
 
-        res.push(std_vref_dci(
+        res.push(Iostd::vref_dci(
             "HSTL_I_DCI_18",
             1800,
             900,
             DciKind::InputSplit,
         ));
-        res.push(std_vref_dci("HSTL_II_DCI_18", 1800, 900, DciKind::BiSplit));
-        res.push(std_vref_dci(
+        res.push(Iostd::vref_dci(
+            "HSTL_II_DCI_18",
+            1800,
+            900,
+            DciKind::BiSplit,
+        ));
+        res.push(Iostd::vref_dci(
             "HSTL_III_DCI_18",
             1800,
             1100,
             DciKind::InputVcc,
         ));
         if edev.grid.kind.is_virtex2() {
-            res.push(std_vref_dci("HSTL_IV_DCI_18", 1800, 1100, DciKind::BiVcc));
+            res.push(Iostd::vref_dci(
+                "HSTL_IV_DCI_18",
+                1800,
+                1100,
+                DciKind::BiVcc,
+            ));
         }
-        res.push(std_vref_dci("HSTL_I_DCI", 1500, 750, DciKind::InputSplit));
-        res.push(std_vref_dci("HSTL_III_DCI", 1500, 900, DciKind::InputVcc));
+        res.push(Iostd::vref_dci(
+            "HSTL_I_DCI",
+            1500,
+            750,
+            DciKind::InputSplit,
+        ));
+        res.push(Iostd::vref_dci(
+            "HSTL_III_DCI",
+            1500,
+            900,
+            DciKind::InputVcc,
+        ));
         if edev.grid.kind.is_virtex2() {
-            res.push(std_vref_dci("HSTL_II_DCI", 1500, 750, DciKind::BiSplit));
-            res.push(std_vref_dci("HSTL_IV_DCI", 1500, 900, DciKind::BiVcc));
+            res.push(Iostd::vref_dci("HSTL_II_DCI", 1500, 750, DciKind::BiSplit));
+            res.push(Iostd::vref_dci("HSTL_IV_DCI", 1500, 900, DciKind::BiVcc));
         }
     }
     // pseudo-diff
-    fn std_pseudo_diff(name: &'static str, vcco: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: None,
-            diff: DiffKind::Pseudo,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        }
-    }
     if edev.grid.kind.is_spartan3a() {
-        res.push(std_pseudo_diff("DIFF_SSTL3_I", 3300));
-        res.push(std_pseudo_diff("DIFF_SSTL3_II", 3300));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL3_I", 3300));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL3_II", 3300));
     }
     if edev.grid.kind.is_spartan3ea() {
-        res.push(std_pseudo_diff("DIFF_SSTL2_I", 2500));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL2_I", 2500));
     }
     if edev.grid.kind != GridKind::Spartan3E && !(edev.grid.kind.is_spartan3a() && !lr) {
-        res.push(std_pseudo_diff("DIFF_SSTL2_II", 2500));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL2_II", 2500));
     }
     if edev.grid.kind.is_spartan3ea() {
-        res.push(std_pseudo_diff("DIFF_SSTL18_I", 1800));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL18_I", 1800));
     }
     if edev.grid.kind.is_virtex2() || (edev.grid.kind.is_spartan3a() && lr) {
-        res.push(std_pseudo_diff("DIFF_SSTL18_II", 1800));
+        res.push(Iostd::pseudo_diff("DIFF_SSTL18_II", 1800));
     }
     if edev.grid.kind.is_spartan3ea() {
-        res.push(std_pseudo_diff("DIFF_HSTL_I_18", 1800));
-        res.push(std_pseudo_diff("DIFF_HSTL_III_18", 1800));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_I_18", 1800));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_III_18", 1800));
     }
     if !edev.grid.kind.is_spartan3ea() || (edev.grid.kind.is_spartan3a() && lr) {
-        res.push(std_pseudo_diff("DIFF_HSTL_II_18", 1800));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_II_18", 1800));
     }
     if edev.grid.kind.is_spartan3a() && lr {
-        res.push(std_pseudo_diff("DIFF_HSTL_I", 1500));
-        res.push(std_pseudo_diff("DIFF_HSTL_III", 1500));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_I", 1500));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_III", 1500));
     }
     if edev.grid.kind.is_virtex2() {
-        res.push(std_pseudo_diff("DIFF_HSTL_II", 1500));
+        res.push(Iostd::pseudo_diff("DIFF_HSTL_II", 1500));
     }
     res.push(Iostd {
         name: if edev.grid.kind == GridKind::Virtex2 {
@@ -871,100 +640,72 @@ pub fn get_iostds(edev: &prjcombine_virtex2::expanded::ExpandedDevice, lr: bool)
         drive: &[],
         input_only: edev.grid.kind.is_spartan3ea(),
     });
-    res.push(std_pseudo_diff("BLVDS_25", 2500));
+    res.push(Iostd::pseudo_diff("BLVDS_25", 2500));
     // pseudo-diff with DCI
-    fn std_pseudo_diff_dci(name: &'static str, vcco: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: None,
-            diff: DiffKind::Pseudo,
-            dci: DciKind::BiSplit,
-            drive: &[],
-            input_only: false,
-        }
-    }
     if !edev.grid.kind.is_spartan3ea() {
         if edev.grid.kind.is_virtex2() {
-            res.push(std_pseudo_diff_dci("DIFF_HSTL_II_DCI", 1500));
-            res.push(std_pseudo_diff_dci("DIFF_SSTL18_II_DCI", 1800));
+            res.push(Iostd::pseudo_diff_dci(
+                "DIFF_HSTL_II_DCI",
+                1500,
+                DciKind::BiSplit,
+            ));
+            res.push(Iostd::pseudo_diff_dci(
+                "DIFF_SSTL18_II_DCI",
+                1800,
+                DciKind::BiSplit,
+            ));
         }
-        res.push(std_pseudo_diff_dci("DIFF_HSTL_II_DCI_18", 1800));
-        res.push(std_pseudo_diff_dci("DIFF_SSTL2_II_DCI", 2500));
+        res.push(Iostd::pseudo_diff_dci(
+            "DIFF_HSTL_II_DCI_18",
+            1800,
+            DciKind::BiSplit,
+        ));
+        res.push(Iostd::pseudo_diff_dci(
+            "DIFF_SSTL2_II_DCI",
+            2500,
+            DciKind::BiSplit,
+        ));
     }
     // true diff
-    fn std_true_diff(name: &'static str, vcco: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: None,
-            diff: DiffKind::True,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        }
-    }
-    fn std_true_diff_term(name: &'static str, vcco: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: None,
-            diff: DiffKind::TrueTerm,
-            dci: DciKind::None,
-            drive: &[],
-            input_only: false,
-        }
-    }
-    res.push(std_true_diff("LVDS_25", 2500));
+    res.push(Iostd::true_diff("LVDS_25", 2500));
     if edev.grid.kind == GridKind::Virtex2 || edev.grid.kind.is_spartan3a() {
-        res.push(std_true_diff("LVDS_33", 3300));
+        res.push(Iostd::true_diff("LVDS_33", 3300));
     }
     if !edev.grid.kind.is_spartan3ea() {
-        res.push(std_true_diff("LVDSEXT_25", 2500));
-        res.push(std_true_diff("ULVDS_25", 2500));
-        res.push(std_true_diff("LDT_25", 2500));
+        res.push(Iostd::true_diff("LVDSEXT_25", 2500));
+        res.push(Iostd::true_diff("ULVDS_25", 2500));
+        res.push(Iostd::true_diff("LDT_25", 2500));
     }
     if edev.grid.kind == GridKind::Virtex2 {
-        res.push(std_true_diff("LVDSEXT_33", 3300));
+        res.push(Iostd::true_diff("LVDSEXT_33", 3300));
     }
     if !edev.grid.kind.is_virtex2() {
-        res.push(std_true_diff("RSDS_25", 2500));
+        res.push(Iostd::true_diff("RSDS_25", 2500));
     }
     if edev.grid.kind.is_spartan3ea() {
-        res.push(std_true_diff("MINI_LVDS_25", 2500));
+        res.push(Iostd::true_diff("MINI_LVDS_25", 2500));
     }
     if edev.grid.kind.is_spartan3a() {
-        res.push(std_true_diff("PPDS_25", 2500));
-        res.push(std_true_diff("RSDS_33", 3300));
-        res.push(std_true_diff("MINI_LVDS_33", 3300));
-        res.push(std_true_diff("PPDS_33", 3300));
-        res.push(std_true_diff("TMDS_33", 3300));
+        res.push(Iostd::true_diff("PPDS_25", 2500));
+        res.push(Iostd::true_diff("RSDS_33", 3300));
+        res.push(Iostd::true_diff("MINI_LVDS_33", 3300));
+        res.push(Iostd::true_diff("PPDS_33", 3300));
+        res.push(Iostd::true_diff("TMDS_33", 3300));
     }
     if edev.grid.kind.is_virtex2p() {
-        res.push(std_true_diff_term("LVDS_25_DT", 2500));
-        res.push(std_true_diff_term("LVDSEXT_25_DT", 2500));
-        res.push(std_true_diff_term("LDT_25_DT", 2500));
-        res.push(std_true_diff_term("ULVDS_25_DT", 2500));
+        res.push(Iostd::true_diff_term("LVDS_25_DT", 2500));
+        res.push(Iostd::true_diff_term("LVDSEXT_25_DT", 2500));
+        res.push(Iostd::true_diff_term("LDT_25_DT", 2500));
+        res.push(Iostd::true_diff_term("ULVDS_25_DT", 2500));
     }
     // true diff with DCI
-    fn std_true_diff_dci(name: &'static str, vcco: u16) -> Iostd {
-        Iostd {
-            name,
-            vcco: Some(vcco),
-            vref: None,
-            diff: DiffKind::True,
-            dci: DciKind::InputSplit,
-            drive: &[],
-            input_only: false,
-        }
-    }
     if !edev.grid.kind.is_spartan3ea() {
         if edev.grid.kind == GridKind::Virtex2 {
-            res.push(std_true_diff_dci("LVDS_33_DCI", 3300));
-            res.push(std_true_diff_dci("LVDSEXT_33_DCI", 3300));
+            res.push(Iostd::true_diff_dci("LVDS_33_DCI", 3300));
+            res.push(Iostd::true_diff_dci("LVDSEXT_33_DCI", 3300));
         }
-        res.push(std_true_diff_dci("LVDS_25_DCI", 2500));
-        res.push(std_true_diff_dci("LVDSEXT_25_DCI", 2500));
+        res.push(Iostd::true_diff_dci("LVDS_25_DCI", 2500));
+        res.push(Iostd::true_diff_dci("LVDSEXT_25_DCI", 2500));
     }
     res
 }
@@ -4017,6 +3758,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => "NONE",
                         DciKind::InputVcc | DciKind::BiVcc => "TERM_VCC",
                         DciKind::InputSplit | DciKind::BiSplit => "TERM_SPLIT",
+                        _ => unreachable!(),
                     };
                     if dci_mode != "NONE" {
                         diff.apply_enum_diff(

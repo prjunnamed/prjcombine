@@ -229,8 +229,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ppc::virtex5::add_fuzzers(&mut hammer, &backend);
                     emac::virtex5::add_fuzzers(&mut hammer, &backend);
                     pcie::virtex5::add_fuzzers(&mut hammer, &backend);
-                    // TODO: gtp
-                    // TODO: gtx
+                    gt::virtex5::add_fuzzers(&mut hammer, &backend);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -392,6 +391,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ppc::virtex5::collect_fuzzers(&mut ctx);
                     emac::virtex5::collect_fuzzers(&mut ctx);
                     pcie::virtex5::collect_fuzzers(&mut ctx);
+                    gt::virtex5::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);

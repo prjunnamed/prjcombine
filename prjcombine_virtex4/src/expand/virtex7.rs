@@ -630,13 +630,13 @@ impl DieExpander<'_, '_, '_> {
                                     die: self.die.die,
                                     col,
                                     row,
-                                    iob: TileIobId::from_idx(0),
+                                    iob: TileIobId::from_idx(1),
                                 },
                                 IoCoord {
                                     die: self.die.die,
                                     col,
                                     row,
-                                    iob: TileIobId::from_idx(1),
+                                    iob: TileIobId::from_idx(0),
                                 },
                             )
                         })
@@ -1518,34 +1518,34 @@ impl DieExpander<'_, '_, '_> {
                             self.db.get_node_naming(&naming),
                             &[(col, row), (col, row + 1)],
                         );
-                        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
-                        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row]));
-                        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
-                        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row]));
-                        node.add_bel(4, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row] + 1));
-                        node.add_bel(5, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row]));
-                        let iob_name_p = format!("IOB_X{iox}Y{y}", y = self.tieylut[row] + 1);
+                        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = self.tieylut[row] + 1));
+                        node.add_bel(4, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row]));
+                        node.add_bel(5, format!("IDELAY_X{iox}Y{y}", y = self.tieylut[row] + 1));
                         let iob_name_n = format!("IOB_X{iox}Y{y}", y = self.tieylut[row]);
+                        let iob_name_p = format!("IOB_X{iox}Y{y}", y = self.tieylut[row] + 1);
                         if kind == IoKind::Hpio {
+                            node.add_bel(6, format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row]));
                             node.add_bel(
-                                6,
+                                7,
                                 format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row] + 1),
                             );
-                            node.add_bel(7, format!("ODELAY_X{iox}Y{y}", y = self.tieylut[row]));
-                            node.add_bel(8, iob_name_p.clone());
-                            node.add_bel(9, iob_name_n.clone());
+                            node.add_bel(8, iob_name_n.clone());
+                            node.add_bel(9, iob_name_p.clone());
                         } else {
-                            node.add_bel(6, iob_name_p.clone());
-                            node.add_bel(7, iob_name_n.clone());
+                            node.add_bel(6, iob_name_n.clone());
+                            node.add_bel(7, iob_name_p.clone());
                         }
                         let pkgid = (50 - biob) / 2;
-                        let crd_p = IoCoord {
+                        let crd_n = IoCoord {
                             die: self.die.die,
                             col,
                             row,
                             iob: TileIobId::from_idx(0),
                         };
-                        let crd_n = IoCoord {
+                        let crd_p = IoCoord {
                             die: self.die.die,
                             col,
                             row,
@@ -1557,23 +1557,6 @@ impl DieExpander<'_, '_, '_> {
                         let is_vref = matches!(biob, 11 | 37);
                         let byte = Some((pkgid - 1) / 6);
                         self.io.extend([
-                            Io {
-                                crd: crd_p,
-                                name: iob_name_p,
-                                bank,
-                                biob: biob + 1,
-                                pkgid,
-                                byte,
-                                kind,
-                                diff: IoDiffKind::P(crd_n),
-                                is_lc: false,
-                                is_gc: false,
-                                is_srcc,
-                                is_mrcc,
-                                is_dqs,
-                                is_vref: false,
-                                vr: IoVrKind::None,
-                            },
                             Io {
                                 crd: crd_n,
                                 name: iob_name_n,
@@ -1589,6 +1572,23 @@ impl DieExpander<'_, '_, '_> {
                                 is_mrcc,
                                 is_dqs,
                                 is_vref,
+                                vr: IoVrKind::None,
+                            },
+                            Io {
+                                crd: crd_p,
+                                name: iob_name_p,
+                                bank,
+                                biob: biob + 1,
+                                pkgid,
+                                byte,
+                                kind,
+                                diff: IoDiffKind::P(crd_n),
+                                is_lc: false,
+                                is_gc: false,
+                                is_srcc,
+                                is_mrcc,
+                                is_dqs,
+                                is_vref: false,
                                 vr: IoVrKind::None,
                             },
                         ]);
@@ -2395,7 +2395,7 @@ pub fn expand_grid<'a>(
                 die: grid_master,
                 col: col_rio.unwrap(),
                 row: mgrid.row_reg_bot(mgrid.reg_cfg) - 50 + 43,
-                iob: TileIobId::from_idx(0),
+                iob: TileIobId::from_idx(1),
             },
         );
         let mut pins = vec![
@@ -2453,62 +2453,62 @@ pub fn expand_grid<'a>(
     } else {
         cfg_io.extend(
             [
-                (1, 1, SharedCfgPin::Data(16)),
-                (1, 0, SharedCfgPin::Data(17)),
-                (3, 1, SharedCfgPin::Data(18)),
-                (3, 0, SharedCfgPin::Data(19)),
-                (5, 1, SharedCfgPin::Data(20)),
-                (5, 0, SharedCfgPin::Data(21)),
-                (7, 1, SharedCfgPin::Data(22)),
-                (9, 1, SharedCfgPin::Data(23)),
-                (9, 0, SharedCfgPin::Data(24)),
-                (11, 1, SharedCfgPin::Data(25)),
-                (11, 0, SharedCfgPin::Data(26)),
-                (13, 1, SharedCfgPin::Data(27)),
-                (13, 0, SharedCfgPin::Data(28)),
-                (15, 1, SharedCfgPin::Data(29)),
-                (15, 0, SharedCfgPin::Data(30)),
-                (17, 1, SharedCfgPin::Data(31)),
-                (17, 0, SharedCfgPin::CsiB),
-                (19, 1, SharedCfgPin::CsoB),
-                (19, 0, SharedCfgPin::RdWrB),
-                (29, 1, SharedCfgPin::Data(15)),
-                (29, 0, SharedCfgPin::Data(14)),
-                (31, 1, SharedCfgPin::Data(13)),
-                (33, 1, SharedCfgPin::Data(12)),
-                (33, 0, SharedCfgPin::Data(11)),
-                (35, 1, SharedCfgPin::Data(10)),
-                (35, 0, SharedCfgPin::Data(9)),
-                (37, 1, SharedCfgPin::Data(8)),
-                (37, 0, SharedCfgPin::FcsB),
-                (39, 1, SharedCfgPin::Data(7)),
-                (39, 0, SharedCfgPin::Data(6)),
-                (41, 1, SharedCfgPin::Data(5)),
-                (41, 0, SharedCfgPin::Data(4)),
-                (43, 1, SharedCfgPin::EmCclk),
-                (43, 0, SharedCfgPin::PudcB),
-                (45, 1, SharedCfgPin::Data(3)),
-                (45, 0, SharedCfgPin::Data(2)),
-                (47, 1, SharedCfgPin::Data(1)),
-                (47, 0, SharedCfgPin::Data(0)),
-                (51, 1, SharedCfgPin::Rs(0)),
-                (51, 0, SharedCfgPin::Rs(1)),
-                (53, 1, SharedCfgPin::FweB),
-                (53, 0, SharedCfgPin::FoeB),
-                (55, 1, SharedCfgPin::Addr(16)),
-                (55, 0, SharedCfgPin::Addr(17)),
-                (57, 1, SharedCfgPin::Addr(18)),
-                (59, 1, SharedCfgPin::Addr(19)),
-                (59, 0, SharedCfgPin::Addr(20)),
-                (61, 1, SharedCfgPin::Addr(21)),
-                (61, 0, SharedCfgPin::Addr(22)),
-                (63, 1, SharedCfgPin::Addr(23)),
-                (63, 0, SharedCfgPin::Addr(24)),
-                (65, 1, SharedCfgPin::Addr(25)),
-                (65, 0, SharedCfgPin::Addr(26)),
-                (67, 1, SharedCfgPin::Addr(27)),
-                (67, 0, SharedCfgPin::Addr(28)),
-                (69, 1, SharedCfgPin::AdvB),
+                (1, 0, SharedCfgPin::Data(16)),
+                (1, 1, SharedCfgPin::Data(17)),
+                (3, 0, SharedCfgPin::Data(18)),
+                (3, 1, SharedCfgPin::Data(19)),
+                (5, 0, SharedCfgPin::Data(20)),
+                (5, 1, SharedCfgPin::Data(21)),
+                (7, 0, SharedCfgPin::Data(22)),
+                (9, 0, SharedCfgPin::Data(23)),
+                (9, 1, SharedCfgPin::Data(24)),
+                (11, 0, SharedCfgPin::Data(25)),
+                (11, 1, SharedCfgPin::Data(26)),
+                (13, 0, SharedCfgPin::Data(27)),
+                (13, 1, SharedCfgPin::Data(28)),
+                (15, 0, SharedCfgPin::Data(29)),
+                (15, 1, SharedCfgPin::Data(30)),
+                (17, 0, SharedCfgPin::Data(31)),
+                (17, 1, SharedCfgPin::CsiB),
+                (19, 0, SharedCfgPin::CsoB),
+                (19, 1, SharedCfgPin::RdWrB),
+                (29, 0, SharedCfgPin::Data(15)),
+                (29, 1, SharedCfgPin::Data(14)),
+                (31, 0, SharedCfgPin::Data(13)),
+                (33, 0, SharedCfgPin::Data(12)),
+                (33, 1, SharedCfgPin::Data(11)),
+                (35, 0, SharedCfgPin::Data(10)),
+                (35, 1, SharedCfgPin::Data(9)),
+                (37, 0, SharedCfgPin::Data(8)),
+                (37, 1, SharedCfgPin::FcsB),
+                (39, 0, SharedCfgPin::Data(7)),
+                (39, 1, SharedCfgPin::Data(6)),
+                (41, 0, SharedCfgPin::Data(5)),
+                (41, 1, SharedCfgPin::Data(4)),
+                (43, 0, SharedCfgPin::EmCclk),
+                (43, 1, SharedCfgPin::PudcB),
+                (45, 0, SharedCfgPin::Data(3)),
+                (45, 1, SharedCfgPin::Data(2)),
+                (47, 0, SharedCfgPin::Data(1)),
+                (47, 1, SharedCfgPin::Data(0)),
+                (51, 0, SharedCfgPin::Rs(0)),
+                (51, 1, SharedCfgPin::Rs(1)),
+                (53, 0, SharedCfgPin::FweB),
+                (53, 1, SharedCfgPin::FoeB),
+                (55, 0, SharedCfgPin::Addr(16)),
+                (55, 1, SharedCfgPin::Addr(17)),
+                (57, 0, SharedCfgPin::Addr(18)),
+                (59, 0, SharedCfgPin::Addr(19)),
+                (59, 1, SharedCfgPin::Addr(20)),
+                (61, 0, SharedCfgPin::Addr(21)),
+                (61, 1, SharedCfgPin::Addr(22)),
+                (63, 0, SharedCfgPin::Addr(23)),
+                (63, 1, SharedCfgPin::Addr(24)),
+                (65, 0, SharedCfgPin::Addr(25)),
+                (65, 1, SharedCfgPin::Addr(26)),
+                (67, 0, SharedCfgPin::Addr(27)),
+                (67, 1, SharedCfgPin::Addr(28)),
+                (69, 0, SharedCfgPin::AdvB),
             ]
             .into_iter()
             .map(|(dy, iob, pin)| {
@@ -2590,6 +2590,7 @@ pub fn expand_grid<'a>(
                 .collect(),
         });
     }
+    let io_by_crd = io.iter().map(|io| ((io.crd), io.clone())).collect();
 
     egrid.finish();
     ExpandedDevice {
@@ -2614,6 +2615,7 @@ pub fn expand_grid<'a>(
         row_dcmiob: None,
         row_iobdcm: None,
         io,
+        io_by_crd,
         gt,
         gtz,
         sysmon,

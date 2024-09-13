@@ -8,7 +8,7 @@ Virtex 2
    :caption: Contents:
 
    intro
-   structure
+   geometry
    interconnect
    clb
    bram

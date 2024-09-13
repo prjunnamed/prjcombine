@@ -21,7 +21,7 @@ use crate::{
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
-    io::virtex2::{get_iostds, DciKind, DiffKind},
+    io::{iostd::{DciKind, DiffKind}, virtex2::get_iostds},
 };
 
 pub fn add_fuzzers<'a>(
@@ -1919,6 +1919,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                                 ));
                             }
                         }
+                        _ => unreachable!(),
                     }
                 }
                 let prefix = match edev.grid.kind {

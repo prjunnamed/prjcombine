@@ -7,13 +7,17 @@ Virtex 5
    :maxdepth: 2
    :caption: Contents:
 
+   geometry
    interconnect
    clb
    bram
    dsp
+   io
    center
    clock
    ppc
    emac
    pcie
+   gtp
+   gtx
    config

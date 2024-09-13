@@ -1,27 +1,116 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{
-        xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum, xlat_enum_ocd, CollectorCtx,
-        Diff, OcdMode,
+        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
+        xlat_bool, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
     },
-    fgen::TileBits,
+    fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
+    fuzz_one_extras,
+    io::iostd::DiffKind,
 };
 
+use super::iostd::{DciKind, Iostd};
+
+const IOSTDS: &[Iostd] = &[
+    Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("PCI33_3", 3300, &[]),
+    Iostd::cmos("PCI66_3", 3300, &[]),
+    Iostd::cmos("PCIX", 3300, &[]),
+    Iostd::odci("LVDCI_33", 3300),
+    Iostd::odci("LVDCI_25", 2500),
+    Iostd::odci("LVDCI_18", 1800),
+    Iostd::odci("LVDCI_15", 1500),
+    Iostd::odci_half("LVDCI_DV2_25", 2500),
+    Iostd::odci_half("LVDCI_DV2_18", 1800),
+    Iostd::odci_half("LVDCI_DV2_15", 1500),
+    Iostd::odci_vref("HSLVDCI_33", 3300, 1650),
+    Iostd::odci_vref("HSLVDCI_25", 2500, 1250),
+    Iostd::odci_vref("HSLVDCI_18", 1800, 900),
+    Iostd::odci_vref("HSLVDCI_15", 1500, 750),
+    Iostd::vref_od("GTL", 800),
+    Iostd::vref_od("GTLP", 1000),
+    Iostd::vref("SSTL2_I", 2500, 1250),
+    Iostd::vref("SSTL2_II", 2500, 1250),
+    Iostd::vref("SSTL18_I", 1800, 900),
+    Iostd::vref("SSTL18_II", 1800, 900),
+    Iostd::vref("HSTL_I_18", 1800, 900),
+    Iostd::vref("HSTL_II_18", 1800, 900),
+    Iostd::vref("HSTL_III_18", 1800, 1080),
+    Iostd::vref("HSTL_IV_18", 1800, 1080),
+    Iostd::vref("HSTL_I", 1500, 750),
+    Iostd::vref("HSTL_II", 1500, 750),
+    Iostd::vref("HSTL_III", 1500, 900),
+    Iostd::vref("HSTL_IV", 1500, 900),
+    Iostd::vref("HSTL_I_12", 1200, 600),
+    Iostd::vref_dci_od("GTL_DCI", 1200, 800),
+    Iostd::vref_dci_od("GTLP_DCI", 1500, 1000),
+    Iostd::vref_dci("SSTL2_I_DCI", 2500, 1250, DciKind::InputSplit),
+    Iostd::vref_dci("SSTL2_II_DCI", 2500, 1250, DciKind::BiSplit),
+    Iostd::vref_dci("SSTL2_II_T_DCI", 2500, 1250, DciKind::BiSplitT),
+    Iostd::vref_dci("SSTL18_I_DCI", 1800, 900, DciKind::InputSplit),
+    Iostd::vref_dci("SSTL18_II_DCI", 1800, 900, DciKind::BiSplit),
+    Iostd::vref_dci("SSTL18_II_T_DCI", 1800, 900, DciKind::BiSplitT),
+    Iostd::vref_dci("HSTL_I_DCI_18", 1800, 900, DciKind::InputSplit),
+    Iostd::vref_dci("HSTL_II_DCI_18", 1800, 900, DciKind::BiSplit),
+    Iostd::vref_dci("HSTL_II_T_DCI_18", 1800, 900, DciKind::BiSplitT),
+    Iostd::vref_dci("HSTL_III_DCI_18", 1800, 1080, DciKind::InputVcc),
+    Iostd::vref_dci("HSTL_IV_DCI_18", 1800, 1080, DciKind::BiVcc),
+    Iostd::vref_dci("HSTL_I_DCI", 1500, 750, DciKind::InputSplit),
+    Iostd::vref_dci("HSTL_II_DCI", 1500, 750, DciKind::BiSplit),
+    Iostd::vref_dci("HSTL_II_T_DCI", 1500, 750, DciKind::BiSplitT),
+    Iostd::vref_dci("HSTL_III_DCI", 1500, 900, DciKind::InputVcc),
+    Iostd::vref_dci("HSTL_IV_DCI", 1500, 900, DciKind::BiVcc),
+    Iostd::pseudo_diff("DIFF_SSTL2_II", 2500),
+    Iostd::pseudo_diff("DIFF_SSTL18_II", 1800),
+    Iostd::pseudo_diff("DIFF_HSTL_II_18", 1800),
+    Iostd::pseudo_diff("DIFF_HSTL_II", 1500),
+    Iostd::pseudo_diff("BLVDS_25", 2500),
+    Iostd::pseudo_diff("LVPECL_25", 2500),
+    Iostd::pseudo_diff_dci("DIFF_SSTL2_II_DCI", 2500, DciKind::BiSplit),
+    Iostd::pseudo_diff_dci("DIFF_SSTL18_II_DCI", 1800, DciKind::BiSplit),
+    Iostd::pseudo_diff_dci("DIFF_HSTL_II_DCI_18", 1800, DciKind::BiSplit),
+    Iostd::pseudo_diff_dci("DIFF_HSTL_II_DCI", 1500, DciKind::BiSplit),
+    Iostd::true_diff("LVDS_25", 2500),
+    Iostd::true_diff("LVDSEXT_25", 2500),
+    Iostd::true_diff("RSDS_25", 2500),
+    Iostd::true_diff("ULVDS_25", 2500),
+    Iostd::true_diff("LDT_25", 2500),
+    Iostd::true_diff_dci("LVDS_25_DCI", 2500),
+    Iostd::true_diff_dci("LVDSEXT_25_DCI", 2500),
+];
+
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let package = backend
+        .device
+        .bonds
+        .values()
+        .max_by_key(|bond| {
+            let bdata = &backend.db.bonds[bond.bond];
+            let prjcombine_xilinx_geom::Bond::Virtex4(bdata) = bdata else {
+                unreachable!();
+            };
+            bdata.pins.len()
+        })
+        .unwrap();
+
     let bel_ioclk = BelId::from_idx(6);
     for i in 0..2 {
         let ctx = FuzzCtx::new(
             session,
             backend,
-            "IOIS",
+            "IO",
             format!("ILOGIC{i}"),
             TileBits::MainAuto,
         );
@@ -420,7 +509,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         let ctx = FuzzCtx::new(
             session,
             backend,
-            "IOIS",
+            "IO",
             format!("OLOGIC{i}"),
             TileBits::MainAuto,
         );
@@ -692,10 +781,364 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             ]);
         }
     }
+    for i in 0..2 {
+        let ctx = FuzzCtx::new(
+            session,
+            backend,
+            "IO",
+            format!("IOB{i}"),
+            TileBits::MainAuto,
+        );
+        fuzz_one!(ctx, "PRESENT", "IOB", [
+            (global_opt "DCIUPDATEMODE", "ASREQUIRED"),
+            (package package.name),
+            (bel_special BelKV::IsBonded)
+        ], [
+            (mode "IOB")
+        ]);
+        fuzz_one!(ctx, "PRESENT", "IOB.CONTINUOUS", [
+            (global_opt "DCIUPDATEMODE", "CONTINUOUS"),
+            (package package.name),
+            (bel_special BelKV::IsBonded)
+        ], [
+            (mode "IOB")
+        ]);
+        fuzz_one!(ctx, "PRESENT", "IPAD", [
+            (global_opt "DCIUPDATEMODE", "ASREQUIRED"),
+            (package package.name),
+            (bel_special BelKV::IsBonded)
+        ], [
+            (mode "IPAD")
+        ]);
+        fuzz_enum!(ctx, "PULL", ["KEEPER", "PULLDOWN", "PULLUP"], [
+            (package package.name),
+            (bel_special BelKV::IsBonded),
+            (mode "IOB")
+        ]);
+        fuzz_enum!(ctx, "GTSATTRBOX", ["DISABLE_GTS"], [
+            (mode "IOB")
+        ]);
+        fuzz_one!(ctx, "OUSED", "0", [
+            (mode "IOB"),
+            (pin "O"),
+            (attr "IOATTRBOX", "")
+        ], [
+            (attr "DRIVE_0MA", "DRIVE_0MA"),
+            (attr "OUSED", "0")
+        ]);
+        fuzz_multi_attr_bin!(ctx, "OPROGRAMMING", 22, [
+            (mode "IOB"),
+            (mutex "MODE", "MANUAL"),
+            (attr "OUSED", "0"),
+            (pin "O")
+        ]);
+        for &std in IOSTDS {
+            let mut extras = vec![];
+            let mut vref_special = BelKV::Nop;
+            let mut dci_special = BelKV::Nop;
+            if std.vref.is_some() {
+                vref_special = BelKV::PrepVref;
+                extras.push(ExtraFeature::new(
+                    ExtraFeatureKind::Vref,
+                    "IO",
+                    "IOB0",
+                    "PRESENT",
+                    "VREF",
+                ));
+            }
+            if matches!(
+                std.dci,
+                DciKind::BiSplit
+                    | DciKind::BiSplitT
+                    | DciKind::BiVcc
+                    | DciKind::InputSplit
+                    | DciKind::InputVcc
+            ) {
+                dci_special = BelKV::PrepDci;
+                extras.push(ExtraFeature::new(
+                    ExtraFeatureKind::Vr,
+                    "IO",
+                    "IOB_COMMON",
+                    "PRESENT",
+                    "VR",
+                ));
+                extras.push(ExtraFeature::new(
+                    ExtraFeatureKind::HclkIoDci("HCLK_IOIS_DCI"),
+                    "HCLK_IOIS_DCI",
+                    "DCI",
+                    "STD",
+                    std.name,
+                ));
+            }
+            if std.diff != DiffKind::None {
+                fuzz_one_extras!(ctx, "ISTD", std.name, [
+                    (mode "IOB"),
+                    (attr "OUSED", ""),
+                    (pin "I"),
+                    (pin "DIFFI_IN"),
+                    (package package.name),
+                    (bel_special BelKV::IsBonded),
+                    (bel_special dci_special.clone())
+                ], [
+                    (attr "INBUFUSED", "0"),
+                    (attr "DIFFI_INUSED", "0"),
+                    (attr "IOATTRBOX", std.name)
+                ], extras);
+                if std.diff == DiffKind::True && std.dci == DciKind::None {
+                    fuzz_one!(ctx, "DIFF_TERM", std.name, [
+                        (mode "IOB"),
+                        (attr "OUSED", ""),
+                        (pin "I"),
+                        (pin "DIFFI_IN"),
+                        (attr "INBUFUSED", "0"),
+                        (attr "DIFFI_INUSED", "0"),
+                        (attr "IOATTRBOX", std.name),
+                        (package package.name),
+                        (bel_special BelKV::IsBonded),
+                        (bel_special dci_special)
+                    ], [
+                        (attr "DIFF_TERM", "TRUE")
+                    ]);
+                }
+            } else {
+                fuzz_one_extras!(ctx, "ISTD", std.name, [
+                    (mode "IOB"),
+                    (attr "OUSED", ""),
+                    (pin "I"),
+                    (package package.name),
+                    (bel_special BelKV::IsBonded),
+                    (bel_special vref_special),
+                    (bel_special dci_special)
+                ], [
+                    (attr "INBUFUSED", "0"),
+                    (attr "IOATTRBOX", std.name)
+                ], extras);
+            }
+        }
+        for &std in IOSTDS {
+            if std.diff == DiffKind::True {
+                if i == 0 {
+                    fuzz_one!(ctx, "OSTD", std.name, [
+                        (attr "INBUFUSED", ""),
+                        (attr "OPROGRAMMING", ""),
+                        (attr "OUSED", ""),
+                        (pin "DIFFO_IN"),
+                        (package package.name),
+                        (bel_special BelKV::IsBonded),
+                        (bel_special BelKV::PrepDiffOut)
+                    ], [
+                        (mode_diff "IOB", "IOBS"),
+                        (attr "IOATTRBOX", std.name),
+                        (attr "OUTMUX", "1"),
+                        (attr "DIFFO_INUSED", "0")
+                    ]);
+                } else {
+                    let extras = vec![ExtraFeature::new(
+                        ExtraFeatureKind::HclkIoLvds,
+                        "HCLK_IOIS_LVDS",
+                        "LVDS",
+                        "STD",
+                        std.name,
+                    )];
+                    fuzz_one_extras!(ctx, "OSTD", std.name, [
+                        (pin "O"),
+                        (attr "INBUFUSED", ""),
+                        (attr "OPROGRAMMING", ""),
+                        (attr "OUSED", "0"),
+                        (package package.name),
+                        (bel_special BelKV::IsBonded),
+                        (bel_special BelKV::PrepDiffOut)
+                    ], [
+                        (mode_diff "IOB", "IOBM"),
+                        (attr "IOATTRBOX", std.name),
+                        (attr_diff "DRIVE_0MA", "DRIVE_0MA", "")
+                    ], extras);
+                }
+            } else if matches!(
+                std.dci,
+                DciKind::Output
+                    | DciKind::OutputHalf
+                    | DciKind::BiSplit
+                    | DciKind::BiSplitT
+                    | DciKind::BiVcc
+            ) {
+                let extras = vec![
+                    ExtraFeature::new(ExtraFeatureKind::Vr, "IO", "IOB_COMMON", "PRESENT", "VR"),
+                    ExtraFeature::new(
+                        ExtraFeatureKind::HclkIoDci("HCLK_IOIS_DCI"),
+                        "HCLK_IOIS_DCI",
+                        "DCI",
+                        "STD",
+                        std.name,
+                    ),
+                ];
+                fuzz_one_extras!(ctx, "OSTD", std.name, [
+                    (mode "IOB"),
+                    (pin "O"),
+                    (attr "INBUFUSED", ""),
+                    (attr "OPROGRAMMING", ""),
+                    (attr "OUSED", "0"),
+                    (package package.name),
+                    (bel_special BelKV::IsBonded),
+                    (bel_special BelKV::PrepDci)
+                ], [
+                    (attr "IOATTRBOX", std.name),
+                    (attr_diff "DRIVE_0MA", "DRIVE_0MA", "")
+                ], extras);
+            } else if !std.drive.is_empty() {
+                for &drive in std.drive {
+                    for slew in ["SLOW", "FAST"] {
+                        fuzz_one!(ctx, "OSTD", format!("{name}.{drive}.{slew}", name=std.name), [
+                            (mode "IOB"),
+                            (pin "O"),
+                            (attr "INBUFUSED", ""),
+                            (attr "OPROGRAMMING", ""),
+                            (attr "OUSED", "0")
+                        ], [
+                            (attr "IOATTRBOX", std.name),
+                            (attr_diff "DRIVE_0MA", "DRIVE_0MA", ""),
+                            (attr "DRIVEATTRBOX", drive),
+                            (attr "SLEW", slew)
+                        ]);
+                    }
+                }
+            } else {
+                fuzz_one!(ctx, "OSTD", std.name, [
+                    (mode "IOB"),
+                    (pin "O"),
+                    (attr "INBUFUSED", ""),
+                    (attr "OPROGRAMMING", ""),
+                    (attr "OUSED", "0")
+                ], [
+                    (attr "IOATTRBOX", std.name),
+                    (attr_diff "DRIVE_0MA", "DRIVE_0MA", "")
+                ]);
+            }
+        }
+    }
+    let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
+    let extras = [
+        "HCLK_IOIS_DCI",
+        "HCLK_CENTER",
+        "HCLK_CENTER_ABOVE_CFG",
+        "HCLK_DCMIOB",
+        "HCLK_IOBDCM",
+    ]
+    .into_iter()
+    .map(|tile| ExtraFeature::new(ExtraFeatureKind::AllHclkIo(tile), tile, "DCI", "QUIET", "1"))
+    .collect();
+    fuzz_one_extras!(ctx, "DCIUPDATEMODE", "QUIET", [], [
+        (global_opt_diff "DCIUPDATEMODE", "CONTINUOUS", "QUIET")
+    ], extras);
+    let hclk_center_cnt = backend.egrid.node_index[backend.egrid.db.get_node("HCLK_CENTER")].len();
+    for i in [1, 2, 3, 4] {
+        let mut extras = vec![
+            ExtraFeature::new(ExtraFeatureKind::Cfg, "CFG", "MISC", "DCI_CLK_ENABLE", "1"),
+            ExtraFeature::new(
+                ExtraFeatureKind::CenterDciIo(i),
+                "IO",
+                "IOB0",
+                "OSTD",
+                "LVDCI_33",
+            ),
+        ];
+        if matches!(i, 1 | 2) && hclk_center_cnt > 1 {
+            extras.extend([
+                ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciHclk(i),
+                    "HCLK_CENTER",
+                    "DCI",
+                    "ENABLE",
+                    "1",
+                ),
+                ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciVr(i),
+                    "IO",
+                    "IOB_COMMON",
+                    "PRESENT",
+                    "VR_CENTER",
+                ),
+            ]);
+            if i == 2 {
+                extras.push(ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciHclkCascade(i, "HCLK_CENTER"),
+                    "HCLK_CENTER",
+                    "DCI",
+                    "CASCADE_FROM_BELOW",
+                    "1",
+                ));
+            } else {
+                extras.push(ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciHclkCascade(i, "HCLK_CENTER_ABOVE_CFG"),
+                    "HCLK_CENTER_ABOVE_CFG",
+                    "DCI",
+                    "CASCADE_FROM_ABOVE",
+                    "1",
+                ));
+                if hclk_center_cnt > 3 {
+                    extras.push(ExtraFeature::new(
+                        ExtraFeatureKind::CenterDciHclkCascade(i, "HCLK_CENTER"),
+                        "HCLK_CENTER",
+                        "DCI",
+                        "CASCADE_FROM_ABOVE",
+                        "1",
+                    ));
+                }
+            }
+        } else if matches!(i, 1 | 2) {
+            extras.extend([ExtraFeature::new(
+                ExtraFeatureKind::CenterDciHclk(i),
+                if i == 1 {
+                    "HCLK_CENTER_ABOVE_CFG"
+                } else {
+                    "HCLK_CENTER"
+                },
+                "DCI",
+                "ENABLE",
+                "1",
+            )]);
+        } else {
+            extras.extend([
+                ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciHclk(i),
+                    if i == 3 { "HCLK_IOBDCM" } else { "HCLK_DCMIOB" },
+                    "DCI",
+                    "ENABLE",
+                    "1",
+                ),
+                ExtraFeature::new(
+                    ExtraFeatureKind::CenterDciVr(i),
+                    "IO",
+                    "IOB_COMMON",
+                    "PRESENT",
+                    "VR_CENTER",
+                ),
+            ]);
+        }
+        fuzz_one_extras!(ctx, format!("CENTER_DCI.{i}"), "1", [
+            (package package.name),
+            (special TileKV::CenterDci(i))
+        ], [], extras);
+    }
+
+    for tile in [
+        "HCLK_IOIS_DCI",
+        "HCLK_CENTER",
+        "HCLK_CENTER_ABOVE_CFG",
+        "HCLK_DCMIOB",
+        "HCLK_IOBDCM",
+    ] {
+        let ctx = FuzzCtx::new(session, backend, tile, "DCI", TileBits::Hclk);
+        fuzz_one!(ctx, "TEST_ENABLE", "1", [
+            (global_mutex "GLOBAL_DCI", "NOPE")
+        ], [
+            (mode "DCI")
+        ]);
+    }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "IOIS";
+    let tile = "IO";
     for i in 0..2 {
         let bel = &format!("ILOGIC{i}");
 
@@ -1275,4 +1718,552 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_ologic.assert_empty();
         present_oserdes.assert_empty();
     }
+    let mut present_vr = ctx.state.get_diff(tile, "IOB_COMMON", "PRESENT", "VR");
+    // I don't care.
+    ctx.state
+        .get_diff(tile, "IOB_COMMON", "PRESENT", "VR_CENTER");
+    for i in 0..2 {
+        let bel = &format!("IOB{i}");
+        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "IOB");
+        ctx.collect_enum_default(tile, bel, "PULL", &["PULLDOWN", "PULLUP", "KEEPER"], "NONE");
+        let item = ctx.extract_bit_wide(tile, bel, "OUSED", "0");
+        assert_eq!(item.bits.len(), 2);
+        ctx.tiledb.insert(tile, bel, "OUTPUT_ENABLE", item);
+        ctx.state
+            .get_diff(tile, bel, "GTSATTRBOX", "DISABLE_GTS")
+            .assert_empty();
+        let diff = ctx
+            .state
+            .get_diff(tile, bel, "PRESENT", "IPAD")
+            .combine(&!&present);
+        ctx.tiledb.insert(tile, bel, "VREF_SYSMON", xlat_bit(diff));
+        let diff = ctx
+            .state
+            .get_diff(tile, bel, "PRESENT", "IOB.CONTINUOUS")
+            .combine(&!&present);
+        ctx.tiledb
+            .insert(tile, bel, "DCIUPDATEMODE_ASREQUIRED", xlat_bit(!diff));
+        present.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+
+        let oprog = ctx.extract_bitvec(tile, bel, "OPROGRAMMING", "");
+        let lvds = TileItem::from_bitvec(oprog.bits[0..4].to_vec(), false);
+        let dci_t = TileItem::from_bit(oprog.bits[4], false);
+        let dci_mode = TileItem {
+            bits: oprog.bits[5..8].to_vec(),
+            kind: TileItemKind::Enum {
+                values: [
+                    ("NONE".into(), bitvec![0, 0, 0]),
+                    ("OUTPUT".into(), bitvec![1, 0, 0]),
+                    ("OUTPUT_HALF".into(), bitvec![0, 1, 0]),
+                    ("TERM_VCC".into(), bitvec![1, 1, 0]),
+                    ("TERM_SPLIT".into(), bitvec![0, 0, 1]),
+                ]
+                .into_iter()
+                .collect(),
+            },
+        };
+        let output_misc = TileItem::from_bitvec(oprog.bits[8..10].to_vec(), false);
+        let dci_misc = TileItem::from_bitvec(oprog.bits[10..12].to_vec(), false);
+        let pdrive_bits = oprog.bits[12..17].to_vec();
+        let ndrive_bits = oprog.bits[17..22].to_vec();
+        let pdrive_invert: BitVec = pdrive_bits
+            .iter()
+            .map(|&bit| match present.bits.remove(&bit) {
+                Some(true) => true,
+                None => false,
+                _ => unreachable!(),
+            })
+            .collect();
+        let ndrive_invert: BitVec = ndrive_bits
+            .iter()
+            .map(|&bit| match present.bits.remove(&bit) {
+                Some(true) => true,
+                None => false,
+                _ => unreachable!(),
+            })
+            .collect();
+        let (pslew_bits, nslew_bits) = if i == 0 {
+            (
+                vec![
+                    FeatureBit::new(0, 26, 0),
+                    FeatureBit::new(0, 26, 6),
+                    FeatureBit::new(0, 26, 12),
+                    FeatureBit::new(0, 26, 18),
+                ],
+                vec![
+                    FeatureBit::new(0, 26, 1),
+                    FeatureBit::new(0, 26, 7),
+                    FeatureBit::new(0, 26, 13),
+                    FeatureBit::new(0, 25, 19),
+                ],
+            )
+        } else {
+            (
+                vec![
+                    FeatureBit::new(0, 26, 79),
+                    FeatureBit::new(0, 26, 73),
+                    FeatureBit::new(0, 26, 67),
+                    FeatureBit::new(0, 26, 61),
+                ],
+                vec![
+                    FeatureBit::new(0, 26, 78),
+                    FeatureBit::new(0, 26, 72),
+                    FeatureBit::new(0, 26, 66),
+                    FeatureBit::new(0, 25, 60),
+                ],
+            )
+        };
+        let pslew_invert = bitvec![0, 0, 0, 0];
+        let nslew_invert = bitvec![0, 1, 0, 0];
+
+        let mut ibuf_mode = vec![("OFF", Diff::default())];
+
+        for &std in IOSTDS {
+            let mut diff = ctx.state.get_diff(tile, bel, "ISTD", std.name);
+            match std.dci {
+                DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
+                DciKind::InputVcc | DciKind::BiVcc => {
+                    diff.apply_enum_diff(&dci_mode, "TERM_VCC", "NONE");
+                    diff.apply_bitvec_diff(&dci_misc, &bitvec![1, 1], &bitvec![0, 0]);
+                }
+                DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
+                    diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+                }
+            }
+            let mode = if std.diff != DiffKind::None {
+                "DIFF"
+            } else if std.vref.is_some() {
+                "VREF"
+            } else {
+                "CMOS"
+            };
+            ibuf_mode.push((mode, diff));
+
+            if std.diff == DiffKind::True {
+                let stdname = std.name;
+                let diff = ctx.state.get_diff(tile, bel, "OSTD", std.name);
+                let value = extract_bitvec_val(&lvds, &bitvec![0; 4], diff);
+                let tc = ['C', 'T'][i];
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:LVDS_{tc}:OUTPUT_{stdname}"), value);
+                if std.dci == DciKind::None {
+                    let diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", std.name);
+                    let value = extract_bitvec_val(&lvds, &bitvec![0; 4], diff);
+                    let tc = ['C', 'T'][i];
+                    ctx.tiledb
+                        .insert_misc_data(format!("IOSTD:LVDS_{tc}:TERM_{stdname}"), value);
+                }
+            } else {
+                let (drives, slews) = if !std.drive.is_empty() {
+                    (std.drive, &["SLOW", "FAST"][..])
+                } else {
+                    (&[""][..], &[""][..])
+                };
+                for &drive in drives {
+                    for &slew in slews {
+                        let val = if drive.is_empty() {
+                            std.name.to_string()
+                        } else {
+                            format!("{name}.{drive}.{slew}", name = std.name)
+                        };
+                        let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
+                        let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
+                        for (attr, bits, invert) in [
+                            ("PDRIVE", &pdrive_bits, &pdrive_invert),
+                            ("NDRIVE", &ndrive_bits, &ndrive_invert),
+                        ] {
+                            let value: BitVec = bits
+                                .iter()
+                                .zip(invert.iter())
+                                .map(|(&bit, inv)| match diff.bits.remove(&bit) {
+                                    Some(val) => {
+                                        assert_eq!(val, !*inv);
+                                        true
+                                    }
+                                    None => false,
+                                })
+                                .collect();
+                            let name = if drive.is_empty() {
+                                stdname.to_string()
+                            } else {
+                                format!("{stdname}.{drive}")
+                            };
+                            ctx.tiledb
+                                .insert_misc_data(format!("IOSTD:{attr}:{name}"), value);
+                        }
+                        for (attr, bits, invert) in [
+                            ("PSLEW", &pslew_bits, &pslew_invert),
+                            ("NSLEW", &nslew_bits, &nslew_invert),
+                        ] {
+                            let value: BitVec = bits
+                                .iter()
+                                .zip(invert.iter())
+                                .map(|(&bit, inv)| match diff.bits.remove(&bit) {
+                                    Some(true) => !*inv,
+                                    None => *inv,
+                                    _ => unreachable!(),
+                                })
+                                .collect();
+                            let name = if drive.is_empty() {
+                                stdname.to_string()
+                            } else {
+                                format!("{stdname}.{drive}.{slew}")
+                            };
+                            ctx.tiledb
+                                .insert_misc_data(format!("IOSTD:{attr}:{name}"), value);
+                        }
+                        let value: BitVec = output_misc
+                            .bits
+                            .iter()
+                            .map(|&bit| match diff.bits.remove(&bit) {
+                                Some(true) => true,
+                                None => false,
+                                _ => unreachable!(),
+                            })
+                            .collect();
+                        ctx.tiledb
+                            .insert_misc_data(format!("IOSTD:OUTPUT_MISC:{stdname}"), value);
+                        match std.dci {
+                            DciKind::None | DciKind::InputVcc | DciKind::InputSplit => {}
+                            DciKind::Output => {
+                                diff.apply_enum_diff(&dci_mode, "OUTPUT", "NONE");
+                            }
+                            DciKind::OutputHalf => {
+                                diff.apply_enum_diff(&dci_mode, "OUTPUT_HALF", "NONE");
+                            }
+                            DciKind::BiVcc => {
+                                diff.apply_enum_diff(&dci_mode, "TERM_VCC", "NONE");
+                                diff.apply_bitvec_diff(&dci_misc, &bitvec![1, 1], &bitvec![0, 0]);
+                            }
+                            DciKind::BiSplit => {
+                                diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+                            }
+                            DciKind::BiSplitT => {
+                                diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+                                diff.apply_bit_diff(&dci_t, true, false);
+                            }
+                        }
+                        diff.assert_empty();
+                    }
+                }
+            }
+        }
+        ctx.tiledb
+            .insert(tile, bel, "IBUF_MODE", xlat_enum(ibuf_mode));
+
+        for (attr, bits, invert) in [
+            ("PDRIVE", &pdrive_bits, &pdrive_invert),
+            ("NDRIVE", &ndrive_bits, &ndrive_invert),
+            ("PSLEW", &pslew_bits, &pslew_invert),
+            ("NSLEW", &nslew_bits, &nslew_invert),
+        ] {
+            let value: BitVec = bits
+                .iter()
+                .zip(invert.iter())
+                .map(|(&bit, inv)| match present_vr.bits.remove(&bit) {
+                    Some(true) => !*inv,
+                    None => *inv,
+                    _ => unreachable!(),
+                })
+                .collect();
+            ctx.tiledb
+                .insert_misc_data(format!("IOSTD:{attr}:VR"), value);
+        }
+        present_vr.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+        present_vr.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+        if i == 0 {
+            let mut present_vref = ctx.state.get_diff(tile, bel, "PRESENT", "VREF");
+            present_vref.apply_bit_diff(ctx.tiledb.item(tile, bel, "VREF_SYSMON"), true, false);
+            present_vref.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+
+            for (attr, bits, invert) in [
+                ("PDRIVE", &pdrive_bits, &pdrive_invert),
+                ("NDRIVE", &ndrive_bits, &ndrive_invert),
+                ("PSLEW", &pslew_bits, &pslew_invert),
+                ("NSLEW", &nslew_bits, &nslew_invert),
+            ] {
+                let value: BitVec = bits
+                    .iter()
+                    .zip(invert.iter())
+                    .map(|(&bit, inv)| match present_vref.bits.remove(&bit) {
+                        Some(true) => !*inv,
+                        None => *inv,
+                        _ => unreachable!(),
+                    })
+                    .collect();
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:{attr}:VREF"), value);
+            }
+            present_vref.assert_empty();
+        }
+
+        ctx.tiledb
+            .insert_misc_data("IOSTD:OUTPUT_MISC:OFF", bitvec![0; 2]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:LVDS_T:OFF", bitvec![0; 4]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:LVDS_C:OFF", bitvec![0; 4]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PDRIVE:OFF", bitvec![0; 5]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NDRIVE:OFF", bitvec![0; 5]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PSLEW:OFF", pslew_invert.clone());
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NSLEW:OFF", nslew_invert.clone());
+        ctx.tiledb.insert(tile, bel, "LVDS", lvds);
+        ctx.tiledb.insert(tile, bel, "DCI_T", dci_t);
+        ctx.tiledb.insert(tile, bel, "DCI_MODE", dci_mode);
+        ctx.tiledb.insert(tile, bel, "OUTPUT_MISC", output_misc);
+        ctx.tiledb.insert(tile, bel, "DCI_MISC", dci_misc);
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "PDRIVE",
+            TileItem {
+                bits: pdrive_bits,
+                kind: TileItemKind::BitVec {
+                    invert: pdrive_invert,
+                },
+            },
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "NDRIVE",
+            TileItem {
+                bits: ndrive_bits,
+                kind: TileItemKind::BitVec {
+                    invert: ndrive_invert,
+                },
+            },
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "PSLEW",
+            TileItem {
+                bits: pslew_bits,
+                kind: TileItemKind::BitVec {
+                    invert: pslew_invert,
+                },
+            },
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "NSLEW",
+            TileItem {
+                bits: nslew_bits,
+                kind: TileItemKind::BitVec {
+                    invert: nslew_invert,
+                },
+            },
+        );
+        present.assert_empty();
+    }
+    let diff1 = present_vr.split_bits_by(|bit| bit.bit >= 40);
+    ctx.tiledb.insert(tile, "IOB0", "VR", xlat_bit(present_vr));
+    ctx.tiledb.insert(tile, "IOB1", "VR", xlat_bit(diff1));
+
+    let tile = "HCLK_IOIS_LVDS";
+    let bel = "LVDS";
+    let item = TileItem::from_bitvec(
+        vec![
+            FeatureBit::new(0, 5, 12),
+            FeatureBit::new(0, 5, 14),
+            FeatureBit::new(0, 3, 15),
+            FeatureBit::new(0, 2, 13),
+            FeatureBit::new(0, 3, 14),
+            FeatureBit::new(0, 3, 13),
+            FeatureBit::new(0, 5, 15),
+            FeatureBit::new(0, 2, 14),
+            FeatureBit::new(0, 11, 13),
+            FeatureBit::new(0, 3, 12),
+        ],
+        false,
+    );
+    for std in IOSTDS {
+        if std.diff == DiffKind::True {
+            let diff = ctx.state.get_diff(tile, bel, "STD", std.name);
+            let val = extract_bitvec_val(&item, &bitvec![0; 10], diff);
+            ctx.tiledb
+                .insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
+        }
+    }
+    ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
+    ctx.tiledb
+        .insert_misc_data("IOSTD:LVDSBIAS:OFF", bitvec![0; 10]);
+
+    let hclk_center_cnt =
+        ctx.edev.egrid().node_index[ctx.edev.egrid().db.get_node("HCLK_CENTER")].len();
+    for tile in [
+        "HCLK_IOIS_DCI",
+        "HCLK_CENTER",
+        "HCLK_CENTER_ABOVE_CFG",
+        "HCLK_IOBDCM",
+        "HCLK_DCMIOB",
+    ] {
+        let bel = "DCI";
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "PREF",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 1, 15),
+                    FeatureBit::new(0, 1, 14),
+                    FeatureBit::new(0, 1, 13),
+                    FeatureBit::new(0, 1, 12),
+                ],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "NREF",
+            TileItem::from_bitvec(
+                vec![FeatureBit::new(0, 27, 15), FeatureBit::new(0, 27, 12)],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "LVDIV2",
+            TileItem::from_bitvec(
+                vec![FeatureBit::new(0, 27, 13), FeatureBit::new(0, 27, 14)],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "PMASK_TERM_VCC",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 4, 12),
+                    FeatureBit::new(0, 4, 13),
+                    FeatureBit::new(0, 4, 14),
+                    FeatureBit::new(0, 4, 15),
+                    FeatureBit::new(0, 2, 12),
+                ],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "PMASK_TERM_SPLIT",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 10, 13),
+                    FeatureBit::new(0, 10, 14),
+                    FeatureBit::new(0, 11, 14),
+                    FeatureBit::new(0, 10, 15),
+                    FeatureBit::new(0, 11, 15),
+                ],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "NMASK_TERM_SPLIT",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 12, 12),
+                    FeatureBit::new(0, 12, 13),
+                    FeatureBit::new(0, 12, 14),
+                    FeatureBit::new(0, 12, 15),
+                    FeatureBit::new(0, 10, 12),
+                ],
+                false,
+            ),
+        );
+        ctx.collect_bit(tile, bel, "QUIET", "1");
+
+        let enable = if (tile == "HCLK_CENTER_ABOVE_CFG" && hclk_center_cnt != 1)
+            || tile == "HCLK_IOIS_DCI"
+        {
+            TileItem::from_bit(FeatureBit::new(0, 0, 14), false)
+        } else {
+            ctx.extract_bit(tile, bel, "ENABLE", "1")
+        };
+        let mut test_enable = ctx.state.get_diff(tile, bel, "TEST_ENABLE", "1");
+        test_enable.apply_bit_diff(&enable, true, false);
+        ctx.tiledb.insert(tile, bel, "ENABLE", enable);
+        ctx.tiledb
+            .insert(tile, bel, "TEST_ENABLE", xlat_bit_wide(test_enable));
+        if tile == "HCLK_CENTER" {
+            if hclk_center_cnt > 1 {
+                ctx.collect_bit(tile, bel, "CASCADE_FROM_BELOW", "1");
+            }
+            if hclk_center_cnt > 3 {
+                ctx.collect_bit(tile, bel, "CASCADE_FROM_ABOVE", "1");
+            }
+        }
+        if tile == "HCLK_CENTER_ABOVE_CFG" && hclk_center_cnt > 1 {
+            ctx.collect_bit(tile, bel, "CASCADE_FROM_ABOVE", "1");
+        }
+    }
+    let tile = "HCLK_IOIS_DCI";
+    let bel = "DCI";
+    for std in IOSTDS {
+        if std.dci == DciKind::None {
+            continue;
+        }
+        let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
+        let mut diff = ctx.state.get_diff(tile, bel, "STD", std.name);
+        match std.dci {
+            DciKind::OutputHalf => {
+                let val = extract_bitvec_val_part(
+                    ctx.tiledb.item(tile, bel, "LVDIV2"),
+                    &bitvec![0; 2],
+                    &mut diff,
+                );
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:DCI:LVDIV2:{stdname}"), val);
+            }
+            DciKind::InputVcc | DciKind::BiVcc => {
+                let val = extract_bitvec_val_part(
+                    ctx.tiledb.item(tile, bel, "PMASK_TERM_VCC"),
+                    &bitvec![0; 5],
+                    &mut diff,
+                );
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:DCI:PMASK_TERM_VCC:{stdname}"), val);
+            }
+            DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
+                let val = extract_bitvec_val_part(
+                    ctx.tiledb.item(tile, bel, "PMASK_TERM_SPLIT"),
+                    &bitvec![0; 5],
+                    &mut diff,
+                );
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:DCI:PMASK_TERM_SPLIT:{stdname}"), val);
+                let val = extract_bitvec_val_part(
+                    ctx.tiledb.item(tile, bel, "NMASK_TERM_SPLIT"),
+                    &bitvec![0; 5],
+                    &mut diff,
+                );
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:DCI:NMASK_TERM_SPLIT:{stdname}"), val);
+            }
+            _ => {}
+        }
+        ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
+    }
+    ctx.tiledb
+        .insert_misc_data("IOSTD:DCI:LVDIV2:OFF", bitvec![0; 2]);
+    ctx.tiledb
+        .insert_misc_data("IOSTD:DCI:PMASK_TERM_VCC:OFF", bitvec![0; 5]);
+    ctx.tiledb
+        .insert_misc_data("IOSTD:DCI:PMASK_TERM_SPLIT:OFF", bitvec![0; 5]);
+    ctx.tiledb
+        .insert_misc_data("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bitvec![0; 5]);
+    let tile = "CFG";
+    let bel = "MISC";
+    ctx.collect_bit_wide(tile, bel, "DCI_CLK_ENABLE", "1");
 }

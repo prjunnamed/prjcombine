@@ -157,3 +157,19 @@ IO clock nodes
 
 .. raw:: html
    :file: ../gen/tile-xc4v-HCLK_MGT.html
+
+
+I/O standard data
+=================
+
+.. raw:: html
+   :file: ../gen/xc4v-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen/xc4v-iostd-dci-lvdiv2.html
+
+.. raw:: html
+   :file: ../gen/xc4v-iostd-dci-mask-term-vcc.html
+
+.. raw:: html
+   :file: ../gen/xc4v-iostd-dci-mask-term-split.html

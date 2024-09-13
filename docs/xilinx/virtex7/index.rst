@@ -7,9 +7,11 @@ Virtex 7
    :maxdepth: 2
    :caption: Contents:
 
+   geometry
    interconnect
    clb
    bram
    dsp
+   io
    pcie
    pcie3

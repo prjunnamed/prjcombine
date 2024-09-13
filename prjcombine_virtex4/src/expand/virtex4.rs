@@ -118,19 +118,19 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
                 let node = self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("IOIS"),
+                    self.db.get_node("IO"),
                     &[&format!("{naming}{l}_X{x}Y{y}")],
                     self.db.get_node_naming(naming),
                     &[(col, row)],
                 );
-                node.add_bel(0, format!("ILOGIC_X{biox}Y{y}", y = 2 * y + 1));
-                node.add_bel(1, format!("ILOGIC_X{biox}Y{y}", y = 2 * y));
-                node.add_bel(2, format!("OLOGIC_X{biox}Y{y}", y = 2 * y + 1));
-                node.add_bel(3, format!("OLOGIC_X{biox}Y{y}", y = 2 * y));
-                let iob_name_p = format!("IOB_X{biox}Y{y}", y = 2 * y + 1);
+                node.add_bel(0, format!("ILOGIC_X{biox}Y{y}", y = 2 * y));
+                node.add_bel(1, format!("ILOGIC_X{biox}Y{y}", y = 2 * y + 1));
+                node.add_bel(2, format!("OLOGIC_X{biox}Y{y}", y = 2 * y));
+                node.add_bel(3, format!("OLOGIC_X{biox}Y{y}", y = 2 * y + 1));
                 let iob_name_n = format!("IOB_X{biox}Y{y}", y = 2 * y);
-                node.add_bel(4, iob_name_p.clone());
-                node.add_bel(5, iob_name_n.clone());
+                let iob_name_p = format!("IOB_X{biox}Y{y}", y = 2 * y + 1);
+                node.add_bel(4, iob_name_n.clone());
+                node.add_bel(5, iob_name_p.clone());
                 let lr = if col == self.col_lio.unwrap() {
                     'L'
                 } else {
@@ -152,13 +152,13 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let bank = banks[row.to_idx() / 32];
                 let biob = (row.to_idx() % 32 * 2) as u32;
                 let pkgid = (64 - biob) / 2;
-                let crd_p = IoCoord {
+                let crd_n = IoCoord {
                     die: self.die.die,
                     col,
                     row,
                     iob: TileIobId::from_idx(0),
                 };
-                let crd_n = IoCoord {
+                let crd_p = IoCoord {
                     die: self.die.die,
                     col,
                     row,
@@ -168,23 +168,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 let is_vref = row.to_idx() % 8 == 4;
                 let is_vr = biob == 18;
                 self.io.extend([
-                    Io {
-                        crd: crd_p,
-                        name: iob_name_p,
-                        bank,
-                        biob: biob + 1,
-                        pkgid,
-                        byte: None,
-                        kind: IoKind::Hpio,
-                        diff: IoDiffKind::P(crd_n),
-                        is_lc: is_cc,
-                        is_gc: false,
-                        is_srcc: is_cc,
-                        is_mrcc: false,
-                        is_dqs: false,
-                        is_vref: false,
-                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
-                    },
                     Io {
                         crd: crd_n,
                         name: iob_name_n,
@@ -201,6 +184,23 @@ impl<'a, 'b> Expander<'a, 'b> {
                         is_dqs: false,
                         is_vref,
                         vr: if is_vr { IoVrKind::VrP } else { IoVrKind::None },
+                    },
+                    Io {
+                        crd: crd_p,
+                        name: iob_name_p,
+                        bank,
+                        biob: biob + 1,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::P(crd_n),
+                        is_lc: is_cc,
+                        is_gc: false,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref: false,
+                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
                     },
                 ]);
 
@@ -368,13 +368,13 @@ impl<'a, 'b> Expander<'a, 'b> {
                                         die: self.die.die,
                                         col: self.col_lio.unwrap(),
                                         row: row + dy,
-                                        iob: TileIobId::from_idx(0),
+                                        iob: TileIobId::from_idx(1),
                                     },
                                     IoCoord {
                                         die: self.die.die,
                                         col: self.col_lio.unwrap(),
                                         row: row + dy,
-                                        iob: TileIobId::from_idx(1),
+                                        iob: TileIobId::from_idx(0),
                                     },
                                 )
                             })
@@ -480,19 +480,19 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
                 let node = self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("IOIS"),
+                    self.db.get_node("IO"),
                     &[&format!("IOIS_LC_X{x}Y{y}")],
                     self.db.get_node_naming("IOIS_LC"),
                     &[(col, row)],
                 );
-                node.add_bel(0, format!("ILOGIC_X1Y{y}", y = 2 * y + 1));
-                node.add_bel(1, format!("ILOGIC_X1Y{y}", y = 2 * y));
-                node.add_bel(2, format!("OLOGIC_X1Y{y}", y = 2 * y + 1));
-                node.add_bel(3, format!("OLOGIC_X1Y{y}", y = 2 * y));
-                let iob_name_p = format!("IOB_X1Y{y}", y = 2 * y + 1);
+                node.add_bel(0, format!("ILOGIC_X1Y{y}", y = 2 * y));
+                node.add_bel(1, format!("ILOGIC_X1Y{y}", y = 2 * y + 1));
+                node.add_bel(2, format!("OLOGIC_X1Y{y}", y = 2 * y));
+                node.add_bel(3, format!("OLOGIC_X1Y{y}", y = 2 * y + 1));
                 let iob_name_n = format!("IOB_X1Y{y}", y = 2 * y);
-                node.add_bel(4, iob_name_p.clone());
-                node.add_bel(5, iob_name_n.clone());
+                let iob_name_p = format!("IOB_X1Y{y}", y = 2 * y + 1);
+                node.add_bel(4, iob_name_n.clone());
+                node.add_bel(5, iob_name_p.clone());
                 let bank;
                 let biob;
                 let pkgid;
@@ -542,13 +542,13 @@ impl<'a, 'b> Expander<'a, 'b> {
                         is_gc = false;
                     }
                 }
-                let crd_p = IoCoord {
+                let crd_n = IoCoord {
                     die: self.die.die,
                     col,
                     row,
                     iob: TileIobId::from_idx(0),
                 };
-                let crd_n = IoCoord {
+                let crd_p = IoCoord {
                     die: self.die.die,
                     col,
                     row,
@@ -565,23 +565,6 @@ impl<'a, 'b> Expander<'a, 'b> {
                 };
                 self.io.extend([
                     Io {
-                        crd: crd_p,
-                        name: iob_name_p,
-                        bank,
-                        biob: biob + 1,
-                        pkgid,
-                        byte: None,
-                        kind: IoKind::Hpio,
-                        diff: IoDiffKind::P(crd_n),
-                        is_lc: true,
-                        is_gc,
-                        is_srcc: is_cc,
-                        is_mrcc: false,
-                        is_dqs: false,
-                        is_vref: false,
-                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
-                    },
-                    Io {
                         crd: crd_n,
                         name: iob_name_n,
                         bank,
@@ -597,6 +580,23 @@ impl<'a, 'b> Expander<'a, 'b> {
                         is_dqs: false,
                         is_vref,
                         vr: if is_vr { IoVrKind::VrP } else { IoVrKind::None },
+                    },
+                    Io {
+                        crd: crd_p,
+                        name: iob_name_p,
+                        bank,
+                        biob: biob + 1,
+                        pkgid,
+                        byte: None,
+                        kind: IoKind::Hpio,
+                        diff: IoDiffKind::P(crd_n),
+                        is_lc: true,
+                        is_gc,
+                        is_srcc: is_cc,
+                        is_mrcc: false,
+                        is_dqs: false,
+                        is_vref: false,
+                        vr: if is_vr { IoVrKind::VrN } else { IoVrKind::None },
                     },
                 ]);
             }
@@ -1358,7 +1358,7 @@ pub fn expand_grid<'a>(
                 die: grid_master,
                 col: col_cfg,
                 row: grid.row_reg_bot(grid.reg_cfg) - 16 + i / 2,
-                iob: TileIobId::from_idx(!i & 1),
+                iob: TileIobId::from_idx(i & 1),
             },
         );
     }
@@ -1369,10 +1369,12 @@ pub fn expand_grid<'a>(
                 die: grid_master,
                 col: col_cfg,
                 row: grid.row_reg_bot(grid.reg_cfg) + 8 + i / 2,
-                iob: TileIobId::from_idx(!i & 1),
+                iob: TileIobId::from_idx(i & 1),
             },
         );
     }
+
+    let io_by_crd = io.iter().map(|io| ((io.crd), io.clone())).collect();
 
     egrid.finish();
     ExpandedDevice {
@@ -1397,6 +1399,7 @@ pub fn expand_grid<'a>(
         row_dcmiob,
         row_iobdcm,
         io,
+        io_by_crd,
         gt,
         gtz: vec![],
         sysmon,

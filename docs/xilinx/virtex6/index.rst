@@ -7,10 +7,12 @@ Virtex 6
    :maxdepth: 2
    :caption: Contents:
 
+   geometry
    interconnect
    clb
    bram
    dsp
+   io
    center
    emac
    pcie

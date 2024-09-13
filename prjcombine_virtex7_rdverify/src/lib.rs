@@ -1042,7 +1042,7 @@ fn verify_hclk_ioi(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
                     3 => -2,
                     _ => unreachable!(),
                 },
-                "ILOGIC0",
+                "ILOGIC1",
             )
             .unwrap();
         vrf.verify_node(&[bel.fwire(&format!("IOCLK_IN{i}_PAD")), obel.fwire("CLKOUT")]);
@@ -1077,7 +1077,7 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         ("REV", SitePinDir::In),
     ];
     let mut dummies = vec!["REV"];
-    if bel.key != "ILOGIC1" {
+    if bel.key != "ILOGIC0" {
         dummies.extend(["SHIFTIN1", "SHIFTIN2"]);
     }
     vrf.verify_bel_dummies(bel, kind, &pins, &["CKINT0", "CKINT1"], &dummies);
@@ -1150,13 +1150,13 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     vrf.claim_pip(bel.crd(), bel.wire("IOB_I_BUF"), bel.wire("IOB_I"));
     vrf.verify_node(&[bel.fwire("IOB_I"), obel_iob.fwire("I")]);
 
-    if bel.key == "ILOGIC1" {
-        let obel = vrf.find_bel_sibling(bel, "ILOGIC0");
+    if bel.key == "ILOGIC0" {
+        let obel = vrf.find_bel_sibling(bel, "ILOGIC1");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
 
-    if bel.key == "ILOGIC0" {
+    if bel.key == "ILOGIC1" {
         let has_clkout = match vrf.rd.source {
             Source::ISE => matches!(bel.row.to_idx() % 50, 7 | 19 | 31 | 43 | 21 | 23 | 25 | 27),
             Source::Vivado => !matches!(bel.row.to_idx() % 50, 13 | 37),
@@ -1169,7 +1169,7 @@ fn verify_ilogic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
 
     let y = bel.row.to_idx() % 50
         + match bel.key {
-            "ILOGIC0" => 1,
+            "ILOGIC1" => 1,
             _ => 0,
         };
     let cmt = match y {
@@ -1225,7 +1225,7 @@ fn verify_ologic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         ("TBYTEOUT", SitePinDir::Out),
     ];
     let mut dummies = vec!["REV"];
-    if bel.key != "OLOGIC0" {
+    if bel.key != "OLOGIC1" {
         dummies.extend(["SHIFTIN1", "SHIFTIN2"]);
     }
     vrf.verify_bel_dummies(
@@ -1307,20 +1307,20 @@ fn verify_ologic(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     vrf.verify_node(&[bel.fwire("IOB_O"), obel_iob.fwire("O")]);
     vrf.verify_node(&[bel.fwire("IOB_T"), obel_iob.fwire("T")]);
 
-    if bel.key == "OLOGIC0" {
-        let obel = vrf.find_bel_sibling(bel, "OLOGIC1");
+    if bel.key == "OLOGIC1" {
+        let obel = vrf.find_bel_sibling(bel, "OLOGIC0");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
 
     vrf.claim_pip(bel.crd(), bel.wire("TBYTEIN"), obel_ioi.wire("TBYTEIN"));
-    if bel.key == "OLOGIC1" && matches!(bel.row.to_idx() % 50, 7 | 19 | 31 | 43) {
+    if bel.key == "OLOGIC0" && matches!(bel.row.to_idx() % 50, 7 | 19 | 31 | 43) {
         vrf.claim_pip(bel.crd(), obel_ioi.wire("TBYTEIN"), bel.wire("TBYTEOUT"));
     }
 
     let y = bel.row.to_idx() % 50
         + match bel.key {
-            "OLOGIC0" => 1,
+            "OLOGIC1" => 1,
             _ => 0,
         };
     let cmt = match y {
@@ -1419,10 +1419,10 @@ fn verify_odelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match (bel.key, bel.node_kind) {
-        ("IOB0", "IOP_HP") => "IOB18M",
-        ("IOB1", "IOP_HP") => "IOB18S",
-        ("IOB0", "IOP_HR") => "IOB33M",
-        ("IOB1", "IOP_HR") => "IOB33S",
+        ("IOB1", "IOP_HP") => "IOB18M",
+        ("IOB0", "IOP_HP") => "IOB18S",
+        ("IOB1", "IOP_HR") => "IOB33M",
+        ("IOB0", "IOP_HR") => "IOB33S",
         ("IOB", "IOS_HP") => "IOB18",
         ("IOB", "IOS_HR") => "IOB33",
         _ => unreachable!(),
@@ -1441,7 +1441,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("PADOUT", SitePinDir::Out),
     ];
     let mut dummies = vec![];
-    if bel.key != "IOB1" {
+    if bel.key != "IOB0" {
         dummies.extend(["DIFF_TERM_INT_EN", "DIFFO_IN", "O_IN", "T_IN"]);
         pins.push(("DIFF_TERM_INT_EN", SitePinDir::In));
     }
@@ -1461,7 +1461,7 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
             _ => unreachable!(),
         };
         let obel = vrf.find_bel_sibling(bel, okey);
-        if bel.key == "IOB1" {
+        if bel.key == "IOB0" {
             vrf.claim_pip(bel.crd(), bel.wire("O_IN"), obel.wire("O_OUT"));
             vrf.claim_pip(bel.crd(), bel.wire("T_IN"), obel.wire("T_OUT"));
             vrf.claim_pip(bel.crd(), bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
@@ -1575,7 +1575,7 @@ fn verify_phaser_in(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
     let dx = if bel.col.to_idx() % 2 == 0 { 1 } else { -1 };
     let dy = [-18, -6, 6, 18][idx];
-    let obel_ilogic = vrf.find_bel_delta(bel, dx, dy, "ILOGIC0").unwrap();
+    let obel_ilogic = vrf.find_bel_delta(bel, dx, dy, "ILOGIC1").unwrap();
     vrf.verify_node(&[bel.fwire("DQS_PAD"), obel_ilogic.fwire("CLKOUT")]);
 
     vrf.claim_node(&[bel.fwire("IO_ICLK")]);
@@ -2760,10 +2760,10 @@ fn verify_xadc(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         vrf.claim_pip(c1n, ow1n, iw1n);
         vrf.claim_node(&[(c0p, iw0p), (c1p, ow1p)]);
         vrf.claim_node(&[(c0n, iw0n), (c1n, ow1n)]);
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
         vrf.claim_node(&[(c1p, iw1p), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
         vrf.claim_node(&[(c1n, iw1n), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
     }

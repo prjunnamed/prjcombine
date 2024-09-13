@@ -220,10 +220,10 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_node(&[bel.fwire(&vauxn)]);
         vrf.claim_pip(bel.crd(), bel.wire(&vauxp), bel.wire_far(&vauxp));
         vrf.claim_pip(bel.crd(), bel.wire(&vauxn), bel.wire_far(&vauxn));
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxp), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
-        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB1").unwrap();
+        let obel = vrf.find_bel(iop.die, (iop.col, iop.row), "IOB0").unwrap();
         vrf.claim_node(&[bel.fwire_far(&vauxn), obel.fwire("MONITOR")]);
         vrf.claim_pip(obel.crd(), obel.wire("MONITOR"), obel.wire("PADOUT"));
     }
@@ -245,7 +245,7 @@ fn verify_clk_mux(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
                     bel.wire(&format!("GIOB{i}")),
                     bel.wire(&format!("PAD_BUF{i}")),
                 );
-                let obel = vrf.find_bel_delta(bel, 0, i, "ILOGIC0").unwrap();
+                let obel = vrf.find_bel_delta(bel, 0, i, "ILOGIC1").unwrap();
                 vrf.verify_node(&[bel.fwire(&format!("PAD{i}")), obel.fwire("CLKOUT")]);
                 // avoid double-claim for IOBs that are also BUFIO inps
                 if !matches!(obel.row.to_idx() % 20, 8..=11) {
@@ -399,8 +399,8 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("OFB"), obel.wire("OQ"));
     vrf.claim_pip(bel.crd(), bel.wire("TFB"), obel.wire("TQ"));
 
-    if bel.key == "ILOGIC1" {
-        let obel = vrf.find_bel_sibling(bel, "ILOGIC0");
+    if bel.key == "ILOGIC0" {
+        let obel = vrf.find_bel_sibling(bel, "ILOGIC1");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
@@ -476,8 +476,8 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("O_IOB"), obel.wire("DATAOUT"));
     vrf.claim_pip(bel.crd(), bel.wire("T_IOB"), bel.wire("TQ"));
 
-    if bel.key == "OLOGIC0" {
-        let obel = vrf.find_bel_sibling(bel, "OLOGIC1");
+    if bel.key == "OLOGIC1" {
+        let obel = vrf.find_bel_sibling(bel, "OLOGIC0");
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
     }
@@ -551,7 +551,7 @@ fn verify_ioi_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let kind = if bel.key == "IOB0" { "IOBM" } else { "IOBS" };
+    let kind = if bel.key == "IOB1" { "IOBM" } else { "IOBS" };
     let pins = [
         ("I", SitePinDir::Out),
         ("O", SitePinDir::In),
@@ -1205,7 +1205,7 @@ fn verify_bufio(vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BUFIO3" => -1,
         _ => unreachable!(),
     };
-    if let Some(obel) = vrf.find_bel_delta(bel, 0, dy, "ILOGIC0") {
+    if let Some(obel) = vrf.find_bel_delta(bel, 0, dy, "ILOGIC1") {
         vrf.claim_node(&[bel.fwire_far("I"), obel.fwire("CLKOUT")]);
         vrf.claim_pip(obel.crd(), obel.wire("CLKOUT"), obel.wire("O"));
     }

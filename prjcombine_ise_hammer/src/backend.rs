@@ -757,7 +757,8 @@ impl<'a> Backend for IseBackend<'a> {
                         let v = e.get_mut();
                         if v.diffs != xdiffs {
                             eprintln!(
-                                "bits mismatch for {f:?}: {vbits:?} vs {xdiffs:?}",
+                                "bits mismatch for {f:?}/{fid:?}: {vbits:?} vs {xdiffs:?}",
+                                fid = feat.id,
                                 vbits = v.diffs
                             );
                             return Some(v.fuzzers.clone());

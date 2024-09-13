@@ -4,7 +4,7 @@ use prjcombine_rawdump::{Coord, Part};
 use prjcombine_rdintb::IntBuilder;
 
 pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("series7", rd);
+    let mut builder = IntBuilder::new("virtex7", rd);
 
     builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
@@ -1469,8 +1469,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 .get_node_naming(if is_l { "INTF.L" } else { "INTF.R" });
             let mut bels = vec![];
             let num = if is_sing { 1 } else { 2 };
-            let ix = if is_sing { 0 } else { 1 };
             for i in 0..num {
+                let ix = if is_sing { i } else { i ^ 1 };
                 let mut bel = builder
                     .bel_xy(
                         if is_sing {
@@ -1480,7 +1480,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         },
                         "ILOGIC",
                         0,
-                        i ^ ix,
+                        i,
                     )
                     .pins_name_only(&[
                         "CLK",
@@ -1497,13 +1497,16 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         "SHIFTOUT2",
                     ])
                     .pin_dummy("REV")
-                    .extra_wire("IOB_I", &[format!("LIOI_IBUF{i}"), format!("RIOI_IBUF{i}")])
-                    .extra_wire("IOB_I_BUF", &[format!("LIOI_I{i}"), format!("RIOI_I{i}")])
-                    .extra_int_in("CKINT0", &[format!("IOI_IMUX20_{ii}", ii = i ^ ix)])
-                    .extra_int_in("CKINT1", &[format!("IOI_IMUX22_{ii}", ii = i ^ ix)])
+                    .extra_wire(
+                        "IOB_I",
+                        &[format!("LIOI_IBUF{ix}"), format!("RIOI_IBUF{ix}")],
+                    )
+                    .extra_wire("IOB_I_BUF", &[format!("LIOI_I{ix}"), format!("RIOI_I{ix}")])
+                    .extra_int_in("CKINT0", &[format!("IOI_IMUX20_{i}")])
+                    .extra_int_in("CKINT1", &[format!("IOI_IMUX22_{i}")])
                     .extra_wire(
                         "PHASER_ICLK",
-                        &[if is_sing || i == 1 {
+                        &[if i == 0 {
                             "IOI_PHASER_TO_IO_ICLK"
                         } else {
                             "IOI_PHASER_TO_IO_ICLK_0"
@@ -1511,21 +1514,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     )
                     .extra_wire(
                         "PHASER_ICLKDIV",
-                        &[if is_sing || i == 1 {
+                        &[if i == 0 {
                             "IOI_PHASER_TO_IO_ICLKDIV"
                         } else {
                             "IOI_PHASER_TO_IO_ICLKDIV_0"
                         }],
                     );
-                if i == 0 {
+                if i == 1 || is_sing {
                     bel = bel.pin_dummy("SHIFTIN1").pin_dummy("SHIFTIN2");
                 }
-                if i == 0 {
+                if i == 1 {
                     bel = bel.extra_wire_force("CLKOUT", format!("{lr}IOI_I2GCLK_TOP0"))
                 }
                 bels.push(bel);
             }
             for i in 0..num {
+                let ix = if is_sing { i } else { i ^ 1 };
                 let mut bel = builder
                     .bel_xy(
                         if is_sing {
@@ -1535,7 +1539,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         },
                         "OLOGIC",
                         0,
-                        i ^ ix,
+                        i,
                     )
                     .pins_name_only(&[
                         "CLK",
@@ -1555,23 +1559,23 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         "TBYTEOUT",
                     ])
                     .pin_dummy("REV")
-                    .extra_int_out("CLKDIV", &[format!("IOI_OLOGIC{i}_CLKDIV")])
-                    .extra_int_in("CLKDIV_CKINT", &[format!("IOI_IMUX8_{ii}", ii = i ^ ix)])
-                    .extra_int_in("CLK_CKINT", &[format!("IOI_IMUX31_{ii}", ii = i ^ ix)])
-                    .extra_int_out("CLK_MUX", &[format!("IOI_OCLK_{i}")])
-                    .extra_wire("CLKM", &[format!("IOI_OCLKM_{i}")])
+                    .extra_int_out("CLKDIV", &[format!("IOI_OLOGIC{ix}_CLKDIV")])
+                    .extra_int_in("CLKDIV_CKINT", &[format!("IOI_IMUX8_{i}")])
+                    .extra_int_in("CLK_CKINT", &[format!("IOI_IMUX31_{i}")])
+                    .extra_int_out("CLK_MUX", &[format!("IOI_OCLK_{ix}")])
+                    .extra_wire("CLKM", &[format!("IOI_OCLKM_{ix}")])
                     .extra_int_out(
                         "TFB_BUF",
                         &[
-                            format!("LIOI_OLOGIC{i}_TFB_LOCAL"),
-                            format!("RIOI_OLOGIC{i}_TFB_LOCAL"),
+                            format!("LIOI_OLOGIC{ix}_TFB_LOCAL"),
+                            format!("RIOI_OLOGIC{ix}_TFB_LOCAL"),
                         ],
                     )
-                    .extra_wire("IOB_O", &[format!("LIOI_O{i}"), format!("RIOI_O{i}")])
-                    .extra_wire("IOB_T", &[format!("LIOI_T{i}"), format!("RIOI_T{i}")])
+                    .extra_wire("IOB_O", &[format!("LIOI_O{ix}"), format!("RIOI_O{ix}")])
+                    .extra_wire("IOB_T", &[format!("LIOI_T{ix}"), format!("RIOI_T{ix}")])
                     .extra_wire(
                         "PHASER_OCLK",
-                        &[if is_sing || i == 1 {
+                        &[if i == 0 {
                             "IOI_PHASER_TO_IO_OCLK"
                         } else {
                             "IOI_PHASER_TO_IO_OCLK_0"
@@ -1579,7 +1583,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     )
                     .extra_wire(
                         "PHASER_OCLK90",
-                        &[if is_sing || i == 1 {
+                        &[if i == 0 {
                             "IOI_PHASER_TO_IO_OCLK1X_90"
                         } else {
                             "IOI_PHASER_TO_IO_OCLK1X_90_0"
@@ -1587,13 +1591,13 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     )
                     .extra_wire(
                         "PHASER_OCLKDIV",
-                        &[if is_sing || i == 1 {
+                        &[if i == 0 {
                             "IOI_PHASER_TO_IO_OCLKDIV"
                         } else {
                             "IOI_PHASER_TO_IO_OCLKDIV_0"
                         }],
                     );
-                if i == 1 || is_sing {
+                if i == 0 {
                     bel = bel.pin_dummy("SHIFTIN1").pin_dummy("SHIFTIN2");
                 }
                 bels.push(bel);
@@ -1609,7 +1613,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                             },
                             "IDELAY",
                             0,
-                            i ^ ix,
+                            i,
                         )
                         .pins_name_only(&["IDATAIN", "DATAOUT"]),
                 );
@@ -1626,7 +1630,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                                 },
                                 "ODELAY",
                                 0,
-                                i ^ ix,
+                                i,
                             )
                             .pins_name_only(&["ODATAIN", "CLKIN"]),
                     );
@@ -1642,7 +1646,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         },
                         "IOB",
                         0,
-                        i ^ ix,
+                        i,
                     )
                     .raw_tile(1)
                     .pins_name_only(&[
@@ -1658,7 +1662,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         "T_OUT",
                         "T_IN",
                     ]);
-                if i == 0 {
+                if i == 1 || is_sing {
                     bel = bel
                         .pin_dummy("DIFF_TERM_INT_EN")
                         .pin_dummy("DIFFO_IN")
@@ -1668,7 +1672,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 if is_sing {
                     bel = bel.pin_dummy("DIFFI_IN");
                 }
-                let pn = if i == 0 { 'P' } else { 'N' };
+                let pn = if i == 1 { 'P' } else { 'N' };
                 bel = bel.extra_wire_force("MONITOR", format!("{lr}IOB_MONITOR_{pn}"));
                 bels.push(bel);
             }

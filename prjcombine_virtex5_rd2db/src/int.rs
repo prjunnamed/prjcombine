@@ -785,149 +785,136 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         xn.extract();
     }
 
-    if let Some(&xy) = rd.tiles_by_kind_name("IOI").iter().next() {
-        let int_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
-        let intf_xy = int_xy.delta(1, 0);
-        let bel_ilogic0 = builder
-            .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
-            .pins_name_only(&[
-                "SHIFTIN1",
-                "SHIFTIN2",
-                "SHIFTOUT1",
-                "SHIFTOUT2",
-                "D",
-                "DDLY",
-                "TFB",
-                "OFB",
-                "CLK",
-                "CLKB",
-                "OCLK",
-            ])
-            .extra_wire("I_IOB", &["IOI_IBUF0"])
-            .extra_wire_force("CLKOUT", "IOI_I_2GCLK0");
-        let bel_ilogic1 = builder
-            .bel_xy("ILOGIC1", "ILOGIC", 0, 0)
-            .pins_name_only(&[
-                "SHIFTIN1",
-                "SHIFTIN2",
-                "SHIFTOUT1",
-                "SHIFTOUT2",
-                "D",
-                "DDLY",
-                "TFB",
-                "OFB",
-                "CLK",
-                "CLKB",
-                "OCLK",
-            ])
-            .extra_wire("I_IOB", &["IOI_IBUF1"]);
-        let bel_ologic0 = builder
-            .bel_xy("OLOGIC0", "OLOGIC", 0, 1)
-            .pins_name_only(&[
-                "SHIFTIN1",
-                "SHIFTIN2",
-                "SHIFTOUT1",
-                "SHIFTOUT2",
-                "CLK",
-                "CLKDIV",
-                "OQ",
-            ])
-            .extra_wire("T_IOB", &["IOI_T0"])
-            .extra_wire("O_IOB", &["IOI_O0"])
-            .extra_int_out("CLKMUX", &["IOI_OCLKP_0"])
-            .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV0"])
-            .extra_int_in("CKINT", &["IOI_IMUX_B10"])
-            .extra_int_in("CKINT_DIV", &["IOI_IMUX_B7"]);
-        let bel_ologic1 = builder
-            .bel_xy("OLOGIC1", "OLOGIC", 0, 0)
-            .pins_name_only(&[
-                "SHIFTIN1",
-                "SHIFTIN2",
-                "SHIFTOUT1",
-                "SHIFTOUT2",
-                "CLK",
-                "CLKDIV",
-                "OQ",
-            ])
-            .extra_wire("T_IOB", &["IOI_T1"])
-            .extra_wire("O_IOB", &["IOI_O1"])
-            .extra_int_out("CLKMUX", &["IOI_OCLKP_1"])
-            .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV1"])
-            .extra_int_in("CKINT", &["IOI_IMUX_B4"])
-            .extra_int_in("CKINT_DIV", &["IOI_IMUX_B1"]);
-        let bel_iodelay0 = builder
-            .bel_xy("IODELAY0", "IODELAY", 0, 1)
-            .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
-        let bel_iodelay1 = builder
-            .bel_xy("IODELAY1", "IODELAY", 0, 0)
-            .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
-        let mut bel_ioi_clk = builder
-            .bel_virtual("IOI_CLK")
-            .extra_int_in("CKINT0", &["IOI_IMUX_B5"])
-            .extra_int_in("CKINT1", &["IOI_IMUX_B11"])
-            .extra_wire("ICLK0", &["IOI_ICLKP_0"])
-            .extra_wire("ICLK1", &["IOI_ICLKP_1"]);
-        for i in 0..4 {
-            bel_ioi_clk = bel_ioi_clk.extra_wire(format!("IOCLK{i}"), &[format!("IOI_IOCLKP{i}")]);
-        }
-        for i in 0..4 {
-            bel_ioi_clk =
-                bel_ioi_clk.extra_wire(format!("RCLK{i}"), &[format!("IOI_RCLK_FORIO_P{i}")]);
-        }
-        for i in 0..10 {
-            bel_ioi_clk =
-                bel_ioi_clk.extra_wire(format!("HCLK{i}"), &[format!("IOI_LEAF_GCLK_P{i}")]);
-        }
-        builder
-            .xnode("IOI", "IOI", xy)
-            .ref_int(int_xy, 0)
-            .ref_single(intf_xy, 0, intf)
-            .bel(bel_ilogic0)
-            .bel(bel_ilogic1)
-            .bel(bel_ologic0)
-            .bel(bel_ologic1)
-            .bel(bel_iodelay0)
-            .bel(bel_iodelay1)
-            .bel(bel_ioi_clk)
-            .extract();
-    }
-
     for tkn in ["LIOB", "LIOB_MON", "CIOB", "RIOB"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel0 = builder.bel_xy("IOB0", "IOB", 0, 1).pins_name_only(&[
-                "I",
-                "O",
-                "T",
-                "PADOUT",
-                "DIFFI_IN",
-                "DIFFO_OUT",
-                "DIFFO_IN",
-            ]);
-            let mut bel1 = builder.bel_xy("IOB1", "IOB", 0, 0).pins_name_only(&[
-                "I",
-                "O",
-                "T",
-                "PADOUT",
-                "DIFFI_IN",
-                "DIFFO_OUT",
-                "DIFFO_IN",
-            ]);
+            let ioi_xy = xy.delta(if tkn == "LIOB" { 4 } else { -1 }, 0);
+            let int_xy = builder.walk_to_int(ioi_xy, Dir::W, false).unwrap();
+            let intf_xy = int_xy.delta(1, 0);
+            let bel_ilogic0 = builder
+                .bel_xy("ILOGIC0", "ILOGIC", 0, 0)
+                .pins_name_only(&[
+                    "SHIFTIN1",
+                    "SHIFTIN2",
+                    "SHIFTOUT1",
+                    "SHIFTOUT2",
+                    "D",
+                    "DDLY",
+                    "TFB",
+                    "OFB",
+                    "CLK",
+                    "CLKB",
+                    "OCLK",
+                ])
+                .extra_wire("I_IOB", &["IOI_IBUF1"]);
+            let bel_ilogic1 = builder
+                .bel_xy("ILOGIC1", "ILOGIC", 0, 1)
+                .pins_name_only(&[
+                    "SHIFTIN1",
+                    "SHIFTIN2",
+                    "SHIFTOUT1",
+                    "SHIFTOUT2",
+                    "D",
+                    "DDLY",
+                    "TFB",
+                    "OFB",
+                    "CLK",
+                    "CLKB",
+                    "OCLK",
+                ])
+                .extra_wire("I_IOB", &["IOI_IBUF0"])
+                .extra_wire_force("CLKOUT", "IOI_I_2GCLK0");
+            let bel_ologic0 = builder
+                .bel_xy("OLOGIC0", "OLOGIC", 0, 0)
+                .pins_name_only(&[
+                    "SHIFTIN1",
+                    "SHIFTIN2",
+                    "SHIFTOUT1",
+                    "SHIFTOUT2",
+                    "CLK",
+                    "CLKDIV",
+                    "OQ",
+                ])
+                .extra_wire("T_IOB", &["IOI_T1"])
+                .extra_wire("O_IOB", &["IOI_O1"])
+                .extra_int_out("CLKMUX", &["IOI_OCLKP_1"])
+                .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV1"])
+                .extra_int_in("CKINT", &["IOI_IMUX_B4"])
+                .extra_int_in("CKINT_DIV", &["IOI_IMUX_B1"]);
+            let bel_ologic1 = builder
+                .bel_xy("OLOGIC1", "OLOGIC", 0, 1)
+                .pins_name_only(&[
+                    "SHIFTIN1",
+                    "SHIFTIN2",
+                    "SHIFTOUT1",
+                    "SHIFTOUT2",
+                    "CLK",
+                    "CLKDIV",
+                    "OQ",
+                ])
+                .extra_wire("T_IOB", &["IOI_T0"])
+                .extra_wire("O_IOB", &["IOI_O0"])
+                .extra_int_out("CLKMUX", &["IOI_OCLKP_0"])
+                .extra_int_out("CLKDIVMUX", &["IOI_OCLKDIV0"])
+                .extra_int_in("CKINT", &["IOI_IMUX_B10"])
+                .extra_int_in("CKINT_DIV", &["IOI_IMUX_B7"]);
+            let bel_iodelay0 = builder
+                .bel_xy("IODELAY0", "IODELAY", 0, 0)
+                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+            let bel_iodelay1 = builder
+                .bel_xy("IODELAY1", "IODELAY", 0, 1)
+                .pins_name_only(&["IDATAIN", "ODATAIN", "T", "DATAOUT"]);
+
+            let mut bel_iob0 = builder
+                .bel_xy("IOB0", "IOB", 0, 0)
+                .raw_tile(1)
+                .pins_name_only(&["I", "O", "T", "PADOUT", "DIFFI_IN", "DIFFO_OUT", "DIFFO_IN"]);
+            let mut bel_iob1 = builder
+                .bel_xy("IOB1", "IOB", 0, 1)
+                .raw_tile(1)
+                .pins_name_only(&["I", "O", "T", "PADOUT", "DIFFI_IN", "DIFFO_OUT", "DIFFO_IN"]);
             match tkn {
                 "LIOB" => {
-                    bel0 = bel0.extra_wire_force("MONITOR", "LIOB_MONITOR_P");
-                    bel1 = bel1.extra_wire_force("MONITOR", "LIOB_MONITOR_N");
+                    bel_iob0 = bel_iob0.extra_wire_force("MONITOR", "LIOB_MONITOR_N");
+                    bel_iob1 = bel_iob1.extra_wire_force("MONITOR", "LIOB_MONITOR_P");
                 }
                 "LIOB_MON" => {
-                    bel0 = bel0.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_P");
-                    bel1 = bel1.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_N");
+                    bel_iob0 = bel_iob0.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_N");
+                    bel_iob1 = bel_iob1.extra_wire_force("MONITOR", "LIOB_MON_MONITOR_P");
                 }
                 _ => (),
             }
+            let mut bel_ioi_clk = builder
+                .bel_virtual("IOI_CLK")
+                .extra_int_in("CKINT0", &["IOI_IMUX_B5"])
+                .extra_int_in("CKINT1", &["IOI_IMUX_B11"])
+                .extra_wire("ICLK0", &["IOI_ICLKP_1"])
+                .extra_wire("ICLK1", &["IOI_ICLKP_0"]);
+            for i in 0..4 {
+                bel_ioi_clk =
+                    bel_ioi_clk.extra_wire(format!("IOCLK{i}"), &[format!("IOI_IOCLKP{i}")]);
+            }
+            for i in 0..4 {
+                bel_ioi_clk =
+                    bel_ioi_clk.extra_wire(format!("RCLK{i}"), &[format!("IOI_RCLK_FORIO_P{i}")]);
+            }
+            for i in 0..10 {
+                bel_ioi_clk =
+                    bel_ioi_clk.extra_wire(format!("HCLK{i}"), &[format!("IOI_LEAF_GCLK_P{i}")]);
+            }
             builder
-                .xnode("IOB", tkn, xy)
-                .num_tiles(0)
-                .bel(bel0)
-                .bel(bel1)
+                .xnode("IO", tkn, ioi_xy)
+                .raw_tile(xy)
+                .ref_int(int_xy, 0)
+                .ref_single(intf_xy, 0, intf)
+                .bel(bel_ilogic0)
+                .bel(bel_ilogic1)
+                .bel(bel_ologic0)
+                .bel(bel_ologic1)
+                .bel(bel_iodelay0)
+                .bel(bel_iodelay1)
+                .bel(bel_iob0)
+                .bel(bel_iob1)
+                .bel(bel_ioi_clk)
                 .extract();
         }
     }

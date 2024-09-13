@@ -236,7 +236,7 @@ impl GeomDb {
                     prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
                     prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
                     prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => "series7",
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => "virtex7",
                 }];
                 let disabled = dev
                     .disabled

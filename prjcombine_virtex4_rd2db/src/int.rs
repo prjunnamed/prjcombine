@@ -1113,14 +1113,29 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             builder.extract_xnode_bels(
-                "IOIS",
+                "IO",
                 xy,
                 &[],
                 &[xy.delta(-1, 0)],
                 naming,
                 &[
                     builder
-                        .bel_xy("ILOGIC0", "ILOGIC", 0, 1)
+                        .bel_xy("ILOGIC0", "ILOGIC", 0, 0)
+                        .pins_name_only(&[
+                            "OFB",
+                            "TFB",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "D",
+                            "CLK",
+                            "OCLK",
+                        ])
+                        .extra_int_out("CLKMUX", &["IOIS_ICLKP_1"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B3_INT"]),
+                    builder
+                        .bel_xy("ILOGIC1", "ILOGIC", 0, 1)
                         .pins_name_only(&[
                             "OFB",
                             "TFB",
@@ -1136,34 +1151,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_int_in("CLKMUX_INT", &["BYP_INT_B1_INT"])
                         .extra_wire_force("CLKOUT", "IOIS_I_2GCLK0"),
                     builder
-                        .bel_xy("ILOGIC1", "ILOGIC", 0, 0)
-                        .pins_name_only(&[
-                            "OFB",
-                            "TFB",
-                            "SHIFTIN1",
-                            "SHIFTIN2",
-                            "SHIFTOUT1",
-                            "SHIFTOUT2",
-                            "D",
-                            "CLK",
-                            "OCLK",
-                        ])
-                        .extra_int_out("CLKMUX", &["IOIS_ICLKP_1"])
-                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B3_INT"]),
-                    builder
-                        .bel_xy("OLOGIC0", "OLOGIC", 0, 1)
-                        .pins_name_only(&[
-                            "OQ",
-                            "SHIFTIN1",
-                            "SHIFTIN2",
-                            "SHIFTOUT1",
-                            "SHIFTOUT2",
-                            "CLK",
-                        ])
-                        .extra_int_out("CLKMUX", &["IOIS_OCLKP_0"])
-                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B5_INT"]),
-                    builder
-                        .bel_xy("OLOGIC1", "OLOGIC", 0, 0)
+                        .bel_xy("OLOGIC0", "OLOGIC", 0, 0)
                         .pins_name_only(&[
                             "OQ",
                             "SHIFTIN1",
@@ -1175,26 +1163,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                         .extra_int_out("CLKMUX", &["IOIS_OCLKP_1"])
                         .extra_int_in("CLKMUX_INT", &["BYP_INT_B6_INT"]),
                     builder
-                        .bel_xy("IOB0", "IOB", 0, 1)
+                        .bel_xy("OLOGIC1", "OLOGIC", 0, 1)
                         .pins_name_only(&[
-                            "I",
-                            "O",
-                            "T",
-                            "PADOUT",
-                            "DIFFI_IN",
-                            "DIFFO_OUT",
-                            "DIFFO_IN",
+                            "OQ",
+                            "SHIFTIN1",
+                            "SHIFTIN2",
+                            "SHIFTOUT1",
+                            "SHIFTOUT2",
+                            "CLK",
                         ])
-                        .extra_wire_force(
-                            "MONITOR",
-                            if naming == "IOIS_LC" {
-                                "IOIS_LC_MONITOR_P"
-                            } else {
-                                "IOIS_MONITOR_P"
-                            },
-                        ),
+                        .extra_int_out("CLKMUX", &["IOIS_OCLKP_0"])
+                        .extra_int_in("CLKMUX_INT", &["BYP_INT_B5_INT"]),
                     builder
-                        .bel_xy("IOB1", "IOB", 0, 0)
+                        .bel_xy("IOB0", "IOB", 0, 0)
                         .pins_name_only(&[
                             "I",
                             "O",
@@ -1210,6 +1191,25 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                                 "IOIS_LC_MONITOR_N"
                             } else {
                                 "IOIS_MONITOR_N"
+                            },
+                        ),
+                    builder
+                        .bel_xy("IOB1", "IOB", 0, 1)
+                        .pins_name_only(&[
+                            "I",
+                            "O",
+                            "T",
+                            "PADOUT",
+                            "DIFFI_IN",
+                            "DIFFO_OUT",
+                            "DIFFO_IN",
+                        ])
+                        .extra_wire_force(
+                            "MONITOR",
+                            if naming == "IOIS_LC" {
+                                "IOIS_LC_MONITOR_P"
+                            } else {
+                                "IOIS_MONITOR_P"
                             },
                         ),
                     builder

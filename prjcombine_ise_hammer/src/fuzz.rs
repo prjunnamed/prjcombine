@@ -331,6 +331,9 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (mode $kind:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::Mode($kind.to_string()))
     };
+    ($ctx:ident, (mode_diff $kinda:expr, $kindb:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()))
+    };
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::Bel(
             $ctx.bel,

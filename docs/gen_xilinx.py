@@ -322,3 +322,13 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
                                "PLL:PLL_CP_REPL",
                                "PLL:PLL_RES",
                                "PLL:PLL_LFHF")
+
+    if kind == "xc4v":
+        emit_misc_table("xilinx/gen/xc4v-iostd-misc.html", "IOSTD:OUTPUT_MISC")
+        emit_misc_table("xilinx/gen/xc4v-iostd-drive.html", "IOSTD:PDRIVE", "IOSTD:NDRIVE")
+        emit_misc_table("xilinx/gen/xc4v-iostd-slew.html", "IOSTD:PSLEW", "IOSTD:NSLEW")
+        emit_misc_table("xilinx/gen/xc4v-iostd-lvds.html", "IOSTD:LVDS_T", "IOSTD:LVDS_C")
+        emit_misc_table("xilinx/gen/xc4v-iostd-lvdsbias.html", "IOSTD:LVDSBIAS")
+        emit_misc_table("xilinx/gen/xc4v-iostd-dci-lvdiv2.html", "IOSTD:DCI:LVDIV2")
+        emit_misc_table("xilinx/gen/xc4v-iostd-dci-mask-term-vcc.html", "IOSTD:DCI:PMASK_TERM_VCC")
+        emit_misc_table("xilinx/gen/xc4v-iostd-dci-mask-term-split.html", "IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT")
