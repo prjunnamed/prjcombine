@@ -8,9 +8,9 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{xlat_bit, xlat_enum, CollectorCtx, Diff},
-    fgen::TileBits,
+    fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
+    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one, fuzz_one_extras,
 };
 
 const GTX_INVPINS: &[&str] = &[
@@ -340,16 +340,32 @@ const GTX_HEX_ATTRS: &[(&str, usize)] = &[
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     for i in 0..4 {
-        let Some(ctx) = FuzzCtx::try_new(session, backend, "GTX", format!("GTX{i}"), TileBits::Mgt)
-        else {
+        let Some(ctx) = FuzzCtx::try_new(
+            session,
+            backend,
+            "GTX",
+            format!("GTX{i}"),
+            TileBits::MainAuto,
+        ) else {
             return;
         };
         let bel_other = BelId::from_idx(20 + (i ^ 1));
-        fuzz_one!(ctx, "GTX_CFG_PWRUP", "1", [
+        let extras = vec![ExtraFeature::new(
+            ExtraFeatureKind::Hclk(0, 0),
+            "HCLK",
+            "HCLK",
+            if i < 2 {
+                "DRP_MASK_BELOW"
+            } else {
+                "DRP_MASK_ABOVE"
+            },
+            "GTX",
+        )];
+        fuzz_one_extras!(ctx, "GTX_CFG_PWRUP", "1", [
             (bel_unused bel_other)
         ], [
             (mode "GTXE1")
-        ]);
+        ], extras);
         for &pin in GTX_INVPINS {
             fuzz_inv!(ctx, pin, [
                 (mode "GTXE1")
@@ -537,24 +553,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !ctx.has_tile(tile) {
         return;
     }
-    let diff0 = ctx.state.get_diff(tile, "GTX0", "GTX_CFG_PWRUP", "1");
-    let diff1 = ctx.state.get_diff(tile, "GTX1", "GTX_CFG_PWRUP", "1");
-    let diff2 = ctx.state.get_diff(tile, "GTX2", "GTX_CFG_PWRUP", "1");
-    let diff3 = ctx.state.get_diff(tile, "GTX3", "GTX_CFG_PWRUP", "1");
-    let (diff0, diff1, diff_s) = Diff::split(diff0, diff1);
-    let (diff2, diff3, diff_n) = Diff::split(diff2, diff3);
-    ctx.tiledb
-        .insert(tile, "GTX0", "GTX_CFG_PWRUP", xlat_bit(diff0));
-    ctx.tiledb
-        .insert(tile, "GTX1", "GTX_CFG_PWRUP", xlat_bit(diff1));
-    ctx.tiledb
-        .insert(tile, "GTX2", "GTX_CFG_PWRUP", xlat_bit(diff2));
-    ctx.tiledb
-        .insert(tile, "GTX3", "GTX_CFG_PWRUP", xlat_bit(diff3));
-    ctx.tiledb
-        .insert(tile, "HCLK_GTX", "DRPMASK_S", xlat_bit(diff_s));
-    ctx.tiledb
-        .insert(tile, "HCLK_GTX", "DRPMASK_N", xlat_bit(diff_n));
     for i in 0..4 {
         let bel = &format!("GTX{i}");
         fn drp_bit(which: usize, idx: usize, bit: usize) -> FeatureBit {
@@ -572,6 +570,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
 
+        ctx.collect_bit(tile, bel, "GTX_CFG_PWRUP", "1");
         for &pin in GTX_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -693,4 +692,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         &["NORTHREFCLKIN1", "MGTREFCLKOUT0", "MGTREFCLKOUT1"],
         "NONE",
     );
+    let tile = "HCLK";
+    let bel = "HCLK";
+    ctx.collect_bit(tile, bel, "DRP_MASK_BELOW", "GTX");
+    ctx.collect_bit(tile, bel, "DRP_MASK_ABOVE", "GTX");
 }

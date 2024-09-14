@@ -388,7 +388,19 @@ fn resolve_bel_relation(
                         .0;
                     Some((loc, bel))
                 }
-                prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                    loc.1 = edev.col_clk;
+                    let Some((layer, node)) =
+                        backend.egrid.find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                            backend.egrid.db.nodes.key(node.kind) == "CMT"
+                        })
+                    else {
+                        unreachable!()
+                    };
+                    loc.3 = layer;
+                    let bel = backend.egrid.db.nodes[node.kind].bels.get("CMT").unwrap().0;
+                    Some((loc, bel))
+                }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
             }
         }
@@ -1754,7 +1766,58 @@ impl<'a> TileKV<'a> {
                         // Avoid interference.
                         fuzzer = fuzzer.base(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT");
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        assert_eq!(*bank, 25);
+                        let (vr_row, io_row) = get_v4_center_dci_rows(edev, *bank);
+                        // Ensure nothing is placed in VR.
+                        if let Some(vr_row) = vr_row {
+                            for bel in ["IOB0", "IOB1"] {
+                                let (node, bel, _, _) = edev
+                                    .egrid
+                                    .find_bel(loc.0, (edev.col_lcio.unwrap(), vr_row), bel)
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                            }
+                        }
+                        let (node, bel, _, _) = edev
+                            .egrid
+                            .find_bel(loc.0, (edev.col_lcio.unwrap(), io_row), "IOB0")
+                            .unwrap();
+                        let site = &node.bels[bel];
+                        fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
+                        fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
+                        fuzzer = fuzzer.base(Key::SiteAttr(site, "IUSED".into()), None);
+                        fuzzer = fuzzer.base(Key::SiteAttr(site, "OPROGRAMMING".into()), None);
+                        fuzzer = fuzzer.fuzz(Key::SiteAttr(site, "OUSED".into()), None, "0");
+                        fuzzer =
+                            fuzzer.fuzz(Key::SiteAttr(site, "OSTANDARD".into()), None, "LVDCI_25");
+                        // Make note of anchor VCCO.
+                        let (layer, _) = edev
+                            .egrid
+                            .find_node_loc(
+                                loc.0,
+                                (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 20),
+                                |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
+                            )
+                            .unwrap();
+                        fuzzer = fuzzer.base(
+                            Key::TileMutex(
+                                (
+                                    loc.0,
+                                    edev.col_lcio.unwrap(),
+                                    edev.grids[loc.0].row_bufg() + 20,
+                                    layer,
+                                ),
+                                "VCCO".to_string(),
+                            ),
+                            "2500",
+                        );
+                        // Take exclusive mutex on global DCI.
+                        fuzzer =
+                            fuzzer.fuzz(Key::GlobalMutex("GLOBAL_DCI".into()), None, "EXCLUSIVE");
+                        // Avoid interference.
+                        fuzzer = fuzzer.base(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT");
+                    }
                     prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                 }
                 fuzzer
@@ -1764,64 +1827,84 @@ impl<'a> TileKV<'a> {
                     unreachable!()
                 };
                 match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                    prjcombine_virtex4::grid::GridKind::Virtex5
+                    | prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        let col = if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                            edev.col_lcio.unwrap()
+                        } else {
+                            edev.col_cfg
+                        };
                         let (_, io_row) = get_v4_center_dci_rows(edev, *bank_a);
                         // Ensure nothing else in the bank.
-                        let bot = edev.grids[loc.0].row_hclk(io_row) - 10;
-                        for i in 0..20 {
+                        let bot =
+                            edev.grids[loc.0].row_reg_bot(edev.grids[loc.0].row_to_reg(io_row));
+                        for i in 0..edev.grids[loc.0].rows_per_reg() {
                             let row = bot + i;
                             for bel in ["IOB0", "IOB1"] {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
                                 if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (edev.col_cfg, row), bel)
+                                    edev.egrid.find_bel(loc.0, (col, row), bel)
                                 {
                                     fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_cfg, io_row), "IOB0")
-                            .unwrap();
+                        let (node, bel, _, _) =
+                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
                         let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
+                        fuzzer = fuzzer.base(Key::SiteAttr(site, "IUSED".into()), None);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "OPROGRAMMING".into()), None);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
-                        fuzzer = fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_33");
+                        fuzzer = fuzzer.base(
+                            Key::SiteAttr(site, "OSTANDARD".into()),
+                            if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                                "LVDCI_25"
+                            } else {
+                                "LVDCI_33"
+                            },
+                        );
                         // Take shared mutex on global DCI.
                         fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
                         let (_, io_row) = get_v4_center_dci_rows(edev, *bank_b);
                         // Ensure nothing else in the bank.
-                        let bot = edev.grids[loc.0].row_hclk(io_row) - 10;
-                        for i in 0..20 {
+                        let bot =
+                            edev.grids[loc.0].row_reg_bot(edev.grids[loc.0].row_to_reg(io_row));
+                        for i in 0..edev.grids[loc.0].rows_per_reg() {
                             let row = bot + i;
                             for bel in ["IOB0", "IOB1"] {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
                                 if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (edev.col_cfg, row), bel)
+                                    edev.egrid.find_bel(loc.0, (col, row), bel)
                                 {
                                     fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_cfg, io_row), "IOB0")
-                            .unwrap();
+                        let (node, bel, _, _) =
+                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
                         let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
+                        fuzzer = fuzzer.base(Key::SiteAttr(site, "IUSED".into()), None);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "OPROGRAMMING".into()), None);
                         fuzzer = fuzzer.fuzz(Key::SiteAttr(site, "OUSED".into()), None, "0");
-                        fuzzer =
-                            fuzzer.fuzz(Key::SiteAttr(site, "OSTANDARD".into()), None, "LVDCI_33");
+                        fuzzer = fuzzer.fuzz(
+                            Key::SiteAttr(site, "OSTANDARD".into()),
+                            None,
+                            if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex6 {
+                                "LVDCI_25"
+                            } else {
+                                "LVDCI_33"
+                            },
+                        );
                         fuzzer = fuzzer.fuzz(Key::DciCascade(*bank_b), None, *bank_a);
                     }
                     _ => unreachable!(),
@@ -1940,7 +2023,18 @@ fn get_v4_vr_row(
                 edev.row_iobdcm.unwrap() - 3
             }
         }
-        prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+        prjcombine_virtex4::grid::GridKind::Virtex6 => {
+            let reg = edev.grids[die].row_to_reg(row);
+            if reg == edev.grids[die].reg_cfg {
+                edev.grids[die].row_reg_bot(reg) + 6
+            } else if reg == edev.grids[die].reg_cfg - 1 && Some(col) == edev.col_lcio {
+                edev.grids[die].row_reg_bot(reg) + 4
+            } else if reg == edev.grids[die].reg_cfg - 1 && Some(col) == edev.col_rcio {
+                edev.grids[die].row_reg_bot(reg) + 0
+            } else {
+                edev.grids[die].row_reg_bot(reg) + 14
+            }
+        }
         prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
     }
 }
@@ -1985,6 +2079,21 @@ fn get_v4_center_dci_rows(
             4 => (
                 Some(edev.grids[die].row_bufg() - 30 + 2),
                 edev.grids[die].row_bufg() - 30,
+            ),
+            _ => unreachable!(),
+        },
+        prjcombine_virtex4::grid::GridKind::Virtex6 => match bank {
+            24 => (
+                Some(edev.grids[die].row_bufg() - 40 + 4),
+                edev.grids[die].row_bufg() - 40,
+            ),
+            25 => (
+                Some(edev.grids[die].row_bufg() + 6),
+                edev.grids[die].row_bufg(),
+            ),
+            26 => (
+                Some(edev.grids[die].row_bufg() + 40 + 16),
+                edev.grids[die].row_bufg() + 40,
             ),
             _ => unreachable!(),
         },
@@ -2472,7 +2581,94 @@ impl<'a> BelKV {
                                 fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
                             }
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                        prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                            // Avoid bank 25, which is our (arbitrary) anchor.
+                            if loc.1 == edev.col_lcio.unwrap()
+                                && edev.grids[loc.0].row_to_reg(loc.2) == edev.grids[loc.0].reg_cfg
+                            {
+                                return None;
+                            }
+                            let vr_row = get_v4_vr_row(edev, loc.0, loc.1, loc.2);
+                            if loc.2 == vr_row {
+                                // Not in VR tile please.
+                                return None;
+                            }
+                            // Ensure nothing is placed in VR.
+                            for bel in ["IOB0", "IOB1"] {
+                                let (node, bel, _, _) =
+                                    edev.egrid.find_bel(loc.0, (loc.1, vr_row), bel).unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                            }
+                            // Take exclusive mutex on bank DCI.
+                            let (layer, _) = edev
+                                .egrid
+                                .find_node_loc(
+                                    loc.0,
+                                    (loc.1, edev.grids[loc.0].row_hclk(loc.2)),
+                                    |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
+                                )
+                                .unwrap();
+                            fuzzer = fuzzer.fuzz(
+                                Key::TileMutex(
+                                    (loc.0, loc.1, edev.grids[loc.0].row_hclk(loc.2), layer),
+                                    "BANK_DCI".to_string(),
+                                ),
+                                None,
+                                "EXCLUSIVE",
+                            );
+                            // Take shared mutex on global DCI.
+                            fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
+                            // Anchor global DCI by putting something in bottom IOB of center column.
+                            let (node, bel, _, _) = edev
+                                .egrid
+                                .find_bel(
+                                    loc.0,
+                                    (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg()),
+                                    "IOB0",
+                                )
+                                .unwrap();
+                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), "IOB");
+                            fuzzer = fuzzer.base(Key::SitePin(&node.bels[bel], "O".into()), true);
+                            fuzzer =
+                                fuzzer.base(Key::SiteAttr(&node.bels[bel], "OUSED".into()), "0");
+                            fuzzer = fuzzer.base(
+                                Key::SiteAttr(&node.bels[bel], "OSTANDARD".into()),
+                                "LVDCI_25",
+                            );
+                            // Ensure anchor VR IOBs are free.
+                            for bel in ["IOB0", "IOB1"] {
+                                let (node, bel, _, _) = edev
+                                    .egrid
+                                    .find_bel(
+                                        loc.0,
+                                        (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 6),
+                                        bel,
+                                    )
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                            }
+                            // Make note of anchor VCCO.
+                            let (layer, _) = edev
+                                .egrid
+                                .find_node_loc(
+                                    loc.0,
+                                    (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 20),
+                                    |node| edev.egrid.db.nodes.key(node.kind) == "HCLK_IOI",
+                                )
+                                .unwrap();
+                            fuzzer = fuzzer.base(
+                                Key::TileMutex(
+                                    (
+                                        loc.0,
+                                        edev.col_lcio.unwrap(),
+                                        edev.grids[loc.0].row_bufg() + 20,
+                                        layer,
+                                    ),
+                                    "VCCO".to_string(),
+                                ),
+                                "2500",
+                            );
+                        }
                         prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                     }
                     fuzzer
@@ -2507,8 +2703,10 @@ impl<'a> BelKV {
                                 "EXCLUSIVE",
                             );
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex5 => {
-                            let lvds_row = RowId::from_idx(loc.2.to_idx() / 20 * 20 + 10);
+                        prjcombine_virtex4::grid::GridKind::Virtex5
+                        | prjcombine_virtex4::grid::GridKind::Virtex6
+                        | prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                            let lvds_row = edev.grids[loc.0].row_hclk(loc.2);
                             // Take exclusive mutex on bank LVDS.
                             let (layer, _) = edev
                                 .egrid
@@ -2516,6 +2714,7 @@ impl<'a> BelKV {
                                     matches!(
                                         &edev.egrid.db.nodes.key(node.kind)[..],
                                         "HCLK_IOI"
+                                            | "HCLK_IOI3"
                                             | "HCLK_IOI_CENTER"
                                             | "HCLK_IOI_TOPCEN"
                                             | "HCLK_IOI_BOTCEN"
@@ -2533,8 +2732,6 @@ impl<'a> BelKV {
                                 "EXCLUSIVE",
                             );
                         }
-                        prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
-                        prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                     }
                     fuzzer
                 }
@@ -4220,20 +4417,50 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                get_v4_vref_rows(edev, loc.0, loc.1, loc.2)
-                    .into_iter()
-                    .map(|vref_row| vec![edev.btile_main(loc.0, loc.1, vref_row)])
-                    .collect()
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4
+                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        get_v4_vref_rows(edev, loc.0, loc.1, loc.2)
+                            .into_iter()
+                            .map(|vref_row| vec![edev.btile_main(loc.0, loc.1, vref_row)])
+                            .collect()
+                    }
+
+                    prjcombine_virtex4::grid::GridKind::Virtex6
+                    | prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                        get_v4_vref_rows(edev, loc.0, loc.1, loc.2)
+                            .into_iter()
+                            .map(|vref_row| {
+                                vec![
+                                    edev.btile_main(loc.0, loc.1, vref_row),
+                                    edev.btile_main(loc.0, loc.1, vref_row + 1),
+                                ]
+                            })
+                            .collect()
+                    }
+                }
             }
             ExtraFeatureKind::Vr => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                vec![vec![edev.btile_main(
-                    loc.0,
-                    loc.1,
-                    get_v4_vr_row(edev, loc.0, loc.1, loc.2),
-                )]]
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4
+                    | prjcombine_virtex4::grid::GridKind::Virtex5
+                    | prjcombine_virtex4::grid::GridKind::Virtex7 => vec![vec![edev.btile_main(
+                        loc.0,
+                        loc.1,
+                        get_v4_vr_row(edev, loc.0, loc.1, loc.2),
+                    )]],
+
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        let vr_row = get_v4_vr_row(edev, loc.0, loc.1, loc.2);
+                        vec![vec![
+                            edev.btile_main(loc.0, loc.1, vr_row),
+                            edev.btile_main(loc.0, loc.1, vr_row + 1),
+                        ]]
+                    }
+                }
             }
             ExtraFeatureKind::HclkIoDci(kind) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -4296,7 +4523,15 @@ impl ExtraFeatureKind {
                             )
                         })
                         .collect()],
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![(0..40)
+                        .map(|i| {
+                            edev.btile_main(
+                                loc.0,
+                                edev.col_cfg,
+                                edev.grids[loc.0].row_bufg() - 20 + i,
+                            )
+                        })
+                        .collect()],
                     prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                 }
             }
@@ -4305,14 +4540,34 @@ impl ExtraFeatureKind {
                     unreachable!()
                 };
                 let (_, io_row) = get_v4_center_dci_rows(edev, bank);
-                vec![vec![edev.btile_main(loc.0, edev.col_cfg, io_row)]]
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4
+                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        vec![vec![edev.btile_main(loc.0, edev.col_cfg, io_row)]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![vec![
+                        edev.btile_main(loc.0, edev.col_lcio.unwrap(), io_row),
+                        edev.btile_main(loc.0, edev.col_lcio.unwrap(), io_row + 1),
+                    ]],
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                }
             }
             ExtraFeatureKind::CenterDciVr(bank) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
                 let (vr_row, _) = get_v4_center_dci_rows(edev, bank);
-                vec![vec![edev.btile_main(loc.0, edev.col_cfg, vr_row.unwrap())]]
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4
+                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        vec![vec![edev.btile_main(loc.0, edev.col_cfg, vr_row.unwrap())]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => vec![vec![
+                        edev.btile_main(loc.0, edev.col_lcio.unwrap(), vr_row.unwrap()),
+                        edev.btile_main(loc.0, edev.col_lcio.unwrap(), vr_row.unwrap() + 1),
+                    ]],
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                }
             }
             ExtraFeatureKind::CenterDciHclk(bank) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -4322,7 +4577,7 @@ impl ExtraFeatureKind {
                 let row = vr_row.unwrap_or(io_row);
                 let reg = edev.grids[loc.0].row_to_reg(row);
                 let row = edev.grids[loc.0].row_reg_hclk(reg);
-                vec![vec![edev.btile_hclk(loc.0, edev.col_cfg, row)]]
+                vec![vec![edev.btile_hclk(loc.0, edev.col_lcio.unwrap(), row)]]
             }
             ExtraFeatureKind::CenterDciHclkCascade(bank, kind) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {

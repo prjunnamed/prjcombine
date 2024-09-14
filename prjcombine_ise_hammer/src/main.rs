@@ -245,13 +245,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
-                    // TODO: clk
+                    if !args.skip_clk {
+                        clk::virtex6::add_fuzzers(&mut hammer, &backend);
+                    }
                     bram::virtex6::add_fuzzers(&mut hammer, &backend);
                     dsp::virtex6::add_fuzzers(&mut hammer, &backend);
                     if !args.skip_misc {
                         misc::virtex6::add_fuzzers(&mut hammer, &backend);
                     }
-                    // TODO: io
+                    if !skip_io {
+                        io::virtex6::add_fuzzers(&mut hammer, &backend);
+                    }
                     // TODO: pll
                     emac::virtex6::add_fuzzers(&mut hammer, &backend);
                     pcie::virtex6::add_fuzzers(&mut hammer, &backend);
@@ -344,11 +348,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::collect_fuzzers(&mut ctx);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
-                    gt::virtex2p::collect_fuzzers(&mut ctx);
-                }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
-                    gt::virtex2px::collect_fuzzers(&mut ctx);
+                if !args.skip_gt {
+                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
+                        gt::virtex2p::collect_fuzzers(&mut ctx);
+                    }
+                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
+                        gt::virtex2px::collect_fuzzers(&mut ctx);
+                    }
                 }
             }
             ExpandedDevice::Spartan6(_) => {
@@ -369,7 +375,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     pll::spartan6::collect_fuzzers(&mut ctx, args.skip_dcm);
                 }
                 pcie::spartan6::collect_fuzzers(&mut ctx);
-                gt::spartan6::collect_fuzzers(&mut ctx);
+                if !args.skip_gt {
+                    gt::spartan6::collect_fuzzers(&mut ctx);
+                }
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -392,7 +400,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         ccm::virtex4::collect_fuzzers(&mut ctx);
                     }
                     ppc::virtex4::collect_fuzzers(&mut ctx);
-                    gt::virtex4::collect_fuzzers(&mut ctx);
+                    if !args.skip_gt {
+                        gt::virtex4::collect_fuzzers(&mut ctx);
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
@@ -410,18 +420,28 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ppc::virtex5::collect_fuzzers(&mut ctx);
                     emac::virtex5::collect_fuzzers(&mut ctx);
                     pcie::virtex5::collect_fuzzers(&mut ctx);
-                    gt::virtex5::collect_fuzzers(&mut ctx);
+                    if !args.skip_gt {
+                        gt::virtex5::collect_fuzzers(&mut ctx);
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);
+                    if !args.skip_clk {
+                        clk::virtex6::collect_fuzzers(&mut ctx);
+                    }
                     bram::virtex6::collect_fuzzers(&mut ctx);
                     dsp::virtex6::collect_fuzzers(&mut ctx);
                     if !args.skip_misc {
                         misc::virtex6::collect_fuzzers(&mut ctx);
                     }
+                    if !skip_io {
+                        io::virtex6::collect_fuzzers(&mut ctx);
+                    }
                     emac::virtex6::collect_fuzzers(&mut ctx);
                     pcie::virtex6::collect_fuzzers(&mut ctx);
-                    gt::virtex6_gtx::collect_fuzzers(&mut ctx);
+                    if !args.skip_gt {
+                        gt::virtex6_gtx::collect_fuzzers(&mut ctx);
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);

@@ -14,6 +14,7 @@ Virtex 6
    dsp
    io
    center
+   clock
    emac
    pcie
    gtx

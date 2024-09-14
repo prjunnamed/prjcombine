@@ -226,8 +226,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         }
     }
 
-    // TODO: global DCI enable
-
     let ctx = FuzzCtx::new_fake_tile(
         session,
         backend,

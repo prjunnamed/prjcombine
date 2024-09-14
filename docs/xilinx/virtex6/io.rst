@@ -124,8 +124,42 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 - ``TCK``, ``TDI``, ``TDO``, ``TMS``
 
 
-Bitstream
-=========
+Bitstream — ``IO``
+==================
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-misc.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-lvds.html
 
 .. raw:: html
    :file: ../gen/tile-xc6v-IO.html
+
+
+Bitstream — ``HCLK_IOI``
+========================
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-dci-output.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-dci-output-half.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-dci-term-vcc.html
+
+.. raw:: html
+   :file: ../gen/xc6v-iostd-dci-term-split.html
+
+.. raw:: html
+   :file: ../gen/tile-xc6v-HCLK_IOI.html

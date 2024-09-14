@@ -207,14 +207,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
     // TODO: global DCI enable
 
-    {
-        let ctx = FuzzCtx::new(session, backend, "PMVIOB", "PMVIOB", TileBits::MainAuto);
-        fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PMVIOB")]);
-        fuzz_enum!(ctx, "HSLEW4_IN", ["FALSE", "TRUE"], [(mode "PMVIOB")]);
-        fuzz_enum!(ctx, "PSLEW4_IN", ["FALSE", "TRUE"], [(mode "PMVIOB")]);
-        fuzz_enum!(ctx, "HYS_IN", ["FALSE", "TRUE"], [(mode "PMVIOB")]);
-    }
-
     let ctx = FuzzCtx::new_fake_tile(
         session,
         backend,
@@ -506,13 +498,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "HCLK";
         ctx.collect_bit(tile, bel, "DRP_MASK_SYSMON", "1");
     }
-
-    let tile = "PMVIOB";
-    let bel = "PMVIOB";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-    ctx.collect_enum_bool(tile, bel, "HYS_IN", "FALSE", "TRUE");
-    ctx.collect_enum_bool(tile, bel, "HSLEW4_IN", "FALSE", "TRUE");
-    ctx.collect_enum_bool(tile, bel, "PSLEW4_IN", "FALSE", "TRUE");
 
     let tile = "REG.COR";
     let bel = "STARTUP";

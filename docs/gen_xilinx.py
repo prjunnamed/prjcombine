@@ -341,3 +341,14 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
         emit_misc_table("xilinx/gen/xc5v-iostd-dci-lvdiv2.html", "IOSTD:DCI:LVDIV2")
         emit_misc_table("xilinx/gen/xc5v-iostd-dci-mask-term-vcc.html", "IOSTD:DCI:PMASK_TERM_VCC")
         emit_misc_table("xilinx/gen/xc5v-iostd-dci-mask-term-split.html", "IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT")
+
+    if kind == "xc6v":
+        emit_misc_table("xilinx/gen/xc6v-iostd-misc.html", "IOSTD:OUTPUT_MISC")
+        emit_misc_table("xilinx/gen/xc6v-iostd-drive.html", "IOSTD:PDRIVE", "IOSTD:NDRIVE")
+        emit_misc_table("xilinx/gen/xc6v-iostd-slew.html", "IOSTD:PSLEW", "IOSTD:NSLEW")
+        emit_misc_table("xilinx/gen/xc6v-iostd-lvds.html", "IOSTD:LVDS_T", "IOSTD:LVDS_C")
+        emit_misc_table("xilinx/gen/xc6v-iostd-lvdsbias.html", "IOSTD:LVDSBIAS")
+        emit_misc_table("xilinx/gen/xc6v-iostd-dci-output.html", "IOSTD:DCI:PREF_OUTPUT", "IOSTD:DCI:NREF_OUTPUT")
+        emit_misc_table("xilinx/gen/xc6v-iostd-dci-output-half.html", "IOSTD:DCI:PREF_OUTPUT_HALF", "IOSTD:DCI:NREF_OUTPUT_HALF")
+        emit_misc_table("xilinx/gen/xc6v-iostd-dci-term-vcc.html", "IOSTD:DCI:PREF_TERM_VCC", "IOSTD:DCI:PMASK_TERM_VCC")
+        emit_misc_table("xilinx/gen/xc6v-iostd-dci-term-split.html", "IOSTD:DCI:PREF_TERM_SPLIT", "IOSTD:DCI:NREF_TERM_SPLIT", "IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT")
