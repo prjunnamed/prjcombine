@@ -44,6 +44,8 @@ pub enum Key<'a> {
     Pip(&'a str, &'a str, &'a str),
     VccAux,
     AltVr,
+    InternalVref(u32),
+    DciCascade(u32),
     GlobalMutex(String),
     RowMutex(String, RowId),
     BelMutex((DieId, ColId, RowId, LayerId, BelId), String),
@@ -59,47 +61,55 @@ pub enum PinFromKind {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub enum Value {
+pub enum Value<'a> {
     None,
     Bool(bool),
     String(String),
+    U32(u32),
     PinFrom(PinFromKind),
+    FromPin(&'a str, String),
     Bel(DieId, ColId, RowId, LayerId, BelId),
 }
 
-impl From<Option<core::convert::Infallible>> for Value {
+impl From<Option<core::convert::Infallible>> for Value<'_> {
     fn from(_: Option<core::convert::Infallible>) -> Self {
         Self::None
     }
 }
 
-impl<'a> From<&'a str> for Value {
+impl<'a> From<&'a str> for Value<'_> {
     fn from(value: &'a str) -> Self {
         Self::String(value.into())
     }
 }
 
-impl<'a> From<&'a String> for Value {
+impl<'a> From<&'a String> for Value<'_> {
     fn from(value: &'a String) -> Self {
         Self::String(value.clone())
     }
 }
 
-impl From<String> for Value {
+impl From<String> for Value<'_> {
     fn from(value: String) -> Self {
         Self::String(value)
     }
 }
 
-impl From<PinFromKind> for Value {
+impl From<PinFromKind> for Value<'_> {
     fn from(value: PinFromKind) -> Self {
         Self::PinFrom(value)
     }
 }
 
-impl From<bool> for Value {
+impl From<bool> for Value<'_> {
     fn from(value: bool) -> Self {
         Self::Bool(value)
+    }
+}
+
+impl From<u32> for Value<'_> {
+    fn from(value: u32) -> Self {
+        Self::U32(value)
     }
 }
 
@@ -319,7 +329,7 @@ impl<'a> IseBackend<'a> {
 
 impl<'a> Backend for IseBackend<'a> {
     type Key = Key<'a>;
-    type Value = Value;
+    type Value = Value<'a>;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
     type FuzzerInfo = FuzzerInfo;
@@ -651,6 +661,26 @@ impl<'a> Backend for IseBackend<'a> {
                         }
                         nets.insert(name, net);
                     }
+                    Value::FromPin(site_other, pin_other) => {
+                        let name = format!("SINGLE_PIN__{site}__{pin}");
+                        nets.insert(
+                            name.clone(),
+                            Net {
+                                name,
+                                typ: NetType::Plain,
+                                inpins: vec![NetPin {
+                                    inst_name: site_other.to_string(),
+                                    pin: pin_other.to_string(),
+                                }],
+                                outpins: vec![NetPin {
+                                    inst_name: site.to_string(),
+                                    pin: pin.to_string(),
+                                }],
+                                pips: vec![],
+                                cfg: vec![],
+                            },
+                        );
+                    }
                     _ => unreachable!(),
                 },
                 _ => (),
@@ -693,7 +723,32 @@ impl<'a> Backend for IseBackend<'a> {
             None
         };
         let altvr = kv.get(&Key::AltVr) == Some(&Value::Bool(true));
-        let pcf = Pcf { vccaux };
+        let mut internal_vref = HashMap::new();
+        let mut dci_cascade = HashMap::new();
+        for (k, v) in &kv {
+            match k {
+                Key::DciCascade(bank) => match v {
+                    Value::U32(val) => {
+                        dci_cascade.insert(*bank, *val);
+                    }
+                    Value::None => (),
+                    _ => unreachable!(),
+                },
+                Key::InternalVref(bank) => match v {
+                    Value::U32(val) => {
+                        internal_vref.insert(*bank, *val);
+                    }
+                    Value::None => (),
+                    _ => unreachable!(),
+                },
+                _ => (),
+            }
+        }
+        let pcf = Pcf {
+            vccaux,
+            internal_vref,
+            dci_cascade,
+        };
         let mut key = KeyData::None;
         if let Some(encrypt) = gopts.get("ENCRYPT") {
             if encrypt == "YES" {
@@ -782,7 +837,7 @@ impl<'a> Backend for IseBackend<'a> {
         Bitstream::diff(bs1, bs2)
     }
 
-    fn assemble_multi(mv: &MultiValue, y: &BitVec) -> Value {
+    fn assemble_multi(mv: &MultiValue, y: &BitVec) -> Value<'a> {
         match *mv {
             MultiValue::Lut => {
                 let mut v = "#LUT:0x".to_string();

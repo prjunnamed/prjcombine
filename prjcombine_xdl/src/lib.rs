@@ -347,6 +347,8 @@ pub fn parse_lut(sz: u8, val: &str) -> Option<u64> {
 
 pub struct Pcf {
     pub vccaux: Option<String>,
+    pub internal_vref: HashMap<u32, u32>,
+    pub dci_cascade: HashMap<u32, u32>,
 }
 
 pub fn run_bitgen(
@@ -383,6 +385,25 @@ pub fn run_bitgen(
     let mut pcf_file = File::create(dir.path().join("meow.pcf"))?;
     if let Some(ref val) = pcf.vccaux {
         writeln!(pcf_file, "CONFIG VCCAUX=\"{val}\";")?;
+    }
+    for (&bank, &vref) in &pcf.internal_vref {
+        writeln!(
+            pcf_file,
+            "CONFIG INTERNAL_VREF_BANK{bank}={h}.{l:03};",
+            h = vref / 1000,
+            l = vref % 1000
+        )?;
+    }
+    let mut dci_groups: HashMap<u32, Vec<u32>> = HashMap::new();
+    for (&bank, &tgt) in &pcf.dci_cascade {
+        dci_groups.entry(tgt).or_default().push(bank);
+    }
+    for (src, others) in dci_groups {
+        write!(pcf_file, "CONFIG DCI_CASCADE = \"{src}")?;
+        for val in others {
+            write!(pcf_file, ", {val}")?;
+        }
+        writeln!(pcf_file, "\";")?;
     }
     std::mem::drop(pcf_file);
     let mut cmd = tc.command("bitgen");

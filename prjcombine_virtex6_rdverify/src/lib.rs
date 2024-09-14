@@ -1696,11 +1696,18 @@ pub fn verify_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    for (pin, key) in [("RXP", "IPAD.RXP"), ("RXN", "IPAD.RXN")] {
+    let (rxp, rxn, txp, txn) = match bel.key {
+        "GTX0" => ("IPAD.RXP0", "IPAD.RXN0", "OPAD.TXP0", "OPAD.TXN0"),
+        "GTX1" => ("IPAD.RXP1", "IPAD.RXN1", "OPAD.TXP1", "OPAD.TXN1"),
+        "GTX2" => ("IPAD.RXP2", "IPAD.RXN2", "OPAD.TXP2", "OPAD.TXN2"),
+        "GTX3" => ("IPAD.RXP3", "IPAD.RXN3", "OPAD.TXP3", "OPAD.TXN3"),
+        _ => unreachable!(),
+    };
+    for (pin, key) in [("RXP", rxp), ("RXN", rxn)] {
         let obel = vrf.find_bel_sibling(bel, key);
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel.wire("O"));
     }
-    for (pin, key) in [("TXP", "OPAD.TXP"), ("TXN", "OPAD.TXN")] {
+    for (pin, key) in [("TXP", txp), ("TXN", txn)] {
         let obel = vrf.find_bel_sibling(bel, key);
         vrf.claim_pip(bel.crd(), obel.wire("I"), bel.wire(pin));
     }
@@ -1710,13 +1717,7 @@ pub fn verify_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
     }
 
-    let obel = vrf
-        .find_bel(
-            bel.die,
-            (bel.col, edev.grids[bel.die].row_hclk(bel.row)),
-            "HCLK_GTX",
-        )
-        .unwrap();
+    let obel = vrf.find_bel_sibling(bel, "HCLK_GTX");
     for (orx, otx, pin) in [
         ("PERFCLKRX", "PERFCLKTX", "PERFCLK"),
         ("MGTREFCLKRX0", "MGTREFCLKTX0", "MGTREFCLKOUT0"),
@@ -1787,21 +1788,21 @@ pub fn verify_hclk_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelConte
         );
     }
 
-    for (i, dy, key, pin, lpin) in [
-        (0, -20, "GTX", "RXRECCLK", Some("RXRECCLK0")),
-        (1, -10, "GTX", "RXRECCLK", Some("RXRECCLK1")),
-        (2, -20, "GTX", "TXOUTCLK", Some("TXOUTCLK0")),
-        (3, -10, "GTX", "TXOUTCLK", Some("TXOUTCLK1")),
-        (4, 0, "IBUFDS_GTX0", "HCLK_OUT", None),
-        (5, 0, "IBUFDS_GTX1", "HCLK_OUT", None),
-        (6, 0, "GTX", "RXRECCLK", Some("RXRECCLK2")),
-        (7, 10, "GTX", "RXRECCLK", Some("RXRECCLK3")),
-        (8, 0, "GTX", "TXOUTCLK", Some("TXOUTCLK2")),
-        (9, 10, "GTX", "TXOUTCLK", Some("TXOUTCLK3")),
+    for (i, key, pin, lpin) in [
+        (0, "GTX0", "RXRECCLK", Some("RXRECCLK0")),
+        (1, "GTX1", "RXRECCLK", Some("RXRECCLK1")),
+        (2, "GTX0", "TXOUTCLK", Some("TXOUTCLK0")),
+        (3, "GTX1", "TXOUTCLK", Some("TXOUTCLK1")),
+        (4, "IBUFDS_GTX0", "HCLK_OUT", None),
+        (5, "IBUFDS_GTX1", "HCLK_OUT", None),
+        (6, "GTX2", "RXRECCLK", Some("RXRECCLK2")),
+        (7, "GTX3", "RXRECCLK", Some("RXRECCLK3")),
+        (8, "GTX2", "TXOUTCLK", Some("TXOUTCLK2")),
+        (9, "GTX3", "TXOUTCLK", Some("TXOUTCLK3")),
     ] {
         let mpin = format!("MGT{i}");
         vrf.claim_node(&[bel.fwire(&mpin)]);
-        let obel = vrf.find_bel_delta(bel, 0, dy, key).unwrap();
+        let obel = vrf.find_bel_sibling(bel, key);
         if let Some(lpin) = lpin {
             vrf.verify_node(&[bel.fwire(lpin), obel.fwire_far(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(&mpin), bel.wire(lpin));
@@ -2076,7 +2077,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "GIO_BOT" => verify_gio_bot(edev, vrf, bel),
         "GIO_TOP" => verify_gio_top(edev, vrf, bel),
 
-        "GTX" => verify_gtx(edev, vrf, bel),
+        "GTX0" | "GTX1" | "GTX2" | "GTX3" => verify_gtx(edev, vrf, bel),
         "IBUFDS_GTX0" | "IBUFDS_GTX1" => verify_ibufds_gtx(vrf, bel),
         "HCLK_GTX" => verify_hclk_gtx(edev, vrf, bel),
         "GTH" => verify_gth(vrf, bel),

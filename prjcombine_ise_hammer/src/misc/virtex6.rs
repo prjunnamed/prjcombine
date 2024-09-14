@@ -231,7 +231,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
     for val in ["0", "1", "2", "3", "4", "5", "6", "NOWAIT"] {
         fuzz_one!(ctx, "LCK_CYCLE", val, [], [(global_opt "LCK_CYCLE", val)]);
-        fuzz_one!(ctx, "MATCH_CYCLE", val, [(global_mutex "DCI", "NO")], [(global_opt "MATCH_CYCLE", val)]);
+        fuzz_one!(ctx, "MATCH_CYCLE", val, [(global_mutex "GLOBAL_DCI", "NO")], [(global_opt "MATCH_CYCLE", val)]);
     }
     for val in ["NO", "YES"] {
         fuzz_one!(ctx, "DRIVE_DONE", val, [], [(global_opt "DRIVEDONE", val)]);

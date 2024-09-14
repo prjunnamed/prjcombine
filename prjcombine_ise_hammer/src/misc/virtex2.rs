@@ -15,13 +15,17 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::{FeatureBit, FeatureId, IseBackend, Key},
     diff::{
-        concat_bitvec, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_bool_default,
-        xlat_enum, xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode,
+        concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
+        xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum, xlat_enum_ocd, xlat_item_tile,
+        CollectorCtx, Diff, OcdMode,
     },
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
-    io::{iostd::{DciKind, DiffKind}, virtex2::get_iostds},
+    io::{
+        iostd::{DciKind, DiffKind},
+        virtex2::get_iostds,
+    },
 };
 
 pub fn add_fuzzers<'a>(
@@ -1807,7 +1811,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                         }),
                     ));
                 }
-                vals.push(("NONE", Diff::default()));
+                vals.push(("OFF", Diff::default()));
                 let prefix = match edev.grid.kind {
                     GridKind::Virtex2 => "IOSTD:V2:LVDSBIAS",
                     GridKind::Virtex2P | GridKind::Virtex2PX => "IOSTD:V2P:LVDSBIAS",
@@ -1815,32 +1819,52 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                     _ => unreachable!(),
                 };
 
-                if edev.grid.kind == GridKind::Spartan3 {
-                    let diffs = (0..13)
-                        .map(|i| {
-                            ctx.state
-                                .get_diff(tile, bel, format!("LVDSBIAS_OPT{i}"), "1")
-                        })
-                        .collect();
-                    let item = xlat_bitvec(diffs);
-                    let base = BitVec::repeat(false, 13);
-                    for (name, diff) in vals {
-                        let val = crate::diff::extract_bitvec_val(&item, &base, diff);
-                        ctx.tiledb.insert_misc_data(format!("{prefix}:{name}"), val)
-                    }
-                    ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
+                let item = if edev.grid.kind == GridKind::Spartan3 {
+                    xlat_bitvec(
+                        (0..13)
+                            .rev()
+                            .map(|i| {
+                                ctx.state
+                                    .get_diff(tile, bel, format!("LVDSBIAS_OPT{i}"), "1")
+                            })
+                            .collect(),
+                    )
                 } else {
-                    let mut item = xlat_enum(vals);
-                    let TileItemKind::Enum { values } = item.kind else {
-                        unreachable!()
-                    };
-                    for (name, val) in values {
-                        ctx.tiledb.insert_misc_data(format!("{prefix}:{name}"), val)
-                    }
-                    let invert = BitVec::repeat(false, item.bits.len());
-                    item.kind = TileItemKind::BitVec { invert };
-                    ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
+                    TileItem::from_bitvec(
+                        match bel {
+                            "DCI0" => vec![
+                                FeatureBit::new(0, 3, 48),
+                                FeatureBit::new(0, 2, 48),
+                                FeatureBit::new(0, 3, 47),
+                                FeatureBit::new(0, 2, 47),
+                                FeatureBit::new(0, 3, 46),
+                                FeatureBit::new(0, 2, 46),
+                                FeatureBit::new(0, 3, 45),
+                                FeatureBit::new(0, 2, 45),
+                                FeatureBit::new(0, 3, 44),
+                            ],
+                            "DCI1" => vec![
+                                FeatureBit::new(1, 12, 8),
+                                FeatureBit::new(1, 12, 6),
+                                FeatureBit::new(1, 12, 7),
+                                FeatureBit::new(1, 12, 10),
+                                FeatureBit::new(1, 12, 11),
+                                FeatureBit::new(1, 12, 9),
+                                FeatureBit::new(1, 13, 9),
+                                FeatureBit::new(1, 13, 11),
+                                FeatureBit::new(1, 13, 7),
+                            ],
+                            _ => unreachable!(),
+                        },
+                        false,
+                    )
+                };
+                let base = BitVec::repeat(false, item.bits.len());
+                for (name, diff) in vals {
+                    let val = crate::diff::extract_bitvec_val(&item, &base, diff);
+                    ctx.tiledb.insert_misc_data(format!("{prefix}:{name}"), val)
                 }
+                ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
 
                 // DCI
                 let diff_fdh = !ctx.state.get_diff(tile, bel, "FORCE_DONE_HIGH", "#OFF");
@@ -1882,9 +1906,121 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                     .insert(tile, bel, "FORCE_DONE_HIGH", xlat_bit(diff_fdh));
 
                 // DCI TERM stuff
-                let mut vals_split = vec![("NONE", Diff::default())];
-                let mut vals_vcc = vec![("NONE", Diff::default())];
-                let item_en = ctx.tiledb.item(tile, bel, "ENABLE");
+                let (pmask_term_vcc, pmask_term_split, nmask_term_split) =
+                    if edev.grid.kind == GridKind::Spartan3 {
+                        let frame = if tile == ll {
+                            match bel {
+                                "DCI0" => 1,
+                                "DCI1" => 0,
+                                _ => unreachable!(),
+                            }
+                        } else {
+                            match bel {
+                                "DCI0" => 0,
+                                "DCI1" => 1,
+                                _ => unreachable!(),
+                            }
+                        };
+                        (
+                            TileItem::from_bitvec(
+                                vec![
+                                    FeatureBit::new(0, frame, 51),
+                                    FeatureBit::new(0, frame, 52),
+                                    FeatureBit::new(0, frame, 53),
+                                    FeatureBit::new(0, frame, 54),
+                                ],
+                                false,
+                            ),
+                            TileItem::from_bitvec(
+                                vec![
+                                    FeatureBit::new(0, frame, 56),
+                                    FeatureBit::new(0, frame, 57),
+                                    FeatureBit::new(0, frame, 58),
+                                    FeatureBit::new(0, frame, 59),
+                                ],
+                                false,
+                            ),
+                            TileItem::from_bitvec(
+                                vec![
+                                    FeatureBit::new(0, frame, 46),
+                                    FeatureBit::new(0, frame, 47),
+                                    FeatureBit::new(0, frame, 48),
+                                    FeatureBit::new(0, frame, 49),
+                                ],
+                                false,
+                            ),
+                        )
+                    } else {
+                        (
+                            TileItem::from_bitvec(
+                                match bel {
+                                    "DCI0" => vec![
+                                        FeatureBit::new(0, 3, 36),
+                                        FeatureBit::new(0, 2, 36),
+                                        FeatureBit::new(0, 3, 35),
+                                        FeatureBit::new(0, 2, 35),
+                                        FeatureBit::new(0, 3, 34),
+                                    ],
+                                    "DCI1" => vec![
+                                        FeatureBit::new(1, 8, 8),
+                                        FeatureBit::new(1, 8, 6),
+                                        FeatureBit::new(1, 8, 7),
+                                        FeatureBit::new(1, 8, 11),
+                                        FeatureBit::new(1, 8, 10),
+                                    ],
+                                    _ => unreachable!(),
+                                },
+                                false,
+                            ),
+                            TileItem::from_bitvec(
+                                match bel {
+                                    "DCI0" => vec![
+                                        FeatureBit::new(0, 2, 34),
+                                        FeatureBit::new(0, 3, 33),
+                                        FeatureBit::new(0, 2, 33),
+                                        FeatureBit::new(0, 3, 32),
+                                        FeatureBit::new(0, 2, 32),
+                                    ],
+                                    "DCI1" => vec![
+                                        FeatureBit::new(1, 8, 9),
+                                        FeatureBit::new(1, 9, 9),
+                                        FeatureBit::new(1, 9, 11),
+                                        FeatureBit::new(1, 9, 7),
+                                        FeatureBit::new(1, 9, 10),
+                                    ],
+                                    _ => unreachable!(),
+                                },
+                                false,
+                            ),
+                            TileItem::from_bitvec(
+                                match bel {
+                                    "DCI0" => vec![
+                                        FeatureBit::new(0, 2, 39),
+                                        FeatureBit::new(0, 3, 38),
+                                        FeatureBit::new(0, 2, 38),
+                                        FeatureBit::new(0, 3, 37),
+                                        FeatureBit::new(0, 2, 37),
+                                    ],
+                                    "DCI1" => vec![
+                                        FeatureBit::new(1, 11, 11),
+                                        FeatureBit::new(1, 11, 7),
+                                        FeatureBit::new(1, 11, 10),
+                                        FeatureBit::new(1, 11, 8),
+                                        FeatureBit::new(1, 11, 6),
+                                    ],
+                                    _ => unreachable!(),
+                                },
+                                false,
+                            ),
+                        )
+                    };
+                let item_en = ctx.tiledb.item(tile, bel, "ENABLE").clone();
+                let prefix = match edev.grid.kind {
+                    GridKind::Virtex2 => "IOSTD:V2",
+                    GridKind::Virtex2P | GridKind::Virtex2PX => "IOSTD:V2P",
+                    GridKind::Spartan3 => "IOSTD:S3",
+                    _ => unreachable!(),
+                };
                 for std in get_iostds(edev, false) {
                     if std.name.starts_with("DIFF_") {
                         continue;
@@ -1892,55 +2028,101 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                     match std.dci {
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => (),
                         DciKind::InputVcc | DciKind::BiVcc => {
-                            let mut diff = ctx.state.get_diff(tile, bel, "DCI_TERM", std.name);
-                            diff.apply_bit_diff(item_en, true, false);
-                            vals_vcc.push((
-                                std.name,
-                                diff.filter_tiles(if edev.grid.kind.is_virtex2() {
+                            let mut diff = ctx
+                                .state
+                                .get_diff(tile, bel, "DCI_TERM", std.name)
+                                .filter_tiles(if edev.grid.kind.is_virtex2() {
                                     &[0, 1][..]
                                 } else {
                                     &[0][..]
-                                }),
-                            ));
+                                });
+                            diff.apply_bit_diff(&item_en, true, false);
+                            let val = extract_bitvec_val_part(
+                                &pmask_term_vcc,
+                                &BitVec::repeat(false, pmask_term_vcc.bits.len()),
+                                &mut diff,
+                            );
+                            ctx.tiledb.insert_misc_data(
+                                format!("{prefix}:PMASK_TERM_VCC:{stdname}", stdname = std.name),
+                                val,
+                            );
+                            diff.assert_empty();
                         }
                         DciKind::InputSplit | DciKind::BiSplit => {
                             if std.diff == DiffKind::True {
-                                vals_split.push((std.name, Diff::default()));
+                                ctx.tiledb.insert_misc_data(
+                                    format!(
+                                        "{prefix}:PMASK_TERM_SPLIT:{stdname}",
+                                        stdname = std.name
+                                    ),
+                                    BitVec::repeat(false, pmask_term_split.bits.len()),
+                                );
+                                ctx.tiledb.insert_misc_data(
+                                    format!(
+                                        "{prefix}:NMASK_TERM_SPLIT:{stdname}",
+                                        stdname = std.name
+                                    ),
+                                    BitVec::repeat(false, nmask_term_split.bits.len()),
+                                );
                             } else {
-                                let mut diff = ctx.state.get_diff(tile, bel, "DCI_TERM", std.name);
-                                diff.apply_bit_diff(item_en, true, false);
-                                vals_split.push((
-                                    std.name,
-                                    diff.filter_tiles(if edev.grid.kind.is_virtex2() {
+                                let mut diff = ctx
+                                    .state
+                                    .get_diff(tile, bel, "DCI_TERM", std.name)
+                                    .filter_tiles(if edev.grid.kind.is_virtex2() {
                                         &[0, 1][..]
                                     } else {
                                         &[0][..]
-                                    }),
-                                ));
+                                    });
+                                diff.apply_bit_diff(&item_en, true, false);
+                                let val = extract_bitvec_val_part(
+                                    &pmask_term_split,
+                                    &BitVec::repeat(false, pmask_term_split.bits.len()),
+                                    &mut diff,
+                                );
+                                ctx.tiledb.insert_misc_data(
+                                    format!(
+                                        "{prefix}:PMASK_TERM_SPLIT:{stdname}",
+                                        stdname = std.name
+                                    ),
+                                    val,
+                                );
+                                let val = extract_bitvec_val_part(
+                                    &nmask_term_split,
+                                    &BitVec::repeat(false, nmask_term_split.bits.len()),
+                                    &mut diff,
+                                );
+                                ctx.tiledb.insert_misc_data(
+                                    format!(
+                                        "{prefix}:NMASK_TERM_SPLIT:{stdname}",
+                                        stdname = std.name
+                                    ),
+                                    val,
+                                );
+                                diff.assert_empty();
                             }
                         }
                         _ => unreachable!(),
                     }
                 }
-                let prefix = match edev.grid.kind {
-                    GridKind::Virtex2 => "IOSTD:V2",
-                    GridKind::Virtex2P | GridKind::Virtex2PX => "IOSTD:V2P",
-                    GridKind::Spartan3 => "IOSTD:S3",
-                    _ => unreachable!(),
-                };
-                for (attr, vals) in [("TERM_SPLIT", vals_split), ("TERM_VCC", vals_vcc)] {
-                    let mut item = xlat_enum(vals);
-                    let TileItemKind::Enum { values } = item.kind else {
-                        unreachable!()
-                    };
-                    for (name, val) in values {
-                        ctx.tiledb
-                            .insert_misc_data(format!("{prefix}:{attr}:{name}"), val)
-                    }
-                    let invert = BitVec::repeat(false, item.bits.len());
-                    item.kind = TileItemKind::BitVec { invert };
-                    ctx.tiledb.insert(tile, bel, attr, item);
-                }
+                ctx.tiledb.insert_misc_data(
+                    format!("{prefix}:PMASK_TERM_VCC:OFF"),
+                    BitVec::repeat(false, pmask_term_vcc.bits.len()),
+                );
+                ctx.tiledb.insert_misc_data(
+                    format!("{prefix}:PMASK_TERM_SPLIT:OFF"),
+                    BitVec::repeat(false, pmask_term_split.bits.len()),
+                );
+                ctx.tiledb.insert_misc_data(
+                    format!("{prefix}:NMASK_TERM_SPLIT:OFF"),
+                    BitVec::repeat(false, nmask_term_split.bits.len()),
+                );
+
+                ctx.tiledb
+                    .insert(tile, bel, "PMASK_TERM_VCC", pmask_term_vcc);
+                ctx.tiledb
+                    .insert(tile, bel, "PMASK_TERM_SPLIT", pmask_term_split);
+                ctx.tiledb
+                    .insert(tile, bel, "NMASK_TERM_SPLIT", nmask_term_split);
             }
 
             if edev.grid.kind == GridKind::Spartan3 {
@@ -2022,51 +2204,269 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
                 .insert(tile, "MISC", "DCI_CLK_ENABLE", xlat_bit(diff));
         } else {
             let banks = if edev.grid.kind == GridKind::Spartan3E {
-                &[ul, ur, lr, ll][..]
+                vec![
+                    (
+                        ul,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 0, 44),
+                                FeatureBit::new(0, 0, 39),
+                                FeatureBit::new(0, 0, 38),
+                                FeatureBit::new(0, 0, 37),
+                                FeatureBit::new(0, 0, 36),
+                                FeatureBit::new(0, 0, 27),
+                                FeatureBit::new(0, 0, 26),
+                                FeatureBit::new(0, 0, 25),
+                                FeatureBit::new(0, 0, 24),
+                                FeatureBit::new(0, 0, 23),
+                                FeatureBit::new(0, 0, 22),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 0, 45),
+                                FeatureBit::new(0, 0, 43),
+                                FeatureBit::new(0, 0, 42),
+                                FeatureBit::new(0, 0, 41),
+                                FeatureBit::new(0, 0, 40),
+                                FeatureBit::new(0, 0, 35),
+                                FeatureBit::new(0, 0, 34),
+                                FeatureBit::new(0, 0, 33),
+                                FeatureBit::new(0, 0, 32),
+                                FeatureBit::new(0, 0, 29),
+                                FeatureBit::new(0, 0, 28),
+                            ],
+                            false,
+                        ),
+                    ),
+                    (
+                        ur,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 10),
+                                FeatureBit::new(0, 1, 48),
+                                FeatureBit::new(0, 1, 47),
+                                FeatureBit::new(0, 1, 46),
+                                FeatureBit::new(0, 1, 45),
+                                FeatureBit::new(0, 1, 38),
+                                FeatureBit::new(0, 1, 37),
+                                FeatureBit::new(0, 1, 36),
+                                FeatureBit::new(0, 1, 35),
+                                FeatureBit::new(0, 1, 34),
+                                FeatureBit::new(0, 1, 33),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 11),
+                                FeatureBit::new(0, 1, 9),
+                                FeatureBit::new(0, 1, 51),
+                                FeatureBit::new(0, 1, 50),
+                                FeatureBit::new(0, 1, 49),
+                                FeatureBit::new(0, 1, 44),
+                                FeatureBit::new(0, 1, 43),
+                                FeatureBit::new(0, 1, 42),
+                                FeatureBit::new(0, 1, 41),
+                                FeatureBit::new(0, 1, 40),
+                                FeatureBit::new(0, 1, 39),
+                            ],
+                            false,
+                        ),
+                    ),
+                    (
+                        lr,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 12),
+                                FeatureBit::new(0, 1, 7),
+                                FeatureBit::new(0, 1, 36),
+                                FeatureBit::new(0, 1, 35),
+                                FeatureBit::new(0, 1, 34),
+                                FeatureBit::new(0, 1, 27),
+                                FeatureBit::new(0, 1, 26),
+                                FeatureBit::new(0, 1, 25),
+                                FeatureBit::new(0, 1, 24),
+                                FeatureBit::new(0, 1, 23),
+                                FeatureBit::new(0, 1, 22),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 13),
+                                FeatureBit::new(0, 1, 11),
+                                FeatureBit::new(0, 1, 10),
+                                FeatureBit::new(0, 1, 9),
+                                FeatureBit::new(0, 1, 8),
+                                FeatureBit::new(0, 1, 33),
+                                FeatureBit::new(0, 1, 32),
+                                FeatureBit::new(0, 1, 31),
+                                FeatureBit::new(0, 1, 30),
+                                FeatureBit::new(0, 1, 29),
+                                FeatureBit::new(0, 1, 28),
+                            ],
+                            false,
+                        ),
+                    ),
+                    (
+                        ll,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 31),
+                                FeatureBit::new(0, 1, 26),
+                                FeatureBit::new(0, 1, 25),
+                                FeatureBit::new(0, 1, 24),
+                                FeatureBit::new(0, 1, 23),
+                                FeatureBit::new(0, 1, 38),
+                                FeatureBit::new(0, 1, 37),
+                                FeatureBit::new(0, 1, 36),
+                                FeatureBit::new(0, 1, 35),
+                                FeatureBit::new(0, 1, 34),
+                                FeatureBit::new(0, 1, 33),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 32),
+                                FeatureBit::new(0, 1, 30),
+                                FeatureBit::new(0, 1, 29),
+                                FeatureBit::new(0, 1, 28),
+                                FeatureBit::new(0, 1, 27),
+                                FeatureBit::new(0, 1, 22),
+                                FeatureBit::new(0, 1, 43),
+                                FeatureBit::new(0, 1, 42),
+                                FeatureBit::new(0, 1, 41),
+                                FeatureBit::new(0, 1, 40),
+                                FeatureBit::new(0, 1, 39),
+                            ],
+                            false,
+                        ),
+                    ),
+                ]
             } else {
-                &[ul, ll][..]
+                vec![
+                    (
+                        ul,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 62),
+                                FeatureBit::new(0, 1, 60),
+                                FeatureBit::new(0, 1, 55),
+                                FeatureBit::new(0, 1, 54),
+                                FeatureBit::new(0, 1, 53),
+                                FeatureBit::new(0, 1, 52),
+                                FeatureBit::new(0, 1, 45),
+                                FeatureBit::new(0, 1, 44),
+                                FeatureBit::new(0, 1, 43),
+                                FeatureBit::new(0, 1, 42),
+                                FeatureBit::new(0, 1, 41),
+                                FeatureBit::new(0, 1, 40),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 63),
+                                FeatureBit::new(0, 1, 61),
+                                FeatureBit::new(0, 1, 59),
+                                FeatureBit::new(0, 1, 58),
+                                FeatureBit::new(0, 1, 57),
+                                FeatureBit::new(0, 1, 56),
+                                FeatureBit::new(0, 1, 51),
+                                FeatureBit::new(0, 1, 50),
+                                FeatureBit::new(0, 1, 49),
+                                FeatureBit::new(0, 1, 48),
+                                FeatureBit::new(0, 1, 47),
+                                FeatureBit::new(0, 1, 46),
+                            ],
+                            false,
+                        ),
+                    ),
+                    (
+                        ll,
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 32),
+                                FeatureBit::new(0, 0, 27),
+                                FeatureBit::new(0, 0, 31),
+                                FeatureBit::new(0, 1, 30),
+                                FeatureBit::new(0, 1, 36),
+                                FeatureBit::new(0, 1, 28),
+                                FeatureBit::new(0, 0, 10),
+                                FeatureBit::new(0, 1, 11),
+                                FeatureBit::new(0, 1, 34),
+                                FeatureBit::new(0, 1, 33),
+                                FeatureBit::new(0, 1, 10),
+                                FeatureBit::new(0, 0, 9),
+                            ],
+                            false,
+                        ),
+                        TileItem::from_bitvec(
+                            vec![
+                                FeatureBit::new(0, 1, 27),
+                                FeatureBit::new(0, 0, 28),
+                                FeatureBit::new(0, 0, 26),
+                                FeatureBit::new(0, 1, 26),
+                                FeatureBit::new(0, 1, 62),
+                                FeatureBit::new(0, 1, 63),
+                                FeatureBit::new(0, 0, 30),
+                                FeatureBit::new(0, 1, 9),
+                                FeatureBit::new(0, 1, 35),
+                                FeatureBit::new(0, 0, 29),
+                                FeatureBit::new(0, 0, 62),
+                                FeatureBit::new(0, 0, 6),
+                            ],
+                            false,
+                        ),
+                    ),
+                ]
             };
-            for &tile in banks {
+            for (tile, lvdsbias_0, lvdsbias_1) in banks {
                 let bel = "BANK";
-                let mut vals_0 = vec![];
-                let mut vals_1 = vec![];
+                let prefix = if edev.grid.kind == GridKind::Spartan3E {
+                    "IOSTD:S3E:LVDSBIAS"
+                } else {
+                    "IOSTD:S3A.TB:LVDSBIAS"
+                };
+                let kind = edev.egrid.db.get_node(tile);
+                let (_, col, row, _) = edev.egrid.node_index[kind][0];
+                let btile = edev.btile_lrterm(col, row);
+                let base: BitVec = lvdsbias_0
+                    .bits
+                    .iter()
+                    .map(|bit| {
+                        ctx.empty_bs
+                            .get_bit(btile.xlat_pos_fwd((bit.frame, bit.bit)))
+                    })
+                    .collect();
+
                 for std in get_iostds(edev, false) {
                     if std.diff != DiffKind::True {
                         continue;
                     }
                     if std.name != "LVDS_25" || edev.grid.kind.is_spartan3a() {
-                        let diff_0 = ctx.state.get_diff(tile, bel, "LVDSBIAS_0", std.name);
-                        vals_0.push((std.name, diff_0.filter_tiles(&[0])));
+                        let diff_0 = ctx
+                            .state
+                            .get_diff(tile, bel, "LVDSBIAS_0", std.name)
+                            .filter_tiles(&[0]);
+                        let val_0 = extract_bitvec_val(&lvdsbias_0, &base, diff_0);
+                        ctx.tiledb
+                            .insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_0)
                     }
-                    let diff_1 = ctx.state.get_diff(tile, bel, "LVDSBIAS_1", std.name);
-                    vals_1.push((std.name, diff_1.filter_tiles(&[0])));
+                    let diff_1 = ctx
+                        .state
+                        .get_diff(tile, bel, "LVDSBIAS_1", std.name)
+                        .filter_tiles(&[0]);
+                    let val_1 = extract_bitvec_val(&lvdsbias_1, &base, diff_1);
+                    ctx.tiledb
+                        .insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_1)
                 }
-                vals_0.push(("NONE", Diff::default()));
-                vals_1.push(("NONE", Diff::default()));
-                if edev.grid.kind == GridKind::Spartan3E {
-                    // move LVDS_25 to back in LVDSBIAS_1 so that the other values are aligned
-                    let idx = vals_1.iter().position(|x| x.0 == "LVDS_25").unwrap();
-                    let lvds = vals_1.remove(idx);
-                    vals_1.push(lvds);
-                }
-                let item_0 = xlat_enum(vals_0);
-                let item_1 = xlat_enum(vals_1);
-                for (attr, mut item) in [("LVDSBIAS_0", item_0), ("LVDSBIAS_1", item_1)] {
-                    let TileItemKind::Enum { values } = item.kind else {
-                        unreachable!()
-                    };
-                    let prefix = if edev.grid.kind == GridKind::Spartan3E {
-                        format!("IOSTD:S3E:{attr}")
-                    } else {
-                        "IOSTD:S3A.TB:LVDSBIAS".to_string()
-                    };
-                    for (name, val) in values {
-                        ctx.tiledb.insert_misc_data(format!("{prefix}:{name}"), val)
-                    }
-                    let invert = BitVec::repeat(false, item.bits.len());
-                    item.kind = TileItemKind::BitVec { invert };
-                    ctx.tiledb.insert(tile, bel, attr, item);
-                }
+                ctx.tiledb.insert_misc_data(format!("{prefix}:OFF"), base);
+                ctx.tiledb.insert(tile, bel, "LVDSBIAS_0", lvdsbias_0);
+                ctx.tiledb.insert(tile, bel, "LVDSBIAS_1", lvdsbias_1);
             }
         }
 

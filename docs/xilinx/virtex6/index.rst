@@ -16,4 +16,5 @@ Virtex 6
    center
    emac
    pcie
+   gtx
    config

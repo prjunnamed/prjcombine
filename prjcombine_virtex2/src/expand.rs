@@ -3337,7 +3337,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 {
                     let gsx = if col < self.grid.col_clk {
                         col.to_idx()
-                    } else if !self.grid.kind.is_spartan3ea() {
+                    } else if !self.grid.kind.is_virtex2() {
                         col.to_idx() + 1
                     } else {
                         col.to_idx() + 2

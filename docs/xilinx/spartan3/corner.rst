@@ -155,10 +155,7 @@ I/O data — Spartan 3E
 =====================
 
 .. raw:: html
-   :file: ../gen/xc3se-iostd-lvdsbias-0.html
-
-.. raw:: html
-   :file: ../gen/xc3se-iostd-lvdsbias-1.html
+   :file: ../gen/xc3se-iostd-lvdsbias.html
 
 
 I/O data — Spartan 3A

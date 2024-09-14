@@ -334,9 +334,18 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (mode_diff $kinda:expr, $kindb:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()))
     };
+    ($ctx:ident, (bel_mode_diff $bel:expr, $kinda:expr, $kindb:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel($bel, $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()))
+    };
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::Bel(
             $ctx.bel,
+            $crate::fgen::BelFuzzKV::Attr($attr.to_string(), $val.to_string()),
+        )
+    };
+    ($ctx:ident, (bel_attr $bel:expr, $attr:expr, $val:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel(
+            $bel,
             $crate::fgen::BelFuzzKV::Attr($attr.to_string(), $val.to_string()),
         )
     };
@@ -350,8 +359,21 @@ macro_rules! fuzz_diff {
             ),
         )
     };
+    ($ctx:ident, (bel_attr_diff $bel:expr, $attr:expr, $vala:expr, $valb:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel(
+            $bel,
+            $crate::fgen::BelFuzzKV::AttrDiff(
+                $attr.to_string(),
+                $vala.to_string(),
+                $valb.to_string(),
+            ),
+        )
+    };
     ($ctx:ident, (pin $pin:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::Pin($pin.to_string()))
+    };
+    ($ctx:ident, (bel_pin $bel:expr, $pin:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel($bel, $crate::fgen::BelFuzzKV::Pin($pin.to_string()))
     };
     ($ctx:ident, (pin_full $pin:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::PinFull($pin.to_string()))
@@ -364,6 +386,9 @@ macro_rules! fuzz_diff {
             $ctx.bel,
             $crate::fgen::BelFuzzKV::PinFrom($pin.to_string(), $kind_a, $kind_b),
         )
+    };
+    ($ctx:ident, (pin_pair $pina:expr, $bel:expr, $pinb:expr)) => {
+        $crate::fgen::TileFuzzKV::PinPair($ctx.bel, $pina.to_string(), $bel, $pinb.to_string())
     };
     ($ctx:ident, (iob_mode $iob:expr, $kind:expr)) => {
         $crate::fgen::TileFuzzKV::IobBel(

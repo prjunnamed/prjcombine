@@ -862,54 +862,51 @@ impl<'a, 'b> Expander<'a, 'b> {
                         }
                         {
                             let row = self.grid.row_reg_hclk(reg);
-                            let crds: [_; 10] = core::array::from_fn(|dy| (col, row - 10 + dy));
-                            let tk = if is_l { "HCLK_GTX_LEFT" } else { "HCLK_GTX" };
+                            let crds: [_; 40] = core::array::from_fn(|dy| (col, row - 20 + dy));
+                            let tk = if is_l { "GTX_LEFT" } else { "GTX" };
                             let name = if is_l {
-                                format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 1)
+                                format!(
+                                    "HCLK_{tk}_X{x}Y{y}",
+                                    x = col.to_idx(),
+                                    y = row.to_idx() - 1
+                                )
                             } else {
                                 format!(
-                                    "{tk}_X{x}Y{y}",
+                                    "HCLK_{tk}_X{x}Y{y}",
                                     x = self.rxlut[col] + 2,
                                     y = row.to_idx() + row.to_idx() / 20
                                 )
                             };
-                            let tk_gt = if is_l { "GTX_LEFT" } else { "GTX" };
-                            let name_gt = format!(
-                                "{tk_gt}_X{x}Y{y}",
-                                x = col.to_idx(),
-                                y = row.to_idx() - 10
-                            );
-                            let node = self.die.add_xnode(
-                                (col, row),
-                                self.db.get_node("HCLK_GTX"),
-                                &[&name, &name_gt],
-                                self.db.get_node_naming(tk),
-                                &crds,
-                            );
-                            node.add_bel(0, gt.pads_clk[0].0.clone());
-                            node.add_bel(1, gt.pads_clk[0].1.clone());
-                            node.add_bel(2, gt.pads_clk[1].0.clone());
-                            node.add_bel(3, gt.pads_clk[1].1.clone());
-                            node.add_bel(4, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gtxy * 2));
-                            node.add_bel(5, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gtxy * 2 + 1));
-                        }
-                        for i in 0..4 {
-                            let row = self.grid.row_reg_bot(reg) + i * 10;
-                            let crds: [_; 10] = core::array::from_fn(|dy| (col, row + dy));
-                            let tk = if is_l { "GTX_LEFT" } else { "GTX" };
-                            let name = format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx());
+                            let names = [
+                                &name[..],
+                                &format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 20),
+                                &format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() - 10),
+                                &format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx()),
+                                &format!("{tk}_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 10),
+                            ];
                             let node = self.die.add_xnode(
                                 (col, row),
                                 self.db.get_node("GTX"),
-                                &[&name],
+                                &names,
                                 self.db.get_node_naming(tk),
                                 &crds,
                             );
-                            node.add_bel(0, gt.pads_rx[i].0.clone());
-                            node.add_bel(1, gt.pads_rx[i].1.clone());
-                            node.add_bel(2, gt.pads_tx[i].0.clone());
-                            node.add_bel(3, gt.pads_tx[i].1.clone());
-                            node.add_bel(4, format!("GTXE1_X{gx}Y{gy}", gy = gtxy * 4 + i));
+                            for i in 0..4 {
+                                node.add_bel(i * 4, gt.pads_rx[i].0.clone());
+                                node.add_bel(i * 4 + 1, gt.pads_rx[i].1.clone());
+                                node.add_bel(i * 4 + 2, gt.pads_tx[i].0.clone());
+                                node.add_bel(i * 4 + 3, gt.pads_tx[i].1.clone());
+                                node.add_bel(
+                                    20 + i,
+                                    format!("GTXE1_X{gx}Y{gy}", gy = gtxy * 4 + i),
+                                );
+                            }
+                            node.add_bel(16, gt.pads_clk[0].0.clone());
+                            node.add_bel(17, gt.pads_clk[0].1.clone());
+                            node.add_bel(18, gt.pads_clk[1].0.clone());
+                            node.add_bel(19, gt.pads_clk[1].1.clone());
+                            node.add_bel(24, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gtxy * 2));
+                            node.add_bel(25, format!("IBUFDS_GTXE1_X{gx}Y{y}", y = gtxy * 2 + 1));
                         }
                         gtxy += 1;
                     }

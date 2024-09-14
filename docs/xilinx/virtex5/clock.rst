@@ -132,3 +132,19 @@ IO clock nodes
 
 .. raw:: html
    :file: ../gen/tile-xc5v-HCLK_CMT.html
+
+
+I/O standard data
+=================
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-dci-lvdiv2.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-dci-mask-term-vcc.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-dci-mask-term-split.html

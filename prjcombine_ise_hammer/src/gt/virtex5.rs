@@ -687,7 +687,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileItem::from_bitvec((0..16).map(|j| drp_bit(i, j)).collect(), false),
             );
         }
-        // TODO: DRP
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         for &pin in GT_INVPINS {
             ctx.collect_inv(tile, bel, pin);

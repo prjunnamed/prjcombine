@@ -828,7 +828,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
         fuzz_multi_attr_bin!(ctx, "OPROGRAMMING", 22, [
             (mode "IOB"),
-            (mutex "MODE", "MANUAL"),
             (attr "OUSED", "0"),
             (pin "O")
         ]);
@@ -1868,28 +1867,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         };
                         let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
                         let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-                        for (attr, bits, invert) in [
-                            ("PDRIVE", &pdrive_bits, &pdrive_invert),
-                            ("NDRIVE", &ndrive_bits, &ndrive_invert),
-                        ] {
-                            let value: BitVec = bits
-                                .iter()
-                                .zip(invert.iter())
-                                .map(|(&bit, inv)| match diff.bits.remove(&bit) {
-                                    Some(val) => {
-                                        assert_eq!(val, !*inv);
-                                        true
-                                    }
-                                    None => false,
-                                })
-                                .collect();
-                            let name = if drive.is_empty() {
-                                stdname.to_string()
-                            } else {
-                                format!("{stdname}.{drive}")
-                            };
-                            ctx.tiledb
-                                .insert_misc_data(format!("IOSTD:{attr}:{name}"), value);
+                        if !matches!(std.dci, DciKind::Output | DciKind::OutputHalf) {
+                            for (attr, bits, invert) in [
+                                ("PDRIVE", &pdrive_bits, &pdrive_invert),
+                                ("NDRIVE", &ndrive_bits, &ndrive_invert),
+                            ] {
+                                let value: BitVec = bits
+                                    .iter()
+                                    .zip(invert.iter())
+                                    .map(|(&bit, inv)| match diff.bits.remove(&bit) {
+                                        Some(val) => {
+                                            assert_eq!(val, !*inv);
+                                            true
+                                        }
+                                        None => false,
+                                    })
+                                    .collect();
+                                let name = if drive.is_empty() {
+                                    stdname.to_string()
+                                } else {
+                                    format!("{stdname}.{drive}")
+                                };
+                                ctx.tiledb
+                                    .insert_misc_data(format!("IOSTD:{attr}:{name}"), value);
+                            }
                         }
                         for (attr, bits, invert) in [
                             ("PSLEW", &pslew_bits, &pslew_invert),

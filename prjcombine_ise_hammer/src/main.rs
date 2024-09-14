@@ -57,6 +57,8 @@ struct Args {
     #[arg(long)]
     skip_misc: bool,
     #[arg(long)]
+    skip_gt: bool,
+    #[arg(long)]
     no_dup: bool,
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
@@ -162,11 +164,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if edev.grid.kind.is_virtex2p() {
                     ppc::virtex2::add_fuzzers(&mut hammer, &backend);
                 }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
-                    gt::virtex2p::add_fuzzers(&mut hammer, &backend);
-                }
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
-                    gt::virtex2px::add_fuzzers(&mut hammer, &backend);
+                if !args.skip_gt {
+                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2P {
+                        gt::virtex2p::add_fuzzers(&mut hammer, &backend);
+                    }
+                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Virtex2PX {
+                        gt::virtex2px::add_fuzzers(&mut hammer, &backend);
+                    }
                 }
             }
             ExpandedDevice::Spartan6(_) => {
@@ -188,7 +192,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     pll::spartan6::add_fuzzers(&mut hammer, &backend);
                 }
                 pcie::spartan6::add_fuzzers(&mut hammer, &backend);
-                gt::spartan6::add_fuzzers(&mut hammer, &backend);
+                if !args.skip_gt {
+                    gt::spartan6::add_fuzzers(&mut hammer, &backend);
+                }
             }
             ExpandedDevice::Virtex4(ref edev) => match edev.kind {
                 prjcombine_virtex4::grid::GridKind::Virtex4 => {
@@ -211,7 +217,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         ccm::virtex4::add_fuzzers(&mut hammer, &backend);
                     }
                     ppc::virtex4::add_fuzzers(&mut hammer, &backend);
-                    gt::virtex4::add_fuzzers(&mut hammer, &backend);
+                    if !args.skip_gt {
+                        gt::virtex4::add_fuzzers(&mut hammer, &backend);
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex5 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -223,13 +231,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if !args.skip_misc {
                         misc::virtex5::add_fuzzers(&mut hammer, &backend);
                     }
-                    // TODO: io
+                    if !skip_io {
+                        io::virtex5::add_fuzzers(&mut hammer, &backend);
+                    }
                     // TODO: dcm
                     // TODO: pll
                     ppc::virtex5::add_fuzzers(&mut hammer, &backend);
                     emac::virtex5::add_fuzzers(&mut hammer, &backend);
                     pcie::virtex5::add_fuzzers(&mut hammer, &backend);
-                    gt::virtex5::add_fuzzers(&mut hammer, &backend);
+                    if !args.skip_gt {
+                        gt::virtex5::add_fuzzers(&mut hammer, &backend);
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex6 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -243,8 +255,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // TODO: pll
                     emac::virtex6::add_fuzzers(&mut hammer, &backend);
                     pcie::virtex6::add_fuzzers(&mut hammer, &backend);
-                    // TODO: gtx
-                    // TODO: gth
+                    if !args.skip_gt {
+                        gt::virtex6_gtx::add_fuzzers(&mut hammer, &backend);
+                        // TODO: gth
+                    }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::add_fuzzers(&mut hammer, &backend);
@@ -256,9 +270,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // TODO: io_fifo
                     // TODO: pll
                     pcie::virtex7::add_fuzzers(&mut hammer, &backend);
-                    // TODO: gtp
-                    // TODO: gtx
-                    // TODO: gth
+                    if !args.skip_gt {
+                        // TODO: gtp
+                        // TODO: gtx
+                        // TODO: gth
+                    }
                 }
             },
             ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
@@ -388,6 +404,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     if !args.skip_misc {
                         misc::virtex5::collect_fuzzers(&mut ctx);
                     }
+                    if !skip_io {
+                        io::virtex5::collect_fuzzers(&mut ctx);
+                    }
                     ppc::virtex5::collect_fuzzers(&mut ctx);
                     emac::virtex5::collect_fuzzers(&mut ctx);
                     pcie::virtex5::collect_fuzzers(&mut ctx);
@@ -402,6 +421,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     emac::virtex6::collect_fuzzers(&mut ctx);
                     pcie::virtex6::collect_fuzzers(&mut ctx);
+                    gt::virtex6_gtx::collect_fuzzers(&mut ctx);
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
                     clb::virtex5::collect_fuzzers(&mut ctx);

@@ -149,4 +149,16 @@ Bitstream
 =========
 
 .. raw:: html
+   :file: ../gen/xc5v-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-misc.html
+
+.. raw:: html
+   :file: ../gen/xc5v-iostd-lvds.html
+
+.. raw:: html
    :file: ../gen/tile-xc5v-IO.html
