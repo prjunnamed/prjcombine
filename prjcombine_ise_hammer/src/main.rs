@@ -261,7 +261,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     pcie::virtex6::add_fuzzers(&mut hammer, &backend);
                     if !args.skip_gt {
                         gt::virtex6_gtx::add_fuzzers(&mut hammer, &backend);
-                        // TODO: gth
+                        gt::virtex6_gth::add_fuzzers(&mut hammer, &backend);
                     }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
@@ -441,6 +441,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     pcie::virtex6::collect_fuzzers(&mut ctx);
                     if !args.skip_gt {
                         gt::virtex6_gtx::collect_fuzzers(&mut ctx);
+                        gt::virtex6_gth::collect_fuzzers(&mut ctx);
                     }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {

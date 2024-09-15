@@ -18,4 +18,5 @@ Virtex 6
    emac
    pcie
    gtx
+   gth
    config
