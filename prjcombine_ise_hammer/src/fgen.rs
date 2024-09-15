@@ -4056,16 +4056,44 @@ impl ExtraFeatureKind {
                 }
                 res
             }
-            ExtraFeatureKind::AllIobs => {
-                let ExpandedDevice::Virtex(edev) = backend.edev else {
-                    unreachable!()
-                };
-                let node = backend.egrid.db.get_node(tile);
-                backend.egrid.node_index[node]
-                    .iter()
-                    .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
-                    .collect()
-            }
+            ExtraFeatureKind::AllIobs => match backend.edev {
+                ExpandedDevice::Xc4k(_) => todo!(),
+                ExpandedDevice::Xc5200(_) => todo!(),
+                ExpandedDevice::Virtex(edev) => {
+                    let node = backend.egrid.db.get_node(tile);
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
+                        .collect()
+                }
+                ExpandedDevice::Virtex2(_) => todo!(),
+                ExpandedDevice::Spartan6(_) => todo!(),
+                ExpandedDevice::Virtex4(edev) => match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        let node = backend.egrid.db.get_node(tile);
+                        backend.egrid.node_index[node]
+                            .iter()
+                            .map(|loc| vec![edev.btile_main(loc.0, loc.1, loc.2)])
+                            .collect()
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        let node = backend.egrid.db.get_node(tile);
+                        backend.egrid.node_index[node]
+                            .iter()
+                            .map(|loc| {
+                                vec![
+                                    edev.btile_main(loc.0, loc.1, loc.2),
+                                    edev.btile_main(loc.0, loc.1, loc.2 + 1),
+                                ]
+                            })
+                            .collect()
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                },
+                ExpandedDevice::Ultrascale(_) => todo!(),
+                ExpandedDevice::Versal(_) => todo!(),
+            },
             ExtraFeatureKind::AllGclkvm => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
@@ -4577,7 +4605,16 @@ impl ExtraFeatureKind {
                 let row = vr_row.unwrap_or(io_row);
                 let reg = edev.grids[loc.0].row_to_reg(row);
                 let row = edev.grids[loc.0].row_reg_hclk(reg);
-                vec![vec![edev.btile_hclk(loc.0, edev.col_lcio.unwrap(), row)]]
+                match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4
+                    | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                        vec![vec![edev.btile_hclk(loc.0, edev.col_cfg, row)]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
+                        vec![vec![edev.btile_hclk(loc.0, edev.col_lcio.unwrap(), row)]]
+                    }
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                }
             }
             ExtraFeatureKind::CenterDciHclkCascade(bank, kind) => {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {

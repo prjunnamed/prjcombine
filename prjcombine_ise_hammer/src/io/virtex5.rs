@@ -8,11 +8,11 @@ use crate::{
     backend::{FeatureBit, IseBackend},
     diff::{
         extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_enum,
-        CollectorCtx, Diff,
+        CollectorCtx, Diff, OcdMode,
     },
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi_attr_bin, fuzz_one, fuzz_one_extras,
+    fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_bin, fuzz_one, fuzz_one_extras,
     io::iostd::DiffKind,
 };
 
@@ -109,9 +109,268 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             bdata.pins.len()
         })
         .unwrap();
+    let bel_ioi_clk = BelId::from_idx(8);
+
     // TODO: ILOGIC
-    // TODO: OLOGIC
+
+    for i in 0..2 {
+        let ctx = FuzzCtx::new(
+            session,
+            backend,
+            "IO",
+            format!("OLOGIC{i}"),
+            TileBits::MainAuto,
+        );
+        let bel_ilogic = BelId::from_idx(i);
+        fuzz_one!(ctx, "PRESENT", "OLOGIC", [(bel_unused bel_ilogic)], [(mode "OLOGIC")]);
+        fuzz_one!(ctx, "PRESENT", "OSERDES", [(bel_unused bel_ilogic)], [(mode "OSERDES")]);
+
+        fuzz_enum_suffix!(ctx, "CLKINV", "SAME", ["CLK", "CLK_B"], [
+            (mode "OLOGIC"),
+            (attr "ODDR_CLK_EDGE", "SAME_EDGE"),
+            (attr "OUTFFTYPE", "#FF"),
+            (attr "OMUX", "OUTFF"),
+            (pin "CLK"),
+            (pin "OQ")
+        ]);
+        fuzz_enum_suffix!(ctx, "CLKINV", "OPPOSITE", ["CLK", "CLK_B"], [
+            (mode "OLOGIC"),
+            (attr "ODDR_CLK_EDGE", "OPPOSITE_EDGE"),
+            (attr "OUTFFTYPE", "#FF"),
+            (attr "OMUX", "OUTFF"),
+            (pin "CLK"),
+            (pin "OQ")
+        ]);
+        fuzz_enum!(ctx, "ODDR_CLK_EDGE", ["SAME_EDGE", "OPPOSITE_EDGE"], [
+            (mode "OLOGIC")
+        ]);
+        fuzz_enum!(ctx, "TDDR_CLK_EDGE", ["SAME_EDGE", "OPPOSITE_EDGE"], [
+            (mode "OLOGIC")
+        ]);
+        fuzz_enum_suffix!(ctx, "CLKINV", "SAME", ["CLK", "CLK_B"], [
+            (mode "OSERDES"),
+            (attr "DATA_RATE_OQ", "DDR"),
+            (attr "DDR_CLK_EDGE", "SAME_EDGE"),
+            (pin "OCE"),
+            (pin "CLK")
+        ]);
+        fuzz_enum_suffix!(ctx, "CLKINV", "OPPOSITE", ["CLK", "CLK_B"], [
+            (mode "OSERDES"),
+            (attr "DATA_RATE_OQ", "DDR"),
+            (attr "DDR_CLK_EDGE", "OPPOSITE_EDGE"),
+            (pin "OCE"),
+            (pin "CLK")
+        ]);
+        fuzz_enum!(ctx, "DDR_CLK_EDGE", ["SAME_EDGE", "OPPOSITE_EDGE"], [
+            (mode "OSERDES")
+        ]);
+
+        fuzz_inv!(ctx, "CLKDIV", [(mode "OSERDES")]);
+
+        for pin in ["D1", "D2", "D3", "D4", "D5", "D6"] {
+            fuzz_inv!(ctx, pin, [(mode "OSERDES")]);
+        }
+        for pin in ["D1", "D2"] {
+            fuzz_inv!(ctx, pin, [
+                (mode "OLOGIC"),
+                (attr "OUTFFTYPE", "DDR"),
+                (attr "OMUX", "OUTFF"),
+                (pin "OQ")
+            ]);
+        }
+
+        fuzz_inv!(ctx, "T1", [
+            (mode "OLOGIC"),
+            (attr "TMUX", "T1"),
+            (attr "T1USED", "0"),
+            (pin "TQ")
+        ]);
+        fuzz_inv!(ctx, "T2", [
+            (mode "OLOGIC"),
+            (attr "TFFTYPE", "DDR"),
+            (attr "TMUX", "TFF"),
+            (pin "TQ")
+        ]);
+        fuzz_inv!(ctx, "T1", [
+            (mode "OSERDES"),
+            (attr "DATA_RATE_TQ", "BUF")
+        ]);
+        for pin in ["T2", "T3", "T4"] {
+            fuzz_inv!(ctx, pin, [
+                (mode "OSERDES")
+            ]);
+        }
+
+        fuzz_enum!(ctx, "SRTYPE_OQ", ["SYNC", "ASYNC"], [
+            (mode "OLOGIC"),
+            (attr "OUTFFTYPE", "#FF")
+        ]);
+        fuzz_enum!(ctx, "SRTYPE_TQ", ["SYNC", "ASYNC"], [
+            (mode "OLOGIC"),
+            (attr "TFFTYPE", "#FF")
+        ]);
+        fuzz_enum!(ctx, "SRTYPE", ["SYNC", "ASYNC"], [
+            (mode "OSERDES")
+        ]);
+
+        fuzz_enum_suffix!(ctx, "INIT_OQ", "OLOGIC", ["0", "1"], [(mode "OLOGIC")]);
+        fuzz_enum_suffix!(ctx, "INIT_TQ", "OLOGIC", ["0", "1"], [(mode "OLOGIC")]);
+        fuzz_enum_suffix!(ctx, "INIT_OQ", "OSERDES", ["0", "1"], [(mode "OSERDES")]);
+        fuzz_enum_suffix!(ctx, "INIT_TQ", "OSERDES", ["0", "1"], [(mode "OSERDES")]);
+
+        fuzz_enum_suffix!(ctx, "SRVAL_OQ", "OLOGIC", ["0", "1"], [(mode "OLOGIC")]);
+        fuzz_enum_suffix!(ctx, "SRVAL_TQ", "FF", ["0", "1"], [
+            (mode "OLOGIC"),
+            (attr "TFFTYPE", "#FF"),
+            (attr "TMUX", "TFF"),
+            (pin "TQ")
+        ]);
+        fuzz_enum_suffix!(ctx, "SRVAL_TQ", "DDR", ["0", "1"], [
+            (mode "OLOGIC"),
+            (attr "TFFTYPE", "DDR"),
+            (attr "TMUX", "TFF"),
+            (pin "TQ")
+        ]);
+        fuzz_enum_suffix!(ctx, "SRVAL_OQ", "OSERDES", ["0", "1"], [(mode "OSERDES")]);
+        fuzz_enum_suffix!(ctx, "SRVAL_TQ", "OSERDES", ["0", "1"], [(mode "OSERDES")]);
+
+        for attr in [
+            "OSRUSED", "TSRUSED", "OREVUSED", "TREVUSED", "OCEUSED", "TCEUSED",
+        ] {
+            fuzz_enum!(ctx, attr, ["0"], [
+                (mode "OLOGIC"),
+                (attr "OUTFFTYPE", "#FF"),
+                (attr "TFFTYPE", "#FF"),
+                (pin "OCE"),
+                (pin "TCE"),
+                (pin "REV"),
+                (pin "SR")
+            ]);
+        }
+
+        fuzz_enum!(ctx, "OUTFFTYPE", ["#FF", "#LATCH", "DDR"], [
+            (mode "OLOGIC"),
+            (pin "OQ")
+        ]);
+        fuzz_enum!(ctx, "TFFTYPE", ["#FF", "#LATCH", "DDR"], [
+            (mode "OLOGIC"),
+            (pin "TQ")
+        ]);
+
+        fuzz_enum!(ctx, "DATA_RATE_OQ", ["SDR", "DDR"], [
+            (mode "OSERDES")
+        ]);
+        fuzz_enum!(ctx, "DATA_RATE_TQ", ["BUF", "SDR", "DDR"], [
+            (mode "OSERDES"),
+            (attr "T1INV", "T1"),
+            (pin "T1")
+        ]);
+
+        fuzz_enum!(ctx, "OMUX", ["D1", "OUTFF"], [
+            (mode "OLOGIC"),
+            (attr "OSRUSED", "#OFF"),
+            (attr "OREVUSED", "#OFF"),
+            (attr "OUTFFTYPE", "#FF"),
+            (attr "O1USED", "0"),
+            (attr "D1INV", "D1"),
+            (pin "D1"),
+            (pin "OQ")
+        ]);
+        fuzz_enum!(ctx, "TMUX", ["T1", "TFF"], [
+            (mode "OLOGIC"),
+            (attr "TSRUSED", "#OFF"),
+            (attr "TREVUSED", "#OFF"),
+            (attr "TFFTYPE", "#FF"),
+            (attr "T1USED", "0"),
+            (attr "T1INV", "T1"),
+            (pin "T1"),
+            (pin "TQ")
+        ]);
+
+        fuzz_enum!(ctx, "MISR_ENABLE", ["FALSE", "TRUE"], [
+            (mode "OLOGIC"),
+            (global_opt "ENABLEMISR", "Y")
+        ]);
+        fuzz_enum!(ctx, "MISR_ENABLE_FDBK", ["FALSE", "TRUE"], [
+            (mode "OLOGIC"),
+            (global_opt "ENABLEMISR", "Y")
+        ]);
+        fuzz_enum!(ctx, "MISR_CLK_SELECT", ["CLK1", "CLK2"], [
+            (mode "OLOGIC"),
+            (global_opt "ENABLEMISR", "Y")
+        ]);
+
+        fuzz_enum!(ctx, "SERDES", ["FALSE", "TRUE"], [
+            (mode "OSERDES")
+        ]);
+        fuzz_enum!(ctx, "SERDES_MODE", ["SLAVE", "MASTER"], [
+            (mode "OSERDES")
+        ]);
+        fuzz_enum!(ctx, "TRISTATE_WIDTH", ["1", "4"], [
+            (mode "OSERDES")
+        ]);
+        fuzz_enum!(ctx, "DATA_WIDTH", ["2", "3", "4", "5", "6", "7", "8", "10"], [
+            (mode "OSERDES")
+        ]);
+        fuzz_multi_attr_bin!(ctx, "INIT_LOADCNT", 4, [(mode "OSERDES")]);
+
+        fuzz_one!(ctx, "MUX.CLK", "CKINT", [
+            (mutex "MUX.CLK", "CKINT")
+        ], [
+            (pip (pin "CKINT"), (pin "CLKMUX"))
+        ]);
+        fuzz_one!(ctx, "MUX.CLKDIV", "CKINT", [
+            (mutex "MUX.CLKDIV", "CKINT")
+        ], [
+            (pip (pin "CKINT_DIV"), (pin "CLKDIVMUX"))
+        ]);
+        for i in 0..4 {
+            fuzz_one!(ctx, "MUX.CLK", format!("IOCLK{i}"), [
+                (mutex "MUX.CLK", format!("IOCLK{i}"))
+            ], [
+                (pip (bel_pin bel_ioi_clk, format!("IOCLK{i}")), (pin "CLKMUX"))
+            ]);
+            fuzz_one!(ctx, "MUX.CLK", format!("RCLK{i}"), [
+                (mutex "MUX.CLK", format!("RCLK{i}"))
+            ], [
+                (pip (bel_pin bel_ioi_clk, format!("RCLK{i}")), (pin "CLKMUX"))
+            ]);
+            fuzz_one!(ctx, "MUX.CLKDIV", format!("RCLK{i}"), [
+                (mutex "MUX.CLKDIV", format!("RCLK{i}"))
+            ], [
+                (pip (bel_pin bel_ioi_clk, format!("RCLK{i}")), (pin "CLKDIVMUX"))
+            ]);
+        }
+        for i in 0..10 {
+            fuzz_one!(ctx, "MUX.CLK", format!("HCLK{i}"), [
+                (mutex "MUX.CLK", format!("HCLK{i}"))
+            ], [
+                (pip (bel_pin bel_ioi_clk, format!("HCLK{i}")), (pin "CLKMUX"))
+            ]);
+            fuzz_one!(ctx, "MUX.CLKDIV", format!("HCLK{i}"), [
+                (mutex "MUX.CLKDIV", format!("HCLK{i}"))
+            ], [
+                (pip (bel_pin bel_ioi_clk, format!("HCLK{i}")), (pin "CLKDIVMUX"))
+            ]);
+        }
+    }
+    let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
+    fuzz_one_extras!(ctx, "MISR_RESET", "1", [
+        (global_opt "ENABLEMISR", "Y")
+    ], [
+        (global_opt_diff "MISRRESET", "N", "Y")
+    ], vec![
+        ExtraFeature::new(
+            ExtraFeatureKind::AllIobs,
+            "IO",
+            "OLOGIC_COMMON",
+            "MISR_RESET",
+            "1",
+        )
+    ]);
+
     // TODO: IODELAY
+
     for i in 0..2 {
         let bel_ologic = BelId::from_idx(2 + i);
         let bel_iodelay = BelId::from_idx(4 + i);
@@ -469,6 +728,219 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "IO";
+
+    // TODO: ILOGIC
+
+    for i in 0..2 {
+        let bel = &format!("OLOGIC{i}");
+        let mut present_ologic = ctx.state.get_diff(tile, bel, "PRESENT", "OLOGIC");
+        let mut present_oserdes = ctx.state.get_diff(tile, bel, "PRESENT", "OSERDES");
+
+        for attr in ["DDR_CLK_EDGE", "ODDR_CLK_EDGE", "TDDR_CLK_EDGE"] {
+            for val in ["SAME_EDGE", "OPPOSITE_EDGE"] {
+                ctx.state.get_diff(tile, bel, attr, val).assert_empty();
+            }
+        }
+        ctx.state
+            .get_diff(tile, bel, "CLKINV.SAME", "CLK_B")
+            .assert_empty();
+        for pin in [
+            "D1", "D2", "D3", "D4", "D5", "D6", "T1", "T2", "T3", "T4", "CLKDIV",
+        ] {
+            ctx.collect_inv(tile, bel, pin);
+        }
+        let diff_clk1 = ctx.state.get_diff(tile, bel, "CLKINV.OPPOSITE", "CLK");
+        let diff_clk2 = ctx.state.get_diff(tile, bel, "CLKINV.OPPOSITE", "CLK_B");
+        let diff_clk12 = ctx.state.get_diff(tile, bel, "CLKINV.SAME", "CLK");
+        assert_eq!(diff_clk12, diff_clk1.combine(&diff_clk2));
+        ctx.tiledb
+            .insert(tile, bel, "INV.CLK1", xlat_bit(!diff_clk1));
+        ctx.tiledb
+            .insert(tile, bel, "INV.CLK2", xlat_bit(!diff_clk2));
+
+        let osrused = ctx.extract_bit(tile, bel, "OSRUSED", "0");
+        let tsrused = ctx.extract_bit(tile, bel, "TSRUSED", "0");
+        let orevused = ctx.extract_bit(tile, bel, "OREVUSED", "0");
+        let trevused = ctx.extract_bit(tile, bel, "TREVUSED", "0");
+        ctx.state.get_diff(tile, bel, "OCEUSED", "0").assert_empty();
+        ctx.state.get_diff(tile, bel, "TCEUSED", "0").assert_empty();
+
+        let diff_d1 = ctx.state.get_diff(tile, bel, "OMUX", "D1");
+        let diff_serdes_sdr = ctx
+            .state
+            .get_diff(tile, bel, "DATA_RATE_OQ", "SDR")
+            .combine(&diff_d1);
+        let diff_serdes_ddr = ctx
+            .state
+            .get_diff(tile, bel, "DATA_RATE_OQ", "DDR")
+            .combine(&diff_d1);
+        let (diff_serdes_sdr, diff_serdes_ddr, mut diff_off_serdes) =
+            Diff::split(diff_serdes_sdr, diff_serdes_ddr);
+        diff_off_serdes.apply_bit_diff(&osrused, true, false);
+        diff_off_serdes.apply_bit_diff(&orevused, true, false);
+        let diff_latch = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#LATCH");
+        let diff_ff = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#FF");
+        let diff_ddr = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "DDR");
+        ctx.state
+            .get_diff(tile, bel, "OMUX", "OUTFF")
+            .assert_empty();
+        present_oserdes = present_oserdes.combine(&!&diff_d1);
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "OMUX",
+            xlat_enum(vec![
+                ("NONE", Diff::default()),
+                ("D1", diff_d1),
+                ("SERDES_SDR", diff_serdes_sdr),
+                ("SERDES_DDR", diff_serdes_ddr),
+                ("FF", diff_ff),
+                ("DDR", diff_ddr),
+                ("LATCH", diff_latch),
+            ]),
+        );
+        ctx.tiledb
+            .insert(tile, bel, "OFF_SERDES", xlat_bit_wide(diff_off_serdes));
+
+        let diff_t1 = ctx.state.get_diff(tile, bel, "TMUX", "T1");
+        let diff_serdes_buf = ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "BUF");
+        let mut diff_serdes_sdr = ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "SDR");
+        let mut diff_serdes_ddr = ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "DDR");
+        diff_serdes_sdr.apply_bit_diff(&tsrused, true, false);
+        diff_serdes_sdr.apply_bit_diff(&trevused, true, false);
+        diff_serdes_ddr.apply_bit_diff(&tsrused, true, false);
+        diff_serdes_ddr.apply_bit_diff(&trevused, true, false);
+        let diff_latch = ctx.state.get_diff(tile, bel, "TFFTYPE", "#LATCH");
+        let diff_ff = ctx.state.get_diff(tile, bel, "TFFTYPE", "#FF");
+        let diff_ddr = ctx.state.get_diff(tile, bel, "TFFTYPE", "DDR");
+        ctx.state.get_diff(tile, bel, "TMUX", "TFF").assert_empty();
+        present_oserdes = present_oserdes.combine(&!&diff_t1);
+        present_ologic = present_ologic.combine(&!&diff_t1);
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "TMUX",
+            xlat_enum(vec![
+                ("NONE", Diff::default()),
+                ("T1", diff_t1),
+                ("T1", diff_serdes_buf),
+                ("SERDES_DDR", diff_serdes_ddr),
+                ("FF", diff_serdes_sdr),
+                ("FF", diff_ff),
+                ("DDR", diff_ddr),
+                ("LATCH", diff_latch),
+            ]),
+        );
+
+        ctx.collect_bitvec(tile, bel, "INIT_LOADCNT", "");
+        present_oserdes.apply_bitvec_diff(
+            ctx.tiledb.item(tile, bel, "INIT_LOADCNT"),
+            &bitvec![0; 4],
+            &bitvec![1; 4],
+        );
+
+        present_ologic.assert_empty();
+        present_oserdes.assert_empty();
+
+        ctx.tiledb.insert(tile, bel, "OFF_SR_USED", osrused);
+        ctx.tiledb.insert(tile, bel, "TFF_SR_USED", tsrused);
+        ctx.tiledb.insert(tile, bel, "OFF_REV_USED", orevused);
+        ctx.tiledb.insert(tile, bel, "TFF_REV_USED", trevused);
+
+        let item_oq = ctx.extract_enum_bool_wide(tile, bel, "SRTYPE_OQ", "ASYNC", "SYNC");
+        let item_tq = ctx.extract_enum_bool_wide(tile, bel, "SRTYPE_TQ", "ASYNC", "SYNC");
+        ctx.state
+            .get_diff(tile, bel, "SRTYPE", "ASYNC")
+            .assert_empty();
+        let mut diff = ctx.state.get_diff(tile, bel, "SRTYPE", "SYNC");
+        diff.apply_bitvec_diff(&item_oq, &bitvec![1; 4], &bitvec![0; 4]);
+        diff.apply_bitvec_diff(&item_tq, &bitvec![1; 2], &bitvec![0; 2]);
+        diff.assert_empty();
+        ctx.tiledb.insert(tile, bel, "OFF_SYNC", item_oq);
+        ctx.tiledb.insert(tile, bel, "TFF_SYNC", item_tq);
+
+        let diff_ologic = ctx.state.get_diff(tile, bel, "INIT_OQ.OLOGIC", "0");
+        let diff_oserdes = ctx
+            .state
+            .get_diff(tile, bel, "INIT_OQ.OSERDES", "0")
+            .combine(&!&diff_ologic);
+        ctx.tiledb
+            .insert(tile, bel, "OFF_INIT", xlat_bit_wide(!diff_ologic));
+        ctx.tiledb
+            .insert(tile, bel, "OFF_INIT_SERDES", xlat_bit_wide(!diff_oserdes));
+        ctx.state
+            .get_diff(tile, bel, "INIT_OQ.OLOGIC", "1")
+            .assert_empty();
+        ctx.state
+            .get_diff(tile, bel, "INIT_OQ.OSERDES", "1")
+            .assert_empty();
+        let item = ctx.extract_enum_bool_wide(tile, bel, "INIT_TQ.OLOGIC", "0", "1");
+        ctx.tiledb.insert(tile, bel, "TFF_INIT", item);
+        let item = ctx.extract_enum_bool_wide(tile, bel, "INIT_TQ.OSERDES", "0", "1");
+        ctx.tiledb.insert(tile, bel, "TFF_INIT", item);
+
+        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_OQ.OLOGIC", "0", "1");
+        ctx.tiledb.insert(tile, bel, "OFF_SRVAL", item);
+        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_OQ.OSERDES", "0", "1");
+        ctx.tiledb.insert(tile, bel, "OFF_SRVAL", item);
+
+        for attr in ["SRVAL_TQ.FF", "SRVAL_TQ.DDR", "SRVAL_TQ.OSERDES"] {
+            ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
+        }
+        let diff1 = ctx.state.get_diff(tile, bel, "SRVAL_TQ.FF", "0");
+        let diff2 = ctx.state.get_diff(tile, bel, "SRVAL_TQ.DDR", "0");
+        let diff3 = ctx.state.get_diff(tile, bel, "SRVAL_TQ.OSERDES", "0");
+        assert_eq!(diff2, diff3);
+        let diff2 = diff2.combine(&!&diff1);
+        ctx.tiledb.insert(tile, bel, "TFF1_SRVAL", xlat_bit(!diff1));
+        ctx.tiledb
+            .insert(tile, bel, "TFF23_SRVAL", xlat_bit_wide(!diff2));
+
+        ctx.collect_enum_bool(tile, bel, "SERDES", "FALSE", "TRUE");
+        ctx.collect_enum(tile, bel, "SERDES_MODE", &["SLAVE", "MASTER"]);
+        ctx.collect_enum(tile, bel, "TRISTATE_WIDTH", &["1", "4"]);
+        ctx.collect_enum(
+            tile,
+            bel,
+            "DATA_WIDTH",
+            &["2", "3", "4", "5", "6", "7", "8", "10"],
+        );
+
+        ctx.collect_enum_bool(tile, bel, "MISR_ENABLE", "FALSE", "TRUE");
+        ctx.collect_enum_bool(tile, bel, "MISR_ENABLE_FDBK", "FALSE", "TRUE");
+        ctx.collect_enum_default(tile, bel, "MISR_CLK_SELECT", &["CLK1", "CLK2"], "NONE");
+
+        ctx.collect_enum_default_ocd(
+            tile,
+            bel,
+            "MUX.CLK",
+            &[
+                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
+                "HCLK9", "IOCLK0", "IOCLK1", "IOCLK2", "IOCLK3", "RCLK0", "RCLK1", "RCLK2",
+                "RCLK3", "CKINT",
+            ],
+            "NONE",
+            OcdMode::Mux,
+        );
+        ctx.collect_enum_default_ocd(
+            tile,
+            bel,
+            "MUX.CLKDIV",
+            &[
+                "HCLK0", "HCLK1", "HCLK2", "HCLK3", "HCLK4", "HCLK5", "HCLK6", "HCLK7", "HCLK8",
+                "HCLK9", "RCLK0", "RCLK1", "RCLK2", "RCLK3", "CKINT",
+            ],
+            "NONE",
+            OcdMode::Mux,
+        );
+    }
+    let mut diff = ctx.state.get_diff(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
+    let diff1 = diff.split_bits_by(|bit| bit.bit >= 32);
+    ctx.tiledb.insert(tile, "OLOGIC0", "MISR_RESET", xlat_bit(diff));
+    ctx.tiledb.insert(tile, "OLOGIC1", "MISR_RESET", xlat_bit(diff1));
+
+    // TODO: IODELAY
+
     let mut present_vr = ctx.state.get_diff(tile, "IOB_COMMON", "PRESENT", "VR");
     for i in 0..2 {
         let bel = &format!("IOB{i}");
