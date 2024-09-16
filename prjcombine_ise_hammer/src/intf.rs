@@ -18,7 +18,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         if backend.egrid.node_index[node_kind].is_empty() {
             continue;
         }
-        let bits = TileBits::Main(node.tiles.len());
         for (&wire, intf) in &node.intfs {
             match intf {
                 prjcombine_int::db::IntfInfo::OutputTestMux(inps) => {
@@ -35,7 +34,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                         };
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
-                            bits: bits.clone(),
+                            bits: TileBits::MainAuto,
                             feature: FeatureId {
                                 tile: name.to_string(),
                                 bel: "INTF".into(),
@@ -59,7 +58,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     for val in ["0", "1"] {
                         session.add_fuzzer(Box::new(TileFuzzerGen {
                             node: node_kind,
-                            bits: bits.clone(),
+                            bits: TileBits::MainAuto,
                             feature: FeatureId {
                                 tile: name.to_string(),
                                 bel: "INTF".into(),

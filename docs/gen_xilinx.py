@@ -342,6 +342,9 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
         emit_misc_table("xilinx/gen/xc5v-iostd-dci-mask-term-vcc.html", "IOSTD:DCI:PMASK_TERM_VCC")
         emit_misc_table("xilinx/gen/xc5v-iostd-dci-mask-term-split.html", "IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT")
 
+        with open("xilinx/gen/xc5v-iodelay-default-idelay-value.html", "w") as f:
+            emit_dev_table_bitvec(f, "IODELAY:DEFAULT_IDELAY_VALUE")
+
     if kind == "xc6v":
         emit_misc_table("xilinx/gen/xc6v-iostd-misc.html", "IOSTD:OUTPUT_MISC")
         emit_misc_table("xilinx/gen/xc6v-iostd-drive.html", "IOSTD:PDRIVE", "IOSTD:NDRIVE")

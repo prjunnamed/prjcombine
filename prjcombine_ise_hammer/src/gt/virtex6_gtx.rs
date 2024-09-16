@@ -10,7 +10,8 @@ use crate::{
     diff::{xlat_bit, xlat_enum, CollectorCtx, Diff},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one, fuzz_one_extras,
+    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
+    fuzz_one_extras,
 };
 
 const GTX_INVPINS: &[&str] = &[

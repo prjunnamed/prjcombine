@@ -161,4 +161,7 @@ Bitstream
    :file: ../gen/xc5v-iostd-lvds.html
 
 .. raw:: html
+   :file: ../gen/xc5v-iodelay-default-idelay-value.html
+
+.. raw:: html
    :file: ../gen/tile-xc5v-IO.html

@@ -594,7 +594,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
     if mode == Mode::Spartan3 {
-        let mut ctx = FuzzCtx::new(session, backend, "RANDOR", "RANDOR", TileBits::Main(1));
+        let mut ctx = FuzzCtx::new(session, backend, "RANDOR", "RANDOR", TileBits::Main(0, 1));
         fuzz_enum!(ctx, "ANDORMUX", ["0", "1"], [
             (mode "RESERVED_ANDOR"),
             (special TileKV::IsLeftRandor(false)),

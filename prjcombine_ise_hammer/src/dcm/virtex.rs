@@ -23,7 +23,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for tile in [
         "DLL.BOT", "DLL.TOP", "DLLP.BOT", "DLLP.TOP", "DLLS.BOT", "DLLS.TOP",
     ] {
-        let Some(ctx) = FuzzCtx::try_new(session, backend, tile, "DLL", TileBits::Main(1)) else {
+        let Some(ctx) = FuzzCtx::try_new(session, backend, tile, "DLL", TileBits::Main(0, 1)) else {
             continue;
         };
         fuzz_one_extras!(ctx, "PRESENT", "1", [

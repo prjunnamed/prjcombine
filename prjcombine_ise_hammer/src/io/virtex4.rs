@@ -1262,9 +1262,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs_b.push(diff_b);
         }
         ctx.tiledb
-            .insert(tile, bel, "IOBDELAY_VALUE_A", xlat_bitvec(diffs_a));
+            .insert(tile, bel, "IOBDELAY_VALUE_INIT", xlat_bitvec(diffs_a));
         ctx.tiledb
-            .insert(tile, bel, "IOBDELAY_VALUE_B", xlat_bitvec(diffs_b));
+            .insert(tile, bel, "IOBDELAY_VALUE_CUR", xlat_bitvec(diffs_b));
 
         let item = xlat_enum(vec![
             (
@@ -1445,12 +1445,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_ilogic.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.CE1"), false, true);
         present_iserdes.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.CE1"), false, true);
         present_ilogic.apply_bitvec_diff_int(
-            ctx.tiledb.item(tile, bel, "IOBDELAY_VALUE_B"),
+            ctx.tiledb.item(tile, bel, "IOBDELAY_VALUE_CUR"),
             0,
             0x3f,
         );
         present_iserdes.apply_bitvec_diff_int(
-            ctx.tiledb.item(tile, bel, "IOBDELAY_VALUE_B"),
+            ctx.tiledb.item(tile, bel, "IOBDELAY_VALUE_CUR"),
             0,
             0x3f,
         );

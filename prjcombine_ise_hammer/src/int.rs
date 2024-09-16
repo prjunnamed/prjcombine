@@ -32,7 +32,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             continue;
         }
         let bits = if name.starts_with("INT") || name == "PPC.E" || name == "PPC.W" {
-            TileBits::Main(1)
+            TileBits::Main(0, 1)
         } else if name.starts_with("CLKB") || name.starts_with("CLKT") || name.starts_with("REG_") {
             TileBits::SpineEnd
         } else if matches!(&name[..], "TERM.S" | "TERM.N") {

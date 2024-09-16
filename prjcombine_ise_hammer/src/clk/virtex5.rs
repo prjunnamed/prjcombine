@@ -6,7 +6,7 @@ use unnamed_entity::EntityId;
 use crate::{
     backend::IseBackend,
     diff::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
-    fgen::{BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
+    fgen::{BelFuzzKV, BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
 };
@@ -220,6 +220,34 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     (pip (bel_pin obel, format!("HCLK_O{i}")), (pin "REFCLK"))
                 ]);
             }
+            fuzz_one_extras!(ctx, "MODE", "DEFAULT_ONLY", [
+                (global_opt "LEGIDELAY", "DISABLE"),
+                (mode "")
+            ], [
+                (bel_special BelFuzzKV::AllIodelay("DEFAULT"))
+            ], vec![
+                ExtraFeature::new(
+                    ExtraFeatureKind::AllBankIoi,
+                    "IO",
+                    "IODELAY_BOTH",
+                    "IDELAYCTRL_MODE",
+                    "DEFAULT_ONLY",
+                ),
+            ]);
+            fuzz_one_extras!(ctx, "MODE", "FULL", [
+                (global_opt "LEGIDELAY", "DISABLE")
+            ], [
+                (bel_special BelFuzzKV::AllIodelay("FIXED")),
+                (mode "IDELAYCTRL")
+            ], vec![
+                ExtraFeature::new(
+                    ExtraFeatureKind::AllBankIoi,
+                    "IO",
+                    "IODELAY_BOTH",
+                    "IDELAYCTRL_MODE",
+                    "FULL",
+                ),
+            ]);
         }
     }
     {
@@ -532,8 +560,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     "HCLK8", "HCLK9",
                 ],
                 "NONE",
-            )
+            );
+            ctx.collect_enum_default(tile, bel, "MODE", &["FULL", "DEFAULT_ONLY"], "NONE");
         }
+    }
+    {
+        let tile = "IO";
+        let bel = "IODELAY_BOTH";
+        // don't worry about it kitten
+        ctx.state
+            .get_diff(tile, bel, "IDELAYCTRL_MODE", "DEFAULT_ONLY");
+        ctx.state.get_diff(tile, bel, "IDELAYCTRL_MODE", "FULL");
     }
     {
         let tile = "HCLK_CMT";

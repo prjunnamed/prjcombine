@@ -16,7 +16,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         let bits = match &name[..] {
             "CLKL" | "CLKH" | "CLKR" => TileBits::Hclk,
             "CLKB" | "CLKV" | "CLKT" => TileBits::Spine(0, 1),
-            _ => TileBits::Main(1),
+            _ => TileBits::Main(0, 1),
         };
         for (&wire_to, mux) in &node.muxes {
             let mux_name = if node.tiles.len() == 1 {

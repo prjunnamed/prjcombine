@@ -3090,6 +3090,7 @@ pub enum BelFuzzKV {
     PinPips(String),
     PinFrom(String, PinFromKind, PinFromKind),
     Global(BelGlobalKind, String, String),
+    AllIodelay(&'static str),
 }
 
 impl<'a> TileFuzzKV<'a> {
@@ -3242,6 +3243,29 @@ impl BelFuzzKV {
             BelFuzzKV::Global(kind, name, val) => {
                 fuzzer.fuzz(Key::GlobalOpt(kind.apply(backend, name, site)), None, val)
             }
+            BelFuzzKV::AllIodelay(mode) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let reg = edev.grids[loc.0].row_to_reg(loc.2);
+                let bot = edev.grids[loc.0].row_reg_bot(reg);
+                for i in 0..edev.grids[loc.0].rows_per_reg() {
+                    let row = bot + i;
+                    for bel in ["IODELAY0", "IODELAY1"] {
+                        if let Some((node, bel, _, _)) =
+                            edev.egrid.find_bel(loc.0, (loc.1, row), bel)
+                        {
+                            fuzzer = fuzzer.fuzz(Key::SiteMode(&node.bels[bel]), None, "IODELAY");
+                            fuzzer = fuzzer.fuzz(
+                                Key::SiteAttr(&node.bels[bel], "IDELAY_TYPE".into()),
+                                None,
+                                *mode,
+                            );
+                        }
+                    }
+                }
+                fuzzer
+            }
         })
     }
 }
@@ -3286,7 +3310,7 @@ impl TileMultiFuzzKV {
 #[derive(Debug, Clone)]
 pub enum TileBits {
     Null,
-    Main(usize),
+    Main(usize, usize),
     Reg(Reg),
     RegPresent(Reg),
     Raw(Vec<BitTile>),
@@ -3326,22 +3350,22 @@ impl TileBits {
         let (die, col, row, _) = loc;
         match *self {
             TileBits::Null => vec![],
-            TileBits::Main(n) => match backend.edev {
+            TileBits::Main(d, n) => match backend.edev {
                 ExpandedDevice::Xc4k(_) => todo!(),
-                ExpandedDevice::Xc5200(edev) => {
-                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
-                }
-                ExpandedDevice::Virtex(edev) => {
-                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
-                }
-                ExpandedDevice::Virtex2(edev) => {
-                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
-                }
-                ExpandedDevice::Spartan6(edev) => {
-                    (0..n).map(|idx| edev.btile_main(col, row + idx)).collect()
-                }
+                ExpandedDevice::Xc5200(edev) => (0..n)
+                    .map(|idx| edev.btile_main(col, row - d + idx))
+                    .collect(),
+                ExpandedDevice::Virtex(edev) => (0..n)
+                    .map(|idx| edev.btile_main(col, row - d + idx))
+                    .collect(),
+                ExpandedDevice::Virtex2(edev) => (0..n)
+                    .map(|idx| edev.btile_main(col, row - d + idx))
+                    .collect(),
+                ExpandedDevice::Spartan6(edev) => (0..n)
+                    .map(|idx| edev.btile_main(col, row - d + idx))
+                    .collect(),
                 ExpandedDevice::Virtex4(edev) => (0..n)
-                    .map(|idx| edev.btile_main(die, col, row + idx))
+                    .map(|idx| edev.btile_main(die, col, row - d + idx))
                     .collect(),
                 ExpandedDevice::Ultrascale(_) => todo!(),
                 ExpandedDevice::Versal(_) => todo!(),
@@ -3923,6 +3947,7 @@ pub enum ExtraFeatureKind {
     CenterDciVr(u32),
     CenterDciHclk(u32),
     CenterDciHclkCascade(u32, &'static str),
+    AllBankIoi,
 }
 
 impl ExtraFeatureKind {
@@ -4641,6 +4666,35 @@ impl ExtraFeatureKind {
                         .is_some()
                     {
                         res.push(vec![edev.btile_hclk(loc.0, edev.col_cfg, row)]);
+                    }
+                }
+                res
+            }
+            ExtraFeatureKind::AllBankIoi => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let reg = edev.grids[loc.0].row_to_reg(loc.2);
+                let bot = edev.grids[loc.0].row_reg_bot(reg);
+                let mut res = vec![];
+                for i in 0..edev.grids[loc.0].rows_per_reg() {
+                    let row = bot + i;
+                    if edev
+                        .egrid
+                        .find_bel(loc.0, (loc.1, row), "IODELAY0")
+                        .is_some()
+                    {
+                        res.push(match edev.kind {
+                            prjcombine_virtex4::grid::GridKind::Virtex4
+                            | prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                                vec![edev.btile_main(loc.0, loc.1, row)]
+                            }
+                            prjcombine_virtex4::grid::GridKind::Virtex6 => vec![
+                                edev.btile_main(loc.0, loc.1, row),
+                                edev.btile_main(loc.0, loc.1, row + 1),
+                            ],
+                            prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                        });
                     }
                 }
                 res

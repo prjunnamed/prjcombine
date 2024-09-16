@@ -294,13 +294,12 @@ Each frame is exactly 3232 bits long and has the following structure:
 
 - bits 0-1599: interconnect rows 0 to 24 of the region, 64 bits per row
 - bits 1600-1612: ECC
-- bits 1613-1615: HCLK row
-- bits 1616-1631: unused
+- bits 1613-1631: HCLK row
 - bits 1632-3231: interconnect rows 25 to 49 of the region, 64 bits per row
 
 Every interconnect tile thus corresponds to a bitstream tile that is 28×64 to 42×64 bits. The actual interconnect tile is 26×64 bits, occupying the first 26 frames of the column. If ``INTF`` is present in the tile, it occupies leftover space in frames 0-3. If ``INTF.DELAY`` tile is present in the tile, it occupies leftover space in frames 0-3, as well as frames 26-27.  The remaining frames, as well as unused space in frames 0-3 and 26-27 where applicable, are used for configuring the associated primitive tile.
 
-The HCLK row has smaller bitstream tiles, 28×3 to 42×3 bits in size.
+The HCLK row has smaller bitstream tiles, 28×19 to 42×19 bits in size.
 
 The BRAM data tiles are 128×320 bits in size (covering the height of 5 interconnect rows). The area at intersection with HCLK rows is unused.
 

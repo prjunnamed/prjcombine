@@ -510,6 +510,9 @@ impl<'a> Backend for IseBackend<'a> {
                 Key::SiteMode(site) => match v {
                     Value::None => (),
                     Value::String(s) => {
+                        if s.is_empty() {
+                            continue;
+                        }
                         insts.insert(
                             site.to_string(),
                             Instance {

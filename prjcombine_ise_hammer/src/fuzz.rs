@@ -332,10 +332,16 @@ macro_rules! fuzz_diff {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::Mode($kind.to_string()))
     };
     ($ctx:ident, (mode_diff $kinda:expr, $kindb:expr)) => {
-        $crate::fgen::TileFuzzKV::Bel($ctx.bel, $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()))
+        $crate::fgen::TileFuzzKV::Bel(
+            $ctx.bel,
+            $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()),
+        )
     };
     ($ctx:ident, (bel_mode_diff $bel:expr, $kinda:expr, $kindb:expr)) => {
-        $crate::fgen::TileFuzzKV::Bel($bel, $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()))
+        $crate::fgen::TileFuzzKV::Bel(
+            $bel,
+            $crate::fgen::BelFuzzKV::ModeDiff($kinda.to_string(), $kindb.to_string()),
+        )
     };
     ($ctx:ident, (attr $attr:expr, $val:expr)) => {
         $crate::fgen::TileFuzzKV::Bel(
@@ -470,6 +476,9 @@ macro_rules! fuzz_diff {
     };
     ($ctx:ident, (special $val:expr)) => {
         $val
+    };
+    ($ctx:ident, (bel_special $special:expr)) => {
+        $crate::fgen::TileFuzzKV::Bel($ctx.bel, $special)
     };
 }
 

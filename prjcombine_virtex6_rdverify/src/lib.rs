@@ -1669,7 +1669,7 @@ pub fn verify_gio_top(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     }
 }
 
-pub fn verify_gtx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_gtx(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins = [
         ("RXP", SitePinDir::In),
         ("RXN", SitePinDir::In),
@@ -2077,7 +2077,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "GIO_BOT" => verify_gio_bot(edev, vrf, bel),
         "GIO_TOP" => verify_gio_top(edev, vrf, bel),
 
-        "GTX0" | "GTX1" | "GTX2" | "GTX3" => verify_gtx(edev, vrf, bel),
+        "GTX0" | "GTX1" | "GTX2" | "GTX3" => verify_gtx(vrf, bel),
         "IBUFDS_GTX0" | "IBUFDS_GTX1" => verify_ibufds_gtx(vrf, bel),
         "HCLK_GTX" => verify_hclk_gtx(edev, vrf, bel),
         "GTH" => verify_gth(vrf, bel),
