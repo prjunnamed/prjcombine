@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         "virtex4" => virtex4::ingest(&rd, verify),
                         "virtex5" => virtex5::ingest(&rd, verify),
                         "virtex6" => virtex6::ingest(&rd, verify),
-                        "7series" => virtex7::ingest(&rd, verify),
+                        "virtex7" => virtex7::ingest(&rd, verify),
                         "ultrascale" | "ultrascaleplus" => ultrascale::ingest(&rd, verify),
                         "versal" => versal::ingest(&rd, verify),
                         _ => panic!("unknown family {}", rd.family),

@@ -170,14 +170,19 @@ const PATTERNS: &[(&str, &str, &str)] = &[
     (
         "x[ca]7(?:[akvz]|v[xh])[0-9]+[st]?[li]?",
         "[a-z]{2}[gv][0-9]+",
-        "7series",
+        "virtex7",
     ),
     (
         "xq7(?:[akv]|v[xh])[0-9]+t?[li]?",
         "[a-z]{2}[0-9]+",
-        "7series",
+        "virtex7",
     ),
-    ("xq7z[0-9]+", "[a-z]{2}g?[0-9]+", "7series"),
+    (
+        "x[ca]7s[0-9]+",
+        "[a-z]{2}[gv][a-z][0-9]+",
+        "virtex7",
+    ),
+    ("xq7z[0-9]+", "[a-z]{2}g?[0-9]+", "virtex7"),
 ];
 
 pub fn split_partname(s: &str) -> Option<(&str, &str, &str)> {

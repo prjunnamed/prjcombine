@@ -210,7 +210,7 @@ fn get_spartan6_tests() -> Vec<Test> {
     res
 }
 
-fn get_7series_tests() -> Vec<Test> {
+fn get_virtex7_tests() -> Vec<Test> {
     let mut res = Vec::new();
     let mut ctx = TestGenCtx::new();
     let part = "xc7k70t-1-fbg676";
@@ -251,7 +251,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             "virtex4" => get_virtex4_tests(),
             "virtex5" => get_virtex5_tests(),
             "virtex6" => get_virtex6_tests(),
-            "7series" => get_7series_tests(),
+            "virtex7" => get_virtex7_tests(),
             _ => panic!("unknown family {family}"),
         };
         tests.par_iter().for_each(|t| {

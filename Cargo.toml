@@ -56,7 +56,7 @@ members = [
 	"prjcombine_sdf",
 	"prjcombine_xc9500",
 	"prjcombine_xpla3",
-	"prjcombine_xc2c",
+	"prjcombine_xc2c", "prjcombine_xilinx_rdis",
 ]
 resolver = "2"
 

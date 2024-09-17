@@ -59,11 +59,11 @@ pub fn get_parts(tc: &Toolchain) -> Result<Vec<VivadoPart>, Box<dyn Error>> {
         res.push(VivadoPart {
             name: sl[1].to_string(),
             actual_family: match sl[2] {
-                "spartan7" => "7series",
-                "artix7" => "7series",
-                "kintex7" => "7series",
-                "virtex7" => "7series",
-                "zynq" => "7series",
+                "spartan7" => "virtex7",
+                "artix7" => "virtex7",
+                "kintex7" => "virtex7",
+                "virtex7" => "virtex7",
+                "zynq" => "virtex7",
                 "kintexu" => "ultrascale",
                 "virtexu" => "ultrascale",
                 "kintexuplus" => "ultrascaleplus",

@@ -35,6 +35,7 @@ pub enum Packet {
     CmdMfwr,
     CmdDGHigh,
     CmdStart,
+    CmdShutdown,
     CmdRcrc,
     CmdSwitch,
     CmdGRestore,
@@ -74,6 +75,7 @@ pub enum Packet {
     Trim(u32),
     Dwc(u32),
     Fdri(Vec<u8>),
+    Bout(Vec<u8>),
     EncFdri(Vec<u8>),
     BugFdri(Vec<u8>),
 }
@@ -196,6 +198,10 @@ impl<'a> PacketParser<'a> {
     pub fn peek(&self) -> Option<Packet> {
         self.clone().next()
     }
+
+    pub fn desync(&mut self) {
+        self.sync = false;
+    }
 }
 
 impl<'a> Iterator for PacketParser<'a> {
@@ -267,6 +273,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                 }
                                 9 => Some(Packet::CmdSwitch),
                                 10 => Some(Packet::CmdGRestore),
+                                11 => Some(Packet::CmdShutdown),
                                 13 => Some(Packet::CmdDesynch),
                                 val => panic!("unk cmd: {val}"),
                             },
@@ -519,6 +526,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                     }
                                     9 => Some(Packet::CmdSwitch),
                                     10 => Some(Packet::CmdGRestore),
+                                    11 => Some(Packet::CmdShutdown),
                                     13 => Some(Packet::CmdDesynch),
                                     val => panic!("unk cmd: {val}"),
                                 },
@@ -621,6 +629,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                 }
                                 (0x1b, 1) if is_v4 => Some(Packet::Trim(get_val(0))),
                                 (0x1c, 1) if is_v4 => Some(Packet::Unk1c(get_val(0))),
+                                (0x1e, 0) => continue,
                                 _ => panic!("unk write: {reg} times {num}"),
                             }
                         } else if (ph >> 27) == 7 {
@@ -676,6 +685,9 @@ impl<'a> Iterator for PacketParser<'a> {
                                     } else {
                                         Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                                     }
+                                }
+                                0x1e => {
+                                    Some(Packet::Bout(src_data[dpos..epos].to_vec()))
                                 }
                                 _ => panic!("unk long write: {reg} times {num}"),
                             }

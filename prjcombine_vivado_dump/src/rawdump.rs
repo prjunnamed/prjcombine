@@ -819,7 +819,7 @@ struct FixupTileKind {
 
 const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "GTP_CHANNEL_0",
         slots: &[
             FixupSiteSlot {
@@ -856,7 +856,7 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "GTP_CHANNEL_1",
         slots: &[
             FixupSiteSlot {
@@ -893,7 +893,7 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "GTP_CHANNEL_2",
         slots: &[
             FixupSiteSlot {
@@ -930,7 +930,7 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "GTP_CHANNEL_3",
         slots: &[
             FixupSiteSlot {
@@ -967,7 +967,7 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "GTP_COMMON",
         slots: &[
             FixupSiteSlot {
@@ -1016,7 +1016,7 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
         source_device: "xc7a25t",
     },
     FixupTileKind {
-        family: "7series",
+        family: "virtex7",
         tile_kind: "PCIE_BOT",
         slots: &[FixupSiteSlot {
             slot_name: "PCIE",

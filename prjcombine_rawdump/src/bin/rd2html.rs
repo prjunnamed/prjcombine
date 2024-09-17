@@ -3572,7 +3572,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "virtex4" => (VIRTEX4_TILES, false),
         "virtex5" => (VIRTEX5_TILES, true),
         "virtex6" => (VIRTEX6_TILES, true),
-        "7series" => (VIRTEX7_TILES, true),
+        "virtex7" => (VIRTEX7_TILES, true),
         "ultrascale" => (ULTRASCALE_TILES, true),
         "ultrascaleplus" => (ULTRASCALEPLUS_TILES, true),
         "versal" => (VERSAL_TILES, true),

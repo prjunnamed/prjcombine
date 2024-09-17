@@ -2073,7 +2073,11 @@ impl DieExpander<'_, '_, '_> {
                             self.frame_info.push(FrameInfo {
                                 addr: FrameAddr {
                                     typ: 0,
-                                    region: (reg - self.grid.reg_cfg) as i32,
+                                    region: if self.grid.regs == 1 {
+                                        0
+                                    } else {
+                                        (reg - self.grid.reg_cfg) as i32
+                                    },
                                     major: col.to_idx() as u32,
                                     minor,
                                 },
@@ -2098,7 +2102,11 @@ impl DieExpander<'_, '_, '_> {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
-                            region: (reg - self.grid.reg_cfg) as i32,
+                            region: if self.grid.regs == 1 {
+                                0
+                            } else {
+                                (reg - self.grid.reg_cfg) as i32
+                            },
                             major: col.to_idx() as u32,
                             minor,
                         },
@@ -2124,7 +2132,11 @@ impl DieExpander<'_, '_, '_> {
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 1,
-                            region: (reg - self.grid.reg_cfg) as i32,
+                            region: if self.grid.regs == 1 {
+                                0
+                            } else {
+                                (reg - self.grid.reg_cfg) as i32
+                            },
                             major,
                             minor,
                         },

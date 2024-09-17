@@ -4,6 +4,7 @@ use crate::{
 };
 use arrayref::array_ref;
 use bitvec::prelude::*;
+use prjcombine_int::grid::DieId;
 use std::collections::HashMap;
 
 struct Xc5200Crc {
@@ -1141,11 +1142,18 @@ fn parse_spartan6_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     assert_eq!(packets.next(), None);
 }
 
-fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
+fn parse_virtex4_bitstream(
+    bs: &mut Bitstream,
+    data: &[u8],
+    key: &KeyData,
+    die_order: &[DieId],
+    die_index: usize,
+) {
+    let die = die_order[die_index];
     let mut packets = PacketParser::new(bs.kind, data, key);
     let kind = bs.kind;
-    let bs = bs.die.first_mut().unwrap();
-    let far_dict: HashMap<_, _> = bs
+    let diebs = &mut bs.die[die];
+    let far_dict: HashMap<_, _> = diebs
         .frame_info
         .iter()
         .enumerate()
@@ -1172,11 +1180,11 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
         match packets.next() {
-            Some(Packet::Cor0(val)) => bs.regs[Reg::Cor0] = Some(val),
+            Some(Packet::Cor0(val)) => diebs.regs[Reg::Cor0] = Some(val),
             p => panic!("expected cor0 got {p:?}"),
         }
         match packets.next() {
-            Some(Packet::Idcode(val)) => bs.regs[Reg::Idcode] = Some(val),
+            Some(Packet::Idcode(val)) => diebs.regs[Reg::Idcode] = Some(val),
             p => panic!("expected idcode got {p:?}"),
         }
         if matches!(packets.peek(), Some(Packet::Mask(_))) {
@@ -1192,7 +1200,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 }
                 p => panic!("expected ctl0 got {p:?}"),
             }
-            bs.mode = BitstreamMode::Encrypt;
+            diebs.mode = BitstreamMode::Encrypt;
         }
         assert_eq!(packets.next(), Some(Packet::CmdSwitch));
         assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1229,7 +1237,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         assert_eq!(packets.next(), Some(Packet::Nop));
         if kind == DeviceKind::Virtex7 {
             match packets.next() {
-                Some(Packet::Timer(val)) => bs.regs[Reg::Timer] = Some(val),
+                Some(Packet::Timer(val)) => diebs.regs[Reg::Timer] = Some(val),
                 p => panic!("expected timer got {p:?}"),
             }
         }
@@ -1247,7 +1255,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
             match packets.next() {
-                Some(Packet::Cbc(val)) => bs.iv = val,
+                Some(Packet::Cbc(val)) => diebs.iv = val,
                 p => panic!("expected fdri got {p:?}"),
             };
 
@@ -1256,10 +1264,10 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 p => panic!("expected dwc got {p:?}"),
             };
 
-            bs.regs[Reg::FakeEncrypted] = Some(1);
+            diebs.regs[Reg::FakeEncrypted] = Some(1);
         }
         match packets.next() {
-            Some(Packet::WBStar(val)) => bs.regs[Reg::WbStar] = Some(val),
+            Some(Packet::WBStar(val)) => diebs.regs[Reg::WbStar] = Some(val),
             p => panic!("expected wbstar got {p:?}"),
         }
         assert_eq!(packets.next(), Some(Packet::CmdNull));
@@ -1270,14 +1278,14 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 p => panic!("expected mask got {p:?}"),
             };
             match packets.next() {
-                Some(Packet::Unk1c(val)) => bs.regs[Reg::Unk1C] = Some(val),
-                Some(Packet::Trim(val)) => bs.regs[Reg::Trim] = Some(val),
+                Some(Packet::Unk1c(val)) => diebs.regs[Reg::Unk1C] = Some(val),
+                Some(Packet::Trim(val)) => diebs.regs[Reg::Trim] = Some(val),
                 p => panic!("expected ctl2 or trim got {p:?}"),
             }
         }
         if kind != DeviceKind::Virtex5 && matches!(packets.peek(), Some(Packet::Testmode(_))) {
             match packets.next() {
-                Some(Packet::Testmode(val)) => bs.regs[Reg::Testmode] = Some(val),
+                Some(Packet::Testmode(val)) => diebs.regs[Reg::Testmode] = Some(val),
                 p => panic!("expected testmode got {p:?}"),
             }
         }
@@ -1286,30 +1294,30 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
         assert_eq!(packets.next(), Some(Packet::Nop));
         if kind != DeviceKind::Virtex7 {
             match packets.next() {
-                Some(Packet::Timer(val)) => bs.regs[Reg::Timer] = Some(val),
+                Some(Packet::Timer(val)) => diebs.regs[Reg::Timer] = Some(val),
                 p => panic!("expected timer got {p:?}"),
             }
         }
         match packets.next() {
-            Some(Packet::RbCrcSw(val)) => bs.regs[Reg::RbCrcSw] = Some(val),
+            Some(Packet::RbCrcSw(val)) => diebs.regs[Reg::RbCrcSw] = Some(val),
             p => panic!("expected rbcrcsw got {p:?}"),
         }
         if kind == DeviceKind::Virtex5 && matches!(packets.peek(), Some(Packet::Testmode(_))) {
             match packets.next() {
-                Some(Packet::Testmode(val)) => bs.regs[Reg::Testmode] = Some(val),
+                Some(Packet::Testmode(val)) => diebs.regs[Reg::Testmode] = Some(val),
                 p => panic!("expected testmode got {p:?}"),
             }
         }
         match packets.next() {
-            Some(Packet::Cor0(val)) => bs.regs[Reg::Cor0] = Some(val),
+            Some(Packet::Cor0(val)) => diebs.regs[Reg::Cor0] = Some(val),
             p => panic!("expected cor0 got {p:?}"),
         }
         match packets.next() {
-            Some(Packet::Cor1(val)) => bs.regs[Reg::Cor1] = Some(val),
+            Some(Packet::Cor1(val)) => diebs.regs[Reg::Cor1] = Some(val),
             p => panic!("expected cor1 got {p:?}"),
         }
         match packets.next() {
-            Some(Packet::Idcode(val)) => bs.regs[Reg::Idcode] = Some(val),
+            Some(Packet::Idcode(val)) => diebs.regs[Reg::Idcode] = Some(val),
             p => panic!("expected idcode got {p:?}"),
         }
         assert_eq!(packets.next(), Some(Packet::CmdSwitch));
@@ -1323,14 +1331,14 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
             p => panic!("expected ctl0 got {p:?}"),
         }
         if kind == DeviceKind::Virtex5 && (ctl0 & 0x40) != 0 {
-            bs.mode = BitstreamMode::Encrypt;
+            diebs.mode = BitstreamMode::Encrypt;
         }
         let _mask = match packets.next() {
             Some(Packet::Mask(val)) => val,
             p => panic!("expected mask got {p:?}"),
         };
         match packets.next() {
-            Some(Packet::Ctl1(val)) => bs.regs[Reg::Ctl1] = Some(val),
+            Some(Packet::Ctl1(val)) => diebs.regs[Reg::Ctl1] = Some(val),
             p => panic!("expected ctl1 got {p:?}"),
         }
         for _ in 0..8 {
@@ -1339,8 +1347,8 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     }
 
     // main loop
-    let frame_bytes = bs.frame_len / 8;
-    if bs.mode == BitstreamMode::Encrypt {
+    let frame_bytes = diebs.frame_len / 8;
+    if diebs.mode == BitstreamMode::Encrypt {
         let data;
         if kind == DeviceKind::Virtex4 {
             assert_eq!(packets.next(), Some(Packet::Far(0)));
@@ -1350,7 +1358,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 Some(Packet::Cbc(val)) => val,
                 p => panic!("expected fdri got {p:?}"),
             };
-            bs.iv = init_iv.clone();
+            diebs.iv = init_iv.clone();
             let init_data = match packets.next() {
                 Some(Packet::EncFdri(val)) => val,
                 p => panic!("expected fdri got {p:?}"),
@@ -1376,7 +1384,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
             assert_eq!(packets.next(), Some(Packet::CmdWcfg));
             assert_eq!(packets.next(), Some(Packet::Nop));
             match packets.next() {
-                Some(Packet::Cbc(val)) => bs.iv = val,
+                Some(Packet::Cbc(val)) => diebs.iv = val,
                 p => panic!("expected fdri got {p:?}"),
             };
             data = match packets.next() {
@@ -1397,10 +1405,14 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 continue;
             }
             let pos = i * frame_bytes;
-            insert_virtex4_frame(bs, fi, &data[pos..pos + frame_bytes]);
-            let cur_reg = bs.frame_info[fi].addr.region;
+            insert_virtex4_frame(diebs, fi, &data[pos..pos + frame_bytes]);
+            let cur_reg = diebs.frame_info[fi].addr.region;
+            let cur_typ = diebs.frame_info[fi].addr.typ;
             fi += 1;
-            if fi >= bs.frame_info.len() || bs.frame_info[fi].addr.region != cur_reg {
+            if fi >= diebs.frame_info.len()
+                || diebs.frame_info[fi].addr.region != cur_reg
+                || diebs.frame_info[fi].addr.typ != cur_typ
+            {
                 skip = 2;
             }
         }
@@ -1450,7 +1462,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 }
                 Some(Packet::CmdMfwr) => {
                     assert_ne!(state, State::Mfwr);
-                    bs.mode = BitstreamMode::Compress;
+                    diebs.mode = BitstreamMode::Compress;
                     state = State::Mfwr;
                     packets.next();
                     let num_nops = match kind {
@@ -1479,10 +1491,14 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                             continue;
                         }
                         let pos = i * frame_bytes;
-                        insert_virtex4_frame(bs, fi, &val[pos..pos + frame_bytes]);
-                        let cur_reg = bs.frame_info[fi].addr.region;
+                        insert_virtex4_frame(diebs, fi, &val[pos..pos + frame_bytes]);
+                        let cur_reg = diebs.frame_info[fi].addr.region;
+                        let cur_typ = diebs.frame_info[fi].addr.typ;
                         fi += 1;
-                        if fi >= bs.frame_info.len() || bs.frame_info[fi].addr.region != cur_reg {
+                        if fi >= diebs.frame_info.len()
+                            || diebs.frame_info[fi].addr.region != cur_reg
+                            || diebs.frame_info[fi].addr.typ != cur_typ
+                        {
                             skip = 2;
                         }
                     }
@@ -1495,7 +1511,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                         match kind {
                             DeviceKind::Virtex4 => 2,
                             DeviceKind::Virtex5 | DeviceKind::Virtex6 =>
-                                if bs.frame_info[fi].addr.typ == 1 {
+                                if diebs.frame_info[fi].addr.typ == 1 {
                                     6
                                 } else {
                                     2
@@ -1511,8 +1527,8 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                     );
                     first_mf = false;
                     packets.next();
-                    insert_virtex4_frame(bs, fi, last_frame.as_ref().unwrap());
-                    if kind == DeviceKind::Virtex7 && bs.frame_info[fi].addr.typ == 1 {
+                    insert_virtex4_frame(diebs, fi, last_frame.as_ref().unwrap());
+                    if kind == DeviceKind::Virtex7 && diebs.frame_info[fi].addr.typ == 1 {
                         for _ in 0..8 {
                             assert_eq!(packets.next(), Some(Packet::Nop));
                         }
@@ -1527,7 +1543,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     match packets.next() {
         Some(Packet::Crc) => (),
         Some(Packet::CmdRcrc) => {
-            bs.regs[Reg::FakeIgnoreCrc] = Some(1);
+            diebs.regs[Reg::FakeIgnoreCrc] = Some(1);
         }
         p => panic!("expected CRC or RCRC got {p:?}"),
     }
@@ -1538,13 +1554,13 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     assert_eq!(packets.next(), Some(Packet::CmdGRestore));
     assert_eq!(packets.next(), Some(Packet::Nop));
     assert_eq!(packets.next(), Some(Packet::CmdDGHigh));
-    if kind != DeviceKind::Virtex4 && bs.mode == BitstreamMode::Compress {
+    if kind != DeviceKind::Virtex4 && diebs.mode == BitstreamMode::Compress {
         let _mask = match packets.next() {
             Some(Packet::Mask(val)) => val,
             p => panic!("expected mask got {p:?}"),
         };
         match packets.next() {
-            Some(Packet::Ctl1(val)) => bs.regs[Reg::Ctl1] = Some(val),
+            Some(Packet::Ctl1(val)) => diebs.regs[Reg::Ctl1] = Some(val),
             p => panic!("expected ctl1 got {p:?}"),
         }
     }
@@ -1578,7 +1594,6 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
             for _ in 0..16 {
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
-            assert_eq!(packets.next(), None);
         }
         DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
             if kind == DeviceKind::Virtex5 {
@@ -1600,7 +1615,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
                 p => panic!("expected ctl0 got {p:?}"),
             }
-            if bs.regs[Reg::FakeIgnoreCrc].is_some() {
+            if diebs.regs[Reg::FakeIgnoreCrc].is_some() {
                 assert_eq!(packets.next(), Some(Packet::CmdRcrc));
             } else {
                 assert_eq!(packets.next(), Some(Packet::Crc));
@@ -1609,7 +1624,7 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 assert_eq!(packets.next(), Some(Packet::Nop));
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
-            if bs.regs[Reg::FakeEncrypted].is_none() {
+            if diebs.regs[Reg::FakeEncrypted].is_none() {
                 assert_eq!(packets.next(), Some(Packet::CmdDesynch));
             }
             let mut num_nops = match kind {
@@ -1617,29 +1632,53 @@ fn parse_virtex4_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
                 DeviceKind::Virtex6 | DeviceKind::Virtex7 => 400,
                 _ => unreachable!(),
             };
-            if bs.regs[Reg::FakeEncrypted].is_some() {
+            if diebs.regs[Reg::FakeEncrypted].is_some() {
                 num_nops += 2; // desync
                 num_nops -= 27; // mask+ctl+cbc+dwc
                 num_nops -= 0x10; // encrypted header
                 num_nops -= 0x78; // encrypted trailer
             }
-            if bs.regs[Reg::Unk1C].is_some() {
+            if diebs.regs[Reg::Unk1C].is_some() {
                 num_nops -= 4;
             }
-            if bs.regs[Reg::Trim].is_some() {
+            if diebs.regs[Reg::Trim].is_some() {
                 num_nops -= 4;
             }
-            if bs.regs[Reg::Testmode].is_some() {
+            if diebs.regs[Reg::Testmode].is_some() {
                 num_nops -= 2;
             }
             for _ in 0..num_nops {
                 assert_eq!(packets.next(), Some(Packet::Nop));
             }
-            assert_eq!(packets.next(), None);
         }
         _ => unreachable!(),
     }
-    bs.regs[Reg::Ctl0] = Some(ctl0);
+    diebs.regs[Reg::Ctl0] = Some(ctl0);
+    if die_index != die_order.len() - 1 {
+        packets.desync();
+        assert_eq!(packets.next(), Some(Packet::SyncWord));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::CmdShutdown));
+        assert_eq!(packets.next(), Some(Packet::CmdRcrc));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        let subdata = match packets.next() {
+            Some(Packet::Bout(data)) => data,
+            p => panic!("expected bout got {p:?}"),
+        };
+        parse_virtex4_bitstream(bs, &subdata, key, die_order, die_index + 1);
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::CmdStart));
+        assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+    }
+    loop {
+        match packets.next() {
+            Some(Packet::Nop) => (),
+            None => break,
+            p => panic!("expected end got {p:?}"),
+        }
+    }
 }
 
 fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8], key: &KeyData) {
@@ -1680,7 +1719,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),
         DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data, key),
         DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
-            parse_virtex4_bitstream(&mut res, data, key)
+            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0)
         }
         DeviceKind::Ultrascale | DeviceKind::UltrascalePlus => {
             parse_ultrascale_bitstream(&res, data, key)
