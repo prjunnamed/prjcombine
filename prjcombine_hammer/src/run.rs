@@ -493,7 +493,9 @@ impl<'a, B: Backend> Session<'a, B> {
                 }
             }
         }
-        let nt = std::thread::available_parallelism().unwrap().get();
+        let nt = self
+            .max_threads
+            .unwrap_or_else(|| std::thread::available_parallelism().unwrap().get());
         std::thread::scope(|s| {
             for _ in 0..nt {
                 s.spawn(|| work(&queue));

@@ -177,11 +177,7 @@ const PATTERNS: &[(&str, &str, &str)] = &[
         "[a-z]{2}[0-9]+",
         "virtex7",
     ),
-    (
-        "x[ca]7s[0-9]+",
-        "[a-z]{2}[gv][a-z][0-9]+",
-        "virtex7",
-    ),
+    ("x[ca]7s[0-9]+", "[a-z]{2}[gv][a-z][0-9]+", "virtex7"),
     ("xq7z[0-9]+", "[a-z]{2}g?[0-9]+", "virtex7"),
 ];
 

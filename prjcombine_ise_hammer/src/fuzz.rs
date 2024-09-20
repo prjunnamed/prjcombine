@@ -324,6 +324,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (special $val:expr)) => {
         $val
     };
+    ($ctx:ident, (nop)) => {
+        $crate::fgen::TileKV::Nop
+    };
 }
 
 #[macro_export]

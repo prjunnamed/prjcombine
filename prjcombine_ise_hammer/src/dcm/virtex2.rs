@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
+use prjcombine_int::db::Dir;
 use prjcombine_types::{TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{ColumnKind, GridKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
@@ -12,12 +13,16 @@ use crate::{
         extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
         xlat_bool, xlat_enum, CollectorCtx, Diff,
     },
-    fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
+    fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
 };
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
@@ -27,6 +32,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         GridKind::Spartan3 => "DCM.S3",
         _ => unreachable!(),
     };
+
+    if devdata_only {
+        let ctx = FuzzCtx::new(session, backend, tile, "DCM", TileBits::Dcm);
+        let mut extras = vec![];
+        if edev.grid.kind == GridKind::Spartan3 {
+            extras.extend([ExtraFeature::new(
+                ExtraFeatureKind::DcmLL,
+                "LL.S3",
+                "MISC",
+                "DCM_ENABLE",
+                "1",
+            )]);
+        }
+        fuzz_one_extras!(ctx, "ENABLE", "1", [
+            (global_mutex "DCM_OPT", "NO"),
+            (special TileKV::DeviceSide(Dir::S)),
+            (special TileKV::DeviceSide(Dir::W))
+        ], [
+            (mode "DCM")
+        ], extras.clone());
+        return;
+    }
 
     let ctx = FuzzCtx::new_fake_tile(session, backend, "NULL", "NULL", TileBits::Null);
     for val in ["90", "180", "270", "360"] {
@@ -521,7 +548,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
@@ -532,6 +559,37 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         _ => unreachable!(),
     };
     let bel = "DCM";
+
+    if devdata_only {
+        let mut present = ctx.state.get_diff(tile, bel, "ENABLE", "1");
+        let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
+        let val = extract_bitvec_val(
+            item,
+            &bitvec![0; 4],
+            present.split_bits(&item.bits.iter().copied().collect()),
+        );
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+        let vbg_sel = extract_bitvec_val_part(
+            ctx.tiledb.item(tile, bel, "VBG_SEL"),
+            &bitvec![0; 3],
+            &mut present,
+        );
+        let vbg_pd = extract_bitvec_val_part(
+            ctx.tiledb.item(tile, bel, "VBG_PD"),
+            &bitvec![0; 2],
+            &mut present,
+        );
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "DCM:VBG_SEL", vbg_sel);
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "DCM:VBG_PD", vbg_pd);
+        if edev.grid.kind == GridKind::Spartan3 {
+            ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
+        }
+        return;
+    }
+
     let mut present = ctx.state.get_diff(tile, bel, "ENABLE", "1");
     let dllc = ctx.state.get_diffs(tile, bel, "DLLC", "");
     let dlls = ctx.state.get_diffs(tile, bel, "DLLS", "");

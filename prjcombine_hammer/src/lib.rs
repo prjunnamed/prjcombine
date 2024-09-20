@@ -226,6 +226,7 @@ pub struct Session<'a, B: Backend> {
     backend: &'a B,
     pub debug: u8,
     pub dup_factor: u32,
+    pub max_threads: Option<usize>,
     batches: EntityVec<BatchId, Batch<B>>,
     fgens: Vec<FuzzerGenWrapper<'a, B>>,
 }
@@ -249,6 +250,7 @@ impl<'a, B: Backend> Session<'a, B> {
             backend,
             debug: 0,
             dup_factor: 3,
+            max_threads: None,
             batches: EntityVec::new(),
             fgens: vec![],
         }

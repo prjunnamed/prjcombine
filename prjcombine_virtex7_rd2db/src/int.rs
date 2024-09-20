@@ -1032,37 +1032,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .extract();
     }
 
-    for tkn in [
-        "CLK_BUFG_REBUF",
-        "CLK_BALI_REBUF",
-        "CLK_BALI_REBUF_GTZ_TOP",
-        "CLK_BALI_REBUF_GTZ_BOT",
+    for (node, tkn) in [
+        ("CLK_BUFG_REBUF", "CLK_BUFG_REBUF"),
+        ("CLK_BALI_REBUF", "CLK_BALI_REBUF"),
+        ("CLK_BALI_REBUF", "CLK_BALI_REBUF_GTZ_TOP"),
+        ("CLK_BALI_REBUF", "CLK_BALI_REBUF_GTZ_BOT"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bels = vec![];
-            let (naming, bkd, bku, xd, xu, swz) = match tkn {
-                "CLK_BUFG_REBUF" => (
-                    "CLK_BUFG_REBUF",
-                    "GCLK_TEST_BUF",
-                    "GCLK_TEST_BUF",
-                    0,
-                    1,
-                    false,
-                ),
-                "CLK_BALI_REBUF" => (
-                    "CLK_BALI_REBUF",
-                    "GCLK_TEST_BUF",
-                    "GCLK_TEST_BUF",
-                    0,
-                    2,
-                    true,
-                ),
-                "CLK_BALI_REBUF_GTZ_BOT" => {
-                    ("CLK_BALI_REBUF", "GCLK_TEST_BUF", "BUFG_LB", 0, 0, true)
-                }
-                "CLK_BALI_REBUF_GTZ_TOP" => {
-                    ("CLK_BALI_REBUF", "BUFG_LB", "GCLK_TEST_BUF", 0, 0, true)
-                }
+            let (bkd, bku, xd, xu, swz) = match tkn {
+                "CLK_BUFG_REBUF" => ("GCLK_TEST_BUF", "GCLK_TEST_BUF", 0, 1, false),
+                "CLK_BALI_REBUF" => ("GCLK_TEST_BUF", "GCLK_TEST_BUF", 0, 2, true),
+                "CLK_BALI_REBUF_GTZ_BOT" => ("GCLK_TEST_BUF", "BUFG_LB", 0, 0, true),
+                "CLK_BALI_REBUF_GTZ_TOP" => ("BUFG_LB", "GCLK_TEST_BUF", 0, 0, true),
                 _ => unreachable!(),
             };
             for i in 0..16 {
@@ -1109,7 +1091,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             bels.push(bel);
             builder
-                .xnode("CLK_REBUF", naming, xy)
+                .xnode(node, node, xy)
                 .num_tiles(0)
                 .bels(bels)
                 .extract();

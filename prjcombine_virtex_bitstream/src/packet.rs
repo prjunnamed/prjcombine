@@ -686,9 +686,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                         Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                                     }
                                 }
-                                0x1e => {
-                                    Some(Packet::Bout(src_data[dpos..epos].to_vec()))
-                                }
+                                0x1e => Some(Packet::Bout(src_data[dpos..epos].to_vec())),
                                 _ => panic!("unk long write: {reg} times {num}"),
                             }
                         } else if (ph >> 27) == 0xb {

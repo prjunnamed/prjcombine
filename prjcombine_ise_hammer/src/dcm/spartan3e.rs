@@ -15,7 +15,20 @@ use crate::{
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
 };
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
+    if devdata_only {
+        let ctx = FuzzCtx::new(session, backend, "DCM.S3E.TR", "DCM", TileBits::Dcm);
+        fuzz_one!(ctx, "ENABLE", "1", [
+            (global_mutex "DCM", "ENABLE")
+        ], [
+            (mode "DCM")
+        ]);
+        return;
+    }
     for (tile, vreg) in [
         ("DCM.S3E.BL", Some("DCM.S3E.BR")),
         ("DCM.S3E.BR", None),
@@ -327,10 +340,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
+    if devdata_only {
+        let tile = "DCM.S3E.TR";
+        let bel = "DCM";
+        let mut present = ctx.state.get_diff(tile, bel, "ENABLE", "1");
+        let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
+        let val = extract_bitvec_val(
+            item,
+            &bitvec![0; 4],
+            present.split_bits(&item.bits.iter().copied().collect()),
+        );
+        ctx.tiledb
+            .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+        return;
+    }
     for (tile, vreg) in [
         ("DCM.S3E.BL", Some("DCM.S3E.BR")),
         ("DCM.S3E.BR", None),

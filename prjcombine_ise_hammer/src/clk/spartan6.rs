@@ -1,20 +1,44 @@
 use std::collections::HashSet;
 
+use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_spartan6::grid::Gts;
+use prjcombine_types::TileItemKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, CollectorCtx, OcdMode},
+    diff::{
+        xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, CollectorCtx,
+        OcdMode,
+    },
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one, fuzz_one_extras,
 };
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
+    if devdata_only {
+        let ctx = FuzzCtx::new(
+            session,
+            backend,
+            "PCILOGICSE",
+            "PCILOGICSE",
+            TileBits::MainAuto,
+        );
+        fuzz_one!(ctx, "PRESENT", "1", [
+            (no_global_opt "PCI_CE_DELAY_LEFT")
+        ], [
+            (mode "PCILOGICSE")
+        ]);
+        return;
+    }
     let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
@@ -725,10 +749,32 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let ExpandedDevice::Spartan6(edev) = ctx.edev else {
         unreachable!()
     };
+    if devdata_only {
+        let tile = "PCILOGICSE";
+        let bel = "PCILOGICSE";
+        let default = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let item = ctx.tiledb.item(tile, bel, "PCI_CE_DELAY");
+        let val: BitVec = item
+            .bits
+            .iter()
+            .map(|bit| default.bits.contains_key(bit))
+            .collect();
+        let TileItemKind::Enum { ref values } = item.kind else {
+            unreachable!()
+        };
+        for (k, v) in values {
+            if *v == val {
+                ctx.tiledb
+                    .insert_device_data(&ctx.device.name, "PCI_CE_DELAY", k.clone());
+                break;
+            }
+        }
+        return;
+    }
     {
         let tile = "HCLK";
         let bel = "HCLK";

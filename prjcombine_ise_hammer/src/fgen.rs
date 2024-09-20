@@ -1,5 +1,8 @@
 use prjcombine_int::{
-    db::{Dir, IntfWireInNaming, IntfWireOutNaming, NodeRawTileId, NodeTileId, NodeWireId},
+    db::{
+        BelId, Dir, IntfWireInNaming, IntfWireOutNaming, NodeKindId, NodeRawTileId, NodeTileId,
+        NodeWireId,
+    },
     grid::{ColId, DieId, LayerId, RowId},
 };
 use prjcombine_virtex2::expanded::IoPadKind;
@@ -11,7 +14,6 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen, FuzzerValue};
-use prjcombine_int::db::{BelId, NodeKindId};
 
 use crate::backend::{
     FeatureId, FuzzerFeature, FuzzerInfo, IseBackend, Key, MultiValue, PinFromKind, State, Value,
@@ -43,6 +45,7 @@ pub enum TileRelation {
     Mgt(Dir),
     Delta(isize, isize, NodeKindId),
     Hclk(NodeKindId),
+    ClkRebuf(Dir),
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -325,6 +328,48 @@ fn resolve_tile_relation(
                 .find_node_loc(loc.0, (loc.1, loc.2), |node| node.kind == kind)?;
             loc.3 = layer;
             Some(loc)
+        }
+        TileRelation::ClkRebuf(dir) => {
+            loop {
+                match dir {
+                    Dir::S => {
+                        if loc.2.to_idx() == 0 {
+                            if loc.0.to_idx() == 0 {
+                                return None;
+                            }
+                            loc.0 -= 1;
+                            loc.2 = backend.egrid.die(loc.0).rows().next_back().unwrap();
+                        } else {
+                            loc.2 -= 1;
+                        }
+                    }
+                    Dir::N => {
+                        if loc.2 == backend.egrid.die(loc.0).rows().next_back().unwrap() {
+                            loc.2 = RowId::from_idx(0);
+                            loc.0 += 1;
+                            if loc.0 == backend.egrid.die.next_id() {
+                                return None;
+                            }
+                        } else {
+                            loc.2 += 1;
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+                if let Some((layer, _)) =
+                    backend
+                        .egrid
+                        .find_node_loc(loc.0, (loc.1, loc.2), |node| {
+                            matches!(
+                                &backend.egrid.db.nodes.key(node.kind)[..],
+                                "CLK_BUFG_REBUF" | "CLK_BALI_REBUF"
+                            )
+                        })
+                {
+                    loc.3 = layer;
+                    return Some(loc);
+                }
+            }
         }
     }
 }
@@ -653,6 +698,7 @@ pub enum TileKV<'a> {
     VirtexDriveHexH(NodeWireId),
     VirtexDriveHexV(NodeWireId),
     DeviceSide(Dir),
+    HclkSide(Dir),
     CenterDci(u32),
     CascadeDci(u32, u32),
 }
@@ -1672,6 +1718,31 @@ impl<'a> TileKV<'a> {
                     }
                     fuzzer
                 }
+                ExpandedDevice::Virtex2(edev) => {
+                    match dir {
+                        Dir::W => {
+                            if loc.1 >= edev.grid.col_clk {
+                                return None;
+                            }
+                        }
+                        Dir::E => {
+                            if loc.1 < edev.grid.col_clk {
+                                return None;
+                            }
+                        }
+                        Dir::S => {
+                            if loc.2 >= edev.grid.row_mid() {
+                                return None;
+                            }
+                        }
+                        Dir::N => {
+                            if loc.2 < edev.grid.row_mid() {
+                                return None;
+                            }
+                        }
+                    }
+                    fuzzer
+                }
                 ExpandedDevice::Spartan6(edev) => {
                     match dir {
                         Dir::W => {
@@ -1694,6 +1765,25 @@ impl<'a> TileKV<'a> {
                                 return None;
                             }
                         }
+                    }
+                    fuzzer
+                }
+                _ => todo!(),
+            },
+            TileKV::HclkSide(dir) => match backend.edev {
+                ExpandedDevice::Virtex4(edev) => {
+                    match dir {
+                        Dir::S => {
+                            if loc.2 >= edev.grids[loc.0].row_hclk(loc.2) {
+                                return None;
+                            }
+                        }
+                        Dir::N => {
+                            if loc.2 < edev.grids[loc.0].row_hclk(loc.2) {
+                                return None;
+                            }
+                        }
+                        _ => unreachable!(),
                     }
                     fuzzer
                 }
@@ -3343,6 +3433,7 @@ pub enum TileBits {
     VirtexClkv,
     Cmt,
     Mgt,
+    DoubleHclk,
 }
 
 impl TileBits {
@@ -3746,8 +3837,15 @@ impl TileBits {
                             edev.btile_spine_hclk(die, row),
                         ]
                     }
-                    prjcombine_virtex4::grid::GridKind::Virtex6
-                    | prjcombine_virtex4::grid::GridKind::Virtex7 => unreachable!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => unreachable!(),
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => {
+                        let mut res = vec![];
+                        for i in 0..8 {
+                            res.push(edev.btile_main(die, col, row - 4 + i));
+                        }
+                        res.push(edev.btile_hclk(die, col, row));
+                        res
+                    }
                 }
             }
             TileBits::Dcm => {
@@ -3902,6 +4000,17 @@ impl TileBits {
                 },
                 _ => unreachable!(),
             },
+            TileBits::DoubleHclk => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                assert_eq!(loc.1.to_idx() % 2, 0);
+                vec![
+                    edev.btile_hclk(loc.0, loc.1, loc.2),
+                    edev.btile_hclk(loc.0, loc.1 + 1, loc.2),
+                ]
+            }
         }
     }
 }
@@ -3948,6 +4057,8 @@ pub enum ExtraFeatureKind {
     CenterDciHclk(u32),
     CenterDciHclkCascade(u32, &'static str),
     AllBankIoi,
+    ClkRebuf(Dir, NodeKindId),
+    CmtDir(Dir),
 }
 
 impl ExtraFeatureKind {
@@ -4698,6 +4809,84 @@ impl ExtraFeatureKind {
                     }
                 }
                 res
+            }
+            ExtraFeatureKind::ClkRebuf(dir, kind) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let mut die = loc.0;
+                let mut row = loc.2;
+                loop {
+                    match dir {
+                        Dir::S => {
+                            if row.to_idx() == 0 {
+                                if die.to_idx() == 0 {
+                                    return vec![];
+                                }
+                                die -= 1;
+                                row = backend.egrid.die(die).rows().next_back().unwrap();
+                            } else {
+                                row -= 1;
+                            }
+                        }
+                        Dir::N => {
+                            if row == backend.egrid.die(die).rows().next_back().unwrap() {
+                                row = RowId::from_idx(0);
+                                die += 1;
+                                if die == backend.egrid.die.next_id() {
+                                    return vec![];
+                                }
+                            } else {
+                                row += 1;
+                            }
+                        }
+                        _ => unreachable!(),
+                    }
+                    if let Some(node) = backend.egrid.find_node(die, (loc.1, row), |node| {
+                        matches!(
+                            &backend.egrid.db.nodes.key(node.kind)[..],
+                            "CLK_BUFG_REBUF" | "CLK_BALI_REBUF"
+                        )
+                    }) {
+                        if node.kind != kind {
+                            return vec![];
+                        }
+                        let height = if backend.egrid.db.nodes.key(kind) == "CLK_BUFG_REBUF" {
+                            2
+                        } else {
+                            16
+                        };
+                        return vec![(0..height)
+                            .map(|i| edev.btile_main(die, loc.1, row + i))
+                            .collect()];
+                    }
+                }
+            }
+            ExtraFeatureKind::CmtDir(dir) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let scol = match dir {
+                    Dir::W => edev.col_lio.unwrap() + 1,
+                    Dir::E => edev.col_rio.unwrap() - 1,
+                    _ => unreachable!(),
+                };
+                if backend
+                    .egrid
+                    .find_node(loc.0, (scol, loc.2), |node| {
+                        backend.egrid.db.nodes.key(node.kind) == "CMT"
+                    })
+                    .is_some()
+                {
+                    let mut res = vec![];
+                    for i in 0..50 {
+                        res.push(edev.btile_main(loc.0, scol, loc.2 - 25 + i));
+                    }
+                    res.push(edev.btile_hclk(loc.0, scol, loc.2));
+                    vec![res]
+                } else {
+                    vec![]
+                }
             }
         }
     }

@@ -1750,15 +1750,14 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     "CLK_BALI_REBUF"
                 };
-                let row = row_h - 13;
                 let name = format!(
                     "{tk}_X{x}Y{y}",
                     x = self.rxlut[col] + 2,
-                    y = self.rylut[row],
+                    y = self.rylut[row_h - 13],
                 );
                 let node = self.die.add_xnode(
-                    (col, row),
-                    self.db.get_node("CLK_REBUF"),
+                    (col, row_h - 21),
+                    self.db.get_node("CLK_BALI_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BALI_REBUF"),
                     &[],
@@ -1787,7 +1786,7 @@ impl DieExpander<'_, '_, '_> {
                 );
                 let node = self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("CLK_REBUF"),
+                    self.db.get_node("CLK_BUFG_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BUFG_REBUF"),
                     &[],
@@ -1842,15 +1841,14 @@ impl DieExpander<'_, '_, '_> {
                 } else {
                     "CLK_BALI_REBUF"
                 };
-                let row = row_h + 13;
                 let name = format!(
                     "{tk}_X{x}Y{y}",
                     x = self.rxlut[col] + 2,
-                    y = self.rylut[row],
+                    y = self.rylut[row_h + 13],
                 );
                 let node = self.die.add_xnode(
-                    (col, row),
-                    self.db.get_node("CLK_REBUF"),
+                    (col, row_h + 5),
+                    self.db.get_node("CLK_BALI_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BALI_REBUF"),
                     &[],
@@ -1879,7 +1877,7 @@ impl DieExpander<'_, '_, '_> {
                 );
                 let node = self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("CLK_REBUF"),
+                    self.db.get_node("CLK_BUFG_REBUF"),
                     &[&name],
                     self.db.get_node_naming("CLK_BUFG_REBUF"),
                     &[],

@@ -32,6 +32,7 @@ pub fn add_fuzzers<'a>(
     session: &mut Session<IseBackend<'a>>,
     backend: &IseBackend<'a>,
     skip_io: bool,
+    devdata_only: bool,
 ) {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
@@ -49,6 +50,31 @@ pub fn add_fuzzers<'a>(
             ("LL.S3A", "UL.S3A", "LR.S3A", "UR.S3A")
         }
     };
+
+    if devdata_only {
+        let mut ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::Cfg);
+        if !edev.grid.kind.is_virtex2() {
+            if edev.grid.kind.is_spartan3a() {
+                ctx.bits = TileBits::CfgReg(Reg::Cor1);
+            }
+            fuzz_global(&mut ctx, "SEND_VGG0", &["1", "0"]);
+            fuzz_global(&mut ctx, "SEND_VGG1", &["1", "0"]);
+            fuzz_global(&mut ctx, "SEND_VGG2", &["1", "0"]);
+            fuzz_global(&mut ctx, "SEND_VGG3", &["1", "0"]);
+            fuzz_global(&mut ctx, "VGG_SENDMAX", &["YES", "NO"]);
+        }
+        if edev.grid.kind.is_virtex2() {
+            let ctx = FuzzCtx::new_fake_bel(session, backend, ll, "MISC", TileBits::FreezeDci);
+            fuzz_one!(ctx, "FREEZE_DCI", "1", [
+                (global_mutex "DCI", "FREEZE"),
+                (no_global_opt "ENCRYPT")
+            ], [
+                (global_opt "FREEZEDCI", "YES")
+            ]);
+        }
+
+        return;
+    }
 
     let reg_cor = if edev.grid.kind.is_virtex2() {
         "REG.COR"
@@ -1360,7 +1386,7 @@ pub fn add_fuzzers<'a>(
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
@@ -1400,6 +1426,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool) {
         assert_eq!(def_cnr, def_reg);
         (item_cnr, item_reg, def_cnr)
     };
+
+    if devdata_only {
+        let tile = ll;
+        let bel = "MISC";
+        if !edev.grid.kind.is_virtex2() {
+            if !edev.grid.kind.is_spartan3a() {
+                let sendmax = ctx.collect_enum_bool_default(tile, bel, "VGG_SENDMAX", "NO", "YES");
+                ctx.tiledb.insert_device_data(
+                    &ctx.device.name,
+                    "MISC:VGG_SENDMAX_DEFAULT",
+                    [sendmax],
+                );
+                let (_, vgg0) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG0", "0", "1");
+                let (_, vgg1) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG1", "0", "1");
+                let (_, vgg2) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG2", "0", "1");
+                let (_, vgg3) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG3", "0", "1");
+                ctx.tiledb.insert_device_data(
+                    &ctx.device.name,
+                    "MISC:SEND_VGG_DEFAULT",
+                    [vgg0, vgg1, vgg2, vgg3],
+                );
+            } else {
+                let (_, _, def) = get_split_bool(ctx, tile, bel, "VGG_SENDMAX", "NO", "YES");
+                ctx.tiledb
+                    .insert_device_data(&ctx.device.name, "MISC:VGG_SENDMAX_DEFAULT", [def]);
+                let (_, _, vgg0) = get_split_bool(ctx, tile, bel, "SEND_VGG0", "0", "1");
+                let (_, _, vgg1) = get_split_bool(ctx, tile, bel, "SEND_VGG1", "0", "1");
+                let (_, _, vgg2) = get_split_bool(ctx, tile, bel, "SEND_VGG2", "0", "1");
+                let (_, _, vgg3) = get_split_bool(ctx, tile, bel, "SEND_VGG3", "0", "1");
+                ctx.tiledb.insert_device_data(
+                    &ctx.device.name,
+                    "MISC:SEND_VGG_DEFAULT",
+                    [vgg0, vgg1, vgg2, vgg3],
+                );
+            }
+        }
+        if edev.grid.kind.is_virtex2() {
+            let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
+            let diff = diff.filter_tiles(&[4]);
+            let mut freeze_dci_nops = 0;
+            for (bit, val) in diff.bits {
+                assert!(val);
+                freeze_dci_nops |= 1 << bit.bit;
+            }
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "FREEZE_DCI_NOPS", freeze_dci_nops);
+
+            let is_double_grestore =
+                ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
+            ctx.tiledb.insert_device_data(
+                &ctx.device.name,
+                "DOUBLE_GRESTORE",
+                BitVec::repeat(is_double_grestore, 1),
+            );
+        }
+
+        return;
+    }
 
     if edev.grid.kind == GridKind::Spartan3 {
         for tile in [ll, ul, lr, ur] {

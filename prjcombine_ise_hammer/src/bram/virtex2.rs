@@ -13,7 +13,11 @@ use crate::{
     fuzz_enum, fuzz_multi, fuzz_one,
 };
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
     let grid_kind = match backend.edev {
         ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
         _ => unreachable!(),
@@ -32,6 +36,26 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         GridKind::Spartan3A => "RAMB16BWE",
         _ => "RAMB16",
     };
+    if devdata_only {
+        if !grid_kind.is_virtex2() {
+            fuzz_one!(ctx, "Ibram_ddel", "!default", [
+                (global_mutex_site "BRAM"),
+                (mode bel_kind)
+            ], [
+                (global_opt "Ibram_ddel0", "0"),
+                (global_opt "Ibram_ddel1", "0")
+            ]);
+            fuzz_one!(ctx, "Ibram_wdel", "!default", [
+                (global_mutex_site "BRAM"),
+                (mode bel_kind)
+            ], [
+                (global_opt "Ibram_wdel0", "0"),
+                (global_opt "Ibram_wdel1", "0"),
+                (global_opt "Ibram_wdel2", "0")
+            ]);
+        }
+        return;
+    }
     match grid_kind {
         GridKind::Spartan3A | GridKind::Spartan3ADsp => {
             fuzz_one!(ctx, "PRESENT", "1", [
@@ -327,7 +351,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let grid_kind = match ctx.edev {
         ExpandedDevice::Virtex2(ref edev) => edev.grid.kind,
         _ => unreachable!(),
@@ -353,6 +377,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         GridKind::Spartan3A => "BRAM.S3A",
         GridKind::Spartan3ADsp => "BRAM.S3ADSP",
     };
+    fn filter_ab(diff: Diff) -> (Diff, Diff) {
+        (
+            Diff {
+                bits: diff
+                    .bits
+                    .iter()
+                    .filter(|&(&a, _)| a.tile < 2)
+                    .map(|(&a, &b)| (a, b))
+                    .collect(),
+            },
+            Diff {
+                bits: diff
+                    .bits
+                    .iter()
+                    .filter(|&(&a, _)| a.tile >= 2)
+                    .map(|(&a, &b)| (a, b))
+                    .collect(),
+            },
+        )
+    }
+    if devdata_only {
+        if !grid_kind.is_virtex2() {
+            let (adef, bdef) =
+                filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel", "!default"));
+            let adef = extract_bitvec_val(
+                ctx.tiledb.item(tile, "BRAM", "DDEL_A"),
+                &bitvec![0, 0],
+                !adef,
+            );
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "BRAM:DDEL_A_DEFAULT", adef);
+            if grid_kind != GridKind::Spartan3 {
+                let bdef = extract_bitvec_val(
+                    ctx.tiledb.item(tile, "BRAM", "DDEL_B"),
+                    &bitvec![0, 0],
+                    !bdef,
+                );
+                ctx.tiledb
+                    .insert_device_data(&ctx.device.name, "BRAM:DDEL_B_DEFAULT", bdef);
+            }
+
+            let (adef, bdef) =
+                filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_wdel", "!default"));
+            let adef = extract_bitvec_val(
+                ctx.tiledb.item(tile, "BRAM", "WDEL_A"),
+                &bitvec![0, 0, 0],
+                !adef,
+            );
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "BRAM:WDEL_A_DEFAULT", adef);
+            if grid_kind != GridKind::Spartan3 {
+                let bdef = extract_bitvec_val(
+                    ctx.tiledb.item(tile, "BRAM", "WDEL_B"),
+                    &bitvec![0, 0, 0],
+                    !bdef,
+                );
+                ctx.tiledb
+                    .insert_device_data(&ctx.device.name, "BRAM:WDEL_B_DEFAULT", bdef);
+            }
+        }
+        return;
+    }
     let mut present = ctx.state.get_diff(tile, "BRAM", "PRESENT", "1");
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
@@ -479,26 +565,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     if !grid_kind.is_virtex2() {
-        fn filter_ab(diff: Diff) -> (Diff, Diff) {
-            (
-                Diff {
-                    bits: diff
-                        .bits
-                        .iter()
-                        .filter(|&(&a, _)| a.tile < 2)
-                        .map(|(&a, &b)| (a, b))
-                        .collect(),
-                },
-                Diff {
-                    bits: diff
-                        .bits
-                        .iter()
-                        .filter(|&(&a, _)| a.tile >= 2)
-                        .map(|(&a, &b)| (a, b))
-                        .collect(),
-                },
-            )
-        }
         let (a0, b0) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel0", "1"));
         let (a1, b1) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel1", "1"));
         let (adef, bdef) = filter_ab(ctx.state.get_diff(tile, "BRAM", "Ibram_ddel", "!default"));

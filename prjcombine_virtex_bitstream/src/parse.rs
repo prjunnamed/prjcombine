@@ -1204,27 +1204,30 @@ fn parse_virtex4_bitstream(
         }
         assert_eq!(packets.next(), Some(Packet::CmdSwitch));
         assert_eq!(packets.next(), Some(Packet::Nop));
-        // XXX
-        let mask = match packets.next() {
-            Some(Packet::Mask(val)) => val,
+        match packets.next() {
+            Some(Packet::CmdNull) => {
+                // the following block is just missing in xqr4v?!?
+            }
+            Some(Packet::Mask(mask)) => {
+                match packets.next() {
+                    Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
+                    p => panic!("expected ctl0 got {p:?}"),
+                }
+                for _ in 0..1150 {
+                    assert_eq!(packets.next(), Some(Packet::Nop));
+                }
+                let mask = match packets.next() {
+                    Some(Packet::Mask(val)) => val,
+                    p => panic!("expected mask got {p:?}"),
+                };
+                match packets.next() {
+                    Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
+                    p => panic!("expected ctl0 got {p:?}"),
+                }
+                assert_eq!(packets.next(), Some(Packet::CmdNull));
+            }
             p => panic!("expected mask got {p:?}"),
         };
-        match packets.next() {
-            Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
-            p => panic!("expected ctl0 got {p:?}"),
-        }
-        for _ in 0..1150 {
-            assert_eq!(packets.next(), Some(Packet::Nop));
-        }
-        let mask = match packets.next() {
-            Some(Packet::Mask(val)) => val,
-            p => panic!("expected mask got {p:?}"),
-        };
-        match packets.next() {
-            Some(Packet::Ctl0(val)) => ctl0 = (ctl0 & !mask) | (val & mask),
-            p => panic!("expected ctl0 got {p:?}"),
-        }
-        assert_eq!(packets.next(), Some(Packet::CmdNull));
         assert_eq!(packets.next(), Some(Packet::Nop));
     } else {
         for _ in 0..8 {

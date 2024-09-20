@@ -2693,14 +2693,20 @@ fn verify_out_fifo(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
 }
 
 fn verify_ipad(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if !bel.node_kind.starts_with("GTP") || !edev.disabled.contains(&DisabledPart::Gtp) {
+    if !bel.node_kind.starts_with("GTP")
+        || !edev.disabled.contains(&DisabledPart::Gtp)
+        || vrf.rd.source == Source::ISE
+    {
         vrf.verify_bel(bel, "IPAD", &[("O", SitePinDir::Out)], &[]);
     }
     vrf.claim_node(&[bel.fwire("O")]);
 }
 
 fn verify_opad(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if !bel.node_kind.starts_with("GTP") || !edev.disabled.contains(&DisabledPart::Gtp) {
+    if !bel.node_kind.starts_with("GTP")
+        || !edev.disabled.contains(&DisabledPart::Gtp)
+        || vrf.rd.source == Source::ISE
+    {
         vrf.verify_bel(bel, "OPAD", &[("I", SitePinDir::In)], &[]);
     }
     vrf.claim_node(&[bel.fwire("I")]);
@@ -2916,7 +2922,7 @@ pub fn verify_ibufds(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         ("O", SitePinDir::Out),
         ("ODIV2", SitePinDir::Out),
     ];
-    if !edev.disabled.contains(&DisabledPart::Gtp) {
+    if !edev.disabled.contains(&DisabledPart::Gtp) || vrf.rd.source == Source::ISE {
         vrf.verify_bel(bel, "IBUFDS_GTE2", &pins, &[]);
     }
     for (pin, _) in pins {
@@ -2952,7 +2958,7 @@ fn verify_gtp_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
         ("RXOUTCLK", SitePinDir::Out),
         ("TXOUTCLK", SitePinDir::Out),
     ];
-    if !edev.disabled.contains(&DisabledPart::Gtp) {
+    if !edev.disabled.contains(&DisabledPart::Gtp) || vrf.rd.source == Source::ISE {
         vrf.verify_bel(bel, "GTPE2_CHANNEL", &pins, &[]);
     }
     for (pin, _) in &pins {
@@ -3098,7 +3104,7 @@ fn verify_gtp_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
             "GTWESTREFCLK1",
         ]);
     }
-    if !edev.disabled.contains(&DisabledPart::Gtp) {
+    if !edev.disabled.contains(&DisabledPart::Gtp) || vrf.rd.source == Source::ISE {
         vrf.verify_bel_dummies(bel, "GTPE2_COMMON", &pins, &[], &dummies);
     }
     for (pin, _) in &pins {
@@ -3440,7 +3446,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         "BRAM_ADDR" => verify_bram_addr(vrf, bel),
         "PCIE" => {
-            if !edev.disabled.contains(&DisabledPart::Gtp) {
+            if !edev.disabled.contains(&DisabledPart::Gtp) || vrf.rd.source == Source::ISE {
                 vrf.verify_bel(bel, "PCIE_2_1", &[], &[])
             }
         }

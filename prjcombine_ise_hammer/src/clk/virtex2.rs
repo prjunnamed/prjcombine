@@ -1,5 +1,7 @@
+use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, PinDir};
+use prjcombine_types::TileItemKind;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
@@ -12,11 +14,34 @@ use crate::{
     fuzz_enum, fuzz_inv, fuzz_one,
 };
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
     let (edev, grid_kind) = match backend.edev {
         ExpandedDevice::Virtex2(ref edev) => (edev, edev.grid.kind),
         _ => unreachable!(),
     };
+
+    if devdata_only {
+        if grid_kind.is_spartan3a() {
+            // CLK[LR]
+            let (clkl, clkr) = match grid_kind {
+                GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+                GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+                GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+                _ => unreachable!(),
+            };
+            for tile in [clkl, clkr] {
+                let ctx = FuzzCtx::new(session, backend, tile, "PCILOGICSE", TileBits::ClkLR);
+                fuzz_one!(ctx, "PRESENT", "1", [
+                    (global_mutex_none "PCILOGICSE")
+                ], [(mode "PCILOGICSE")]);
+            }
+        }
+        return;
+    }
 
     // CLK[BT]
     let (clkb, clkt) = match grid_kind {
@@ -426,12 +451,48 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let (edev, grid_kind) = match ctx.edev {
         ExpandedDevice::Virtex2(ref edev) => (edev, edev.grid.kind),
         _ => unreachable!(),
     };
     let intdb = ctx.edev.egrid().db;
+
+    if devdata_only {
+        if grid_kind.is_spartan3a() {
+            // CLK[LR]
+            let (clkl, clkr) = match grid_kind {
+                GridKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
+                GridKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
+                GridKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+                _ => unreachable!(),
+            };
+            for tile in [clkl, clkr] {
+                let bel = "PCILOGICSE";
+                let default = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+                let item = ctx.tiledb.item(tile, bel, "DELAY");
+                let val: BitVec = item
+                    .bits
+                    .iter()
+                    .map(|bit| default.bits.contains_key(bit))
+                    .collect();
+                let TileItemKind::Enum { ref values } = item.kind else {
+                    unreachable!()
+                };
+                for (k, v) in values {
+                    if *v == val {
+                        ctx.tiledb.insert_device_data(
+                            &ctx.device.name,
+                            "PCILOGICSE:DELAY_DEFAULT",
+                            k.clone(),
+                        );
+                        break;
+                    }
+                }
+            }
+        }
+        return;
+    }
 
     // CLK[BT]
     let (clkb, clkt) = match grid_kind {
@@ -526,9 +587,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if grid_kind.is_virtex2() {
         // GCLKC
         for tile in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
-            let node_kind = intdb.get_node(tile);
             let bel = "GCLKC";
-            if ctx.edev.egrid().node_index[node_kind].is_empty() {
+            if !ctx.has_tile(tile) {
                 continue;
             }
             for i in 0..8 {
@@ -604,8 +664,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == GridKind::FpgaCore) {
             continue;
         }
-        let node_kind = intdb.get_node(tile);
-        if ctx.edev.egrid().node_index[node_kind].is_empty() {
+        if !ctx.has_tile(tile) {
             continue;
         }
         let bel = "GCLKH";
@@ -644,10 +703,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !grid_kind.is_virtex2() && grid_kind != GridKind::FpgaCore {
         // PTE2OMUX
         for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
-            let node_kind = intdb.get_node(tile);
-            if ctx.edev.egrid().node_index[node_kind].is_empty() {
+            if !ctx.has_tile(tile) {
                 continue;
             }
+            let node_kind = intdb.get_node(tile);
             let bel = "PTE2OMUX";
             for i in 0..4 {
                 let bel_id = BelId::from_idx(1 + i);

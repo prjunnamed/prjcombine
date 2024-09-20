@@ -97,7 +97,40 @@ const IOSTDS: &[Iostd] = &[
     Iostd::true_diff("HT_25", 2500),
 ];
 
-pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+pub fn add_fuzzers<'a>(
+    session: &mut Session<IseBackend<'a>>,
+    backend: &IseBackend<'a>,
+    devdata_only: bool,
+) {
+    let hclk_ioi = backend.egrid.db.get_node("HCLK_IOI");
+    let bel_idelayctrl = backend.egrid.db.nodes[hclk_ioi]
+        .bels
+        .get("IDELAYCTRL")
+        .unwrap()
+        .0;
+    if devdata_only {
+        for i in 0..2 {
+            let bel_other = BelId::from_idx(4 + (1 - i));
+            let ctx = FuzzCtx::new(
+                session,
+                backend,
+                "IO",
+                format!("IODELAY{i}"),
+                TileBits::MainAuto,
+            );
+            fuzz_enum!(ctx, "IDELAY_TYPE", ["DEFAULT"], [
+                (mode "IODELAY"),
+                (global_opt "LEGIDELAY", "ENABLE"),
+                (bel_mode bel_other, "IODELAY"),
+                (bel_attr bel_other, "IDELAY_VALUE", ""),
+                (bel_attr bel_other, "IDELAY_TYPE", "FIXED"),
+                (related TileRelation::Hclk(hclk_ioi),
+                    (bel_mode bel_idelayctrl, "IDELAYCTRL"))
+            ]);
+        }
+        return;
+    }
+
     let package = backend
         .device
         .bonds
@@ -651,13 +684,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         fuzz_multi_attr_dec!(ctx, "IDELAY_VALUE", 6, [(mode "IODELAY")]);
         fuzz_multi_attr_dec!(ctx, "ODELAY_VALUE", 6, [(mode "IODELAY")]);
 
-        let hclk_ioi = backend.egrid.db.get_node("HCLK_IOI");
-        let bel_idelayctrl = backend.egrid.db.nodes[hclk_ioi]
-            .bels
-            .get("IDELAYCTRL")
-            .unwrap()
-            .0;
-
         fuzz_enum!(ctx, "IDELAY_TYPE", ["FIXED", "DEFAULT", "VARIABLE"], [
             (mode "IODELAY"),
             (global_opt "LEGIDELAY", "ENABLE"),
@@ -1035,8 +1061,31 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     }
 }
 
-pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tile = "IO";
+
+    if devdata_only {
+        for i in 0..2 {
+            let bel = &format!("IODELAY{i}");
+
+            let mut diff_default = ctx.state.get_diff(tile, bel, "IDELAY_TYPE", "DEFAULT");
+            let val = extract_bitvec_val_part(
+                ctx.tiledb.item(tile, bel, "IDELAY_VALUE_INIT"),
+                &bitvec![0; 6],
+                &mut diff_default,
+            );
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+            let val = extract_bitvec_val_part(
+                ctx.tiledb.item(tile, bel, "IDELAY_VALUE_CUR"),
+                &bitvec![0; 6],
+                &mut diff_default,
+            );
+            ctx.tiledb
+                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+        }
+        return;
+    }
 
     {
         let bel = "IOI_CLK";

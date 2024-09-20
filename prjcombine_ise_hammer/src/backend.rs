@@ -758,6 +758,10 @@ impl<'a> Backend for IseBackend<'a> {
                 key = self.gen_key(&mut gopts);
             }
         }
+        if self.device.name.contains("7s15") || self.device.name.contains("7s6") {
+            // frankenstein ISE breaks non-compressed non-debug bitstreams on those for some reason
+            gopts.insert("COMPRESS".to_owned(), "".to_owned());
+        }
         let bitdata = run_bitgen(self.tc, &xdl, &gopts, &pcf, altvr).unwrap();
         parse(self.bs_geom, &bitdata, &key)
     }
