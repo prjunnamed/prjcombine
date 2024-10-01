@@ -301,12 +301,18 @@ fn diagnose_cw_fail<B: Backend>(
         eprintln!("INTERFERENCE FUZZERS:");
         for &fid in &left {
             let tskip: HashSet<_> = batch.fuzzers.ids().filter(|of| *of != fid).collect();
-            let fuzzers = try_cw_fail(backend, state, batch, bd, &tskip).unwrap();
-            eprintln!(
-                "FUZZER {f:?}: {fd:?}",
-                f = batch.fuzzers[fid].info,
-                fd = fuzzers[fid]
-            );
+            if let Ok(fuzzers) = try_cw_fail(backend, state, batch, bd, &tskip) {
+                eprintln!(
+                    "FUZZER {f:?}: {fd:?}",
+                    f = batch.fuzzers[fid].info,
+                    fd = fuzzers[fid]
+                );
+            } else {
+                eprintln!(
+                    "FUZZER {f:?}: ???",
+                    f = batch.fuzzers[fid].info,
+                );
+            }
             for (k, v) in batch.fuzzers[fid].kv.iter().sorted_by_key(|x| x.0) {
                 match v {
                     FuzzerValue::Base(_) => eprintln!("BASE {k:?} {v:?}", v = bd.base_kv[k]),

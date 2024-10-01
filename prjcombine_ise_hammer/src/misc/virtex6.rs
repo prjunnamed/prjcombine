@@ -205,8 +205,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ]);
     }
 
-    // TODO: global DCI enable
-
     let ctx = FuzzCtx::new_fake_tile(
         session,
         backend,
@@ -369,7 +367,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         backend,
         "REG.TRIM",
         "MISC",
-        TileBits::Reg(Reg::Trim),
+        TileBits::Reg(Reg::Trim0),
     );
     fuzz_multi!(ctx, "MPD_SEL", "", 3, [], (global_bin "MPD_SEL"));
 
@@ -582,10 +580,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         bel,
         "PERSIST_DEASSERT_AT_DESYNC",
-        TileItem {
-            bits: vec![FeatureBit::new(0, 0, 17)],
-            kind: TileItemKind::BitVec { invert: bitvec![0] },
-        },
+        TileItem::from_bit(FeatureBit::new(0, 0, 17), false),
     );
 
     let tile = "REG.CTL";

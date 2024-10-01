@@ -1,3 +1,4 @@
+use prjcombine_int::grid::RowId;
 use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{ColumnIoKind, ColumnKind, DcmPairKind, GridKind, RowIoKind};
 use unnamed_entity::EntityVec;
@@ -113,7 +114,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         if cd.kind != prjcombine_virtex2::grid::ColumnKind::Bram {
             continue;
         }
-        let (row_b, row_t) = if let Some((row_b, row_t)) = edev.grid.rows_ram {
+        let (row_b, row_t): (RowId, RowId) = if let Some((row_b, row_t)) = edev.grid.rows_ram {
             (row_b + 1, row_t)
         } else {
             (edev.grid.row_bot() + 1, edev.grid.row_top())

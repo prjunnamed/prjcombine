@@ -1433,7 +1433,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 row_b: br - 1,
                 row_t: br + 1,
             });
-            let row = br - 1;
+            let row: RowId = br - 1;
             let y = row.to_idx();
             self.die.add_xnode(
                 (col, row),
@@ -1712,9 +1712,9 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
         match self.grid.gts {
             Gts::Single(bc) | Gts::Double(bc, _) | Gts::Quad(bc, _) => {
-                let row_gt_mid = self.grid.row_top() - 8;
-                let row_gt_bot = row_gt_mid - 8;
-                let row_pcie_bot = row_gt_bot - 16;
+                let row_gt_mid: RowId = self.grid.row_top() - 8;
+                let row_gt_bot: RowId = row_gt_mid - 8;
+                let row_pcie_bot: RowId = row_gt_bot - 16;
 
                 let col_l = bc - 5;
                 let col_r = bc + 3;
@@ -1768,8 +1768,8 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
         match self.grid.gts {
             Gts::Double(_, bc) | Gts::Quad(_, bc) => {
-                let row_gt_mid = self.grid.row_top() - 8;
-                let row_gt_bot = row_gt_mid - 8;
+                let row_gt_mid: RowId = self.grid.row_top() - 8;
+                let row_gt_bot: RowId = row_gt_mid - 8;
 
                 let col_l = bc - 3;
                 let col_r = bc + 6;

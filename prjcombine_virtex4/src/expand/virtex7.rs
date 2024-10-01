@@ -479,8 +479,8 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_cfg(&mut self, is_master: bool) {
         let row_cm = self.grid.row_reg_bot(self.grid.reg_cfg);
-        let row_cb = row_cm - 50;
-        let row_ct = row_cm + 50;
+        let row_cb: RowId = row_cm - 50;
+        let row_ct: RowId = row_cm + 50;
         if self.grid.regs != 1 {
             for dx in 0..6 {
                 let col = self.col_cfg - 6 + dx;
@@ -1595,9 +1595,9 @@ impl DieExpander<'_, '_, '_> {
                     }
 
                     if row.to_idx() % 50 == 25 {
-                        let htk = match kind {
-                            IoKind::Hpio => "HCLK_IOI",
-                            IoKind::Hrio => "HCLK_IOI3",
+                        let (htk, nk) = match kind {
+                            IoKind::Hpio => ("HCLK_IOI", "HCLK_IOI_HP"),
+                            IoKind::Hrio => ("HCLK_IOI3", "HCLK_IOI_HR"),
                         };
                         let name = format!("{htk}_X{rx}Y{y}", y = self.rylut[row] - 1);
                         let name_b0;
@@ -1631,9 +1631,9 @@ impl DieExpander<'_, '_, '_> {
                         let crds: [_; 8] = core::array::from_fn(|dy| (col, row - 4 + dy));
                         let node = self.die.add_xnode(
                             (col, row),
-                            self.db.get_node(htk),
+                            self.db.get_node(nk),
                             &[&name, &name_b0, &name_b1, &name_t0, &name_t1],
-                            self.db.get_node_naming(htk),
+                            self.db.get_node_naming(nk),
                             &crds,
                         );
                         let hy = self.tieylut[row] / 50;
@@ -2038,9 +2038,9 @@ impl DieExpander<'_, '_, '_> {
                 let name_r = format!("INT_R_X{x}Y{y}", x = x + 1);
                 self.die.add_xnode(
                     (col, row),
-                    self.db.get_node("INT_GCLK"),
+                    self.db.get_node("INT_LCLK"),
                     &[&name_l, &name_r],
-                    self.db.get_node_naming("INT_GCLK"),
+                    self.db.get_node_naming("INT_LCLK"),
                     &[(col, row), (col + 1, row)],
                 );
             }

@@ -13,7 +13,9 @@ Virtex 7
    bram
    dsp
    io
+   center
    clock
    cmt
    pcie
    pcie3
+   config

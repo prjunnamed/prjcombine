@@ -219,6 +219,9 @@ macro_rules! fuzz_base {
             $crate::fgen::BelKV::PinFrom($pin.to_string(), $kind),
         )
     };
+    ($ctx:ident, (pin_pips $pin:expr)) => {
+        $crate::fgen::TileKV::Bel($ctx.bel, $crate::fgen::BelKV::PinPips($pin.to_string()))
+    };
     ($ctx:ident, (pin_node_mutex_shared $pin:expr)) => {
         $crate::fgen::TileKV::Bel(
             $ctx.bel,
@@ -309,6 +312,9 @@ macro_rules! fuzz_base {
             $crate::fgen::BelKV::GlobalMutexHere($name.to_string()),
         )
     };
+    ($ctx:ident, (row_mutex $name:expr, $val:expr)) => {
+        $crate::fgen::TileKV::RowMutex($name.into(), $val.into())
+    };
     ($ctx:ident, (row_mutex_site $name:expr)) => {
         $crate::fgen::TileKV::Bel(
             $ctx.bel,
@@ -320,6 +326,9 @@ macro_rules! fuzz_base {
     };
     ($ctx:ident, (related $rel:expr, $inner:tt)) => {
         $crate::fgen::TileKV::TileRelated($rel, Box::new($crate::fuzz_base!($ctx, $inner)))
+    };
+    ($ctx:ident, (no_related $rel:expr)) => {
+        $crate::fgen::TileKV::NoTileRelated($rel)
     };
     ($ctx:ident, (special $val:expr)) => {
         $val
@@ -473,6 +482,9 @@ macro_rules! fuzz_diff {
     };
     ($ctx:ident, (row_mutex $name:expr)) => {
         $crate::fgen::TileFuzzKV::RowMutexExclusive($name.to_string())
+    };
+    ($ctx:ident, (tile_mutex $attr:expr)) => {
+        $crate::fgen::TileFuzzKV::TileMutexExclusive($attr.into())
     };
     ($ctx:ident, (related $rel:expr, $inner:tt)) => {
         $crate::fgen::TileFuzzKV::TileRelated($rel, Box::new($crate::fuzz_diff!($ctx, $inner)))

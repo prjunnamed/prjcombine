@@ -311,11 +311,16 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 } else if opts.devdata_only {
                     io::virtex5::add_fuzzers(&mut hammer, &backend, true);
                 }
-                if !opts.skip_dcm {
-                    // TODO: dcm
-                }
-                if !opts.skip_pll {
-                    // TODO: pll
+                if !opts.skip_dcm || !opts.skip_pll {
+                    cmt::virtex5::add_fuzzers(
+                        &mut hammer,
+                        &backend,
+                        opts.skip_dcm,
+                        opts.skip_pll,
+                        false,
+                    );
+                } else if opts.devdata_only {
+                    cmt::virtex5::add_fuzzers(&mut hammer, &backend, false, false, true);
                 }
                 if !opts.skip_hard {
                     ppc::virtex5::add_fuzzers(&mut hammer, &backend, false);
@@ -344,7 +349,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     io::virtex6::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_pll {
-                    // TODO: pll
+                    cmt::virtex6::add_fuzzers(&mut hammer, &backend, false);
+                } else if opts.devdata_only {
+                    cmt::virtex6::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_hard {
                     emac::virtex6::add_fuzzers(&mut hammer, &backend);
@@ -367,7 +374,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     clk::virtex7::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_misc {
-                    // TODO: misc
+                    misc::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
                     // TODO: io
@@ -566,6 +573,11 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 } else if opts.devdata_only {
                     io::virtex5::collect_fuzzers(&mut ctx, true);
                 }
+                if !opts.skip_dcm || !opts.skip_pll {
+                    cmt::virtex5::collect_fuzzers(&mut ctx, opts.skip_dcm, opts.skip_pll, false);
+                } else if opts.devdata_only {
+                    cmt::virtex5::collect_fuzzers(&mut ctx, true, true, true);
+                }
                 if !opts.skip_hard {
                     ppc::virtex5::collect_fuzzers(&mut ctx, false);
                     emac::virtex5::collect_fuzzers(&mut ctx);
@@ -592,6 +604,11 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 if !opts.skip_io {
                     io::virtex6::collect_fuzzers(&mut ctx);
                 }
+                if !opts.skip_pll {
+                    cmt::virtex6::collect_fuzzers(&mut ctx, false);
+                } else if opts.devdata_only {
+                    cmt::virtex6::collect_fuzzers(&mut ctx, true);
+                }
                 if !opts.skip_hard {
                     emac::virtex6::collect_fuzzers(&mut ctx);
                     pcie::virtex6::collect_fuzzers(&mut ctx);
@@ -613,7 +630,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     clk::virtex7::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_misc {
-                    // TODO: misc
+                    misc::virtex7::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
                     // TODO: io
@@ -840,14 +857,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 prjcombine_virtex4::grid::GridKind::Virtex7 => {
-                    run(&tc, &db, parts_dict[&"xc7a50t"], &mut tiledb, &opts);
-                    if !opts.skip_io || !opts.skip_gt {
-                        // GTX, HPIO
+                    run(&tc, &db, parts_dict[&"xc7k70t"], &mut tiledb, &opts);
+                    if !opts.skip_gt {
+                        // GTP
                         let mut xopts = opts;
                         xopts.skip_all();
-                        xopts.skip_io = opts.skip_io;
                         xopts.skip_gt = opts.skip_gt;
-                        run(&tc, &db, parts_dict[&"xc7k70t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7a50t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7a200t"], &mut tiledb, &xopts);
                     }
                     if !opts.skip_clk || !opts.skip_hard {
                         // left PCIE

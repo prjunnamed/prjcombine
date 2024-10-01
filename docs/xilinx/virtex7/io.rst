@@ -178,3 +178,17 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 - ``M0``, ``M1``, ``M2``
 - ``PROGRAM_B``
 - ``TCK``, ``TDI``, ``TDO``, ``TMS``
+
+
+Bitstream — ``HCLK_IOI_HP``
+===========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-HCLK_IOI_HP.html
+
+
+Bitstream — ``HCLK_IOI_HR``
+===========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-HCLK_IOI_HR.html

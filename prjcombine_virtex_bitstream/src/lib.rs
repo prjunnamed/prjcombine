@@ -20,8 +20,11 @@ pub enum Reg {
     Key,
     WbStar,
     Timer,
-    Trim,
+    Trim0,
+    Trim1,
+    Trim2,
     Testmode,
+    Bspi,
     Axss,
     RbCrcSw,
     CclkFrequency,
@@ -46,6 +49,7 @@ pub enum Reg {
     FakeEncrypted,
     FakeDoubleCclkFrequency,
     FakeHasSwitch,
+    FakeFallEdge,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]

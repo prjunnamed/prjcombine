@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 unnamed_entity.workspace = true
+prjcombine_types.workspace = true
 prjcombine_int.workspace = true
 prjcombine_virtex_bitstream.workspace = true
 prjcombine_xc4k.workspace = true

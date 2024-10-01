@@ -57,6 +57,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         ("CLK_MGT_B", "CLK_MGT"),
         ("CLK_MGT_T", "CLK_MGT"),
     ] {
+        let hclk_cmt = backend.egrid.db.get_node("HCLK_CMT");
         let Some(ctx) = FuzzCtx::try_new(session, backend, tile, bel, TileBits::Spine(0, 10))
         else {
             continue;
@@ -81,6 +82,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             if bel == "CLK_CMT" {
                 for j in 0..28 {
                     fuzz_one!(ctx, &mux, format!("CMT_CLK{j}"), [
+                        (related TileRelation::Hclk(hclk_cmt),
+                            (tile_mutex "ENABLE", "NOPE")),
                         (tile_mutex &mux, format!("CMT_CLK{j}"))
                     ], [
                         (pip (pin format!("CMT_CLK{j}")), (pin &mout))
@@ -260,7 +263,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             BelId::from_idx(0),
         );
         for i in 0..10 {
-            fuzz_one!(ctx, format!("BUF.HCLK{i}"), "1", [], [
+            fuzz_one!(ctx, format!("BUF.HCLK{i}"), "1", [
+                (global_mutex "HCLK_CMT", "TEST")
+            ], [
                 (pip (pin format!("HCLK_I{i}")), (pin format!("HCLK_O{i}")))
             ]);
         }
@@ -273,7 +278,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             BelId::from_idx(1),
         );
         for i in 0..10 {
-            fuzz_one!(ctx, format!("BUF.GIOB{i}"), "1", [], [
+            fuzz_one!(ctx, format!("BUF.GIOB{i}"), "1", [
+                (global_mutex "HCLK_CMT", "TEST")
+            ], [
                 (pip (pin format!("GIOB_I{i}")), (pin format!("GIOB_O{i}")))
             ]);
         }

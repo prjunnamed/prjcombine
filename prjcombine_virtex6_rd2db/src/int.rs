@@ -11,7 +11,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for i in 0..8 {
         builder.wire(
-            format!("GCLK{i}"),
+            format!("LCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK_B{i}")],
         );
@@ -533,8 +533,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bel = builder.bel_virtual("HCLK");
             for i in 0..8 {
                 bel = bel
-                    .extra_int_out(format!("OUT_D{i}"), &[format!("HCLK_LEAF_CLK_B_BOT{i}")])
-                    .extra_int_out(format!("OUT_U{i}"), &[format!("HCLK_LEAF_CLK_B_TOP{i}")]);
+                    .extra_int_out(format!("LCLK{i}_D"), &[format!("HCLK_LEAF_CLK_B_BOT{i}")])
+                    .extra_int_out(format!("LCLK{i}_U"), &[format!("HCLK_LEAF_CLK_B_TOP{i}")]);
             }
             for i in 0..12 {
                 bel = bel.extra_wire(

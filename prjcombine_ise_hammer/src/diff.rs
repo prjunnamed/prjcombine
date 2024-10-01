@@ -341,6 +341,7 @@ pub fn concat_bitvec(vecs: impl IntoIterator<Item = TileItem<FeatureBit>>) -> Ti
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum OcdMode<'a> {
     BitOrder,
+    BitOrderDrpV6,
     ValueOrder,
     Mux,
     FixedOrder(&'a [FeatureBit]),
@@ -378,6 +379,17 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
             }
             Ordering::Equal
         });
+    }
+    if ocd == OcdMode::BitOrderDrpV6 {
+        bits_vec.sort_by(|a, b| {
+            if a.tile != b.tile {
+                a.tile.cmp(&b.tile)
+            } else if a.bit != b.bit {
+                a.bit.cmp(&b.bit)
+            } else {
+                a.frame.cmp(&b.frame)
+            }
+        })
     }
     if ocd == OcdMode::Mux {
         let tmp_values = Vec::from_iter(diffs.iter().map(|(_, v)| {
@@ -610,11 +622,16 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|val| {
+                (
+                    val.as_ref().to_string(),
+                    self.state.get_diff(tile, bel, attr, val.as_ref()),
+                )
+            })
             .collect();
         xlat_enum(diffs)
     }
@@ -625,12 +642,17 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         ocd: OcdMode,
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|val| {
+                (
+                    val.as_ref().to_string(),
+                    self.state.get_diff(tile, bel, attr, val.as_ref()),
+                )
+            })
             .collect();
         xlat_enum_ocd(diffs, ocd)
     }
@@ -656,7 +678,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         xlat_enum_int(diffs)
     }
 
-    pub fn collect_enum(&mut self, tile: &str, bel: &str, attr: &str, vals: &[&str]) {
+    pub fn collect_enum(&mut self, tile: &str, bel: &str, attr: &str, vals: &[impl AsRef<str>]) {
         let item = self.extract_enum(tile, bel, attr, vals);
         self.tiledb.insert(tile, bel, attr, item);
     }
@@ -666,7 +688,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         ocd: OcdMode,
     ) {
         let item = self.extract_enum_ocd(tile, bel, attr, vals, ocd);
@@ -725,12 +747,17 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         default: &str,
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|val| {
+                (
+                    val.as_ref().to_string(),
+                    self.state.get_diff(tile, bel, attr, val.as_ref()),
+                )
+            })
             .collect();
         xlat_enum_default(diffs, default)
     }
@@ -741,13 +768,18 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         default: &str,
         ocd: OcdMode,
     ) -> TileItem<FeatureBit> {
         let diffs = vals
             .iter()
-            .map(|&val| (val.to_string(), self.state.get_diff(tile, bel, attr, val)))
+            .map(|val| {
+                (
+                    val.as_ref().to_string(),
+                    self.state.get_diff(tile, bel, attr, val.as_ref()),
+                )
+            })
             .collect();
         xlat_enum_default_ocd(diffs, default, ocd)
     }
@@ -757,7 +789,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         default: &str,
     ) {
         let item = self.extract_enum_default(tile, bel, attr, vals, default);
@@ -769,7 +801,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         attr: &str,
-        vals: &[&str],
+        vals: &[impl AsRef<str>],
         default: &str,
         ocd: OcdMode,
     ) {

@@ -665,7 +665,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if ctx.device.name.ends_with('l') && pin == "CLKDV" {
                 diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "DLL_S"), 0, 0x40);
             }
-            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+            ctx.tiledb
+                .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
             ctx.tiledb
                 .insert(tile, bel, "DFS_FEEDBACK", xlat_bit(diff_fx));
         }
@@ -692,7 +693,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff, diff_fb);
             let diff = diff.combine(&!&dfs_en);
             let pin = if pin == "CONCUR" { pin } else { "CLKFX" };
-            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+            ctx.tiledb
+                .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
         }
         ctx.tiledb.insert(tile, bel, "DFS_ENABLE", xlat_bit(dfs_en));
 

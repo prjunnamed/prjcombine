@@ -652,6 +652,7 @@ mod spartan6 {
 
 mod virtex4 {
     use itertools::Itertools;
+    use prjcombine_int::grid::{ColId, RowId};
     use prjcombine_virtex4::{
         bond::{Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, GtzPin, PsPin, SysMonPin},
         grid::{ColumnKind, Grid, GridKind, Pcie2Kind},
@@ -735,7 +736,7 @@ mod virtex4 {
         println!("\tCFG REG: {v:?}", v = grid.reg_cfg.to_idx());
         println!("\tCLK REG: {v:?}", v = grid.reg_clk.to_idx());
         for &(col, row) in &grid.holes_ppc {
-            let (col_r, row_t) = match grid.kind {
+            let (col_r, row_t): (ColId, RowId) = match grid.kind {
                 GridKind::Virtex4 => (col + 9, row + 24),
                 GridKind::Virtex5 => (col + 14, row + 40),
                 _ => unreachable!(),
@@ -984,11 +985,7 @@ mod ultrascale {
                     | ColumnKindLeft::DfeDF
                     | ColumnKindLeft::DfeE
             ) {
-                print!(
-                    "\t\tX{cl}.R-X{c}.L: ",
-                    cl = (col - 1).to_idx(),
-                    c = col.to_idx()
-                );
+                print!("\t\tX{cl}.R-X{c}.L: ", cl = col - 1, c = col);
             } else {
                 print!("\t\tX{c}.L: ", c = col.to_idx());
             }
@@ -1320,11 +1317,7 @@ mod versal {
                     | ColumnKind::VNoc
                     | ColumnKind::VNoc2
             ) {
-                print!(
-                    "\t\tX{cl}.R-X{c}.L: ",
-                    cl = (col - 1).to_idx(),
-                    c = col.to_idx()
-                );
+                print!("\t\tX{cl}.R-X{col}.L: ", cl = col - 1);
             } else {
                 print!("\t\tX{c}.L: ", c = col.to_idx());
             }

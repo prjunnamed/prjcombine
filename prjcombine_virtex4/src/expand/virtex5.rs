@@ -168,12 +168,12 @@ impl<'a, 'b> Expander<'a, 'b> {
 
     fn fill_ppc(&mut self) {
         for (py, &(bc, br)) in self.grid.holes_ppc.iter().enumerate() {
-            let col_l = bc;
-            let col_r = bc + 13;
+            let col_l: ColId = bc;
+            let col_r: ColId = bc + 13;
             let xl = col_l.to_idx();
             let xr = col_r.to_idx();
             for dy in 0..40 {
-                let row = br + dy;
+                let row: RowId = br + dy;
                 let y = row.to_idx();
                 // sigh.
                 let rxr = 53;
@@ -205,12 +205,12 @@ impl<'a, 'b> Expander<'a, 'b> {
                     &[(col_r, row)],
                 );
             }
-            let row_b = br - 1;
-            let row_t = br + 40;
+            let row_b: RowId = br - 1;
+            let row_t: RowId = br + 40;
             let yb = row_b.to_idx();
             let yt = row_t.to_idx();
             for dx in 1..13 {
-                let col = bc + dx;
+                let col: ColId = bc + dx;
                 let x = col.to_idx();
                 self.die.fill_term_tile(
                     (col, row_b),
@@ -364,7 +364,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let x = col.to_idx();
             for (i, &row) in hard.rows_emac.iter().enumerate() {
                 for dy in 0..10 {
-                    let row = row + dy;
+                    let row: RowId = row + dy;
                     let y = row.to_idx();
                     self.die.add_xnode(
                         (col, row),
@@ -388,7 +388,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             }
             for (i, &row) in hard.rows_pcie.iter().enumerate() {
                 for dy in 0..40 {
-                    let row = row + dy;
+                    let row: RowId = row + dy;
                     let y = row.to_idx();
                     self.die.add_xnode(
                         (col, row),

@@ -783,20 +783,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         assert_eq!(diff, diff_fb);
         assert_eq!(diff, diff_fx);
         let diff = diff.combine(&!&en_dll);
-        ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+        ctx.tiledb
+            .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
     }
     for pin in ["CLKFX", "CLKFX180", "CONCUR"] {
         let diff = ctx.state.get_diff(tile, bel, pin, "1");
         let diff_fb = ctx.state.get_diff(tile, bel, pin, "1.CLKFB");
         let diff_fb = diff_fb.combine(&!&diff);
         let diff = diff.combine(&!&en_dfs);
-        ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+        ctx.tiledb
+            .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
         ctx.tiledb
             .insert(tile, bel, "DFS_FEEDBACK", xlat_bit(diff_fb));
     }
     ctx.tiledb.insert(tile, bel, "DLL_ENABLE", xlat_bit(en_dll));
     ctx.tiledb.insert(tile, bel, "DFS_ENABLE", xlat_bit(en_dfs));
-    ctx.collect_bit(tile, bel, "CLKFB", "1");
+    let item = ctx.extract_bit(tile, bel, "CLKFB", "1");
+    ctx.tiledb.insert(tile, bel, "ENABLE.CLKFB", item);
 
     ctx.collect_bit(tile, bel, "CLKIN_IOB", "1");
     ctx.collect_bit(tile, bel, "CLKFB_IOB", "1");

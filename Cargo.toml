@@ -115,7 +115,7 @@ prjcombine_sdf = { path = "prjcombine_sdf" }
 prjcombine_xc9500 = { path = "prjcombine_xc9500" }
 prjcombine_xpla3 = { path = "prjcombine_xpla3" }
 prjcombine_xc2c = { path = "prjcombine_xc2c" }
-unnamed_entity = { version = "0.1", features = ["bitvec", "map", "serde"] }
+unnamed_entity = { version = "0.1.4", features = ["bitvec", "map", "serde"] }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

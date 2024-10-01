@@ -164,24 +164,24 @@ fn verify_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         for j in 0..12 {
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_D{i}")),
+                bel.wire(&format!("LCLK{i}_D")),
                 bel.wire(&format!("HCLK{j}")),
             );
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_U{i}")),
+                bel.wire(&format!("LCLK{i}_U")),
                 bel.wire(&format!("HCLK{j}")),
             );
         }
         for j in 0..6 {
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_D{i}")),
+                bel.wire(&format!("LCLK{i}_D")),
                 bel.wire(&format!("RCLK{j}")),
             );
             vrf.claim_pip(
                 bel.crd(),
-                bel.wire(&format!("OUT_U{i}")),
+                bel.wire(&format!("LCLK{i}_U")),
                 bel.wire(&format!("RCLK{j}")),
             );
         }

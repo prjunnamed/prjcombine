@@ -335,10 +335,10 @@ fn verify_pmvbram_nc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_int_gclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_int_lclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let (hclk, rng) = match bel.key {
-        "INT_GCLK_L" => ("HCLK_L", 6..12),
-        "INT_GCLK_R" => ("HCLK_R", 0..6),
+        "INT_LCLK_L" => ("HCLK_L", 6..12),
+        "INT_LCLK_R" => ("HCLK_R", 0..6),
         _ => unreachable!(),
     };
     let srow = edev.grids[bel.die].row_hclk(bel.row);
@@ -347,47 +347,47 @@ fn verify_int_gclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     for i in rng {
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("GCLK{i}_O_L")),
-            bel.wire(&format!("GCLK{i}_I")),
+            bel.wire(&format!("LCLK{i}_O_L")),
+            bel.wire(&format!("LCLK{i}_I")),
         );
         vrf.claim_pip(
             bel.crd(),
-            bel.wire(&format!("GCLK{i}_O_R")),
-            bel.wire(&format!("GCLK{i}_I")),
+            bel.wire(&format!("LCLK{i}_O_R")),
+            bel.wire(&format!("LCLK{i}_I")),
         );
         vrf.verify_node(&[
-            bel.fwire(&format!("GCLK{i}_I")),
-            obel.fwire(&format!("GCLK{i}_O_{ud}")),
+            bel.fwire(&format!("LCLK{i}_I")),
+            obel.fwire(&format!("LCLK{i}_{ud}")),
         ]);
     }
 }
 
 fn verify_hclk_l(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let has_d = vrf.find_bel_delta(bel, 0, -1, "INT_GCLK_L").is_some();
+    let has_d = vrf.find_bel_delta(bel, 0, -1, "INT_LCLK_L").is_some();
     for i in 6..12 {
         for ud in ['D', 'U'] {
             if ud == 'D' && !has_d {
                 continue;
             }
-            vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O_{ud}"))]);
+            vrf.claim_node(&[bel.fwire(&format!("LCLK{i}_{ud}"))]);
             for j in 0..8 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("HCLK{j}_I")),
                 );
             }
             for j in 8..12 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("HCLK{j}")),
                 );
             }
             for j in 0..4 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("RCLK{j}")),
                 );
             }
@@ -445,31 +445,31 @@ fn verify_hclk_l(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
 }
 
 fn verify_hclk_r(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let has_d = vrf.find_bel_delta(bel, 0, -1, "INT_GCLK_L").is_some();
+    let has_d = vrf.find_bel_delta(bel, 0, -1, "INT_LCLK_L").is_some();
     for i in 0..6 {
         for ud in ['D', 'U'] {
             if ud == 'D' && !has_d {
                 continue;
             }
-            vrf.claim_node(&[bel.fwire(&format!("GCLK{i}_O_{ud}"))]);
+            vrf.claim_node(&[bel.fwire(&format!("LCLK{i}_{ud}"))]);
             for j in 0..8 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("HCLK{j}")),
                 );
             }
             for j in 8..12 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("HCLK{j}_I")),
                 );
             }
             for j in 0..4 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("GCLK{i}_O_{ud}")),
+                    bel.wire(&format!("LCLK{i}_{ud}")),
                     bel.wire(&format!("RCLK{j}_I")),
                 );
             }
@@ -528,7 +528,7 @@ fn verify_clk_rebuf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_walk(bel, 0, -1, "CLK_REBUF").or_else(|| {
         if bel.die.to_idx() != 0 {
             let odie = bel.die - 1;
-            let srow = vrf.grid.die(odie).rows().next_back().unwrap() - 11;
+            let srow = vrf.grid.die(odie).rows().next_back().unwrap() - 19;
             vrf.find_bel(odie, (bel.col, srow), "CLK_REBUF")
         } else {
             None
@@ -1946,18 +1946,18 @@ fn verify_hclk_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
     for i in 0..2 {
         for ud in ['U', 'D'] {
-            vrf.claim_node(&[bel.fwire(&format!("HCLK_CMT_{ud}{i}"))]);
+            vrf.claim_node(&[bel.fwire(&format!("LCLK{i}_CMT_{ud}"))]);
             for j in 0..12 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("HCLK_CMT_{ud}{i}")),
+                    bel.wire(&format!("LCLK{i}_CMT_{ud}")),
                     bel.wire(&format!("HCLK{j}")),
                 );
             }
             for j in 0..4 {
                 vrf.claim_pip(
                     bel.crd(),
-                    bel.wire(&format!("HCLK_CMT_{ud}{i}")),
+                    bel.wire(&format!("LCLK{i}_CMT_{ud}")),
                     bel.wire(&format!("RCLK{j}")),
                 );
             }
@@ -3462,7 +3462,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         "BSCAN0" | "BSCAN1" | "BSCAN2" | "BSCAN3" => vrf.verify_bel(bel, "BSCAN", &[], &[]),
         "ICAP0" | "ICAP1" => vrf.verify_bel(bel, "ICAP", &[], &[]),
 
-        "INT_GCLK_L" | "INT_GCLK_R" => verify_int_gclk(edev, vrf, bel),
+        "INT_LCLK_L" | "INT_LCLK_R" => verify_int_lclk(edev, vrf, bel),
         "HCLK_L" => verify_hclk_l(edev, vrf, bel),
         "HCLK_R" => verify_hclk_r(edev, vrf, bel),
         _ if bel.key.starts_with("GCLK_TEST_BUF") => verify_gclk_test_buf(vrf, bel),

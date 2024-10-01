@@ -11,14 +11,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for i in 0..6 {
         builder.wire(
-            format!("GCLK{i}"),
+            format!("LCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK_B{i}_EAST"), format!("GCLK_L_B{i}")],
         );
     }
     for i in 6..12 {
         builder.wire(
-            format!("GCLK{i}"),
+            format!("LCLK{i}"),
             WireKind::ClkOut(i),
             &[format!("GCLK_B{i}"), format!("GCLK_L_B{i}_WEST")],
         );
@@ -954,22 +954,22 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("INT_L").iter().next() {
-        let mut bel_l = builder.bel_virtual("INT_GCLK_L");
-        let mut bel_r = builder.bel_virtual("INT_GCLK_R").raw_tile(1);
+        let mut bel_l = builder.bel_virtual("INT_LCLK_L");
+        let mut bel_r = builder.bel_virtual("INT_LCLK_R").raw_tile(1);
         for i in 6..12 {
             bel_l = bel_l
-                .extra_wire(format!("GCLK{i}_I"), &[format!("GCLK_L_B{i}")])
-                .extra_int_out(format!("GCLK{i}_O_L"), &[format!("GCLK_L_B{i}_WEST")])
-                .extra_int_out(format!("GCLK{i}_O_R"), &[format!("GCLK_L_B{i}_EAST")]);
+                .extra_wire(format!("LCLK{i}_I"), &[format!("GCLK_L_B{i}")])
+                .extra_int_out(format!("LCLK{i}_O_L"), &[format!("GCLK_L_B{i}_WEST")])
+                .extra_int_out(format!("LCLK{i}_O_R"), &[format!("GCLK_L_B{i}_EAST")]);
         }
         for i in 0..6 {
             bel_r = bel_r
-                .extra_wire(format!("GCLK{i}_I"), &[format!("GCLK_B{i}")])
-                .extra_int_out(format!("GCLK{i}_O_L"), &[format!("GCLK_B{i}_WEST")])
-                .extra_int_out(format!("GCLK{i}_O_R"), &[format!("GCLK_B{i}_EAST")]);
+                .extra_wire(format!("LCLK{i}_I"), &[format!("GCLK_B{i}")])
+                .extra_int_out(format!("LCLK{i}_O_L"), &[format!("GCLK_B{i}_WEST")])
+                .extra_int_out(format!("LCLK{i}_O_R"), &[format!("GCLK_B{i}_EAST")]);
         }
         builder
-            .xnode("INT_GCLK", "INT_GCLK", xy)
+            .xnode("INT_LCLK", "INT_LCLK", xy)
             .raw_tile_single(xy.delta(1, 0), 1)
             .num_tiles(2)
             .bel(bel_l)
@@ -983,18 +983,18 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         for i in 6..12 {
             bel_l = bel_l
                 .extra_wire(
-                    format!("GCLK{i}_O_D"),
+                    format!("LCLK{i}_D"),
                     &[format!("HCLK_LEAF_CLK_B_BOTL{ii}", ii = i - 6)],
                 )
                 .extra_wire(
-                    format!("GCLK{i}_O_U"),
+                    format!("LCLK{i}_U"),
                     &[format!("HCLK_LEAF_CLK_B_TOPL{ii}", ii = i - 6)],
                 );
         }
         for i in 0..6 {
             bel_r = bel_r
-                .extra_wire(format!("GCLK{i}_O_D"), &[format!("HCLK_LEAF_CLK_B_BOT{i}")])
-                .extra_wire(format!("GCLK{i}_O_U"), &[format!("HCLK_LEAF_CLK_B_TOP{i}")]);
+                .extra_wire(format!("LCLK{i}_D"), &[format!("HCLK_LEAF_CLK_B_BOT{i}")])
+                .extra_wire(format!("LCLK{i}_U"), &[format!("HCLK_LEAF_CLK_B_TOP{i}")]);
         }
         for i in 0..8 {
             bel_r = bel_r
@@ -1282,7 +1282,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    for tkn in ["HCLK_IOI", "HCLK_IOI3"] {
+    for (tkn, nn) in [("HCLK_IOI", "HCLK_IOI_HP"), ("HCLK_IOI3", "HCLK_IOI_HR")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_l = rd
                 .tile_kinds
@@ -1384,7 +1384,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             bels.push(bel);
             let mut xn = builder
-                .xnode(tkn, tkn, xy)
+                .xnode(nn, nn, xy)
                 .raw_tile(xy.delta(0, -4))
                 .raw_tile(xy.delta(0, -2))
                 .raw_tile(xy.delta(0, 1))
@@ -2255,11 +2255,11 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             for i in 0..2 {
                 bel = bel
                     .extra_wire(
-                        format!("HCLK_CMT_D{i}"),
+                        format!("LCLK{i}_CMT_D"),
                         &[format!("HCLK_CMT_MUX_CLK_LEAF_DN{i}")],
                     )
                     .extra_wire(
-                        format!("HCLK_CMT_U{i}"),
+                        format!("LCLK{i}_CMT_U"),
                         &[format!("HCLK_CMT_MUX_CLK_LEAF_UP{i}")],
                     );
             }

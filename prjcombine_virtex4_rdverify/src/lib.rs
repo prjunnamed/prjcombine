@@ -336,7 +336,7 @@ fn verify_bufg_mgtclk_hclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelC
             vrf.claim_node(&[bel.fwire(pin_o)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin_o), bel.wire(pin_i));
         }
-        let srow = match bel.key {
+        let srow: RowId = match bel.key {
             "BUFG_MGTCLK_B_HCLK" => bel.row - 8,
             "BUFG_MGTCLK_T_HCLK" => bel.row + 8,
             _ => unreachable!(),

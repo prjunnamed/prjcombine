@@ -699,7 +699,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             );
         }
         {
-            let row = self.row_iobdcm.unwrap() - 16;
+            let row: RowId = self.row_iobdcm.unwrap() - 16;
             let x = col.to_idx();
             let y = row.to_idx();
             let name = format!("CLK_IOB_T_X{x}Y{y}", y = y + 7);

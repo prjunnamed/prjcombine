@@ -15,6 +15,7 @@ Virtex 6
    io
    center
    clock
+   cmt
    emac
    pcie
    gtx

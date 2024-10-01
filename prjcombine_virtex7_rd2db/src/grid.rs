@@ -314,8 +314,8 @@ pub fn make_grids(
         let columns = make_columns(&int);
         let cols_vbrk = get_cols_vbrk(&int);
         let has_no_tbuturn = !int.find_rows(&["T_TERM_INT_NOUTURN"]).is_empty();
-        let row_cfg = int.lookup_row(int.find_row(&["CFG_CENTER_BOT"]).unwrap() - 10) + 50;
-        let row_clk = int.lookup_row(int.find_row(&["CLK_BUFG_BOT_R"]).unwrap()) + 4;
+        let row_cfg: RowId = int.lookup_row(int.find_row(&["CFG_CENTER_BOT"]).unwrap() - 10) + 50;
+        let row_clk: RowId = int.lookup_row(int.find_row(&["CLK_BUFG_BOT_R"]).unwrap()) + 4;
         let has_ps = !int.find_columns(&["INT_INTERFACE_PSS_L"]).is_empty();
         let has_slr = !int.find_columns(&["INT_L_SLV"]).is_empty();
         assert_eq!(row_cfg.to_idx() % 50, 0);

@@ -624,9 +624,16 @@ impl<'a> Backend for IseBackend<'a> {
                                         ExpandedDevice::Spartan6(_) => {
                                             ("IOB", "I", vec![("IMUX", "I"), ("BYPASS_MUX", "I")])
                                         }
-                                        ExpandedDevice::Virtex4(_) => {
-                                            ("IOB", "I", vec![("INBUFUSED", "0")])
-                                        }
+                                        ExpandedDevice::Virtex4(edev) => match edev.kind {
+                                            prjcombine_virtex4::grid::GridKind::Virtex4 => {
+                                                ("IOB", "I", vec![("INBUFUSED", "0")])
+                                            }
+                                            prjcombine_virtex4::grid::GridKind::Virtex5 => {
+                                                ("IOB", "I", vec![("IMUX", "I")])
+                                            }
+                                            prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
+                                            prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
+                                        },
                                         ExpandedDevice::Ultrascale(_) => todo!(),
                                         ExpandedDevice::Versal(_) => todo!(),
                                     },

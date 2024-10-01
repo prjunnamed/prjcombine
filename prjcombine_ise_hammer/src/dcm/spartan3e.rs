@@ -498,7 +498,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let diff_fx = ctx.state.get_diff(tile, bel, pin, "1.CLKFX");
             let diff_fx = diff_fx.combine(&!&diff_fb);
             let diff_fb = diff_fb.combine(&!&diff);
-            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+            ctx.tiledb
+                .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
             ctx.tiledb
                 .insert(tile, bel, "DLL_ENABLE", xlat_bit(diff_fb));
             ctx.tiledb
@@ -523,7 +524,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             assert_eq!(diff, diff_fb);
             let diff = diff.combine(&!&dfs_en);
             let pin = if pin == "CONCUR" { pin } else { "CLKFX" };
-            ctx.tiledb.insert(tile, bel, pin, xlat_bit(diff));
+            ctx.tiledb
+                .insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
         }
         ctx.tiledb.insert(tile, bel, "DFS_ENABLE", xlat_bit(dfs_en));
 

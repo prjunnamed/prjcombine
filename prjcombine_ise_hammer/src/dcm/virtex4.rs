@@ -465,64 +465,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let diff_0 = ctx.state.get_diff(tile, bel, "CLK0", "1");
     let diff_0 = diff_0.combine(&!&diff);
     ctx.tiledb
-        .insert(tile, bel, "CLK0_ENABLE", xlat_bit(diff_0));
+        .insert(tile, bel, "ENABLE.CLK0", xlat_bit(diff_0));
     // ???
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLK90_ENABLE",
+        "ENABLE.CLK90",
         TileItem::from_bit(reg_bit(0x4e, 1), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLK180_ENABLE",
+        "ENABLE.CLK180",
         TileItem::from_bit(reg_bit(0x4e, 2), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLK270_ENABLE",
+        "ENABLE.CLK270",
         TileItem::from_bit(reg_bit(0x4e, 3), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLK2X_ENABLE",
+        "ENABLE.CLK2X",
         TileItem::from_bit(reg_bit(0x4e, 4), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLK2X180_ENABLE",
+        "ENABLE.CLK2X180",
         TileItem::from_bit(reg_bit(0x4e, 5), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLKDV_ENABLE",
+        "ENABLE.CLKDV",
         TileItem::from_bit(reg_bit(0x4e, 6), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLKFX180_ENABLE",
+        "ENABLE.CLKFX180",
         TileItem::from_bit(reg_bit(0x51, 8), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CLKFX_ENABLE",
+        "ENABLE.CLKFX",
         TileItem::from_bit(reg_bit(0x51, 9), false),
     );
     ctx.tiledb.insert(
         tile,
         bel,
-        "CONCUR_ENABLE",
+        "ENABLE.CONCUR",
         TileItem::from_bit(reg_bit(0x51, 10), false),
     );
 
-    ctx.tiledb.insert(tile, bel, "DLL_ENABLE", xlat_bit(diff));
+    ctx.tiledb.insert(tile, bel, "DLL_ZD2_EN", xlat_bit(diff));
     let diff = ctx.state.get_diff(tile, bel, "CLKFX", "1");
     for pin in ["CLKFX180", "CONCUR"] {
         assert_eq!(diff, ctx.state.get_diff(tile, bel, pin, "1"));
@@ -669,7 +669,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             dn.apply_enum_diff(item, "CLKIN", "CLKFB");
         }
         if val != "NONE" && val != "DIRECT" {
-            let item = ctx.tiledb.item(tile, bel, "DLL_ENABLE");
+            let item = ctx.tiledb.item(tile, bel, "DLL_ZD2_EN");
             d.apply_bit_diff(item, true, false);
             dn.apply_bit_diff(item, true, false);
         }
@@ -703,16 +703,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("CLKDV_COUNT_FALL", 12..16),
     ] {
         let bits = Vec::from_iter(bits.map(|bit| reg_bit(0x4d, bit)));
-        let invert = bitvec![0; bits.len()];
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            attr,
-            TileItem {
-                bits,
-                kind: TileItemKind::BitVec { invert },
-            },
-        );
+        ctx.tiledb
+            .insert(tile, bel, attr, TileItem::from_bitvec(bits, false));
     }
     ctx.tiledb.insert(
         tile,
@@ -852,15 +844,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "DCM_VBG_SEL"), 1, 0);
     present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKDV_COUNT_MAX"), 1, 0);
     present.apply_enum_diff(ctx.tiledb.item(tile, bel, "CLKDV_MODE"), "INT", "HALF");
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLK90_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLK180_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLK270_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLK2X_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLK2X180_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLKDV_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLKFX180_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLKFX_ENABLE"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CONCUR_ENABLE"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLK90"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLK180"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLK270"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLK2X"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLK2X180"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLKDV"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLKFX180"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CLKFX"), true, false);
+    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE.CONCUR"), true, false);
 
     ctx.tiledb
         .insert(tile, bel, "UNK_ALWAYS_SET", xlat_bit(present));

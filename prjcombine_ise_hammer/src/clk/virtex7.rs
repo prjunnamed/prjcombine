@@ -26,11 +26,11 @@ pub fn add_fuzzers<'a>(
         for i in 6..12 {
             for ud in ['U', 'D'] {
                 for j in 0..12 {
-                    fuzz_one!(ctx, format!("MUX.OUT_{ud}{i}"), format!("HCLK{j}"), [
+                    fuzz_one!(ctx, format!("MUX.LCLK{i}_{ud}"), format!("HCLK{j}"), [
                         (tile_mutex "MODE", "TEST"),
                         (global_mutex "HCLK", "USE"),
-                        (tile_mutex format!("MUX.OUT_{ud}{i}_L"), format!("HCLK{j}")),
-                        (tile_mutex format!("HCLK{j}"), format!("MUX.OUT_{ud}{i}_L")),
+                        (tile_mutex format!("MUX.LCLK{i}_{ud}_L"), format!("HCLK{j}")),
+                        (tile_mutex format!("HCLK{j}"), format!("MUX.LCLK{i}_{ud}_L")),
                         (related TileRelation::Delta(0, -1, int), (nop)),
                         (related TileRelation::Delta(-2, -1, int), (nop)),
                         (related TileRelation::Delta(2, -1, int), (nop)),
@@ -45,7 +45,7 @@ pub fn add_fuzzers<'a>(
                                 } else {
                                     format!("HCLK{j}")
                                 }),
-                                (pin format!("GCLK{i}_O_{ud}")))),
+                                (pin format!("LCLK{i}_{ud}")))),
                         (related TileRelation::Delta(2, 0, hclk), (tile_mutex "MODE", "PIN_R")),
                         (related TileRelation::Delta(2, 0, hclk),
                             (pip
@@ -54,7 +54,7 @@ pub fn add_fuzzers<'a>(
                                 } else {
                                     format!("HCLK{j}")
                                 }),
-                                (pin format!("GCLK{i}_O_{ud}"))))
+                                (pin format!("LCLK{i}_{ud}"))))
                     ], [
                         (pip
                             (pin if j < 8 {
@@ -62,15 +62,15 @@ pub fn add_fuzzers<'a>(
                             } else {
                                 format!("HCLK{j}")
                             }),
-                            (pin format!("GCLK{i}_O_{ud}")))
+                            (pin format!("LCLK{i}_{ud}")))
                     ]);
                 }
                 for j in 0..4 {
-                    fuzz_one!(ctx, format!("MUX.OUT_{ud}{i}"), format!("RCLK{j}"), [
+                    fuzz_one!(ctx, format!("MUX.LCLK{i}_{ud}"), format!("RCLK{j}"), [
                         (tile_mutex "MODE", "TEST"),
                         (global_mutex "RCLK", "USE"),
-                        (tile_mutex format!("MUX.OUT_{ud}{i}_L"), format!("RCLK{j}")),
-                        (tile_mutex format!("RCLK{j}"), format!("MUX.OUT_{ud}{i}_L")),
+                        (tile_mutex format!("MUX.LCLK{i}_{ud}_L"), format!("RCLK{j}")),
+                        (tile_mutex format!("RCLK{j}"), format!("MUX.LCLK{i}_{ud}_L")),
                         (related TileRelation::Delta(0, -1, int), (nop)),
                         (related TileRelation::Delta(-2, -1, int), (nop)),
                         (related TileRelation::Delta(2, -1, int), (nop)),
@@ -81,14 +81,14 @@ pub fn add_fuzzers<'a>(
                         (related TileRelation::Delta(-2, 0, hclk),
                             (pip
                                 (pin format!("RCLK{j}")),
-                                (pin format!("GCLK{i}_O_{ud}")))),
+                                (pin format!("LCLK{i}_{ud}")))),
                         (related TileRelation::Delta(2, 0, hclk), (tile_mutex "MODE", "PIN_R")),
                         (related TileRelation::Delta(2, 0, hclk),
                             (pip
                                 (pin format!("RCLK{j}")),
-                                (pin format!("GCLK{i}_O_{ud}"))))
+                                (pin format!("LCLK{i}_{ud}"))))
                     ], [
-                        (pip (pin format!("RCLK{j}")), (pin format!("GCLK{i}_O_{ud}")))
+                        (pip (pin format!("RCLK{j}")), (pin format!("LCLK{i}_{ud}")))
                     ]);
                 }
             }
@@ -99,11 +99,11 @@ pub fn add_fuzzers<'a>(
         for i in 0..6 {
             for ud in ['U', 'D'] {
                 for j in 0..12 {
-                    fuzz_one!(ctx, format!("MUX.OUT_{ud}{i}"), format!("HCLK{j}"), [
+                    fuzz_one!(ctx, format!("MUX.LCLK{i}_{ud}"), format!("HCLK{j}"), [
                         (tile_mutex "MODE", "TEST"),
                         (global_mutex "HCLK", "USE"),
-                        (tile_mutex format!("MUX.OUT_{ud}{i}_R"), format!("HCLK{j}")),
-                        (tile_mutex format!("HCLK{j}"), format!("MUX.OUT_{ud}{i}_R")),
+                        (tile_mutex format!("MUX.LCLK{i}_{ud}_R"), format!("HCLK{j}")),
+                        (tile_mutex format!("HCLK{j}"), format!("MUX.LCLK{i}_{ud}_R")),
                         (related TileRelation::Delta(0, -1, int), (nop)),
                         (related TileRelation::Delta(-2, -1, int), (nop)),
                         (related TileRelation::Delta(2, -1, int), (nop)),
@@ -118,7 +118,7 @@ pub fn add_fuzzers<'a>(
                                 } else {
                                     format!("HCLK{j}_I")
                                 }),
-                                (pin format!("GCLK{i}_O_{ud}")))),
+                                (pin format!("LCLK{i}_{ud}")))),
                         (related TileRelation::Delta(2, 0, hclk), (tile_mutex "MODE", "PIN_R")),
                         (related TileRelation::Delta(2, 0, hclk),
                             (pip
@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(
                                 } else {
                                     format!("HCLK{j}_I")
                                 }),
-                                (pin format!("GCLK{i}_O_{ud}"))))
+                                (pin format!("LCLK{i}_{ud}"))))
                     ], [
                         (pip
                             (pin if j < 8 {
@@ -135,15 +135,15 @@ pub fn add_fuzzers<'a>(
                             } else {
                                 format!("HCLK{j}_I")
                             }),
-                            (pin format!("GCLK{i}_O_{ud}")))
+                            (pin format!("LCLK{i}_{ud}")))
                     ]);
                 }
                 for j in 0..4 {
-                    fuzz_one!(ctx, format!("MUX.OUT_{ud}{i}"), format!("RCLK{j}"), [
+                    fuzz_one!(ctx, format!("MUX.LCLK{i}_{ud}"), format!("RCLK{j}"), [
                         (tile_mutex "MODE", "TEST"),
                         (global_mutex "RCLK", "USE"),
-                        (tile_mutex format!("MUX.OUT_{ud}{i}_R"), format!("RCLK{j}")),
-                        (tile_mutex format!("RCLK{j}"), format!("MUX.OUT_{ud}{i}_R")),
+                        (tile_mutex format!("MUX.LCLK{i}_{ud}_R"), format!("RCLK{j}")),
+                        (tile_mutex format!("RCLK{j}"), format!("MUX.LCLK{i}_{ud}_R")),
                         (related TileRelation::Delta(0, -1, int), (nop)),
                         (related TileRelation::Delta(-2, -1, int), (nop)),
                         (related TileRelation::Delta(2, -1, int), (nop)),
@@ -154,14 +154,14 @@ pub fn add_fuzzers<'a>(
                         (related TileRelation::Delta(-2, 0, hclk),
                             (pip
                                 (pin format!("RCLK{j}_I")),
-                                (pin format!("GCLK{i}_O_{ud}")))),
+                                (pin format!("LCLK{i}_{ud}")))),
                         (related TileRelation::Delta(2, 0, hclk), (tile_mutex "MODE", "PIN_R")),
                         (related TileRelation::Delta(2, 0, hclk),
                             (pip
                                 (pin format!("RCLK{j}_I")),
-                                (pin format!("GCLK{i}_O_{ud}"))))
+                                (pin format!("LCLK{i}_{ud}"))))
                     ], [
-                        (pip (pin format!("RCLK{j}_I")), (pin format!("GCLK{i}_O_{ud}")))
+                        (pip (pin format!("RCLK{j}_I")), (pin format!("LCLK{i}_{ud}")))
                     ]);
                 }
             }
@@ -466,7 +466,7 @@ pub fn add_fuzzers<'a>(
                             extras.push(ExtraFeature::new(
                                 ExtraFeatureKind::CmtDir(Dir::W),
                                 "CMT",
-                                "CMT",
+                                "HCLK_CMT",
                                 format!("ENABLE.RCLK{j}"),
                                 "HROW",
                             ));
@@ -476,7 +476,7 @@ pub fn add_fuzzers<'a>(
                             extras.push(ExtraFeature::new(
                                 ExtraFeatureKind::CmtDir(Dir::E),
                                 "CMT",
-                                "CMT",
+                                "HCLK_CMT",
                                 format!("ENABLE.RCLK{j}"),
                                 "HROW",
                             ));
@@ -592,6 +592,106 @@ pub fn add_fuzzers<'a>(
             }
         }
     }
+    if !bali_only {
+        let node_cmt = backend.egrid.db.get_node("CMT");
+        let bel_cmt = BelId::from_idx(18);
+        for (tile, bel_hclk_ioi) in [
+            ("HCLK_IOI_HR", BelId::from_idx(9)),
+            ("HCLK_IOI_HP", BelId::from_idx(10)),
+        ] {
+            for i in 0..4 {
+                let ctx = FuzzCtx::new(session, backend, tile, format!("BUFIO{i}"), TileBits::Hclk);
+                fuzz_one!(ctx, "ENABLE", "1", [], [(mode "BUFIO")]);
+                fuzz_enum!(ctx, "DELAY_BYPASS", ["FALSE", "TRUE"], [(mode "BUFIO")]);
+                fuzz_one!(ctx, "MUX.I", "CCIO", [
+                    (mutex "MUX.I", "CCIO"),
+                    (related TileRelation::ColPair(0, node_cmt),
+                        (tile_mutex "CCIO", "USE_IO")),
+                    (related TileRelation::ColPair(0, node_cmt),
+                        (bel_mutex bel_cmt, format!("MUX.FREQ_BB{i}"), format!("CCIO{i}"))),
+                    (related TileRelation::ColPair(0, node_cmt),
+                        (pip (bel_pin bel_cmt, format!("CCIO{i}")), (bel_pin bel_cmt, format!("FREQ_BB{i}_MUX"))))
+                ], [
+                    (pip
+                        (bel_pin bel_hclk_ioi, format!("IOCLK_IN{i}_PAD")),
+                        (bel_pin bel_hclk_ioi, format!("IOCLK_IN{i}")))
+                ]);
+                fuzz_one!(ctx, "MUX.I", "PERF", [
+                    (mutex "MUX.I", "PERF"),
+                    (related TileRelation::ColPair(0, node_cmt),
+                        (tile_mutex "PERF", "USE_IO")),
+                    (related TileRelation::ColPair(0, node_cmt),
+                        (pip (bel_pin bel_cmt, "PHASER_IN_RCLK0"), (bel_pin bel_cmt, format!("PERF{i}"))))
+                ], [
+                    (pip
+                        (bel_pin bel_hclk_ioi, format!("IOCLK_IN{i}_PERF")),
+                        (bel_pin bel_hclk_ioi, format!("IOCLK_IN{i}")))
+                ]);
+            }
+            for i in 0..4 {
+                let ctx = FuzzCtx::new(session, backend, tile, format!("BUFR{i}"), TileBits::Hclk);
+                fuzz_one!(ctx, "ENABLE", "1", [], [(mode "BUFR"), (attr "BUFR_DIVIDE", "BYPASS")]);
+                fuzz_enum!(ctx, "BUFR_DIVIDE", [
+                "BYPASS", "1", "2", "3", "4", "5", "6", "7", "8",
+            ], [(mode "BUFR")]);
+                for j in 0..4 {
+                    fuzz_one!(ctx, "MUX.I", format!("CKINT{j}"), [
+                        (mutex "MUX.I", format!("CKINT{j}"))
+                    ], [
+                        (pip (bel_pin bel_hclk_ioi, format!("BUFR_CKINT{j}")), (pin "I"))
+                    ]);
+                    fuzz_one!(ctx, "MUX.I", format!("BUFIO{j}_I"), [
+                        (mutex "MUX.I", format!("BUFIO{j}_I"))
+                    ], [
+                        (pip (bel_pin bel_hclk_ioi, format!("IOCLK_IN{j}_BUFR")), (pin "I"))
+                    ]);
+                }
+            }
+            {
+                let ctx = FuzzCtx::new(session, backend, tile, "IDELAYCTRL", TileBits::Hclk);
+                for i in 0..6 {
+                    for ud in ['U', 'D'] {
+                        fuzz_one!(ctx, "MUX.REFCLK", format!("HCLK_IO_{ud}{i}"), [
+                            (mutex "MUX.REFCLK", format!("HCLK_IO_{ud}{i}"))
+                        ], [
+                            (pip (bel_pin bel_hclk_ioi, format!("HCLK_IO_{ud}{i}")), (pin "REFCLK"))
+                        ]);
+                    }
+                }
+                // TODO more IDELAYCTRL things
+            }
+            {
+                let ctx = FuzzCtx::new(session, backend, tile, "HCLK_IOI", TileBits::Hclk);
+                for i in 0..6 {
+                    for ud in ['U', 'D'] {
+                        for j in 0..12 {
+                            fuzz_one!(ctx, format!("MUX.HCLK_IO_{ud}{i}"), format!("HCLK{j}"), [
+                                (mutex format!("MUX.HCLK_IO_{ud}{i}"), format!("HCLK{j}")),
+                                (mutex format!("HCLK{j}"), format!("MUX.HCLK_IO_{ud}{i}"))
+                            ], [
+                                (pip (pin format!("HCLK{j}_BUF")), (pin format!("HCLK_IO_{ud}{i}")))
+                            ]);
+                        }
+                    }
+                }
+                for i in 0..4 {
+                    let li = i % 2;
+                    let ud = if i < 2 { 'U' } else { 'D' };
+                    fuzz_one!(ctx, format!("BUF.RCLK{i}"), "1", [
+                        (global_mutex "RCLK", "USE"),
+                        (related TileRelation::ColPair(0, node_cmt),
+                            (bel_mutex bel_cmt, format!("MUX.LCLK{li}_{ud}"), format!("RCLK{i}"))),
+                        (related TileRelation::ColPair(0, node_cmt),
+                            (pip
+                                (bel_pin bel_cmt, format!("RCLK{i}")),
+                                (bel_pin bel_cmt, format!("LCLK{li}_CMT_{ud}"))))
+                    ], [
+                        (pip (pin format!("RCLK{i}")), (pin format!("RCLK{i}_IO")))
+                    ]);
+                }
+            }
+        }
+    }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
@@ -605,10 +705,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..12 {
             let (_, _, diff) = Diff::split(
                 ctx.state
-                    .peek_diff(tile, "HCLK_R", "MUX.OUT_D0", format!("HCLK{i}"))
+                    .peek_diff(tile, "HCLK_R", "MUX.LCLK0_D", format!("HCLK{i}"))
                     .clone(),
                 ctx.state
-                    .peek_diff(tile, "HCLK_R", "MUX.OUT_U0", format!("HCLK{i}"))
+                    .peek_diff(tile, "HCLK_R", "MUX.LCLK0_U", format!("HCLK{i}"))
                     .clone(),
             );
             ctx.tiledb
@@ -617,10 +717,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..4 {
             let (_, _, diff) = Diff::split(
                 ctx.state
-                    .peek_diff(tile, "HCLK_R", "MUX.OUT_D0", format!("RCLK{i}"))
+                    .peek_diff(tile, "HCLK_R", "MUX.LCLK0_D", format!("RCLK{i}"))
                     .clone(),
                 ctx.state
-                    .peek_diff(tile, "HCLK_R", "MUX.OUT_U0", format!("RCLK{i}"))
+                    .peek_diff(tile, "HCLK_R", "MUX.LCLK0_U", format!("RCLK{i}"))
                     .clone(),
             );
             ctx.tiledb
@@ -629,7 +729,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..12 {
             let sbel = if i < 6 { "HCLK_R" } else { "HCLK_L" };
             for ud in ['U', 'D'] {
-                let mux = &format!("MUX.OUT_{ud}{i}");
+                let mux = &format!("MUX.LCLK{i}_{ud}");
                 let mut diffs = vec![("NONE".to_string(), Diff::default())];
                 for i in 0..12 {
                     let val = format!("HCLK{i}");
@@ -972,9 +1072,96 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
     }
     if !bali_only {
         let tile = "CMT";
-        let bel = "CMT";
+        let bel = "HCLK_CMT";
         for i in 0..4 {
             ctx.collect_bit(tile, bel, &format!("ENABLE.RCLK{i}"), "HROW");
+        }
+        for tile in ["HCLK_IOI_HP", "HCLK_IOI_HR"] {
+            for i in 0..4 {
+                let bel = &format!("BUFIO{i}");
+                ctx.collect_bit(tile, bel, "ENABLE", "1");
+                ctx.collect_enum_bool(tile, bel, "DELAY_BYPASS", "FALSE", "TRUE");
+                ctx.collect_enum(tile, bel, "MUX.I", &["CCIO", "PERF"]);
+            }
+            for i in 0..4 {
+                let bel = &format!("BUFR{i}");
+                ctx.collect_bit(tile, bel, "ENABLE", "1");
+                ctx.collect_enum(
+                    tile,
+                    bel,
+                    "BUFR_DIVIDE",
+                    &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
+                );
+                ctx.collect_enum_default(
+                    tile,
+                    bel,
+                    "MUX.I",
+                    &[
+                        "BUFIO0_I", "BUFIO1_I", "BUFIO2_I", "BUFIO3_I", "CKINT0", "CKINT1",
+                        "CKINT2", "CKINT3",
+                    ],
+                    "NONE",
+                );
+            }
+            {
+                let bel = "IDELAYCTRL";
+                ctx.collect_enum_default(
+                    tile,
+                    bel,
+                    "MUX.REFCLK",
+                    &[
+                        "HCLK_IO_D0",
+                        "HCLK_IO_D1",
+                        "HCLK_IO_D2",
+                        "HCLK_IO_D3",
+                        "HCLK_IO_D4",
+                        "HCLK_IO_D5",
+                        "HCLK_IO_U0",
+                        "HCLK_IO_U1",
+                        "HCLK_IO_U2",
+                        "HCLK_IO_U3",
+                        "HCLK_IO_U4",
+                        "HCLK_IO_U5",
+                    ],
+                    "NONE",
+                );
+            }
+            {
+                let bel = "HCLK_IOI";
+                for i in 0..4 {
+                    ctx.collect_bit(tile, bel, &format!("BUF.RCLK{i}"), "1");
+                }
+                for i in 0..12 {
+                    let (_, _, diff) = Diff::split(
+                        ctx.state
+                            .peek_diff(tile, bel, "MUX.HCLK_IO_D0", format!("HCLK{i}"))
+                            .clone(),
+                        ctx.state
+                            .peek_diff(tile, bel, "MUX.HCLK_IO_U0", format!("HCLK{i}"))
+                            .clone(),
+                    );
+                    ctx.tiledb
+                        .insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit(diff));
+                }
+                for i in 0..6 {
+                    for ud in ['U', 'D'] {
+                        let mux = &format!("MUX.HCLK_IO_{ud}{i}");
+                        let mut diffs = vec![("NONE".to_string(), Diff::default())];
+                        for i in 0..12 {
+                            let val = format!("HCLK{i}");
+                            let mut diff = ctx.state.get_diff(tile, bel, mux, &val);
+                            diff.apply_bit_diff(
+                                ctx.tiledb.item(tile, bel, &format!("ENABLE.HCLK{i}")),
+                                true,
+                                false,
+                            );
+                            diffs.push((val, diff));
+                        }
+                        ctx.tiledb
+                            .insert(tile, bel, mux, xlat_enum_ocd(diffs, OcdMode::Mux));
+                    }
+                }
+            }
         }
     }
 }

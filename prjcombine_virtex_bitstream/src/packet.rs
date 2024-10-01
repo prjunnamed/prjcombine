@@ -40,6 +40,8 @@ pub enum Packet {
     CmdSwitch,
     CmdGRestore,
     CmdDesynch,
+    CmdBspiRead,
+    CmdFallEdge,
     Crc,
     Flr(u32),
     Mask(u32),
@@ -55,6 +57,7 @@ pub enum Packet {
     Ctl0(u32),
     Ctl1(u32),
     Unk1c(u32),
+    Bspi(u32),
     Idcode(u32),
     Timer(u32),
     Powerdown(u32),
@@ -528,6 +531,8 @@ impl<'a> Iterator for PacketParser<'a> {
                                     10 => Some(Packet::CmdGRestore),
                                     11 => Some(Packet::CmdShutdown),
                                     13 => Some(Packet::CmdDesynch),
+                                    18 => Some(Packet::CmdBspiRead),
+                                    19 => Some(Packet::CmdFallEdge),
                                     val => panic!("unk cmd: {val}"),
                                 },
                                 (5, 1) => {
@@ -630,6 +635,7 @@ impl<'a> Iterator for PacketParser<'a> {
                                 (0x1b, 1) if is_v4 => Some(Packet::Trim(get_val(0))),
                                 (0x1c, 1) if is_v4 => Some(Packet::Unk1c(get_val(0))),
                                 (0x1e, 0) => continue,
+                                (0x1f, 1) if is_v4 => Some(Packet::Bspi(get_val(0))),
                                 _ => panic!("unk write: {reg} times {num}"),
                             }
                         } else if (ph >> 27) == 7 {

@@ -382,7 +382,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             let mut ey = 0;
             for &br in &hard.rows_emac {
                 for dy in 0..10 {
-                    let row = br + dy;
+                    let row: RowId = br + dy;
                     let y = row.to_idx();
                     self.die.add_xnode(
                         (col, row),
@@ -414,7 +414,7 @@ impl<'a, 'b> Expander<'a, 'b> {
 
             for (py, &br) in hard.rows_pcie.iter().enumerate() {
                 for dy in 0..20 {
-                    let row = br + dy;
+                    let row: RowId = br + dy;
                     let y = row.to_idx();
                     self.die.add_xnode(
                         (col - 3, row),
@@ -735,7 +735,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             node.add_bel(25, format!("MMCM_ADV_X0Y{y}", y = reg.to_idx() * 2 + 1));
             node.add_bel(26, format!("PPR_FRAME_X0Y{y}", y = reg.to_idx()));
 
-            let row = row_hclk - 20;
+            let row: RowId = row_hclk - 20;
             let y = row.to_idx();
             if reg < self.grid.reg_cfg - 1 {
                 let name = format!("CMT_PMVA_BELOW_X{x}Y{y}");
@@ -773,7 +773,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                 );
             }
 
-            let row = row_hclk + 18;
+            let row: RowId = row_hclk + 18;
             let y = row.to_idx();
             if reg < self.grid.reg_cfg - 1 {
                 let name = format!("CMT_PMVB_BUF_BELOW_X{x}Y{y}");

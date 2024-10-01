@@ -15,6 +15,7 @@ Virtex 5
    io
    center
    clock
+   cmt
    ppc
    emac
    pcie
