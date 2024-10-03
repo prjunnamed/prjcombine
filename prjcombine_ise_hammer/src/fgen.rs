@@ -4375,29 +4375,19 @@ impl ExtraFeatureKind {
                 }
                 ExpandedDevice::Virtex2(_) => todo!(),
                 ExpandedDevice::Spartan6(_) => todo!(),
-                ExpandedDevice::Virtex4(edev) => match edev.kind {
-                    prjcombine_virtex4::grid::GridKind::Virtex4 => todo!(),
-                    prjcombine_virtex4::grid::GridKind::Virtex5 => {
-                        let node = backend.egrid.db.get_node(tile);
-                        backend.egrid.node_index[node]
-                            .iter()
-                            .map(|loc| vec![edev.btile_main(loc.0, loc.1, loc.2)])
-                            .collect()
-                    }
-                    prjcombine_virtex4::grid::GridKind::Virtex6 => {
-                        let node = backend.egrid.db.get_node(tile);
-                        backend.egrid.node_index[node]
-                            .iter()
-                            .map(|loc| {
-                                vec![
-                                    edev.btile_main(loc.0, loc.1, loc.2),
-                                    edev.btile_main(loc.0, loc.1, loc.2 + 1),
-                                ]
-                            })
-                            .collect()
-                    }
-                    prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
-                },
+                ExpandedDevice::Virtex4(edev) => {
+                    let node = backend.egrid.db.get_node(tile);
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| {
+                            backend.egrid.db.nodes[node]
+                                .tiles
+                                .ids()
+                                .map(|ti| edev.btile_main(loc.0, loc.1, loc.2 + ti.to_idx()))
+                                .collect()
+                        })
+                        .collect()
+                }
                 ExpandedDevice::Ultrascale(_) => todo!(),
                 ExpandedDevice::Versal(_) => todo!(),
             },

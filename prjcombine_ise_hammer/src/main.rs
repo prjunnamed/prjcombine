@@ -379,7 +379,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     misc::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    // TODO: io
+                    io::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_pll {
                     cmt::virtex7::add_fuzzers(&mut hammer, &backend);
@@ -637,7 +637,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     misc::virtex7::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    // TODO: io
+                    io::virtex7::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_pll {
                     cmt::virtex7::collect_fuzzers(&mut ctx);

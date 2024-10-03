@@ -510,26 +510,6 @@ pub fn add_fuzzers<'a>(
         fuzz_multi_attr_bin!(ctx, "INIT_PIPE_DATA0", 12, [(mode "OSERDESE1")]);
         fuzz_multi_attr_bin!(ctx, "INIT_PIPE_DATA1", 12, [(mode "OSERDESE1")]);
 
-        // TODO OLOGIC
-        // - TFFTYPE  DDR #LATCH #FF
-        // - OUTFFTYPE  DDR #LATCH #FF
-        // - TMUX  T1 TFF
-        // - OMUX  D1 OUTFF
-        // - T1USED  0
-        // - O1USED  0
-        // - TQUSED  0
-        // - OQUSED  0
-        // - TFBUSED  0
-        // - OFBUSED  0
-
-        // TODO OSERDES
-        // - DATA_RATE_OQ  SDR DDR
-        // - DATA_RATE_TQ  SDR DDR BUF
-        // - DATA_WIDTH  2 3 4 5 6 7 8 10
-        // - INTERFACE_TYPE  DEFAULT MEMORY_DDR3
-
-        // TODO: OLOGIC
-
         for (src, num) in [("HCLK", 12), ("RCLK", 6)] {
             for j in 0..num {
                 fuzz_one!(ctx, "MUX.CLKDIV", format!("{src}{j}"), [
@@ -1525,8 +1505,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let tsrused = ctx.extract_bit(tile, bel, "TSRUSED", "0");
         ctx.tiledb.insert(tile, bel, "OFF_SR_USED", osrused);
         ctx.tiledb.insert(tile, bel, "TFF_SR_USED", tsrused);
-
-        // TODO: OLOGIC
 
         let mut diffs = vec![];
         for val in ["2", "3", "4", "5", "6", "7", "8"] {

@@ -14,9 +14,9 @@ There are two genders of I/O banks:
 
 In both cases, banks are 50 rows high. They have the following structure:
 
-- row 0: contains a ``IOS_HP`` or ``IOS_HR`` tile with a single unpaired IOB
-- rows 1-2, 3-4, 5-6, 7-8, ..., 45-46, 47-48: contain ``IOP_HP`` or ``IOP_HR`` tiles, which are two rows high and contain two IOBs each, forming a differential pair; ``IOB0`` is located in the bottom (odd) row and is the "complemented" pin of the pair, while ``IOB1`` is in the top (even) row and is the "true" pin of the pair
-- row 49: contains another ``IOS_HP`` or ``IOS_HR`` tile
+- row 0: contains a ``IO_HP_BOT`` or ``IO_HR_BOT`` tile with a single unpaired IOB
+- rows 1-2, 3-4, 5-6, 7-8, ..., 45-46, 47-48: contain ``IO_HP_PAIR`` or ``IO_HR_PAIR`` tiles, which are two rows high and contain two IOBs each, forming a differential pair; ``IOB0`` is located in the bottom (odd) row and is the "complemented" pin of the pair, while ``IOB1`` is in the top (even) row and is the "true" pin of the pair
+- row 49: contains another ``IO_HP_TOP`` or ``IO_HR_TOP`` tile
 - HCLK row: contains an ``HCLK_IO_HP`` or ``HCLK_IO_HR`` tile with common bank circuitry
 
 The single IOB in row 0 is the VRP pin for DCI. The single IOB in row 49 is VRN pin.
@@ -178,6 +178,48 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 - ``M0``, ``M1``, ``M2``
 - ``PROGRAM_B``
 - ``TCK``, ``TDI``, ``TDO``, ``TMS``
+
+
+Bitstream — ``IO_HP_PAIR``
+==========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HP_PAIR.html
+
+
+Bitstream — ``IO_HP_BOT``
+=========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HP_BOT.html
+
+
+Bitstream — ``IO_HP_TOP``
+=========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HP_TOP.html
+
+
+Bitstream — ``IO_HR_PAIR``
+==========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HR_PAIR.html
+
+
+Bitstream — ``IO_HR_BOT``
+=========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HR_BOT.html
+
+
+Bitstream — ``IO_HR_TOP``
+=========================
+
+.. raw:: html
+   :file: ../gen/tile-xc7v-IO_HR_TOP.html
 
 
 Bitstream — ``HCLK_IOI_HP``

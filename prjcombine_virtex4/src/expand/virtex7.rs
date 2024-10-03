@@ -1430,11 +1430,19 @@ impl DieExpander<'_, '_, '_> {
                         let naming = format!("{tk}_SING");
                         let node = self.die.add_xnode(
                             (col, row),
-                            self.db.get_node(if kind == IoKind::Hpio {
-                                "IOS_HP"
+                            if row.to_idx() % 50 == 0 {
+                                self.db.get_node(if kind == IoKind::Hpio {
+                                    "IO_HP_BOT"
+                                } else {
+                                    "IO_HR_BOT"
+                                })
                             } else {
-                                "IOS_HR"
-                            }),
+                                self.db.get_node(if kind == IoKind::Hpio {
+                                    "IO_HP_TOP"
+                                } else {
+                                    "IO_HR_TOP"
+                                })
+                            },
                             &[&name, &name_iob],
                             self.db.get_node_naming(&naming),
                             &[(col, row)],
@@ -1510,9 +1518,9 @@ impl DieExpander<'_, '_, '_> {
                         let node = self.die.add_xnode(
                             (col, row),
                             self.db.get_node(if kind == IoKind::Hpio {
-                                "IOP_HP"
+                                "IO_HP_PAIR"
                             } else {
-                                "IOP_HR"
+                                "IO_HR_PAIR"
                             }),
                             &[&name, &name_iob],
                             self.db.get_node_naming(&naming),

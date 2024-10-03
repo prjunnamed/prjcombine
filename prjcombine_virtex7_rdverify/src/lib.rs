@@ -1419,12 +1419,14 @@ fn verify_odelay(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match (bel.key, bel.node_kind) {
-        ("IOB1", "IOP_HP") => "IOB18M",
-        ("IOB0", "IOP_HP") => "IOB18S",
-        ("IOB1", "IOP_HR") => "IOB33M",
-        ("IOB0", "IOP_HR") => "IOB33S",
-        ("IOB", "IOS_HP") => "IOB18",
-        ("IOB", "IOS_HR") => "IOB33",
+        ("IOB1", "IO_HP_PAIR") => "IOB18M",
+        ("IOB0", "IO_HP_PAIR") => "IOB18S",
+        ("IOB1", "IO_HR_PAIR") => "IOB33M",
+        ("IOB0", "IO_HR_PAIR") => "IOB33S",
+        ("IOB", "IO_HP_BOT") => "IOB18",
+        ("IOB", "IO_HP_TOP") => "IOB18",
+        ("IOB", "IO_HR_BOT") => "IOB33",
+        ("IOB", "IO_HR_TOP") => "IOB33",
         _ => unreachable!(),
     };
     let mut pins = vec![

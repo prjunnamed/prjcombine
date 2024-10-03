@@ -658,7 +658,29 @@ pub fn add_fuzzers<'a>(
                         ]);
                     }
                 }
-                // TODO more IDELAYCTRL things
+                fuzz_one!(ctx, "PRESENT", "1", [], [(mode "IDELAYCTRL")]);
+                fuzz_enum!(ctx, "HIGH_PERFORMANCE_MODE", ["FALSE", "TRUE"], [(mode "IDELAYCTRL")]);
+                fuzz_one!(ctx, "MODE", "DEFAULT", [
+                    (tile_mutex "IDELAYCTRL", "TEST"),
+                    (mode "IDELAYCTRL")
+                ], [
+                    (attr "IDELAYCTRL_EN", "DEFAULT"),
+                    (attr "BIAS_MODE", "2")
+                ]);
+                fuzz_one!(ctx, "MODE", "FULL_0", [
+                    (tile_mutex "IDELAYCTRL", "TEST"),
+                    (mode "IDELAYCTRL")
+                ], [
+                    (attr "IDELAYCTRL_EN", "ENABLE"),
+                    (attr "BIAS_MODE", "0")
+                ]);
+                fuzz_one!(ctx, "MODE", "FULL_1", [
+                    (tile_mutex "IDELAYCTRL", "TEST"),
+                    (mode "IDELAYCTRL")
+                ], [
+                    (attr "IDELAYCTRL_EN", "ENABLE"),
+                    (attr "BIAS_MODE", "1")
+                ]);
             }
             {
                 let ctx = FuzzCtx::new(session, backend, tile, "HCLK_IOI", TileBits::Hclk);
@@ -1123,6 +1145,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                         "HCLK_IO_U4",
                         "HCLK_IO_U5",
                     ],
+                    "NONE",
+                );
+                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+                ctx.collect_enum_bool(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
+                ctx.collect_enum_default(
+                    tile,
+                    bel,
+                    "MODE",
+                    &["DEFAULT", "FULL_0", "FULL_1"],
                     "NONE",
                 );
             }

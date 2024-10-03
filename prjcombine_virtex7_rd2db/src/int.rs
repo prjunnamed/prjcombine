@@ -1690,7 +1690,14 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
             if is_sing {
                 builder
-                    .xnode(if is_hpio { "IOS_HP" } else { "IOS_HR" }, tkn, xy)
+                    .xnode(if is_hpio { "IO_HP_BOT" } else { "IO_HR_BOT" }, tkn, xy)
+                    .raw_tile(iob_xy)
+                    .ref_int(int_xy, 0)
+                    .ref_single(intf_xy, 0, intf)
+                    .bels(bels.clone())
+                    .extract();
+                builder
+                    .xnode(if is_hpio { "IO_HP_TOP" } else { "IO_HR_TOP" }, tkn, xy)
                     .raw_tile(iob_xy)
                     .ref_int(int_xy, 0)
                     .ref_single(intf_xy, 0, intf)
@@ -1698,7 +1705,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extract();
             } else {
                 builder
-                    .xnode(if is_hpio { "IOP_HP" } else { "IOP_HR" }, tkn, xy)
+                    .xnode(if is_hpio { "IO_HP_PAIR" } else { "IO_HR_PAIR" }, tkn, xy)
                     .raw_tile(iob_xy)
                     .num_tiles(2)
                     .ref_int(int_xy, 0)
