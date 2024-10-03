@@ -108,6 +108,13 @@ Bitstream
 =========
 
 .. raw:: html
+   :file: ../gen/tile-xc4v-IO.html
+
+
+Tables
+======
+
+.. raw:: html
    :file: ../gen/xc4v-iostd-drive.html
 
 .. raw:: html
@@ -118,6 +125,3 @@ Bitstream
 
 .. raw:: html
    :file: ../gen/xc4v-iostd-lvds.html
-
-.. raw:: html
-   :file: ../gen/tile-xc4v-IO.html

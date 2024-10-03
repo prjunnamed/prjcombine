@@ -346,7 +346,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     misc::virtex6::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_io {
-                    io::virtex6::add_fuzzers(&mut hammer, &backend);
+                    io::virtex6::add_fuzzers(&mut hammer, &backend, false);
+                } else if opts.devdata_only {
+                    io::virtex6::add_fuzzers(&mut hammer, &backend, true);
                 }
                 if !opts.skip_pll {
                     cmt::virtex6::add_fuzzers(&mut hammer, &backend, false);
@@ -602,7 +604,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     misc::virtex6::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_io {
-                    io::virtex6::collect_fuzzers(&mut ctx);
+                    io::virtex6::collect_fuzzers(&mut ctx, false);
+                } else if opts.devdata_only {
+                    io::virtex6::collect_fuzzers(&mut ctx, true);
                 }
                 if !opts.skip_pll {
                     cmt::virtex6::collect_fuzzers(&mut ctx, false);

@@ -288,6 +288,30 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pip (bel_pin bel_hclk_ioi, format!("HCLK{i}_O")), (pin "REFCLK"))
             ]);
         }
+        fuzz_one!(ctx, "PRESENT", "1", [], [(mode "IDELAYCTRL")]);
+        fuzz_enum!(ctx, "RESET_STYLE", ["V4", "V5"], [(mode "IDELAYCTRL")]);
+        fuzz_enum!(ctx, "HIGH_PERFORMANCE_MODE", ["FALSE", "TRUE"], [(mode "IDELAYCTRL")]);
+        fuzz_one!(ctx, "MODE", "DEFAULT", [
+            (tile_mutex "IDELAYCTRL", "TEST"),
+            (mode "IDELAYCTRL")
+        ], [
+            (attr "IDELAYCTRL_EN", "DEFAULT"),
+            (attr "BIAS_MODE", "2")
+        ]);
+        fuzz_one!(ctx, "MODE", "FULL_0", [
+            (tile_mutex "IDELAYCTRL", "TEST"),
+            (mode "IDELAYCTRL")
+        ], [
+            (attr "IDELAYCTRL_EN", "ENABLE"),
+            (attr "BIAS_MODE", "0")
+        ]);
+        fuzz_one!(ctx, "MODE", "FULL_1", [
+            (tile_mutex "IDELAYCTRL", "TEST"),
+            (mode "IDELAYCTRL")
+        ], [
+            (attr "IDELAYCTRL_EN", "ENABLE"),
+            (attr "BIAS_MODE", "1")
+        ]);
     }
     {
         let ctx = FuzzCtx::new(session, backend, "HCLK_IOI", "HCLK_IOI", TileBits::Hclk);
@@ -546,6 +570,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "IDELAYCTRL";
         let vals: [_; 12] = core::array::from_fn(|i| format!("HCLK{i}"));
         ctx.collect_enum(tile, bel, "MUX.REFCLK", &vals);
+        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.collect_enum_bool(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
+        ctx.collect_enum_default(tile, bel, "MODE", &["DEFAULT", "FULL_0", "FULL_1"], "NONE");
+        ctx.collect_enum(tile, bel, "RESET_STYLE", &["V4", "V5"]);
     }
     {
         let tile = "HCLK_IOI";

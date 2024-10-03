@@ -363,6 +363,9 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
         emit_misc_table("xilinx/gen/xc6v-iostd-dci-term-vcc.html", "IOSTD:DCI:PREF_TERM_VCC", "IOSTD:DCI:PMASK_TERM_VCC")
         emit_misc_table("xilinx/gen/xc6v-iostd-dci-term-split.html", "IOSTD:DCI:PREF_TERM_SPLIT", "IOSTD:DCI:NREF_TERM_SPLIT", "IOSTD:DCI:PMASK_TERM_SPLIT", "IOSTD:DCI:NMASK_TERM_SPLIT")
 
+        with open("xilinx/gen/xc6v-iodelay-default-idelay-value.html", "w") as f:
+            emit_dev_table_bitvec(f, "IODELAY:DEFAULT_IDELAY_VALUE")
+
         emit_misc_table("xilinx/gen/xc6v-mmcm-filter.html", "MMCM:CP", "MMCM:RES", "MMCM:LFHF")
         emit_misc_table("xilinx/gen/xc6v-mmcm-lock.html",
                         "MMCM:LOCK_REF_DLY",

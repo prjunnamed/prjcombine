@@ -128,6 +128,20 @@ Bitstream — ``IO``
 ==================
 
 .. raw:: html
+   :file: ../gen/tile-xc6v-IO.html
+
+
+Bitstream — ``HCLK_IOI``
+========================
+
+.. raw:: html
+   :file: ../gen/tile-xc6v-HCLK_IOI.html
+
+
+Tables
+======
+
+.. raw:: html
    :file: ../gen/xc6v-iostd-drive.html
 
 .. raw:: html
@@ -138,13 +152,6 @@ Bitstream — ``IO``
 
 .. raw:: html
    :file: ../gen/xc6v-iostd-lvds.html
-
-.. raw:: html
-   :file: ../gen/tile-xc6v-IO.html
-
-
-Bitstream — ``HCLK_IOI``
-========================
 
 .. raw:: html
    :file: ../gen/xc6v-iostd-lvdsbias.html
@@ -162,4 +169,4 @@ Bitstream — ``HCLK_IOI``
    :file: ../gen/xc6v-iostd-dci-term-split.html
 
 .. raw:: html
-   :file: ../gen/tile-xc6v-HCLK_IOI.html
+   :file: ../gen/xc6v-iodelay-default-idelay-value.html

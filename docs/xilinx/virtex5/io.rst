@@ -149,6 +149,13 @@ Bitstream
 =========
 
 .. raw:: html
+   :file: ../gen/tile-xc5v-IO.html
+
+
+Tables
+======
+
+.. raw:: html
    :file: ../gen/xc5v-iostd-drive.html
 
 .. raw:: html
@@ -162,6 +169,3 @@ Bitstream
 
 .. raw:: html
    :file: ../gen/xc5v-iodelay-default-idelay-value.html
-
-.. raw:: html
-   :file: ../gen/tile-xc5v-IO.html
