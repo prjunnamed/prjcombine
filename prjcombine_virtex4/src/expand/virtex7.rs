@@ -1039,6 +1039,11 @@ impl DieExpander<'_, '_, '_> {
                     } else {
                         ""
                     };
+                    let ksuf = if is_m {
+                        "_MID"
+                    } else {
+                        ""
+                    };
                     for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
                         let row = br + dy;
                         let ry = self.rylut[row + 5];
@@ -1046,7 +1051,7 @@ impl DieExpander<'_, '_, '_> {
                         let crds: [_; 11] = core::array::from_fn(|dy| (gtcol.col, row + dy));
                         let node = self.die.add_xnode(
                             (gtcol.col, row),
-                            self.db.get_node(&format!("{sk}_CHANNEL")),
+                            self.db.get_node(&format!("{sk}_CHANNEL{ksuf}")),
                             &[&name],
                             self.db.get_node_naming(&format!("{sk}_CHANNEL_{i}{nsuf}")),
                             &crds,
@@ -1073,7 +1078,7 @@ impl DieExpander<'_, '_, '_> {
                     let crds: [_; 6] = core::array::from_fn(|dy| (gtcol.col, row + dy));
                     let node = self.die.add_xnode(
                         (gtcol.col, row + 3),
-                        self.db.get_node(&format!("{sk}_COMMON")),
+                        self.db.get_node(&format!("{sk}_COMMON{ksuf}")),
                         &[&name],
                         self.db.get_node_naming(&format!("{sk}_COMMON{nsuf}")),
                         &crds,

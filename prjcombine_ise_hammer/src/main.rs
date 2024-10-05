@@ -388,9 +388,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     pcie::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
                 if !opts.skip_gt {
-                    // TODO: gtp
-                    // TODO: gtx
-                    // TODO: gth
+                    gt::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
             }
         },
@@ -646,9 +644,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                     pcie::virtex7::collect_fuzzers(&mut ctx);
                 }
                 if !opts.skip_gt {
-                    // TODO: gtp
-                    // TODO: gtx
-                    // TODO: gth
+                    gt::virtex7::collect_fuzzers(&mut ctx);
                 }
             }
         },

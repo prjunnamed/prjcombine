@@ -2552,19 +2552,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         xn.bels(bels).extract();
     }
 
-    for (tkn, int_dx, intf_dx, intf_kind) in [
-        ("GTP_CHANNEL_0", -4, -3, "INTF.GTP"),
-        ("GTP_CHANNEL_1", -4, -3, "INTF.GTP"),
-        ("GTP_CHANNEL_2", -4, -3, "INTF.GTP"),
-        ("GTP_CHANNEL_3", -4, -3, "INTF.GTP"),
-        ("GTP_CHANNEL_0_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_1_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_2_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_3_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_0_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_1_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_2_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_3_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+    for (nn, tkn, int_dx, intf_dx, intf_kind) in [
+        ("GTP_CHANNEL", "GTP_CHANNEL_0", -4, -3, "INTF.GTP"),
+        ("GTP_CHANNEL", "GTP_CHANNEL_1", -4, -3, "INTF.GTP"),
+        ("GTP_CHANNEL", "GTP_CHANNEL_2", -4, -3, "INTF.GTP"),
+        ("GTP_CHANNEL", "GTP_CHANNEL_3", -4, -3, "INTF.GTP"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_0_MID_LEFT", -14, -13, "INTF.GTP_R"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_1_MID_LEFT", -14, -13, "INTF.GTP_R"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_2_MID_LEFT", -14, -13, "INTF.GTP_R"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_3_MID_LEFT", -14, -13, "INTF.GTP_R"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_0_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_1_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_2_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+        ("GTP_CHANNEL_MID", "GTP_CHANNEL_3_MID_RIGHT", 19, 18, "INTF.GTP_L"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);
@@ -2593,7 +2593,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_xy("OPAD.TXN", "OPAD", 0, 0)
                     .pins_name_only(&["I"]),
             ];
-            let mut xn = builder.xnode("GTP_CHANNEL", tkn, xy).num_tiles(11);
+            let mut xn = builder.xnode(nn, tkn, xy).num_tiles(11);
             for i in 0..11 {
                 xn = xn.ref_int(xy.delta(int_dx, -5 + i as i32), i).ref_single(
                     xy.delta(intf_dx, -5 + i as i32),
@@ -2604,10 +2604,10 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             xn.bels(bels).extract();
         }
     }
-    for (tkn, int_dx, intf_dx, intf_kind) in [
-        ("GTP_COMMON", -4, -3, "INTF.GTP"),
-        ("GTP_COMMON_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_COMMON_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+    for (nn, tkn, int_dx, intf_dx, intf_kind) in [
+        ("GTP_COMMON", "GTP_COMMON", -4, -3, "INTF.GTP"),
+        ("GTP_COMMON_MID", "GTP_COMMON_MID_LEFT", -14, -13, "INTF.GTP_R"),
+        ("GTP_COMMON_MID", "GTP_COMMON_MID_RIGHT", 19, 18, "INTF.GTP_L"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);
@@ -2703,7 +2703,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .bel_xy("IPAD.CLKN1", "IPAD", 0, 3)
                     .pins_name_only(&["O"]),
             ];
-            let mut xn = builder.xnode("GTP_COMMON", tkn, xy).num_tiles(6);
+            let mut xn = builder.xnode(nn, tkn, xy).num_tiles(6);
             for i in 0..3 {
                 xn = xn.ref_int(xy.delta(int_dx, i as i32), i).ref_single(
                     xy.delta(intf_dx, i as i32),

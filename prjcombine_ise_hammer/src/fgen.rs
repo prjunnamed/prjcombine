@@ -3588,6 +3588,8 @@ pub enum TileBits {
     Cmt,
     Mgt,
     DoubleHclk,
+    GtpCommonMid,
+    GtpChannelMid,
 }
 
 impl TileBits {
@@ -4175,6 +4177,38 @@ impl TileBits {
                     edev.btile_hclk(loc.0, loc.1, loc.2),
                     edev.btile_hclk(loc.0, loc.1 + 1, loc.2),
                 ]
+            }
+            TileBits::GtpCommonMid => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                let col = if loc.1.to_idx() % 2 == 0 {
+                    loc.1 - 1
+                } else {
+                    loc.1 + 1
+                };
+                vec![
+                    edev.btile_main(loc.0, col, loc.2 - 3),
+                    edev.btile_main(loc.0, col, loc.2 - 2),
+                    edev.btile_main(loc.0, col, loc.2 - 1),
+                    edev.btile_main(loc.0, col, loc.2),
+                    edev.btile_main(loc.0, col, loc.2 + 1),
+                    edev.btile_main(loc.0, col, loc.2 + 2),
+                    edev.btile_hclk(loc.0, col, loc.2),
+                ]
+            }
+            TileBits::GtpChannelMid => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                let col = if loc.1.to_idx() % 2 == 0 {
+                    loc.1 - 1
+                } else {
+                    loc.1 + 1
+                };
+                (0..11).map(|i| edev.btile_main(loc.0, col, loc.2 + i)).collect()
             }
         }
     }

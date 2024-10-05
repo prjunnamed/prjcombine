@@ -18,4 +18,7 @@ Virtex 7
    cmt
    pcie
    pcie3
+   gtp
+   gtx
+   gth
    config

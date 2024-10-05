@@ -5,3 +5,4 @@ pub mod virtex4;
 pub mod virtex5;
 pub mod virtex6_gth;
 pub mod virtex6_gtx;
+pub mod virtex7;
