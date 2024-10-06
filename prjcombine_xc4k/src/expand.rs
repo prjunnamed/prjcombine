@@ -2,9 +2,12 @@ use std::fmt::Write;
 
 use prjcombine_int::{
     db::{BelId, IntDb, NodeRawTileId},
-    grid::{ColId, ExpandedGrid, RowId},
+    grid::{ColId, DieId, ExpandedGrid, RowId},
 };
-use unnamed_entity::EntityId;
+use prjcombine_virtex_bitstream::{
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+};
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::{
     expanded::{ExpandedDevice, Io},
@@ -448,9 +451,11 @@ impl Grid {
 
                         node.add_bel(0, format!("PAD{}", p + 1));
                         node.add_bel(1, format!("PAD{p}"));
-                        node.add_bel(2, format!("DEC_R{r}C{c}.1"));
-                        node.add_bel(3, format!("DEC_R{r}C{c}.2"));
-                        node.add_bel(4, format!("DEC_R{r}C{c}.3"));
+                        if self.kind != GridKind::SpartanXl {
+                            node.add_bel(2, format!("DEC_R{r}C{c}.1"));
+                            node.add_bel(3, format!("DEC_R{r}C{c}.2"));
+                            node.add_bel(4, format!("DEC_R{r}C{c}.3"));
+                        }
                         node.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                     } else if row == self.row_tio() {
                         let kind = self.get_tio_kind(col);
@@ -481,9 +486,11 @@ impl Grid {
                         let p = (col.to_idx() - 1) * 2 + 1;
                         node.add_bel(0, format!("PAD{p}"));
                         node.add_bel(1, format!("PAD{}", p + 1));
-                        node.add_bel(2, format!("DEC_R{r}C{c}.1"));
-                        node.add_bel(3, format!("DEC_R{r}C{c}.2"));
-                        node.add_bel(4, format!("DEC_R{r}C{c}.3"));
+                        if self.kind != GridKind::SpartanXl {
+                            node.add_bel(2, format!("DEC_R{r}C{c}.1"));
+                            node.add_bel(3, format!("DEC_R{r}C{c}.2"));
+                            node.add_bel(4, format!("DEC_R{r}C{c}.3"));
+                        }
                         if self.kind == GridKind::Xc4000Xv {
                             node.tie_name = Some(format!("TIE_R{r}C{c}.1"));
                             node.tie_rt = NodeRawTileId::from_idx(4);
@@ -925,12 +932,186 @@ impl Grid {
                 }]);
             }
         }
+
+        let mut spine_framebit = None;
+        let mut qb_framebit = None;
+        let mut qt_framebit = None;
+        let mut row_framebit = EntityVec::new();
+        let mut frame_len = 0;
+        for row in grid.rows() {
+            if self.kind.is_xl() && row == self.row_qb() {
+                qb_framebit = Some(frame_len);
+                frame_len += 2;
+            }
+            if self.kind.is_xl() && row == self.row_qt() {
+                qt_framebit = Some(frame_len);
+                frame_len += 2;
+            }
+            if row == self.row_mid() {
+                spine_framebit = Some(frame_len);
+                frame_len += match self.kind {
+                    GridKind::Xc4000
+                    | GridKind::Xc4000A
+                    | GridKind::Xc4000H
+                    | GridKind::Xc4000E => 1,
+                    GridKind::Xc4000Ex
+                    | GridKind::Xc4000Xla
+                    | GridKind::Xc4000Xv
+                    | GridKind::SpartanXl => 2,
+                };
+            }
+            row_framebit.push(frame_len);
+            let height = if row == self.row_bio() {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E => 13,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla => 16,
+                    GridKind::Xc4000Xv => 17,
+                    GridKind::SpartanXl => 13,
+                }
+            } else if row == self.row_tio() {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E => 7,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla => 8,
+                    GridKind::Xc4000Xv => 9,
+                    GridKind::SpartanXl => 7,
+                }
+            } else {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E => 10,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla => 12,
+                    GridKind::Xc4000Xv => 13,
+                    GridKind::SpartanXl => 10,
+                }
+            };
+            frame_len += height;
+        }
+        let spine_framebit = spine_framebit.unwrap();
+        let quarter_framebit = qb_framebit.zip(qt_framebit);
+
+        let mut frame_info = vec![];
+        let mut spine_frame = None;
+        let mut ql_frame = None;
+        let mut qr_frame = None;
+        let mut col_frame: EntityVec<_, _> = grid.cols().map(|_| 0).collect();
+        for col in grid.cols().rev() {
+            // TODO
+            let width = if col == self.col_lio() {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 26,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 27,
+                }
+            } else if col == self.col_rio() {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 41,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 52,
+                }
+            } else {
+                match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 36,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 47,
+                }
+            };
+            col_frame[col] = frame_info.len();
+            for _ in 0..width {
+                let minor = frame_info.len();
+                frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major: 0,
+                        minor: minor as u32,
+                    },
+                });
+            }
+            if col == self.col_mid() {
+                let width = match self.kind {
+                    GridKind::Xc4000 | GridKind::Xc4000E => 1,
+                    GridKind::Xc4000A => todo!(),
+                    GridKind::Xc4000H => todo!(),
+                    GridKind::Xc4000Ex
+                    | GridKind::Xc4000Xla
+                    | GridKind::Xc4000Xv
+                    | GridKind::SpartanXl => 2,
+                };
+                spine_frame = Some(frame_info.len());
+                for _ in 0..width {
+                    let minor = frame_info.len();
+                    frame_info.push(FrameInfo {
+                        addr: FrameAddr {
+                            typ: 0,
+                            region: 0,
+                            major: 0,
+                            minor: minor as u32,
+                        },
+                    });
+                }
+            }
+            if self.kind.is_xl() && col == self.col_ql() {
+                let minor = frame_info.len();
+                ql_frame = Some(minor);
+                frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major: 0,
+                        minor: minor as u32,
+                    },
+                });
+            }
+            if self.kind.is_xl() && col == self.col_qr() {
+                let minor = frame_info.len();
+                qr_frame = Some(minor);
+                frame_info.push(FrameInfo {
+                    addr: FrameAddr {
+                        typ: 0,
+                        region: 0,
+                        major: 0,
+                        minor: minor as u32,
+                    },
+                });
+            }
+        }
+        let spine_frame = spine_frame.unwrap();
+        let quarter_frame = ql_frame.zip(qr_frame);
+
+        let die_bs_geom = DieBitstreamGeom {
+            frame_len,
+            frame_info,
+            bram_frame_len: 0,
+            bram_frame_info: vec![],
+            iob_frame_len: 0,
+        };
+        let bs_geom = BitstreamGeom {
+            kind: DeviceKind::Xc4000,
+            die: [die_bs_geom].into_iter().collect(),
+            die_order: vec![DieId::from_idx(0)],
+        };
+
         egrid.finish();
 
         ExpandedDevice {
             grid: self,
             egrid,
             io,
+            bs_geom,
+            spine_frame,
+            quarter_frame,
+            col_frame,
+            spine_framebit,
+            quarter_framebit,
+            row_framebit,
         }
     }
 }

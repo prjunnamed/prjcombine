@@ -377,7 +377,16 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
             emit_dev_table_bitvec(f, "MMCM:IN_DLY_SET")
 
     if kind == "xc7v":
-        # TODO: IO
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-misc.html", "HP_IOSTD:OUTPUT_MISC")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-drive.html", "HP_IOSTD:PDRIVE", "HP_IOSTD:NDRIVE")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-slew.html", "HP_IOSTD:PSLEW", "HP_IOSTD:NSLEW")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-lvds.html", "HP_IOSTD:LVDS_T", "HP_IOSTD:LVDS_C")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-lvdsbias.html", "HP_IOSTD:LVDSBIAS")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-dci-output.html", "HP_IOSTD:DCI:PREF_OUTPUT", "HP_IOSTD:DCI:NREF_OUTPUT")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-dci-output-half.html", "HP_IOSTD:DCI:PREF_OUTPUT_HALF", "HP_IOSTD:DCI:NREF_OUTPUT_HALF")
+        emit_misc_table("xilinx/gen/xc7v-hp-iostd-dci-term-split.html", "HP_IOSTD:DCI:NREF_TERM_SPLIT")
+
+        # TODO: HR IO
 
         emit_misc_table("xilinx/gen/xc7v-mmcm-filter.html", "MMCM:CP", "MMCM:RES", "MMCM:LFHF")
         emit_misc_table("xilinx/gen/xc7v-mmcm-lock.html",

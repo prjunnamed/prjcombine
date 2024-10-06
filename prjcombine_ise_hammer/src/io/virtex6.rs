@@ -1090,11 +1090,13 @@ pub fn add_fuzzers<'a>(
         }
 
         fuzz_one!(ctx, "OUTPUT_DELAY", "0", [
+            (mutex "OUTPUT_DELAY", "0"),
             (bel_mode bel_ologic, "OLOGICE1")
         ], [
             (pip (bel_pin bel_ologic, "OQ"), (bel_pin bel_ologic, "IOB_O"))
         ]);
         fuzz_one!(ctx, "OUTPUT_DELAY", "1", [
+            (mutex "OUTPUT_DELAY", "1"),
             (bel_mode bel_ologic, "OLOGICE1")
         ], [
             (pip (bel_pin bel_iodelay, "DATAOUT"), (bel_pin bel_ologic, "IOB_O"))

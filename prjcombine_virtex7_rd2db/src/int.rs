@@ -2557,14 +2557,62 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("GTP_CHANNEL", "GTP_CHANNEL_1", -4, -3, "INTF.GTP"),
         ("GTP_CHANNEL", "GTP_CHANNEL_2", -4, -3, "INTF.GTP"),
         ("GTP_CHANNEL", "GTP_CHANNEL_3", -4, -3, "INTF.GTP"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_0_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_1_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_2_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_3_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_0_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_1_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_2_MID_RIGHT", 19, 18, "INTF.GTP_L"),
-        ("GTP_CHANNEL_MID", "GTP_CHANNEL_3_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_0_MID_LEFT",
+            -14,
+            -13,
+            "INTF.GTP_R",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_1_MID_LEFT",
+            -14,
+            -13,
+            "INTF.GTP_R",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_2_MID_LEFT",
+            -14,
+            -13,
+            "INTF.GTP_R",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_3_MID_LEFT",
+            -14,
+            -13,
+            "INTF.GTP_R",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_0_MID_RIGHT",
+            19,
+            18,
+            "INTF.GTP_L",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_1_MID_RIGHT",
+            19,
+            18,
+            "INTF.GTP_L",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_2_MID_RIGHT",
+            19,
+            18,
+            "INTF.GTP_L",
+        ),
+        (
+            "GTP_CHANNEL_MID",
+            "GTP_CHANNEL_3_MID_RIGHT",
+            19,
+            18,
+            "INTF.GTP_L",
+        ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);
@@ -2606,8 +2654,20 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     for (nn, tkn, int_dx, intf_dx, intf_kind) in [
         ("GTP_COMMON", "GTP_COMMON", -4, -3, "INTF.GTP"),
-        ("GTP_COMMON_MID", "GTP_COMMON_MID_LEFT", -14, -13, "INTF.GTP_R"),
-        ("GTP_COMMON_MID", "GTP_COMMON_MID_RIGHT", 19, 18, "INTF.GTP_L"),
+        (
+            "GTP_COMMON_MID",
+            "GTP_COMMON_MID_LEFT",
+            -14,
+            -13,
+            "INTF.GTP_R",
+        ),
+        (
+            "GTP_COMMON_MID",
+            "GTP_COMMON_MID_RIGHT",
+            19,
+            18,
+            "INTF.GTP_L",
+        ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let intf = builder.db.get_node_naming(intf_kind);

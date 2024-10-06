@@ -1039,11 +1039,7 @@ impl DieExpander<'_, '_, '_> {
                     } else {
                         ""
                     };
-                    let ksuf = if is_m {
-                        "_MID"
-                    } else {
-                        ""
-                    };
+                    let ksuf = if is_m { "_MID" } else { "" };
                     for (i, dy) in [(0, 0), (1, 11), (2, 28), (3, 39)] {
                         let row = br + dy;
                         let ry = self.rylut[row + 5];

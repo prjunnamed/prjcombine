@@ -234,3 +234,28 @@ Bitstream — ``HCLK_IOI_HR``
 
 .. raw:: html
    :file: ../gen/tile-xc7v-HCLK_IOI_HR.html
+
+
+Tables — HP IO
+==============
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-lvds.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-lvdsbias.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-dci-output.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-dci-output-half.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hp-iostd-dci-term-split.html

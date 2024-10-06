@@ -308,10 +308,7 @@ fn diagnose_cw_fail<B: Backend>(
                     fd = fuzzers[fid]
                 );
             } else {
-                eprintln!(
-                    "FUZZER {f:?}: ???",
-                    f = batch.fuzzers[fid].info,
-                );
+                eprintln!("FUZZER {f:?}: ???", f = batch.fuzzers[fid].info,);
             }
             for (k, v) in batch.fuzzers[fid].kv.iter().sorted_by_key(|x| x.0) {
                 match v {

@@ -383,6 +383,7 @@ pub fn run_bitgen(
         panic!("non-zero xdl exit status");
     }
     let mut pcf_file = File::create(dir.path().join("meow.pcf"))?;
+    writeln!(pcf_file)?;
     if let Some(ref val) = pcf.vccaux {
         writeln!(pcf_file, "CONFIG VCCAUX=\"{val}\";")?;
     }

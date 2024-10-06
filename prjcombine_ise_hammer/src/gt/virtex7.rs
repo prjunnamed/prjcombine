@@ -1971,26 +1971,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_default(tile, bel, "QPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
         let node = ctx.edev.egrid().db.get_node(tile);
         if ctx.edev.egrid().node_index[node].len() > 1 {
-            ctx.collect_enum_default_ocd(tile, bel, "MUX.NORTHREFCLK0_N", &[
-                "REFCLK0",
-                "REFCLK1",
-                "NORTHREFCLK0",
-            ], "NONE", OcdMode::BitOrderDrpV6);
-            ctx.collect_enum_default_ocd(tile, bel, "MUX.NORTHREFCLK1_N", &[
-                "REFCLK0",
-                "REFCLK1",
-                "NORTHREFCLK1",
-            ], "NONE", OcdMode::BitOrderDrpV6);
-            ctx.collect_enum_default_ocd(tile, bel, "MUX.SOUTHREFCLK0_S", &[
-                "REFCLK0",
-                "REFCLK1",
-                "SOUTHREFCLK0",
-            ], "NONE", OcdMode::BitOrderDrpV6);
-            ctx.collect_enum_default_ocd(tile, bel, "MUX.SOUTHREFCLK1_S", &[
-                "REFCLK0",
-                "REFCLK1",
-                "SOUTHREFCLK1",
-            ], "NONE", OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_default_ocd(
+                tile,
+                bel,
+                "MUX.NORTHREFCLK0_N",
+                &["REFCLK0", "REFCLK1", "NORTHREFCLK0"],
+                "NONE",
+                OcdMode::BitOrderDrpV6,
+            );
+            ctx.collect_enum_default_ocd(
+                tile,
+                bel,
+                "MUX.NORTHREFCLK1_N",
+                &["REFCLK0", "REFCLK1", "NORTHREFCLK1"],
+                "NONE",
+                OcdMode::BitOrderDrpV6,
+            );
+            ctx.collect_enum_default_ocd(
+                tile,
+                bel,
+                "MUX.SOUTHREFCLK0_S",
+                &["REFCLK0", "REFCLK1", "SOUTHREFCLK0"],
+                "NONE",
+                OcdMode::BitOrderDrpV6,
+            );
+            ctx.collect_enum_default_ocd(
+                tile,
+                bel,
+                "MUX.SOUTHREFCLK1_S",
+                &["REFCLK0", "REFCLK1", "SOUTHREFCLK1"],
+                "NONE",
+                OcdMode::BitOrderDrpV6,
+            );
         }
     }
     for (tile, bel_common) in [

@@ -472,7 +472,7 @@ impl<'a> Backend for IseBackend<'a> {
         }
 
         let (dummy_inst_kind, dummy_inst_port) = match self.edev {
-            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc4k(_) => ("CLB", "K"),
             ExpandedDevice::Xc5200(_) => ("LC5A", "CK"),
             ExpandedDevice::Virtex(_) => ("SLICE", "CLK"),
             ExpandedDevice::Virtex2(edev) => (

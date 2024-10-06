@@ -54,6 +54,7 @@ pub enum Reg {
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum DeviceKind {
+    Xc4000,
     Xc5200,
     Virtex,
     Virtex2,
