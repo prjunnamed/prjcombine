@@ -349,6 +349,7 @@ pub struct Pcf {
     pub vccaux: Option<String>,
     pub internal_vref: HashMap<u32, u32>,
     pub dci_cascade: HashMap<u32, u32>,
+    pub vccosensemode: HashMap<u32, String>,
 }
 
 pub fn run_bitgen(
@@ -405,6 +406,9 @@ pub fn run_bitgen(
             write!(pcf_file, ", {val}")?;
         }
         writeln!(pcf_file, "\";")?;
+    }
+    for (&bank, mode) in &pcf.vccosensemode {
+        writeln!(pcf_file, "CONFIG VCCOSENSEMODE{bank}={mode};",)?;
     }
     std::mem::drop(pcf_file);
     let mut cmd = tc.command("bitgen");

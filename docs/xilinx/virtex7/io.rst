@@ -10,7 +10,7 @@ Virtex 7 devices have a regular I/O bank structure.  There are up to two I/O col
 There are two genders of I/O banks:
 
 - HP (high performance) banks, with 1.8V maximum voltage and DCI support
-- HR (high range) banks, with 3.3V maxumum voltage and no DCI
+- HR (high range) banks, with 3.3V maximum voltage and no DCI
 
 In both cases, banks are 50 rows high. They have the following structure:
 
@@ -259,3 +259,25 @@ Tables — HP IO
 
 .. raw:: html
    :file: ../gen/xc7v-hp-iostd-dci-term-split.html
+
+
+Tables — HR IO
+==============
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-drive.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-slew.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-misc.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-lvds.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-driverbias.html
+
+.. raw:: html
+   :file: ../gen/xc7v-hr-iostd-lvdsbias.html

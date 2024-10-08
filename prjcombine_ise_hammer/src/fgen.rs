@@ -745,6 +745,7 @@ pub enum TileKV<'a> {
     CenterDci(u32),
     CascadeDci(u32, u32),
     TouchHout(usize),
+    PinPair(BelId, String, BelId, String),
 }
 
 #[derive(Debug, Clone)]
@@ -2192,14 +2193,16 @@ impl<'a> TileKV<'a> {
                                 col,
                                 row: hclk_a - 24,
                                 iob: EntityId::from_idx(0),
-                            }].bank;
+                            }]
+                            .bank;
                         let actual_bank_b = edev.io_by_crd
                             [&prjcombine_virtex4::expanded::IoCoord {
                                 die: loc.0,
                                 col,
                                 row: hclk_b - 24,
                                 iob: EntityId::from_idx(0),
-                            }].bank;
+                            }]
+                            .bank;
                         fuzzer = fuzzer.fuzz(Key::DciCascade(actual_bank_b), None, actual_bank_a);
                     }
                     _ => unreachable!(),
@@ -2286,6 +2289,14 @@ impl<'a> TileKV<'a> {
                         .base(Key::Pip(ta, wa, wb), true);
                 }
                 fuzzer
+            }
+            TileKV::PinPair(bel_a, pin_a, bel_b, pin_b) => {
+                let site_a = &backend.egrid.node(loc).bels[*bel_a];
+                let site_b = &backend.egrid.node(loc).bels[*bel_b];
+                fuzzer.base(
+                    Key::SitePin(site_a, pin_a.clone()),
+                    Value::FromPin(site_b, pin_b.clone()),
+                )
             }
         })
     }
@@ -2589,10 +2600,10 @@ impl<'a> BelKV {
                             col: loc.1,
                             row: loc.2,
                             iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
-                                if edev.egrid.db.nodes.key(node.kind).starts_with("IOS") {
-                                    0
-                                } else {
+                                if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                     bel.to_idx() % 2
+                                } else {
+                                    0
                                 },
                             ),
                         }];
@@ -2670,10 +2681,10 @@ impl<'a> BelKV {
                             col: loc.1,
                             row: loc.2,
                             iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
-                                if edev.egrid.db.nodes.key(node.kind).starts_with("IOS") {
-                                    0
-                                } else {
+                                if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                     bel.to_idx() % 2
+                                } else {
+                                    0
                                 },
                             ),
                         }];
@@ -2834,10 +2845,10 @@ impl<'a> BelKV {
                         col: loc.1,
                         row: loc.2,
                         iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
-                            if edev.egrid.db.nodes.key(node.kind).starts_with("IOS") {
-                                0
-                            } else {
+                            if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                 bel.to_idx() % 2
+                            } else {
+                                0
                             },
                         ),
                     }];
@@ -3537,6 +3548,7 @@ pub enum TileFuzzKV<'a> {
     RowMutexExclusive(String),
     TileRelated(TileRelation, Box<TileFuzzKV<'a>>),
     PinPair(BelId, String, BelId, String),
+    VccoSenseMode(String),
     Raw(Key<'a>, Value<'a>, Value<'a>),
 }
 
@@ -3658,6 +3670,19 @@ impl<'a> TileFuzzKV<'a> {
                     false,
                     Value::FromPin(site_b, pin_b.clone()),
                 )
+            }
+            TileFuzzKV::VccoSenseMode(mode) => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let bank = edev.io_by_crd[&prjcombine_virtex4::expanded::IoCoord {
+                    die: loc.0,
+                    col: loc.1,
+                    row: loc.2,
+                    iob: EntityId::from_idx(0),
+                }]
+                    .bank;
+                fuzzer.fuzz(Key::VccoSenseMode(bank), None, mode.clone())
             }
             TileFuzzKV::Raw(ref key, ref vala, ref valb) => {
                 fuzzer.fuzz(key.clone(), vala.clone(), valb.clone())
@@ -4525,6 +4550,7 @@ pub enum ExtraFeatureKind {
     AllXadc,
     HclkIoiInnerSide(Dir),
     HclkIoiHere(NodeKindId),
+    AllBankIo,
 }
 
 impl ExtraFeatureKind {
@@ -5584,6 +5610,21 @@ impl ExtraFeatureKind {
                 } else {
                     vec![]
                 }
+            }
+            ExtraFeatureKind::AllBankIo => {
+                let ExpandedDevice::Virtex4(edev) = backend.edev else {
+                    unreachable!()
+                };
+                assert_eq!(edev.kind, prjcombine_virtex4::grid::GridKind::Virtex7);
+                (0..24)
+                    .map(|i| {
+                        let row = edev.grids[loc.0].row_hclk(loc.2) - 24 + i * 2;
+                        vec![
+                            edev.btile_main(loc.0, loc.1, row),
+                            edev.btile_main(loc.0, loc.1, row + 1),
+                        ]
+                    })
+                    .collect()
             }
         }
     }

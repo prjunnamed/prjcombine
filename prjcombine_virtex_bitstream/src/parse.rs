@@ -17,7 +17,7 @@ impl Xc4000Crc {
     }
 
     fn feed_bit(&mut self, b: bool) {
-        if b {
+        if !b {
             self.crc ^= 0x8000;
         }
         if (self.crc & 0x8000) != 0 {
@@ -44,27 +44,47 @@ fn parse_xc4000_bitstream(bs: &mut Bitstream, data: &[u8]) {
     let mut pos = 40;
     let frame_len = bs.frame_len;
     let frames_num = bs.frame_info.len();
+    let mut crc_enable = false;
     for fi in 0..frames_num {
         assert!(!data[pos]);
-        crc.feed_bit(false);
+        if fi == 0 {
+            crc.feed_bit(true);
+        } else {
+            crc.feed_bit(false);
+        }
         pos += 1;
         let fdata = &data[pos..(pos + frame_len)];
         let frame = bs.frame_mut(fi);
         for (i, bit) in fdata.iter().enumerate() {
             frame.set(i, *bit);
-            crc.feed_bit(*bit);
+            if fi == 0 && i < 2 {
+                // ??!?!?!?!?!??!
+                crc.feed_bit(fdata[0]);
+                if i == 1 {
+                    crc_enable = !*bit;
+                }
+            } else {
+                crc.feed_bit(*bit);
+            }
         }
         pos += frame_len;
         let raw_crc = &data[pos..(pos + 4)];
-        print!("CRC: {:04x} {}", crc.crc, raw_crc);
         pos += 4;
-        for bit in raw_crc {
-            crc.feed_bit(*bit);
+        if crc_enable {
+            for bit in raw_crc {
+                crc.feed_bit(*bit);
+            }
+            assert_eq!(crc.crc & 0xf, 0);
+        } else {
+            assert_eq!(raw_crc, bits![0, 1, 1, 0]);
         }
-        println!(" POST {:04x}", crc.crc);
-        // TODO: do something about CRC?
+        if crc_enable && fi == frames_num - 1 {
+            for i in (frame_len - 7)..frame_len {
+                frame.set(i, true);
+            }
+            assert_eq!(crc.crc & 0x7ff, 0);
+        }
     }
-    println!("FINAL CRC: {:04x}", crc.crc);
     let post = &data[pos..(pos + 8)];
     assert_eq!(post, &bits![0, 1, 1, 1, 1, 1, 1, 1]);
     pos += 8;

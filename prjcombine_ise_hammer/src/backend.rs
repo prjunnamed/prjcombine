@@ -46,6 +46,7 @@ pub enum Key<'a> {
     AltVr,
     InternalVref(u32),
     DciCascade(u32),
+    VccoSenseMode(u32),
     GlobalMutex(String),
     RowMutex(String, RowId),
     BelMutex((DieId, ColId, RowId, LayerId, BelId), String),
@@ -735,6 +736,7 @@ impl<'a> Backend for IseBackend<'a> {
         let altvr = kv.get(&Key::AltVr) == Some(&Value::Bool(true));
         let mut internal_vref = HashMap::new();
         let mut dci_cascade = HashMap::new();
+        let mut vccosensemode = HashMap::new();
         for (k, v) in &kv {
             match k {
                 Key::DciCascade(bank) => match v {
@@ -751,6 +753,13 @@ impl<'a> Backend for IseBackend<'a> {
                     Value::None => (),
                     _ => unreachable!(),
                 },
+                Key::VccoSenseMode(bank) => match v {
+                    Value::String(val) => {
+                        vccosensemode.insert(*bank, val.clone());
+                    }
+                    Value::None => (),
+                    _ => unreachable!(),
+                },
                 _ => (),
             }
         }
@@ -758,6 +767,7 @@ impl<'a> Backend for IseBackend<'a> {
             vccaux,
             internal_vref,
             dci_cascade,
+            vccosensemode,
         };
         let mut key = KeyData::None;
         if let Some(encrypt) = gopts.get("ENCRYPT") {

@@ -241,6 +241,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (bel_pin $bel:expr, $pin:expr)) => {
         $crate::fgen::TileKV::Bel($bel, $crate::fgen::BelKV::Pin($pin.to_string(), true))
     };
+    ($ctx:ident, (pin_pair $pina:expr, $bel:expr, $pinb:expr)) => {
+        $crate::fgen::TileKV::PinPair($ctx.bel, $pina.to_string(), $bel, $pinb.to_string())
+    };
     ($ctx:ident, (bel_special $special:expr)) => {
         $crate::fgen::TileKV::Bel($ctx.bel, $special)
     };
