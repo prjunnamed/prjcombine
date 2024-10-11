@@ -2265,9 +2265,14 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.db.get_node_naming("INTF.IOI"),
             &[crd],
         );
+        let kind = if crd.0 == self.grid.col_lio() || crd.0 == self.grid.col_rio() {
+            "IOI.LR"
+        } else {
+            "IOI.BT"
+        };
         let node = self.die.add_xnode(
             crd,
-            self.db.get_node("IOI"),
+            self.db.get_node(kind),
             &[&name],
             self.db.get_node_naming(naming),
             &[crd],

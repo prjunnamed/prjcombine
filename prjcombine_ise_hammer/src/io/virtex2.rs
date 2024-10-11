@@ -2468,11 +2468,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let item = ctx.extract_enum_bool(tile, bel, "TFF2_INIT_ATTR", "INIT0", "INIT1");
             ctx.tiledb.insert(tile, bel, "TFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "IFF_SYNC", item);
+            ctx.tiledb.insert(tile, bel, "IFF_SR_SYNC", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "OFF_SYNC", item);
+            ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "TFF_SYNC", item);
+            ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item);
 
             // Input path
             ctx.tiledb.insert(

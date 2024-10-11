@@ -199,7 +199,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "IFF", "#FF", "#LATCH");
         ctx.tiledb.insert(tile, bel, "FF_LATCH", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "FF_SYNC", item);
+        ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFF_INIT_ATTR", "INIT0", "INIT1");
         ctx.tiledb.insert(tile, bel, "FF_INIT", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFF_SR_ATTR", "SRLOW", "SRHIGH");
@@ -244,7 +244,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "OFF", "#FF", "#LATCH");
         ctx.tiledb.insert(tile, bel, "FF_LATCH", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "FF_SYNC", item);
+        ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFF_INIT_ATTR", "INIT0", "INIT1");
         ctx.tiledb.insert(tile, bel, "FF_INIT", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");

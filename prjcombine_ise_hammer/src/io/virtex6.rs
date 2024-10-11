@@ -1255,12 +1255,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.collect_bitvec(tile, bel, "INIT_BITSLIPCNT", "");
         ctx.collect_bitvec(tile, bel, "INIT_CE", "");
         let item = ctx.extract_enum_bool(tile, bel, "SRTYPE.ILOGIC", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "IFF_SYNC", item);
+        ctx.tiledb.insert(tile, bel, "IFF_SR_SYNC", item);
         ctx.state
             .get_diff(tile, bel, "SRTYPE.ISERDES", "ASYNC")
             .assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "SRTYPE.ISERDES", "SYNC");
-        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "IFF_SYNC"), true, false);
+        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "IFF_SR_SYNC"), true, false);
         ctx.tiledb.insert(tile, bel, "BITSLIP_SYNC", xlat_bit(diff));
         for (sattr, attr) in [
             ("INIT_Q1", "IFF1_INIT"),
@@ -1475,8 +1475,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         diff.apply_bitvec_diff(&item_oq, &bitvec![1; 4], &bitvec![0; 4]);
         diff.apply_bitvec_diff(&item_tq, &bitvec![1; 2], &bitvec![0; 2]);
         diff.assert_empty();
-        ctx.tiledb.insert(tile, bel, "OFF_SYNC", item_oq);
-        ctx.tiledb.insert(tile, bel, "TFF_SYNC", item_tq);
+        ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item_oq);
+        ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item_tq);
 
         let item = ctx.extract_enum_bool(tile, bel, "INIT_OQ.OLOGIC", "0", "1");
         ctx.tiledb.insert(tile, bel, "OFF_INIT", item);

@@ -1192,7 +1192,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "INIT_RANK2", "");
         ctx.collect_bitvec(tile, bel, "INIT_RANK3", "");
         let item = ctx.extract_enum_bool(tile, bel, "SRTYPE", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "IFF_SYNC", item);
+        ctx.tiledb.insert(tile, bel, "IFF_SR_SYNC", item);
         for (sattr, attr) in [
             ("INIT_Q1", "IFF1_INIT"),
             ("INIT_Q2", "IFF2_INIT"),
@@ -1601,8 +1601,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_bitvec_diff(&item_oq, &bitvec![1; 4], &bitvec![0; 4]);
         diff.apply_bitvec_diff(&item_tq, &bitvec![1; 2], &bitvec![0; 2]);
         diff.assert_empty();
-        ctx.tiledb.insert(tile, bel, "OFF_SYNC", item_oq);
-        ctx.tiledb.insert(tile, bel, "TFF_SYNC", item_tq);
+        ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item_oq);
+        ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item_tq);
 
         ctx.tiledb.insert(
             tile,

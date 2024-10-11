@@ -172,6 +172,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (bel_mode $bel:expr, $kind:expr)) => {
         $crate::fgen::TileKV::Bel($bel, $crate::fgen::BelKV::Mode($kind.to_string()))
     };
+    ($ctx:ident, (unused)) => {
+        $crate::fgen::TileKV::Bel($ctx.bel, $crate::fgen::BelKV::Unused)
+    };
     ($ctx:ident, (bel_unused $bel:expr)) => {
         $crate::fgen::TileKV::Bel($bel, $crate::fgen::BelKV::Unused)
     };

@@ -2433,8 +2433,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_bit_diff(&item_oq, true, false);
         diff.apply_bit_diff(&item_tq, true, false);
         diff.assert_empty();
-        ctx.tiledb.insert(tile, bel, "OFF_SYNC", item_oq);
-        ctx.tiledb.insert(tile, bel, "TFF_SYNC", item_tq);
+        ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item_oq);
+        ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item_tq);
 
         let item = ctx.extract_enum_bool(tile, bel, "INIT_OQ.OLOGIC", "0", "1");
         ctx.tiledb.insert(tile, bel, "OFF_INIT", item);

@@ -4551,6 +4551,7 @@ pub enum ExtraFeatureKind {
     HclkIoiInnerSide(Dir),
     HclkIoiHere(NodeKindId),
     AllBankIo,
+    AllMcbIoi,
 }
 
 impl ExtraFeatureKind {
@@ -5625,6 +5626,32 @@ impl ExtraFeatureKind {
                         ]
                     })
                     .collect()
+            }
+            ExtraFeatureKind::AllMcbIoi => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                let mut res = vec![];
+                for row in backend.egrid.die(loc.0).rows() {
+                    if let Some(split) = edev.grid.row_mcb_split {
+                        if loc.2 < split && row >= split {
+                            continue;
+                        }
+                        if loc.2 >= split && row < split {
+                            continue;
+                        }
+                    }
+                    if backend
+                        .egrid
+                        .find_node(loc.0, (loc.1, row), |node| {
+                            backend.egrid.db.nodes.key(node.kind) == "IOI.LR"
+                        })
+                        .is_some()
+                    {
+                        res.push(vec![edev.btile_main(loc.1, row)]);
+                    }
+                }
+                res
             }
         }
     }

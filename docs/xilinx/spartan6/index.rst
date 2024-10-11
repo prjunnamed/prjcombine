@@ -12,6 +12,7 @@ Spartan 6
    bram
    dsp
    clock
+   io
    mcb
    pcie
    gtp

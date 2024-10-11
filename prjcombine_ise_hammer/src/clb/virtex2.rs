@@ -870,7 +870,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         // FFs
         let item = ctx.extract_enum_bool("CLB", bel, "SYNC_ATTR", "ASYNC", "SYNC");
-        ctx.tiledb.insert("CLB", bel, "FF_SYNC", item);
+        ctx.tiledb.insert("CLB", bel, "FF_SR_SYNC", item);
 
         let ff_latch = ctx.state.get_diff("CLB", bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.state.get_diff("CLB", bel, "FFY", "#LATCH"));

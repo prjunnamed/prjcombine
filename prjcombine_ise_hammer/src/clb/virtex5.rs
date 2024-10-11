@@ -1084,7 +1084,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.state
                 .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            ctx.tiledb.insert(tile, bel, "FF_SYNC", xlat_bit(ff_sync));
+            ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");

@@ -426,18 +426,18 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     let intf_ioi = builder.db.get_node_naming("INTF.IOI");
-    for (tkn, naming, is_bt) in [
-        ("LIOI", "LIOI", false),
-        ("LIOI_BRK", "LIOI", false),
-        ("RIOI", "RIOI", false),
-        ("RIOI_BRK", "RIOI", false),
-        ("BIOI_INNER", "BIOI_INNER", true),
-        ("BIOI_OUTER", "BIOI_OUTER", true),
-        ("TIOI_INNER", "TIOI_INNER", true),
-        ("TIOI_OUTER", "TIOI_OUTER", true),
-        ("BIOI_INNER_UNUSED", "BIOI_INNER_UNUSED", true),
-        ("BIOI_OUTER_UNUSED", "BIOI_OUTER_UNUSED", true),
-        ("TIOI_INNER_UNUSED", "TIOI_INNER_UNUSED", true),
+    for (nn, tkn, naming, is_bt) in [
+        ("IOI.LR", "LIOI", "LIOI", false),
+        ("IOI.LR", "LIOI_BRK", "LIOI", false),
+        ("IOI.LR", "RIOI", "RIOI", false),
+        ("IOI.LR", "RIOI_BRK", "RIOI", false),
+        ("IOI.BT", "BIOI_INNER", "BIOI_INNER", true),
+        ("IOI.BT", "BIOI_OUTER", "BIOI_OUTER", true),
+        ("IOI.BT", "TIOI_INNER", "TIOI_INNER", true),
+        ("IOI.BT", "TIOI_OUTER", "TIOI_OUTER", true),
+        ("IOI.BT", "BIOI_INNER_UNUSED", "BIOI_INNER_UNUSED", true),
+        ("IOI.BT", "BIOI_OUTER_UNUSED", "BIOI_OUTER_UNUSED", true),
+        ("IOI.BT", "TIOI_INNER_UNUSED", "TIOI_INNER_UNUSED", true),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let unused = tkn.contains("UNUSED");
@@ -723,7 +723,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             bels.push(bel_ioi);
             builder
-                .xnode("IOI", tkn, xy)
+                .xnode(nn, tkn, xy)
                 .ref_single(xy, 0, intf_ioi)
                 .bels(bels)
                 .extract();

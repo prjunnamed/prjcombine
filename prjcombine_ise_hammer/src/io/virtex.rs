@@ -542,7 +542,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         && bit.frame.abs_diff(init_bit.frame) == 1
                         && bit.bit == init_bit.bit
                 })]);
-                ctx.tiledb.insert(tile, bel, format!("{iot}FF_SYNC"), item);
+                ctx.tiledb.insert(tile, bel, format!("{iot}FF_SR_SYNC"), item);
             }
             diff.assert_empty();
             let item = ctx.extract_enum_bool(tile, bel, "IFF", "#FF", "#LATCH");
