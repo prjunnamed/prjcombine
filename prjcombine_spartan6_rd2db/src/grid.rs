@@ -208,32 +208,32 @@ fn get_mcbs(rd: &Part, int: &IntGrid) -> Vec<Mcb> {
                 row_mcb - 35,
             ],
             iop_dqs: [row_mcb - 14, row_mcb - 29],
-            io_dm: [P(row_mcb - 9, 1), P(row_mcb - 9, 0)],
+            io_dm: [P(row_mcb - 9, 0), P(row_mcb - 9, 1)],
             iop_clk: row_mcb - 3,
             io_addr: [
-                P(row_mcb - 2, 0),
                 P(row_mcb - 2, 1),
-                P(row_mcb + 12, 1),
-                P(row_mcb - 4, 0),
-                P(row_mcb + 14, 1),
-                P(row_mcb - 5, 0),
-                P(row_mcb - 5, 1),
+                P(row_mcb - 2, 0),
                 P(row_mcb + 12, 0),
-                P(row_mcb + 15, 0),
-                P(row_mcb + 15, 1),
+                P(row_mcb - 4, 1),
                 P(row_mcb + 14, 0),
-                P(row_mcb + 18, 1),
-                P(row_mcb + 16, 1),
-                P(row_mcb + 20, 0),
+                P(row_mcb - 5, 1),
+                P(row_mcb - 5, 0),
+                P(row_mcb + 12, 1),
+                P(row_mcb + 15, 1),
+                P(row_mcb + 15, 0),
+                P(row_mcb + 14, 1),
+                P(row_mcb + 18, 0),
+                P(row_mcb + 16, 0),
                 P(row_mcb + 20, 1),
+                P(row_mcb + 20, 0),
             ],
-            io_ba: [P(row_mcb - 1, 0), P(row_mcb - 1, 1), P(row_mcb + 13, 1)],
-            io_ras: P(row_mcb - 6, 0),
-            io_cas: P(row_mcb - 6, 1),
-            io_we: P(row_mcb + 13, 0),
-            io_odt: P(row_mcb - 4, 1),
-            io_cke: P(row_mcb + 16, 0),
-            io_reset: P(row_mcb + 18, 0),
+            io_ba: [P(row_mcb - 1, 1), P(row_mcb - 1, 0), P(row_mcb + 13, 0)],
+            io_ras: P(row_mcb - 6, 1),
+            io_cas: P(row_mcb - 6, 0),
+            io_we: P(row_mcb + 13, 1),
+            io_odt: P(row_mcb - 4, 0),
+            io_cke: P(row_mcb + 16, 1),
+            io_reset: P(row_mcb + 18, 1),
         });
     }
     for r in find_rows(rd, &["MCB_L_BOT"]) {
@@ -261,32 +261,32 @@ fn get_mcbs(rd: &Part, int: &IntGrid) -> Vec<Mcb> {
                 row_mcb - 44,
             ],
             iop_dqs: [row_mcb - 22, row_mcb - 38],
-            io_dm: [P(row_mcb - 17, 1), P(row_mcb - 17, 0)],
+            io_dm: [P(row_mcb - 17, 0), P(row_mcb - 17, 1)],
             iop_clk: row_mcb - 8,
             io_addr: [
-                P(row_mcb - 7, 0),
                 P(row_mcb - 7, 1),
-                P(row_mcb - 4, 1),
-                P(row_mcb - 10, 0),
-                P(row_mcb - 1, 1),
-                P(row_mcb - 13, 0),
-                P(row_mcb - 13, 1),
+                P(row_mcb - 7, 0),
                 P(row_mcb - 4, 0),
-                P(row_mcb + 12, 0),
-                P(row_mcb + 12, 1),
+                P(row_mcb - 10, 1),
                 P(row_mcb - 1, 0),
-                P(row_mcb + 14, 1),
-                P(row_mcb + 13, 1),
-                P(row_mcb + 15, 0),
+                P(row_mcb - 13, 1),
+                P(row_mcb - 13, 0),
+                P(row_mcb - 4, 1),
+                P(row_mcb + 12, 1),
+                P(row_mcb + 12, 0),
+                P(row_mcb - 1, 1),
+                P(row_mcb + 14, 0),
+                P(row_mcb + 13, 0),
                 P(row_mcb + 15, 1),
+                P(row_mcb + 15, 0),
             ],
-            io_ba: [P(row_mcb - 5, 0), P(row_mcb - 5, 1), P(row_mcb - 2, 1)],
-            io_ras: P(row_mcb - 14, 0),
-            io_cas: P(row_mcb - 14, 1),
-            io_we: P(row_mcb - 2, 0),
-            io_odt: P(row_mcb - 10, 1),
-            io_cke: P(row_mcb + 13, 0),
-            io_reset: P(row_mcb + 14, 0),
+            io_ba: [P(row_mcb - 5, 1), P(row_mcb - 5, 0), P(row_mcb - 2, 0)],
+            io_ras: P(row_mcb - 14, 1),
+            io_cas: P(row_mcb - 14, 0),
+            io_we: P(row_mcb - 2, 1),
+            io_odt: P(row_mcb - 10, 0),
+            io_cke: P(row_mcb + 13, 1),
+            io_reset: P(row_mcb + 14, 1),
         });
     }
     res.sort_by_key(|x| x.row_mcb);
@@ -325,7 +325,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                             } else {
                                 grid.row_tio_inner()
                             },
-                            iob: TileIobId::from_idx([0, 1, 0, 1][idx as usize]),
+                            iob: TileIobId::from_idx([1, 0, 1, 0][idx as usize]),
                         }
                     } else if tkn.starts_with('B') {
                         IoCoord {
@@ -335,19 +335,19 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                             } else {
                                 grid.row_bio_outer()
                             },
-                            iob: TileIobId::from_idx([0, 1, 1, 0][idx as usize]),
+                            iob: TileIobId::from_idx([1, 0, 0, 1][idx as usize]),
                         }
                     } else if tkn.starts_with('L') {
                         IoCoord {
                             col: grid.col_lio(),
                             row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize),
+                            iob: TileIobId::from_idx(idx as usize ^ 1),
                         }
                     } else if tkn.starts_with('R') {
                         IoCoord {
                             col: grid.col_rio(),
                             row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize),
+                            iob: TileIobId::from_idx(idx as usize ^ 1),
                         }
                     } else {
                         unreachable!();
@@ -470,27 +470,27 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         }
                         "LDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         "LDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         "UDQS" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         "UDQSN" => {
                             assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         "CLK" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(coord.iob.to_idx(), 1);
                         }
                         "CLKN" => {
                             assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(coord.iob.to_idx(), 0);
                         }
                         _ => {
                             if let Some(i) = mf.strip_prefix('A') {
@@ -504,7 +504,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                             } else if let Some(i) = mf.strip_prefix("DQ") {
                                 let i: usize = i.parse().unwrap();
                                 assert_eq!(coord.row, mcb.iop_dq[i / 2]);
-                                assert_eq!(coord.iob.to_idx(), (i % 2));
+                                assert_eq!(coord.iob.to_idx(), (i % 2) ^ 1);
                             } else {
                                 println!("MCB {mf}");
                             }

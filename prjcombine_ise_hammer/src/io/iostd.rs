@@ -42,6 +42,18 @@ impl Iostd {
         }
     }
 
+    pub const fn cmos_od(name: &'static str) -> Iostd {
+        Iostd {
+            name,
+            vcco: None,
+            vref: None,
+            diff: DiffKind::None,
+            dci: DciKind::None,
+            drive: &[],
+            input_only: false,
+        }
+    }
+
     pub const fn odci(name: &'static str, vcco: u16) -> Iostd {
         Iostd {
             name,
@@ -99,6 +111,18 @@ impl Iostd {
             dci: DciKind::None,
             drive: &[],
             input_only: false,
+        }
+    }
+
+    pub const fn vref_input(name: &'static str, vcco: u16, vref: u16) -> Iostd {
+        Iostd {
+            name,
+            vcco: Some(vcco),
+            vref: Some(vref),
+            diff: DiffKind::None,
+            dci: DciKind::None,
+            drive: &[],
+            input_only: true,
         }
     }
 
@@ -183,6 +207,30 @@ impl Iostd {
             dci: DciKind::None,
             drive: &[],
             input_only: false,
+        }
+    }
+
+    pub const fn diff_input(name: &'static str, vcco: u16) -> Iostd {
+        Iostd {
+            name,
+            vcco: Some(vcco),
+            vref: None,
+            diff: DiffKind::Pseudo,
+            dci: DciKind::None,
+            drive: &[],
+            input_only: true,
+        }
+    }
+
+    pub const fn true_diff_input(name: &'static str, vcco: u16) -> Iostd {
+        Iostd {
+            name,
+            vcco: Some(vcco),
+            vref: None,
+            diff: DiffKind::True,
+            dci: DciKind::None,
+            drive: &[],
+            input_only: true,
         }
     }
 }

@@ -526,7 +526,7 @@ pub struct NodePip {
     pub node_wire_in: NodeWireId,
 }
 
-impl<'a> ExpandedGrid<'a> {
+impl ExpandedGrid<'_> {
     pub fn resolve_wire_raw(&self, mut wire: IntWire) -> Option<IntWire> {
         let die = self.die(wire.0);
         loop {

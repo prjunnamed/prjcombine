@@ -25,7 +25,7 @@ pub struct IseBackend<'a> {
     pub ebonds: &'a HashMap<String, ExpandedBond<'a>>,
 }
 
-impl<'a> std::fmt::Debug for IseBackend<'a> {
+impl std::fmt::Debug for IseBackend<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("IseBackend")
             .field("device", &self.device)
@@ -277,7 +277,7 @@ impl State {
     }
 }
 
-impl<'a> IseBackend<'a> {
+impl IseBackend<'_> {
     fn gen_key(&self, gopts: &mut HashMap<String, String>) -> KeyData {
         let mut rng = thread_rng();
         match self.edev {

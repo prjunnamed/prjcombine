@@ -32,7 +32,7 @@ struct Expander<'a, 'b> {
     sysmon: Vec<SysMon>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
         for hole in &self.site_holes {
             if hole.contains(col, row) {

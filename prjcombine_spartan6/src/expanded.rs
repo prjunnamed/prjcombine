@@ -16,6 +16,7 @@ pub struct ExpandedDevice<'a> {
     pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
     pub io: Vec<Io>,
+    pub io_by_coord: HashMap<IoCoord, Io>,
     pub gt: Vec<Gt>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub col_width: EntityVec<ColId, usize>,
@@ -25,6 +26,7 @@ pub struct ExpandedDevice<'a> {
     pub reg_frame: EnumMap<Dir, usize>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Io {
     pub crd: IoCoord,
     pub name: String,
@@ -96,5 +98,9 @@ impl ExpandedDevice<'_> {
 
     pub fn btile_reg(&self, dir: Dir) -> BitTile {
         BitTile::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
+    }
+
+    pub fn btile_iob(&self, col: ColId, row: RowId) -> BitTile {
+        BitTile::Iob(DieId::from_idx(0), self.iob_frame[&(col, row)], 128)
     }
 }

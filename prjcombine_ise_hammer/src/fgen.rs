@@ -764,6 +764,7 @@ pub enum BelKV {
     RowMutexHere(String),
     Mutex(String, String),
     IsBonded,
+    IsBank(u32),
     IsDiff,
     IsVref,
     IsVr,
@@ -2589,7 +2590,17 @@ impl<'a> BelKV {
                         fuzzer
                     }
                     ExpandedBond::Virtex2(_) => todo!(),
-                    ExpandedBond::Spartan6(_) => todo!(),
+                    ExpandedBond::Spartan6(ebond) => {
+                        let crd = prjcombine_spartan6::grid::IoCoord {
+                            col: loc.1,
+                            row: loc.2,
+                            iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                        };
+                        if !ebond.ios.contains_key(&crd) {
+                            return None;
+                        }
+                        fuzzer
+                    }
                     ExpandedBond::Virtex4(ebond) => {
                         let node = backend.egrid.node(loc);
                         let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -2616,6 +2627,20 @@ impl<'a> BelKV {
                     ExpandedBond::Versal(_) => todo!(),
                 }
             }
+            BelKV::IsBank(bank) => match backend.edev {
+                ExpandedDevice::Spartan6(edev) => {
+                    let crd = prjcombine_spartan6::grid::IoCoord {
+                        col: loc.1,
+                        row: loc.2,
+                        iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                    };
+                    if edev.io_by_coord[&crd].bank != *bank {
+                        return None;
+                    }
+                    fuzzer
+                }
+                _ => todo!(),
+            },
             BelKV::IsDiff => {
                 let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
                     unreachable!()
@@ -2670,7 +2695,17 @@ impl<'a> BelKV {
                         }
                         fuzzer
                     }
-                    ExpandedBond::Spartan6(_) => todo!(),
+                    ExpandedBond::Spartan6(ebond) => {
+                        let crd = prjcombine_spartan6::grid::IoCoord {
+                            col: loc.1,
+                            row: loc.2,
+                            iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                        };
+                        if !ebond.bond.vref.contains(&crd) {
+                            return None;
+                        }
+                        fuzzer
+                    }
                     ExpandedBond::Virtex4(ebond) => {
                         let node = backend.egrid.node(loc);
                         let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -3870,6 +3905,7 @@ pub enum TileBits {
     DoubleHclk,
     GtpCommonMid,
     GtpChannelMid,
+    IobS6,
 }
 
 impl TileBits {
@@ -4492,6 +4528,12 @@ impl TileBits {
                     .map(|i| edev.btile_main(loc.0, col, loc.2 + i))
                     .collect()
             }
+            TileBits::IobS6 => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![edev.btile_iob(loc.1, loc.2)]
+            }
         }
     }
 }
@@ -4499,6 +4541,7 @@ impl TileBits {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ExtraFeatureKind {
     MainFixed(ColId, RowId),
+    MainFixedPair(ColId, RowId),
     Corner(ColId, RowId),
     AllDcms,
     AllOtherDcms,
@@ -4552,6 +4595,7 @@ pub enum ExtraFeatureKind {
     HclkIoiHere(NodeKindId),
     AllBankIo,
     AllMcbIoi,
+    IoiHere,
 }
 
 impl ExtraFeatureKind {
@@ -4563,6 +4607,18 @@ impl ExtraFeatureKind {
                 }
                 ExpandedDevice::Virtex2(edev) => {
                     vec![vec![edev.btile_main(col, row)]]
+                }
+                ExpandedDevice::Spartan6(edev) => {
+                    vec![vec![edev.btile_main(col, row)]]
+                }
+                _ => todo!(),
+            },
+            ExtraFeatureKind::MainFixedPair(col, row) => match backend.edev {
+                ExpandedDevice::Spartan6(edev) => {
+                    vec![vec![
+                        edev.btile_main(col, row),
+                        edev.btile_main(col, row + 1),
+                    ]]
                 }
                 _ => todo!(),
             },
@@ -5652,6 +5708,12 @@ impl ExtraFeatureKind {
                     }
                 }
                 res
+            }
+            ExtraFeatureKind::IoiHere => {
+                let ExpandedDevice::Spartan6(edev) = backend.edev else {
+                    unreachable!()
+                };
+                vec![vec![edev.btile_main(loc.1, loc.2)]]
             }
         }
     }

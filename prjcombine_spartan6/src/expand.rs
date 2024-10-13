@@ -41,7 +41,7 @@ struct Expander<'a, 'b> {
     reg_frame: EnumMap<Dir, usize>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
         for hole in &self.site_holes {
             if hole.contains(col, row) {
@@ -2280,12 +2280,12 @@ impl<'a, 'b> Expander<'a, 'b> {
         let iox = self.ioxlut[crd.0];
         let ioy = self.ioylut[crd.1];
         let tiex = self.tiexlut[crd.0] + 1;
-        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
-        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
-        node.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1));
-        node.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(1, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
+        node.add_bel(2, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(3, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
+        node.add_bel(4, format!("IODELAY_X{iox}Y{y}", y = ioy * 2));
+        node.add_bel(5, format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1));
         node.add_bel(6, format!("TIEOFF_X{tiex}Y{y}", y = y * 2));
     }
 
@@ -2308,18 +2308,18 @@ impl<'a, 'b> Expander<'a, 'b> {
         );
         let iob_name_p = format!("PAD{i}", i = self.pad_cnt);
         let iob_name_n = format!("PAD{i}", i = self.pad_cnt + 1);
-        node.add_bel(0, iob_name_p.clone());
-        node.add_bel(1, iob_name_n.clone());
+        node.add_bel(0, iob_name_n.clone());
+        node.add_bel(1, iob_name_p.clone());
         self.pad_cnt += 2;
         let crd_p = IoCoord {
             col: crd.0,
             row: crd.1,
-            iob: TileIobId::from_idx(0),
+            iob: TileIobId::from_idx(1),
         };
         let crd_n = IoCoord {
             col: crd.0,
             row: crd.1,
-            iob: TileIobId::from_idx(1),
+            iob: TileIobId::from_idx(0),
         };
         self.io.extend([
             Io {
@@ -2566,6 +2566,7 @@ impl Grid {
 
         let io = expander.io;
         let gt = expander.gt;
+        let io_by_coord: HashMap<_, _> = io.iter().cloned().map(|io| (io.crd, io)).collect();
 
         let die_bs_geom = DieBitstreamGeom {
             frame_len: 1040,
@@ -2595,6 +2596,7 @@ impl Grid {
             site_holes,
             bs_geom,
             io,
+            io_by_coord,
             gt,
             col_frame,
             col_width,

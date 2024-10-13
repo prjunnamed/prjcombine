@@ -68,7 +68,7 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("CFB1", SitePinDir::Out),
         ("SR", SitePinDir::In),
     ];
-    if bel.key == "ILOGIC1" {
+    if bel.key == "ILOGIC0" {
         pins.extend([("INCDEC", SitePinDir::Out), ("VALID", SitePinDir::Out)]);
     }
     vrf.verify_bel(bel, "ILOGIC2", &pins, &["SR_INT"]);
@@ -133,7 +133,7 @@ fn verify_ilogic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     };
     let obel = vrf.find_bel_sibling(bel, okey);
     vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN"), obel.wire("SHIFTOUT"));
-    if bel.key == "ILOGIC1" {
+    if bel.key == "ILOGIC0" {
         vrf.claim_pip(bel.crd(), bel.wire("D_MUX"), obel.wire("IOB_I"));
     }
 }
@@ -214,11 +214,11 @@ fn verify_ologic(vrf: &mut Verifier, bel: &BelContext<'_>) {
     };
     let obel = vrf.find_bel_sibling(bel, okey);
     if bel.key == "OLOGIC0" {
-        vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN3"), obel.wire("SHIFTOUT3"));
-        vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN4"), obel.wire("SHIFTOUT4"));
-    } else {
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN1"), obel.wire("SHIFTOUT1"));
         vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN2"), obel.wire("SHIFTOUT2"));
+    } else {
+        vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN3"), obel.wire("SHIFTOUT3"));
+        vrf.claim_pip(bel.crd(), bel.wire("SHIFTIN4"), obel.wire("SHIFTOUT4"));
     }
 }
 
@@ -436,8 +436,8 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("DIFFO_IN", SitePinDir::In),
     ];
     let kind = match bel.key {
-        "IOB0" => "IOBM",
-        "IOB1" => "IOBS",
+        "IOB0" => "IOBS",
+        "IOB1" => "IOBM",
         _ => unreachable!(),
     };
     vrf.verify_bel(bel, kind, &pins, &[]);
@@ -458,15 +458,15 @@ fn verify_iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
     };
     let obel = vrf.find_bel_sibling(bel, okey);
     vrf.claim_pip(bel.crd(), bel.wire("DIFFI_IN"), obel.wire("PADOUT"));
-    if bel.key == "IOB1" {
+    if bel.key == "IOB0" {
         vrf.claim_pip(bel.crd(), bel.wire("DIFFO_IN"), obel.wire("DIFFO_OUT"));
     }
 }
 
 fn verify_clkpin_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for (opin, ipin, okey) in [
-        ("CLKPIN0_O", "CLKPIN0_I", "ILOGIC0"),
-        ("CLKPIN1_O", "CLKPIN1_I", "ILOGIC1"),
+        ("CLKPIN0_O", "CLKPIN0_I", "ILOGIC1"),
+        ("CLKPIN1_O", "CLKPIN1_I", "ILOGIC0"),
     ] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
@@ -474,14 +474,14 @@ fn verify_clkpin_buf(vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.verify_node(&[bel.fwire(ipin), obel.fwire("IOB_I")]);
     }
     for (opin, ipin, okey, fopin, fpin) in [
-        ("DFB0_O", "DFB0_I", "ILOGIC0", "DFB_OUT", "DFB"),
-        ("DFB1_O", "DFB1_I", "ILOGIC1", "DFB_OUT", "DFB"),
-        ("CFB0_0_O", "CFB0_0_I", "ILOGIC0", "CFB0_OUT", "CFB0"),
-        ("CFB0_1_O", "CFB0_1_I", "ILOGIC1", "CFB0_OUT", "CFB0"),
-        ("CFB1_0_O", "CFB1_0_I", "ILOGIC0", "CFB1_OUT", "CFB1"),
-        ("CFB1_1_O", "CFB1_1_I", "ILOGIC1", "CFB1_OUT", "CFB1"),
-        ("DQSP_O", "DQSP_I", "IODELAY0", "DQSOUTP_OUT", "DQSOUTP"),
-        ("DQSN_O", "DQSN_I", "IODELAY0", "DQSOUTN_OUT", "DQSOUTN"),
+        ("DFB0_O", "DFB0_I", "ILOGIC1", "DFB_OUT", "DFB"),
+        ("DFB1_O", "DFB1_I", "ILOGIC0", "DFB_OUT", "DFB"),
+        ("CFB0_0_O", "CFB0_0_I", "ILOGIC1", "CFB0_OUT", "CFB0"),
+        ("CFB0_1_O", "CFB0_1_I", "ILOGIC0", "CFB0_OUT", "CFB0"),
+        ("CFB1_0_O", "CFB1_0_I", "ILOGIC1", "CFB1_OUT", "CFB1"),
+        ("CFB1_1_O", "CFB1_1_I", "ILOGIC0", "CFB1_OUT", "CFB1"),
+        ("DQSP_O", "DQSP_I", "IODELAY1", "DQSOUTP_OUT", "DQSOUTP"),
+        ("DQSN_O", "DQSN_I", "IODELAY1", "DQSOUTN_OUT", "DQSOUTN"),
     ] {
         vrf.claim_node(&[bel.fwire(opin)]);
         vrf.claim_pip(bel.crd(), bel.wire(opin), bel.wire(ipin));
@@ -523,9 +523,9 @@ fn verify_pcilogicse(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     let (pcrd, po, pi) = bel.pip("PCI_CE", 0);
     vrf.claim_pip(pcrd, po, pi);
     let rdy = if bel.col == edev.grid.col_lio() {
-        [("IRDY", 2, "IOB1"), ("TRDY", -1, "IOB0")]
-    } else {
         [("IRDY", 2, "IOB0"), ("TRDY", -1, "IOB1")]
+    } else {
+        [("IRDY", 2, "IOB1"), ("TRDY", -1, "IOB0")]
     };
     for (pin, dy, key) in rdy {
         let (pcrd, po, pi) = bel.pip(pin, 0);
@@ -576,7 +576,7 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             format!("DQOP{i}"),
             format!("DQON{i}"),
             mcb.iop_dq[i / 2],
-            i % 2,
+            (i % 2) ^ 1,
         ));
     }
     let pins_dm = [
@@ -718,9 +718,9 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         let obel = vrf.find_bel(bel.die, (bel.col, row), "IOI").unwrap();
         vrf.verify_node(&[bel.fwire_far("DQSIOWEN90N"), obel.fwire("MCB_T1")]);
         vrf.verify_node(&[bel.fwire_far("DQSIOWEN90P"), obel.fwire("MCB_T2")]);
-        let obel = vrf.find_bel(bel.die, (bel.col, row), "IODELAY0").unwrap();
-        vrf.verify_node(&[bel.fwire_far(pp), obel.fwire("MCB_DQSOUTP")]);
         let obel = vrf.find_bel(bel.die, (bel.col, row), "IODELAY1").unwrap();
+        vrf.verify_node(&[bel.fwire_far(pp), obel.fwire("MCB_DQSOUTP")]);
+        let obel = vrf.find_bel(bel.die, (bel.col, row), "IODELAY0").unwrap();
         vrf.verify_node(&[bel.fwire_far(pn), obel.fwire("MCB_DQSOUTP")]);
     }
 
@@ -800,7 +800,7 @@ fn verify_mcb(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         mcb.iop_dq[6],
         mcb.iop_dq[7],
     ] {
-        for key in ["IODELAY0", "IODELAY1"] {
+        for key in ["IODELAY1", "IODELAY0"] {
             let bel = vrf.find_bel(bel.die, (bel.col, row), key).unwrap();
             vrf.claim_node(&[last, bel.fwire("MCB_AUXSDO")]);
             vrf.claim_pip(bel.crd(), bel.wire("MCB_AUXSDO"), bel.wire("AUXSDO"));
@@ -823,10 +823,10 @@ fn verify_mcb_tie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     vrf.claim_pip(bel.crd(), bel.wire("OUTN0"), obel.wire("HARD1"));
     vrf.claim_pip(bel.crd(), bel.wire("OUTP1"), obel.wire("HARD1"));
     vrf.claim_pip(bel.crd(), bel.wire("OUTN1"), obel.wire("HARD0"));
-    let o0 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC0").unwrap();
+    let o0 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC1").unwrap();
     vrf.claim_node(&[bel.fwire("OUTP0"), o0.fwire("MCB_D1")]);
     vrf.claim_node(&[bel.fwire("OUTN0"), o0.fwire("MCB_D2")]);
-    let o1 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC1").unwrap();
+    let o1 = vrf.find_bel(bel.die, (bel.col, row), "OLOGIC0").unwrap();
     vrf.claim_node(&[bel.fwire("OUTP1"), o1.fwire("MCB_D1")]);
     vrf.claim_node(&[bel.fwire("OUTN1"), o1.fwire("MCB_D2")]);
 }

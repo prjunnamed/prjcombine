@@ -364,15 +364,15 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         (
             "LL",
             vec![
-                builder.bel_xy("OCT_CAL0", "OCT_CAL", 0, 0),
-                builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 1),
+                builder.bel_xy("OCT_CAL2", "OCT_CAL", 0, 0),
+                builder.bel_xy("OCT_CAL3", "OCT_CAL", 0, 1),
             ],
         ),
         (
             "UL",
             vec![
                 builder.bel_xy("OCT_CAL0", "OCT_CAL", 0, 0),
-                builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 1),
+                builder.bel_xy("OCT_CAL4", "OCT_CAL", 0, 1),
                 builder.bel_single("PMV", "PMV"),
                 builder.bel_single("DNA_PORT", "DNA_PORT"),
             ],
@@ -388,7 +388,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     if let Some(&xy) = rd.tiles_by_kind_name("LR_LOWER").iter().next() {
         let bels = vec![
-            builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+            builder.bel_xy("OCT_CAL1", "OCT_CAL", 0, 0),
             builder.bel_xy("ICAP", "ICAP", 0, 0),
             builder.bel_single("SPI_ACCESS", "SPI_ACCESS"),
             builder
@@ -410,7 +410,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
     if let Some(&xy) = rd.tiles_by_kind_name("UR_LOWER").iter().next() {
         let bels = vec![
-            builder.bel_xy("OCT_CAL", "OCT_CAL", 0, 0),
+            builder.bel_xy("OCT_CAL5", "OCT_CAL", 0, 0),
             builder.bel_xy("BSCAN0", "BSCAN", 0, 0).raw_tile(1),
             builder.bel_xy("BSCAN1", "BSCAN", 0, 1).raw_tile(1),
             builder.bel_xy("BSCAN2", "BSCAN", 0, 0),
@@ -444,12 +444,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             let mut bels = vec![];
             for i in 0..2 {
                 let ms = match i {
-                    0 => 'M',
-                    1 => 'S',
+                    0 => 'S',
+                    1 => 'M',
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(format!("ILOGIC{i}"), "ILOGIC", 0, i ^ 1)
+                    .bel_xy(format!("ILOGIC{i}"), "ILOGIC", 0, i)
                     .pins_name_only(&[
                         "D", "DDLY", "DDLY2", "CLK0", "CLK1", "IOCE", "DFB", "CFB0", "CFB1", "OFB",
                         "TFB", "SHIFTIN", "SHIFTOUT", "SR",
@@ -457,39 +457,39 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_int_in(
                         "SR_INT",
                         &[if i == 0 {
-                            "IOI_LOGICINB36"
-                        } else {
                             "IOI_LOGICINB20"
+                        } else {
+                            "IOI_LOGICINB36"
                         }],
                     )
                     .extra_wire("MCB_FABRICOUT", &[format!("IOI_MCB_INBYP_{ms}")])
                     .extra_wire(
                         "IOB_I",
                         &[
-                            format!("BIOI_INNER_IBUF{i}"),
-                            format!("BIOI_OUTER_IBUF{i}"),
-                            format!("TIOI_INNER_IBUF{i}"),
-                            format!("TIOI_OUTER_IBUF{i}"),
-                            format!("LIOI_IOB_IBUF{i}"),
-                            format!("RIOI_IOB_IBUF{i}"),
+                            format!("BIOI_INNER_IBUF{}", i ^ 1),
+                            format!("BIOI_OUTER_IBUF{}", i ^ 1),
+                            format!("TIOI_INNER_IBUF{}", i ^ 1),
+                            format!("TIOI_OUTER_IBUF{}", i ^ 1),
+                            format!("LIOI_IOB_IBUF{}", i ^ 1),
+                            format!("RIOI_IOB_IBUF{}", i ^ 1),
                         ],
                     )
                     .extra_wire(
                         "D_MUX",
                         &[
                             if i == 0 {
-                                "D_ILOGIC_IDATAIN_IODELAY"
-                            } else {
                                 "D_ILOGIC_IDATAIN_IODELAY_S"
+                            } else {
+                                "D_ILOGIC_IDATAIN_IODELAY"
                             },
                             if i == 0 {
-                                "D_ILOGIC_IDATAIN_IODELAY_UNUSED"
-                            } else {
                                 "D_ILOGIC_IDATAIN_IODELAY_UNUSED_S"
+                            } else {
+                                "D_ILOGIC_IDATAIN_IODELAY_UNUSED"
                             },
                         ],
                     );
-                if i == 1 {
+                if i == 0 {
                     bel = bel.pins_name_only(&["INCDEC", "VALID"]);
                 }
                 if !unused {
@@ -523,12 +523,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for i in 0..2 {
                 let ms = match i {
-                    0 => 'M',
-                    1 => 'S',
+                    0 => 'S',
+                    1 => 'M',
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_xy(format!("OLOGIC{i}"), "OLOGIC", 0, i ^ 1)
+                    .bel_xy(format!("OLOGIC{i}"), "OLOGIC", 0, i)
                     .pins_name_only(&[
                         "CLK0",
                         "CLK1",
@@ -547,23 +547,23 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire(
                         "IOB_O",
                         &[
-                            format!("BIOI_INNER_O{i}"),
-                            format!("BIOI_OUTER_O{i}"),
-                            format!("TIOI_INNER_O{i}"),
-                            format!("TIOI_OUTER_O{i}"),
-                            format!("LIOI_IOB_O{i}"),
-                            format!("RIOI_IOB_O{i}"),
+                            format!("BIOI_INNER_O{}", i ^ 1),
+                            format!("BIOI_OUTER_O{}", i ^ 1),
+                            format!("TIOI_INNER_O{}", i ^ 1),
+                            format!("TIOI_OUTER_O{}", i ^ 1),
+                            format!("LIOI_IOB_O{}", i ^ 1),
+                            format!("RIOI_IOB_O{}", i ^ 1),
                         ],
                     )
                     .extra_wire(
                         "IOB_T",
                         &[
-                            format!("BIOI_INNER_T{i}"),
-                            format!("BIOI_OUTER_T{i}"),
-                            format!("TIOI_INNER_T{i}"),
-                            format!("TIOI_OUTER_T{i}"),
-                            format!("LIOI_IOB_T{i}"),
-                            format!("RIOI_IOB_T{i}"),
+                            format!("BIOI_INNER_T{}", i ^ 1),
+                            format!("BIOI_OUTER_T{}", i ^ 1),
+                            format!("TIOI_INNER_T{}", i ^ 1),
+                            format!("TIOI_OUTER_T{}", i ^ 1),
+                            format!("LIOI_IOB_T{}", i ^ 1),
+                            format!("RIOI_IOB_T{}", i ^ 1),
                         ],
                     )
                     .extra_wire("MCB_D1", &[format!("IOI_MCB_OUTP_{ms}")])
@@ -572,12 +572,12 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             }
             for i in 0..2 {
                 let ms = match i {
-                    0 => 'M',
-                    1 => 'S',
+                    0 => 'S',
+                    1 => 'M',
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(format!("IODELAY{i}"), "IODELAY", 0, i ^ 1)
+                    .bel_xy(format!("IODELAY{i}"), "IODELAY", 0, i)
                     .pins_name_only(&[
                         "IOCLK0",
                         "IOCLK1",
@@ -609,7 +609,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire_force("MCB_AUXSDOIN", format!("AUXSDOIN_MCBTOIO_{ms}"))
                     .extra_wire_force("MCB_AUXSDO", format!("AUXSDO_IOTOMCB_{ms}"))
                     .extra_wire_force("MCB_MEMUPDATE", format!("MEMUPDATE_MCBTOIO_{ms}"));
-                if !unused && i == 0 {
+                if !unused && i == 1 {
                     bel = bel
                         .extra_wire_force(
                             "DQSOUTP_OUT",
@@ -637,8 +637,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             );
             for i in 0..2 {
                 let ms = match i {
-                    0 => 'M',
-                    1 => 'S',
+                    0 => 'S',
+                    1 => 'M',
                     _ => unreachable!(),
                 };
                 let bel = builder
@@ -646,8 +646,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .extra_wire("CLK0INTER", &[format!("IOI_CLK0INTER_{ms}")])
                     .extra_wire("CLK1INTER", &[format!("IOI_CLK1INTER_{ms}")])
                     .extra_wire("CLK2INTER", &[format!("IOI_CLK2INTER_{ms}")])
-                    .extra_int_in("CKINT0", &[format!("IOI_CLK{i}")])
-                    .extra_int_in("CKINT1", &[format!("IOI_GFAN{i}")])
+                    .extra_int_in("CKINT0", &[format!("IOI_CLK{}", i ^ 1)])
+                    .extra_int_in("CKINT1", &[format!("IOI_GFAN{}", i ^ 1)])
                     .extra_wire("CLK0_ILOGIC", &[format!("IOI_CLKDIST_CLK0_ILOGIC_{ms}")])
                     .extra_wire("CLK0_OLOGIC", &[format!("IOI_CLKDIST_CLK0_OLOGIC_{ms}")])
                     .extra_wire("CLK1", &[format!("IOI_CLKDIST_CLK1_{ms}")])
@@ -731,19 +731,19 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     }
 
     for (tkn, naming, idx) in [
-        ("LIOB", "LIOB", [0, 1]),
-        ("LIOB_RDY", "LIOB_RDY", [0, 1]),
-        ("LIOB_PCI", "LIOB_PCI", [0, 1]),
-        ("RIOB", "RIOB", [0, 1]),
-        ("RIOB_RDY", "RIOB_RDY", [0, 1]),
-        ("RIOB_PCI", "RIOB_PCI", [0, 1]),
-        ("BIOB", "BIOB_OUTER", [3, 2]),
-        ("BIOB_SINGLE_ALT", "BIOB_OUTER", [3, 2]),
-        ("BIOB", "BIOB_INNER", [0, 1]),
-        ("BIOB_SINGLE", "BIOB_INNER", [0, 1]),
-        ("TIOB", "TIOB_OUTER", [0, 1]),
-        ("TIOB_SINGLE", "TIOB_OUTER", [0, 1]),
-        ("TIOB", "TIOB_INNER", [2, 3]),
+        ("LIOB", "LIOB", [1, 0]),
+        ("LIOB_RDY", "LIOB_RDY", [1, 0]),
+        ("LIOB_PCI", "LIOB_PCI", [1, 0]),
+        ("RIOB", "RIOB", [1, 0]),
+        ("RIOB_RDY", "RIOB_RDY", [1, 0]),
+        ("RIOB_PCI", "RIOB_PCI", [1, 0]),
+        ("BIOB", "BIOB_OUTER", [2, 3]),
+        ("BIOB_SINGLE_ALT", "BIOB_OUTER", [2, 3]),
+        ("BIOB", "BIOB_INNER", [1, 0]),
+        ("BIOB_SINGLE", "BIOB_INNER", [1, 0]),
+        ("TIOB", "TIOB_OUTER", [1, 0]),
+        ("TIOB_SINGLE", "TIOB_OUTER", [1, 0]),
+        ("TIOB", "TIOB_INNER", [3, 2]),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bels = vec![];
@@ -754,7 +754,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                     .pin_name_only("I", 1)
                     .pin_name_only("O", 1)
                     .pin_name_only("T", 1);
-                if (tkn.ends_with("RDY") && i == 0) || (tkn.ends_with("PCI") && i == 1) {
+                if (tkn.ends_with("RDY") && i == 1) || (tkn.ends_with("PCI") && i == 0) {
                     bel = bel.pin_name_only("PCI_RDY", 1);
                 }
                 bels.push(bel);

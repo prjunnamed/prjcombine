@@ -308,6 +308,11 @@ for kind in ["xc5k", "xcv", "xc2v", "xc3s", "xcexf", "xc6s", "xc4v", "xc5v", "xc
                 f.write(f"</table>")
 
     if kind == "xc6s":
+        emit_misc_table("xilinx/gen/xc6s-iostd-drive.html", "IOSTD:PDRIVE", "IOSTD:NDRIVE")
+        emit_misc_table("xilinx/gen/xc6s-iostd-term.html", "IOSTD:PTERM", "IOSTD:NTERM")
+        emit_misc_table("xilinx/gen/xc6s-iostd-slew.html", "IOSTD:PSLEW", "IOSTD:NSLEW")
+        emit_misc_table("xilinx/gen/xc6s-iostd-lvdsbias.html", "IOSTD:LVDSBIAS")
+
         with open("xilinx/gen/xc6s-pci-ce-delay.html", "w") as f:
             emit_dev_table_string(f, "PCI_CE_DELAY")
         emit_misc_table("xilinx/gen/xc6s-pll-lock.html",

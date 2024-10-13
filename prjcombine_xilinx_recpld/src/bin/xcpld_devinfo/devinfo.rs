@@ -419,7 +419,7 @@ pub fn get_devinfo(
     let mut fb_group = EntityVec::new();
     if kind == DeviceKind::Xpla3 {
         let gs = if fbs <= 8 { 4 } else { 8 };
-        fb_groups = (fbs + gs - 1) / gs;
+        fb_groups = fbs.div_ceil(gs);
         for i in 0..fbs {
             fb_group.push(FbGroupId::from_idx(i / gs));
         }

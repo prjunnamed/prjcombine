@@ -207,7 +207,7 @@ impl<'a> PacketParser<'a> {
     }
 }
 
-impl<'a> Iterator for PacketParser<'a> {
+impl Iterator for PacketParser<'_> {
     type Item = Packet;
 
     fn next(&mut self) -> Option<Packet> {

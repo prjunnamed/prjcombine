@@ -47,7 +47,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for val in ["PULLUP", "PULLNONE", "PULLDOWN"] {
         fuzz_one!(ctx, "MISO2PIN", val, [], [(global_opt "MISO2PIN", val)]);
     }
-    for bel in ["OCT_CAL0", "OCT_CAL1"] {
+    for bel in ["OCT_CAL2", "OCT_CAL3"] {
         let ctx = FuzzCtx::new(session, backend, "LL", bel, TileBits::MainAuto);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OCT_CALIBRATE")]);
         fuzz_enum!(ctx, "ACCESS_MODE", ["STATIC", "USER"], [(mode "OCT_CALIBRATE")]);
@@ -70,7 +70,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PMV")]);
     fuzz_multi_attr_dec!(ctx, "PSLEW", 4, [(mode "PMV")]);
     fuzz_multi_attr_dec!(ctx, "NSLEW", 4, [(mode "PMV")]);
-    for bel in ["OCT_CAL0", "OCT_CAL1"] {
+    for bel in ["OCT_CAL0", "OCT_CAL4"] {
         let ctx = FuzzCtx::new(session, backend, "UL", bel, TileBits::MainAuto);
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OCT_CALIBRATE")]);
         fuzz_enum!(ctx, "ACCESS_MODE", ["STATIC", "USER"], [(mode "OCT_CALIBRATE")]);
@@ -86,7 +86,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
     for val in ["PULLUP", "PULLNONE"] {
         fuzz_one!(ctx, "DONEPIN", val, [], [(global_opt "DONEPIN", val)]);
     }
-    let ctx = FuzzCtx::new(session, backend, "LR", "OCT_CAL", TileBits::MainAuto);
+    let ctx = FuzzCtx::new(session, backend, "LR", "OCT_CAL1", TileBits::MainAuto);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OCT_CALIBRATE")]);
     fuzz_enum!(ctx, "ACCESS_MODE", ["STATIC", "USER"], [(mode "OCT_CALIBRATE")]);
     fuzz_enum!(ctx, "VREF_VALUE", ["0.25", "0.5", "0.75"], [(mode "OCT_CALIBRATE")]);
@@ -142,7 +142,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             fuzz_one!(ctx, opt, val, [], [(global_opt opt, val)]);
         }
     }
-    let ctx = FuzzCtx::new(session, backend, "UR", "OCT_CAL", TileBits::MainAuto);
+    let ctx = FuzzCtx::new(session, backend, "UR", "OCT_CAL5", TileBits::MainAuto);
     fuzz_one!(ctx, "PRESENT", "1", [], [(mode "OCT_CALIBRATE")]);
     fuzz_enum!(ctx, "ACCESS_MODE", ["STATIC", "USER"], [(mode "OCT_CALIBRATE")]);
     fuzz_enum!(ctx, "VREF_VALUE", ["0.25", "0.5", "0.75"], [(mode "OCT_CALIBRATE")]);
@@ -392,12 +392,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     for (tile, bel) in [
-        ("LL", "OCT_CAL0"),
-        ("LL", "OCT_CAL1"),
+        ("LL", "OCT_CAL2"),
+        ("LL", "OCT_CAL3"),
         ("UL", "OCT_CAL0"),
-        ("UL", "OCT_CAL1"),
-        ("LR", "OCT_CAL"),
-        ("UR", "OCT_CAL"),
+        ("UL", "OCT_CAL4"),
+        ("LR", "OCT_CAL1"),
+        ("UR", "OCT_CAL5"),
     ] {
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.state

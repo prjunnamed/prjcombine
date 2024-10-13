@@ -26,7 +26,7 @@ struct Expander<'a, 'b> {
     clkv_frame: EntityPartVec<ColId, usize>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn fill_rlut(&mut self) {
         let n = self.grid.rows;
         for row in self.die.rows() {

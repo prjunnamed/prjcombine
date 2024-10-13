@@ -1,19 +1,161 @@
+use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_int::db::{BelId, Dir};
+use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::{FeatureBit, IseBackend, Key, Value},
     diff::{
-        xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
+        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
+        xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
     },
-    fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
+    fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,
+    io::iostd::DiffKind,
 };
 
+use super::iostd::Iostd;
+
+const IOSTDS_LR: &[Iostd] = &[
+    Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS12", 1200, &["2", "4", "6", "8", "12"]),
+    Iostd::cmos(
+        "LVCMOS18_JEDEC",
+        1800,
+        &["2", "4", "6", "8", "12", "16", "24"],
+    ),
+    Iostd::cmos("LVCMOS15_JEDEC", 1500, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS12_JEDEC", 1200, &["2", "4", "6", "8", "12"]),
+    Iostd::cmos("PCI33_3", 3300, &[]),
+    Iostd::cmos("PCI66_3", 3300, &[]),
+    Iostd::cmos("SDIO", 3300, &[]),
+    Iostd::cmos("MOBILE_DDR", 1800, &[]),
+    Iostd::cmos_od("I2C"),
+    Iostd::cmos_od("SMBUS"),
+    Iostd::vref("SSTL3_I", 3300, 1650),
+    Iostd::vref("SSTL3_II", 3300, 1650),
+    Iostd::vref("SSTL2_I", 2500, 1250),
+    Iostd::vref("SSTL2_II", 2500, 1250),
+    Iostd::vref("SSTL18_I", 1800, 900),
+    Iostd::vref("SSTL18_II", 1800, 900),
+    Iostd::vref("SSTL15_II", 1500, 750),
+    Iostd::vref("HSTL_I", 1500, 750),
+    Iostd::vref("HSTL_II", 1500, 750),
+    Iostd::vref("HSTL_III", 1500, 900),
+    Iostd::vref("HSTL_I_18", 1800, 900),
+    Iostd::vref("HSTL_II_18", 1800, 900),
+    Iostd::vref("HSTL_III_18", 1800, 1080),
+    Iostd::pseudo_diff("DIFF_SSTL3_I", 3300),
+    Iostd::pseudo_diff("DIFF_SSTL3_II", 3300),
+    Iostd::pseudo_diff("DIFF_SSTL2_I", 2500),
+    Iostd::pseudo_diff("DIFF_SSTL2_II", 2500),
+    Iostd::pseudo_diff("DIFF_SSTL18_I", 1800),
+    Iostd::pseudo_diff("DIFF_SSTL18_II", 1800),
+    Iostd::pseudo_diff("DIFF_SSTL15_II", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_I", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_II", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_III", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_I_18", 1800),
+    Iostd::pseudo_diff("DIFF_HSTL_II_18", 1800),
+    Iostd::pseudo_diff("DIFF_HSTL_III_18", 1800),
+    Iostd::pseudo_diff("DIFF_MOBILE_DDR", 1800),
+    Iostd::pseudo_diff("BLVDS_25", 2500),
+    Iostd::pseudo_diff("DISPLAY_PORT", 2500),
+    Iostd::diff_input("LVPECL_25", 2500),
+    Iostd::diff_input("LVPECL_33", 3300),
+    Iostd::true_diff_input("LVDS_25", 2500),
+    Iostd::true_diff_input("LVDS_33", 3300),
+    Iostd::true_diff_input("MINI_LVDS_25", 2500),
+    Iostd::true_diff_input("MINI_LVDS_33", 3300),
+    Iostd::true_diff_input("RSDS_25", 2500),
+    Iostd::true_diff_input("RSDS_33", 3300),
+    Iostd::true_diff_input("PPDS_25", 2500),
+    Iostd::true_diff_input("PPDS_33", 3300),
+    Iostd::true_diff_input("TMDS_33", 3300),
+];
+
+const IOSTDS_BT: &[Iostd] = &[
+    Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
+    Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS18", 1800, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS15", 1500, &["2", "4", "6", "8"]),
+    Iostd::cmos("LVCMOS12", 1200, &["2", "4", "6"]),
+    Iostd::cmos("LVCMOS18_JEDEC", 1800, &["2", "4", "6", "8", "12", "16"]),
+    Iostd::cmos("LVCMOS15_JEDEC", 1500, &["2", "4", "6", "8"]),
+    Iostd::cmos("LVCMOS12_JEDEC", 1200, &["2", "4", "6"]),
+    Iostd::cmos("PCI33_3", 3300, &[]),
+    Iostd::cmos("PCI66_3", 3300, &[]),
+    Iostd::cmos("SDIO", 3300, &[]),
+    Iostd::cmos("MOBILE_DDR", 1800, &[]),
+    Iostd::cmos_od("I2C"),
+    Iostd::cmos_od("SMBUS"),
+    Iostd::vref("SSTL3_I", 3300, 1650),
+    Iostd::vref("SSTL3_II", 3300, 1650),
+    Iostd::vref("SSTL2_I", 2500, 1250),
+    Iostd::vref("SSTL2_II", 2500, 1250),
+    Iostd::vref("SSTL18_I", 1800, 900),
+    Iostd::vref_input("SSTL18_II", 1800, 900),
+    Iostd::vref_input("SSTL15_II", 1500, 750),
+    Iostd::vref("HSTL_I", 1500, 750),
+    Iostd::vref_input("HSTL_II", 1500, 750),
+    Iostd::vref("HSTL_III", 1500, 900),
+    Iostd::vref("HSTL_I_18", 1800, 900),
+    Iostd::vref_input("HSTL_II_18", 1800, 900),
+    Iostd::vref("HSTL_III_18", 1800, 1080),
+    Iostd::pseudo_diff("DIFF_SSTL3_I", 3300),
+    Iostd::pseudo_diff("DIFF_SSTL3_II", 3300),
+    Iostd::pseudo_diff("DIFF_SSTL2_I", 2500),
+    Iostd::pseudo_diff("DIFF_SSTL2_II", 2500),
+    Iostd::pseudo_diff("DIFF_SSTL18_I", 1800),
+    Iostd::diff_input("DIFF_SSTL18_II", 1800),
+    Iostd::diff_input("DIFF_SSTL15_II", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_I", 1500),
+    Iostd::diff_input("DIFF_HSTL_II", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_III", 1500),
+    Iostd::pseudo_diff("DIFF_HSTL_I_18", 1800),
+    Iostd::diff_input("DIFF_HSTL_II_18", 1800),
+    Iostd::pseudo_diff("DIFF_HSTL_III_18", 1800),
+    Iostd::pseudo_diff("DIFF_MOBILE_DDR", 1800),
+    Iostd::pseudo_diff("BLVDS_25", 2500),
+    Iostd::pseudo_diff("DISPLAY_PORT", 2500),
+    Iostd::diff_input("LVPECL_25", 2500),
+    Iostd::diff_input("LVPECL_33", 3300),
+    Iostd::true_diff("LVDS_25", 2500),
+    Iostd::true_diff("LVDS_33", 3300),
+    Iostd::true_diff("MINI_LVDS_25", 2500),
+    Iostd::true_diff("MINI_LVDS_33", 3300),
+    Iostd::true_diff("RSDS_25", 2500),
+    Iostd::true_diff("RSDS_33", 3300),
+    Iostd::true_diff("PPDS_25", 2500),
+    Iostd::true_diff("PPDS_33", 3300),
+    Iostd::true_diff("TMDS_33", 3300),
+    Iostd::true_diff("TML_33", 3300),
+];
+
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
+    let ExpandedDevice::Spartan6(ref edev) = backend.edev else {
+        unreachable!()
+    };
+    let package = backend
+        .device
+        .bonds
+        .values()
+        .max_by_key(|bond| {
+            let bdata = &backend.db.bonds[bond.bond];
+            let prjcombine_xilinx_geom::Bond::Spartan6(bdata) = bdata else {
+                unreachable!();
+            };
+            bdata.pins.len()
+        })
+        .unwrap();
     for tile in ["IOI.LR", "IOI.BT"] {
         let node_iob = backend.egrid.db.get_node("IOB");
         for i in 0..2 {
@@ -154,7 +296,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pip (bel_pin bel_ioiclk, "IOCE0"), (pin "IOCE"))
             ]);
 
-            if i == 1 {
+            if i == 0 {
                 fuzz_one!(ctx, "MUX.D", "OTHER_IOB_I", [
                     (related TileRelation::Delta(0, 0, node_iob), (nop))
                 ], [
@@ -700,6 +842,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         if tile == "IOI.BT" {
             let bel_iodelay = BelId::from_idx(4);
             fuzz_one!(ctx, "DRPSDO", "1", [
+                (related TileRelation::Delta(0, 0, node_iob), (nop)),
                 (global_mutex "MCB", "NONE"),
                 (global_mutex "DRPSDO", "TEST"),
                 (global_opt "MEM_PLL_POL_SEL", "INVERTED"),
@@ -708,6 +851,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pip (pin "MCB_DRPSDO"), (bel_pin bel_iodelay, "CE"))
             ]);
             fuzz_one!(ctx, "DRPSDO", "1.DIV_EN", [
+                (related TileRelation::Delta(0, 0, node_iob), (nop)),
                 (global_mutex "MCB", "NONE"),
                 (global_mutex "DRPSDO", "TEST"),
                 (global_opt "MEM_PLL_POL_SEL", "INVERTED"),
@@ -716,6 +860,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 (pip (pin "MCB_DRPSDO"), (bel_pin bel_iodelay, "CE"))
             ]);
             fuzz_one!(ctx, "DRPSDO", "1.NOTINV", [
+                (related TileRelation::Delta(0, 0, node_iob), (nop)),
                 (global_mutex "MCB", "NONE"),
                 (global_mutex "DRPSDO", "TEST"),
                 (global_opt "MEM_PLL_POL_SEL", "NOTINVERTED"),
@@ -772,9 +917,569 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             (pip (pin "IOIDRPSDO"), (pin_far "IOIDRPSDO"))
         ], extras);
     }
+    for i in 0..2 {
+        let ctx = FuzzCtx::new(session, backend, "IOB", format!("IOB{i}"), TileBits::IobS6);
+        let bel_other = BelId::from_idx(1 - i);
+        fuzz_one!(ctx, "PRESENT", "1", [
+            (global_mutex "IOB", "SHARED"),
+            (global_mutex "VREF", "NO"),
+            (bel_mode bel_other, "IOB")
+        ], [
+            (mode "IOB")
+        ]);
+        if i == 0 {
+            fuzz_one!(ctx, "PRESENT", "NOTVREF", [
+                (global_mutex "IOB", "SHARED"),
+                (global_mutex "VREF", "YES"),
+                (global_mutex "VCCO.LR", "1800"),
+                (global_mutex "VREF.LR", "1800"),
+                (global_mutex "VCCO.BT", "1800"),
+                (global_mutex "VREF.BT", "1800"),
+                (package package.name),
+                (bel_special BelKV::IsVref),
+                (bel_mode bel_other, "IOB"),
+                (bel_pin bel_other, "I"),
+                (bel_attr bel_other, "TUSED", ""),
+                (bel_attr bel_other, "IMUX", "I"),
+                (bel_attr bel_other, "BYPASS_MUX", "I"),
+                (bel_attr bel_other, "ISTANDARD", "HSTL_I_18")
+            ], [
+                (mode "IOB")
+            ]);
+        }
+        fuzz_enum!(ctx, "PULLTYPE", ["KEEPER", "PULLDOWN", "PULLUP"], [
+            (global_mutex "IOB", "SHARED"),
+            (mode "IOB"),
+            (attr "TUSED", "0"),
+            (pin "T")
+        ]);
+        fuzz_enum!(ctx, "SUSPEND", [
+            "3STATE", "3STATE_KEEPER", "3STATE_PULLDOWN", "3STATE_PULLUP", "3STATE_OCT_ON",
+            "DRIVE_LAST_VALUE",
+        ], [
+            (global_mutex "IOB", "SHARED"),
+            (mode "IOB"),
+            (attr "TUSED", "0"),
+            (pin "T")
+        ]);
+        fuzz_enum!(ctx, "PRE_EMPHASIS", ["ON"], [
+            (global_mutex "IOB", "SHARED"),
+            (mode "IOB"),
+            (attr "TUSED", "0"),
+            (pin "T")
+        ]);
+        fuzz_enum!(ctx, "IMUX", ["I", "I_B"], [
+            (global_mutex "IOB", "SHARED"),
+            (mode "IOB"),
+            (attr "TUSED", "0"),
+            (attr "BYPASS_MUX", "I"),
+            (pin "T"),
+            (pin "I")
+        ]);
+        fuzz_enum!(ctx, "BYPASS_MUX", ["I", "O", "T"], [
+            (global_mutex "IOB", "SHARED"),
+            (mutex "MODE", "BYPASS"),
+            (mode "IOB"),
+            (attr "TUSED", "0"),
+            (attr "OUSED", "0"),
+            (attr "IMUX", "I"),
+            (pin "T"),
+            (pin "O"),
+            (pin "I")
+        ]);
+        fuzz_one!(ctx, "OUTPUT_ENABLE", "0", [
+            (global_mutex "IOB", "SHARED"),
+            (mutex "MODE", "OUSED"),
+            (mode "IOB")
+        ], [
+            (attr "TUSED", "0"),
+            (attr "OUSED", "0"),
+            (attr "DRIVE_0MA", "DRIVE_0MA"),
+            (pin "T"),
+            (pin "O")
+        ]);
+
+        let extras = vec![ExtraFeature::new(
+            ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_bio_outer()),
+            "LR",
+            "MISC",
+            "GLUTMASK_IOB",
+            "1",
+        )];
+        fuzz_one_extras!(ctx, "PRESENT", "1", [
+            (global_opt "GLUTMASK", "YES"),
+            (global_mutex_site "IOB")
+        ], [
+            (mode "IOB")
+        ], extras);
+
+        let extras = vec![ExtraFeature::new(
+            ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+            "UL",
+            "MISC",
+            "VREF_LV",
+            "1",
+        )];
+        fuzz_one_extras!(ctx, "VREF_LV", "1", [
+            (global_mutex_site "IOB"),
+            (vccaux "3.3"),
+            (package package.name),
+            (bel_special BelKV::IsBonded),
+            (mode "IOB"),
+            (pin "I"),
+            (attr "TUSED", ""),
+            (attr "IMUX", "I"),
+            (attr "BYPASS_MUX", "I")
+        ], [
+            (attr_diff "ISTANDARD", "SSTL3_I", "SSTL18_I")
+        ], extras);
+
+        let banks = [
+            (
+                "UL",
+                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+            ),
+            (
+                "LR",
+                ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_bio_outer()),
+            ),
+            (
+                "LL",
+                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_bio_outer()),
+            ),
+            (
+                "LL",
+                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_bio_outer()),
+            ),
+            (
+                "UL",
+                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), edev.grid.row_tio_outer()),
+            ),
+            (
+                "UR",
+                ExtraFeatureKind::MainFixedPair(edev.grid.col_rio(), edev.grid.row_tio_inner()),
+            ),
+        ];
+        for bank in 0..6 {
+            if bank >= 4 && edev.grid.row_mcb_split.is_none() {
+                continue;
+            }
+            let extras = vec![ExtraFeature::new(
+                banks[bank].1,
+                banks[bank].0,
+                format!("OCT_CAL{bank}"),
+                "INTERNAL_VREF",
+                "1",
+            )];
+            fuzz_one_extras!(ctx, "ISTD", "SSTL2_I:3.3:LR", [
+                (global_mutex_site "IOB"),
+                (vccaux "3.3"),
+                (package package.name),
+                (bel_special BelKV::IsBonded),
+                (bel_special BelKV::IsBank(bank as u32)),
+                (mode "IOB"),
+                (pin "O"),
+                (pin "T"),
+                (attr "TUSED", "0"),
+                (attr "OUSED", "0"),
+                (attr "OSTANDARD", "SSTL2_I")
+            ], [
+                (pin "I"),
+                (attr "IMUX", "I"),
+                (attr "BYPASS_MUX", "I"),
+                (attr "ISTANDARD", "SSTL2_I"),
+                (special TileFuzzKV::Raw(Key::InternalVref(bank as u32), Value::None, Value::U32(1250)))
+            ], extras);
+        }
+
+        for (kind, ioi, iostds) in [("LR", "IOI.LR", IOSTDS_LR), ("BT", "IOI.BT", IOSTDS_BT)] {
+            let node_ioi = backend.egrid.db.get_node(ioi);
+            let node_iob = backend.egrid.db.get_node("IOB");
+            let bel_ologic = BelId::from_idx(2 + i);
+            for vccaux in ["2.5", "3.3"] {
+                for std in iostds {
+                    if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "LVPECL_33")
+                        && vccaux == "2.5"
+                    {
+                        continue;
+                    }
+                    if std.name == "TML_33" {
+                        continue;
+                    }
+                    let vcco = &match std.vcco {
+                        Some(vcco) => vcco.to_string(),
+                        None => "3300".to_string(),
+                    };
+                    if std.diff != DiffKind::None {
+                        let has_diff_term = std.diff == DiffKind::True && std.name != "TMDS_33";
+                        fuzz_one!(ctx, "ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name), [
+                            (global_mutex "IOB", "SHARED"),
+                            (global_mutex format!("VCCO.{kind}"), vcco),
+                            (vccaux vccaux),
+                            (package package.name),
+                            (bel_special BelKV::IsBonded),
+                            (mode "IOB"),
+                            (pin "I"),
+                            (pin "DIFFI_IN"),
+                            (attr "DIFFI_INUSED", "0"),
+                            (attr "TUSED", ""),
+                            (attr "DIFF_TERM", if has_diff_term {"FALSE"} else {""}),
+                            (attr "IMUX", "I"),
+                            (attr "BYPASS_MUX", "I"),
+                            (related TileRelation::Delta(0, 0, node_ioi),
+                                (bel_unused bel_ologic))
+                        ], [
+                            (attr "ISTANDARD", std.name)
+                        ]);
+                        if has_diff_term {
+                            fuzz_one!(ctx, "DIFF_TERM", "1", [
+                                (global_mutex "IOB", "SHARED"),
+                                (global_mutex format!("VCCO.{kind}"), vcco),
+                                (vccaux vccaux),
+                                (package package.name),
+                                (bel_special BelKV::IsBonded),
+                                (mode "IOB"),
+                                (pin "I"),
+                                (pin "DIFFI_IN"),
+                                (attr "DIFFI_INUSED", "0"),
+                                (attr "TUSED", ""),
+                                (attr "IMUX", "I"),
+                                (attr "BYPASS_MUX", "I"),
+                                (attr "ISTANDARD", std.name),
+                                (related TileRelation::Delta(0, 0, node_ioi),
+                                    (bel_unused bel_ologic))
+                            ], [
+                                (attr_diff "DIFF_TERM", "FALSE", "TRUE")
+                            ]);
+                        }
+                        if std.name.starts_with("DIFF_") {
+                            for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"]
+                            {
+                                let extras = vec![ExtraFeature::new(
+                                    ExtraFeatureKind::IoiHere,
+                                    ioi,
+                                    format!("OLOGIC{i}"),
+                                    "IN_TERM",
+                                    "1",
+                                )];
+                                fuzz_one_extras!(ctx, "IN_TERM", format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name), [
+                                    (global_mutex "IOB", "SHARED"),
+                                    (global_mutex format!("VCCO.{kind}"), vcco),
+                                    (vccaux vccaux),
+                                    (package package.name),
+                                    (bel_special BelKV::IsBonded),
+                                    (mode "IOB"),
+                                    (pin "I"),
+                                    (pin "DIFFI_IN"),
+                                    (attr "DIFFI_INUSED", "0"),
+                                    (attr "TUSED", ""),
+                                    (attr "IMUX", "I"),
+                                    (attr "BYPASS_MUX", "I"),
+                                    (attr "ISTANDARD", std.name),
+                                    (related TileRelation::Delta(0, 0, node_ioi),
+                                        (bel_unused bel_ologic))
+                                ], [
+                                    (attr "IN_TERM", term)
+                                ], extras);
+                            }
+                        }
+                    } else if let Some(vref) = std.vref {
+                        fuzz_one!(ctx, "ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name), [
+                            (global_mutex "IOB", "SHARED"),
+                            (global_mutex "VREF", "YES"),
+                            (global_mutex format!("VCCO.{kind}"), vcco),
+                            (global_mutex format!("VREF.{kind}"), vref.to_string()),
+                            (vccaux vccaux),
+                            (package package.name),
+                            (bel_special BelKV::IsBonded),
+                            (mode "IOB"),
+                            (pin "I"),
+                            (attr "TUSED", ""),
+                            (attr "IMUX", "I"),
+                            (attr "BYPASS_MUX", "I"),
+                            (bel_mode bel_other, "IOB"),
+                            (bel_pin bel_other, "I"),
+                            (bel_attr bel_other, "TUSED", ""),
+                            (bel_attr bel_other, "IMUX", "I"),
+                            (bel_attr bel_other, "BYPASS_MUX", "I"),
+                            (bel_attr bel_other, "ISTANDARD", std.name),
+                            (related TileRelation::Delta(0, 0, node_ioi),
+                                (bel_unused bel_ologic))
+                        ], [
+                            (attr "ISTANDARD", std.name)
+                        ]);
+                        for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"] {
+                            let extras = vec![ExtraFeature::new(
+                                ExtraFeatureKind::IoiHere,
+                                ioi,
+                                format!("OLOGIC{i}"),
+                                "IN_TERM",
+                                "1",
+                            )];
+                            fuzz_one_extras!(ctx, "IN_TERM", format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name), [
+                                (global_mutex "IOB", "SHARED"),
+                                (global_mutex "VREF", "YES"),
+                                (global_mutex format!("VCCO.{kind}"), vcco),
+                                (global_mutex format!("VREF.{kind}"), vref.to_string()),
+                                (vccaux vccaux),
+                                (package package.name),
+                                (bel_special BelKV::IsBonded),
+                                (mode "IOB"),
+                                (pin "I"),
+                                (attr "TUSED", ""),
+                                (attr "IMUX", "I"),
+                                (attr "BYPASS_MUX", "I"),
+                                (attr "ISTANDARD", std.name),
+                                (related TileRelation::Delta(0, 0, node_ioi),
+                                    (bel_unused bel_ologic))
+                            ], [
+                                (attr "IN_TERM", term)
+                            ], extras);
+                        }
+                    } else {
+                        fuzz_one!(ctx, "ISTD", format!("{sn}:{vccaux}:{kind}", sn = std.name), [
+                            (global_mutex "IOB", "SHARED"),
+                            (global_mutex format!("VCCO.{kind}"), vcco),
+                            (vccaux vccaux),
+                            (package package.name),
+                            (bel_special BelKV::IsBonded),
+                            (mode "IOB"),
+                            (pin "I"),
+                            (attr "TUSED", ""),
+                            (attr "IMUX", "I"),
+                            (attr "BYPASS_MUX", "I"),
+                            (related TileRelation::Delta(0, 0, node_ioi),
+                                (bel_unused bel_ologic))
+                        ], [
+                            (attr "ISTANDARD", std.name)
+                        ]);
+                        if std.name.starts_with("LVCMOS")
+                            || std.name == "LVTTL"
+                            || std.name == "MOBILE_DDR"
+                        {
+                            for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"]
+                            {
+                                let extras = vec![ExtraFeature::new(
+                                    ExtraFeatureKind::IoiHere,
+                                    ioi,
+                                    format!("OLOGIC{i}"),
+                                    "IN_TERM",
+                                    "1",
+                                )];
+                                fuzz_one_extras!(ctx, "IN_TERM", format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name), [
+                                    (global_mutex "IOB", "SHARED"),
+                                    (global_mutex format!("VCCO.{kind}"), vcco),
+                                    (vccaux vccaux),
+                                    (package package.name),
+                                    (bel_special BelKV::IsBonded),
+                                    (mode "IOB"),
+                                    (pin "I"),
+                                    (attr "TUSED", ""),
+                                    (attr "IMUX", "I"),
+                                    (attr "BYPASS_MUX", "I"),
+                                    (attr "ISTANDARD", std.name),
+                                    (related TileRelation::Delta(0, 0, node_ioi),
+                                        (bel_unused bel_ologic))
+                                ], [
+                                    (attr "IN_TERM", term)
+                                ], extras);
+                            }
+                        }
+                    }
+                }
+                for std in iostds {
+                    if std.input_only {
+                        continue;
+                    }
+                    if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "TML_33")
+                        && vccaux == "2.5"
+                    {
+                        continue;
+                    }
+                    let vcco = &match std.vcco {
+                        Some(vcco) => vcco.to_string(),
+                        None => "3300".to_string(),
+                    };
+                    if std.diff == DiffKind::True {
+                        for (dir, row, corner, dx) in [
+                            (Dir::S, edev.grid.row_bio_outer(), "LL", 1),
+                            (Dir::N, edev.grid.row_tio_outer(), "UL", -1),
+                        ] {
+                            let extras = vec![ExtraFeature::new(
+                                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), row),
+                                corner,
+                                "BANK",
+                                "LVDSBIAS_0",
+                                std.name,
+                            )];
+                            fuzz_one_extras!(ctx, "OSTD", format!("{sn}:{vccaux}:GROUP0", sn = std.name), [
+                                (global_mutex "IOB", "SHARED"),
+                                (global_mutex_site format!("IOB_DIFF_{corner}")),
+                                (global_mutex format!("VCCO.{kind}"), vcco),
+                                (vccaux vccaux),
+                                (package package.name),
+                                (bel_special BelKV::IsBonded),
+                                (special TileKV::DeviceSide(dir)),
+                                (related TileRelation::Delta(0, 0, node_ioi),
+                                    (bel_unused bel_ologic)),
+                                (attr "TUSED", "0"),
+                                (attr "OUSED", "0"),
+                                (attr "BYPASS_MUX", ""),
+                                (attr "SUSPEND", ""),
+                                (attr "PULLTYPE", ""),
+                                (pin "T"),
+                                (pin "O")
+                            ], [
+                                (mode_diff "IOB", ["IOBS", "IOBM"][i]),
+                                (attr "OUTMUX", ["0", ""][i]),
+                                (attr_diff "DRIVE_0MA", "DRIVE_0MA", ""),
+                                (attr "OSTANDARD", std.name)
+                            ], extras);
+
+                            let other_std = match (std.vcco, std.name) {
+                                (Some(2500), "LVDS_25") => "MINI_LVDS_25",
+                                (Some(2500), _) => "LVDS_25",
+                                (Some(3300), "LVDS_33") => "MINI_LVDS_33",
+                                (Some(3300), _) => "LVDS_33",
+                                _ => unreachable!(),
+                            };
+                            let extras = vec![ExtraFeature::new(
+                                ExtraFeatureKind::MainFixed(edev.grid.col_lio(), row),
+                                corner,
+                                "BANK",
+                                "LVDSBIAS_1",
+                                std.name,
+                            )];
+                            fuzz_one_extras!(ctx, "OSTD", format!("{sn}:{vccaux}:GROUP1", sn = std.name), [
+                                (global_mutex "IOB", "SHARED"),
+                                (global_mutex_site format!("IOB_DIFF_{corner}")),
+                                (global_mutex format!("VCCO.{kind}"), vcco),
+                                (vccaux vccaux),
+                                (package package.name),
+                                (bel_special BelKV::IsBonded),
+                                (special TileKV::DeviceSide(dir)),
+                                (related TileRelation::Delta(0, 0, node_ioi),
+                                    (bel_unused bel_ologic)),
+                                (related TileRelation::Delta(dx, 0, node_ioi),
+                                    (bel_unused bel_ologic)),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (bel_special BelKV::IsBonded)),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (mode ["IOBS", "IOBM"][i])),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (attr "TUSED", "0")),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (attr "OUSED", "0")),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (pin "T")),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (pin "O")),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (attr "OUTMUX", ["0", ""][i])),
+                                (related TileRelation::Delta(dx, 0, node_iob),
+                                    (attr "OSTANDARD", other_std)),
+                                (attr "TUSED", "0"),
+                                (attr "OUSED", "0"),
+                                (attr "BYPASS_MUX", ""),
+                                (attr "SUSPEND", ""),
+                                (attr "PULLTYPE", ""),
+                                (pin "T"),
+                                (pin "O")
+                            ], [
+                                (mode_diff "IOB", ["IOBS", "IOBM"][i]),
+                                (attr "OUTMUX", ["0", ""][i]),
+                                (attr_diff "DRIVE_0MA", "DRIVE_0MA", ""),
+                                (attr "OSTANDARD", std.name)
+                            ], extras);
+                        }
+                    } else {
+                        let (drives, slews) = if std.drive.is_empty() {
+                            (&[""][..], &[""][..])
+                        } else {
+                            (std.drive, &["SLOW", "FAST", "QUIETIO"][..])
+                        };
+                        for drive in drives {
+                            for slew in slews {
+                                let val = if drive.is_empty() {
+                                    format!("{sn}:{vccaux}:{kind}", sn = std.name)
+                                } else {
+                                    format!("{sn}:{drive}:{slew}:{vccaux}:{kind}", sn = std.name)
+                                };
+                                fuzz_one!(ctx, "OSTD", val, [
+                                    (global_mutex "IOB", "SHARED"),
+                                    (global_mutex format!("VCCO.{kind}"), vcco),
+                                    (vccaux vccaux),
+                                    (package package.name),
+                                    (bel_special BelKV::IsBonded),
+                                    (mode "IOB"),
+                                    (related TileRelation::Delta(0, 0, node_ioi),
+                                        (bel_unused bel_ologic)),
+                                    (attr "TUSED", "0"),
+                                    (attr "OUSED", "0"),
+                                    (attr "BYPASS_MUX", ""),
+                                    (attr "SUSPEND", ""),
+                                    (attr "PULLTYPE", ""),
+                                    (pin "T"),
+                                    (pin "O")
+                                ], [
+                                    (attr_diff "DRIVE_0MA", "DRIVE_0MA", ""),
+                                    (attr "OSTANDARD", std.name),
+                                    (attr "DRIVEATTRBOX", drive),
+                                    (attr "SLEW", slew)
+                                ]);
+                            }
+                        }
+                        if std.name == "LVTTL"
+                            || std.name.starts_with("LVCMOS")
+                            || std.name.contains("HSTL")
+                            || std.name.contains("SSTL")
+                            || std.name.contains("MOBILE_DDR")
+                        {
+                            for term in ["UNTUNED_25", "UNTUNED_50", "UNTUNED_75"] {
+                                let val = if std.drive.is_empty() {
+                                    format!("{sn}:{term}:{vccaux}:{kind}", sn = std.name)
+                                } else {
+                                    format!(
+                                        "{sn}:{term}:{slew}:{vccaux}:{kind}",
+                                        sn = std.name,
+                                        slew = slews[0]
+                                    )
+                                };
+                                fuzz_one!(ctx, "OSTD", val, [
+                                    (global_mutex "IOB", "SHARED"),
+                                    (global_mutex format!("VCCO.{kind}"), vcco),
+                                    (vccaux vccaux),
+                                    (package package.name),
+                                    (bel_special BelKV::IsBonded),
+                                    (mode "IOB"),
+                                    (related TileRelation::Delta(0, 0, node_ioi),
+                                        (bel_unused bel_ologic)),
+                                    (attr "TUSED", "0"),
+                                    (attr "OUSED", "0"),
+                                    (attr "BYPASS_MUX", ""),
+                                    (attr "SUSPEND", ""),
+                                    (attr "PULLTYPE", ""),
+                                    (pin "T"),
+                                    (pin "O")
+                                ], [
+                                    (attr_diff "DRIVE_0MA", "DRIVE_0MA", ""),
+                                    (attr "OSTANDARD", std.name),
+                                    (attr "OUT_TERM", term),
+                                    (attr "SLEW", slews[0])
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let ExpandedDevice::Spartan6(ref edev) = ctx.edev else {
+        unreachable!()
+    };
     for tile in ["IOI.LR", "IOI.BT"] {
         for i in 0..2 {
             let bel = &format!("ILOGIC{i}");
@@ -831,7 +1536,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             ctx.collect_enum(tile, bel, "MUX.SR", &["INT", "OLOGIC_SR"]);
 
-            if i == 1 {
+            if i == 0 {
                 ctx.collect_enum_default(tile, bel, "MUX.D", &["OTHER_IOB_I"], "IOB_I");
             }
 
@@ -917,7 +1622,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff_2_f = diff_2_f.combine(&!&diff_3_f);
             diff_3_f = diff_3_f.combine(&!&diff_4_f);
 
-            if i == 1 {
+            if i == 0 {
                 serdes = serdes.combine(&diff_4_f);
                 ctx.tiledb
                     .insert(tile, bel, "CASCADE_ENABLE", xlat_bit(!diff_4_f));
@@ -953,7 +1658,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_8_a = diff_8.split_bits_by(|bit| bit.frame == 27);
 
             assert_eq!(diff_1, diff_2);
-            if i == 0 {
+            if i == 1 {
                 ctx.tiledb.insert(
                     tile,
                     bel,
@@ -1086,7 +1791,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let item = ctx.extract_bit(tile, bel, "DATA_WIDTH", val);
                 ctx.tiledb.insert(tile, bel, "CASCADE_ENABLE", item);
             }
-            if i == 0 {
+            if i == 1 {
                 ctx.state
                     .get_diff(tile, bel, "OUTPUT_MODE", "SINGLE_ENDED")
                     .assert_empty();
@@ -1225,6 +1930,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             serdes.apply_bit_diff(ctx.tiledb.item(tile, bel, "TFF_CE_OR_DDR"), true, false);
 
             serdes.assert_empty();
+
+            let mut diff = ctx.state.get_diff(tile, bel, "IN_TERM", "1");
+            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "TFF_INIT"), true, false);
+            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "TFF_CE_ENABLE"), true, false);
+            diff.assert_empty();
         }
         let (_, _, diff) = Diff::split(
             ctx.state
@@ -1266,7 +1976,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "IDELAY_VALUE_P", item);
             let item = ctx.extract_bitvec(tile, bel, "IDELAY2_VALUE", "");
             ctx.tiledb.insert(tile, bel, "IDELAY_VALUE_N", item);
-            if i == 0 {
+            if i == 1 {
                 let item = ctx.extract_bitvec(tile, bel, "MCB_ADDRESS", "");
                 ctx.tiledb
                     .insert(tile, "IODELAY_COMMON", "MCB_ADDRESS", item);
@@ -1339,14 +2049,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CAL_DELAY_MAX",
                 TileItem::from_bitvec(
                     vec![
-                        FeatureBit::new(0, 28, [0, 63][i]),
-                        FeatureBit::new(0, 28, [1, 62][i]),
-                        FeatureBit::new(0, 28, [2, 61][i]),
-                        FeatureBit::new(0, 28, [3, 60][i]),
-                        FeatureBit::new(0, 28, [4, 59][i]),
-                        FeatureBit::new(0, 28, [5, 58][i]),
-                        FeatureBit::new(0, 28, [6, 57][i]),
-                        FeatureBit::new(0, 28, [7, 56][i]),
+                        FeatureBit::new(0, 28, [63, 0][i]),
+                        FeatureBit::new(0, 28, [62, 1][i]),
+                        FeatureBit::new(0, 28, [61, 2][i]),
+                        FeatureBit::new(0, 28, [60, 3][i]),
+                        FeatureBit::new(0, 28, [59, 4][i]),
+                        FeatureBit::new(0, 28, [58, 5][i]),
+                        FeatureBit::new(0, 28, [57, 6][i]),
+                        FeatureBit::new(0, 28, [56, 7][i]),
                     ],
                     false,
                 ),
@@ -1357,42 +2067,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "DRP_ADDR",
                 TileItem::from_bitvec(
                     vec![
-                        FeatureBit::new(0, 28, [24, 39][i]),
-                        FeatureBit::new(0, 28, [25, 38][i]),
-                        FeatureBit::new(0, 28, [26, 37][i]),
-                        FeatureBit::new(0, 28, [27, 36][i]),
-                        FeatureBit::new(0, 28, [31, 32][i]),
+                        FeatureBit::new(0, 28, [39, 24][i]),
+                        FeatureBit::new(0, 28, [38, 25][i]),
+                        FeatureBit::new(0, 28, [37, 26][i]),
+                        FeatureBit::new(0, 28, [36, 27][i]),
+                        FeatureBit::new(0, 28, [32, 31][i]),
                     ],
                     false,
                 ),
             );
             let drp06 = TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 28, [18, 45][i]),
-                    FeatureBit::new(0, 28, [16, 47][i]),
-                    FeatureBit::new(0, 28, [13, 50][i]),
-                    FeatureBit::new(0, 28, [10, 53][i]),
-                    FeatureBit::new(0, 28, [8, 55][i]),
-                    FeatureBit::new(0, 28, [14, 49][i]),
-                    FeatureBit::new(0, 28, [22, 41][i]),
-                    FeatureBit::new(0, 28, [20, 43][i]),
+                    FeatureBit::new(0, 28, [45, 18][i]),
+                    FeatureBit::new(0, 28, [47, 16][i]),
+                    FeatureBit::new(0, 28, [50, 13][i]),
+                    FeatureBit::new(0, 28, [53, 10][i]),
+                    FeatureBit::new(0, 28, [55, 8][i]),
+                    FeatureBit::new(0, 28, [49, 14][i]),
+                    FeatureBit::new(0, 28, [41, 22][i]),
+                    FeatureBit::new(0, 28, [43, 20][i]),
                 ],
                 false,
             );
             let drp07 = TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 28, [19, 44][i]),
-                    FeatureBit::new(0, 28, [17, 46][i]),
-                    FeatureBit::new(0, 28, [12, 51][i]),
-                    FeatureBit::new(0, 28, [11, 52][i]),
-                    FeatureBit::new(0, 28, [9, 54][i]),
-                    FeatureBit::new(0, 28, [15, 48][i]),
-                    FeatureBit::new(0, 28, [23, 40][i]),
-                    FeatureBit::new(0, 28, [21, 42][i]),
+                    FeatureBit::new(0, 28, [44, 19][i]),
+                    FeatureBit::new(0, 28, [46, 17][i]),
+                    FeatureBit::new(0, 28, [51, 12][i]),
+                    FeatureBit::new(0, 28, [52, 11][i]),
+                    FeatureBit::new(0, 28, [54, 9][i]),
+                    FeatureBit::new(0, 28, [48, 15][i]),
+                    FeatureBit::new(0, 28, [40, 23][i]),
+                    FeatureBit::new(0, 28, [42, 21][i]),
                 ],
                 false,
             );
-            if i == 0 {
+            if i == 1 {
                 ctx.tiledb.insert(
                     tile,
                     bel,
@@ -1458,7 +2168,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "OLOGIC_CLK",
                 "ILOGIC_CLK",
             );
-            if i == 0 {
+            if i == 1 {
                 diff_iodelay2.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "EVENT_SEL"), 3, 0);
                 diff_iodrp2.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "EVENT_SEL"), 3, 0);
                 diff_iodrp2_mcb.apply_bitvec_diff_int(
@@ -1506,12 +2216,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 false,
             );
             diff0.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY0", "IDELAY_FROM_HALF_MAX"),
+                ctx.tiledb.item(tile, "IODELAY1", "IDELAY_FROM_HALF_MAX"),
                 true,
                 false,
             );
             diff1.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY0", "IDELAY_FROM_HALF_MAX"),
+                ctx.tiledb.item(tile, "IODELAY1", "IDELAY_FROM_HALF_MAX"),
                 true,
                 false,
             );
@@ -1703,5 +2413,717 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             diff.assert_empty();
         }
+    }
+    for i in 0..2 {
+        let tile = "IOB";
+        let bel = &format!("IOB{i}");
+        ctx.collect_bit(tile, bel, "OUTPUT_ENABLE", "0");
+        ctx.collect_enum_default(
+            tile,
+            bel,
+            "PULLTYPE",
+            &["PULLDOWN", "PULLUP", "KEEPER"],
+            "NONE",
+        );
+        ctx.collect_enum(
+            tile,
+            bel,
+            "SUSPEND",
+            &[
+                "3STATE",
+                "DRIVE_LAST_VALUE",
+                "3STATE_PULLDOWN",
+                "3STATE_PULLUP",
+                "3STATE_KEEPER",
+                "3STATE_OCT_ON",
+            ],
+        );
+        let item = ctx.extract_enum_bool(tile, bel, "IMUX", "I", "I_B");
+        ctx.tiledb.insert(tile, bel, "INV.I", item);
+        ctx.collect_bit(tile, bel, "PRE_EMPHASIS", "ON");
+        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        present.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULLTYPE"), "NONE", "PULLDOWN");
+
+        ctx.state
+            .get_diff(tile, bel, "BYPASS_MUX", "I")
+            .assert_empty();
+
+        let pdrive_bits: Vec<_> = (0..6).map(|j| FeatureBit::new(0, 0, i * 64 + j)).collect();
+        let pterm_bits: Vec<_> = (0..6)
+            .map(|j| FeatureBit::new(0, 0, i * 64 + 8 + j))
+            .collect();
+        let ndrive_bits: Vec<_> = (0..7)
+            .map(|j| FeatureBit::new(0, 0, i * 64 + 16 + j))
+            .collect();
+        let nterm_bits: Vec<_> = (0..7)
+            .map(|j| FeatureBit::new(0, 0, i * 64 + 24 + j))
+            .collect();
+        let pdrive_invert: BitVec = pdrive_bits
+            .iter()
+            .map(|&bit| match present.bits.remove(&bit) {
+                Some(true) => true,
+                None => false,
+                _ => unreachable!(),
+            })
+            .collect();
+        let ndrive_invert: BitVec = ndrive_bits
+            .iter()
+            .map(|&bit| match present.bits.remove(&bit) {
+                Some(true) => true,
+                None => false,
+                _ => unreachable!(),
+            })
+            .collect();
+        let pdrive = TileItem {
+            bits: pdrive_bits,
+            kind: TileItemKind::BitVec {
+                invert: pdrive_invert,
+            },
+        };
+        let ndrive = TileItem {
+            bits: ndrive_bits,
+            kind: TileItemKind::BitVec {
+                invert: ndrive_invert,
+            },
+        };
+        let pterm = TileItem::from_bitvec(pterm_bits, false);
+        let nterm = TileItem::from_bitvec(nterm_bits, false);
+        ctx.tiledb.insert(tile, bel, "PDRIVE", pdrive);
+        ctx.tiledb.insert(tile, bel, "NDRIVE", ndrive);
+        ctx.tiledb.insert(tile, bel, "PTERM", pterm);
+        ctx.tiledb.insert(tile, bel, "NTERM", nterm);
+        present.assert_empty();
+        let pslew_bits: Vec<_> = (0..4)
+            .map(|j| FeatureBit::new(0, 0, i * 64 + 32 + j))
+            .collect();
+        let nslew_bits: Vec<_> = (0..4)
+            .map(|j| FeatureBit::new(0, 0, i * 64 + 36 + j))
+            .collect();
+        let pslew_invert = bitvec![0, 0, 1, 0];
+        let nslew_invert = bitvec![0, 0, 1, 0];
+        let pslew = TileItem {
+            bits: pslew_bits,
+            kind: TileItemKind::BitVec {
+                invert: pslew_invert.clone(),
+            },
+        };
+        let nslew = TileItem {
+            bits: nslew_bits,
+            kind: TileItemKind::BitVec {
+                invert: nslew_invert.clone(),
+            },
+        };
+        ctx.tiledb.insert(tile, bel, "PSLEW", pslew);
+        ctx.tiledb.insert(tile, bel, "NSLEW", nslew);
+
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PSLEW:OFF", bitvec![0; 4]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NSLEW:OFF", bitvec![0; 4]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PSLEW:IN_TERM", pslew_invert.clone());
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NSLEW:IN_TERM", nslew_invert.clone());
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PDRIVE:OFF", bitvec![0; 6]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NDRIVE:OFF", bitvec![0; 7]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:PTERM:OFF", bitvec![0; 6]);
+        ctx.tiledb
+            .insert_misc_data("IOSTD:NTERM:OFF", bitvec![0; 7]);
+
+        if i == 0 {
+            let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVREF");
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "PSLEW"),
+                &pslew_invert,
+                &bitvec![0; 4],
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "NSLEW"),
+                &nslew_invert,
+                &bitvec![0; 4],
+            );
+            ctx.tiledb.insert(tile, bel, "VREF", xlat_bit(!diff));
+        }
+
+        let (_, _, diff) = Diff::split(
+            ctx.state
+                .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:BT")
+                .clone(),
+            ctx.state
+                .peek_diff(tile, bel, "OSTD", "PCI33_3:3.3:BT")
+                .clone(),
+        );
+        ctx.tiledb.insert(tile, bel, "PCI_CLAMP", xlat_bit(diff));
+
+        let mut diff = ctx
+            .state
+            .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:BT")
+            .combine(&!ctx.state.peek_diff(tile, bel, "ISTD", "MOBILE_DDR:3.3:BT"));
+        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PCI_CLAMP"), true, false);
+        ctx.tiledb.insert(tile, bel, "PCI_INPUT", xlat_bit(diff));
+
+        let diff = ctx.state.get_diff(tile, bel, "VREF_LV", "1");
+        ctx.tiledb.insert(tile, bel, "VREF_HV", xlat_bit(!diff));
+
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "IBUF_MODE",
+            xlat_enum(vec![
+                ("NONE", Diff::default()),
+                ("BYPASS_T", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "T")),
+                ("BYPASS_O", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "O")),
+                (
+                    "CMOS_VCCINT",
+                    ctx.state
+                        .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:BT")
+                        .clone(),
+                ),
+                (
+                    "CMOS_VCCO",
+                    ctx.state
+                        .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:BT")
+                        .clone(),
+                ),
+                (
+                    "VREF",
+                    ctx.state
+                        .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:BT")
+                        .clone(),
+                ),
+                (
+                    "DIFF",
+                    ctx.state
+                        .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:BT")
+                        .clone(),
+                ),
+                (
+                    "CMOS_VCCAUX",
+                    ctx.state
+                        .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:BT")
+                        .clone(),
+                ),
+            ]),
+        );
+        if i == 1 {
+            let diff_lvds = ctx
+                .state
+                .peek_diff(tile, bel, "OSTD", "LVDS_25:3.3:GROUP0")
+                .clone();
+            let diff_tmds = ctx
+                .state
+                .peek_diff(tile, bel, "OSTD", "TMDS_33:3.3:GROUP0")
+                .clone();
+            let (diff_lvds, diff_tmds, mut diff) = Diff::split(diff_lvds, diff_tmds);
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "PSLEW"),
+                &bitvec![0; 4],
+                &pslew_invert,
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "NSLEW"),
+                &bitvec![0; 4],
+                &nslew_invert,
+            );
+            ctx.tiledb
+                .insert(tile, bel, "DIFF_OUTPUT_ENABLE", xlat_bit(diff));
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                "DIFF_MODE",
+                xlat_enum(vec![
+                    ("NONE", Diff::default()),
+                    ("LVDS", diff_lvds),
+                    ("TMDS", diff_tmds),
+                ]),
+            );
+            let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "PSLEW"),
+                &bitvec![0; 4],
+                &pslew_invert,
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "NSLEW"),
+                &bitvec![0; 4],
+                &nslew_invert,
+            );
+            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "DIFF_MODE"), "LVDS", "NONE");
+            diff.assert_empty();
+        } else {
+            let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "PSLEW"),
+                &bitvec![0; 4],
+                &pslew_invert,
+            );
+            diff.apply_bitvec_diff(
+                ctx.tiledb.item(tile, bel, "NSLEW"),
+                &bitvec![0; 4],
+                &nslew_invert,
+            );
+            ctx.tiledb.insert(tile, bel, "DIFF_TERM", xlat_bit(diff));
+        }
+
+        for (kind, iostds) in [("LR", IOSTDS_LR), ("BT", IOSTDS_BT)] {
+            for vccaux in ["2.5", "3.3"] {
+                for std in iostds {
+                    if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "LVPECL_33")
+                        && vccaux == "2.5"
+                    {
+                        continue;
+                    }
+                    if std.name == "TML_33" {
+                        continue;
+                    }
+                    let mut diff = ctx.state.get_diff(
+                        tile,
+                        bel,
+                        "ISTD",
+                        format!("{sn}:{vccaux}:{kind}", sn = std.name),
+                    );
+                    let val = if std.diff != DiffKind::None {
+                        "DIFF"
+                    } else if let Some(vref) = std.vref {
+                        if vref >= 1250 {
+                            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "VREF_HV"), true, false);
+                        }
+                        "VREF"
+                    } else if std.name.starts_with("PCI") {
+                        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PCI_INPUT"), true, false);
+                        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PCI_CLAMP"), true, false);
+                        "CMOS_VCCO"
+                    } else if matches!(std.name, "LVCMOS12" | "LVCMOS15" | "LVCMOS18") {
+                        "CMOS_VCCINT"
+                    } else if matches!(
+                        std.name,
+                        "LVCMOS12_JEDEC" | "LVCMOS15_JEDEC" | "LVCMOS18_JEDEC" | "MOBILE_DDR"
+                    ) || (vccaux == "3.3" && std.name == "LVCMOS25")
+                    {
+                        "CMOS_VCCO"
+                    } else {
+                        "CMOS_VCCAUX"
+                    };
+                    diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "IBUF_MODE"), val, "NONE");
+                    diff.assert_empty();
+
+                    if std.name == "LVTTL"
+                        || std.name.starts_with("LVCMOS")
+                        || std.name.contains("HSTL")
+                        || std.name.contains("SSTL")
+                        || std.name.contains("MOBILE_DDR")
+                    {
+                        for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"] {
+                            let mut diff = ctx.state.get_diff(
+                                tile,
+                                bel,
+                                "IN_TERM",
+                                format!("{sn}:{vccaux}:{kind}:{term}", sn = std.name),
+                            );
+                            diff.apply_bit_diff(
+                                ctx.tiledb.item(tile, bel, "OUTPUT_ENABLE"),
+                                true,
+                                false,
+                            );
+                            let vcco = std.vcco.unwrap().to_string();
+                            let name = format!("{term}.{vcco}.{vccaux}");
+                            let val = extract_bitvec_val_part(
+                                ctx.tiledb.item(tile, bel, "PTERM"),
+                                &bitvec![0; 6],
+                                &mut diff,
+                            );
+                            ctx.tiledb
+                                .insert_misc_data(format!("IOSTD:PTERM:{name}"), val);
+                            let val = extract_bitvec_val_part(
+                                ctx.tiledb.item(tile, bel, "NTERM"),
+                                &bitvec![0; 7],
+                                &mut diff,
+                            );
+                            ctx.tiledb
+                                .insert_misc_data(format!("IOSTD:NTERM:{name}"), val);
+
+                            if std.vcco.unwrap() >= 2500 {
+                                diff.assert_empty()
+                            } else {
+                                ctx.tiledb
+                                    .insert(tile, bel, "OUTPUT_LOW_VOLTAGE", xlat_bit(diff));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (kind, iostds) in [("LR", IOSTDS_LR), ("BT", IOSTDS_BT)] {
+            for vccaux in ["2.5", "3.3"] {
+                for std in iostds {
+                    let stdname = if std.name == "DIFF_MOBILE_DDR" {
+                        std.name
+                    } else {
+                        std.name.strip_prefix("DIFF_").unwrap_or(std.name)
+                    };
+                    if std.input_only {
+                        continue;
+                    }
+                    if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "TML_33")
+                        && vccaux == "2.5"
+                    {
+                        continue;
+                    }
+                    if std.diff == DiffKind::True {
+                        let mut diff0 = ctx.state.get_diff(
+                            tile,
+                            bel,
+                            "OSTD",
+                            format!("{sn}:{vccaux}:GROUP0", sn = std.name),
+                        );
+                        let diff1 = ctx
+                            .state
+                            .get_diff(
+                                tile,
+                                bel,
+                                "OSTD",
+                                format!("{sn}:{vccaux}:GROUP1", sn = std.name),
+                            )
+                            .combine(&!&diff0);
+                        if i == 1 {
+                            ctx.tiledb.insert(tile, bel, "LVDS_GROUP", xlat_bit(diff1));
+                        } else {
+                            diff1.assert_empty();
+                        }
+                        if i == 1 {
+                            diff0.apply_bit_diff(
+                                ctx.tiledb.item(tile, bel, "DIFF_OUTPUT_ENABLE"),
+                                true,
+                                false,
+                            );
+                            diff0.apply_enum_diff(
+                                ctx.tiledb.item(tile, bel, "DIFF_MODE"),
+                                if matches!(std.name, "TMDS_33" | "TML_33") {
+                                    "TMDS"
+                                } else {
+                                    "LVDS"
+                                },
+                                "NONE",
+                            );
+                        }
+                        if std.name == "TML_33" {
+                            for (attr, base) in [
+                                ("PDRIVE", &bitvec![0; 6]),
+                                ("NDRIVE", &bitvec![0; 7]),
+                                ("PTERM", &bitvec![0; 6]),
+                                ("NTERM", &bitvec![0; 7]),
+                                ("PSLEW", &pslew_invert),
+                                ("NSLEW", &nslew_invert),
+                            ] {
+                                let val = extract_bitvec_val_part(
+                                    ctx.tiledb.item(tile, bel, attr),
+                                    base,
+                                    &mut diff0,
+                                );
+                                if attr.ends_with("SLEW") {
+                                    ctx.tiledb
+                                        .insert_misc_data(format!("IOSTD:{attr}:{stdname}"), val);
+                                } else {
+                                    ctx.tiledb.insert_misc_data(
+                                        format!("IOSTD:{attr}:{stdname}.{vccaux}"),
+                                        val,
+                                    );
+                                }
+                            }
+                            ctx.tiledb.insert(tile, bel, "TML", xlat_bit(diff0));
+                        } else {
+                            diff0.apply_bitvec_diff(
+                                ctx.tiledb.item(tile, bel, "PSLEW"),
+                                &bitvec![0; 4],
+                                &pslew_invert,
+                            );
+                            diff0.apply_bitvec_diff(
+                                ctx.tiledb.item(tile, bel, "NSLEW"),
+                                &bitvec![0; 4],
+                                &nslew_invert,
+                            );
+                            diff0.assert_empty();
+                        }
+                    } else {
+                        let (drives, slews) = if std.drive.is_empty() {
+                            (&[""][..], &[""][..])
+                        } else {
+                            (std.drive, &["SLOW", "FAST", "QUIETIO"][..])
+                        };
+                        for drive in drives {
+                            for slew in slews {
+                                let val = if drive.is_empty() {
+                                    format!("{sn}:{vccaux}:{kind}", sn = std.name)
+                                } else {
+                                    format!("{sn}:{drive}:{slew}:{vccaux}:{kind}", sn = std.name)
+                                };
+                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
+                                if let Some(vcco) = std.vcco {
+                                    if vcco < 2500 {
+                                        diff.apply_bit_diff(
+                                            ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
+                                            true,
+                                            false,
+                                        );
+                                    }
+                                }
+                                if std.name.starts_with("PCI") {
+                                    diff.apply_bit_diff(
+                                        ctx.tiledb.item(tile, bel, "PCI_CLAMP"),
+                                        true,
+                                        false,
+                                    );
+                                }
+                                for (attr, base) in
+                                    [("PDRIVE", bitvec![0; 6]), ("NDRIVE", bitvec![0; 7])]
+                                {
+                                    let val = extract_bitvec_val_part(
+                                        ctx.tiledb.item(tile, bel, attr),
+                                        &base,
+                                        &mut diff,
+                                    );
+                                    let name = if drive.is_empty() {
+                                        format!("{stdname}.{vccaux}")
+                                    } else {
+                                        format!("{stdname}.{drive}.{vccaux}")
+                                    };
+                                    ctx.tiledb
+                                        .insert_misc_data(format!("IOSTD:{attr}:{name}"), val);
+                                }
+                                for (attr, base) in
+                                    [("PSLEW", &pslew_invert), ("NSLEW", &nslew_invert)]
+                                {
+                                    let val = extract_bitvec_val_part(
+                                        ctx.tiledb.item(tile, bel, attr),
+                                        base,
+                                        &mut diff,
+                                    );
+                                    let name = if drive.is_empty() {
+                                        stdname.to_string()
+                                    } else {
+                                        format!("{stdname}.{slew}")
+                                    };
+                                    ctx.tiledb
+                                        .insert_misc_data(format!("IOSTD:{attr}:{name}"), val);
+                                }
+                                diff.assert_empty();
+                            }
+                        }
+                        if std.name == "LVTTL"
+                            || std.name.starts_with("LVCMOS")
+                            || std.name.contains("HSTL")
+                            || std.name.contains("SSTL")
+                            || std.name.contains("MOBILE_DDR")
+                        {
+                            for term in ["UNTUNED_25", "UNTUNED_50", "UNTUNED_75"] {
+                                let val = if std.drive.is_empty() {
+                                    format!("{sn}:{term}:{vccaux}:{kind}", sn = std.name)
+                                } else {
+                                    format!(
+                                        "{sn}:{term}:{slew}:{vccaux}:{kind}",
+                                        sn = std.name,
+                                        slew = slews[0]
+                                    )
+                                };
+                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
+                                if let Some(vcco) = std.vcco {
+                                    if vcco < 2500 {
+                                        diff.apply_bit_diff(
+                                            ctx.tiledb.item(tile, bel, "OUTPUT_LOW_VOLTAGE"),
+                                            true,
+                                            false,
+                                        );
+                                    }
+                                }
+                                for (attr, base) in
+                                    [("PDRIVE", bitvec![0; 6]), ("NDRIVE", bitvec![0; 7])]
+                                {
+                                    let val = extract_bitvec_val_part(
+                                        ctx.tiledb.item(tile, bel, attr),
+                                        &base,
+                                        &mut diff,
+                                    );
+                                    let vcco = std.vcco.unwrap();
+                                    let name = format!("{term}.{vcco}.{vccaux}");
+                                    ctx.tiledb
+                                        .insert_misc_data(format!("IOSTD:{attr}:{name}"), val);
+                                }
+                                for (attr, base) in
+                                    [("PSLEW", &pslew_invert), ("NSLEW", &nslew_invert)]
+                                {
+                                    let val = extract_bitvec_val_part(
+                                        ctx.tiledb.item(tile, bel, attr),
+                                        base,
+                                        &mut diff,
+                                    );
+                                    let name = if std.drive.is_empty() {
+                                        stdname.to_string()
+                                    } else {
+                                        format!("{stdname}.SLOW")
+                                    };
+                                    ctx.tiledb
+                                        .insert_misc_data(format!("IOSTD:{attr}:{name}"), val);
+                                }
+                                diff.assert_empty();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    {
+        let tile = "LL";
+        let bel = "BANK";
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "LVDSBIAS_0",
+            TileItem::from_bitvec(
+                (0..12).map(|i| FeatureBit::new(0, 23, 29 + i)).collect(),
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "LVDSBIAS_1",
+            TileItem::from_bitvec(
+                (0..12).map(|i| FeatureBit::new(0, 23, 41 + i)).collect(),
+                false,
+            ),
+        );
+    }
+    {
+        let tile = "LR";
+        let bel = "MISC";
+        ctx.collect_bit(tile, bel, "GLUTMASK_IOB", "1");
+    }
+    {
+        let tile = "UL";
+        let bel = "MISC";
+        ctx.collect_bit_wide(tile, bel, "VREF_LV", "1");
+        let bel = "BANK";
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "LVDSBIAS_0",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 22, 9),
+                    FeatureBit::new(0, 22, 21),
+                    FeatureBit::new(0, 22, 20),
+                    FeatureBit::new(0, 22, 19),
+                    FeatureBit::new(0, 22, 18),
+                    FeatureBit::new(0, 22, 17),
+                    FeatureBit::new(0, 22, 16),
+                    FeatureBit::new(0, 22, 15),
+                    FeatureBit::new(0, 22, 14),
+                    FeatureBit::new(0, 22, 13),
+                    FeatureBit::new(0, 22, 12),
+                    FeatureBit::new(0, 22, 11),
+                ],
+                false,
+            ),
+        );
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            "LVDSBIAS_1",
+            TileItem::from_bitvec(
+                vec![
+                    FeatureBit::new(0, 22, 10),
+                    FeatureBit::new(0, 22, 27),
+                    FeatureBit::new(0, 22, 26),
+                    FeatureBit::new(0, 22, 25),
+                    FeatureBit::new(0, 22, 24),
+                    FeatureBit::new(0, 22, 23),
+                    FeatureBit::new(0, 22, 22),
+                    FeatureBit::new(0, 22, 32),
+                    FeatureBit::new(0, 22, 31),
+                    FeatureBit::new(0, 22, 30),
+                    FeatureBit::new(0, 22, 29),
+                    FeatureBit::new(0, 22, 28),
+                ],
+                false,
+            ),
+        );
+    }
+    for tile in ["LL", "UL"] {
+        let bel = "BANK";
+        for std in IOSTDS_BT {
+            if std.diff != DiffKind::True {
+                continue;
+            }
+            for attr in ["LVDSBIAS_0", "LVDSBIAS_1"] {
+                let diff = ctx.state.get_diff(tile, bel, attr, std.name);
+                let val =
+                    extract_bitvec_val(ctx.tiledb.item(tile, bel, attr), &bitvec![0; 12], diff);
+                ctx.tiledb
+                    .insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
+            }
+        }
+    }
+    for (tile, bank, bit_25, bit_75) in [
+        (
+            "LL",
+            2,
+            FeatureBit::new(0, 23, 27),
+            FeatureBit::new(0, 23, 28),
+        ),
+        (
+            "LL",
+            3,
+            FeatureBit::new(0, 23, 24),
+            FeatureBit::new(0, 23, 25),
+        ),
+        (
+            "UL",
+            0,
+            FeatureBit::new(0, 22, 43),
+            FeatureBit::new(0, 22, 42),
+        ),
+        (
+            "UL",
+            4,
+            FeatureBit::new(0, 22, 46),
+            FeatureBit::new(0, 22, 45),
+        ),
+        (
+            "LR",
+            1,
+            FeatureBit::new(0, 22, 52),
+            FeatureBit::new(0, 22, 53),
+        ),
+        (
+            "UR",
+            5,
+            FeatureBit::new(1, 22, 51),
+            FeatureBit::new(1, 22, 52),
+        ),
+    ] {
+        let bel = &format!("OCT_CAL{bank}");
+        let item = TileItem {
+            bits: vec![bit_25, bit_75],
+            kind: TileItemKind::Enum {
+                values: [
+                    ("NONE".to_string(), bitvec![0, 0]),
+                    ("0.25".to_string(), bitvec![1, 0]),
+                    ("0.75".to_string(), bitvec![0, 1]),
+                    ("0.5".to_string(), bitvec![1, 1]),
+                ]
+                .into_iter()
+                .collect(),
+            },
+        };
+        if bank < 4 || edev.grid.row_mcb_split.is_some() {
+            let mut diff = ctx.state.get_diff(tile, bel, "INTERNAL_VREF", "1");
+            diff.apply_enum_diff(&item, "0.5", "NONE");
+            diff.assert_empty();
+        }
+        ctx.tiledb.insert(tile, bel, "VREF_VALUE", item);
     }
 }

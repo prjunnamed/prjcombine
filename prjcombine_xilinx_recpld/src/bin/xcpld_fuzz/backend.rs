@@ -273,7 +273,7 @@ fn iostd(std: Iostd) -> String {
     .to_string()
 }
 
-impl<'a> Backend for CpldBackend<'a> {
+impl Backend for CpldBackend<'_> {
     type Key = Key;
     type Value = Value;
     type MultiValue = MultiValue;
