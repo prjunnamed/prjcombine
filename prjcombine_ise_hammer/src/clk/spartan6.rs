@@ -4,12 +4,12 @@ use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_spartan6::grid::Gts;
-use prjcombine_types::TileItemKind;
+use prjcombine_types::{TileItem, TileItemKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
+    backend::{FeatureBit, IseBackend},
     diff::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
@@ -1173,5 +1173,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
         ctx.tiledb
             .insert(tile, bel, "PCI_CE_DELAY", xlat_enum(diffs));
+    }
+    for (tile, frame, bit, target) in [
+        // used in CLEXL (incl. spine) and DSP columns; also used on PCIE sides and left GTP side
+        ("HCLK_CLEXL", 16, 0, 21),
+        ("HCLK_CLEXL", 17, 0, 22),
+        ("HCLK_CLEXL", 18, 0, 23),
+        ("HCLK_CLEXL", 19, 0, 24),
+        ("HCLK_CLEXL", 16, 1, 26),
+        ("HCLK_CLEXL", 17, 1, 27),
+        ("HCLK_CLEXL", 18, 1, 28),
+        ("HCLK_CLEXL", 19, 1, 29),
+        // used in CLEXM columns
+        ("HCLK_CLEXM", 16, 0, 21),
+        ("HCLK_CLEXM", 17, 0, 22),
+        ("HCLK_CLEXM", 18, 0, 24),
+        ("HCLK_CLEXM", 19, 0, 25),
+        ("HCLK_CLEXM", 16, 1, 27),
+        ("HCLK_CLEXM", 17, 1, 28),
+        ("HCLK_CLEXM", 18, 1, 29),
+        ("HCLK_CLEXM", 19, 1, 30),
+        // used in IOI columns
+        ("HCLK_IOI", 16, 0, 25),
+        ("HCLK_IOI", 18, 0, 23),
+        ("HCLK_IOI", 19, 0, 24),
+        ("HCLK_IOI", 16, 1, 21),
+        ("HCLK_IOI", 17, 1, 27),
+        ("HCLK_IOI", 18, 1, 28),
+        ("HCLK_IOI", 19, 1, 29),
+        // used on right GTP side
+        ("HCLK_GTP", 16, 0, 25),
+        ("HCLK_GTP", 17, 0, 22),
+        ("HCLK_GTP", 18, 0, 23),
+        ("HCLK_GTP", 19, 0, 24),
+        // BRAM columns do not have masking
+    ] {
+        ctx.tiledb.insert(
+            tile,
+            "GLUTMASK",
+            format!("FRAME{target}"),
+            TileItem::from_bit(FeatureBit::new(0, frame, bit), false),
+        )
     }
 }

@@ -37,6 +37,34 @@ Bitstream — ``HCLK``
    :file: ../gen/tile-xc6s-HCLK.html
 
 
+Bitstream — ``HCLK_CLEXL``
+==========================
+
+.. raw:: html
+   :file: ../gen/tile-xc6s-HCLK_CLEXL.html
+
+
+Bitstream — ``HCLK_CLEXM``
+==========================
+
+.. raw:: html
+   :file: ../gen/tile-xc6s-HCLK_CLEXM.html
+
+
+Bitstream — ``HCLK_IOI``
+========================
+
+.. raw:: html
+   :file: ../gen/tile-xc6s-HCLK_IOI.html
+
+
+Bitstream — ``HCLK_GTP``
+========================
+
+.. raw:: html
+   :file: ../gen/tile-xc6s-HCLK_GTP.html
+
+
 Bitstream — ``HCLK_ROW``
 ========================
 
