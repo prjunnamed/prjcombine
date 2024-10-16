@@ -443,10 +443,12 @@ pub fn add_fuzzers<'a>(
 
         fuzz_enum!(ctx, "OUTFFTYPE", ["#FF", "#LATCH", "DDR"], [
             (mode "OLOGICE1"),
+            (attr "TFFTYPE", ""),
             (pin "OQ")
         ]);
         fuzz_enum!(ctx, "TFFTYPE", ["#FF", "#LATCH", "DDR"], [
             (mode "OLOGICE1"),
+            (attr "OUTFFTYPE", ""),
             (pin "TQ")
         ]);
 

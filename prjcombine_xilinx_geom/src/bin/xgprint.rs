@@ -75,7 +75,7 @@ mod xc4k {
 mod xc5200 {
     use itertools::Itertools;
     use prjcombine_xc5200::{
-        bond::{Bond, BondPin},
+        bond::{Bond, BondPin, CfgPin},
         grid::Grid,
     };
 
@@ -84,6 +84,15 @@ mod xc5200 {
     pub fn print_grid(grid: &Grid) {
         println!("\tKIND: Xc5200");
         println!("\tDIMS: {c}×{r}", c = grid.columns, r = grid.rows);
+        println!("\tCFG PINS:");
+        for (k, v) in &grid.cfg_io {
+            println!(
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
+                x = v.col,
+                y = v.row,
+                b = v.iob
+            );
+        }
     }
 
     pub fn print_bond(bond: &Bond) {
@@ -92,6 +101,12 @@ mod xc5200 {
             print!("\t\t{pin:4}: ");
             match pad {
                 BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
+                BondPin::Nc => print!("NC"),
+                BondPin::Gnd => print!("GND"),
+                BondPin::Vcc => print!("VCC"),
+                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
+                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
+                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
             }
             println!();
         }

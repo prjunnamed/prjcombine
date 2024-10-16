@@ -9,5 +9,6 @@ pub fn make_grid(rd: &Part) -> Grid {
     Grid {
         columns: int.cols.len(),
         rows: int.rows.len(),
+        cfg_io: Default::default(),
     }
 }

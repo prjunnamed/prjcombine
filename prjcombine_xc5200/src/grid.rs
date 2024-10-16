@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityId};
@@ -10,6 +12,27 @@ entity_id! {
 pub struct Grid {
     pub columns: usize,
     pub rows: usize,
+    pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SharedCfgPin {
+    Tck,
+    Tdi,
+    Tms,
+    Tdo,
+    M0,
+    M1,
+    M2,
+    Addr(u8),
+    Data(u8),
+    Ldc,
+    Hdc,
+    InitB,
+    Cs0B,
+    RsB,
+    Dout,
+    BusyB,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
-    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
@@ -1174,6 +1174,31 @@ impl Expander<'_, '_> {
                     continue;
                 }
                 for minor in 0..width {
+                    let mut mask_mode = [FrameMaskMode::None; 4];
+                    if cd == ColumnKind::Gt && minor == 19 {
+                        mask_mode = [FrameMaskMode::DrpV4; 4];
+                    }
+                    if cd == ColumnKind::Cfg {
+                        for &(row, kind) in &self.grid.rows_cfg {
+                            if self.grid.row_to_reg(row) == reg {
+                                let idx = row.to_idx() / 4 % 4;
+                                match kind {
+                                    CfgRowKind::Dcm => {
+                                        if matches!(minor, 19 | 20) {
+                                            mask_mode[idx] = FrameMaskMode::DrpV4;
+                                        }
+                                    }
+                                    CfgRowKind::Ccm => (),
+                                    CfgRowKind::Sysmon => {
+                                        if matches!(minor, 19 | 20 | 21 | 24 | 25 | 26 | 27 | 28) {
+                                            mask_mode[idx] = FrameMaskMode::All;
+                                            mask_mode[idx + 1] = FrameMaskMode::All;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
@@ -1181,6 +1206,7 @@ impl Expander<'_, '_> {
                             major,
                             minor,
                         },
+                        mask_mode: mask_mode.into_iter().collect(),
                     });
                 }
                 major += 1;
@@ -1194,6 +1220,7 @@ impl Expander<'_, '_> {
                                 major,
                                 minor,
                             },
+                            mask_mode: [FrameMaskMode::None; 4].into_iter().collect(),
                         });
                     }
                     major += 1;
@@ -1208,6 +1235,11 @@ impl Expander<'_, '_> {
                 }
                 self.frames.col_frame[reg][col] = self.frame_info.len();
                 for minor in 0..20 {
+                    let mask_mode = if minor == 19 {
+                        FrameMaskMode::BramV4
+                    } else {
+                        FrameMaskMode::None
+                    };
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 1,
@@ -1215,6 +1247,7 @@ impl Expander<'_, '_> {
                             major,
                             minor,
                         },
+                        mask_mode: [mask_mode; 4].into_iter().collect(),
                     });
                 }
                 major += 1;
@@ -1235,6 +1268,7 @@ impl Expander<'_, '_> {
                             major,
                             minor,
                         },
+                        mask_mode: [FrameMaskMode::All; 4].into_iter().collect(),
                     });
                 }
                 major += 1;

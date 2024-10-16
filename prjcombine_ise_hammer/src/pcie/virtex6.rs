@@ -1,7 +1,8 @@
 use prjcombine_hammer::Session;
+use prjcombine_types::TileItem;
 
 use crate::{
-    backend::IseBackend,
+    backend::{FeatureBit, IseBackend},
     diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -284,6 +285,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "PCIE";
     let bel = "PCIE";
+
+    fn pcie_drp_bit(reg: usize, bit: usize) -> FeatureBit {
+        let tile = reg / 6;
+        let frame = 26 + (bit & 1);
+        let bit = (bit >> 1) | (reg % 6) << 3;
+        FeatureBit::new(tile, frame, bit)
+    }
+    for reg in 0..0x78 {
+        ctx.tiledb.insert(
+            tile,
+            bel,
+            format!("DRP{reg:02X}"),
+            TileItem::from_bitvec((0..16).map(|bit| pcie_drp_bit(reg, bit)).collect(), false),
+        );
+    }
+
     ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &attr in PCIE_BOOL_ATTRS {
         ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");

@@ -1,7 +1,8 @@
 use prjcombine_hammer::Session;
+use prjcombine_types::TileItem;
 
 use crate::{
-    backend::IseBackend,
+    backend::{FeatureBit, IseBackend},
     diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -631,11 +632,7 @@ const PCIE3_DEC_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    for tile in ["PCIE_L", "PCIE_R"] {
-        let Some(ctx) = FuzzCtx::try_new(session, backend, tile, "PCIE", TileBits::MainAuto) else {
-            continue;
-        };
-
+    if let Some(ctx) = FuzzCtx::try_new(session, backend, "PCIE", "PCIE", TileBits::MainAuto) {
         fuzz_one!(ctx, "PRESENT", "1", [], [(mode "PCIE_2_1")]);
         // always appears in left column even when DRP is in right column — bug or intentional?
         let extras = vec![ExtraFeature::new(
@@ -683,11 +680,25 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut got_pcie = false;
-    for tile in ["PCIE_L", "PCIE_R"] {
-        if !ctx.has_tile(tile) {
-            continue;
-        }
+    if ctx.has_tile("PCIE") {
+        let tile = "PCIE";
         let bel = "PCIE";
+
+        fn pcie_drp_bit(reg: usize, bit: usize) -> FeatureBit {
+            let tile = reg / 6;
+            let frame = 28 + (bit & 1);
+            let bit = (bit >> 1) | (reg % 6) << 3;
+            FeatureBit::new(tile, frame, bit)
+        }
+        for reg in 0..0x96 {
+            ctx.tiledb.insert(
+                tile,
+                bel,
+                format!("DRP{reg:02X}"),
+                TileItem::from_bitvec((0..16).map(|bit| pcie_drp_bit(reg, bit)).collect(), false),
+            );
+        }
+
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.state
             .get_diff(tile, bel, "DRP_MASK", "1")

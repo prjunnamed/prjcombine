@@ -244,6 +244,7 @@ impl Grid {
                         major: 0,
                         minor: minor as u32,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
             if col == self.col_mid() {
@@ -256,6 +257,7 @@ impl Grid {
                         major: 0,
                         minor: minor as u32,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
         }

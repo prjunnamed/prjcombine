@@ -2,7 +2,7 @@ use bimap::BiHashMap;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
-    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -785,12 +785,6 @@ impl DieExpander<'_, '_, '_> {
                 }
             }
             let mut crds = vec![];
-            for dy in 0..25 {
-                crds.push((pcie2.col, pcie2.row + dy));
-            }
-            for dy in 0..25 {
-                crds.push((pcie2.col + 3, pcie2.row + dy));
-            }
             let kind;
             let tkb;
             let tkt;
@@ -804,6 +798,12 @@ impl DieExpander<'_, '_, '_> {
                     sy = ply;
                     ply += 1;
                     sx = 0;
+                    for dy in 0..25 {
+                        crds.push((pcie2.col + 3, pcie2.row + dy));
+                    }
+                    for dy in 0..25 {
+                        crds.push((pcie2.col, pcie2.row + dy));
+                    }
                 }
                 Pcie2Kind::Right => {
                     tkb = "PCIE_BOT";
@@ -812,6 +812,12 @@ impl DieExpander<'_, '_, '_> {
                     sy = pry;
                     pry += 1;
                     sx = usize::from(has_pcie2_left);
+                    for dy in 0..25 {
+                        crds.push((pcie2.col, pcie2.row + dy));
+                    }
+                    for dy in 0..25 {
+                        crds.push((pcie2.col + 3, pcie2.row + dy));
+                    }
                 }
             }
             let x = self.rxlut[pcie2.col] + 2;
@@ -820,7 +826,7 @@ impl DieExpander<'_, '_, '_> {
             let name_t = format!("{tkt}_X{x}Y{y}", y = y + 20);
             let node = self.die.add_xnode(
                 crds[0],
-                self.db.get_node(kind),
+                self.db.get_node("PCIE"),
                 &[&name_b, &name_t],
                 self.db.get_node_naming(kind),
                 &crds,
@@ -2068,7 +2074,7 @@ impl DieExpander<'_, '_, '_> {
             self.frames.bram_frame.push(EntityPartVec::new());
         }
         for &reg in &regs {
-            for (col, cd) in &self.grid.columns {
+            for (col, &cd) in &self.grid.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 if let Some(gtcol) = self.grid.get_col_gt(col) {
                     if gtcol.regs[reg].is_some()
@@ -2077,6 +2083,13 @@ impl DieExpander<'_, '_, '_> {
                     {
                         self.frames.col_width[reg].push(32);
                         for minor in 0..32 {
+                            let mut mask_mode = [FrameMaskMode::None; 2];
+                            if matches!(minor, 28..32) {
+                                mask_mode = [
+                                    FrameMaskMode::DrpHclk(24, 13),
+                                    FrameMaskMode::DrpHclk(25, 13),
+                                ];
+                            }
                             self.frame_info.push(FrameInfo {
                                 addr: FrameAddr {
                                     typ: 0,
@@ -2088,6 +2101,7 @@ impl DieExpander<'_, '_, '_> {
                                     major: col.to_idx() as u32,
                                     minor,
                                 },
+                                mask_mode: mask_mode.into_iter().collect(),
                             });
                         }
                         break;
@@ -2106,6 +2120,59 @@ impl DieExpander<'_, '_, '_> {
                 };
                 self.frames.col_width[reg].push(width as usize);
                 for minor in 0..width {
+                    let mut mask_mode = [FrameMaskMode::None; 2];
+                    for gt in &self.grid.cols_gt {
+                        if gt.col == col && gt.regs[reg].is_some() && matches!(minor, 28..32) {
+                            mask_mode = [
+                                FrameMaskMode::DrpHclk(24, 13),
+                                FrameMaskMode::DrpHclk(25, 13),
+                            ];
+                        }
+                    }
+                    if cd == ColumnKind::Cmt && matches!(minor, 28..30) {
+                        mask_mode = [
+                            FrameMaskMode::CmtDrpHclk(24, 13),
+                            FrameMaskMode::CmtDrpHclk(25, 13),
+                        ];
+                    }
+                    if cd == ColumnKind::Cfg && matches!(minor, 28..30) && reg == self.grid.reg_cfg
+                    {
+                        mask_mode[1] = FrameMaskMode::DrpHclk(25, 13);
+                    }
+                    for hole in &self.grid.holes_pcie2 {
+                        match hole.kind {
+                            Pcie2Kind::Left => {
+                                if self.grid.row_reg_bot(reg) == hole.row
+                                    && col == hole.col + 3
+                                    && matches!(minor, 28..30)
+                                {
+                                    mask_mode[0] = FrameMaskMode::PcieLeftDrpHclk(24, 13);
+                                }
+                            }
+                            Pcie2Kind::Right => {
+                                if self.grid.row_reg_bot(reg) == hole.row
+                                    && col == hole.col
+                                    && matches!(minor, 28..30)
+                                {
+                                    mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
+                                }
+                            }
+                        }
+                    }
+                    for &(hcol, hrow) in &self.grid.holes_pcie3 {
+                        if self.grid.row_reg_hclk(reg) == hrow + 50
+                            && col == hcol + 4
+                            && matches!(minor, 28..30)
+                        {
+                            mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
+                        }
+                        if self.grid.row_reg_hclk(reg) == hrow
+                            && col == hcol + 4
+                            && matches!(minor, 28..30)
+                        {
+                            mask_mode[1] = FrameMaskMode::DrpHclk(24, 13);
+                        }
+                    }
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
@@ -2117,6 +2184,7 @@ impl DieExpander<'_, '_, '_> {
                             major: col.to_idx() as u32,
                             minor,
                         },
+                        mask_mode: mask_mode.into_iter().collect(),
                     });
                 }
             }
@@ -2147,6 +2215,7 @@ impl DieExpander<'_, '_, '_> {
                             major,
                             minor,
                         },
+                        mask_mode: [FrameMaskMode::All; 2].into_iter().collect(),
                     });
                 }
                 major += 1;

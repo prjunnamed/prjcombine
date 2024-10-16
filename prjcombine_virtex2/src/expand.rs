@@ -36,7 +36,7 @@ struct Expander<'a, 'b> {
     bram_frame: EntityPartVec<ColId, usize>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn is_hole(&self, col: ColId, row: RowId) -> bool {
         for hole in &self.holes {
             if hole.contains(col, row) {
@@ -3514,6 +3514,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     major,
                     minor,
                 },
+                mask_mode: [].into_iter().collect(),
             });
         }
         major += 1;
@@ -3527,6 +3528,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     major,
                     minor,
                 },
+                mask_mode: [].into_iter().collect(),
             });
         }
         major += 1;
@@ -3545,6 +3547,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         major,
                         minor,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
             major += 1;
@@ -3558,6 +3561,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                     major,
                     minor,
                 },
+                mask_mode: [].into_iter().collect(),
             });
         }
 
@@ -3576,6 +3580,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         major,
                         minor,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
             major += 1;
@@ -3595,6 +3600,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                         major,
                         minor,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
             major += 1;

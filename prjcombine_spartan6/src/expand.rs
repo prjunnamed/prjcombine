@@ -2391,6 +2391,7 @@ impl Expander<'_, '_> {
                         major,
                         minor: minor as u32,
                     },
+                    mask_mode: [].into_iter().collect(),
                 });
             }
             major += 1;
@@ -2404,6 +2405,7 @@ impl Expander<'_, '_> {
                             major,
                             minor: minor as u32,
                         },
+                        mask_mode: [].into_iter().collect(),
                     });
                 }
                 major += 1;
@@ -2418,6 +2420,7 @@ impl Expander<'_, '_> {
                                 major: bram_major,
                                 minor,
                             },
+                            mask_mode: [].into_iter().collect(),
                         });
                     }
                     bram_major += 1;

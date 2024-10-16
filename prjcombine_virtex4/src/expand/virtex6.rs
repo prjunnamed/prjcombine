@@ -3,7 +3,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
-    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -39,7 +39,7 @@ struct Expander<'a, 'b> {
     sysmon: Vec<SysMon>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
         for hole in &self.site_holes {
             if hole.contains(col, row) {
@@ -1089,7 +1089,7 @@ impl<'a, 'b> Expander<'a, 'b> {
             self.frames.bram_frame.push(EntityPartVec::new());
         }
         for &reg in &regs {
-            for (col, cd) in &self.grid.columns {
+            for (col, &cd) in &self.grid.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLL => 36,
@@ -1103,6 +1103,29 @@ impl<'a, 'b> Expander<'a, 'b> {
                 };
                 self.frames.col_width[reg].push(width as usize);
                 for minor in 0..width {
+                    let mut mask_mode = [FrameMaskMode::None; 2];
+                    if cd == ColumnKind::Gt && matches!(minor, 28 | 29) {
+                        mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
+                        mask_mode[1] = FrameMaskMode::DrpHclk(25, 13);
+                    }
+                    if cd == ColumnKind::Cfg && matches!(minor, 26 | 27) {
+                        mask_mode[0] = FrameMaskMode::CmtDrpHclk(24, 13);
+                        mask_mode[1] = FrameMaskMode::CmtDrpHclk(25, 13);
+                    }
+                    if cd == ColumnKind::Cfg && matches!(minor, 34 | 35) && reg == self.grid.reg_cfg
+                    {
+                        mask_mode[0] = FrameMaskMode::DrpHclk(23, 13);
+                        mask_mode[1] = FrameMaskMode::DrpHclk(23, 13);
+                    }
+                    if let Some(ref hard) = self.grid.col_hard {
+                        if col == hard.col
+                            && hard.rows_pcie.contains(&self.grid.row_reg_bot(reg))
+                            && matches!(minor, 26 | 27)
+                        {
+                            mask_mode[0] = FrameMaskMode::DrpHclk(24, 13);
+                        }
+                    }
+
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
@@ -1110,6 +1133,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             major: col.to_idx() as u32,
                             minor,
                         },
+                        mask_mode: mask_mode.into_iter().collect(),
                     });
                 }
             }
@@ -1129,6 +1153,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             major,
                             minor,
                         },
+                        mask_mode: [FrameMaskMode::All; 2].into_iter().collect(),
                     });
                 }
                 major += 1;

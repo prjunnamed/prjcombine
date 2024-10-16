@@ -3,9 +3,20 @@ use std::collections::BTreeMap;
 
 use crate::grid::IoCoord;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum CfgPin {
+    Cclk,
+    Done,
+    ProgB,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum BondPin {
     Io(IoCoord),
+    Nc,
+    Gnd,
+    Vcc,
+    Cfg(CfgPin),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -23,10 +34,8 @@ impl Bond {
     pub fn expand(&self) -> ExpandedBond {
         let mut ios = BTreeMap::new();
         for (name, pad) in &self.pins {
-            match *pad {
-                BondPin::Io(io) => {
-                    ios.insert(io, name.clone());
-                }
+            if let BondPin::Io(io) = *pad {
+                ios.insert(io, name.clone());
             }
         }
         ExpandedBond { bond: self, ios }

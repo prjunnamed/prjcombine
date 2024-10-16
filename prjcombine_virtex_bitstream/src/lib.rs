@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use bitvec::prelude::*;
 use enum_map::{Enum, EnumMap};
 use prjcombine_int::grid::DieId;
@@ -279,9 +280,28 @@ pub struct FrameAddr {
     pub minor: u32,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum FrameMaskMode {
+    // no masked bits; everything is read back
+    None,
+    // bits 1-16 of each 20-bit group masked iff bit 18 of the group is set
+    DrpV4,
+    // INIT_[AB] bits masked
+    BramV4,
+    // all bits masked
+    All,
+    // whole frame masked iff given (frame, bit) bit in HCLK tile is set
+    DrpHclk(usize, usize),
+    // likewise, but the mask bit is 3 major columns to the left
+    PcieLeftDrpHclk(usize, usize),
+    // whole frame except two tiles nearest to HCLK masked iff given (frame, bit) bit in HCLK tile is set
+    CmtDrpHclk(usize, usize),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FrameInfo {
     pub addr: FrameAddr,
+    pub mask_mode: ArrayVec<FrameMaskMode, 4>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]

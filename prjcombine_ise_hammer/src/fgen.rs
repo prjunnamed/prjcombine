@@ -4422,9 +4422,6 @@ impl TileBits {
                 };
                 let mut res = vec![];
                 for i in 0..50 {
-                    res.push(edev.btile_main(die, col, row + i));
-                }
-                for i in 0..50 {
                     res.push(edev.btile_main(die, col + 4, row + i));
                 }
                 res
@@ -5100,7 +5097,11 @@ impl ExtraFeatureKind {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let col = loc.1 - 1;
+                let col = if loc.1.to_idx() % 2 == 0 {
+                    loc.1 - 4
+                } else {
+                    loc.1 - 1
+                };
                 let row = loc.2 + edev.grids[loc.0].rows_per_reg() / 2;
                 vec![vec![
                     edev.btile_hclk(loc.0, col, row),

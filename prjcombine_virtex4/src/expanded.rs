@@ -128,7 +128,7 @@ pub struct Gtz {
     pub pads_rx: Vec<(String, String)>,
 }
 
-impl<'a> ExpandedDevice<'a> {
+impl ExpandedDevice<'_> {
     pub fn adjust_vivado(&mut self) {
         if self.kind == GridKind::Virtex7 {
             let lvb6 = self.egrid.db.wires.get("LVB.6").unwrap().0;

@@ -1,6 +1,7 @@
 use crate::packet::{Packet, PacketParser};
 use crate::{
-    Bitstream, BitstreamGeom, BitstreamMode, DeviceKind, DieBitstream, FrameAddr, KeyData, Reg,
+    Bitstream, BitstreamGeom, BitstreamMode, DeviceKind, DieBitstream, FrameAddr, FrameMaskMode,
+    KeyData, Reg,
 };
 use arrayref::array_ref;
 use bitvec::prelude::*;
@@ -1823,6 +1824,339 @@ fn parse_virtex4_bitstream(
     }
 }
 
+fn check_virtex4_ecc(bs: &Bitstream) {
+    for (die, dbs) in &bs.die {
+        for (fi, present) in dbs.frame_present.iter().enumerate() {
+            if !*present {
+                continue;
+            }
+            let fdata = dbs.frame(fi);
+            let finfo = &dbs.frame_info[fi];
+            let mut ecc: u32 = 0;
+            let mut recc: u32 = 0;
+            let flip = finfo.addr.region < 0;
+            for (idx, bit) in fdata.iter().enumerate() {
+                if !*bit {
+                    continue;
+                }
+                let mask = match idx {
+                    0..0x280 if !flip => finfo.mask_mode[idx / 0x140],
+                    0..0x280 if flip => finfo.mask_mode[3 - idx / 0x140],
+                    0x280..0x28c => {
+                        recc ^= 1 << (idx - 0x280);
+                        continue;
+                    }
+                    0x28c..0x2a0 => FrameMaskMode::None,
+                    0x2a0..0x520 if !flip => finfo.mask_mode[(idx - 0x20) / 0x140],
+                    0x2a0..0x520 if flip => finfo.mask_mode[3 - (idx - 0x20) / 0x140],
+                    _ => unreachable!(),
+                };
+                let idx = idx as u32;
+                match mask {
+                    FrameMaskMode::None => (),
+                    FrameMaskMode::BramV4 => {
+                        let eidx = if flip { 0x520 - 1 - idx } else { idx };
+                        let eidx = if eidx < 0x280 { eidx } else { eidx - 0x20 };
+                        let eidx = eidx % 0x140;
+                        if matches!(
+                            eidx,
+                            8 | 12
+                                | 14
+                                | 19
+                                | 21
+                                | 26
+                                | 27
+                                | 32
+                                | 35
+                                | 39
+                                | 41
+                                | 46
+                                | 48
+                                | 52
+                                | 55
+                                | 59
+                                | 61
+                                | 66
+                                | 68
+                                | 72
+                                | 74
+                                | 79
+                                | 81
+                                | 86
+                                | 88
+                                | 92
+                                | 95
+                                | 99
+                                | 101
+                                | 106
+                                | 108
+                                | 112
+                                | 114
+                                | 119
+                                | 121
+                                | 126
+                                | 200
+                                | 204
+                                | 207
+                                | 211
+                                | 213
+                                | 218
+                                | 220
+                                | 224
+                                | 227
+                                | 231
+                                | 233
+                                | 237
+                                | 240
+                                | 244
+                                | 247
+                                | 251
+                                | 253
+                                | 258
+                                | 260
+                                | 264
+                                | 266
+                                | 271
+                                | 273
+                                | 277
+                                | 280
+                                | 284
+                                | 287
+                                | 291
+                                | 293
+                                | 298
+                                | 300
+                                | 304
+                                | 306
+                                | 311
+                                | 313
+                                | 318
+                        ) {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::DrpV4 => {
+                        let eidx = if flip { 0x520 - 1 - idx } else { idx };
+                        let eidx = if eidx < 0x280 { eidx } else { eidx - 0x20 };
+                        if matches!(eidx % 20, 1..17) {
+                            let midx = eidx / 20 * 20 + 18;
+                            let midx = if midx < 0x280 { midx } else { midx + 0x20 };
+                            let midx = if flip { 0x520 - 1 - midx } else { midx };
+                            if fdata[midx as usize] {
+                                continue;
+                            }
+                        }
+                    }
+                    FrameMaskMode::All => continue,
+                    _ => todo!(),
+                }
+                let code = if idx < 0x140 {
+                    0x2c0 + idx
+                } else {
+                    0x420 + (idx - 0x140)
+                };
+                ecc ^= 0x800 | code;
+            }
+            for i in 0..11 {
+                if (ecc & (1 << i)) != 0 {
+                    ecc ^= 0x800;
+                }
+            }
+            if ecc != recc {
+                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+            }
+        }
+    }
+}
+
+fn check_virtex5_ecc(bs: &Bitstream) {
+    for (die, dbs) in &bs.die {
+        for (fi, present) in dbs.frame_present.iter().enumerate() {
+            if !*present {
+                continue;
+            }
+            let fdata = dbs.frame(fi);
+            let finfo = &dbs.frame_info[fi];
+            let mut ecc: u32 = 0;
+            let mut recc: u32 = 0;
+            for (idx, bit) in fdata.iter().enumerate() {
+                if !*bit {
+                    continue;
+                }
+                let mask = match idx {
+                    0..0x280 => finfo.mask_mode[0],
+                    0x280..0x28c => {
+                        recc ^= 1 << (idx - 0x280);
+                        continue;
+                    }
+                    0x28c..0x2a0 => FrameMaskMode::None,
+                    0x2a0..0x520 => finfo.mask_mode[1],
+                    _ => unreachable!(),
+                };
+                let idx = idx as u32;
+                match mask {
+                    FrameMaskMode::None => (),
+                    FrameMaskMode::DrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) + cframe;
+                        if dbs.frame(cfi)[0x280 + cbit] {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::All => continue,
+                    _ => todo!(),
+                }
+                let code = if idx < 0x140 {
+                    0x2c0 + idx
+                } else {
+                    0x420 + (idx - 0x140)
+                };
+                ecc ^= 0x800 | code;
+            }
+            for i in 0..11 {
+                if (ecc & (1 << i)) != 0 {
+                    ecc ^= 0x800;
+                }
+            }
+            if ecc != recc {
+                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+            }
+        }
+    }
+}
+
+fn check_virtex6_ecc(bs: &Bitstream) {
+    for (die, dbs) in &bs.die {
+        for (fi, present) in dbs.frame_present.iter().enumerate() {
+            if !*present {
+                continue;
+            }
+            let fdata = dbs.frame(fi);
+            let finfo = &dbs.frame_info[fi];
+            let mut ecc: u32 = 0;
+            let mut recc: u32 = 0;
+            for (idx, bit) in fdata.iter().enumerate() {
+                if !*bit {
+                    continue;
+                }
+                let mask = match idx {
+                    0..0x500 => finfo.mask_mode[0],
+                    0x500..0x50d => {
+                        recc ^= 1 << (idx - 0x500);
+                        continue;
+                    }
+                    0x50d..0x520 => FrameMaskMode::None,
+                    0x520..0xa20 => finfo.mask_mode[1],
+                    _ => unreachable!(),
+                };
+                let idx = idx as u32;
+                match mask {
+                    FrameMaskMode::None => (),
+                    FrameMaskMode::DrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) + cframe;
+                        if dbs.frame(cfi)[0x500 + cbit] {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::CmtDrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) + cframe;
+                        if dbs.frame(cfi)[0x500 + cbit]
+                            && !matches!(idx, 0..0x80 | 0x480..0x5a0 | 0x9a0..0xa20)
+                        {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::All => continue,
+                    _ => todo!(),
+                }
+                let code = if idx < 0x240 {
+                    0x5c0 + idx
+                } else {
+                    0x820 + (idx - 0x240)
+                };
+                ecc ^= 0x1000 | code;
+            }
+            for i in 0..12 {
+                if (ecc & (1 << i)) != 0 {
+                    ecc ^= 0x1000;
+                }
+            }
+            if ecc != recc {
+                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+            }
+        }
+    }
+}
+
+fn check_virtex7_ecc(bs: &Bitstream) {
+    for (die, dbs) in &bs.die {
+        for (fi, present) in dbs.frame_present.iter().enumerate() {
+            if !*present {
+                continue;
+            }
+            let fdata = dbs.frame(fi);
+            let finfo = &dbs.frame_info[fi];
+            let mut ecc: u32 = 0;
+            let mut recc: u32 = 0;
+            for (idx, bit) in fdata.iter().enumerate() {
+                if !*bit {
+                    continue;
+                }
+                let mask = match idx {
+                    0..0x640 => finfo.mask_mode[0],
+                    0x640..0x64d => {
+                        recc ^= 1 << (idx - 0x640);
+                        continue;
+                    }
+                    0x64d..0x660 => FrameMaskMode::None,
+                    0x660..0xca0 => finfo.mask_mode[1],
+                    _ => unreachable!(),
+                };
+                let idx = idx as u32;
+                match mask {
+                    FrameMaskMode::None => (),
+                    FrameMaskMode::DrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) + cframe;
+                        if dbs.frame(cfi)[0x640 + cbit] {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::PcieLeftDrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) - 28 - 2 * 36 + cframe;
+                        assert_eq!(dbs.frame_info[cfi].addr.minor, cframe as u32);
+                        if dbs.frame(cfi)[0x640 + cbit] {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::CmtDrpHclk(cframe, cbit) => {
+                        let cfi = fi - (finfo.addr.minor as usize) + cframe;
+                        if dbs.frame(cfi)[0x640 + cbit] && matches!(idx, 0..0x600 | 0x6a0..0xca0) {
+                            continue;
+                        }
+                    }
+                    FrameMaskMode::All => continue,
+                    _ => todo!(),
+                }
+                let code = if idx < 0xe0 {
+                    0x320 + idx
+                } else if idx < 0x4c0 {
+                    0x420 + (idx - 0xe0)
+                } else {
+                    0x820 + (idx - 0x4c0)
+                };
+                ecc ^= 0x1000 | code;
+            }
+            for i in 0..12 {
+                if (ecc & (1 << i)) != 0 {
+                    ecc ^= 0x1000;
+                }
+            }
+            if ecc != recc {
+                eprintln!("ECC MISMATCH at frame {die}.{ft}.{fr}.{fmaj}.{fmin}: computed {ecc:04x} found {recc:04x}", ft = finfo.addr.typ, fr=finfo.addr.region, fmaj = finfo.addr.major, fmin = finfo.addr.minor);
+            }
+        }
+    }
+}
+
 fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8], key: &KeyData) {
     let packets = PacketParser::new(bs.kind, data, key);
     for packet in packets {
@@ -1861,8 +2195,21 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),
         DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data, key),
-        DeviceKind::Virtex4 | DeviceKind::Virtex5 | DeviceKind::Virtex6 | DeviceKind::Virtex7 => {
-            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0)
+        DeviceKind::Virtex4 => {
+            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            check_virtex4_ecc(&res);
+        }
+        DeviceKind::Virtex5 => {
+            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            check_virtex5_ecc(&res);
+        }
+        DeviceKind::Virtex6 => {
+            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            check_virtex6_ecc(&res);
+        }
+        DeviceKind::Virtex7 => {
+            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            check_virtex7_ecc(&res);
         }
         DeviceKind::Ultrascale | DeviceKind::UltrascalePlus => {
             parse_ultrascale_bitstream(&res, data, key)

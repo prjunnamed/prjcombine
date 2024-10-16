@@ -2,7 +2,7 @@ use assert_matches::assert_matches;
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
-    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
+    BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -32,7 +32,7 @@ struct Expander<'a, 'b> {
     sysmon: Vec<SysMon>,
 }
 
-impl<'a, 'b> Expander<'a, 'b> {
+impl Expander<'_, '_> {
     fn is_site_hole(&self, col: ColId, row: RowId) -> bool {
         for hole in &self.site_holes {
             if hole.contains(col, row) {
@@ -1127,7 +1127,7 @@ impl<'a, 'b> Expander<'a, 'b> {
         }
         for &reg in &regs {
             let mut major = 0;
-            for (col, cd) in &self.grid.columns {
+            for (col, &cd) in &self.grid.columns {
                 self.frames.col_frame[reg].push(self.frame_info.len());
                 let width = match cd {
                     ColumnKind::ClbLL => 36,
@@ -1140,6 +1140,25 @@ impl<'a, 'b> Expander<'a, 'b> {
                 };
                 self.frames.col_width[reg].push(width as usize);
                 for minor in 0..width {
+                    let mut mask_mode = [FrameMaskMode::None; 2];
+                    if cd == ColumnKind::Gt && matches!(minor, 30 | 31) {
+                        mask_mode[0] = FrameMaskMode::DrpHclk(28, 12);
+                        mask_mode[1] = FrameMaskMode::DrpHclk(28, 12);
+                    }
+                    if cd == ColumnKind::Cfg && matches!(minor, 28 | 29) {
+                        if reg + 3 == self.grid.reg_cfg || reg == self.grid.reg_cfg + 2 {
+                            mask_mode[0] = FrameMaskMode::DrpHclk(27, 15);
+                            mask_mode[1] = FrameMaskMode::DrpHclk(27, 15);
+                        } else if reg + 2 == self.grid.reg_cfg {
+                            mask_mode[0] = FrameMaskMode::DrpHclk(27, 15);
+                        } else if reg == self.grid.reg_cfg + 1 {
+                            mask_mode[1] = FrameMaskMode::DrpHclk(27, 15);
+                        }
+                    }
+                    if cd == ColumnKind::Cfg && matches!(minor, 28..32) &&
+                         reg == self.grid.reg_cfg {
+                            mask_mode[0] = FrameMaskMode::DrpHclk(27, 15);
+                    }
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {
                             typ: 0,
@@ -1147,6 +1166,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             major,
                             minor,
                         },
+                        mask_mode: mask_mode.into_iter().collect(),
                     });
                 }
                 major += 1;
@@ -1160,6 +1180,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                                 major,
                                 minor,
                             },
+                            mask_mode: [FrameMaskMode::None; 2].into_iter().collect(),
                         });
                     }
                     major += 1;
@@ -1181,6 +1202,7 @@ impl<'a, 'b> Expander<'a, 'b> {
                             major,
                             minor,
                         },
+                        mask_mode: [FrameMaskMode::All; 2].into_iter().collect(),
                     });
                 }
                 major += 1;

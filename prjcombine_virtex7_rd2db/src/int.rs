@@ -851,36 +851,49 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
-            let nl = builder.db.get_node_naming(if kind == "PCIE_L" {
-                "INTF.PCIE_LEFT_L"
+            let (int_cols, intf_cols, intf_namings) = if kind == "PCIE_R" {
+                (
+                    [xy.x - 2, xy.x + 6],
+                    [xy.x - 1, xy.x + 5],
+                    [
+                        builder.db.get_node_naming("INTF.PCIE_R"),
+                        builder.db.get_node_naming("INTF.PCIE_L"),
+                    ],
+                )
             } else {
-                "INTF.PCIE_L"
-            });
-            let nr = builder.db.get_node_naming("INTF.PCIE_R");
+                (
+                    [xy.x + 6, xy.x - 2],
+                    [xy.x + 5, xy.x - 1],
+                    [
+                        builder.db.get_node_naming("INTF.PCIE_LEFT_L"),
+                        builder.db.get_node_naming("INTF.PCIE_R"),
+                    ],
+                )
+            };
             for dy in 0..25 {
                 int_xy.push(Coord {
-                    x: xy.x - 2,
+                    x: int_cols[0],
                     y: xy.y - 10 + dy,
                 });
                 intf_xy.push((
                     Coord {
-                        x: xy.x - 1,
+                        x: intf_cols[0],
                         y: xy.y - 10 + dy,
                     },
-                    nr,
+                    intf_namings[0],
                 ));
             }
             for dy in 0..25 {
                 int_xy.push(Coord {
-                    x: xy.x + 6,
+                    x: int_cols[1],
                     y: xy.y - 10 + dy,
                 });
                 intf_xy.push((
                     Coord {
-                        x: xy.x + 5,
+                        x: intf_cols[1],
                         y: xy.y - 10 + dy,
                     },
-                    nl,
+                    intf_namings[1],
                 ));
             }
             let t_xy = Coord {
@@ -888,7 +901,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
                 y: xy.y + 10,
             };
             builder.extract_xnode_bels_intf(
-                kind,
+                "PCIE",
                 xy,
                 &[t_xy],
                 &int_xy,
