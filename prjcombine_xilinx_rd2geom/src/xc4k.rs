@@ -8,17 +8,19 @@ use prjcombine_xc4k_rd2db::{bond, grid, int};
 use prjcombine_xc4k_rdverify::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, Option<IntDb>) {
-    let grid = grid::make_grid(rd);
+    let mut grid = grid::make_grid(rd);
     let int_db = int::make_int_db(rd);
     let mut bonds = Vec::new();
+    let mut cfg_io = core::mem::take(&mut grid.cfg_io);
     let edev = grid.expand_grid(&int_db);
     for (pkg, pins) in rd.packages.iter() {
-        let bond = bond::make_bond(&edev, pins);
+        let bond = bond::make_bond(&edev, pkg, pins, &mut cfg_io);
         bonds.push((pkg.clone(), Bond::Xc4k(bond)));
     }
     if verify {
         verify_device(&edev, rd);
     }
+    grid.cfg_io = cfg_io;
     (
         make_device(rd, Grid::Xc4k(grid), bonds, BTreeSet::new()),
         Some(int_db),

@@ -48,6 +48,15 @@ pub enum SharedCfgPin {
     Tck,
     Tdi,
     Tms,
+    Addr(u8),
+    Data(u8),
+    Ldc,
+    Hdc,
+    InitB,
+    Cs0B,
+    RsB,
+    Dout,
+    BusyB,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
