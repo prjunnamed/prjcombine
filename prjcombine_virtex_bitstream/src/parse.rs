@@ -31,67 +31,141 @@ impl Xc4000Crc {
 }
 
 fn parse_xc4000_bitstream(bs: &mut Bitstream, data: &[u8]) {
+    let kind = bs.kind;
     let bs = bs.die.first_mut().unwrap();
-    let mut crc = Xc4000Crc::new();
-    let data: &BitSlice<u8, Msb0> = BitSlice::from_slice(data);
-    assert_eq!(data[..12], bits![1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0]);
-    let mut bitlen = 0;
-    for j in 0..24 {
-        if data[35 - j] {
-            bitlen |= 1 << j;
-        }
-    }
-    assert_eq!(data[36..40], bits![1, 1, 1, 1]);
-    let mut pos = 40;
-    let frame_len = bs.frame_len;
-    let frames_num = bs.frame_info.len();
-    let mut crc_enable = false;
-    for fi in 0..frames_num {
-        assert!(!data[pos]);
-        if fi == 0 {
-            crc.feed_bit(true);
+    if data.starts_with(&[0xff, 0xff, 0xf2]) {
+        let bitlen = (data[3] as u32) << 16 | (data[4] as u32) << 8 | (data[5] as u32);
+        assert_eq!(data[6], 0xd2);
+        let mut pos = 7;
+        let frame_len = bs.frame_len;
+        let frames_num = bs.frame_info.len();
+        let start = if kind == DeviceKind::S40Xl {
+            0xff
         } else {
-            crc.feed_bit(false);
-        }
-        pos += 1;
-        let fdata = &data[pos..(pos + frame_len)];
-        let frame = bs.frame_mut(fi);
-        for (i, bit) in fdata.iter().enumerate() {
-            frame.set(i, *bit);
-            if fi == 0 && i < 2 {
-                // ??!?!?!?!?!??!
-                crc.feed_bit(fdata[0]);
-                if i == 1 {
-                    crc_enable = !*bit;
+            0xfe
+        };
+        let flen = frame_len.div_ceil(8);
+        let pad = flen * 8 - frame_len;
+        for fi in 0..frames_num {
+            assert_eq!(data[pos], start);
+            pos += 1;
+            let fdata = &data[pos..pos + flen];
+            pos += flen;
+            let frame = bs.frame_mut(fi);
+            for (i, &b) in fdata.iter().enumerate() {
+                for bit in 0..8 {
+                    let bv = (b >> bit & 1) != 0;
+                    if kind == DeviceKind::S40Xl {
+                        let bi = match bit {
+                            0 => {
+                                if i == 0 {
+                                    assert!(!bv);
+                                    continue;
+                                }
+                                bit * flen + i - 1
+                            }
+                            7 => {
+                                if i == 0 {
+                                    assert!(bv);
+                                    continue;
+                                }
+                                bit * flen + i - 2
+                            }
+                            _ => bit * flen + i - 1,
+                        };
+                        assert!(bi < frame_len);
+                        frame.set(bi, bv);
+                    } else {
+                        if bit < (8 - pad) {
+                            let bi = bit * flen + i;
+                            frame.set(bi, bv);
+                        } else {
+                            if i == 0 {
+                                assert!(bv);
+                            } else {
+                                let bi = bit * (flen - 1) + (8 - pad) + (i - 1);
+                                frame.set(bi, bv);
+                            }
+                        }
+                    }
                 }
+            }
+            assert_eq!(data[pos..pos + 6], [0xd2, 0xff, 0xd2, 0xff, 0xff, 0xff]);
+            pos += 6;
+        }
+        assert_eq!(data[pos..pos + 10], [0xff; 10]);
+        pos += 10;
+        assert_eq!(pos, data.len());
+        assert_eq!(bitlen as usize, pos * 8 - 7);
+    } else {
+        let mut crc = Xc4000Crc::new();
+        let data: &BitSlice<u8, Msb0> = BitSlice::from_slice(data);
+        assert_eq!(data[..12], bits![1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0]);
+        let mut bitlen = 0;
+        for j in 0..24 {
+            if data[35 - j] {
+                bitlen |= 1 << j;
+            }
+        }
+        assert_eq!(data[36..40], bits![1, 1, 1, 1]);
+        let mut pos = 40;
+        let frame_len = bs.frame_len;
+        let frames_num = bs.frame_info.len();
+        let mut crc_enable = false;
+        for fi in 0..frames_num {
+            assert!(!data[pos]);
+            if fi == 0 {
+                crc.feed_bit(true);
             } else {
-                crc.feed_bit(*bit);
+                crc.feed_bit(false);
+            }
+            pos += 1;
+            let fdata = &data[pos..(pos + frame_len)];
+            let frame = bs.frame_mut(fi);
+            for (i, bit) in fdata.iter().enumerate() {
+                frame.set(i, *bit);
+                if fi == 0 && i < 2 {
+                    // ??!?!?!?!?!??!
+                    crc.feed_bit(fdata[0]);
+                    if i == 1 {
+                        crc_enable = !*bit;
+                    }
+                } else {
+                    crc.feed_bit(*bit);
+                }
+            }
+            pos += frame_len;
+            let raw_crc = &data[pos..(pos + 4)];
+            pos += 4;
+            if crc_enable {
+                for bit in raw_crc {
+                    crc.feed_bit(*bit);
+                }
+                assert_eq!(crc.crc & 0xf, 0);
+            } else {
+                assert_eq!(raw_crc, bits![0, 1, 1, 0]);
+            }
+            if crc_enable && fi == frames_num - 1 {
+                for i in (frame_len - 7)..frame_len {
+                    frame.set(i, true);
+                }
+                assert_eq!(crc.crc & 0x7ff, 0);
             }
         }
-        pos += frame_len;
-        let raw_crc = &data[pos..(pos + 4)];
-        pos += 4;
-        if crc_enable {
-            for bit in raw_crc {
-                crc.feed_bit(*bit);
-            }
-            assert_eq!(crc.crc & 0xf, 0);
-        } else {
-            assert_eq!(raw_crc, bits![0, 1, 1, 0]);
+        let post = &data[pos..(pos + 8)];
+        assert_eq!(post, &bits![0, 1, 1, 1, 1, 1, 1, 1]);
+        pos += 8;
+        while pos % 8 != 0 {
+            assert!(data[pos]);
+            pos += 1;
         }
-        if crc_enable && fi == frames_num - 1 {
-            for i in (frame_len - 7)..frame_len {
-                frame.set(i, true);
-            }
-            assert_eq!(crc.crc & 0x7ff, 0);
-        }
+        assert_eq!(bitlen, pos + 1);
+        let pad = &data[pos..(pos + 8)];
+        assert_eq!(pad, &bits![1, 1, 1, 1, 1, 1, 1, 1]);
+        pos += 8;
+        assert_eq!(pos, data.len());
     }
-    let post = &data[pos..(pos + 8)];
-    assert_eq!(post, &bits![0, 1, 1, 1, 1, 1, 1, 1]);
-    pos += 8;
-    println!("END {bitlen} {pos} {l}", l = data.len());
 }
-
 struct Xc5200Crc {
     crc: u16,
 }
@@ -2190,7 +2264,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         }),
     };
     match res.kind {
-        DeviceKind::Xc4000 => parse_xc4000_bitstream(&mut res, data),
+        DeviceKind::Xc4000 | DeviceKind::S40Xl => parse_xc4000_bitstream(&mut res, data),
         DeviceKind::Xc5200 => parse_xc5200_bitstream(&mut res, data),
         DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),

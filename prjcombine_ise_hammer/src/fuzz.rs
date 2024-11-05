@@ -107,8 +107,8 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
         bits: TileBits,
     ) -> Self {
         let node_kind = backend.egrid.db.get_node(match backend.edev {
-            ExpandedDevice::Xc4k(_) => "LL",
-            ExpandedDevice::Xc5200(_) => "LL",
+            ExpandedDevice::Xc4000(_) => "CNR.BL",
+            ExpandedDevice::Xc5200(_) => "CNR.BL",
             ExpandedDevice::Virtex(_) => "CNR.BL",
             ExpandedDevice::Virtex2(edev) => match edev.grid.kind {
                 prjcombine_virtex2::grid::GridKind::Virtex2 => "LL.V2",
@@ -512,11 +512,11 @@ macro_rules! fuzz_diff_multi {
             $crate::backend::MultiValue::Lut,
         )
     };
-    ($ctx:ident, (attr_oldlut $attr:expr)) => {
+    ($ctx:ident, (attr_oldlut $attr:expr, $f:expr)) => {
         $crate::fgen::TileMultiFuzzKV::SiteAttr(
             $ctx.bel,
             $attr.to_string(),
-            $crate::backend::MultiValue::OldLut,
+            $crate::backend::MultiValue::OldLut($f),
         )
     };
     ($ctx:ident, (attr_hex $attr:expr)) => {

@@ -1,13 +1,13 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bitvec, xlat_enum_ocd, xlat_item_tile, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
@@ -615,7 +615,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "PERSIST",
         TileItem {
-            bits: vec![FeatureBit::new(0, 0, 3)],
+            bits: vec![TileBit::new(0, 0, 3)],
             kind: TileItemKind::BitVec { invert: bitvec![0] },
         },
     );
@@ -624,7 +624,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "GLUTMASK",
         TileItem {
-            bits: vec![FeatureBit::new(0, 0, 8)],
+            bits: vec![TileBit::new(0, 0, 8)],
             kind: TileItemKind::BitVec { invert: bitvec![1] },
         },
     );
@@ -633,7 +633,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "ICAP_SELECT",
         TileItem {
-            bits: vec![FeatureBit::new(0, 0, 30)],
+            bits: vec![TileBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
                     ("TOP".to_string(), bitvec![0]),

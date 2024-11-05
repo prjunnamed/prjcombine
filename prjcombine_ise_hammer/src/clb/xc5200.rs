@@ -1,8 +1,8 @@
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
@@ -19,7 +19,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
             TileBits::MainAuto,
         );
         let mode = if i % 2 == 0 { "LC5A" } else { "LC5B" };
-        fuzz_multi!(ctx, "LUT", "", 16, [(mode mode)], (attr_oldlut "LUT"));
+        fuzz_multi!(ctx, "LUT", "", 16, [(mode mode)], (attr_oldlut "LUT", 'F'));
         fuzz_one!(ctx, "FFLATCH",  "#LATCH", [
             (mode mode),
             (attr "DMUX", "F"),
@@ -109,7 +109,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "READBACK",
-            TileItem::from_bit(FeatureBit::new(0, 1, [5, 10, 23, 28][i]), false),
+            TileItem::from_bit(TileBit::new(0, 1, [5, 10, 23, 28][i]), false),
         );
     }
     for i in 0..4 {

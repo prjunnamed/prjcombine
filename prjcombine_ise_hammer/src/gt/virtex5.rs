@@ -2,15 +2,12 @@ use core::ops::Range;
 
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
-    diff::CollectorCtx,
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
 };
 
 const GT_INVPINS: &[&str] = &[
@@ -669,7 +666,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !ctx.has_tile(tile) {
             continue;
         }
-        fn drp_bit(idx: usize, bit: usize) -> FeatureBit {
+        fn drp_bit(idx: usize, bit: usize) -> TileBit {
             let tile = 5 + (idx >> 3);
             let frame = match bit & 3 {
                 0 | 3 => 31,
@@ -677,7 +674,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 _ => unreachable!(),
             };
             let bit = (bit >> 1) | (idx & 7) << 3;
-            FeatureBit::new(tile, frame, bit)
+            TileBit::new(tile, frame, bit)
         }
         for i in 0..0x50 {
             ctx.tiledb.insert(

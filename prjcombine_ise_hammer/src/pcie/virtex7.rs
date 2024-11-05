@@ -1,8 +1,8 @@
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -684,11 +684,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "PCIE";
         let bel = "PCIE";
 
-        fn pcie_drp_bit(reg: usize, bit: usize) -> FeatureBit {
+        fn pcie_drp_bit(reg: usize, bit: usize) -> TileBit {
             let tile = reg / 6;
             let frame = 28 + (bit & 1);
             let bit = (bit >> 1) | (reg % 6) << 3;
-            FeatureBit::new(tile, frame, bit)
+            TileBit::new(tile, frame, bit)
         }
         for reg in 0..0x96 {
             ctx.tiledb.insert(

@@ -8,11 +8,15 @@ use crate::{
 };
 
 pub mod virtex;
+pub mod xc4000;
 pub mod xc5200;
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
     match backend.edev {
-        ExpandedDevice::Xc4k(_) => todo!(),
+        ExpandedDevice::Xc4000(_) => {
+            xc4000::add_fuzzers(session, backend);
+            return;
+        }
         ExpandedDevice::Xc5200(_) => {
             xc5200::add_fuzzers(session, backend);
             return;
@@ -44,7 +48,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
         } else if name == "PPC.S" {
             TileBits::MainDown
         } else if name.starts_with("LLV") {
-            TileBits::LLV
+            TileBits::Llv
         } else if name.starts_with("LLH") {
             TileBits::Spine(0, 1)
         } else {
@@ -124,7 +128,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     match ctx.edev {
-        ExpandedDevice::Xc4k(_) => todo!(),
+        ExpandedDevice::Xc4000(_) => {
+            xc4000::collect_fuzzers(ctx);
+            return;
+        }
         ExpandedDevice::Xc5200(_) => {
             xc5200::collect_fuzzers(ctx);
             return;

@@ -7,6 +7,25 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use unnamed_entity::entity_id;
 
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct TileBit {
+    pub tile: usize,
+    pub frame: usize,
+    pub bit: usize,
+}
+
+impl TileBit {
+    pub fn new(tile: usize, frame: usize, bit: usize) -> Self {
+        Self { tile, frame, bit }
+    }
+}
+
+impl core::fmt::Debug for TileBit {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}.{}.{}", self.tile, self.frame, self.bit)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Tile<T> {
     pub items: BTreeMap<String, TileItem<T>>,

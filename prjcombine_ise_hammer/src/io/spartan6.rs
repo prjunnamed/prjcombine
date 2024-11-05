@@ -1,12 +1,12 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend, Key, Value},
+    backend::{IseBackend, Key, Value},
     diff::{
         extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
         xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
@@ -1495,7 +1495,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for (&k, &v) in &diff.bits {
                 diff2
                     .bits
-                    .insert(FeatureBit::new(k.tile, k.frame, k.bit ^ 1), v);
+                    .insert(TileBit::new(k.tile, k.frame, k.bit ^ 1), v);
             }
             ctx.tiledb.insert(
                 tile,
@@ -1739,7 +1739,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for (&k, &v) in &diff.bits {
                 diff2
                     .bits
-                    .insert(FeatureBit::new(k.tile, k.frame, k.bit ^ 1), v);
+                    .insert(TileBit::new(k.tile, k.frame, k.bit ^ 1), v);
             }
             ctx.tiledb.insert(
                 tile,
@@ -2049,14 +2049,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "CAL_DELAY_MAX",
                 TileItem::from_bitvec(
                     vec![
-                        FeatureBit::new(0, 28, [63, 0][i]),
-                        FeatureBit::new(0, 28, [62, 1][i]),
-                        FeatureBit::new(0, 28, [61, 2][i]),
-                        FeatureBit::new(0, 28, [60, 3][i]),
-                        FeatureBit::new(0, 28, [59, 4][i]),
-                        FeatureBit::new(0, 28, [58, 5][i]),
-                        FeatureBit::new(0, 28, [57, 6][i]),
-                        FeatureBit::new(0, 28, [56, 7][i]),
+                        TileBit::new(0, 28, [63, 0][i]),
+                        TileBit::new(0, 28, [62, 1][i]),
+                        TileBit::new(0, 28, [61, 2][i]),
+                        TileBit::new(0, 28, [60, 3][i]),
+                        TileBit::new(0, 28, [59, 4][i]),
+                        TileBit::new(0, 28, [58, 5][i]),
+                        TileBit::new(0, 28, [57, 6][i]),
+                        TileBit::new(0, 28, [56, 7][i]),
                     ],
                     false,
                 ),
@@ -2067,38 +2067,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "DRP_ADDR",
                 TileItem::from_bitvec(
                     vec![
-                        FeatureBit::new(0, 28, [39, 24][i]),
-                        FeatureBit::new(0, 28, [38, 25][i]),
-                        FeatureBit::new(0, 28, [37, 26][i]),
-                        FeatureBit::new(0, 28, [36, 27][i]),
-                        FeatureBit::new(0, 28, [32, 31][i]),
+                        TileBit::new(0, 28, [39, 24][i]),
+                        TileBit::new(0, 28, [38, 25][i]),
+                        TileBit::new(0, 28, [37, 26][i]),
+                        TileBit::new(0, 28, [36, 27][i]),
+                        TileBit::new(0, 28, [32, 31][i]),
                     ],
                     false,
                 ),
             );
             let drp06 = TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 28, [45, 18][i]),
-                    FeatureBit::new(0, 28, [47, 16][i]),
-                    FeatureBit::new(0, 28, [50, 13][i]),
-                    FeatureBit::new(0, 28, [53, 10][i]),
-                    FeatureBit::new(0, 28, [55, 8][i]),
-                    FeatureBit::new(0, 28, [49, 14][i]),
-                    FeatureBit::new(0, 28, [41, 22][i]),
-                    FeatureBit::new(0, 28, [43, 20][i]),
+                    TileBit::new(0, 28, [45, 18][i]),
+                    TileBit::new(0, 28, [47, 16][i]),
+                    TileBit::new(0, 28, [50, 13][i]),
+                    TileBit::new(0, 28, [53, 10][i]),
+                    TileBit::new(0, 28, [55, 8][i]),
+                    TileBit::new(0, 28, [49, 14][i]),
+                    TileBit::new(0, 28, [41, 22][i]),
+                    TileBit::new(0, 28, [43, 20][i]),
                 ],
                 false,
             );
             let drp07 = TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 28, [44, 19][i]),
-                    FeatureBit::new(0, 28, [46, 17][i]),
-                    FeatureBit::new(0, 28, [51, 12][i]),
-                    FeatureBit::new(0, 28, [52, 11][i]),
-                    FeatureBit::new(0, 28, [54, 9][i]),
-                    FeatureBit::new(0, 28, [48, 15][i]),
-                    FeatureBit::new(0, 28, [40, 23][i]),
-                    FeatureBit::new(0, 28, [42, 21][i]),
+                    TileBit::new(0, 28, [44, 19][i]),
+                    TileBit::new(0, 28, [46, 17][i]),
+                    TileBit::new(0, 28, [51, 12][i]),
+                    TileBit::new(0, 28, [52, 11][i]),
+                    TileBit::new(0, 28, [54, 9][i]),
+                    TileBit::new(0, 28, [48, 15][i]),
+                    TileBit::new(0, 28, [40, 23][i]),
+                    TileBit::new(0, 28, [42, 21][i]),
                 ],
                 false,
             );
@@ -2448,15 +2448,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, bel, "BYPASS_MUX", "I")
             .assert_empty();
 
-        let pdrive_bits: Vec<_> = (0..6).map(|j| FeatureBit::new(0, 0, i * 64 + j)).collect();
-        let pterm_bits: Vec<_> = (0..6)
-            .map(|j| FeatureBit::new(0, 0, i * 64 + 8 + j))
-            .collect();
+        let pdrive_bits: Vec<_> = (0..6).map(|j| TileBit::new(0, 0, i * 64 + j)).collect();
+        let pterm_bits: Vec<_> = (0..6).map(|j| TileBit::new(0, 0, i * 64 + 8 + j)).collect();
         let ndrive_bits: Vec<_> = (0..7)
-            .map(|j| FeatureBit::new(0, 0, i * 64 + 16 + j))
+            .map(|j| TileBit::new(0, 0, i * 64 + 16 + j))
             .collect();
         let nterm_bits: Vec<_> = (0..7)
-            .map(|j| FeatureBit::new(0, 0, i * 64 + 24 + j))
+            .map(|j| TileBit::new(0, 0, i * 64 + 24 + j))
             .collect();
         let pdrive_invert: BitVec = pdrive_bits
             .iter()
@@ -2494,10 +2492,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "NTERM", nterm);
         present.assert_empty();
         let pslew_bits: Vec<_> = (0..4)
-            .map(|j| FeatureBit::new(0, 0, i * 64 + 32 + j))
+            .map(|j| TileBit::new(0, 0, i * 64 + 32 + j))
             .collect();
         let nslew_bits: Vec<_> = (0..4)
-            .map(|j| FeatureBit::new(0, 0, i * 64 + 36 + j))
+            .map(|j| TileBit::new(0, 0, i * 64 + 36 + j))
             .collect();
         let pslew_invert = bitvec![0, 0, 1, 0];
         let nslew_invert = bitvec![0, 0, 1, 0];
@@ -2983,7 +2981,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             "LVDSBIAS_0",
             TileItem::from_bitvec(
-                (0..12).map(|i| FeatureBit::new(0, 23, 29 + i)).collect(),
+                (0..12).map(|i| TileBit::new(0, 23, 29 + i)).collect(),
                 false,
             ),
         );
@@ -2992,7 +2990,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             "LVDSBIAS_1",
             TileItem::from_bitvec(
-                (0..12).map(|i| FeatureBit::new(0, 23, 41 + i)).collect(),
+                (0..12).map(|i| TileBit::new(0, 23, 41 + i)).collect(),
                 false,
             ),
         );
@@ -3013,18 +3011,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "LVDSBIAS_0",
             TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 22, 9),
-                    FeatureBit::new(0, 22, 21),
-                    FeatureBit::new(0, 22, 20),
-                    FeatureBit::new(0, 22, 19),
-                    FeatureBit::new(0, 22, 18),
-                    FeatureBit::new(0, 22, 17),
-                    FeatureBit::new(0, 22, 16),
-                    FeatureBit::new(0, 22, 15),
-                    FeatureBit::new(0, 22, 14),
-                    FeatureBit::new(0, 22, 13),
-                    FeatureBit::new(0, 22, 12),
-                    FeatureBit::new(0, 22, 11),
+                    TileBit::new(0, 22, 9),
+                    TileBit::new(0, 22, 21),
+                    TileBit::new(0, 22, 20),
+                    TileBit::new(0, 22, 19),
+                    TileBit::new(0, 22, 18),
+                    TileBit::new(0, 22, 17),
+                    TileBit::new(0, 22, 16),
+                    TileBit::new(0, 22, 15),
+                    TileBit::new(0, 22, 14),
+                    TileBit::new(0, 22, 13),
+                    TileBit::new(0, 22, 12),
+                    TileBit::new(0, 22, 11),
                 ],
                 false,
             ),
@@ -3035,18 +3033,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "LVDSBIAS_1",
             TileItem::from_bitvec(
                 vec![
-                    FeatureBit::new(0, 22, 10),
-                    FeatureBit::new(0, 22, 27),
-                    FeatureBit::new(0, 22, 26),
-                    FeatureBit::new(0, 22, 25),
-                    FeatureBit::new(0, 22, 24),
-                    FeatureBit::new(0, 22, 23),
-                    FeatureBit::new(0, 22, 22),
-                    FeatureBit::new(0, 22, 32),
-                    FeatureBit::new(0, 22, 31),
-                    FeatureBit::new(0, 22, 30),
-                    FeatureBit::new(0, 22, 29),
-                    FeatureBit::new(0, 22, 28),
+                    TileBit::new(0, 22, 10),
+                    TileBit::new(0, 22, 27),
+                    TileBit::new(0, 22, 26),
+                    TileBit::new(0, 22, 25),
+                    TileBit::new(0, 22, 24),
+                    TileBit::new(0, 22, 23),
+                    TileBit::new(0, 22, 22),
+                    TileBit::new(0, 22, 32),
+                    TileBit::new(0, 22, 31),
+                    TileBit::new(0, 22, 30),
+                    TileBit::new(0, 22, 29),
+                    TileBit::new(0, 22, 28),
                 ],
                 false,
             ),
@@ -3068,42 +3066,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     for (tile, bank, bit_25, bit_75) in [
-        (
-            "LL",
-            2,
-            FeatureBit::new(0, 23, 27),
-            FeatureBit::new(0, 23, 28),
-        ),
-        (
-            "LL",
-            3,
-            FeatureBit::new(0, 23, 24),
-            FeatureBit::new(0, 23, 25),
-        ),
-        (
-            "UL",
-            0,
-            FeatureBit::new(0, 22, 43),
-            FeatureBit::new(0, 22, 42),
-        ),
-        (
-            "UL",
-            4,
-            FeatureBit::new(0, 22, 46),
-            FeatureBit::new(0, 22, 45),
-        ),
-        (
-            "LR",
-            1,
-            FeatureBit::new(0, 22, 52),
-            FeatureBit::new(0, 22, 53),
-        ),
-        (
-            "UR",
-            5,
-            FeatureBit::new(1, 22, 51),
-            FeatureBit::new(1, 22, 52),
-        ),
+        ("LL", 2, TileBit::new(0, 23, 27), TileBit::new(0, 23, 28)),
+        ("LL", 3, TileBit::new(0, 23, 24), TileBit::new(0, 23, 25)),
+        ("UL", 0, TileBit::new(0, 22, 43), TileBit::new(0, 22, 42)),
+        ("UL", 4, TileBit::new(0, 22, 46), TileBit::new(0, 22, 45)),
+        ("LR", 1, TileBit::new(0, 22, 52), TileBit::new(0, 22, 53)),
+        ("UR", 5, TileBit::new(1, 22, 51), TileBit::new(1, 22, 52)),
     ] {
         let bel = &format!("OCT_CAL{bank}");
         let item = TileItem {

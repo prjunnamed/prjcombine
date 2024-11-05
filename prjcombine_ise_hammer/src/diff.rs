@@ -7,19 +7,16 @@ use std::{
 
 use bitvec::vec::BitVec;
 use itertools::Itertools;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Bitstream;
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
-use crate::{
-    backend::{FeatureBit, State},
-    tiledb::TileDb,
-};
+use crate::{backend::State, tiledb::TileDb};
 
 #[derive(Clone, Eq, PartialEq, Default)]
 pub struct Diff {
-    pub bits: HashMap<FeatureBit, bool>,
+    pub bits: HashMap<TileBit, bool>,
 }
 
 impl Debug for Diff {
@@ -68,7 +65,7 @@ impl Diff {
         (a, b, common)
     }
 
-    pub fn split_bits_by(&mut self, mut f: impl FnMut(FeatureBit) -> bool) -> Diff {
+    pub fn split_bits_by(&mut self, mut f: impl FnMut(TileBit) -> bool) -> Diff {
         let mut res = Diff::default();
         self.bits.retain(|&k, &mut v| {
             if f(k) {
@@ -81,17 +78,17 @@ impl Diff {
         res
     }
 
-    pub fn split_bits(&mut self, bits: &HashSet<FeatureBit>) -> Diff {
+    pub fn split_bits(&mut self, bits: &HashSet<TileBit>) -> Diff {
         self.split_bits_by(|bit| bits.contains(&bit))
     }
 
-    pub fn discard_bits(&mut self, item: &TileItem<FeatureBit>) {
+    pub fn discard_bits(&mut self, item: &TileItem<TileBit>) {
         for bit in item.bits.iter() {
             self.bits.remove(bit);
         }
     }
 
-    pub fn apply_bitvec_diff(&mut self, item: &TileItem<FeatureBit>, from: &BitVec, to: &BitVec) {
+    pub fn apply_bitvec_diff(&mut self, item: &TileItem<TileBit>, from: &BitVec, to: &BitVec) {
         let TileItemKind::BitVec { ref invert } = item.kind else {
             unreachable!()
         };
@@ -110,7 +107,7 @@ impl Diff {
         }
     }
 
-    pub fn apply_bitvec_diff_int(&mut self, item: &TileItem<FeatureBit>, from: u64, to: u64) {
+    pub fn apply_bitvec_diff_int(&mut self, item: &TileItem<TileBit>, from: u64, to: u64) {
         fn to_bitvec(n: u64, len: usize) -> BitVec {
             let mut res = BitVec::repeat(false, len);
             for i in 0..64 {
@@ -127,11 +124,11 @@ impl Diff {
         );
     }
 
-    pub fn apply_bit_diff(&mut self, item: &TileItem<FeatureBit>, from: bool, to: bool) {
+    pub fn apply_bit_diff(&mut self, item: &TileItem<TileBit>, from: bool, to: bool) {
         self.apply_bitvec_diff(item, &BitVec::from_iter([from]), &BitVec::from_iter([to]))
     }
 
-    pub fn apply_enum_diff(&mut self, item: &TileItem<FeatureBit>, from: &str, to: &str) {
+    pub fn apply_enum_diff(&mut self, item: &TileItem<TileBit>, from: &str, to: &str) {
         let TileItemKind::Enum { ref values } = item.kind else {
             unreachable!()
         };
@@ -167,7 +164,7 @@ impl Diff {
         }
         for (&bit, &val) in &self.bits {
             let (dstidx, tileidx) = xlat[bit.tile].unwrap();
-            let newbit = FeatureBit {
+            let newbit = TileBit {
                 tile: tileidx,
                 ..bit
             };
@@ -190,7 +187,7 @@ impl Diff {
             let Some(&Some(tileidx)) = xlat.get(bit.tile) else {
                 continue;
             };
-            let newbit = FeatureBit {
+            let newbit = TileBit {
                 tile: tileidx,
                 ..bit
             };
@@ -199,7 +196,7 @@ impl Diff {
         res
     }
 
-    pub fn from_bool_item(item: &TileItem<FeatureBit>) -> Self {
+    pub fn from_bool_item(item: &TileItem<TileBit>) -> Self {
         assert_eq!(item.bits.len(), 1);
         let TileItemKind::BitVec { ref invert } = item.kind else {
             unreachable!()
@@ -242,7 +239,7 @@ where
     pub empty_bs: &'a Bitstream,
 }
 
-pub fn enum_ocd_swap_bits(item: &mut TileItem<FeatureBit>, a: usize, b: usize) {
+pub fn enum_ocd_swap_bits(item: &mut TileItem<TileBit>, a: usize, b: usize) {
     item.bits.swap(a, b);
     let TileItemKind::Enum { ref mut values } = item.kind else {
         unreachable!()
@@ -252,12 +249,12 @@ pub fn enum_ocd_swap_bits(item: &mut TileItem<FeatureBit>, a: usize, b: usize) {
     }
 }
 
-pub fn xlat_item_tile_fwd(item: TileItem<FeatureBit>, xlat: &[usize]) -> TileItem<FeatureBit> {
+pub fn xlat_item_tile_fwd(item: TileItem<TileBit>, xlat: &[usize]) -> TileItem<TileBit> {
     TileItem {
         bits: item
             .bits
             .into_iter()
-            .map(|bit| FeatureBit {
+            .map(|bit| TileBit {
                 tile: xlat[bit.tile],
                 ..bit
             })
@@ -266,7 +263,7 @@ pub fn xlat_item_tile_fwd(item: TileItem<FeatureBit>, xlat: &[usize]) -> TileIte
     }
 }
 
-pub fn xlat_item_tile(item: TileItem<FeatureBit>, xlat: &[usize]) -> TileItem<FeatureBit> {
+pub fn xlat_item_tile(item: TileItem<TileBit>, xlat: &[usize]) -> TileItem<TileBit> {
     let mut rxlat = vec![];
     for (idx, &tile) in xlat.iter().enumerate() {
         while tile >= rxlat.len() {
@@ -279,7 +276,7 @@ pub fn xlat_item_tile(item: TileItem<FeatureBit>, xlat: &[usize]) -> TileItem<Fe
         bits: item
             .bits
             .into_iter()
-            .map(|bit| FeatureBit {
+            .map(|bit| TileBit {
                 tile: rxlat[bit.tile].unwrap(),
                 ..bit
             })
@@ -288,7 +285,7 @@ pub fn xlat_item_tile(item: TileItem<FeatureBit>, xlat: &[usize]) -> TileItem<Fe
     }
 }
 
-pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem<FeatureBit> {
+pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem<TileBit> {
     let mut invert = BitVec::new();
     let mut bits = vec![];
     for diff in diffs {
@@ -304,11 +301,11 @@ pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem<FeatureBit> {
     }
 }
 
-pub fn xlat_bit(diff: Diff) -> TileItem<FeatureBit> {
+pub fn xlat_bit(diff: Diff) -> TileItem<TileBit> {
     xlat_bitvec(vec![diff])
 }
 
-pub fn xlat_bit_wide(diff: Diff) -> TileItem<FeatureBit> {
+pub fn xlat_bit_wide(diff: Diff) -> TileItem<TileBit> {
     let mut invert = BitVec::new();
     let mut bits = vec![];
     for (k, v) in diff.bits.into_iter().sorted() {
@@ -322,7 +319,7 @@ pub fn xlat_bit_wide(diff: Diff) -> TileItem<FeatureBit> {
     }
 }
 
-pub fn concat_bitvec(vecs: impl IntoIterator<Item = TileItem<FeatureBit>>) -> TileItem<FeatureBit> {
+pub fn concat_bitvec(vecs: impl IntoIterator<Item = TileItem<TileBit>>) -> TileItem<TileBit> {
     let mut invert = BitVec::new();
     let mut bits = vec![];
     for vec in vecs {
@@ -344,10 +341,10 @@ pub enum OcdMode<'a> {
     BitOrderDrpV6,
     ValueOrder,
     Mux,
-    FixedOrder(&'a [FeatureBit]),
+    FixedOrder(&'a [TileBit]),
 }
 
-pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> TileItem<FeatureBit> {
+pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> TileItem<TileBit> {
     let mut bits = BTreeMap::new();
     for (_, diff) in &diffs {
         for (&bit, &pol) in &diff.bits {
@@ -502,14 +499,14 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
     }
 }
 
-pub fn xlat_enum(diffs: Vec<(impl Into<String>, Diff)>) -> TileItem<FeatureBit> {
+pub fn xlat_enum(diffs: Vec<(impl Into<String>, Diff)>) -> TileItem<TileBit> {
     xlat_enum_ocd(diffs, OcdMode::ValueOrder)
 }
 
 pub fn xlat_enum_default(
     mut diffs: Vec<(String, Diff)>,
     default: impl Into<String>,
-) -> TileItem<FeatureBit> {
+) -> TileItem<TileBit> {
     diffs.insert(0, (default.into(), Diff::default()));
     xlat_enum(diffs)
 }
@@ -518,13 +515,13 @@ pub fn xlat_enum_default_ocd(
     mut diffs: Vec<(String, Diff)>,
     default: impl Into<String>,
     ocd: OcdMode,
-) -> TileItem<FeatureBit> {
+) -> TileItem<TileBit> {
     diffs.insert(0, (default.into(), Diff::default()));
     xlat_enum_ocd(diffs, ocd)
 }
 
-pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem<FeatureBit> {
-    let mut bits: Vec<Option<FeatureBit>> = vec![];
+pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem<TileBit> {
+    let mut bits: Vec<Option<TileBit>> = vec![];
     let mut xor = 0;
     for (val, diff) in &diffs {
         if diff.bits.is_empty() {
@@ -574,7 +571,7 @@ pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem<FeatureBit> {
     }
 }
 
-pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem<FeatureBit>, bool) {
+pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem<TileBit>, bool) {
     let (diff, res) = if diff0.bits.is_empty() {
         diff0.assert_empty();
         (diff1, false)
@@ -585,7 +582,7 @@ pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem<FeatureBit>, boo
     (xlat_bit(diff), res)
 }
 
-pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem<FeatureBit> {
+pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem<TileBit> {
     xlat_bool_default(diff0, diff1).0
 }
 
@@ -603,7 +600,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         bel: &str,
         attr: &str,
         val: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         xlat_bitvec(self.state.get_diffs(tile, bel, attr, val))
     }
 
@@ -623,7 +620,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         bel: &str,
         attr: &str,
         vals: &[impl AsRef<str>],
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diffs = vals
             .iter()
             .map(|val| {
@@ -644,7 +641,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         vals: &[impl AsRef<str>],
         ocd: OcdMode,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diffs = vals
             .iter()
             .map(|val| {
@@ -665,7 +662,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         vals: Range<u32>,
         delta: u32,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diffs = vals
             .map(|val| {
                 (
@@ -714,7 +711,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         bel: &str,
         attr: &str,
         val: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diff = self.state.get_diff(tile, bel, attr, val);
         xlat_bit(diff)
     }
@@ -726,7 +723,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         bel: &str,
         attr: &str,
         val: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diff = self.state.get_diff(tile, bel, attr, val);
         xlat_bit_wide(diff)
     }
@@ -749,7 +746,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         vals: &[impl AsRef<str>],
         default: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diffs = vals
             .iter()
             .map(|val| {
@@ -771,7 +768,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         vals: &[impl AsRef<str>],
         default: &str,
         ocd: OcdMode,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let diffs = vals
             .iter()
             .map(|val| {
@@ -817,7 +814,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         val0: &str,
         val1: &str,
-    ) -> (TileItem<FeatureBit>, bool) {
+    ) -> (TileItem<TileBit>, bool) {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
         xlat_bool_default(d0, d1)
@@ -831,7 +828,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         val0: &str,
         val1: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
         xlat_bool(d0, d1)
@@ -863,7 +860,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         attr: &str,
         val0: &str,
         val1: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let d0 = self.state.get_diff(tile, bel, attr, val0);
         let d1 = self.state.get_diff(tile, bel, attr, val1);
         let item = xlat_enum(vec![("0", d0), ("1", d1)]);
@@ -899,7 +896,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         self.tiledb.insert(tile, bel, attr, item);
     }
 
-    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem<FeatureBit> {
+    pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem<TileBit> {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
         self.extract_enum_bool(tile, bel, &pininv, pin, &pin_b)
@@ -916,7 +913,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         pin: &str,
-        mut item: TileItem<FeatureBit>,
+        mut item: TileItem<TileBit>,
     ) {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
@@ -943,7 +940,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         tile: &str,
         bel: &str,
         pin: &str,
-    ) -> TileItem<FeatureBit> {
+    ) -> TileItem<TileBit> {
         let intdb = self.edev.egrid().db;
         let node = intdb.nodes.get(tile).unwrap().1;
         let bel = node.bels.get(bel).unwrap().1;
@@ -986,11 +983,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     }
 }
 
-pub fn extract_bitvec_val_part(
-    item: &TileItem<FeatureBit>,
-    base: &BitVec,
-    diff: &mut Diff,
-) -> BitVec {
+pub fn extract_bitvec_val_part(item: &TileItem<TileBit>, base: &BitVec, diff: &mut Diff) -> BitVec {
     let TileItemKind::BitVec { ref invert } = item.kind else {
         unreachable!()
     };
@@ -1015,7 +1008,7 @@ pub fn extract_bitvec_val_part(
     res
 }
 
-pub fn extract_bitvec_val(item: &TileItem<FeatureBit>, base: &BitVec, diff: Diff) -> BitVec {
+pub fn extract_bitvec_val(item: &TileItem<TileBit>, base: &BitVec, diff: Diff) -> BitVec {
     let TileItemKind::BitVec { ref invert } = item.kind else {
         unreachable!()
     };

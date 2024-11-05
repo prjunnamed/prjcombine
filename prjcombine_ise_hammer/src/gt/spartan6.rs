@@ -3,12 +3,12 @@ use core::ops::Range;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_spartan6::grid::Gts;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bitvec, xlat_enum, CollectorCtx, OcdMode},
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
@@ -307,11 +307,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
 
-    fn drp_bit(idx: usize, bit: usize) -> FeatureBit {
+    fn drp_bit(idx: usize, bit: usize) -> TileBit {
         let tile = 8 + ((idx >> 2) & 7);
         let bit = bit + 16 * (idx & 3);
         let frame = 25 - ((idx >> 5) & 3);
-        FeatureBit::new(tile, frame, bit)
+        TileBit::new(tile, frame, bit)
     }
 
     for i in 0..0x80 {
@@ -355,11 +355,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     // sigh. bugs.
     ctx.collect_bitvec(tile, bel, "COMMA_10B_ENABLE_0", "");
     let mut diffs = ctx.state.get_diffs(tile, bel, "COMMA_10B_ENABLE_1", "");
-    diffs[3].bits.insert(FeatureBit::new(11, 23, 3), true);
-    assert_eq!(
-        diffs[4].bits.remove(&FeatureBit::new(11, 23, 3)),
-        Some(true)
-    );
+    diffs[3].bits.insert(TileBit::new(11, 23, 3), true);
+    assert_eq!(diffs[4].bits.remove(&TileBit::new(11, 23, 3)), Some(true));
     ctx.tiledb
         .insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec(diffs));
     ctx.collect_bitvec(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
@@ -370,7 +367,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         bel,
         "RXPRBSERR_LOOPBACK_1",
-        TileItem::from_bit(FeatureBit::new(8, 22, 48), false),
+        TileItem::from_bit(TileBit::new(8, 22, 48), false),
     );
     for &(attr, _) in GTP_HEX_ATTRS {
         ctx.collect_bitvec(tile, bel, &format!("{attr}_0"), "");

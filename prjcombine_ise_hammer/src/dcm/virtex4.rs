@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 
 use crate::{
-    backend::{FeatureBit, IseBackend, PinFromKind},
+    backend::{IseBackend, PinFromKind},
     diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::TileBits,
     fuzz::FuzzCtx,
@@ -420,8 +420,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
 
-    fn reg_bit(addr: usize, bit: usize) -> FeatureBit {
-        FeatureBit {
+    fn reg_bit(addr: usize, bit: usize) -> TileBit {
+        TileBit {
             tile: (addr >> 2) & 3,
             frame: 20 - (addr >> 4 & 1),
             bit: bit + 1 + (addr & 3) * 20,

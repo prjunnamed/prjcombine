@@ -2,11 +2,11 @@ use core::ops::Range;
 
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_enum, CollectorCtx, Diff},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -556,11 +556,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..4 {
         let bel = &format!("GTX{i}");
-        fn drp_bit(which: usize, idx: usize, bit: usize) -> FeatureBit {
+        fn drp_bit(which: usize, idx: usize, bit: usize) -> TileBit {
             let tile = which * 10 + (idx >> 3);
             let frame = 28 + (bit & 1);
             let bit = (bit >> 1) | (idx & 7) << 3;
-            FeatureBit::new(tile, frame, bit)
+            TileBit::new(tile, frame, bit)
         }
         for addr in 0..0x50 {
             ctx.tiledb.insert(

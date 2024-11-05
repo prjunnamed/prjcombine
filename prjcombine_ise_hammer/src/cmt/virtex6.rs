@@ -1,11 +1,11 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{extract_bitvec_val_part, xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -751,7 +751,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     for i in 0..2 {
         let bel = &format!("MMCM{i}");
 
-        fn mmcm_drp_bit(which: usize, reg: usize, bit: usize) -> FeatureBit {
+        fn mmcm_drp_bit(which: usize, reg: usize, bit: usize) -> TileBit {
             let tile = if which == 0 {
                 17 - (reg >> 3)
             } else {
@@ -760,7 +760,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let frame = 26 + (bit & 1);
             let bit = (bit >> 1) | (reg & 7) << 3;
             let bit = if which == 0 { bit ^ 0x3f } else { bit };
-            FeatureBit::new(tile, frame, bit)
+            TileBit::new(tile, frame, bit)
         }
         for reg in 0..0x80 {
             ctx.tiledb.insert(

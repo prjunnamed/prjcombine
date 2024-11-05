@@ -1,13 +1,13 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bitvec, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -549,7 +549,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             attr,
             TileItem {
-                bits: vec![FeatureBit {
+                bits: vec![TileBit {
                     tile: 0,
                     frame: 0,
                     bit,
@@ -563,7 +563,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "ICAP_SELECT",
         TileItem {
-            bits: vec![FeatureBit {
+            bits: vec![TileBit {
                 tile: 0,
                 frame: 0,
                 bit: 30,
@@ -588,6 +588,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "REG.TESTMODE";
     let bel = "MISC";
     let mut diff = ctx.state.get_diff(tile, bel, "DD_OVERRIDE", "YES");
-    diff.bits.remove(&FeatureBit::new(1, 0, 0));
+    diff.bits.remove(&TileBit::new(1, 0, 0));
     ctx.tiledb.insert(tile, bel, "DD_OVERRIDE", xlat_bit(diff));
 }

@@ -128,7 +128,7 @@ const XC3K_TILES: &[TileInfo] = &[
     TileInfo("UR_20", SINGLE, &["cfg"]),
 ];
 
-const XC4K_TILES: &[TileInfo] = &[
+const XC4000_TILES: &[TileInfo] = &[
     TileInfo("CENTER", SINGLE, &["clb"]),
     TileInfo("BOT", SINGLE, &["io"]),
     TileInfo("BOTS", SINGLE, &["io"]),
@@ -3562,7 +3562,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
     let (tile_info, need_null) = match &rd.family[..] {
         "xc3000a" => (XC3K_TILES, true),
-        "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => (XC4K_TILES, true),
+        "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => (XC4000_TILES, true),
         "xc5200" => (XC5200_TILES, true),
         "virtex" | "virtexe" => (VIRTEX_TILES, false),
         "virtex2" | "virtex2p" => (VIRTEX2_TILES, false),

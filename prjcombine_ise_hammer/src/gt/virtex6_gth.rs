@@ -1,8 +1,8 @@
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bitvec, xlat_enum, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -409,11 +409,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     let bel = "GTH";
-    fn drp_bit(idx: usize, bit: usize) -> FeatureBit {
+    fn drp_bit(idx: usize, bit: usize) -> TileBit {
         let tile = idx >> 3;
         let frame = 28 + (bit & 1);
         let bit = (bit >> 1) | (idx & 7) << 3;
-        FeatureBit::new(tile, frame, bit)
+        TileBit::new(tile, frame, bit)
     }
     for addr in 0..0x140 {
         ctx.tiledb.insert(
@@ -454,7 +454,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &(attr, _) in GTH_HEX_ATTRS {
         let mut diffs = ctx.state.get_diffs(tile, bel, attr, "");
         if attr == "SLICE_NOISE_CTRL_1_LANE01" {
-            let bit = FeatureBit::new(12, 29, 32);
+            let bit = TileBit::new(12, 29, 32);
             assert_eq!(diffs[1].bits.len(), 0);
             assert_eq!(diffs[2].bits.len(), 2);
             diffs[1].bits.insert(bit, true);

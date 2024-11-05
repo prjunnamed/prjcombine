@@ -1,11 +1,11 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{
         xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, CollectorCtx, Diff,
         OcdMode,
@@ -576,10 +576,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     let tile = "MGT";
-    fn drp_bit(bel: &str, idx: usize, bit: usize) -> FeatureBit {
+    fn drp_bit(bel: &str, idx: usize, bit: usize) -> TileBit {
         let tile = if bel == "GT11A" { 0x10 } else { 0 } | (idx & 7) << 1 | (idx & 0x20) >> 5;
         let bit = bit + 1 + 20 * (idx >> 3 & 3);
-        FeatureBit::new(tile, 19, bit)
+        TileBit::new(tile, 19, bit)
     }
     let (_, _, synclk_enable) = Diff::split(
         ctx.state

@@ -4,12 +4,12 @@ use bitvec::prelude::*;
 
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bool, xlat_enum, CollectorCtx},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
@@ -229,14 +229,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = xlat_bool(d0, d1);
         ctx.insert_int_inv(&[tile], tile, bel, "RST", item);
 
-        let item_jf2 = TileItem::from_bitvec(
-            (0..8).map(|bit| FeatureBit::new(0, 17, bit)).collect(),
-            false,
-        );
-        let item_jf1 = TileItem::from_bitvec(
-            (8..16).map(|bit| FeatureBit::new(0, 17, bit)).collect(),
-            false,
-        );
+        let item_jf2 =
+            TileItem::from_bitvec((0..8).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
+        let item_jf1 =
+            TileItem::from_bitvec((8..16).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
         for (attr, item, base) in [
             ("JF_ZD2_ATTR", &item_jf2, 0x80),
             ("JF_ZD1_ATTR", &item_jf1, 0xc0),
@@ -251,28 +247,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "FACTORY_JF2", item_jf2);
         ctx.tiledb.insert(tile, bel, "FACTORY_JF1", item_jf1);
 
-        let clkdv_count_max = TileItem::from_bitvec(
-            (4..8).map(|bit| FeatureBit::new(0, 18, bit)).collect(),
-            false,
-        );
-        let clkdv_count_fall = TileItem::from_bitvec(
-            (8..12).map(|bit| FeatureBit::new(0, 18, bit)).collect(),
-            false,
-        );
+        let clkdv_count_max =
+            TileItem::from_bitvec((4..8).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
+        let clkdv_count_fall =
+            TileItem::from_bitvec((8..12).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
         let clkdv_count_fall_2 = TileItem::from_bitvec(
-            (12..16).map(|bit| FeatureBit::new(0, 18, bit)).collect(),
+            (12..16).map(|bit| TileBit::new(0, 18, bit)).collect(),
             false,
         );
-        let clkdv_phase_rise = TileItem::from_bitvec(
-            (1..3).map(|bit| FeatureBit::new(0, 16, bit)).collect(),
-            false,
-        );
-        let clkdv_phase_fall = TileItem::from_bitvec(
-            (3..5).map(|bit| FeatureBit::new(0, 16, bit)).collect(),
-            false,
-        );
+        let clkdv_phase_rise =
+            TileItem::from_bitvec((1..3).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
+        let clkdv_phase_fall =
+            TileItem::from_bitvec((3..5).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
         let clkdv_mode = TileItem {
-            bits: vec![FeatureBit::new(0, 16, 15)],
+            bits: vec![TileBit::new(0, 16, 15)],
             kind: TileItemKind::Enum {
                 values: BTreeMap::from_iter([
                     ("HALF".to_string(), bitvec![0]),

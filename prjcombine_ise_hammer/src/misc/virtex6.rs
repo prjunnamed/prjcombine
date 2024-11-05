@@ -1,10 +1,10 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bitvec, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -580,7 +580,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         bel,
         "PERSIST_DEASSERT_AT_DESYNC",
-        TileItem::from_bit(FeatureBit::new(0, 0, 17), false),
+        TileItem::from_bit(TileBit::new(0, 0, 17), false),
     );
 
     let tile = "REG.CTL";
@@ -602,7 +602,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "PERSIST",
         TileItem {
-            bits: vec![FeatureBit::new(0, 0, 3)],
+            bits: vec![TileBit::new(0, 0, 3)],
             kind: TileItemKind::BitVec { invert: bitvec![0] },
         },
     );
@@ -611,7 +611,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "ICAP_SELECT",
         TileItem {
-            bits: vec![FeatureBit::new(0, 0, 30)],
+            bits: vec![TileBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
                     ("TOP".to_string(), bitvec![0]),
@@ -657,7 +657,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "REG.TESTMODE";
     let bel = "MISC";
     let mut diff = ctx.state.get_diff(tile, bel, "FUSE_SHADOW", "");
-    diff.bits.remove(&FeatureBit::new(1, 0, 0));
+    diff.bits.remove(&TileBit::new(1, 0, 0));
     ctx.tiledb.insert(tile, bel, "FUSE_SHADOW", xlat_bit(diff));
 
     let tile = "REG.TRIM";
@@ -677,6 +677,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         .assert_empty();
     let diff = ctx.state.get_diff(tile, bel, "CRC", "DISABLE");
     assert_eq!(diff.bits.len(), 2);
-    assert!(diff.bits[&FeatureBit::new(0, 0, 0)]);
-    assert!(diff.bits[&FeatureBit::new(1, 0, 0)]);
+    assert!(diff.bits[&TileBit::new(0, 0, 0)]);
+    assert!(diff.bits[&TileBit::new(1, 0, 0)]);
 }

@@ -3,12 +3,12 @@ use std::collections::BTreeMap;
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{ColumnKind, GridKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureBit, IseBackend, PinFromKind},
+    backend::{IseBackend, PinFromKind},
     diff::{
         extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
         xlat_bool, xlat_enum, CollectorCtx, Diff,
@@ -600,7 +600,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     // sigh. fixups.
     assert!(com[11].bits.is_empty());
     let com9 = *com[9].bits.keys().next().unwrap();
-    let com11 = FeatureBit {
+    let com11 = TileBit {
         bit: com9.bit + 2,
         ..com9
     };

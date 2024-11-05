@@ -24,9 +24,9 @@ pub fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     (pos, &name[..pos], name[pos..].parse().unwrap())
 }
 
-mod xc4k {
+mod xc4000 {
     use itertools::Itertools;
-    use prjcombine_xc4k::{
+    use prjcombine_xc4000::{
         bond::{Bond, BondPin, CfgPin},
         grid::Grid,
     };
@@ -1441,7 +1441,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.grids {
                 match grid {
-                    Grid::Xc4k(g) => xc4k::print_grid(g),
+                    Grid::Xc4000(g) => xc4000::print_grid(g),
                     Grid::Xc5200(g) => xc5200::print_grid(g),
                     Grid::Virtex(g) => virtex::print_grid(g),
                     Grid::Virtex2(g) => virtex2::print_grid(g),
@@ -1466,7 +1466,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.pkgs {
                 match bond {
-                    Bond::Xc4k(bond) => xc4k::print_bond(bond),
+                    Bond::Xc4000(bond) => xc4000::print_bond(bond),
                     Bond::Xc5200(bond) => xc5200::print_bond(bond),
                     Bond::Virtex(bond) => virtex::print_bond(bond),
                     Bond::Virtex2(bond) => virtex2::print_bond(bond),

@@ -3,13 +3,13 @@ use std::collections::{HashMap, HashSet};
 use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex::grid::{GridKind, IoCoord, TileIobId};
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -542,7 +542,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         && bit.frame.abs_diff(init_bit.frame) == 1
                         && bit.bit == init_bit.bit
                 })]);
-                ctx.tiledb.insert(tile, bel, format!("{iot}FF_SR_SYNC"), item);
+                ctx.tiledb
+                    .insert(tile, bel, format!("{iot}FF_SR_SYNC"), item);
             }
             diff.assert_empty();
             let item = ctx.extract_enum_bool(tile, bel, "IFF", "#FF", "#LATCH");
@@ -561,7 +562,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "READBACK_IFF",
                 TileItem::from_bit(
-                    FeatureBit::new(
+                    TileBit::new(
                         0,
                         match (side, i) {
                             ('R', 1) => 2,
@@ -582,7 +583,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "READBACK_OFF",
                 TileItem::from_bit(
-                    FeatureBit::new(
+                    TileBit::new(
                         0,
                         match (side, i) {
                             ('R', 1) => 8,
@@ -603,7 +604,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bel,
                 "READBACK_TFF",
                 TileItem::from_bit(
-                    FeatureBit::new(
+                    TileBit::new(
                         0,
                         match (side, i) {
                             ('R', 1) => 12,
@@ -663,11 +664,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "READBACK_I",
                 TileItem::from_bit(
                     match (side, i) {
-                        ('L' | 'R', 1) => FeatureBit::new(0, 50, 13),
-                        ('L' | 'R', 2) => FeatureBit::new(0, 50, 12),
-                        ('L' | 'R', 3) => FeatureBit::new(0, 50, 2),
-                        ('B' | 'T', 1) => FeatureBit::new(0, 25, 17),
-                        ('B' | 'T', 2) => FeatureBit::new(0, 21, 17),
+                        ('L' | 'R', 1) => TileBit::new(0, 50, 13),
+                        ('L' | 'R', 2) => TileBit::new(0, 50, 12),
+                        ('L' | 'R', 3) => TileBit::new(0, 50, 2),
+                        ('B' | 'T', 1) => TileBit::new(0, 25, 17),
+                        ('B' | 'T', 2) => TileBit::new(0, 21, 17),
                         _ => unreachable!(),
                     },
                     false,

@@ -16,7 +16,7 @@ mod virtex4;
 mod virtex5;
 mod virtex6;
 mod virtex7;
-mod xc4k;
+mod xc4000;
 mod xc5200;
 
 #[derive(Debug, Parser)]
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     println!("INGEST {} {:?}", rd.part, rd.source);
                     let (pre, idb) = match &rd.family[..] {
                         "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => {
-                            xc4k::ingest(&rd, verify)
+                            xc4000::ingest(&rd, verify)
                         }
                         "xc5200" => xc5200::ingest(&rd, verify),
                         "virtex" | "virtexe" => virtex::ingest(&rd, verify),

@@ -3,11 +3,11 @@ use std::{collections::BTreeMap, ops::Range};
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
     fgen::{TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
@@ -1769,30 +1769,30 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    fn common_drp_bit(is_mid: bool, reg: usize, bit: usize) -> FeatureBit {
+    fn common_drp_bit(is_mid: bool, reg: usize, bit: usize) -> TileBit {
         if reg < 0x30 {
-            FeatureBit::new(
+            TileBit::new(
                 reg >> 3,
                 if is_mid { 0 } else { 28 } + (bit & 1),
                 (reg & 7) << 3 | bit >> 1,
             )
         } else {
-            FeatureBit::new(
+            TileBit::new(
                 (reg - 0x30) >> 3,
                 if is_mid { 2 } else { 30 } + (bit & 1),
                 (reg & 7) << 3 | bit >> 1,
             )
         }
     }
-    fn channel_drp_bit(is_mid: bool, reg: usize, bit: usize) -> FeatureBit {
+    fn channel_drp_bit(is_mid: bool, reg: usize, bit: usize) -> TileBit {
         if reg < 0x58 {
-            FeatureBit::new(
+            TileBit::new(
                 reg >> 3,
                 if is_mid { 0 } else { 28 } + (bit & 1),
                 (reg & 7) << 3 | bit >> 1,
             )
         } else {
-            FeatureBit::new(
+            TileBit::new(
                 (reg - 0x58) >> 3,
                 if is_mid { 2 } else { 30 } + (bit & 1),
                 (reg & 7) << 3 | bit >> 1,
@@ -2119,13 +2119,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_BELOW",
-            TileItem::from_bit(FeatureBit::new(6, 0, 13), false),
+            TileItem::from_bit(TileBit::new(6, 0, 13), false),
         );
         ctx.tiledb.insert(
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_ABOVE",
-            TileItem::from_bit(FeatureBit::new(6, 1, 13), false),
+            TileItem::from_bit(TileBit::new(6, 1, 13), false),
         );
     }
     for (tile, bel) in [

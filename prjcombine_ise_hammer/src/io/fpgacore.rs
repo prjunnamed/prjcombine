@@ -1,9 +1,9 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bit_wide, xlat_bool, CollectorCtx, Diff},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -208,7 +208,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "READBACK_I",
-            TileItem::from_bit(FeatureBit::new(0, 3, [0, 31, 32, 63][i]), false),
+            TileItem::from_bit(TileBit::new(0, 3, [0, 31, 32, 63][i]), false),
         );
         for tile in ["IOBS.FC.B", "IOBS.FC.T", "IOBS.FC.L", "IOBS.FC.R"] {
             ctx.collect_bit(tile, bel, "ENABLE", "1");

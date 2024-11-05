@@ -10,7 +10,7 @@ members = [
 	"prjcombine_lattice_dump",
 	"prjcombine_lattice_rawdump",
 	"prjcombine_int",
-	"prjcombine_xc4k",
+	"prjcombine_xc4000",
 	"prjcombine_xc5200",
 	"prjcombine_virtex",
 	"prjcombine_virtex2",
@@ -21,7 +21,7 @@ members = [
 	"prjcombine_rdgrid",
 	"prjcombine_rdintb",
 	"prjcombine_rdverify",
-	"prjcombine_xc4k_rdverify",
+	"prjcombine_xc4000_rdverify",
 	"prjcombine_xc5200_rdverify",
 	"prjcombine_virtex_rdverify",
 	"prjcombine_virtex2_rdverify",
@@ -32,7 +32,7 @@ members = [
 	"prjcombine_virtex7_rdverify",
 	"prjcombine_ultrascale_rdverify",
 	"prjcombine_versal_rdverify",
-	"prjcombine_xc4k_rd2db",
+	"prjcombine_xc4000_rd2db",
 	"prjcombine_xc5200_rd2db",
 	"prjcombine_virtex_rd2db",
 	"prjcombine_virtex2_rd2db",
@@ -74,9 +74,9 @@ prjcombine_int = { path = "prjcombine_int" }
 prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
 prjcombine_rdintb = { path = "prjcombine_rdintb" }
 prjcombine_rdverify = { path = "prjcombine_rdverify" }
-prjcombine_xc4k = { path = "prjcombine_xc4k" }
-prjcombine_xc4k_rdverify = { path = "prjcombine_xc4k_rdverify" }
-prjcombine_xc4k_rd2db = { path = "prjcombine_xc4k_rd2db" }
+prjcombine_xc4000 = { path = "prjcombine_xc4000" }
+prjcombine_xc4000_rdverify = { path = "prjcombine_xc4000_rdverify" }
+prjcombine_xc4000_rd2db = { path = "prjcombine_xc4000_rd2db" }
 prjcombine_xc5200 = { path = "prjcombine_xc5200" }
 prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }
 prjcombine_xc5200_rd2db = { path = "prjcombine_xc5200_rd2db" }
@@ -157,3 +157,4 @@ bool_to_int_with_if = "allow"
 needless_range_loop = "allow"
 assigning_clones = "allow"
 large_enum_variant = "allow"
+nonminimal_bool = "allow"

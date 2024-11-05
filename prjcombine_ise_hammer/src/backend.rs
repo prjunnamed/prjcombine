@@ -3,6 +3,7 @@ use prjcombine_hammer::{Backend, FuzzerId};
 use prjcombine_int::db::{BelId, WireId};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::TileBit;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
@@ -117,7 +118,7 @@ impl From<u32> for Value<'_> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum MultiValue {
     Lut,
-    OldLut,
+    OldLut(char),
     Hex(i32),
     HexPrefix,
     Bin,
@@ -152,25 +153,6 @@ pub struct FeatureId {
 impl Debug for FeatureId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:{}:{}:{}", self.tile, self.bel, self.attr, self.val)
-    }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct FeatureBit {
-    pub tile: usize,
-    pub frame: usize,
-    pub bit: usize,
-}
-
-impl FeatureBit {
-    pub fn new(tile: usize, frame: usize, bit: usize) -> Self {
-        Self { tile, frame, bit }
-    }
-}
-
-impl core::fmt::Debug for FeatureBit {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}.{}.{}", self.tile, self.frame, self.bit)
     }
 }
 
@@ -383,6 +365,10 @@ impl<'a> Backend for IseBackend<'a> {
                 for row in die.rows() {
                     let tile = &die[(col, row)];
                     for node in tile.nodes.values() {
+                        if let Some(ref name) = node.tie_name {
+                            site_to_tile
+                                .insert(name.to_string(), node.names[node.tie_rt].to_string());
+                        }
                         for (id, name) in &node.bels {
                             let rt = self.egrid.db.node_namings[node.naming].bels[id].tile;
                             site_to_tile.insert(name.to_string(), node.names[rt].to_string());
@@ -394,28 +380,52 @@ impl<'a> Backend for IseBackend<'a> {
 
         let mut site_to_place = HashMap::new();
         let bond = &self.db.bonds[self.device.bonds[combo.devbond_idx].bond];
-        if let Bond::Xc5200(bond) = bond {
-            let ExpandedDevice::Xc5200(edev) = self.edev else {
-                unreachable!()
-            };
-            for (k, v) in &bond.pins {
-                #[allow(irrefutable_let_patterns)]
-                if let prjcombine_xc5200::bond::BondPin::Io(io) = v {
-                    let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
-                    site_to_place.insert(name.to_string(), k.to_string());
+        match bond {
+            Bond::Xc4000(bond) => {
+                let ExpandedDevice::Xc4000(edev) = self.edev else {
+                    unreachable!()
+                };
+                for (k, v) in &bond.pins {
+                    if let prjcombine_xc4000::bond::BondPin::Io(io) = v {
+                        let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
+                        site_to_place.insert(name.to_string(), k.to_string());
+                    }
                 }
-            }
-            for io in edev.get_bonded_ios() {
-                match site_to_place.entry(io.name.to_string()) {
-                    hash_map::Entry::Occupied(_) => (),
-                    hash_map::Entry::Vacant(e) => {
-                        e.insert(format!(
-                            "UNB{suf}",
-                            suf = io.name.strip_prefix("PAD").unwrap()
-                        ));
+                for io in &edev.io {
+                    match site_to_place.entry(io.name.to_string()) {
+                        hash_map::Entry::Occupied(_) => (),
+                        hash_map::Entry::Vacant(e) => {
+                            e.insert(format!(
+                                "UNB{suf}",
+                                suf = io.name.strip_prefix("PAD").unwrap()
+                            ));
+                        }
                     }
                 }
             }
+            Bond::Xc5200(bond) => {
+                let ExpandedDevice::Xc5200(edev) = self.edev else {
+                    unreachable!()
+                };
+                for (k, v) in &bond.pins {
+                    if let prjcombine_xc5200::bond::BondPin::Io(io) = v {
+                        let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
+                        site_to_place.insert(name.to_string(), k.to_string());
+                    }
+                }
+                for io in edev.get_bonded_ios() {
+                    match site_to_place.entry(io.name.to_string()) {
+                        hash_map::Entry::Occupied(_) => (),
+                        hash_map::Entry::Vacant(e) => {
+                            e.insert(format!(
+                                "UNB{suf}",
+                                suf = io.name.strip_prefix("PAD").unwrap()
+                            ));
+                        }
+                    }
+                }
+            }
+            _ => (),
         }
 
         // sigh. bitgen inserts nondeterministic defaults without this.
@@ -473,7 +483,7 @@ impl<'a> Backend for IseBackend<'a> {
         }
 
         let (dummy_inst_kind, dummy_inst_port) = match self.edev {
-            ExpandedDevice::Xc4k(_) => ("CLB", "K"),
+            ExpandedDevice::Xc4000(_) => ("CLB", "K"),
             ExpandedDevice::Xc5200(_) => ("LC5A", "CK"),
             ExpandedDevice::Virtex(_) => ("SLICE", "CLK"),
             ExpandedDevice::Virtex2(edev) => (
@@ -498,6 +508,8 @@ impl<'a> Backend for IseBackend<'a> {
                 cfg: vec![],
             },
         );
+
+        let mut pin_pips: HashMap<_, Vec<_>> = HashMap::new();
 
         for (k, v) in &kv {
             match k {
@@ -540,6 +552,12 @@ impl<'a> Backend for IseBackend<'a> {
                         wire_to: wb.to_string(),
                         dir: prjcombine_xdl::PipDirection::UniBuf,
                     }),
+                    Value::FromPin(site, pin) => {
+                        pin_pips
+                            .entry((*site, &pin[..]))
+                            .or_default()
+                            .push((*tile, *wa, *wb));
+                    }
                     _ => unreachable!(),
                 },
                 _ => (),
@@ -575,6 +593,13 @@ impl<'a> Backend for IseBackend<'a> {
                                     "#LUT".to_string(),
                                     suf.to_string(),
                                 ]);
+                            } else if let Some(suf) = s.strip_prefix("#RAM:") {
+                                inst.cfg.push(vec![
+                                    attr.to_string(),
+                                    "".to_string(),
+                                    "#RAM".to_string(),
+                                    suf.to_string(),
+                                ]);
                             } else {
                                 inst.cfg.push(vec![
                                     attr.to_string(),
@@ -601,6 +626,16 @@ impl<'a> Backend for IseBackend<'a> {
                             pips: vec![],
                             cfg: vec![],
                         };
+                        if let Some(pips) = pin_pips.get(&(*site, &pin[..])) {
+                            for pip in pips {
+                                net.pips.push(NetPip {
+                                    tile: pip.0.to_string(),
+                                    wire_from: pip.1.to_string(),
+                                    wire_to: pip.2.to_string(),
+                                    dir: prjcombine_xdl::PipDirection::UniBuf,
+                                });
+                            }
+                        }
                         match kv.get(&Key::SitePinFrom(site, pin.clone())) {
                             None => (),
                             Some(Value::None) => (),
@@ -608,7 +643,7 @@ impl<'a> Backend for IseBackend<'a> {
                                 let inst_name = format!("FAKEINST__{site}__{pin}");
                                 let (fi_kind, fi_pin, fi_cfg) = match kind {
                                     PinFromKind::Iob => match self.edev {
-                                        ExpandedDevice::Xc4k(_) => todo!(),
+                                        ExpandedDevice::Xc4000(_) => todo!(),
                                         ExpandedDevice::Xc5200(_) => todo!(),
                                         ExpandedDevice::Virtex(_) => todo!(),
                                         ExpandedDevice::Virtex2(edev) => {
@@ -639,7 +674,7 @@ impl<'a> Backend for IseBackend<'a> {
                                         ExpandedDevice::Versal(_) => todo!(),
                                     },
                                     PinFromKind::Bufg => match self.edev {
-                                        ExpandedDevice::Xc4k(_) => todo!(),
+                                        ExpandedDevice::Xc4000(_) => todo!(),
                                         ExpandedDevice::Xc5200(_) => todo!(),
                                         ExpandedDevice::Virtex(_) => todo!(),
                                         ExpandedDevice::Virtex2(_)
@@ -697,19 +732,26 @@ impl<'a> Backend for IseBackend<'a> {
                 _ => (),
             }
         }
-        let part = if matches!(self.edev, ExpandedDevice::Xc5200(_)) {
-            format!(
+        let part = match self.edev {
+            ExpandedDevice::Xc4000(_) => format!(
+                "{d}{p}{s}",
+                d = &self.device.name[2..],
+                p = self.device.bonds[combo.devbond_idx].name,
+                s = self.device.speeds[combo.speed_idx],
+            ),
+
+            ExpandedDevice::Xc5200(_) => format!(
                 "{d}{p}",
                 d = &self.device.name[2..],
                 p = self.device.bonds[combo.devbond_idx].name,
-            )
-        } else {
-            format!(
+            ),
+
+            _ => format!(
                 "{d}{s}{p}",
                 d = self.device.name,
                 s = self.device.speeds[combo.speed_idx],
                 p = self.device.bonds[combo.devbond_idx].name
-            )
+            ),
         };
         let mut xdl = Design {
             name: "meow".to_string(),
@@ -801,7 +843,7 @@ impl<'a> Backend for IseBackend<'a> {
                     for (i, t) in feat.tiles.iter().enumerate() {
                         if let Some(xk) = t.xlat_pos_rev(k) {
                             fdiffs[fidx][bitidx].bits.insert(
-                                FeatureBit {
+                                TileBit {
                                     tile: i,
                                     frame: xk.0,
                                     bit: xk.1,
@@ -877,8 +919,8 @@ impl<'a> Backend for IseBackend<'a> {
                 }
                 Value::String(v)
             }
-            MultiValue::OldLut => {
-                let mut v = "#LUT:F=0x".to_string();
+            MultiValue::OldLut(f) => {
+                let mut v = format!("#LUT:{f}=0x");
                 let nc = y.len() / 4;
                 for i in 0..nc {
                     let mut c = 0;

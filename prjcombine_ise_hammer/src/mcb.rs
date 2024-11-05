@@ -1,8 +1,8 @@
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bool, xlat_enum, CollectorCtx, Diff},
     fgen::TileBits,
     fuzz::FuzzCtx,
@@ -554,7 +554,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             reg,
             TileItem::from_bitvec(
-                (0..14).map(|i| FeatureBit::new(bittile, 22, 18 + i)).collect(),
+                (0..14).map(|i| TileBit::new(bittile, 22, 18 + i)).collect(),
                 false,
             ),
         );

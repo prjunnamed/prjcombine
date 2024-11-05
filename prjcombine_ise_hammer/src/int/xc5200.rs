@@ -1,8 +1,9 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::WireKind;
+use prjcombine_types::TileBit;
 
 use crate::{
-    backend::{FeatureBit, FeatureId, IseBackend},
+    backend::{FeatureId, IseBackend},
     diff::{xlat_bit, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
@@ -180,21 +181,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     match (&tile[..], &out_name[..], &in_name[..]) {
                         ("CNR.BR", "LONG.V0", "OUT.STARTUP.DONEIN") => {
                             assert_eq!(diff.bits.len(), 2);
-                            assert_eq!(diff.bits.remove(&FeatureBit::new(0, 6, 20)), Some(false));
+                            assert_eq!(diff.bits.remove(&TileBit::new(0, 6, 20)), Some(false));
                         }
                         ("CNR.BR", "LONG.V1", "OUT.STARTUP.DONEIN") => {
                             assert_eq!(diff.bits.len(), 0);
-                            diff.bits.insert(FeatureBit::new(0, 6, 20), false);
+                            diff.bits.insert(TileBit::new(0, 6, 20), false);
                         }
                         _ => (),
                     }
                     let item = xlat_bit(diff);
-                    let name =
-                        if intdb.wires[wire_from.1] != WireKind::MuxOut && wire_from < wire_to {
-                            format!("PASS.{in_name}.{out_name}")
-                        } else {
-                            format!("PASS.{out_name}.{in_name}")
-                        };
+                    let mut is_bidi = false;
+                    if let Some(omux) = node.muxes.get(&wire_from) {
+                        if omux.ins.contains(&wire_to) {
+                            is_bidi = true;
+                        }
+                    }
+                    let name = if !is_bidi {
+                        format!("PASS.{out_name}.{in_name}")
+                    } else if wire_from < wire_to {
+                        format!("BIPASS.{in_name}.{out_name}")
+                    } else {
+                        format!("BIPASS.{out_name}.{in_name}")
+                    };
                     ctx.tiledb.insert(tile, "INT", name, item);
                 }
             } else {

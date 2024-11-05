@@ -4,12 +4,12 @@ use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_spartan6::grid::Gts;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
@@ -1212,7 +1212,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             tile,
             "GLUTMASK",
             format!("FRAME{target}"),
-            TileItem::from_bit(FeatureBit::new(0, frame, bit), false),
+            TileItem::from_bit(TileBit::new(0, frame, bit), false),
         )
     }
 }

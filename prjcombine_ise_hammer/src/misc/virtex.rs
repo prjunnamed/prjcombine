@@ -1,13 +1,13 @@
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{Dir, NodeTileId};
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use prjcombine_virtex::grid::GridKind;
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{xlat_bitvec, xlat_bool, xlat_enum_int, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV},
     fuzz::FuzzCtx,
@@ -431,7 +431,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "SHUTDOWN",
-            TileItem::from_bit(FeatureBit::new(0, 0, 15), false),
+            TileItem::from_bit(TileBit::new(0, 0, 15), false),
         );
 
         let bel = "CAPTURE";
@@ -447,13 +447,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "PERSIST",
-            TileItem::from_bit(FeatureBit::new(0, 0, 6), false),
+            TileItem::from_bit(TileBit::new(0, 0, 6), false),
         );
         ctx.tiledb.insert(
             tile,
             bel,
             "GTS_USR_B",
-            TileItem::from_bit(FeatureBit::new(0, 0, 0), false),
+            TileItem::from_bit(TileBit::new(0, 0, 0), false),
         );
     }
 }

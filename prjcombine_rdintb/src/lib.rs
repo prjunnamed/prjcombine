@@ -64,6 +64,9 @@ pub struct XNodeInfo<'a, 'b> {
     pub optin_muxes: BTreeSet<WireId>,
     pub optin_muxes_tile: BTreeSet<NodeWireId>,
     pub bels: Vec<ExtrBelInfo>,
+    pub force_names: HashMap<(usize, rawdump::WireId), (IntConnKind, NodeWireId)>,
+    pub force_skip_pips: HashSet<(NodeWireId, NodeWireId)>,
+    pub force_pips: HashSet<(NodeWireId, NodeWireId)>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -319,6 +322,23 @@ impl XNodeInfo<'_, '_> {
 
     pub fn num_tiles(mut self, num: usize) -> Self {
         self.num_tiles = num;
+        self
+    }
+
+    pub fn force_name(mut self, rti: usize, name: &str, wire: NodeWireId) -> Self {
+        if let Some(w) = self.builder.rd.wires.get(name) {
+            self.force_names.insert((rti, w), (IntConnKind::Raw, wire));
+        }
+        self
+    }
+
+    pub fn force_skip_pip(mut self, wt: NodeWireId, wf: NodeWireId) -> Self {
+        self.force_skip_pips.insert((wt, wf));
+        self
+    }
+
+    pub fn force_pip(mut self, wt: NodeWireId, wf: NodeWireId) -> Self {
+        self.force_pips.insert((wt, wf));
         self
     }
 
@@ -988,6 +1008,9 @@ impl XNodeExtractor<'_, '_, '_> {
     fn get_wire_by_name(&self, rti: usize, name: rawdump::WireId) -> Option<NodeWireId> {
         let rt = &self.xnode.raw_tiles[rti];
         let tile = &self.rd.tiles[&rt.xy];
+        if let Some(&(IntConnKind::Raw, res)) = self.xnode.force_names.get(&(rti, name)) {
+            return Some(res);
+        }
         if let Some((t, w)) = self
             .xnode
             .builder
@@ -1005,6 +1028,15 @@ impl XNodeExtractor<'_, '_, '_> {
     }
 
     fn extract_muxes(&mut self) {
+        for &(wt, wf) in &self.xnode.force_pips {
+            let kind = MuxKind::Plain;
+            let mux = self.node.muxes.entry(wt).or_insert(MuxInfo {
+                kind,
+                ins: Default::default(),
+            });
+            assert_eq!(mux.kind, kind);
+            mux.ins.insert(wf);
+        }
         for (i, rt) in self.xnode.raw_tiles.iter().enumerate() {
             let tile = &self.rd.tiles[&rt.xy];
             let tk = &self.rd.tile_kinds[tile.kind];
@@ -1024,6 +1056,9 @@ impl XNodeExtractor<'_, '_, '_> {
                         continue;
                     }
                     if let Some(wf) = self.get_wire_by_name(i, wfi) {
+                        if self.xnode.force_skip_pips.contains(&(wt, wf)) {
+                            continue;
+                        }
                         if i == 0 {
                             self.node_naming
                                 .wires
@@ -3407,6 +3442,9 @@ impl<'a> IntBuilder<'a> {
             optin_muxes: BTreeSet::new(),
             optin_muxes_tile: BTreeSet::new(),
             bels: vec![],
+            force_names: HashMap::new(),
+            force_skip_pips: HashSet::new(),
+            force_pips: HashSet::new(),
         }
     }
 

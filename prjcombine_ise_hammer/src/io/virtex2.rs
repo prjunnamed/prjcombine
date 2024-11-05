@@ -3,13 +3,13 @@ use std::collections::{hash_map, HashMap, HashSet};
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{
         enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
         xlat_item_tile_fwd, CollectorCtx, Diff, OcdMode,
@@ -2636,7 +2636,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     bel,
                     "MISR_RESET",
                     TileItem {
-                        bits: vec![FeatureBit {
+                        bits: vec![TileBit {
                             tile: 0,
                             frame: 0,
                             bit: [7, 32, 47][bel_id.to_idx()],
@@ -2651,16 +2651,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // a while another kind of fuzzer for a handful of bits.
             let bit = if edev.grid.kind.is_virtex2() {
                 [
-                    FeatureBit::new(0, 2, 13),
-                    FeatureBit::new(0, 2, 33),
-                    FeatureBit::new(0, 2, 53),
-                    FeatureBit::new(0, 2, 73),
+                    TileBit::new(0, 2, 13),
+                    TileBit::new(0, 2, 33),
+                    TileBit::new(0, 2, 53),
+                    TileBit::new(0, 2, 73),
                 ][bel_id.to_idx()]
             } else {
                 [
-                    FeatureBit::new(0, 3, 0),
-                    FeatureBit::new(0, 3, 39),
-                    FeatureBit::new(0, 3, 40),
+                    TileBit::new(0, 3, 0),
+                    TileBit::new(0, 3, 39),
+                    TileBit::new(0, 3, 40),
                 ][bel_id.to_idx()]
             };
             ctx.tiledb

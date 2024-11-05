@@ -3,7 +3,7 @@ use prjcombine_int::{
         BelId, Dir, IntfWireInNaming, IntfWireOutNaming, NodeKindId, NodeRawTileId, NodeTileId,
         NodeWireId,
     },
-    grid::{ColId, DieId, LayerId, RowId},
+    grid::{ColId, DieId, IntWire, LayerId, RowId},
 };
 use prjcombine_virtex2::expanded::IoPadKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
@@ -181,7 +181,7 @@ fn resolve_tile_relation(
             }
         }
         TileRelation::ClkHrow(delta) => match backend.edev {
-            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc4000(_) => todo!(),
             ExpandedDevice::Xc5200(_) => todo!(),
             ExpandedDevice::Virtex(_) => todo!(),
             ExpandedDevice::Virtex2(_) => todo!(),
@@ -235,7 +235,7 @@ fn resolve_tile_relation(
             Some(resolve_bel_relation(backend, loc, BelId::from_idx(0), BelRelation::Ioclk(dir))?.0)
         }
         TileRelation::HclkDcm => match backend.edev {
-            ExpandedDevice::Xc4k(_) => todo!(),
+            ExpandedDevice::Xc4000(_) => todo!(),
             ExpandedDevice::Xc5200(_) => todo!(),
             ExpandedDevice::Virtex(_) => todo!(),
             ExpandedDevice::Virtex2(_) => todo!(),
@@ -740,6 +740,8 @@ pub enum TileKV<'a> {
     VirtexPinHexV(NodeWireId),
     VirtexDriveHexH(NodeWireId),
     VirtexDriveHexV(NodeWireId),
+    Xc4000BiPip(NodeWireId, NodeWireId),
+    Xc4000DoublePip(NodeWireId, NodeWireId, NodeWireId),
     DeviceSide(Dir),
     HclkSide(Dir),
     CenterDci(u32),
@@ -777,6 +779,8 @@ pub enum BelKV {
     BankDiffOutput(String, Option<String>),
     NotIbuf,
     VirtexIsDllIob(bool),
+    Xc4000TbufSplitter(Dir, bool),
+    Xc4000DriveImux(&'static str, bool),
 }
 
 impl<'a> TileKV<'a> {
@@ -1742,6 +1746,59 @@ impl<'a> TileKV<'a> {
                     loc.2 += 1;
                 }
             }
+            TileKV::Xc4000BiPip(wire_from, wire_to) => {
+                let node = backend.egrid.node(loc);
+                let res_from = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))
+                    .unwrap();
+                let res_to = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))
+                    .unwrap();
+                let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
+                let (fuzzer, src_site, src_pin) =
+                    drive_xc4000_wire(backend, fuzzer, res_from, Some((loc, *wire_from)), res_to);
+                let (tile, wa, wb) = resolve_int_pip(backend, loc, *wire_from, *wire_to)?;
+                fuzzer.fuzz(
+                    Key::Pip(tile, wa, wb),
+                    None,
+                    Value::FromPin(src_site, src_pin.into()),
+                )
+            }
+            TileKV::Xc4000DoublePip(wire_from, wire_mid, wire_to) => {
+                let node = backend.egrid.node(loc);
+                let res_from = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))
+                    .unwrap();
+                let res_mid = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_mid.0], wire_mid.1))
+                    .unwrap();
+                let res_to = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))
+                    .unwrap();
+                let fuzzer = fuzzer
+                    .fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT")
+                    .fuzz(Key::NodeMutex(res_mid), None, "EXCLUSIVE-MID");
+                let (fuzzer, src_site, src_pin) =
+                    drive_xc4000_wire(backend, fuzzer, res_from, Some((loc, *wire_from)), res_to);
+                let (tile0, wa0, wb0) = resolve_int_pip(backend, loc, *wire_from, *wire_mid)?;
+                let (tile1, wa1, wb1) = resolve_int_pip(backend, loc, *wire_mid, *wire_to)?;
+                fuzzer
+                    .fuzz(
+                        Key::Pip(tile0, wa0, wb0),
+                        None,
+                        Value::FromPin(src_site, src_pin.into()),
+                    )
+                    .fuzz(
+                        Key::Pip(tile1, wa1, wb1),
+                        None,
+                        Value::FromPin(src_site, src_pin.into()),
+                    )
+            }
             TileKV::DeviceSide(dir) => match backend.edev {
                 ExpandedDevice::Virtex(edev) => {
                     match dir {
@@ -2303,6 +2360,616 @@ impl<'a> TileKV<'a> {
     }
 }
 
+fn drive_xc4000_wire<'a>(
+    backend: &IseBackend<'a>,
+    fuzzer: Fuzzer<IseBackend<'a>>,
+    wire_target: IntWire,
+    orig_target: Option<(Loc, NodeWireId)>,
+    wire_avoid: IntWire,
+) -> (Fuzzer<IseBackend<'a>>, &'a str, &'a str) {
+    let ExpandedDevice::Xc4000(edev) = backend.edev else {
+        unreachable!()
+    };
+    let wname = backend.egrid.db.wires.key(wire_target.2);
+    let aname = backend.egrid.db.wires.key(wire_avoid.2);
+    let (die, (mut col, mut row), mut wt) = wire_target;
+    let (_, (acol, arow), _) = wire_avoid;
+    let fuzzer = fuzzer.fuzz(Key::NodeMutex(wire_target), None, "EXCLUSIVE");
+    // println!("DRIVING {wire_target:?} {wname}");
+    if wire_target.1 .1 != edev.grid.row_bio()
+        && wire_target.1 .1 != edev.grid.row_tio()
+        && (wname == "LONG.H2" || wname == "LONG.H3")
+    {
+        let bel = if wname == "LONG.H3" { "TBUF1" } else { "TBUF0" };
+        let nloc = (die, col, row, LayerId::from_idx(0));
+        let node = backend.egrid.node(nloc);
+        let node_info = &backend.egrid.db.nodes[node.kind];
+        let node_naming = &backend.egrid.db.node_namings[node.naming];
+        let bel = node_info.bels.get(bel).unwrap().0;
+        let bel_naming = &node_naming.bels[bel];
+        let pin_naming = &bel_naming.pins["O"];
+        let site_name = &node.bels[bel];
+        let fuzzer = fuzzer
+            .base(Key::SiteMode(site_name), "TBUF")
+            .base(Key::SitePin(site_name, "O".into()), true)
+            .base(
+                Key::Pip(
+                    &node.names[bel_naming.tile],
+                    &pin_naming.name,
+                    &pin_naming.name_far,
+                ),
+                Value::FromPin(site_name, "O".into()),
+            );
+        (fuzzer, site_name, "O")
+    } else if wname == "GND" {
+        let nloc = (die, col, row, LayerId::from_idx(0));
+        let node = backend.egrid.node(nloc);
+        let site_name = node.tie_name.as_ref().unwrap();
+        let fuzzer = fuzzer
+            .base(Key::SiteMode(site_name), "TIE")
+            .base(Key::SitePin(site_name, "O".into()), true);
+        (fuzzer, site_name, "O")
+    } else if wname.starts_with("OUT.CLB") && (wname.ends_with(".V") || wname.ends_with(".H")) {
+        let owname = &wname[..(wname.len() - 2)];
+        let nwt = (die, (col, row), backend.egrid.db.get_wire(owname));
+        let (fuzzer, site_name, pin_name) =
+            drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+        let (tile, wa, wb) = resolve_int_pip(
+            backend,
+            (die, col, row, LayerId::from_idx(0)),
+            (NodeTileId::from_idx(0), nwt.2),
+            (NodeTileId::from_idx(0), wt),
+        )
+        .unwrap();
+        let fuzzer = fuzzer.base(
+            Key::Pip(tile, wa, wb),
+            Value::FromPin(site_name, pin_name.into()),
+        );
+        (fuzzer, site_name, pin_name)
+    } else if wname.starts_with("OUT.CLB") {
+        let nloc = (die, col, row, LayerId::from_idx(0));
+        let node = backend.egrid.node(nloc);
+        let node_info = &backend.egrid.db.nodes[node.kind];
+        let bel = node_info.bels.get("CLB").unwrap().0;
+        let site_name = &node.bels[bel];
+        let (pin, fuzzer) = match &wname[..] {
+            "OUT.CLB.FX" => (
+                "X",
+                fuzzer
+                    .base(Key::SiteAttr(site_name, "F".into()), "#LUT:F=0x0000")
+                    .base(Key::SiteAttr(site_name, "XMUX".into()), "F"),
+            ),
+            "OUT.CLB.GY" => (
+                "Y",
+                fuzzer
+                    .base(Key::SiteAttr(site_name, "G".into()), "#LUT:G=0x0000")
+                    .base(Key::SiteAttr(site_name, "YMUX".into()), "G"),
+            ),
+            "OUT.CLB.FXQ" => (
+                "XQ",
+                if edev.grid.kind.is_clb_xl() {
+                    fuzzer
+                        .base(Key::SiteAttr(site_name, "CLKX".into()), "CLK")
+                        .base(Key::SiteAttr(site_name, "XQMUX".into()), "QX")
+                        .base(Key::SiteAttr(site_name, "FFX".into()), "#LATCH")
+                        .base(Key::SiteAttr(site_name, "DX".into()), "DIN")
+                        .base(Key::SiteAttr(site_name, "DIN".into()), "C1")
+                } else {
+                    fuzzer
+                        .base(Key::SiteAttr(site_name, "CLKX".into()), "CLK")
+                        .base(Key::SiteAttr(site_name, "XQMUX".into()), "QX")
+                },
+            ),
+            "OUT.CLB.GYQ" => (
+                "YQ",
+                if edev.grid.kind.is_clb_xl() {
+                    fuzzer
+                        .base(Key::SiteAttr(site_name, "CLKY".into()), "CLK")
+                        .base(Key::SiteAttr(site_name, "YQMUX".into()), "QY")
+                        .base(Key::SiteAttr(site_name, "FFY".into()), "#LATCH")
+                        .base(Key::SiteAttr(site_name, "DY".into()), "DIN")
+                        .base(Key::SiteAttr(site_name, "DIN".into()), "C1")
+                } else {
+                    fuzzer
+                        .base(Key::SiteAttr(site_name, "CLKY".into()), "CLK")
+                        .base(Key::SiteAttr(site_name, "YQMUX".into()), "QY")
+                },
+            ),
+            _ => unreachable!(),
+        };
+        let fuzzer = fuzzer
+            .base(Key::SiteMode(site_name), "CLB")
+            .base(Key::SitePin(site_name, pin.into()), true);
+        (fuzzer, site_name, pin)
+    } else if let Some(idx) = wname.strip_prefix("SINGLE.H") {
+        let idx: u8 = idx.parse().unwrap();
+        assert_ne!(row, edev.grid.row_tio());
+        if col == edev.grid.col_lio()
+            || (col == edev.grid.col_lio() + 1
+                && (row == edev.grid.row_bio() || row == edev.grid.row_tio() - 1))
+        {
+            let nwt = (die, (col + 1, row), wt);
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col + 1, row, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), wt),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
+                ),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if col == edev.grid.col_rio() {
+            let nwt = (die, (col - 1, row), wt);
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
+                ),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if row == edev.grid.row_bio() {
+            let nwt = (
+                die,
+                (col, row + 1),
+                backend.egrid.db.get_wire(&format!("SINGLE.V{idx}")),
+            );
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
+                ),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if row == edev.grid.row_tio() - 1 {
+            let nwt = (
+                die,
+                (col, row),
+                backend.egrid.db.get_wire(&format!("SINGLE.V{idx}")),
+            );
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), nwt.2),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else {
+            let (out, sout, srow) = match (
+                idx,
+                edev.grid.kind == prjcombine_xc4000::grid::GridKind::Xc4000E,
+            ) {
+                (0 | 4, true) => ("OUT.CLB.GY", "OUT.CLB.GY", row),
+                (1 | 5, true) => ("OUT.CLB.GYQ", "OUT.CLB.GYQ", row),
+                (2 | 6, true) => ("OUT.CLB.FXQ.S", "OUT.CLB.FXQ", row + 1),
+                (3 | 7, true) => ("OUT.CLB.FX.S", "OUT.CLB.FX", row + 1),
+                (0 | 4, false) => ("OUT.CLB.GY.V", "OUT.CLB.GY.V", row),
+                (1 | 5, false) => ("OUT.CLB.GYQ.V", "OUT.CLB.GYQ.V", row),
+                (2 | 6, false) => ("OUT.CLB.FXQ.S", "OUT.CLB.FXQ.V", row + 1),
+                (3 | 7, false) => ("OUT.CLB.FX.S", "OUT.CLB.FX.V", row + 1),
+                _ => unreachable!(),
+            };
+            let nwt = (die, (col, srow), backend.egrid.db.get_wire(sout));
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), backend.egrid.db.get_wire(out)),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        }
+    } else if let Some(idx) = wname.strip_prefix("SINGLE.V") {
+        let idx: u8 = idx.parse().unwrap();
+        assert_ne!(col, edev.grid.col_lio());
+        if row == edev.grid.row_bio() {
+            let nwt = (die, (col, row + 1), wt);
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
+                ),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if row == edev.grid.row_tio()
+            || (row == edev.grid.row_tio() - 1
+                && (col == edev.grid.col_lio() + 1 || col == edev.grid.col_rio()))
+        {
+            let nwt = (die, (col, row - 1), wt);
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row - 1, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), wt),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.V{idx}.S")),
+                ),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if col == edev.grid.col_lio() + 1 {
+            let nwt = (
+                die,
+                (col, row),
+                backend.egrid.db.get_wire(&format!("SINGLE.H{idx}")),
+            );
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), nwt.2),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else if col == edev.grid.col_rio() {
+            let nwt = (
+                die,
+                (col - 1, row),
+                backend.egrid.db.get_wire(&format!("SINGLE.H{idx}")),
+            );
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (
+                    NodeTileId::from_idx(0),
+                    backend.egrid.db.get_wire(&format!("SINGLE.H{idx}.E")),
+                ),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        } else {
+            let (out, sout, scol) = match (
+                idx,
+                edev.grid.kind == prjcombine_xc4000::grid::GridKind::Xc4000E,
+            ) {
+                (0 | 4, true) => ("OUT.CLB.FXQ", "OUT.CLB.FXQ", col),
+                (1 | 5, true) => ("OUT.CLB.FX", "OUT.CLB.FX", col),
+                (2 | 6, true) => ("OUT.CLB.GY.E", "OUT.CLB.GY", col - 1),
+                (3 | 7, true) => ("OUT.CLB.GYQ.E", "OUT.CLB.GYQ", col - 1),
+                (0 | 4, false) => ("OUT.CLB.FXQ.H", "OUT.CLB.FXQ.H", col),
+                (1 | 5, false) => ("OUT.CLB.FX.H", "OUT.CLB.FX.H", col),
+                (2 | 6, false) => ("OUT.CLB.GY.E", "OUT.CLB.GY.H", col - 1),
+                (3 | 7, false) => ("OUT.CLB.GYQ.E", "OUT.CLB.GYQ.H", col - 1),
+                _ => unreachable!(),
+            };
+            let nwt = (die, (scol, row), backend.egrid.db.get_wire(sout));
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(
+                backend,
+                (die, col, row, LayerId::from_idx(0)),
+                (NodeTileId::from_idx(0), backend.egrid.db.get_wire(out)),
+                (NodeTileId::from_idx(0), wt),
+            )
+            .unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            (fuzzer, site_name, pin_name)
+        }
+    } else if wname.starts_with("LONG")
+        || wname.starts_with("IO.OCTAL")
+        || wname.starts_with("QUAD")
+        || wname.starts_with("OCTAL")
+        || wname.starts_with("GCLK")
+        || wname.starts_with("VCLK")
+    {
+        let mut filter = None;
+        let mut twt = NodeTileId::from_idx(0);
+        let mut layer = LayerId::from_idx(0);
+        if wname.starts_with("LONG") {
+            if wname.contains(".H") {
+                if col == edev.grid.col_lio() {
+                    col += 1;
+                }
+                if col == acol {
+                    col += 1;
+                }
+            } else if wname.contains(".V") {
+                if row == arow {
+                    row += 1;
+                }
+            } else {
+                unreachable!()
+            }
+        } else if wname.starts_with("IO.OCTAL") {
+            match &wname[..] {
+                "IO.OCTAL.W.0" => (),
+                "IO.OCTAL.E.0" => {
+                    assert_ne!(row, edev.grid.row_tio());
+                    row += 1;
+                    wt = backend.egrid.db.get_wire("IO.OCTAL.E.1");
+                    if row == edev.grid.row_tio() {
+                        wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
+                        col -= 1;
+                    }
+                }
+                "IO.OCTAL.S.0" => (),
+                "IO.OCTAL.N.0" => {
+                    assert_ne!(col, edev.grid.col_lio());
+                    col -= 1;
+                    wt = backend.egrid.db.get_wire("IO.OCTAL.N.1");
+                    if col == edev.grid.col_lio() {
+                        wt = backend.egrid.db.get_wire("IO.OCTAL.W.1");
+                        row -= 1;
+                    }
+                }
+                _ => unreachable!(),
+            }
+        } else if wname.starts_with("QUAD.H") {
+            if col == edev.grid.col_lio() {
+                if wname.ends_with(".3") {
+                    if aname.starts_with("LONG.IO") {
+                        col += 1;
+                        match &wname[..] {
+                            "QUAD.H0.3" => {
+                                filter = Some("QUAD.H0.0");
+                                wt = backend.egrid.db.get_wire("QUAD.H0.4");
+                            }
+                            "QUAD.H1.3" => {
+                                filter = Some("QUAD.H1.0");
+                                wt = backend.egrid.db.get_wire("QUAD.H1.4");
+                            }
+                            "QUAD.H2.3" => {
+                                filter = Some("QUAD.H2.0");
+                                wt = backend.egrid.db.get_wire("QUAD.H2.4");
+                            }
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        filter = Some("LONG.IO");
+                    }
+                } else if wname == "QUAD.H1.0" {
+                    col += 1;
+                    wt = backend.egrid.db.get_wire("QUAD.H1.1");
+                }
+            } else if wname == "QUAD.H2.0" {
+                if col == edev.grid.col_rio() {
+                    if aname.starts_with("LONG.IO") {
+                        filter = Some("QUAD.H2.4");
+                    } else {
+                        filter = Some("LONG.IO");
+                    }
+                } else {
+                    col += 1;
+                    wt = backend.egrid.db.get_wire("QUAD.H2.1");
+                }
+            }
+        } else if wname.starts_with("QUAD.V") {
+            if row == edev.grid.row_tio() {
+                if wname.ends_with(".3") {
+                    if aname.starts_with("LONG.IO") {
+                        row -= 1;
+                        match &wname[..] {
+                            "QUAD.V0.3" => {
+                                filter = Some("QUAD.V0.0");
+                                wt = backend.egrid.db.get_wire("QUAD.V0.4");
+                            }
+                            "QUAD.V1.3" => {
+                                filter = Some("QUAD.V1.0");
+                                wt = backend.egrid.db.get_wire("QUAD.V1.4");
+                            }
+                            "QUAD.V2.3" => {
+                                filter = Some("QUAD.V2.0");
+                                wt = backend.egrid.db.get_wire("QUAD.V2.4");
+                            }
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        filter = Some("LONG.IO");
+                    }
+                } else if wname == "QUAD.V2.2" {
+                    row -= 1;
+                    wt = backend.egrid.db.get_wire("QUAD.V2.3");
+                }
+            } else if wname == "QUAD.V0.0" {
+                if row == edev.grid.row_bio() {
+                    if aname.starts_with("LONG.IO") {
+                        filter = Some("QUAD.V0.4");
+                    } else {
+                        filter = Some("LONG.IO");
+                    }
+                } else {
+                    row -= 1;
+                    wt = backend.egrid.db.get_wire("QUAD.V0.1");
+                }
+            }
+        } else if let Some(idx) = wname.strip_prefix("OCTAL.H.") {
+            if col == edev.grid.col_lio() {
+                let idx: usize = idx.parse().unwrap();
+                col += 7 - idx;
+                wt = backend.egrid.db.get_wire("OCTAL.H.7");
+            }
+        } else if let Some(idx) = wname.strip_prefix("OCTAL.V.") {
+            if row == edev.grid.row_tio() {
+                let idx: usize = idx.parse().unwrap();
+                row -= 7 - idx;
+                wt = backend.egrid.db.get_wire("OCTAL.V.7");
+            }
+        } else if wname.starts_with("GCLK") {
+            if row == edev.grid.row_bio() {
+                row = edev.grid.row_qb();
+            } else {
+                row = edev.grid.row_qt();
+            }
+            layer = backend
+                .egrid
+                .find_node_loc(die, (col, row), |node| {
+                    backend.egrid.db.nodes.key(node.kind).starts_with("LLVQ")
+                })
+                .unwrap()
+                .0;
+        } else if wname == "VCLK" {
+            if row == edev.grid.row_bio() {
+                // OK
+            } else if row == edev.grid.row_qb() {
+                row = edev.grid.row_mid();
+                layer = backend
+                    .egrid
+                    .find_node_loc(die, (col, row), |node| {
+                        backend.egrid.db.nodes.key(node.kind).starts_with("LLVC")
+                    })
+                    .unwrap()
+                    .0;
+            } else if row == edev.grid.row_mid() {
+                twt = NodeTileId::from_idx(1);
+                layer = backend
+                    .egrid
+                    .find_node_loc(die, (col, row), |node| {
+                        backend.egrid.db.nodes.key(node.kind).starts_with("LLVC")
+                    })
+                    .unwrap()
+                    .0;
+            } else if row == edev.grid.row_qt() {
+                row = edev.grid.row_tio();
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+        let nloc = (die, col, row, layer);
+        let node = backend.egrid.node(nloc);
+        let mwt = (twt, wt);
+        let res = backend
+            .egrid
+            .resolve_wire((die, node.tiles[twt], wt))
+            .unwrap();
+        assert_eq!(res, wire_target);
+        let mux = &backend.egrid.db.nodes[node.kind].muxes[&mwt];
+        for &mwf in &mux.ins {
+            let wfname = backend.egrid.db.wires.key(mwf.1);
+            if let Some(filter) = filter {
+                if !wfname.starts_with(filter) {
+                    continue;
+                }
+            } else {
+                if !(wfname.starts_with("SINGLE")
+                    || wfname == "GND"
+                    || (wfname.starts_with("IO.DOUBLE")
+                        && (wname.starts_with("OCTAL")
+                            || wname.starts_with("QUAD")
+                            || wname == "VCLK")))
+                {
+                    continue;
+                }
+            }
+            let nwt = backend
+                .egrid
+                .resolve_wire((die, node.tiles[mwf.0], mwf.1))
+                .unwrap();
+            if nwt == wire_avoid {
+                continue;
+            }
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, Some((nloc, mwf)), wire_avoid);
+            let (tile, wa, wb) =
+                resolve_int_pip(backend, (die, col, row, layer), mwf, mwt).unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            return (fuzzer, site_name, pin_name);
+        }
+        panic!("umm failed at {wire_target:?} {wname}");
+    } else if wname.starts_with("IO.DOUBLE") {
+        let (loc, mwt) = orig_target.unwrap();
+        let node = backend.egrid.node(loc);
+        let mux = &backend.egrid.db.nodes[node.kind].muxes[&mwt];
+        for &mwf in &mux.ins {
+            let wfname = backend.egrid.db.wires.key(mwf.1);
+            if !wfname.starts_with("SINGLE") {
+                continue;
+            }
+            let nwt = backend
+                .egrid
+                .resolve_wire((die, node.tiles[mwf.0], mwf.1))
+                .unwrap();
+            let (fuzzer, site_name, pin_name) =
+                drive_xc4000_wire(backend, fuzzer, nwt, None, wire_avoid);
+            let (tile, wa, wb) = resolve_int_pip(backend, loc, mwf, mwt).unwrap();
+            let fuzzer = fuzzer.base(
+                Key::Pip(tile, wa, wb),
+                Value::FromPin(site_name, pin_name.into()),
+            );
+            return (fuzzer, site_name, pin_name);
+        }
+        panic!("umm failed at {wire_target:?} {wname}");
+    } else {
+        panic!("how to drive {wname}");
+    }
+}
+
 fn get_v4_vref_rows(
     edev: &prjcombine_virtex4::expanded::ExpandedDevice,
     die: DieId,
@@ -2498,6 +3165,10 @@ impl<'a> BelKV {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
+        let node_data = &backend.egrid.db.nodes[node.kind];
+        let bel_data = &node_data.bels[bel];
+        let node_naming = &backend.egrid.db.node_namings[node.naming];
+        let bel_naming = &node_naming.bels[bel];
         Some(match self {
             BelKV::Nop => fuzzer,
             BelKV::Mode(mode) => {
@@ -2535,8 +3206,6 @@ impl<'a> BelKV {
                 fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind)
             }
             BelKV::PinPips(pin) => {
-                let node_naming = &backend.egrid.db.node_namings[node.naming];
-                let bel_naming = &node_naming.bels[bel];
                 let pin_naming = &bel_naming.pins[pin];
                 for pip in &pin_naming.pips {
                     fuzzer = fuzzer.base(
@@ -2547,8 +3216,6 @@ impl<'a> BelKV {
                 fuzzer
             }
             BelKV::PinNodeMutexShared(pin) => {
-                let node_data = &backend.egrid.db.nodes[node.kind];
-                let bel_data = &node_data.bels[bel];
                 let pin_data = &bel_data.pins[pin];
                 for &wire in &pin_data.wires {
                     let node = backend.egrid.node(loc);
@@ -2576,7 +3243,7 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4k(_) => todo!(),
+                    ExpandedBond::Xc4000(_) => todo!(),
                     ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
@@ -2646,7 +3313,7 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4k(_) => todo!(),
+                    ExpandedBond::Xc4000(_) => todo!(),
                     ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
@@ -2671,7 +3338,7 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4k(_) => todo!(),
+                    ExpandedBond::Xc4000(_) => todo!(),
                     ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
@@ -2733,7 +3400,7 @@ impl<'a> BelKV {
                 }
             }
             BelKV::IsVr => match backend.edev {
-                ExpandedDevice::Xc4k(_) => todo!(),
+                ExpandedDevice::Xc4000(_) => todo!(),
                 ExpandedDevice::Xc5200(_) => todo!(),
                 ExpandedDevice::Virtex(_) => todo!(),
                 ExpandedDevice::Virtex2(edev) => {
@@ -3275,7 +3942,7 @@ impl<'a> BelKV {
                 let is_diff = !matches!(*self, BelKV::OtherIobInput(_));
                 let is_out = matches!(*self, BelKV::OtherIobDiffOutput(_));
                 match backend.edev {
-                    ExpandedDevice::Xc4k(_) => todo!(),
+                    ExpandedDevice::Xc4000(_) => todo!(),
                     ExpandedDevice::Xc5200(_) => todo!(),
                     ExpandedDevice::Virtex(edev) => {
                         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package]
@@ -3440,7 +4107,7 @@ impl<'a> BelKV {
             }
             BelKV::BankDiffOutput(stda, stdb) => {
                 match backend.edev {
-                    ExpandedDevice::Xc4k(_) => todo!(),
+                    ExpandedDevice::Xc4000(_) => todo!(),
                     ExpandedDevice::Xc5200(_) => todo!(),
                     ExpandedDevice::Virtex(_) => todo!(),
                     ExpandedDevice::Virtex2(edev) => {
@@ -3563,6 +4230,96 @@ impl<'a> BelKV {
                     return None;
                 }
                 fuzzer
+            }
+            BelKV::Xc4000TbufSplitter(dir, buf) => {
+                let (wire_from, wire_to, pin_from, pin_to, ex_from, ex_to) = match dir {
+                    Dir::E => (
+                        bel_data.pins["L"].wires.iter().copied().next().unwrap(),
+                        bel_data.pins["R"].wires.iter().copied().next().unwrap(),
+                        &bel_naming.pins["L"].name,
+                        &bel_naming.pins["R"].name,
+                        &bel_naming.pins["L.EXCL"].name,
+                        &bel_naming.pins["R.EXCL"].name,
+                    ),
+                    Dir::W => (
+                        bel_data.pins["R"].wires.iter().copied().next().unwrap(),
+                        bel_data.pins["L"].wires.iter().copied().next().unwrap(),
+                        &bel_naming.pins["R"].name,
+                        &bel_naming.pins["L"].name,
+                        &bel_naming.pins["R.EXCL"].name,
+                        &bel_naming.pins["L.EXCL"].name,
+                    ),
+                    _ => unreachable!(),
+                };
+                let res_from = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))
+                    .unwrap();
+                let res_to = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))
+                    .unwrap();
+                let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
+                let (fuzzer, src_site, src_pin) =
+                    drive_xc4000_wire(backend, fuzzer, res_from, Some((loc, wire_from)), res_to);
+                let tile = &node.names[bel_naming.tile];
+                if *buf {
+                    fuzzer
+                        .fuzz(
+                            Key::Pip(tile, pin_from, ex_from),
+                            None,
+                            Value::FromPin(src_site, src_pin.into()),
+                        )
+                        .fuzz(
+                            Key::Pip(tile, ex_from, ex_to),
+                            None,
+                            Value::FromPin(src_site, src_pin.into()),
+                        )
+                        .fuzz(
+                            Key::Pip(tile, ex_to, pin_to),
+                            None,
+                            Value::FromPin(src_site, src_pin.into()),
+                        )
+                } else {
+                    fuzzer.fuzz(
+                        Key::Pip(tile, pin_from, pin_to),
+                        None,
+                        Value::FromPin(src_site, src_pin.into()),
+                    )
+                }
+            }
+            BelKV::Xc4000DriveImux(pin, drive) => {
+                let wire = *bel_data.pins[*pin].wires.iter().next().unwrap();
+                let res_wire = backend
+                    .egrid
+                    .resolve_wire((loc.0, node.tiles[wire.0], wire.1))
+                    .unwrap();
+                let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_wire), None, "EXCLUSIVE");
+                if *drive {
+                    let oloc = (
+                        res_wire.0,
+                        res_wire.1 .0,
+                        res_wire.1 .1,
+                        LayerId::from_idx(0),
+                    );
+                    let onode = backend.egrid.node(oloc);
+                    let onode_data = &backend.egrid.db.nodes[onode.kind];
+                    let wt = (NodeTileId::from_idx(0), res_wire.2);
+                    let mux = &onode_data.muxes[&wt];
+                    let wf = *mux.ins.iter().next().unwrap();
+                    let res_wf = backend
+                        .egrid
+                        .resolve_wire((oloc.0, onode.tiles[wf.0], wf.1))
+                        .unwrap();
+                    let (tile, wa, wb) = resolve_int_pip(backend, oloc, wf, wt).unwrap();
+                    fuzzer.base(Key::Pip(tile, wa, wb), true).fuzz(
+                        Key::NodeMutex(res_wf),
+                        None,
+                        "EXCLUSIVE",
+                    )
+                } else {
+                    fuzzer
+                }
             }
         })
     }
@@ -3880,8 +4637,8 @@ pub enum TileBits {
     BTTerm,
     LRTerm,
     SpineEnd,
-    #[allow(clippy::upper_case_acronyms)]
-    LLV,
+    Llv,
+    Llh,
     Gclkc,
     ClkLR,
     Hclk,
@@ -3906,6 +4663,7 @@ pub enum TileBits {
     GtpCommonMid,
     GtpChannelMid,
     IobS6,
+    MainXc4000,
 }
 
 impl TileBits {
@@ -3914,7 +4672,9 @@ impl TileBits {
         match *self {
             TileBits::Null => vec![],
             TileBits::Main(d, n) => match backend.edev {
-                ExpandedDevice::Xc4k(_) => todo!(),
+                ExpandedDevice::Xc4000(edev) => (0..n)
+                    .map(|idx| edev.btile_main(col, row - d + idx))
+                    .collect(),
                 ExpandedDevice::Xc5200(edev) => (0..n)
                     .map(|idx| edev.btile_main(col, row - d + idx))
                     .collect(),
@@ -3936,7 +4696,7 @@ impl TileBits {
             TileBits::Reg(reg) => vec![BitTile::Reg(die, reg)],
             TileBits::Raw(ref raw) => raw.clone(),
             TileBits::Bram => match backend.edev {
-                ExpandedDevice::Xc4k(_) => unreachable!(),
+                ExpandedDevice::Xc4000(_) => unreachable!(),
                 ExpandedDevice::Xc5200(_) => unreachable!(),
                 ExpandedDevice::Virtex(edev) => {
                     vec![
@@ -4065,16 +4825,45 @@ impl TileBits {
                 }
                 _ => unreachable!(),
             },
-            TileBits::LLV => {
-                let ExpandedDevice::Virtex2(edev) = backend.edev else {
-                    unreachable!()
-                };
-                if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3E {
-                    vec![edev.btile_llv_b(col), edev.btile_llv_t(col)]
-                } else {
-                    vec![edev.btile_llv(col)]
+            TileBits::Llv => match backend.edev {
+                ExpandedDevice::Xc4000(edev) => {
+                    if col == edev.grid.col_lio() {
+                        vec![edev.btile_llv(col, row), edev.btile_llv(col + 1, row)]
+                    } else {
+                        vec![edev.btile_llv(col, row)]
+                    }
                 }
-            }
+                ExpandedDevice::Virtex2(edev) => {
+                    if edev.grid.kind == prjcombine_virtex2::grid::GridKind::Spartan3E {
+                        vec![edev.btile_llv_b(col), edev.btile_llv_t(col)]
+                    } else {
+                        vec![edev.btile_llv(col)]
+                    }
+                }
+                _ => unreachable!(),
+            },
+            TileBits::Llh => match backend.edev {
+                ExpandedDevice::Xc4000(edev) => {
+                    if row == edev.grid.row_bio() {
+                        vec![edev.btile_llh(col, row), edev.btile_main(col - 1, row)]
+                    } else if row == edev.grid.row_tio() {
+                        vec![
+                            edev.btile_llh(col, row),
+                            edev.btile_llh(col, row - 1),
+                            edev.btile_main(col - 1, row),
+                        ]
+                    } else if row == edev.grid.row_bio() + 1 {
+                        vec![
+                            edev.btile_llh(col, row),
+                            edev.btile_llh(col, row - 1),
+                            edev.btile_main(col - 1, row - 1),
+                        ]
+                    } else {
+                        vec![edev.btile_llh(col, row), edev.btile_llh(col, row - 1)]
+                    }
+                }
+                _ => unreachable!(),
+            },
             TileBits::Gclkc => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
                     unreachable!()
@@ -4145,7 +4934,9 @@ impl TileBits {
                 vec![edev.btile_spine(row - 1)]
             }
             TileBits::Cfg => match backend.edev {
-                ExpandedDevice::Xc4k(_) | ExpandedDevice::Xc5200(_) | ExpandedDevice::Virtex(_) => {
+                ExpandedDevice::Xc4000(_)
+                | ExpandedDevice::Xc5200(_)
+                | ExpandedDevice::Virtex(_) => {
                     unreachable!()
                 }
                 ExpandedDevice::Virtex2(edev) => {
@@ -4236,7 +5027,7 @@ impl TileBits {
             TileBits::MainAuto => {
                 let node = backend.egrid.node(loc);
                 match backend.edev {
-                    ExpandedDevice::Xc4k(_) => todo!(),
+                    ExpandedDevice::Xc4000(_) => todo!(),
                     ExpandedDevice::Xc5200(edev) => node
                         .tiles
                         .values()
@@ -4531,6 +5322,70 @@ impl TileBits {
                 };
                 vec![edev.btile_iob(loc.1, loc.2)]
             }
+            TileBits::MainXc4000 => {
+                let ExpandedDevice::Xc4000(edev) = backend.edev else {
+                    unreachable!()
+                };
+                if loc.1 == edev.grid.col_lio() {
+                    if loc.2 == edev.grid.row_bio() {
+                        // LL
+                        vec![edev.btile_main(loc.1, loc.2)]
+                    } else if loc.2 == edev.grid.row_tio() {
+                        // UL
+                        vec![edev.btile_main(loc.1, loc.2)]
+                    } else {
+                        // LEFT
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 - 1),
+                        ]
+                    }
+                } else if loc.1 == edev.grid.col_rio() {
+                    if loc.2 == edev.grid.row_bio() {
+                        // LR
+                        vec![edev.btile_main(loc.1, loc.2)]
+                    } else if loc.2 == edev.grid.row_tio() {
+                        // UR
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 - 1),
+                            edev.btile_main(loc.1 - 1, loc.2),
+                        ]
+                    } else {
+                        // RT
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 - 1),
+                            edev.btile_main(loc.1 - 1, loc.2),
+                        ]
+                    }
+                } else {
+                    if loc.2 == edev.grid.row_bio() {
+                        // BOT
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1 + 1, loc.2),
+                        ]
+                    } else if loc.2 == edev.grid.row_tio() {
+                        // TOP
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 - 1),
+                            edev.btile_main(loc.1 + 1, loc.2),
+                            edev.btile_main(loc.1 - 1, loc.2),
+                        ]
+                    } else {
+                        // CLB
+                        vec![
+                            edev.btile_main(loc.1, loc.2),
+                            edev.btile_main(loc.1, loc.2 - 1),
+                            edev.btile_main(loc.1 - 1, loc.2),
+                            edev.btile_main(loc.1, loc.2 + 1),
+                            edev.btile_main(loc.1 + 1, loc.2),
+                        ]
+                    }
+                }
+            }
         }
     }
 }
@@ -4599,6 +5454,9 @@ impl ExtraFeatureKind {
     pub fn get_tiles(self, backend: &IseBackend, loc: Loc, tile: &str) -> Vec<Vec<BitTile>> {
         match self {
             ExtraFeatureKind::MainFixed(col, row) => match backend.edev {
+                ExpandedDevice::Xc4000(edev) => {
+                    vec![vec![edev.btile_main(col, row)]]
+                }
                 ExpandedDevice::Virtex(edev) => {
                     vec![vec![edev.btile_main(col, row)]]
                 }
@@ -4739,7 +5597,13 @@ impl ExtraFeatureKind {
                 res
             }
             ExtraFeatureKind::AllIobs => match backend.edev {
-                ExpandedDevice::Xc4k(_) => todo!(),
+                ExpandedDevice::Xc4000(edev) => {
+                    let node = backend.egrid.db.get_node(tile);
+                    backend.egrid.node_index[node]
+                        .iter()
+                        .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
+                        .collect()
+                }
                 ExpandedDevice::Xc5200(_) => todo!(),
                 ExpandedDevice::Virtex(edev) => {
                     let node = backend.egrid.db.get_node(tile);

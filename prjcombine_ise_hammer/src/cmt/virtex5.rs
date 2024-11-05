@@ -3,11 +3,11 @@ use std::collections::BTreeMap;
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend, PinFromKind},
+    backend::{IseBackend, PinFromKind},
     diff::{extract_bitvec_val_part, xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
@@ -932,7 +932,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
     if !skip_dcm {
         for i in 0..2 {
             let bel = &format!("DCM{i}");
-            fn dcm_drp_bit(which: usize, reg: usize, bit: usize) -> FeatureBit {
+            fn dcm_drp_bit(which: usize, reg: usize, bit: usize) -> TileBit {
                 let reg = reg & 0x3f;
                 let tile = which * 7 + (reg >> 3);
                 let frame = match bit & 3 {
@@ -941,7 +941,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                     _ => unreachable!(),
                 };
                 let bit = (bit >> 1) | (reg & 7) << 3;
-                FeatureBit::new(tile, frame, bit)
+                TileBit::new(tile, frame, bit)
             }
             for reg in 0x40..0x58 {
                 ctx.tiledb.insert(
@@ -1418,7 +1418,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
     }
     if !skip_pll {
         let bel = "PLL";
-        fn pll_drp_bit(reg: usize, bit: usize) -> FeatureBit {
+        fn pll_drp_bit(reg: usize, bit: usize) -> TileBit {
             let tile = 3 + (reg >> 3);
             let frame = match bit & 3 {
                 0 | 3 => 29,
@@ -1426,7 +1426,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                 _ => unreachable!(),
             };
             let bit = (bit >> 1) | (reg & 7) << 3;
-            FeatureBit::new(tile, frame, bit)
+            TileBit::new(tile, frame, bit)
         }
         for reg in 0..0x20 {
             ctx.tiledb.insert(

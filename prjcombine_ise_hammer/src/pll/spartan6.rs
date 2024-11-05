@@ -1,11 +1,11 @@
 use bitvec::vec::BitVec;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{extract_bitvec_val_part, xlat_bit, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
@@ -416,13 +416,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     let tile = "CMT_PLL";
     let bel = "PLL";
 
-    fn reg_bit(addr: usize, bit: usize) -> FeatureBit {
+    fn reg_bit(addr: usize, bit: usize) -> TileBit {
         let slot = match addr {
             0..6 => 22 + addr,
             6..0x1c => 36 + (addr - 6),
             0x1c.. => 59 + (addr - 0x1c),
         };
-        FeatureBit {
+        TileBit {
             tile: slot / 4,
             frame: 30,
             bit: (slot % 4) * 16 + bit,

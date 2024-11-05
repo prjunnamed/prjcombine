@@ -771,14 +771,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         continue;
                     }
                     let item = xlat_bit(diff);
-                    let name = if matches!(
-                        intdb.wires[wire_from.1],
-                        WireKind::PipOut | WireKind::PipBranch(_)
-                    ) && wire_from < wire_to
-                    {
-                        format!("PASS.{in_name}.{out_name}")
-                    } else {
+                    let mut is_bidi = false;
+                    if let Some(omux) = node.muxes.get(&wire_from) {
+                        if omux.ins.contains(&wire_to) {
+                            is_bidi = true;
+                        }
+                    }
+                    let name = if !is_bidi {
                         format!("PASS.{out_name}.{in_name}")
+                    } else if wire_from < wire_to {
+                        format!("BIPASS.{in_name}.{out_name}")
+                    } else {
+                        format!("BIPASS.{out_name}.{in_name}")
                     };
                     ctx.tiledb.insert(tile, "INT", name, item);
                 }

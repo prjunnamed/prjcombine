@@ -1,12 +1,12 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::TileItem;
+use prjcombine_types::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{
         extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
         CollectorCtx, Diff, OcdMode,
@@ -1490,17 +1490,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for bel in ["MMCM", "PLL"] {
         let tile = "CMT";
 
-        fn drp_bit(which: &'static str, reg: usize, bit: usize) -> FeatureBit {
+        fn drp_bit(which: &'static str, reg: usize, bit: usize) -> TileBit {
             if which == "MMCM" {
                 let tile = 15 - (reg >> 3);
                 let frame = 29 - (bit & 1);
                 let bit = 63 - ((bit >> 1) | (reg & 7) << 3);
-                FeatureBit::new(tile, frame, bit)
+                TileBit::new(tile, frame, bit)
             } else {
                 let tile = 37 + (reg >> 3);
                 let frame = 28 + (bit & 1);
                 let bit = (bit >> 1) | (reg & 7) << 3;
-                FeatureBit::new(tile, frame, bit)
+                TileBit::new(tile, frame, bit)
             }
         }
         for reg in 0..(if bel == "MMCM" { 0x80 } else { 0x68 }) {
@@ -1683,7 +1683,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // THIS PIECE OF SHIT ACTUALLY CORRUPTS ITS OWN MEMORY TRYING TO COMPUTE THIS FUCKING ATTRIBUTE
             let mut diffs = ctx.state.get_diffs(tile, bel, "SPARE_ANALOG", "");
             assert!(diffs[1].bits.is_empty());
-            diffs[1].bits.insert(FeatureBit::new(7, 28, 30), true);
+            diffs[1].bits.insert(TileBit::new(7, 28, 30), true);
             ctx.tiledb
                 .insert(tile, bel, "SPARE_ANALOG", xlat_bitvec(diffs));
         } else {

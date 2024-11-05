@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine_xc4000_rdverify"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_rawdump.workspace = true
+prjcombine_rdverify.workspace = true
+prjcombine_xc4000.workspace = true
+
+[lints]
+workspace = true

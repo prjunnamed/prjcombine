@@ -1,11 +1,11 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{extract_bitvec_val, xlat_bit, xlat_enum_ocd, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
@@ -955,14 +955,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "EXTMASTERCCLK_EN",
-            TileItem::from_bit(FeatureBit::new(0, 0, 26), false),
+            TileItem::from_bit(TileBit::new(0, 0, 26), false),
         );
         ctx.tiledb.insert(
             tile,
             bel,
             "EXTMASTERCCLK_DIV",
             TileItem {
-                bits: vec![FeatureBit::new(0, 0, 21), FeatureBit::new(0, 0, 22)],
+                bits: vec![TileBit::new(0, 0, 21), TileBit::new(0, 0, 22)],
                 kind: TileItemKind::Enum {
                     values: [
                         ("8".to_string(), bitvec![0, 0]),
@@ -1014,7 +1014,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "PERSIST_DEASSERT_AT_DESYNC",
-            TileItem::from_bit(FeatureBit::new(0, 0, 17), false),
+            TileItem::from_bit(TileBit::new(0, 0, 17), false),
         );
         let item = ctx.extract_bit(tile, "CFG_IO_ACCESS", "ENABLE", "1");
         let item2 = xlat_bit(
@@ -1027,10 +1027,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "TRIM_REG",
-            TileItem::from_bitvec(
-                vec![FeatureBit::new(0, 0, 10), FeatureBit::new(0, 0, 11)],
-                false,
-            ),
+            TileItem::from_bitvec(vec![TileBit::new(0, 0, 10), TileBit::new(0, 0, 11)], false),
         );
     }
     {
@@ -1057,7 +1054,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             "ICAP_SELECT",
             TileItem {
-                bits: vec![FeatureBit::new(0, 0, 30)],
+                bits: vec![TileBit::new(0, 0, 30)],
                 kind: TileItemKind::Enum {
                     values: [
                         ("TOP".to_string(), bitvec![0]),
@@ -1097,7 +1094,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "SPI_BUSWIDTH", &["1", "2", "4"]);
         ctx.collect_bitvec(tile, bel, "SPI_OPCODE", "");
         let mut item =
-            TileItem::from_bitvec((12..28).map(|i| FeatureBit::new(0, 0, i)).collect(), false);
+            TileItem::from_bitvec((12..28).map(|i| TileBit::new(0, 0, i)).collect(), false);
         ctx.state
             .get_diff(tile, bel, "BPI_SYNC_MODE", "DISABLE")
             .assert_empty();

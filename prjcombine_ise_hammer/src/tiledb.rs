@@ -1,10 +1,8 @@
 use std::collections::{btree_map, BTreeMap};
 
 use bitvec::vec::BitVec;
-use prjcombine_types::{Tile, TileItem};
+use prjcombine_types::{Tile, TileBit, TileItem};
 use serde_json::json;
-
-use crate::backend::FeatureBit;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum DbValue {
@@ -49,7 +47,7 @@ impl DbValue {
 
 #[derive(Clone, Debug)]
 pub struct TileDb {
-    pub tiles: BTreeMap<String, Tile<FeatureBit>>,
+    pub tiles: BTreeMap<String, Tile<TileBit>>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,
     pub misc_data: BTreeMap<String, DbValue>,
 }
@@ -68,7 +66,7 @@ impl TileDb {
         tile: impl Into<String>,
         bel: impl Into<String>,
         name: impl Into<String>,
-        item: TileItem<FeatureBit>,
+        item: TileItem<TileBit>,
     ) {
         let name = format!("{}:{}", bel.into(), name.into());
         let tile = self.tiles.entry(tile.into()).or_default();
@@ -76,7 +74,7 @@ impl TileDb {
     }
 
     #[track_caller]
-    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem<FeatureBit> {
+    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem<TileBit> {
         &self.tiles[tile].items[&format!("{bel}:{attr}")]
     }
 

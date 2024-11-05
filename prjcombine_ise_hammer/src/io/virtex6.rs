@@ -1,11 +1,11 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{
         extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
         xlat_bool, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
@@ -1422,10 +1422,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             tile,
             bel,
             "READBACK_I",
-            TileItem::from_bit(
-                [FeatureBit::new(0, 26, 61), FeatureBit::new(1, 27, 2)][i],
-                false,
-            ),
+            TileItem::from_bit([TileBit::new(0, 26, 61), TileBit::new(1, 27, 2)][i], false),
         );
 
         let mut vals = vec![];
@@ -1876,35 +1873,35 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let (pslew_bits, nslew_bits) = if i == 0 {
             (
                 vec![
-                    FeatureBit::new(0, 41, 39),
-                    FeatureBit::new(0, 41, 31),
-                    FeatureBit::new(0, 41, 27),
-                    FeatureBit::new(0, 40, 20),
-                    FeatureBit::new(0, 40, 10),
+                    TileBit::new(0, 41, 39),
+                    TileBit::new(0, 41, 31),
+                    TileBit::new(0, 41, 27),
+                    TileBit::new(0, 40, 20),
+                    TileBit::new(0, 40, 10),
                 ],
                 vec![
-                    FeatureBit::new(0, 40, 44),
-                    FeatureBit::new(0, 40, 30),
-                    FeatureBit::new(0, 40, 32),
-                    FeatureBit::new(0, 41, 17),
-                    FeatureBit::new(0, 41, 43),
+                    TileBit::new(0, 40, 44),
+                    TileBit::new(0, 40, 30),
+                    TileBit::new(0, 40, 32),
+                    TileBit::new(0, 41, 17),
+                    TileBit::new(0, 41, 43),
                 ],
             )
         } else {
             (
                 vec![
-                    FeatureBit::new(1, 40, 24),
-                    FeatureBit::new(1, 40, 32),
-                    FeatureBit::new(1, 40, 36),
-                    FeatureBit::new(1, 41, 43),
-                    FeatureBit::new(1, 41, 53),
+                    TileBit::new(1, 40, 24),
+                    TileBit::new(1, 40, 32),
+                    TileBit::new(1, 40, 36),
+                    TileBit::new(1, 41, 43),
+                    TileBit::new(1, 41, 53),
                 ],
                 vec![
-                    FeatureBit::new(1, 41, 19),
-                    FeatureBit::new(1, 41, 33),
-                    FeatureBit::new(1, 41, 31),
-                    FeatureBit::new(1, 40, 46),
-                    FeatureBit::new(1, 40, 20),
+                    TileBit::new(1, 41, 19),
+                    TileBit::new(1, 41, 33),
+                    TileBit::new(1, 41, 31),
+                    TileBit::new(1, 40, 46),
+                    TileBit::new(1, 40, 20),
                 ],
             )
         };
@@ -2347,23 +2344,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tile = "HCLK_IOI";
     let lvdsbias = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 42, 30),
-            FeatureBit::new(0, 42, 28),
-            FeatureBit::new(0, 42, 27),
-            FeatureBit::new(0, 42, 26),
-            FeatureBit::new(0, 42, 25),
-            FeatureBit::new(0, 42, 24),
-            FeatureBit::new(0, 42, 23),
-            FeatureBit::new(0, 42, 22),
-            FeatureBit::new(0, 42, 21),
-            FeatureBit::new(0, 42, 20),
-            FeatureBit::new(0, 42, 19),
-            FeatureBit::new(0, 42, 18),
-            FeatureBit::new(0, 42, 17),
-            FeatureBit::new(0, 42, 16),
-            FeatureBit::new(0, 42, 15),
-            FeatureBit::new(0, 42, 14),
-            FeatureBit::new(0, 41, 28),
+            TileBit::new(0, 42, 30),
+            TileBit::new(0, 42, 28),
+            TileBit::new(0, 42, 27),
+            TileBit::new(0, 42, 26),
+            TileBit::new(0, 42, 25),
+            TileBit::new(0, 42, 24),
+            TileBit::new(0, 42, 23),
+            TileBit::new(0, 42, 22),
+            TileBit::new(0, 42, 21),
+            TileBit::new(0, 42, 20),
+            TileBit::new(0, 42, 19),
+            TileBit::new(0, 42, 18),
+            TileBit::new(0, 42, 17),
+            TileBit::new(0, 42, 16),
+            TileBit::new(0, 42, 15),
+            TileBit::new(0, 42, 14),
+            TileBit::new(0, 41, 28),
         ],
         false,
     );
@@ -2404,79 +2401,79 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     let dci_en = xlat_bit(dci_en);
     let nref_output = TileItem::from_bitvec(
-        vec![FeatureBit::new(0, 40, 16), FeatureBit::new(0, 40, 17)],
+        vec![TileBit::new(0, 40, 16), TileBit::new(0, 40, 17)],
         false,
     );
     let pref_output = TileItem::from_bitvec(
-        vec![FeatureBit::new(0, 41, 14), FeatureBit::new(0, 41, 15)],
+        vec![TileBit::new(0, 41, 14), TileBit::new(0, 41, 15)],
         false,
     );
     let nref_output_half = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 40, 18),
-            FeatureBit::new(0, 40, 19),
-            FeatureBit::new(0, 40, 20),
+            TileBit::new(0, 40, 18),
+            TileBit::new(0, 40, 19),
+            TileBit::new(0, 40, 20),
         ],
         false,
     );
     let pref_output_half = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 41, 16),
-            FeatureBit::new(0, 41, 17),
-            FeatureBit::new(0, 41, 18),
+            TileBit::new(0, 41, 16),
+            TileBit::new(0, 41, 17),
+            TileBit::new(0, 41, 18),
         ],
         false,
     );
     let pref_term_vcc = TileItem::from_bitvec(
-        vec![FeatureBit::new(0, 40, 14), FeatureBit::new(0, 40, 15)],
+        vec![TileBit::new(0, 40, 14), TileBit::new(0, 40, 15)],
         false,
     );
     let pmask_term_vcc = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 43, 14),
-            FeatureBit::new(0, 43, 27),
-            FeatureBit::new(0, 43, 28),
-            FeatureBit::new(0, 43, 29),
-            FeatureBit::new(0, 43, 30),
-            FeatureBit::new(0, 43, 31),
+            TileBit::new(0, 43, 14),
+            TileBit::new(0, 43, 27),
+            TileBit::new(0, 43, 28),
+            TileBit::new(0, 43, 29),
+            TileBit::new(0, 43, 30),
+            TileBit::new(0, 43, 31),
         ],
         false,
     );
     let nref_term_split = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 40, 23),
-            FeatureBit::new(0, 40, 24),
-            FeatureBit::new(0, 40, 25),
+            TileBit::new(0, 40, 23),
+            TileBit::new(0, 40, 24),
+            TileBit::new(0, 40, 25),
         ],
         false,
     );
     let pref_term_split = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 41, 19),
-            FeatureBit::new(0, 41, 20),
-            FeatureBit::new(0, 41, 21),
+            TileBit::new(0, 41, 19),
+            TileBit::new(0, 41, 20),
+            TileBit::new(0, 41, 21),
         ],
         false,
     );
     let pmask_term_split = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 43, 21),
-            FeatureBit::new(0, 43, 22),
-            FeatureBit::new(0, 43, 23),
-            FeatureBit::new(0, 43, 24),
-            FeatureBit::new(0, 43, 25),
-            FeatureBit::new(0, 43, 26),
+            TileBit::new(0, 43, 21),
+            TileBit::new(0, 43, 22),
+            TileBit::new(0, 43, 23),
+            TileBit::new(0, 43, 24),
+            TileBit::new(0, 43, 25),
+            TileBit::new(0, 43, 26),
         ],
         false,
     );
     let nmask_term_split = TileItem::from_bitvec(
         vec![
-            FeatureBit::new(0, 43, 15),
-            FeatureBit::new(0, 43, 16),
-            FeatureBit::new(0, 43, 17),
-            FeatureBit::new(0, 43, 18),
-            FeatureBit::new(0, 43, 19),
-            FeatureBit::new(0, 43, 20),
+            TileBit::new(0, 43, 15),
+            TileBit::new(0, 43, 16),
+            TileBit::new(0, 43, 17),
+            TileBit::new(0, 43, 18),
+            TileBit::new(0, 43, 19),
+            TileBit::new(0, 43, 20),
         ],
         false,
     );

@@ -5,6 +5,11 @@ Xilinx FPGAs
    :maxdepth: 2
    :caption: Contents:
 
+   xc4000e/index
+   xc4000ex/index
+   xc4000xla/index
+   xc4000xv/index
+   spartanxl/index
    xc5200/index
    virtex/index
    virtex2/index

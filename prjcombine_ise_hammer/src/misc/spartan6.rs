@@ -1,11 +1,11 @@
 use bitvec::prelude::*;
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureBit, IseBackend},
+    backend::IseBackend,
     diff::{concat_bitvec, xlat_bit, CollectorCtx, OcdMode},
     fgen::{ExtraFeature, TileBits},
     fuzz::FuzzCtx,
@@ -595,7 +595,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "PERSIST",
-            TileItem::from_bit(FeatureBit::new(0, 0, 3), false),
+            TileItem::from_bit(TileBit::new(0, 0, 3), false),
         );
     }
 
@@ -610,10 +610,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             &["2", "1", "4", "6", "10", "12", "16", "22", "26"],
             OcdMode::BitOrder,
         );
-        let item = TileItem::from_bitvec(
-            (0..10).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-            false,
-        );
+        let item =
+            TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
             let mut diff = ctx
@@ -649,7 +647,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "INIT_SKIP",
-            TileItem::from_bit(FeatureBit::new(0, 0, 6), false),
+            TileItem::from_bit(TileBit::new(0, 0, 6), false),
         );
     }
 
@@ -668,10 +666,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tile = "REG.PU_GWE";
         let bel = "MISC";
-        let item = TileItem::from_bitvec(
-            (0..10).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-            false,
-        );
+        let item =
+            TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
             let mut diff = ctx
@@ -685,10 +681,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tile = "REG.PU_GTS";
         let bel = "MISC";
-        let item = TileItem::from_bitvec(
-            (0..10).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-            false,
-        );
+        let item =
+            TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
             let mut diff = ctx
@@ -715,7 +709,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             "SPI_BUSWIDTH",
             TileItem {
-                bits: vec![FeatureBit::new(0, 0, 11), FeatureBit::new(0, 0, 12)],
+                bits: vec![TileBit::new(0, 0, 11), TileBit::new(0, 0, 12)],
                 kind: TileItemKind::Enum {
                     values: [
                         ("1".to_string(), bitvec![0, 0]),
@@ -737,8 +731,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "NEXT_CONFIG_ADDR",
         TileItem::from_bitvec(
             (0..16)
-                .map(|bit| FeatureBit::new(0, 0, bit))
-                .chain((0..16).map(|bit| FeatureBit::new(1, 0, bit)))
+                .map(|bit| TileBit::new(0, 0, bit))
+                .chain((0..16).map(|bit| TileBit::new(1, 0, bit)))
                 .collect(),
             false,
         ),
@@ -749,8 +743,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "GOLDEN_CONFIG_ADDR",
         TileItem::from_bitvec(
             (0..16)
-                .map(|bit| FeatureBit::new(0, 0, bit))
-                .chain((0..16).map(|bit| FeatureBit::new(1, 0, bit)))
+                .map(|bit| TileBit::new(0, 0, bit))
+                .chain((0..16).map(|bit| TileBit::new(1, 0, bit)))
                 .collect(),
             false,
         ),
@@ -759,19 +753,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "REG.GENERAL5",
         "MISC",
         "FAILSAFE_USER",
-        TileItem::from_bitvec(
-            (0..16).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-            false,
-        ),
+        TileItem::from_bitvec((0..16).map(|bit| TileBit::new(0, 0, bit)).collect(), false),
     );
     ctx.tiledb.insert(
         "REG.TIMER",
         "MISC",
         "TIMER_CFG",
-        TileItem::from_bitvec(
-            (0..16).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-            false,
-        ),
+        TileItem::from_bitvec((0..16).map(|bit| TileBit::new(0, 0, bit)).collect(), false),
     );
 
     {
@@ -786,13 +774,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "POST_CRC_EN",
-            TileItem::from_bit(FeatureBit::new(0, 0, 0), false),
+            TileItem::from_bit(TileBit::new(0, 0, 0), false),
         );
         ctx.tiledb.insert(
             tile,
             bel,
             "GLUTMASK",
-            TileItem::from_bit(FeatureBit::new(0, 0, 1), false),
+            TileItem::from_bit(TileBit::new(0, 0, 1), false),
         );
 
         // again, don't care.
@@ -809,10 +797,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "POST_CRC_FREQ",
-            TileItem::from_bitvec(
-                (4..14).map(|bit| FeatureBit::new(0, 0, bit)).collect(),
-                false,
-            ),
+            TileItem::from_bitvec((4..14).map(|bit| TileBit::new(0, 0, bit)).collect(), false),
         );
     }
 
