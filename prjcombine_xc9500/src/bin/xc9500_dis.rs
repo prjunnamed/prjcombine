@@ -2,7 +2,7 @@ use std::{error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{Tile, TileItemKind};
+use prjcombine_types::tiledb::{Tile, TileItemKind};
 use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
 
 struct Bitstream {

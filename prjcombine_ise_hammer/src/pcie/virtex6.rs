@@ -1,5 +1,5 @@
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,

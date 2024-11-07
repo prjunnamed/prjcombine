@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use prjcombine_collector::{xlat_bit, xlat_enum_ocd, Diff, FeatureId, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::{
     db::{BelId, NodeTileId, WireKind},
@@ -9,8 +10,8 @@ use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureId, IseBackend},
-    diff::{xlat_bit, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    backend::IseBackend,
+    diff::CollectorCtx,
     fgen::{BelFuzzKV, BelKV, TileBits, TileFuzzKV, TileFuzzerGen, TileKV, TileRelation},
 };
 

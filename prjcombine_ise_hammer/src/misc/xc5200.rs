@@ -1,14 +1,11 @@
 use bitvec::prelude::*;
+use prjcombine_collector::xlat_enum;
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItemKind;
+use prjcombine_types::tiledb::TileItemKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_enum, CollectorCtx},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -193,20 +190,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "INV.GR", item);
         let item = ctx.extract_enum_bool(tile, bel, "GTSMUX", "GTS", "GTSNOT");
         ctx.tiledb.insert(tile, bel, "INV.GTS", item);
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "DONE_ACTIVE",
-            xlat_enum(vec![
-                ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
-                ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
-                ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C4")),
-                ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C2")),
-                ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U2")),
-                ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
-                ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
+            ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
+            ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C4")),
+            ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C2")),
+            ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U2")),
+            ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
+            ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
+        ]);
+        ctx.tiledb.insert(tile, bel, "DONE_ACTIVE", item);
         for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
             let mut item = xlat_enum(vec![
                 ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),

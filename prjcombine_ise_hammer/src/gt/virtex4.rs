@@ -1,15 +1,13 @@
+use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{
-        xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, CollectorCtx, Diff,
-        OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,

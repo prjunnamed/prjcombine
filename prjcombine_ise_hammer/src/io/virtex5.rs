@@ -1,15 +1,16 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
+    xlat_enum_ocd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
@@ -1074,15 +1075,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 &bitvec![0; 6],
                 &mut diff_default,
             );
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+            ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
             let val = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, bel, "IDELAY_VALUE_CUR"),
                 &bitvec![0; 6],
                 &mut diff_default,
             );
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+            ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         }
         return;
     }
@@ -1555,15 +1554,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 6],
             &mut diff_default,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+        ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         let val = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "IDELAY_VALUE_CUR"),
             &bitvec![0; 6],
             &mut diff_default,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+        ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         ctx.tiledb.insert(
             tile,
             bel,
@@ -1684,17 +1681,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let diff_vref = ctx.state.peek_diff(tile, bel, "ISTD", "HSTL_I");
         let diff_diff = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS_25");
         let (_, _, diff_diff) = Diff::split(diff_cmos.clone(), diff_diff.clone());
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "IBUF_MODE",
-            xlat_enum(vec![
-                ("OFF", Diff::default()),
-                ("CMOS", diff_cmos.clone()),
-                ("VREF", diff_vref.clone()),
-                ("DIFF", diff_diff),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("OFF", Diff::default()),
+            ("CMOS", diff_cmos.clone()),
+            ("VREF", diff_vref.clone()),
+            ("DIFF", diff_diff),
+        ]);
+        ctx.tiledb.insert(tile, bel, "IBUF_MODE", item);
 
         for &std in IOSTDS {
             if std.diff == DiffKind::True {

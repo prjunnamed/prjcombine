@@ -2,7 +2,10 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{FbId, FbMcId, IoId, Tile, TileItem, TileItemKind};
+use prjcombine_types::{
+    tiledb::{Tile, TileItem, TileItemKind},
+    FbId, FbMcId, IoId,
+};
 use prjcombine_xc2c as xc2c;
 use prjcombine_xilinx_cpld::{
     bits::{extract_bool, extract_bool_to_enum, extract_enum, IBufOut, McOut},

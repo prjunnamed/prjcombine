@@ -1,12 +1,10 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, Diff};
 use prjcombine_hammer::Session;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx, Diff},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_enum_suffix, fuzz_inv_suffix, fuzz_multi, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum,
+    fuzz_enum_suffix, fuzz_inv_suffix, fuzz_multi, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -845,28 +843,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for mode in ["RAMBFIFO36", "RAMB36_EXP"] {
         for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                attr,
-                xlat_enum(vec![
-                    (
-                        "NONE_UPPER",
-                        ctx.state
-                            .get_diff(tile, bel, format!("{attr}.{mode}"), "NONE"),
-                    ),
-                    (
-                        "NONE_UPPER",
-                        ctx.state
-                            .get_diff(tile, bel, format!("{attr}.{mode}"), "UPPER"),
-                    ),
-                    (
-                        "LOWER",
-                        ctx.state
-                            .get_diff(tile, bel, format!("{attr}.{mode}"), "LOWER"),
-                    ),
-                ]),
-            )
+            let item = xlat_enum(vec![
+                (
+                    "NONE_UPPER",
+                    ctx.state
+                        .get_diff(tile, bel, format!("{attr}.{mode}"), "NONE"),
+                ),
+                (
+                    "NONE_UPPER",
+                    ctx.state
+                        .get_diff(tile, bel, format!("{attr}.{mode}"), "UPPER"),
+                ),
+                (
+                    "LOWER",
+                    ctx.state
+                        .get_diff(tile, bel, format!("{attr}.{mode}"), "LOWER"),
+                ),
+            ]);
+            ctx.tiledb.insert(tile, bel, attr, item);
         }
     }
 

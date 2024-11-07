@@ -1,3 +1,4 @@
+use prjcombine_collector::{FeatureId, State};
 use prjcombine_int::{
     db::{
         BelId, Dir, IntfWireInNaming, IntfWireOutNaming, NodeKindId, NodeRawTileId, NodeTileId,
@@ -15,9 +16,7 @@ use unnamed_entity::EntityId;
 
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen, FuzzerValue};
 
-use crate::backend::{
-    FeatureId, FuzzerFeature, FuzzerInfo, IseBackend, Key, MultiValue, PinFromKind, State, Value,
-};
+use crate::backend::{FuzzerFeature, FuzzerInfo, IseBackend, Key, MultiValue, PinFromKind, Value};
 
 pub type Loc = (DieId, ColId, RowId, LayerId);
 

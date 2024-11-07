@@ -602,7 +602,7 @@ macro_rules! fuzz_one_extras {
         $ctx.session.add_fuzzer(Box::new($crate::fgen::TileFuzzerGen {
             node: $ctx.node_kind,
             bits: $ctx.bits.clone(),
-            feature: $crate::backend::FeatureId {
+            feature: prjcombine_collector::FeatureId {
                 tile: $ctx.tile_name.clone(),
                 bel: $ctx.bel_name.clone(),
                 attr: $attr.into(),
@@ -632,7 +632,7 @@ macro_rules! fuzz_multi_extras {
         $ctx.session.add_fuzzer(Box::new($crate::fgen::TileMultiFuzzerGen {
             node: $ctx.node_kind,
             bits: $ctx.bits.clone(),
-            feature: $crate::backend::FeatureId {
+            feature: prjcombine_collector::FeatureId {
                 tile: $ctx.tile_name.clone(),
                 bel: $ctx.bel_name.clone(),
                 attr: $attr.to_string(),

@@ -1,14 +1,15 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
+use prjcombine_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
-    diff::{extract_bitvec_val_part, xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec,
@@ -904,8 +905,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             &bitvec![0; 9],
             &mut enable,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "PLL:PLL_IN_DLY_SET", dly_val);
+        ctx.insert_device_data("PLL:PLL_IN_DLY_SET", dly_val);
         let tile = "HCLK_CMT";
         let bel = "HCLK_CMT";
         ctx.collect_bit(tile, bel, "DRP_MASK", "1");
@@ -1170,33 +1170,36 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                 },
             );
 
-            let clkdv_count_max = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
-            let clkdv_count_fall = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
-            let clkdv_count_fall_2 = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
-            let clkdv_phase_fall = ctx.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
-            let clkdv_mode = ctx.tiledb.item(tile, bel, "CLKDV_MODE");
+            let clkdv_count_max = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
+            let clkdv_count_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
+            let clkdv_count_fall_2 = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
+            let clkdv_phase_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
+            let clkdv_mode = ctx.collector.tiledb.item(tile, bel, "CLKDV_MODE");
             for i in 2..=16 {
-                let mut diff = ctx
-                    .state
-                    .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.0"));
+                let mut diff =
+                    ctx.collector
+                        .state
+                        .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.0"));
                 diff.apply_bitvec_diff_int(clkdv_count_max, i - 1, 1);
                 diff.apply_bitvec_diff_int(clkdv_count_fall, (i - 1) / 2, 0);
                 diff.apply_bitvec_diff_int(clkdv_phase_fall, (i % 2) * 2, 0);
                 diff.assert_empty();
             }
             for i in 1..=7 {
-                let mut diff = ctx
-                    .state
-                    .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.5.LOW"));
+                let mut diff =
+                    ctx.collector
+                        .state
+                        .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.5.LOW"));
                 diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
                 diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
                 diff.apply_bitvec_diff_int(clkdv_count_fall, i / 2, 0);
                 diff.apply_bitvec_diff_int(clkdv_count_fall_2, 3 * i / 2 + 1, 0);
                 diff.apply_bitvec_diff_int(clkdv_phase_fall, (i % 2) * 2 + 1, 0);
                 diff.assert_empty();
-                let mut diff = ctx
-                    .state
-                    .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.5.HIGH"));
+                let mut diff =
+                    ctx.collector
+                        .state
+                        .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}.5.HIGH"));
                 diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
                 diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
                 diff.apply_bitvec_diff_int(clkdv_count_fall, (i - 1) / 2, 0);
@@ -1264,19 +1267,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
                 .get_diff(tile, bel, "DFS_OSCILLATOR_MODE", "AVE_FREQ_LOCK");
             diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "DFS_HARDSYNC_B"), 3, 0);
             diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "DFS_EARLY_LOCK"), true, false);
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "DFS_OSCILLATOR_MODE",
-                xlat_enum(vec![
-                    (
-                        "PHASE_FREQ_LOCK",
-                        ctx.state
-                            .get_diff(tile, bel, "DFS_OSCILLATOR_MODE", "PHASE_FREQ_LOCK"),
-                    ),
-                    ("AVE_FREQ_LOCK", diff),
-                ]),
-            );
+            let item = xlat_enum(vec![
+                (
+                    "PHASE_FREQ_LOCK",
+                    ctx.state
+                        .get_diff(tile, bel, "DFS_OSCILLATOR_MODE", "PHASE_FREQ_LOCK"),
+                ),
+                ("AVE_FREQ_LOCK", diff),
+            ]);
+            ctx.tiledb.insert(tile, bel, "DFS_OSCILLATOR_MODE", item);
 
             let mut diff = ctx.state.get_diff(tile, bel, "CLKIN_IOB", "1");
             diff.apply_enum_diff(
@@ -1594,16 +1593,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
         }
 
         ctx.collect_enum_default(tile, bel, "CLKINSEL_MODE", &["DYNAMIC"], "STATIC");
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "CLKINSEL_STATIC",
-            xlat_bit(
-                ctx.state
-                    .peek_diff(tile, bel, "MUX.CLKIN1", "GIOB5")
-                    .clone(),
-            ),
+        let item = xlat_bit(
+            ctx.state
+                .peek_diff(tile, bel, "MUX.CLKIN1", "GIOB5")
+                .clone(),
         );
+        ctx.tiledb.insert(tile, bel, "CLKINSEL_STATIC", item);
         ctx.collect_enum(
             tile,
             bel,
@@ -1801,8 +1796,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
             &dly_val,
         );
         diff.assert_empty();
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "PLL:PLL_IN_DLY_SET", dly_val);
+        ctx.insert_device_data("PLL:PLL_IN_DLY_SET", dly_val);
     }
     {
         let tile = "HCLK_CMT";

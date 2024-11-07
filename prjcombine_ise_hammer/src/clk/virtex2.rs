@@ -1,14 +1,15 @@
 use bitvec::vec::BitVec;
+use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_default};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, PinDir};
-use prjcombine_types::TileItemKind;
+use prjcombine_types::tiledb::TileItemKind;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, xlat_enum_default, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one,
@@ -481,8 +482,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 };
                 for (k, v) in values {
                     if *v == val {
-                        ctx.tiledb.insert_device_data(
-                            &ctx.device.name,
+                        ctx.insert_device_data(
                             "PCILOGICSE:DELAY_DEFAULT",
                             k.clone(),
                         );
@@ -571,8 +571,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     diffs.push((val.to_string(), diff));
                 }
                 let default = default.unwrap();
-                ctx.tiledb.insert_device_data(
-                    &ctx.device.name,
+                ctx.insert_device_data(
                     "PCILOGICSE:DELAY_DEFAULT",
                     default.to_string(),
                 );

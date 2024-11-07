@@ -1,10 +1,11 @@
+use prjcombine_collector::{xlat_bit, xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one,
@@ -399,7 +400,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     let kind = edev.grid.kind;
-    for tile in ["CLB", "CLB.B", "CLB.T", "CLB.L", "CLB.LB", "CLB.LT", "CLB.R", "CLB.RB", "CLB.RT"] {
+    for tile in [
+        "CLB", "CLB.B", "CLB.T", "CLB.L", "CLB.LB", "CLB.LT", "CLB.R", "CLB.RB", "CLB.RT",
+    ] {
         let bel = "CLB";
         ctx.collect_bitvec(tile, bel, "F", "");
         ctx.collect_bitvec(tile, bel, "G", "");

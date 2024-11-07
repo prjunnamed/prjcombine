@@ -1,6 +1,7 @@
+use prjcombine_collector::{xlat_bitvec, xlat_bool, xlat_enum_int, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{Dir, NodeTileId};
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_virtex::grid::GridKind;
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
@@ -8,7 +9,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_bool, xlat_enum_int, CollectorCtx, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -298,18 +299,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "BCLK_DIV2",
-            xlat_bitvec(vec![
-                !ctx.state.get_diff(tile, bel, "IBCLK_N2", "0"),
-                !ctx.state.get_diff(tile, bel, "IBCLK_N4", "0"),
-                !ctx.state.get_diff(tile, bel, "IBCLK_N8", "0"),
-                !ctx.state.get_diff(tile, bel, "IBCLK_N16", "0"),
-                !ctx.state.get_diff(tile, bel, "IBCLK_N32", "0"),
-            ]),
-        );
+        let item = xlat_bitvec(vec![
+            !ctx.state.get_diff(tile, bel, "IBCLK_N2", "0"),
+            !ctx.state.get_diff(tile, bel, "IBCLK_N4", "0"),
+            !ctx.state.get_diff(tile, bel, "IBCLK_N8", "0"),
+            !ctx.state.get_diff(tile, bel, "IBCLK_N16", "0"),
+            !ctx.state.get_diff(tile, bel, "IBCLK_N32", "0"),
+        ]);
+        ctx.tiledb.insert(tile, bel, "BCLK_DIV2", item);
         for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
             ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
         }

@@ -1,14 +1,12 @@
+use prjcombine_collector::{xlat_enum_ocd, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_enum_ocd, CollectorCtx, OcdMode},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {

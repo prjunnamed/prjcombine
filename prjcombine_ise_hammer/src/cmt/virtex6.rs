@@ -1,12 +1,13 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{extract_bitvec_val_part, xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,
@@ -664,8 +665,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 &bitvec![0; 5],
                 &mut diff,
             );
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "MMCM:IN_DLY_SET", dly_val);
+            ctx.insert_device_data("MMCM:IN_DLY_SET", dly_val);
         }
         return;
     }
@@ -1050,8 +1050,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 5],
             &mut diff,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "MMCM:IN_DLY_SET", dly_val);
+        ctx.insert_device_data("MMCM:IN_DLY_SET", dly_val);
         diff.assert_empty();
 
         for mult in 1..=64 {

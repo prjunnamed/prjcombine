@@ -2,15 +2,16 @@ use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
 
+use prjcombine_collector::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bool, xlat_enum, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
@@ -317,15 +318,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "LVL1_MUX_24", "0", "1");
         ctx.collect_enum_bool(tile, bel, "TESTZD2OSC", "NO", "YES");
         ctx.collect_enum_bool_wide(tile, bel, "TESTDLL", "NO", "YES");
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "CLK_FEEDBACK",
-            xlat_enum(vec![
-                ("1X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
-                ("2X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("1X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
+            ("2X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
+        ]);
+        ctx.tiledb.insert(tile, bel, "CLK_FEEDBACK", item);
 
         present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CFG_O_14"), true, false);
         if ctx.device.name.ends_with('e') {

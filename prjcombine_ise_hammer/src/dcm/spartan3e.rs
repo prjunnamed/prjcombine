@@ -2,14 +2,15 @@ use std::collections::{BTreeMap, HashSet};
 
 use bitvec::prelude::*;
 
+use prjcombine_collector::{extract_bitvec_val, xlat_bit, xlat_bitvec, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileItem, TileItemKind};
 use prjcombine_virtex2::grid::Dcms;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
-    diff::{extract_bitvec_val, xlat_bit, xlat_bitvec, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -354,8 +355,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 4],
             present.split_bits(&item.bits.iter().copied().collect()),
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+        ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
         return;
     }
     for (tile, vreg) in [
@@ -535,8 +535,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 4],
             present.split_bits(&item.bits.iter().copied().collect()),
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+        ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
 
         let mut diffs = vec![ctx.state.get_diff(tile, bel, "PHASE_SHIFT", "-255")];
         diffs.extend(ctx.state.get_diffs(tile, bel, "PHASE_SHIFT", ""));
@@ -593,13 +592,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             },
         );
 
-        let clkdv_count_max = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
-        let clkdv_count_fall = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
-        let clkdv_count_fall_2 = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
-        let clkdv_phase_fall = ctx.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
-        let clkdv_mode = ctx.tiledb.item(tile, bel, "CLKDV_MODE");
+        let clkdv_count_max = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
+        let clkdv_count_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
+        let clkdv_count_fall_2 = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
+        let clkdv_phase_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
+        let clkdv_mode = ctx.collector.tiledb.item(tile, bel, "CLKDV_MODE");
         for i in 2..=16 {
             let mut diff = ctx
+                .collector
                 .state
                 .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}"));
             diff.apply_bitvec_diff_int(clkdv_count_max, i - 1, 1);
@@ -608,18 +608,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             diff.assert_empty();
         }
         for i in 1..=7 {
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.LOW"));
+            let mut diff =
+                ctx.collector
+                    .state
+                    .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.LOW"));
             diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
             diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
             diff.apply_bitvec_diff_int(clkdv_count_fall, i / 2, 0);
             diff.apply_bitvec_diff_int(clkdv_count_fall_2, 3 * i / 2 + 1, 0);
             diff.apply_bitvec_diff_int(clkdv_phase_fall, (i % 2) * 2 + 1, 0);
             diff.assert_empty();
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.HIGH"));
+            let mut diff =
+                ctx.collector
+                    .state
+                    .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.HIGH"));
             diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
             diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
             diff.apply_bitvec_diff_int(clkdv_count_fall, (i - 1) / 2, 0);

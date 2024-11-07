@@ -1,12 +1,10 @@
 use bitvec::prelude::*;
+use prjcombine_collector::extract_bitvec_val;
 use prjcombine_hammer::Session;
 
 use crate::{
-    backend::IseBackend,
-    diff::{extract_bitvec_val, CollectorCtx},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_multi_attr_hex, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi, fuzz_multi_attr_hex, fuzz_one,
 };
 
 const PPC_INVPINS: &[&str] = &[
@@ -186,6 +184,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         &bitvec![0; 5],
         diff,
     );
-    ctx.tiledb
-        .insert_device_data(&ctx.device.name, "PPC:CLOCK_DELAY", val);
+    ctx.insert_device_data("PPC:CLOCK_DELAY", val);
 }

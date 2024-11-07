@@ -1,12 +1,13 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{concat_bitvec, xlat_bit, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{concat_bitvec, xlat_bit, CollectorCtx, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_multi, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,

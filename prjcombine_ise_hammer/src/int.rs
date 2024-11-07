@@ -1,9 +1,10 @@
+use prjcombine_collector::{xlat_enum_ocd, Diff, FeatureId, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureId, IseBackend},
-    diff::{xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    backend::IseBackend,
+    diff::CollectorCtx,
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 

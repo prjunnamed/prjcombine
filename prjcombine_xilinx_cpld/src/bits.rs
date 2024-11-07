@@ -10,7 +10,10 @@ use crate::types::{
 use bitvec::vec::BitVec;
 use enum_map::EnumMap;
 use itertools::Itertools;
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId, TileItem, TileItemKind};
+use prjcombine_types::{
+    tiledb::{TileItem, TileItemKind},
+    FbId, FbMcId, IoId, IpadId,
+};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 

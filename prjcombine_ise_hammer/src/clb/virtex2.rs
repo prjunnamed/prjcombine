@@ -1,9 +1,10 @@
+use prjcombine_collector::{xlat_bit, xlat_enum, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,

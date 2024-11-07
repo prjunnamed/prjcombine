@@ -1,3 +1,4 @@
+use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use prjcombine_xilinx_geom::ExpandedDevice;
@@ -5,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{BelFuzzKV, BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,

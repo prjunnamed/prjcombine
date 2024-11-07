@@ -1,13 +1,11 @@
+use prjcombine_collector::{xlat_bitvec, xlat_enum, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_bitvec, xlat_enum, CollectorCtx, Diff},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -268,10 +266,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.tiledb
         .insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", ti);
     let mut diffs = vec![];
-    let item_ra = ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A");
-    let item_wb = ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B");
+    let item_ra = ctx.collector.tiledb.item(tile, "BRAM", "READ_WIDTH_A");
+    let item_wb = ctx.collector.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B");
     for val in ["4", "9", "18", "36"] {
-        let mut diff = ctx.state.get_diff(tile, "FIFO", "DATA_WIDTH", val);
+        let mut diff = ctx
+            .collector
+            .state
+            .get_diff(tile, "FIFO", "DATA_WIDTH", val);
         diff.apply_enum_diff(item_ra, val, "1");
         diff.apply_enum_diff(item_wb, val, "1");
         diffs.push((val, diff));
@@ -347,14 +348,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         xlat_enum(vec![("RAM", present_bram), ("FIFO", present_fifo)]),
     );
 
-    ctx.tiledb.insert(
-        tile,
-        "BRAM",
-        "WW_VALUE",
-        xlat_enum(vec![
-            ("NONE", Diff::default()),
-            ("0", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "0")),
-            ("1", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1")),
-        ]),
-    );
+    let item = xlat_enum(vec![
+        ("NONE", Diff::default()),
+        ("0", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "0")),
+        ("1", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1")),
+    ]);
+
+    ctx.tiledb.insert(tile, "BRAM", "WW_VALUE", item);
 }

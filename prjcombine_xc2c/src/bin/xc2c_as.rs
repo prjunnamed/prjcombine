@@ -8,7 +8,10 @@ use std::{
 
 use bitvec::vec::BitVec;
 use clap::Parser;
-use prjcombine_types::{FbId, FbMcId, IoId, Tile, TileItemKind};
+use prjcombine_types::{
+    tiledb::{Tile, TileItemKind},
+    FbId, FbMcId, IoId,
+};
 use prjcombine_xc2c::{BitCoord, Database, Device};
 use unnamed_entity::EntityId;
 

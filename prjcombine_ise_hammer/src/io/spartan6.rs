@@ -1,16 +1,17 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
+    xlat_enum_ocd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},
-    diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,
@@ -2280,30 +2281,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("CLK1", diff_c1),
                 ]),
             );
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "MUX.ICLK",
-                xlat_enum(vec![
-                    ("NONE", Diff::default()),
-                    ("CLK0", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK0")),
-                    ("CLK1", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK1")),
-                    ("CLK2", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK2")),
-                    ("DDR", diff_iddr),
-                ]),
-            );
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "MUX.OCLK",
-                xlat_enum(vec![
-                    ("NONE", Diff::default()),
-                    ("CLK0", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK0")),
-                    ("CLK1", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK1")),
-                    ("CLK2", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK2")),
-                    ("DDR", diff_oddr),
-                ]),
-            );
+            let item = xlat_enum(vec![
+                ("NONE", Diff::default()),
+                ("CLK0", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK0")),
+                ("CLK1", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK1")),
+                ("CLK2", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK2")),
+                ("DDR", diff_iddr),
+            ]);
+            ctx.tiledb.insert(tile, bel, "MUX.ICLK", item);
+            let item = xlat_enum(vec![
+                ("NONE", Diff::default()),
+                ("CLK0", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK0")),
+                ("CLK1", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK1")),
+                ("CLK2", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK2")),
+                ("DDR", diff_oddr),
+            ]);
+            ctx.tiledb.insert(tile, bel, "MUX.OCLK", item);
             ctx.tiledb
                 .insert(tile, bel, "DDR_ENABLE", xlat_bit_wide(diff_ddr));
 
@@ -2566,46 +2559,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff = ctx.state.get_diff(tile, bel, "VREF_LV", "1");
         ctx.tiledb.insert(tile, bel, "VREF_HV", xlat_bit(!diff));
 
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "IBUF_MODE",
-            xlat_enum(vec![
-                ("NONE", Diff::default()),
-                ("BYPASS_T", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "T")),
-                ("BYPASS_O", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "O")),
-                (
-                    "CMOS_VCCINT",
-                    ctx.state
-                        .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:BT")
-                        .clone(),
-                ),
-                (
-                    "CMOS_VCCO",
-                    ctx.state
-                        .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:BT")
-                        .clone(),
-                ),
-                (
-                    "VREF",
-                    ctx.state
-                        .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:BT")
-                        .clone(),
-                ),
-                (
-                    "DIFF",
-                    ctx.state
-                        .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:BT")
-                        .clone(),
-                ),
-                (
-                    "CMOS_VCCAUX",
-                    ctx.state
-                        .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:BT")
-                        .clone(),
-                ),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("NONE", Diff::default()),
+            ("BYPASS_T", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "T")),
+            ("BYPASS_O", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "O")),
+            (
+                "CMOS_VCCINT",
+                ctx.state
+                    .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:BT")
+                    .clone(),
+            ),
+            (
+                "CMOS_VCCO",
+                ctx.state
+                    .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:BT")
+                    .clone(),
+            ),
+            (
+                "VREF",
+                ctx.state
+                    .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:BT")
+                    .clone(),
+            ),
+            (
+                "DIFF",
+                ctx.state
+                    .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:BT")
+                    .clone(),
+            ),
+            (
+                "CMOS_VCCAUX",
+                ctx.state
+                    .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:BT")
+                    .clone(),
+            ),
+        ]);
+        ctx.tiledb.insert(tile, bel, "IBUF_MODE", item);
         if i == 1 {
             let diff_lvds = ctx
                 .state

@@ -1,16 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
 use bitvec::vec::BitVec;
+use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex::grid::{GridKind, IoCoord, TileIobId};
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,

@@ -2,7 +2,7 @@ use core::ops::Range;
 
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{

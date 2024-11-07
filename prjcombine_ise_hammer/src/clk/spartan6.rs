@@ -1,16 +1,17 @@
 use std::collections::HashSet;
 
 use bitvec::vec::BitVec;
+use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_spartan6::grid::Gts;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bit_wide, xlat_enum, xlat_enum_ocd, CollectorCtx, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one, fuzz_one_extras,
@@ -765,8 +766,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         };
         for (k, v) in values {
             if *v == val {
-                ctx.tiledb
-                    .insert_device_data(&ctx.device.name, "PCI_CE_DELAY", k.clone());
+                ctx.insert_device_data("PCI_CE_DELAY", k.clone());
                 break;
             }
         }
@@ -1156,8 +1156,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let val = format!("TAP{i}");
             let diff = ctx.state.get_diff(tile, bel, "PRESENT", &val);
             if diff == default {
-                ctx.tiledb
-                    .insert_device_data(&ctx.device.name, "PCI_CE_DELAY", val.clone());
+                ctx.insert_device_data("PCI_CE_DELAY", val.clone());
             }
             diffs.push((val, diff));
         }

@@ -1,0 +1,13 @@
+[package]
+name = "prjcombine_collector"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bitvec.workspace = true
+itertools.workspace = true
+prjcombine_types.workspace = true
+prjcombine_hammer.workspace = true
+
+[lints]
+workspace = true

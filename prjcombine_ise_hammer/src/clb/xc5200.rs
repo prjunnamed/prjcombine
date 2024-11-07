@@ -1,12 +1,10 @@
+use prjcombine_collector::{xlat_enum, Diff};
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_enum, CollectorCtx, Diff},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_enum_suffix, fuzz_multi, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum,
+    fuzz_enum_suffix, fuzz_multi, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -83,20 +81,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         } else {
             ctx.collect_enum(tile, bel, "DOMUX", &["DI", "CO"]);
         }
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "FFLATCH",
-            xlat_enum(vec![
-                ("FF", Diff::default()),
-                (
-                    "LATCH",
-                    ctx.state
-                        .get_diff(tile, bel, "FFLATCH", "#LATCH")
-                        .combine(&!ctx.state.peek_diff(tile, bel, "CKMUX", "CKNOT")),
-                ),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("FF", Diff::default()),
+            (
+                "LATCH",
+                ctx.state
+                    .get_diff(tile, bel, "FFLATCH", "#LATCH")
+                    .combine(&!ctx.state.peek_diff(tile, bel, "CKMUX", "CKNOT")),
+            ),
+        ]);
+        ctx.tiledb.insert(tile, bel, "FFLATCH", item);
         ctx.collect_enum(tile, bel, "DMUX", &["F", "DO"]);
         ctx.collect_enum_default(tile, bel, "CLRMUX", &["CLR"], "NONE");
         ctx.collect_enum_default(tile, bel, "CEMUX", &["CE"], "NONE");

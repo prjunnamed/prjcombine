@@ -1,10 +1,11 @@
+use prjcombine_collector::{xlat_bit, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one, fuzz_one_extras,

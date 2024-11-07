@@ -1,15 +1,16 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
+    xlat_enum, xlat_enum_ocd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_bool, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
@@ -1195,15 +1196,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 &bitvec![1; 5],
                 &mut diff,
             );
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+            ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
             let val = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, bel, "IDELAY_VALUE_INIT"),
                 &bitvec![0; 5],
                 &mut diff,
             );
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+            ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         }
         return;
     }
@@ -1578,42 +1577,34 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             .state
             .get_diff(tile, bel, "DATA_RATE_OQ", "DDR")
             .combine(&diff_buf);
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "OMUX",
-            xlat_enum(vec![
-                ("NONE", Diff::default()),
-                ("D1", diff_buf),
-                ("SERDES_SDR", diff_sdr),
-                ("SERDES_DDR", diff_ddr),
-                ("FF", ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#FF")),
-                ("DDR", ctx.state.get_diff(tile, bel, "OUTFFTYPE", "DDR")),
-                (
-                    "LATCH",
-                    ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#LATCH"),
-                ),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("NONE", Diff::default()),
+            ("D1", diff_buf),
+            ("SERDES_SDR", diff_sdr),
+            ("SERDES_DDR", diff_ddr),
+            ("FF", ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#FF")),
+            ("DDR", ctx.state.get_diff(tile, bel, "OUTFFTYPE", "DDR")),
+            (
+                "LATCH",
+                ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#LATCH"),
+            ),
+        ]);
+        ctx.tiledb.insert(tile, bel, "OMUX", item);
 
         let mut diff_sdr = ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "SDR");
         let mut diff_ddr = ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "DDR");
         diff_sdr.apply_bit_diff(ctx.tiledb.item(tile, bel, "TFF_SR_USED"), true, false);
         diff_ddr.apply_bit_diff(ctx.tiledb.item(tile, bel, "TFF_SR_USED"), true, false);
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "TMUX",
-            xlat_enum(vec![
-                ("NONE", Diff::default()),
-                ("T1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "BUF")),
-                ("SERDES_SDR", diff_sdr),
-                ("SERDES_DDR", diff_ddr),
-                ("FF", ctx.state.get_diff(tile, bel, "TFFTYPE", "#FF")),
-                ("DDR", ctx.state.get_diff(tile, bel, "TFFTYPE", "DDR")),
-                ("LATCH", ctx.state.get_diff(tile, bel, "TFFTYPE", "#LATCH")),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("NONE", Diff::default()),
+            ("T1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "BUF")),
+            ("SERDES_SDR", diff_sdr),
+            ("SERDES_DDR", diff_ddr),
+            ("FF", ctx.state.get_diff(tile, bel, "TFFTYPE", "#FF")),
+            ("DDR", ctx.state.get_diff(tile, bel, "TFFTYPE", "DDR")),
+            ("LATCH", ctx.state.get_diff(tile, bel, "TFFTYPE", "#LATCH")),
+        ]);
+        ctx.tiledb.insert(tile, bel, "TMUX", item);
 
         ctx.state
             .get_diff(tile, bel, "INTERFACE_TYPE", "DEFAULT")
@@ -1748,15 +1739,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![1; 5],
             &mut diff,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+        ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         let val = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "IDELAY_VALUE_INIT"),
             &bitvec![0; 5],
             &mut diff,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "IODELAY:DEFAULT_IDELAY_VALUE", val);
+        ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
         ctx.tiledb.insert(tile, bel, "EXTRA_DELAY", xlat_bit(diff));
 
         let mut diffs = vec![];
@@ -1931,20 +1920,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.tile == i);
         let mut diff_diff_hp = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS_25.HP").clone();
         let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.tile == i);
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "IBUF_MODE",
-            xlat_enum(vec![
-                ("OFF", Diff::default()),
-                ("CMOS", diff_cmos.clone()),
-                ("CMOS12", diff_cmos12.clone()),
-                ("VREF_LP", diff_vref_lp.clone()),
-                ("VREF_HP", diff_vref_hp.clone()),
-                ("DIFF_LP", diff_diff_lp),
-                ("DIFF_HP", diff_diff_hp),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("OFF", Diff::default()),
+            ("CMOS", diff_cmos.clone()),
+            ("CMOS12", diff_cmos12.clone()),
+            ("VREF_LP", diff_vref_lp.clone()),
+            ("VREF_HP", diff_vref_hp.clone()),
+            ("DIFF_LP", diff_diff_lp),
+            ("DIFF_HP", diff_diff_hp),
+        ]);
+        ctx.tiledb.insert(tile, bel, "IBUF_MODE", item);
 
         for &std in IOSTDS {
             if std.diff != DiffKind::None {

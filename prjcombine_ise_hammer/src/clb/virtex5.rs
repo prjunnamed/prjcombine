@@ -1,9 +1,10 @@
+use prjcombine_collector::{xlat_bit, xlat_enum, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
@@ -890,15 +891,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "CCY0", &["O5", "CX"]);
                 ctx.collect_enum(tile, bel, "DCY0", &["O5", "DX"]);
                 ctx.collect_enum(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
-                ctx.tiledb.insert(
-                    tile,
-                    bel,
-                    "CYINIT",
-                    xlat_enum(vec![
-                        ("CIN", ctx.state.get_diff(tile, bel, "CINUSED", "1")),
-                        ("PRECYINIT", Diff::default()),
-                    ]),
-                );
+                let item = xlat_enum(vec![
+                    ("CIN", ctx.state.get_diff(tile, bel, "CINUSED", "1")),
+                    ("PRECYINIT", Diff::default()),
+                ]);
+                ctx.tiledb.insert(tile, bel, "CYINIT", item);
             }
 
             // misc muxes
@@ -1084,7 +1081,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.state
                 .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
+            ctx.tiledb
+                .insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");

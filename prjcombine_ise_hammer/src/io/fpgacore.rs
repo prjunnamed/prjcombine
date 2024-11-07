@@ -1,10 +1,11 @@
+use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_bool, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bit_wide, xlat_bool, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_one, fuzz_one_extras,

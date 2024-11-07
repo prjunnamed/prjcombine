@@ -14,6 +14,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 use std::process::Stdio;
+use std::sync::OnceLock;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct FamilyInfo {
@@ -374,6 +375,11 @@ fn dump_pre(
     part: &str,
     pkg: &str,
 ) -> Option<PrePart> {
+    static SITE_RE: OnceLock<Regex> = OnceLock::new();
+    static PIP_RE: OnceLock<Regex> = OnceLock::new();
+    let site_re = SITE_RE.get_or_init(|| Regex::new(r"Site=([A-Za-z0-9_]+) type=XXX$").unwrap());
+    let pip_re = PIP_RE.get_or_init(|| Regex::new(r"from ([A-Z0-9_]+) to ([A-Z0-9_]+)$").unwrap());
+
     let mut speeds = vec![];
     let mut grid = None;
     let mut sites = None;
@@ -488,7 +494,6 @@ basciCmdListNode 1 nodes.out *
                 },
             );
         }
-        let site_re = Regex::new(r"Site=([A-Za-z0-9_]+) type=XXX$").unwrap();
         let file = File::open(dir.path().join("ispTcl.log")).unwrap();
         for line in BufReader::new(file).lines() {
             let line = line.unwrap();
@@ -525,7 +530,6 @@ basciCmdListNode 1 nodes.out *
                 let _ = std::io::stderr().write_all(&status.stderr);
                 panic!("non-zero ispTcl exit status");
             }
-            let pip_re = Regex::new(r"from ([A-Z0-9_]+) to ([A-Z0-9_]+)$").unwrap();
             let file = File::open(dir.path().join("ispTcl.log")).unwrap();
             for line in BufReader::new(file).lines() {
                 let line = line.unwrap();

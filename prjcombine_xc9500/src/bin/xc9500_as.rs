@@ -9,7 +9,7 @@ use bitvec::vec::BitVec;
 use clap::Parser;
 use prjcombine_xc9500::{Database, Device, DeviceKind, FbBitCoord, GlobalBitCoord};
 
-use prjcombine_types::{Tile, TileItemKind};
+use prjcombine_types::tiledb::{Tile, TileItemKind};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,

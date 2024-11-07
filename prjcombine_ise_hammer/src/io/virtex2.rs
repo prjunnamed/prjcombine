@@ -1,19 +1,20 @@
 use std::collections::{hash_map, HashMap, HashSet};
 
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    xlat_item_tile_fwd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{
-        enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
-        xlat_item_tile_fwd, CollectorCtx, Diff, OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{BelKV, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one,
@@ -2475,15 +2476,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item);
 
             // Input path
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "TSBYPASS_MUX",
-                xlat_enum(vec![
-                    ("GND", ctx.state.get_diff(tile, bel, "TSMUX", "0")),
-                    ("TMUX", ctx.state.get_diff(tile, bel, "TSMUX", "1")),
-                ]),
-            );
+            let item = xlat_enum(vec![
+                ("GND", ctx.state.get_diff(tile, bel, "TSMUX", "0")),
+                ("TMUX", ctx.state.get_diff(tile, bel, "TSMUX", "1")),
+            ]);
+            ctx.tiledb.insert(tile, bel, "TSBYPASS_MUX", item);
 
             if !edev.grid.kind.is_spartan3a() {
                 let item = ctx.extract_enum_bool(tile, bel, "IDELMUX", "1", "0");
@@ -2580,17 +2577,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "IFF_TSBYPASS_ENABLE", item);
 
             if edev.grid.kind.is_spartan3ea() {
-                ctx.tiledb.insert(
-                    tile,
-                    bel,
-                    "IDDRIN_MUX",
-                    xlat_enum(vec![
-                        ("IFFDMUX", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "2")),
-                        ("IDDRIN1", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "1")),
-                        ("IDDRIN2", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "0")),
-                        ("NONE", Diff::default()),
-                    ]),
-                );
+                let item = xlat_enum(vec![
+                    ("IFFDMUX", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "2")),
+                    ("IDDRIN1", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "1")),
+                    ("IDDRIN2", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "0")),
+                    ("NONE", Diff::default()),
+                ]);
+                ctx.tiledb.insert(tile, bel, "IDDRIN_MUX", item);
             }
             if edev.grid.kind == GridKind::Spartan3E {
                 let en = ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1");

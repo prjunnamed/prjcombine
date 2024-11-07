@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
-use prjcombine_types::{FbId, FbMcId, IoId, IpadId, Tile};
+use prjcombine_types::{tiledb::Tile, FbId, FbMcId, IoId, IpadId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityVec};
 

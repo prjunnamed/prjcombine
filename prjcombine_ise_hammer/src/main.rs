@@ -1,14 +1,15 @@
 use bitvec::vec::BitVec;
 use clap::Parser;
 use itertools::Itertools;
+use prjcombine_collector::Collector;
 use prjcombine_hammer::{Backend, Session};
 use prjcombine_toolchain::Toolchain;
+use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
-use tiledb::TileDb;
 
 mod backend;
 mod bram;
@@ -32,7 +33,6 @@ mod pcie;
 mod pll;
 mod ppc;
 mod tbus;
-mod tiledb;
 
 use backend::IseBackend;
 
@@ -414,8 +414,10 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         device: part,
         edev: &gedev,
         db,
-        state: &mut state,
-        tiledb,
+        collector: Collector {
+            state: &mut state,
+            tiledb,
+        },
         empty_bs: &empty_bs,
     };
     if !opts.skip_core {
@@ -677,7 +679,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         }
     }
 
-    for (feat, data) in ctx.state.simple_features.iter().sorted_by_key(|&(k, _)| k) {
+    for (feat, data) in ctx.state.features.iter().sorted_by_key(|&(k, _)| k) {
         println!(
             "{} {} {} {}: {:?}",
             feat.tile, feat.bel, feat.attr, feat.val, data.diffs

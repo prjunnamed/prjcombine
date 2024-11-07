@@ -1,12 +1,13 @@
 use bitvec::vec::BitVec;
+use prjcombine_collector::{extract_bitvec_val_part, xlat_bit, xlat_enum_ocd, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{extract_bitvec_val_part, xlat_bit, xlat_enum_ocd, CollectorCtx, OcdMode},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one, fuzz_one_extras,

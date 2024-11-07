@@ -1,18 +1,19 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
+    xlat_enum, Diff,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::Dir;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::{ColumnKind, GridKind};
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
-    diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_bool, xlat_enum, CollectorCtx, Diff,
-    },
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -568,8 +569,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 4],
             present.split_bits(&item.bits.iter().copied().collect()),
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+        ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
         let vbg_sel = extract_bitvec_val_part(
             ctx.tiledb.item(tile, bel, "VBG_SEL"),
             &bitvec![0; 3],
@@ -580,10 +580,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             &bitvec![0; 2],
             &mut present,
         );
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "DCM:VBG_SEL", vbg_sel);
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "DCM:VBG_PD", vbg_pd);
+        ctx.insert_device_data("DCM:VBG_SEL", vbg_sel);
+        ctx.insert_device_data("DCM:VBG_PD", vbg_pd);
         if edev.grid.kind == GridKind::Spartan3 {
             ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
         }
@@ -955,13 +953,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         },
     );
 
-    let clkdv_count_max = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
-    let clkdv_count_fall = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
-    let clkdv_count_fall_2 = ctx.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
-    let clkdv_phase_fall = ctx.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
-    let clkdv_mode = ctx.tiledb.item(tile, bel, "CLKDV_MODE");
+    let clkdv_count_max = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_MAX");
+    let clkdv_count_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL");
+    let clkdv_count_fall_2 = ctx.collector.tiledb.item(tile, bel, "CLKDV_COUNT_FALL_2");
+    let clkdv_phase_fall = ctx.collector.tiledb.item(tile, bel, "CLKDV_PHASE_FALL");
+    let clkdv_mode = ctx.collector.tiledb.item(tile, bel, "CLKDV_MODE");
     for i in 2..=16 {
         let mut diff = ctx
+            .collector
             .state
             .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}"));
         diff.apply_bitvec_diff_int(clkdv_count_max, i - 1, 1);
@@ -970,18 +969,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         diff.assert_empty();
     }
     for i in 1..=7 {
-        let mut diff = ctx
-            .state
-            .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.LOW"));
+        let mut diff =
+            ctx.collector
+                .state
+                .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.LOW"));
         diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
         diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
         diff.apply_bitvec_diff_int(clkdv_count_fall, i / 2, 0);
         diff.apply_bitvec_diff_int(clkdv_count_fall_2, 3 * i / 2 + 1, 0);
         diff.apply_bitvec_diff_int(clkdv_phase_fall, (i % 2) * 2 + 1, 0);
         diff.assert_empty();
-        let mut diff = ctx
-            .state
-            .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.HIGH"));
+        let mut diff =
+            ctx.collector
+                .state
+                .get_diff(tile, bel, "CLKDV_DIVIDE", format!("{i}_5.HIGH"));
         diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
         diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
         diff.apply_bitvec_diff_int(clkdv_count_fall, (i - 1) / 2, 0);
@@ -1046,10 +1047,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         &bitvec![0; 2],
         &mut present,
     );
-    ctx.tiledb
-        .insert_device_data(&ctx.device.name, "DCM:VBG_SEL", vbg_sel);
-    ctx.tiledb
-        .insert_device_data(&ctx.device.name, "DCM:VBG_PD", vbg_pd);
+    ctx.insert_device_data("DCM:VBG_SEL", vbg_sel);
+    ctx.insert_device_data("DCM:VBG_PD", vbg_pd);
     for attr in ["CLKFX_MULTIPLY", "CLKFX_DIVIDE"] {
         present.apply_bitvec_diff(
             ctx.tiledb.item(tile, bel, attr),
@@ -1064,8 +1063,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         &bitvec![0; 4],
         present.split_bits(&item.bits.iter().copied().collect()),
     );
-    ctx.tiledb
-        .insert_device_data(&ctx.device.name, "DCM:DESKEW_ADJUST", val);
+    ctx.insert_device_data("DCM:DESKEW_ADJUST", val);
 
     present.apply_bitvec_diff(
         ctx.tiledb.item(tile, bel, "DUTY_CYCLE_CORRECTION"),

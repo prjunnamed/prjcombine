@@ -1,11 +1,12 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_hammer::Session;
 use prjcombine_virtex4::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_inv, fuzz_multi_attr_hex, fuzz_multi_extras, fuzz_one,
@@ -1013,22 +1014,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item);
     }
     for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
-        ctx.tiledb.insert(
-            tile,
-            "BRAM",
-            attr,
-            xlat_enum(vec![
-                (
-                    "NONE_UPPER",
-                    ctx.state.get_diff(tile, "BRAM_F", attr, "NONE"),
-                ),
-                (
-                    "NONE_UPPER",
-                    ctx.state.get_diff(tile, "BRAM_F", attr, "UPPER"),
-                ),
-                ("LOWER", ctx.state.get_diff(tile, "BRAM_F", attr, "LOWER")),
-            ]),
-        )
+        let item = xlat_enum(vec![
+            (
+                "NONE_UPPER",
+                ctx.state.get_diff(tile, "BRAM_F", attr, "NONE"),
+            ),
+            (
+                "NONE_UPPER",
+                ctx.state.get_diff(tile, "BRAM_F", attr, "UPPER"),
+            ),
+            ("LOWER", ctx.state.get_diff(tile, "BRAM_F", attr, "LOWER")),
+        ]);
+        ctx.tiledb.insert(tile, "BRAM", attr, item)
     }
 
     for (rw, ab, ba) in [("READ", 'A', 'B'), ("WRITE", 'B', 'A')] {

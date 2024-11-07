@@ -1,10 +1,11 @@
+use prjcombine_collector::{xlat_bit, xlat_enum};
 use prjcombine_hammer::Session;
 use prjcombine_xc4000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_one, fuzz_one_extras,
@@ -419,37 +420,29 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "CONFIG_RATE", &["SLOW", "FAST"]);
         ctx.collect_bit(tile, bel, "INV.GSR", "1");
         ctx.collect_bit(tile, bel, "INV.GTS", "1");
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "DONE_ACTIVE",
-            xlat_enum(vec![
-                ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
-                ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
-                ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C4")),
-                ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C2")),
-                ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U2")),
-                ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
-                ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
+            ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
+            ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C4")),
+            ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C2")),
+            ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U2")),
+            ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
+            ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
+        ]);
+        ctx.tiledb.insert(tile, bel, "DONE_ACTIVE", item);
         for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                attr,
-                xlat_enum(vec![
-                    ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),
-                    ("Q3", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_1")),
-                    ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_2")),
-                    ("Q2", ctx.state.get_diff(tile, bel, attr, "C3")),
-                    ("Q3", ctx.state.get_diff(tile, bel, attr, "C4")),
-                    ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "C2")),
-                    ("Q2", ctx.state.get_diff(tile, bel, attr, "U2")),
-                    ("Q3", ctx.state.get_diff(tile, bel, attr, "U3")),
-                    ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "U4")),
-                ]),
-            );
+            let item = xlat_enum(vec![
+                ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),
+                ("Q3", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_1")),
+                ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_2")),
+                ("Q2", ctx.state.get_diff(tile, bel, attr, "C3")),
+                ("Q3", ctx.state.get_diff(tile, bel, attr, "C4")),
+                ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "C2")),
+                ("Q2", ctx.state.get_diff(tile, bel, attr, "U2")),
+                ("Q3", ctx.state.get_diff(tile, bel, attr, "U3")),
+                ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "U4")),
+            ]);
+            ctx.tiledb.insert(tile, bel, attr, item);
         }
         ctx.collect_enum(tile, bel, "STARTUP_CLK", &["CCLK", "USERCLK"]);
         ctx.collect_enum_bool(tile, bel, "SYNC_TO_DONE", "NO", "YES");

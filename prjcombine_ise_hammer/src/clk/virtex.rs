@@ -1,8 +1,9 @@
+use prjcombine_collector::{xlat_bitvec, xlat_bool, xlat_enum, Diff};
 use prjcombine_hammer::Session;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx, Diff},
+    diff::CollectorCtx,
     fgen::{BelKV, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one,

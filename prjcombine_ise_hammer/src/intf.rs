@@ -1,11 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
+use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_default, Diff, FeatureId};
 use prjcombine_hammer::Session;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
-    backend::{FeatureId, IseBackend},
-    diff::{xlat_bit, xlat_enum, xlat_enum_default, CollectorCtx, Diff},
+    backend::IseBackend,
+    diff::CollectorCtx,
     fgen::{TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
 };
 

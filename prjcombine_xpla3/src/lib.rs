@@ -5,7 +5,7 @@ use std::{
     path::Path,
 };
 
-use prjcombine_types::{FbId, FbMcId, Tile};
+use prjcombine_types::{tiledb::Tile, FbId, FbMcId};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityVec};
 

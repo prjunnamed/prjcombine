@@ -1,9 +1,10 @@
 use bitvec::vec::BitVec;
+use prjcombine_collector::{Diff, FeatureData, FeatureId, State};
 use prjcombine_hammer::{Backend, FuzzerId};
 use prjcombine_int::db::{BelId, WireId};
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
 use prjcombine_toolchain::Toolchain;
-use prjcombine_types::TileBit;
+use prjcombine_types::tiledb::TileBit;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
@@ -12,7 +13,6 @@ use rand::prelude::*;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{Debug, Write};
 
-use crate::diff::Diff;
 use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
@@ -142,122 +142,8 @@ impl Debug for FuzzerInfo {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
-pub struct FeatureId {
-    pub tile: String,
-    pub bel: String,
-    pub attr: String,
-    pub val: String,
-}
-
-impl Debug for FeatureId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}:{}", self.tile, self.bel, self.attr, self.val)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct SimpleFeatureData {
-    pub diffs: Vec<Diff>,
-    pub fuzzers: Vec<FuzzerId>,
-}
-
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum PostProc {}
-
-#[derive(Debug)]
-pub struct State {
-    pub simple_features: HashMap<FeatureId, SimpleFeatureData>,
-}
-
-impl State {
-    pub fn get_diffs(
-        &mut self,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Vec<Diff> {
-        let tile = tile.into();
-        let bel = bel.into();
-        let attr = attr.into();
-        let val = val.into();
-        let id = FeatureId {
-            tile,
-            bel,
-            attr,
-            val,
-        };
-        self.simple_features
-            .remove(&id)
-            .unwrap_or_else(|| {
-                panic!(
-                    "NO DIFF: {tile} {bel} {attr} {val}",
-                    tile = id.tile,
-                    bel = id.bel,
-                    attr = id.attr,
-                    val = id.val
-                )
-            })
-            .diffs
-    }
-
-    pub fn get_diff(
-        &mut self,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> Diff {
-        let mut res = self.get_diffs(tile, bel, attr, val);
-        assert_eq!(res.len(), 1);
-        res.pop().unwrap()
-    }
-
-    pub fn peek_diffs(
-        &self,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> &Vec<Diff> {
-        let tile = tile.into();
-        let bel = bel.into();
-        let attr = attr.into();
-        let val = val.into();
-        let id = FeatureId {
-            tile,
-            bel,
-            attr,
-            val,
-        };
-        &self
-            .simple_features
-            .get(&id)
-            .unwrap_or_else(|| {
-                panic!(
-                    "NO DIFF: {tile} {bel} {attr} {val}",
-                    tile = id.tile,
-                    bel = id.bel,
-                    attr = id.attr,
-                    val = id.val
-                )
-            })
-            .diffs
-    }
-
-    pub fn peek_diff(
-        &self,
-        tile: impl Into<String>,
-        bel: impl Into<String>,
-        attr: impl Into<String>,
-        val: impl Into<String>,
-    ) -> &Diff {
-        let res = self.peek_diffs(tile, bel, attr, val);
-        assert_eq!(res.len(), 1);
-        &res[0]
-    }
-}
 
 impl IseBackend<'_> {
     fn gen_key(&self, gopts: &mut HashMap<String, String>) -> KeyData {
@@ -327,15 +213,11 @@ impl<'a> Backend for IseBackend<'a> {
         pp: &PostProc,
         _kv: &HashMap<Key<'a>, Value>,
     ) -> bool {
-        match *pp {
-            // XXX
-        }
+        match *pp {}
     }
 
     fn make_state(&self) -> State {
-        State {
-            simple_features: HashMap::new(),
-        }
+        State::default()
     }
 
     fn bitgen(&self, kv: &HashMap<Key, Value>) -> Bitstream {
@@ -873,7 +755,7 @@ impl<'a> Backend for IseBackend<'a> {
                     }
                 }
             } else {
-                match state.simple_features.entry(feat.id.clone()) {
+                match state.features.entry(feat.id.clone()) {
                     hash_map::Entry::Occupied(mut e) => {
                         let v = e.get_mut();
                         if v.diffs != xdiffs {
@@ -888,7 +770,7 @@ impl<'a> Backend for IseBackend<'a> {
                         }
                     }
                     hash_map::Entry::Vacant(e) => {
-                        e.insert(SimpleFeatureData {
+                        e.insert(FeatureData {
                             diffs: xdiffs,
                             fuzzers: vec![fid],
                         });

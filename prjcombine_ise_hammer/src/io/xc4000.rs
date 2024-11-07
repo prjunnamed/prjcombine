@@ -1,11 +1,12 @@
+use prjcombine_collector::{xlat_bit, xlat_enum};
 use prjcombine_hammer::Session;
-use prjcombine_types::{TileBit, TileItem};
+use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xc4000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_enum, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{BelKV, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_one,

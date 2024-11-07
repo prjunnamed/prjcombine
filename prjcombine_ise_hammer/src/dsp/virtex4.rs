@@ -1,13 +1,11 @@
+use prjcombine_collector::{xlat_enum, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_enum, CollectorCtx, Diff},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_one,
 };
 
 const DSP48_INVPINS: &[&str] = &[

@@ -1,9 +1,14 @@
 use std::collections::HashSet;
 
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
+    xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum, xlat_enum_ocd, xlat_item_tile, Diff,
+    FeatureId, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::grid::DieId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::{
     expanded::{IoDiffKind, IoPadKind},
     grid::GridKind,
@@ -13,12 +18,8 @@ use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::{FeatureId, IseBackend, Key},
-    diff::{
-        concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide,
-        xlat_bitvec, xlat_bool, xlat_bool_default, xlat_enum, xlat_enum_ocd, xlat_item_tile,
-        CollectorCtx, Diff, OcdMode,
-    },
+    backend::{IseBackend, Key},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits, TileFuzzKV, TileFuzzerGen, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_one, fuzz_one_extras,
@@ -1433,33 +1434,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         if !edev.grid.kind.is_virtex2() {
             if !edev.grid.kind.is_spartan3a() {
                 let sendmax = ctx.collect_enum_bool_default(tile, bel, "VGG_SENDMAX", "NO", "YES");
-                ctx.tiledb.insert_device_data(
-                    &ctx.device.name,
-                    "MISC:VGG_SENDMAX_DEFAULT",
-                    [sendmax],
-                );
+                ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
                 let (_, vgg0) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG0", "0", "1");
                 let (_, vgg1) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG1", "0", "1");
                 let (_, vgg2) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG2", "0", "1");
                 let (_, vgg3) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG3", "0", "1");
-                ctx.tiledb.insert_device_data(
-                    &ctx.device.name,
-                    "MISC:SEND_VGG_DEFAULT",
-                    [vgg0, vgg1, vgg2, vgg3],
-                );
+                ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
             } else {
                 let (_, _, def) = get_split_bool(ctx, tile, bel, "VGG_SENDMAX", "NO", "YES");
-                ctx.tiledb
-                    .insert_device_data(&ctx.device.name, "MISC:VGG_SENDMAX_DEFAULT", [def]);
+                ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [def]);
                 let (_, _, vgg0) = get_split_bool(ctx, tile, bel, "SEND_VGG0", "0", "1");
                 let (_, _, vgg1) = get_split_bool(ctx, tile, bel, "SEND_VGG1", "0", "1");
                 let (_, _, vgg2) = get_split_bool(ctx, tile, bel, "SEND_VGG2", "0", "1");
                 let (_, _, vgg3) = get_split_bool(ctx, tile, bel, "SEND_VGG3", "0", "1");
-                ctx.tiledb.insert_device_data(
-                    &ctx.device.name,
-                    "MISC:SEND_VGG_DEFAULT",
-                    [vgg0, vgg1, vgg2, vgg3],
-                );
+                ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
             }
         }
         if edev.grid.kind.is_virtex2() {
@@ -1470,16 +1458,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 assert!(val);
                 freeze_dci_nops |= 1 << bit.bit;
             }
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "FREEZE_DCI_NOPS", freeze_dci_nops);
+            ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
 
             let is_double_grestore =
                 ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
-            ctx.tiledb.insert_device_data(
-                &ctx.device.name,
-                "DOUBLE_GRESTORE",
-                BitVec::repeat(is_double_grestore, 1),
-            );
+            ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
         }
 
         return;
@@ -1500,30 +1483,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     if edev.grid.kind.is_virtex2() {
         ctx.collect_enum_bool(tile, bel, "DISABLEBANDGAP", "NO", "YES");
         ctx.collect_enum_bool_wide(tile, bel, "RAISEVGG", "NO", "YES");
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "ZCLK_DIV2",
-            xlat_bitvec(vec![
-                ctx.state.get_diff(tile, bel, "ZCLK_N2", "1"),
-                ctx.state.get_diff(tile, bel, "ZCLK_N4", "1"),
-                ctx.state.get_diff(tile, bel, "ZCLK_N8", "1"),
-                ctx.state.get_diff(tile, bel, "ZCLK_N16", "1"),
-                ctx.state.get_diff(tile, bel, "ZCLK_N32", "1"),
-            ]),
-        );
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "BCLK_DIV2",
-            xlat_bitvec(vec![
-                ctx.state.get_diff(tile, bel, "IBCLK_N2", "1"),
-                ctx.state.get_diff(tile, bel, "IBCLK_N4", "1"),
-                ctx.state.get_diff(tile, bel, "IBCLK_N8", "1"),
-                ctx.state.get_diff(tile, bel, "IBCLK_N16", "1"),
-                ctx.state.get_diff(tile, bel, "IBCLK_N32", "1"),
-            ]),
-        );
+        let item = xlat_bitvec(vec![
+            ctx.state.get_diff(tile, bel, "ZCLK_N2", "1"),
+            ctx.state.get_diff(tile, bel, "ZCLK_N4", "1"),
+            ctx.state.get_diff(tile, bel, "ZCLK_N8", "1"),
+            ctx.state.get_diff(tile, bel, "ZCLK_N16", "1"),
+            ctx.state.get_diff(tile, bel, "ZCLK_N32", "1"),
+        ]);
+        ctx.tiledb.insert(tile, bel, "ZCLK_DIV2", item);
+        let item = xlat_bitvec(vec![
+            ctx.state.get_diff(tile, bel, "IBCLK_N2", "1"),
+            ctx.state.get_diff(tile, bel, "IBCLK_N4", "1"),
+            ctx.state.get_diff(tile, bel, "IBCLK_N8", "1"),
+            ctx.state.get_diff(tile, bel, "IBCLK_N16", "1"),
+            ctx.state.get_diff(tile, bel, "IBCLK_N32", "1"),
+        ]);
+        ctx.tiledb.insert(tile, bel, "BCLK_DIV2", item);
         for attr in [
             "ZCLK_N2",
             "ZCLK_N4",
@@ -1544,18 +1519,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     } else {
         if !edev.grid.kind.is_spartan3a() {
             let sendmax = ctx.collect_enum_bool_default(tile, bel, "VGG_SENDMAX", "NO", "YES");
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
+            ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [sendmax]);
             assert!(!ctx.collect_enum_bool_default(tile, bel, "VGG_ENABLE_OFFCHIP", "NO", "YES"));
             let (item0, vgg0) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG0", "0", "1");
             let (item1, vgg1) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG1", "0", "1");
             let (item2, vgg2) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG2", "0", "1");
             let (item3, vgg3) = ctx.extract_enum_bool_default(tile, bel, "SEND_VGG3", "0", "1");
-            ctx.tiledb.insert_device_data(
-                &ctx.device.name,
-                "MISC:SEND_VGG_DEFAULT",
-                [vgg0, vgg1, vgg2, vgg3],
-            );
+            ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
             let item = concat_bitvec([item0, item1, item2, item3]);
             ctx.tiledb.insert(tile, bel, "SEND_VGG", item);
         } else {
@@ -1577,17 +1547,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ctx.tiledb.insert(tile, bel, "VGG_SENDMAX", item_cnr);
             ctx.tiledb
                 .insert("REG.COR1.S3A", bel, "VGG_SENDMAX", item_reg);
-            ctx.tiledb
-                .insert_device_data(&ctx.device.name, "MISC:VGG_SENDMAX_DEFAULT", [def]);
+            ctx.insert_device_data("MISC:VGG_SENDMAX_DEFAULT", [def]);
             let (i0_cnr, i0_reg, vgg0) = get_split_bool(ctx, tile, bel, "SEND_VGG0", "0", "1");
             let (i1_cnr, i1_reg, vgg1) = get_split_bool(ctx, tile, bel, "SEND_VGG1", "0", "1");
             let (i2_cnr, i2_reg, vgg2) = get_split_bool(ctx, tile, bel, "SEND_VGG2", "0", "1");
             let (i3_cnr, i3_reg, vgg3) = get_split_bool(ctx, tile, bel, "SEND_VGG3", "0", "1");
-            ctx.tiledb.insert_device_data(
-                &ctx.device.name,
-                "MISC:SEND_VGG_DEFAULT",
-                [vgg0, vgg1, vgg2, vgg3],
-            );
+            ctx.insert_device_data("MISC:SEND_VGG_DEFAULT", [vgg0, vgg1, vgg2, vgg3]);
             let item = concat_bitvec([i0_cnr, i1_cnr, i2_cnr, i3_cnr]);
             ctx.tiledb.insert(tile, bel, "SEND_VGG", item);
             let item = concat_bitvec([i0_reg, i1_reg, i2_reg, i3_reg]);
@@ -1595,16 +1560,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         }
     }
     if edev.grid.kind == GridKind::Spartan3 {
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "DCI_OSC_SEL",
-            xlat_bitvec(vec![
-                ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL0", "1"),
-                ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL1", "1"),
-                ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL2", "1"),
-            ]),
-        );
+        let item = xlat_bitvec(vec![
+            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL0", "1"),
+            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL1", "1"),
+            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL2", "1"),
+        ]);
+        ctx.tiledb.insert(tile, bel, "DCI_OSC_SEL", item);
         for attr in ["IDCI_OSC_SEL0", "IDCI_OSC_SEL1", "IDCI_OSC_SEL2"] {
             ctx.state.get_diff(tile, bel, attr, "0").assert_empty();
         }
@@ -1634,8 +1595,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             assert!(val);
             freeze_dci_nops |= 1 << bit.bit;
         }
-        ctx.tiledb
-            .insert_device_data(&ctx.device.name, "FREEZE_DCI_NOPS", freeze_dci_nops);
+        ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
     }
 
     // UL
@@ -1945,7 +1905,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 };
                 let base = BitVec::repeat(false, item.bits.len());
                 for (name, diff) in vals {
-                    let val = crate::diff::extract_bitvec_val(&item, &base, diff);
+                    let val = extract_bitvec_val(&item, &base, diff);
                     ctx.tiledb.insert_misc_data(format!("{prefix}:{name}"), val)
                 }
                 ctx.tiledb.insert(tile, bel, "LVDSBIAS", item);
@@ -2211,15 +2171,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
 
             if edev.grid.kind == GridKind::Spartan3 {
                 for tile in [ll, ul, lr, ur] {
-                    ctx.tiledb.insert(
-                        tile,
-                        "MISC",
-                        "DCI_TEST_MUX",
-                        xlat_enum(vec![
-                            ("DCI0", ctx.state.get_diff(tile, "DCI0", "SELECT", "1")),
-                            ("DCI1", ctx.state.get_diff(tile, "DCI1", "SELECT", "1")),
-                        ]),
-                    );
+                    let item = xlat_enum(vec![
+                        ("DCI0", ctx.state.get_diff(tile, "DCI0", "SELECT", "1")),
+                        ("DCI1", ctx.state.get_diff(tile, "DCI1", "SELECT", "1")),
+                    ]);
+                    ctx.tiledb.insert(tile, "MISC", "DCI_TEST_MUX", item);
                 }
             }
             if edev.grid.kind.is_virtex2p()
@@ -2885,10 +2841,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     if edev.grid.kind.is_virtex2() {
         let is_double_grestore =
             ctx.empty_bs.die[DieId::from_idx(0)].regs[Reg::FakeDoubleGrestore] == Some(1);
-        ctx.tiledb.insert_device_data(
-            &ctx.device.name,
-            "DOUBLE_GRESTORE",
-            BitVec::repeat(is_double_grestore, 1),
-        );
+        ctx.insert_device_data("DOUBLE_GRESTORE", BitVec::repeat(is_double_grestore, 1));
     }
 }

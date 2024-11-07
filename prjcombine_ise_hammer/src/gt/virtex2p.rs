@@ -1,14 +1,12 @@
 use bitvec::prelude::*;
+use prjcombine_collector::OcdMode;
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, PinDir};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{CollectorCtx, OcdMode},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
@@ -192,13 +190,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_enum(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_bitvec(tile, bel, "RX_BUFFER_LIMIT", "");
-        let item = ctx.tiledb.item(tile, bel, "RX_BUFFER_LIMIT");
+        let item = ctx.collector.tiledb.item(tile, bel, "RX_BUFFER_LIMIT");
         for (name, val) in [
             ("15.MASTER", bitvec![0, 0, 1, 1]),
             ("15.SLAVE_1_HOP", bitvec![0, 0, 1, 0]),
             ("15.SLAVE_2_HOPS", bitvec![0, 0, 1, 0]),
         ] {
-            let mut diff = ctx.state.get_diff(tile, bel, "RX_BUFFER_LIMIT", name);
+            let mut diff = ctx
+                .collector
+                .state
+                .get_diff(tile, bel, "RX_BUFFER_LIMIT", name);
             diff.apply_bitvec_diff(item, &val, &BitVec::repeat(false, 4));
             diff.assert_empty();
         }

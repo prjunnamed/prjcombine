@@ -1,3 +1,4 @@
+use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir};
 use prjcombine_xilinx_geom::ExpandedDevice;
@@ -5,7 +6,7 @@ use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, CollectorCtx, Diff, OcdMode},
+    diff::CollectorCtx,
     fgen::{BelRelation, ExtraFeature, ExtraFeatureKind, TileBits, TileKV, TileRelation},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_one, fuzz_one_extras,
@@ -648,8 +649,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "BUF.IOCLK_S0",
             "BUF.IOCLK_S1",
         ] {
-            let item = ctx.tiledb.item("HCLK_IOIS_LVDS", "IOCLK", attr);
-            ctx.tiledb.insert(tile, "IOCLK", attr, item.clone());
+            let item = ctx.tiledb.item("HCLK_IOIS_LVDS", "IOCLK", attr).clone();
+            ctx.tiledb.insert(tile, "IOCLK", attr, item);
         }
     }
     {

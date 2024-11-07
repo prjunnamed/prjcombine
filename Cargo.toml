@@ -49,6 +49,7 @@ members = [
 	"prjcombine_v2xdl_verify",
 	"prjcombine_virtex_bitstream",
 	"prjcombine_hammer",
+	"prjcombine_collector",
 	"prjcombine_ise_hammer",
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
@@ -56,7 +57,8 @@ members = [
 	"prjcombine_sdf",
 	"prjcombine_xc9500",
 	"prjcombine_xpla3",
-	"prjcombine_xc2c", "prjcombine_xilinx_rdis",
+	"prjcombine_xc2c",
+	"prjcombine_xilinx_rdis",
 ]
 resolver = "2"
 
@@ -108,6 +110,7 @@ prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
 prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
 prjcombine_virtex_bitstream = { path = "prjcombine_virtex_bitstream" }
 prjcombine_hammer = { path = "prjcombine_hammer" }
+prjcombine_collector = { path = "prjcombine_collector" }
 prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
@@ -139,7 +142,7 @@ indicatif = "0.17"
 arrayref = "0.3.6"
 bimap = "0.6"
 std-semaphore = "0.1"
-which = "6"
+which = "7"
 derive-where = "1.2"
 hex = "0.4.3"
 des = "0.8.1"

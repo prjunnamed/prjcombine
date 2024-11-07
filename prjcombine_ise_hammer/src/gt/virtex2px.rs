@@ -1,14 +1,12 @@
 use bitvec::vec::BitVec;
+use prjcombine_collector::{extract_bitvec_val, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, PinDir};
 use unnamed_entity::EntityId;
 
 use crate::{
-    backend::IseBackend,
-    diff::{extract_bitvec_val, CollectorCtx, OcdMode},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_inv, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_inv,
+    fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_multi_attr_hex, fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {

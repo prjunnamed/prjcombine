@@ -21,6 +21,7 @@ prjcombine_int.workspace = true
 prjcombine_toolchain.workspace = true
 prjcombine_hammer.workspace = true
 prjcombine_types.workspace = true
+prjcombine_collector.workspace = true
 unnamed_entity.workspace = true
 bitvec.workspace = true
 clap.workspace = true

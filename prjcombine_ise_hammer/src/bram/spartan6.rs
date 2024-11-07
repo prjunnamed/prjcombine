@@ -1,12 +1,13 @@
 use std::collections::BTreeMap;
 
 use bitvec::prelude::*;
+use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_hammer::Session;
-use prjcombine_types::TileItem;
+use prjcombine_types::tiledb::{TileItem, TileItemKind};
 
 use crate::{
     backend::IseBackend,
-    diff::{xlat_bit, xlat_bitvec, xlat_bool, xlat_enum, CollectorCtx},
+    diff::CollectorCtx,
     fgen::{ExtraFeature, ExtraFeatureKind, TileBits},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_inv, fuzz_multi, fuzz_multi_attr_hex, fuzz_one, fuzz_one_extras,
@@ -538,7 +539,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "MODE",
             TileItem {
                 bits: vec![bit],
-                kind: prjcombine_types::TileItemKind::Enum {
+                kind: TileItemKind::Enum {
                     values: BTreeMap::from_iter([
                         ("RAMB8BWER".to_string(), bitvec![0]),
                         ("RAMB16BWER".to_string(), bitvec![1]),

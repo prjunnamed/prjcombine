@@ -13,6 +13,7 @@ use std::io::Write;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::Stdio;
+use std::sync::OnceLock;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct FamilyInfo {
@@ -94,6 +95,23 @@ fn dump_pre(
     part: &str,
     pkg: &str,
 ) -> Option<PrePart> {
+    static ALIAS_RE: OnceLock<Regex> = OnceLock::new();
+    static TYPE_RE: OnceLock<Regex> = OnceLock::new();
+    static PIN_RE: OnceLock<Regex> = OnceLock::new();
+    static PIP_RE: OnceLock<Regex> = OnceLock::new();
+    static SITE_RE: OnceLock<Regex> = OnceLock::new();
+    let alias_re =
+        ALIAS_RE.get_or_init(|| Regex::new(r"    Alias name = ([A-Za-z0-9_?]+)$").unwrap());
+    let type_re = TYPE_RE.get_or_init(|| Regex::new(r"           Type : (\d+)$").unwrap());
+    let pin_re = PIN_RE.get_or_init(|| {
+        Regex::new(r"           Pin  : ([A-Za-z0-9_]+)/([A-Za-z0-9_]+) \(([a-z]+)\)$").unwrap()
+    });
+    let pip_re =
+            PIP_RE.get_or_init(|| Regex::new(r"([A-Za-z0-9_]+) (-->|<--|<->) ([A-Za-z0-9_]+) \(Flags: ----([-j]), 0\) \(Buffer: ([A-Za-z0-9_]+)\)$").unwrap());
+    let site_re = SITE_RE.get_or_init(|| {
+        Regex::new(r"Site=([A-Za-z0-9_]+) id=\d+ type=([A-Za-z0-9_]+) X=-?\d+ Y=-?\d+$").unwrap()
+    });
+
     let mut speeds = vec![];
     let mut grid = None;
     let mut sites = None;
@@ -203,12 +221,6 @@ dev_report_node -file nodes.out [get_nodes -re ".*"]
         let mut aliases = vec![];
         let mut typ: Option<u8> = None;
         let mut pin = None;
-        let alias_re = Regex::new(r"    Alias name = ([A-Za-z0-9_?]+)$").unwrap();
-        let type_re = Regex::new(r"           Type : (\d+)$").unwrap();
-        let pin_re =
-            Regex::new(r"           Pin  : ([A-Za-z0-9_]+)/([A-Za-z0-9_]+) \(([a-z]+)\)$").unwrap();
-        let pip_re =
-            Regex::new(r"([A-Za-z0-9_]+) (-->|<--|<->) ([A-Za-z0-9_]+) \(Flags: ----([-j]), 0\) \(Buffer: ([A-Za-z0-9_]+)\)$").unwrap();
         for line in BufReader::new(file).lines() {
             let line = line.unwrap();
             if line.starts_with("    Alias") {
@@ -297,9 +309,6 @@ dev_report_node -file nodes.out [get_nodes -re ".*"]
                 panic!("unk line {line}");
             }
         }
-        let site_re =
-            Regex::new(r"Site=([A-Za-z0-9_]+) id=\d+ type=([A-Za-z0-9_]+) X=-?\d+ Y=-?\d+$")
-                .unwrap();
         let file = File::open(dir.path().join("lapie.log")).unwrap();
         for line in BufReader::new(file).lines() {
             let line = line.unwrap();

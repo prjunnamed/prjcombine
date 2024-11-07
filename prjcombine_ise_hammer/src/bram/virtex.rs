@@ -1,11 +1,9 @@
+use prjcombine_collector::{xlat_bitvec, xlat_bool};
 use prjcombine_hammer::Session;
 
 use crate::{
-    backend::IseBackend,
-    diff::{xlat_bitvec, xlat_bool, CollectorCtx},
-    fgen::TileBits,
-    fuzz::FuzzCtx,
-    fuzz_enum, fuzz_multi, fuzz_one,
+    backend::IseBackend, diff::CollectorCtx, fgen::TileBits, fuzz::FuzzCtx, fuzz_enum, fuzz_multi,
+    fuzz_one,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {

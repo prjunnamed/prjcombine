@@ -1155,9 +1155,9 @@ impl Expander<'_, '_> {
                             mask_mode[1] = FrameMaskMode::DrpHclk(27, 15);
                         }
                     }
-                    if cd == ColumnKind::Cfg && matches!(minor, 28..32) &&
-                         reg == self.grid.reg_cfg {
-                            mask_mode[0] = FrameMaskMode::DrpHclk(27, 15);
+                    if cd == ColumnKind::Cfg && matches!(minor, 28..32) && reg == self.grid.reg_cfg
+                    {
+                        mask_mode[0] = FrameMaskMode::DrpHclk(27, 15);
                     }
                     self.frame_info.push(FrameInfo {
                         addr: FrameAddr {

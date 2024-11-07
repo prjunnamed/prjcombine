@@ -1,15 +1,16 @@
 use bitvec::prelude::*;
+use prjcombine_collector::{
+    extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool,
+    xlat_enum, xlat_enum_ocd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::BelId;
-use prjcombine_types::{TileBit, TileItem, TileItemKind};
+use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use unnamed_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
-    diff::{
-        extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_bool, xlat_enum, xlat_enum_ocd, CollectorCtx, Diff, OcdMode,
-    },
+    diff::CollectorCtx,
     fgen::{BelKV, ExtraFeature, ExtraFeatureKind, TileBits, TileKV},
     fuzz::FuzzCtx,
     fuzz_enum, fuzz_enum_suffix, fuzz_multi_attr_bin, fuzz_multi_attr_dec, fuzz_one,
@@ -1604,36 +1605,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item_oq);
         ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item_tq);
 
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "OMUX",
-            xlat_enum(vec![
-                ("NONE", Diff::default()),
-                ("D1", ctx.state.get_diff(tile, bel, "OMUX", "D1")),
-                ("OFF1", ctx.state.get_diff(tile, bel, "OMUX", "OFF1")),
-                ("OFFDDR", ctx.state.get_diff(tile, bel, "OMUX", "OFFDDRA")),
-                ("OFFDDR", ctx.state.get_diff(tile, bel, "OMUX", "OFFDDRB")),
-            ]),
-        );
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "TMUX",
-            xlat_enum(vec![
-                ("NONE", Diff::default()),
-                ("T1", ctx.state.get_diff(tile, bel, "TMUX", "T1")),
-                ("TFF1", ctx.state.get_diff(tile, bel, "TMUX", "TFF1")),
-                ("TFFDDR", ctx.state.get_diff(tile, bel, "TMUX", "TFFDDRA")),
-                ("TFFDDR", ctx.state.get_diff(tile, bel, "TMUX", "TFFDDRB")),
-                ("T1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "BUF")),
-                ("TFF1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "SDR")),
-                (
-                    "TFFDDR",
-                    ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "DDR"),
-                ),
-            ]),
-        );
+        let item = xlat_enum(vec![
+            ("NONE", Diff::default()),
+            ("D1", ctx.state.get_diff(tile, bel, "OMUX", "D1")),
+            ("OFF1", ctx.state.get_diff(tile, bel, "OMUX", "OFF1")),
+            ("OFFDDR", ctx.state.get_diff(tile, bel, "OMUX", "OFFDDRA")),
+            ("OFFDDR", ctx.state.get_diff(tile, bel, "OMUX", "OFFDDRB")),
+        ]);
+        ctx.tiledb.insert(tile, bel, "OMUX", item);
+        let item = xlat_enum(vec![
+            ("NONE", Diff::default()),
+            ("T1", ctx.state.get_diff(tile, bel, "TMUX", "T1")),
+            ("TFF1", ctx.state.get_diff(tile, bel, "TMUX", "TFF1")),
+            ("TFFDDR", ctx.state.get_diff(tile, bel, "TMUX", "TFFDDRA")),
+            ("TFFDDR", ctx.state.get_diff(tile, bel, "TMUX", "TFFDDRB")),
+            ("T1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "BUF")),
+            ("TFF1", ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "SDR")),
+            (
+                "TFFDDR",
+                ctx.state.get_diff(tile, bel, "DATA_RATE_TQ", "DDR"),
+            ),
+        ]);
+        ctx.tiledb.insert(tile, bel, "TMUX", item);
         let mut diff_sdr = ctx.state.get_diff(tile, bel, "DATA_RATE_OQ", "SDR");
         let mut diff_ddr = ctx.state.get_diff(tile, bel, "DATA_RATE_OQ", "DDR");
         diff_sdr.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMUX"), "OFF1", "D1");
