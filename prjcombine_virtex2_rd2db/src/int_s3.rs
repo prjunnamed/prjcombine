@@ -1,18 +1,12 @@
-use prjcombine_int::db::{Dir, IntDb, NodeExtPipNaming, NodeRawTileId, NodeTileId, WireKind};
+use prjcombine_int::db::{Dir, IntDb, NodeTileId, WireKind};
 use prjcombine_rawdump::{Coord, Part};
+use prjcombine_xilinx_naming::db::{NamingDb, NodeExtPipNaming, NodeRawTileId};
 use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new(
-        if rd.family == "fpgacore" {
-            "fpgacore"
-        } else {
-            "spartan3"
-        },
-        rd,
-    );
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     builder.wire(
         "PULLUP",
@@ -1096,7 +1090,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.S3.L1", 1),
             ("IOBS.S3.R1", 1),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     } else if rd.family == "fpgacore" {
         let bels_ioi = [
@@ -1123,7 +1117,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.FC.L", 1),
             ("IOBS.FC.R", 1),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     } else if rd.family == "spartan3e" {
         let bels_ioi_tb = [
@@ -1214,7 +1208,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.S3E.R3", 3),
             ("IOBS.S3E.R4", 4),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     } else {
         let bels_ioi_tb = [
@@ -1308,7 +1302,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.S3A.L4", 4),
             ("IOBS.S3A.R4", 4),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     }
     if rd.family != "fpgacore" {

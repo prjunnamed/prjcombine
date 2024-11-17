@@ -3,12 +3,15 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use prjcombine_int::db::{
-    BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, IntfInfo, IntfWireInNaming,
-    IntfWireOutNaming, IriNaming, IriPin, MuxInfo, MuxKind, NodeExtPipNaming, NodeIriId, NodeKind,
-    NodeKindId, NodeNaming, NodeNamingId, NodeRawTileId, NodeTileId, NodeWireId, PinDir, TermInfo,
-    TermKind, TermNamingId, TermWireInFarNaming, TermWireOutNaming, WireId, WireKind,
+    BelInfo, BelPin, Dir, IntDb, IntfInfo, IriPin, MuxInfo, MuxKind, NodeIriId, NodeKind,
+    NodeKindId, NodeTileId, NodeWireId, PinDir, TermInfo, TermKind, WireId, WireKind,
 };
 use prjcombine_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
+use prjcombine_xilinx_naming::db::{
+    BelNaming, BelPinNaming, IntfWireInNaming, IntfWireOutNaming, IriNaming, NamingDb,
+    NodeExtPipNaming, NodeNaming, NodeNamingId, NodeRawTileId, TermNamingId, TermWireInFarNaming,
+    TermWireOutNaming,
+};
 use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
@@ -385,7 +388,7 @@ impl XNodeInfo<'_, '_> {
                 } else {
                     continue;
                 };
-                let naming = &self.builder.db.node_namings[naming];
+                let naming = &self.builder.ndb.node_namings[naming];
                 for (&k, v) in &naming.wires {
                     if round == 0
                         && matches!(
@@ -1333,6 +1336,9 @@ struct NodeType {
 pub struct IntBuilder<'a> {
     pub rd: &'a Part,
     pub db: IntDb,
+    pub ndb: NamingDb,
+    is_mirror_square: bool,
+    allow_mux_to_branch: bool,
     main_passes: EnumMap<Dir, EntityPartVec<WireId, WireId>>,
     node_types: Vec<NodeType>,
     injected_node_types: Vec<rawdump::TileKindId>,
@@ -1343,18 +1349,22 @@ pub struct IntBuilder<'a> {
 }
 
 impl<'a> IntBuilder<'a> {
-    pub fn new(name: &str, rd: &'a Part) -> Self {
+    pub fn new(rd: &'a Part) -> Self {
         let db = IntDb {
-            name: name.to_string(),
             wires: Default::default(),
             nodes: Default::default(),
             terms: Default::default(),
+        };
+        let ndb = NamingDb {
             node_namings: Default::default(),
             term_namings: Default::default(),
         };
         Self {
             rd,
             db,
+            ndb,
+            is_mirror_square: false,
+            allow_mux_to_branch: false,
             main_passes: Default::default(),
             node_types: vec![],
             injected_node_types: vec![],
@@ -1365,8 +1375,16 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
+    pub fn allow_mux_to_branch(&mut self) {
+        self.allow_mux_to_branch = true;
+    }
+
     pub fn test_mux_pass(&mut self, wire: WireId) {
         self.test_mux_pass.insert(wire);
+    }
+
+    pub fn set_mirror_square(&mut self) {
+        self.is_mirror_square = true;
     }
 
     pub fn bel_virtual(&self, name: impl Into<String>) -> ExtrBelInfo {
@@ -1415,9 +1433,9 @@ impl<'a> IntBuilder<'a> {
     }
 
     pub fn make_term_naming(&mut self, name: impl AsRef<str>) -> TermNamingId {
-        match self.db.term_namings.get(name.as_ref()) {
+        match self.ndb.term_namings.get(name.as_ref()) {
             None => {
-                self.db
+                self.ndb
                     .term_namings
                     .insert(name.as_ref().to_string(), Default::default())
                     .0
@@ -1433,7 +1451,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_in_near.contains_id(wire) {
             naming.wires_in_near.insert(wire, name.to_string());
         } else {
@@ -1448,7 +1466,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_in_far.contains_id(wire) {
             naming.wires_in_far.insert(
                 wire,
@@ -1470,7 +1488,7 @@ impl<'a> IntBuilder<'a> {
     ) {
         let name_out = name_out.as_ref();
         let name_in = name_in.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_in_far.contains_id(wire) {
             naming.wires_in_far.insert(
                 wire,
@@ -1495,7 +1513,7 @@ impl<'a> IntBuilder<'a> {
         let name = name.as_ref();
         let name_out = name_out.as_ref();
         let name_in = name_in.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_in_far.contains_id(wire) {
             naming.wires_in_far.insert(
                 wire,
@@ -1517,7 +1535,7 @@ impl<'a> IntBuilder<'a> {
         name: impl AsRef<str>,
     ) {
         let name = name.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_out.contains_id(wire) {
             naming.wires_out.insert(
                 wire,
@@ -1539,7 +1557,7 @@ impl<'a> IntBuilder<'a> {
     ) {
         let name_out = name_out.as_ref();
         let name_in = name_in.as_ref();
-        let naming = &mut self.db.term_namings[naming];
+        let naming = &mut self.ndb.term_namings[naming];
         if !naming.wires_out.contains_id(wire) {
             naming.wires_out.insert(
                 wire,
@@ -2122,7 +2140,7 @@ impl<'a> IntBuilder<'a> {
                         | WireKind::MultiOut
                         | WireKind::MuxOut => (),
                         WireKind::Branch(_) => {
-                            if self.db.name != "virtex" {
+                            if !self.allow_mux_to_branch {
                                 continue;
                             }
                         }
@@ -2222,7 +2240,7 @@ impl<'a> IntBuilder<'a> {
 
     fn get_int_rev_naming(&self, int_xy: Coord) -> HashMap<String, WireId> {
         if let Some(int_naming_id) = self.get_int_naming(int_xy) {
-            let int_naming = &self.db.node_namings[int_naming_id];
+            let int_naming = &self.ndb.node_namings[int_naming_id];
             int_naming
                 .wires
                 .iter()
@@ -2383,8 +2401,8 @@ impl<'a> IntBuilder<'a> {
     }
 
     fn insert_node_naming(&mut self, name: &str, naming: NodeNaming) -> NodeNamingId {
-        match self.db.node_namings.get_mut(name) {
-            None => self.db.node_namings.insert(name.to_string(), naming).0,
+        match self.ndb.node_namings.get_mut(name) {
+            None => self.ndb.node_namings.insert(name.to_string(), naming).0,
             Some((id, cnaming)) => {
                 assert_eq!(naming.ext_pips, cnaming.ext_pips);
                 assert_eq!(naming.wire_bufs, cnaming.wire_bufs);
@@ -2714,7 +2732,15 @@ impl<'a> IntBuilder<'a> {
         self.insert_term_merge(name.as_ref(), term);
     }
 
-    pub fn walk_to_int(&self, mut xy: Coord, dir: Dir, mut step: bool) -> Option<Coord> {
+    pub fn walk_to_int(&self, mut xy: Coord, mut dir: Dir, mut step: bool) -> Option<Coord> {
+        if self.is_mirror_square {
+            if matches!(dir, Dir::E | Dir::W) && xy.x >= self.rd.width / 2 {
+                dir = !dir;
+            }
+            if matches!(dir, Dir::S | Dir::N) && xy.y >= self.rd.height / 2 {
+                dir = !dir;
+            }
+        }
         loop {
             if !step {
                 let tile = &self.rd.tiles[&xy];
@@ -2752,6 +2778,18 @@ impl<'a> IntBuilder<'a> {
                 }
             }
         }
+    }
+
+    pub fn delta(&self, xy: Coord, mut dx: i32, mut dy: i32) -> Coord {
+        if self.is_mirror_square {
+            if xy.x >= self.rd.width / 2 {
+                dx = -dx;
+            }
+            if xy.y >= self.rd.height / 2 {
+                dy = -dy;
+            }
+        }
+        xy.delta(dx, dy)
     }
 
     pub fn extract_term(
@@ -2839,7 +2877,7 @@ impl<'a> IntBuilder<'a> {
         let cand_inps_far = self.get_pass_inps(dir);
         let int_tile = &self.rd.tiles[&int_xy];
         let int_tk = &self.rd.tile_kinds[int_tile.kind];
-        let int_naming = &self.db.node_namings[self.get_int_naming(int_xy).unwrap()];
+        let int_naming = &self.ndb.node_namings[self.get_int_naming(int_xy).unwrap()];
         let mut wires = EntityPartVec::new();
         let src_node2wires = self.get_int_node2wires(src_xy);
         if self.rd.family.starts_with("virtex2") {
@@ -3418,6 +3456,17 @@ impl<'a> IntBuilder<'a> {
         self.insert_node_naming(naming, node_naming);
     }
 
+    pub fn make_marker_node(&mut self, name: &str, ntiles: usize) {
+        let node = NodeKind {
+            tiles: (0..ntiles).map(|_| ()).collect(),
+            muxes: Default::default(),
+            bels: Default::default(),
+            iris: Default::default(),
+            intfs: Default::default(),
+        };
+        self.insert_node_merge(name, node);
+    }
+
     pub fn xnode<'b>(
         &'b mut self,
         kind: impl Into<String>,
@@ -3448,7 +3497,7 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn build(self) -> IntDb {
-        self.db
+    pub fn build(self) -> (IntDb, NamingDb) {
+        (self.db, self.ndb)
     }
 }

@@ -992,7 +992,6 @@ impl Collector<'_> {
 
         self.tiledb.insert(tile, bel, attr, item);
     }
-
 }
 
 pub fn extract_bitvec_val_part(item: &TileItem<TileBit>, base: &BitVec, diff: &mut Diff) -> BitVec {

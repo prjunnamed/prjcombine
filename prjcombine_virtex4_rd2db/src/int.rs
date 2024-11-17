@@ -2,9 +2,10 @@ use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;
+use prjcombine_xilinx_naming::db::NamingDb;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("virtex4", rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     builder.wire("PULLUP", WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);

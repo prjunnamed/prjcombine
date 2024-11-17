@@ -1,14 +1,12 @@
 use prjcombine_collector::{FeatureId, State};
 use prjcombine_int::{
-    db::{
-        BelId, Dir, IntfWireInNaming, IntfWireOutNaming, NodeKindId, NodeRawTileId, NodeTileId,
-        NodeWireId,
-    },
+    db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
     grid::{ColId, DieId, IntWire, LayerId, RowId},
 };
-use prjcombine_virtex2::expanded::IoPadKind;
+use prjcombine_virtex2::iob::IobKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
-use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice};
+use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
+use prjcombine_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, NodeRawTileId};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::collections::{BTreeSet, HashMap};
@@ -180,11 +178,6 @@ fn resolve_tile_relation(
             }
         }
         TileRelation::ClkHrow(delta) => match backend.edev {
-            ExpandedDevice::Xc4000(_) => todo!(),
-            ExpandedDevice::Xc5200(_) => todo!(),
-            ExpandedDevice::Virtex(_) => todo!(),
-            ExpandedDevice::Virtex2(_) => todo!(),
-            ExpandedDevice::Spartan6(_) => todo!(),
             ExpandedDevice::Virtex4(edev) => {
                 loc.1 = edev.col_clk;
                 loc.2 += delta;
@@ -201,8 +194,7 @@ fn resolve_tile_relation(
                 loc.3 = layer;
                 Some(loc)
             }
-            ExpandedDevice::Ultrascale(_) => todo!(),
-            ExpandedDevice::Versal(_) => todo!(),
+            _ => todo!(),
         },
         TileRelation::Cfg => {
             let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -234,11 +226,6 @@ fn resolve_tile_relation(
             Some(resolve_bel_relation(backend, loc, BelId::from_idx(0), BelRelation::Ioclk(dir))?.0)
         }
         TileRelation::HclkDcm => match backend.edev {
-            ExpandedDevice::Xc4000(_) => todo!(),
-            ExpandedDevice::Xc5200(_) => todo!(),
-            ExpandedDevice::Virtex(_) => todo!(),
-            ExpandedDevice::Virtex2(_) => todo!(),
-            ExpandedDevice::Spartan6(_) => todo!(),
             ExpandedDevice::Virtex4(edev) => {
                 loc.1 = edev.col_clk;
                 loc.2 = edev.grids[loc.0].row_hclk(loc.2);
@@ -250,8 +237,7 @@ fn resolve_tile_relation(
                 loc.3 = layer;
                 Some(loc)
             }
-            ExpandedDevice::Ultrascale(_) => todo!(),
-            ExpandedDevice::Versal(_) => todo!(),
+            _ => todo!(),
         },
         TileRelation::Mgt(dir) => {
             let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -546,25 +532,23 @@ fn resolve_tile_wire<'a>(
     wire: &TileWire,
 ) -> Option<(&'a str, &'a str)> {
     let node = backend.egrid.node(loc);
-    let intdb = backend.egrid.db;
-    let node_naming = &intdb.node_namings[node.naming];
+    let ndb = backend.ngrid.db;
+    let nnode = &backend.ngrid.nodes[&loc];
+    let node_naming = &ndb.node_namings[nnode.naming];
     Some(match wire {
         TileWire::IntWire(wire) => {
-            let node = backend.egrid.node(loc);
-            let intdb = backend.egrid.db;
-            let node_naming = &intdb.node_namings[node.naming];
             backend
                 .egrid
                 .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
             (
-                &node.names[NodeRawTileId::from_idx(0)],
+                &nnode.names[NodeRawTileId::from_idx(0)],
                 node_naming.wires.get(wire)?,
             )
         }
         TileWire::BelPinNear(bel, pin) => {
             let bel_naming = &node_naming.bels[*bel];
             (
-                &node.names[bel_naming.tile],
+                &nnode.names[bel_naming.tile],
                 &bel_naming
                     .pins
                     .get(pin)
@@ -581,7 +565,7 @@ fn resolve_tile_wire<'a>(
         TileWire::BelPinFar(bel, pin) => {
             let bel_naming = &node_naming.bels[*bel];
             (
-                &node.names[bel_naming.tile],
+                &nnode.names[bel_naming.tile],
                 &bel_naming
                     .pins
                     .get(pin)
@@ -597,11 +581,10 @@ fn resolve_tile_wire<'a>(
         }
         TileWire::RelatedBelPinNear(bel, relation, pin) => {
             let (loc, bel) = resolve_bel_relation(backend, loc, *bel, *relation)?;
-            let node = backend.egrid.node(loc);
-            let intdb = backend.egrid.db;
-            let node_naming = &intdb.node_namings[node.naming];
+            let nnode = &backend.ngrid.nodes[&loc];
+            let node_naming = &ndb.node_namings[nnode.naming];
             let bel_naming = &node_naming.bels[bel];
-            (&node.names[bel_naming.tile], &bel_naming.pins[pin].name)
+            (&nnode.names[bel_naming.tile], &bel_naming.pins[pin].name)
         }
     })
 }
@@ -613,8 +596,9 @@ fn resolve_int_pip<'a>(
     wire_to: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str)> {
     let node = backend.egrid.node(loc);
-    let intdb = backend.egrid.db;
-    let node_naming = &intdb.node_namings[node.naming];
+    let nnode = &backend.ngrid.nodes[&loc];
+    let ndb = backend.ngrid.db;
+    let node_naming = &ndb.node_namings[nnode.naming];
     backend
         .egrid
         .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))?;
@@ -623,10 +607,10 @@ fn resolve_int_pip<'a>(
         .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
     Some(
         if let Some(ext) = node_naming.ext_pips.get(&(wire_to, wire_from)) {
-            (&node.names[ext.tile], &ext.wire_from, &ext.wire_to)
+            (&nnode.names[ext.tile], &ext.wire_from, &ext.wire_to)
         } else {
             (
-                &node.names[NodeRawTileId::from_idx(0)],
+                &nnode.names[NodeRawTileId::from_idx(0)],
                 node_naming.wires.get(&wire_from)?,
                 node_naming.wires.get(&wire_to)?,
             )
@@ -641,8 +625,10 @@ fn resolve_intf_test_pip<'a>(
     wire_to: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str)> {
     let node = backend.egrid.node(loc);
+    let nnode = &backend.ngrid.nodes[&loc];
     let intdb = backend.egrid.db;
-    let node_naming = &intdb.node_namings[node.naming];
+    let ndb = backend.ngrid.db;
+    let node_naming = &ndb.node_namings[nnode.naming];
     backend
         .egrid
         .resolve_wire((loc.0, node.tiles[wire_to.0], wire_to.1))?;
@@ -651,7 +637,7 @@ fn resolve_intf_test_pip<'a>(
         .resolve_wire((loc.0, node.tiles[wire_from.0], wire_from.1))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev {
         if edev.kind == prjcombine_virtex4::grid::GridKind::Virtex5
-            && intdb.node_namings.key(node.naming) == "INTF.PPC_R"
+            && ndb.node_namings.key(nnode.naming) == "INTF.PPC_R"
             && intdb.wires.key(wire_from.1).starts_with("TEST")
         {
             // ISE.
@@ -659,7 +645,7 @@ fn resolve_intf_test_pip<'a>(
         }
     }
     Some((
-        &node.names[NodeRawTileId::from_idx(0)],
+        &nnode.names[NodeRawTileId::from_idx(0)],
         match node_naming.intf_wires_in.get(&wire_from)? {
             IntfWireInNaming::Simple { name } => name,
             IntfWireInNaming::Buf { name_in, .. } => name_in,
@@ -680,8 +666,9 @@ fn resolve_intf_delay<'a>(
     wire: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
     let node = backend.egrid.node(loc);
-    let intdb = backend.egrid.db;
-    let node_naming = &intdb.node_namings[node.naming];
+    let nnode = &backend.ngrid.nodes[&loc];
+    let ndb = backend.ngrid.db;
+    let node_naming = &ndb.node_namings[nnode.naming];
     backend
         .egrid
         .resolve_wire((loc.0, node.tiles[wire.0], wire.1))?;
@@ -694,7 +681,7 @@ fn resolve_intf_delay<'a>(
         unreachable!()
     };
     Some((
-        &node.names[NodeRawTileId::from_idx(0)],
+        &nnode.names[NodeRawTileId::from_idx(0)],
         name_in,
         name_delay,
         name_out,
@@ -831,10 +818,12 @@ impl<'a> TileKV<'a> {
             }
             TileKV::NodeIntDstFilter(wire) => {
                 let intdb = backend.egrid.db;
+                let ndb = backend.ngrid.db;
                 let wire_name = intdb.wires.key(wire.1);
                 match backend.edev {
                     ExpandedDevice::Virtex2(edev) => {
                         let node = backend.egrid.node(loc);
+                        let nnode = &backend.ngrid.nodes[&loc];
                         if backend
                             .egrid
                             .db
@@ -932,7 +921,7 @@ impl<'a> TileKV<'a> {
                             }
                         }
                         if matches!(&wire_name[..], "IMUX.DATA15" | "IMUX.DATA31")
-                            && intdb.node_namings.key(node.naming).starts_with("INT.MACC")
+                            && ndb.node_namings.key(nnode.naming).starts_with("INT.MACC")
                         {
                             // ISE bug.
                             return None;
@@ -954,8 +943,10 @@ impl<'a> TileKV<'a> {
             }
             TileKV::NodeIntSrcFilter(wire) => {
                 let intdb = backend.egrid.db;
+                let ndb = backend.ngrid.db;
                 let wire_name = intdb.wires.key(wire.1);
                 let node = backend.egrid.node(loc);
+                let nnode = &backend.ngrid.nodes[&loc];
                 #[allow(clippy::single_match)]
                 match backend.edev {
                     ExpandedDevice::Virtex2(edev) => {
@@ -964,13 +955,14 @@ impl<'a> TileKV<'a> {
                             && wire_name.starts_with("OUT")
                             && intdb.nodes.key(node.kind).starts_with("INT.DCM")
                         {
-                            let (layer, dcm) = backend
+                            let (layer, _) = backend
                                 .egrid
                                 .find_node_loc(loc.0, (loc.1, loc.2), |node| {
                                     intdb.nodes.key(node.kind).starts_with("DCM.")
                                 })
                                 .unwrap();
-                            let site = &dcm.bels[BelId::from_idx(0)];
+                            let ndcm = &backend.ngrid.nodes[&(loc.0, loc.1, loc.2, layer)];
+                            let site = &ndcm.bels[BelId::from_idx(0)];
                             fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
                                 Key::BelMutex(
                                     (loc.0, loc.1, loc.2, layer, BelId::from_idx(0)),
@@ -1012,7 +1004,7 @@ impl<'a> TileKV<'a> {
                         }
                         if wire_name.starts_with("GCLK")
                             && matches!(
-                                &intdb.node_namings.key(node.naming)[..],
+                                &ndb.node_namings.key(nnode.naming)[..],
                                 "INT.BRAM.BRK" | "INT.BRAM.S3ADSP.BRK" | "INT.MACC.BRK"
                             )
                         {
@@ -1905,18 +1897,17 @@ impl<'a> TileKV<'a> {
                         // Ensure nothing is placed in VR.
                         if let Some(vr_row) = vr_row {
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(loc.0, (edev.col_cfg, vr_row), bel)
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, edev.col_cfg, vr_row, bel)
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_cfg, io_row), "IOB0")
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, edev.col_cfg, io_row, "IOB0")
                             .unwrap();
-                        let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "INBUFUSED".into()), None);
@@ -1937,18 +1928,17 @@ impl<'a> TileKV<'a> {
                         // Ensure nothing is placed in VR.
                         if let Some(vr_row) = vr_row {
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(loc.0, (edev.col_cfg, vr_row), bel)
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, edev.col_cfg, vr_row, bel)
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_cfg, io_row), "IOB0")
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, edev.col_cfg, io_row, "IOB0")
                             .unwrap();
-                        let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
@@ -1968,18 +1958,17 @@ impl<'a> TileKV<'a> {
                         // Ensure nothing is placed in VR.
                         if let Some(vr_row) = vr_row {
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(loc.0, (edev.col_lcio.unwrap(), vr_row), bel)
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, edev.col_lcio.unwrap(), vr_row, bel)
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_lcio.unwrap(), io_row), "IOB0")
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, edev.col_lcio.unwrap(), io_row, "IOB0")
                             .unwrap();
-                        let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IUSED".into()), None);
@@ -2027,18 +2016,17 @@ impl<'a> TileKV<'a> {
                             edev.grids[loc.0].row_reg_hclk(anchor_reg) - 25,
                             edev.grids[loc.0].row_reg_hclk(anchor_reg) + 24,
                         ] {
-                            let (node, bel, _, _) = edev
-                                .egrid
-                                .find_bel(loc.0, (edev.col_rio.unwrap(), row), "IOB")
+                            let site = backend
+                                .ngrid
+                                .get_bel_name(loc.0, edev.col_rio.unwrap(), row, "IOB")
                                 .unwrap();
-                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                            fuzzer = fuzzer.base(Key::SiteMode(site), None);
                         }
                         let io_row = edev.grids[loc.0].row_reg_hclk(anchor_reg) - 24;
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (edev.col_rio.unwrap(), io_row), "IOB0")
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, edev.col_rio.unwrap(), io_row, "IOB0")
                             .unwrap();
-                        let site = &node.bels[bel];
                         fuzzer = fuzzer.base(Key::GlobalOpt("UNCONSTRAINEDPINS".into()), "ALLOW");
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
@@ -2105,16 +2093,16 @@ impl<'a> TileKV<'a> {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
-                                if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (col, row), bel)
+                                if let Some(site) = backend.ngrid.get_bel_name(loc.0, col, row, bel)
                                 {
-                                    fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                    fuzzer = fuzzer.base(Key::SiteMode(site), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) =
-                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
-                        let site = &node.bels[bel];
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, col, io_row, "IOB0")
+                            .unwrap();
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
@@ -2141,16 +2129,16 @@ impl<'a> TileKV<'a> {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
-                                if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (col, row), bel)
+                                if let Some(site) = backend.ngrid.get_bel_name(loc.0, col, row, bel)
                                 {
-                                    fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                    fuzzer = fuzzer.base(Key::SiteMode(site), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) =
-                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
-                        let site = &node.bels[bel];
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, col, io_row, "IOB0")
+                            .unwrap();
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
@@ -2196,16 +2184,16 @@ impl<'a> TileKV<'a> {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
-                                if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (col, row), bel)
+                                if let Some(site) = backend.ngrid.get_bel_name(loc.0, col, row, bel)
                                 {
-                                    fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                    fuzzer = fuzzer.base(Key::SiteMode(site), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) =
-                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
-                        let site = &node.bels[bel];
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, col, io_row, "IOB0")
+                            .unwrap();
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
@@ -2223,16 +2211,16 @@ impl<'a> TileKV<'a> {
                                 if row == io_row && bel == "IOB0" {
                                     continue;
                                 }
-                                if let Some((node, bel, _, _)) =
-                                    edev.egrid.find_bel(loc.0, (col, row), bel)
+                                if let Some(site) = backend.ngrid.get_bel_name(loc.0, col, row, bel)
                                 {
-                                    fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                    fuzzer = fuzzer.base(Key::SiteMode(site), None);
                                 }
                             }
                         }
-                        let (node, bel, _, _) =
-                            edev.egrid.find_bel(loc.0, (col, io_row), "IOB0").unwrap();
-                        let site = &node.bels[bel];
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, col, io_row, "IOB0")
+                            .unwrap();
                         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
                         fuzzer = fuzzer.base(Key::SiteAttr(site, "IMUX".into()), None);
@@ -2244,21 +2232,21 @@ impl<'a> TileKV<'a> {
                             None,
                             "HSLVDCI_18",
                         );
-                        let actual_bank_a = edev.io_by_crd
-                            [&prjcombine_virtex4::expanded::IoCoord {
+                        let actual_bank_a = edev
+                            .get_io_info(prjcombine_virtex4::expanded::IoCoord {
                                 die: loc.0,
                                 col,
                                 row: hclk_a - 24,
                                 iob: EntityId::from_idx(0),
-                            }]
+                            })
                             .bank;
-                        let actual_bank_b = edev.io_by_crd
-                            [&prjcombine_virtex4::expanded::IoCoord {
+                        let actual_bank_b = edev
+                            .get_io_info(prjcombine_virtex4::expanded::IoCoord {
                                 die: loc.0,
                                 col,
                                 row: hclk_b - 24,
                                 iob: EntityId::from_idx(0),
-                            }]
+                            })
                             .bank;
                         fuzzer = fuzzer.fuzz(Key::DciCascade(actual_bank_b), None, actual_bank_a);
                     }
@@ -2348,8 +2336,8 @@ impl<'a> TileKV<'a> {
                 fuzzer
             }
             TileKV::PinPair(bel_a, pin_a, bel_b, pin_b) => {
-                let site_a = &backend.egrid.node(loc).bels[*bel_a];
-                let site_b = &backend.egrid.node(loc).bels[*bel_b];
+                let site_a = &backend.ngrid.nodes[&loc].bels[*bel_a];
+                let site_b = &backend.ngrid.nodes[&loc].bels[*bel_b];
                 fuzzer.base(
                     Key::SitePin(site_a, pin_a.clone()),
                     Value::FromPin(site_b, pin_b.clone()),
@@ -2382,18 +2370,19 @@ fn drive_xc4000_wire<'a>(
         let bel = if wname == "LONG.H3" { "TBUF1" } else { "TBUF0" };
         let nloc = (die, col, row, LayerId::from_idx(0));
         let node = backend.egrid.node(nloc);
+        let nnode = &backend.ngrid.nodes[&nloc];
         let node_info = &backend.egrid.db.nodes[node.kind];
-        let node_naming = &backend.egrid.db.node_namings[node.naming];
+        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
         let bel = node_info.bels.get(bel).unwrap().0;
         let bel_naming = &node_naming.bels[bel];
         let pin_naming = &bel_naming.pins["O"];
-        let site_name = &node.bels[bel];
+        let site_name = &nnode.bels[bel];
         let fuzzer = fuzzer
             .base(Key::SiteMode(site_name), "TBUF")
             .base(Key::SitePin(site_name, "O".into()), true)
             .base(
                 Key::Pip(
-                    &node.names[bel_naming.tile],
+                    &nnode.names[bel_naming.tile],
                     &pin_naming.name,
                     &pin_naming.name_far,
                 ),
@@ -2402,8 +2391,8 @@ fn drive_xc4000_wire<'a>(
         (fuzzer, site_name, "O")
     } else if wname == "GND" {
         let nloc = (die, col, row, LayerId::from_idx(0));
-        let node = backend.egrid.node(nloc);
-        let site_name = node.tie_name.as_ref().unwrap();
+        let nnode = &backend.ngrid.nodes[&nloc];
+        let site_name = nnode.tie_name.as_ref().unwrap();
         let fuzzer = fuzzer
             .base(Key::SiteMode(site_name), "TIE")
             .base(Key::SitePin(site_name, "O".into()), true);
@@ -2428,9 +2417,10 @@ fn drive_xc4000_wire<'a>(
     } else if wname.starts_with("OUT.CLB") {
         let nloc = (die, col, row, LayerId::from_idx(0));
         let node = backend.egrid.node(nloc);
+        let nnode = &backend.ngrid.nodes[&nloc];
         let node_info = &backend.egrid.db.nodes[node.kind];
         let bel = node_info.bels.get("CLB").unwrap().0;
-        let site_name = &node.bels[bel];
+        let site_name = &nnode.bels[bel];
         let (pin, fuzzer) = match &wname[..] {
             "OUT.CLB.FX" => (
                 "X",
@@ -3164,51 +3154,52 @@ impl<'a> BelKV {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
+        let nnode = &backend.ngrid.nodes[&loc];
         let node_data = &backend.egrid.db.nodes[node.kind];
         let bel_data = &node_data.bels[bel];
-        let node_naming = &backend.egrid.db.node_namings[node.naming];
+        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
         let bel_naming = &node_naming.bels[bel];
         Some(match self {
             BelKV::Nop => fuzzer,
             BelKV::Mode(mode) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
                 fuzzer.base(Key::SiteMode(site), mode)
             }
             BelKV::Unused => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base(Key::SiteMode(site), None)
             }
             BelKV::Attr(attr, val) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base(Key::SiteAttr(site, attr.clone()), val)
             }
             BelKV::AttrAny(attr, vals) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base_any(
                     Key::SiteAttr(site, attr.clone()),
                     vals.iter().map(Value::from),
                 )
             }
             BelKV::Global(kind, opt, val) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base(Key::GlobalOpt(kind.apply(backend, opt, site)), val)
             }
             BelKV::Pin(pin, val) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base(Key::SitePin(site, pin.clone()), *val)
             }
             BelKV::PinFrom(pin, kind) => {
-                let site = &node.bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.base(Key::SitePinFrom(site, pin.clone()), *kind)
             }
             BelKV::PinPips(pin) => {
                 let pin_naming = &bel_naming.pins[pin];
                 for pip in &pin_naming.pips {
                     fuzzer = fuzzer.base(
-                        Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
+                        Key::Pip(&nnode.names[pip.tile], &pip.wire_from, &pip.wire_to),
                         true,
                     );
                 }
@@ -3242,8 +3233,6 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4000(_) => todo!(),
-                    ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
                             col: loc.1,
@@ -3255,7 +3244,6 @@ impl<'a> BelKV {
                         }
                         fuzzer
                     }
-                    ExpandedBond::Virtex2(_) => todo!(),
                     ExpandedBond::Spartan6(ebond) => {
                         let crd = prjcombine_spartan6::grid::IoCoord {
                             col: loc.1,
@@ -3272,7 +3260,7 @@ impl<'a> BelKV {
                         let ExpandedDevice::Virtex4(edev) = backend.edev else {
                             unreachable!()
                         };
-                        let io = &edev.io_by_crd[&prjcombine_virtex4::expanded::IoCoord {
+                        let io = edev.get_io_info(prjcombine_virtex4::expanded::IoCoord {
                             die: loc.0,
                             col: loc.1,
                             row: loc.2,
@@ -3283,14 +3271,13 @@ impl<'a> BelKV {
                                     0
                                 },
                             ),
-                        }];
+                        });
                         if !ebond.ios.contains_key(&(io.bank, io.biob)) {
                             return None;
                         }
                         fuzzer
                     }
-                    ExpandedBond::Ultrascale(_) => todo!(),
-                    ExpandedBond::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             BelKV::IsBank(bank) => match backend.edev {
@@ -3300,7 +3287,7 @@ impl<'a> BelKV {
                         row: loc.2,
                         iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
                     };
-                    if edev.io_by_coord[&crd].bank != *bank {
+                    if edev.get_io_bank(crd) != *bank {
                         return None;
                     }
                     fuzzer
@@ -3312,8 +3299,6 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4000(_) => todo!(),
-                    ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
                             col: loc.1,
@@ -3325,11 +3310,7 @@ impl<'a> BelKV {
                         }
                         fuzzer
                     }
-                    ExpandedBond::Virtex2(_) => todo!(),
-                    ExpandedBond::Spartan6(_) => todo!(),
-                    ExpandedBond::Virtex4(_) => todo!(),
-                    ExpandedBond::Ultrascale(_) => todo!(),
-                    ExpandedBond::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             BelKV::IsVref => {
@@ -3337,8 +3318,6 @@ impl<'a> BelKV {
                     unreachable!()
                 };
                 match &backend.ebonds[pkg] {
-                    ExpandedBond::Xc4000(_) => todo!(),
-                    ExpandedBond::Xc5200(_) => todo!(),
                     ExpandedBond::Virtex(ebond) => {
                         let crd = prjcombine_virtex::grid::IoCoord {
                             col: loc.1,
@@ -3377,7 +3356,7 @@ impl<'a> BelKV {
                         let ExpandedDevice::Virtex4(edev) = backend.edev else {
                             unreachable!()
                         };
-                        let io = &edev.io_by_crd[&prjcombine_virtex4::expanded::IoCoord {
+                        let io = edev.get_io_info(prjcombine_virtex4::expanded::IoCoord {
                             die: loc.0,
                             col: loc.1,
                             row: loc.2,
@@ -3388,20 +3367,16 @@ impl<'a> BelKV {
                                     0
                                 },
                             ),
-                        }];
+                        });
                         if !io.is_vref || !ebond.ios.contains_key(&(io.bank, io.biob)) {
                             return None;
                         }
                         fuzzer
                     }
-                    ExpandedBond::Ultrascale(_) => todo!(),
-                    ExpandedBond::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             BelKV::IsVr => match backend.edev {
-                ExpandedDevice::Xc4000(_) => todo!(),
-                ExpandedDevice::Xc5200(_) => todo!(),
-                ExpandedDevice::Virtex(_) => todo!(),
                 ExpandedDevice::Virtex2(edev) => {
                     let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package] else {
                         unreachable!()
@@ -3449,10 +3424,7 @@ impl<'a> BelKV {
                     }
                     fuzzer
                 }
-                ExpandedDevice::Spartan6(_) => todo!(),
-                ExpandedDevice::Virtex4(_) => todo!(),
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
+                _ => todo!(),
             },
             BelKV::PrepVref => match backend.edev {
                 ExpandedDevice::Virtex4(edev) => {
@@ -3506,11 +3478,11 @@ impl<'a> BelKV {
                         );
                     }
                     for vref_row in vref_rows {
-                        let (node, bel, _, _) = edev
-                            .egrid
-                            .find_bel(loc.0, (loc.1, vref_row), "IOB0")
+                        let site = backend
+                            .ngrid
+                            .get_bel_name(loc.0, loc.1, vref_row, "IOB0")
                             .unwrap();
-                        fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                        fuzzer = fuzzer.base(Key::SiteMode(site), None);
                     }
                     fuzzer
                 }
@@ -3541,7 +3513,7 @@ impl<'a> BelKV {
                         None,
                         "EXCLUSIVE",
                     );
-                    let io = &edev.io_by_crd[&prjcombine_virtex4::expanded::IoCoord {
+                    let io = edev.get_io_info(prjcombine_virtex4::expanded::IoCoord {
                         die: loc.0,
                         col: loc.1,
                         row: loc.2,
@@ -3552,7 +3524,7 @@ impl<'a> BelKV {
                                 0
                             },
                         ),
-                    }];
+                    });
                     fuzzer = fuzzer.fuzz(Key::InternalVref(io.bank), None, *vref);
                     fuzzer
                 }
@@ -3573,9 +3545,11 @@ impl<'a> BelKV {
                             // Ensure nothing is placed in VR.
                             let vr_row = RowId::from_idx(loc.2.to_idx() / 32 * 32 + 9);
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) =
-                                    edev.egrid.find_bel(loc.0, (loc.1, vr_row), bel).unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, loc.1, vr_row, bel)
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Take exclusive mutex on bank DCI.
                             let (layer, _) = edev
@@ -3595,29 +3569,27 @@ impl<'a> BelKV {
                             // Take shared mutex on global DCI.
                             fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
                             // Anchor global DCI by putting something in bottom IOB of center column.
-                            let (node, bel, _, _) = edev
-                                .egrid
-                                .find_bel(loc.0, (edev.col_cfg, edev.row_dcmiob.unwrap()), "IOB0")
+                            let site = backend
+                                .ngrid
+                                .get_bel_name(loc.0, edev.col_cfg, edev.row_dcmiob.unwrap(), "IOB0")
                                 .unwrap();
-                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), "IOB");
-                            fuzzer = fuzzer.base(Key::SitePin(&node.bels[bel], "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
+                            fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
                             fuzzer =
-                                fuzzer.base(Key::SiteAttr(&node.bels[bel], "OUSED".into()), "0");
-                            fuzzer = fuzzer.base(
-                                Key::SiteAttr(&node.bels[bel], "IOATTRBOX".into()),
-                                "LVDCI_33",
-                            );
+                                fuzzer.base(Key::SiteAttr(site, "IOATTRBOX".into()), "LVDCI_33");
                             // Ensure anchor VR IOBs are free.
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(
                                         loc.0,
-                                        (edev.col_cfg, edev.row_dcmiob.unwrap() + 1),
+                                        edev.col_cfg,
+                                        edev.row_dcmiob.unwrap() + 1,
                                         bel,
                                     )
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
                         prjcombine_virtex4::grid::GridKind::Virtex5 => {
@@ -3632,9 +3604,11 @@ impl<'a> BelKV {
                             // Ensure nothing is placed in VR.
                             let vr_row = RowId::from_idx(loc.2.to_idx() / 20 * 20 + 7);
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) =
-                                    edev.egrid.find_bel(loc.0, (loc.1, vr_row), bel).unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, loc.1, vr_row, bel)
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Take exclusive mutex on bank DCI.
                             let (layer, _) = edev
@@ -3654,33 +3628,32 @@ impl<'a> BelKV {
                             // Take shared mutex on global DCI.
                             fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
                             // Anchor global DCI by putting something in bottom IOB of center column.
-                            let (node, bel, _, _) = edev
-                                .egrid
-                                .find_bel(
+                            let site = backend
+                                .ngrid
+                                .get_bel_name(
                                     loc.0,
-                                    (edev.col_cfg, edev.grids[loc.0].row_bufg() - 30),
+                                    edev.col_cfg,
+                                    edev.grids[loc.0].row_bufg() - 30,
                                     "IOB0",
                                 )
                                 .unwrap();
-                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), "IOB");
-                            fuzzer = fuzzer.base(Key::SitePin(&node.bels[bel], "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
+                            fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
                             fuzzer =
-                                fuzzer.base(Key::SiteAttr(&node.bels[bel], "OUSED".into()), "0");
-                            fuzzer = fuzzer.base(
-                                Key::SiteAttr(&node.bels[bel], "OSTANDARD".into()),
-                                "LVDCI_33",
-                            );
+                                fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_33");
                             // Ensure anchor VR IOBs are free.
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(
                                         loc.0,
-                                        (edev.col_cfg, edev.grids[loc.0].row_bufg() - 30 + 2),
+                                        edev.col_cfg,
+                                        edev.grids[loc.0].row_bufg() - 30 + 2,
                                         bel,
                                     )
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                         }
                         prjcombine_virtex4::grid::GridKind::Virtex6 => {
@@ -3697,9 +3670,11 @@ impl<'a> BelKV {
                             }
                             // Ensure nothing is placed in VR.
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) =
-                                    edev.egrid.find_bel(loc.0, (loc.1, vr_row), bel).unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, loc.1, vr_row, bel)
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Take exclusive mutex on bank DCI.
                             let (layer, _) = edev
@@ -3721,33 +3696,32 @@ impl<'a> BelKV {
                             // Take shared mutex on global DCI.
                             fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
                             // Anchor global DCI by putting something in bottom IOB of center column.
-                            let (node, bel, _, _) = edev
-                                .egrid
-                                .find_bel(
+                            let site = backend
+                                .ngrid
+                                .get_bel_name(
                                     loc.0,
-                                    (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg()),
+                                    edev.col_lcio.unwrap(),
+                                    edev.grids[loc.0].row_bufg(),
                                     "IOB0",
                                 )
                                 .unwrap();
-                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), "IOB");
-                            fuzzer = fuzzer.base(Key::SitePin(&node.bels[bel], "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
+                            fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
                             fuzzer =
-                                fuzzer.base(Key::SiteAttr(&node.bels[bel], "OUSED".into()), "0");
-                            fuzzer = fuzzer.base(
-                                Key::SiteAttr(&node.bels[bel], "OSTANDARD".into()),
-                                "LVDCI_25",
-                            );
+                                fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_25");
                             // Ensure anchor VR IOBs are free.
                             for bel in ["IOB0", "IOB1"] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(
                                         loc.0,
-                                        (edev.col_lcio.unwrap(), edev.grids[loc.0].row_bufg() + 6),
+                                        edev.col_lcio.unwrap(),
+                                        edev.grids[loc.0].row_bufg() + 6,
                                         bel,
                                     )
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Make note of anchor VCCO.
                             let (layer, _) = edev
@@ -3790,9 +3764,11 @@ impl<'a> BelKV {
                                 edev.grids[loc.0].row_hclk(loc.2) - 25,
                                 edev.grids[loc.0].row_hclk(loc.2) + 24,
                             ] {
-                                let (node, bel, _, _) =
-                                    edev.egrid.find_bel(loc.0, (loc.1, row), "IOB").unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, loc.1, row, "IOB")
+                                    .unwrap();
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Take exclusive mutex on bank DCI.
                             let (layer, _) = edev
@@ -3814,35 +3790,30 @@ impl<'a> BelKV {
                             // Take shared mutex on global DCI.
                             fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
                             // Anchor global DCI by putting something in arbitrary bank.
-                            let (node, bel, _, _) = edev
-                                .egrid
-                                .find_bel(
+                            let site = backend
+                                .ngrid
+                                .get_bel_name(
                                     loc.0,
-                                    (
-                                        edev.col_rio.unwrap(),
-                                        edev.grids[loc.0].row_reg_bot(anchor_reg) + 1,
-                                    ),
+                                    edev.col_rio.unwrap(),
+                                    edev.grids[loc.0].row_reg_bot(anchor_reg) + 1,
                                     "IOB0",
                                 )
                                 .unwrap();
-                            fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), "IOB");
-                            fuzzer = fuzzer.base(Key::SitePin(&node.bels[bel], "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
+                            fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
+                            fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
                             fuzzer =
-                                fuzzer.base(Key::SiteAttr(&node.bels[bel], "OUSED".into()), "0");
-                            fuzzer = fuzzer.base(
-                                Key::SiteAttr(&node.bels[bel], "OSTANDARD".into()),
-                                "LVDCI_18",
-                            );
+                                fuzzer.base(Key::SiteAttr(site, "OSTANDARD".into()), "LVDCI_18");
                             // Ensure anchor VR IOBs are free.
                             for row in [
                                 edev.grids[loc.0].row_reg_hclk(anchor_reg) - 25,
                                 edev.grids[loc.0].row_reg_hclk(anchor_reg) + 24,
                             ] {
-                                let (node, bel, _, _) = edev
-                                    .egrid
-                                    .find_bel(loc.0, (edev.col_rio.unwrap(), row), "IOB")
+                                let site = backend
+                                    .ngrid
+                                    .get_bel_name(loc.0, edev.col_rio.unwrap(), row, "IOB")
                                     .unwrap();
-                                fuzzer = fuzzer.base(Key::SiteMode(&node.bels[bel]), None);
+                                fuzzer = fuzzer.base(Key::SiteMode(site), None);
                             }
                             // Make note of anchor VCCO.
                             let (layer, _) = edev
@@ -3941,8 +3912,6 @@ impl<'a> BelKV {
                 let is_diff = !matches!(*self, BelKV::OtherIobInput(_));
                 let is_out = matches!(*self, BelKV::OtherIobDiffOutput(_));
                 match backend.edev {
-                    ExpandedDevice::Xc4000(_) => todo!(),
-                    ExpandedDevice::Xc5200(_) => todo!(),
                     ExpandedDevice::Virtex(edev) => {
                         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package]
                         else {
@@ -3951,14 +3920,17 @@ impl<'a> BelKV {
                         let ExpandedBond::Virtex(ref ebond) = backend.ebonds[pkg] else {
                             unreachable!()
                         };
+                        let ExpandedNamedDevice::Virtex(ref endev) = backend.endev else {
+                            unreachable!()
+                        };
                         let bel_key = backend.egrid.db.nodes[node.kind].bels.key(bel);
-                        let (crd, bank) = if bel_key.starts_with("IOB") {
+                        let (crd, orig_bank) = if bel_key.starts_with("IOB") {
                             let crd = prjcombine_virtex::grid::IoCoord {
                                 col: loc.1,
                                 row: loc.2,
                                 iob: prjcombine_virtex::grid::TileIobId::from_idx(bel.to_idx()),
                             };
-                            (Some(crd), edev.get_io(crd).bank)
+                            (Some(crd), edev.get_io_bank(crd))
                         } else {
                             (
                                 None,
@@ -3977,20 +3949,10 @@ impl<'a> BelKV {
                                 },
                             )
                         };
-                        for &io in &edev.bonded_ios {
-                            let io_info = edev.get_io(io);
-                            if Some(io) != crd
-                                && bank == io_info.bank
-                                && ebond.ios.contains_key(&io)
-                            {
-                                let node = backend
-                                    .egrid
-                                    .find_node(loc.0, (io.col, io.row), |node| {
-                                        backend.egrid.db.nodes.key(node.kind).starts_with("IO")
-                                    })
-                                    .unwrap();
-                                let obel = BelId::from_idx(io.iob.to_idx());
-                                let site = &node.bels[obel];
+                        for io in edev.get_bonded_ios() {
+                            let bank = edev.get_io_bank(io);
+                            if Some(io) != crd && bank == orig_bank && ebond.ios.contains_key(&io) {
+                                let site = endev.get_io_name(io);
 
                                 fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
                                 fuzzer =
@@ -4012,30 +3974,26 @@ impl<'a> BelKV {
                         let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                             unreachable!()
                         };
+                        let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
+                            unreachable!()
+                        };
                         let crd = prjcombine_virtex2::grid::IoCoord {
                             col: loc.1,
                             row: loc.2,
                             iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
                         };
-                        let orig_io = edev.get_io(crd);
-                        for &io in &edev.bonded_ios {
-                            let io_info = edev.get_io(io);
+                        let orig_io_info = edev.get_io_info(crd);
+                        for io in edev.get_bonded_ios() {
+                            let io_info = edev.get_io_info(io);
                             if io != crd
-                                && orig_io.bank == io_info.bank
-                                && io_info.pad_kind != IoPadKind::Clk
+                                && orig_io_info.bank == io_info.bank
+                                && io_info.pad_kind != Some(IobKind::Clk)
                                 && (!is_diff
                                     || io_info.diff
                                         != prjcombine_virtex2::expanded::IoDiffKind::None)
                                 && ebond.ios.contains_key(&io)
                             {
-                                let node = backend
-                                    .egrid
-                                    .find_node(loc.0, (io.col, io.row), |node| {
-                                        backend.egrid.db.nodes.key(node.kind).starts_with("IOI")
-                                    })
-                                    .unwrap();
-                                let obel = BelId::from_idx(io.iob.to_idx());
-                                let site = &node.bels[obel];
+                                let site = endev.get_io_name(io);
 
                                 fuzzer = fuzzer.base(
                                     Key::SiteMode(site),
@@ -4098,23 +4056,20 @@ impl<'a> BelKV {
                         }
                         return None;
                     }
-                    ExpandedDevice::Spartan6(_) => todo!(),
-                    ExpandedDevice::Virtex4(_) => todo!(),
-                    ExpandedDevice::Ultrascale(_) => todo!(),
-                    ExpandedDevice::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             BelKV::BankDiffOutput(stda, stdb) => {
                 match backend.edev {
-                    ExpandedDevice::Xc4000(_) => todo!(),
-                    ExpandedDevice::Xc5200(_) => todo!(),
-                    ExpandedDevice::Virtex(_) => todo!(),
                     ExpandedDevice::Virtex2(edev) => {
                         let FuzzerValue::Base(Value::String(pkg)) = &fuzzer.kv[&Key::Package]
                         else {
                             unreachable!()
                         };
                         let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
+                            unreachable!()
+                        };
+                        let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
                             unreachable!()
                         };
                         let crd = prjcombine_virtex2::grid::IoCoord {
@@ -4127,13 +4082,13 @@ impl<'a> BelKV {
                         } else {
                             &[stda][..]
                         };
-                        let bank = edev.get_io(crd).bank;
+                        let bank = edev.get_io_info(crd).bank;
                         let mut done = 0;
-                        let mut ios: Vec<_> = edev.bonded_ios.iter().collect();
+                        let mut ios = edev.get_bonded_ios();
                         if edev.grid.kind != prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                             ios.reverse();
                         }
-                        for &io in ios {
+                        for &io in &ios {
                             if io == crd {
                                 if edev.grid.kind.is_spartan3ea() {
                                     // too much thinking. just pick a different loc.
@@ -4142,10 +4097,10 @@ impl<'a> BelKV {
                                     continue;
                                 }
                             }
-                            let io_info = edev.get_io(io);
+                            let io_info = edev.get_io_info(io);
                             if !ebond.ios.contains_key(&io)
                                 || io_info.bank != bank
-                                || io_info.pad_kind != IoPadKind::Io
+                                || io_info.pad_kind != Some(IobKind::Iob)
                             {
                                 continue;
                             }
@@ -4155,16 +4110,12 @@ impl<'a> BelKV {
                                 continue;
                             };
                             // okay, got a pair.
-                            let node = backend
-                                .egrid
-                                .find_node(loc.0, (io.col, io.row), |node| {
-                                    backend.egrid.db.nodes.key(node.kind).starts_with("IOI")
-                                })
-                                .unwrap();
-                            let bel_p = BelId::from_idx(io.iob.to_idx());
-                            let bel_n = BelId::from_idx(other_iob.to_idx());
-                            let site_p = &node.bels[bel_p][..];
-                            let site_n = &node.bels[bel_n][..];
+                            let other_io = prjcombine_virtex2::grid::IoCoord {
+                                iob: other_iob,
+                                ..io
+                            };
+                            let site_p = endev.get_io_name(io);
+                            let site_n = endev.get_io_name(other_io);
                             let std = stds[done];
                             fuzzer = fuzzer
                                 .base(
@@ -4206,14 +4157,11 @@ impl<'a> BelKV {
                         }
                         fuzzer
                     }
-                    ExpandedDevice::Spartan6(_) => todo!(),
-                    ExpandedDevice::Virtex4(_) => todo!(),
-                    ExpandedDevice::Ultrascale(_) => todo!(),
-                    ExpandedDevice::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             BelKV::NotIbuf => {
-                if !node.names[NodeRawTileId::from_idx(0)].contains("IOIS") {
+                if !nnode.names[NodeRawTileId::from_idx(0)].contains("IOIS") {
                     return None;
                 }
                 fuzzer
@@ -4261,7 +4209,7 @@ impl<'a> BelKV {
                 let fuzzer = fuzzer.fuzz(Key::NodeMutex(res_to), None, "EXCLUSIVE-TGT");
                 let (fuzzer, src_site, src_pin) =
                     drive_xc4000_wire(backend, fuzzer, res_from, Some((loc, wire_from)), res_to);
-                let tile = &node.names[bel_naming.tile];
+                let tile = &nnode.names[bel_naming.tile];
                 if *buf {
                     fuzzer
                         .fuzz(
@@ -4454,8 +4402,8 @@ impl<'a> TileFuzzKV<'a> {
                 chain.apply(backend, loc, fuzzer)?
             }
             TileFuzzKV::PinPair(bel_a, pin_a, bel_b, pin_b) => {
-                let site_a = &backend.egrid.node(loc).bels[*bel_a];
-                let site_b = &backend.egrid.node(loc).bels[*bel_b];
+                let site_a = &backend.ngrid.nodes[&loc].bels[*bel_a];
+                let site_b = &backend.ngrid.nodes[&loc].bels[*bel_b];
                 fuzzer.fuzz(
                     Key::SitePin(site_a, pin_a.clone()),
                     false,
@@ -4466,12 +4414,13 @@ impl<'a> TileFuzzKV<'a> {
                 let ExpandedDevice::Virtex4(edev) = backend.edev else {
                     unreachable!()
                 };
-                let bank = edev.io_by_crd[&prjcombine_virtex4::expanded::IoCoord {
-                    die: loc.0,
-                    col: loc.1,
-                    row: loc.2,
-                    iob: EntityId::from_idx(0),
-                }]
+                let bank = edev
+                    .get_io_info(prjcombine_virtex4::expanded::IoCoord {
+                        die: loc.0,
+                        col: loc.1,
+                        row: loc.2,
+                        iob: EntityId::from_idx(0),
+                    })
                     .bank;
                 fuzzer.fuzz(Key::VccoSenseMode(bank), None, mode.clone())
             }
@@ -4491,41 +4440,42 @@ impl BelFuzzKV {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
+        let nnode = &backend.ngrid.nodes[&loc];
         let node_data = &backend.egrid.db.nodes[node.kind];
-        let node_naming = &backend.egrid.db.node_namings[node.naming];
+        let node_naming = &backend.ngrid.db.node_namings[nnode.naming];
         Some(match self {
             BelFuzzKV::Mode(val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
                 fuzzer.fuzz(Key::SiteMode(site), None, val)
             }
             BelFuzzKV::ModeDiff(vala, valb) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 for &(col, row) in node.tiles.values() {
                     fuzzer = fuzzer.base(Key::IntMutex(loc.0, col, row), "MAIN");
                 }
                 fuzzer.fuzz(Key::SiteMode(site), vala, valb)
             }
             BelFuzzKV::Attr(attr, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr.clone()), None, val)
             }
             BelFuzzKV::AttrDiff(attr, va, vb) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.fuzz(Key::SiteAttr(site, attr.clone()), va, vb)
             }
             BelFuzzKV::Pin(pin) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.fuzz(Key::SitePin(site, pin.clone()), false, true)
             }
             BelFuzzKV::PinFrom(pin, kind_a, kind_b) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer.fuzz(Key::SitePinFrom(site, pin.clone()), *kind_a, *kind_b)
             }
             BelFuzzKV::PinFull(pin) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &nnode.bels[bel];
                 fuzzer = fuzzer.fuzz(Key::SitePin(site, pin.clone()), false, true);
                 let bel_data = &node_data.bels[bel];
                 let pin_data = &bel_data.pins[pin];
@@ -4535,7 +4485,7 @@ impl BelFuzzKV {
                 let wire = *pin_data.wires.first().unwrap();
                 if let Some(pip) = pin_naming.int_pips.get(&wire) {
                     fuzzer = fuzzer.fuzz(
-                        Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
+                        Key::Pip(&nnode.names[pip.tile], &pip.wire_from, &pip.wire_to),
                         false,
                         true,
                     );
@@ -4547,7 +4497,7 @@ impl BelFuzzKV {
                 let pin_naming = &bel_naming.pins[pin];
                 for pip in &pin_naming.pips {
                     fuzzer = fuzzer.fuzz(
-                        Key::Pip(&node.names[pip.tile], &pip.wire_from, &pip.wire_to),
+                        Key::Pip(&nnode.names[pip.tile], &pip.wire_from, &pip.wire_to),
                         false,
                         true,
                     );
@@ -4555,7 +4505,7 @@ impl BelFuzzKV {
                 fuzzer
             }
             BelFuzzKV::Global(kind, name, val) => {
-                let site = &backend.egrid.node(loc).bels[bel];
+                let site = &backend.ngrid.nodes[&loc].bels[bel];
                 fuzzer.fuzz(Key::GlobalOpt(kind.apply(backend, name, site)), None, val)
             }
             BelFuzzKV::AllIodelay(mode) => {
@@ -4567,15 +4517,10 @@ impl BelFuzzKV {
                 for i in 0..edev.grids[loc.0].rows_per_reg() {
                     let row = bot + i;
                     for bel in ["IODELAY0", "IODELAY1"] {
-                        if let Some((node, bel, _, _)) =
-                            edev.egrid.find_bel(loc.0, (loc.1, row), bel)
-                        {
-                            fuzzer = fuzzer.fuzz(Key::SiteMode(&node.bels[bel]), None, "IODELAY");
-                            fuzzer = fuzzer.fuzz(
-                                Key::SiteAttr(&node.bels[bel], "IDELAY_TYPE".into()),
-                                None,
-                                *mode,
-                            );
+                        if let Some(site) = backend.ngrid.get_bel_name(loc.0, loc.1, row, bel) {
+                            fuzzer = fuzzer.fuzz(Key::SiteMode(site), None, "IODELAY");
+                            fuzzer =
+                                fuzzer.fuzz(Key::SiteAttr(site, "IDELAY_TYPE".into()), None, *mode);
                         }
                     }
                 }
@@ -4602,19 +4547,19 @@ impl TileMultiFuzzKV {
     ) -> Fuzzer<IseBackend<'a>> {
         match self {
             TileMultiFuzzKV::SiteAttr(bel, attr, val) => {
-                let site = &backend.egrid.node(loc).bels[*bel];
+                let site = &backend.ngrid.nodes[&loc].bels[*bel];
                 fuzzer.fuzz_multi(Key::SiteAttr(site, attr.clone()), *val)
             }
             TileMultiFuzzKV::IobSiteAttr(tile, bel, attr, val) => {
                 let ioi_loc = find_ioi(backend, loc, *tile);
-                let site = &backend.egrid.node(ioi_loc).bels[*bel];
+                let site = &backend.ngrid.nodes[&ioi_loc].bels[*bel];
                 fuzzer.fuzz_multi(Key::SiteAttr(site, attr.clone()), *val)
             }
             TileMultiFuzzKV::GlobalOpt(attr, val) => {
                 fuzzer.fuzz_multi(Key::GlobalOpt(attr.clone()), *val)
             }
             TileMultiFuzzKV::BelGlobalOpt(bel, kind, opt, val) => {
-                let site = &backend.egrid.node(loc).bels[*bel];
+                let site = &backend.ngrid.nodes[&loc].bels[*bel];
                 let name = kind.apply(backend, opt, site);
                 fuzzer.fuzz_multi(Key::GlobalOpt(name), *val)
             }
@@ -4689,14 +4634,11 @@ impl TileBits {
                 ExpandedDevice::Virtex4(edev) => (0..n)
                     .map(|idx| edev.btile_main(die, col, row - d + idx))
                     .collect(),
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
+                _ => todo!(),
             },
             TileBits::Reg(reg) => vec![BitTile::Reg(die, reg)],
             TileBits::Raw(ref raw) => raw.clone(),
             TileBits::Bram => match backend.edev {
-                ExpandedDevice::Xc4000(_) => unreachable!(),
-                ExpandedDevice::Xc5200(_) => unreachable!(),
                 ExpandedDevice::Virtex(edev) => {
                     vec![
                         edev.btile_main(col, row),
@@ -4748,12 +4690,7 @@ impl TileBits {
                         ]
                     }
                 }
-                ExpandedDevice::Ultrascale(_) => {
-                    todo!()
-                }
-                ExpandedDevice::Versal(_) => {
-                    todo!()
-                }
+                _ => todo!(),
             },
             TileBits::Spine(d, n) => match backend.edev {
                 ExpandedDevice::Xc5200(edev) => {
@@ -4916,9 +4853,7 @@ impl TileBits {
                 ExpandedDevice::Virtex4(edev) => {
                     vec![edev.btile_hclk(die, col, row)]
                 }
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
-                _ => unreachable!(),
+                _ => todo!(),
             },
             TileBits::Gclkvm => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
@@ -4982,8 +4917,7 @@ impl TileBits {
                     prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
                     prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                 },
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
+                _ => todo!(),
             },
             TileBits::CfgReg(reg) => {
                 let mut res = TileBits::Cfg.get_bits(backend, loc);
@@ -5026,7 +4960,6 @@ impl TileBits {
             TileBits::MainAuto => {
                 let node = backend.egrid.node(loc);
                 match backend.edev {
-                    ExpandedDevice::Xc4000(_) => todo!(),
                     ExpandedDevice::Xc5200(edev) => node
                         .tiles
                         .values()
@@ -5052,8 +4985,7 @@ impl TileBits {
                         .values()
                         .map(|&(col, row)| edev.btile_main(die, col, row))
                         .collect(),
-                    ExpandedDevice::Ultrascale(_) => todo!(),
-                    ExpandedDevice::Versal(_) => todo!(),
+                    _ => todo!(),
                 }
             }
             TileBits::ClkIob => {
@@ -5611,8 +5543,6 @@ impl ExtraFeatureKind {
                         .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
                         .collect()
                 }
-                ExpandedDevice::Virtex2(_) => todo!(),
-                ExpandedDevice::Spartan6(_) => todo!(),
                 ExpandedDevice::Virtex4(edev) => {
                     let node = backend.egrid.db.get_node(tile);
                     backend.egrid.node_index[node]
@@ -5626,8 +5556,7 @@ impl ExtraFeatureKind {
                         })
                         .collect()
                 }
-                ExpandedDevice::Ultrascale(_) => todo!(),
-                ExpandedDevice::Versal(_) => todo!(),
+                _ => todo!(),
             },
             ExtraFeatureKind::AllGclkvm => {
                 let ExpandedDevice::Virtex2(edev) = backend.edev else {
@@ -5824,8 +5753,8 @@ impl ExtraFeatureKind {
                 };
                 let row = match dir_row {
                     None => loc.2,
-                    Some(Dir::S) => edev.grids[edev.grid_master].row_bufg() - 8,
-                    Some(Dir::N) => edev.grids[edev.grid_master].row_bufg() + 8,
+                    Some(Dir::S) => edev.grids[DieId::from_idx(0)].row_bufg() - 8,
+                    Some(Dir::N) => edev.grids[DieId::from_idx(0)].row_bufg() + 8,
                     _ => unreachable!(),
                 };
                 let mut res = vec![];
@@ -5834,7 +5763,7 @@ impl ExtraFeatureKind {
                     Dir::E => false,
                     _ => unreachable!(),
                 };
-                for &col in &edev.grids[edev.grid_master].cols_vbrk {
+                for &col in &edev.grids[DieId::from_idx(0)].cols_vbrk {
                     if (col < edev.col_cfg) == is_l {
                         res.push(vec![edev.btile_hclk(
                             DieId::from_idx(0),
@@ -5852,7 +5781,7 @@ impl ExtraFeatureKind {
                 let row = loc.2 + delta;
                 let mut res = vec![];
                 let is_l = loc.1 < edev.col_cfg;
-                for &col in &edev.grids[edev.grid_master].cols_vbrk {
+                for &col in &edev.grids[DieId::from_idx(0)].cols_vbrk {
                     if (col < edev.col_cfg) == is_l {
                         res.push(vec![edev.btile_hclk(
                             DieId::from_idx(0),

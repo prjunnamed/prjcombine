@@ -1,305 +1,93 @@
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, ExpandedDieRefMut, ExpandedGrid, IntWire};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::ExpandedDevice;
-use crate::grid::{DisabledPart, Grid, GridKind, IoCoord, TileIobId};
+use crate::grid::{DisabledPart, Grid, GridKind};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
     db: &'a IntDb,
     disabled: &'b BTreeSet<DisabledPart>,
     die: ExpandedDieRefMut<'a, 'b>,
-    clut: EntityPartVec<ColId, usize>,
-    bramclut: EntityPartVec<ColId, usize>,
-    rlut: EntityVec<RowId, usize>,
     cols_bram: Vec<ColId>,
-    bonded_ios: Vec<IoCoord>,
     spine_frame: usize,
     frame_info: Vec<FrameInfo>,
     col_frame: EntityVec<ColId, usize>,
     bram_frame: EntityPartVec<ColId, usize>,
     clkv_frame: EntityPartVec<ColId, usize>,
+    blackhole_wires: HashSet<IntWire>,
 }
 
 impl Expander<'_, '_> {
-    fn fill_rlut(&mut self) {
-        let n = self.grid.rows;
-        for row in self.die.rows() {
-            self.rlut.push(n - row.to_idx() - 1);
-        }
-    }
-
-    fn fill_clut(&mut self) {
-        let mut c = 0;
-        let mut bramc = 0;
-        for col in self.die.cols() {
-            if self.grid.cols_bram.contains(&col) {
-                self.bramclut.insert(col, bramc);
-                bramc += 1;
-            } else {
-                self.clut.insert(col, c);
-                c += 1;
-            }
-        }
-    }
-
     fn fill_int(&mut self) {
         for col in self.die.cols() {
             if col == self.grid.col_lio() {
-                let c = self.clut[col];
                 for row in self.die.rows() {
                     if row == self.grid.row_bio() {
-                        let node =
-                            self.die
-                                .fill_tile((col, row), "CNR.BL", "CNR.BL", "BL".to_string());
-                        node.add_bel(0, "CAPTURE".to_string());
+                        self.die.fill_tile((col, row), "CNR.BL");
                     } else if row == self.grid.row_tio() {
-                        let node =
-                            self.die
-                                .fill_tile((col, row), "CNR.TL", "CNR.TL", "TL".to_string());
-                        node.add_bel(0, "STARTUP".to_string());
-                        node.add_bel(1, "BSCAN".to_string());
+                        self.die.fill_tile((col, row), "CNR.TL");
                     } else {
-                        let r = self.rlut[row];
-                        let node = self
-                            .die
-                            .fill_tile((col, row), "IO.L", "IO.L", format!("LR{r}"));
-                        node.add_bel(4, format!("TBUF_R{r}C{c}.1"));
-                        node.add_bel(5, format!("TBUF_R{r}C{c}.0"));
+                        self.die.fill_tile((col, row), "IO.L");
                     }
                 }
             } else if col == self.grid.col_rio() {
-                let c = self.clut[col];
                 for row in self.die.rows() {
                     if row == self.grid.row_bio() {
-                        self.die
-                            .fill_tile((col, row), "CNR.BR", "CNR.BR", "BR".to_string());
+                        self.die.fill_tile((col, row), "CNR.BR");
                     } else if row == self.grid.row_tio() {
-                        self.die
-                            .fill_tile((col, row), "CNR.TR", "CNR.TR", "TR".to_string());
+                        self.die.fill_tile((col, row), "CNR.TR");
                     } else {
-                        let r = self.rlut[row];
-                        let node = self
-                            .die
-                            .fill_tile((col, row), "IO.R", "IO.R", format!("RR{r}"));
-                        node.add_bel(4, format!("TBUF_R{r}C{c}.0"));
-                        node.add_bel(5, format!("TBUF_R{r}C{c}.1"));
+                        self.die.fill_tile((col, row), "IO.R");
                     }
                 }
             } else if self.grid.cols_bram.contains(&col) {
                 // skip for now
             } else {
-                let c = self.clut[col];
                 for row in self.die.rows() {
                     if row == self.grid.row_bio() {
-                        self.die
-                            .fill_tile((col, row), "IO.B", "IO.B", format!("BC{c}"));
+                        self.die.fill_tile((col, row), "IO.B");
                     } else if row == self.grid.row_tio() {
-                        self.die
-                            .fill_tile((col, row), "IO.T", "IO.T", format!("TC{c}"));
+                        self.die.fill_tile((col, row), "IO.T");
                     } else {
-                        let r = self.rlut[row];
-                        let node =
-                            self.die
-                                .fill_tile((col, row), "CLB", "CLB", format!("R{r}C{c}"));
-                        node.add_bel(0, format!("CLB_R{r}C{c}.S0"));
-                        node.add_bel(1, format!("CLB_R{r}C{c}.S1"));
-                        if c % 2 == 1 {
-                            node.add_bel(2, format!("TBUF_R{r}C{c}.0"));
-                            node.add_bel(3, format!("TBUF_R{r}C{c}.1"));
-                        } else {
-                            node.add_bel(2, format!("TBUF_R{r}C{c}.1"));
-                            node.add_bel(3, format!("TBUF_R{r}C{c}.0"));
-                        }
+                        self.die.fill_tile((col, row), "CLB");
                     }
                 }
-            }
-        }
-    }
-
-    fn fill_io(&mut self) {
-        let mut ctr_pad = 1;
-        let mut ctr_empty = 1;
-        for col in self.die.cols() {
-            let row = self.grid.row_tio();
-            if self.grid.cols_bram.contains(&col) {
-                continue;
-            }
-            if col == self.grid.col_lio() || col == self.grid.col_rio() {
-                continue;
-            }
-            let node = self.die[(col, row)].nodes.first_mut().unwrap();
-            node.add_bel(3, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            node.add_bel(2, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(1, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(0, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            for iob in [2, 1] {
-                self.bonded_ios.push(IoCoord {
-                    col,
-                    row,
-                    iob: TileIobId::from_idx(iob),
-                });
-            }
-        }
-        for row in self.die.rows().rev() {
-            let col = self.grid.col_rio();
-            if row == self.grid.row_bio() || row == self.grid.row_tio() {
-                continue;
-            }
-            let node = self.die[(col, row)].nodes.first_mut().unwrap();
-            node.add_bel(0, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            node.add_bel(1, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(2, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(3, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            for iob in [1, 2, 3] {
-                self.bonded_ios.push(IoCoord {
-                    col,
-                    row,
-                    iob: TileIobId::from_idx(iob),
-                });
-            }
-        }
-        for col in self.die.cols().rev() {
-            let row = self.grid.row_bio();
-            if self.grid.cols_bram.contains(&col) {
-                continue;
-            }
-            if col == self.grid.col_lio() || col == self.grid.col_rio() {
-                continue;
-            }
-            let node = self.die[(col, row)].nodes.first_mut().unwrap();
-            node.add_bel(0, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            node.add_bel(1, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(2, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(3, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            for iob in [1, 2] {
-                self.bonded_ios.push(IoCoord {
-                    col,
-                    row,
-                    iob: TileIobId::from_idx(iob),
-                });
-            }
-        }
-        for row in self.die.rows() {
-            let col = self.grid.col_lio();
-            if row == self.grid.row_bio() || row == self.grid.row_tio() {
-                continue;
-            }
-            let node = self.die[(col, row)].nodes.first_mut().unwrap();
-            node.add_bel(3, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(2, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(1, format!("PAD{ctr_pad}"));
-            ctr_pad += 1;
-            node.add_bel(0, format!("EMPTY{ctr_empty}"));
-            ctr_empty += 1;
-            for iob in [3, 2, 1] {
-                self.bonded_ios.push(IoCoord {
-                    col,
-                    row,
-                    iob: TileIobId::from_idx(iob),
-                });
             }
         }
     }
 
     fn fill_bram(&mut self) {
-        let mut bc = 0;
-        let main_n = self.db.get_term("MAIN.N");
-        let main_s = self.db.get_term("MAIN.S");
-        let bram_mid = self.cols_bram.len() / 2;
-        for (i, col) in self.cols_bram.iter().copied().enumerate() {
+        for &col in &self.cols_bram {
             if self.disabled.contains(&DisabledPart::Bram(col)) {
                 continue;
             }
 
-            let rt_b;
-            let rt_t;
-            if self.grid.kind == GridKind::Virtex {
-                if col == self.grid.col_lio() + 1 {
-                    rt_b = "LBRAM_BOT".to_string();
-                    rt_t = "LBRAM_TOP".to_string();
-                } else {
-                    rt_b = "RBRAM_BOT".to_string();
-                    rt_t = "RBRAM_TOP".to_string();
-                }
-            } else {
-                rt_b = format!("BRAM_BOTC{i}");
-                rt_t = format!("BRAM_TOPC{i}");
-            }
-            let naming_b;
-            let naming_t;
-            if i + 2 == bram_mid
-                || i == bram_mid + 1
-                || col == self.grid.col_lio() + 1
-                || col == self.grid.col_rio() - 1
-            {
-                naming_b = "BRAM_BOT.BOT";
-                naming_t = "BRAM_TOP.TOP";
-            } else {
-                naming_b = "BRAM_BOT.BOTP";
-                naming_t = "BRAM_TOP.TOPP";
-            }
-
             let row = self.grid.row_bio();
-            self.die.add_xnode(
-                (col, row),
-                self.db.get_node("BRAM_BOT"),
-                &[&rt_b],
-                self.db.get_node_naming(naming_b),
-                &[(col, row), (col - 1, row)],
-            );
+            self.die
+                .add_xnode((col, row), "BRAM_BOT", &[(col, row), (col - 1, row)]);
 
             let mut prev_crd = (col, row);
-            let mut prev_tile: Option<String> = None;
             for row in self.die.rows() {
                 if row == self.grid.row_tio() || row.to_idx() % 4 != 1 {
                     continue;
                 }
                 let kind;
-                let r = self.rlut[row];
-                let mut tile = format!("BRAMR{r}C{i}");
                 if col == self.grid.col_lio() + 1 {
                     kind = "LBRAM";
-                    if self.grid.kind == GridKind::Virtex {
-                        tile = format!("LBRAMR{r}");
-                    }
                 } else if col == self.grid.col_rio() - 1 {
                     kind = "RBRAM";
-                    if self.grid.kind == GridKind::Virtex {
-                        tile = format!("RBRAMR{r}");
-                    }
                 } else {
                     kind = "MBRAM";
                 }
-                let rts: Vec<&str> = if let Some(ref prev) = prev_tile {
-                    vec![&tile, prev]
-                } else {
-                    vec![&tile]
-                };
-                let node = self.die.add_xnode(
+                self.die.add_xnode(
                     (col, row),
-                    self.db.get_node(kind),
-                    &rts,
-                    self.db.get_node_naming(kind),
+                    kind,
                     &[
                         (col, row),
                         (col, row + 1),
@@ -315,26 +103,24 @@ impl Expander<'_, '_> {
                         (col + 1, row + 3),
                     ],
                 );
-                let r = (self.grid.rows - 1 - row.to_idx() - 4) / 4;
-                node.add_bel(0, format!("RAMB4_R{r}C{bc}"));
                 self.die
-                    .fill_term_pair_anon(prev_crd, (col, row), main_n, main_s);
+                    .fill_term_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
                 prev_crd = (col, row);
-                prev_tile = Some(tile);
             }
 
             let row = self.grid.row_tio();
-            self.die.add_xnode(
-                (col, row),
-                self.db.get_node("BRAM_TOP"),
-                &[&rt_t],
-                self.db.get_node_naming(naming_t),
-                &[(col, row), (col - 1, row)],
-            );
             self.die
-                .fill_term_pair_anon(prev_crd, (col, row), main_n, main_s);
+                .add_xnode((col, row), "BRAM_TOP", &[(col, row), (col - 1, row)]);
+            self.die
+                .fill_term_pair(prev_crd, (col, row), "MAIN.N", "MAIN.S");
 
-            bc += 1;
+            // special hack!
+            for (wire, wname, _) in &self.db.wires {
+                if wname.starts_with("BRAM.QUAD") {
+                    self.blackhole_wires
+                        .insert((self.die.die, (col, self.grid.row_tio()), wire));
+                }
+            }
         }
     }
 
@@ -346,60 +132,36 @@ impl Expander<'_, '_> {
             let col_c = self.grid.col_clk();
             let col_pl = self.grid.col_lio() + 1;
             let col_pr = self.grid.col_rio() - 1;
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_c, row_b),
-                self.db.get_node("CLKB"),
-                &["BM"],
-                self.db.get_node_naming("CLKB"),
+                "CLKB",
                 &[(col_c, row_b), (col_pl, row_b), (col_pr, row_b)],
             );
-            node.add_bel(0, "GCLKPAD0".to_string());
-            node.add_bel(1, "GCLKPAD1".to_string());
-            node.add_bel(2, "GCLKBUF0".to_string());
-            node.add_bel(3, "GCLKBUF1".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_c, row_t),
-                self.db.get_node("CLKT"),
-                &["TM"],
-                self.db.get_node_naming("CLKT"),
+                "CLKT",
                 &[(col_c, row_t), (col_pl, row_t), (col_pr, row_t)],
             );
-            node.add_bel(0, "GCLKPAD2".to_string());
-            node.add_bel(1, "GCLKPAD3".to_string());
-            node.add_bel(2, "GCLKBUF2".to_string());
-            node.add_bel(3, "GCLKBUF3".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_pl, row_b),
-                self.db.get_node("DLL.BOT"),
-                &["LBRAM_BOT", "BM"],
-                self.db.get_node_naming("DLL.BL"),
+                "DLL.BOT",
                 &[(col_pl, row_b), (col_pl - 1, row_b), (col_c, row_b)],
             );
-            node.add_bel(0, "DLL1".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_pl, row_t),
-                self.db.get_node("DLL.TOP"),
-                &["LBRAM_TOP", "TM"],
-                self.db.get_node_naming("DLL.TL"),
+                "DLL.TOP",
                 &[(col_pl, row_t), (col_pl - 1, row_t), (col_c, row_t)],
             );
-            node.add_bel(0, "DLL3".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_pr, row_b),
-                self.db.get_node("DLL.BOT"),
-                &["RBRAM_BOT", "BM"],
-                self.db.get_node_naming("DLL.BR"),
+                "DLL.BOT",
                 &[(col_pr, row_b), (col_pr - 1, row_b), (col_c, row_b)],
             );
-            node.add_bel(0, "DLL0".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_pr, row_t),
-                self.db.get_node("DLL.TOP"),
-                &["RBRAM_TOP", "TM"],
-                self.db.get_node_naming("DLL.TR"),
+                "DLL.TOP",
                 &[(col_pr, row_t), (col_pr - 1, row_t), (col_c, row_t)],
             );
-            node.add_bel(0, "DLL2".to_string());
         } else {
             let col_c = self.grid.col_clk();
             let bram_mid = self.cols_bram.len() / 2;
@@ -411,24 +173,18 @@ impl Expander<'_, '_> {
             let col_pr = self.cols_bram[c_pr];
             let col_sl = self.cols_bram[c_sl];
             let col_sr = self.cols_bram[c_sr];
-            let is_s_gclk = c_sl == 0;
             let kind_b;
             let kind_t;
-            let s;
             if self.disabled.contains(&DisabledPart::PrimaryDlls) {
                 kind_b = "CLKB_2DLL";
                 kind_t = "CLKT_2DLL";
-                s = "";
             } else {
                 kind_b = "CLKB_4DLL";
                 kind_t = "CLKT_4DLL";
-                s = "S";
             }
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_c, row_b),
-                self.db.get_node(kind_b),
-                &["BM"],
-                self.db.get_node_naming(kind_b),
+                kind_b,
                 &[
                     (col_c, row_b),
                     (col_pl, row_b),
@@ -437,15 +193,9 @@ impl Expander<'_, '_> {
                     (col_sr, row_b),
                 ],
             );
-            node.add_bel(0, "GCLKPAD0".to_string());
-            node.add_bel(1, "GCLKPAD1".to_string());
-            node.add_bel(2, "GCLKBUF0".to_string());
-            node.add_bel(3, "GCLKBUF1".to_string());
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_c, row_t),
-                self.db.get_node(kind_t),
-                &["TM"],
-                self.db.get_node_naming(kind_t),
+                kind_t,
                 &[
                     (col_c, row_t),
                     (col_pl, row_t),
@@ -454,53 +204,31 @@ impl Expander<'_, '_> {
                     (col_sr, row_t),
                 ],
             );
-            node.add_bel(0, "GCLKPAD2".to_string());
-            node.add_bel(1, "GCLKPAD3".to_string());
-            node.add_bel(2, "GCLKBUF2".to_string());
-            node.add_bel(3, "GCLKBUF3".to_string());
             // DLLS
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_sl, row_b),
-                self.db.get_node("DLLS.BOT"),
-                &[&format!("BRAM_BOTC{c_sl}"), "BM"],
-                self.db
-                    .get_node_naming(if is_s_gclk { "DLLS.BL.GCLK" } else { "DLLS.BL" }),
+                "DLLS.BOT",
                 &[(col_sl, row_b), (col_sl - 1, row_b), (col_c, row_b)],
             );
-            node.add_bel(0, format!("DLL1{s}"));
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_sl, row_t),
-                self.db.get_node("DLLS.TOP"),
-                &[&format!("BRAM_TOPC{c_sl}"), "TM"],
-                self.db
-                    .get_node_naming(if is_s_gclk { "DLLS.TL.GCLK" } else { "DLLS.TL" }),
+                "DLLS.TOP",
                 &[(col_sl, row_t), (col_sl - 1, row_t), (col_c, row_t)],
             );
-            node.add_bel(0, format!("DLL3{s}"));
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_sr, row_b),
-                self.db.get_node("DLLS.BOT"),
-                &[&format!("BRAM_BOTC{c_sr}"), "BM"],
-                self.db
-                    .get_node_naming(if is_s_gclk { "DLLS.BR.GCLK" } else { "DLLS.BR" }),
+                "DLLS.BOT",
                 &[(col_sr, row_b), (col_sr - 1, row_b), (col_c, row_b)],
             );
-            node.add_bel(0, format!("DLL0{s}"));
-            let node = self.die.add_xnode(
+            self.die.add_xnode(
                 (col_sr, row_t),
-                self.db.get_node("DLLS.TOP"),
-                &[&format!("BRAM_TOPC{c_sr}"), "TM"],
-                self.db
-                    .get_node_naming(if is_s_gclk { "DLLS.TR.GCLK" } else { "DLLS.TR" }),
+                "DLLS.TOP",
                 &[(col_sr, row_t), (col_sr - 1, row_t), (col_c, row_t)],
             );
-            node.add_bel(0, format!("DLL2{s}"));
             if !self.disabled.contains(&DisabledPart::PrimaryDlls) {
-                let node = self.die.add_xnode(
+                self.die.add_xnode(
                     (col_pl, row_b),
-                    self.db.get_node("DLLP.BOT"),
-                    &[&format!("BRAM_BOTC{c_pl}"), "BM"],
-                    self.db.get_node_naming("DLLP.BL"),
+                    "DLLP.BOT",
                     &[
                         (col_pl, row_b),
                         (col_pl - 1, row_b),
@@ -508,12 +236,9 @@ impl Expander<'_, '_> {
                         (col_sl, row_b),
                     ],
                 );
-                node.add_bel(0, "DLL1P".to_string());
-                let node = self.die.add_xnode(
+                self.die.add_xnode(
                     (col_pl, row_t),
-                    self.db.get_node("DLLP.TOP"),
-                    &[&format!("BRAM_TOPC{c_pl}"), "TM"],
-                    self.db.get_node_naming("DLLP.TL"),
+                    "DLLP.TOP",
                     &[
                         (col_pl, row_t),
                         (col_pl - 1, row_t),
@@ -521,12 +246,9 @@ impl Expander<'_, '_> {
                         (col_sl, row_t),
                     ],
                 );
-                node.add_bel(0, "DLL3P".to_string());
-                let node = self.die.add_xnode(
+                self.die.add_xnode(
                     (col_pr, row_b),
-                    self.db.get_node("DLLP.BOT"),
-                    &[&format!("BRAM_BOTC{c_pr}"), "BM"],
-                    self.db.get_node_naming("DLLP.BR"),
+                    "DLLP.BOT",
                     &[
                         (col_pr, row_b),
                         (col_pr - 1, row_b),
@@ -534,12 +256,9 @@ impl Expander<'_, '_> {
                         (col_sr, row_b),
                     ],
                 );
-                node.add_bel(0, "DLL0P".to_string());
-                let node = self.die.add_xnode(
+                self.die.add_xnode(
                     (col_pr, row_t),
-                    self.db.get_node("DLLP.TOP"),
-                    &[&format!("BRAM_TOPC{c_pr}"), "TM"],
-                    self.db.get_node_naming("DLLP.TR"),
+                    "DLLP.TOP",
                     &[
                         (col_pr, row_t),
                         (col_pr - 1, row_t),
@@ -547,7 +266,6 @@ impl Expander<'_, '_> {
                         (col_sr, row_t),
                     ],
                 );
-                node.add_bel(0, "DLL2P".to_string());
             }
         }
     }
@@ -556,26 +274,11 @@ impl Expander<'_, '_> {
         // CLKL/CLKR
         let pci_l = (self.grid.col_lio(), self.grid.row_clk());
         let pci_r = (self.grid.col_rio(), self.grid.row_clk());
-        let node = self.die.add_xnode(
-            pci_l,
-            self.db.get_node("CLKL"),
-            &["LM"],
-            self.db.get_node_naming("CLKL"),
-            &[pci_l],
-        );
-        node.add_bel(0, "LPCILOGIC".to_string());
-        let node = self.die.add_xnode(
-            pci_r,
-            self.db.get_node("CLKR"),
-            &["RM"],
-            self.db.get_node_naming("CLKR"),
-            &[pci_r],
-        );
-        node.add_bel(0, "RPCILOGIC".to_string());
+        self.die.add_xnode(pci_l, "CLKL", &[pci_l]);
+        self.die.add_xnode(pci_r, "CLKR", &[pci_r]);
     }
 
     fn fill_clk(&mut self) {
-        let mut cc = 1;
         for &(col_m, col_l, col_r) in &self.grid.cols_clkv {
             for row in self.die.rows() {
                 for c in col_l.to_idx()..col_m.to_idx() {
@@ -583,27 +286,14 @@ impl Expander<'_, '_> {
                     self.die[(col, row)].clkroot = (col_m - 1, row);
                 }
                 if col_m == self.grid.col_lio() + 1 || col_m == self.grid.col_rio() - 1 {
-                    let lr = if col_m == self.grid.col_lio() + 1 {
-                        'L'
-                    } else {
-                        'R'
-                    };
                     if row == self.grid.row_bio() {
                         for c in col_m.to_idx()..col_r.to_idx() {
                             let col = ColId::from_idx(c);
                             self.die[(col, row)].clkroot = (col_m, row);
                         }
-                        let name = if self.grid.kind == GridKind::Virtex {
-                            format!("{lr}BRAM_BOT")
-                        } else {
-                            let c = self.bramclut[col_m];
-                            format!("BRAM_BOTC{c}")
-                        };
                         self.die.add_xnode(
                             (col_m, row),
-                            self.db.get_node("CLKV_BRAM_BOT"),
-                            &[&name],
-                            self.db.get_node_naming("CLKV_BRAM_BOT"),
+                            "CLKV_BRAM_BOT",
                             &[(col_m, row), (col_m - 1, row), (col_m, row + 1)],
                         );
                     } else if row == self.grid.row_tio() {
@@ -611,17 +301,9 @@ impl Expander<'_, '_> {
                             let col = ColId::from_idx(c);
                             self.die[(col, row)].clkroot = (col_m, row);
                         }
-                        let name = if self.grid.kind == GridKind::Virtex {
-                            format!("{lr}BRAM_TOP")
-                        } else {
-                            let c = self.bramclut[col_m];
-                            format!("BRAM_TOPC{c}")
-                        };
                         self.die.add_xnode(
                             (col_m, row),
-                            self.db.get_node("CLKV_BRAM_TOP"),
-                            &[&name],
-                            self.db.get_node_naming("CLKV_BRAM_TOP"),
+                            "CLKV_BRAM_TOP",
                             &[(col_m, row), (col_m - 1, row), (col_m, row - 4)],
                         );
                     } else {
@@ -636,76 +318,29 @@ impl Expander<'_, '_> {
                         let col = ColId::from_idx(c);
                         self.die[(col, row)].clkroot = (col_m, row);
                     }
-                    let (name, kind, naming) = if col_m == self.grid.col_clk() {
-                        if row == self.grid.row_bio() {
-                            ("BM".to_string(), "CLKV.NULL", "CLKV.CLKB")
-                        } else if row == self.grid.row_tio() {
-                            ("TM".to_string(), "CLKV.NULL", "CLKV.CLKT")
-                        } else {
-                            (
-                                format!("VMR{r}", r = self.rlut[row]),
-                                "CLKV.CLKV",
-                                "CLKV.CLKV",
-                            )
-                        }
+                    let kind = if row == self.grid.row_bio() || row == self.grid.row_tio() {
+                        "CLKV.NULL"
+                    } else if col_m == self.grid.col_clk() {
+                        "CLKV.CLKV"
                     } else {
-                        if row == self.grid.row_bio() {
-                            (format!("GCLKBC{cc}"), "CLKV.NULL", "CLKV.GCLKB")
-                        } else if row == self.grid.row_tio() {
-                            (format!("GCLKTC{cc}"), "CLKV.NULL", "CLKV.GCLKT")
-                        } else {
-                            (
-                                format!("GCLKVR{r}C{cc}", r = self.rlut[row]),
-                                "CLKV.GCLKV",
-                                "CLKV.GCLKV",
-                            )
-                        }
+                        "CLKV.GCLKV"
                     };
-                    self.die.add_xnode(
-                        (col_m, row),
-                        self.db.get_node(kind),
-                        &[&name],
-                        self.db.get_node_naming(naming),
-                        &[(col_m - 1, row), (col_m, row)],
-                    );
+                    self.die
+                        .add_xnode((col_m, row), kind, &[(col_m - 1, row), (col_m, row)]);
                 }
             }
             if col_m == self.grid.col_lio() + 1 || col_m == self.grid.col_rio() - 1 {
-                let name = if self.grid.kind == GridKind::Virtex {
-                    if col_m == self.grid.col_lio() + 1 {
-                        "LBRAMM".to_string()
-                    } else {
-                        "RBRAMM".to_string()
-                    }
-                } else {
-                    let c = self.bramclut[col_m];
-                    format!("BRAMMC{c}")
-                };
                 self.die.add_xnode(
                     (col_m, self.grid.row_clk()),
-                    self.db.get_node("BRAM_CLKH"),
-                    &[&name],
-                    self.db.get_node_naming("BRAM_CLKH"),
+                    "BRAM_CLKH",
                     &[(col_m, self.grid.row_clk())],
                 );
             } else if col_m == self.grid.col_clk() {
-                self.die.add_xnode(
-                    (col_m, self.grid.row_clk()),
-                    self.db.get_node("CLKC"),
-                    &["M"],
-                    self.db.get_node_naming("CLKC"),
-                    &[],
-                );
+                self.die
+                    .add_xnode((col_m, self.grid.row_clk()), "CLKC", &[]);
             } else {
-                let name = format!("GCLKCC{cc}");
-                self.die.add_xnode(
-                    (col_m, self.grid.row_clk()),
-                    self.db.get_node("GCLKC"),
-                    &[&name],
-                    self.db.get_node_naming("GCLKC"),
-                    &[],
-                );
-                cc += 1;
+                self.die
+                    .add_xnode((col_m, self.grid.row_clk()), "GCLKC", &[]);
             }
         }
     }
@@ -857,29 +492,22 @@ impl Grid {
             db,
             die,
             disabled,
-            bonded_ios: vec![],
-            clut: EntityPartVec::new(),
-            bramclut: EntityPartVec::new(),
-            rlut: EntityVec::new(),
             cols_bram: self.cols_bram.iter().copied().collect(),
             frame_info: vec![],
             spine_frame: 0,
             col_frame: EntityVec::new(),
             bram_frame: EntityPartVec::new(),
             clkv_frame: EntityPartVec::new(),
+            blackhole_wires: HashSet::new(),
         };
-        expander.fill_clut();
-        expander.fill_rlut();
         expander.fill_int();
         expander.die.fill_main_passes();
-        expander.fill_io();
         expander.fill_bram();
         expander.fill_clkbt();
         expander.fill_pcilogic();
         expander.fill_clk();
         expander.fill_frame_info();
 
-        let bonded_ios = expander.bonded_ios;
         let spine_frame = expander.spine_frame;
         let col_frame = expander.col_frame;
         let bram_frame = expander.bram_frame;
@@ -898,16 +526,17 @@ impl Grid {
             die_order: vec![expander.die.die],
         };
 
+        egrid.blackhole_wires = expander.blackhole_wires;
         egrid.finish();
         ExpandedDevice {
             grid: self,
             egrid,
-            bonded_ios,
             bs_geom,
             spine_frame,
             col_frame,
             bram_frame,
             clkv_frame,
+            disabled: disabled.clone(),
         }
     }
 }

@@ -8,7 +8,10 @@ use prjcombine_types::tiledb::TileBit;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
 use prjcombine_virtex_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
 use prjcombine_xdl::{run_bitgen, Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement};
-use prjcombine_xilinx_geom::{Bond, Device, ExpandedBond, ExpandedDevice, GeomDb};
+use prjcombine_xilinx_geom::{
+    Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
+};
+use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
 use rand::prelude::*;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{Debug, Write};
@@ -22,7 +25,9 @@ pub struct IseBackend<'a> {
     pub device: &'a Device,
     pub bs_geom: &'a BitstreamGeom,
     pub egrid: &'a ExpandedGrid<'a>,
+    pub ngrid: &'a ExpandedGridNaming<'a>,
     pub edev: &'a ExpandedDevice<'a>,
+    pub endev: &'a ExpandedNamedDevice<'a>,
     pub ebonds: &'a HashMap<String, ExpandedBond<'a>>,
 }
 
@@ -242,21 +247,13 @@ impl<'a> Backend for IseBackend<'a> {
         };
 
         let mut site_to_tile = HashMap::new();
-        for die in self.egrid.dies() {
-            for col in die.cols() {
-                for row in die.rows() {
-                    let tile = &die[(col, row)];
-                    for node in tile.nodes.values() {
-                        if let Some(ref name) = node.tie_name {
-                            site_to_tile
-                                .insert(name.to_string(), node.names[node.tie_rt].to_string());
-                        }
-                        for (id, name) in &node.bels {
-                            let rt = self.egrid.db.node_namings[node.naming].bels[id].tile;
-                            site_to_tile.insert(name.to_string(), node.names[rt].to_string());
-                        }
-                    }
-                }
+        for nnode in self.ngrid.nodes.values() {
+            if let Some(ref name) = nnode.tie_name {
+                site_to_tile.insert(name.to_string(), nnode.names[nnode.tie_rt].to_string());
+            }
+            for (id, name) in &nnode.bels {
+                let rt = self.ngrid.db.node_namings[nnode.naming].bels[id].tile;
+                site_to_tile.insert(name.to_string(), nnode.names[rt].to_string());
             }
         }
 
@@ -264,45 +261,41 @@ impl<'a> Backend for IseBackend<'a> {
         let bond = &self.db.bonds[self.device.bonds[combo.devbond_idx].bond];
         match bond {
             Bond::Xc4000(bond) => {
-                let ExpandedDevice::Xc4000(edev) = self.edev else {
+                let ExpandedNamedDevice::Xc4000(endev) = self.endev else {
                     unreachable!()
                 };
                 for (k, v) in &bond.pins {
                     if let prjcombine_xc4000::bond::BondPin::Io(io) = v {
-                        let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
+                        let name = endev.get_io_name(*io);
                         site_to_place.insert(name.to_string(), k.to_string());
                     }
                 }
-                for io in &edev.io {
-                    match site_to_place.entry(io.name.to_string()) {
+                for io in endev.edev.get_bonded_ios() {
+                    let name = endev.get_io_name(io);
+                    match site_to_place.entry(name.to_string()) {
                         hash_map::Entry::Occupied(_) => (),
                         hash_map::Entry::Vacant(e) => {
-                            e.insert(format!(
-                                "UNB{suf}",
-                                suf = io.name.strip_prefix("PAD").unwrap()
-                            ));
+                            e.insert(format!("UNB{suf}", suf = name.strip_prefix("PAD").unwrap()));
                         }
                     }
                 }
             }
             Bond::Xc5200(bond) => {
-                let ExpandedDevice::Xc5200(edev) = self.edev else {
+                let ExpandedNamedDevice::Xc5200(endev) = self.endev else {
                     unreachable!()
                 };
                 for (k, v) in &bond.pins {
                     if let prjcombine_xc5200::bond::BondPin::Io(io) = v {
-                        let (_, _, _, name) = edev.get_io_bel(*io).unwrap();
+                        let name = endev.get_io_name(*io);
                         site_to_place.insert(name.to_string(), k.to_string());
                     }
                 }
-                for io in edev.get_bonded_ios() {
-                    match site_to_place.entry(io.name.to_string()) {
+                for io in endev.edev.get_bonded_ios() {
+                    let name = endev.get_io_name(io);
+                    match site_to_place.entry(name.to_string()) {
                         hash_map::Entry::Occupied(_) => (),
                         hash_map::Entry::Vacant(e) => {
-                            e.insert(format!(
-                                "UNB{suf}",
-                                suf = io.name.strip_prefix("PAD").unwrap()
-                            ));
+                            e.insert(format!("UNB{suf}", suf = name.strip_prefix("PAD").unwrap()));
                         }
                     }
                 }
@@ -339,27 +332,21 @@ impl<'a> Backend for IseBackend<'a> {
             _ => None,
         };
         if let Some(dummy_kind) = dummy_kind {
-            'add_dummy: for die in self.egrid.dies() {
-                for col in die.cols() {
-                    for row in die.rows() {
-                        for node in die[(col, row)].nodes.values() {
-                            if let Some(ref name) = node.tie_name {
-                                insts.insert(
-                                    "DUMMY_INST".to_string(),
-                                    Instance {
-                                        name: "DUMMY_INST".to_string(),
-                                        kind: dummy_kind.to_string(),
-                                        placement: Placement::Placed {
-                                            tile: "DUMMY".to_string(),
-                                            site: name.to_string(),
-                                        },
-                                        cfg: vec![],
-                                    },
-                                );
-                                break 'add_dummy;
-                            }
-                        }
-                    }
+            for nnode in self.ngrid.nodes.values() {
+                if let Some(ref name) = nnode.tie_name {
+                    insts.insert(
+                        "DUMMY_INST".to_string(),
+                        Instance {
+                            name: "DUMMY_INST".to_string(),
+                            kind: dummy_kind.to_string(),
+                            placement: Placement::Placed {
+                                tile: "DUMMY".to_string(),
+                                site: name.to_string(),
+                            },
+                            cfg: vec![],
+                        },
+                    );
+                    break;
                 }
             }
         }
@@ -378,8 +365,7 @@ impl<'a> Backend for IseBackend<'a> {
             ),
             ExpandedDevice::Spartan6(_) => ("SLICEX", "CLK"),
             ExpandedDevice::Virtex4(_) => ("SLICEL", "CLK"),
-            ExpandedDevice::Ultrascale(_) => unreachable!(),
-            ExpandedDevice::Versal(_) => unreachable!(),
+            _ => unreachable!(),
         };
         insts.insert(
             "DUMMY_SINGLE_PIPS".to_string(),
@@ -552,18 +538,13 @@ impl<'a> Backend for IseBackend<'a> {
                                             prjcombine_virtex4::grid::GridKind::Virtex6 => todo!(),
                                             prjcombine_virtex4::grid::GridKind::Virtex7 => todo!(),
                                         },
-                                        ExpandedDevice::Ultrascale(_) => todo!(),
-                                        ExpandedDevice::Versal(_) => todo!(),
+                                        _ => unreachable!(),
                                     },
                                     PinFromKind::Bufg => match self.edev {
-                                        ExpandedDevice::Xc4000(_) => todo!(),
-                                        ExpandedDevice::Xc5200(_) => todo!(),
-                                        ExpandedDevice::Virtex(_) => todo!(),
                                         ExpandedDevice::Virtex2(_)
                                         | ExpandedDevice::Spartan6(_) => ("BUFGMUX", "O", vec![]),
                                         ExpandedDevice::Virtex4(_) => ("BUFGCTRL", "O", vec![]),
-                                        ExpandedDevice::Ultrascale(_) => todo!(),
-                                        ExpandedDevice::Versal(_) => todo!(),
+                                        _ => unreachable!(),
                                     },
                                 };
                                 insts.insert(

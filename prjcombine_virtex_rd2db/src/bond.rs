@@ -1,18 +1,19 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex::bond::{Bond, BondPin, CfgPin};
-use prjcombine_virtex::expanded::ExpandedDevice;
+use prjcombine_virtex_naming::ExpandedNamedDevice;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
     let mut vref = BTreeSet::new();
     let mut diffp = BTreeSet::new();
     let mut diffn = BTreeSet::new();
-    let io_lookup: HashMap<_, _> = edev
+    let io_lookup: HashMap<_, _> = endev
+        .edev
         .get_bonded_ios()
         .into_iter()
-        .map(|io| (io.name.to_string(), io))
+        .map(|io| (endev.get_io_name(io), io))
         .collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
@@ -28,23 +29,24 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 BondPin::Clk(bank)
             } else {
-                let io = io_lookup[pad];
-                assert_eq!(pin.vref_bank, Some(io.bank));
-                let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
+                let io = io_lookup[&**pad];
+                let bank = endev.edev.get_io_bank(io);
+                assert_eq!(pin.vref_bank, Some(bank));
+                let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 if pin.func.starts_with("IO_VREF_") {
-                    vref.insert(io.coord);
+                    vref.insert(io);
                 }
                 if let Some(pos) = pin.func.find("_L") {
                     let diff = &pin.func[pos..];
                     if diff.contains('P') {
-                        diffp.insert(io.coord);
+                        diffp.insert(io);
                     }
                     if diff.contains('N') {
-                        diffn.insert(io.coord);
+                        diffn.insert(io);
                     }
                 }
-                BondPin::Io(io.coord)
+                BondPin::Io(io)
             }
         } else if pin.func.starts_with("VCCO_") {
             let bank = pin.func[5..].parse().unwrap();

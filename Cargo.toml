@@ -10,6 +10,7 @@ members = [
 	"prjcombine_lattice_dump",
 	"prjcombine_lattice_rawdump",
 	"prjcombine_int",
+	"prjcombine_xilinx_naming",
 	"prjcombine_xc4000",
 	"prjcombine_xc5200",
 	"prjcombine_virtex",
@@ -18,6 +19,14 @@ members = [
 	"prjcombine_virtex4",
 	"prjcombine_ultrascale",
 	"prjcombine_versal",
+	"prjcombine_xc4000_naming",
+	"prjcombine_xc5200_naming",
+	"prjcombine_virtex_naming",
+	"prjcombine_virtex2_naming",
+	"prjcombine_virtex4_naming",
+	"prjcombine_spartan6_naming",
+	"prjcombine_ultrascale_naming",
+	"prjcombine_versal_naming",
 	"prjcombine_rdgrid",
 	"prjcombine_rdintb",
 	"prjcombine_rdverify",
@@ -73,37 +82,46 @@ prjcombine_rdbuild = { path = "prjcombine_rdbuild" }
 prjcombine_toolchain = { path = "prjcombine_toolchain" }
 prjcombine_xdl = { path = "prjcombine_xdl" }
 prjcombine_int = { path = "prjcombine_int" }
+prjcombine_xilinx_naming = { path = "prjcombine_xilinx_naming" }
 prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
 prjcombine_rdintb = { path = "prjcombine_rdintb" }
 prjcombine_rdverify = { path = "prjcombine_rdverify" }
 prjcombine_xc4000 = { path = "prjcombine_xc4000" }
+prjcombine_xc4000_naming = { path = "prjcombine_xc4000_naming" }
 prjcombine_xc4000_rdverify = { path = "prjcombine_xc4000_rdverify" }
 prjcombine_xc4000_rd2db = { path = "prjcombine_xc4000_rd2db" }
 prjcombine_xc5200 = { path = "prjcombine_xc5200" }
+prjcombine_xc5200_naming = { path = "prjcombine_xc5200_naming" }
 prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }
 prjcombine_xc5200_rd2db = { path = "prjcombine_xc5200_rd2db" }
 prjcombine_virtex = { path = "prjcombine_virtex" }
+prjcombine_virtex_naming = { path = "prjcombine_virtex_naming" }
 prjcombine_virtex_rdverify = { path = "prjcombine_virtex_rdverify" }
 prjcombine_virtex_rd2db = { path = "prjcombine_virtex_rd2db" }
 prjcombine_virtex2 = { path = "prjcombine_virtex2" }
+prjcombine_virtex2_naming = { path = "prjcombine_virtex2_naming" }
 prjcombine_virtex2_rdverify = { path = "prjcombine_virtex2_rdverify" }
 prjcombine_virtex2_rd2db = { path = "prjcombine_virtex2_rd2db" }
 prjcombine_virtex4 = { path = "prjcombine_virtex4" }
+prjcombine_virtex4_naming = { path = "prjcombine_virtex4_naming" }
 prjcombine_virtex4_rdverify = { path = "prjcombine_virtex4_rdverify" }
 prjcombine_virtex4_rd2db = { path = "prjcombine_virtex4_rd2db" }
 prjcombine_virtex5_rdverify = { path = "prjcombine_virtex5_rdverify" }
 prjcombine_virtex5_rd2db = { path = "prjcombine_virtex5_rd2db" }
 prjcombine_virtex6_rdverify = { path = "prjcombine_virtex6_rdverify" }
 prjcombine_virtex6_rd2db = { path = "prjcombine_virtex6_rd2db" }
-prjcombine_spartan6 = { path = "prjcombine_spartan6" }
-prjcombine_spartan6_rd2db = { path = "prjcombine_spartan6_rd2db" }
-prjcombine_spartan6_rdverify = { path = "prjcombine_spartan6_rdverify" }
 prjcombine_virtex7_rdverify = { path = "prjcombine_virtex7_rdverify" }
 prjcombine_virtex7_rd2db = { path = "prjcombine_virtex7_rd2db" }
+prjcombine_spartan6 = { path = "prjcombine_spartan6" }
+prjcombine_spartan6_rd2db = { path = "prjcombine_spartan6_rd2db" }
+prjcombine_spartan6_naming = { path = "prjcombine_spartan6_naming" }
+prjcombine_spartan6_rdverify = { path = "prjcombine_spartan6_rdverify" }
 prjcombine_ultrascale = { path = "prjcombine_ultrascale" }
+prjcombine_ultrascale_naming = { path = "prjcombine_ultrascale_naming" }
 prjcombine_ultrascale_rdverify = { path = "prjcombine_ultrascale_rdverify" }
 prjcombine_ultrascale_rd2db = { path = "prjcombine_ultrascale_rd2db" }
 prjcombine_versal = { path = "prjcombine_versal" }
+prjcombine_versal_naming = { path = "prjcombine_versal_naming" }
 prjcombine_versal_rdverify = { path = "prjcombine_versal_rdverify" }
 prjcombine_versal_rd2db = { path = "prjcombine_versal_rd2db" }
 prjcombine_xilinx_geom = { path = "prjcombine_xilinx_geom" }
@@ -118,7 +136,7 @@ prjcombine_sdf = { path = "prjcombine_sdf" }
 prjcombine_xc9500 = { path = "prjcombine_xc9500" }
 prjcombine_xpla3 = { path = "prjcombine_xpla3" }
 prjcombine_xc2c = { path = "prjcombine_xc2c" }
-unnamed_entity = { version = "0.1.4", features = ["bitvec", "map", "serde"] }
+unnamed_entity = { version = "0.1.5", features = ["bitvec", "map", "serde"] }
 assert_matches = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

@@ -3,16 +3,16 @@ use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_xilinx_geom::{
     Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DeviceNaming,
-    DeviceNamingId, DisabledPart, ExtraDie, GeomDb, Grid, GridId,
+    DeviceNamingId, DisabledPart, GeomDb, Grid, GridId, Interposer, InterposerId,
 };
+use prjcombine_xilinx_naming::db::{IntfWireOutNaming, NamingDb};
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 pub struct PreDevice {
     pub name: String,
     pub grids: EntityVec<DieId, Grid>,
-    pub grid_master: DieId,
-    pub extras: Vec<ExtraDie>,
+    pub interposer: Interposer,
     pub bonds: EntityVec<DevBondId, (String, Bond)>,
     pub speeds: EntityVec<DevSpeedId, String>,
     pub combos: Vec<DeviceCombo>,
@@ -23,8 +23,7 @@ pub struct PreDevice {
 pub fn make_device_multi(
     rd: &Part,
     grids: EntityVec<DieId, Grid>,
-    grid_master: DieId,
-    extras: Vec<ExtraDie>,
+    interposer: Interposer,
     mut bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
     naming: DeviceNaming,
@@ -44,8 +43,7 @@ pub fn make_device_multi(
     PreDevice {
         name: rd.part.clone(),
         grids,
-        grid_master,
-        extras,
+        interposer,
         bonds: bonds.into_vec(),
         speeds: speeds.into_vec(),
         combos,
@@ -61,12 +59,11 @@ pub fn make_device(
     disabled: BTreeSet<DisabledPart>,
 ) -> PreDevice {
     let mut grids = EntityVec::new();
-    let grid_master = grids.push(grid);
+    grids.push(grid);
     make_device_multi(
         rd,
         grids,
-        grid_master,
-        vec![],
+        Interposer::None,
         bonds,
         disabled,
         DeviceNaming::Dummy,
@@ -76,9 +73,11 @@ pub fn make_device(
 pub struct DbBuilder {
     grids: EntityVec<GridId, Grid>,
     bonds: EntityVec<BondId, Bond>,
+    interposers: EntityVec<InterposerId, Interposer>,
     dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
     devices: Vec<Device>,
     ints: BTreeMap<String, IntDb>,
+    namings: BTreeMap<String, NamingDb>,
 }
 
 impl DbBuilder {
@@ -86,9 +85,11 @@ impl DbBuilder {
         Self {
             grids: EntityVec::new(),
             bonds: EntityVec::new(),
+            interposers: EntityVec::new(),
             dev_namings: EntityVec::new(),
             devices: Vec::new(),
             ints: BTreeMap::new(),
+            namings: BTreeMap::new(),
         }
     }
 
@@ -110,6 +111,15 @@ impl DbBuilder {
         self.bonds.push(bond)
     }
 
+    pub fn insert_interposer(&mut self, interposer: Interposer) -> InterposerId {
+        for (k, v) in self.interposers.iter() {
+            if v == &interposer {
+                return k;
+            }
+        }
+        self.interposers.push(interposer)
+    }
+
     pub fn insert_dev_naming(&mut self, naming: DeviceNaming) -> DeviceNamingId {
         for (k, v) in self.dev_namings.iter() {
             if v == &naming {
@@ -126,11 +136,11 @@ impl DbBuilder {
             bond: self.insert_bond(b),
         });
         let naming = self.insert_dev_naming(pre.naming);
+        let interposer = self.insert_interposer(pre.interposer);
         self.devices.push(Device {
             name: pre.name,
             grids,
-            grid_master: pre.grid_master,
-            extras: pre.extras,
+            interposer,
             bonds,
             speeds: pre.speeds,
             combos: pre.combos,
@@ -139,13 +149,118 @@ impl DbBuilder {
         });
     }
 
-    pub fn ingest_int(&mut self, int: IntDb) {
-        match self.ints.entry(int.name.clone()) {
+    pub fn ingest_int(&mut self, name: String, int: IntDb, naming: NamingDb) {
+        match self.ints.entry(name.clone()) {
             btree_map::Entry::Vacant(x) => {
                 x.insert(int);
             }
-            btree_map::Entry::Occupied(mut x) => {
-                x.get_mut().merge(int);
+            btree_map::Entry::Occupied(mut tgt) => {
+                let tgt = tgt.get_mut();
+                assert_eq!(tgt.wires, int.wires);
+                for (_, k, v) in int.nodes {
+                    match tgt.nodes.get(&k) {
+                        None => {
+                            tgt.nodes.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            if v != *v2 {
+                                println!("FAIL at {}", k);
+                            }
+                            assert_eq!(&v, v2);
+                        }
+                    }
+                }
+                for (_, k, v) in int.terms {
+                    match tgt.terms.get(&k) {
+                        None => {
+                            tgt.terms.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            if v != *v2 {
+                                println!("FAIL at {}", k);
+                            }
+                            assert_eq!(&v, v2);
+                        }
+                    }
+                }
+            }
+        }
+        match self.namings.entry(name.clone()) {
+            btree_map::Entry::Vacant(x) => {
+                x.insert(naming);
+            }
+            btree_map::Entry::Occupied(mut tgt) => {
+                let tgt = tgt.get_mut();
+                for (_, k, v) in naming.node_namings {
+                    match tgt.node_namings.get_mut(&k) {
+                        None => {
+                            tgt.node_namings.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            for (kk, vv) in v.wires {
+                                match v2.wires.get(&kk) {
+                                    None => {
+                                        v2.wires.insert(kk, vv);
+                                    }
+                                    Some(vv2) => {
+                                        assert_eq!(&vv, vv2);
+                                    }
+                                }
+                            }
+                            assert_eq!(v.wire_bufs, v2.wire_bufs);
+                            assert_eq!(v.ext_pips, v2.ext_pips);
+                            assert_eq!(v.bels, v2.bels);
+                            for (kk, vv) in v.intf_wires_in {
+                                match v2.intf_wires_in.get(&kk) {
+                                    None => {
+                                        v2.intf_wires_in.insert(kk, vv);
+                                    }
+                                    Some(vv2) => {
+                                        assert_eq!(&vv, vv2);
+                                    }
+                                }
+                            }
+                            for (kk, vv) in v.intf_wires_out {
+                                match v2.intf_wires_out.get(&kk) {
+                                    None => {
+                                        v2.intf_wires_out.insert(kk, vv);
+                                    }
+                                    Some(vv2 @ IntfWireOutNaming::Buf { name_out, .. }) => {
+                                        match vv {
+                                            IntfWireOutNaming::Buf { .. } => {
+                                                assert_eq!(&vv, vv2)
+                                            }
+                                            IntfWireOutNaming::Simple { name } => {
+                                                assert_eq!(name_out, &name)
+                                            }
+                                        }
+                                    }
+                                    Some(vv2 @ IntfWireOutNaming::Simple { name }) => {
+                                        if let IntfWireOutNaming::Buf { name_out, .. } = &vv {
+                                            assert_eq!(name_out, name);
+                                            v2.intf_wires_out.insert(kk, vv);
+                                        } else {
+                                            assert_eq!(&vv, vv2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                for (_, k, v) in naming.term_namings {
+                    match tgt.term_namings.get(&k) {
+                        None => {
+                            tgt.term_namings.insert(k, v);
+                        }
+                        Some((_, v2)) => {
+                            if v != *v2 {
+                                println!("FAIL at {}", k);
+                            }
+                            assert_eq!(&v, v2);
+                        }
+                    }
+                }
             }
         }
     }
@@ -154,9 +269,11 @@ impl DbBuilder {
         GeomDb {
             grids: self.grids,
             bonds: self.bonds,
+            interposers: self.interposers,
             dev_namings: self.dev_namings,
             devices: self.devices,
             ints: self.ints,
+            namings: self.namings,
         }
     }
 }

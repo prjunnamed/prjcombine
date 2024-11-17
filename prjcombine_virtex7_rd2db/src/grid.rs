@@ -1,13 +1,13 @@
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_virtex4::grid::{
-    ColumnKind, DisabledPart, ExtraDie, Grid, GridKind, GtColumn, GtKind, GtzLoc, IoColumn, IoKind,
+    ColumnKind, DisabledPart, Interposer, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind,
     Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_rdgrid::{extract_int_slr, find_row, find_rows, ExtraCol, IntGrid};
+use prjcombine_rdgrid::{extract_int_slr_column, find_row, find_rows, ExtraCol, IntGrid};
 
 fn make_columns(int: &IntGrid) -> EntityVec<ColId, ColumnKind> {
     let mut res: EntityVec<ColId, Option<ColumnKind>> = int.cols.map_values(|_| None);
@@ -198,6 +198,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
         }
         res.push(GtColumn {
             col: columns.first_id().unwrap(),
+            is_middle: false,
             regs,
         });
     }
@@ -213,6 +214,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
         if let Some(col) = lcol {
             res.push(GtColumn {
                 col,
+                is_middle: true,
                 regs: regs.into_iter().collect(),
             });
         }
@@ -229,6 +231,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
         if let Some(col) = rcol {
             res.push(GtColumn {
                 col,
+                is_middle: true,
                 regs: regs.into_iter().collect(),
             });
         }
@@ -255,7 +258,11 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
             regs.push(kind);
         }
         if regs.values().any(|&x| x.is_some()) {
-            res.push(GtColumn { col, regs });
+            res.push(GtColumn {
+                col,
+                is_middle: false,
+                regs,
+            });
         }
     }
     res
@@ -265,8 +272,7 @@ pub fn make_grids(
     rd: &Part,
 ) -> (
     EntityVec<DieId, Grid>,
-    DieId,
-    Vec<ExtraDie>,
+    Interposer,
     BTreeSet<DisabledPart>,
 ) {
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["B_TERM_INT_SLV"])
@@ -283,9 +289,9 @@ pub fn make_grids(
     }
     let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
     let mut grids = EntityVec::new();
-    let mut grid_master = None;
+    let mut primary = None;
     for w in rows_slr_split.windows(2) {
-        let int = extract_int_slr(
+        let int = extract_int_slr_column(
             rd,
             &[
                 "INT_L",
@@ -343,22 +349,20 @@ pub fn make_grids(
             has_no_tbuturn,
         });
         if int.find_row(&["CFG_CENTER_MID"]).is_some() {
-            grid_master = Some(slr);
+            primary = Some(slr);
         }
     }
-    let grid_master = grid_master.unwrap();
-    let mut extras = Vec::new();
-    if find_row(rd, &["GTZ_BOT"]).is_some() {
-        extras.push(ExtraDie::Gtz(GtzLoc::Bottom));
-    }
-    if find_row(rd, &["GTZ_TOP"]).is_some() {
-        extras.push(ExtraDie::Gtz(GtzLoc::Top));
-    }
+    let primary = primary.unwrap();
+    let interposer = Interposer {
+        primary,
+        gtz_bot: find_row(rd, &["GTZ_BOT"]).is_some(),
+        gtz_top: find_row(rd, &["GTZ_TOP"]).is_some(),
+    };
     let mut disabled = BTreeSet::new();
     if (rd.part.starts_with("xc7s") || rd.part.starts_with("xa7s"))
         && grids.values().any(|x| !x.holes_pcie2.is_empty())
     {
         disabled.insert(DisabledPart::Gtp);
     }
-    (grids, grid_master, extras, disabled)
+    (grids, interposer, disabled)
 }

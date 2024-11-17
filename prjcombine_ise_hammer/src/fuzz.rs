@@ -122,8 +122,7 @@ impl<'sm, 's, 'a, 'b> FuzzCtx<'sm, 's, 'a, 'b> {
             },
             ExpandedDevice::Spartan6(_) => "LL",
             ExpandedDevice::Virtex4(_) => "CFG",
-            ExpandedDevice::Ultrascale(_) => todo!(),
-            ExpandedDevice::Versal(_) => todo!(),
+            _ => todo!(),
         });
         let tile = tile.into();
         let bel_name = bel.into();

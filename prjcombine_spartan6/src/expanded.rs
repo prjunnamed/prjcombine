@@ -15,9 +15,7 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
-    pub io: Vec<Io>,
-    pub io_by_coord: HashMap<IoCoord, Io>,
-    pub gt: Vec<Gt>,
+    pub io: Vec<IoCoord>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub col_width: EntityVec<ColId, usize>,
     pub spine_frame: EntityVec<RegId, usize>,
@@ -34,13 +32,6 @@ pub struct Io {
     pub diff: IoDiffKind,
 }
 
-pub struct Gt {
-    pub bank: u32,
-    pub pads_clk: Vec<(String, String)>,
-    pub pads_tx: Vec<(String, String)>,
-    pub pads_rx: Vec<(String, String)>,
-}
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum IoDiffKind {
     P(IoCoord),
@@ -55,6 +46,36 @@ impl ExpandedDevice<'_> {
             }
         }
         false
+    }
+
+    pub fn get_io_bank(&self, io: IoCoord) -> u32 {
+        if io.col == self.grid.col_lio() {
+            if let Some((rs, _)) = self.grid.rows_bank_split {
+                if io.row < rs {
+                    3
+                } else {
+                    4
+                }
+            } else {
+                3
+            }
+        } else if io.col == self.grid.col_rio() {
+            if let Some((_, rs)) = self.grid.rows_bank_split {
+                if io.row < rs {
+                    1
+                } else {
+                    5
+                }
+            } else {
+                1
+            }
+        } else if io.row == self.grid.row_bio_inner() || io.row == self.grid.row_bio_outer() {
+            2
+        } else if io.row == self.grid.row_tio_inner() || io.row == self.grid.row_tio_outer() {
+            0
+        } else {
+            unreachable!()
+        }
     }
 
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {

@@ -2,22 +2,29 @@ use prjcombine_rawdump::PkgPin;
 use prjcombine_virtex4::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, SharedCfgPin, SysMonPin,
 };
-use prjcombine_virtex4::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoVrKind};
+use prjcombine_virtex4::expanded::{IoCoord, IoDiffKind, IoVrKind};
 use prjcombine_virtex4::grid::{DisabledPart, GtKind};
+use prjcombine_virtex4_naming::ExpandedNamedDevice;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 
 use prjcombine_rdgrid::split_num;
 
-pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
-    let mut gt_lookup: HashMap<String, (String, u32, GtPin)> = HashMap::new();
-    for gt in &edev.gt {
+    let io_lookup: HashMap<_, _> = endev
+        .edev
+        .io
+        .iter()
+        .copied()
+        .map(|io| (endev.get_io_name(io), io))
+        .collect();
+    let mut gt_lookup: HashMap<&str, (String, u32, GtPin)> = HashMap::new();
+    for gt in endev.get_gts() {
         let bank = gt.bank;
         for (i, (pp, pn)) in gt.pads_clk.iter().enumerate() {
             gt_lookup.insert(
-                pp.clone(),
+                pp,
                 (
                     if gt.kind == GtKind::Gth {
                         format!("MGTREFCLKP_{bank}")
@@ -29,7 +36,7 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                 ),
             );
             gt_lookup.insert(
-                pn.clone(),
+                pn,
                 (
                     if gt.kind == GtKind::Gth {
                         format!("MGTREFCLKN_{bank}")
@@ -42,31 +49,19 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             );
         }
         for (i, (pp, pn)) in gt.pads_rx.iter().enumerate() {
-            gt_lookup.insert(
-                pp.clone(),
-                (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)),
-            );
-            gt_lookup.insert(
-                pn.clone(),
-                (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)),
-            );
+            gt_lookup.insert(pp, (format!("MGTRXP{i}_{bank}"), bank, GtPin::RxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTRXN{i}_{bank}"), bank, GtPin::RxN(i as u8)));
         }
         for (i, (pp, pn)) in gt.pads_tx.iter().enumerate() {
-            gt_lookup.insert(
-                pp.clone(),
-                (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)),
-            );
-            gt_lookup.insert(
-                pn.clone(),
-                (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)),
-            );
+            gt_lookup.insert(pp, (format!("MGTTXP{i}_{bank}"), bank, GtPin::TxP(i as u8)));
+            gt_lookup.insert(pn, (format!("MGTTXN{i}_{bank}"), bank, GtPin::TxN(i as u8)));
         }
     }
-    let mut sm_lookup: HashMap<String, (u32, SysMonPin)> = HashMap::new();
+    let mut sm_lookup: HashMap<&str, (u32, SysMonPin)> = HashMap::new();
     let mut vaux_lookup: HashMap<IoCoord, (usize, char)> = HashMap::new();
-    for sysmon in &edev.sysmon {
-        sm_lookup.insert(sysmon.pad_vp.clone(), (sysmon.bank, SysMonPin::VP));
-        sm_lookup.insert(sysmon.pad_vn.clone(), (sysmon.bank, SysMonPin::VN));
+    for sysmon in &endev.get_sysmons() {
+        sm_lookup.insert(sysmon.pad_vp, (sysmon.bank, SysMonPin::VP));
+        sm_lookup.insert(sysmon.pad_vn, (sysmon.bank, SysMonPin::VN));
         for (i, vaux) in sysmon.vaux.iter().enumerate() {
             if let &Some((vauxp, vauxn)) = vaux {
                 vaux_lookup.insert(vauxp, (i, 'P'));
@@ -74,33 +69,34 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
             }
         }
     }
-    let cfg_lookup: HashMap<_, _> = edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
+    let cfg_lookup: HashMap<_, _> = endev.edev.cfg_io.iter().map(|(&k, &v)| (v, k)).collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(&**pad) {
-                let mut exp_func = match io.diff {
-                    IoDiffKind::None => format!("IO_{}", io.pkgid),
-                    IoDiffKind::P(_) => format!("IO_L{}P", io.pkgid),
-                    IoDiffKind::N(_) => format!("IO_L{}N", io.pkgid),
+                let io_info = endev.edev.get_io_info(io);
+                let mut exp_func = match io_info.diff {
+                    IoDiffKind::None => format!("IO_{}", io_info.pkgid),
+                    IoDiffKind::P(_) => format!("IO_L{}P", io_info.pkgid),
+                    IoDiffKind::N(_) => format!("IO_L{}N", io_info.pkgid),
                 };
-                if io.is_srcc {
+                if io_info.is_srcc {
                     exp_func += "_SRCC";
                 }
-                if io.is_mrcc {
+                if io_info.is_mrcc {
                     exp_func += "_MRCC";
                 }
-                if io.is_gc {
+                if io_info.is_gc {
                     exp_func += "_GC";
                 }
-                if io.is_vref {
+                if io_info.is_vref {
                     exp_func += "_VREF";
                 }
-                match io.vr {
+                match io_info.vr {
                     IoVrKind::VrP => exp_func += "_VRP",
                     IoVrKind::VrN => exp_func += "_VRN",
                     IoVrKind::None => (),
                 }
-                match cfg_lookup.get(&io.crd).copied() {
+                match cfg_lookup.get(&io).copied() {
                     Some(SharedCfgPin::Data(d)) => {
                         if d >= 16 {
                             write!(exp_func, "_A{:02}", d - 16).unwrap();
@@ -123,24 +119,24 @@ pub fn make_bond(edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
                     Some(_) => unreachable!(),
                     None => (),
                 }
-                if !edev.disabled.contains(&DisabledPart::SysMon) {
-                    if let Some(&(i, pn)) = vaux_lookup.get(&io.crd) {
+                if !endev.edev.disabled.contains(&DisabledPart::SysMon) {
+                    if let Some(&(i, pn)) = vaux_lookup.get(&io) {
                         write!(exp_func, "_SM{i}{pn}").unwrap();
                     }
                 }
-                write!(exp_func, "_{}", io.bank).unwrap();
+                write!(exp_func, "_{}", io_info.bank).unwrap();
                 if exp_func != pin.func {
                     println!("pad {pad} {io:?} got {f} exp {exp_func}", f = pin.func);
                 }
-                assert_eq!(pin.vref_bank, Some(io.bank));
-                assert_eq!(pin.vcco_bank, Some(io.bank));
-                BondPin::Io(io.bank, io.biob)
-            } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(pad) {
+                assert_eq!(pin.vref_bank, Some(io_info.bank));
+                assert_eq!(pin.vcco_bank, Some(io_info.bank));
+                BondPin::Io(io_info.bank, io_info.biob)
+            } else if let Some(&(ref exp_func, bank, gpin)) = gt_lookup.get(&**pad) {
                 if *exp_func != pin.func {
                     println!("pad {pad} got {f} exp {exp_func}", f = pin.func);
                 }
                 BondPin::Gt(bank, gpin)
-            } else if let Some(&(bank, spin)) = sm_lookup.get(pad) {
+            } else if let Some(&(bank, spin)) = sm_lookup.get(&**pad) {
                 let exp_func = match spin {
                     SysMonPin::VP => "VP_0",
                     SysMonPin::VN => "VN_0",

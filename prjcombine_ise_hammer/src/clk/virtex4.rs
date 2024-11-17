@@ -1,6 +1,9 @@
 use prjcombine_collector::{xlat_bit, xlat_bit_wide, xlat_enum_ocd, Diff, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::{BelId, Dir};
+use prjcombine_int::{
+    db::{BelId, Dir},
+    grid::DieId,
+};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
@@ -242,7 +245,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                 "HCLK_IOBDCM" => (true, false),
                 "HCLK_CENTER" => (
                     true,
-                    edev.grids[edev.grid_master].row_bufg() - edev.row_dcmiob.unwrap() > 24,
+                    edev.grids[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
                 ),
                 _ => unreachable!(),
             };
@@ -411,7 +414,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                             (pip (pin format!("MGT{i}")), (pin format!("MGT_O_{ud}{i}")))
                         ], extras);
                     } else {
-                        if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+                        if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
                             extras.push(ExtraFeature::new(
                                 ExtraFeatureKind::MgtRepeater(
                                     if i < 2 { Dir::W } else { Dir::E },
@@ -609,7 +612,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "HCLK_IOBDCM" => (true, false),
                 "HCLK_CENTER" => (
                     true,
-                    edev.grids[edev.grid_master].row_bufg() - edev.row_dcmiob.unwrap() > 24,
+                    edev.grids[DieId::from_idx(0)].row_bufg() - edev.row_dcmiob.unwrap() > 24,
                 ),
                 _ => unreachable!(),
             };
@@ -785,7 +788,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    if edev.col_lgt.is_some() && !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+    if edev.col_lgt.is_some() && !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
         let tile = "HCLK_MGT_REPEATER";
         let bel = "HCLK_MGT_REPEATER";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.DCM", "1");

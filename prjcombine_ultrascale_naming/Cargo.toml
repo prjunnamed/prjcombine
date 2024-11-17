@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine_ultrascale_naming"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+unnamed_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_xilinx_naming.workspace = true
+prjcombine_ultrascale.workspace = true
+
+[lints]
+workspace = true

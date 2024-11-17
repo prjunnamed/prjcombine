@@ -6,10 +6,12 @@ edition.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
+prjcombine_xilinx_naming.workspace = true
 prjcombine_rdintb.workspace = true
 prjcombine_rdgrid.workspace = true
 prjcombine_rawdump.workspace = true
 prjcombine_xc5200.workspace = true
+prjcombine_xc5200_naming.workspace = true
 
 [lints]
 workspace = true

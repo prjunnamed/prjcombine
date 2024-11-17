@@ -1,7 +1,7 @@
 use enum_map::Enum;
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
@@ -25,6 +25,11 @@ pub enum ColSide {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Interposer {
+    pub primary: DieId,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
     pub columns: EntityVec<ColId, Column>,
@@ -37,11 +42,6 @@ pub struct Grid {
     pub has_hbm: bool,
     pub is_dmc: bool,
     pub is_alt_cfg: bool,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct DeviceNaming {
-    pub rclk_alt_pins: BTreeMap<String, bool>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

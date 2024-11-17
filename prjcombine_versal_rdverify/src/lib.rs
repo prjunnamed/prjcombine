@@ -1,7 +1,7 @@
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_versal::expanded::ExpandedDevice;
 use prjcombine_versal::grid::DisabledPart;
+use prjcombine_versal_naming::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -336,15 +336,15 @@ fn verify_uram(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn verify_hardip(
-    edev: &ExpandedDevice,
+    endev: &ExpandedNamedDevice,
     vrf: &mut Verifier,
     bel: &BelContext<'_>,
     kind: &'static str,
 ) {
-    if edev.disabled.contains(&DisabledPart::HardIpSite(
+    if endev.edev.disabled.contains(&DisabledPart::HardIpSite(
         bel.die,
         bel.col,
-        edev.grids[bel.die].row_to_reg(bel.row),
+        endev.edev.grids[bel.die].row_to_reg(bel.row),
     )) {
         return;
     }
@@ -395,7 +395,7 @@ fn verify_bufdiv_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_rclk_hdistr_loc(_edev: &ExpandedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
+fn verify_rclk_hdistr_loc(_endev: &ExpandedNamedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
     // XXX verify HDISTR_LOC
 }
 
@@ -491,10 +491,10 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
 }
 
-fn verify_dpll_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev.edev
         .disabled
         .contains(&DisabledPart::HdioDpll(bel.die, bel.col, reg))
     {
@@ -583,7 +583,7 @@ fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
@@ -621,7 +621,7 @@ fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
             );
         }
     }
-    let grid = edev.grids[bel.die];
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
     for i in 0..4 {
         if let Some(obel) = vrf.find_bel_delta(bel, 0, 0, &format!("BUFGCE_HDIO{i}")) {
@@ -644,7 +644,7 @@ fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
     // XXX source HDISTR, HROUTE
 }
 
-fn verify_rclk_hb_hdio(_edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_hb_hdio(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
     for i in 0..24 {
         let opin = format!("HDISTR{i}");
@@ -806,25 +806,25 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_vcc_node(bel.fwire("VCC"));
 }
 
-fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "DSP0" | "DSP1" => verify_dsp(vrf, bel),
         "DSP_CPLX" => verify_dsp_cplx(vrf, bel),
         "BRAM_L_F" | "BRAM_R_F" => verify_bram_f(vrf, bel),
         "BRAM_L_H0" | "BRAM_L_H1" | "BRAM_R_H0" | "BRAM_R_H1" => verify_bram_h(vrf, bel),
         "URAM" | "URAM_CAS_DLY" => verify_uram(vrf, bel),
-        "PCIE4" => verify_hardip(edev, vrf, bel, "PCIE40"),
-        "PCIE5" => verify_hardip(edev, vrf, bel, "PCIE50"),
-        "MRMAC" => verify_hardip(edev, vrf, bel, "MRMAC"),
-        "DCMAC" => verify_hardip(edev, vrf, bel, "DCMAC"),
-        "ILKN" => verify_hardip(edev, vrf, bel, "ILKNF"),
-        "HSC" => verify_hardip(edev, vrf, bel, "HSC"),
+        "PCIE4" => verify_hardip(endev, vrf, bel, "PCIE40"),
+        "PCIE5" => verify_hardip(endev, vrf, bel, "PCIE50"),
+        "MRMAC" => verify_hardip(endev, vrf, bel, "MRMAC"),
+        "DCMAC" => verify_hardip(endev, vrf, bel, "DCMAC"),
+        "ILKN" => verify_hardip(endev, vrf, bel, "ILKNF"),
+        "HSC" => verify_hardip(endev, vrf, bel, "HSC"),
         "RCLK_DFX_TEST.E" | "RCLK_DFX_TEST.W" => vrf.verify_bel(bel, "RCLK_DFX_TEST", &[], &[]),
         "SYSMON_SAT.VNOC" => vrf.verify_bel(bel, "SYSMON_SAT", &[], &[]),
-        "DPLL.HDIO" => verify_dpll_hdio(edev, vrf, bel),
+        "DPLL.HDIO" => verify_dpll_hdio(endev, vrf, bel),
         "RCLK_HDIO_DPLL" => verify_rclk_hdio_dpll(vrf, bel),
-        "RCLK_HDIO" => verify_rclk_hdio(edev, vrf, bel),
-        "RCLK_HB_HDIO" => verify_rclk_hb_hdio(edev, vrf, bel),
+        "RCLK_HDIO" => verify_rclk_hdio(endev, vrf, bel),
+        "RCLK_HB_HDIO" => verify_rclk_hb_hdio(endev, vrf, bel),
         "VNOC_NSU512" | "VNOC_NMU512" | "VNOC2_NSU512" | "VNOC2_NMU512" => {
             verify_vnoc_nxu512(vrf, bel)
         }
@@ -836,7 +836,7 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
 
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(vrf, bel),
-        _ if bel.key.starts_with("RCLK_HDISTR_LOC") => verify_rclk_hdistr_loc(edev, vrf, bel),
+        _ if bel.key.starts_with("RCLK_HDISTR_LOC") => verify_rclk_hdistr_loc(endev, vrf, bel),
         _ if bel.key.starts_with("HDIOB") => verify_hdiob(vrf, bel),
         _ if bel.key.starts_with("HDIOLOGIC") => verify_hdiologic(vrf, bel),
         _ if bel.key.starts_with("BUFGCE_HDIO") => verify_bufgce_hdio(vrf, bel),
@@ -845,17 +845,17 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_extra(_edev: &ExpandedDevice, vrf: &mut Verifier) {
+fn verify_extra(_endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     // XXX
     vrf.skip_residual();
 }
 
-pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     verify(
         rd,
-        &edev.egrid,
+        &endev.ngrid,
         |_| (),
-        |vrf, bel| verify_bel(edev, vrf, bel),
-        |vrf| verify_extra(edev, vrf),
+        |vrf, bel| verify_bel(endev, vrf, bel),
+        |vrf| verify_extra(endev, vrf),
     );
 }

@@ -8,6 +8,9 @@ name = "ise_hammer"
 path = "src/main.rs"
 
 [dependencies]
+prjcombine_types.workspace = true
+prjcombine_int.workspace = true
+prjcombine_xilinx_naming.workspace = true
 prjcombine_xilinx_geom.workspace = true
 prjcombine_xc4000.workspace = true
 prjcombine_xc5200.workspace = true
@@ -17,10 +20,8 @@ prjcombine_spartan6.workspace = true
 prjcombine_virtex4.workspace = true
 prjcombine_virtex_bitstream.workspace = true
 prjcombine_xdl.workspace = true
-prjcombine_int.workspace = true
 prjcombine_toolchain.workspace = true
 prjcombine_hammer.workspace = true
-prjcombine_types.workspace = true
 prjcombine_collector.workspace = true
 unnamed_entity.workspace = true
 bitvec.workspace = true

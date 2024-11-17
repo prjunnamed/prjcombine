@@ -1,15 +1,17 @@
-use prjcombine_int::db::{Dir, NodeRawTileId};
+use prjcombine_int::db::Dir;
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Coord;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::expanded::{ExpandedDevice, IoDiffKind};
+use prjcombine_virtex2::expanded::IoDiffKind;
 use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
+use prjcombine_virtex2_naming::ExpandedNamedDevice;
+use prjcombine_xilinx_naming::db::NodeRawTileId;
 use unnamed_entity::EntityId;
 
 use crate::get_bel_iob;
 
 fn verify_pci_ce(
-    edev: &ExpandedDevice<'_>,
+    endev: &ExpandedNamedDevice,
     vrf: &mut Verifier,
     die: DieId,
     col: ColId,
@@ -17,10 +19,10 @@ fn verify_pci_ce(
     crd: Coord,
     wire: &str,
 ) {
-    if col == edev.grid.col_left() || col == edev.grid.col_right() {
-        if row < edev.grid.row_mid() {
-            for &(srow, _, _) in &edev.grid.rows_hclk {
-                if srow > edev.grid.row_mid() {
+    if col == endev.grid.col_left() || col == endev.grid.col_right() {
+        if row < endev.grid.row_mid() {
+            for &(srow, _, _) in &endev.grid.rows_hclk {
+                if srow > endev.grid.row_mid() {
                     break;
                 }
                 if row < srow {
@@ -30,8 +32,8 @@ fn verify_pci_ce(
                 }
             }
         } else {
-            for &(srow, _, _) in edev.grid.rows_hclk.iter().rev() {
-                if srow <= edev.grid.row_mid() {
+            for &(srow, _, _) in endev.grid.rows_hclk.iter().rev() {
+                if srow <= endev.grid.row_mid() {
                     break;
                 }
                 if row >= srow {
@@ -42,15 +44,15 @@ fn verify_pci_ce(
             }
         }
         let obel = vrf
-            .find_bel(die, (col, edev.grid.row_mid()), "PCILOGICSE")
+            .find_bel(die, (col, endev.grid.row_mid()), "PCILOGICSE")
             .unwrap();
         let pip = &obel.naming.pins["PCI_CE"].pips[0];
         vrf.verify_node(&[(obel.crds[pip.tile], &pip.wire_to), (crd, wire)]);
     } else {
-        if edev.grid.kind == GridKind::Spartan3A {
-            if let Some((col_l, col_r)) = edev.grid.cols_clkv {
+        if endev.grid.kind == GridKind::Spartan3A {
+            if let Some((col_l, col_r)) = endev.grid.cols_clkv {
                 if col >= col_l && col < col_r {
-                    let (scol, kind) = if col < edev.grid.col_clk {
+                    let (scol, kind) = if col < endev.grid.col_clk {
                         (col_l, "PCI_CE_E")
                     } else {
                         (col_r, "PCI_CE_W")
@@ -61,25 +63,28 @@ fn verify_pci_ce(
                 }
             }
         }
-        let scol = if col < edev.grid.col_clk {
-            edev.grid.col_left()
+        let scol = if col < endev.grid.col_clk {
+            endev.grid.col_left()
         } else {
-            edev.grid.col_right()
+            endev.grid.col_right()
         };
         let obel = vrf.find_bel(die, (scol, row), "PCI_CE_CNR").unwrap();
         vrf.verify_node(&[obel.fwire("O"), (crd, wire)]);
     }
 }
 
-pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let io = edev.get_io(IoCoord {
+pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let io = endev.edev.get_io_info(IoCoord {
         col: bel.col,
         row: bel.row,
         iob: TileIobId::from_idx(bel.bid.to_idx()),
     });
-    let tn = &bel.node.names[NodeRawTileId::from_idx(0)];
+    let tn = &bel.nnode.names[NodeRawTileId::from_idx(0)];
     let is_ipad = tn.contains("IBUFS") || (tn.contains("IOIB") && bel.bid.to_idx() == 2);
-    let kind = if matches!(edev.grid.kind, GridKind::Spartan3A | GridKind::Spartan3ADsp) {
+    let kind = if matches!(
+        endev.grid.kind,
+        GridKind::Spartan3A | GridKind::Spartan3ADsp
+    ) {
         let is_tb = matches!(io.bank, 0 | 2);
         match (io.diff, is_ipad) {
             (IoDiffKind::P(_), false) => {
@@ -118,7 +123,7 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         ("DIFFO_IN", SitePinDir::In),
     ];
     if matches!(
-        edev.grid.kind,
+        endev.grid.kind,
         GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
     ) {
         pins.extend([
@@ -132,12 +137,12 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
             ("IDDRIN2", SitePinDir::In),
         ]);
     }
-    if edev.grid.kind == GridKind::Spartan3ADsp {
+    if endev.grid.kind == GridKind::Spartan3ADsp {
         pins.extend([("OAUX", SitePinDir::In), ("TAUX", SitePinDir::In)]);
     }
     vrf.verify_bel(bel, kind, &pins, &[]);
     // diff pairing
-    if !edev.grid.kind.is_virtex2() || io.diff != IoDiffKind::None {
+    if !endev.grid.kind.is_virtex2() || io.diff != IoDiffKind::None {
         for pin in ["PADOUT", "DIFFI_IN", "DIFFO_IN", "DIFFO_OUT"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }
@@ -169,7 +174,7 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
     }
     if matches!(
-        edev.grid.kind,
+        endev.grid.kind,
         GridKind::Spartan3E | GridKind::Spartan3A | GridKind::Spartan3ADsp
     ) {
         for pin in [
@@ -194,7 +199,7 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
         }
         vrf.claim_pip(bel.crd(), bel.wire("PCI_CE"), bel.wire_far("PCI_CE"));
         verify_pci_ce(
-            edev,
+            endev,
             vrf,
             bel.die,
             bel.col,
@@ -203,14 +208,14 @@ pub fn verify_ioi(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContex
             bel.wire_far("PCI_CE"),
         );
     }
-    if edev.grid.kind == GridKind::Spartan3ADsp {
+    if endev.grid.kind == GridKind::Spartan3ADsp {
         for pin in ["OAUX", "TAUX"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }
     }
 }
 
-pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(
         bel,
         "PCILOGICSE",
@@ -221,14 +226,14 @@ pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &Be
         ],
         &[],
     );
-    let edge = if bel.col == edev.grid.col_left() {
+    let edge = if bel.col == endev.grid.col_left() {
         Dir::W
-    } else if bel.col == edev.grid.col_right() {
+    } else if bel.col == endev.grid.col_right() {
         Dir::E
     } else {
         unreachable!()
     };
-    let pci_rdy = edev.grid.get_pci_io(edge);
+    let pci_rdy = endev.grid.get_pci_io(edge);
     for (pin, crd) in ["IRDY", "TRDY"].into_iter().zip(pci_rdy) {
         vrf.claim_node(&[bel.fwire(pin)]);
         vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
@@ -242,11 +247,11 @@ pub fn verify_pcilogicse(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &Be
     vrf.claim_node(&[(bel.crds[pip.tile], &pip.wire_to)]);
 }
 
-pub fn verify_pci_ce_n(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_n(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(
-        edev,
+        endev,
         vrf,
         bel.die,
         bel.col,
@@ -256,11 +261,11 @@ pub fn verify_pci_ce_n(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
     );
 }
 
-pub fn verify_pci_ce_s(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_s(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(
-        edev,
+        endev,
         vrf,
         bel.die,
         bel.col,
@@ -270,11 +275,11 @@ pub fn verify_pci_ce_s(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
     );
 }
 
-pub fn verify_pci_ce_e(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_e(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(
-        edev,
+        endev,
         vrf,
         bel.die,
         bel.col - 1,
@@ -284,11 +289,11 @@ pub fn verify_pci_ce_e(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
     );
 }
 
-pub fn verify_pci_ce_w(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_w(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(
-        edev,
+        endev,
         vrf,
         bel.die,
         bel.col,
@@ -298,11 +303,11 @@ pub fn verify_pci_ce_w(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
     );
 }
 
-pub fn verify_pci_ce_cnr(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_cnr(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(
-        edev,
+        endev,
         vrf,
         bel.die,
         bel.col,

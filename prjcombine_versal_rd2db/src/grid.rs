@@ -1,14 +1,14 @@
 use prjcombine_int::grid::{ColId, DieId};
 use prjcombine_rawdump::{Coord, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
-    BotKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind, HardColumn, HardRowKind,
-    PsKind, RegId, TopKind,
+    BotKind, BramKind, CleKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind,
+    HardColumn, HardRowKind, Interposer, InterposerKind, PsKind, RegId, RightKind, TopKind,
 };
-use prjcombine_versal::naming::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
+use prjcombine_versal_naming::{DeviceNaming, DieNaming, HdioNaming, VNoc2Naming};
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
+use prjcombine_rdgrid::{extract_int_slr, extract_int_slr_column, find_rows, IntGrid};
 
 fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     let (l, r) = s.rsplit_once("_X")?;
@@ -18,12 +18,32 @@ fn split_xy(s: &str) -> Option<(&str, u32, u32)> {
     Some((l, x, y))
 }
 
+fn split_sxy(s: &str) -> Option<(&str, u32, u32, u32)> {
+    let (l, r) = s.rsplit_once("_S")?;
+    let (s, r) = r.rsplit_once("X")?;
+    let (x, y) = r.rsplit_once('Y')?;
+    let s = s.parse().ok()?;
+    let x = x.parse().ok()?;
+    let y = y.parse().ok()?;
+    Some((l, s, x, y))
+}
+
+fn split_xy_sxy(s: &str) -> Option<(&str, Option<u32>, u32, u32)> {
+    if let Some((p, x, y)) = split_xy(s) {
+        Some((p, None, x, y))
+    } else if let Some((p, s, x, y)) = split_sxy(s) {
+        Some((p, Some(s), x, y))
+    } else {
+        None
+    }
+}
+
 fn extract_site_xy(rd: &Part, tile: &Tile, sname: &str) -> Option<(u32, u32)> {
     let tk = &rd.tile_kinds[tile.kind];
     let tks = TkSiteSlot::Xy(rd.slot_kinds.get(sname)?, 0, 0);
     let si = tk.sites.get(&tks)?.0;
     let name = tile.sites.get(si)?;
-    let (_, x, y) = split_xy(name).unwrap();
+    let (_, _, x, y) = split_xy_sxy(name).unwrap();
     Some((x, y))
 }
 
@@ -43,7 +63,7 @@ fn make_columns(
     });
 
     for (tkn, kind) in [
-        ("CLE_W_CORE", ColumnKind::Cle),
+        ("CLE_W_CORE", ColumnKind::Cle(CleKind::Plain)),
         ("DSP_ROCF_B_TILE", ColumnKind::Dsp),
         ("DSP_ROCF_T_TILE", ColumnKind::Dsp),
         ("NOC_NSU512_TOP", ColumnKind::VNoc),
@@ -56,10 +76,10 @@ fn make_columns(
         }
     }
     for (tkn, kind) in [
-        ("BRAM_LOCF_TR_TILE", ColumnKind::Bram),
-        ("BRAM_LOCF_BR_TILE", ColumnKind::Bram),
-        ("BRAM_ROCF_TR_TILE", ColumnKind::Bram),
-        ("BRAM_ROCF_BR_TILE", ColumnKind::Bram),
+        ("BRAM_LOCF_TR_TILE", ColumnKind::Bram(BramKind::Plain)),
+        ("BRAM_LOCF_BR_TILE", ColumnKind::Bram(BramKind::Plain)),
+        ("BRAM_ROCF_TR_TILE", ColumnKind::Bram(BramKind::Plain)),
+        ("BRAM_ROCF_BR_TILE", ColumnKind::Bram(BramKind::Plain)),
         ("INTF_GT_TR_TILE", ColumnKind::Gt),
         ("INTF_GT_BR_TILE", ColumnKind::Gt),
     ] {
@@ -69,8 +89,8 @@ fn make_columns(
         }
     }
     for (tkn, kind) in [
-        ("BRAM_ROCF_TL_TILE", ColumnKind::Bram),
-        ("BRAM_ROCF_BL_TILE", ColumnKind::Bram),
+        ("BRAM_ROCF_TL_TILE", ColumnKind::Bram(BramKind::Plain)),
+        ("BRAM_ROCF_BL_TILE", ColumnKind::Bram(BramKind::Plain)),
         ("URAM_LOCF_TL_TILE", ColumnKind::Uram),
         ("URAM_LOCF_BL_TILE", ColumnKind::Uram),
         ("URAM_ROCF_TL_TILE", ColumnKind::Uram),
@@ -85,15 +105,27 @@ fn make_columns(
     }
     for c in int.find_columns(&["SLL"]) {
         let c = int.lookup_column_inter(c);
-        assert_eq!(res[c].l, ColumnKind::Cle);
-        assert_eq!(res[c - 1].r, ColumnKind::Cle);
-        res[c].l = ColumnKind::CleLaguna;
-        res[c - 1].r = ColumnKind::CleLaguna;
+        assert_eq!(res[c].l, ColumnKind::Cle(CleKind::Plain));
+        assert_eq!(res[c - 1].r, ColumnKind::Cle(CleKind::Plain));
+        res[c].l = ColumnKind::Cle(CleKind::Sll);
+        res[c - 1].r = ColumnKind::Cle(CleKind::Sll);
+    }
+    for c in int.find_columns(&["SLL2"]) {
+        let c = int.lookup_column_inter(c);
+        assert_eq!(res[c].l, ColumnKind::Cle(CleKind::Plain));
+        assert_eq!(res[c - 1].r, ColumnKind::Cle(CleKind::Plain));
+        res[c].l = ColumnKind::Cle(CleKind::Sll2);
+        res[c - 1].r = ColumnKind::Cle(CleKind::Sll2);
     }
     for c in int.find_columns(&["RCLK_BRAM_CLKBUF_CORE"]) {
         let c = int.lookup_column_inter(c);
-        assert_eq!(res[c - 1].r, ColumnKind::Bram);
-        res[c - 1].r = ColumnKind::BramClkBuf;
+        assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
+        res[c - 1].r = ColumnKind::Bram(BramKind::ClkBuf);
+    }
+    for c in int.find_columns(&["RCLK_BRAM_CLKBUF_NOPD_CORE"]) {
+        let c = int.lookup_column_inter(c);
+        assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
+        res[c - 1].r = ColumnKind::Bram(BramKind::ClkBufNoPd);
     }
 
     for c in int.find_columns(&[
@@ -251,7 +283,12 @@ fn get_rows_gt_left(int: &IntGrid) -> (EntityVec<RegId, GtRowKind>, bool) {
         ("XRAM_CORE", GtRowKind::Xram),
     ] {
         for row in int.find_rows(&[tkn]) {
-            if row > *int.rows.last().unwrap() {
+            let oob = if int.mirror_y {
+                row < *int.rows.last().unwrap()
+            } else {
+                row > *int.rows.last().unwrap()
+            };
+            if oob {
                 assert_eq!(tkn, "XRAM_CORE");
                 has_xram_top = true;
             } else {
@@ -321,69 +358,152 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
     }
 }
 
+fn get_grid(
+    die: DieId,
+    int: &IntGrid<'_>,
+    disabled: &mut BTreeSet<DisabledPart>,
+) -> (Grid, DieNaming) {
+    let mut naming = DieNaming {
+        hdio: BTreeMap::new(),
+        sysmon_sat_vnoc: BTreeMap::new(),
+        vnoc2: BTreeMap::new(),
+    };
+    let (columns, cols_hard) = make_columns(die, int, disabled, &mut naming);
+    let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
+        PsKind::Ps9
+    } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
+        PsKind::PsX
+    } else {
+        unreachable!()
+    };
+    let cpm = if !int.find_tiles(&["CPM_CORE"]).is_empty() {
+        CpmKind::Cpm4
+    } else if !int.find_tiles(&["CPM_G5_TILE"]).is_empty() {
+        CpmKind::Cpm5
+    } else if !int.find_tiles(&["CPM_G5N2X_TILE"]).is_empty() {
+        CpmKind::Cpm5N
+    } else {
+        CpmKind::None
+    };
+    assert_eq!(int.rows.len() % 48, 0);
+    let (regs_gt_left, has_xram_top) = get_rows_gt_left(int);
+    let right = if !int.find_tiles(&["HNICX_TILE"]).is_empty() {
+        RightKind::HNicX
+    } else if let Some(gts) = get_rows_gt_right(int) {
+        RightKind::Gt(gts)
+    } else if !int.find_tiles(&["RCLK_CIDB_CORE"]).is_empty() {
+        RightKind::Cidb
+    } else if !int.find_tiles(&["RCLK_INTF_TERM2_RIGHT_CORE"]).is_empty() {
+        RightKind::Term2
+    } else {
+        RightKind::Term
+    };
+    let grid = Grid {
+        columns,
+        cols_vbrk: get_cols_vbrk(int),
+        cols_cpipe: get_cols_cpipe(int),
+        cols_hard,
+        regs: int.rows.len() / 48,
+        regs_gt_left,
+        ps,
+        cpm,
+        has_xram_top,
+        top: TopKind::Ssit,    // XXX
+        bottom: BotKind::Ssit, // XXX
+        right,
+    };
+    get_vnoc_naming(int, &mut naming);
+    (grid, naming)
+}
+
 pub fn make_grids(
     rd: &Part,
 ) -> (
     EntityVec<DieId, Grid>,
-    DieId,
+    Interposer,
     BTreeSet<DisabledPart>,
     DeviceNaming,
 ) {
     let mut disabled = BTreeSet::new();
-    let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
-        .into_iter()
-        .map(|r| r as u16)
-        .collect();
-    rows_slr_split.insert(0);
-    rows_slr_split.insert(rd.height);
-    let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
+    let crd = rd.tiles_by_kind_name("INT").first().unwrap();
+    let tile = &rd.tiles[crd];
+    let ikind = if tile.name.contains("_S") {
+        InterposerKind::MirrorSquare
+    } else {
+        InterposerKind::Column
+    };
     let mut grids = EntityVec::new();
     let mut namings = EntityVec::new();
-    for (dieid, w) in rows_slr_split.windows(2).enumerate() {
-        let mut naming = DieNaming {
-            hdio: BTreeMap::new(),
-            sysmon_sat_vnoc: BTreeMap::new(),
-            vnoc2: BTreeMap::new(),
-        };
-        let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
-        let (columns, cols_hard) =
-            make_columns(DieId::from_idx(dieid), &int, &mut disabled, &mut naming);
-        let ps = if !int.find_tiles(&["PSS_BASE_CORE"]).is_empty() {
-            PsKind::Ps9
-        } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
-            PsKind::PsX
-        } else {
-            unreachable!()
-        };
-        let cpm = if !int.find_tiles(&["CPM_CORE"]).is_empty() {
-            CpmKind::Cpm4
-        } else if !int.find_tiles(&["CPM_G5_TILE"]).is_empty() {
-            CpmKind::Cpm5
-        } else if !int.find_tiles(&["CPM_G5N2X_TILE"]).is_empty() {
-            CpmKind::Cpm5N
-        } else {
-            CpmKind::None
-        };
-        let has_hnicx = !int.find_tiles(&["HNICX_TILE"]).is_empty();
-        assert_eq!(int.rows.len() % 48, 0);
-        let (regs_gt_left, has_xram_top) = get_rows_gt_left(&int);
-        grids.push(Grid {
-            columns,
-            cols_vbrk: get_cols_vbrk(&int),
-            cols_cpipe: get_cols_cpipe(&int),
-            cols_hard,
-            regs: int.rows.len() / 48,
-            regs_gt_left,
-            regs_gt_right: get_rows_gt_right(&int),
-            ps,
-            cpm,
-            has_hnicx,
-            has_xram_top,
-            top: TopKind::Ssit,    // XXX
-            bottom: BotKind::Ssit, // XXX
-        });
-        get_vnoc_naming(&int, &mut naming);
-        namings.push(naming);
+    if ikind == InterposerKind::Column {
+        let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
+            .into_iter()
+            .map(|r| r as u16)
+            .collect();
+        rows_slr_split.insert(0);
+        rows_slr_split.insert(rd.height);
+        let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
+        for (dieid, w) in rows_slr_split.windows(2).enumerate() {
+            let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
+            let die = DieId::from_idx(dieid);
+            let (grid, naming) = get_grid(die, &int, &mut disabled);
+            grids.push(grid);
+            namings.push(naming);
+        }
+    } else {
+        for (dieid, int) in [
+            extract_int_slr(
+                rd,
+                &["INT"],
+                &[],
+                0,
+                rd.width / 2,
+                0,
+                rd.height / 2,
+                false,
+                false,
+            ),
+            extract_int_slr(
+                rd,
+                &["INT"],
+                &[],
+                0,
+                rd.width / 2,
+                rd.height / 2,
+                rd.height,
+                false,
+                true,
+            ),
+            extract_int_slr(
+                rd,
+                &["INT"],
+                &[],
+                rd.width / 2,
+                rd.width,
+                rd.height / 2,
+                rd.height,
+                true,
+                true,
+            ),
+            extract_int_slr(
+                rd,
+                &["INT"],
+                &[],
+                rd.width / 2,
+                rd.width,
+                0,
+                rd.height / 2,
+                true,
+                false,
+            ),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let die = DieId::from_idx(dieid);
+            let (grid, naming) = get_grid(die, &int, &mut disabled);
+            grids.push(grid);
+            namings.push(naming);
+        }
     }
     if rd.part.contains("vc1502") {
         let s0 = DieId::from_idx(0);
@@ -395,7 +515,9 @@ pub fn make_grids(
             col_hard_r.regs[reg] = kind;
             disabled.insert(DisabledPart::HardIp(s0, col_hard_r.col, reg));
         }
-        let regs_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
+        let RightKind::Gt(ref mut regs_gt_r) = grids[s0].right else {
+            unreachable!()
+        };
         for reg in [0, 1, 6] {
             let reg = RegId::from_idx(reg);
             assert_eq!(regs_gt_r[reg], GtRowKind::None);
@@ -421,8 +543,8 @@ pub fn make_grids(
             36, 37, 38, 40, 41, 43, 44, 45, 47, 48, 49, 51, 52, 53, 55, 56, 58, 59,
         ] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].r = ColumnKind::Cle;
-            grids[s0].columns[col + 1].l = ColumnKind::Cle;
+            grids[s0].columns[col].r = ColumnKind::Cle(CleKind::Plain);
+            grids[s0].columns[col + 1].l = ColumnKind::Cle(CleKind::Plain);
             grids[s0].columns[col].has_bli_bot_r = true;
             grids[s0].columns[col].has_bli_top_r = true;
             grids[s0].columns[col + 1].has_bli_bot_l = true;
@@ -439,11 +561,11 @@ pub fn make_grids(
         }
         for i in [36, 43, 58] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].l = ColumnKind::Bram;
+            grids[s0].columns[col].l = ColumnKind::Bram(BramKind::Plain);
         }
         for i in [42, 50, 57] {
             let col = ColId::from_idx(i);
-            grids[s0].columns[col].r = ColumnKind::Bram;
+            grids[s0].columns[col].r = ColumnKind::Bram(BramKind::Plain);
         }
         let col = ColId::from_idx(51);
         grids[s0].columns[col].l = ColumnKind::Uram;
@@ -486,7 +608,9 @@ pub fn make_grids(
         grids[s0].regs_gt_left[RegId::from_idx(8)] = GtRowKind::Gtm;
         grids[s0].regs_gt_left[RegId::from_idx(9)] = GtRowKind::Gtm;
         grids[s0].regs_gt_left[RegId::from_idx(10)] = GtRowKind::Gtm;
-        let col_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
+        let RightKind::Gt(ref mut col_gt_r) = grids[s0].right else {
+            unreachable!()
+        };
         col_gt_r[RegId::from_idx(8)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(9)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(10)] = GtRowKind::Gtm;
@@ -517,16 +641,19 @@ pub fn make_grids(
         grids[s0].regs_gt_left[RegId::from_idx(11)] = GtRowKind::Gtm;
         grids[s0].regs_gt_left[RegId::from_idx(12)] = GtRowKind::Gtm;
         grids[s0].regs_gt_left[RegId::from_idx(13)] = GtRowKind::Gtm;
-        let col_gt_r = grids[s0].regs_gt_right.as_mut().unwrap();
+        let RightKind::Gt(ref mut col_gt_r) = grids[s0].right else {
+            unreachable!()
+        };
         col_gt_r[RegId::from_idx(10)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(11)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(12)] = GtRowKind::Gtm;
         col_gt_r[RegId::from_idx(13)] = GtRowKind::Gtm;
     }
     let is_dsp_v2 = rd.wires.contains("DSP_DSP58_4_CLK");
+    let interposer = Interposer { kind: ikind };
     (
         grids,
-        DieId::from_idx(0),
+        interposer,
         disabled,
         DeviceNaming {
             die: namings,

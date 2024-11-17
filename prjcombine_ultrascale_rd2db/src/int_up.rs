@@ -1,17 +1,18 @@
 use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::Part;
-use prjcombine_ultrascale::grid::DeviceNaming;
 
 use enum_map::enum_map;
 
 use prjcombine_rdintb::IntBuilder;
+use prjcombine_ultrascale_naming::DeviceNaming;
+use prjcombine_xilinx_naming::db::NamingDb;
 
 const XLAT24: [usize; 24] = [
     0, 11, 16, 17, 18, 19, 20, 21, 22, 23, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15,
 ];
 
-pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
-    let mut builder = IntBuilder::new("ultrascaleplus", rd);
+pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     let d2n = enum_map!(
         Dir::N => 0,
@@ -480,7 +481,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF.W");
+        let n = builder.ndb.get_node_naming("INTF.W");
         for dy in 0..5 {
             int_xy.push(xy.delta(2, dy));
             intf_xy.push((xy.delta(1, dy), n));
@@ -550,7 +551,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         "RCLK_BRAM_INTF_TD_R",
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let n = builder.db.get_node_naming("INTF.W");
+            let n = builder.ndb.get_node_naming("INTF.W");
             let int_xy = xy.delta(2, 1);
             let intf_xy = (xy.delta(1, 1), n);
 
@@ -573,7 +574,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("DSP").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF.E");
+        let n = builder.ndb.get_node_naming("INTF.E");
         for dy in 0..5 {
             int_xy.push(xy.delta(-2, dy));
             intf_xy.push((xy.delta(-1, dy), n));
@@ -609,7 +610,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("BLI_BLI_FT").iter().next() {
-        let intf = builder.db.get_node_naming("INTF.E");
+        let intf = builder.ndb.get_node_naming("INTF.E");
         let bels = [
             builder.bel_xy("BLI_HBM_APB_INTF", "BLI_HBM_APB_INTF", 0, 0),
             builder.bel_xy("BLI_HBM_AXI_INTF", "BLI_HBM_AXI_INTF", 0, 0),
@@ -627,8 +628,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut int_xy = Vec::new();
             let mut intf_xy = Vec::new();
-            let nr = builder.db.get_node_naming("INTF.E");
-            let nl = builder.db.get_node_naming("INTF.W");
+            let nr = builder.ndb.get_node_naming("INTF.E");
+            let nl = builder.ndb.get_node_naming("INTF.W");
             for dy in 0..15 {
                 int_xy.push(xy.delta(-2, dy));
                 intf_xy.push((xy.delta(-1, dy), nr));
@@ -739,14 +740,10 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         ("DFE_G", "DFE_DFE_TILEG_FT", "DFE_G"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                continue;
-            }
             let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
             let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+            let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
+            let intf_r = builder.ndb.get_node_naming("INTF.W.PCIE");
             let mut bel = builder.bel_xy(kind, bk, 0, 0);
             let mut naming = kind;
             if kind == "PCIE4" {
@@ -798,47 +795,35 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         }
     }
 
-    'a: {
-        if let Some(&xy) = rd.tiles_by_kind_name("DFE_DFE_TILEB_FT").iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                break 'a;
-            }
-            let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-            let bel = builder.bel_xy("DFE_B", "DFE_B", 0, 0);
-            let mut xn = builder.xnode("DFE_B", "DFE_B", xy).num_tiles(60);
-            for i in 0..60 {
-                xn = xn
-                    .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l);
-            }
-            xn.bel(bel).extract();
+    if let Some(&xy) = rd.tiles_by_kind_name("DFE_DFE_TILEB_FT").iter().next() {
+        let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+        let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
+        let bel = builder.bel_xy("DFE_B", "DFE_B", 0, 0);
+        let mut xn = builder.xnode("DFE_B", "DFE_B", xy).num_tiles(60);
+        for i in 0..60 {
+            xn = xn
+                .ref_int(int_l_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_single(int_l_xy.delta(1, (i + i / 30) as i32), i, intf_l);
         }
+        xn.bel(bel).extract();
     }
 
-    'a: {
-        if let Some(&xy) = rd.tiles_by_kind_name("FE_FE_FT").iter().next() {
-            let tk = &rd.tile_kinds[rd.tiles[&xy].kind];
-            if tk.sites.is_empty() {
-                break 'a;
-            }
-            let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-            let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
-            let bel = builder.bel_xy("FE", "FE", 0, 0);
-            let mut xn = builder.xnode("FE", "FE", xy).num_tiles(60);
-            for i in 0..60 {
-                xn = xn
-                    .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
-                    .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
-            }
-            xn.bel(bel).extract();
+    if let Some(&xy) = rd.tiles_by_kind_name("FE_FE_FT").iter().next() {
+        let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
+        let intf_r = builder.ndb.get_node_naming("INTF.W.PCIE");
+        let bel = builder.bel_xy("FE", "FE", 0, 0);
+        let mut xn = builder.xnode("FE", "FE", xy).num_tiles(60);
+        for i in 0..60 {
+            xn = xn
+                .ref_int(int_r_xy.delta(0, (i + i / 30) as i32), i)
+                .ref_single(int_r_xy.delta(-1, (i + i / 30) as i32), i, intf_r);
         }
+        xn.bel(bel).extract();
     }
 
     if let Some(&xy) = rd.tiles_by_kind_name("PSS_ALTO").iter().next() {
         let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-        let intf_r = builder.db.get_node_naming("INTF.PSS");
+        let intf_r = builder.ndb.get_node_naming("INTF.PSS");
         let mut bel = builder.bel_xy("PS", "PS8", 0, 0).pins_name_only(&[
             "DP_AUDIO_REF_CLK",
             "DP_VIDEO_REF_CLK",
@@ -923,7 +908,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("VCU_VCU_FT").iter().next() {
         let int_r_xy = builder.walk_to_int(xy.delta(0, 2), Dir::E, false).unwrap();
-        let intf_r = builder.db.get_node_naming("INTF.PSS");
+        let intf_r = builder.ndb.get_node_naming("INTF.PSS");
         let bel = builder
             .bel_xy("VCU", "VCU", 0, 0)
             .pins_name_only(&["VCU_PLL_TEST_CLK_OUT0", "VCU_PLL_TEST_CLK_OUT1"]);
@@ -945,7 +930,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         "RCLK_RCLK_INTF_LEFT_TERM_MX8_FT",
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let mut bels = vec![];
             for i in 0..24 {
                 bels.push(
@@ -990,8 +975,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("CFG_CONFIG").iter().next() {
         let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
         let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.ndb.get_node_naming("INTF.W.PCIE");
         let bels = [
             builder.bel_xy("CFG", "CONFIG_SITE", 0, 0),
             builder
@@ -1012,8 +997,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("CFGIO_IOB20").iter().next() {
         let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
         let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.ndb.get_node_naming("INTF.W.PCIE");
         let bels = [
             builder.bel_xy("PMV", "PMV", 0, 0),
             builder.bel_xy("PMV2", "PMV2", 0, 0),
@@ -1035,8 +1020,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("AMS").iter().next() {
         let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
         let int_r_xy = builder.walk_to_int(xy, Dir::E, false).unwrap();
-        let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
-        let intf_r = builder.db.get_node_naming("INTF.W.PCIE");
+        let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
+        let intf_r = builder.ndb.get_node_naming("INTF.W.PCIE");
         let mut bel = builder.bel_xy("SYSMON", "SYSMONE4", 0, 0);
         for i in 0..16 {
             bel = bel
@@ -1058,7 +1043,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_bot = tkn == "HDIO_BOT_RIGHT";
             let int_l_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
             let mut bels = vec![];
             for i in 0..6 {
                 bels.extend([
@@ -1140,7 +1125,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let top_xy = xy.delta(0, -30);
             let int_l_xy = builder.walk_to_int(top_xy, Dir::W, false).unwrap();
-            let intf_l = builder.db.get_node_naming("INTF.E.PCIE");
+            let intf_l = builder.ndb.get_node_naming("INTF.E.PCIE");
             let mut bels = vec![];
             for i in 0..4 {
                 bels.push(
@@ -1223,18 +1208,18 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             .extract();
     }
 
-    for tkn in [
-        "PCIE4_PCIE4_FT",
-        "PCIE4C_PCIE4C_FT",
-        "CMAC",
-        "ILKN_ILKN_FT",
-        "DFE_DFE_TILEA_FT",
-        "DFE_DFE_TILEB_FT",
-        "DFE_DFE_TILEE_FT",
-        "DFE_DFE_TILEG_FT",
-        "CFG_CONFIG",
-        "RCLK_AMS_CFGIO",
-        "RCLK_CLEM_CLKBUF_L",
+    for (node, tkn) in [
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "PCIE4_PCIE4_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "PCIE4C_PCIE4C_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "CMAC"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "ILKN_ILKN_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "DFE_DFE_TILEA_FT"),
+        ("RCLK_HROUTE_SPLITTER_R.HARD", "DFE_DFE_TILEB_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "DFE_DFE_TILEE_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "DFE_DFE_TILEG_FT"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "CFG_CONFIG"),
+        ("RCLK_HROUTE_SPLITTER_L.HARD", "RCLK_AMS_CFGIO"),
+        ("RCLK_HROUTE_SPLITTER_L.CLE", "RCLK_CLEM_CLKBUF_L"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder.bel_virtual("RCLK_HROUTE_SPLITTER");
@@ -1246,13 +1231,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             let bel_vcc = builder
                 .bel_virtual("VCC.RCLK_HROUTE_SPLITTER")
                 .extra_wire("VCC", &["VCC_WIRE"]);
-            let kind = if tkn == "DFE_DFE_TILEB_FT" {
-                "RCLK_HROUTE_SPLITTER_R"
-            } else {
-                "RCLK_HROUTE_SPLITTER_L"
-            };
             builder
-                .xnode(kind, "RCLK_HROUTE_SPLITTER", xy)
+                .xnode(node, "RCLK_HROUTE_SPLITTER", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .bel(bel_vcc)
@@ -1284,19 +1264,19 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             .extract();
     }
 
-    for tkn in [
-        "RCLK_CLEL_L_L",
-        "RCLK_CLEL_L_R",
-        "RCLK_CLEM_L",
-        "RCLK_CLEM_DMC_L",
-        "RCLK_CLEM_R",
-        "RCLK_LAG_L",
-        "RCLK_LAG_R",
-        "RCLK_LAG_DMC_L",
+    for (node, tkn) in [
+        ("RCLK_V_SINGLE_L.CLE", "RCLK_CLEL_L_L"),
+        ("RCLK_V_SINGLE_L.CLE", "RCLK_CLEL_L_R"),
+        ("RCLK_V_SINGLE_L.CLE", "RCLK_CLEM_L"),
+        ("RCLK_V_SINGLE_L.CLE", "RCLK_CLEM_DMC_L"),
+        ("RCLK_V_SINGLE_L.CLE", "RCLK_CLEM_R"),
+        ("RCLK_V_SINGLE_L.LAG", "RCLK_LAG_L"),
+        ("RCLK_V_SINGLE_L.LAG", "RCLK_LAG_R"),
+        ("RCLK_V_SINGLE_L.LAG", "RCLK_LAG_DMC_L"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_alt = dev_naming.rclk_alt_pins[tkn];
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let int_xy = xy.delta(if tkn.starts_with("RCLK_LAG") { 2 } else { 1 }, 0);
             let bels = vec![
                 builder
@@ -1338,7 +1318,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             ];
             builder
                 .xnode(
-                    "RCLK_V_SINGLE_L",
+                    node,
                     if is_alt {
                         "RCLK_V_SINGLE_L.ALT"
                     } else {
@@ -1360,7 +1340,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_alt = dev_naming.rclk_alt_pins[tkn];
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let int_xy = xy.delta(-1, 0);
             let mut bels = vec![];
             for i in 0..2 {
@@ -1452,16 +1432,16 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
         }
     }
 
-    for tkn in [
-        "RCLK_BRAM_INTF_L",
-        "RCLK_BRAM_INTF_TD_L",
-        "RCLK_BRAM_INTF_TD_R",
-        "RCLK_RCLK_URAM_INTF_L_FT",
+    for (node, tkn) in [
+        ("RCLK_V_QUAD_L.BRAM", "RCLK_BRAM_INTF_L"),
+        ("RCLK_V_QUAD_L.BRAM", "RCLK_BRAM_INTF_TD_L"),
+        ("RCLK_V_QUAD_L.BRAM", "RCLK_BRAM_INTF_TD_R"),
+        ("RCLK_V_QUAD_L.URAM", "RCLK_RCLK_URAM_INTF_L_FT"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let is_alt = dev_naming.rclk_alt_pins[tkn];
             let is_uram = tkn == "RCLK_RCLK_URAM_INTF_L_FT";
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let int_xy = xy.delta(if is_uram { 3 } else { 2 }, 0);
             let mut bels = vec![];
             for i in 0..4 {
@@ -1542,19 +1522,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
             );
             builder
                 .xnode(
-                    "RCLK_V_QUAD_L",
-                    if is_uram {
-                        if is_alt {
-                            "RCLK_V_QUAD_L.URAM.ALT"
-                        } else {
-                            "RCLK_V_QUAD_L.URAM"
-                        }
+                    node,
+                    &if is_alt {
+                        format!("{node}.ALT")
                     } else {
-                        if is_alt {
-                            "RCLK_V_QUAD_L.ALT"
-                        } else {
-                            "RCLK_V_QUAD_L"
-                        }
+                        node.to_string()
                     },
                     xy,
                 )
@@ -1576,9 +1548,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
-                .db
+                .ndb
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let mut bels = vec![];
             for i in 0..24 {
                 bels.push(
@@ -1861,7 +1833,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
-                .db
+                .ndb
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
             for i in 0..13 {
@@ -2227,7 +2199,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
-                .db
+                .ndb
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
             let mut is_alt = false;
@@ -2340,7 +2312,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .walk_to_int(xy.delta(0, -30), if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
-                .db
+                .ndb
                 .get_node_naming(if is_l { "INTF.W.IO" } else { "INTF.E.IO" });
             let mut bels = vec![];
             for i in 0..7 {
@@ -2382,9 +2354,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> IntDb {
                 .walk_to_int(xy, if is_l { Dir::E } else { Dir::W }, false)
                 .unwrap();
             let intf = builder
-                .db
+                .ndb
                 .get_node_naming(if is_l { "INTF.W.GT" } else { "INTF.E.GT" });
-            let rclk_int = builder.db.get_node_naming("RCLK_INT");
+            let rclk_int = builder.ndb.get_node_naming("RCLK_INT");
             let mut bels = vec![];
             for i in 0..24 {
                 let mut bel = builder

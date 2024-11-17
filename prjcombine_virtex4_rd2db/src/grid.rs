@@ -71,6 +71,7 @@ fn get_cols_gt(int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) -> Vec<GtColu
             if cd == ColumnKind::Gt {
                 Some(GtColumn {
                     col,
+                    is_middle: false,
                     regs: (0..(int.rows.len() / 16))
                         .map(|_| Some(GtKind::Gtp))
                         .collect(),

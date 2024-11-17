@@ -24,23 +24,23 @@ const H_HBM: f64 = 40.;
 pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut x = 0.;
     let mut col_x = EntityVec::new();
-    let mgrid = edev.grids[edev.grid_master];
+    let pgrid = edev.grids.first().unwrap();
     x += W_TERM;
-    for (col, &cd) in &mgrid.columns {
-        if mgrid.cols_vbrk.contains(&col) {
+    for (col, &cd) in &pgrid.columns {
+        if pgrid.cols_vbrk.contains(&col) {
             x += W_BRK;
         }
         let xl = x;
         let w = match cd.l {
             ColumnKindLeft::CleL | ColumnKindLeft::CleM(_) => W_CLB,
             ColumnKindLeft::Bram(_) => W_BRAM,
-            ColumnKindLeft::Uram => W_URAM,
             ColumnKindLeft::Io(_) | ColumnKindLeft::Gt(_) => W_IO,
-            ColumnKindLeft::Hard(_, _)
-            | ColumnKindLeft::Sdfec
+            ColumnKindLeft::Uram
+            | ColumnKindLeft::Hard(_, _)
             | ColumnKindLeft::DfeC
             | ColumnKindLeft::DfeDF
-            | ColumnKindLeft::DfeE => W_HARD,
+            | ColumnKindLeft::DfeE => 0.,
+            ColumnKindLeft::Sdfec => W_HARD,
         };
         x += w;
         let xm = x;
@@ -48,12 +48,12 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             ColumnKindRight::CleL(_) => W_CLB,
             ColumnKindRight::Dsp(_) => W_DSP,
             ColumnKindRight::Io(_) | ColumnKindRight::Gt(_) => W_IO,
-            ColumnKindRight::DfeB => W_HARD,
-            ColumnKindRight::Uram
-            | ColumnKindRight::Hard(_, _)
+            ColumnKindRight::DfeB
             | ColumnKindRight::DfeC
             | ColumnKindRight::DfeDF
-            | ColumnKindRight::DfeE => 0.,
+            | ColumnKindRight::DfeE
+            | ColumnKindRight::Hard(_, _) => W_HARD,
+            ColumnKindRight::Uram => W_URAM,
         };
         x += w;
         col_x.push((xl, xm, x));
@@ -159,20 +159,6 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKindLeft::Uram => {
-                    for row in grid.rows().step_by(15) {
-                        if edev.in_site_hole(die, col, row, ColSide::Left) {
-                            continue;
-                        }
-                        drawer.bel_rect(
-                            col_x[col].0,
-                            col_x[col].1,
-                            row_y[die][row].0,
-                            row_y[die][row + 14].1,
-                            "uram",
-                        )
-                    }
-                }
 
                 ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) => {
                     for (reg, kind) in &grid.cols_io[idx].regs {
@@ -198,55 +184,18 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                ColumnKindLeft::Hard(_, idx) => {
-                    for (reg, kind) in &grid.cols_hard[idx].regs {
-                        let kind = match kind {
-                            HardRowKind::Cfg => "cfg",
-                            HardRowKind::Ams => "sysmon",
-                            HardRowKind::None => continue,
-                            HardRowKind::Hdio | HardRowKind::HdioAms => "hdio",
-                            HardRowKind::Pcie | HardRowKind::PciePlus => "pcie",
-                            HardRowKind::Cmac => "cmac",
-                            HardRowKind::Ilkn => "ilkn",
-                            HardRowKind::DfeA => "dfea",
-                            HardRowKind::DfeG => "dfeg",
-                        };
-                        drawer.bel_rect(
-                            col_x[col].0,
-                            col_x[col].1,
-                            row_y[die][grid.row_reg_bot(reg)].0,
-                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
-                            kind,
-                        )
-                    }
-                }
-                ColumnKindLeft::Sdfec
-                | ColumnKindLeft::DfeC
-                | ColumnKindLeft::DfeDF
-                | ColumnKindLeft::DfeE => {
+                ColumnKindLeft::Sdfec => {
                     for reg in grid.regs() {
-                        let kind = match cd.l {
-                            ColumnKindLeft::Sdfec => "sdfec",
-                            ColumnKindLeft::DfeC => "dfec",
-                            ColumnKindLeft::DfeDF => {
-                                if reg.to_idx() == 2 {
-                                    "dfef"
-                                } else {
-                                    "dfed"
-                                }
-                            }
-                            ColumnKindLeft::DfeE => "dfee",
-                            _ => unreachable!(),
-                        };
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].1,
                             row_y[die][grid.row_reg_bot(reg)].0,
                             row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
-                            kind,
+                            "sdfec",
                         )
                     }
                 }
+                _ => (),
             }
             match cd.r {
                 ColumnKindRight::CleL(_) => {
@@ -312,7 +261,65 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         )
                     }
                 }
-                _ => (),
+                ColumnKindRight::Uram => {
+                    for row in grid.rows().step_by(15) {
+                        if edev.in_site_hole(die, col, row, ColSide::Left) {
+                            continue;
+                        }
+                        drawer.bel_rect(
+                            col_x[col].1,
+                            col_x[col].2,
+                            row_y[die][row].0,
+                            row_y[die][row + 14].1,
+                            "uram",
+                        )
+                    }
+                }
+                ColumnKindRight::Hard(_, idx) => {
+                    for (reg, kind) in &grid.cols_hard[idx].regs {
+                        let kind = match kind {
+                            HardRowKind::Cfg => "cfg",
+                            HardRowKind::Ams => "sysmon",
+                            HardRowKind::None => continue,
+                            HardRowKind::Hdio | HardRowKind::HdioAms => "hdio",
+                            HardRowKind::Pcie | HardRowKind::PciePlus => "pcie",
+                            HardRowKind::Cmac => "cmac",
+                            HardRowKind::Ilkn => "ilkn",
+                            HardRowKind::DfeA => "dfea",
+                            HardRowKind::DfeG => "dfeg",
+                        };
+                        drawer.bel_rect(
+                            col_x[col].1,
+                            col_x[col].2,
+                            row_y[die][grid.row_reg_bot(reg)].0,
+                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
+                            kind,
+                        )
+                    }
+                }
+                ColumnKindRight::DfeC | ColumnKindRight::DfeDF | ColumnKindRight::DfeE => {
+                    for reg in grid.regs() {
+                        let kind = match cd.r {
+                            ColumnKindRight::DfeC => "dfec",
+                            ColumnKindRight::DfeDF => {
+                                if reg.to_idx() == 2 {
+                                    "dfef"
+                                } else {
+                                    "dfed"
+                                }
+                            }
+                            ColumnKindRight::DfeE => "dfee",
+                            _ => unreachable!(),
+                        };
+                        drawer.bel_rect(
+                            col_x[col].1,
+                            col_x[col].2,
+                            row_y[die][grid.row_reg_bot(reg)].0,
+                            row_y[die][grid.row_reg_bot(reg + 1) - 1].1,
+                            kind,
+                        )
+                    }
+                }
             }
         }
         if let Some(ps) = grid.ps {

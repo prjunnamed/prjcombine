@@ -3,8 +3,9 @@ use prjcombine_ultrascale::bond::{
     Bond, BondPin, CfgPin, GtPin, GtRegion, GtRegionPin, HbmPin, PsPin, RfAdcPin, RfDacPin,
     SharedCfgPin, SysMonPin,
 };
-use prjcombine_ultrascale::expanded::{ExpandedDevice, IoCoord, IoDiffKind, IoKind};
+use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
 use prjcombine_ultrascale::grid::{DisabledPart, GridKind, IoRowKind};
+use prjcombine_ultrascale_naming::ExpandedNamedDevice;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
 use unnamed_entity::EntityId;
@@ -173,39 +174,42 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
     None
 }
 
-pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -> Bond {
+pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io)).collect();
-    let gt_common_lookup: HashMap<_, _> = edev.gt.iter().map(|gt| (&*gt.name_common, gt)).collect();
-    let gt_channel_lookup: HashMap<_, _> = edev
-        .gt
+    let io_lookup: HashMap<_, _> = endev
+        .edev
+        .io
         .iter()
-        .flat_map(|gt| {
-            gt.name_channel
-                .iter()
-                .enumerate()
-                .map(move |(i, name)| (&**name, (gt, i)))
-        })
+        .map(|&io| (endev.get_io_name(io), io))
         .collect();
-    let is_zynq =
-        edev.grids[edev.grid_master].ps.is_some() && !edev.disabled.contains(&DisabledPart::Ps);
+    let mut gt_common_lookup: HashMap<_, _> = HashMap::new();
+    let mut gt_channel_lookup: HashMap<_, _> = HashMap::new();
+    for gt in endev.get_gts() {
+        gt_common_lookup.insert(gt.name_common, gt.crd);
+        for (i, &name) in gt.name_channel.iter().enumerate() {
+            gt_channel_lookup.insert(name, (gt.crd, i));
+        }
+    }
+    let is_zynq = endev.edev.grids[endev.edev.interposer.primary].ps.is_some()
+        && !endev.edev.disabled.contains(&DisabledPart::Ps);
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(&**pad) {
-                if pin.vcco_bank.unwrap() != io.bank
-                    && (pin.vcco_bank != Some(64) || !matches!(io.bank, 84 | 94))
+                let io_info = endev.edev.get_io_info(io);
+                if pin.vcco_bank.unwrap() != io_info.bank
+                    && (pin.vcco_bank != Some(64) || !matches!(io_info.bank, 84 | 94))
                 {
                     println!(
                         "wrong bank pad {pkg} {pad} {io:?} got {f} exp {b}",
                         f = pin.func,
-                        b = io.bank
+                        b = io_info.bank
                     );
                 }
-                let old = io_banks.insert(io.bank, pin.vcco_bank.unwrap());
+                let old = io_banks.insert(io_info.bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 let mut exp_func = "IO".to_string();
-                match io.crd {
+                match io {
                     IoCoord::Hdio(crd) => {
                         write!(
                             exp_func,
@@ -236,31 +240,34 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                         .unwrap();
                     }
                 }
-                if io.is_gc {
-                    if io.kind == IoKind::Hdio {
+                if io_info.is_gc {
+                    if io_info.kind == IoKind::Hdio {
                         exp_func += "_HDGC";
                     } else {
                         exp_func += "_GC";
                     }
                 }
-                if io.is_dbc {
+                if io_info.is_dbc {
                     exp_func += "_DBC";
                 }
-                if io.is_qbc {
+                if io_info.is_qbc {
                     exp_func += "_QBC";
                 }
-                if io.is_vrp {
+                if io_info.is_vrp {
                     exp_func += "_VRP";
                 }
-                if let Some(sm) = io.sm_pair {
-                    let pn = match io.diff {
+                if let Some(sm) = io_info.sm_pair {
+                    let pn = match io_info.diff {
                         IoDiffKind::P(_) => 'P',
                         IoDiffKind::N(_) => 'N',
                         _ => unreachable!(),
                     };
                     write!(exp_func, "_AD{sm}{pn}").unwrap();
                 }
-                match edev.cfg_io[edev.grid_master].get_by_right(&io.crd).copied() {
+                match endev.edev.cfg_io[endev.edev.interposer.primary]
+                    .get_by_right(&io)
+                    .copied()
+                {
                     Some(SharedCfgPin::Data(d)) => {
                         if !is_zynq {
                             if d >= 16 {
@@ -309,7 +316,7 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     Some(SharedCfgPin::SmbAlert) => exp_func += "_SMBALERT",
                     Some(SharedCfgPin::I2cSclk) => exp_func += "_I2C_SCLK",
                     Some(SharedCfgPin::I2cSda) => {
-                        exp_func += if edev.kind == GridKind::Ultrascale {
+                        exp_func += if endev.edev.kind == GridKind::Ultrascale {
                             "_I2C_SDA"
                         } else {
                             "_PERSTN1_I2C_SDA"
@@ -318,45 +325,46 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     None => (),
                     _ => unreachable!(),
                 }
-                write!(exp_func, "_{}", io_banks[&io.bank]).unwrap();
+                write!(exp_func, "_{}", io_banks[&io_info.bank]).unwrap();
                 if exp_func != pin.func {
                     println!(
                         "pad {pkg} {pad} {io:?} got {f} exp {exp_func}",
                         f = pin.func
                     );
                 }
-                match io.crd {
-                    IoCoord::Hpio(crd) => BondPin::Hpio(io.bank, crd.iob),
-                    IoCoord::Hdio(crd) => BondPin::Hdio(io.bank, crd.iob),
+                match io {
+                    IoCoord::Hpio(crd) => BondPin::Hpio(io_info.bank, crd.iob),
+                    IoCoord::Hdio(crd) => BondPin::Hdio(io_info.bank, crd.iob),
                 }
             } else if let Some(&gt) = gt_common_lookup.get(&**pad) {
+                let gt_info = endev.edev.get_gt_info(gt);
                 let (f, bank) = pin.func.rsplit_once('_').unwrap();
                 let bank: u32 = bank.parse().unwrap();
-                if bank != gt.bank {
+                if bank != gt_info.bank {
                     println!(
                         "gt pad bank mismatch {pkg} {p} {pad} {f} {gt:?}",
                         f = pin.func,
                         p = rd.part
                     );
                 }
-                match gt.kind {
+                match gt_info.kind {
                     IoRowKind::HsAdc | IoRowKind::RfAdc => match f {
-                        "ADC_VIN0_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(0)),
-                        "ADC_VIN0_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(0)),
-                        "ADC_VIN1_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(1)),
-                        "ADC_VIN1_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(1)),
-                        "ADC_VIN2_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(2)),
-                        "ADC_VIN2_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(2)),
-                        "ADC_VIN3_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInP(3)),
-                        "ADC_VIN3_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInN(3)),
-                        "ADC_VIN_I01_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(0)),
-                        "ADC_VIN_I01_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(0)),
-                        "ADC_VIN_I23_P" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairP(2)),
-                        "ADC_VIN_I23_N" => BondPin::RfAdc(gt.bank, RfAdcPin::VInPairN(2)),
-                        "ADC_CLK_P" => BondPin::RfAdc(gt.bank, RfAdcPin::ClkP),
-                        "ADC_CLK_N" => BondPin::RfAdc(gt.bank, RfAdcPin::ClkN),
-                        "ADC_PLL_TEST_OUT_P" => BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutP),
-                        "ADC_PLL_TEST_OUT_N" => BondPin::RfAdc(gt.bank, RfAdcPin::PllTestOutN),
+                        "ADC_VIN0_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInP(0)),
+                        "ADC_VIN0_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInN(0)),
+                        "ADC_VIN1_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInP(1)),
+                        "ADC_VIN1_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInN(1)),
+                        "ADC_VIN2_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInP(2)),
+                        "ADC_VIN2_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInN(2)),
+                        "ADC_VIN3_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInP(3)),
+                        "ADC_VIN3_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInN(3)),
+                        "ADC_VIN_I01_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInPairP(0)),
+                        "ADC_VIN_I01_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInPairN(0)),
+                        "ADC_VIN_I23_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInPairP(2)),
+                        "ADC_VIN_I23_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::VInPairN(2)),
+                        "ADC_CLK_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::ClkP),
+                        "ADC_CLK_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::ClkN),
+                        "ADC_PLL_TEST_OUT_P" => BondPin::RfAdc(gt_info.bank, RfAdcPin::PllTestOutP),
+                        "ADC_PLL_TEST_OUT_N" => BondPin::RfAdc(gt_info.bank, RfAdcPin::PllTestOutN),
                         _ => {
                             println!(
                                 "weird hsadc iopad {pkg} {p} {pad} {f} {gt:?}",
@@ -367,18 +375,18 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                         }
                     },
                     IoRowKind::HsDac | IoRowKind::RfDac => match f {
-                        "DAC_VOUT0_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(0)),
-                        "DAC_VOUT0_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(0)),
-                        "DAC_VOUT1_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(1)),
-                        "DAC_VOUT1_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(1)),
-                        "DAC_VOUT2_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(2)),
-                        "DAC_VOUT2_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(2)),
-                        "DAC_VOUT3_P" => BondPin::RfDac(gt.bank, RfDacPin::VOutP(3)),
-                        "DAC_VOUT3_N" => BondPin::RfDac(gt.bank, RfDacPin::VOutN(3)),
-                        "DAC_CLK_P" => BondPin::RfDac(gt.bank, RfDacPin::ClkP),
-                        "DAC_CLK_N" => BondPin::RfDac(gt.bank, RfDacPin::ClkN),
-                        "SYSREF_P" => BondPin::RfDac(gt.bank, RfDacPin::SysRefP),
-                        "SYSREF_N" => BondPin::RfDac(gt.bank, RfDacPin::SysRefN),
+                        "DAC_VOUT0_P" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutP(0)),
+                        "DAC_VOUT0_N" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutN(0)),
+                        "DAC_VOUT1_P" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutP(1)),
+                        "DAC_VOUT1_N" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutN(1)),
+                        "DAC_VOUT2_P" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutP(2)),
+                        "DAC_VOUT2_N" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutN(2)),
+                        "DAC_VOUT3_P" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutP(3)),
+                        "DAC_VOUT3_N" => BondPin::RfDac(gt_info.bank, RfDacPin::VOutN(3)),
+                        "DAC_CLK_P" => BondPin::RfDac(gt_info.bank, RfDacPin::ClkP),
+                        "DAC_CLK_N" => BondPin::RfDac(gt_info.bank, RfDacPin::ClkN),
+                        "SYSREF_P" => BondPin::RfDac(gt_info.bank, RfDacPin::SysRefP),
+                        "SYSREF_N" => BondPin::RfDac(gt_info.bank, RfDacPin::SysRefN),
                         _ => {
                             println!(
                                 "weird hsdac iopad {pkg} {p} {pad} {f} {gt:?}",
@@ -389,8 +397,8 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                         }
                     },
                     IoRowKind::Gtm => match f {
-                        "MGTREFCLKP" => BondPin::Gt(gt.bank, GtPin::ClkP(0)),
-                        "MGTREFCLKN" => BondPin::Gt(gt.bank, GtPin::ClkN(0)),
+                        "MGTREFCLKP" => BondPin::Gt(gt_info.bank, GtPin::ClkP(0)),
+                        "MGTREFCLKN" => BondPin::Gt(gt_info.bank, GtPin::ClkN(0)),
                         _ => {
                             println!(
                                 "weird gtm clk iopad {pkg} {p} {pad} {f} {gt:?}",
@@ -401,10 +409,10 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                         }
                     },
                     IoRowKind::Gth | IoRowKind::Gty | IoRowKind::Gtf => match f {
-                        "MGTREFCLK0P" => BondPin::Gt(gt.bank, GtPin::ClkP(0)),
-                        "MGTREFCLK0N" => BondPin::Gt(gt.bank, GtPin::ClkN(0)),
-                        "MGTREFCLK1P" => BondPin::Gt(gt.bank, GtPin::ClkP(1)),
-                        "MGTREFCLK1N" => BondPin::Gt(gt.bank, GtPin::ClkN(1)),
+                        "MGTREFCLK0P" => BondPin::Gt(gt_info.bank, GtPin::ClkP(0)),
+                        "MGTREFCLK0N" => BondPin::Gt(gt_info.bank, GtPin::ClkN(0)),
+                        "MGTREFCLK1P" => BondPin::Gt(gt_info.bank, GtPin::ClkP(1)),
+                        "MGTREFCLK1N" => BondPin::Gt(gt_info.bank, GtPin::ClkN(1)),
                         _ => {
                             println!(
                                 "weird gt common iopad {pkg} {p} {pad} {f} {gt:?}",
@@ -417,25 +425,26 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     _ => unreachable!(),
                 }
             } else if let Some(&(gt, ch)) = gt_channel_lookup.get(&**pad) {
+                let gt_info = endev.edev.get_gt_info(gt);
                 let (f, bank) = pin.func.rsplit_once('_').unwrap();
                 let bank: u32 = bank.parse().unwrap();
-                if bank != gt.bank {
+                if bank != gt_info.bank {
                     println!(
                         "gt pad bank mismatch {pkg} {p} {pad} {f} {gt:?}",
                         f = pin.func,
                         p = rd.part
                     );
                 }
-                if gt.kind == IoRowKind::Gtm {
+                if gt_info.kind == IoRowKind::Gtm {
                     match f {
-                        "MGTMRXP0" => BondPin::Gt(gt.bank, GtPin::RxP(0)),
-                        "MGTMRXN0" => BondPin::Gt(gt.bank, GtPin::RxN(0)),
-                        "MGTMTXP0" => BondPin::Gt(gt.bank, GtPin::TxP(0)),
-                        "MGTMTXN0" => BondPin::Gt(gt.bank, GtPin::TxN(0)),
-                        "MGTMRXP1" => BondPin::Gt(gt.bank, GtPin::RxP(1)),
-                        "MGTMRXN1" => BondPin::Gt(gt.bank, GtPin::RxN(1)),
-                        "MGTMTXP1" => BondPin::Gt(gt.bank, GtPin::TxP(1)),
-                        "MGTMTXN1" => BondPin::Gt(gt.bank, GtPin::TxN(1)),
+                        "MGTMRXP0" => BondPin::Gt(gt_info.bank, GtPin::RxP(0)),
+                        "MGTMRXN0" => BondPin::Gt(gt_info.bank, GtPin::RxN(0)),
+                        "MGTMTXP0" => BondPin::Gt(gt_info.bank, GtPin::TxP(0)),
+                        "MGTMTXN0" => BondPin::Gt(gt_info.bank, GtPin::TxN(0)),
+                        "MGTMRXP1" => BondPin::Gt(gt_info.bank, GtPin::RxP(1)),
+                        "MGTMRXN1" => BondPin::Gt(gt_info.bank, GtPin::RxN(1)),
+                        "MGTMTXP1" => BondPin::Gt(gt_info.bank, GtPin::TxP(1)),
+                        "MGTMTXN1" => BondPin::Gt(gt_info.bank, GtPin::TxN(1)),
                         _ => {
                             println!(
                                 "weird gtm iopad {pkg} {p} {pad} {f} {gt:?}",
@@ -448,16 +457,16 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                 } else if let Some(f) = f.strip_suffix(&format!("{ch}")) {
                     match f {
                         "MGTHRXP" | "MGTYRXP" | "MGTFRXP" => {
-                            BondPin::Gt(gt.bank, GtPin::RxP(ch as u8))
+                            BondPin::Gt(gt_info.bank, GtPin::RxP(ch as u8))
                         }
                         "MGTHRXN" | "MGTYRXN" | "MGTFRXN" => {
-                            BondPin::Gt(gt.bank, GtPin::RxN(ch as u8))
+                            BondPin::Gt(gt_info.bank, GtPin::RxN(ch as u8))
                         }
                         "MGTHTXP" | "MGTYTXP" | "MGTFTXP" => {
-                            BondPin::Gt(gt.bank, GtPin::TxP(ch as u8))
+                            BondPin::Gt(gt_info.bank, GtPin::TxP(ch as u8))
                         }
                         "MGTHTXN" | "MGTYTXN" | "MGTFTXN" => {
-                            BondPin::Gt(gt.bank, GtPin::TxN(ch as u8))
+                            BondPin::Gt(gt_info.bank, GtPin::TxN(ch as u8))
                         }
                         _ => {
                             println!(
@@ -477,10 +486,12 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     continue;
                 }
             } else if pad.starts_with("SYSMON") {
-                let exp_site = match edev.kind {
-                    GridKind::Ultrascale => format!("SYSMONE1_X0Y{}", edev.grid_master.to_idx()),
+                let exp_site = match endev.edev.kind {
+                    GridKind::Ultrascale => {
+                        format!("SYSMONE1_X0Y{}", endev.edev.interposer.primary.to_idx())
+                    }
                     GridKind::UltrascalePlus => {
-                        format!("SYSMONE4_X0Y{}", edev.grid_master.to_idx())
+                        format!("SYSMONE4_X0Y{}", endev.edev.interposer.primary.to_idx())
                     }
                 };
                 if exp_site != *pad {
@@ -491,8 +502,8 @@ pub fn make_bond(rd: &Part, pkg: &str, edev: &ExpandedDevice, pins: &[PkgPin]) -
                     );
                 }
                 match &pin.func[..] {
-                    "VP" => BondPin::SysMon(edev.grid_master, SysMonPin::VP),
-                    "VN" => BondPin::SysMon(edev.grid_master, SysMonPin::VN),
+                    "VP" => BondPin::SysMon(endev.edev.interposer.primary, SysMonPin::VP),
+                    "VN" => BondPin::SysMon(endev.edev.interposer.primary, SysMonPin::VN),
                     _ => {
                         println!(
                             "weird sysmon iopad {p} {pad} {f}",

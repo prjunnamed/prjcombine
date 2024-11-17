@@ -2,32 +2,43 @@ use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_ultrascale::bond::SharedCfgPin;
-use prjcombine_ultrascale::expanded::{ClkSrc, ExpandedDevice, HpioCoord, IoCoord};
+use prjcombine_ultrascale::expanded::{ClkSrc, HpioCoord, IoCoord};
 use prjcombine_ultrascale::grid::{
     CleMKind, ColSide, ColumnKindLeft, ColumnKindRight, DisabledPart, GridKind, HardRowKind,
     HdioIobId, HpioIobId,
 };
+use prjcombine_ultrascale_naming::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
-fn is_cut_d(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
-    let reg = edev.grids[die].row_to_reg(row);
+fn is_cut_d(endev: &ExpandedNamedDevice, die: DieId, row: RowId) -> bool {
+    let reg = endev.edev.grids[die].row_to_reg(row);
     if reg.to_idx() == 0 {
         false
     } else {
-        edev.disabled.contains(&DisabledPart::Region(die, reg - 1))
+        endev
+            .edev
+            .disabled
+            .contains(&DisabledPart::Region(die, reg - 1))
     }
 }
 
-fn is_cut_u(edev: &ExpandedDevice, die: DieId, row: RowId) -> bool {
-    let reg = edev.grids[die].row_to_reg(row);
-    edev.disabled.contains(&DisabledPart::Region(die, reg + 1))
+fn is_cut_u(endev: &ExpandedNamedDevice, die: DieId, row: RowId) -> bool {
+    let reg = endev.edev.grids[die].row_to_reg(row);
+    endev
+        .edev
+        .disabled
+        .contains(&DisabledPart::Region(die, reg + 1))
 }
 
-fn get_hpiob_bel<'a>(edev: &ExpandedDevice, vrf: &Verifier<'a>, crd: IoCoord) -> BelContext<'a> {
+fn get_hpiob_bel<'a>(
+    endev: &ExpandedNamedDevice,
+    vrf: &Verifier<'a>,
+    crd: IoCoord,
+) -> BelContext<'a> {
     let IoCoord::Hpio(crd) = crd else {
         unreachable!();
     };
-    let grid = edev.grids[crd.die];
+    let grid = endev.edev.grids[crd.die];
     let row = grid.row_reg_bot(crd.reg) + if crd.iob.to_idx() < 26 { 0 } else { 30 };
     vrf.find_bel(
         crd.die,
@@ -44,7 +55,7 @@ fn get_hpiob_bel<'a>(edev: &ExpandedDevice, vrf: &Verifier<'a>, crd: IoCoord) ->
     .unwrap()
 }
 
-fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_slice(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.node_kind == "CLEM" {
         "SLICEM"
     } else {
@@ -62,9 +73,10 @@ fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     vrf.claim_node(&[bel.fwire("CIN")]);
     if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, bel.key) {
         vrf.verify_node(&[bel.fwire_far("CIN"), obel.fwire("COUT")]);
-    } else if !is_cut_d(edev, bel.die, bel.row)
+    } else if !is_cut_d(endev, bel.die, bel.row)
         || (kind == "SLICEM"
-            && edev.grids[bel.die].columns[bel.col].l == ColumnKindLeft::CleM(CleMKind::Laguna)
+            && endev.edev.grids[bel.die].columns[bel.col].l
+                == ColumnKindLeft::CleM(CleMKind::Laguna)
             && bel.row.to_idx() == 60)
     {
         vrf.claim_node(&[bel.fwire_far("CIN")]);
@@ -72,7 +84,7 @@ fn verify_slice(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     vrf.claim_node(&[bel.fwire("COUT")]);
 }
 
-fn verify_dsp(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_dsp(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pairs = vec![];
     pairs.push(("MULTSIGNIN".to_string(), "MULTSIGNOUT".to_string()));
     pairs.push(("CARRYCASCIN".to_string(), "CARRYCASCOUT".to_string()));
@@ -95,7 +107,7 @@ fn verify_dsp(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -5, "DSP1") {
                 vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
-            } else if !is_cut_d(edev, bel.die, bel.row) {
+            } else if !is_cut_d(endev, bel.die, bel.row) {
                 vrf.claim_node(&[bel.fwire_far(ipin)]);
             }
         } else {
@@ -108,7 +120,7 @@ fn verify_dsp(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bram_f(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     #[derive(Copy, Clone, Eq, PartialEq, Debug)]
     enum Mode {
         Up,
@@ -171,8 +183,8 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
         vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
         match mode {
             Mode::UpBuf => {
-                if !edev.is_cut
-                    || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d)
+                if !endev.edev.is_cut
+                    || (endev.edev.kind == GridKind::UltrascalePlus && endev.edev.is_cut_d)
                     || vrf.find_bel_delta(bel, 0, 5, "BRAM_F").is_some()
                 {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
@@ -180,20 +192,20 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
                 }
                 if let Some(obel) = vrf.find_bel_delta(bel, 0, -5, "BRAM_F") {
                     vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire_far(opin)]);
-                } else if !is_cut_d(edev, bel.die, bel.row) {
+                } else if !is_cut_d(endev, bel.die, bel.row) {
                     vrf.claim_node(&[bel.fwire_far(ipin)]);
                 }
             }
             Mode::Up => {
                 if let Some(obel) = vrf.find_bel_delta(bel, 0, -5, "BRAM_F") {
                     vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
-                } else if !is_cut_d(edev, bel.die, bel.row) {
+                } else if !is_cut_d(endev, bel.die, bel.row) {
                     vrf.claim_node(&[bel.fwire_far(ipin)]);
                 }
             }
             Mode::DownBuf => {
-                if !edev.is_cut
-                    || (edev.kind == GridKind::UltrascalePlus && edev.is_cut_d)
+                if !endev.edev.is_cut
+                    || (endev.edev.kind == GridKind::UltrascalePlus && endev.edev.is_cut_d)
                     || vrf.find_bel_delta(bel, 0, -5, "BRAM_F").is_some()
                 {
                     vrf.claim_node(&[bel.fwire_far(opin)]);
@@ -201,16 +213,16 @@ fn verify_bram_f(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
                 }
                 if let Some(obel) = vrf.find_bel_delta(bel, 0, 5, "BRAM_F") {
                     vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire_far(opin)]);
-                } else if !is_cut_u(edev, bel.die, bel.row) {
+                } else if !is_cut_u(endev, bel.die, bel.row) {
                     vrf.claim_node(&[bel.fwire_far(ipin)]);
                 }
             }
             Mode::DownHalfReg => match bel.row.to_idx() % 60 {
                 25 => (),
                 55 => {
-                    if !(edev.kind == GridKind::UltrascalePlus
-                        && edev.is_cut_d
-                        && is_cut_u(edev, bel.die, bel.row))
+                    if !(endev.edev.kind == GridKind::UltrascalePlus
+                        && endev.edev.is_cut_d
+                        && is_cut_u(endev, bel.die, bel.row))
                     {
                         vrf.claim_node(&[bel.fwire_far(ipin)]);
                     }
@@ -266,7 +278,7 @@ fn verify_bram_h(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_uram(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_uram(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pairs = vec![];
     for ab in ['A', 'B'] {
         for i in 0..23 {
@@ -305,7 +317,7 @@ fn verify_uram(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
             vrf.claim_pip(bel.crd(), bel.wire(ipin), bel.wire_far(ipin));
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -15, "URAM3") {
                 vrf.verify_node(&[bel.fwire_far(ipin), obel.fwire(opin)]);
-            } else if !is_cut_d(edev, bel.die, bel.row) {
+            } else if !is_cut_d(endev, bel.die, bel.row) {
                 vrf.claim_node(&[bel.fwire_far(ipin)]);
             }
         } else {
@@ -322,11 +334,11 @@ fn verify_uram(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     vrf.verify_bel(bel, "URAM288", &pins, &[]);
 }
 
-fn verify_laguna(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let skip = if bel.row.to_idx() < 60 {
         bel.die.to_idx() == 0
     } else {
-        bel.die.to_idx() == edev.grids.len() - 1
+        bel.die.to_idx() == endev.edev.grids.len() - 1
     };
     if !skip {
         vrf.verify_bel(
@@ -360,7 +372,7 @@ fn verify_laguna(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
 
     if bel.row.to_idx() < 60 && !skip {
         let odie = bel.die - 1;
-        let orow = RowId::from_idx(edev.egrid.die(odie).rows().len() - 60 + bel.row.to_idx());
+        let orow = RowId::from_idx(endev.edev.egrid.die(odie).rows().len() - 60 + bel.row.to_idx());
         obel = vrf.find_bel(odie, (bel.col, orow), bel.key);
         assert!(obel.is_some());
     }
@@ -420,23 +432,23 @@ fn verify_laguna(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     }
 }
 
-fn verify_laguna_extra(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_laguna_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let skip = if bel.row.to_idx() < 60 {
         bel.die.to_idx() == 0
     } else {
-        bel.die.to_idx() == edev.grids.len() - 1
+        bel.die.to_idx() == endev.edev.grids.len() - 1
     };
     let bel_vcc = vrf.find_bel_sibling(bel, "VCC.LAGUNA");
     let mut obel = None;
 
     if bel.row.to_idx() < 60 && !skip {
         let odie = bel.die - 1;
-        let orow = RowId::from_idx(edev.egrid.die(odie).rows().len() - 60 + bel.row.to_idx());
+        let orow = RowId::from_idx(endev.edev.egrid.die(odie).rows().len() - 60 + bel.row.to_idx());
         obel = vrf.find_bel(odie, (bel.col, orow), bel.key);
         assert!(obel.is_some());
     }
 
-    if !edev.is_cut {
+    if !endev.edev.is_cut {
         vrf.claim_node(&[bel.fwire("RXD")]);
         vrf.claim_pip(bel.crd(), bel.wire("RXD"), bel.wire("TXOUT"));
         vrf.claim_pip(bel.crd(), bel.wire("RXD"), bel.wire("UBUMP"));
@@ -455,7 +467,16 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("VCC")]);
 }
 
-fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pcie(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
+    let reg = grid.row_to_reg(bel.row);
+    if endev
+        .edev
+        .disabled
+        .contains(&DisabledPart::HardIp(bel.die, bel.col, reg))
+    {
+        return;
+    }
     let kind = match bel.key {
         "PCIE" => "PCIE_3_1",
         "PCIE4" => "PCIE40E4",
@@ -473,7 +494,7 @@ fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     );
     vrf.claim_node(&[bel.fwire("MCAP_PERST0_B")]);
     vrf.claim_node(&[bel.fwire("MCAP_PERST1_B")]);
-    if vrf.find_bel_delta(bel, 0, 60, "CFG").is_some() && !edev.grids[bel.die].is_nocfg() {
+    if vrf.find_bel_delta(bel, 0, 60, "CFG").is_some() && !endev.edev.grids[bel.die].is_nocfg() {
         vrf.claim_pip(
             bel.crd(),
             bel.wire("MCAP_PERST0_B"),
@@ -485,18 +506,18 @@ fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
             bel.wire_far("MCAP_PERST1_B"),
         );
         let obel = get_hpiob_bel(
-            edev,
+            endev,
             vrf,
-            *edev.cfg_io[bel.die]
+            *endev.edev.cfg_io[bel.die]
                 .get_by_left(&SharedCfgPin::PerstN0)
                 .unwrap(),
         );
         vrf.verify_node(&[bel.fwire_far("MCAP_PERST0_B"), obel.fwire("DOUT")]);
         let obel = get_hpiob_bel(
-            edev,
+            endev,
             vrf,
-            *edev.cfg_io[bel.die]
-                .get_by_left(&match edev.kind {
+            *endev.edev.cfg_io[bel.die]
+                .get_by_left(&match endev.edev.kind {
                     GridKind::Ultrascale => SharedCfgPin::PerstN1,
                     GridKind::UltrascalePlus => SharedCfgPin::I2cSda,
                 })
@@ -519,10 +540,19 @@ fn verify_pcie(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     }
 }
 
-fn verify_cmac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_cmac(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
+    let reg = grid.row_to_reg(bel.row);
+    if endev
+        .edev
+        .disabled
+        .contains(&DisabledPart::HardIp(bel.die, bel.col, reg))
+    {
+        return;
+    }
     vrf.verify_bel(
         bel,
-        if edev.kind == GridKind::Ultrascale {
+        if endev.edev.kind == GridKind::Ultrascale {
             "CMAC_SITE"
         } else {
             "CMACE4"
@@ -531,10 +561,19 @@ fn verify_cmac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         &[],
     );
 }
-fn verify_ilkn(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ilkn(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
+    let reg = grid.row_to_reg(bel.row);
+    if endev
+        .edev
+        .disabled
+        .contains(&DisabledPart::HardIp(bel.die, bel.col, reg))
+    {
+        return;
+    }
     vrf.verify_bel(
         bel,
-        if edev.kind == GridKind::Ultrascale {
+        if endev.edev.kind == GridKind::Ultrascale {
             "ILKN_SITE"
         } else {
             "ILKNE4"
@@ -544,7 +583,7 @@ fn verify_ilkn(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     );
 }
 
-fn verify_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_ps(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins_clk = [
         (0, 0, "O_DBG_L0_TXCLK"),
         (0, 1, "O_DBG_L0_RXCLK"),
@@ -641,12 +680,12 @@ fn verify_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     for &pin in &pins_dummy_in {
         pins.push((pin, SitePinDir::In));
     }
-    if !edev.disabled.contains(&DisabledPart::Ps) {
+    if !endev.edev.disabled.contains(&DisabledPart::Ps) {
         vrf.verify_bel_dummies(bel, "PS8", &pins, &[], &pins_dummy_in);
     }
 }
 
-fn verify_vcu(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_vcu(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let pins_clk = [(0, "VCU_PLL_TEST_CLK_OUT0"), (1, "VCU_PLL_TEST_CLK_OUT1")];
     let obel = vrf.find_bel_delta(bel, 0, 30, "RCLK_PS").unwrap();
     let mut pins = vec![];
@@ -654,17 +693,17 @@ fn verify_vcu(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         vrf.claim_node(&[bel.fwire(pin), obel.fwire(&format!("PS_TO_PL_CLK{idx}"))]);
         pins.push((pin, SitePinDir::Out));
     }
-    if !edev.disabled.contains(&DisabledPart::Vcu) {
+    if !endev.edev.disabled.contains(&DisabledPart::Vcu) {
         vrf.verify_bel(bel, "VCU", &pins, &[]);
     }
 }
 
-fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_sysmon(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let vaux: Vec<_> = (0..16)
         .map(|i| (format!("VP_AUX{i}"), format!("VN_AUX{i}")))
         .collect();
     let mut pins = vec![];
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         pins.extend([
             ("I2C_SCLK_IN", SitePinDir::In),
             ("I2C_SCLK_TS", SitePinDir::Out),
@@ -672,18 +711,18 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             ("I2C_SDA_TS", SitePinDir::Out),
         ]);
         let obel = get_hpiob_bel(
-            edev,
+            endev,
             vrf,
-            *edev.cfg_io[bel.die]
+            *endev.edev.cfg_io[bel.die]
                 .get_by_left(&SharedCfgPin::I2cSclk)
                 .unwrap(),
         );
         vrf.verify_node(&[bel.fwire("I2C_SCLK_TS"), obel.fwire_far("TSDI")]);
         vrf.verify_node(&[bel.fwire_far("I2C_SCLK_IN"), obel.fwire("DOUT")]);
         let obel = get_hpiob_bel(
-            edev,
+            endev,
             vrf,
-            *edev.cfg_io[bel.die]
+            *endev.edev.cfg_io[bel.die]
                 .get_by_left(&SharedCfgPin::I2cSda)
                 .unwrap(),
         );
@@ -703,7 +742,7 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     for (vp, vn) in &vaux {
         pins.extend([(&vp[..], SitePinDir::In), (&vn[..], SitePinDir::In)]);
     }
-    let kind = match edev.kind {
+    let kind = match endev.edev.kind {
         GridKind::Ultrascale => "SYSMONE1",
         GridKind::UltrascalePlus => "SYSMONE4",
     };
@@ -711,7 +750,7 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     for (pin, _) in pins {
         vrf.claim_node(&[bel.fwire(pin)]);
     }
-    if edev.kind == GridKind::UltrascalePlus {
+    if endev.edev.kind == GridKind::UltrascalePlus {
         for i in 0..16 {
             for pn in ['P', 'N'] {
                 let pin = format!("V{pn}_AUX{i}");
@@ -722,20 +761,24 @@ fn verify_sysmon(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
     }
 }
 
-fn verify_abus_switch(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_abus_switch(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
     let mut pins = &[][..];
-    if edev.kind == GridKind::UltrascalePlus && !bel.bel.pins.contains_key("TEST_ANALOGBUS_SEL_B") {
+    if endev.edev.kind == GridKind::UltrascalePlus
+        && !bel.bel.pins.contains_key("TEST_ANALOGBUS_SEL_B")
+    {
         pins = &[("TEST_ANALOGBUS_SEL_B", SitePinDir::In)];
     }
     let mut skip = false;
     if bel.node_kind.starts_with("GTM") {
-        skip = edev
+        skip = endev
+            .edev
             .disabled
             .contains(&DisabledPart::Gt(bel.die, bel.col, reg));
     }
-    if edev
+    if endev
+        .edev
         .disabled
         .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg))
     {
@@ -802,14 +845,14 @@ fn verify_bufce_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
 }
 
 fn find_hdistr_src<'a>(
-    edev: &ExpandedDevice,
+    endev: &ExpandedNamedDevice,
     vrf: &Verifier<'a>,
     die: DieId,
     col: ColId,
     row: RowId,
     side: ColSide,
 ) -> BelContext<'a> {
-    let src = edev.hdistr_src[col][side];
+    let src = endev.edev.hdistr_src[col][side];
     match src {
         ClkSrc::Gt(scol) => vrf
             .find_bel(die, (scol, row), "RCLK_GT_R")
@@ -827,14 +870,14 @@ fn find_hdistr_src<'a>(
 }
 
 fn find_hroute_src<'a>(
-    edev: &ExpandedDevice,
+    endev: &ExpandedNamedDevice,
     vrf: &Verifier<'a>,
     die: DieId,
     col: ColId,
     row: RowId,
     side: ColSide,
 ) -> BelContext<'a> {
-    let src = edev.hroute_src[col][side];
+    let src = endev.edev.hroute_src[col][side];
     match src {
         ClkSrc::Gt(scol) => vrf
             .find_bel(die, (scol, row), "RCLK_GT_R")
@@ -850,8 +893,8 @@ fn find_hroute_src<'a>(
     }
 }
 
-fn verify_rclk_int(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let obel = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+fn verify_rclk_int(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let obel = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
     for i in 0..24 {
         vrf.verify_node(&[
             bel.fwire(&format!("HDISTR{i}")),
@@ -860,7 +903,7 @@ fn verify_rclk_int(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 }
 
-fn verify_rclk_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_splitter(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_SPLITTER");
     for i in 0..24 {
         vrf.claim_pip(
@@ -904,8 +947,8 @@ fn verify_rclk_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCont
             bel.wire(&format!("HDISTR{i}_L")),
         );
     }
-    let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
-    let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
+    let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
+    let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
     for i in 0..24 {
         vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_L"))]);
         vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
@@ -920,7 +963,11 @@ fn verify_rclk_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCont
     }
 }
 
-fn verify_rclk_hroute_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_hroute_splitter(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &BelContext<'_>,
+) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_HROUTE_SPLITTER");
     for i in 0..24 {
         vrf.claim_pip(
@@ -949,7 +996,7 @@ fn verify_rclk_hroute_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &
     } else {
         ColSide::Right
     };
-    let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, side);
+    let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, side);
     for i in 0..24 {
         vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
         vrf.verify_node(&[
@@ -959,14 +1006,14 @@ fn verify_rclk_hroute_splitter(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &
     }
 }
 
-fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_bufce_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let pins = vec![
         ("CLK_IN", SitePinDir::In),
         ("CLK_OUT", SitePinDir::Out),
         ("CLK_OUT_OPT_DLY", SitePinDir::Out),
     ];
-    let kind = if edev.kind == GridKind::UltrascalePlus {
+    let kind = if endev.edev.kind == GridKind::UltrascalePlus {
         "BUFCE_ROW_FSR"
     } else {
         "BUFCE_ROW"
@@ -986,8 +1033,8 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
 
     let obel_gtb = vrf.find_bel_sibling(bel, &format!("GCLK_TEST_BUF_{k}", k = &bel.key[10..]));
     if let Some(hidx) = hidx {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
-        let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+        let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
         vrf.verify_node(&[
             obel_gtb.fwire_far("CLK_IN"),
             obel_hd.fwire(&format!("HDISTR{hidx}_L")),
@@ -1008,7 +1055,7 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
             return None;
         }
         let odie = bel.die - 1;
-        let ogrid = edev.grids[odie];
+        let ogrid = endev.edev.grids[odie];
         vrf.find_bel(
             odie,
             (
@@ -1045,7 +1092,7 @@ fn verify_bufce_row(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
     vrf.claim_node(&[bel.fwire("VDISTR_B_MUX")]);
     vrf.claim_node(&[bel.fwire("VDISTR_T_MUX")]);
 
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_B"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), bel.wire("VDISTR_T"));
 
@@ -1173,7 +1220,7 @@ fn verify_bufg_ps(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_node(&[bel.fwire("CLK_IN_DUMMY")]);
 }
 
-fn verify_rclk_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_ps(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_PS");
     for i in 0..24 {
         vrf.claim_pip(
@@ -1188,7 +1235,7 @@ fn verify_rclk_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             obel.wire("CLK_OUT"),
         );
     }
-    let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+    let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
     for i in 0..24 {
         vrf.verify_node(&[
             bel.fwire(&format!("HROUTE{i}")),
@@ -1197,12 +1244,12 @@ fn verify_rclk_ps(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 }
 
-fn verify_hdiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_hdiob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[7..].parse().unwrap();
     let is_b = bel.row.to_idx() % 60 == 0;
     let is_m = bel.key.starts_with("HDIOB_M");
     let hid = HdioIobId::from_idx(2 * idx + if is_b { 0 } else { 12 } + if is_m { 0 } else { 1 });
-    let grid = edev.grids[bel.die];
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
     let kind = if is_m { "HDIOB_M" } else { "HDIOB_S" };
     let pins = [
@@ -1220,7 +1267,8 @@ fn verify_hdiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         ("IO", SitePinDir::In),
         ("SWITCH_OUT", SitePinDir::Out),
     ];
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::HdioIob(bel.die, bel.col, reg, hid))
     {
@@ -1275,11 +1323,11 @@ fn verify_hdiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     }
 }
 
-fn verify_hdiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_hdiodiffin(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[10..].parse().unwrap();
     let is_b = bel.row.to_idx() % 60 == 0;
     let hid = HdioIobId::from_idx(2 * idx + if is_b { 0 } else { 12 });
-    let grid = edev.grids[bel.die];
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
     let pins = [
         ("LVDS_TRUE", SitePinDir::Out),
@@ -1287,7 +1335,8 @@ fn verify_hdiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         ("PAD_RES_0", SitePinDir::In),
         ("PAD_RES_1", SitePinDir::In),
     ];
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::HdioIob(bel.die, bel.col, reg, hid))
     {
@@ -1362,7 +1411,7 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_bufgce: [_; 4] =
         core::array::from_fn(|i| vrf.find_bel_sibling(bel, &format!("BUFGCE_HDIO{i}")));
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_HDIO");
@@ -1440,15 +1489,15 @@ fn verify_rclk_hdio(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
         vrf.verify_node(&[bel.fwire(&format!("CCIO{i}")), obel.fwire("I")]);
     }
 
-    if bel.col == edev.grids[bel.die].columns.last_id().unwrap() {
+    if bel.col == endev.edev.grids[bel.die].columns.last_id().unwrap() {
         for i in 0..24 {
             vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
             vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_R"))]);
             vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_L"))]);
         }
     } else {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
-        let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
+        let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col + 1, bel.row, ColSide::Left);
         for i in 0..24 {
             vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
             vrf.verify_node(&[
@@ -1488,7 +1537,7 @@ fn verify_bufce_row_io(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
 }
 
-fn verify_bufgce(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bufgce(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.node_kind != "CMT_R";
     let hr_lr = if is_l { 'L' } else { 'R' };
     let pins = vec![("CLK_IN", SitePinDir::In), ("CLK_OUT", SitePinDir::Out)];
@@ -1553,7 +1602,7 @@ fn verify_bufgce(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>
             obel_cmt.wire(&format!("CCIO{i}")),
         );
     }
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         for i in 0..8 {
             let ii = [0, 6, 13, 19, 26, 32, 39, 45][i];
             let obel = vrf.find_bel_sibling(bel, &format!("BITSLICE_RX_TX{ii}"));
@@ -1660,10 +1709,10 @@ fn verify_bufgce_div(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("CLK_IN"), obel.wire_far("CLK_IN"));
 }
 
-fn verify_mmcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_mmcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.node_kind != "CMT_R";
     let hr_lr = if is_l { 'L' } else { 'R' };
-    let kind = match edev.kind {
+    let kind = match endev.edev.kind {
         GridKind::Ultrascale => "MMCME3_ADV",
         GridKind::UltrascalePlus => "MMCM",
     };
@@ -1780,7 +1829,7 @@ fn verify_mmcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
         for i in 0..4 {
             vrf.claim_pip(bel.crd(), bel.wire(pin), obel_cmt.wire(&format!("CCIO{i}")));
         }
-        if edev.kind == GridKind::Ultrascale {
+        if endev.edev.kind == GridKind::Ultrascale {
             for i in 0..8 {
                 let ii = [0, 6, 13, 19, 26, 32, 39, 45][i];
                 let obel = vrf.find_bel_sibling(bel, &format!("BITSLICE_RX_TX{ii}"));
@@ -1810,10 +1859,10 @@ fn verify_mmcm(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) 
     }
 }
 
-fn verify_pll(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_pll(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.node_kind != "CMT_R";
     let hr_lr = if is_l { 'L' } else { 'R' };
-    let kind = match edev.kind {
+    let kind = match endev.edev.kind {
         GridKind::Ultrascale => "PLLE3_ADV",
         GridKind::UltrascalePlus => "PLL",
     };
@@ -1898,7 +1947,7 @@ fn verify_pll(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             obel_cmt.wire(&format!("CCIO{i}")),
         );
     }
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         for i in 0..8 {
             let ii = [0, 6, 13, 19, 26, 32, 39, 45][i];
             let obel = vrf.find_bel_sibling(bel, &format!("BITSLICE_RX_TX{ii}"));
@@ -1994,7 +2043,7 @@ fn verify_hbm_ref_clk(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
 }
 
-fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.node_kind != "CMT_R";
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.CMT");
 
@@ -2054,7 +2103,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
     }
 
-    let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
+    let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
     for i in 0..24 {
         vrf.claim_node(&[bel.fwire(&format!("HROUTE{i}_L"))]);
         if is_l {
@@ -2109,8 +2158,8 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         );
     }
 
-    if edev.kind == GridKind::Ultrascale {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
+    if endev.edev.kind == GridKind::Ultrascale {
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
         for i in 0..24 {
             vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_L"))]);
             vrf.verify_node(&[
@@ -2119,7 +2168,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
             ]);
         }
     } else {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Right);
         for i in 0..24 {
             vrf.verify_node(&[
                 bel.fwire(&format!("HDISTR{i}_L")),
@@ -2245,7 +2294,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         ]);
     }
 
-    if edev.kind == GridKind::UltrascalePlus {
+    if endev.edev.kind == GridKind::UltrascalePlus {
         for i in 0..8 {
             let ii = match i % 2 {
                 0 => 0,
@@ -2262,7 +2311,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         }
     }
 
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         for i in 0..6 {
             for bt in ['B', 'T'] {
                 let pin = format!("XIPHY_CLK{i}_{bt}");
@@ -2276,7 +2325,7 @@ fn verify_cmt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_bitslice_rx_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bitslice_rx_tx(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[14..].parse().unwrap();
     let bidx = idx / 13;
     let bsidx = idx % 13;
@@ -2361,7 +2410,7 @@ fn verify_bitslice_rx_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
         ("CLB2PHY_FIFO_CLK", format!("CLB2PHY_FIFO_CLK_SMX{bsidx}")),
     ];
 
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         pins_feed.extend([
             ("RX_RESET_B", format!("CLB2PHY_IDELAY_RST_B_SMX{bsidx}")),
             ("TX_REGRST_B", format!("CLB2PHY_ODELAY_RST_B_SMX{bsidx}")),
@@ -2430,7 +2479,7 @@ fn verify_bitslice_rx_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
 
     vrf.claim_node(&[bel.fwire_far("RX_CLK")]);
 
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         let obel = vrf.find_bel_sibling(bel, "CMT");
         let bt = if bidx < 2 { 'B' } else { 'T' };
         for i in 0..6 {
@@ -2499,7 +2548,7 @@ fn verify_bitslice_rx_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelCon
     );
 }
 
-fn verify_bitslice_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bitslice_tx(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[11..].parse().unwrap();
     let obel_bsctl = vrf.find_bel_sibling(bel, &format!("BITSLICE_CONTROL{idx}"));
     let obel_feed = vrf.find_bel_sibling(bel, &format!("XIPHY_FEEDTHROUGH{ii}", ii = idx / 2));
@@ -2540,7 +2589,7 @@ fn verify_bitslice_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
         pins.push((pin, SitePinDir::In));
         vrf.claim_pip(bel.crd(), bel.wire(pin), obel_bsctl.wire(opin));
     }
-    let feed_pins = if edev.kind == GridKind::Ultrascale {
+    let feed_pins = if endev.edev.kind == GridKind::Ultrascale {
         [
             (
                 "REGRST_B",
@@ -2604,7 +2653,7 @@ fn verify_bitslice_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
         vrf.claim_node(&[bel.fwire(pin)]);
     }
 
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         let obel = vrf.find_bel_sibling(bel, "CMT");
         let bt = if idx < 4 { 'B' } else { 'T' };
         for i in 0..6 {
@@ -2626,8 +2675,8 @@ fn verify_bitslice_tx(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     };
 }
 
-fn verify_bitslice_control(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_bitslice_control(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[16..].parse().unwrap();
     let obel_pll_sel = vrf.find_bel_sibling(bel, &format!("PLL_SELECT{idx}"));
     let obel_bstx = vrf.find_bel_sibling(bel, &format!("BITSLICE_TX{idx}"));
@@ -2838,7 +2887,7 @@ fn verify_bitslice_control(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelC
                 _ => unreachable!(),
             },
         ),
-        if edev.kind == GridKind::Ultrascale {
+        if endev.edev.kind == GridKind::Ultrascale {
             (
                 "CLB2PHY_CTRL_RST_B",
                 match idx % 2 {
@@ -2882,7 +2931,7 @@ fn verify_bitslice_control(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelC
         bel.wire("NDQS_GT_IN"),
         obel_bsctl_on.wire("NDQS_GT_OUT"),
     );
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         let is_from_n = idx < 4;
         let obel_bsctl_ob = vrf.find_bel_sibling(
             bel,
@@ -2933,8 +2982,8 @@ fn verify_bitslice_control(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelC
     }
 }
 
-fn verify_pll_select(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_pll_select(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[10..].parse().unwrap();
     let pins = vec![
         ("D0", SitePinDir::In),
@@ -2998,7 +3047,7 @@ fn verify_riu_or(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_xiphy_feedthrough(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_xiphy_feedthrough(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[17..].parse().unwrap();
     let obel_bsctl_l = vrf.find_bel_sibling(bel, &format!("BITSLICE_CONTROL{ii}", ii = idx * 2));
     let obel_bsctl_u =
@@ -3016,7 +3065,7 @@ fn verify_xiphy_feedthrough(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &Bel
         ("RCLK2PHY_CLKDR", SitePinDir::In),
         ("RCLK2PHY_SHIFTDR", SitePinDir::In),
     ];
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         pins.extend([
             // to BSCTL
             ("CLB2PHY_CTRL_RST_B_LOW_SMX", SitePinDir::Out),
@@ -3053,7 +3102,7 @@ fn verify_xiphy_feedthrough(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &Bel
     // to BITSLICE_RX_TX
     for i in 0..13 {
         opins.push(format!("CLB2PHY_FIFO_CLK_SMX{i}"));
-        if edev.kind == GridKind::Ultrascale {
+        if endev.edev.kind == GridKind::Ultrascale {
             opins.push(format!("CLB2PHY_TXBIT_RST_B_SMX{i}"));
             opins.push(format!("CLB2PHY_RXBIT_RST_B_SMX{i}"));
             opins.push(format!("CLB2PHY_IDELAY_RST_B_SMX{i}"));
@@ -3101,8 +3150,8 @@ fn verify_xiphy_feedthrough(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &Bel
     }
 }
 
-fn verify_xiphy_byte(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_xiphy_byte(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let srow = grid.row_rclk(bel.row);
     let obel = vrf
         .find_bel(bel.die, (bel.col, srow), "RCLK_XIPHY")
@@ -3116,7 +3165,7 @@ fn verify_xiphy_byte(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     }
 }
 
-fn verify_rclk_xiphy(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_xiphy(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_XIPHY");
     let hd_lr = match bel.node_kind {
         "RCLK_XIPHY_L" => 'R',
@@ -3161,7 +3210,7 @@ fn verify_rclk_xiphy(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         vrf.claim_node(&[bel.fwire(&format!("HDISTR{i}_L"))]);
     }
     if bel.node_kind == "RCLK_XIPHY_L" {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
         for i in 0..24 {
             vrf.verify_node(&[
                 bel.fwire(&format!("HDISTR{i}_R")),
@@ -3175,8 +3224,8 @@ fn verify_rclk_xiphy(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     }
 }
 
-fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hpiob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[5..].parse().unwrap();
     let pidx = if matches!(idx, 12 | 25) {
         None
@@ -3187,7 +3236,7 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     };
     let is_single = pidx.is_none();
     let is_m = !is_single && if idx < 13 { idx % 2 == 0 } else { idx % 2 == 1 };
-    let kind = if edev.kind == GridKind::Ultrascale {
+    let kind = if endev.edev.kind == GridKind::Ultrascale {
         "HPIOB"
     } else if is_single {
         "HPIOB_SNGL"
@@ -3231,23 +3280,24 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     ];
 
     // to differential in
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         pins.push(("CTLE_IN", SitePinDir::Out));
     }
-    if edev.kind == GridKind::Ultrascale || !matches!(idx, 12 | 25) {
+    if endev.edev.kind == GridKind::Ultrascale || !matches!(idx, 12 | 25) {
         pins.push(("PAD_RES", SitePinDir::Out));
     }
 
     let mut dummies = vec![];
     if is_single {
         dummies.push("IO");
-        if edev.kind == GridKind::UltrascalePlus {
+        if endev.edev.kind == GridKind::UltrascalePlus {
             dummies.push("LVDS_TRUE");
             dummies.push("OUTB_B_IN");
             dummies.push("TSTATE_IN");
         }
     }
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::HpioIob(bel.die, bel.col, reg, hid))
     {
@@ -3263,11 +3313,11 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         let obel = vrf.find_bel_sibling(bel, &format!("HPIOB{pidx}"));
         vrf.claim_pip(bel.crd(), bel.wire("OUTB_B_IN"), obel.wire("OUTB_B"));
         vrf.claim_pip(bel.crd(), bel.wire("TSTATE_IN"), obel.wire("TSTATE_OUT"));
-    } else if edev.kind == GridKind::Ultrascale {
+    } else if endev.edev.kind == GridKind::Ultrascale {
         vrf.claim_pip(bel.crd(), bel.wire("OUTB_B_IN"), bel.wire("OUTB_B"));
     }
 
-    let obel_bs = if edev.kind == GridKind::Ultrascale {
+    let obel_bs = if endev.edev.kind == GridKind::Ultrascale {
         let srow = grid.row_rclk(bel.row);
         vrf.find_bel(
             bel.die,
@@ -3306,7 +3356,7 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         },
         iob: hid,
     });
-    let cfg = edev.cfg_io[bel.die].get_by_right(&crd);
+    let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);
     let is_cfg = match cfg {
         Some(SharedCfgPin::PerstN0) => false,
         Some(SharedCfgPin::PerstN1) => false,
@@ -3315,13 +3365,13 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         None => false,
     };
     let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
-        && edev.kind == GridKind::Ultrascale;
+        && endev.edev.kind == GridKind::Ultrascale;
     if is_ams {
         vrf.claim_node(&[bel.fwire("TSDI")]);
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
-    } else if edev.is_cut {
-        if !(edev.is_cut_d
-            && edev.kind == GridKind::UltrascalePlus
+    } else if endev.edev.is_cut {
+        if !(endev.edev.is_cut_d
+            && endev.edev.kind == GridKind::UltrascalePlus
             && bel.wire("TSDI") == bel.wire_far("TSDI")
             && is_cfg)
         {
@@ -3386,8 +3436,8 @@ fn verify_hpiob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
     );
 }
 
-fn verify_hpiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hpiodiffin(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[10..].parse().unwrap();
     let (pidx, nidx) = if idx < 6 {
         (idx * 2, idx * 2 + 1)
@@ -3403,7 +3453,8 @@ fn verify_hpiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
             sidx + 26
         };
         let hid = HpioIobId::from_idx(fidx);
-        disabled |= edev
+        disabled |= endev
+            .edev
             .disabled
             .contains(&DisabledPart::HpioIob(bel.die, bel.col, reg, hid));
     }
@@ -3414,7 +3465,7 @@ fn verify_hpiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         ("LVDS_COMP", SitePinDir::Out),
         ("VREF", SitePinDir::In),
     ];
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         pins.push(("CTLE_IN_1", SitePinDir::In));
     }
     if !disabled {
@@ -3430,7 +3481,7 @@ fn verify_hpiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     vrf.claim_pip(bel.crd(), bel.wire("PAD_RES_1"), obel_n.wire("PAD_RES"));
     vrf.claim_pip(bel.crd(), obel_p.wire("LVDS_TRUE"), bel.wire("LVDS_TRUE"));
     vrf.claim_pip(bel.crd(), obel_n.wire("LVDS_TRUE"), bel.wire("LVDS_COMP"));
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         vrf.claim_pip(bel.crd(), bel.wire("CTLE_IN_1"), obel_n.wire("CTLE_IN"));
     }
 
@@ -3442,8 +3493,8 @@ fn verify_hpiodiffin(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     );
 }
 
-fn verify_hpiodiffout(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hpiodiffout(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[11..].parse().unwrap();
     let (pidx, nidx) = if idx < 6 {
         (idx * 2, idx * 2 + 1)
@@ -3459,7 +3510,8 @@ fn verify_hpiodiffout(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
             sidx + 26
         };
         let hid = HpioIobId::from_idx(fidx);
-        disabled |= edev
+        disabled |= endev
+            .edev
             .disabled
             .contains(&DisabledPart::HpioIob(bel.die, bel.col, reg, hid));
     }
@@ -3492,10 +3544,11 @@ fn verify_hpio_vref(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_hpio_dci(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hpio_dci(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::HpioDci(bel.die, bel.col, reg))
     {
@@ -3503,8 +3556,8 @@ fn verify_hpio_dci(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     }
 }
 
-fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hriob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[5..].parse().unwrap();
     let pidx = if matches!(idx, 12 | 25) {
         None
@@ -3590,7 +3643,7 @@ fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         side: ColSide::Left,
         iob: hid,
     });
-    let cfg = edev.cfg_io[bel.die].get_by_right(&crd);
+    let cfg = endev.edev.cfg_io[bel.die].get_by_right(&crd);
     let is_cfg = match cfg {
         Some(SharedCfgPin::PerstN0) => false,
         Some(SharedCfgPin::PerstN1) => false,
@@ -3599,10 +3652,10 @@ fn verify_hriob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>)
         None => false,
     };
     let is_ams = matches!(cfg, Some(SharedCfgPin::I2cSda | SharedCfgPin::I2cSclk))
-        && edev.kind == GridKind::Ultrascale;
+        && endev.edev.kind == GridKind::Ultrascale;
     if is_ams {
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
-    } else if !edev.is_cut && !is_cfg && bel.wire("TSDI") != bel.wire_far("TSDI") {
+    } else if !endev.edev.is_cut && !is_cfg && bel.wire("TSDI") != bel.wire_far("TSDI") {
         vrf.claim_pip(bel.crd(), bel.wire("TSDI"), bel.wire_far("TSDI"));
         vrf.claim_node(&[bel.fwire_far("TSDI")]);
     }
@@ -3722,8 +3775,8 @@ fn verify_hriodiffout(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), obel_n.wire("IO"), bel.wire("BOUT"));
 }
 
-fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_bufg_gt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
     let mut pins = vec![
         ("CLK_IN", SitePinDir::In),
@@ -3738,7 +3791,8 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
             ("DIV2", SitePinDir::In),
         ]);
     }
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg))
     {
@@ -3749,7 +3803,7 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.GT");
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         let gtk = &bel.node_kind[..3];
         for (key, pin) in [
             ("COMMON", "REFCLK2HROW0"),
@@ -3903,13 +3957,13 @@ fn verify_bufg_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 }
 
-fn verify_bufg_gt_sync(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_bufg_gt_sync(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let idx: usize = bel.key[12..].parse().unwrap();
     let mut pins = vec![("CE_OUT", SitePinDir::Out), ("RST_OUT", SitePinDir::Out)];
     let mut dummies = vec![];
     let mut is_int = false;
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         if idx == 10 {
             is_int = true;
         } else {
@@ -3993,11 +4047,13 @@ fn verify_bufg_gt_sync(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelConte
     }
 
     let reg = grid.row_to_reg(bel.row);
-    let skip = (edev
+    let skip = (endev
+        .edev
         .disabled
         .contains(&DisabledPart::GtmSpareBufs(bel.die, bel.col, reg))
         && matches!(idx, 6 | 13))
-        || edev
+        || endev
+            .edev
             .disabled
             .contains(&DisabledPart::GtBufs(bel.die, bel.col, reg));
     if !skip {
@@ -4010,16 +4066,16 @@ fn verify_bufg_gt_sync(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelConte
     }
 }
 
-fn verify_gt_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_gt_channel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let idx: usize = bel.key[11..].parse().unwrap();
-    let grid = edev.grids[bel.die];
+    let grid = endev.edev.grids[bel.die];
     let kind = if bel.key.starts_with("GTH") {
-        match edev.kind {
+        match endev.edev.kind {
             GridKind::Ultrascale => "GTHE3_CHANNEL",
             GridKind::UltrascalePlus => "GTHE4_CHANNEL",
         }
     } else if bel.key.starts_with("GTY") {
-        match edev.kind {
+        match endev.edev.kind {
             GridKind::Ultrascale => "GTYE3_CHANNEL",
             GridKind::UltrascalePlus => "GTYE4_CHANNEL",
         }
@@ -4045,12 +4101,13 @@ fn verify_gt_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         ("RXRECCLK_INT", SitePinDir::Out),
         ("TXOUTCLK_INT", SitePinDir::Out),
     ];
-    if edev.kind == GridKind::UltrascalePlus {
+    if endev.edev.kind == GridKind::UltrascalePlus {
         // to BUFG_*
         pins.push(("DMONOUTCLK_INT", SitePinDir::Out));
     }
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::Gt(bel.die, bel.col, reg))
     {
@@ -4061,7 +4118,7 @@ fn verify_gt_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     }
 
     let obel = vrf.find_bel_sibling(bel, &format!("{pref}_COMMON", pref = &bel.key[..3]));
-    let cross_qdpll = edev.kind == GridKind::Ultrascale && bel.key.starts_with("GTH");
+    let cross_qdpll = endev.edev.kind == GridKind::Ultrascale && bel.key.starts_with("GTH");
     for (pin, opin) in [
         ("MGTREFCLK0", "MGTREFCLK0"),
         ("MGTREFCLK1", "MGTREFCLK1"),
@@ -4097,15 +4154,15 @@ fn verify_gt_channel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     );
 }
 
-fn verify_gt_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_gt_common(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let kind = if bel.key.starts_with("GTH") {
-        match edev.kind {
+        match endev.edev.kind {
             GridKind::Ultrascale => "GTHE3_COMMON",
             GridKind::UltrascalePlus => "GTHE4_COMMON",
         }
     } else if bel.key.starts_with("GTY") {
-        match edev.kind {
+        match endev.edev.kind {
             GridKind::Ultrascale => "GTYE3_COMMON",
             GridKind::UltrascalePlus => "GTYE4_COMMON",
         }
@@ -4148,7 +4205,8 @@ fn verify_gt_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
         ("COM2_REFCLKOUT5", SitePinDir::In),
     ];
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::Gt(bel.die, bel.col, reg))
     {
@@ -4240,8 +4298,8 @@ fn verify_gt_common(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<
     }
 }
 
-fn verify_gtm_dual(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_gtm_dual(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let pins = [
         // BUFG_*
         ("CLK_BUFGT_CLK_IN_BOT0", SitePinDir::Out),
@@ -4271,14 +4329,15 @@ fn verify_gtm_dual(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
         ("RCALSEL1", SitePinDir::In),
     ];
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::Gt(bel.die, bel.col, reg))
     {
         vrf.verify_bel(bel, "GTM_DUAL", &pins, &[]);
     }
     for (pin, _) in pins {
-        if pin == "REFCLK_DIST2PLL1" && is_cut_u(edev, bel.die, bel.row) {
+        if pin == "REFCLK_DIST2PLL1" && is_cut_u(endev, bel.die, bel.row) {
             continue;
         }
         vrf.claim_node(&[bel.fwire(pin)]);
@@ -4346,8 +4405,8 @@ fn verify_gtm_dual(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'
     vrf.claim_node(&[bel.fwire("SOUTHCLKOUT_DUMMY1")]);
 }
 
-fn verify_gtm_refclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_gtm_refclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let pins = [
         ("HROW_TEST_CK_FS", SitePinDir::In),
         ("REFCLKPDB_SA", SitePinDir::In),
@@ -4359,7 +4418,8 @@ fn verify_gtm_refclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
         ("REFCLK2HROW", SitePinDir::Out),
     ];
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::Gt(bel.die, bel.col, reg))
     {
@@ -4379,8 +4439,8 @@ fn verify_gtm_refclk(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext
     }
 }
 
-fn verify_hsadc_hsdac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let grid = edev.grids[bel.die];
+fn verify_hsadc_hsdac(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let grid = endev.edev.grids[bel.die];
     let mut pins = vec![
         // to/from north/south
         ("SYSREF_IN_SOUTH_P", SitePinDir::In),
@@ -4415,7 +4475,8 @@ fn verify_hsadc_hsdac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
         ]);
     }
     let reg = grid.row_to_reg(bel.row);
-    if !edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::Gt(bel.die, bel.col, reg))
     {
@@ -4503,7 +4564,7 @@ fn verify_hsadc_hsdac(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContex
     }
 }
 
-fn verify_rclk_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_rclk_gt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let is_l = bel.key == "RCLK_GT_L";
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.GT");
     for i in 0..24 {
@@ -4517,8 +4578,8 @@ fn verify_rclk_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
         vrf.claim_pip(bel.crd(), bel.wire(&hd), obel.wire("CLK_OUT"));
     }
     if is_l {
-        let obel_hd = find_hdistr_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
-        let obel_hr = find_hroute_src(edev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+        let obel_hd = find_hdistr_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
+        let obel_hr = find_hroute_src(endev, vrf, bel.die, bel.col, bel.row, ColSide::Left);
         for i in 0..24 {
             vrf.verify_node(&[
                 bel.fwire(&format!("HDISTR{i}_R")),
@@ -4537,34 +4598,26 @@ fn verify_rclk_gt(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_
     }
 }
 
-fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
-        "SLICE_L" | "SLICE_R" => verify_slice(edev, vrf, bel),
-        "DSP0" | "DSP1" => verify_dsp(edev, vrf, bel),
-        "BRAM_F" => verify_bram_f(edev, vrf, bel),
+        "SLICE_L" | "SLICE_R" => verify_slice(endev, vrf, bel),
+        "DSP0" | "DSP1" => verify_dsp(endev, vrf, bel),
+        "BRAM_F" => verify_bram_f(endev, vrf, bel),
         "BRAM_H0" | "BRAM_H1" => verify_bram_h(vrf, bel),
         _ if bel.key.starts_with("HARD_SYNC") => vrf.verify_bel(bel, "HARD_SYNC", &[], &[]),
-        _ if bel.key.starts_with("URAM") => verify_uram(edev, vrf, bel),
-        "LAGUNA0" | "LAGUNA1" | "LAGUNA2" | "LAGUNA3" => verify_laguna(edev, vrf, bel),
-        "LAGUNA_EXTRA" => verify_laguna_extra(edev, vrf, bel),
+        _ if bel.key.starts_with("URAM") => verify_uram(endev, vrf, bel),
+        "LAGUNA0" | "LAGUNA1" | "LAGUNA2" | "LAGUNA3" => verify_laguna(endev, vrf, bel),
+        "LAGUNA_EXTRA" => verify_laguna_extra(endev, vrf, bel),
         _ if bel.key.starts_with("VCC") => verify_vcc(vrf, bel),
 
-        "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(edev, vrf, bel),
-        "CMAC" => verify_cmac(edev, vrf, bel),
-        "ILKN" => verify_ilkn(edev, vrf, bel),
+        "PCIE" | "PCIE4" | "PCIE4C" => verify_pcie(endev, vrf, bel),
+        "CMAC" => verify_cmac(endev, vrf, bel),
+        "ILKN" => verify_ilkn(endev, vrf, bel),
         "PMV"
         | "PMV2"
         | "PMVIOB"
         | "MTBF3"
         | "CFGIO_SITE"
-        | "DFE_A"
-        | "DFE_B"
-        | "DFE_C"
-        | "DFE_D"
-        | "DFE_E"
-        | "DFE_F"
-        | "DFE_G"
-        | "FE"
         | "BLI_HBM_APB_INTF"
         | "BLI_HBM_AXI_INTF"
         | "HDLOGIC_CSSD"
@@ -4572,82 +4625,103 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
         | "HDIO_BIAS"
         | "HPIO_ZMATCH_BLK_HCLK"
         | "HPIO_RCLK_PRBS" => vrf.verify_bel(bel, bel.key, &[], &[]),
+        "FE" => {
+            if !endev.edev.disabled.contains(&DisabledPart::Sdfec) {
+                vrf.verify_bel(bel, bel.key, &[], &[]);
+            }
+        }
+        "DFE_A" => {
+            let grid = endev.edev.grids[bel.die];
+            let reg = grid.row_to_reg(bel.row);
+            if !endev
+                .edev
+                .disabled
+                .contains(&DisabledPart::HardIp(bel.die, bel.col, reg))
+            {
+                vrf.verify_bel(bel, bel.key, &[], &[]);
+            }
+        }
+        "DFE_B" | "DFE_C" | "DFE_D" | "DFE_E" | "DFE_F" | "DFE_G" => {
+            if !endev.edev.disabled.contains(&DisabledPart::Dfe) {
+                vrf.verify_bel(bel, bel.key, &[], &[]);
+            }
+        }
         "CFG" => vrf.verify_bel(bel, "CONFIG_SITE", &[], &[]),
-        "SYSMON" => verify_sysmon(edev, vrf, bel),
-        "PS" => verify_ps(edev, vrf, bel),
-        "VCU" => verify_vcu(edev, vrf, bel),
-        _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(edev, vrf, bel),
+        "SYSMON" => verify_sysmon(endev, vrf, bel),
+        "PS" => verify_ps(endev, vrf, bel),
+        "VCU" => verify_vcu(endev, vrf, bel),
+        _ if bel.key.starts_with("ABUS_SWITCH") => verify_abus_switch(endev, vrf, bel),
         _ if bel.key.starts_with("VBUS_SWITCH") => vrf.verify_bel(bel, "VBUS_SWITCH", &[], &[]),
 
         _ if bel.key.starts_with("BUFCE_LEAF_X16") => verify_bufce_leaf_x16(vrf, bel),
         _ if bel.key.starts_with("BUFCE_LEAF") => verify_bufce_leaf(vrf, bel),
-        "RCLK_INT" => verify_rclk_int(edev, vrf, bel),
+        "RCLK_INT" => verify_rclk_int(endev, vrf, bel),
 
-        "RCLK_SPLITTER" => verify_rclk_splitter(edev, vrf, bel),
-        "RCLK_HROUTE_SPLITTER" => verify_rclk_hroute_splitter(edev, vrf, bel),
+        "RCLK_SPLITTER" => verify_rclk_splitter(endev, vrf, bel),
+        "RCLK_HROUTE_SPLITTER" => verify_rclk_hroute_splitter(endev, vrf, bel),
 
         _ if bel.key.starts_with("BUFCE_ROW_L") || bel.key.starts_with("BUFCE_ROW_R") => {
-            verify_bufce_row(edev, vrf, bel)
+            verify_bufce_row(endev, vrf, bel)
         }
         _ if bel.key.starts_with("GCLK_TEST_BUF") => verify_gclk_test_buf(vrf, bel),
 
         _ if bel.key.starts_with("BUFG_PS") => verify_bufg_ps(vrf, bel),
-        "RCLK_PS" => verify_rclk_ps(edev, vrf, bel),
+        "RCLK_PS" => verify_rclk_ps(endev, vrf, bel),
 
-        _ if bel.key.starts_with("HDIOB") => verify_hdiob(edev, vrf, bel),
-        _ if bel.key.starts_with("HDIODIFFIN") => verify_hdiodiffin(edev, vrf, bel),
+        _ if bel.key.starts_with("HDIOB") => verify_hdiob(endev, vrf, bel),
+        _ if bel.key.starts_with("HDIODIFFIN") => verify_hdiodiffin(endev, vrf, bel),
         _ if bel.key.starts_with("HDIOLOGIC") => verify_hdiologic(vrf, bel),
         _ if bel.key.starts_with("BUFGCE_HDIO") => verify_bufgce_hdio(vrf, bel),
-        "RCLK_HDIO" => verify_rclk_hdio(edev, vrf, bel),
+        "RCLK_HDIO" => verify_rclk_hdio(endev, vrf, bel),
 
         _ if bel.key.starts_with("BUFCE_ROW_IO") => verify_bufce_row_io(vrf, bel),
         _ if bel.key.starts_with("BUFGCE_DIV") => verify_bufgce_div(vrf, bel),
-        _ if bel.key.starts_with("BUFGCE") => verify_bufgce(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFGCE") => verify_bufgce(endev, vrf, bel),
         _ if bel.key.starts_with("BUFGCTRL") => verify_bufgctrl(vrf, bel),
-        "MMCM" => verify_mmcm(edev, vrf, bel),
-        "PLL0" | "PLL1" => verify_pll(edev, vrf, bel),
+        "MMCM" => verify_mmcm(endev, vrf, bel),
+        "PLL0" | "PLL1" => verify_pll(endev, vrf, bel),
         "HBM_REF_CLK0" | "HBM_REF_CLK1" => verify_hbm_ref_clk(vrf, bel),
-        "CMT" => verify_cmt(edev, vrf, bel),
+        "CMT" => verify_cmt(endev, vrf, bel),
 
-        _ if bel.key.starts_with("BITSLICE_RX_TX") => verify_bitslice_rx_tx(edev, vrf, bel),
-        _ if bel.key.starts_with("BITSLICE_TX") => verify_bitslice_tx(edev, vrf, bel),
-        _ if bel.key.starts_with("BITSLICE_CONTROL") => verify_bitslice_control(edev, vrf, bel),
-        _ if bel.key.starts_with("PLL_SELECT") => verify_pll_select(edev, vrf, bel),
+        _ if bel.key.starts_with("BITSLICE_RX_TX") => verify_bitslice_rx_tx(endev, vrf, bel),
+        _ if bel.key.starts_with("BITSLICE_TX") => verify_bitslice_tx(endev, vrf, bel),
+        _ if bel.key.starts_with("BITSLICE_CONTROL") => verify_bitslice_control(endev, vrf, bel),
+        _ if bel.key.starts_with("PLL_SELECT") => verify_pll_select(endev, vrf, bel),
         _ if bel.key.starts_with("RIU_OR") => verify_riu_or(vrf, bel),
-        _ if bel.key.starts_with("XIPHY_FEEDTHROUGH") => verify_xiphy_feedthrough(edev, vrf, bel),
-        "XIPHY_BYTE" => verify_xiphy_byte(edev, vrf, bel),
-        "RCLK_XIPHY" => verify_rclk_xiphy(edev, vrf, bel),
+        _ if bel.key.starts_with("XIPHY_FEEDTHROUGH") => verify_xiphy_feedthrough(endev, vrf, bel),
+        "XIPHY_BYTE" => verify_xiphy_byte(endev, vrf, bel),
+        "RCLK_XIPHY" => verify_rclk_xiphy(endev, vrf, bel),
 
-        _ if bel.key.starts_with("HPIOB") => verify_hpiob(edev, vrf, bel),
-        _ if bel.key.starts_with("HPIODIFFIN") => verify_hpiodiffin(edev, vrf, bel),
-        _ if bel.key.starts_with("HPIODIFFOUT") => verify_hpiodiffout(edev, vrf, bel),
+        _ if bel.key.starts_with("HPIOB") => verify_hpiob(endev, vrf, bel),
+        _ if bel.key.starts_with("HPIODIFFIN") => verify_hpiodiffin(endev, vrf, bel),
+        _ if bel.key.starts_with("HPIODIFFOUT") => verify_hpiodiffout(endev, vrf, bel),
         "HPIO_VREF" => verify_hpio_vref(vrf, bel),
         "HPIO_BIAS" => vrf.verify_bel(bel, "BIAS", &[], &[]),
-        _ if bel.key.starts_with("HPIO_DCI") => verify_hpio_dci(edev, vrf, bel),
+        _ if bel.key.starts_with("HPIO_DCI") => verify_hpio_dci(endev, vrf, bel),
 
-        _ if bel.key.starts_with("HRIOB") => verify_hriob(edev, vrf, bel),
+        _ if bel.key.starts_with("HRIOB") => verify_hriob(endev, vrf, bel),
         _ if bel.key.starts_with("HRIODIFFIN") => verify_hriodiffin(vrf, bel),
         _ if bel.key.starts_with("HRIODIFFOUT") => verify_hriodiffout(vrf, bel),
 
-        _ if bel.key.starts_with("BUFG_GT_SYNC") => verify_bufg_gt_sync(edev, vrf, bel),
-        _ if bel.key.starts_with("BUFG_GT") => verify_bufg_gt(edev, vrf, bel),
+        _ if bel.key.starts_with("BUFG_GT_SYNC") => verify_bufg_gt_sync(endev, vrf, bel),
+        _ if bel.key.starts_with("BUFG_GT") => verify_bufg_gt(endev, vrf, bel),
         _ if bel.key.starts_with("GTH_CHANNEL")
             || bel.key.starts_with("GTY_CHANNEL")
             || bel.key.starts_with("GTF_CHANNEL") =>
         {
-            verify_gt_channel(edev, vrf, bel)
+            verify_gt_channel(endev, vrf, bel)
         }
-        "GTH_COMMON" | "GTY_COMMON" | "GTF_COMMON" => verify_gt_common(edev, vrf, bel),
-        "GTM_DUAL" => verify_gtm_dual(edev, vrf, bel),
-        "GTM_REFCLK" => verify_gtm_refclk(edev, vrf, bel),
-        "HSADC" | "HSDAC" | "RFADC" | "RFDAC" => verify_hsadc_hsdac(edev, vrf, bel),
-        _ if bel.key.starts_with("RCLK_GT") => verify_rclk_gt(edev, vrf, bel),
+        "GTH_COMMON" | "GTY_COMMON" | "GTF_COMMON" => verify_gt_common(endev, vrf, bel),
+        "GTM_DUAL" => verify_gtm_dual(endev, vrf, bel),
+        "GTM_REFCLK" => verify_gtm_refclk(endev, vrf, bel),
+        "HSADC" | "HSDAC" | "RFADC" | "RFDAC" => verify_hsadc_hsdac(endev, vrf, bel),
+        _ if bel.key.starts_with("RCLK_GT") => verify_rclk_gt(endev, vrf, bel),
 
         _ => println!("MEOW {} {:?}", bel.key, bel.name),
     }
 }
 
-fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
+fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
     for w in [
         "CLK_VDISTR_FT0",
         "CLK_VROUTE_FT0",
@@ -4755,7 +4829,7 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     ] {
         vrf.kill_stub_out_cond(w);
     }
-    if edev.kind == GridKind::Ultrascale {
+    if endev.edev.kind == GridKind::Ultrascale {
         for i in 0..104 {
             vrf.kill_stub_in_cond_tk("INT_TERM_L_IO", &format!("GND_WIRE{i}"));
             vrf.kill_stub_in_cond_tk("HPIO_TERM_L", &format!("GND_WIRE{i}"));
@@ -4970,12 +5044,12 @@ fn verify_extra(edev: &ExpandedDevice, vrf: &mut Verifier) {
     }
 }
 
-pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     verify(
         rd,
-        &edev.egrid,
+        &endev.ngrid,
         |_| (),
-        |vrf, bel| verify_bel(edev, vrf, bel),
-        |vrf| verify_extra(edev, vrf),
+        |vrf, bel| verify_bel(endev, vrf, bel),
+        |vrf| verify_extra(endev, vrf),
     );
 }

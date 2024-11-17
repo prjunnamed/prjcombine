@@ -20,12 +20,12 @@ const H_HCLK: f64 = 2.;
 const H_BRKH: f64 = 2.;
 
 pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
-    let mgrid = edev.grids[edev.grid_master];
+    let fgrid = edev.grids.first().unwrap();
     let mut x = 0.;
     let mut col_x = EntityVec::new();
     x += W_TERM;
-    for (col, &cd) in &mgrid.columns {
-        if mgrid.cols_vbrk.contains(&col) {
+    for (col, &cd) in &fgrid.columns {
+        if fgrid.cols_vbrk.contains(&col) {
             x += W_BRK;
         }
         let w = match cd {
@@ -52,7 +52,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     let mut die_y: EntityVec<DieId, _> = EntityVec::new();
     let mut row_y = EntityVec::new();
     let mut y = 0.;
-    let rpr = mgrid.rows_per_reg();
+    let rpr = fgrid.rows_per_reg();
     for (_, grid) in &edev.grids {
         let term_y_b = y;
         let mut die_row_y = EntityVec::new();

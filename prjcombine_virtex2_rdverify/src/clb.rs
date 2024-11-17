@@ -1,8 +1,8 @@
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::ColumnKind;
+use prjcombine_virtex2_naming::ExpandedNamedDevice;
 
-pub fn verify_slice_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
     vrf.verify_bel(
         bel,
         "SLICE",
@@ -120,7 +120,7 @@ pub fn verify_slice_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
             continue;
         }
         let mut scol = bel.col - 1;
-        if edev.grid.columns[scol].kind == ColumnKind::Bram {
+        if endev.grid.columns[scol].kind == ColumnKind::Bram {
             scol -= 1;
         }
         if let Some(obel) = vrf.find_bel(bel.die, (scol, bel.row), sbel) {
@@ -132,7 +132,7 @@ pub fn verify_slice_v2(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelC
     }
 }
 
-pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
     let kind = if matches!(bel.key, "SLICE0" | "SLICE2") {
         "SLICEM"
     } else {
@@ -219,7 +219,7 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext) {
     let obel = vrf.find_bel_sibling(bel, "TBUF0");
     vrf.claim_pip(bel.crd(), bel.wire("BUS0"), obel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("BUS2"), obel.wire("O"));
@@ -241,7 +241,7 @@ pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("BUS2"));
 }
 
-pub fn verify_randor(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
     vrf.verify_bel(
         bel,
         "RESERVED_ANDOR",
@@ -253,7 +253,7 @@ pub fn verify_randor(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelCon
         ],
         &[],
     );
-    if bel.row == edev.grid.row_bot() {
+    if bel.row == endev.grid.row_bot() {
         for pin in ["CIN0", "CIN1", "CPREV", "O"] {
             vrf.claim_node(&[bel.fwire(pin)]);
         }

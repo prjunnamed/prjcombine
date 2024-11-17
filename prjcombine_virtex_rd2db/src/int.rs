@@ -1,16 +1,17 @@
-use prjcombine_int::db::{
-    BelInfo, BelNaming, BelPin, BelPinNaming, Dir, IntDb, NodeExtPipNaming, NodeRawTileId,
-    NodeTileId, PinDir, WireKind,
-};
+use prjcombine_int::db::{BelInfo, BelPin, Dir, IntDb, NodeTileId, PinDir, WireKind};
 use prjcombine_rawdump::{Coord, Part};
+use prjcombine_xilinx_naming::db::{
+    BelNaming, BelPinNaming, NamingDb, NodeExtPipNaming, NodeRawTileId,
+};
 use std::collections::BTreeMap;
 use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::find_columns;
 use prjcombine_rdintb::IntBuilder;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("virtex", rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
+    builder.allow_mux_to_branch();
 
     let mut bram_forbidden = Vec::new();
     let mut bram_bt_forbidden = Vec::new();
@@ -829,7 +830,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         ("DLLS.TL.GCLK", 'S', 'T', 'L'),
         ("DLLS.TR.GCLK", 'S', 'T', 'R'),
     ] {
-        if let Some((_, naming)) = builder.db.node_namings.get_mut(naming) {
+        if let Some((_, naming)) = builder.ndb.node_namings.get_mut(naming) {
             let xt = if mode == 'S' { "_1" } else { "" };
             let tile = NodeRawTileId::from_idx(1);
             let t_dll = NodeTileId::from_idx(0);

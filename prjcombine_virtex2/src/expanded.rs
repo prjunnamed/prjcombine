@@ -1,10 +1,10 @@
-use prjcombine_int::db::{BelId, BelInfo, BelNaming};
-use prjcombine_int::grid::{ColId, Coord, DieId, ExpandedGrid, ExpandedTileNode, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{ColumnIoKind, Grid, GridKind, IoCoord, TileIobId};
+use crate::iob::IobKind;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IoDiffKind {
@@ -13,27 +13,17 @@ pub enum IoDiffKind {
     None,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum IoPadKind {
-    None,
-    Input,
-    Io,
-    Clk,
-}
-
 #[derive(Clone, Copy, Debug)]
-pub struct Io<'a> {
+pub struct IoInfo {
     pub coord: IoCoord,
     pub bank: u32,
     pub diff: IoDiffKind,
-    pub pad_kind: IoPadKind,
-    pub name: &'a str,
+    pub pad_kind: Option<IobKind>,
 }
 
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,
-    pub bonded_ios: Vec<IoCoord>,
     pub bs_geom: BitstreamGeom,
     pub holes: Vec<Rect>,
     pub clkv_frame: usize,
@@ -53,25 +43,8 @@ impl<'a> ExpandedDevice<'a> {
         }
         false
     }
-    pub fn get_io_node(&'a self, coord: Coord) -> Option<&'a ExpandedTileNode> {
-        self.egrid.find_node(DieId::from_idx(0), coord, |x| {
-            self.egrid.db.nodes.key(x.kind).starts_with("IOI")
-        })
-    }
 
-    pub fn get_io_bel(
-        &'a self,
-        coord: IoCoord,
-    ) -> Option<(&'a ExpandedTileNode, &'a BelInfo, &'a BelNaming, &'a str)> {
-        let node = self.get_io_node((coord.col, coord.row))?;
-        let nk = &self.egrid.db.nodes[node.kind];
-        let naming = &self.egrid.db.node_namings[node.naming];
-        let bel = BelId::from_idx(coord.iob.to_idx());
-        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
-    }
-
-    pub fn get_io(&'a self, coord: IoCoord) -> Io<'a> {
-        let (_, _, _, name) = self.get_io_bel(coord).unwrap();
+    pub fn get_io_info(&'a self, coord: IoCoord) -> IoInfo {
         let bank = match self.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
                 if coord.row == self.grid.row_top() {
@@ -182,28 +155,79 @@ impl<'a> ExpandedDevice<'a> {
                 }
             }
         };
-        let pad_kind = if name.starts_with("PAD") {
-            IoPadKind::Io
-        } else if name.starts_with("IPAD") {
-            IoPadKind::Input
-        } else if name.starts_with("CLK") {
-            IoPadKind::Clk
-        } else {
-            IoPadKind::None
-        };
-        Io {
+        let mut pad_kind = None;
+        if let Some((data, tidx)) = self.grid.get_iob_data((coord.col, coord.row)) {
+            for &iob in &data.iobs {
+                if iob.tile == tidx && iob.bel.to_idx() == coord.iob.to_idx() {
+                    pad_kind = Some(iob.kind);
+                }
+            }
+        }
+        IoInfo {
             coord,
             bank,
             diff,
             pad_kind,
-            name,
         }
     }
 
-    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+    pub fn get_bonded_ios(&'a self) -> Vec<IoCoord> {
         let mut res = vec![];
-        for &coord in &self.bonded_ios {
-            res.push(self.get_io(coord));
+        for col in self.grid.columns.ids() {
+            let row = self.grid.row_top();
+            if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
+                for &iob in &data.iobs {
+                    if iob.tile == tidx {
+                        res.push(IoCoord {
+                            col,
+                            row,
+                            iob: TileIobId::from_idx(iob.bel.to_idx()),
+                        });
+                    }
+                }
+            }
+        }
+        for row in self.grid.rows.ids().rev() {
+            let col = self.grid.col_right();
+            if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
+                for &iob in &data.iobs {
+                    if iob.tile == tidx {
+                        res.push(IoCoord {
+                            col,
+                            row,
+                            iob: TileIobId::from_idx(iob.bel.to_idx()),
+                        });
+                    }
+                }
+            }
+        }
+        for col in self.grid.columns.ids().rev() {
+            let row = self.grid.row_bot();
+            if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
+                for &iob in &data.iobs {
+                    if iob.tile == tidx {
+                        res.push(IoCoord {
+                            col,
+                            row,
+                            iob: TileIobId::from_idx(iob.bel.to_idx()),
+                        });
+                    }
+                }
+            }
+        }
+        for row in self.grid.rows.ids() {
+            let col = self.grid.col_left();
+            if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
+                for &iob in &data.iobs {
+                    if iob.tile == tidx {
+                        res.push(IoCoord {
+                            col,
+                            row,
+                            iob: TileIobId::from_idx(iob.bel.to_idx()),
+                        });
+                    }
+                }
+            }
         }
         res
     }

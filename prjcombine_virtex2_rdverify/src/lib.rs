@@ -1,8 +1,8 @@
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::expanded::ExpandedDevice;
 use prjcombine_virtex2::grid::{GridKind, IoCoord};
+use prjcombine_virtex2_naming::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
 mod clb;
@@ -35,8 +35,8 @@ fn verify_rll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "RESERVED_LL", &pins, &[]);
 }
 
-fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if edev.grid.kind == GridKind::Virtex2PX {
+fn verify_gt(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if endev.grid.kind == GridKind::Virtex2PX {
         vrf.verify_bel(
             bel,
             "GT10",
@@ -54,7 +54,7 @@ fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>
             vrf.claim_node(&[bel.fwire(pin)]);
             vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
             let obel = vrf
-                .find_bel(bel.die, (edev.grid.col_clk - 1, bel.row), oname)
+                .find_bel(bel.die, (endev.grid.col_clk - 1, bel.row), oname)
                 .unwrap();
             vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far("I")]);
         }
@@ -75,7 +75,7 @@ fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>
             &[],
         );
         let obel = vrf
-            .find_bel(bel.die, (edev.grid.col_clk, bel.row), "BREFCLK")
+            .find_bel(bel.die, (endev.grid.col_clk, bel.row), "BREFCLK")
             .unwrap();
         for pin in ["BREFCLK", "BREFCLK2"] {
             vrf.claim_node(&[bel.fwire(pin)]);
@@ -97,8 +97,8 @@ fn verify_gt(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>
     }
 }
 
-fn verify_mult(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if matches!(edev.grid.kind, GridKind::Spartan3E | GridKind::Spartan3A) {
+fn verify_mult(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    if matches!(endev.grid.kind, GridKind::Spartan3E | GridKind::Spartan3A) {
         let carry: Vec<_> = (0..18)
             .map(|x| (format!("BCOUT{x}"), format!("BCIN{x}")))
             .collect();
@@ -118,7 +118,7 @@ fn verify_mult(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'
                 vrf.claim_pip(obel.crd(), obel.wire_far(o), obel.wire(o));
             }
         }
-        if edev.grid.kind == GridKind::Spartan3A {
+        if endev.grid.kind == GridKind::Spartan3A {
             let obel = vrf.find_bel_sibling(bel, "BRAM");
             for ab in ['A', 'B'] {
                 for i in 0..16 {
@@ -166,12 +166,12 @@ fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(endev: &ExpandedNamedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         "RLL" => verify_rll(vrf, bel),
         _ if bel.key.starts_with("SLICE") => {
-            if edev.grid.kind.is_virtex2() {
-                clb::verify_slice_v2(edev, vrf, bel);
+            if endev.grid.kind.is_virtex2() {
+                clb::verify_slice_v2(endev, vrf, bel);
             } else {
                 clb::verify_slice_s3(vrf, bel);
             }
@@ -183,22 +183,21 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
         "TBUS" => {
             clb::verify_tbus(vrf, bel);
         }
-        "RANDOR" => clb::verify_randor(edev, vrf, bel),
+        "RANDOR" => clb::verify_randor(endev, vrf, bel),
         "RANDOR_OUT" => (),
 
         "BRAM" => {
-            let kind = match edev.grid.kind {
+            let kind = match endev.grid.kind {
                 GridKind::Spartan3A => "RAMB16BWE",
                 GridKind::Spartan3ADsp => "RAMB16BWER",
                 _ => "RAMB16",
             };
             vrf.verify_bel(bel, kind, &[], &[]);
         }
-        "MULT" => verify_mult(edev, vrf, bel),
+        "MULT" => verify_mult(endev, vrf, bel),
         "DSP" => verify_dsp(vrf, bel),
 
-        _ if bel.key.starts_with("IOI") => io::verify_ioi(edev, vrf, bel),
-        _ if bel.key.starts_with("IOBS") => (),
+        _ if bel.key.starts_with("IOI") => io::verify_ioi(endev, vrf, bel),
         _ if bel.key.starts_with("IBUF") => vrf.verify_bel(bel, "IBUF", &[], &[]),
         _ if bel.key.starts_with("OBUF") => vrf.verify_bel(bel, "OBUF", &[], &[]),
         "CLK_P" | "CLK_N" => {
@@ -211,32 +210,32 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
             let obel = vrf.find_bel_sibling(bel, "CLK_P");
             vrf.claim_pip(bel.crd(), bel.wire("BREFCLK"), obel.wire_far("I"));
         }
-        "PCILOGICSE" => io::verify_pcilogicse(edev, vrf, bel),
-        "PCI_CE_N" => io::verify_pci_ce_n(edev, vrf, bel),
-        "PCI_CE_S" => io::verify_pci_ce_s(edev, vrf, bel),
-        "PCI_CE_E" => io::verify_pci_ce_e(edev, vrf, bel),
-        "PCI_CE_W" => io::verify_pci_ce_w(edev, vrf, bel),
-        "PCI_CE_CNR" => io::verify_pci_ce_cnr(edev, vrf, bel),
+        "PCILOGICSE" => io::verify_pcilogicse(endev, vrf, bel),
+        "PCI_CE_N" => io::verify_pci_ce_n(endev, vrf, bel),
+        "PCI_CE_S" => io::verify_pci_ce_s(endev, vrf, bel),
+        "PCI_CE_E" => io::verify_pci_ce_e(endev, vrf, bel),
+        "PCI_CE_W" => io::verify_pci_ce_w(endev, vrf, bel),
+        "PCI_CE_CNR" => io::verify_pci_ce_cnr(endev, vrf, bel),
 
-        "BREFCLK" => clk::verify_brefclk(edev, vrf, bel),
-        _ if bel.key.starts_with("BUFGMUX") => clk::verify_bufgmux(edev, vrf, bel),
-        _ if bel.key.starts_with("BUFG") => clk::verify_bufg(edev, vrf, bel),
-        _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(edev, vrf, bel),
-        "GCLKC" => clk::verify_gclkc(edev, vrf, bel),
+        "BREFCLK" => clk::verify_brefclk(endev, vrf, bel),
+        _ if bel.key.starts_with("BUFGMUX") => clk::verify_bufgmux(endev, vrf, bel),
+        _ if bel.key.starts_with("BUFG") => clk::verify_bufg(endev, vrf, bel),
+        _ if bel.key.starts_with("GCLKH") => clk::verify_gclkh(endev, vrf, bel),
+        "GCLKC" => clk::verify_gclkc(endev, vrf, bel),
         "CLKC" => {
-            if edev.grid.kind.is_virtex2() {
-                clk::verify_clkc_v2(edev, vrf, bel);
+            if endev.grid.kind.is_virtex2() {
+                clk::verify_clkc_v2(endev, vrf, bel);
             } else {
-                clk::verify_clkc_s3(edev, vrf, bel);
+                clk::verify_clkc_s3(endev, vrf, bel);
             }
         }
-        "CLKC_50A" => clk::verify_clkc_50a(edev, vrf, bel),
-        "GCLKVM" => clk::verify_gclkvm(edev, vrf, bel),
-        "GCLKVC" => clk::verify_gclkvc(edev, vrf, bel),
+        "CLKC_50A" => clk::verify_clkc_50a(endev, vrf, bel),
+        "GCLKVM" => clk::verify_gclkvm(endev, vrf, bel),
+        "GCLKVC" => clk::verify_gclkvc(endev, vrf, bel),
         "DCMCONN.S3E" => (),
-        "DCMCONN" => clk::verify_dcmconn(edev, vrf, bel),
+        "DCMCONN" => clk::verify_dcmconn(endev, vrf, bel),
 
-        _ if bel.key.starts_with("GT") => verify_gt(edev, vrf, bel),
+        _ if bel.key.starts_with("GT") => verify_gt(endev, vrf, bel),
         _ if bel.key.starts_with("IPAD") => {
             vrf.verify_bel(bel, "GTIPAD", &[("I", SitePinDir::Out)], &[]);
             vrf.claim_node(&[bel.fwire("I")]);
@@ -252,7 +251,7 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
         }
         "DCM" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
-            if edev.grid.kind.is_virtex2p() {
+            if endev.grid.kind.is_virtex2p() {
                 // just some detritus.
                 vrf.claim_node(&[(bel.crd(), "BRAM_IOIS_DATA29")]);
                 vrf.claim_pip(bel.crd(), "BRAM_IOIS_DATA29", "BRAM_IOIS_VCC_WIRE");
@@ -260,7 +259,7 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
         }
         "ICAP" => {
             vrf.verify_bel(bel, bel.key, &[], &[]);
-            if edev.grid.kind == GridKind::Spartan3E {
+            if endev.grid.kind == GridKind::Spartan3E {
                 // eh.
                 vrf.claim_node(&[bel.fwire("I2")]);
             }
@@ -292,8 +291,8 @@ fn verify_bel(edev: &ExpandedDevice<'_>, vrf: &mut Verifier, bel: &BelContext<'_
     }
 }
 
-fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
-    if edev.grid.kind.is_spartan3ea() {
+fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
+    if endev.grid.kind.is_spartan3ea() {
         vrf.kill_stub_out("IOIS_STUB_F1_B3");
         vrf.kill_stub_out("IOIS_STUB_F2_B3");
         vrf.kill_stub_out("IOIS_STUB_F3_B3");
@@ -312,12 +311,12 @@ fn verify_extra(edev: &ExpandedDevice<'_>, vrf: &mut Verifier) {
     }
 }
 
-pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     verify(
         rd,
-        &edev.egrid,
+        &endev.ngrid,
         |_| (),
-        |vrf, bel| verify_bel(edev, vrf, bel),
-        |vrf| verify_extra(edev, vrf),
+        |vrf, bel| verify_bel(endev, vrf, bel),
+        |vrf| verify_extra(endev, vrf),
     );
 }

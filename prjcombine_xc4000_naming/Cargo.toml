@@ -1,0 +1,13 @@
+[package]
+name = "prjcombine_xc4000_naming"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+unnamed_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_xilinx_naming.workspace = true
+prjcombine_xc4000.workspace = true
+
+[lints]
+workspace = true

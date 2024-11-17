@@ -82,13 +82,18 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                     x: (int.cols[col] + 1) as u16,
                     y: 0,
                 };
-                let cu = Coord {
+                let cu0 = Coord {
                     x: int.cols[col] as u16,
+                    y: 1,
+                };
+                let cu1 = Coord {
+                    x: (int.cols[col] + 1) as u16,
                     y: 1,
                 };
                 let tk0 = &rd.tile_kinds.key(rd.tiles[&c0].kind)[..];
                 let tk1 = &rd.tile_kinds.key(rd.tiles[&c1].kind)[..];
-                let tku = &rd.tile_kinds.key(rd.tiles[&cu].kind)[..];
+                let tku0 = &rd.tile_kinds.key(rd.tiles[&cu0].kind)[..];
+                let tku1 = &rd.tile_kinds.key(rd.tiles[&cu1].kind)[..];
                 match (tk0, tk1) {
                     ("BTERM012" | "BCLKTERM012" | "ML_BCLKTERM012", "BTERM323") => {
                         for i in 0..2 {
@@ -97,13 +102,20 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                         }
                     }
                     ("BTERM010", "BTERM123" | "BCLKTERM123" | "ML_BCLKTERM123") => {
-                        for i in 0..2 {
-                            cols[col].io = ColumnIoKind::DoubleRight(i as u8);
-                            col += 1;
+                        if tku1 == "MK_B_IOIS" {
+                            for i in 0..2 {
+                                cols[col].io = ColumnIoKind::DoubleRightClk(i as u8);
+                                col += 1;
+                            }
+                        } else {
+                            for i in 0..2 {
+                                cols[col].io = ColumnIoKind::DoubleRight(i as u8);
+                                col += 1;
+                            }
                         }
                     }
                     ("BTERM123", _) => {
-                        if tku == "ML_TBS_IOIS" {
+                        if tku0 == "ML_TBS_IOIS" {
                             cols[col].io = ColumnIoKind::SingleLeftAlt;
                         } else {
                             cols[col].io = ColumnIoKind::SingleLeft;
@@ -111,7 +123,7 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: GridKind, cols: &mut EntityVec<Co
                         col += 1;
                     }
                     ("BTERM012", _) => {
-                        if tku == "ML_TBS_IOIS" {
+                        if tku0 == "ML_TBS_IOIS" {
                             cols[col].io = ColumnIoKind::SingleRightAlt;
                         } else {
                             cols[col].io = ColumnIoKind::SingleRight;

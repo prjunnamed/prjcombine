@@ -267,6 +267,7 @@ mod virtex2 {
                 ColumnIoKind::SingleRightAlt => print!(" IO: 1RA"),
                 ColumnIoKind::DoubleLeft(i) => print!(" IO: 2L.{i}"),
                 ColumnIoKind::DoubleRight(i) => print!(" IO: 2R.{i}"),
+                ColumnIoKind::DoubleRightClk(i) => print!(" IO: 2R.CLK.{i}"),
             }
             if let Some(&(bb, bt)) = grid.cols_gt.get(&col) {
                 print!(" GT: BOT {bb} TOP {bt}");
@@ -734,9 +735,13 @@ mod virtex4 {
             }
             for gtc in &grid.cols_gt {
                 if gtc.col == col {
+                    let mid = if gtc.is_middle { "MID " } else { "" };
                     for (reg, kind) in &gtc.regs {
                         if let Some(kind) = kind {
-                            println!("\t\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
+                            println!(
+                                "\t\t\tY{y}: {mid}{kind:?}",
+                                y = grid.row_reg_bot(reg).to_idx()
+                            );
                         }
                     }
                 }
@@ -1303,7 +1308,7 @@ mod ultrascale {
 mod versal {
     use prjcombine_versal::{
         bond::Bond,
-        grid::{ColumnKind, Grid},
+        grid::{BramKind, CleKind, ColumnKind, Grid, RightKind},
     };
     use unnamed_entity::EntityId;
 
@@ -1311,7 +1316,6 @@ mod versal {
         println!("\tKIND: Versal");
         println!("\tPS: {v:?}", v = grid.ps);
         println!("\tCPM: {v:?}", v = grid.cpm);
-        println!("\tHNICX: {v:?}", v = grid.has_hnicx);
         println!("\tXRAM TOP: {v:?}", v = grid.has_xram_top);
         println!("\tTOP: {v:?}", v = grid.top);
         println!("\tBOTTOM: {v:?}", v = grid.bottom);
@@ -1325,8 +1329,7 @@ mod versal {
             }
             if matches!(
                 cd.l,
-                ColumnKind::Cle
-                    | ColumnKind::CleLaguna
+                ColumnKind::Cle(_)
                     | ColumnKind::Dsp
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
@@ -1338,11 +1341,13 @@ mod versal {
             }
             match cd.l {
                 ColumnKind::None => print!("---"),
-                ColumnKind::Cle => print!("CLE"),
-                ColumnKind::CleLaguna => print!("CLE.LAGUNA"),
+                ColumnKind::Cle(CleKind::Plain) => print!("CLE"),
+                ColumnKind::Cle(CleKind::Sll) => print!("CLE.SLL"),
+                ColumnKind::Cle(CleKind::Sll2) => print!("CLE.SLL2"),
                 ColumnKind::Dsp => print!("DSP"),
-                ColumnKind::Bram => print!("BRAM"),
-                ColumnKind::BramClkBuf => print!("BRAM.CLK"),
+                ColumnKind::Bram(BramKind::Plain) => print!("BRAM"),
+                ColumnKind::Bram(BramKind::ClkBuf) => print!("BRAM.CLKBUF"),
+                ColumnKind::Bram(BramKind::ClkBufNoPd) => print!("BRAM.CLKBUF.NOPD"),
                 ColumnKind::Uram => print!("URAM"),
                 ColumnKind::Hard => print!("HARD"),
                 ColumnKind::Gt => print!("GT"),
@@ -1366,8 +1371,7 @@ mod versal {
             }
             if matches!(
                 cd.r,
-                ColumnKind::Cle
-                    | ColumnKind::CleLaguna
+                ColumnKind::Cle(_)
                     | ColumnKind::Dsp
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
@@ -1378,11 +1382,13 @@ mod versal {
             print!("\t\tX{c}.R: ", c = col.to_idx());
             match cd.r {
                 ColumnKind::None => print!("---"),
-                ColumnKind::Cle => print!("CLE"),
-                ColumnKind::CleLaguna => print!("CLE.LAGUNA"),
+                ColumnKind::Cle(CleKind::Plain) => print!("CLE"),
+                ColumnKind::Cle(CleKind::Sll) => print!("CLE.SLL"),
+                ColumnKind::Cle(CleKind::Sll2) => print!("CLE.SLL2"),
                 ColumnKind::Dsp => print!("DSP"),
-                ColumnKind::Bram => print!("BRAM"),
-                ColumnKind::BramClkBuf => print!("BRAM.CLK"),
+                ColumnKind::Bram(BramKind::Plain) => print!("BRAM"),
+                ColumnKind::Bram(BramKind::ClkBuf) => print!("BRAM.CLKBUF"),
+                ColumnKind::Bram(BramKind::ClkBufNoPd) => print!("BRAM.CLKBUF.NOPD"),
                 ColumnKind::Uram => print!("URAM"),
                 ColumnKind::Hard => print!("HARD"),
                 ColumnKind::Gt => print!("GT"),
@@ -1402,10 +1408,24 @@ mod versal {
         for (reg, kind) in &grid.regs_gt_left {
             println!("\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
         }
-        if let Some(ref regs) = grid.regs_gt_right {
-            println!("\tGT RIGHT:");
-            for (reg, kind) in regs {
-                println!("\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
+        match grid.right {
+            RightKind::Term => {
+                println!("\tRIGHT: TERM");
+            }
+            RightKind::Term2 => {
+                println!("\tRIGHT: TERM2");
+            }
+            RightKind::Gt(ref regs_gt_right) => {
+                println!("\tRIGHT: GT:\n");
+                for (reg, kind) in regs_gt_right {
+                    println!("\t\tY{y}: {kind:?}", y = grid.row_reg_bot(reg).to_idx());
+                }
+            }
+            RightKind::HNicX => {
+                println!("\tRIGHT: HNIC");
+            }
+            RightKind::Cidb => {
+                println!("\tRIGHT: CIDB");
             }
         }
         println!("\tREGS: {r}", r = grid.regs);
@@ -1420,8 +1440,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let geom = GeomDb::from_file(args.file)?;
     if args.intdb {
-        for intdb in geom.ints.values() {
+        for (name, intdb) in &geom.ints {
+            println!("INTDB {name}");
             intdb.print(&mut std::io::stdout())?;
+        }
+        for (name, ndb) in &geom.namings {
+            println!("NAMINGDB {name}");
+            ndb.print(&geom.ints[name], &mut std::io::stdout())?;
         }
     }
     if args.grids || args.devices {
@@ -1452,6 +1477,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+        for (ipid, ip) in &geom.interposers {
+            print!("INTERPOSER {ipid}:");
+            for dev in &geom.devices {
+                if dev.interposer == ipid {
+                    print!(" {dev}", dev = dev.name);
+                }
+            }
+            println!();
+            if args.grids {
+                // XXX pretty
+                println!("{ip:#?}");
+            }
+        }
     }
     if args.pkgs || args.devices {
         for (bid, bond) in &geom.bonds {
@@ -1480,18 +1518,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.devices {
         for dev in &geom.devices {
-            print!("DEVICE {n} GRIDS", n = dev.name);
-            for (did, &gid) in &dev.grids {
+            print!(
+                "DEVICE {n} INTERPOSER {ip} GRIDS",
+                n = dev.name,
+                ip = dev.interposer
+            );
+            for (_, &gid) in &dev.grids {
                 print!(" {g}", g = gid.to_idx());
-                if did == dev.grid_master {
-                    print!("*");
-                }
-            }
-            if !dev.extras.is_empty() {
-                print!(" EXTRAS");
-                for xtra in &dev.extras {
-                    print!(" {xtra:?}");
-                }
             }
             println!();
             for disabled in &dev.disabled {

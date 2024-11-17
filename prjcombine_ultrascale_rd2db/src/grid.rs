@@ -1,14 +1,13 @@
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
-    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DeviceNaming,
-    DisabledPart, DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId,
-    IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
+    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoColumn, IoRowKind, Ps, PsIntfKind, RegId
 };
+use prjcombine_ultrascale_naming::DeviceNaming;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityVec};
 
-use prjcombine_rdgrid::{extract_int_slr, find_rows, IntGrid};
+use prjcombine_rdgrid::{extract_int_slr_column, find_rows, IntGrid};
 
 fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
     let mut res: EntityVec<ColId, (Option<ColumnKindLeft>, Option<ColumnKindRight>)> =
@@ -294,7 +293,9 @@ fn get_cols_hard(
                 y: y as u16,
             };
             let tile = &int.rd.tiles[&crd];
-            if tile.sites.iter().next().is_none() && tt != "DFE_DFE_TILEG_FT" {
+            if tile.sites.iter().next().is_none()
+                && tt != "DFE_DFE_TILEG_FT"
+            {
                 disabled.insert(DisabledPart::HardIp(dieid, col, reg));
             }
             if tt == "HDIO_BOT_RIGHT" {
@@ -333,7 +334,7 @@ fn get_cols_hard(
         for (i, &v) in tk.conn_wires.iter() {
             if &int.rd.wires[v] == "HDIO_IOBPAIR_53_SWITCH_OUT" {
                 for crd in &tk.tiles {
-                    if !(int.slr_start..int.slr_end).contains(&crd.y) {
+                    if !(int.slr_start_y..int.slr_end_y).contains(&crd.y) {
                         continue;
                     }
                     let col = int.lookup_column_inter(crd.x as i32);
@@ -566,7 +567,7 @@ pub fn make_grids(
     rd: &Part,
 ) -> (
     EntityVec<DieId, Grid>,
-    DieId,
+    Interposer,
     BTreeSet<DisabledPart>,
     DeviceNaming,
 ) {
@@ -641,7 +642,7 @@ pub fn make_grids(
     let mut disabled = BTreeSet::new();
     let mut dieid = DieId::from_idx(0);
     for w in rows_slr_split.windows(2) {
-        let int = extract_int_slr(rd, &["INT"], &[], *w[0], *w[1]);
+        let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
         let mut columns = make_columns(&int);
         let cols_vbrk = get_cols_vbrk(&int);
         let cols_fsr_gap = get_cols_fsr_gap(&int);
@@ -809,12 +810,12 @@ pub fn make_grids(
             println!("UNKNOWN CUT BOTTOM {}", rd.part);
         }
     }
-    let mut grid_master = None;
+    let mut primary = None;
     for pins in rd.packages.values() {
         for pin in pins {
             if pin.func == "VP" {
                 if is_plus {
-                    grid_master = Some(
+                    primary = Some(
                         pin.pad
                             .as_ref()
                             .unwrap()
@@ -824,7 +825,7 @@ pub fn make_grids(
                             .unwrap(),
                     );
                 } else {
-                    grid_master = Some(
+                    primary = Some(
                         pin.pad
                             .as_ref()
                             .unwrap()
@@ -837,7 +838,10 @@ pub fn make_grids(
             }
         }
     }
-    let grid_master = DieId::from_idx(grid_master.unwrap());
+    let primary = DieId::from_idx(primary.unwrap());
+    let interposer = Interposer {
+        primary,
+    };
     if grids.first().unwrap().ps.is_some() {
         let mut found = false;
         for pins in rd.packages.values() {
@@ -851,13 +855,15 @@ pub fn make_grids(
             disabled.insert(DisabledPart::Ps);
         }
     }
-    if let Some((_, tk)) = rd.tile_kinds.get("FE_FE_FT") {
-        if tk.sites.is_empty() {
+    for &crd in rd.tiles_by_kind_name("FE_FE_FT") {
+        let tile = &rd.tiles[&crd];
+        if tile.sites.iter().next().is_none() {
             disabled.insert(DisabledPart::Sdfec);
         }
     }
-    if let Some((_, tk)) = rd.tile_kinds.get("DFE_DFE_TILEB_FT") {
-        if tk.sites.is_empty() {
+    for &crd in rd.tiles_by_kind_name("DFE_DFE_TILEB_FT") {
+        let tile = &rd.tiles[&crd];
+        if tile.sites.iter().next().is_none() {
             disabled.insert(DisabledPart::Dfe);
         }
     }
@@ -875,5 +881,5 @@ pub fn make_grids(
     }
 
     let naming = DeviceNaming { rclk_alt_pins };
-    (grids, grid_master, disabled, naming)
+    (grids, interposer, disabled, naming)
 }

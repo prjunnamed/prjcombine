@@ -1,17 +1,22 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xc4000::bond::{Bond, BondPin, CfgPin};
-use prjcombine_xc4000::expanded::ExpandedDevice;
 use prjcombine_xc4000::grid::{GridKind, IoCoord, SharedCfgPin};
+use prjcombine_xc4000_naming::ExpandedNamedDevice;
 use std::collections::{btree_map, BTreeMap, HashMap};
 
 pub fn make_bond(
-    edev: &ExpandedDevice,
+    endev: &ExpandedNamedDevice,
     pkg: &str,
     pins: &[PkgPin],
     cfg_io: &mut BTreeMap<SharedCfgPin, IoCoord>,
 ) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev.io.iter().map(|io| (&*io.name, io.crd)).collect();
+    let io_lookup: HashMap<_, _> = endev
+        .edev
+        .get_bonded_ios()
+        .into_iter()
+        .map(|io| (endev.get_io_name(io), io))
+        .collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(&**pad) {
@@ -267,7 +272,7 @@ pub fn make_bond(
         };
         if matches!(io, SharedCfgPin::Addr(18..=21))
             && !matches!(
-                edev.grid.kind,
+                endev.grid.kind,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv
             )
         {
@@ -279,7 +284,7 @@ pub fn make_bond(
                 | SharedCfgPin::RsB
                 | SharedCfgPin::BusyB
                 | SharedCfgPin::Cs0B
-        ) && edev.grid.kind == GridKind::SpartanXl
+        ) && endev.grid.kind == GridKind::SpartanXl
         {
             continue;
         }

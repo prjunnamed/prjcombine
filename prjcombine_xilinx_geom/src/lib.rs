@@ -1,6 +1,8 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
 use prjcombine_virtex_bitstream::BitstreamGeom;
+use prjcombine_xilinx_naming::db::NamingDb;
+use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
@@ -10,6 +12,7 @@ use unnamed_entity::{entity_id, EntityVec};
 
 entity_id! {
     pub id GridId usize;
+    pub id InterposerId usize;
     pub id BondId usize;
     pub id DevBondId usize;
     pub id DevSpeedId usize;
@@ -50,17 +53,19 @@ pub struct DeviceCombo {
     pub speed_idx: DevSpeedId,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum ExtraDie {
-    Virtex4(prjcombine_virtex4::grid::ExtraDie),
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Interposer {
+    None,
+    Virtex4(prjcombine_virtex4::grid::Interposer),
+    Ultrascale(prjcombine_ultrascale::grid::Interposer),
+    Versal(prjcombine_versal::grid::Interposer),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
     pub grids: EntityVec<DieId, GridId>,
-    pub grid_master: DieId,
-    pub extras: Vec<ExtraDie>,
+    pub interposer: InterposerId,
     pub bonds: EntityVec<DevBondId, DeviceBond>,
     pub speeds: EntityVec<DevSpeedId, String>,
     // valid (bond, speed) pairs
@@ -110,17 +115,19 @@ impl Bond {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
     pub grids: EntityVec<GridId, Grid>,
+    pub interposers: EntityVec<InterposerId, Interposer>,
     pub bonds: EntityVec<BondId, Bond>,
     pub dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, IntDb>,
+    pub namings: BTreeMap<String, NamingDb>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum DeviceNaming {
     Dummy,
-    Ultrascale(prjcombine_ultrascale::grid::DeviceNaming),
-    Versal(prjcombine_versal::naming::DeviceNaming),
+    Ultrascale(prjcombine_ultrascale_naming::DeviceNaming),
+    Versal(prjcombine_versal_naming::DeviceNaming),
 }
 
 pub enum ExpandedDevice<'a> {
@@ -162,6 +169,32 @@ impl<'a> ExpandedDevice<'a> {
     }
 }
 
+pub enum ExpandedNamedDevice<'a> {
+    Xc4000(prjcombine_xc4000_naming::ExpandedNamedDevice<'a>),
+    Xc5200(prjcombine_xc5200_naming::ExpandedNamedDevice<'a>),
+    Virtex(prjcombine_virtex_naming::ExpandedNamedDevice<'a>),
+    Virtex2(prjcombine_virtex2_naming::ExpandedNamedDevice<'a>),
+    Spartan6(prjcombine_spartan6_naming::ExpandedNamedDevice<'a>),
+    Virtex4(prjcombine_virtex4_naming::ExpandedNamedDevice<'a>),
+    Ultrascale(prjcombine_ultrascale_naming::ExpandedNamedDevice<'a>),
+    Versal(prjcombine_versal_naming::ExpandedNamedDevice<'a>),
+}
+
+impl<'a> ExpandedNamedDevice<'a> {
+    pub fn ngrid(&self) -> &ExpandedGridNaming<'a> {
+        match self {
+            ExpandedNamedDevice::Xc4000(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Xc5200(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Virtex(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Virtex2(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Spartan6(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Virtex4(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Ultrascale(endev) => &endev.ngrid,
+            ExpandedNamedDevice::Versal(endev) => &endev.ngrid,
+        }
+    }
+}
+
 impl GeomDb {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
@@ -178,8 +211,8 @@ impl GeomDb {
     }
 
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
-        let grid = &self.grids[dev.grids[dev.grid_master]];
-        match grid {
+        let fgrid = &self.grids[*dev.grids.first().unwrap()];
+        match fgrid {
             Grid::Xc4000(grid) => {
                 let intdb = &self.ints[match grid.kind {
                     prjcombine_xc4000::grid::GridKind::Xc4000 => "xc4000",
@@ -246,21 +279,18 @@ impl GeomDb {
                         _ => unreachable!(),
                     })
                     .collect();
-                let extras: Vec<_> = dev
-                    .extras
-                    .iter()
-                    .map(|&x| match x {
-                        ExtraDie::Virtex4(x) => x,
-                    })
-                    .collect();
+                let interposer = match self.interposers[dev.interposer] {
+                    Interposer::None => None,
+                    Interposer::Virtex4(ref ip) => Some(ip),
+                    _ => unreachable!(),
+                };
                 let grids = dev.grids.map_values(|&x| match self.grids[x] {
                     Grid::Virtex4(ref x) => x,
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Virtex4(prjcombine_virtex4::expand_grid(
                     &grids,
-                    dev.grid_master,
-                    &extras,
+                    interposer,
                     &disabled,
                     intdb,
                 ))
@@ -278,19 +308,18 @@ impl GeomDb {
                         _ => unreachable!(),
                     })
                     .collect();
+                let interposer = match self.interposers[dev.interposer] {
+                    Interposer::Ultrascale(ref ip) => ip,
+                    _ => unreachable!(),
+                };
                 let grids = dev.grids.map_values(|&x| match self.grids[x] {
                     Grid::Ultrascale(ref x) => x,
                     _ => unreachable!(),
                 });
-                let naming = match self.dev_namings[dev.naming] {
-                    DeviceNaming::Ultrascale(ref x) => x,
-                    _ => unreachable!(),
-                };
                 ExpandedDevice::Ultrascale(prjcombine_ultrascale::expand_grid(
                     &grids,
-                    dev.grid_master,
+                    interposer,
                     &disabled,
-                    naming,
                     intdb,
                 ))
             }
@@ -304,16 +333,88 @@ impl GeomDb {
                         _ => unreachable!(),
                     })
                     .collect();
+                let interposer = match self.interposers[dev.interposer] {
+                    Interposer::Versal(ref ip) => ip,
+                    _ => unreachable!(),
+                };
                 let grids = dev.grids.map_values(|&x| match self.grids[x] {
                     Grid::Versal(ref x) => x,
                     _ => unreachable!(),
                 });
+                ExpandedDevice::Versal(prjcombine_versal::expand::expand_grid(
+                    &grids, interposer, &disabled, intdb,
+                ))
+            }
+        }
+    }
+
+    pub fn name<'a>(&'a self, dev: &Device, edev: &'a ExpandedDevice) -> ExpandedNamedDevice<'a> {
+        match edev {
+            ExpandedDevice::Xc4000(edev) => {
+                let ndb = &self.namings[match edev.grid.kind {
+                    prjcombine_xc4000::grid::GridKind::Xc4000 => "xc4000",
+                    prjcombine_xc4000::grid::GridKind::Xc4000A => "xc4000a",
+                    prjcombine_xc4000::grid::GridKind::Xc4000H => "xc4000h",
+                    prjcombine_xc4000::grid::GridKind::Xc4000E => "xc4000e",
+                    prjcombine_xc4000::grid::GridKind::Xc4000Ex => "xc4000ex",
+                    prjcombine_xc4000::grid::GridKind::Xc4000Xla => "xc4000xla",
+                    prjcombine_xc4000::grid::GridKind::Xc4000Xv => "xc4000xv",
+                    prjcombine_xc4000::grid::GridKind::SpartanXl => "spartanxl",
+                }];
+                ExpandedNamedDevice::Xc4000(prjcombine_xc4000_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Xc5200(edev) => {
+                let ndb = &self.namings["xc5200"];
+                ExpandedNamedDevice::Xc5200(prjcombine_xc5200_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Virtex(edev) => {
+                let ndb = &self.namings["virtex"];
+                ExpandedNamedDevice::Virtex(prjcombine_virtex_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Virtex2(edev) => {
+                let ndb = if edev.grid.kind.is_virtex2() {
+                    &self.namings["virtex2"]
+                } else if edev.grid.kind == prjcombine_virtex2::grid::GridKind::FpgaCore {
+                    &self.namings["fpgacore"]
+                } else {
+                    &self.namings["spartan3"]
+                };
+                ExpandedNamedDevice::Virtex2(prjcombine_virtex2_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Spartan6(edev) => {
+                let ndb = &self.namings["spartan6"];
+                ExpandedNamedDevice::Spartan6(prjcombine_spartan6_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Virtex4(edev) => {
+                let ndb = &self.namings[match edev.kind {
+                    prjcombine_virtex4::grid::GridKind::Virtex4 => "virtex4",
+                    prjcombine_virtex4::grid::GridKind::Virtex5 => "virtex5",
+                    prjcombine_virtex4::grid::GridKind::Virtex6 => "virtex6",
+                    prjcombine_virtex4::grid::GridKind::Virtex7 => "virtex7",
+                }];
+                ExpandedNamedDevice::Virtex4(prjcombine_virtex4_naming::name_device(edev, ndb))
+            }
+            ExpandedDevice::Ultrascale(edev) => {
+                let ndb = &self.namings[match edev.kind {
+                    prjcombine_ultrascale::grid::GridKind::Ultrascale => "ultrascale",
+                    prjcombine_ultrascale::grid::GridKind::UltrascalePlus => "ultrascaleplus",
+                }];
+                let naming = match self.dev_namings[dev.naming] {
+                    DeviceNaming::Ultrascale(ref x) => x,
+                    _ => unreachable!(),
+                };
+                ExpandedNamedDevice::Ultrascale(prjcombine_ultrascale_naming::name_device(
+                    edev, ndb, naming,
+                ))
+            }
+            ExpandedDevice::Versal(edev) => {
+                let ndb = &self.namings["versal"];
                 let naming = match self.dev_namings[dev.naming] {
                     DeviceNaming::Versal(ref x) => x,
                     _ => unreachable!(),
                 };
-                ExpandedDevice::Versal(prjcombine_versal::expand::expand_grid(
-                    &grids, &disabled, naming, intdb,
+                ExpandedNamedDevice::Versal(prjcombine_versal_naming::name_device(
+                    edev, ndb, naming,
                 ))
             }
         }

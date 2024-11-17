@@ -27,8 +27,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .try_for_each(|dev| -> Result<(), std::io::Error> {
             let drawer = match geom.expand_grid(dev) {
                 ExpandedDevice::Virtex2(edev) => virtex2::draw_device(&dev.name, edev),
-                ExpandedDevice::Virtex4(edev) => virtex4::draw_device(&dev.name, edev),
                 ExpandedDevice::Spartan6(edev) => spartan6::draw_device(&dev.name, edev),
+                ExpandedDevice::Virtex4(edev) => virtex4::draw_device(&dev.name, edev),
                 ExpandedDevice::Ultrascale(edev) => ultrascale::draw_device(&dev.name, edev),
                 _ => todo!(),
             };

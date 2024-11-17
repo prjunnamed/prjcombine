@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
@@ -80,6 +80,7 @@ pub struct IoColumn {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GtColumn {
     pub col: ColId,
+    pub is_middle: bool,
     pub regs: EntityVec<RegId, Option<GtKind>>,
 }
 
@@ -111,15 +112,24 @@ pub enum DisabledPart {
     Gtp,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum ExtraDie {
-    Gtz(GtzLoc),
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Interposer {
+    pub primary: DieId,
+    pub gtz_bot: bool,
+    pub gtz_top: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum GtzLoc {
     Top,
     Bottom,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum XadcIoLoc {
+    Left,
+    Right,
+    Both,
 }
 
 impl Grid {
@@ -176,6 +186,18 @@ impl Grid {
 
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.regs * self.rows_per_reg())
+    }
+
+    pub fn get_xadc_io_loc(&self) -> XadcIoLoc {
+        assert_eq!(self.kind, GridKind::Virtex7);
+        assert!(self.regs > 1);
+        if self.has_ps {
+            XadcIoLoc::Right
+        } else if self.cols_io.len() == 1 || self.cols_io[1].regs[self.reg_cfg].is_none() {
+            XadcIoLoc::Left
+        } else {
+            XadcIoLoc::Both
+        }
     }
 
     pub fn get_cmt_rows(&self) -> Vec<RowId> {

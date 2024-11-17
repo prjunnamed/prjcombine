@@ -1,9 +1,10 @@
 use std::fmt::Write;
 
 use prjcombine_int::db::{
-    Dir, IntDb, NodeNamingId, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
+    Dir, IntDb, NodeTileId, NodeWireId, TermInfo, TermKind, WireId, WireKind,
 };
 use prjcombine_rawdump::{Coord, Part};
+use prjcombine_xilinx_naming::db::{NamingDb, NodeNamingId};
 use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
@@ -1226,7 +1227,7 @@ fn extract_clb(
         xn.extract();
     }
 
-    let naming = builder.db.get_node_naming("CLB");
+    let naming = builder.ndb.get_node_naming("CLB");
     builder.inject_node_type_naming("CENTER", naming);
 }
 
@@ -1310,7 +1311,7 @@ fn extract_bot(
             xn.extract();
             found_naming = Some(naming);
         }
-        let naming = builder.db.get_node_naming(&found_naming.unwrap());
+        let naming = builder.ndb.get_node_naming(&found_naming.unwrap());
         builder.inject_node_type_naming(tkn, naming);
     }
 }
@@ -1381,7 +1382,7 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeW
             xn.extract();
             found_naming = Some(naming);
         }
-        let naming = builder.db.get_node_naming(&found_naming.unwrap());
+        let naming = builder.ndb.get_node_naming(&found_naming.unwrap());
         builder.inject_node_type_naming(tkn, naming);
     }
 }
@@ -1481,7 +1482,7 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
         }
 
         if let Some(naming) = found_naming {
-            let naming = builder.db.get_node_naming(&naming);
+            let naming = builder.ndb.get_node_naming(&naming);
             builder.inject_node_type_naming(tkn, naming);
         }
     }
@@ -1560,7 +1561,7 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[Node
         }
 
         if let Some(naming) = found_naming {
-            let naming = builder.db.get_node_naming(&naming);
+            let naming = builder.ndb.get_node_naming(&naming);
             builder.inject_node_type_naming(tkn, naming);
         }
     }
@@ -1956,19 +1957,19 @@ fn get_tile_naming(builder: &IntBuilder, crd: Coord) -> NodeNamingId {
                 write!(naming, ".{kind}").unwrap();
             }
         }
-        builder.db.get_node_naming(&naming)
+        builder.ndb.get_node_naming(&naming)
     } else if tkn.starts_with("BOT") || tkn.starts_with("TOP") {
         let xy_e = builder.walk_to_int(crd, Dir::E, true).unwrap();
         let kind_e = builder.rd.tile_kinds.key(builder.rd.tiles[&xy_e].kind);
         let naming = format!("{tkn}.{kind_e}");
-        builder.db.get_node_naming(&naming)
+        builder.ndb.get_node_naming(&naming)
     } else if tkn.starts_with("LEFT") || tkn.starts_with("RT") {
         let xy_s = builder.walk_to_int(crd, Dir::S, true).unwrap();
         let kind_s = builder.rd.tile_kinds.key(builder.rd.tiles[&xy_s].kind);
         let naming = format!("{tkn}.{kind_s}");
-        builder.db.get_node_naming(&naming)
+        builder.ndb.get_node_naming(&naming)
     } else {
-        builder.db.get_node_naming(tkn)
+        builder.ndb.get_node_naming(tkn)
     }
 }
 
@@ -2414,7 +2415,7 @@ fn extract_clkc(builder: &mut IntBuilder) {
 }
 
 fn extract_clkqc(builder: &mut IntBuilder) {
-    let hvbrk = builder.db.get_node_naming("LLVQ.CLB");
+    let hvbrk = builder.ndb.get_node_naming("LLVQ.CLB");
     for (naming, tkn) in [("CLKQC.B", "HVBRKC"), ("CLKQC.T", "TVBRKC")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
@@ -2445,7 +2446,7 @@ fn extract_clkqc(builder: &mut IntBuilder) {
 }
 
 fn extract_clkq(builder: &mut IntBuilder) {
-    let hvbrk = builder.db.get_node_naming("LLVQ.CLB");
+    let hvbrk = builder.ndb.get_node_naming("LLVQ.CLB");
     for (naming, tkn) in [("CLKQ.B", "BCCBRK"), ("CLKQ.T", "TCCBRK")] {
         if let Some(&crd) = builder.rd.tiles_by_kind_name(tkn).first() {
             let bel = builder
@@ -2485,8 +2486,8 @@ fn extract_clkq(builder: &mut IntBuilder) {
     }
 }
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new(&rd.family, rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     let mut cnr_terms = CnrTerms {
         term_ll_w: vec![],

@@ -1059,6 +1059,17 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
     },
     FixupTileKind {
         family: "ultrascaleplus",
+        tile_kind: "CMAC",
+        slots: &[FixupSiteSlot {
+            slot_name: "CMACE4",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "CMACE4_X0Y0",
+        }],
+        source_device: "xcku5p-ffva676-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
         tile_kind: "LAG_LAG",
         slots: &[
             FixupSiteSlot {
@@ -1211,6 +1222,94 @@ const FIXUP_TILE_KINDS: &[FixupTileKind] = &[
             source_site: "VCU_X0Y0",
         }],
         source_device: "xczu5ev-fbvb900-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "FE_FE_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "FE",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "FE_X0Y0",
+        }],
+        source_device: "xczu28dr-ffve1156-1-e",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEA_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_A",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_A_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEB_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_B",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_B_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEC_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_C",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_C_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILED_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_D",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_D_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEE_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_E",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_E_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEF_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_F",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_F_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
+    },
+    FixupTileKind {
+        family: "ultrascaleplus",
+        tile_kind: "DFE_DFE_TILEG_FT",
+        slots: &[FixupSiteSlot {
+            slot_name: "DFE_G",
+            slot_x: 0,
+            slot_y: 0,
+            source_site: "DFE_G_X0Y0",
+        }],
+        source_device: "xczu67dr-ffve1156-1-i",
     },
     FixupTileKind {
         family: "versal",

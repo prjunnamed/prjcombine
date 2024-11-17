@@ -254,7 +254,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     for pair in edev.grid.get_dcm_pairs() {
         match pair.kind {
             DcmPairKind::Bot => {
-                let col = pair.col;
+                let col = pair.col - 4;
                 let row = pair.row;
                 drawer.bel_rect(
                     col_x[col].0,

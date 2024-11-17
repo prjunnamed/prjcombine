@@ -98,6 +98,7 @@ fn get_cols_gt(rd: &Part, int: &IntGrid, cols: &EntityVec<ColId, ColumnKind>) ->
             if cd == ColumnKind::Gt {
                 Some(GtColumn {
                     col,
+                    is_middle: false,
                     regs: (0..(int.rows.len() / 20))
                         .map(|_| {
                             Some(if cols_gtp.contains(&col) {

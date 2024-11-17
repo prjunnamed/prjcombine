@@ -1,44 +1,31 @@
-use prjcombine_int::db::{BelId, BelInfo, BelNaming};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, ExpandedTileNode, RowId};
+use std::collections::BTreeSet;
+
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{Grid, IoCoord};
+use crate::grid::{DisabledPart, Grid, IoCoord, TileIobId};
 
 #[derive(Copy, Clone, Debug)]
-pub struct Io<'a> {
+pub struct Io {
     pub bank: u32,
     pub coord: IoCoord,
-    pub name: &'a str,
 }
 
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,
-    pub bonded_ios: Vec<IoCoord>,
     pub bs_geom: BitstreamGeom,
     pub spine_frame: usize,
     pub col_frame: EntityVec<ColId, usize>,
     pub bram_frame: EntityPartVec<ColId, usize>,
     pub clkv_frame: EntityPartVec<ColId, usize>,
+    pub disabled: BTreeSet<DisabledPart>,
 }
 
 impl<'a> ExpandedDevice<'a> {
-    pub fn get_io_bel(
-        &'a self,
-        coord: IoCoord,
-    ) -> Option<(&'a ExpandedTileNode, &'a BelInfo, &'a BelNaming, &'a str)> {
-        let die = self.egrid.die(DieId::from_idx(0));
-        let node = die.tile((coord.col, coord.row)).nodes.first()?;
-        let nk = &self.egrid.db.nodes[node.kind];
-        let naming = &self.egrid.db.node_namings[node.naming];
-        let bel = BelId::from_idx(coord.iob.to_idx());
-        Some((node, &nk.bels[bel], &naming.bels[bel], &node.bels[bel]))
-    }
-
-    pub fn get_io(&'a self, coord: IoCoord) -> Io<'a> {
-        let (_, _, _, name) = self.get_io_bel(coord).unwrap();
-        let bank = if coord.row == self.grid.row_tio() {
+    pub fn get_io_bank(&'a self, coord: IoCoord) -> u32 {
+        if coord.row == self.grid.row_tio() {
             if coord.col < self.grid.col_clk() {
                 0
             } else {
@@ -64,14 +51,69 @@ impl<'a> ExpandedDevice<'a> {
             }
         } else {
             unreachable!()
-        };
-        Io { coord, bank, name }
+        }
     }
 
-    pub fn get_bonded_ios(&'a self) -> Vec<Io<'a>> {
+    pub fn get_bonded_ios(&'a self) -> Vec<IoCoord> {
         let mut res = vec![];
-        for &coord in &self.bonded_ios {
-            res.push(self.get_io(coord));
+        let die = self.egrid.die(DieId::from_idx(0));
+        for col in die.cols() {
+            let row = self.grid.row_tio();
+            if self.grid.cols_bram.contains(&col) {
+                continue;
+            }
+            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+                continue;
+            }
+            for iob in [2, 1] {
+                res.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
+        }
+        for row in die.rows().rev() {
+            let col = self.grid.col_rio();
+            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+                continue;
+            }
+            for iob in [1, 2, 3] {
+                res.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
+        }
+        for col in die.cols().rev() {
+            let row = self.grid.row_bio();
+            if self.grid.cols_bram.contains(&col) {
+                continue;
+            }
+            if col == self.grid.col_lio() || col == self.grid.col_rio() {
+                continue;
+            }
+            for iob in [1, 2] {
+                res.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
+        }
+        for row in die.rows() {
+            let col = self.grid.col_lio();
+            if row == self.grid.row_bio() || row == self.grid.row_tio() {
+                continue;
+            }
+            for iob in [3, 2, 1] {
+                res.push(IoCoord {
+                    col,
+                    row,
+                    iob: TileIobId::from_idx(iob),
+                });
+            }
         }
         res
     }

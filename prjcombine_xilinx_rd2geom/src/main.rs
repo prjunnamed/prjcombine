@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .spawn_scoped(s, move || {
                     let rd = Part::from_file(fname).unwrap();
                     println!("INGEST {} {:?}", rd.part, rd.source);
-                    let (pre, idb) = match &rd.family[..] {
+                    let (pre, idb_name, idb, ndb) = match &rd.family[..] {
                         "xc4000e" | "xc4000ex" | "xc4000xla" | "xc4000xv" | "spartanxl" => {
                             xc4000::ingest(&rd, verify)
                         }
@@ -68,9 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     };
                     let mut builder = rb.lock().unwrap();
                     builder.ingest(pre);
-                    if let Some(int_db) = idb {
-                        builder.ingest_int(int_db);
-                    }
+                    builder.ingest_int(idb_name, idb, ndb);
                     std::mem::drop(guard);
                 })
                 .unwrap();

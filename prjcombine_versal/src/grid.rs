@@ -16,13 +16,23 @@ pub struct Grid {
     pub cols_hard: Vec<HardColumn>,
     pub regs: usize,
     pub regs_gt_left: EntityVec<RegId, GtRowKind>,
-    pub regs_gt_right: Option<EntityVec<RegId, GtRowKind>>,
     pub ps: PsKind,
     pub cpm: CpmKind,
-    pub has_hnicx: bool,
     pub has_xram_top: bool,
     pub top: TopKind,
     pub bottom: BotKind,
+    pub right: RightKind,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum InterposerKind {
+    Column,
+    MirrorSquare,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Interposer {
+    pub kind: InterposerKind,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -36,11 +46,23 @@ pub struct Column {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum CleKind {
+    Plain,
+    Sll,
+    Sll2,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum BramKind {
+    Plain,
+    ClkBuf,
+    ClkBufNoPd,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ColumnKind {
-    Cle,
-    CleLaguna,
-    Bram,
-    BramClkBuf,
+    Cle(CleKind),
+    Bram(BramKind),
     Uram,
     Dsp,
     Hard,
@@ -51,7 +73,7 @@ pub enum ColumnKind {
     None,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Enum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize, Enum)]
 pub enum ColSide {
     Left,
     Right,
@@ -118,6 +140,15 @@ pub enum TopKind {
     Ai(usize, usize),
     AiMl(usize, usize, usize),
     Hbm,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum RightKind {
+    Term,
+    Term2,
+    Gt(EntityVec<RegId, GtRowKind>),
+    HNicX,
+    Cidb,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

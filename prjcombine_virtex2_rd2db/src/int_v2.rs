@@ -2,9 +2,10 @@ use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::{Coord, Part};
 
 use prjcombine_rdintb::IntBuilder;
+use prjcombine_xilinx_naming::db::NamingDb;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("virtex2", rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     builder.wire(
         "PULLUP",
@@ -965,7 +966,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.V2P.R.B2", 2),
             ("IOBS.V2P.R.T2", 2),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     } else {
         for (kind, num) in [
@@ -978,7 +979,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             ("IOBS.V2.R.B2", 2),
             ("IOBS.V2.R.T2", 2),
         ] {
-            builder.make_marker_bel(kind, kind, kind, num);
+            builder.make_marker_node(kind, num);
         }
     }
 

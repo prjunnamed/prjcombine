@@ -1,25 +1,26 @@
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xc5200::bond::{Bond, BondPin, CfgPin};
-use prjcombine_xc5200::expanded::ExpandedDevice;
 use prjcombine_xc5200::grid::{IoCoord, SharedCfgPin};
+use prjcombine_xc5200_naming::ExpandedNamedDevice;
 use std::collections::{btree_map, BTreeMap, HashMap};
 
 pub fn make_bond(
-    edev: &ExpandedDevice,
+    endev: &ExpandedNamedDevice,
     pkg: &str,
     pins: &[PkgPin],
     cfg_io: &mut BTreeMap<SharedCfgPin, IoCoord>,
 ) -> Bond {
     let mut bond_pins = BTreeMap::new();
-    let io_lookup: HashMap<_, _> = edev
+    let io_lookup: HashMap<_, _> = endev
+        .edev
         .get_bonded_ios()
         .into_iter()
-        .map(|io| (io.name.to_string(), io))
+        .map(|io| (endev.get_io_name(io), io))
         .collect();
     for pin in pins {
         let bpin = if let Some(ref pad) = pin.pad {
-            if let Some(&io) = io_lookup.get(pad) {
-                BondPin::Io(io.coord)
+            if let Some(&io) = io_lookup.get(&pad[..]) {
+                BondPin::Io(io)
             } else {
                 println!("UNK PAD {pad}");
                 continue;

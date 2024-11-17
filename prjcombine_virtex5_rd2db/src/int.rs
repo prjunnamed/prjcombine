@@ -1,11 +1,12 @@
-use prjcombine_int::db::{Dir, IntDb, IntfWireInNaming, NodeTileId, TermInfo, WireKind};
+use prjcombine_int::db::{Dir, IntDb, NodeTileId, TermInfo, WireKind};
 use prjcombine_rawdump::{Coord, Part};
+use prjcombine_xilinx_naming::db::{IntfWireInNaming, NamingDb};
 use unnamed_entity::EntityId;
 
 use prjcombine_rdintb::IntBuilder;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("virtex5", rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     builder.wire("PULLUP", WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
@@ -483,7 +484,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    let intf = builder.db.get_node_naming("INTF");
+    let intf = builder.ndb.get_node_naming("INTF");
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAM").iter().next() {
         let mut int_xy = Vec::new();
@@ -573,7 +574,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("EMAC").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_emac = builder.db.get_node_naming("INTF.EMAC");
+        let intf_emac = builder.ndb.get_node_naming("INTF.EMAC");
         for dy in 0..10 {
             int_xy.push(xy.delta(-2, dy));
             intf_xy.push((xy.delta(-1, dy), intf_emac));
@@ -592,7 +593,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_B").iter().next() {
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_pcie = builder.db.get_node_naming("INTF.PCIE");
+        let intf_pcie = builder.ndb.get_node_naming("INTF.PCIE");
         for by in [-11, 0, 11, 22] {
             for dy in 0..10 {
                 int_xy.push(xy.delta(-2, by + dy));
@@ -610,7 +611,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         );
     }
 
-    if let Some((_, intf)) = builder.db.node_namings.get_mut("INTF.PPC_R") {
+    if let Some((_, intf)) = builder.ndb.node_namings.get_mut("INTF.PPC_R") {
         intf.intf_wires_in.insert(
             (NodeTileId::from_idx(0), clk[0]),
             IntfWireInNaming::Buf {
@@ -631,8 +632,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         let ppc_t_xy = xy.delta(0, 22);
         let mut int_xy = Vec::new();
         let mut intf_xy = Vec::new();
-        let intf_ppc_l = builder.db.get_node_naming("INTF.PPC_L");
-        let intf_ppc_r = builder.db.get_node_naming("INTF.PPC_R");
+        let intf_ppc_l = builder.ndb.get_node_naming("INTF.PPC_L");
+        let intf_ppc_r = builder.ndb.get_node_naming("INTF.PPC_R");
         for by in [-10, 1, 12, 23] {
             for dy in 0..10 {
                 int_xy.push(xy.delta(-11, by + dy));
@@ -1467,7 +1468,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for (tkn, kind) in [("GT3", "GTP"), ("GTX", "GTX"), ("GTX_LEFT", "GTX")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let int_dx = if tkn == "GTX_LEFT" { 2 } else { -3 };
-            let intf_gt = builder.db.get_node_naming(if tkn == "GTX_LEFT" {
+            let intf_gt = builder.ndb.get_node_naming(if tkn == "GTX_LEFT" {
                 "INTF.GTX_LEFT"
             } else {
                 "INTF.GTP"

@@ -482,10 +482,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 };
                 for (k, v) in values {
                     if *v == val {
-                        ctx.insert_device_data(
-                            "PCILOGICSE:DELAY_DEFAULT",
-                            k.clone(),
-                        );
+                        ctx.insert_device_data("PCILOGICSE:DELAY_DEFAULT", k.clone());
                         break;
                     }
                 }
@@ -571,10 +568,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     diffs.push((val.to_string(), diff));
                 }
                 let default = default.unwrap();
-                ctx.insert_device_data(
-                    "PCILOGICSE:DELAY_DEFAULT",
-                    default.to_string(),
-                );
+                ctx.insert_device_data("PCILOGICSE:DELAY_DEFAULT", default.to_string());
                 let item = xlat_enum(diffs);
                 present.discard_bits(&item);
                 ctx.tiledb.insert(tile, bel, "DELAY", item);

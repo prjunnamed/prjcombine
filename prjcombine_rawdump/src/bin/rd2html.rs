@@ -2658,6 +2658,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("REBUF_BRAM_BLI_B_CORE_MY", SINGLE, &[]),
     TileInfo("RCLK_BRAM_CORE", (1, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_BRAM_CLKBUF_CORE", (1, 0, 0, 0), &["clk-spine-buf"]),
+    TileInfo("RCLK_BRAM_CLKBUF_NOPD_CORE", (1, 0, 0, 0), &["clk-row-buf"]),
     TileInfo("RCLK_BRAM_CORE_MY", (1, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RBRK_BRAM_TILE", SINGLE, &["clk-brk"]),
     TileInfo("RBRK_BRAM_TILE_MY", SINGLE, &["clk-brk"]),

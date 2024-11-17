@@ -2,9 +2,10 @@ use prjcombine_int::db::{Dir, IntDb, WireKind};
 use prjcombine_rawdump::Part;
 
 use prjcombine_rdintb::IntBuilder;
+use prjcombine_xilinx_naming::db::NamingDb;
 
-pub fn make_int_db(rd: &Part) -> IntDb {
-    let mut builder = IntBuilder::new("spartan6", rd);
+pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
+    let mut builder = IntBuilder::new(rd);
 
     builder.wire("PULLUP", WireKind::TiePullup, &["KEEP1_WIRE"]);
     builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
@@ -319,7 +320,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("BRAMSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF");
+        let n = builder.ndb.get_node_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
@@ -340,7 +341,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("MACCSITE2").iter().next() {
         let mut intf_xy = Vec::new();
-        let n = builder.db.get_node_naming("INTF");
+        let n = builder.ndb.get_node_naming("INTF");
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
@@ -359,7 +360,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         builder.extract_xnode_bels_intf("DSP", xy, &[], &[], &intf_xy, "DSP", &[bel_dsp]);
     }
 
-    let intf_cnr = builder.db.get_node_naming("INTF.CNR");
+    let intf_cnr = builder.ndb.get_node_naming("INTF.CNR");
     for (tkn, bels) in [
         (
             "LL",
@@ -425,7 +426,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
             .extract();
     }
 
-    let intf_ioi = builder.db.get_node_naming("INTF.IOI");
+    let intf_ioi = builder.ndb.get_node_naming("INTF.IOI");
     for (nn, tkn, naming, is_bt) in [
         ("IOI.LR", "LIOI", "LIOI", false),
         ("IOI.LR", "LIOI_BRK", "LIOI", false),
@@ -1159,7 +1160,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     for tkn in ["MCB_L", "MCB_L_BOT"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf = builder.db.get_node_naming("INTF");
+            let intf = builder.ndb.get_node_naming("INTF");
             let mut bels = vec![];
             let mut bel = builder
                 .bel_xy("MCB", "MCB", 0, 0)
@@ -2144,7 +2145,7 @@ pub fn make_int_db(rd: &Part) -> IntDb {
         }
     }
 
-    let intf = builder.db.get_node_naming("INTF");
+    let intf = builder.ndb.get_node_naming("INTF");
     for (tkn, bt, bkind, d0, d1, d2) in [
         ("CMT_DCM_BOT", 'B', "DCM_BUFPLL_BUF_BOT", 'D', 'D', 'D'),
         ("CMT_DCM2_BOT", 'B', "DCM_BUFPLL_BUF_BOT_MID", 'D', 'U', 'D'),
@@ -2511,8 +2512,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
-        let nr = builder.db.get_node_naming("INTF.RTERM");
-        let nl = builder.db.get_node_naming("INTF.LTERM");
+        let nr = builder.ndb.get_node_naming("INTF.RTERM");
+        let nl = builder.ndb.get_node_naming("INTF.LTERM");
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
             intf_xy.push((xy.delta(-5, -9 + dy), nr));
         }
@@ -2533,8 +2534,8 @@ pub fn make_int_db(rd: &Part) -> IntDb {
     for tkn in ["GTPDUAL_BOT", "GTPDUAL_TOP"] {
         let is_b = tkn == "GTPDUAL_BOT";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf_rterm = builder.db.get_node_naming("INTF.RTERM");
-            let intf_lterm = builder.db.get_node_naming("INTF.LTERM");
+            let intf_rterm = builder.ndb.get_node_naming("INTF.RTERM");
+            let intf_lterm = builder.ndb.get_node_naming("INTF.LTERM");
             let by = if is_b { 0 } else { -9 };
             let intfs_l: [_; 8] = core::array::from_fn(|i| {
                 builder

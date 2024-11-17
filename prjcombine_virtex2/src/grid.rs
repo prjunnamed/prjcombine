@@ -1,8 +1,10 @@
 use prjcombine_int::db::Dir;
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::grid::{ColId, Coord, RowId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{entity_id, EntityId, EntityVec};
+
+use crate::iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobTileData};
 
 entity_id! {
     pub id TileIobId u8;
@@ -96,6 +98,7 @@ pub enum ColumnIoKind {
     SingleRightAlt,
     DoubleLeft(u8),
     DoubleRight(u8),
+    DoubleRightClk(u8),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -179,6 +182,22 @@ impl Grid {
 
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows.len() / 2)
+    }
+
+    pub fn bram_row(&self, row: RowId) -> Option<usize> {
+        if let Some((b, t)) = self.rows_ram {
+            if row <= b || row >= t {
+                None
+            } else {
+                Some((row.to_idx() - (b.to_idx() + 1)) % 4)
+            }
+        } else {
+            if row == self.row_bot() || row == self.row_top() {
+                None
+            } else {
+                Some((row.to_idx() - 1) % 4)
+            }
+        }
     }
 
     pub fn get_dcm_pairs(&self) -> Vec<DcmPair> {
@@ -563,6 +582,40 @@ impl Grid {
                 _ => unreachable!(),
             },
             _ => unreachable!(),
+        }
+    }
+
+    pub fn get_iob_data(&self, coord: Coord) -> Option<(IobTileData, usize)> {
+        if coord.0 == self.col_left() {
+            let kind = self.rows[coord.1];
+            if kind == RowIoKind::None {
+                None
+            } else {
+                Some(get_iob_data_l(self.kind, kind))
+            }
+        } else if coord.0 == self.col_right() {
+            let kind = self.rows[coord.1];
+            if kind == RowIoKind::None {
+                None
+            } else {
+                Some(get_iob_data_r(self.kind, kind))
+            }
+        } else if coord.1 == self.row_bot() {
+            let kind = self.columns[coord.0].io;
+            if kind == ColumnIoKind::None {
+                None
+            } else {
+                Some(get_iob_data_b(self.kind, kind))
+            }
+        } else if coord.1 == self.row_top() {
+            let kind = self.columns[coord.0].io;
+            if kind == ColumnIoKind::None {
+                None
+            } else {
+                Some(get_iob_data_t(self.kind, kind))
+            }
+        } else {
+            unreachable!()
         }
     }
 }

@@ -1,6 +1,6 @@
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_xc5200::expanded::ExpandedDevice;
+use prjcombine_xc5200_naming::ExpandedNamedDevice;
 
 fn verify_lc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = match bel.key {
@@ -46,18 +46,18 @@ fn verify_lc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_iob(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let mut pins = vec![];
     let kind = if bel.naming.pins.contains_key("CLKIN") {
         pins.push(("CLKIN", SitePinDir::Out));
-        let st = if bel.row == edev.grid.row_bio() {
-            (edev.grid.col_lio(), edev.grid.row_bio())
-        } else if bel.row == edev.grid.row_tio() {
-            (edev.grid.col_rio(), edev.grid.row_tio())
-        } else if bel.col == edev.grid.col_lio() {
-            (edev.grid.col_lio(), edev.grid.row_tio())
-        } else if bel.col == edev.grid.col_rio() {
-            (edev.grid.col_rio(), edev.grid.row_bio())
+        let st = if bel.row == endev.edev.grid.row_bio() {
+            (endev.edev.grid.col_lio(), endev.edev.grid.row_bio())
+        } else if bel.row == endev.edev.grid.row_tio() {
+            (endev.edev.grid.col_rio(), endev.edev.grid.row_tio())
+        } else if bel.col == endev.edev.grid.col_lio() {
+            (endev.edev.grid.col_lio(), endev.edev.grid.row_tio())
+        } else if bel.col == endev.edev.grid.col_rio() {
+            (endev.edev.grid.col_rio(), endev.edev.grid.row_bio())
         } else {
             unreachable!()
         };
@@ -82,10 +82,10 @@ fn verify_bot_cin(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_pip(bel.crd(), "WIRE_M14_BOT", "WIRE_COUT_BOT");
 }
 
-fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
         _ if bel.key.starts_with("LC") => verify_lc(vrf, bel),
-        _ if bel.key.starts_with("IOB") => verify_iob(edev, vrf, bel),
+        _ if bel.key.starts_with("IOB") => verify_iob(endev, vrf, bel),
         _ if bel.key.starts_with("TBUF") => vrf.verify_bel(bel, "TBUF", &[], &[]),
         "BUFG" => vrf.verify_bel(bel, "CLK", &[], &[]),
         "CLKIOB" => (),
@@ -99,12 +99,12 @@ fn verify_bel(edev: &ExpandedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_device(edev: &ExpandedDevice, rd: &Part) {
+pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     verify(
         rd,
-        &edev.egrid,
+        &endev.ngrid,
         |_| (),
-        |vrf, bel| verify_bel(edev, vrf, bel),
+        |vrf, bel| verify_bel(endev, vrf, bel),
         |_| (),
     );
 }

@@ -1,6 +1,8 @@
-use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, Diff, OcdMode};
+use prjcombine_collector::{
+    xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, Diff, OcdMode,
+};
 use prjcombine_hammer::Session;
-use prjcombine_int::db::{BelId, Dir};
+use prjcombine_int::{db::{BelId, Dir}, grid::DieId};
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
@@ -422,7 +424,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
                     format!("BUF.MGT{i}"),
                     "1",
                 )];
-                if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+                if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
                     extras.push(ExtraFeature::new(
                         ExtraFeatureKind::MgtRepeaterMgt(hclk_delta),
                         "HCLK_MGT_REPEATER",
@@ -856,7 +858,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit(tile, bel, &format!("BUF.MGT{i}"), "1");
     }
 
-    if !edev.grids[edev.grid_master].cols_vbrk.is_empty() {
+    if !edev.grids[DieId::from_idx(0)].cols_vbrk.is_empty() {
         let tile = "HCLK_MGT_REPEATER";
         let bel = "HCLK_MGT_REPEATER";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.MGT", "1");

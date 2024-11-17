@@ -9,12 +9,9 @@ use prjcombine_collector::{
 use prjcombine_hammer::Session;
 use prjcombine_int::grid::DieId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_virtex2::{
-    expanded::{IoDiffKind, IoPadKind},
-    grid::GridKind,
-};
+use prjcombine_virtex2::{expanded::IoDiffKind, grid::GridKind, iob::IobKind};
 use prjcombine_virtex_bitstream::{BitTile, Reg};
-use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice};
+use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use unnamed_entity::EntityId;
 
 use crate::{
@@ -36,6 +33,9 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
+        unreachable!()
+    };
+    let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
         unreachable!()
     };
 
@@ -466,10 +466,10 @@ pub fn add_fuzzers<'a>(
                     io_vr = Some(edev.grid.dci_io_alt[&bank]);
                 }
                 let (io_vrp, io_vrn) = io_vr.unwrap();
-                let site_vrp = edev.get_io_bel(io_vrp).unwrap().3;
-                let site_vrn = edev.get_io_bel(io_vrn).unwrap().3;
-                for &io in edev.bonded_ios.iter().rev() {
-                    let ioinfo = edev.get_io(io);
+                let site_vrp = endev.get_io_name(io_vrp);
+                let site_vrn = endev.get_io_name(io_vrn);
+                for io in edev.get_bonded_ios().into_iter().rev() {
+                    let ioinfo = edev.get_io_info(io);
                     if ioinfo.bank == bank && coords.insert((io.col, io.row)) {
                         btiles.push(edev.btile_main(io.col, io.row));
                         if io.col == edev.grid.col_left() || io.col == edev.grid.col_right() {
@@ -480,15 +480,15 @@ pub fn add_fuzzers<'a>(
                     }
                     if ebond.ios.contains_key(&io)
                         && matches!(ioinfo.diff, IoDiffKind::P(_))
-                        && ioinfo.pad_kind == IoPadKind::Io
+                        && ioinfo.pad_kind == Some(IobKind::Iob)
                         && io != io_vrp
                         && io != io_vrn
                     {
                         if ioinfo.bank == bank && site.is_none() {
-                            site = Some(edev.get_io_bel(io).unwrap().3);
+                            site = Some(endev.get_io_name(io));
                         }
                         if ioinfo.bank == other_bank && site_other.is_none() {
-                            site_other = Some(edev.get_io_bel(io).unwrap().3);
+                            site_other = Some(endev.get_io_name(io));
                         }
                     }
                 }
@@ -735,8 +735,8 @@ pub fn add_fuzzers<'a>(
                     }));
                 } else if bank == 5 && edev.grid.dci_io_alt.contains_key(&5) {
                     let (io_alt_vrp, io_alt_vrn) = edev.grid.dci_io_alt[&5];
-                    let site_alt_vrp = edev.get_io_bel(io_alt_vrp).unwrap().3;
-                    let site_alt_vrn = edev.get_io_bel(io_alt_vrn).unwrap().3;
+                    let site_alt_vrp = endev.get_io_name(io_alt_vrp);
+                    let site_alt_vrn = endev.get_io_name(io_alt_vrn);
                     session.add_fuzzer(Box::new(TileFuzzerGen {
                         node: node_kind,
                         bits: bits.clone(),
@@ -939,11 +939,11 @@ pub fn add_fuzzers<'a>(
                 }
                 let bits = TileBits::Raw(btiles);
                 let mut ios = vec![];
-                for &io in edev.bonded_ios.iter().rev() {
-                    let ioinfo = edev.get_io(io);
+                for io in edev.get_bonded_ios().into_iter().rev() {
+                    let ioinfo = edev.get_io_info(io);
                     if ebond.ios.contains_key(&io)
                         && matches!(ioinfo.diff, IoDiffKind::P(_))
-                        && ioinfo.pad_kind == IoPadKind::Io
+                        && ioinfo.pad_kind == Some(IobKind::Iob)
                         && ioinfo.bank == bank
                     {
                         ios.push(io)
@@ -953,8 +953,8 @@ pub fn add_fuzzers<'a>(
                 if edev.grid.kind == GridKind::Spartan3ADsp {
                     ios.reverse();
                 }
-                let site_a = edev.get_io_bel(ios[0]).unwrap().3;
-                let site_b = edev.get_io_bel(ios[1]).unwrap().3;
+                let site_a = endev.get_io_name(ios[0]);
+                let site_b = endev.get_io_name(ios[1]);
                 let diffm = if edev.grid.kind == GridKind::Spartan3E {
                     "DIFFM"
                 } else {

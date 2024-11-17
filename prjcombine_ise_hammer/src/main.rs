@@ -111,6 +111,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
     println!("part {name}", name = part.name);
     let mut opts = *opts;
     let gedev = db.expand_grid(part);
+    let gendev = db.name(part, &gedev);
     let mut ebonds = HashMap::new();
     for devbond in part.bonds.values() {
         let bond = &db.bonds[devbond.bond];
@@ -123,7 +124,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         device: part,
         bs_geom: gedev.bs_geom(),
         egrid: gedev.egrid(),
+        ngrid: gendev.ngrid(),
         edev: &gedev,
+        endev: &gendev,
         ebonds: &ebonds,
     };
     let mut hammer = Session::new(&backend);
@@ -398,8 +401,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 }
             }
         },
-        ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
-        ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
+        _ => panic!("unsupported device kind"),
     }
     if !opts.skip_core {
         intf::add_fuzzers(&mut hammer, &backend);
@@ -662,8 +664,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 }
             }
         },
-        ExpandedDevice::Ultrascale(_) => panic!("ultrascale not supported by ISE"),
-        ExpandedDevice::Versal(_) => panic!("versal not supported by ISE"),
+        _ => panic!("unsupported device kind"),
     }
     if !opts.skip_core {
         intf::collect_fuzzers(&mut ctx);
