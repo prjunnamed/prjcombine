@@ -53,7 +53,7 @@ entity_id! {
     pub id BelId u16, reserve 1;
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IntDb {
     pub wires: EntityMap<WireId, String, WireKind>,
     pub nodes: EntityMap<NodeKindId, String, NodeKind>,
@@ -131,7 +131,7 @@ pub enum MuxKind {
     OptInv,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct BelInfo {
     pub pins: BTreeMap<String, BelPin>,
 }

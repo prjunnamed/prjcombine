@@ -1,7 +1,7 @@
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, Part};
 use prjcombine_virtex4::grid::{
-    ColumnKind, DisabledPart, Interposer, Grid, GridKind, GtColumn, GtKind, IoColumn, IoKind,
+    ColumnKind, DisabledPart, Grid, GridKind, GtColumn, GtKind, Interposer, IoColumn, IoKind,
     Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
@@ -268,13 +268,7 @@ fn get_cols_gt(int: &IntGrid, columns: &EntityVec<ColId, ColumnKind>) -> Vec<GtC
     res
 }
 
-pub fn make_grids(
-    rd: &Part,
-) -> (
-    EntityVec<DieId, Grid>,
-    Interposer,
-    BTreeSet<DisabledPart>,
-) {
+pub fn make_grids(rd: &Part) -> (EntityVec<DieId, Grid>, Interposer, BTreeSet<DisabledPart>) {
     let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["B_TERM_INT_SLV"])
         .into_iter()
         .map(|x| x as u16)

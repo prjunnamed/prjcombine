@@ -13,12 +13,7 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     let (grids, interposer, disabled) = grid::make_grids(rd);
     let (intdb, ndb) = int::make_int_db(rd);
     let grid_refs = grids.map_values(|x| x);
-    let mut edev = expand_grid(
-        &grid_refs,
-        Some(&interposer),
-        &disabled,
-        &intdb,
-    );
+    let mut edev = expand_grid(&grid_refs, Some(&interposer), &disabled, &intdb);
     if rd.source == Source::Vivado {
         edev.adjust_vivado();
     }

@@ -2,7 +2,10 @@ use prjcombine_collector::{
     xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default, xlat_enum_ocd, Diff, OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::{db::{BelId, Dir}, grid::DieId};
+use prjcombine_int::{
+    db::{BelId, Dir},
+    grid::DieId,
+};
 use prjcombine_types::tiledb::{TileBit, TileItem};
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;

@@ -1697,7 +1697,7 @@ pub const XC4000E_WIRES: &[(&str, &str)] = &[
     ("RDBK_DATA", "OUT.RDBK.DATA"),
     ("RDBK_RIP", "OUT.BT.IOB1.I2"),
     ("MD0_I", "OUT.MD0.I"),
-    ("MD1_O", "IMUX.IOB1.CE"),
+    ("MD1_O", "IMUX.IOB1.O1"),
     ("MD1_T", "IMUX.IOB1.IK"),
     ("MD2_I", "OUT.BT.IOB1.I1"),
     ("BUFGP_BL_I", "IMUX.BUFG.H"),

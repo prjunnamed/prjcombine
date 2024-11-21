@@ -289,10 +289,7 @@ impl GeomDb {
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Virtex4(prjcombine_virtex4::expand_grid(
-                    &grids,
-                    interposer,
-                    &disabled,
-                    intdb,
+                    &grids, interposer, &disabled, intdb,
                 ))
             }
             Grid::Ultrascale(ref grid) => {
@@ -317,10 +314,7 @@ impl GeomDb {
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Ultrascale(prjcombine_ultrascale::expand_grid(
-                    &grids,
-                    interposer,
-                    &disabled,
-                    intdb,
+                    &grids, interposer, &disabled, intdb,
                 ))
             }
             Grid::Versal(_) => {

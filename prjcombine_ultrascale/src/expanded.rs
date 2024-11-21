@@ -6,7 +6,8 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{
-    ColSide, ColumnKindRight, DisabledPart, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoRowKind, RegId
+    ColSide, ColumnKindRight, DisabledPart, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId,
+    Interposer, IoRowKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;

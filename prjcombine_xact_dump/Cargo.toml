@@ -1,0 +1,21 @@
+[package]
+name = "prjcombine_xact_dump"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+enum-map.workspace = true
+ndarray.workspace = true
+clap.workspace = true
+unnamed_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_xc4000.workspace = true
+prjcombine_xc4000_xact.workspace = true
+prjcombine_xc5200.workspace = true
+prjcombine_xc5200_xact.workspace = true
+prjcombine_xact_naming.workspace = true
+prjcombine_xact_geom.workspace = true
+prjcombine_xact_data.workspace = true
+
+[lints]
+workspace = true

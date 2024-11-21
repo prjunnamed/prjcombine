@@ -25,7 +25,6 @@ struct CnrTerms {
     term_lr_s: Vec<(WireId, WireId)>,
     term_ul_n: Vec<(WireId, WireId)>,
     term_ur_e: Vec<(WireId, WireId)>,
-    term_ur_n: Vec<(WireId, WireId)>,
 }
 
 fn fill_tie_wires(builder: &mut IntBuilder) {
@@ -350,6 +349,10 @@ fn fill_octal_wires(builder: &mut IntBuilder) {
 }
 
 fn fill_io_octal_wires(builder: &mut IntBuilder, cnr_terms: &mut CnrTerms) {
+    if matches!(&*builder.rd.family, "xc4000e" | "spartanxl") {
+        return;
+    }
+
     let mut wires = EnumMap::from_fn(|_| vec![]);
 
     let bdir = enum_map!(
@@ -801,19 +804,20 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
     }
 
     for i in 0..2 {
-        for pin in ["CE", "OK", "IK", "TS"] {
+        for pin in ["O1", "OK", "IK", "TS"] {
+            let apin = if pin == "O1" { "CE" } else { pin };
             let w = builder.mux_out(format!("IMUX.IOB{i}.{pin}"), &[""]);
             for k in BOT_KINDS {
                 let ii = if pin == "TS" { [2, 1][i] } else { i + 1 };
-                builder.extra_name(format!("{k}_{pin}_{ii}"), w);
+                builder.extra_name(format!("{k}_{apin}_{ii}"), w);
             }
             for k in TOP_KINDS.into_iter().chain(LEFT_KINDS).chain(RT_KINDS) {
                 let ii = i + 1;
-                builder.extra_name(format!("{k}_{pin}_{ii}"), w);
+                builder.extra_name(format!("{k}_{apin}_{ii}"), w);
             }
 
             match (i, pin) {
-                (1, "CE") => builder.extra_name("LL_MD1_O", w),
+                (1, "O1") => builder.extra_name("LL_MD1_O", w),
                 (1, "IK") => builder.extra_name("LL_MD1_T", w),
                 _ => (),
             }
@@ -1208,8 +1212,8 @@ fn extract_clb(
             xn = xn.force_name(rti, name, (NodeTileId::from_idx(0), wire));
         }
         for (wt, wf) in [
-            ("IMUX.CLB.F2", "IMUX.IOB0.CE"),
-            ("IMUX.CLB.G2", "IMUX.IOB1.CE"),
+            ("IMUX.CLB.F2", "IMUX.IOB0.O1"),
+            ("IMUX.CLB.G2", "IMUX.IOB1.O1"),
         ] {
             let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
             let wf = (NodeTileId::from_idx(1), xn.builder.db.get_wire(wf));
@@ -1298,8 +1302,8 @@ fn extract_bot(
                 }
             }
             for (wt, wf) in [
-                ("IMUX.CLB.F4", "IMUX.IOB0.CE"),
-                ("IMUX.CLB.G4", "IMUX.IOB1.CE"),
+                ("IMUX.CLB.F4", "IMUX.IOB0.O1"),
+                ("IMUX.CLB.G4", "IMUX.IOB1.O1"),
             ] {
                 let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
                 let wf = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wf));
@@ -1460,8 +1464,8 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireId], imux_nw: &[NodeWi
                     );
             }
             for (wt, wf) in [
-                ("IMUX.CLB.G1", "IMUX.IOB0.CE"),
-                ("IMUX.CLB.F1", "IMUX.IOB1.CE"),
+                ("IMUX.CLB.G1", "IMUX.IOB0.O1"),
+                ("IMUX.CLB.F1", "IMUX.IOB1.O1"),
             ] {
                 let wt = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wt));
                 let wf = (NodeTileId::from_idx(0), xn.builder.db.get_wire(wf));
@@ -2494,7 +2498,6 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         term_lr_s: vec![],
         term_ul_n: vec![],
         term_ur_e: vec![],
-        term_ur_n: vec![],
     };
 
     fill_tie_wires(&mut builder);
@@ -2664,7 +2667,6 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("CNR.LR.S", Dir::S, cnr_terms.term_lr_s),
         ("CNR.UL.N", Dir::N, cnr_terms.term_ul_n),
         ("CNR.UR.E", Dir::E, cnr_terms.term_ur_e),
-        ("CNR.UR.N", Dir::N, cnr_terms.term_ur_n),
     ] {
         let term = TermKind {
             dir,

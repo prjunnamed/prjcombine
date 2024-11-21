@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Display};
 
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
@@ -65,5 +65,23 @@ impl Grid {
 
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows / 2)
+    }
+}
+
+impl Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: Xc5200")?;
+        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
+        writeln!(f, "\tCFG PINS:")?;
+        for (k, v) in &self.cfg_io {
+            writeln!(
+                f,
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
+                x = v.col,
+                y = v.row,
+                b = v.iob
+            )?;
+        }
+        Ok(())
     }
 }

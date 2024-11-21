@@ -1,7 +1,6 @@
 use clap::Parser;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, GeomDb, Grid};
 use std::{error::Error, path::PathBuf};
-use unnamed_entity::EntityId;
 
 #[derive(Debug, Parser)]
 #[command(name = "xgprint", about = "Dump Xilinx geom file.")]
@@ -22,95 +21,6 @@ struct Args {
 pub fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
     (pos, &name[..pos], name[pos..].parse().unwrap())
-}
-
-mod xc4000 {
-    use itertools::Itertools;
-    use prjcombine_xc4000::{
-        bond::{Bond, BondPin, CfgPin},
-        grid::Grid,
-    };
-
-    use crate::pad_sort_key;
-
-    pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: {k:?}", k = grid.kind);
-        println!("\tDIMS: {c}×{r}", c = grid.columns, r = grid.rows);
-        println!("\tIS BUFF LARGE: {v}", v = grid.is_buff_large);
-        println!("\tCFG PINS:");
-        for (k, v) in &grid.cfg_io {
-            println!(
-                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
-                x = v.col,
-                y = v.row,
-                b = v.iob
-            );
-        }
-    }
-
-    pub fn print_bond(bond: &Bond) {
-        println!("\tPINS:");
-        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            print!("\t\t{pin:4}: ");
-            match pad {
-                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
-                BondPin::Nc => print!("NC"),
-                BondPin::Gnd => print!("GND"),
-                BondPin::VccInt => print!("VCCINT"),
-                BondPin::VccO => print!("VCCO"),
-                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
-                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
-                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
-                BondPin::Cfg(CfgPin::M0) => print!("M0"),
-                BondPin::Cfg(CfgPin::M1) => print!("M1"),
-                BondPin::Cfg(CfgPin::M2) => print!("M2"),
-                BondPin::Cfg(CfgPin::Tdo) => print!("TDO"),
-                BondPin::Cfg(CfgPin::PwrdwnB) => print!("PWRDWN_B"),
-            }
-            println!();
-        }
-    }
-}
-
-mod xc5200 {
-    use itertools::Itertools;
-    use prjcombine_xc5200::{
-        bond::{Bond, BondPin, CfgPin},
-        grid::Grid,
-    };
-
-    use crate::pad_sort_key;
-
-    pub fn print_grid(grid: &Grid) {
-        println!("\tKIND: Xc5200");
-        println!("\tDIMS: {c}×{r}", c = grid.columns, r = grid.rows);
-        println!("\tCFG PINS:");
-        for (k, v) in &grid.cfg_io {
-            println!(
-                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
-                x = v.col,
-                y = v.row,
-                b = v.iob
-            );
-        }
-    }
-
-    pub fn print_bond(bond: &Bond) {
-        println!("\tPINS:");
-        for (pin, pad) in bond.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            print!("\t\t{pin:4}: ");
-            match pad {
-                BondPin::Io(io) => print!("IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob),
-                BondPin::Nc => print!("NC"),
-                BondPin::Gnd => print!("GND"),
-                BondPin::Vcc => print!("VCC"),
-                BondPin::Cfg(CfgPin::Cclk) => print!("CCLK"),
-                BondPin::Cfg(CfgPin::Done) => print!("DONE"),
-                BondPin::Cfg(CfgPin::ProgB) => print!("PROG_B"),
-            }
-            println!();
-        }
-    }
 }
 
 mod virtex {
@@ -1451,14 +1361,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.grids || args.devices {
         for (gid, grid) in &geom.grids {
-            print!("GRID {gid}:", gid = gid.to_idx());
+            print!("GRID {gid}:");
             for dev in &geom.devices {
                 for (did, &die) in &dev.grids {
                     if die == gid {
                         if dev.grids.len() == 1 {
                             print!(" {dev}", dev = dev.name);
                         } else {
-                            print!(" {dev}.{did}", dev = dev.name, did = did.to_idx());
+                            print!(" {dev}.{did}", dev = dev.name);
                         }
                     }
                 }
@@ -1466,8 +1376,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.grids {
                 match grid {
-                    Grid::Xc4000(g) => xc4000::print_grid(g),
-                    Grid::Xc5200(g) => xc5200::print_grid(g),
+                    Grid::Xc4000(g) => print!("{}", g),
+                    Grid::Xc5200(g) => print!("{}", g),
                     Grid::Virtex(g) => virtex::print_grid(g),
                     Grid::Virtex2(g) => virtex2::print_grid(g),
                     Grid::Spartan6(g) => spartan6::print_grid(g),
@@ -1493,7 +1403,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if args.pkgs || args.devices {
         for (bid, bond) in &geom.bonds {
-            print!("BOND {bid}:", bid = bid.to_idx());
+            print!("BOND {bid}:");
             for dev in &geom.devices {
                 for dbond in dev.bonds.values() {
                     if dbond.bond == bid {
@@ -1504,8 +1414,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.pkgs {
                 match bond {
-                    Bond::Xc4000(bond) => xc4000::print_bond(bond),
-                    Bond::Xc5200(bond) => xc5200::print_bond(bond),
+                    Bond::Xc4000(bond) => print!("{}", bond),
+                    Bond::Xc5200(bond) => print!("{}", bond),
                     Bond::Virtex(bond) => virtex::print_bond(bond),
                     Bond::Virtex2(bond) => virtex2::print_bond(bond),
                     Bond::Spartan6(bond) => spartan6::print_bond(bond),
@@ -1524,14 +1434,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 ip = dev.interposer
             );
             for (_, &gid) in &dev.grids {
-                print!(" {g}", g = gid.to_idx());
+                print!(" {gid}");
             }
             println!();
             for disabled in &dev.disabled {
                 println!("\tDISABLED {disabled:?}");
             }
             for bond in dev.bonds.values() {
-                println!("\tBOND {n}: {i}", n = bond.name, i = bond.bond.to_idx());
+                println!("\tBOND {n}: {i}", n = bond.name, i = bond.bond);
             }
             for combo in &dev.combos {
                 println!(
@@ -1542,13 +1452,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
             }
             if geom.dev_namings[dev.naming] != DeviceNaming::Dummy {
-                println!("\tNAMING {n}", n = dev.naming.to_idx());
+                println!("\tNAMING {n}", n = dev.naming);
             }
         }
     }
     if args.devices || args.namings {
         for (dnid, dn) in geom.dev_namings {
-            print!("NAMING {dnid}:", dnid = dnid.to_idx());
+            print!("NAMING {dnid}:");
             for dev in &geom.devices {
                 if dev.naming == dnid {
                     print!(" {dev}", dev = dev.name);

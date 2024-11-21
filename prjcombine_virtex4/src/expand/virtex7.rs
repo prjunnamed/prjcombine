@@ -9,7 +9,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
 use crate::expanded::{DieFrameGeom, ExpandedDevice, Gtz, IoCoord, TileIobId};
-use crate::grid::{ColumnKind, DisabledPart, Interposer, Grid, GtKind, GtzLoc, IoKind, Pcie2Kind};
+use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind, GtzLoc, Interposer, IoKind, Pcie2Kind};
 
 struct DieExpander<'a, 'b, 'c> {
     grid: &'b Grid,

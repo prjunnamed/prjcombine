@@ -2,7 +2,7 @@ use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityVec};
 
-use crate::grid::{Grid, IoCoord, TileIobId};
+use crate::grid::{Grid, GridKind, IoCoord, TileIobId};
 
 #[derive(Debug)]
 pub struct Io {
@@ -26,11 +26,16 @@ impl<'a> ExpandedDevice<'a> {
     pub fn get_bonded_ios(&'a self) -> Vec<IoCoord> {
         let mut res = vec![];
         let die = self.egrid.die(DieId::from_idx(0));
+        let iobs = if self.grid.kind == GridKind::Xc4000H {
+            0..4
+        } else {
+            0..2
+        };
         for col in die.cols() {
             if col == self.grid.col_lio() || col == self.grid.col_rio() {
                 continue;
             }
-            for iob in [0, 1] {
+            for iob in iobs.clone() {
                 res.push(IoCoord {
                     col,
                     row: self.grid.row_tio(),
@@ -42,7 +47,7 @@ impl<'a> ExpandedDevice<'a> {
             if row == self.grid.row_bio() || row == self.grid.row_tio() {
                 continue;
             }
-            for iob in [0, 1] {
+            for iob in iobs.clone() {
                 res.push(IoCoord {
                     col: self.grid.col_rio(),
                     row,
@@ -54,7 +59,7 @@ impl<'a> ExpandedDevice<'a> {
             if col == self.grid.col_lio() || col == self.grid.col_rio() {
                 continue;
             }
-            for iob in [1, 0] {
+            for iob in iobs.clone().rev() {
                 res.push(IoCoord {
                     col,
                     row: self.grid.row_bio(),
@@ -66,7 +71,7 @@ impl<'a> ExpandedDevice<'a> {
             if row == self.grid.row_bio() || row == self.grid.row_tio() {
                 continue;
             }
-            for iob in [1, 0] {
+            for iob in iobs.clone().rev() {
                 res.push(IoCoord {
                     col: self.grid.col_lio(),
                     row,

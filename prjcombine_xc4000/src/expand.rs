@@ -337,7 +337,6 @@ impl Grid {
         grid.fill_term((col_r, row_b), "CNR.LR.S");
         grid.fill_term((col_l, row_t), "CNR.UL.N");
         grid.fill_term((col_r, row_t), "CNR.UR.E");
-        grid.fill_term((col_r, row_t), "CNR.UR.N");
 
         let mut spine_framebit = None;
         let mut qb_framebit = None;

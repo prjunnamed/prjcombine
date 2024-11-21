@@ -444,6 +444,47 @@ impl ExpandedGrid<'_> {
         }
     }
 
+    pub fn resolve_wire_nobuf(&self, mut wire: IntWire) -> Option<IntWire> {
+        let die = self.die(wire.0);
+        loop {
+            let tile = die.tile(wire.1);
+            let wi = self.db.wires[wire.2];
+            match wi {
+                WireKind::ClkOut(_) => {
+                    wire.1 = tile.clkroot;
+                    break;
+                }
+                WireKind::MultiBranch(dir) | WireKind::Branch(dir) | WireKind::PipBranch(dir) => {
+                    if let Some(t) = &tile.terms[dir] {
+                        let term = &self.db.terms[t.kind];
+                        match term.wires.get(wire.2) {
+                            Some(&TermInfo::BlackHole) => return None,
+                            Some(&TermInfo::PassNear(wf)) => {
+                                wire.2 = wf;
+                            }
+                            Some(&TermInfo::PassFar(wf)) => {
+                                wire.1 = t.target.unwrap();
+                                wire.2 = wf;
+                            }
+                            None => break,
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                _ => break,
+            }
+        }
+        if let Some(&twire) = self.xdie_wires.get_by_left(&wire) {
+            wire = twire;
+        }
+        if self.blackhole_wires.contains(&wire) {
+            None
+        } else {
+            Some(wire)
+        }
+    }
+
     pub fn wire_tree(&self, wire: IntWire) -> Vec<IntWire> {
         if self.blackhole_wires.contains(&wire) {
             return vec![];

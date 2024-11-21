@@ -20,8 +20,6 @@ pub fn expand_grid<'a>(
         GridKind::Virtex4 => virtex4::expand_grid(grids, disabled, db),
         GridKind::Virtex5 => virtex5::expand_grid(grids, disabled, db),
         GridKind::Virtex6 => virtex6::expand_grid(grids, disabled, db),
-        GridKind::Virtex7 => {
-            virtex7::expand_grid(grids, interposer.unwrap(), disabled, db)
-        }
+        GridKind::Virtex7 => virtex7::expand_grid(grids, interposer.unwrap(), disabled, db),
     }
 }

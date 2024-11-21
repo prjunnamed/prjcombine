@@ -225,16 +225,15 @@ impl DbBuilder {
                                     None => {
                                         v2.intf_wires_out.insert(kk, vv);
                                     }
-                                    Some(vv2 @ IntfWireOutNaming::Buf { name_out, .. }) => {
-                                        match vv {
-                                            IntfWireOutNaming::Buf { .. } => {
-                                                assert_eq!(&vv, vv2)
-                                            }
-                                            IntfWireOutNaming::Simple { name } => {
-                                                assert_eq!(name_out, &name)
-                                            }
+                                    Some(vv2 @ IntfWireOutNaming::Buf { name_out, .. }) => match vv
+                                    {
+                                        IntfWireOutNaming::Buf { .. } => {
+                                            assert_eq!(&vv, vv2)
                                         }
-                                    }
+                                        IntfWireOutNaming::Simple { name } => {
+                                            assert_eq!(name_out, &name)
+                                        }
+                                    },
                                     Some(vv2 @ IntfWireOutNaming::Simple { name }) => {
                                         if let IntfWireOutNaming::Buf { name_out, .. } = &vv {
                                             assert_eq!(name_out, name);

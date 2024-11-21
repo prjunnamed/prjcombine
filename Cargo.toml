@@ -60,6 +60,12 @@ members = [
 	"prjcombine_hammer",
 	"prjcombine_collector",
 	"prjcombine_ise_hammer",
+	"prjcombine_xact_naming",
+	"prjcombine_xc4000_xact",
+	"prjcombine_xc5200_xact",
+	"prjcombine_xact_data",
+	"prjcombine_xact_dump",
+	"prjcombine_xact_geom",
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
@@ -129,6 +135,11 @@ prjcombine_lattice_rawdump = { path = "prjcombine_lattice_rawdump" }
 prjcombine_virtex_bitstream = { path = "prjcombine_virtex_bitstream" }
 prjcombine_hammer = { path = "prjcombine_hammer" }
 prjcombine_collector = { path = "prjcombine_collector" }
+prjcombine_xact_naming = { path = "prjcombine_xact_naming" }
+prjcombine_xc4000_xact = { path = "prjcombine_xc4000_xact" }
+prjcombine_xc5200_xact = { path = "prjcombine_xc5200_xact" }
+prjcombine_xact_geom = { path = "prjcombine_xact_geom" }
+prjcombine_xact_data = { path = "prjcombine_xact_data" }
 prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }
@@ -162,6 +173,7 @@ bimap = "0.6"
 std-semaphore = "0.1"
 which = "7"
 derive-where = "1.2"
+bytes = "1.8.0"
 hex = "0.4.3"
 des = "0.8.1"
 cbc = "0.1.2"

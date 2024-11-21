@@ -395,7 +395,11 @@ fn verify_bufdiv_leaf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-fn verify_rclk_hdistr_loc(_endev: &ExpandedNamedDevice, _vrf: &mut Verifier, _bel: &BelContext<'_>) {
+fn verify_rclk_hdistr_loc(
+    _endev: &ExpandedNamedDevice,
+    _vrf: &mut Verifier,
+    _bel: &BelContext<'_>,
+) {
     // XXX verify HDISTR_LOC
 }
 
@@ -494,7 +498,8 @@ fn verify_bufgce_hdio(vrf: &mut Verifier, bel: &BelContext<'_>) {
 fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     let grid = endev.edev.grids[bel.die];
     let reg = grid.row_to_reg(bel.row);
-    if !endev.edev
+    if !endev
+        .edev
         .disabled
         .contains(&DisabledPart::HdioDpll(bel.die, bel.col, reg))
     {

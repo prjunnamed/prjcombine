@@ -9,7 +9,8 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::{ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord};
 use crate::grid::{
-    CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoRowKind, RegId
+    CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind, Grid,
+    GridKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoRowKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;

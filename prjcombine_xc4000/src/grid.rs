@@ -1,6 +1,6 @@
 use prjcombine_int::grid::{ColId, RowId};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Display};
 use unnamed_entity::{entity_id, EntityId};
 
 entity_id! {
@@ -110,30 +110,28 @@ impl Grid {
     pub fn btile_height_main(&self, row: RowId) -> usize {
         if row == self.row_bio() {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E => 13,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                    13
+                }
+                GridKind::Xc4000A => 10,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla => 16,
                 GridKind::Xc4000Xv => 17,
-                GridKind::SpartanXl => 13,
             }
         } else if row == self.row_tio() {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E => 7,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => 7,
+                GridKind::Xc4000A => 6,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla => 8,
                 GridKind::Xc4000Xv => 9,
-                GridKind::SpartanXl => 7,
             }
         } else {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E => 10,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                    10
+                }
+                GridKind::Xc4000A => 10,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla => 12,
                 GridKind::Xc4000Xv => 13,
-                GridKind::SpartanXl => 10,
             }
         }
     }
@@ -154,23 +152,26 @@ impl Grid {
     pub fn btile_width_main(&self, col: ColId) -> usize {
         if col == self.col_lio() {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 26,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                    26
+                }
+                GridKind::Xc4000A => 21,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 27,
             }
         } else if col == self.col_rio() {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 41,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                    41
+                }
+                GridKind::Xc4000A => 32,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 52,
             }
         } else {
             match self.kind {
-                GridKind::Xc4000 | GridKind::Xc4000E | GridKind::SpartanXl => 36,
-                GridKind::Xc4000A => todo!(),
-                GridKind::Xc4000H => todo!(),
+                GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
+                    36
+                }
+                GridKind::Xc4000A => 32,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv => 47,
             }
         }
@@ -178,9 +179,7 @@ impl Grid {
 
     pub fn btile_width_clk(&self) -> usize {
         match self.kind {
-            GridKind::Xc4000 | GridKind::Xc4000E => 1,
-            GridKind::Xc4000A => todo!(),
-            GridKind::Xc4000H => todo!(),
+            GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000A | GridKind::Xc4000E => 1,
             GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl => {
                 2
             }
@@ -189,5 +188,24 @@ impl Grid {
 
     pub fn btile_width_brk(&self) -> usize {
         1
+    }
+}
+
+impl Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
+        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
+        writeln!(f, "\tIS BUFF LARGE: {v}", v = self.is_buff_large)?;
+        writeln!(f, "\tCFG PINS:")?;
+        for (k, v) in &self.cfg_io {
+            writeln!(
+                f,
+                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
+                x = v.col,
+                y = v.row,
+                b = v.iob
+            )?;
+        }
+        Ok(())
     }
 }

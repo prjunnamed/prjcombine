@@ -1,7 +1,9 @@
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
-    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoColumn, IoRowKind, Ps, PsIntfKind, RegId
+    BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
+    DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId, Interposer,
+    IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
 };
 use prjcombine_ultrascale_naming::DeviceNaming;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -293,9 +295,7 @@ fn get_cols_hard(
                 y: y as u16,
             };
             let tile = &int.rd.tiles[&crd];
-            if tile.sites.iter().next().is_none()
-                && tt != "DFE_DFE_TILEG_FT"
-            {
+            if tile.sites.iter().next().is_none() && tt != "DFE_DFE_TILEG_FT" {
                 disabled.insert(DisabledPart::HardIp(dieid, col, reg));
             }
             if tt == "HDIO_BOT_RIGHT" {
@@ -839,9 +839,7 @@ pub fn make_grids(
         }
     }
     let primary = DieId::from_idx(primary.unwrap());
-    let interposer = Interposer {
-        primary,
-    };
+    let interposer = Interposer { primary };
     if grids.first().unwrap().ps.is_some() {
         let mut found = false;
         for pins in rd.packages.values() {

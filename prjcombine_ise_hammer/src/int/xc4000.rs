@@ -926,7 +926,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if out_name == "IMUX.TBUF0.I"
                 || out_name == "IMUX.TBUF1.I"
-                || ((out_name == "IMUX.IOB0.CE" || out_name == "IMUX.IOB1.CE")
+                || ((out_name == "IMUX.IOB0.O1" || out_name == "IMUX.IOB1.O1")
                     && tile.starts_with("IO"))
             {
                 assert!(!got_empty);
@@ -936,7 +936,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             for (rtile, rwire, rbel, rattr) in [
                 ("CNR.BL", "IMUX.IOB1.IK", "MD1", "ENABLE.T"),
-                ("CNR.BL", "IMUX.IOB1.CE", "MD1", "ENABLE.O"),
+                ("CNR.BL", "IMUX.IOB1.O1", "MD1", "ENABLE.O"),
                 ("CNR.BL", "IMUX.RDBK.TRIG", "RDBK", "ENABLE"),
                 ("CNR.BR", "IMUX.STARTUP.GTS", "STARTUP", "ENABLE.GTS"),
                 ("CNR.BR", "IMUX.STARTUP.GSR", "STARTUP", "ENABLE.GSR"),

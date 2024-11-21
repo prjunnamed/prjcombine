@@ -1,7 +1,10 @@
 use bitvec::prelude::*;
 use prjcombine_collector::{xlat_bit, xlat_bitvec, xlat_enum_ocd, xlat_item_tile, Diff, OcdMode};
 use prjcombine_hammer::Session;
-use prjcombine_int::{db::{BelId, Dir}, grid::DieId};
+use prjcombine_int::{
+    db::{BelId, Dir},
+    grid::DieId,
+};
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex_bitstream::Reg;
 use prjcombine_xilinx_geom::ExpandedDevice;
