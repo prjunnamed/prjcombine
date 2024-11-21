@@ -10,7 +10,7 @@ use prjcombine_int::{
 };
 use prjcombine_xact_data::die::{BoxId, Die, PrimId};
 use prjcombine_xact_naming::{
-    db::{IntPipNaming, NamingDb, NodeRawTileId, PipNaming},
+    db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId, PipNaming},
     grid::ExpandedGridNaming,
 };
 use unnamed_entity::{entity_id, EntityBitVec, EntityId, EntityPartVec, EntityVec};
@@ -57,16 +57,17 @@ pub struct Extractor<'a> {
     pub tbuf_pseudos: BTreeSet<(NetId, NetId)>,
     pub int_pip_force_dst: BTreeMap<(NetId, NetId), NodeWireId>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
-    pub bel_pips: EntityVec<NodeKindId, BTreeMap<(BelId, String), PipNaming>>,
+    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeKindId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
+    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
     pub net_by_tile_override: BTreeMap<(ColId, RowId), BTreeMap<NetId, WireId>>,
+    pub junk_prim_names: BTreeSet<String>,
 }
 
 pub struct Finisher {
-    pub bel_pips: EntityVec<NodeKindId, BTreeMap<(BelId, String), PipNaming>>,
+    pub bel_pips: EntityVec<NodeNamingId, BTreeMap<(BelId, String), PipNaming>>,
     pub node_muxes: EntityPartVec<NodeKindId, BTreeMap<NodeWireId, MuxInfo>>,
-    pub int_pips: EntityPartVec<NodeKindId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
+    pub int_pips: EntityPartVec<NodeNamingId, BTreeMap<(NodeWireId, NodeWireId), IntPipNaming>>,
 }
 
 #[derive(Debug)]
@@ -118,10 +119,11 @@ impl<'a> Extractor<'a> {
             used_pips: Default::default(),
             prims_by_name_a: Default::default(),
             prims_by_name_i: Default::default(),
-            bel_pips: egrid.db.nodes.ids().map(|_| Default::default()).collect(),
+            bel_pips: ngrid.db.node_namings.ids().map(|_| Default::default()).collect(),
             node_muxes: EntityPartVec::new(),
             int_pips: EntityPartVec::new(),
             net_by_tile_override: Default::default(),
+            junk_prim_names: Default::default(),
         };
         res.build_nets();
         res.build_net_pips();
@@ -459,13 +461,13 @@ impl<'a> Extractor<'a> {
 
     pub fn bel_pip(
         &mut self,
-        kind: NodeKindId,
+        naming: NodeNamingId,
         bel: BelId,
         key: impl Into<String>,
         pip: PipNaming,
     ) {
         let key = key.into();
-        match self.bel_pips[kind].entry((bel, key)) {
+        match self.bel_pips[naming].entry((bel, key)) {
             btree_map::Entry::Vacant(entry) => {
                 entry.insert(pip);
             }
@@ -584,6 +586,7 @@ impl<'a> Extractor<'a> {
                     let mut muxes = BTreeMap::new();
                     let mut int_pips = BTreeMap::new();
                     let nloc = (die.die, col, row, layer);
+                    let nnode = &self.ngrid.nodes[&nloc];
                     if let Some(boxes) = node_boxes.get(&nloc) {
                         for &box_id in boxes {
                             let boxx = &self.die.boxes[box_id];
@@ -660,10 +663,13 @@ impl<'a> Extractor<'a> {
                     }
                     if !self.node_muxes.contains_id(node.kind) {
                         self.node_muxes.insert(node.kind, muxes);
-                        self.int_pips.insert(node.kind, int_pips);
                     } else {
                         assert_eq!(self.node_muxes[node.kind], muxes);
-                        assert_eq!(self.int_pips[node.kind], int_pips);
+                    }
+                    if !self.int_pips.contains_id(nnode.naming) {
+                        self.int_pips.insert(nnode.naming, int_pips);
+                    } else {
+                        assert_eq!(self.int_pips[nnode.naming], int_pips);
                     }
                 }
             }
@@ -687,6 +693,10 @@ impl<'a> Extractor<'a> {
         }
         for (prim_id, prim) in &self.die.prims {
             if !self.used_prims[prim_id] {
+                if self.junk_prim_names.contains(&prim.name_a) {
+                    assert_eq!(prim.pins.len(), 0);
+                    continue;
+                }
                 let pname = if prim.name_a.is_empty() {
                     &prim.name_i
                 } else {
@@ -705,9 +715,9 @@ impl<'a> Extractor<'a> {
 
 impl Finisher {
     pub fn finish(mut self, db: &mut IntDb, ndb: &mut NamingDb) {
-        for (kind, node_naming) in &mut ndb.node_namings {
-            node_naming.int_pips = self.int_pips.remove(kind).unwrap();
-            node_naming.bel_pips = core::mem::take(&mut self.bel_pips[kind]);
+        for (naming, _, node_naming) in &mut ndb.node_namings {
+            node_naming.int_pips = self.int_pips.remove(naming).unwrap();
+            node_naming.bel_pips = core::mem::take(&mut self.bel_pips[naming]);
         }
         for (kind, _, node) in &mut db.nodes {
             node.muxes = self.node_muxes.remove(kind).unwrap();

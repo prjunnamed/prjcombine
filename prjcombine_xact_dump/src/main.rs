@@ -12,6 +12,7 @@ use prjcombine_xact_data::{
 use prjcombine_xact_geom::{Bond, Device, DeviceBond, ExpandedNamedDevice, GeomDb, Grid};
 
 mod extractor;
+mod xc2000;
 mod xc4000;
 mod xc5200;
 
@@ -57,7 +58,10 @@ fn main() {
             btree_map::Entry::Vacant(entry) => {
                 let die = Die::parse(&args.xact, &part.die_file);
                 let (grid, intdb, ndb) = match family {
-                    PartKind::Xc2000 => todo!(),
+                    PartKind::Xc2000 => {
+                        let (grid, intdb, ndb) = xc2000::dump_grid(&die);
+                        (Grid::Xc2000(grid), intdb, ndb)
+                    }
                     PartKind::Xc3000 => todo!(),
                     PartKind::Xc4000 => {
                         let (grid, intdb, ndb) = xc4000::dump_grid(&die);
@@ -101,7 +105,13 @@ fn main() {
         let edev = db.expand_grid(device);
         let endev = db.name(device, &edev);
         let bond = match family {
-            PartKind::Xc2000 => todo!(),
+            PartKind::Xc2000 => {
+                let ExpandedNamedDevice::Xc2000(ref endev) = endev else {
+                    unreachable!()
+                };
+                let bond = xc2000::make_bond(endev, &pkg);
+                Bond::Xc2000(bond)
+            }
             PartKind::Xc3000 => todo!(),
             PartKind::Xc4000 => {
                 let ExpandedNamedDevice::Xc4000(ref endev) = endev else {

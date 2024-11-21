@@ -4,12 +4,6 @@ use unnamed_entity::{EntityId, EntityVec};
 
 use crate::grid::{Grid, GridKind, IoCoord, TileIobId};
 
-#[derive(Debug)]
-pub struct Io {
-    pub name: String,
-    pub crd: IoCoord,
-}
-
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,

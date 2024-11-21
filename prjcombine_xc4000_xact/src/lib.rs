@@ -6,7 +6,7 @@ use prjcombine_int::{
 };
 use prjcombine_xact_naming::{
     db::NamingDb,
-    grid::{ExpandedGridNaming, GridNodeNaming},
+    grid::ExpandedGridNaming,
 };
 use prjcombine_xc4000::{
     expanded::ExpandedDevice,
@@ -118,18 +118,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     match &kind[..] {
                         "CLB.LB" | "CLB.B" | "CLB.RB" | "CLB.L" | "CLB" | "CLB.R" | "CLB.LT"
                         | "CLB.T" | "CLB.RT" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row - 1].clone()),
                                     (col_x[col].clone(), row_y[row + 1].clone()),
-                                ]),
-                                tie_names: vec![
-                                    name_a(grid, "TIE.", ".1", col, row),
-                                    name_b(grid, "TIE_", ".1", col, row),
                                 ],
-                                bels: Default::default(),
-                            };
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "TIE.", ".1", col, row),
+                                name_b(grid, "TIE_", ".1", col, row),
+                            ];
                             if kind == "CLB.LB" {
                                 nnode
                                     .coords
@@ -169,21 +170,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".1", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.B" | "IO.B.R" | "IO.BS" | "IO.BS.L" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row + 1].clone()),
                                     (col_x[col + 1].clone(), row_y[row].clone()),
-                                ]),
-                                tie_names: vec![
-                                    name_a(grid, "TIE.", ".1", col, row),
-                                    name_b(grid, "TIE_", ".1", col, row),
                                 ],
-                                bels: Default::default(),
-                            };
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "TIE.", ".1", col, row),
+                                name_b(grid, "TIE_", ".1", col, row),
+                            ];
                             let bidx = if grid.kind == GridKind::Xc4000H {
                                 let p = (grid.columns - 2) * 4
                                     + (grid.rows - 2) * 4
@@ -230,17 +231,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "DEC_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.T" | "IO.T.R" | "IO.TS" | "IO.TS.L" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col + 1].clone(), row_y[row].clone()),
-                                ]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
                             let bidx = if grid.kind == GridKind::Xc4000H {
                                 let p = (col.to_idx() - 1) * 4 + 1;
                                 nnode.add_bel(0, vec![format!("PAD{p}")]);
@@ -281,17 +281,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "DEC_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.L" | "IO.L.T" | "IO.LS" | "IO.LS.B" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row - 1].clone()),
-                                ]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
                             let bidx = if grid.kind == GridKind::Xc4000H {
                                 let p = (grid.columns - 2) * 8
                                     + (grid.rows - 2) * 4
@@ -366,24 +365,23 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "DEC_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.R" | "IO.R.T" | "IO.RS" | "IO.RS.B" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row - 1].clone()),
-                                ]),
-                                tie_names: if grid.kind == GridKind::Xc4000A {
-                                    vec![]
-                                } else {
-                                    vec![
-                                        name_a(grid, "TIE.", ".1", col, row),
-                                        name_b(grid, "TIE_", ".1", col, row),
-                                    ]
-                                },
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
+                            if grid.kind != GridKind::Xc4000A {
+                                nnode.tie_names = vec![
+                                    name_a(grid, "TIE.", ".1", col, row),
+                                    name_b(grid, "TIE_", ".1", col, row),
+                                ];
+                            }
+
                             let bidx = if grid.kind == GridKind::Xc4000H {
                                 let p = (grid.columns - 2) * 4
                                     + (grid.row_tio().to_idx() - row.to_idx() - 1) * 4
@@ -456,18 +454,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "DEC_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
 
                         "CNR.BL" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col + 1].clone(), row_y[row].clone()),
-                                ]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
 
                             let bidx = if grid.kind == GridKind::Xc4000A {
                                 nnode.add_bel(
@@ -565,18 +562,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bidx + 4, vec!["md1".to_string()]);
                             nnode.add_bel(bidx + 5, vec!["md2".to_string()]);
                             nnode.add_bel(bidx + 6, vec!["rdbk".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.TL" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col + 1].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row - 1].clone()),
-                                ]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
 
                             let bidx = if grid.kind == GridKind::Xc4000A {
                                 nnode.add_bel(
@@ -671,24 +667,23 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bidx + 1, vec!["bufgp_tl".to_string()]);
                             nnode.add_bel(bidx + 2, vec!["ci_tl".to_string()]);
                             nnode.add_bel(bidx + 3, vec!["bscan".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.BR" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col - 1].clone(), row_y[row + 1].clone()),
-                                ]),
-                                tie_names: if grid.kind == GridKind::Xc4000A {
-                                    vec![]
-                                } else {
-                                    vec![
-                                        name_a(grid, "TIE.", ".1", col, row),
-                                        name_b(grid, "TIE_", ".1", col, row),
-                                    ]
-                                },
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
+
+                            if grid.kind != GridKind::Xc4000A {
+                                nnode.tie_names = vec![
+                                    name_a(grid, "TIE.", ".1", col, row),
+                                    name_b(grid, "TIE_", ".1", col, row),
+                                ];
+                            }
 
                             let bidx = if grid.kind == GridKind::Xc4000A {
                                 nnode.add_bel(
@@ -784,18 +779,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bidx + 2, vec!["co_br".to_string()]);
                             nnode.add_bel(bidx + 3, vec!["startup".to_string()]);
                             nnode.add_bel(bidx + 4, vec!["rdclk".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.TR" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [
                                     (col_x[col].clone(), row_y[row].clone()),
                                     (col_x[col].clone(), row_y[row - 1].clone()),
                                     (col_x[col - 1].clone(), row_y[row - 1].clone()),
-                                ]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                                ],
+                            );
 
                             let bidx = if grid.kind == GridKind::Xc4000A {
                                 nnode.add_bel(
@@ -892,15 +886,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.add_bel(bidx + 3, vec!["update".to_string()]);
                             nnode.add_bel(bidx + 4, vec!["osc".to_string()]);
                             nnode.add_bel(bidx + 5, vec!["tdo".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
 
                         "LLV.IO.L" | "LLV.IO.R" | "LLV.CLB" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(col_x[col].clone(), clk_y.clone())]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                            let nnode =
+                                ngrid.name_node(nloc, kind, [(col_x[col].clone(), clk_y.clone())]);
                             if grid.kind == GridKind::Xc4000H {
                                 let cidx = if col < grid.col_mid() {
                                     col.to_idx()
@@ -914,15 +904,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 let c = char::from_u32(u32::from('A') + cidx).unwrap();
                                 nnode.add_bel(0, vec![format!("SRC0.{r}{c}.1")]);
                             }
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "LLH.IO.B" | "LLH.IO.T" | "LLH.CLB" | "LLH.CLB.B" => {
-                            let nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(clk_x.clone(), row_y[row].clone())]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
-                            ngrid.nodes.insert(nloc, nnode);
+                            ngrid.name_node(nloc, kind, [(clk_x.clone(), row_y[row].clone())]);
                         }
 
                         _ => panic!("umm {kind}"),

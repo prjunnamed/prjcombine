@@ -810,8 +810,8 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
     let grid = make_grid(die);
     let mut intdb = make_intdb(grid.kind);
     let mut ndb = NamingDb::default();
-    for _ in &intdb.nodes {
-        ndb.node_namings.push(NodeNaming::default());
+    for name in intdb.nodes.keys() {
+        ndb.node_namings.insert(name.clone(), NodeNaming::default());
     }
     for (key, kind) in [("L", "left"), ("C", "center"), ("R", "rt"), ("CLK", "clkc")] {
         ndb.tile_widths
@@ -857,7 +857,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             extractor.net_bel(o, nloc, bel, "O");
                             let (line, pip) = extractor.consume_one_fwd(o, nloc);
                             extractor.net_bel_int(line, nloc, bel, "O");
-                            extractor.bel_pip(node.kind, bel, "O", pip);
+                            extractor.bel_pip(nnode.naming, bel, "O", pip);
                         }
                         "BUFGLS.H" | "BUFGLS.V" => {
                             let mut prim = extractor.grab_prim_a(&bel_names[0]);
@@ -893,8 +893,8 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                                 o.sort_by_key(|(_, pip)| pip.y);
                                 extractor.net_bel_int(o[0].0, nloc, bel, "OUT0");
                                 extractor.net_bel_int(o[1].0, nloc, bel, "OUT1");
-                                extractor.bel_pip(node.kind, bel, format!("OUT0.{pin}"), o[0].1);
-                                extractor.bel_pip(node.kind, bel, format!("OUT1.{pin}"), o[1].1);
+                                extractor.bel_pip(nnode.naming, bel, format!("OUT0.{pin}"), o[0].1);
+                                extractor.bel_pip(nnode.naming, bel, format!("OUT1.{pin}"), o[1].1);
                             }
                         }
                         "IOB0" | "IOB1" => {
@@ -916,7 +916,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             extractor.net_bel(tp, nloc, bel, "T1");
                             let (line, pip) = extractor.consume_one_bwd(tp, nloc);
                             extractor.net_bel_int(line, nloc, bel, "T1");
-                            extractor.bel_pip(node.kind, bel, "T1", pip);
+                            extractor.bel_pip(nnode.naming, bel, "T1", pip);
 
                             // O1/O2
                             let o = prim.get_pin("O");
@@ -934,8 +934,8 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             }
                             extractor.net_bel_int(o[0].0, nloc, bel, "O1");
                             extractor.net_bel_int(o[1].0, nloc, bel, "O2");
-                            extractor.bel_pip(node.kind, bel, "O1", o[0].1);
-                            extractor.bel_pip(node.kind, bel, "O2", o[1].1);
+                            extractor.bel_pip(nnode.naming, bel, "O1", o[0].1);
+                            extractor.bel_pip(nnode.naming, bel, "O2", o[1].1);
 
                             // I1/I2
                             let net_i = prim.get_pin("I");
@@ -995,7 +995,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             extractor.net_bel(o, nloc, bel, "O");
                             let (line, pip) = extractor.consume_one_fwd(o, nloc);
                             extractor.net_bel_int(line, nloc, bel, "O");
-                            extractor.bel_pip(node.kind, bel, "O", pip);
+                            extractor.bel_pip(nnode.naming, bel, "O", pip);
                         }
                         "DEC0" | "DEC1" | "DEC2" => {
                             let mut prim = extractor.grab_prim_ab(&bel_names[0], &bel_names[1]);
@@ -1004,7 +1004,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                                     let o = prim.get_pin(pin);
                                     extractor.net_bel(o, nloc, bel, pin);
                                     let (line, pip) = extractor.consume_one_fwd(o, nloc);
-                                    extractor.bel_pip(node.kind, bel, pin, pip);
+                                    extractor.bel_pip(nnode.naming, bel, pin, pip);
                                     extractor.net_bel_int(line, nloc, bel, pin);
                                 }
                             }
@@ -1015,7 +1015,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                                 extractor.net_bel(i, nloc, bel, "I");
                                 let (line, pip) = extractor.consume_one_bwd(i, nloc);
                                 extractor.net_bel_int(line, nloc, bel, "I");
-                                extractor.bel_pip(node.kind, bel, "I", pip);
+                                extractor.bel_pip(nnode.naming, bel, "I", pip);
                             }
                         }
                         "CLB" => {
@@ -1572,6 +1572,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
         for row in die.rows() {
             for (layer, node) in &die[(col, row)].nodes {
                 let nloc = (die.die, col, row, layer);
+                let nnode = &endev.ngrid.nodes[&nloc];
                 let node_kind = &intdb.nodes[node.kind];
                 for (bel, key, bel_info) in &node_kind.bels {
                     match &key[..] {
@@ -1624,7 +1625,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             ] {
                                 let crd = extractor.use_pip(onet, inet);
                                 let pip = extractor.xlat_pip_loc(nloc, crd);
-                                extractor.bel_pip(node.kind, bel, format!("{opin}.{ipin}"), pip);
+                                extractor.bel_pip(nnode.naming, bel, format!("{opin}.{ipin}"), pip);
                             }
                             for (opin, onet) in [
                                 ("O0", net_o0),
@@ -1641,7 +1642,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                                     let crd = extractor.use_pip(onet, inet);
                                     let pip = extractor.xlat_pip_loc(nloc, crd);
                                     extractor.bel_pip(
-                                        node.kind,
+                                        nnode.naming,
                                         bel,
                                         format!("{opin}.{ipin}"),
                                         pip,
@@ -1658,7 +1659,12 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                                 ] {
                                     let crd = extractor.use_pip(onet, net_gnd);
                                     let pip = extractor.xlat_pip_loc(nloc, crd);
-                                    extractor.bel_pip(node.kind, bel, format!("{opin}.GND"), pip);
+                                    extractor.bel_pip(
+                                        nnode.naming,
+                                        bel,
+                                        format!("{opin}.GND"),
+                                        pip,
+                                    );
                                 }
                             }
                         }
@@ -1685,7 +1691,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             };
                             let crd = extractor.use_pip(net_cin, net_cout_b);
                             let pip = extractor.xlat_pip_loc(nloc, crd);
-                            extractor.bel_pip(node.kind, bel, "CIN.B", pip);
+                            extractor.bel_pip(nnode.naming, bel, "CIN.B", pip);
                             let net_cout_t = if row != grid.row_tio() - 1 {
                                 extractor.get_bel_net(
                                     (die.die, col, row + 1, LayerId::from_idx(0)),
@@ -1707,7 +1713,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             };
                             let crd = extractor.use_pip(net_cin, net_cout_t);
                             let pip = extractor.xlat_pip_loc(nloc, crd);
-                            extractor.bel_pip(node.kind, bel, "CIN.T", pip);
+                            extractor.bel_pip(nnode.naming, bel, "CIN.T", pip);
                         }
                         "COUT.LR" => {
                             let net_cin = extractor.get_bel_net(nloc, bel, "I");
@@ -1718,7 +1724,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             );
                             let crd = extractor.use_pip(net_cin, net_cout);
                             let pip = extractor.xlat_pip_loc(nloc, crd);
-                            extractor.bel_pip(node.kind, bel, "I", pip);
+                            extractor.bel_pip(nnode.naming, bel, "I", pip);
                         }
                         "COUT.UR" => {
                             let net_cin = extractor.get_bel_net(nloc, bel, "I");
@@ -1729,7 +1735,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                             );
                             let crd = extractor.use_pip(net_cin, net_cout);
                             let pip = extractor.xlat_pip_loc(nloc, crd);
-                            extractor.bel_pip(node.kind, bel, "I", pip);
+                            extractor.bel_pip(nnode.naming, bel, "I", pip);
                         }
                         _ => (),
                     }

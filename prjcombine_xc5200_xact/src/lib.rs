@@ -6,7 +6,7 @@ use prjcombine_int::{
 };
 use prjcombine_xact_naming::{
     db::NamingDb,
-    grid::{ExpandedGridNaming, GridNodeNaming},
+    grid::ExpandedGridNaming,
 };
 use prjcombine_xc5200::{
     expanded::ExpandedDevice,
@@ -109,14 +109,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     let kind = egrid.db.nodes.key(node.kind);
                     match &kind[..] {
                         "CLB" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
                             nnode.add_bel(
                                 0,
                                 vec![
@@ -152,88 +149,73 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.BL" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             nnode.add_bel(0, vec!["bufgs_bl".to_string()]);
                             nnode.add_bel(1, vec!["i_bufgs_bl".to_string()]);
                             nnode.add_bel(2, vec!["rdbk".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.BR" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             nnode.add_bel(0, vec!["bufgs_br".to_string()]);
                             nnode.add_bel(1, vec!["i_bufgs_br".to_string()]);
                             nnode.add_bel(2, vec!["startup".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.TL" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             nnode.add_bel(0, vec!["bufgs_tl".to_string()]);
                             nnode.add_bel(1, vec!["i_bufgs_tl".to_string()]);
                             nnode.add_bel(2, vec!["bscan".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CNR.TR" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             nnode.add_bel(0, vec!["bufgs_tr".to_string()]);
                             nnode.add_bel(1, vec!["i_bufgs_tr".to_string()]);
                             nnode.add_bel(2, vec!["osc".to_string()]);
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.L" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             let p = (edev.grid.columns - 2) * 8
                                 + (edev.grid.rows - 2) * 4
                                 + (row.to_idx() - 1) * 4
@@ -270,20 +252,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.R" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             let p = (edev.grid.columns - 2) * 4
                                 + (edev.grid.row_tio().to_idx() - row.to_idx() - 1) * 4
                                 + 1;
@@ -319,22 +298,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.B" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                    name_a(grid, "SCANTEST.", ".1", col, row),
-                                    name_b(grid, "SCANTEST_", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                                name_a(grid, "SCANTEST.", ".1", col, row),
+                                name_b(grid, "SCANTEST_", ".1", col, row),
+                            ];
                             let p = (edev.grid.columns - 2) * 4
                                 + (edev.grid.rows - 2) * 4
                                 + (edev.grid.col_rio().to_idx() - col.to_idx() - 1) * 4
@@ -371,20 +347,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "IO.T" => {
-                            let mut nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(
-                                    col_x[col].clone(),
-                                    row_y[row].clone(),
-                                )]),
-                                tie_names: vec![
-                                    name_a(grid, "src0.", ".1", col, row),
-                                    name_a(grid, "dummy.", ".1", col, row),
-                                ],
-                                bels: Default::default(),
-                            };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [(col_x[col].clone(), row_y[row].clone())],
+                            );
+                            nnode.tie_names = vec![
+                                name_a(grid, "src0.", ".1", col, row),
+                                name_a(grid, "dummy.", ".1", col, row),
+                            ];
                             let p = (col.to_idx() - 1) * 4 + 1;
                             nnode.add_bel(0, vec![format!("PAD{}", p + 3)]);
                             nnode.add_bel(1, vec![format!("PAD{}", p + 2)]);
@@ -418,23 +391,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                     name_b(grid, "TBUF_", ".3", col, row),
                                 ],
                             );
-                            ngrid.nodes.insert(nloc, nnode);
                         }
                         "CLKL" | "CLKR" | "CLKH" => {
-                            let nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(col_x[col].clone(), clk_y.clone())]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
-                            ngrid.nodes.insert(nloc, nnode);
+                            ngrid.name_node(nloc, kind, [(col_x[col].clone(), clk_y.clone())]);
                         }
                         "CLKB" | "CLKT" | "CLKV" => {
-                            let nnode = GridNodeNaming {
-                                coords: EntityVec::from_iter([(clk_x.clone(), row_y[row].clone())]),
-                                tie_names: vec![],
-                                bels: Default::default(),
-                            };
-                            ngrid.nodes.insert(nloc, nnode);
+                            ngrid.name_node(nloc, kind, [(clk_x.clone(), row_y[row].clone())]);
                         }
 
                         _ => panic!("umm {kind}"),

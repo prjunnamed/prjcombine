@@ -1,18 +1,29 @@
 use std::collections::BTreeMap;
 
-use prjcombine_int::db::{BelId, IntDb, NodeKindId, NodeWireId};
+use prjcombine_int::db::{BelId, IntDb, NodeWireId};
 use serde::{Deserialize, Serialize};
-use unnamed_entity::{entity_id, EntityVec};
+use unnamed_entity::{entity_id, EntityMap};
 
 entity_id! {
+    pub id NodeNamingId u16, reserve 1;
     pub id NodeRawTileId u16, reserve 1;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct NamingDb {
-    pub node_namings: EntityVec<NodeKindId, NodeNaming>,
+    pub node_namings: EntityMap<NodeNamingId, String, NodeNaming>,
     pub tile_widths: BTreeMap<String, usize>,
     pub tile_heights: BTreeMap<String, usize>,
+}
+
+impl NamingDb {
+    #[track_caller]
+    pub fn get_node_naming(&self, name: &str) -> NodeNamingId {
+        self.node_namings
+            .get(name)
+            .unwrap_or_else(|| panic!("no node naming {name}"))
+            .0
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
@@ -36,8 +47,8 @@ pub struct PipNaming {
 
 impl NamingDb {
     pub fn print(&self, intdb: &IntDb, o: &mut dyn std::io::Write) -> std::io::Result<()> {
-        for (node, naming) in &self.node_namings {
-            writeln!(o, "\tNODE NAMING {name}", name = intdb.nodes.key(node))?;
+        for (_, name, naming) in &self.node_namings {
+            writeln!(o, "\tNODE NAMING {name}")?;
             for (&k, &v) in &naming.int_pips {
                 let (wt, wf) = k;
                 write!(
@@ -65,10 +76,9 @@ impl NamingDb {
                 }
             }
             for (&(bel, ref key), &v) in &naming.bel_pips {
-                let bname = intdb.nodes[node].bels.key(bel);
                 writeln!(
                     o,
-                    "\t\tPIP {bname:20} {key:20}: {rt}.{x}.{y}",
+                    "\t\tPIP BEL {bel:3} {key:20}: {rt}.{x}.{y}",
                     rt = v.rt,
                     x = v.x,
                     y = v.y

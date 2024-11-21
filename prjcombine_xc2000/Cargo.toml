@@ -1,0 +1,14 @@
+[package]
+name = "prjcombine_xc2000"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+itertools.workspace = true
+unnamed_entity.workspace = true
+prjcombine_int.workspace = true
+prjcombine_virtex_bitstream.workspace = true
+serde.workspace = true
+
+[lints]
+workspace = true

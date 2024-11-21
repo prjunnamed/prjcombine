@@ -40,6 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.grids {
                 match grid {
+                    Grid::Xc2000(g) => print!("{}", g),
                     Grid::Xc4000(g) => print!("{}", g),
                     Grid::Xc5200(g) => print!("{}", g),
                 }
@@ -59,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.pkgs {
                 match bond {
+                    Bond::Xc2000(bond) => print!("{}", bond),
                     Bond::Xc4000(bond) => print!("{}", bond),
                     Bond::Xc5200(bond) => print!("{}", bond),
                 }
