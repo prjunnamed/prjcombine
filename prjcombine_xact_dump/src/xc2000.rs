@@ -8,8 +8,8 @@ use prjcombine_int::{
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_xc2000::{
-    bond::{Bond, BondPin},
-    grid::Grid,
+    bond::{Bond, BondPin, CfgPin},
+    grid::{Grid, IoCoord, SharedCfgPin},
 };
 use prjcombine_xc2000_xact::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
@@ -588,7 +588,11 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
     (grid, intdb, ndb)
 }
 
-pub fn make_bond(endev: &ExpandedNamedDevice, pkg: &BTreeMap<String, String>) -> Bond {
+pub fn make_bond(
+    endev: &ExpandedNamedDevice,
+    name: &str,
+    pkg: &BTreeMap<String, String>,
+) -> (Bond, BTreeMap<SharedCfgPin, IoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
         .edev
         .get_bonded_ios()
@@ -600,7 +604,171 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pkg: &BTreeMap<String, String>) ->
     };
     for (pin, pad) in pkg {
         let io = io_lookup[&**pad];
-        bond.pins.insert(pin.into(), BondPin::Io(io));
+        bond.pins.insert(pin.to_ascii_uppercase(), BondPin::Io(io));
     }
-    bond
+    let (pwrdwn, m1, m0, prog, done, cclk, gnd, vcc) = match name {
+        "pd48" => (
+            "P7",
+            "P17",
+            "P18",
+            "P31",
+            "P32",
+            "P42",
+            &["P24"][..],
+            &["P12"][..],
+        ),
+        "pc44" => (
+            "P8",
+            "P16",
+            "P17",
+            "P27",
+            "P28",
+            "P38",
+            &["P1", "P23"][..],
+            &["P12", "P33"][..],
+        ),
+        "pc68" => (
+            "P10",
+            "P25",
+            "P26",
+            "P44",
+            "P45",
+            "P60",
+            &["P1", "P35"][..],
+            &["P18", "P52"][..],
+        ),
+        "pc84" => (
+            "P12",
+            "P31",
+            "P32",
+            "P54",
+            "P55",
+            "P74",
+            &["P1", "P43"][..],
+            &["P22", "P64"][..],
+        ),
+        "vq64" => (
+            "P17",
+            "P31",
+            "P32",
+            "P48",
+            "P49",
+            "P64",
+            &["P8", "P41"][..],
+            &["P24", "P56"][..],
+        ),
+        "tq100" | "vq100" => (
+            "P26",
+            "P49",
+            "P51",
+            "P75",
+            "P77",
+            "P99",
+            &["P13", "P63"][..],
+            &["P38", "P88"][..],
+        ),
+        "pg68" => (
+            "B2",
+            "J1",
+            "K1",
+            "K10",
+            "K11",
+            "B11",
+            &["B6", "K6"][..],
+            &["F2", "F10"][..],
+        ),
+        "pg84" => (
+            "B2",
+            "J2",
+            "L1",
+            "K10",
+            "J10",
+            "A11",
+            &["C6", "J6"][..],
+            &["F3", "F9"][..],
+        ),
+        _ => panic!("ummm {name}?"),
+    };
+    assert_eq!(
+        bond.pins
+            .insert(pwrdwn.into(), BondPin::Cfg(CfgPin::PwrdwnB)),
+        None
+    );
+    assert_eq!(bond.pins.insert(m0.into(), BondPin::Cfg(CfgPin::M0)), None);
+    assert_eq!(bond.pins.insert(m1.into(), BondPin::Cfg(CfgPin::M1)), None);
+    assert_eq!(
+        bond.pins.insert(prog.into(), BondPin::Cfg(CfgPin::ProgB)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(done.into(), BondPin::Cfg(CfgPin::Done)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(cclk.into(), BondPin::Cfg(CfgPin::Cclk)),
+        None
+    );
+    for &pin in gnd {
+        assert_eq!(bond.pins.insert(pin.into(), BondPin::Gnd), None);
+    }
+    for &pin in vcc {
+        assert_eq!(bond.pins.insert(pin.into(), BondPin::Vcc), None);
+    }
+    match name {
+        "pd48" => assert_eq!(bond.pins.len(), 48),
+        "pc44" => assert_eq!(bond.pins.len(), 44),
+        "pc68" => assert_eq!(bond.pins.len(), 68),
+        "pc84" => assert_eq!(bond.pins.len(), 84),
+        "vq64" => assert_eq!(bond.pins.len(), 64),
+        "vq100" | "tq100" => {
+            for i in 1..=100 {
+                bond.pins.entry(format!("P{i}")).or_insert(BondPin::Nc);
+            }
+        }
+        "pg68" => assert_eq!(bond.pins.len(), 68),
+        "pg84" => assert_eq!(bond.pins.len(), 84),
+        _ => panic!("ummm {name}?"),
+    };
+
+    let mut cfg_io = BTreeMap::new();
+    if name == "pc68" {
+        for (pin, fun) in [
+            ("P2", SharedCfgPin::Addr(13)),
+            ("P3", SharedCfgPin::Addr(6)),
+            ("P4", SharedCfgPin::Addr(12)),
+            ("P5", SharedCfgPin::Addr(7)),
+            ("P6", SharedCfgPin::Addr(11)),
+            ("P7", SharedCfgPin::Addr(8)),
+            ("P8", SharedCfgPin::Addr(10)),
+            ("P9", SharedCfgPin::Addr(9)),
+            ("P27", SharedCfgPin::M2),
+            ("P28", SharedCfgPin::Hdc),
+            ("P30", SharedCfgPin::Ldc),
+            ("P41", SharedCfgPin::Data(7)),
+            ("P42", SharedCfgPin::Data(6)),
+            ("P48", SharedCfgPin::Data(5)),
+            ("P50", SharedCfgPin::Data(4)),
+            ("P51", SharedCfgPin::Data(3)),
+            ("P54", SharedCfgPin::Data(2)),
+            ("P56", SharedCfgPin::Data(1)),
+            ("P57", SharedCfgPin::RclkB),
+            ("P58", SharedCfgPin::Data(0)),
+            ("P59", SharedCfgPin::Dout),
+            ("P61", SharedCfgPin::Addr(0)),
+            ("P62", SharedCfgPin::Addr(1)),
+            ("P63", SharedCfgPin::Addr(2)),
+            ("P64", SharedCfgPin::Addr(3)),
+            ("P65", SharedCfgPin::Addr(15)),
+            ("P66", SharedCfgPin::Addr(4)),
+            ("P67", SharedCfgPin::Addr(14)),
+            ("P68", SharedCfgPin::Addr(5)),
+        ] {
+            let BondPin::Io(io) = bond.pins[pin] else {
+                unreachable!()
+            };
+            cfg_io.insert(fun, io);
+        }
+    }
+
+    (bond, cfg_io)
 }

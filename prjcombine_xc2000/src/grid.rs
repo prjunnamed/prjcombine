@@ -24,11 +24,9 @@ pub enum SharedCfgPin {
     Data(u8),
     Ldc,
     Hdc,
-    Rclk,
+    RclkB,
     Dout,
     M2,
-    Xtl1,
-    Xtl2,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -59,6 +57,22 @@ impl Grid {
 
     pub fn row_mid(&self) -> RowId {
         RowId::from_idx(self.rows / 2 - 1)
+    }
+
+    pub fn io_xtl1(&self) -> IoCoord {
+        IoCoord {
+            col: self.col_rio(),
+            row: self.row_bio(),
+            iob: TileIobId::from_idx(1),
+        }
+    }
+
+    pub fn io_xtl2(&self) -> IoCoord {
+        IoCoord {
+            col: self.col_rio(),
+            row: self.row_bio(),
+            iob: TileIobId::from_idx(2),
+        }
     }
 }
 

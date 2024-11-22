@@ -21,6 +21,7 @@ pub enum BondPin {
     Io(IoCoord),
     Gnd,
     Vcc,
+    Nc,
     Cfg(CfgPin),
 }
 
@@ -63,6 +64,7 @@ impl Display for Bond {
                 }
                 BondPin::Gnd => write!(f, "GND")?,
                 BondPin::Vcc => write!(f, "VCC")?,
+                BondPin::Nc => write!(f, "NC")?,
                 BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
                 BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
                 BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,

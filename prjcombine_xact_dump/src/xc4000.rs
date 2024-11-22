@@ -11,8 +11,8 @@ use prjcombine_int::{
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
 use prjcombine_xc4000::{
-    bond::{Bond, BondPin},
-    grid::{Grid, GridKind},
+    bond::{Bond, BondPin, CfgPin},
+    grid::{Grid, GridKind, IoCoord, SharedCfgPin},
 };
 use prjcombine_xc4000_xact::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
@@ -1749,7 +1749,11 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
     (grid, intdb, ndb)
 }
 
-pub fn make_bond(endev: &ExpandedNamedDevice, pkg: &BTreeMap<String, String>) -> Bond {
+pub fn make_bond(
+    endev: &ExpandedNamedDevice,
+    name: &str,
+    pkg: &BTreeMap<String, String>,
+) -> (Bond, BTreeMap<SharedCfgPin, IoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
         .edev
         .get_bonded_ios()
@@ -1763,5 +1767,529 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pkg: &BTreeMap<String, String>) ->
         let io = io_lookup[&**pad];
         bond.pins.insert(pin.into(), BondPin::Io(io));
     }
-    bond
+    let (m1, m0, m2, done, prog, cclk, tdo, gnd, vcc) = match name {
+        "pc84" => (
+            "P30",
+            "P32",
+            "P34",
+            "P53",
+            "P55",
+            "P73",
+            "P75",
+            &["P1", "P12", "P21", "P31", "P43", "P52", "P64", "P76"][..],
+            &["P2", "P11", "P22", "P33", "P42", "P54", "P63", "P74"][..],
+        ),
+
+        "vq100" => (
+            "P22",
+            "P24",
+            "P26",
+            "P50",
+            "P52",
+            "P74",
+            "P76",
+            &["P1", "P11", "P23", "P38", "P49", "P64", "P77", "P88"][..],
+            &["P12", "P25", "P37", "P51", "P63", "P75", "P89", "P100"][..],
+        ),
+        "tq144" => (
+            "P34",
+            "P36",
+            "P38",
+            "P72",
+            "P74",
+            "P107",
+            "P109",
+            &[
+                "P1", "P8", "P17", "P27", "P35", "P45", "P55", "P64", "P71", "P73", "P81", "P91",
+                "P100", "P110", "P118", "P127", "P137",
+            ][..],
+            &["P18", "P37", "P54", "P90", "P108", "P128", "P144"][..],
+        ),
+
+        "pq100" => (
+            "P25",
+            "P27",
+            "P29",
+            "P53",
+            "P55",
+            "P77",
+            "P79",
+            &["P4", "P14", "P26", "P41", "P52", "P67", "P80", "P91"][..],
+            &["P3", "P15", "P28", "P40", "P54", "P66", "P78", "P92"][..],
+        ),
+        "pq160" => (
+            "P38",
+            "P40",
+            "P42",
+            "P80",
+            "P82",
+            "P119",
+            "P121",
+            &[
+                "P1", "P10", "P19", "P29", "P39", "P51", "P61", "P70", "P79", "P91", "P101",
+                "P110", "P122", "P131", "P141", "P151",
+            ][..],
+            &["P20", "P41", "P60", "P81", "P100", "P120", "P142", "P160"][..],
+        ),
+        "pq208" | "mq208" => (
+            "P48",
+            "P50",
+            "P56",
+            "P103",
+            "P108",
+            "P153",
+            "P159",
+            &[
+                "P2", "P14", "P25", "P37", "P49", "P67", "P79", "P90", "P101", "P119", "P131",
+                "P142", "P160", "P171", "P182", "P194",
+            ][..],
+            &["P26", "P55", "P78", "P106", "P130", "P154", "P183", "P205"][..],
+        ),
+        "pq240" | "mq240" => (
+            "P58",
+            "P60",
+            "P62",
+            "P120",
+            "P122",
+            "P179",
+            "P181",
+            &[
+                "P1", "P14", "P29", "P45", "P59", "P75", "P91", "P106", "P119", "P135", "P151",
+                "P166", "P182", "P196", "P211", "P227",
+            ][..],
+            &[
+                "P19", "P30", "P40", "P61", "P80", "P90", "P101", "P121", "P140", "P150", "P161",
+                "P180", "P201", "P212", "P222", "P240",
+            ][..],
+        ),
+
+        "cb100" => (
+            "P22",
+            "P24",
+            "P26",
+            "P50",
+            "P52",
+            "P74",
+            "P76",
+            &["P1", "P11", "P23", "P38", "P49", "P64", "P77", "P88"][..],
+            &["P12", "P25", "P37", "P51", "P63", "P75", "P89", "P100"][..],
+        ),
+        "cb164" => (
+            "P39",
+            "P41",
+            "P43",
+            "P82",
+            "P84",
+            "P122",
+            "P124",
+            &[
+                "P1", "P10", "P19", "P30", "P40", "P53", "P63", "P72", "P81", "P94", "P104",
+                "P113", "P125", "P135", "P144", "P154",
+            ][..],
+            &["P20", "P42", "P62", "P83", "P103", "P123", "P145", "P164"][..],
+        ),
+        "cb196" => (
+            "P47",
+            "P49",
+            "P51",
+            "P98",
+            "P100",
+            "P146",
+            "P148",
+            &[
+                "P1", "P13", "P24", "P36", "P48", "P63", "P75", "P86", "P97", "P112", "P124",
+                "P135", "P149", "P161", "P172", "P184",
+            ][..],
+            &["P25", "P50", "P74", "P99", "P123", "P147", "P173", "P196"][..],
+        ),
+        "cb228" => (
+            "P55",
+            "P57",
+            "P59",
+            "P114",
+            "P116",
+            "P170",
+            "P172",
+            &[
+                "P1", "P14", "P27", "P42", "P56", "P72", "P86", "P100", "P113", "P129", "P143",
+                "P157", "P173", "P186", "P200", "P215",
+            ][..],
+            &[
+                "P28", "P37", "P58", "P85", "P95", "P115", "P142", "P152", "P171", "P191", "P201",
+                "P210", "P228",
+            ][..],
+        ),
+
+        "pg120" => (
+            "B11",
+            "C11",
+            "B12",
+            "L11",
+            "M12",
+            "L4",
+            "M2",
+            &["C4", "B7", "C10", "G11", "K11", "L7", "K3", "G2"][..],
+            &["G3", "C3", "C7", "D11", "G12", "L10", "M7", "L3"][..],
+        ),
+        "pg156" => (
+            "A15",
+            "A16",
+            "B15",
+            "R15",
+            "R14",
+            "R2",
+            "T1",
+            &[
+                "F3", "C4", "C6", "C8", "C11", "C13", "F14", "J14", "L14", "P14", "P11", "P8",
+                "P6", "N3", "L3", "H2",
+            ][..],
+            &["H3", "C3", "B8", "C14", "H14", "P13", "R8", "P3"][..],
+        ),
+        "pg191" => (
+            "C15",
+            "A18",
+            "C16",
+            "U17",
+            "V18",
+            "V1",
+            "U2",
+            &[
+                "G3", "D4", "C7", "D9", "C12", "D15", "G16", "K15", "M16", "R16", "T12", "R9",
+                "T7", "R3", "M3", "K4",
+            ][..],
+            &["J4", "D3", "D10", "D16", "J15", "R15", "R10", "R4"][..],
+        ),
+        "pg223" => (
+            "C15",
+            "A18",
+            "C16",
+            "U17",
+            "V18",
+            "V1",
+            "U2",
+            &[
+                "G3", "D4", "C7", "D9", "C12", "D15", "G16", "K15", "M16", "R16", "T12", "R9",
+                "T7", "R3", "M3", "K4",
+            ][..],
+            &["J4", "D3", "D10", "D16", "J15", "R15", "R10", "R4"][..],
+        ),
+
+        "bg225" => (
+            "N3",
+            "P2",
+            "M4",
+            "P14",
+            "M12",
+            "C13",
+            "A15",
+            &[
+                "A1", "D12", "G7", "G9", "H6", "H8", "H10", "J8", "K8", "A8", "F8", "G8", "H2",
+                "H7", "H9", "J7", "J9", "M8",
+            ][..],
+            &["B2", "D8", "H15", "R8", "B14", "R1", "H1", "R15"][..],
+        ),
+
+        _ => panic!("ummm {name}?"),
+    };
+    assert_eq!(bond.pins.insert(m0.into(), BondPin::Cfg(CfgPin::M0)), None);
+    assert_eq!(bond.pins.insert(m1.into(), BondPin::Cfg(CfgPin::M1)), None);
+    assert_eq!(bond.pins.insert(m2.into(), BondPin::Cfg(CfgPin::M2)), None);
+    assert_eq!(
+        bond.pins.insert(prog.into(), BondPin::Cfg(CfgPin::ProgB)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(done.into(), BondPin::Cfg(CfgPin::Done)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(cclk.into(), BondPin::Cfg(CfgPin::Cclk)),
+        None
+    );
+    assert_eq!(
+        bond.pins.insert(tdo.into(), BondPin::Cfg(CfgPin::Tdo)),
+        None
+    );
+    for &pin in gnd {
+        assert_eq!(bond.pins.insert(pin.into(), BondPin::Gnd), None);
+    }
+    for &pin in vcc {
+        assert_eq!(bond.pins.insert(pin.into(), BondPin::VccO), None);
+    }
+
+    let len1d = match name {
+        "pc84" => Some(84),
+        "vq100" => Some(100),
+        "tq144" => Some(144),
+        "pq100" => Some(100),
+        "pq160" => Some(160),
+        "pq208" | "mq208" => Some(208),
+        "pq240" | "mq240" => Some(240),
+        "cb100" => Some(100),
+        "cb164" => Some(164),
+        "cb196" => Some(196),
+        "cb228" => Some(228),
+        _ => None,
+    };
+    if let Some(len1d) = len1d {
+        for i in 1..=len1d {
+            bond.pins.entry(format!("P{i}")).or_insert(BondPin::Nc);
+        }
+        assert_eq!(bond.pins.len(), len1d);
+    }
+    match name {
+        "bg225" => {
+            for a in [
+                "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R",
+            ] {
+                for i in 1..=15 {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            assert_eq!(bond.pins.len(), 225);
+        }
+        "pg120" => {
+            for a in ["A", "B", "C", "L", "M", "N"] {
+                for i in 1..=13 {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["D", "E", "F", "G", "H", "J", "K"] {
+                for i in (1..=3).chain(11..=13) {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            assert_eq!(bond.pins.len(), 120);
+        }
+        "pg156" => {
+            for a in ["A", "B", "C", "P", "R", "T"] {
+                for i in 1..=16 {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["D", "E", "F", "G", "H", "J", "K", "L", "M", "N"] {
+                for i in (1..=3).chain(14..=16) {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            assert_eq!(bond.pins.len(), 156);
+        }
+        "pg191" => {
+            for i in 2..=18 {
+                bond.pins.entry(format!("A{i}")).or_insert(BondPin::Nc);
+            }
+            for a in ["B", "C", "T", "U", "V"] {
+                for i in 1..=18 {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R"] {
+                for i in (1..=3).chain(16..=18) {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["D", "R"] {
+                for i in [4, 9, 10, 15] {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["J", "K"] {
+                for i in [4, 15] {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            assert_eq!(bond.pins.len(), 191);
+        }
+        "pg223" => {
+            for i in 2..=18 {
+                bond.pins.entry(format!("A{i}")).or_insert(BondPin::Nc);
+            }
+            for a in ["B", "C", "D", "R", "T", "U", "V"] {
+                for i in 1..=18 {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            for a in ["E", "F", "G", "H", "J", "K", "L", "M", "N", "P"] {
+                for i in (1..=4).chain(15..=18) {
+                    bond.pins.entry(format!("{a}{i}")).or_insert(BondPin::Nc);
+                }
+            }
+            assert_eq!(bond.pins.len(), 223);
+        }
+        _ => (),
+    }
+
+    let mut pkg_cfg_io = vec![];
+    match name {
+        "pc84" => {
+            pkg_cfg_io.extend([
+                ("P3", SharedCfgPin::Addr(8)),
+                ("P4", SharedCfgPin::Addr(9)),
+                ("P5", SharedCfgPin::Addr(10)),
+                ("P6", SharedCfgPin::Addr(11)),
+                ("P7", SharedCfgPin::Addr(12)),
+                ("P8", SharedCfgPin::Addr(13)),
+                ("P9", SharedCfgPin::Addr(14)),
+                ("P10", SharedCfgPin::Addr(15)),
+                ("P13", SharedCfgPin::Addr(16)),
+                ("P14", SharedCfgPin::Addr(17)),
+                ("P15", SharedCfgPin::Tdi),
+                ("P16", SharedCfgPin::Tck),
+                ("P17", SharedCfgPin::Tms),
+                ("P36", SharedCfgPin::Hdc),
+                ("P37", SharedCfgPin::Ldc),
+                ("P41", SharedCfgPin::InitB),
+                ("P56", SharedCfgPin::Data(7)),
+                ("P58", SharedCfgPin::Data(6)),
+                ("P59", SharedCfgPin::Data(5)),
+                ("P60", SharedCfgPin::Cs0B),
+                ("P61", SharedCfgPin::Data(4)),
+                ("P65", SharedCfgPin::Data(3)),
+                ("P66", SharedCfgPin::RsB),
+                ("P67", SharedCfgPin::Data(2)),
+                ("P69", SharedCfgPin::Data(1)),
+                ("P70", SharedCfgPin::BusyB),
+                ("P71", SharedCfgPin::Data(0)),
+                ("P72", SharedCfgPin::Dout),
+                ("P77", SharedCfgPin::Addr(0)),
+                ("P78", SharedCfgPin::Addr(1)),
+                ("P79", SharedCfgPin::Addr(2)),
+                ("P80", SharedCfgPin::Addr(3)),
+                ("P81", SharedCfgPin::Addr(4)),
+                ("P82", SharedCfgPin::Addr(5)),
+                ("P83", SharedCfgPin::Addr(6)),
+                ("P84", SharedCfgPin::Addr(7)),
+            ]);
+        }
+        "pq160" | "mq160" => {
+            pkg_cfg_io.extend([
+                ("P143", SharedCfgPin::Addr(8)),
+                ("P144", SharedCfgPin::Addr(9)),
+                ("P147", SharedCfgPin::Addr(10)),
+                ("P148", SharedCfgPin::Addr(11)),
+                ("P154", SharedCfgPin::Addr(12)),
+                ("P155", SharedCfgPin::Addr(13)),
+                ("P158", SharedCfgPin::Addr(14)),
+                ("P159", SharedCfgPin::Addr(15)),
+                ("P2", SharedCfgPin::Addr(16)),
+                ("P3", SharedCfgPin::Addr(17)),
+                ("P6", SharedCfgPin::Tdi),
+                ("P7", SharedCfgPin::Tck),
+                ("P13", SharedCfgPin::Tms),
+                ("P44", SharedCfgPin::Hdc),
+                ("P48", SharedCfgPin::Ldc),
+                ("P59", SharedCfgPin::InitB),
+                ("P83", SharedCfgPin::Data(7)),
+                ("P87", SharedCfgPin::Data(6)),
+                ("P94", SharedCfgPin::Data(5)),
+                ("P95", SharedCfgPin::Cs0B),
+                ("P98", SharedCfgPin::Data(4)),
+                ("P102", SharedCfgPin::Data(3)),
+                ("P103", SharedCfgPin::RsB),
+                ("P106", SharedCfgPin::Data(2)),
+                ("P113", SharedCfgPin::Data(1)),
+                ("P114", SharedCfgPin::BusyB),
+                ("P117", SharedCfgPin::Data(0)),
+                ("P118", SharedCfgPin::Dout),
+                ("P123", SharedCfgPin::Addr(0)),
+                ("P124", SharedCfgPin::Addr(1)),
+                ("P127", SharedCfgPin::Addr(2)),
+                ("P128", SharedCfgPin::Addr(3)),
+                ("P134", SharedCfgPin::Addr(4)),
+                ("P135", SharedCfgPin::Addr(5)),
+                ("P139", SharedCfgPin::Addr(6)),
+                ("P140", SharedCfgPin::Addr(7)),
+            ]);
+        }
+        "pq208" | "mq208" => {
+            pkg_cfg_io.extend([
+                ("P184", SharedCfgPin::Addr(8)),
+                ("P185", SharedCfgPin::Addr(9)),
+                ("P190", SharedCfgPin::Addr(10)),
+                ("P191", SharedCfgPin::Addr(11)),
+                ("P199", SharedCfgPin::Addr(12)),
+                ("P200", SharedCfgPin::Addr(13)),
+                ("P203", SharedCfgPin::Addr(14)),
+                ("P204", SharedCfgPin::Addr(15)),
+                ("P4", SharedCfgPin::Addr(16)),
+                ("P5", SharedCfgPin::Addr(17)),
+                ("P8", SharedCfgPin::Tdi),
+                ("P9", SharedCfgPin::Tck),
+                ("P17", SharedCfgPin::Tms),
+                ("P58", SharedCfgPin::Hdc),
+                ("P62", SharedCfgPin::Ldc),
+                ("P77", SharedCfgPin::InitB),
+                ("P109", SharedCfgPin::Data(7)),
+                ("P113", SharedCfgPin::Data(6)),
+                ("P122", SharedCfgPin::Data(5)),
+                ("P123", SharedCfgPin::Cs0B),
+                ("P128", SharedCfgPin::Data(4)),
+                ("P132", SharedCfgPin::Data(3)),
+                ("P133", SharedCfgPin::RsB),
+                ("P138", SharedCfgPin::Data(2)),
+                ("P147", SharedCfgPin::Data(1)),
+                ("P148", SharedCfgPin::BusyB),
+                ("P151", SharedCfgPin::Data(0)),
+                ("P152", SharedCfgPin::Dout),
+                ("P161", SharedCfgPin::Addr(0)),
+                ("P162", SharedCfgPin::Addr(1)),
+                ("P165", SharedCfgPin::Addr(2)),
+                ("P166", SharedCfgPin::Addr(3)),
+                ("P174", SharedCfgPin::Addr(4)),
+                ("P175", SharedCfgPin::Addr(5)),
+                ("P180", SharedCfgPin::Addr(6)),
+                ("P181", SharedCfgPin::Addr(7)),
+            ]);
+        }
+        "pq240" | "mq240" => {
+            pkg_cfg_io.extend([
+                ("P213", SharedCfgPin::Addr(8)),
+                ("P214", SharedCfgPin::Addr(9)),
+                ("P220", SharedCfgPin::Addr(10)),
+                ("P221", SharedCfgPin::Addr(11)),
+                ("P232", SharedCfgPin::Addr(12)),
+                ("P233", SharedCfgPin::Addr(13)),
+                ("P238", SharedCfgPin::Addr(14)),
+                ("P239", SharedCfgPin::Addr(15)),
+                ("P2", SharedCfgPin::Addr(16)),
+                ("P3", SharedCfgPin::Addr(17)),
+                ("P6", SharedCfgPin::Tdi),
+                ("P7", SharedCfgPin::Tck),
+                ("P17", SharedCfgPin::Tms),
+                ("P64", SharedCfgPin::Hdc),
+                ("P68", SharedCfgPin::Ldc),
+                ("P89", SharedCfgPin::InitB),
+                ("P123", SharedCfgPin::Data(7)),
+                ("P129", SharedCfgPin::Data(6)),
+                ("P141", SharedCfgPin::Data(5)),
+                ("P142", SharedCfgPin::Cs0B),
+                ("P148", SharedCfgPin::Data(4)),
+                ("P152", SharedCfgPin::Data(3)),
+                ("P153", SharedCfgPin::RsB),
+                ("P159", SharedCfgPin::Data(2)),
+                ("P173", SharedCfgPin::Data(1)),
+                ("P174", SharedCfgPin::BusyB),
+                ("P177", SharedCfgPin::Data(0)),
+                ("P178", SharedCfgPin::Dout),
+                ("P183", SharedCfgPin::Addr(0)),
+                ("P184", SharedCfgPin::Addr(1)),
+                ("P187", SharedCfgPin::Addr(2)),
+                ("P188", SharedCfgPin::Addr(3)),
+                ("P202", SharedCfgPin::Addr(4)),
+                ("P203", SharedCfgPin::Addr(5)),
+                ("P209", SharedCfgPin::Addr(6)),
+                ("P210", SharedCfgPin::Addr(7)),
+            ]);
+        }
+        _ => (),
+    }
+    let mut cfg_io = BTreeMap::new();
+    for (pin, fun) in pkg_cfg_io {
+        let BondPin::Io(io) = bond.pins[pin] else {
+            unreachable!()
+        };
+        cfg_io.insert(fun, io);
+    }
+
+    (bond, cfg_io)
 }

@@ -109,7 +109,29 @@ fn main() {
                 let ExpandedNamedDevice::Xc2000(ref endev) = endev else {
                     unreachable!()
                 };
-                let bond = xc2000::make_bond(endev, &pkg);
+                let (bond, cfg_io) = xc2000::make_bond(endev, &part.package, &pkg);
+                let pin_xtl1 = &part.kv["OSCIOB1"][0];
+                let pin_xtl2 = &part.kv["OSCIOB2"][0];
+                let io_xtl1 = bond.pins[pin_xtl1];
+                let io_xtl2 = bond.pins[pin_xtl2];
+                assert_eq!(
+                    io_xtl1,
+                    prjcombine_xc2000::bond::BondPin::Io(endev.grid.io_xtl1())
+                );
+                assert_eq!(
+                    io_xtl2,
+                    prjcombine_xc2000::bond::BondPin::Io(endev.grid.io_xtl2())
+                );
+                if !cfg_io.is_empty() {
+                    let Grid::Xc2000(ref mut grid) = db.grids[grid] else {
+                        unreachable!()
+                    };
+                    if grid.cfg_io.is_empty() {
+                        grid.cfg_io = cfg_io;
+                    } else {
+                        assert_eq!(grid.cfg_io, cfg_io);
+                    }
+                }
                 Bond::Xc2000(bond)
             }
             PartKind::Xc3000 => todo!(),
@@ -117,14 +139,34 @@ fn main() {
                 let ExpandedNamedDevice::Xc4000(ref endev) = endev else {
                     unreachable!()
                 };
-                let bond = xc4000::make_bond(endev, &pkg);
+                let (bond, cfg_io) = xc4000::make_bond(endev, &part.package, &pkg);
+                if !cfg_io.is_empty() {
+                    let Grid::Xc4000(ref mut grid) = db.grids[grid] else {
+                        unreachable!()
+                    };
+                    if grid.cfg_io.is_empty() {
+                        grid.cfg_io = cfg_io;
+                    } else {
+                        assert_eq!(grid.cfg_io, cfg_io);
+                    }
+                }
                 Bond::Xc4000(bond)
             }
             PartKind::Xc5200 => {
                 let ExpandedNamedDevice::Xc5200(ref endev) = endev else {
                     unreachable!()
                 };
-                let bond = xc5200::make_bond(endev, &pkg);
+                let (bond, cfg_io) = xc5200::make_bond(endev, &part.package, &pkg);
+                if !cfg_io.is_empty() {
+                    let Grid::Xc5200(ref mut grid) = db.grids[grid] else {
+                        unreachable!()
+                    };
+                    if grid.cfg_io.is_empty() {
+                        grid.cfg_io = cfg_io;
+                    } else {
+                        assert_eq!(grid.cfg_io, cfg_io);
+                    }
+                }
                 Bond::Xc5200(bond)
             }
             PartKind::Xc7000 => unreachable!(),
