@@ -13,6 +13,7 @@ use prjcombine_xact_geom::{Bond, Device, DeviceBond, ExpandedNamedDevice, GeomDb
 
 mod extractor;
 mod xc2000;
+mod xc3000;
 mod xc4000;
 mod xc5200;
 
@@ -62,7 +63,17 @@ fn main() {
                         let (grid, intdb, ndb) = xc2000::dump_grid(&die);
                         (Grid::Xc2000(grid), intdb, ndb)
                     }
-                    PartKind::Xc3000 => todo!(),
+                    PartKind::Xc3000 => {
+                        let (grid, intdb, ndb) = xc3000::dump_grid(
+                            &die,
+                            if args.family == "xc3000a" {
+                                prjcombine_xc3000::grid::GridKind::Xc3000A
+                            } else {
+                                prjcombine_xc3000::grid::GridKind::Xc3000
+                            },
+                        );
+                        (Grid::Xc3000(grid), intdb, ndb)
+                    }
                     PartKind::Xc4000 => {
                         let (grid, intdb, ndb) = xc4000::dump_grid(&die);
                         (Grid::Xc4000(grid), intdb, ndb)
@@ -78,16 +89,34 @@ fn main() {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(intdb);
                     }
-                    btree_map::Entry::Occupied(entry) => {
-                        assert_eq!(*entry.get(), intdb);
+                    btree_map::Entry::Occupied(mut entry) => {
+                        let cintdb = entry.get_mut();
+                        assert_eq!(cintdb.wires, intdb.wires);
+                        assert_eq!(cintdb.terms, intdb.terms);
+                        for (_, name, node) in intdb.nodes {
+                            if let Some((_, cnode)) = cintdb.nodes.get(&name) {
+                                assert_eq!(*cnode, node, "mismatch for node {name}");
+                            } else {
+                                cintdb.nodes.insert(name, node);
+                            }
+                        }
                     }
                 }
                 match db.namings.entry(args.family.clone()) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(ndb);
                     }
-                    btree_map::Entry::Occupied(entry) => {
-                        assert_eq!(*entry.get(), ndb);
+                    btree_map::Entry::Occupied(mut entry) => {
+                        let cndb = entry.get_mut();
+                        assert_eq!(cndb.tile_widths, ndb.tile_widths);
+                        assert_eq!(cndb.tile_heights, ndb.tile_heights);
+                        for (_, name, node) in ndb.node_namings {
+                            if let Some((_, cnode)) = cndb.node_namings.get(&name) {
+                                assert_eq!(*cnode, node);
+                            } else {
+                                cndb.node_namings.insert(name, node);
+                            }
+                        }
                     }
                 }
                 entry.insert(grid);
@@ -134,7 +163,39 @@ fn main() {
                 }
                 Bond::Xc2000(bond)
             }
-            PartKind::Xc3000 => todo!(),
+            PartKind::Xc3000 => {
+                let ExpandedNamedDevice::Xc3000(ref endev) = endev else {
+                    unreachable!()
+                };
+                let (bond, cfg_io) = xc3000::make_bond(endev, &part.package, &pkg);
+                let pin_xtl1 = &part.kv["OSCIOB1"][0];
+                let pin_xtl2 = &part.kv["OSCIOB2"][0];
+                let io_xtl1 = bond.pins[pin_xtl1];
+                let io_xtl2 = bond.pins[pin_xtl2];
+                assert_eq!(
+                    io_xtl1,
+                    prjcombine_xc3000::bond::BondPin::Io(endev.grid.io_xtl1())
+                );
+                assert_eq!(
+                    io_xtl2,
+                    prjcombine_xc3000::bond::BondPin::Io(endev.grid.io_xtl2())
+                );
+                let pad_tclk = &part.kv["TCLKIOB"][0];
+                assert_eq!(pad_tclk, endev.get_io_name(endev.grid.io_tclk()));
+                let pad_bclk = &part.kv["BCLKIOB"][0];
+                assert_eq!(pad_bclk, endev.get_io_name(endev.grid.io_xtl2()));
+                if !cfg_io.is_empty() {
+                    let Grid::Xc3000(ref mut grid) = db.grids[grid] else {
+                        unreachable!()
+                    };
+                    if grid.cfg_io.is_empty() {
+                        grid.cfg_io = cfg_io;
+                    } else {
+                        assert_eq!(grid.cfg_io, cfg_io);
+                    }
+                }
+                Bond::Xc3000(bond)
+            }
             PartKind::Xc4000 => {
                 let ExpandedNamedDevice::Xc4000(ref endev) = endev else {
                     unreachable!()

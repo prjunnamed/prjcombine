@@ -13,7 +13,7 @@ use prjcombine_xact_naming::{
     db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId, PipNaming},
     grid::ExpandedGridNaming,
 };
-use unnamed_entity::{entity_id, EntityBitVec, EntityId, EntityPartVec, EntityVec};
+use unnamed_entity::{entity_id, EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec};
 
 entity_id! {
     pub id NetId u32, reserve 1;
@@ -119,7 +119,12 @@ impl<'a> Extractor<'a> {
             used_pips: Default::default(),
             prims_by_name_a: Default::default(),
             prims_by_name_i: Default::default(),
-            bel_pips: ngrid.db.node_namings.ids().map(|_| Default::default()).collect(),
+            bel_pips: ngrid
+                .db
+                .node_namings
+                .ids()
+                .map(|_| Default::default())
+                .collect(),
             node_muxes: EntityPartVec::new(),
             int_pips: EntityPartVec::new(),
             net_by_tile_override: Default::default(),
@@ -491,6 +496,10 @@ impl<'a> Extractor<'a> {
         }
     }
 
+    pub fn own_pip(&mut self, net_t: NetId, net_f: NetId, nloc: NodeLoc) {
+        assert_eq!(self.pip_owner.insert((net_t, net_f), nloc), None);
+    }
+
     pub fn mark_tbuf_pseudo(&mut self, net_t: NetId, net_f: NetId) {
         assert!(self.nets[net_t].pips_bwd.contains_key(&net_f));
         self.tbuf_pseudos.insert((net_t, net_f));
@@ -516,6 +525,9 @@ impl<'a> Extractor<'a> {
                 for (layer, _) in &die[(col, row)].nodes {
                     let nloc = (die.die, col, row, layer);
                     let nnode = &self.ngrid.nodes[&nloc];
+                    if nnode.coords.is_empty() {
+                        continue;
+                    }
                     let rng = nnode.coords[NodeRawTileId::from_idx(0)].clone();
 
                     for x in rng.0 {
@@ -664,12 +676,22 @@ impl<'a> Extractor<'a> {
                     if !self.node_muxes.contains_id(node.kind) {
                         self.node_muxes.insert(node.kind, muxes);
                     } else {
-                        assert_eq!(self.node_muxes[node.kind], muxes);
+                        assert_eq!(
+                            self.node_muxes[node.kind],
+                            muxes,
+                            "fail merging node {}",
+                            self.egrid.db.nodes.key(node.kind)
+                        );
                     }
                     if !self.int_pips.contains_id(nnode.naming) {
                         self.int_pips.insert(nnode.naming, int_pips);
                     } else {
-                        assert_eq!(self.int_pips[nnode.naming], int_pips);
+                        assert_eq!(
+                            self.int_pips[nnode.naming],
+                            int_pips,
+                            "fail merging node naming {}",
+                            self.ngrid.db.node_namings.key(nnode.naming)
+                        );
                     }
                 }
             }
@@ -715,12 +737,22 @@ impl<'a> Extractor<'a> {
 
 impl Finisher {
     pub fn finish(mut self, db: &mut IntDb, ndb: &mut NamingDb) {
-        for (naming, _, node_naming) in &mut ndb.node_namings {
-            node_naming.int_pips = self.int_pips.remove(naming).unwrap();
-            node_naming.bel_pips = core::mem::take(&mut self.bel_pips[naming]);
+        let mut new_node_namings = EntityMap::new();
+        for (naming, name, mut node_naming) in core::mem::take(&mut ndb.node_namings) {
+            if let Some(int_pips) = self.int_pips.remove(naming) {
+                node_naming.int_pips = int_pips;
+                node_naming.bel_pips = core::mem::take(&mut self.bel_pips[naming]);
+                new_node_namings.insert(name, node_naming);
+            }
         }
-        for (kind, _, node) in &mut db.nodes {
-            node.muxes = self.node_muxes.remove(kind).unwrap();
+        ndb.node_namings = new_node_namings;
+        let mut new_nodes = EntityMap::new();
+        for (kind, name, mut node) in core::mem::take(&mut db.nodes) {
+            if let Some(muxes) = self.node_muxes.remove(kind) {
+                node.muxes = muxes;
+                new_nodes.insert(name, node);
+            }
         }
+        db.nodes = new_nodes;
     }
 }

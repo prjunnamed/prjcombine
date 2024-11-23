@@ -4,10 +4,7 @@ use prjcombine_int::{
     db::BelId,
     grid::{ColId, DieId, LayerId, RowId},
 };
-use prjcombine_xact_naming::{
-    db::NamingDb,
-    grid::ExpandedGridNaming,
-};
+use prjcombine_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc4000::{
     expanded::ExpandedDevice,
     grid::{Grid, GridKind, IoCoord},
@@ -33,7 +30,7 @@ impl<'a> ExpandedNamedDevice<'a> {
     }
 }
 
-pub fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = if col < grid.col_mid() {
         col.to_idx()
     } else {
@@ -55,7 +52,7 @@ pub fn name_a(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -
     }
 }
 
-pub fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
+fn name_b(grid: &Grid, prefix: &str, suffix: &str, col: ColId, row: RowId) -> String {
     let cidx = col.to_idx();
     let ridx = if row < grid.row_mid() && prefix == "TIE_" && grid.kind == GridKind::Xc4000H {
         grid.rows - row.to_idx()

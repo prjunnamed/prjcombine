@@ -52,6 +52,16 @@ impl Grid {
                 }
             }
         }
+        for row in grid.rows() {
+            for &col in &self.cols_bidi {
+                grid.add_xnode((col, row), "BIDIH", &[]);
+            }
+        }
+        for col in grid.cols() {
+            for &row in &self.rows_bidi {
+                grid.add_xnode((col, row), "BIDIV", &[]);
+            }
+        }
         for col in grid.cols() {
             for row in grid.rows() {
                 grid[(col, row)].clkroot = (ColId::from_idx(0), RowId::from_idx(0));

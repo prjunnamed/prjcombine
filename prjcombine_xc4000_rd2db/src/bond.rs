@@ -84,10 +84,10 @@ pub fn make_bond(
                 ("P60", SharedCfgPin::Cs0B),
                 ("P61", SharedCfgPin::Data(4)),
                 ("P65", SharedCfgPin::Data(3)),
-                ("P66", SharedCfgPin::RsB),
+                ("P66", SharedCfgPin::Cs1B),
                 ("P67", SharedCfgPin::Data(2)),
                 ("P69", SharedCfgPin::Data(1)),
-                ("P70", SharedCfgPin::BusyB),
+                ("P70", SharedCfgPin::RclkB),
                 ("P71", SharedCfgPin::Data(0)),
                 ("P72", SharedCfgPin::Dout),
                 ("P77", SharedCfgPin::Addr(0)),
@@ -111,10 +111,10 @@ pub fn make_bond(
                 ("P58", SharedCfgPin::Cs0B),
                 ("P61", SharedCfgPin::Data(4)),
                 ("P65", SharedCfgPin::Data(3)),
-                ("P66", SharedCfgPin::RsB),
+                ("P66", SharedCfgPin::Cs1B),
                 ("P68", SharedCfgPin::Data(2)),
                 ("P70", SharedCfgPin::Data(1)),
-                ("P71", SharedCfgPin::BusyB),
+                ("P71", SharedCfgPin::RclkB),
                 ("P72", SharedCfgPin::Data(0)),
                 ("P73", SharedCfgPin::Dout),
                 ("P78", SharedCfgPin::Addr(0)),
@@ -165,10 +165,10 @@ pub fn make_bond(
                 ("P95", SharedCfgPin::Cs0B),
                 ("P98", SharedCfgPin::Data(4)),
                 ("P102", SharedCfgPin::Data(3)),
-                ("P103", SharedCfgPin::RsB),
+                ("P103", SharedCfgPin::Cs1B),
                 ("P106", SharedCfgPin::Data(2)),
                 ("P113", SharedCfgPin::Data(1)),
-                ("P114", SharedCfgPin::BusyB),
+                ("P114", SharedCfgPin::RclkB),
                 ("P117", SharedCfgPin::Data(0)),
                 ("P118", SharedCfgPin::Dout),
                 ("P123", SharedCfgPin::Addr(0)),
@@ -206,10 +206,10 @@ pub fn make_bond(
                 ("P142", SharedCfgPin::Cs0B),
                 ("P148", SharedCfgPin::Data(4)),
                 ("P152", SharedCfgPin::Data(3)),
-                ("P153", SharedCfgPin::RsB),
+                ("P153", SharedCfgPin::Cs1B),
                 ("P159", SharedCfgPin::Data(2)),
                 ("P173", SharedCfgPin::Data(1)),
-                ("P174", SharedCfgPin::BusyB),
+                ("P174", SharedCfgPin::RclkB),
                 ("P177", SharedCfgPin::Data(0)),
                 ("P178", SharedCfgPin::Dout),
                 ("P183", SharedCfgPin::Addr(0)),
@@ -247,10 +247,10 @@ pub fn make_bond(
                 ("Y2", SharedCfgPin::Cs0B),
                 ("T1", SharedCfgPin::Data(4)),
                 ("T3", SharedCfgPin::Data(3)),
-                ("R1", SharedCfgPin::RsB),
+                ("R1", SharedCfgPin::Cs1B),
                 ("L2", SharedCfgPin::Data(2)),
                 ("G4", SharedCfgPin::Data(1)),
-                ("F2", SharedCfgPin::BusyB),
+                ("F2", SharedCfgPin::RclkB),
                 ("C2", SharedCfgPin::Data(0)),
                 ("D3", SharedCfgPin::Dout),
                 ("B3", SharedCfgPin::Addr(0)),
@@ -281,8 +281,8 @@ pub fn make_bond(
         if matches!(
             io,
             SharedCfgPin::Addr(0 | 1 | 3..)
-                | SharedCfgPin::RsB
-                | SharedCfgPin::BusyB
+                | SharedCfgPin::Cs1B
+                | SharedCfgPin::RclkB
                 | SharedCfgPin::Cs0B
         ) && endev.grid.kind == GridKind::SpartanXl
         {

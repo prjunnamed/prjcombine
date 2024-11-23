@@ -65,6 +65,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 for (layer, node) in &die[(col, row)].nodes {
                     let nloc = (die.die, col, row, layer);
                     let kind = egrid.db.nodes.key(node.kind);
+                    if kind.starts_with("BIDI") {
+                        ngrid.name_node(nloc, kind, []);
+                        continue;
+                    }
                     let mut naming = &kind[..];
                     if col == grid.col_lio() && row == grid.row_bio() + 1 {
                         naming = "CLB.B1L";

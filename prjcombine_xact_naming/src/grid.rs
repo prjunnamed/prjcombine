@@ -1,4 +1,7 @@
-use std::{collections::{hash_map, HashMap}, ops::Range};
+use std::{
+    collections::{hash_map, HashMap},
+    ops::Range,
+};
 
 use prjcombine_int::{
     db::BelId,

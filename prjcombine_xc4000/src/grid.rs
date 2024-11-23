@@ -54,9 +54,9 @@ pub enum SharedCfgPin {
     Hdc,
     InitB,
     Cs0B,
-    RsB,
+    Cs1B,
     Dout,
-    BusyB,
+    RclkB,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]

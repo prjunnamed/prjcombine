@@ -113,7 +113,6 @@ pub fn make_intdb() -> IntDb {
     for name in ["GCLK", "ACLK", "IOCLK.B", "IOCLK.T", "IOCLK.L", "IOCLK.R"] {
         db.wires.insert(name.into(), WireKind::ClkOut(0));
     }
-    db.wires.insert("ACLK".into(), WireKind::ClkOut(0));
 
     for name in [
         "IMUX.CLB.A",
@@ -261,6 +260,19 @@ pub fn make_intdb() -> IntDb {
         }
 
         db.nodes.insert(name.into(), node);
+    }
+
+    for name in ["BIDIH", "BIDIV"] {
+        db.nodes.insert(
+            name.into(),
+            NodeKind {
+                tiles: Default::default(),
+                muxes: Default::default(),
+                iris: Default::default(),
+                intfs: Default::default(),
+                bels: Default::default(),
+            },
+        );
     }
 
     db
@@ -463,7 +475,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
         }
     }
 
-    // horizontal single and double
+    // horizontal singles
     let mut queue = vec![];
     for col in die.cols() {
         let mut x = endev.col_x[col].end;
@@ -504,7 +516,7 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
             }
         }
     }
-    // vertical single and double
+    // vertical singles
     for row in die.rows() {
         let mut y = endev.row_y[row].start;
         if row == grid.row_bio() {
