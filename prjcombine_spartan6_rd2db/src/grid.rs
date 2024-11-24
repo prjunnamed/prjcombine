@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
-    Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, IoCoord, Mcb, McbIo, RegId, Row,
-    SharedCfgPin, TileIobId,
+    Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,
 };
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -304,7 +303,7 @@ fn has_encrypt(rd: &Part) -> bool {
     false
 }
 
-fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: IoCoord) {
+fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: SimpleIoCoord) {
     let old = grid.cfg_io.insert(cfg, coord);
     assert!(old.is_none() || old == Some(coord));
 }
@@ -318,7 +317,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
                     let crd = if tkn.starts_with('T') {
-                        IoCoord {
+                        SimpleIoCoord {
                             col: int.lookup_column(crd.x.into()),
                             row: if idx < 2 {
                                 grid.row_tio_outer()
@@ -328,7 +327,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                             iob: TileIobId::from_idx([1, 0, 1, 0][idx as usize]),
                         }
                     } else if tkn.starts_with('B') {
-                        IoCoord {
+                        SimpleIoCoord {
                             col: int.lookup_column(crd.x.into()),
                             row: if idx < 2 {
                                 grid.row_bio_inner()
@@ -338,13 +337,13 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                             iob: TileIobId::from_idx([1, 0, 0, 1][idx as usize]),
                         }
                     } else if tkn.starts_with('L') {
-                        IoCoord {
+                        SimpleIoCoord {
                             col: grid.col_lio(),
                             row: int.lookup_row(crd.y.into()),
                             iob: TileIobId::from_idx(idx as usize ^ 1),
                         }
                     } else if tkn.starts_with('R') {
-                        IoCoord {
+                        SimpleIoCoord {
                             col: grid.col_rio(),
                             row: int.lookup_row(crd.y.into()),
                             iob: TileIobId::from_idx(idx as usize ^ 1),

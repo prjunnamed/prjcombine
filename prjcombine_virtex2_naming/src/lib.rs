@@ -2,11 +2,11 @@ use std::{cmp::Ordering, collections::HashSet};
 
 use prjcombine_int::{
     db::BelId,
-    grid::{ColId, DieId, ExpandedDieRef, LayerId, RowId},
+    grid::{ColId, DieId, ExpandedDieRef, LayerId, RowId, SimpleIoCoord},
 };
 use prjcombine_virtex2::{
     expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, IoCoord, RowIoKind},
+    grid::{ColumnIoKind, ColumnKind, DcmPairKind, Grid, GridKind, RowIoKind},
     iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobKind},
 };
 use prjcombine_xilinx_naming::{
@@ -22,7 +22,7 @@ pub struct ExpandedNamedDevice<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
         let die = DieId::from_idx(0);
         let nnode = &self.ngrid.nodes[&(die, coord.col, coord.row, LayerId::from_idx(1))];
         let bel = BelId::from_idx(coord.iob.to_idx());

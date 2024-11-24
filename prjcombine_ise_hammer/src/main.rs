@@ -157,18 +157,17 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         opts.skip_dcm = true;
     }
     match gedev {
-        ExpandedDevice::Xc4000(_) => {
+        ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
-                clb::xc4000::add_fuzzers(&mut hammer, &backend);
-                io::xc4000::add_fuzzers(&mut hammer, &backend);
-                misc::xc4000::add_fuzzers(&mut hammer, &backend);
-            }
-        }
-        ExpandedDevice::Xc5200(_) => {
-            if !opts.skip_core {
-                clb::xc5200::add_fuzzers(&mut hammer, &backend);
-                io::xc5200::add_fuzzers(&mut hammer, &backend);
-                misc::xc5200::add_fuzzers(&mut hammer, &backend);
+                if edev.grid.kind.is_xc4000() {
+                    clb::xc4000::add_fuzzers(&mut hammer, &backend);
+                    io::xc4000::add_fuzzers(&mut hammer, &backend);
+                    misc::xc4000::add_fuzzers(&mut hammer, &backend);
+                } else {
+                    clb::xc5200::add_fuzzers(&mut hammer, &backend);
+                    io::xc5200::add_fuzzers(&mut hammer, &backend);
+                    misc::xc5200::add_fuzzers(&mut hammer, &backend);
+                }
             }
         }
         ExpandedDevice::Virtex(_) => {
@@ -426,18 +425,17 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
         int::collect_fuzzers(&mut ctx);
     }
     match gedev {
-        ExpandedDevice::Xc4000(_) => {
+        ExpandedDevice::Xc2000(ref edev) => {
             if !opts.skip_core {
-                clb::xc4000::collect_fuzzers(&mut ctx);
-                io::xc4000::collect_fuzzers(&mut ctx);
-                misc::xc4000::collect_fuzzers(&mut ctx);
-            }
-        }
-        ExpandedDevice::Xc5200(_) => {
-            if !opts.skip_core {
-                clb::xc5200::collect_fuzzers(&mut ctx);
-                io::xc5200::collect_fuzzers(&mut ctx);
-                misc::xc5200::collect_fuzzers(&mut ctx);
+                if edev.grid.kind.is_xc4000() {
+                    clb::xc4000::collect_fuzzers(&mut ctx);
+                    io::xc4000::collect_fuzzers(&mut ctx);
+                    misc::xc4000::collect_fuzzers(&mut ctx);
+                } else {
+                    clb::xc5200::collect_fuzzers(&mut ctx);
+                    io::xc5200::collect_fuzzers(&mut ctx);
+                    misc::xc5200::collect_fuzzers(&mut ctx);
+                }
             }
         }
         ExpandedDevice::Virtex(_) => {

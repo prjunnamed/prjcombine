@@ -1,6 +1,8 @@
 use enum_map::EnumMap;
 use prjcombine_int::db::{Dir, IntDb};
-use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{
+    ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, SimpleIoCoord, TileIobId,
+};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -8,9 +10,7 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::ExpandedDevice;
-use crate::grid::{
-    ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, IoCoord, PllKind, RegId, TileIobId,
-};
+use crate::grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind, RegId};
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -22,7 +22,7 @@ struct Expander<'a, 'b> {
     frame_info: Vec<FrameInfo>,
     bram_frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
-    io: Vec<IoCoord>,
+    io: Vec<SimpleIoCoord>,
     col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     col_width: EntityVec<ColId, usize>,
     spine_frame: EntityVec<RegId, usize>,
@@ -818,12 +818,12 @@ impl Expander<'_, '_> {
 
     fn fill_iob(&mut self, crd: Coord) {
         self.die.add_xnode(crd, "IOB", &[]);
-        let crd_p = IoCoord {
+        let crd_p = SimpleIoCoord {
             col: crd.0,
             row: crd.1,
             iob: TileIobId::from_idx(1),
         };
-        let crd_n = IoCoord {
+        let crd_n = SimpleIoCoord {
             col: crd.0,
             row: crd.1,
             iob: TileIobId::from_idx(0),

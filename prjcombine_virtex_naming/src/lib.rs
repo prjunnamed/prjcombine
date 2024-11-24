@@ -1,10 +1,10 @@
 use prjcombine_int::{
     db::BelId,
-    grid::{ColId, DieId, ExpandedDieRef, LayerId, RowId},
+    grid::{ColId, DieId, ExpandedDieRef, LayerId, RowId, SimpleIoCoord},
 };
 use prjcombine_virtex::{
     expanded::ExpandedDevice,
-    grid::{DisabledPart, Grid, GridKind, IoCoord},
+    grid::{DisabledPart, Grid, GridKind},
 };
 use prjcombine_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
@@ -16,7 +16,7 @@ pub struct ExpandedNamedDevice<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
         let die = self.edev.egrid.die(DieId::from_idx(0));
         let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
         let bel = BelId::from_idx(coord.iob.to_idx());

@@ -2,11 +2,11 @@ use std::cmp::Ordering;
 
 use prjcombine_int::{
     db::BelId,
-    grid::{ColId, DieId, RowId},
+    grid::{ColId, DieId, RowId, SimpleIoCoord},
 };
 use prjcombine_spartan6::{
     expanded::ExpandedDevice,
-    grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, IoCoord, PllKind},
+    grid::{ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Grid, Gts, PllKind},
 };
 use prjcombine_xilinx_naming::{
     db::NamingDb,
@@ -30,7 +30,7 @@ pub struct Gt<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
         let die = DieId::from_idx(0);
         let layer = self
             .edev

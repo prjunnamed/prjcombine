@@ -1,10 +1,9 @@
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
-    pub id TileIobId u8;
     pub id RegId u32, delta;
 }
 
@@ -22,7 +21,7 @@ pub struct Grid {
     pub row_mcb_split: Option<RowId>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
-    pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
     pub has_encrypt: bool,
 }
 
@@ -126,13 +125,6 @@ pub enum DisabledPart {
     ClbColumn(ColId),
     BramRegion(ColId, RegId),
     DspRegion(ColId, RegId),
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct IoCoord {
-    pub col: ColId,
-    pub row: RowId,
-    pub iob: TileIobId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]

@@ -1,22 +1,19 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
-use prjcombine_int::{db::IntDb, grid::ExpandedGrid};
-use prjcombine_virtex_bitstream::BitstreamGeom;
-use prjcombine_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
+use prjcombine_int::db::IntDb;
+use prjcombine_xact_naming::db::NamingDb;
+use prjcombine_xc2000::{
+    bond::Bond,
+    expanded::ExpandedDevice,
+    grid::{Grid, GridKind},
+};
+use prjcombine_xc2000_xact::ExpandedNamedDevice;
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{entity_id, EntityVec};
 
 entity_id! {
     pub id GridId usize;
     pub id BondId usize;
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Grid {
-    Xc2000(prjcombine_xc2000::grid::Grid),
-    Xc3000(prjcombine_xc3000::grid::Grid),
-    Xc4000(prjcombine_xc4000::grid::Grid),
-    Xc5200(prjcombine_xc5200::grid::Grid),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -32,32 +29,6 @@ pub struct Device {
     pub bonds: Vec<DeviceBond>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Bond {
-    Xc2000(prjcombine_xc2000::bond::Bond),
-    Xc3000(prjcombine_xc3000::bond::Bond),
-    Xc4000(prjcombine_xc4000::bond::Bond),
-    Xc5200(prjcombine_xc5200::bond::Bond),
-}
-
-pub enum ExpandedBond<'a> {
-    Xc2000(prjcombine_xc2000::bond::ExpandedBond<'a>),
-    Xc3000(prjcombine_xc3000::bond::ExpandedBond<'a>),
-    Xc4000(prjcombine_xc4000::bond::ExpandedBond<'a>),
-    Xc5200(prjcombine_xc5200::bond::ExpandedBond<'a>),
-}
-
-impl Bond {
-    pub fn expand(&self) -> ExpandedBond {
-        match self {
-            Bond::Xc2000(bond) => ExpandedBond::Xc2000(bond.expand()),
-            Bond::Xc3000(bond) => ExpandedBond::Xc3000(bond.expand()),
-            Bond::Xc4000(bond) => ExpandedBond::Xc4000(bond.expand()),
-            Bond::Xc5200(bond) => ExpandedBond::Xc5200(bond.expand()),
-        }
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GeomDb {
     pub grids: EntityVec<GridId, Grid>,
@@ -65,51 +36,6 @@ pub struct GeomDb {
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, IntDb>,
     pub namings: BTreeMap<String, NamingDb>,
-}
-
-pub enum ExpandedDevice<'a> {
-    Xc2000(prjcombine_xc2000::expanded::ExpandedDevice<'a>),
-    Xc3000(prjcombine_xc3000::expanded::ExpandedDevice<'a>),
-    Xc4000(prjcombine_xc4000::expanded::ExpandedDevice<'a>),
-    Xc5200(prjcombine_xc5200::expanded::ExpandedDevice<'a>),
-}
-
-impl<'a> ExpandedDevice<'a> {
-    pub fn egrid(&self) -> &ExpandedGrid<'a> {
-        match self {
-            ExpandedDevice::Xc2000(edev) => &edev.egrid,
-            ExpandedDevice::Xc3000(edev) => &edev.egrid,
-            ExpandedDevice::Xc4000(edev) => &edev.egrid,
-            ExpandedDevice::Xc5200(edev) => &edev.egrid,
-        }
-    }
-
-    pub fn bs_geom(&self) -> &BitstreamGeom {
-        match self {
-            ExpandedDevice::Xc2000(_edev) => todo!(),
-            ExpandedDevice::Xc3000(_edev) => todo!(),
-            ExpandedDevice::Xc4000(edev) => &edev.bs_geom,
-            ExpandedDevice::Xc5200(edev) => &edev.bs_geom,
-        }
-    }
-}
-
-pub enum ExpandedNamedDevice<'a> {
-    Xc2000(prjcombine_xc2000_xact::ExpandedNamedDevice<'a>),
-    Xc3000(prjcombine_xc3000_xact::ExpandedNamedDevice<'a>),
-    Xc4000(prjcombine_xc4000_xact::ExpandedNamedDevice<'a>),
-    Xc5200(prjcombine_xc5200_xact::ExpandedNamedDevice<'a>),
-}
-
-impl<'a> ExpandedNamedDevice<'a> {
-    pub fn ngrid(&self) -> &ExpandedGridNaming<'a> {
-        match self {
-            ExpandedNamedDevice::Xc2000(endev) => &endev.ngrid,
-            ExpandedNamedDevice::Xc3000(endev) => &endev.ngrid,
-            ExpandedNamedDevice::Xc4000(endev) => &endev.ngrid,
-            ExpandedNamedDevice::Xc5200(endev) => &endev.ngrid,
-        }
-    }
 }
 
 impl GeomDb {
@@ -129,68 +55,38 @@ impl GeomDb {
 
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
         let grid = &self.grids[dev.grid];
-        match grid {
-            Grid::Xc2000(grid) => {
-                let intdb = &self.ints["xc2000"];
-                ExpandedDevice::Xc2000(grid.expand_grid(intdb))
-            }
-            Grid::Xc3000(grid) => {
-                let intdb = &self.ints[match grid.kind {
-                    prjcombine_xc3000::grid::GridKind::Xc3000 => "xc3000",
-                    prjcombine_xc3000::grid::GridKind::Xc3000A => "xc3000a",
-                }];
-                ExpandedDevice::Xc3000(grid.expand_grid(intdb))
-            }
-            Grid::Xc4000(grid) => {
-                let intdb = &self.ints[match grid.kind {
-                    prjcombine_xc4000::grid::GridKind::Xc4000 => "xc4000",
-                    prjcombine_xc4000::grid::GridKind::Xc4000A => "xc4000a",
-                    prjcombine_xc4000::grid::GridKind::Xc4000H => "xc4000h",
-                    prjcombine_xc4000::grid::GridKind::Xc4000E => "xc4000e",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Ex => "xc4000ex",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Xla => "xc4000xla",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Xv => "xc4000xv",
-                    prjcombine_xc4000::grid::GridKind::SpartanXl => "spartanxl",
-                }];
-                ExpandedDevice::Xc4000(grid.expand_grid(intdb))
-            }
-            Grid::Xc5200(grid) => {
-                let intdb = &self.ints["xc5200"];
-                ExpandedDevice::Xc5200(grid.expand_grid(intdb))
-            }
-        }
+        let intdb = &self.ints[match grid.kind {
+            GridKind::Xc2000 => "xc2000",
+            GridKind::Xc3000 => "xc3000",
+            GridKind::Xc3000A => "xc3000a",
+            GridKind::Xc4000 => "xc4000",
+            GridKind::Xc4000A => "xc4000a",
+            GridKind::Xc4000H => "xc4000h",
+            GridKind::Xc4000E => "xc4000e",
+            GridKind::Xc4000Ex => "xc4000ex",
+            GridKind::Xc4000Xla => "xc4000xla",
+            GridKind::Xc4000Xv => "xc4000xv",
+            GridKind::SpartanXl => "spartanxl",
+            GridKind::Xc5200 => "xc5200",
+        }];
+        grid.expand_grid(intdb)
     }
 
     pub fn name<'a>(&'a self, _dev: &Device, edev: &'a ExpandedDevice) -> ExpandedNamedDevice<'a> {
-        match edev {
-            ExpandedDevice::Xc2000(edev) => {
-                let ndb = &self.namings["xc2000"];
-                ExpandedNamedDevice::Xc2000(prjcombine_xc2000_xact::name_device(edev, ndb))
-            }
-            ExpandedDevice::Xc3000(edev) => {
-                let ndb = &self.namings[match edev.grid.kind {
-                    prjcombine_xc3000::grid::GridKind::Xc3000 => "xc3000",
-                    prjcombine_xc3000::grid::GridKind::Xc3000A => "xc3000a",
-                }];
-                ExpandedNamedDevice::Xc3000(prjcombine_xc3000_xact::name_device(edev, ndb))
-            }
-            ExpandedDevice::Xc4000(edev) => {
-                let ndb = &self.namings[match edev.grid.kind {
-                    prjcombine_xc4000::grid::GridKind::Xc4000 => "xc4000",
-                    prjcombine_xc4000::grid::GridKind::Xc4000A => "xc4000a",
-                    prjcombine_xc4000::grid::GridKind::Xc4000H => "xc4000h",
-                    prjcombine_xc4000::grid::GridKind::Xc4000E => "xc4000e",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Ex => "xc4000ex",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Xla => "xc4000xla",
-                    prjcombine_xc4000::grid::GridKind::Xc4000Xv => "xc4000xv",
-                    prjcombine_xc4000::grid::GridKind::SpartanXl => "spartanxl",
-                }];
-                ExpandedNamedDevice::Xc4000(prjcombine_xc4000_xact::name_device(edev, ndb))
-            }
-            ExpandedDevice::Xc5200(edev) => {
-                let ndb = &self.namings["xc5200"];
-                ExpandedNamedDevice::Xc5200(prjcombine_xc5200_xact::name_device(edev, ndb))
-            }
-        }
+        let ndb = &self.namings[match edev.grid.kind {
+            GridKind::Xc2000 => "xc2000",
+            GridKind::Xc3000 => "xc3000",
+            GridKind::Xc3000A => "xc3000a",
+            GridKind::Xc4000 => "xc4000",
+            GridKind::Xc4000A => "xc4000a",
+            GridKind::Xc4000H => "xc4000h",
+            GridKind::Xc4000E => "xc4000e",
+            GridKind::Xc4000Ex => "xc4000ex",
+            GridKind::Xc4000Xla => "xc4000xla",
+            GridKind::Xc4000Xv => "xc4000xv",
+            GridKind::SpartanXl => "spartanxl",
+            GridKind::Xc5200 => "xc5200",
+        }];
+        prjcombine_xc2000_xact::name_device(edev, ndb)
     }
 }

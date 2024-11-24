@@ -1,9 +1,9 @@
 use prjcombine_int::db::Dir;
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_int::grid::{ColId, DieId, RowId, SimpleIoCoord, TileIobId};
 use prjcombine_rawdump::Coord;
 use prjcombine_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::expanded::IoDiffKind;
-use prjcombine_virtex2::grid::{GridKind, IoCoord, TileIobId};
+use prjcombine_virtex2::grid::GridKind;
 use prjcombine_virtex2_naming::ExpandedNamedDevice;
 use prjcombine_xilinx_naming::db::NodeRawTileId;
 use unnamed_entity::EntityId;
@@ -74,7 +74,7 @@ fn verify_pci_ce(
 }
 
 pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    let io = endev.edev.get_io_info(IoCoord {
+    let io = endev.edev.get_io_info(SimpleIoCoord {
         col: bel.col,
         row: bel.row,
         iob: TileIobId::from_idx(bel.bid.to_idx()),
@@ -150,7 +150,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             IoDiffKind::P(oiob) => {
                 let obel = get_bel_iob(
                     vrf,
-                    IoCoord {
+                    SimpleIoCoord {
                         col: bel.col,
                         row: bel.row,
                         iob: oiob,
@@ -161,7 +161,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             IoDiffKind::N(oiob) => {
                 let obel = get_bel_iob(
                     vrf,
-                    IoCoord {
+                    SimpleIoCoord {
                         col: bel.col,
                         row: bel.row,
                         iob: oiob,
@@ -186,7 +186,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         if let IoDiffKind::P(oiob) | IoDiffKind::N(oiob) = io.diff {
             let obel = get_bel_iob(
                 vrf,
-                IoCoord {
+                SimpleIoCoord {
                     col: bel.col,
                     row: bel.row,
                     iob: oiob,

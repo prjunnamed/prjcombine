@@ -1,15 +1,15 @@
 use std::collections::BTreeSet;
 
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId, SimpleIoCoord, TileIobId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{DisabledPart, Grid, IoCoord, TileIobId};
+use crate::grid::{DisabledPart, Grid};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Io {
     pub bank: u32,
-    pub coord: IoCoord,
+    pub coord: SimpleIoCoord,
 }
 
 pub struct ExpandedDevice<'a> {
@@ -24,7 +24,7 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl<'a> ExpandedDevice<'a> {
-    pub fn get_io_bank(&'a self, coord: IoCoord) -> u32 {
+    pub fn get_io_bank(&'a self, coord: SimpleIoCoord) -> u32 {
         if coord.row == self.grid.row_tio() {
             if coord.col < self.grid.col_clk() {
                 0
@@ -54,7 +54,7 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn get_bonded_ios(&'a self) -> Vec<IoCoord> {
+    pub fn get_bonded_ios(&'a self) -> Vec<SimpleIoCoord> {
         let mut res = vec![];
         let die = self.egrid.die(DieId::from_idx(0));
         for col in die.cols() {
@@ -66,7 +66,7 @@ impl<'a> ExpandedDevice<'a> {
                 continue;
             }
             for iob in [2, 1] {
-                res.push(IoCoord {
+                res.push(SimpleIoCoord {
                     col,
                     row,
                     iob: TileIobId::from_idx(iob),
@@ -79,7 +79,7 @@ impl<'a> ExpandedDevice<'a> {
                 continue;
             }
             for iob in [1, 2, 3] {
-                res.push(IoCoord {
+                res.push(SimpleIoCoord {
                     col,
                     row,
                     iob: TileIobId::from_idx(iob),
@@ -95,7 +95,7 @@ impl<'a> ExpandedDevice<'a> {
                 continue;
             }
             for iob in [1, 2] {
-                res.push(IoCoord {
+                res.push(SimpleIoCoord {
                     col,
                     row,
                     iob: TileIobId::from_idx(iob),
@@ -108,7 +108,7 @@ impl<'a> ExpandedDevice<'a> {
                 continue;
             }
             for iob in [3, 2, 1] {
-                res.push(IoCoord {
+                res.push(SimpleIoCoord {
                     col,
                     row,
                     iob: TileIobId::from_idx(iob),

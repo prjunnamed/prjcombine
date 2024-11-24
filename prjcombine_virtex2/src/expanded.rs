@@ -1,9 +1,9 @@
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId, SimpleIoCoord, TileIobId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use serde::{Deserialize, Serialize};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{ColumnIoKind, Grid, GridKind, IoCoord, TileIobId};
+use crate::grid::{ColumnIoKind, Grid, GridKind};
 use crate::iob::IobKind;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub enum IoDiffKind {
 
 #[derive(Clone, Copy, Debug)]
 pub struct IoInfo {
-    pub coord: IoCoord,
+    pub coord: SimpleIoCoord,
     pub bank: u32,
     pub diff: IoDiffKind,
     pub pad_kind: Option<IobKind>,
@@ -44,7 +44,7 @@ impl<'a> ExpandedDevice<'a> {
         false
     }
 
-    pub fn get_io_info(&'a self, coord: IoCoord) -> IoInfo {
+    pub fn get_io_info(&'a self, coord: SimpleIoCoord) -> IoInfo {
         let bank = match self.grid.kind {
             GridKind::Virtex2 | GridKind::Virtex2P | GridKind::Virtex2PX | GridKind::Spartan3 => {
                 if coord.row == self.grid.row_top() {
@@ -171,14 +171,14 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn get_bonded_ios(&'a self) -> Vec<IoCoord> {
+    pub fn get_bonded_ios(&'a self) -> Vec<SimpleIoCoord> {
         let mut res = vec![];
         for col in self.grid.columns.ids() {
             let row = self.grid.row_top();
             if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(IoCoord {
+                        res.push(SimpleIoCoord {
                             col,
                             row,
                             iob: TileIobId::from_idx(iob.bel.to_idx()),
@@ -192,7 +192,7 @@ impl<'a> ExpandedDevice<'a> {
             if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(IoCoord {
+                        res.push(SimpleIoCoord {
                             col,
                             row,
                             iob: TileIobId::from_idx(iob.bel.to_idx()),
@@ -206,7 +206,7 @@ impl<'a> ExpandedDevice<'a> {
             if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(IoCoord {
+                        res.push(SimpleIoCoord {
                             col,
                             row,
                             iob: TileIobId::from_idx(iob.bel.to_idx()),
@@ -220,7 +220,7 @@ impl<'a> ExpandedDevice<'a> {
             if let Some((data, tidx)) = self.grid.get_iob_data((col, row)) {
                 for &iob in &data.iobs {
                     if iob.tile == tidx {
-                        res.push(IoCoord {
+                        res.push(SimpleIoCoord {
                             col,
                             row,
                             iob: TileIobId::from_idx(iob.bel.to_idx()),

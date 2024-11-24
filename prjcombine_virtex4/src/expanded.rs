@@ -3,14 +3,10 @@ use crate::grid::{
     DisabledPart, Grid, GridKind, GtKind, GtzLoc, Interposer, IoKind, RegId, XadcIoLoc,
 };
 use bimap::BiHashMap;
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
-use unnamed_entity::{entity_id, EntityId, EntityPartVec, EntityVec};
-
-entity_id! {
-    pub id TileIobId u8;
-}
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {

@@ -1,24 +1,8 @@
-use prjcombine_int::{
-    db::BelId,
-    grid::{DieId, LayerId},
-};
-use prjcombine_xc5200::{expanded::ExpandedDevice, grid::IoCoord};
+use prjcombine_xc2000::expanded::ExpandedDevice;
 use prjcombine_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use unnamed_entity::EntityId;
 
-pub struct ExpandedNamedDevice<'a> {
-    pub edev: &'a ExpandedDevice<'a>,
-    pub ngrid: ExpandedGridNaming<'a>,
-}
-
-impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
-        let die = self.edev.egrid.die(DieId::from_idx(0));
-        let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
-        let bel = BelId::from_idx(coord.iob.to_idx());
-        &nnode.bels[bel]
-    }
-}
+use crate::ExpandedNamedDevice;
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
     let egrid = &edev.egrid;
@@ -174,5 +158,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         }
     }
 
-    ExpandedNamedDevice { edev, ngrid }
+    ExpandedNamedDevice {
+        edev,
+        ngrid,
+        grid: edev.grid,
+    }
 }

@@ -1,7 +1,7 @@
 #![allow(clippy::comparison_chain)]
 
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -9,7 +9,7 @@ use std::collections::{BTreeSet, HashSet};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
-use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord, TileIobId};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind};
 
 struct Expander<'a, 'b> {

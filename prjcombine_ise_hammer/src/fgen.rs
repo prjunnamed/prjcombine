@@ -1,7 +1,7 @@
 use prjcombine_collector::{FeatureId, State};
 use prjcombine_int::{
     db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
-    grid::{ColId, DieId, IntWire, LayerId, RowId},
+    grid::{ColId, DieId, IntWire, LayerId, RowId, SimpleIoCoord, TileIobId},
 };
 use prjcombine_virtex2::iob::IobKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
@@ -1026,7 +1026,8 @@ impl<'a> TileKV<'a> {
                 fuzzer
             }
             TileKV::DriveLLH(wire) => match backend.edev {
-                ExpandedDevice::Xc5200(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
+                    assert_eq!(edev.grid.kind, prjcombine_xc2000::grid::GridKind::Xc5200);
                     let node = backend.egrid.node(loc);
                     let wnode = backend
                         .egrid
@@ -1128,7 +1129,8 @@ impl<'a> TileKV<'a> {
                 _ => todo!(),
             },
             TileKV::DriveLLV(wire) => match backend.edev {
-                ExpandedDevice::Xc5200(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
+                    assert_eq!(edev.grid.kind, prjcombine_xc2000::grid::GridKind::Xc5200);
                     let node = backend.egrid.node(loc);
                     let wnode = backend
                         .egrid
@@ -2354,7 +2356,7 @@ fn drive_xc4000_wire<'a>(
     orig_target: Option<(Loc, NodeWireId)>,
     wire_avoid: IntWire,
 ) -> (Fuzzer<IseBackend<'a>>, &'a str, &'a str) {
-    let ExpandedDevice::Xc4000(edev) = backend.edev else {
+    let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
     let wname = backend.egrid.db.wires.key(wire_target.2);
@@ -2560,7 +2562,7 @@ fn drive_xc4000_wire<'a>(
         } else {
             let (out, sout, srow) = match (
                 idx,
-                edev.grid.kind == prjcombine_xc4000::grid::GridKind::Xc4000E,
+                edev.grid.kind == prjcombine_xc2000::grid::GridKind::Xc4000E,
             ) {
                 (0 | 4, true) => ("OUT.CLB.GY", "OUT.CLB.GY", row),
                 (1 | 5, true) => ("OUT.CLB.GYQ", "OUT.CLB.GYQ", row),
@@ -2678,7 +2680,7 @@ fn drive_xc4000_wire<'a>(
         } else {
             let (out, sout, scol) = match (
                 idx,
-                edev.grid.kind == prjcombine_xc4000::grid::GridKind::Xc4000E,
+                edev.grid.kind == prjcombine_xc2000::grid::GridKind::Xc4000E,
             ) {
                 (0 | 4, true) => ("OUT.CLB.FXQ", "OUT.CLB.FXQ", col),
                 (1 | 5, true) => ("OUT.CLB.FX", "OUT.CLB.FX", col),
@@ -3234,10 +3236,10 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = prjcombine_virtex::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.ios.contains_key(&crd) {
                             return None;
@@ -3245,10 +3247,10 @@ impl<'a> BelKV {
                         fuzzer
                     }
                     ExpandedBond::Spartan6(ebond) => {
-                        let crd = prjcombine_spartan6::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.ios.contains_key(&crd) {
                             return None;
@@ -3264,7 +3266,7 @@ impl<'a> BelKV {
                             die: loc.0,
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
+                            iob: TileIobId::from_idx(
                                 if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                     bel.to_idx() % 2
                                 } else {
@@ -3282,10 +3284,10 @@ impl<'a> BelKV {
             }
             BelKV::IsBank(bank) => match backend.edev {
                 ExpandedDevice::Spartan6(edev) => {
-                    let crd = prjcombine_spartan6::grid::IoCoord {
+                    let crd = SimpleIoCoord {
                         col: loc.1,
                         row: loc.2,
-                        iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                        iob: TileIobId::from_idx(bel.to_idx()),
                     };
                     if edev.get_io_bank(crd) != *bank {
                         return None;
@@ -3300,10 +3302,10 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = prjcombine_virtex::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.bond.diffp.contains(&crd) && !ebond.bond.diffn.contains(&crd) {
                             return None;
@@ -3319,10 +3321,10 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = prjcombine_virtex::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
@@ -3330,10 +3332,10 @@ impl<'a> BelKV {
                         fuzzer
                     }
                     ExpandedBond::Virtex2(ebond) => {
-                        let crd = prjcombine_virtex2::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
@@ -3341,10 +3343,10 @@ impl<'a> BelKV {
                         fuzzer
                     }
                     ExpandedBond::Spartan6(ebond) => {
-                        let crd = prjcombine_spartan6::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_spartan6::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
@@ -3360,7 +3362,7 @@ impl<'a> BelKV {
                             die: loc.0,
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
+                            iob: TileIobId::from_idx(
                                 if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                     bel.to_idx() % 2
                                 } else {
@@ -3384,10 +3386,10 @@ impl<'a> BelKV {
                     let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                         unreachable!()
                     };
-                    let crd = prjcombine_virtex2::grid::IoCoord {
+                    let crd = SimpleIoCoord {
                         col: loc.1,
                         row: loc.2,
-                        iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
+                        iob: TileIobId::from_idx(bel.to_idx()),
                     };
                     let mut is_vr = false;
                     for (bank, vr) in &edev.grid.dci_io {
@@ -3517,7 +3519,7 @@ impl<'a> BelKV {
                         die: loc.0,
                         col: loc.1,
                         row: loc.2,
-                        iob: prjcombine_virtex4::expanded::TileIobId::from_idx(
+                        iob: TileIobId::from_idx(
                             if edev.egrid.db.nodes.key(node.kind).ends_with("PAIR") {
                                 bel.to_idx() % 2
                             } else {
@@ -3925,10 +3927,10 @@ impl<'a> BelKV {
                         };
                         let bel_key = backend.egrid.db.nodes[node.kind].bels.key(bel);
                         let (crd, orig_bank) = if bel_key.starts_with("IOB") {
-                            let crd = prjcombine_virtex::grid::IoCoord {
+                            let crd = SimpleIoCoord {
                                 col: loc.1,
                                 row: loc.2,
-                                iob: prjcombine_virtex::grid::TileIobId::from_idx(bel.to_idx()),
+                                iob: TileIobId::from_idx(bel.to_idx()),
                             };
                             (Some(crd), edev.get_io_bank(crd))
                         } else {
@@ -3977,10 +3979,10 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = prjcombine_virtex2::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         let orig_io_info = edev.get_io_info(crd);
                         for io in edev.get_bonded_ios() {
@@ -4072,10 +4074,10 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = prjcombine_virtex2::grid::IoCoord {
+                        let crd = SimpleIoCoord {
                             col: loc.1,
                             row: loc.2,
-                            iob: prjcombine_virtex2::grid::TileIobId::from_idx(bel.to_idx()),
+                            iob: TileIobId::from_idx(bel.to_idx()),
                         };
                         let stds = if let Some(stdb) = stdb {
                             &[stda, stdb][..]
@@ -4110,7 +4112,7 @@ impl<'a> BelKV {
                                 continue;
                             };
                             // okay, got a pair.
-                            let other_io = prjcombine_virtex2::grid::IoCoord {
+                            let other_io = SimpleIoCoord {
                                 iob: other_iob,
                                 ..io
                             };
@@ -4616,10 +4618,7 @@ impl TileBits {
         match *self {
             TileBits::Null => vec![],
             TileBits::Main(d, n) => match backend.edev {
-                ExpandedDevice::Xc4000(edev) => (0..n)
-                    .map(|idx| edev.btile_main(col, row - d + idx))
-                    .collect(),
-                ExpandedDevice::Xc5200(edev) => (0..n)
+                ExpandedDevice::Xc2000(edev) => (0..n)
                     .map(|idx| edev.btile_main(col, row - d + idx))
                     .collect(),
                 ExpandedDevice::Virtex(edev) => (0..n)
@@ -4693,9 +4692,9 @@ impl TileBits {
                 _ => todo!(),
             },
             TileBits::Spine(d, n) => match backend.edev {
-                ExpandedDevice::Xc5200(edev) => {
-                    (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
-                }
+                ExpandedDevice::Xc2000(edev) => (0..n)
+                    .map(|idx| edev.btile_llh(col, row - d + idx))
+                    .collect(),
                 ExpandedDevice::Virtex(edev) => {
                     (0..n).map(|idx| edev.btile_spine(row - d + idx)).collect()
                 }
@@ -4762,7 +4761,7 @@ impl TileBits {
                 _ => unreachable!(),
             },
             TileBits::Llv => match backend.edev {
-                ExpandedDevice::Xc4000(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
                     if col == edev.grid.col_lio() {
                         vec![edev.btile_llv(col, row), edev.btile_llv(col + 1, row)]
                     } else {
@@ -4779,7 +4778,7 @@ impl TileBits {
                 _ => unreachable!(),
             },
             TileBits::Llh => match backend.edev {
-                ExpandedDevice::Xc4000(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
                     if row == edev.grid.row_bio() {
                         vec![edev.btile_llh(col, row), edev.btile_main(col - 1, row)]
                     } else if row == edev.grid.row_tio() {
@@ -4841,8 +4840,8 @@ impl TileBits {
                 ]
             }
             TileBits::Hclk => match backend.edev {
-                ExpandedDevice::Xc5200(edev) => {
-                    vec![edev.btile_hclk(col)]
+                ExpandedDevice::Xc2000(edev) => {
+                    vec![edev.btile_llv(col, row)]
                 }
                 ExpandedDevice::Virtex2(edev) => {
                     vec![edev.btile_hclk(col, row)]
@@ -4868,9 +4867,7 @@ impl TileBits {
                 vec![edev.btile_spine(row - 1)]
             }
             TileBits::Cfg => match backend.edev {
-                ExpandedDevice::Xc4000(_)
-                | ExpandedDevice::Xc5200(_)
-                | ExpandedDevice::Virtex(_) => {
+                ExpandedDevice::Xc2000(_) | ExpandedDevice::Virtex(_) => {
                     unreachable!()
                 }
                 ExpandedDevice::Virtex2(edev) => {
@@ -4960,7 +4957,7 @@ impl TileBits {
             TileBits::MainAuto => {
                 let node = backend.egrid.node(loc);
                 match backend.edev {
-                    ExpandedDevice::Xc5200(edev) => node
+                    ExpandedDevice::Xc2000(edev) => node
                         .tiles
                         .values()
                         .map(|&(col, row)| edev.btile_main(col, row))
@@ -5254,7 +5251,7 @@ impl TileBits {
                 vec![edev.btile_iob(loc.1, loc.2)]
             }
             TileBits::MainXc4000 => {
-                let ExpandedDevice::Xc4000(edev) = backend.edev else {
+                let ExpandedDevice::Xc2000(edev) = backend.edev else {
                     unreachable!()
                 };
                 if loc.1 == edev.grid.col_lio() {
@@ -5385,7 +5382,7 @@ impl ExtraFeatureKind {
     pub fn get_tiles(self, backend: &IseBackend, loc: Loc, tile: &str) -> Vec<Vec<BitTile>> {
         match self {
             ExtraFeatureKind::MainFixed(col, row) => match backend.edev {
-                ExpandedDevice::Xc4000(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
                     vec![vec![edev.btile_main(col, row)]]
                 }
                 ExpandedDevice::Virtex(edev) => {
@@ -5510,7 +5507,7 @@ impl ExtraFeatureKind {
                 _ => unreachable!(),
             },
             ExtraFeatureKind::AllColumnIo => {
-                let ExpandedDevice::Xc5200(edev) = backend.edev else {
+                let ExpandedDevice::Xc2000(edev) = backend.edev else {
                     unreachable!()
                 };
                 let mut res = vec![];
@@ -5528,14 +5525,13 @@ impl ExtraFeatureKind {
                 res
             }
             ExtraFeatureKind::AllIobs => match backend.edev {
-                ExpandedDevice::Xc4000(edev) => {
+                ExpandedDevice::Xc2000(edev) => {
                     let node = backend.egrid.db.get_node(tile);
                     backend.egrid.node_index[node]
                         .iter()
                         .map(|loc| vec![edev.btile_main(loc.1, loc.2)])
                         .collect()
                 }
-                ExpandedDevice::Xc5200(_) => todo!(),
                 ExpandedDevice::Virtex(edev) => {
                     let node = backend.egrid.db.get_node(tile);
                     backend.egrid.node_index[node]

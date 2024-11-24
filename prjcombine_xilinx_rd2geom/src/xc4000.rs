@@ -1,6 +1,6 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
-use prjcombine_xc4000_naming::name_device;
+use prjcombine_xc2000_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, Grid};
 use prjcombine_xilinx_naming::db::NamingDb;
 use std::collections::BTreeSet;
@@ -18,7 +18,7 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     let endev = name_device(&edev, &ndb);
     for (pkg, pins) in rd.packages.iter() {
         let bond = bond::make_bond(&endev, pkg, pins, &mut cfg_io);
-        bonds.push((pkg.clone(), Bond::Xc4000(bond)));
+        bonds.push((pkg.clone(), Bond::Xc2000(bond)));
     }
     if verify {
         verify_device(&endev, rd);

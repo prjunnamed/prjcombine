@@ -1,7 +1,7 @@
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_xc4000::grid::GridKind;
-use prjcombine_xc4000_naming::ExpandedNamedDevice;
+use prjcombine_xc2000::grid::GridKind;
+use prjcombine_xc2000_naming::ExpandedNamedDevice;
 
 fn verify_clb(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(

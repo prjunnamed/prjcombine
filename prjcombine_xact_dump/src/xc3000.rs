@@ -3,15 +3,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
-    grid::{DieId, LayerId},
+    grid::{DieId, LayerId, SimpleIoCoord},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
-use prjcombine_xc3000::{
+use prjcombine_xc2000::grid::{Grid, GridKind};
+use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
-    grid::{Grid, GridKind, IoCoord, SharedCfgPin},
+    grid::SharedCfgPin,
 };
-use prjcombine_xc3000_xact::{name_device, ExpandedNamedDevice};
+use prjcombine_xc2000_xact::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::extractor::{Extractor, NetBinding};
@@ -425,7 +426,10 @@ pub fn make_grid(die: &Die, kind: GridKind) -> Grid {
         kind,
         columns: clb_x.len(),
         rows: clb_y.len(),
+        cols_bidi: Default::default(),
+        rows_bidi: Default::default(),
         is_small: clb_x.len() == 8,
+        is_buff_large: false,
         cfg_io: Default::default(),
     }
 }
@@ -892,7 +896,7 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     name: &str,
     pkg: &BTreeMap<String, String>,
-) -> (Bond, BTreeMap<SharedCfgPin, IoCoord>) {
+) -> (Bond, BTreeMap<SharedCfgPin, SimpleIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
         .edev
         .get_bonded_ios()

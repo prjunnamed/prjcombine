@@ -1,9 +1,8 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 use itertools::Itertools;
+use prjcombine_int::grid::SimpleIoCoord;
 use serde::{Deserialize, Serialize};
-
-use crate::grid::IoCoord;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum CfgPin {
@@ -13,15 +12,20 @@ pub enum CfgPin {
     PwrdwnB,
     M0,
     M1,
+    // XC4000 only
+    Tdo,
+    M2,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum BondPin {
-    Io(IoCoord),
+    Io(SimpleIoCoord),
     Gnd,
     Vcc,
     Nc,
     Cfg(CfgPin),
+    // XC4000XV only
+    VccInt,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -32,7 +36,7 @@ pub struct Bond {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
-    pub ios: BTreeMap<IoCoord, String>,
+    pub ios: BTreeMap<SimpleIoCoord, String>,
 }
 
 impl Bond {
@@ -63,12 +67,15 @@ impl Display for Bond {
                 }
                 BondPin::Gnd => write!(f, "GND")?,
                 BondPin::Vcc => write!(f, "VCC")?,
+                BondPin::VccInt => write!(f, "VCCINT")?,
                 BondPin::Nc => write!(f, "NC")?,
                 BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
                 BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
                 BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
                 BondPin::Cfg(CfgPin::M0) => write!(f, "M0")?,
                 BondPin::Cfg(CfgPin::M1) => write!(f, "M1")?,
+                BondPin::Cfg(CfgPin::M2) => write!(f, "M2")?,
+                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
                 BondPin::Cfg(CfgPin::PwrdwnB) => write!(f, "PWRDWN_B")?,
             }
             writeln!(f)?;

@@ -1,7 +1,7 @@
 use prjcombine_collector::{xlat_bit, xlat_enum};
 use prjcombine_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
-use prjcombine_xc4000::grid::GridKind;
+use prjcombine_xc2000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Xc4000(edev) = backend.edev else {
+    let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
     for (kind, tile, _) in &backend.egrid.db.nodes {
@@ -97,7 +97,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Xc4000(edev) = ctx.edev else {
+    let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
     for tile in edev.egrid.db.nodes.keys() {

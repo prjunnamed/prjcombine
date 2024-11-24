@@ -6,15 +6,15 @@ use prjcombine_int::{
         BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
         WireKind,
     },
-    grid::{DieId, LayerId},
+    grid::{DieId, LayerId, SimpleIoCoord},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
-use prjcombine_xc5200::{
+use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
-    grid::{Grid, IoCoord, SharedCfgPin},
+    grid::{Grid, GridKind, SharedCfgPin},
 };
-use prjcombine_xc5200_xact::{name_device, ExpandedNamedDevice};
+use prjcombine_xc2000_xact::{name_device, ExpandedNamedDevice};
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::extractor::{Extractor, NetBinding};
@@ -566,9 +566,14 @@ pub fn make_intdb() -> IntDb {
 
 pub fn make_grid(die: &Die) -> Grid {
     Grid {
+        kind: GridKind::Xc5200,
         columns: die.newcols.len() - 1,
         rows: die.newrows.len() - 1,
         cfg_io: Default::default(),
+        is_small: false,
+        is_buff_large: false,
+        cols_bidi: Default::default(),
+        rows_bidi: Default::default(),
     }
 }
 
@@ -1173,7 +1178,7 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     name: &str,
     pkg: &BTreeMap<String, String>,
-) -> (Bond, BTreeMap<SharedCfgPin, IoCoord>) {
+) -> (Bond, BTreeMap<SharedCfgPin, SimpleIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
         .edev
         .get_bonded_ios()

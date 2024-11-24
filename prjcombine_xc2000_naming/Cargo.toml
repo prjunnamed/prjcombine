@@ -1,14 +1,13 @@
 [package]
-name = "prjcombine_xc3000"
+name = "prjcombine_xc2000_naming"
 edition.workspace = true
 version.workspace = true
 
 [dependencies]
-itertools.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
-prjcombine_virtex_bitstream.workspace = true
-serde.workspace = true
+prjcombine_xilinx_naming.workspace = true
+prjcombine_xc2000.workspace = true
 
 [lints]
 workspace = true

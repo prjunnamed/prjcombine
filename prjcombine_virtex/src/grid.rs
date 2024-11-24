@@ -1,11 +1,7 @@
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-use unnamed_entity::{entity_id, EntityId, EntityIds};
-
-entity_id! {
-    pub id TileIobId u8;
-}
+use unnamed_entity::{EntityId, EntityIds};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -30,14 +26,7 @@ pub struct Grid {
     pub cols_bram: BTreeSet<ColId>,
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
-    pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct IoCoord {
-    pub col: ColId,
-    pub row: RowId,
-    pub iob: TileIobId,
+    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

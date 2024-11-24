@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Xc5200(edev) = backend.edev else {
+    let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
 

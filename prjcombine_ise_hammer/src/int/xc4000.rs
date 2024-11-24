@@ -3,7 +3,7 @@ use std::collections::{btree_map, BTreeMap, HashSet};
 use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_ocd, Diff, FeatureId, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir, NodeTileId, NodeWireId};
-use prjcombine_xc4000::grid::GridKind;
+use prjcombine_xc2000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
 
@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBackend<'a>) {
-    let ExpandedDevice::Xc4000(ref edev) = backend.edev else {
+    let ExpandedDevice::Xc2000(ref edev) = backend.edev else {
         unreachable!()
     };
     let kind = edev.grid.kind;
@@ -716,7 +716,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<IseBackend<'a>>, backend: &IseBacke
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Xc4000(ref edev) = ctx.edev else {
+    let ExpandedDevice::Xc2000(ref edev) = ctx.edev else {
         unreachable!()
     };
     let kind = edev.grid.kind;

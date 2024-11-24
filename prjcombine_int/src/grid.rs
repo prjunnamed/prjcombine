@@ -16,6 +16,14 @@ entity_id! {
     pub id ColId u16, reserve 1, delta;
     pub id RowId u16, reserve 1, delta;
     pub id LayerId u8;
+    pub id TileIobId u8;
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
+pub struct SimpleIoCoord {
+    pub col: ColId,
+    pub row: RowId,
+    pub iob: TileIobId,
 }
 
 pub type Coord = (ColId, RowId);

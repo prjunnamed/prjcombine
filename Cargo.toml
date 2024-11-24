@@ -12,17 +12,13 @@ members = [
 	"prjcombine_int",
 	"prjcombine_xilinx_naming",
 	"prjcombine_xc2000",
-	"prjcombine_xc3000",
-	"prjcombine_xc4000",
-	"prjcombine_xc5200",
 	"prjcombine_virtex",
 	"prjcombine_virtex2",
 	"prjcombine_spartan6",
 	"prjcombine_virtex4",
 	"prjcombine_ultrascale",
 	"prjcombine_versal",
-	"prjcombine_xc4000_naming",
-	"prjcombine_xc5200_naming",
+	"prjcombine_xc2000_naming",
 	"prjcombine_virtex_naming",
 	"prjcombine_virtex2_naming",
 	"prjcombine_virtex4_naming",
@@ -64,9 +60,6 @@ members = [
 	"prjcombine_ise_hammer",
 	"prjcombine_xact_naming",
 	"prjcombine_xc2000_xact",
-	"prjcombine_xc3000_xact",
-	"prjcombine_xc4000_xact",
-	"prjcombine_xc5200_xact",
 	"prjcombine_xact_data",
 	"prjcombine_xact_dump",
 	"prjcombine_xact_geom",
@@ -97,13 +90,9 @@ prjcombine_rdgrid = { path = "prjcombine_rdgrid" }
 prjcombine_rdintb = { path = "prjcombine_rdintb" }
 prjcombine_rdverify = { path = "prjcombine_rdverify" }
 prjcombine_xc2000 = { path = "prjcombine_xc2000" }
-prjcombine_xc3000 = { path = "prjcombine_xc3000" }
-prjcombine_xc4000 = { path = "prjcombine_xc4000" }
-prjcombine_xc4000_naming = { path = "prjcombine_xc4000_naming" }
+prjcombine_xc2000_naming = { path = "prjcombine_xc2000_naming" }
 prjcombine_xc4000_rdverify = { path = "prjcombine_xc4000_rdverify" }
 prjcombine_xc4000_rd2db = { path = "prjcombine_xc4000_rd2db" }
-prjcombine_xc5200 = { path = "prjcombine_xc5200" }
-prjcombine_xc5200_naming = { path = "prjcombine_xc5200_naming" }
 prjcombine_xc5200_rdverify = { path = "prjcombine_xc5200_rdverify" }
 prjcombine_xc5200_rd2db = { path = "prjcombine_xc5200_rd2db" }
 prjcombine_virtex = { path = "prjcombine_virtex" }
@@ -143,9 +132,6 @@ prjcombine_hammer = { path = "prjcombine_hammer" }
 prjcombine_collector = { path = "prjcombine_collector" }
 prjcombine_xact_naming = { path = "prjcombine_xact_naming" }
 prjcombine_xc2000_xact = { path = "prjcombine_xc2000_xact" }
-prjcombine_xc3000_xact = { path = "prjcombine_xc3000_xact" }
-prjcombine_xc4000_xact = { path = "prjcombine_xc4000_xact" }
-prjcombine_xc5200_xact = { path = "prjcombine_xc5200_xact" }
 prjcombine_xact_geom = { path = "prjcombine_xact_geom" }
 prjcombine_xact_data = { path = "prjcombine_xact_data" }
 prjcombine_vm6 = { path = "prjcombine_vm6" }

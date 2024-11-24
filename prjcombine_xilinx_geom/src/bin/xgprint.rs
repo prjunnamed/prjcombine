@@ -1377,7 +1377,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             if args.grids {
                 match grid {
                     Grid::Xc4000(g) => print!("{}", g),
-                    Grid::Xc5200(g) => print!("{}", g),
                     Grid::Virtex(g) => virtex::print_grid(g),
                     Grid::Virtex2(g) => virtex2::print_grid(g),
                     Grid::Spartan6(g) => spartan6::print_grid(g),
@@ -1414,8 +1413,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.pkgs {
                 match bond {
-                    Bond::Xc4000(bond) => print!("{}", bond),
-                    Bond::Xc5200(bond) => print!("{}", bond),
+                    Bond::Xc2000(bond) => print!("{}", bond),
                     Bond::Virtex(bond) => virtex::print_bond(bond),
                     Bond::Virtex2(bond) => virtex2::print_bond(bond),
                     Bond::Spartan6(bond) => spartan6::print_bond(bond),

@@ -259,48 +259,25 @@ impl<'a> Backend for IseBackend<'a> {
 
         let mut site_to_place = HashMap::new();
         let bond = &self.db.bonds[self.device.bonds[combo.devbond_idx].bond];
-        match bond {
-            Bond::Xc4000(bond) => {
-                let ExpandedNamedDevice::Xc4000(endev) = self.endev else {
-                    unreachable!()
-                };
-                for (k, v) in &bond.pins {
-                    if let prjcombine_xc4000::bond::BondPin::Io(io) = v {
-                        let name = endev.get_io_name(*io);
-                        site_to_place.insert(name.to_string(), k.to_string());
-                    }
+        if let Bond::Xc2000(bond) = bond {
+            let ExpandedNamedDevice::Xc2000(endev) = self.endev else {
+                unreachable!()
+            };
+            for (k, v) in &bond.pins {
+                if let prjcombine_xc2000::bond::BondPin::Io(io) = v {
+                    let name = endev.get_io_name(*io);
+                    site_to_place.insert(name.to_string(), k.to_string());
                 }
-                for io in endev.edev.get_bonded_ios() {
-                    let name = endev.get_io_name(io);
-                    match site_to_place.entry(name.to_string()) {
-                        hash_map::Entry::Occupied(_) => (),
-                        hash_map::Entry::Vacant(e) => {
-                            e.insert(format!("UNB{suf}", suf = name.strip_prefix("PAD").unwrap()));
-                        }
+            }
+            for io in endev.edev.get_bonded_ios() {
+                let name = endev.get_io_name(io);
+                match site_to_place.entry(name.to_string()) {
+                    hash_map::Entry::Occupied(_) => (),
+                    hash_map::Entry::Vacant(e) => {
+                        e.insert(format!("UNB{suf}", suf = name.strip_prefix("PAD").unwrap()));
                     }
                 }
             }
-            Bond::Xc5200(bond) => {
-                let ExpandedNamedDevice::Xc5200(endev) = self.endev else {
-                    unreachable!()
-                };
-                for (k, v) in &bond.pins {
-                    if let prjcombine_xc5200::bond::BondPin::Io(io) = v {
-                        let name = endev.get_io_name(*io);
-                        site_to_place.insert(name.to_string(), k.to_string());
-                    }
-                }
-                for io in endev.edev.get_bonded_ios() {
-                    let name = endev.get_io_name(io);
-                    match site_to_place.entry(name.to_string()) {
-                        hash_map::Entry::Occupied(_) => (),
-                        hash_map::Entry::Vacant(e) => {
-                            e.insert(format!("UNB{suf}", suf = name.strip_prefix("PAD").unwrap()));
-                        }
-                    }
-                }
-            }
-            _ => (),
         }
 
         // sigh. bitgen inserts nondeterministic defaults without this.
@@ -352,8 +329,13 @@ impl<'a> Backend for IseBackend<'a> {
         }
 
         let (dummy_inst_kind, dummy_inst_port) = match self.edev {
-            ExpandedDevice::Xc4000(_) => ("CLB", "K"),
-            ExpandedDevice::Xc5200(_) => ("LC5A", "CK"),
+            ExpandedDevice::Xc2000(edev) => {
+                if edev.grid.kind.is_xc4000() {
+                    ("CLB", "K")
+                } else {
+                    ("LC5A", "CK")
+                }
+            }
             ExpandedDevice::Virtex(_) => ("SLICE", "CLK"),
             ExpandedDevice::Virtex2(edev) => (
                 if edev.grid.kind.is_virtex2() {
@@ -511,8 +493,7 @@ impl<'a> Backend for IseBackend<'a> {
                                 let inst_name = format!("FAKEINST__{site}__{pin}");
                                 let (fi_kind, fi_pin, fi_cfg) = match kind {
                                     PinFromKind::Iob => match self.edev {
-                                        ExpandedDevice::Xc4000(_) => todo!(),
-                                        ExpandedDevice::Xc5200(_) => todo!(),
+                                        ExpandedDevice::Xc2000(_) => todo!(),
                                         ExpandedDevice::Virtex(_) => todo!(),
                                         ExpandedDevice::Virtex2(edev) => {
                                             let mut cfg = vec![("IMUX", "1")];
@@ -596,18 +577,22 @@ impl<'a> Backend for IseBackend<'a> {
             }
         }
         let part = match self.edev {
-            ExpandedDevice::Xc4000(_) => format!(
-                "{d}{p}{s}",
-                d = &self.device.name[2..],
-                p = self.device.bonds[combo.devbond_idx].name,
-                s = self.device.speeds[combo.speed_idx],
-            ),
-
-            ExpandedDevice::Xc5200(_) => format!(
-                "{d}{p}",
-                d = &self.device.name[2..],
-                p = self.device.bonds[combo.devbond_idx].name,
-            ),
+            ExpandedDevice::Xc2000(edev) => {
+                if edev.grid.kind.is_xc4000() {
+                    format!(
+                        "{d}{p}{s}",
+                        d = &self.device.name[2..],
+                        p = self.device.bonds[combo.devbond_idx].name,
+                        s = self.device.speeds[combo.speed_idx],
+                    )
+                } else {
+                    format!(
+                        "{d}{p}",
+                        d = &self.device.name[2..],
+                        p = self.device.bonds[combo.devbond_idx].name,
+                    )
+                }
+            }
 
             _ => format!(
                 "{d}{s}{p}",
@@ -620,14 +605,15 @@ impl<'a> Backend for IseBackend<'a> {
             name: "meow".to_string(),
             part,
             cfg: vec![],
-            version: if matches!(self.edev, ExpandedDevice::Xc5200(_)) {
-                "".to_string()
-            } else {
-                "v3.2".to_string()
-            },
+            version: "v3.2".to_string(),
             instances: insts.into_values().collect(),
             nets: nets.into_values().collect(),
         };
+        if let ExpandedDevice::Xc2000(edev) = self.edev {
+            if !edev.grid.kind.is_xc4000() {
+                xdl.version = "".to_string();
+            }
+        }
         xdl.instances.shuffle(&mut rand::thread_rng());
         let vccaux = if let Some(Value::String(val)) = kv.get(&Key::VccAux) {
             if val.is_empty() {

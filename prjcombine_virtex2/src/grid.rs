@@ -1,21 +1,10 @@
 use prjcombine_int::db::Dir;
-use prjcombine_int::grid::{ColId, Coord, RowId};
+use prjcombine_int::grid::{ColId, Coord, RowId, SimpleIoCoord, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use unnamed_entity::{entity_id, EntityId, EntityVec};
+use unnamed_entity::{EntityId, EntityVec};
 
 use crate::iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobTileData};
-
-entity_id! {
-    pub id TileIobId u8;
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub struct IoCoord {
-    pub col: ColId,
-    pub row: RowId,
-    pub iob: TileIobId,
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GridKind {
@@ -65,9 +54,9 @@ pub struct Grid {
     pub dcms: Option<Dcms>,
     pub has_ll: bool,
     pub has_small_int: bool,
-    pub cfg_io: BTreeMap<SharedCfgPin, IoCoord>,
-    pub dci_io: BTreeMap<u32, (IoCoord, IoCoord)>,
-    pub dci_io_alt: BTreeMap<u32, (IoCoord, IoCoord)>,
+    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
+    pub dci_io: BTreeMap<u32, (SimpleIoCoord, SimpleIoCoord)>,
+    pub dci_io_alt: BTreeMap<u32, (SimpleIoCoord, SimpleIoCoord)>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -271,7 +260,7 @@ impl Grid {
         res
     }
 
-    pub fn get_clk_io(&self, edge: Dir, idx: usize) -> Option<IoCoord> {
+    pub fn get_clk_io(&self, edge: Dir, idx: usize) -> Option<SimpleIoCoord> {
         if self.kind.is_virtex2() {
             match edge {
                 Dir::S => {
@@ -279,13 +268,13 @@ impl Grid {
                         return None;
                     }
                     if idx < 4 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk,
                             row: self.row_bot(),
                             iob: TileIobId::from_idx(idx),
                         })
                     } else if idx < 8 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk - 1,
                             row: self.row_bot(),
                             iob: TileIobId::from_idx(idx - 4),
@@ -299,13 +288,13 @@ impl Grid {
                         return None;
                     }
                     if idx < 4 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk,
                             row: self.row_top(),
                             iob: TileIobId::from_idx(idx),
                         })
                     } else if idx < 8 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk - 1,
                             row: self.row_top(),
                             iob: TileIobId::from_idx(idx - 4),
@@ -320,13 +309,13 @@ impl Grid {
             match edge {
                 Dir::S => {
                     if idx < 2 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk,
                             row: self.row_bot(),
                             iob: TileIobId::from_idx(idx),
                         })
                     } else if idx < 4 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk - 1,
                             row: self.row_bot(),
                             iob: TileIobId::from_idx(idx - 2),
@@ -337,13 +326,13 @@ impl Grid {
                 }
                 Dir::N => {
                     if idx < 2 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk,
                             row: self.row_top(),
                             iob: TileIobId::from_idx(idx),
                         })
                     } else if idx < 4 {
-                        Some(IoCoord {
+                        Some(SimpleIoCoord {
                             col: self.col_clk - 1,
                             row: self.row_top(),
                             iob: TileIobId::from_idx(idx - 2),
@@ -356,82 +345,82 @@ impl Grid {
             }
         } else if self.kind == GridKind::Spartan3E {
             match (edge, idx) {
-                (Dir::S, 0 | 1) => Some(IoCoord {
+                (Dir::S, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_clk,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 2 | 3) => Some(IoCoord {
+                (Dir::S, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_clk + 1,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 4 | 5) => Some(IoCoord {
+                (Dir::S, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_clk - 3,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 6 | 7) => Some(IoCoord {
+                (Dir::S, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_clk - 1,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 0 | 1) => Some(IoCoord {
+                (Dir::N, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_clk + 2,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 2 | 3) => Some(IoCoord {
+                (Dir::N, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_clk,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 4 | 5) => Some(IoCoord {
+                (Dir::N, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_clk - 1,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 6 | 7) => Some(IoCoord {
+                (Dir::N, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_clk - 2,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::W, 0 | 1) => Some(IoCoord {
+                (Dir::W, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() + 3,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::W, 2 | 3) => Some(IoCoord {
+                (Dir::W, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() + 1,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::W, 4 | 5) => Some(IoCoord {
+                (Dir::W, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() - 1,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::W, 6 | 7) => Some(IoCoord {
+                (Dir::W, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() - 3,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 0 | 1) => Some(IoCoord {
+                (Dir::E, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 2 | 3) => Some(IoCoord {
+                (Dir::E, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() + 2,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 4 | 5) => Some(IoCoord {
+                (Dir::E, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() - 4,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 6 | 7) => Some(IoCoord {
+                (Dir::E, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() - 2,
                     iob: TileIobId::from_idx(idx % 2),
@@ -440,82 +429,82 @@ impl Grid {
             }
         } else {
             match (edge, idx) {
-                (Dir::S, 0 | 1) => Some(IoCoord {
+                (Dir::S, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_clk,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 2 | 3) => Some(IoCoord {
+                (Dir::S, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_clk + 1,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 4 | 5) => Some(IoCoord {
+                (Dir::S, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_clk - 2,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::S, 6 | 7) => Some(IoCoord {
+                (Dir::S, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_clk - 1,
                     row: self.row_bot(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 0 | 1) => Some(IoCoord {
+                (Dir::N, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_clk + 1,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 2 | 3) => Some(IoCoord {
+                (Dir::N, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_clk,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 4 | 5) => Some(IoCoord {
+                (Dir::N, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_clk - 1,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::N, 6 | 7) => Some(IoCoord {
+                (Dir::N, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_clk - 2,
                     row: self.row_top(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::W, 0 | 1) => Some(IoCoord {
+                (Dir::W, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() + 2,
                     iob: TileIobId::from_idx((idx % 2) ^ 1),
                 }),
-                (Dir::W, 2 | 3) => Some(IoCoord {
+                (Dir::W, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() + 1,
                     iob: TileIobId::from_idx((idx % 2) ^ 1),
                 }),
-                (Dir::W, 4 | 5) => Some(IoCoord {
+                (Dir::W, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() - 1,
                     iob: TileIobId::from_idx((idx % 2) ^ 1),
                 }),
-                (Dir::W, 6 | 7) => Some(IoCoord {
+                (Dir::W, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_left(),
                     row: self.row_mid() - 2,
                     iob: TileIobId::from_idx((idx % 2) ^ 1),
                 }),
-                (Dir::E, 0 | 1) => Some(IoCoord {
+                (Dir::E, 0 | 1) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid(),
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 2 | 3) => Some(IoCoord {
+                (Dir::E, 2 | 3) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() + 1,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 4 | 5) => Some(IoCoord {
+                (Dir::E, 4 | 5) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() - 3,
                     iob: TileIobId::from_idx(idx % 2),
                 }),
-                (Dir::E, 6 | 7) => Some(IoCoord {
+                (Dir::E, 6 | 7) => Some(SimpleIoCoord {
                     col: self.col_right(),
                     row: self.row_mid() - 2,
                     iob: TileIobId::from_idx(idx % 2),
@@ -525,28 +514,28 @@ impl Grid {
         }
     }
 
-    pub fn get_pci_io(&self, edge: Dir) -> [IoCoord; 2] {
+    pub fn get_pci_io(&self, edge: Dir) -> [SimpleIoCoord; 2] {
         match self.kind {
             GridKind::Spartan3E => match edge {
                 Dir::W => [
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_left(),
                         row: self.row_mid() + 1,
                         iob: TileIobId::from_idx(1),
                     },
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_left(),
                         row: self.row_mid() - 1,
                         iob: TileIobId::from_idx(0),
                     },
                 ],
                 Dir::E => [
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_right(),
                         row: self.row_mid(),
                         iob: TileIobId::from_idx(0),
                     },
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_right(),
                         row: self.row_mid() - 2,
                         iob: TileIobId::from_idx(1),
@@ -556,24 +545,24 @@ impl Grid {
             },
             GridKind::Spartan3A | GridKind::Spartan3ADsp => match edge {
                 Dir::W => [
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_left(),
                         row: self.row_mid() + 1,
                         iob: TileIobId::from_idx(0),
                     },
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_left(),
                         row: self.row_mid() - 2,
                         iob: TileIobId::from_idx(1),
                     },
                 ],
                 Dir::E => [
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_right(),
                         row: self.row_mid() + 1,
                         iob: TileIobId::from_idx(0),
                     },
-                    IoCoord {
+                    SimpleIoCoord {
                         col: self.col_right(),
                         row: self.row_mid() - 2,
                         iob: TileIobId::from_idx(1),

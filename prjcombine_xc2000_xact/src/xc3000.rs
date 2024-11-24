@@ -1,32 +1,9 @@
-use std::ops::Range;
-
-use prjcombine_int::{
-    db::BelId,
-    grid::{ColId, DieId, LayerId, RowId},
-};
+use prjcombine_int::grid::{ColId, DieId, RowId};
 use prjcombine_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_xc3000::{
-    expanded::ExpandedDevice,
-    grid::{Grid, IoCoord},
-};
+use prjcombine_xc2000::{expanded::ExpandedDevice, grid::Grid};
 use unnamed_entity::{EntityId, EntityVec};
 
-pub struct ExpandedNamedDevice<'a> {
-    pub edev: &'a ExpandedDevice<'a>,
-    pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Grid,
-    pub col_x: EntityVec<ColId, Range<usize>>,
-    pub row_y: EntityVec<RowId, Range<usize>>,
-}
-
-impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
-        let die = self.edev.egrid.die(DieId::from_idx(0));
-        let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
-        let bel = BelId::from_idx(1 + coord.iob.to_idx());
-        &nnode.bels[bel][0]
-    }
-}
+use crate::ExpandedNamedDevice;
 
 fn name_a(
     grid: &Grid,
@@ -230,5 +207,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         grid,
         col_x,
         row_y,
+        clk_x: None,
+        clk_y: None,
     }
 }

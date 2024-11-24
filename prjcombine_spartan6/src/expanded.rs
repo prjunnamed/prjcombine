@@ -1,13 +1,13 @@
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::Dir,
-    grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
+    grid::{ColId, DieId, ExpandedGrid, Rect, RowId, SimpleIoCoord},
 };
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::grid::{DisabledPart, Grid, IoCoord, RegId};
+use crate::grid::{DisabledPart, Grid, RegId};
 
 pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
@@ -15,7 +15,7 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
-    pub io: Vec<IoCoord>,
+    pub io: Vec<SimpleIoCoord>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub col_width: EntityVec<ColId, usize>,
     pub spine_frame: EntityVec<RegId, usize>,
@@ -26,7 +26,7 @@ pub struct ExpandedDevice<'a> {
 
 #[derive(Clone, Debug)]
 pub struct Io {
-    pub crd: IoCoord,
+    pub crd: SimpleIoCoord,
     pub name: String,
     pub bank: u32,
     pub diff: IoDiffKind,
@@ -34,8 +34,8 @@ pub struct Io {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum IoDiffKind {
-    P(IoCoord),
-    N(IoCoord),
+    P(SimpleIoCoord),
+    N(SimpleIoCoord),
 }
 
 impl ExpandedDevice<'_> {
@@ -48,7 +48,7 @@ impl ExpandedDevice<'_> {
         false
     }
 
-    pub fn get_io_bank(&self, io: IoCoord) -> u32 {
+    pub fn get_io_bank(&self, io: SimpleIoCoord) -> u32 {
         if io.col == self.grid.col_lio() {
             if let Some((rs, _)) = self.grid.rows_bank_split {
                 if io.row < rs {

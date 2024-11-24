@@ -1,14 +1,17 @@
+use prjcombine_int::grid::SimpleIoCoord;
 use prjcombine_rawdump::PkgPin;
-use prjcombine_xc5200::bond::{Bond, BondPin, CfgPin};
-use prjcombine_xc5200::grid::{IoCoord, SharedCfgPin};
-use prjcombine_xc5200_naming::ExpandedNamedDevice;
+use prjcombine_xc2000::{
+    bond::{Bond, BondPin, CfgPin},
+    grid::SharedCfgPin,
+};
+use prjcombine_xc2000_naming::ExpandedNamedDevice;
 use std::collections::{btree_map, BTreeMap, HashMap};
 
 pub fn make_bond(
     endev: &ExpandedNamedDevice,
     pkg: &str,
     pins: &[PkgPin],
-    cfg_io: &mut BTreeMap<SharedCfgPin, IoCoord>,
+    cfg_io: &mut BTreeMap<SharedCfgPin, SimpleIoCoord>,
 ) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let io_lookup: HashMap<_, _> = endev

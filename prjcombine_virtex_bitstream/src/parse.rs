@@ -2264,6 +2264,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         }),
     };
     match res.kind {
+        DeviceKind::Xc2000 => todo!(),
         DeviceKind::Xc4000 | DeviceKind::S40Xl => parse_xc4000_bitstream(&mut res, data),
         DeviceKind::Xc5200 => parse_xc5200_bitstream(&mut res, data),
         DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),

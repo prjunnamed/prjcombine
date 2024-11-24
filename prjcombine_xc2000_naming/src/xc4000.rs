@@ -1,12 +1,9 @@
 use std::fmt::Write;
 
-use prjcombine_int::{
-    db::BelId,
-    grid::{ColId, DieId, LayerId, RowId},
-};
-use prjcombine_xc4000::{
+use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_xc2000::{
     expanded::ExpandedDevice,
-    grid::{Grid, GridKind, IoCoord},
+    grid::{Grid, GridKind},
 };
 use prjcombine_xilinx_naming::{
     db::{NamingDb, NodeRawTileId},
@@ -14,20 +11,8 @@ use prjcombine_xilinx_naming::{
 };
 use unnamed_entity::EntityId;
 
-pub struct ExpandedNamedDevice<'a> {
-    pub edev: &'a ExpandedDevice<'a>,
-    pub ngrid: ExpandedGridNaming<'a>,
-    pub grid: &'a Grid,
-}
+use crate::ExpandedNamedDevice;
 
-impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: IoCoord) -> &'a str {
-        let die = self.edev.egrid.die(DieId::from_idx(0));
-        let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
-        let bel = BelId::from_idx(coord.iob.to_idx());
-        &nnode.bels[bel]
-    }
-}
 
 fn get_tile_kind(grid: &Grid, col: ColId, row: RowId) -> &'static str {
     if col == grid.col_lio() {

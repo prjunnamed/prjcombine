@@ -1,7 +1,6 @@
+use prjcombine_int::grid::SimpleIoCoord;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-
-use crate::grid::IoCoord;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum GtPin {
@@ -35,7 +34,7 @@ pub enum CfgPin {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum BondPin {
-    Io(IoCoord),
+    Io(SimpleIoCoord),
     Gt(u32, GtPin),
     Nc,
     Rsvd,
@@ -54,13 +53,13 @@ pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
     // device bank -> pkg bank
     pub io_banks: BTreeMap<u32, u32>,
-    pub vref: BTreeSet<IoCoord>,
+    pub vref: BTreeSet<SimpleIoCoord>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
-    pub ios: BTreeMap<IoCoord, String>,
+    pub ios: BTreeMap<SimpleIoCoord, String>,
     pub gts: BTreeMap<(u32, GtPin), String>,
 }
 

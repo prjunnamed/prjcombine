@@ -1,7 +1,7 @@
 use std::{error::Error, path::PathBuf};
 
 use clap::Parser;
-use prjcombine_xact_geom::{Bond, GeomDb, Grid};
+use prjcombine_xact_geom::GeomDb;
 
 #[derive(Debug, Parser)]
 #[command(name = "xagprint", about = "Dump xact geom file.")]
@@ -39,12 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.grids {
-                match grid {
-                    Grid::Xc2000(g) => print!("{}", g),
-                    Grid::Xc3000(g) => print!("{}", g),
-                    Grid::Xc4000(g) => print!("{}", g),
-                    Grid::Xc5200(g) => print!("{}", g),
-                }
+                print!("{}", grid);
             }
         }
     }
@@ -60,12 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.pkgs {
-                match bond {
-                    Bond::Xc2000(bond) => print!("{}", bond),
-                    Bond::Xc3000(bond) => print!("{}", bond),
-                    Bond::Xc4000(bond) => print!("{}", bond),
-                    Bond::Xc5200(bond) => print!("{}", bond),
-                }
+                print!("{}", bond);
             }
         }
     }

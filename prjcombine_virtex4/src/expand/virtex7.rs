@@ -1,6 +1,6 @@
 use bimap::BiHashMap;
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
-use crate::expanded::{DieFrameGeom, ExpandedDevice, Gtz, IoCoord, TileIobId};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, Gtz, IoCoord};
 use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind, GtzLoc, Interposer, IoKind, Pcie2Kind};
 
 struct DieExpander<'a, 'b, 'c> {
