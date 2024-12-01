@@ -26,12 +26,12 @@ See https://prjunnamed.github.io/prjcombine/
 - Xilinx Coolrunner 2 CPLDs: phase 4 in progress
 - Xilinx FPGAs:
 
-  - XC2000, XC2000L: phase 1 complete
-  - XC3000, XC3100: phase 1 complete
-  - XC3000A, XC3100A, XC3000L, XC3100L: phase 1 complete
-  - XC4000, XC4000D: phase 1 complete
-  - XC4000A: phase 1 complete
-  - XC4000H: phase 1 complete
+  - XC2000, XC2000L: phase 2 complete
+  - XC3000, XC3100: phase 2 complete
+  - XC3000A, XC3100A, XC3000L, XC3100L: phase 2 complete
+  - XC4000, XC4000D: phase 2 complete
+  - XC4000A: phase 2 complete
+  - XC4000H: phase 2 complete
   - XC4000E, XC4000L, Spartan: phase 2 complete
   - XC4000EX, XC4000XL: phase 2 complete
   - XC4000XLA: phase 2 complete

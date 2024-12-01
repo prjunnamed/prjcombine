@@ -13,7 +13,6 @@ use unnamed_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 
-
 fn get_tile_kind(grid: &Grid, col: ColId, row: RowId) -> &'static str {
     if col == grid.col_lio() {
         if row == grid.row_bio() {

@@ -1242,7 +1242,7 @@ pub fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             let reg = endev.edev.grids[bel.die].row_to_reg(bel.row);
             if which == "OL"
                 && endev.edev.col_lio.is_none()
-                && endev.edev.col_lgt.map_or(true, |col| {
+                && endev.edev.col_lgt.is_none_or(|col| {
                     endev.edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg]
                         == Some(GtKind::Gth)
                 })
@@ -1251,7 +1251,7 @@ pub fn verify_cmt(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
             }
             if which == "OR"
                 && endev.edev.col_rio.is_none()
-                && (endev.edev.col_rgt.map_or(true, |col| {
+                && (endev.edev.col_rgt.is_none_or(|col| {
                     endev.edev.grids[bel.die].get_col_gt(col).unwrap().regs[reg]
                         == Some(GtKind::Gth)
                 }) || endev.edev.disabled.contains(&DisabledPart::GtxRow(reg)))

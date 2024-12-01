@@ -8,6 +8,47 @@ use bitvec::prelude::*;
 use prjcombine_int::grid::DieId;
 use std::collections::HashMap;
 
+fn parse_xc2000_bitstream(bs: &mut Bitstream, data: &[u8]) {
+    let bs = bs.die.first_mut().unwrap();
+    let data: &BitSlice<u8, Msb0> = BitSlice::from_slice(data);
+    assert_eq!(data[..12], bits![1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0]);
+    let mut bitlen = 0;
+    for j in 0..24 {
+        if data[35 - j] {
+            bitlen |= 1 << j;
+        }
+    }
+    assert_eq!(data[36..40], bits![1, 1, 1, 1]);
+    let mut pos = 40;
+    let frame_len = bs.frame_len;
+    let frames_num = bs.frame_info.len();
+    for fi in 0..frames_num {
+        assert!(!data[pos]);
+        pos += 1;
+        let fdata = &data[pos..(pos + frame_len)];
+        let frame = bs.frame_mut(fi);
+        for (i, bit) in fdata.iter().enumerate() {
+            frame.set(i, *bit);
+        }
+        pos += frame_len;
+        let stop = &data[pos..(pos + 3)];
+        assert_eq!(stop, &bits![1, 1, 1]);
+        pos += 3;
+    }
+    let post = &data[pos..(pos + 4)];
+    assert_eq!(post, &bits![1, 1, 1, 1]);
+    pos += 4;
+    while pos % 8 != 0 {
+        assert!(data[pos]);
+        pos += 1;
+    }
+    assert_eq!(bitlen, pos + 1);
+    let pad = &data[pos..(pos + 8)];
+    assert_eq!(pad, &bits![1, 1, 1, 1, 1, 1, 1, 1]);
+    pos += 8;
+    assert_eq!(pos, data.len());
+}
+
 struct Xc4000Crc {
     crc: u16,
 }
@@ -166,6 +207,7 @@ fn parse_xc4000_bitstream(bs: &mut Bitstream, data: &[u8]) {
         assert_eq!(pos, data.len());
     }
 }
+
 struct Xc5200Crc {
     crc: u16,
 }
@@ -2264,7 +2306,7 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         }),
     };
     match res.kind {
-        DeviceKind::Xc2000 => todo!(),
+        DeviceKind::Xc2000 => parse_xc2000_bitstream(&mut res, data),
         DeviceKind::Xc4000 | DeviceKind::S40Xl => parse_xc4000_bitstream(&mut res, data),
         DeviceKind::Xc5200 => parse_xc5200_bitstream(&mut res, data),
         DeviceKind::Virtex | DeviceKind::Virtex2 => parse_virtex_bitstream(&mut res, data, key),

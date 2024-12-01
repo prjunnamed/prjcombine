@@ -5,7 +5,7 @@ use prjcombine_int::{
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     expanded::ExpandedDevice,
@@ -103,16 +103,12 @@ impl Grid {
         let mut egrid = ExpandedGrid::new(db);
         let (_, mut grid) = egrid.add_die(self.columns, self.rows);
 
-        let mut spine_framebit = None;
-        let mut qb_framebit = None;
-        let mut qt_framebit = None;
         let mut row_framebit = EntityVec::new();
+        let mut llv_framebit = EntityPartVec::new();
         let mut frame_len = 0;
         let mut frame_info = vec![];
-        let mut spine_frame = None;
-        let mut ql_frame = None;
-        let mut qr_frame = None;
         let mut col_frame: EntityVec<_, _> = grid.cols().map(|_| 0).collect();
+        let mut llh_frame = EntityPartVec::new();
 
         match self.kind {
             GridKind::Xc2000 => {
@@ -148,9 +144,19 @@ impl Grid {
                     } else {
                         for row in grid.rows() {
                             if row == self.row_bio() {
-                                grid.add_xnode((col, row), "CLB.B", &[(col, row), (col + 1, row)]);
+                                let kind = if col == self.col_rio() - 1 {
+                                    "CLB.BR1"
+                                } else {
+                                    "CLB.B"
+                                };
+                                grid.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else if row == self.row_tio() {
-                                grid.add_xnode((col, row), "CLB.T", &[(col, row), (col + 1, row)]);
+                                let kind = if col == self.col_rio() - 1 {
+                                    "CLB.TR1"
+                                } else {
+                                    "CLB.T"
+                                };
+                                grid.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
                             } else {
                                 grid.add_xnode((col, row), "CLB", &[(col, row)]);
                             }
@@ -174,7 +180,47 @@ impl Grid {
                 }
                 grid.fill_main_passes();
 
-                // TODO: BS geom
+                for row in grid.rows() {
+                    if self.rows_bidi.contains(&row) {
+                        llv_framebit.insert(row, frame_len);
+                        frame_len += 1;
+                    }
+                    row_framebit.push(frame_len);
+                    frame_len += self.btile_height_main(row);
+                }
+
+                for col in grid.cols().rev() {
+                    let width = self.btile_width_main(col);
+                    col_frame[col] = frame_info.len();
+                    for _ in 0..width {
+                        let minor = frame_info.len();
+                        frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: 0,
+                                major: 0,
+                                minor: minor as u32,
+                            },
+                            mask_mode: [].into_iter().collect(),
+                        });
+                    }
+                    if self.cols_bidi.contains(&col) {
+                        let width = self.btile_width_brk();
+                        llh_frame.insert(col, frame_info.len());
+                        for _ in 0..width {
+                            let minor = frame_info.len();
+                            frame_info.push(FrameInfo {
+                                addr: FrameAddr {
+                                    typ: 0,
+                                    region: 0,
+                                    major: 0,
+                                    minor: minor as u32,
+                                },
+                                mask_mode: [].into_iter().collect(),
+                            });
+                        }
+                    }
+                }
             }
             GridKind::Xc3000 | GridKind::Xc3000A => {
                 let s = if self.is_small { "S" } else { "" };
@@ -217,7 +263,7 @@ impl Grid {
                             } else if row == self.row_tio() {
                                 grid.add_xnode(
                                     (col, row),
-                                    &format!("CLB.TR.{subkind}"),
+                                    &format!("CLB.TR{s}.{subkind}"),
                                     &[(col, row), (col, row - 1)],
                                 );
                             } else {
@@ -237,7 +283,7 @@ impl Grid {
                             } else if row == self.row_tio() {
                                 grid.add_xnode(
                                     (col, row),
-                                    &format!("CLB.T.{subkind}"),
+                                    &format!("CLB.T{s}.{subkind}"),
                                     &[(col, row), (col + 1, row), (col, row - 1)],
                                 );
                             } else {
@@ -288,7 +334,31 @@ impl Grid {
                 }
                 grid.fill_main_passes();
 
-                // TODO: BS geom
+                for row in grid.rows() {
+                    if row == self.row_mid() && !self.is_small {
+                        llv_framebit.insert(row, frame_len);
+                        frame_len += 1;
+                    }
+                    row_framebit.push(frame_len);
+                    frame_len += self.btile_height_main(row);
+                }
+
+                for col in grid.cols().rev() {
+                    let width = self.btile_width_main(col);
+                    col_frame[col] = frame_info.len();
+                    for _ in 0..width {
+                        let minor = frame_info.len();
+                        frame_info.push(FrameInfo {
+                            addr: FrameAddr {
+                                typ: 0,
+                                region: 0,
+                                major: 0,
+                                minor: minor as u32,
+                            },
+                            mask_mode: [].into_iter().collect(),
+                        });
+                    }
+                }
             }
             GridKind::Xc4000
             | GridKind::Xc4000A
@@ -543,12 +613,8 @@ impl Grid {
                 grid.fill_term((col_r, row_t), "CNR.UR.E");
 
                 for row in grid.rows() {
-                    if self.kind.is_xl() && row == self.row_qb() {
-                        qb_framebit = Some(frame_len);
-                        frame_len += self.btile_height_brk();
-                    }
-                    if self.kind.is_xl() && row == self.row_qt() {
-                        qt_framebit = Some(frame_len);
+                    if self.kind.is_xl() && (row == self.row_qb() || row == self.row_qt()) {
+                        llv_framebit.insert(row, frame_len);
                         frame_len += self.btile_height_brk();
                     }
                     if row == self.row_mid() {
@@ -556,7 +622,7 @@ impl Grid {
                             // padding
                             frame_len += 2;
                         }
-                        spine_framebit = Some(frame_len);
+                        llv_framebit.insert(row, frame_len);
                         frame_len += self.btile_height_clk();
                     }
                     row_framebit.push(frame_len);
@@ -581,7 +647,7 @@ impl Grid {
                     }
                     if col == self.col_mid() {
                         let width = self.btile_width_clk();
-                        spine_frame = Some(frame_info.len());
+                        llh_frame.insert(col, frame_info.len());
                         for _ in 0..width {
                             let minor = frame_info.len();
                             frame_info.push(FrameInfo {
@@ -595,22 +661,9 @@ impl Grid {
                             });
                         }
                     }
-                    if self.kind.is_xl() && col == self.col_ql() {
+                    if self.kind.is_xl() && (col == self.col_ql() || col == self.col_qr()) {
                         let minor = frame_info.len();
-                        ql_frame = Some(minor);
-                        frame_info.push(FrameInfo {
-                            addr: FrameAddr {
-                                typ: 0,
-                                region: 0,
-                                major: 0,
-                                minor: minor as u32,
-                            },
-                            mask_mode: [].into_iter().collect(),
-                        });
-                    }
-                    if self.kind.is_xl() && col == self.col_qr() {
-                        let minor = frame_info.len();
-                        qr_frame = Some(minor);
+                        llh_frame.insert(col, frame_info.len());
                         frame_info.push(FrameInfo {
                             addr: FrameAddr {
                                 typ: 0,
@@ -698,26 +751,16 @@ impl Grid {
 
                 for row in grid.rows() {
                     if row == self.row_mid() {
-                        spine_framebit = Some(frame_len);
+                        llv_framebit.insert(row, frame_len);
                         frame_len += 4;
                     }
                     row_framebit.push(frame_len);
-                    let height = if row == self.row_bio() || row == self.row_tio() {
-                        28
-                    } else {
-                        34
-                    };
+                    let height = self.btile_height_main(row);
                     frame_len += height;
                 }
 
                 for col in grid.cols().rev() {
-                    let width = if col == self.col_lio() {
-                        7
-                    } else if col == self.col_rio() {
-                        8
-                    } else {
-                        12
-                    };
+                    let width = self.btile_width_main(col);
                     col_frame[col] = frame_info.len();
                     for _ in 0..width {
                         let minor = frame_info.len();
@@ -733,7 +776,7 @@ impl Grid {
                     }
                     if col == self.col_mid() {
                         let minor = frame_info.len();
-                        spine_frame = Some(minor);
+                        llh_frame.insert(col, minor);
                         frame_info.push(FrameInfo {
                             addr: FrameAddr {
                                 typ: 0,
@@ -749,9 +792,6 @@ impl Grid {
         }
 
         egrid.finish();
-
-        let quarter_framebit = qb_framebit.zip(qt_framebit);
-        let quarter_frame = ql_frame.zip(qr_frame);
 
         let die_bs_geom = DieBitstreamGeom {
             frame_len,
@@ -787,12 +827,10 @@ impl Grid {
             grid: self,
             egrid,
             bs_geom,
-            spine_frame,
-            quarter_frame,
             col_frame,
-            spine_framebit,
-            quarter_framebit,
+            llh_frame,
             row_framebit,
+            llv_framebit,
         }
     }
 }

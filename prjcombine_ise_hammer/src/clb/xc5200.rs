@@ -103,7 +103,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "READBACK",
-            TileItem::from_bit(TileBit::new(0, 1, [5, 10, 23, 28][i]), false),
+            TileItem::from_bit(TileBit::new(0, 1, [5, 10, 23, 28][i]), true),
         );
     }
     for i in 0..4 {

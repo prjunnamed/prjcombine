@@ -385,7 +385,7 @@ pub fn make_intdb() -> IntDb {
                 continue;
             }
             db.nodes.insert(format!("{name}.{subkind}"), node.clone());
-            if matches!(name, "CLB.BL" | "CLB.BR" | "CLB.TL") {
+            if matches!(name, "CLB.BL" | "CLB.BR" | "CLB.TL" | "CLB.TR" | "CLB.T") {
                 db.nodes.insert(format!("{name}S.{subkind}"), node.clone());
             }
         }

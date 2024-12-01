@@ -454,8 +454,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "OSC";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        ctx.collect_enum(tile, bel, "MUX.OUT0", &["F15", "F490", "F16K", "F500K"]);
-        ctx.collect_enum(tile, bel, "MUX.OUT1", &["F15", "F490", "F16K", "F500K"]);
+        ctx.collect_enum(tile, bel, "MUX.OUT0", &["F500K", "F16K", "F490", "F15"]);
+        ctx.collect_enum(tile, bel, "MUX.OUT1", &["F500K", "F16K", "F490", "F15"]);
         if matches!(
             edev.grid.kind,
             GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl

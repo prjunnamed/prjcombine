@@ -2,7 +2,7 @@ use bitvec::vec::BitVec;
 use prjcombine_collector::{Diff, FeatureData, FeatureId, State};
 use prjcombine_hammer::{Backend, FuzzerId};
 use prjcombine_int::db::{BelId, WireId};
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, LayerId, NodeLoc, RowId};
 use prjcombine_toolchain::Toolchain;
 use prjcombine_types::tiledb::TileBit;
 use prjcombine_virtex_bitstream::{parse, KeyData, KeyDataAes, KeyDataDes, KeySeq};
@@ -15,8 +15,6 @@ use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
 use rand::prelude::*;
 use std::collections::{hash_map, HashMap};
 use std::fmt::{Debug, Write};
-
-use crate::fgen::Loc;
 
 pub struct IseBackend<'a> {
     pub debug: u8,
@@ -57,7 +55,7 @@ pub enum Key<'a> {
     RowMutex(String, RowId),
     BelMutex((DieId, ColId, RowId, LayerId, BelId), String),
     NodeMutex((DieId, (ColId, RowId), WireId)),
-    TileMutex(Loc, String),
+    TileMutex(NodeLoc, String),
     IntMutex(DieId, ColId, RowId),
 }
 

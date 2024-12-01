@@ -3,6 +3,7 @@ use std::collections::{btree_map, BTreeMap, HashSet};
 use prjcombine_collector::{xlat_bit, xlat_enum, xlat_enum_ocd, Diff, FeatureId, OcdMode};
 use prjcombine_hammer::Session;
 use prjcombine_int::db::{BelId, Dir, NodeTileId, NodeWireId};
+use prjcombine_types::tiledb::TileBit;
 use prjcombine_xc2000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 use unnamed_entity::EntityId;
@@ -862,7 +863,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut got_empty = false;
             for &wire_from in &mux.ins {
                 let in_name = format!("{}.{}", wire_from.0, intdb.wires.key(wire_from.1));
-                let diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                let mut diff = ctx.state.get_diff(tile, "INT", &mux_name, &in_name);
+                if edev.grid.kind == GridKind::Xc4000E
+                    && tile.starts_with("IO.L")
+                    && out_name == "IMUX.TBUF1.I"
+                    && in_name == "0.DEC.V1"
+                {
+                    // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                    // found by diffing XC4000E with xact
+                    assert!(!diff.bits.contains_key(&TileBit::new(0, 11, 1)));
+                    diff.bits.insert(TileBit::new(0, 11, 1), false);
+                }
                 if diff.bits.is_empty() {
                     got_empty = true;
                 }

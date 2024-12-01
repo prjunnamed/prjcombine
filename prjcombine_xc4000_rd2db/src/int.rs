@@ -827,12 +827,14 @@ fn fill_imux_wires(builder: &mut IntBuilder) -> (Vec<WireId>, Vec<NodeWireId>) {
         }
     }
 
-    let w = builder.mux_out("IMUX.BOT.COUT", &[""]);
-    for k in BOT_KINDS {
-        builder.extra_name(format!("{k}_COUT"), w);
+    if builder.rd.family != "xc4000e" {
+        let w = builder.mux_out("IMUX.BOT.COUT", &[""]);
+        for k in BOT_KINDS {
+            builder.extra_name(format!("{k}_COUT"), w);
+        }
+        imux_wires.push(w);
+        imux_nw.push((NodeTileId::from_idx(0), w));
     }
-    imux_wires.push(w);
-    imux_nw.push((NodeTileId::from_idx(0), w));
 
     for pin in ["CLK", "GSR", "GTS"] {
         builder.mux_out(format!("IMUX.STARTUP.{pin}"), &[format!("LR_STUP_{pin}")]);
@@ -1091,13 +1093,15 @@ fn fill_out_wires(builder: &mut IntBuilder) {
         builder.logic_out(format!("OUT.STARTUP.{pin}"), &[format!("LR_STUP_{pin}")]);
     }
 
-    let w = builder.logic_out("OUT.TOP.COUT", &[""]);
-    for k in TOP_KINDS {
-        builder.extra_name(format!("{k}_COUTB"), w);
-    }
-    let w = builder.branch(w, Dir::E, "OUT.TOP.COUT.E", &["UR_COUT"]);
-    for k in TOP_KINDS {
-        builder.extra_name(format!("{k}_COUTL"), w);
+    if builder.rd.family != "xc4000e" {
+        let w = builder.logic_out("OUT.TOP.COUT", &[""]);
+        for k in TOP_KINDS {
+            builder.extra_name(format!("{k}_COUTB"), w);
+        }
+        let w = builder.branch(w, Dir::E, "OUT.TOP.COUT.E", &["UR_COUT"]);
+        for k in TOP_KINDS {
+            builder.extra_name(format!("{k}_COUTL"), w);
+        }
     }
 
     builder.logic_out("OUT.UPDATE.O", &["UR_UPDATE"]);

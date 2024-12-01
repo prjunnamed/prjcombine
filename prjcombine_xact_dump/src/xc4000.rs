@@ -282,7 +282,6 @@ pub fn make_intdb(kind: GridKind) -> IntDb {
         ("OUT.STARTUP.Q1Q4", &[][..]),
         ("OUT.STARTUP.Q2", &[][..]),
         ("OUT.STARTUP.Q3", &[][..]),
-        ("OUT.TOP.COUT", &[Dir::E][..]),
         ("OUT.UPDATE.O", &[][..]),
         ("OUT.MD0.I", &[][..]),
         ("OUT.RDBK.DATA", &[][..]),
@@ -458,9 +457,9 @@ pub fn make_intdb(kind: GridKind) -> IntDb {
                     (
                         "T2",
                         if matches!(i, 0 | 3) {
-                            format!("IMUX.IOB{ii}.IK")
-                        } else {
                             format!("IMUX.IOB{ii}.OK")
+                        } else {
+                            format!("IMUX.IOB{ii}.IK")
                         },
                     ),
                 ];
@@ -557,9 +556,9 @@ pub fn make_intdb(kind: GridKind) -> IntDb {
                     (
                         "T2",
                         if matches!(i, 0 | 3) {
-                            format!("IMUX.IOB{ii}.IK")
-                        } else {
                             format!("IMUX.IOB{ii}.OK")
+                        } else {
+                            format!("IMUX.IOB{ii}.IK")
                         },
                     ),
                 ];

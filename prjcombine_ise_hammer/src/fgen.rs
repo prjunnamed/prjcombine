@@ -1,7 +1,7 @@
 use prjcombine_collector::{FeatureId, State};
 use prjcombine_int::{
     db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
-    grid::{ColId, DieId, IntWire, LayerId, RowId, SimpleIoCoord, TileIobId},
+    grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, SimpleIoCoord, TileIobId},
 };
 use prjcombine_virtex2::iob::IobKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
@@ -15,8 +15,6 @@ use unnamed_entity::EntityId;
 use prjcombine_hammer::{BatchValue, Fuzzer, FuzzerGen, FuzzerValue};
 
 use crate::backend::{FuzzerFeature, FuzzerInfo, IseBackend, Key, MultiValue, PinFromKind, Value};
-
-pub type Loc = (DieId, ColId, RowId, LayerId);
 
 #[derive(Debug, Clone)]
 pub enum TileWire {
@@ -54,9 +52,9 @@ pub enum BelRelation {
 
 fn resolve_tile_relation(
     backend: &IseBackend,
-    mut loc: Loc,
+    mut loc: NodeLoc,
     relation: TileRelation,
-) -> Option<Loc> {
+) -> Option<NodeLoc> {
     match relation {
         TileRelation::ClbTbusRight => loop {
             if loc.1 == backend.egrid.die(loc.0).cols().last().unwrap() {
@@ -379,10 +377,10 @@ fn resolve_tile_relation(
 
 fn resolve_bel_relation(
     backend: &IseBackend,
-    mut loc: Loc,
+    mut loc: NodeLoc,
     _bel: BelId,
     relation: BelRelation,
-) -> Option<(Loc, BelId)> {
+) -> Option<(NodeLoc, BelId)> {
     match relation {
         BelRelation::Rclk => {
             let ExpandedDevice::Virtex4(edev) = backend.edev else {
@@ -507,7 +505,7 @@ fn resolve_bel_relation(
     }
 }
 
-fn find_ioi(backend: &IseBackend, loc: Loc, tile: usize) -> Loc {
+fn find_ioi(backend: &IseBackend, loc: NodeLoc, tile: usize) -> NodeLoc {
     let ExpandedDevice::Virtex2(edev) = backend.edev else {
         unreachable!()
     };
@@ -528,7 +526,7 @@ fn find_ioi(backend: &IseBackend, loc: Loc, tile: usize) -> Loc {
 
 fn resolve_tile_wire<'a>(
     backend: &IseBackend<'a>,
-    loc: Loc,
+    loc: NodeLoc,
     wire: &TileWire,
 ) -> Option<(&'a str, &'a str)> {
     let node = backend.egrid.node(loc);
@@ -591,7 +589,7 @@ fn resolve_tile_wire<'a>(
 
 fn resolve_int_pip<'a>(
     backend: &IseBackend<'a>,
-    loc: Loc,
+    loc: NodeLoc,
     wire_from: NodeWireId,
     wire_to: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str)> {
@@ -620,7 +618,7 @@ fn resolve_int_pip<'a>(
 
 fn resolve_intf_test_pip<'a>(
     backend: &IseBackend<'a>,
-    loc: Loc,
+    loc: NodeLoc,
     wire_from: NodeWireId,
     wire_to: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str)> {
@@ -662,7 +660,7 @@ fn resolve_intf_test_pip<'a>(
 
 fn resolve_intf_delay<'a>(
     backend: &IseBackend<'a>,
-    loc: Loc,
+    loc: NodeLoc,
     wire: NodeWireId,
 ) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
     let node = backend.egrid.node(loc);
@@ -773,7 +771,7 @@ impl<'a> TileKV<'a> {
     fn apply(
         &self,
         backend: &IseBackend<'a>,
-        loc: Loc,
+        loc: NodeLoc,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         Some(match self {
@@ -2353,7 +2351,7 @@ fn drive_xc4000_wire<'a>(
     backend: &IseBackend<'a>,
     fuzzer: Fuzzer<IseBackend<'a>>,
     wire_target: IntWire,
-    orig_target: Option<(Loc, NodeWireId)>,
+    orig_target: Option<(NodeLoc, NodeWireId)>,
     wire_avoid: IntWire,
 ) -> (Fuzzer<IseBackend<'a>>, &'a str, &'a str) {
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
@@ -3151,7 +3149,7 @@ impl<'a> BelKV {
     fn apply(
         &self,
         backend: &IseBackend<'a>,
-        loc: Loc,
+        loc: NodeLoc,
         bel: BelId,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
@@ -4338,7 +4336,7 @@ impl<'a> TileFuzzKV<'a> {
     fn apply(
         &self,
         backend: &IseBackend<'a>,
-        loc: Loc,
+        loc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
         let node = backend.egrid.node(loc);
@@ -4437,7 +4435,7 @@ impl BelFuzzKV {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        loc: Loc,
+        loc: NodeLoc,
         bel: BelId,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<Fuzzer<IseBackend<'a>>> {
@@ -4544,7 +4542,7 @@ impl TileMultiFuzzKV {
     fn apply<'a>(
         &self,
         backend: &IseBackend<'a>,
-        loc: Loc,
+        loc: NodeLoc,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Fuzzer<IseBackend<'a>> {
         match self {
@@ -5379,7 +5377,7 @@ pub enum ExtraFeatureKind {
 }
 
 impl ExtraFeatureKind {
-    pub fn get_tiles(self, backend: &IseBackend, loc: Loc, tile: &str) -> Vec<Vec<BitTile>> {
+    pub fn get_tiles(self, backend: &IseBackend, loc: NodeLoc, tile: &str) -> Vec<Vec<BitTile>> {
         match self {
             ExtraFeatureKind::MainFixed(col, row) => match backend.edev {
                 ExpandedDevice::Xc2000(edev) => {

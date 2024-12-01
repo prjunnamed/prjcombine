@@ -4,7 +4,7 @@ use std::{
     ops::Range,
 };
 
-use bitvec::vec::BitVec;
+use bitvec::{slice::BitSlice, vec::BitVec};
 use itertools::Itertools;
 use prjcombine_hammer::FuzzerId;
 use prjcombine_types::tiledb::{TileBit, TileDb, TileItem, TileItemKind};
@@ -83,7 +83,7 @@ impl Diff {
         }
     }
 
-    pub fn apply_bitvec_diff(&mut self, item: &TileItem<TileBit>, from: &BitVec, to: &BitVec) {
+    pub fn apply_bitvec_diff(&mut self, item: &TileItem<TileBit>, from: &BitSlice, to: &BitSlice) {
         let TileItemKind::BitVec { ref invert } = item.kind else {
             unreachable!()
         };
@@ -980,6 +980,33 @@ impl Collector<'_> {
         }
     }
 
+    #[must_use]
+    pub fn extract_enum_bool_wide_mixed(
+        &mut self,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
+    ) -> TileItem<TileBit> {
+        let d0 = self.state.get_diff(tile, bel, attr, val0);
+        let d1 = self.state.get_diff(tile, bel, attr, val1);
+        let item = xlat_enum(vec![("0", d0), ("1", d1)]);
+        let TileItemKind::Enum { values } = item.kind else {
+            unreachable!()
+        };
+        let v0 = &values["0"];
+        let v1 = &values["1"];
+        for (b0, b1) in v0.iter().zip(v1) {
+            assert_eq!(*b0, !*b1);
+        }
+        let invert = v0.clone();
+        TileItem {
+            bits: item.bits,
+            kind: TileItemKind::BitVec { invert },
+        }
+    }
+
     pub fn collect_enum_bool_wide(
         &mut self,
         tile: &str,
@@ -989,6 +1016,19 @@ impl Collector<'_> {
         val1: &str,
     ) {
         let item = self.extract_enum_bool_wide(tile, bel, attr, val0, val1);
+
+        self.tiledb.insert(tile, bel, attr, item);
+    }
+
+    pub fn collect_enum_bool_wide_mixed(
+        &mut self,
+        tile: &str,
+        bel: &str,
+        attr: &str,
+        val0: &str,
+        val1: &str,
+    ) {
+        let item = self.extract_enum_bool_wide_mixed(tile, bel, attr, val0, val1);
 
         self.tiledb.insert(tile, bel, attr, item);
     }

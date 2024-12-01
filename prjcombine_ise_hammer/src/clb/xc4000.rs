@@ -1,6 +1,7 @@
 use prjcombine_collector::{xlat_bit, xlat_enum, Diff};
 use prjcombine_hammer::Session;
 use prjcombine_types::tiledb::{TileBit, TileItem};
+use prjcombine_xc2000::grid::GridKind;
 use prjcombine_xilinx_geom::ExpandedDevice;
 
 use crate::{
@@ -533,11 +534,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("READBACK_XQ", 0, 7),
                 ("READBACK_YQ", 0, 4),
             ]
-        } else {
+        } else if kind == GridKind::SpartanXl {
+            // ?!?! X/XQ swapped from XC4000?
             [
                 ("READBACK_X", 12, 5),
                 ("READBACK_Y", 3, 5),
                 ("READBACK_XQ", 16, 4),
+                ("READBACK_YQ", 8, 4),
+            ]
+        } else {
+            [
+                ("READBACK_X", 16, 4),
+                ("READBACK_Y", 3, 5),
+                ("READBACK_XQ", 12, 5),
                 ("READBACK_YQ", 8, 4),
             ]
         };

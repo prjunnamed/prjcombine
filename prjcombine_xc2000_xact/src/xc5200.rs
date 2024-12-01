@@ -280,8 +280,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             nnode.tie_names = vec![
                                 name_a(grid, "src0.", ".1", col, row),
                                 name_a(grid, "dummy.", ".1", col, row),
-                                name_a(grid, "SCANTEST.", ".1", col, row),
-                                name_b(grid, "SCANTEST_", ".1", col, row),
                             ];
                             let p = (edev.grid.columns - 2) * 4
                                 + (edev.grid.rows - 2) * 4
@@ -317,6 +315,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                                 vec![
                                     name_a(grid, "TBUF.", ".3", col, row),
                                     name_b(grid, "TBUF_", ".3", col, row),
+                                ],
+                            );
+                            nnode.add_bel(
+                                10,
+                                vec![
+                                    name_a(grid, "SCANTEST.", ".1", col, row),
+                                    name_b(grid, "SCANTEST_", ".1", col, row),
                                 ],
                             );
                         }

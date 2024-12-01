@@ -235,6 +235,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     inps.push((in_name.to_string(), diff));
                 }
+                for (rtile, rwire, rbel, rattr) in [
+                    ("CNR.BR", "IMUX.STARTUP.GTS", "STARTUP", "ENABLE.GTS"),
+                    ("CNR.BR", "IMUX.STARTUP.GRST", "STARTUP", "ENABLE.GR"),
+                ] {
+                    if tile == rtile && out_name == rwire {
+                        let mut common = inps[0].1.clone();
+                        for (_, diff) in &inps {
+                            common.bits.retain(|bit, _| diff.bits.contains_key(bit));
+                        }
+                        assert_eq!(common.bits.len(), 1);
+                        for (_, diff) in &mut inps {
+                            *diff = diff.combine(&!&common);
+                            if diff.bits.is_empty() {
+                                got_empty = true;
+                            }
+                        }
+                        assert!(got_empty);
+                        ctx.tiledb.insert(tile, rbel, rattr, xlat_bit(common));
+                    }
+                }
                 if !got_empty {
                     inps.push(("NONE".to_string(), Diff::default()));
                 }

@@ -110,8 +110,17 @@ impl<'a> ExpandedGrid<'a> {
         ExpandedDieRefMut { grid: self, die }
     }
 
-    pub fn node(&self, loc: (DieId, ColId, RowId, LayerId)) -> &ExpandedTileNode {
+    pub fn node(&self, loc: NodeLoc) -> &ExpandedTileNode {
         &self.die(loc.0).tile((loc.1, loc.2)).nodes[loc.3]
+    }
+
+    pub fn node_wire(&self, loc: NodeLoc, wire: NodeWireId) -> IntWire {
+        let node = self.node(loc);
+        (loc.0, node.tiles[wire.0], wire.1)
+    }
+
+    pub fn resolve_node_wire_nobuf(&self, loc: NodeLoc, wire: NodeWireId) -> Option<IntWire> {
+        self.resolve_wire_nobuf(self.node_wire(loc, wire))
     }
 
     pub fn find_node(

@@ -1,6 +1,6 @@
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId, SimpleIoCoord, TileIobId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
-use unnamed_entity::{EntityId, EntityVec};
+use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{Grid, GridKind};
 
@@ -8,12 +8,10 @@ pub struct ExpandedDevice<'a> {
     pub grid: &'a Grid,
     pub egrid: ExpandedGrid<'a>,
     pub bs_geom: BitstreamGeom,
-    pub spine_frame: Option<usize>,
-    pub quarter_frame: Option<(usize, usize)>,
     pub col_frame: EntityVec<ColId, usize>,
-    pub spine_framebit: Option<usize>,
-    pub quarter_framebit: Option<(usize, usize)>,
+    pub llh_frame: EntityPartVec<ColId, usize>,
     pub row_framebit: EntityVec<RowId, usize>,
+    pub llv_framebit: EntityPartVec<RowId, usize>,
 }
 
 impl ExpandedDevice<'_> {
@@ -273,18 +271,13 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_llv(&self, col: ColId, row: RowId) -> BitTile {
-        let (bit, height) = if row == self.grid.row_mid() {
-            (self.spine_framebit.unwrap(), self.grid.btile_height_clk())
-        } else if row == self.grid.row_qb() {
-            (
-                self.quarter_framebit.unwrap().0,
-                self.grid.btile_height_brk(),
-            )
-        } else if row == self.grid.row_qt() {
-            (
-                self.quarter_framebit.unwrap().1,
-                self.grid.btile_height_brk(),
-            )
+        let bit = self.llv_framebit[row];
+        let height = if self.grid.kind == GridKind::Xc2000 {
+            self.grid.btile_height_brk()
+        } else if self.grid.kind.is_xc3000() || row == self.grid.row_mid() {
+            self.grid.btile_height_clk()
+        } else if row == self.grid.row_qb() || row == self.grid.row_qt() {
+            self.grid.btile_height_brk()
         } else {
             unreachable!()
         };
@@ -299,12 +292,13 @@ impl ExpandedDevice<'_> {
     }
 
     pub fn btile_llh(&self, col: ColId, row: RowId) -> BitTile {
-        let (frame, width) = if col == self.grid.col_mid() {
-            (self.spine_frame.unwrap(), self.grid.btile_width_clk())
-        } else if col == self.grid.col_ql() {
-            (self.quarter_frame.unwrap().0, self.grid.btile_width_brk())
-        } else if col == self.grid.col_qr() {
-            (self.quarter_frame.unwrap().1, self.grid.btile_width_brk())
+        let frame = self.llh_frame[col];
+        let width = if self.grid.kind == GridKind::Xc2000 {
+            self.grid.btile_width_brk()
+        } else if col == self.grid.col_mid() {
+            self.grid.btile_width_clk()
+        } else if col == self.grid.col_ql() || col == self.grid.col_qr() {
+            self.grid.btile_width_brk()
         } else {
             unreachable!()
         };

@@ -446,6 +446,7 @@ pub fn make_intdb() -> IntDb {
                 "BOT_CIN".into(),
                 bel_from_pins(&db, &[("IN", "IMUX.BOT.CIN")]),
             );
+            node.bels.insert("SCANTEST".into(), BelInfo::default());
         }
         if name == "IO.T" {
             node.bels.insert(
@@ -829,6 +830,9 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
                         }
                         "LC1" | "LC2" | "LC3" | "VCC_GND" => {
                             // handled with LC0
+                        }
+                        "SCANTEST" => {
+                            extractor.grab_prim_ab(&nnode.bels[bel][0], &nnode.bels[bel][1]);
                         }
 
                         _ => panic!("umm bel {key}?"),

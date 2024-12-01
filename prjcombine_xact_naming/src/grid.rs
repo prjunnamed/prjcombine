@@ -4,12 +4,12 @@ use std::{
 };
 
 use prjcombine_int::{
-    db::BelId,
+    db::{BelId, NodeWireId},
     grid::{ColId, DieId, ExpandedGrid, NodeLoc, RowId},
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::db::{NamingDb, NodeNamingId, NodeRawTileId};
+use crate::db::{IntPipNaming, NamingDb, NodeNamingId, NodeRawTileId};
 
 #[derive(Clone, Debug)]
 pub struct ExpandedGridNaming<'a> {
@@ -31,6 +31,12 @@ impl GridNodeNaming {
     pub fn add_bel(&mut self, idx: usize, names: Vec<String>) {
         self.bels.insert(BelId::from_idx(idx), names);
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PipCoords {
+    Pip((usize, usize)),
+    BoxPip((usize, usize), (usize, usize)),
 }
 
 impl<'a> ExpandedGridNaming<'a> {
@@ -68,6 +74,36 @@ impl<'a> ExpandedGridNaming<'a> {
             Some(&nnode.bels[bel][0])
         } else {
             None
+        }
+    }
+
+    pub fn bel_pip(&self, nloc: NodeLoc, bel: BelId, key: &str) -> PipCoords {
+        let nnode = &self.nodes[&nloc];
+        let naming = &self.db.node_namings[nnode.naming].bel_pips[&(bel, key.to_string())];
+        PipCoords::Pip((
+            naming.x + nnode.coords[naming.rt].0.start,
+            naming.y + nnode.coords[naming.rt].1.start,
+        ))
+    }
+
+    pub fn int_pip(&self, nloc: NodeLoc, wire_to: NodeWireId, wire_from: NodeWireId) -> PipCoords {
+        let nnode = &self.nodes[&nloc];
+        let naming = &self.db.node_namings[nnode.naming].int_pips[&(wire_to, wire_from)];
+        match naming {
+            IntPipNaming::Pip(pip) => PipCoords::Pip((
+                pip.x + nnode.coords[pip.rt].0.start,
+                pip.y + nnode.coords[pip.rt].1.start,
+            )),
+            IntPipNaming::Box(pip1, pip2) => PipCoords::BoxPip(
+                (
+                    pip1.x + nnode.coords[pip1.rt].0.start,
+                    pip1.y + nnode.coords[pip1.rt].1.start,
+                ),
+                (
+                    pip2.x + nnode.coords[pip2.rt].0.start,
+                    pip2.y + nnode.coords[pip2.rt].1.start,
+                ),
+            ),
         }
     }
 }

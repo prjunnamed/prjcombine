@@ -161,8 +161,8 @@ impl Grid {
     pub fn btile_height_main(&self, row: RowId) -> usize {
         if row == self.row_bio() {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 12,
+                GridKind::Xc3000 | GridKind::Xc3000A => 13,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
                     13
                 }
@@ -173,8 +173,8 @@ impl Grid {
             }
         } else if row == self.row_tio() {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 9,
+                GridKind::Xc3000 | GridKind::Xc3000A => 10,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => 7,
                 GridKind::Xc4000A => 6,
                 GridKind::Xc4000Ex | GridKind::Xc4000Xla => 8,
@@ -183,8 +183,8 @@ impl Grid {
             }
         } else {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 8,
+                GridKind::Xc3000 | GridKind::Xc3000A => 8,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
                     10
                 }
@@ -199,7 +199,7 @@ impl Grid {
     pub fn btile_height_clk(&self) -> usize {
         match self.kind {
             GridKind::Xc2000 => unreachable!(),
-            GridKind::Xc3000 | GridKind::Xc3000A => unreachable!(),
+            GridKind::Xc3000 | GridKind::Xc3000A => 1,
             GridKind::Xc4000 | GridKind::Xc4000A | GridKind::Xc4000H | GridKind::Xc4000E => 1,
             GridKind::Xc4000Ex | GridKind::Xc4000Xla | GridKind::Xc4000Xv | GridKind::SpartanXl => {
                 2
@@ -209,14 +209,18 @@ impl Grid {
     }
 
     pub fn btile_height_brk(&self) -> usize {
-        2
+        if self.kind == GridKind::Xc2000 {
+            1
+        } else {
+            2
+        }
     }
 
     pub fn btile_width_main(&self, col: ColId) -> usize {
         if col == self.col_lio() {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 21,
+                GridKind::Xc3000 | GridKind::Xc3000A => 29,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
                     26
                 }
@@ -226,8 +230,8 @@ impl Grid {
             }
         } else if col == self.col_rio() {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 27,
+                GridKind::Xc3000 | GridKind::Xc3000A => 36,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
                     41
                 }
@@ -237,8 +241,8 @@ impl Grid {
             }
         } else {
             match self.kind {
-                GridKind::Xc2000 => todo!(),
-                GridKind::Xc3000 | GridKind::Xc3000A => todo!(),
+                GridKind::Xc2000 => 18,
+                GridKind::Xc3000 | GridKind::Xc3000A => 22,
                 GridKind::Xc4000 | GridKind::Xc4000H | GridKind::Xc4000E | GridKind::SpartanXl => {
                     36
                 }
@@ -262,7 +266,11 @@ impl Grid {
     }
 
     pub fn btile_width_brk(&self) -> usize {
-        1
+        if self.kind == GridKind::Xc2000 {
+            2
+        } else {
+            1
+        }
     }
 }
 

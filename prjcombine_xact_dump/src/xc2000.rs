@@ -177,7 +177,7 @@ pub fn make_intdb() -> IntDb {
 
     for name in [
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.BL", "CLB.BR", "CLB.T", "CLB.TL", "CLB.TR",
-        "CLB.ML", "CLB.MR",
+        "CLB.ML", "CLB.MR", "CLB.BR1", "CLB.TR1",
     ] {
         let mut node = NodeKind {
             tiles: EntityVec::from_iter([()]),
