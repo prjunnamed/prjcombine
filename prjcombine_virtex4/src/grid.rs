@@ -1,5 +1,6 @@
 use prjcombine_int::grid::{ColId, DieId, RowId};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::BTreeSet;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
@@ -7,7 +8,7 @@ entity_id! {
     pub id RegId u32, delta;
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
     pub columns: EntityVec<ColId, ColumnKind>,
@@ -30,7 +31,7 @@ pub struct Grid {
     pub has_no_tbuturn: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Virtex4,
     Virtex5,
@@ -38,7 +39,7 @@ pub enum GridKind {
     Virtex7,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ColumnKind {
     ClbLL,
     ClbLM,
@@ -51,60 +52,60 @@ pub enum ColumnKind {
     Clk,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum CfgRowKind {
     Dcm,
     Ccm,
     Sysmon,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum GtKind {
     Gtp,
     Gtx,
     Gth,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum IoKind {
     Hpio,
     Hrio,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct IoColumn {
     pub col: ColId,
     pub regs: EntityVec<RegId, Option<IoKind>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct GtColumn {
     pub col: ColId,
     pub is_middle: bool,
     pub regs: EntityVec<RegId, Option<GtKind>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct HardColumn {
     pub col: ColId,
     pub rows_emac: Vec<RowId>,
     pub rows_pcie: Vec<RowId>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Pcie2Kind {
     Left,
     Right,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Pcie2 {
     pub kind: Pcie2Kind,
     pub col: ColId,
     pub row: RowId,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum DisabledPart {
     Emac(RowId),
     GtxRow(RegId),
@@ -112,7 +113,7 @@ pub enum DisabledPart {
     Gtp,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Interposer {
     pub primary: DieId,
     pub gtz_bot: bool,
@@ -216,5 +217,72 @@ impl Grid {
             res.push(self.row_reg_hclk(self.reg_cfg + 2));
         }
         res
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "kind": match self.kind {
+                GridKind::Virtex4 => "virtex4",
+                GridKind::Virtex5 => "virtex5",
+                GridKind::Virtex6 => "virtex6",
+                GridKind::Virtex7 => "virtex7",
+            },
+            "columns": Vec::from_iter(self.columns.values().map(|kind| match kind {
+                ColumnKind::ClbLL => "CLBLL".to_string(),
+                ColumnKind::ClbLM => "CLBLM".to_string(),
+                ColumnKind::Bram => "BRAM".to_string(),
+                ColumnKind::Dsp => "DSP".to_string(),
+                ColumnKind::Io => "IO".to_string(),
+                ColumnKind::Cfg => "CFG".to_string(),
+                ColumnKind::Gt => "GT".to_string(),
+                ColumnKind::Cmt => "CMT".to_string(),
+                ColumnKind::Clk => "CLK".to_string(),
+            })),
+            "cols_vbrk": self.cols_vbrk,
+            "cols_mgt_buf": self.cols_mgt_buf,
+            "cols_qbuf": self.cols_qbuf,
+            "col_hard": self.col_hard,
+            "cols_io": Vec::from_iter(self.cols_io.iter().map(|iocol| json!({
+                "col": iocol.col,
+                "regs": Vec::from_iter(iocol.regs.values().map(|kind| match kind {
+                    None => serde_json::Value::Null,
+                    Some(IoKind::Hpio) => "HPIO".into(),
+                    Some(IoKind::Hrio) => "HRIO".into(),
+                })),
+            }))),
+            "cols_gt": Vec::from_iter(self.cols_gt.iter().map(|gtcol| json!({
+                "col": gtcol.col,
+                "is_middle": gtcol.is_middle,
+                "regs": Vec::from_iter(gtcol.regs.values().map(|kind| match kind {
+                    None => serde_json::Value::Null,
+                    Some(GtKind::Gtp) => "GTP".into(),
+                    Some(GtKind::Gtx) => "GTX".into(),
+                    Some(GtKind::Gth) => "GTH".into(),
+                })),
+            }))),
+            "regs": self.regs,
+            "reg_cfg": self.reg_cfg,
+            "reg_clk": self.reg_clk,
+            "rows_cfg": serde_json::Map::from_iter(self.rows_cfg.iter().map(|(row, kind)|
+                (row.to_string(), match kind {
+                    CfgRowKind::Dcm => "DCM",
+                    CfgRowKind::Ccm => "CCM",
+                    CfgRowKind::Sysmon => "SYSMON",
+                }.into())
+            )),
+            "holes_ppc": self.holes_ppc,
+            "holes_pcie2": Vec::from_iter(self.holes_pcie2.iter().map(|hole| json!({
+                "kind": match hole.kind {
+                    Pcie2Kind::Left => "LEFT",
+                    Pcie2Kind::Right => "RIGHT",
+                },
+                "col": hole.col,
+                "row": hole.row,
+            }))),
+            "holes_pcie3": self.holes_pcie3,
+            "has_ps": self.has_ps,
+            "has_slr": self.has_slr,
+            "has_no_tbuturn": self.has_no_tbuturn,
+        })
     }
 }

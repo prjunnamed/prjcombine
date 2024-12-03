@@ -3,8 +3,9 @@ use std::{collections::BTreeMap, fmt::Display};
 use itertools::Itertools;
 use prjcombine_int::grid::SimpleIoCoord;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
     Cclk,
     Done,
@@ -17,7 +18,7 @@ pub enum CfgPin {
     M2,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Io(SimpleIoCoord),
     Gnd,
@@ -28,7 +29,7 @@ pub enum BondPin {
     VccInt,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
 }
@@ -48,6 +49,30 @@ impl Bond {
             }
         }
         ExpandedBond { bond: self, ios }
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "pins": serde_json::Map::from_iter(
+                self.pins.iter().map(|(pin, pad)| (pin.clone(), match pad {
+                    BondPin::Io(io) => io.to_string(),
+                    BondPin::Gnd => "GND".to_string(),
+                    BondPin::Vcc => "VCC".to_string(),
+                    BondPin::Nc => "NC".to_string(),
+                    BondPin::Cfg(cfg_pin) => match cfg_pin {
+                        CfgPin::Cclk => "CCLK",
+                        CfgPin::Done => "DONE",
+                        CfgPin::ProgB => "PROG_B",
+                        CfgPin::PwrdwnB => "PWRDWN_B",
+                        CfgPin::M0 => "M0",
+                        CfgPin::M1 => "M1",
+                        CfgPin::Tdo => "TDO",
+                        CfgPin::M2 => "M2",
+                    }.to_string(),
+                    BondPin::VccInt => "VCCINT".to_string(),
+                }.into()))
+            ),
+        })
     }
 }
 

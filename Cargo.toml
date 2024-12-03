@@ -64,6 +64,8 @@ members = [
 	"prjcombine_xact_geom",
 	"prjcombine_xact_dump",
 	"prjcombine_xact_hammer",
+	"prjcombine_xilinx_rdis",
+	"prjcombine_xilinx_finish",
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
@@ -71,7 +73,6 @@ members = [
 	"prjcombine_xc9500",
 	"prjcombine_xpla3",
 	"prjcombine_xc2c",
-	"prjcombine_xilinx_rdis",
 ]
 resolver = "2"
 

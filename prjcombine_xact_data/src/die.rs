@@ -719,7 +719,7 @@ impl Die {
                         let unk0 = stream.get_u16();
                         let unk1 = stream.get_u16();
                         let idx = stream.get_u32();
-                        assert_eq!(i, idx.try_into().unwrap());
+                        assert_eq!(i, usize::try_from(idx).unwrap());
                         let unk2 = stream.get_u16();
                         let pin_x = stream.get_u16();
                         let pin_y = stream.get_u16();
@@ -748,7 +748,7 @@ impl Die {
                     let mut pips = vec![];
                     for i in 0..num_pips {
                         let idx = stream.get_u32();
-                        assert_eq!(i, idx.try_into().unwrap());
+                        assert_eq!(i, usize::try_from(idx).unwrap());
                         let seg_dst: usize = stream.get_u32().try_into().unwrap();
                         let seg_src: usize = stream.get_u32().try_into().unwrap();
                         let x = stream.get_u16();
@@ -865,10 +865,10 @@ impl Die {
         assert_eq!(num_prims, prims.len());
         assert_eq!(num_primdefs, primdefs.len());
         assert_eq!(num_boxdefs, boxdefs.len());
-        assert_eq!(num_pins, prims.values().map(|prim| prim.pins.len()).sum());
+        assert_eq!(num_pins, prims.values().map(|prim| prim.pins.len()).sum::<usize>());
         assert_eq!(
             num_pindefs,
-            primdefs.values().map(|primdef| primdef.pins.len()).sum()
+            primdefs.values().map(|primdef| primdef.pins.len()).sum::<usize>()
         );
         assert_eq!(num_tile_cols * num_tile_rows, num_tiles);
         if is_tiled {

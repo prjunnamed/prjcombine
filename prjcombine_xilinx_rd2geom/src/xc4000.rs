@@ -25,7 +25,7 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     }
     grid.cfg_io = cfg_io;
     (
-        make_device(rd, Grid::Xc4000(grid), bonds, BTreeSet::new()),
+        make_device(rd, Grid::Xc2000(grid), bonds, BTreeSet::new()),
         rd.family.to_string(),
         intdb,
         ndb,

@@ -5,6 +5,7 @@ use std::{
 
 use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use unnamed_entity::EntityId;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -30,7 +31,7 @@ pub enum SharedCfgPin {
     M1,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Xc2000,
     Xc3000,
@@ -77,7 +78,7 @@ impl GridKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
     pub columns: usize,
@@ -271,6 +272,51 @@ impl Grid {
         } else {
             1
         }
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "kind": match self.kind {
+                GridKind::Xc2000 => "xc2000",
+                GridKind::Xc3000 => "xc3000",
+                GridKind::Xc3000A => "xc3000a",
+                GridKind::Xc4000 => "xc4000",
+                GridKind::Xc4000A => "xc4000a",
+                GridKind::Xc4000H => "xc4000h",
+                GridKind::Xc4000E => "xc4000e",
+                GridKind::Xc4000Ex => "xc4000ex",
+                GridKind::Xc4000Xla => "xc4000xla",
+                GridKind::Xc4000Xv => "xc4000xv",
+                GridKind::SpartanXl => "spartanxl",
+                GridKind::Xc5200 => "xc5200",
+            },
+            "columns": self.columns,
+            "rows": self.rows,
+            "is_small": self.is_small,
+            "is_buff_large": self.is_buff_large,
+            "cols_bidi": Vec::from_iter(self.cols_bidi.iter().map(|col| col.to_idx())),
+            "rows_bidi": Vec::from_iter(self.cols_bidi.iter().map(|row| row.to_idx())),
+            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
+                (match k {
+                    SharedCfgPin::Addr(i) => format!("A{i}"),
+                    SharedCfgPin::Data(i) => format!("D{i}"),
+                    SharedCfgPin::Ldc => "LDC".to_string(),
+                    SharedCfgPin::Hdc => "HDC".to_string(),
+                    SharedCfgPin::RclkB => "RCLK_B".to_string(),
+                    SharedCfgPin::Dout => "DOUT".to_string(),
+                    SharedCfgPin::M2 => "M2".to_string(),
+                    SharedCfgPin::InitB => "INIT_B".to_string(),
+                    SharedCfgPin::Cs0B => "CS0_B".to_string(),
+                    SharedCfgPin::Cs1B => "CS1_B".to_string(),
+                    SharedCfgPin::Tck => "TCK".to_string(),
+                    SharedCfgPin::Tdi => "TDI".to_string(),
+                    SharedCfgPin::Tms => "TMS".to_string(),
+                    SharedCfgPin::Tdo => "TDO".to_string(),
+                    SharedCfgPin::M0 => "M0".to_string(),
+                    SharedCfgPin::M1 => "M1".to_string(),
+                }, io.to_string().into())
+            })),
+        })
     }
 }
 

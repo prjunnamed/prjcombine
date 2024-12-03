@@ -32,7 +32,7 @@ mod xc5200;
 struct Args {
     xact: PathBuf,
     geomdb: PathBuf,
-    json: PathBuf,
+    tiledb: PathBuf,
     parts: Vec<String>,
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
@@ -132,6 +132,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    std::fs::write(args.json, tiledb.to_json().to_string())?;
+    tiledb.to_file(&args.tiledb)?;
     Ok(())
 }

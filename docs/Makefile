@@ -28,7 +28,7 @@ generated-xpla3: gen_xpla3.py ../databases/xpla3.json
 generated-xc2c: gen_xc2c.py ../databases/xc2c.json
 	python gen_xc2c.py
 
-generated-xilinx: gen_xilinx.py ../databases/xc2v-tiledb.json ../databases/xc3s-tiledb.json
+generated-xilinx: gen_xilinx.py ../databases/virtex2.json ../databases/spartan3.json
 	python gen_xilinx.py
 
 .PHONY: generated-xc9500 generated-xpla3 generated-xc2c generated-xilinx

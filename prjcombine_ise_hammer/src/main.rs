@@ -43,7 +43,7 @@ use crate::diff::CollectorCtx;
 struct Args {
     toolchain: PathBuf,
     geomdb: PathBuf,
-    json: PathBuf,
+    tiledb: PathBuf,
     parts: Vec<String>,
     #[arg(long)]
     skip_io: bool,
@@ -951,6 +951,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    std::fs::write(args.json, tiledb.to_json().to_string())?;
+    tiledb.to_file(&args.tiledb)?;
     Ok(())
 }

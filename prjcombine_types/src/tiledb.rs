@@ -1,12 +1,12 @@
 use core::fmt::Debug;
-use std::collections::{btree_map, BTreeMap};
+use std::{collections::{btree_map, BTreeMap}, error::Error, fs::File, path::Path};
 
 use bitvec::vec::BitVec;
 use itertools::*;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub struct TileBit {
     pub tile: usize,
     pub frame: usize,
@@ -195,7 +195,7 @@ pub enum TileItemKind {
     BitVec { invert: BitVec },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum DbValue {
     String(String),
     BitVec(BitVec),
@@ -236,7 +236,7 @@ impl DbValue {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TileDb {
     pub tiles: BTreeMap<String, Tile<TileBit>>,
     pub device_data: BTreeMap<String, BTreeMap<String, DbValue>>,
@@ -250,6 +250,20 @@ impl TileDb {
             device_data: BTreeMap::new(),
             misc_data: BTreeMap::new(),
         }
+    }
+
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
+        let f = File::open(path)?;
+        let cf = zstd::stream::Decoder::new(f)?;
+        Ok(bincode::deserialize_from(cf)?)
+    }
+
+    pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn Error>> {
+        let f = File::create(path)?;
+        let mut cf = zstd::stream::Encoder::new(f, 9)?;
+        bincode::serialize_into(&mut cf, self)?;
+        cf.finish()?;
+        Ok(())
     }
 
     pub fn insert(

@@ -21,7 +21,7 @@ entity_id! {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Grid {
-    Xc4000(prjcombine_xc2000::grid::Grid),
+    Xc2000(prjcombine_xc2000::grid::Grid),
     Virtex(prjcombine_virtex::grid::Grid),
     Virtex2(prjcombine_virtex2::grid::Grid),
     Spartan6(prjcombine_spartan6::grid::Grid),
@@ -204,7 +204,7 @@ impl GeomDb {
     pub fn expand_grid(&self, dev: &Device) -> ExpandedDevice {
         let fgrid = &self.grids[*dev.grids.first().unwrap()];
         match fgrid {
-            Grid::Xc4000(grid) => {
+            Grid::Xc2000(grid) => {
                 let intdb = &self.ints[match grid.kind {
                     prjcombine_xc2000::grid::GridKind::Xc2000 => "xc2000",
                     prjcombine_xc2000::grid::GridKind::Xc3000 => "xc3000",

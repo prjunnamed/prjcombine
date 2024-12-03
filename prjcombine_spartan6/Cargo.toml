@@ -4,8 +4,12 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+serde_json.workspace = true
+zstd.workspace = true
+bincode.workspace = true
 unnamed_entity.workspace = true
 prjcombine_int.workspace = true
+prjcombine_types.workspace = true
 prjcombine_virtex_bitstream.workspace = true
 serde.workspace = true
 enum-map.workspace = true

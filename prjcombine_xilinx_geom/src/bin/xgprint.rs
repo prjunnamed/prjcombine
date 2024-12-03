@@ -1376,7 +1376,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!();
             if args.grids {
                 match grid {
-                    Grid::Xc4000(g) => print!("{}", g),
+                    Grid::Xc2000(g) => print!("{}", g),
                     Grid::Virtex(g) => virtex::print_grid(g),
                     Grid::Virtex2(g) => virtex2::print_grid(g),
                     Grid::Spartan6(g) => spartan6::print_grid(g),

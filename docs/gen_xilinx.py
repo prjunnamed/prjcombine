@@ -1,17 +1,32 @@
 import json
 
-for kind in [
-    "xc2k",
-    "xc3k", "xc3ka",
-    "xc4k", "xc4ka","xc4kh", "xc4ke", "xc4kex", "xc4kxla", "xc4kxv", "xcsxl",
-    "xc5k",
-    "xcv",
-    "xc2v", "xc3s", "xcexf",
-    "xc6s",
-    "xc4v", "xc5v", "xc6v", "xc7v"
+for (kind, dbname) in [
+    ("xc2k", "xc2000"),
+    ("xc3k", "xc3000"),
+    ("xc3ka", "xc3000a"),
+    ("xc4k", "xc4000"),
+    ("xc4ka", "xc4000a"),
+    ("xc4kh", "xc4000h"),
+    ("xc4ke", "xc4000e"),
+    ("xc4kex", "xc4000ex"),
+    ("xc4kxla", "xc4000xla"),
+    ("xc4kxv", "xc4000xv"),
+    ("xcsxl", "spartanxl"),
+    ("xc5k", "xc5200"),
+    ("xcv", "virtex"),
+    ("xc2v", "virtex2"),
+    ("xc3s", "spartan3"),
+    ("xcexf", "fpgacore"),
+    ("xc6s", "spartan6"),
+    ("xc4v", "virtex4"),
+    ("xc5v", "virtex5"),
+    ("xc6v", "virtex6"),
+    ("xc7v", "virtex7"),
 ]:
-    with open(f"../databases/{kind}-tiledb.json") as dbf:
+    with open(f"../databases/{dbname}.json") as dbf:
         db = json.load(dbf)
+
+    db = db["tiles"]
 
     def emit_misc_table(fname, *prefixes):
         items = []

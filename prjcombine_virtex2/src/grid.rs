@@ -1,12 +1,13 @@
 use prjcombine_int::db::Dir;
 use prjcombine_int::grid::{ColId, Coord, RowId, SimpleIoCoord, TileIobId};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::BTreeMap;
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::iob::{get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobTileData};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Virtex2,
     Virtex2P,
@@ -33,7 +34,7 @@ impl GridKind {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
     pub columns: EntityVec<ColId, Column>,
@@ -59,13 +60,13 @@ pub struct Grid {
     pub dci_io_alt: BTreeMap<u32, (SimpleIoCoord, SimpleIoCoord)>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Column {
     pub kind: ColumnKind,
     pub io: ColumnIoKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ColumnKind {
     Io,
     Clb,
@@ -74,7 +75,7 @@ pub enum ColumnKind {
     Dsp,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ColumnIoKind {
     None,
     Single,
@@ -90,7 +91,7 @@ pub enum ColumnIoKind {
     DoubleRightClk(u8),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum RowIoKind {
     None,
     Single,
@@ -101,7 +102,7 @@ pub enum RowIoKind {
     DoubleTop(u8),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Dcms {
     Two,
     Four,
@@ -606,5 +607,106 @@ impl Grid {
         } else {
             unreachable!()
         }
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "kind": match self.kind {
+                GridKind::Virtex2 => "virtex2",
+                GridKind::Virtex2P => "virtex2p",
+                GridKind::Virtex2PX => "virtex2px",
+                GridKind::Spartan3 => "spartan3",
+                GridKind::Spartan3E => "spartan3e",
+                GridKind::Spartan3A => "spartan3a",
+                GridKind::Spartan3ADsp => "spartan3adsp",
+                GridKind::FpgaCore => "fpgacore",
+            },
+            "columns": Vec::from_iter(self.columns.values().map(|column| {
+                json!({
+                    "kind": match column.kind {
+                        ColumnKind::Io => "IO".to_string(),
+                        ColumnKind::Clb => "CLB".to_string(),
+                        ColumnKind::Bram => "BRAM".to_string(),
+                        ColumnKind::BramCont(i) => format!("BRAM_CONT:{i}"),
+                        ColumnKind::Dsp => "DSP".to_string(),
+                    },
+                    "io": match column.io {
+                        ColumnIoKind::None => serde_json::Value::Null,
+                        ColumnIoKind::Single => "SINGLE".into(),
+                        ColumnIoKind::Double(i) => format!("DOUBLE:{i}").into(),
+                        ColumnIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
+                        ColumnIoKind::Quad(i) => format!("QUAD:{i}").into(),
+                        ColumnIoKind::SingleLeft => "SINGLE_LEFT".into(),
+                        ColumnIoKind::SingleRight => "SINGLE_RIGHT".into(),
+                        ColumnIoKind::SingleLeftAlt => "SINGLE_LEFT_ALT".into(),
+                        ColumnIoKind::SingleRightAlt => "SINGLE_RIGHT_ALT".into(),
+                        ColumnIoKind::DoubleLeft(i) => format!("DOUBLE_LEFT:{i}").into(),
+                        ColumnIoKind::DoubleRight(i) => format!("DOUBLE_RIGHT:{i}").into(),
+                        ColumnIoKind::DoubleRightClk(i) => format!("DOUBLE_RIGHT_CLK:{i}").into(),
+                    },
+                })
+            })),
+            "cols_clkv": self.cols_clkv,
+            "cols_gt": Vec::from_iter(self.cols_gt.iter().map(|(col, (bank_b, bank_t))| json!({
+                "column": col,
+                "bank_b": bank_b,
+                "bank_t": bank_t,
+            }))),
+            "rows": Vec::from_iter(self.rows.values().map(|io| match io {
+                RowIoKind::None => serde_json::Value::Null,
+                RowIoKind::Single => "SINGLE".into(),
+                RowIoKind::Double(i) => format!("DOUBLE:{i}").into(),
+                RowIoKind::Triple(i) => format!("TRIPLE:{i}").into(),
+                RowIoKind::Quad(i) => format!("QUAD:{i}").into(),
+                RowIoKind::DoubleBot(i) => format!("DOUBLE_BOT:{i}").into(),
+                RowIoKind::DoubleTop(i) => format!("DOUBLE_TOP:{i}").into(),
+            })),
+            "rows_ram": self.rows_ram,
+            "rows_hclk": self.rows_hclk,
+            "row_pci": self.row_pci,
+            "holes_ppc": self.holes_ppc,
+            "dcms": match self.dcms {
+                None => serde_json::Value::Null,
+                Some(dcms) => match dcms {
+                    Dcms::Two => 2,
+                    Dcms::Four => 4,
+                    Dcms::Eight => 8,
+                }.into()
+            },
+            "has_ll": self.has_ll,
+            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
+                (match k {
+                    SharedCfgPin::Data(i) => format!("D{i}"),
+                    SharedCfgPin::Addr(i) => format!("A{i}"),
+                    SharedCfgPin::CsiB => "CSI_B".to_string(),
+                    SharedCfgPin::CsoB => "CSO_B".to_string(),
+                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
+                    SharedCfgPin::Dout => "DOUT".to_string(),
+                    SharedCfgPin::InitB => "INIT_B".to_string(),
+                    SharedCfgPin::Cclk => "CCLK".to_string(),
+                    SharedCfgPin::M0 => "M0".to_string(),
+                    SharedCfgPin::M1 => "M1".to_string(),
+                    SharedCfgPin::M2 => "M2".to_string(),
+                    SharedCfgPin::Ldc0 => "LDC0".to_string(),
+                    SharedCfgPin::Ldc1 => "LDC1".to_string(),
+                    SharedCfgPin::Ldc2 => "LDC2".to_string(),
+                    SharedCfgPin::Hdc => "HDC".to_string(),
+                    SharedCfgPin::HswapEn => "HSWAP_EN".to_string(),
+                    SharedCfgPin::Awake => "AWAKE".to_string(),
+                }, io.to_string().into())
+            })),
+            "dci_io": serde_json::Map::from_iter(self.dci_io.iter().map(|(k, (io_a, io_b))| {
+                (k.to_string(), json!({
+                    "vrp": io_a.to_string(),
+                    "vrn": io_b.to_string(),
+                }))
+            })),
+            "dci_io_alt": serde_json::Map::from_iter(self.dci_io_alt.iter().map(|(k, (io_a, io_b))| {
+                (k.to_string(), json!({
+                    "vrp": io_a.to_string(),
+                    "vrn": io_b.to_string(),
+                }))
+            })),
+        })
     }
 }

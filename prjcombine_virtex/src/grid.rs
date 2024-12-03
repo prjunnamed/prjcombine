@@ -1,9 +1,10 @@
 use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Virtex,
     VirtexE,
@@ -19,7 +20,7 @@ pub enum SharedCfgPin {
     Dout,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Grid {
     pub kind: GridKind,
     pub columns: usize,
@@ -76,5 +77,28 @@ impl Grid {
 
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.rows)
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "kind": match self.kind {
+                GridKind::Virtex => "virtex",
+                GridKind::VirtexE => "virtexe",
+                GridKind::VirtexEM => "virtexem",
+            },
+            "columns": self.columns,
+            "cols_bram": self.cols_bram,
+            "cols_clkv": self.cols_clkv,
+            "rows": self.rows,
+            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
+                (match k {
+                    SharedCfgPin::Data(i) => format!("D{i}"),
+                    SharedCfgPin::CsB => "CS_B".to_string(),
+                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
+                    SharedCfgPin::Dout => "DOUT".to_string(),
+                    SharedCfgPin::InitB => "INIT_B".to_string(),
+                }, io.to_string().into())
+            }))
+        })
     }
 }

@@ -1,5 +1,6 @@
 use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::BTreeMap;
 use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
@@ -7,7 +8,7 @@ entity_id! {
     pub id RegId u32, delta;
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Grid {
     pub columns: EntityVec<ColId, Column>,
     pub col_clk: ColId,
@@ -54,14 +55,14 @@ pub enum SharedCfgPin {
     Scp(u8), // ×8
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Column {
     pub kind: ColumnKind,
     pub bio: ColumnIoKind,
     pub tio: ColumnIoKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ColumnKind {
     Io,
     CleXL,
@@ -72,7 +73,7 @@ pub enum ColumnKind {
     DspPlus,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum ColumnIoKind {
     None,
     Both,
@@ -80,13 +81,13 @@ pub enum ColumnIoKind {
     Outer,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Row {
     pub lio: bool,
     pub rio: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Gts {
     None,
     Single(ColId),
@@ -94,13 +95,13 @@ pub enum Gts {
     Quad(ColId, ColId),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct McbIo {
     pub row: RowId,
     pub iob: TileIobId,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Mcb {
     pub row_mcb: RowId,
     pub row_mui: [RowId; 8],
@@ -118,7 +119,7 @@ pub struct Mcb {
     pub io_reset: McbIo,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum DisabledPart {
     Gtp,
     Mcb,
@@ -265,5 +266,88 @@ impl Grid {
             ],
             _ => unreachable!(),
         }
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "columns": Vec::from_iter(self.columns.values().map(|column| {
+                json!({
+                    "kind": match column.kind {
+                        ColumnKind::Io => "IO",
+                        ColumnKind::CleXL => "CLEXL",
+                        ColumnKind::CleXM => "CLEXM",
+                        ColumnKind::CleClk => "CLEXL_CLK",
+                        ColumnKind::Bram => "BRAM",
+                        ColumnKind::Dsp => "DSP",
+                        ColumnKind::DspPlus => "DSP_PLUS",
+                    },
+                    "bio": match column.bio {
+                        ColumnIoKind::None => "NONE",
+                        ColumnIoKind::Both => "BOTH",
+                        ColumnIoKind::Outer => "OUTER",
+                        ColumnIoKind::Inner => "INNER",
+                    },
+                    "tio": match column.tio {
+                        ColumnIoKind::None => "NONE",
+                        ColumnIoKind::Both => "BOTH",
+                        ColumnIoKind::Outer => "OUTER",
+                        ColumnIoKind::Inner => "INNER",
+                    },
+                })
+            })),
+            "col_clk": self.col_clk,
+            "cols_clk_fold": self.cols_clk_fold,
+            "cols_reg_buf": self.cols_reg_buf,
+            "rows": self.rows,
+            "rows_midbuf": self.rows_midbuf,
+            "rows_hclkbuf": self.rows_hclkbuf,
+            "rows_pci_ce_split": self.rows_pci_ce_split,
+            "rows_bank_split": self.rows_bank_split,
+            "row_mcb_split": self.row_mcb_split,
+            "gts": match self.gts {
+                Gts::None => serde_json::Value::Null,
+                Gts::Single(col_l) => json!({
+                    "num": 1,
+                    "col_l": col_l,
+                }),
+                Gts::Double(col_l, col_r) => json!({
+                    "num": 2,
+                    "col_l": col_l,
+                    "col_r": col_r,
+                }),
+                Gts::Quad(col_l, col_r) => json!({
+                    "num": 4,
+                    "col_l": col_l,
+                    "col_r": col_r,
+                }),
+            },
+            "mcbs": self.mcbs,
+            "cfg_io": serde_json::Map::from_iter(self.cfg_io.iter().map(|(k, io)| {
+                (match k {
+                    SharedCfgPin::Data(i) => format!("D{i}"),
+                    SharedCfgPin::Addr(i) => format!("A{i}"),
+                    SharedCfgPin::Scp(i) => format!("SCP{i}"),
+                    SharedCfgPin::CsoB => "CSO_B".to_string(),
+                    SharedCfgPin::RdWrB => "RDWR_B".to_string(),
+                    SharedCfgPin::Dout => "DOUT".to_string(),
+                    SharedCfgPin::InitB => "INIT_B".to_string(),
+                    SharedCfgPin::Cclk => "CCLK".to_string(),
+                    SharedCfgPin::UserCclk => "USER_CCLK".to_string(),
+                    SharedCfgPin::Mosi => "MOSI".to_string(),
+                    SharedCfgPin::CmpMosi => "CMP_MOSI".to_string(),
+                    SharedCfgPin::CmpClk => "CMP_CLK".to_string(),
+                    SharedCfgPin::FcsB => "FCS_B".to_string(),
+                    SharedCfgPin::FoeB => "FOE_B".to_string(),
+                    SharedCfgPin::FweB => "FWE_B".to_string(),
+                    SharedCfgPin::Ldc => "LDC".to_string(),
+                    SharedCfgPin::M0 => "M0".to_string(),
+                    SharedCfgPin::M1 => "M1".to_string(),
+                    SharedCfgPin::Hdc => "HDC".to_string(),
+                    SharedCfgPin::HswapEn => "HSWAP_EN".to_string(),
+                    SharedCfgPin::Awake => "AWAKE".to_string(),
+                }, io.to_string().into())
+            })),
+            "has_encrypt": self.has_encrypt,
+        })
     }
 }
