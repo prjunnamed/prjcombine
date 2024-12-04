@@ -1,9 +1,9 @@
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_int::grid::{ColId, DieId, RowId, TileIobId};
 use prjcombine_rawdump::{Coord, NodeId, Part, TkSiteSlot};
 use prjcombine_ultrascale::grid::{
     BramKind, CleLKind, CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart,
-    DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, HdioIobId, HpioIobId, Interposer,
-    IoColumn, IoRowKind, Ps, PsIntfKind, RegId,
+    DspKind, Grid, GridKind, HardColumn, HardKind, HardRowKind, Interposer, IoColumn, IoRowKind,
+    Ps, PsIntfKind, RegId,
 };
 use prjcombine_ultrascale_naming::DeviceNaming;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
@@ -57,11 +57,13 @@ fn make_columns(int: &IntGrid) -> EntityVec<ColId, Column> {
         "ILMAC_ILMAC_FT",
         // Ultrascale+
         "CFG_CONFIG",
+        "CSEC_CONFIG_FT",
         "PCIE4_PCIE4_FT",
         "PCIE4C_PCIE4C_FT",
         "CMAC",
         "ILKN_ILKN_FT",
         "HDIO_BOT_RIGHT",
+        "HDIOLC_HDIOL_BOT_RIGHT_CFG_FT",
         "DFE_DFE_TILEA_FT",
         "DFE_DFE_TILEG_FT",
     ]) {
@@ -277,7 +279,9 @@ fn get_cols_hard(
         ("ILMAC_ILMAC_FT", HardRowKind::Ilkn),
         // Ultrascale+
         ("CFG_CONFIG", HardRowKind::Cfg),
+        ("CSEC_CONFIG_FT", HardRowKind::Cfg),
         ("CFGIO_IOB20", HardRowKind::Ams),
+        ("CFGIOLC_IOB20_FT", HardRowKind::Ams),
         ("PCIE4_PCIE4_FT", HardRowKind::Pcie),
         ("PCIE4C_PCIE4C_FT", HardRowKind::PciePlus),
         ("CMAC", HardRowKind::Cmac),
@@ -285,6 +289,8 @@ fn get_cols_hard(
         ("DFE_DFE_TILEA_FT", HardRowKind::DfeA),
         ("DFE_DFE_TILEG_FT", HardRowKind::DfeG),
         ("HDIO_BOT_RIGHT", HardRowKind::Hdio),
+        ("HDIOLC_HDIOL_BOT_RIGHT_CFG_FT", HardRowKind::HdioLc),
+        ("HDIOLC_HDIOL_BOT_RIGHT_AUX_FT", HardRowKind::HdioLc),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
             let col = int.lookup_column_inter(x);
@@ -309,7 +315,7 @@ fn get_cols_hard(
                             dieid,
                             col - 1,
                             reg,
-                            HdioIobId::from_idx(i),
+                            TileIobId::from_idx(i),
                         ));
                     }
                 }
@@ -323,7 +329,7 @@ fn get_cols_hard(
                             dieid,
                             col - 1,
                             reg,
-                            HdioIobId::from_idx(i + 12),
+                            TileIobId::from_idx(i + 12),
                         ));
                     }
                 }
@@ -381,6 +387,7 @@ fn get_cols_io(
         ("GTY_QUAD_LEFT_FT", IoRowKind::Gty),
         // Ultrascale+
         // [reuse HPIO_L]
+        ("HDIOLC_HDIOL_BOT_LEFT_FT", IoRowKind::HdioLc),
         ("GTH_QUAD_LEFT", IoRowKind::Gth),
         ("GTY_L", IoRowKind::Gty),
         ("GTM_DUAL_LEFT_FT", IoRowKind::Gtm),
@@ -411,7 +418,7 @@ fn get_cols_io(
                             dieid,
                             col,
                             reg,
-                            HpioIobId::from_idx(bi + i),
+                            TileIobId::from_idx(bi + i),
                         ));
                     }
                 }
@@ -611,6 +618,7 @@ pub fn make_grids(
         "RCLK_RCLK_DSP_INTF_DC12_L_FT",
         "RCLK_RCLK_DSP_INTF_DC12_R_FT",
         "RCLK_BRAM_INTF_L",
+        "RCLK_BRAM_INTF_R",
         "RCLK_BRAM_INTF_TD_L",
         "RCLK_BRAM_INTF_TD_R",
         "RCLK_RCLK_URAM_INTF_L_FT",
@@ -691,6 +699,7 @@ pub fn make_grids(
             regs: int.rows.len() / 60,
             ps: get_ps(&int),
             has_hbm: int.find_column(&["HBM_DMAH_FT"]).is_some(),
+            has_csec: int.find_column(&["CSEC_CONFIG_FT"]).is_some(),
             is_dmc: int.find_column(&["FSR_DMC_TARGET_FT"]).is_some(),
             is_alt_cfg,
         });

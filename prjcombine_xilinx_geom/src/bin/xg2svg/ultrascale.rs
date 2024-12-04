@@ -95,6 +95,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_class("dsp", "#00aaaa");
     drawer.bel_class("hrio", "#ff33ff");
     drawer.bel_class("hdio", "#ff66ff");
+    drawer.bel_class("hdiolc", "#ff55ff");
     drawer.bel_class("hpio", "#ff00ff");
     drawer.bel_class("gth", "#c000ff");
     drawer.bel_class("gty", "#8000ff");
@@ -166,6 +167,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             IoRowKind::None => continue,
                             IoRowKind::Hpio => "hpio",
                             IoRowKind::Hrio => "hrio",
+                            IoRowKind::HdioLc => "hdiolc",
                             IoRowKind::Gth => "gth",
                             IoRowKind::Gty => "gty",
                             IoRowKind::Gtm => "gtm",
@@ -232,6 +234,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             IoRowKind::None => continue,
                             IoRowKind::Hpio => "hpio",
                             IoRowKind::Hrio => "hrio",
+                            IoRowKind::HdioLc => "hdiolc",
                             IoRowKind::Gth => "gth",
                             IoRowKind::Gty => "gty",
                             IoRowKind::Gtm => "gtm",
@@ -282,6 +285,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             HardRowKind::Ams => "sysmon",
                             HardRowKind::None => continue,
                             HardRowKind::Hdio | HardRowKind::HdioAms => "hdio",
+                            HardRowKind::HdioLc => "hdiolc",
                             HardRowKind::Pcie | HardRowKind::PciePlus => "pcie",
                             HardRowKind::Cmac => "cmac",
                             HardRowKind::Ilkn => "ilkn",

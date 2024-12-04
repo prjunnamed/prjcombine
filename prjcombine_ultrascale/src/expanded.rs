@@ -1,13 +1,13 @@
 use bimap::BiHashMap;
 use enum_map::EnumMap;
-use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::grid::{
-    ColSide, ColumnKindRight, DisabledPart, Grid, GridKind, HardRowKind, HdioIobId, HpioIobId,
-    Interposer, IoRowKind, RegId,
+    ColSide, ColumnKindRight, DisabledPart, Grid, GridKind, HardRowKind, Interposer, IoRowKind,
+    RegId,
 };
 
 use crate::bond::SharedCfgPin;
@@ -27,7 +27,7 @@ pub struct HpioCoord {
     pub col: ColId,
     pub side: ColSide,
     pub reg: RegId,
-    pub iob: HpioIobId,
+    pub iob: TileIobId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -35,13 +35,14 @@ pub struct HdioCoord {
     pub die: DieId,
     pub col: ColId,
     pub reg: RegId,
-    pub iob: HdioIobId,
+    pub iob: TileIobId,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum IoCoord {
     Hpio(HpioCoord),
     Hdio(HdioCoord),
+    HdioLc(HdioCoord),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -100,7 +101,7 @@ pub struct ExpandedDevice<'a> {
     pub gt: Vec<GtCoord>,
     pub col_cfg_io: (ColId, ColSide),
     pub bankxlut: EntityPartVec<ColId, u32>,
-    pub bankylut: EntityVec<DieId, u32>,
+    pub bankylut: EntityVec<DieId, EntityPartVec<RegId, u32>>,
 }
 
 impl ExpandedDevice<'_> {
@@ -140,7 +141,7 @@ impl ExpandedDevice<'_> {
                     _ => unreachable!(),
                 };
                 let x = self.bankxlut[hpio.col];
-                let y = self.bankylut[hpio.die] + hpio.reg.to_idx() as u32;
+                let y = self.bankylut[hpio.die][hpio.reg];
                 let mut bank = x + y;
                 let idx = hpio.iob.to_idx();
                 if bank == 64 && kind == IoKind::Hrio {
@@ -157,12 +158,12 @@ impl ExpandedDevice<'_> {
                         IoDiffKind::None
                     } else if idx % 13 % 2 == 0 {
                         IoDiffKind::P(IoCoord::Hpio(HpioCoord {
-                            iob: HpioIobId::from_idx(idx + 1),
+                            iob: TileIobId::from_idx(idx + 1),
                             ..hpio
                         }))
                     } else {
                         IoDiffKind::N(IoCoord::Hpio(HpioCoord {
-                            iob: HpioIobId::from_idx(idx - 1),
+                            iob: TileIobId::from_idx(idx - 1),
                             ..hpio
                         }))
                     },
@@ -170,24 +171,28 @@ impl ExpandedDevice<'_> {
                     is_gc: matches!(idx, 21 | 22 | 23 | 24 | 26 | 27 | 28 | 29),
                     is_dbc: matches!(idx, 0 | 1 | 6 | 7 | 39 | 40 | 45 | 46),
                     is_qbc: matches!(idx, 13 | 14 | 19 | 20 | 26 | 27 | 32 | 33),
-                    sm_pair: match idx {
-                        4 | 5 => Some(15),
-                        6 | 7 => Some(7),
-                        8 | 9 => Some(14),
-                        10 | 11 => Some(6),
-                        13 | 14 => Some(13),
-                        15 | 16 => Some(5),
-                        17 | 18 => Some(12),
-                        19 | 20 => Some(4),
-                        30 | 31 => Some(11),
-                        32 | 33 => Some(3),
-                        34 | 35 => Some(10),
-                        36 | 37 => Some(2),
-                        39 | 40 => Some(9),
-                        41 | 42 => Some(1),
-                        43 | 44 => Some(8),
-                        45 | 46 => Some(0),
-                        _ => None,
+                    sm_pair: if grid.has_csec {
+                        None
+                    } else {
+                        match idx {
+                            4 | 5 => Some(15),
+                            6 | 7 => Some(7),
+                            8 | 9 => Some(14),
+                            10 | 11 => Some(6),
+                            13 | 14 => Some(13),
+                            15 | 16 => Some(5),
+                            17 | 18 => Some(12),
+                            19 | 20 => Some(4),
+                            30 | 31 => Some(11),
+                            32 | 33 => Some(3),
+                            34 | 35 => Some(10),
+                            36 | 37 => Some(2),
+                            39 | 40 => Some(9),
+                            41 | 42 => Some(1),
+                            43 | 44 => Some(8),
+                            45 | 46 => Some(0),
+                            _ => None,
+                        }
                     },
                 }
             }
@@ -200,19 +205,19 @@ impl ExpandedDevice<'_> {
                     .unwrap();
                 let kind = hcol.regs[hdio.reg];
                 let x = self.bankxlut[hdio.col];
-                let y = self.bankylut[hdio.die] + hdio.reg.to_idx() as u32;
+                let y = self.bankylut[hdio.die][hdio.reg];
                 let bank = x + y;
                 IoInfo {
                     kind: IoKind::Hdio,
                     bank,
                     diff: if hdio.iob.to_idx() % 2 == 0 {
                         IoDiffKind::P(IoCoord::Hdio(HdioCoord {
-                            iob: HdioIobId::from_idx(hdio.iob.to_idx() ^ 1),
+                            iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
                             ..hdio
                         }))
                     } else {
                         IoDiffKind::N(IoCoord::Hdio(HdioCoord {
-                            iob: HdioIobId::from_idx(hdio.iob.to_idx() ^ 1),
+                            iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
                             ..hdio
                         }))
                     },
@@ -245,6 +250,56 @@ impl ExpandedDevice<'_> {
                     },
                 }
             }
+            IoCoord::HdioLc(hdio) => {
+                let grid = self.grids[hdio.die];
+                let x = self.bankxlut[hdio.col];
+                let y =
+                    self.bankylut[hdio.die][hdio.reg] + if hdio.iob.to_idx() >= 42 { 1 } else { 0 };
+                let bank = x + y;
+                let is_ams = hdio.reg == grid.reg_cfg() + 1;
+                IoInfo {
+                    kind: IoKind::Hdio,
+                    bank,
+                    diff: if hdio.iob.to_idx() % 2 == 0 {
+                        IoDiffKind::P(IoCoord::Hdio(HdioCoord {
+                            iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
+                            ..hdio
+                        }))
+                    } else {
+                        IoDiffKind::N(IoCoord::Hdio(HdioCoord {
+                            iob: TileIobId::from_idx(hdio.iob.to_idx() ^ 1),
+                            ..hdio
+                        }))
+                    },
+                    is_vrp: false,
+                    is_qbc: false,
+                    is_dbc: false,
+                    is_gc: matches!(&hdio.iob.to_idx(), 10..14 | 42..46),
+                    sm_pair: if !is_ams {
+                        None
+                    } else {
+                        match hdio.iob.to_idx() {
+                            14 | 15 => Some(15),
+                            16 | 17 => Some(13),
+                            18 | 19 => Some(12),
+                            24 | 25 => Some(9),
+                            30 | 31 => Some(14),
+                            36 | 37 => Some(11),
+                            38 | 39 => Some(10),
+                            40 | 41 => Some(8),
+                            58 | 59 => Some(5),
+                            64 | 65 => Some(3),
+                            66 | 67 => Some(1),
+                            68 | 69 => Some(0),
+                            70 | 71 => Some(7),
+                            72 | 73 => Some(6),
+                            74 | 75 => Some(4),
+                            80 | 81 => Some(2),
+                            _ => None,
+                        }
+                    },
+                }
+            }
         }
     }
 
@@ -257,8 +312,22 @@ impl ExpandedDevice<'_> {
             .unwrap();
         let kind = iocol.regs[gt.reg];
         let x = if gt.col.to_idx() == 0 { 100 } else { 200 };
-        let y = self.bankylut[gt.die] + gt.reg.to_idx() as u32;
+        let y = self.bankylut[gt.die][gt.reg];
         let bank = x + y;
         GtInfo { kind, bank }
+    }
+
+    pub fn is_hdiolc(&self, crd: HdioCoord) -> bool {
+        let grid = self.grids[crd.die];
+        if grid.cols_io.iter().any(|iocol| iocol.col == crd.col) {
+            true
+        } else {
+            let hcol = grid
+                .cols_hard
+                .iter()
+                .find(|hcol| hcol.col == crd.col + 1)
+                .unwrap();
+            hcol.regs[crd.reg] == HardRowKind::HdioLc
+        }
     }
 }

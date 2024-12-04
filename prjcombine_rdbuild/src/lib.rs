@@ -92,6 +92,7 @@ impl PartBuilder {
 
     fn slotify<'a>(
         &mut self,
+        tile_kind: &str,
         sites: &'a [(&'a str, &'a str, Vec<PbSitePin<'a>>)],
     ) -> HashMap<&'a str, TkSiteSlot> {
         fn from_pinnum(pins: &[PbSitePin<'_>], refpin: &str) -> u8 {
@@ -260,9 +261,18 @@ impl PartBuilder {
                 };
                 TkSiteSlot::Indexed(self.part.slot_kinds.get_or_insert(k), idx)
             } else if let Some((base, x, y)) = split_xy(n) {
-                let base = self.part.slot_kinds.get_or_insert(base);
-                let (bx, by) = minxy[&base];
-                TkSiteSlot::Xy(base, (x - bx) as u8, (y - by) as u8)
+                let base_id = self.part.slot_kinds.get_or_insert(base);
+                let (bx, by) = minxy[&base_id];
+                let x = x - bx;
+                let mut y = y - by;
+                if self.part.family == "ultrascaleplus"
+                    && tile_kind == "HPIO_L"
+                    && base == "IOB"
+                    && y >= 30
+                {
+                    y -= 17;
+                }
+                TkSiteSlot::Xy(base_id, x as u8, y as u8)
             } else if let Some((base, _s, x, y)) = split_sxy(n) {
                 let base = self.part.slot_kinds.get_or_insert(base);
                 let (bx, by) = minxy[&base];
@@ -399,7 +409,7 @@ impl PartBuilder {
                 )
             })
             .collect();
-        let slots = self.slotify(sites);
+        let slots = self.slotify(&kind, sites);
         let sites_raw: Vec<_> = sites
             .iter()
             .map(|&(n, k, ref p)| {

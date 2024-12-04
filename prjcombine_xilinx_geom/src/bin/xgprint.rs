@@ -893,6 +893,9 @@ mod ultrascale {
         if grid.has_hbm {
             println!("\tHAS HBM");
         }
+        if grid.has_csec {
+            println!("\tHAS CSEC");
+        }
         if grid.is_dmc {
             println!("\tIS DMC");
         }
@@ -1028,6 +1031,7 @@ mod ultrascale {
             match pad {
                 BondPin::Hpio(bank, idx) => print!("HPIOB_{bank}_{idx}"),
                 BondPin::Hdio(bank, idx) => print!("HDIOB_{bank}_{idx}"),
+                BondPin::HdioLc(bank, idx) => print!("HDIOBLC_{bank}_{idx}"),
                 BondPin::IoVref(bank) => print!("IO_{bank}_VREF"),
                 BondPin::Gt(bank, gtpin) => {
                     print!("GT{bank}.");

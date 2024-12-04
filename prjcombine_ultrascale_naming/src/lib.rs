@@ -76,6 +76,7 @@ impl BelMultiGridBi {
 struct Asx {
     gt: usize,
     io: usize,
+    hdio: usize,
     cfg: usize,
     hbm: usize,
 }
@@ -102,6 +103,7 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
     for &cd in pgrid.columns.values() {
         let cfg = asx;
         let gt = asx;
+        let mut hdio = asx;
         let mut io = asx;
         let mut hbm = asx;
         match cd.l {
@@ -109,11 +111,19 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                 let regs = &pgrid.cols_io[idx].regs;
                 let has_hpio = regs.values().any(|&x| x == IoRowKind::Hpio);
                 let has_hrio = regs.values().any(|&x| x == IoRowKind::Hrio);
-                let has_gt = regs
-                    .values()
-                    .any(|&x| !matches!(x, IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio));
+                let has_hdio = regs.values().any(|&x| x == IoRowKind::HdioLc);
+                let has_gt = regs.values().any(|&x| {
+                    !matches!(
+                        x,
+                        IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc
+                    )
+                });
                 if has_gt {
                     asx += 1;
+                }
+                hdio = asx;
+                if has_hdio {
+                    asx += 6;
                 }
                 io = asx;
                 if has_hrio {
@@ -151,22 +161,31 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                 let has_hdio = regs
                     .values()
                     .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms));
+                let has_hdiolc = regs.values().any(|&x| x == HardRowKind::HdioLc);
                 let has_cfg = regs.values().any(|&x| x == HardRowKind::Cfg);
                 if has_cfg {
-                    io += 1;
+                    hdio += 1;
                     hbm += 1;
                     asx += 1;
                     if dev_has_hbm {
                         asx += 4;
                     }
                 }
-                if has_hdio {
+                if has_hdiolc {
+                    asx += 6;
+                } else if has_hdio {
                     asx += 4;
                 }
             }
             _ => (),
         }
-        xlut.push(Asx { gt, io, cfg, hbm });
+        xlut.push(Asx {
+            gt,
+            hdio,
+            io,
+            cfg,
+            hbm,
+        });
     }
 
     let mut ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityVec::new()).collect();
@@ -175,11 +194,12 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
     for (die, &grid) in &edev.grids {
         for reg in grid.regs() {
             let skip = edev.disabled.contains(&DisabledPart::Region(die, reg));
-            let has_hdio = grid
-                .cols_hard
-                .iter()
-                .any(|x| matches!(x.regs[reg], HardRowKind::Hdio | HardRowKind::HdioAms))
-                && !skip;
+            let has_hdio = grid.cols_hard.iter().any(|x| {
+                matches!(
+                    x.regs[reg],
+                    HardRowKind::Hdio | HardRowKind::HdioAms | HardRowKind::HdioLc
+                )
+            }) && !skip;
             let has_cfg = grid
                 .cols_hard
                 .iter()
@@ -187,16 +207,21 @@ fn make_aswitch_grid(edev: &ExpandedDevice) -> ASwitchGrid {
                 && !skip;
             let has_hpio = grid.cols_io.iter().any(|x| x.regs[reg] == IoRowKind::Hpio) && !skip;
             let has_hrio = grid.cols_io.iter().any(|x| x.regs[reg] == IoRowKind::Hrio) && !skip;
+            let has_hdiolc_l = grid
+                .cols_io
+                .iter()
+                .any(|x| x.regs[reg] == IoRowKind::HdioLc)
+                && !skip;
             let has_gt = grid.cols_io.iter().any(|x| {
                 !matches!(
                     x.regs[reg],
-                    IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio
+                    IoRowKind::None | IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc
                 )
             }) && !skip;
 
             let cfg = asy;
             let mut cmt = asy;
-            if has_cfg || (grid.kind == GridKind::UltrascalePlus && has_hpio) {
+            if has_cfg || (grid.kind == GridKind::UltrascalePlus && (has_hpio || has_hdiolc_l)) {
                 asy += 1;
             }
             let gt = asy;
@@ -324,11 +349,12 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
     for (die, &grid) in &edev.grids {
         for reg in grid.regs() {
             let skip = edev.disabled.contains(&DisabledPart::Region(die, reg));
-            let has_hprio = grid
-                .cols_io
-                .iter()
-                .any(|x| matches!(x.regs[reg], IoRowKind::Hpio | IoRowKind::Hrio))
-                && !skip;
+            let has_hprio = grid.cols_io.iter().any(|x| {
+                matches!(
+                    x.regs[reg],
+                    IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc
+                )
+            }) && !skip;
             if has_hprio {
                 match edev.kind {
                     GridKind::Ultrascale => {
@@ -361,9 +387,12 @@ fn make_clk_grid(edev: &ExpandedDevice) -> ClkGrid {
     }
 }
 
+#[allow(clippy::type_complexity)]
 struct IoGrid {
-    xlut: EntityPartVec<ColId, usize>,
-    ylut: EntityVec<DieId, EntityPartVec<RegId, (usize, usize)>>,
+    hpio_xlut: EntityPartVec<ColId, usize>,
+    hdio_xlut: EntityPartVec<ColId, usize>,
+    hpio_ylut: EntityVec<DieId, EntityPartVec<RegId, (usize, usize, usize, usize)>>,
+    hdio_ylut: EntityVec<DieId, EntityPartVec<RegId, (usize, usize)>>,
     is_cfg_io_hrio: bool,
 }
 
@@ -371,38 +400,61 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
     let pgrid = edev.grids[edev.interposer.primary];
 
     let mut iox = 0;
-    let mut xlut = EntityPartVec::new();
+    let mut hpio_xlut = EntityPartVec::new();
+    let mut hdio_xlut = EntityPartVec::new();
     for (col, &cd) in &pgrid.columns {
-        if let ColumnKindLeft::Io(_) = cd.l {
-            xlut.insert(col, iox);
-            iox += 1;
+        if let ColumnKindLeft::Io(idx) = cd.l {
+            let mut has_hdiolc = false;
+            let mut has_hpio = false;
+            for grid in edev.grids.values() {
+                let iocol = &grid.cols_io[idx];
+                if iocol
+                    .regs
+                    .values()
+                    .any(|x| matches!(x, IoRowKind::Hpio | IoRowKind::Hrio))
+                {
+                    has_hpio = true;
+                }
+                if iocol.regs.values().any(|x| matches!(x, IoRowKind::HdioLc)) {
+                    has_hdiolc = true;
+                }
+            }
+            if has_hdiolc {
+                hdio_xlut.insert(col, iox);
+                iox += 1;
+            }
+            if has_hpio {
+                hpio_xlut.insert(col, iox);
+                iox += 1;
+            }
         }
         match cd.r {
             ColumnKindRight::Io(_) => {
-                xlut.insert(col, iox);
+                hpio_xlut.insert(col, iox);
                 iox += 1;
             }
             ColumnKindRight::Hard(_, idx) => {
                 let regs = &pgrid.cols_hard[idx].regs;
-                if regs
-                    .values()
-                    .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms))
-                {
-                    xlut.insert(col, iox);
+                if regs.values().any(|x| {
+                    matches!(
+                        x,
+                        HardRowKind::Hdio | HardRowKind::HdioAms | HardRowKind::HdioLc
+                    )
+                }) {
+                    hdio_xlut.insert(col, iox);
                     iox += 1;
                 }
             }
             _ => (),
         }
     }
-    let ioc_cfg = pgrid
-        .cols_io
-        .iter()
-        .find(|x| x.col == edev.col_cfg_io.0)
-        .unwrap();
-    let is_cfg_io_hrio = ioc_cfg.regs[pgrid.reg_cfg()] == IoRowKind::Hrio;
+    let mut is_cfg_io_hrio = false;
+    if let Some(ioc_cfg) = pgrid.cols_io.iter().find(|x| x.col == edev.col_cfg_io.0) {
+        is_cfg_io_hrio = ioc_cfg.regs[pgrid.reg_cfg()] == IoRowKind::Hrio;
+    }
 
-    let mut ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
+    let mut hdio_ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
+    let mut hpio_ylut: EntityVec<_, _> = edev.grids.ids().map(|_| EntityPartVec::new()).collect();
     let mut ioy = 0;
     for (die, &grid) in &edev.grids {
         for reg in grid.regs() {
@@ -412,24 +464,46 @@ fn make_io_grid(edev: &ExpandedDevice) -> IoGrid {
                 .iter()
                 .any(|x| matches!(x.regs[reg], HardRowKind::Hdio | HardRowKind::HdioAms))
                 && !skip;
+            let has_hdiolc = (grid
+                .cols_hard
+                .iter()
+                .any(|x| matches!(x.regs[reg], HardRowKind::HdioLc))
+                || grid
+                    .cols_io
+                    .iter()
+                    .any(|x| matches!(x.regs[reg], IoRowKind::HdioLc)))
+                && !skip;
             let has_hprio = grid
                 .cols_io
                 .iter()
                 .any(|x| matches!(x.regs[reg], IoRowKind::Hpio | IoRowKind::Hrio))
                 && !skip;
-            if has_hprio {
-                ylut[die].insert(reg, (ioy, ioy + 26));
+            if has_hprio && has_hdiolc {
+                // what in the fuck why am I doing this to myself
+                hpio_ylut[die].insert(reg, (ioy, ioy + 30, ioy + 43, ioy + 73));
+                hdio_ylut[die].insert(reg, (ioy, ioy + 43));
+                ioy += 86;
+            } else if has_hdiolc {
+                hdio_ylut[die].insert(reg, (ioy, ioy + 42));
+                ioy += 84;
+            } else if has_hprio {
+                hpio_ylut[die].insert(reg, (ioy, ioy + 13, ioy + 26, ioy + 39));
+                if has_hdio {
+                    hdio_ylut[die].insert(reg, (ioy, ioy + 26));
+                }
                 ioy += 52;
             } else if has_hdio {
-                ylut[die].insert(reg, (ioy, ioy + 12));
+                hdio_ylut[die].insert(reg, (ioy, ioy + 12));
                 ioy += 24;
             }
         }
     }
 
     IoGrid {
-        xlut,
-        ylut,
+        hpio_xlut,
+        hdio_xlut,
+        hpio_ylut,
+        hdio_ylut,
         is_cfg_io_hrio,
     }
 }
@@ -483,6 +557,22 @@ impl ExpandedNamedDevice<'_> {
                     (grid.row_reg_bot(hdio.reg), hdio.iob.to_idx())
                 } else {
                     (grid.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 12)
+                };
+                let bel = if idx % 2 == 0 {
+                    format!("HDIOB_M{}", idx / 2)
+                } else {
+                    format!("HDIOB_S{}", idx / 2)
+                };
+                self.ngrid
+                    .get_bel_name(hdio.die, hdio.col, row, &bel)
+                    .unwrap()
+            }
+            IoCoord::HdioLc(hdio) => {
+                let grid = self.edev.grids[hdio.die];
+                let (row, idx) = if hdio.iob.to_idx() < 42 {
+                    (grid.row_reg_bot(hdio.reg), hdio.iob.to_idx())
+                } else {
+                    (grid.row_reg_bot(hdio.reg) + 30, hdio.iob.to_idx() - 42)
                 };
                 let bel = if idx % 2 == 0 {
                     format!("HDIOB_M{}", idx / 2)
@@ -643,6 +733,9 @@ fn get_bram_tk(
         (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), true) => {
             "RCLK_BRAM_INTF_L"
         }
+        (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Plain), false) => {
+            "RCLK_BRAM_INTF_R"
+        }
         (GridKind::UltrascalePlus, ColumnKindLeft::Bram(BramKind::Td), true) => {
             "RCLK_BRAM_INTF_TD_L"
         }
@@ -687,7 +780,7 @@ pub fn name_device<'a>(
     let hard_sync_grid = ngrid.bel_multi_grid(|_, node, _| node == "HARD_SYNC");
     let dsp_grid = ngrid.bel_multi_grid(|_, node, _| node == "DSP");
     let uram_grid = ngrid.bel_multi_grid(|_, node, _| node == "URAM");
-    let cfg_grid = ngrid.bel_multi_grid(|_, node, _| node == "CFG");
+    let cfg_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "CFG" | "CFG_CSEC"));
     let cfgio_grid = ngrid.bel_multi_grid(|_, node, _| node == "CFGIO");
     let ams_grid = ngrid.bel_multi_grid(|_, node, _| node == "AMS");
     let cmac_grid = ngrid.bel_multi_grid(|_, node, _| node == "CMAC");
@@ -704,11 +797,19 @@ pub fn name_device<'a>(
     let dfe_f_grid = ngrid.bel_multi_grid(|_, node, _| node == "DFE_F");
     let dfe_g_grid = ngrid.bel_multi_grid(|_, node, _| node == "DFE_G");
     let hdio_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HDIO_BOT" | "HDIO_TOP"));
+    let hdiolc_grid = ngrid.bel_multi_grid(|_, node, _| {
+        matches!(
+            node,
+            "HDIOLC_L_BOT" | "HDIOLC_L_TOP" | "HDIOLC_R_BOT" | "HDIOLC_R_TOP"
+        )
+    });
     let hpio_grid = ngrid.bel_multi_grid(|_, node, _| matches!(node, "HPIO" | "HPIO_L" | "HPIO_R"));
     let rclk_hpio_grid = ngrid
         .bel_multi_grid(|_, node, _| matches!(node, "RCLK_HPIO" | "RCLK_HPIO_L" | "RCLK_HPIO_R"));
     let hrio_grid = ngrid.bel_multi_grid(|_, node, _| node == "HRIO");
-    let rclk_hdio_grid = ngrid.bel_multi_grid(|_, node, _| node == "RCLK_HDIO");
+    let rclk_hdio_grid = ngrid.bel_multi_grid(|_, node, _| {
+        matches!(node, "RCLK_HDIO" | "RCLK_HDIOLC_L" | "RCLK_HDIOLC_R")
+    });
     let aswitch_grid = make_aswitch_grid(edev);
     let io_grid = make_io_grid(edev);
     let clk_grid = make_clk_grid(edev);
@@ -1062,7 +1163,7 @@ pub fn name_device<'a>(
                             nnode.add_bel(2, format!("URAM288_X{ux}Y{uy2}"));
                             nnode.add_bel(3, format!("URAM288_X{ux}Y{uy3}"));
                         }
-                        "CFG" => {
+                        "CFG" | "CFG_CSEC" => {
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
@@ -1074,14 +1175,20 @@ pub fn name_device<'a>(
                             };
                             let tk = if grid.kind == GridKind::Ultrascale {
                                 "CFG_CFG"
-                            } else {
+                            } else if !grid.has_csec {
                                 "CFG_CONFIG"
+                            } else {
+                                "CSEC_CONFIG_FT"
                             };
                             let name = format!("{tk}_X{x}Y{y}");
-                            let nnode = ngrid.name_node(nloc, "CFG", [name]);
+                            let nnode = ngrid.name_node(nloc, kind, [name]);
                             let sx = cfg_grid.xlut[col];
                             let sy = cfg_grid.ylut[die.die][row];
-                            nnode.add_bel(0, format!("CONFIG_SITE_X{sx}Y{sy}"));
+                            if grid.has_csec {
+                                nnode.add_bel(0, format!("CSEC_SITE_X{sx}Y{sy}"));
+                            } else {
+                                nnode.add_bel(0, format!("CONFIG_SITE_X{sx}Y{sy}"));
+                            }
                             let asx = aswitch_grid.xlut[col - 1].cfg;
                             let asy = aswitch_grid.ylut[die.die][reg].cfg;
                             nnode.add_bel(1, format!("ABUS_SWITCH_X{asx}Y{asy}"));
@@ -1090,7 +1197,8 @@ pub fn name_device<'a>(
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
-                            let x = if grid.kind == GridKind::UltrascalePlus && !hdio_cfg_only[idx]
+                            let x = if grid.kind == GridKind::UltrascalePlus
+                                && (!hdio_cfg_only[idx] || grid.has_csec)
                             {
                                 x
                             } else {
@@ -1098,8 +1206,10 @@ pub fn name_device<'a>(
                             };
                             let tk = if grid.kind == GridKind::Ultrascale {
                                 "CFGIO_IOB"
-                            } else {
+                            } else if !grid.has_csec {
                                 "CFGIO_IOB20"
+                            } else {
+                                "CFGIOLC_IOB20_FT"
                             };
                             let name = format!("{tk}_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
@@ -1117,7 +1227,8 @@ pub fn name_device<'a>(
                             let ColumnKindLeft::Hard(_, idx) = grid.columns[col].l else {
                                 unreachable!()
                             };
-                            let x = if grid.kind == GridKind::UltrascalePlus && !hdio_cfg_only[idx]
+                            let x = if grid.kind == GridKind::UltrascalePlus
+                                && (!hdio_cfg_only[idx] || grid.has_csec)
                             {
                                 x
                             } else {
@@ -1251,10 +1362,10 @@ pub fn name_device<'a>(
                             let x = if hdio_cfg_only[idx] { x } else { x + 1 };
                             let name = format!("{kind}_RIGHT_X{x}Y{y}");
                             let nnode = ngrid.name_node(nloc, kind, [name]);
-                            let iox = io_grid.xlut[col];
+                            let iox = io_grid.hdio_xlut[col];
                             let ioy = match &kind[..] {
-                                "HDIO_BOT" => io_grid.ylut[die.die][reg].0,
-                                "HDIO_TOP" => io_grid.ylut[die.die][reg].1,
+                                "HDIO_BOT" => io_grid.hdio_ylut[die.die][reg].0,
+                                "HDIO_TOP" => io_grid.hdio_ylut[die.die][reg].1,
                                 _ => unreachable!(),
                             };
                             let sx = hdio_grid.xlut[col];
@@ -1282,6 +1393,71 @@ pub fn name_device<'a>(
                             } else {
                                 nnode.add_bel(31, format!("HDIO_BIAS_X{sx}Y{y}", y = sy / 2));
                             }
+                        }
+                        "HDIOLC_L_BOT" | "HDIOLC_L_TOP" | "HDIOLC_R_BOT" | "HDIOLC_R_TOP" => {
+                            let naming = match &kind[..] {
+                                "HDIOLC_L_BOT" => "HDIOLC_HDIOL_BOT_LEFT_FT",
+                                "HDIOLC_L_TOP" => "HDIOLC_HDIOL_TOP_LEFT_FT",
+                                "HDIOLC_R_BOT" => {
+                                    if reg == grid.reg_cfg() {
+                                        "HDIOLC_HDIOL_BOT_RIGHT_CFG_FT"
+                                    } else {
+                                        "HDIOLC_HDIOL_BOT_RIGHT_AUX_FT"
+                                    }
+                                }
+                                "HDIOLC_R_TOP" => {
+                                    if reg == grid.reg_cfg() {
+                                        "HDIOLC_HDIOL_TOP_RIGHT_CFG_FT"
+                                    } else {
+                                        "HDIOLC_HDIOL_TOP_RIGHT_AUX_FT"
+                                    }
+                                }
+                                _ => unreachable!(),
+                            };
+                            let name = format!("{naming}_X{x}Y{y}");
+                            let nnode = ngrid.name_node(nloc, naming, [name]);
+                            let iox = io_grid.hdio_xlut[col];
+                            let ioy = match &kind[..] {
+                                "HDIOLC_L_BOT" | "HDIOLC_R_BOT" => {
+                                    io_grid.hdio_ylut[die.die][reg].0
+                                }
+                                "HDIOLC_L_TOP" | "HDIOLC_R_TOP" => {
+                                    io_grid.hdio_ylut[die.die][reg].1
+                                }
+                                _ => unreachable!(),
+                            };
+                            let sx = hdiolc_grid.xlut[col];
+                            let sy = hdiolc_grid.ylut[die.die][row];
+                            for j in 0..42 {
+                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                            }
+                            for j in 0..21 {
+                                nnode.add_bel(
+                                    42 + j,
+                                    format!("HDIOBDIFFINBUF_X{sx}Y{y}", y = sy * 21 + j),
+                                );
+                                nnode.add_bel(
+                                    63 + 2 * j,
+                                    format!("HDIOLOGIC_M_X{sx}Y{y}", y = sy * 21 + j),
+                                );
+                                nnode.add_bel(
+                                    63 + 2 * j + 1,
+                                    format!("HDIOLOGIC_S_X{sx}Y{y}", y = sy * 21 + j),
+                                );
+                            }
+                            for j in 0..3 {
+                                nnode.add_bel(
+                                    105 + j,
+                                    format!("HDLOGIC_CSSD_X{sx}Y{y}", y = sy * 3 + j),
+                                );
+                            }
+                            for j in 0..2 {
+                                nnode.add_bel(
+                                    108 + j,
+                                    format!("HDIO_VREF_X{sx}Y{y}", y = sy * 2 + j),
+                                );
+                            }
+                            nnode.add_bel(110, format!("HDIO_BIAS_X{sx}Y{sy}"));
                         }
                         "RCLK_HDIO" => {
                             let ColumnKindRight::Hard(hk, idx) = grid.columns[col].r else {
@@ -1326,7 +1502,57 @@ pub fn name_device<'a>(
                                     4 + i,
                                     format!(
                                         "ABUS_SWITCH_X{x}Y{y}",
-                                        x = aswitch_grid.xlut[col].io + x,
+                                        x = aswitch_grid.xlut[col].hdio + x,
+                                        y = aswitch_grid.ylut[die.die][reg].hdio + y
+                                    ),
+                                );
+                            }
+                        }
+                        "RCLK_HDIOLC_L" | "RCLK_HDIOLC_R" => {
+                            let tkn = if kind == "RCLK_HDIOLC_L" {
+                                "RCLK_RCLK_HDIOL_L_FT"
+                            } else {
+                                "RCLK_RCLK_HDIOL_R_FT"
+                            };
+                            let name = format!("{tkn}_X{x}Y{y}", y = y - 1);
+                            let nnode = ngrid.name_node(nloc, kind, [name]);
+                            let sx = rclk_hdio_grid.xlut[col];
+                            let sy = rclk_hdio_grid.ylut[die.die][row];
+                            nnode.add_bel(
+                                0,
+                                format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2),
+                            );
+                            nnode.add_bel(
+                                1,
+                                format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2, y = sy * 2 + 1),
+                            );
+                            nnode.add_bel(
+                                2,
+                                format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2),
+                            );
+                            nnode.add_bel(
+                                3,
+                                format!("BUFGCE_HDIO_X{x}Y{y}", x = sx * 2 + 1, y = sy * 2 + 1),
+                            );
+                            for (i, x, y) in [
+                                (0, 0, 0),
+                                (1, 0, 1),
+                                (2, 1, 0),
+                                (3, 1, 1),
+                                (4, 2, 0),
+                                (5, 2, 1),
+                                (6, 3, 0),
+                                (7, 3, 1),
+                                (8, 4, 0),
+                                (9, 4, 1),
+                                (10, 5, 0),
+                                (11, 5, 1),
+                            ] {
+                                nnode.add_bel(
+                                    4 + i,
+                                    format!(
+                                        "ABUS_SWITCH_X{x}Y{y}",
+                                        x = aswitch_grid.xlut[col].hdio + x,
                                         y = aswitch_grid.ylut[die.die][reg].hdio + y
                                     ),
                                 );
@@ -1334,8 +1560,15 @@ pub fn name_device<'a>(
                         }
 
                         "CMT_L" | "CMT_L_HBM" | "CMT_R" => {
+                            let iocol = grid.cols_io.iter().find(|iocol| iocol.col == col).unwrap();
                             let tk = match &kind[..] {
-                                "CMT_L" => "CMT_L",
+                                "CMT_L" => {
+                                    if iocol.regs[reg] == IoRowKind::HdioLc {
+                                        "CMT_CMT_LEFT_DL3_FT"
+                                    } else {
+                                        "CMT_L"
+                                    }
+                                }
                                 "CMT_L_HBM" => "CMT_LEFT_H",
                                 "CMT_R" => "CMT_RIGHT",
                                 _ => unreachable!(),
@@ -1549,16 +1782,25 @@ pub fn name_device<'a>(
                                 "HPIO"
                             };
                             let nnode = ngrid.name_node(nloc, naming, [name]);
-                            let iox = io_grid.xlut[col];
-                            let ioy = match row.to_idx() % 60 {
-                                0 => io_grid.ylut[die.die][reg].0,
-                                30 => io_grid.ylut[die.die][reg].1,
+                            let iox = io_grid.hpio_xlut[col];
+                            let (ioy_b, ioy_t) = match row.to_idx() % 60 {
+                                0 => (
+                                    io_grid.hpio_ylut[die.die][reg].0,
+                                    io_grid.hpio_ylut[die.die][reg].1,
+                                ),
+                                30 => (
+                                    io_grid.hpio_ylut[die.die][reg].2,
+                                    io_grid.hpio_ylut[die.die][reg].3,
+                                ),
                                 _ => unreachable!(),
                             };
                             let sx = hpio_grid.xlut[col];
                             let sy = hpio_grid.ylut[die.die][row];
-                            for j in 0..26 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                            for j in 0..13 {
+                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                            }
+                            for j in 0..13 {
+                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
@@ -1604,16 +1846,25 @@ pub fn name_device<'a>(
                                 "HRIO.NOCFG"
                             };
                             let nnode = ngrid.name_node(nloc, naming, [name]);
-                            let iox = io_grid.xlut[col];
-                            let ioy = match row.to_idx() % 60 {
-                                0 => io_grid.ylut[die.die][reg].0,
-                                30 => io_grid.ylut[die.die][reg].1,
+                            let iox = io_grid.hpio_xlut[col];
+                            let (ioy_b, ioy_t) = match row.to_idx() % 60 {
+                                0 => (
+                                    io_grid.hpio_ylut[die.die][reg].0,
+                                    io_grid.hpio_ylut[die.die][reg].1,
+                                ),
+                                30 => (
+                                    io_grid.hpio_ylut[die.die][reg].2,
+                                    io_grid.hpio_ylut[die.die][reg].3,
+                                ),
                                 _ => unreachable!(),
                             };
                             let sx = hrio_grid.xlut[col];
                             let sy = hrio_grid.ylut[die.die][row];
-                            for j in 0..26 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                            for j in 0..13 {
+                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                            }
+                            for j in 0..13 {
+                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
@@ -1647,12 +1898,27 @@ pub fn name_device<'a>(
                             }
                         }
                         "HPIO_L" | "HPIO_R" => {
-                            let (naming, naming_alt, naming_nocfg, tk) = if kind == "HPIO_R" {
-                                ("HPIO_R", "HPIO_R.ALTCFG", "HPIO_R.NOCFG", "HPIO_RIGHT")
-                            } else {
-                                ("HPIO_L", "HPIO_L.ALTCFG", "HPIO_L.NOCFG", "HPIO_L")
-                            };
-                            let naming = if grid.is_nocfg() {
+                            let (naming, naming_alt, naming_nocfg, naming_noams, tk) =
+                                if kind == "HPIO_R" {
+                                    (
+                                        "HPIO_R",
+                                        "HPIO_R.ALTCFG",
+                                        "HPIO_R.NOCFG",
+                                        "HPIO_R.NOAMS",
+                                        "HPIO_RIGHT",
+                                    )
+                                } else {
+                                    (
+                                        "HPIO_L",
+                                        "HPIO_L.ALTCFG",
+                                        "HPIO_L.NOCFG",
+                                        "HPIO_L.NOAMS",
+                                        "HPIO_L",
+                                    )
+                                };
+                            let naming = if grid.has_csec {
+                                naming_noams
+                            } else if grid.is_nocfg() {
                                 naming_nocfg
                             } else if grid.ps.is_some()
                                 && (grid.is_alt_cfg || !edev.disabled.contains(&DisabledPart::Ps))
@@ -1666,16 +1932,25 @@ pub fn name_device<'a>(
                                 x = if x > 0 && kind == "HPIO_L" { x - 1 } else { x }
                             );
                             let nnode = ngrid.name_node(nloc, naming, [name]);
-                            let iox = io_grid.xlut[col];
-                            let ioy = match row.to_idx() % 60 {
-                                0 => io_grid.ylut[die.die][reg].0,
-                                30 => io_grid.ylut[die.die][reg].1,
+                            let iox = io_grid.hpio_xlut[col];
+                            let (ioy_b, ioy_t) = match row.to_idx() % 60 {
+                                0 => (
+                                    io_grid.hpio_ylut[die.die][reg].0,
+                                    io_grid.hpio_ylut[die.die][reg].1,
+                                ),
+                                30 => (
+                                    io_grid.hpio_ylut[die.die][reg].2,
+                                    io_grid.hpio_ylut[die.die][reg].3,
+                                ),
                                 _ => unreachable!(),
                             };
                             let sx = hpio_grid.xlut[col];
                             let sy = hpio_grid.ylut[die.die][row];
-                            for j in 0..26 {
-                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy + j));
+                            for j in 0..13 {
+                                nnode.add_bel(j, format!("IOB_X{iox}Y{y}", y = ioy_b + j));
+                            }
+                            for j in 0..13 {
+                                nnode.add_bel(13 + j, format!("IOB_X{iox}Y{y}", y = ioy_t + j));
                             }
                             for j in 0..12 {
                                 nnode.add_bel(
@@ -2040,7 +2315,7 @@ pub fn name_device<'a>(
                                 GridKind::UltrascalePlus => {
                                     let is_l = col < grid.col_cfg();
                                     let mut is_dc12 = grid.is_dc12();
-                                    if grid.is_nocfg() {
+                                    if grid.is_nocfg() && !grid.has_csec {
                                         if col < grid.cols_hard.first().unwrap().col {
                                             is_dc12 = true;
                                         }
@@ -2224,7 +2499,7 @@ pub fn name_device<'a>(
                                         }
                                         (_, HardRowKind::Ams) => {
                                             let x = if grid.kind == GridKind::UltrascalePlus
-                                                && !hdio_cfg_only[idx]
+                                                && (!hdio_cfg_only[idx] || grid.has_csec)
                                             {
                                                 x
                                             } else {
@@ -2248,7 +2523,12 @@ pub fn name_device<'a>(
                                         }
                                         (GridKind::UltrascalePlus, HardRowKind::Cfg) => {
                                             let x = if hdio_cfg_only[idx] { x - 1 } else { x };
-                                            format!("CFG_CONFIG_X{x}Y{y}", y = y - 30)
+                                            let tkn = if grid.has_csec {
+                                                "CSEC_CONFIG_FT"
+                                            } else {
+                                                "CFG_CONFIG"
+                                            };
+                                            format!("{tkn}_X{x}Y{y}", y = y - 30)
                                         }
                                         (GridKind::UltrascalePlus, HardRowKind::Pcie) => {
                                             format!(

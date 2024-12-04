@@ -66,6 +66,7 @@ pub fn get_parts(tc: &Toolchain) -> Result<Vec<VivadoPart>, Box<dyn Error>> {
                 "zynq" => "virtex7",
                 "kintexu" => "ultrascale",
                 "virtexu" => "ultrascale",
+                "spartanuplus" => "ultrascaleplus",
                 "kintexuplus" => "ultrascaleplus",
                 "virtexuplus" => "ultrascaleplus",
                 "virtexuplusHBM" => "ultrascaleplus",

@@ -3,14 +3,14 @@
 use bimap::BiHashMap;
 use enum_map::{enum_map, EnumMap};
 use prjcombine_int::db::IntDb;
-use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId};
+use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, RowId, TileIobId};
 use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::expanded::{ClkSrc, ExpandedDevice, GtCoord, HdioCoord, HpioCoord, IoCoord};
 use crate::grid::{
     CleMKind, ColSide, Column, ColumnKindLeft, ColumnKindRight, DisabledPart, DspKind, Grid,
-    GridKind, HardRowKind, HdioIobId, HpioIobId, Interposer, IoRowKind, RegId,
+    GridKind, HardKind, HardRowKind, Interposer, IoRowKind, RegId,
 };
 
 use crate::bond::SharedCfgPin;
@@ -58,7 +58,10 @@ impl DieExpander<'_, '_, '_> {
                         let rk = cio.regs[self.grid.row_to_reg(row)];
                         match (self.grid.kind, rk) {
                             (_, IoRowKind::None) => (),
-                            (GridKind::UltrascalePlus, IoRowKind::Hpio | IoRowKind::Hrio) => {
+                            (
+                                GridKind::UltrascalePlus,
+                                IoRowKind::Hpio | IoRowKind::Hrio | IoRowKind::HdioLc,
+                            ) => {
                                 self.die.add_xnode((col, row), "INTF.W.IO", &[(col, row)]);
                             }
                             _ => {
@@ -413,7 +416,7 @@ impl DieExpander<'_, '_, '_> {
                             die,
                             col,
                             reg,
-                            iob: HdioIobId::from_idx(idx),
+                            iob: TileIobId::from_idx(idx),
                         }));
                     }
                 }
@@ -421,7 +424,33 @@ impl DieExpander<'_, '_, '_> {
                 self.die.add_xnode((col, row + 30), "RCLK_HDIO", &crds);
                 return;
             }
-            HardRowKind::Cfg => "CFG",
+            HardRowKind::HdioLc => {
+                let col = col - 1;
+                for (i, nk) in ["HDIOLC_R_BOT", "HDIOLC_R_TOP"].into_iter().enumerate() {
+                    let row = row + i * 30;
+                    let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
+                    self.die.add_xnode((col, row), nk, &crds);
+                    for j in 0..42 {
+                        let idx = i * 42 + j;
+                        self.io.push(IoCoord::HdioLc(HdioCoord {
+                            die,
+                            col,
+                            reg,
+                            iob: TileIobId::from_idx(idx),
+                        }));
+                    }
+                }
+                let crds: [_; 60] = core::array::from_fn(|i| (col, row + i));
+                self.die.add_xnode((col, row + 30), "RCLK_HDIOLC_R", &crds);
+                return;
+            }
+            HardRowKind::Cfg => {
+                if self.grid.has_csec {
+                    "CFG_CSEC"
+                } else {
+                    "CFG"
+                }
+            }
             HardRowKind::Ams => {
                 let crds: [_; 60] = core::array::from_fn(|i| {
                     if i < 30 {
@@ -511,7 +540,7 @@ impl DieExpander<'_, '_, '_> {
                                 col: ioc.col,
                                 side: ioc.side,
                                 reg,
-                                iob: HpioIobId::from_idx(idx),
+                                iob: TileIobId::from_idx(idx),
                             }));
                         }
                         if self.grid.kind == GridKind::Ultrascale {
@@ -590,6 +619,27 @@ impl DieExpander<'_, '_, '_> {
                             };
                             self.die.add_xnode((ioc.col, row), kind, &crds);
                         }
+                    }
+                    IoRowKind::HdioLc => {
+                        let col = ioc.col;
+                        let row = self.grid.row_reg_rclk(reg);
+                        let crds: [_; 60] = core::array::from_fn(|i| (ioc.col, row - 30 + i));
+                        for (i, nk) in ["HDIOLC_L_BOT", "HDIOLC_L_TOP"].into_iter().enumerate() {
+                            let row = row - 30 + i * 30;
+                            let crds: [_; 30] = core::array::from_fn(|i| (col, row + i));
+                            self.die.add_xnode((col, row), nk, &crds);
+                            for j in 0..42 {
+                                let idx = i * 42 + j;
+                                self.io.push(IoCoord::HdioLc(HdioCoord {
+                                    die,
+                                    col,
+                                    reg,
+                                    iob: TileIobId::from_idx(idx),
+                                }));
+                            }
+                        }
+                        self.die.add_xnode((col, row), "CMT_L", &crds);
+                        self.die.add_xnode((col, row), "RCLK_HDIOLC_L", &crds);
                     }
                     _ => {
                         let row = self.grid.row_reg_rclk(reg);
@@ -809,6 +859,21 @@ pub fn expand_grid<'a>(
                 col_cfg_io = Some((col, ColSide::Right));
             }
         }
+        if let ColumnKindRight::Hard(HardKind::Term, idx) = cd.r {
+            let mut has_hdiolc = false;
+            for grid in grids.values() {
+                if grid.cols_hard[idx]
+                    .regs
+                    .values()
+                    .any(|&kind| kind == HardRowKind::HdioLc)
+                {
+                    has_hdiolc = true;
+                }
+            }
+            if has_hdiolc {
+                col_cfg_io = Some((col, ColSide::Right));
+            }
+        }
     }
     let col_cfg_io = col_cfg_io.unwrap();
 
@@ -827,10 +892,12 @@ pub fn expand_grid<'a>(
             }
             ColumnKindRight::Hard(_, idx) => {
                 let regs = &mgrid.cols_hard[idx].regs;
-                if regs
-                    .values()
-                    .any(|x| matches!(x, HardRowKind::Hdio | HardRowKind::HdioAms))
-                {
+                if regs.values().any(|x| {
+                    matches!(
+                        x,
+                        HardRowKind::Hdio | HardRowKind::HdioAms | HardRowKind::HdioLc
+                    )
+                }) {
                     ioxlut.insert(col, iox);
                     iox += 1;
                 }
@@ -851,162 +918,258 @@ pub fn expand_grid<'a>(
         bankxlut.insert(col, bank);
     }
 
-    let mut bank = (25
-        - mgrid.reg_cfg().to_idx()
-        - grids
-            .iter()
-            .filter_map(|(die, grid)| {
-                if die < interposer.primary {
-                    Some(grid.regs)
-                } else {
-                    None
-                }
-            })
-            .sum::<usize>()) as u32;
+    let mut bank = 0;
     let mut bankylut = EntityVec::new();
-    for &grid in grids.values() {
-        bankylut.push(bank);
-        bank += grid.regs as u32;
+    let mut cfg_bank = None;
+    for (die, &grid) in grids {
+        let mut ylut = EntityPartVec::new();
+        for reg in grid.regs() {
+            let mut has_io = false;
+            let mut has_hdiolc = false;
+            for hcol in &grid.cols_hard {
+                match hcol.regs[reg] {
+                    HardRowKind::Cfg => {
+                        if die == interposer.primary {
+                            cfg_bank = Some(bank);
+                        }
+                    }
+                    HardRowKind::Hdio | HardRowKind::HdioAms => {
+                        has_io = true;
+                    }
+                    HardRowKind::HdioLc => {
+                        has_hdiolc = true;
+                    }
+                    _ => (),
+                }
+            }
+            for iocol in &grid.cols_io {
+                match iocol.regs[reg] {
+                    IoRowKind::Hpio | IoRowKind::Hrio => {
+                        has_io = true;
+                    }
+                    IoRowKind::HdioLc => {
+                        has_hdiolc = true;
+                    }
+                    _ => (),
+                }
+            }
+            if has_hdiolc {
+                ylut.insert(reg, bank);
+                bank += 2;
+            } else if has_io {
+                ylut.insert(reg, bank);
+                bank += 1;
+            }
+        }
+        bankylut.push(ylut);
+    }
+    let cfg_bank = cfg_bank.unwrap();
+    for ylut in bankylut.values_mut() {
+        for bank in ylut.values_mut() {
+            *bank += 25;
+            *bank -= cfg_bank;
+        }
     }
 
     let mut cfg_io = EntityVec::new();
     for (die, &grid) in grids {
         let mut die_cfg_io = BiHashMap::new();
-        let iocol = grid
+        if let Some(iocol) = grid
             .cols_io
             .iter()
             .find(|iocol| (iocol.col, iocol.side) == col_cfg_io)
-            .unwrap();
-        if matches!(
-            iocol.regs[grid.reg_cfg()],
-            IoRowKind::Hpio | IoRowKind::Hrio
-        ) {
-            for idx in 0..52 {
-                if let Some(cfg) = if !grid.is_alt_cfg {
-                    match idx {
-                        0 => Some(SharedCfgPin::Rs(0)),
-                        1 => Some(SharedCfgPin::Rs(1)),
-                        2 => Some(SharedCfgPin::FoeB),
-                        3 => Some(SharedCfgPin::FweB),
-                        4 => Some(SharedCfgPin::Addr(26)),
-                        5 => Some(SharedCfgPin::Addr(27)),
-                        6 => Some(SharedCfgPin::Addr(24)),
-                        7 => Some(SharedCfgPin::Addr(25)),
-                        8 => Some(SharedCfgPin::Addr(22)),
-                        9 => Some(SharedCfgPin::Addr(23)),
-                        10 => Some(SharedCfgPin::Addr(20)),
-                        11 => Some(SharedCfgPin::Addr(21)),
-                        12 => Some(SharedCfgPin::Addr(28)),
-                        13 => Some(SharedCfgPin::Addr(18)),
-                        14 => Some(SharedCfgPin::Addr(19)),
-                        15 => Some(SharedCfgPin::Addr(16)),
-                        16 => Some(SharedCfgPin::Addr(17)),
-                        17 => Some(SharedCfgPin::Data(30)),
-                        18 => Some(SharedCfgPin::Data(31)),
-                        19 => Some(SharedCfgPin::Data(28)),
-                        20 => Some(SharedCfgPin::Data(29)),
-                        21 => Some(SharedCfgPin::Data(26)),
-                        22 => Some(SharedCfgPin::Data(27)),
-                        23 => Some(SharedCfgPin::Data(24)),
-                        24 => Some(SharedCfgPin::Data(25)),
-                        25 => Some(if grid.kind == GridKind::Ultrascale {
-                            SharedCfgPin::PerstN1
-                        } else {
-                            SharedCfgPin::SmbAlert
-                        }),
-                        26 => Some(SharedCfgPin::Data(22)),
-                        27 => Some(SharedCfgPin::Data(23)),
-                        28 => Some(SharedCfgPin::Data(20)),
-                        29 => Some(SharedCfgPin::Data(21)),
-                        30 => Some(SharedCfgPin::Data(18)),
-                        31 => Some(SharedCfgPin::Data(19)),
-                        32 => Some(SharedCfgPin::Data(16)),
-                        33 => Some(SharedCfgPin::Data(17)),
-                        34 => Some(SharedCfgPin::Data(14)),
-                        35 => Some(SharedCfgPin::Data(15)),
-                        36 => Some(SharedCfgPin::Data(12)),
-                        37 => Some(SharedCfgPin::Data(13)),
-                        38 => Some(SharedCfgPin::CsiB),
-                        39 => Some(SharedCfgPin::Data(10)),
-                        40 => Some(SharedCfgPin::Data(11)),
-                        41 => Some(SharedCfgPin::Data(8)),
-                        42 => Some(SharedCfgPin::Data(9)),
-                        43 => Some(SharedCfgPin::Data(6)),
-                        44 => Some(SharedCfgPin::Data(7)),
-                        45 => Some(SharedCfgPin::Data(4)),
-                        46 => Some(SharedCfgPin::Data(5)),
-                        47 => Some(SharedCfgPin::I2cSclk),
-                        48 => Some(SharedCfgPin::I2cSda),
-                        49 => Some(SharedCfgPin::EmCclk),
-                        50 => Some(SharedCfgPin::Dout),
-                        51 => Some(SharedCfgPin::PerstN0),
-                        _ => None,
+        {
+            if matches!(
+                iocol.regs[grid.reg_cfg()],
+                IoRowKind::Hpio | IoRowKind::Hrio
+            ) {
+                for idx in 0..52 {
+                    if let Some(cfg) = if !grid.is_alt_cfg {
+                        match idx {
+                            0 => Some(SharedCfgPin::Rs(0)),
+                            1 => Some(SharedCfgPin::Rs(1)),
+                            2 => Some(SharedCfgPin::FoeB),
+                            3 => Some(SharedCfgPin::FweB),
+                            4 => Some(SharedCfgPin::Addr(26)),
+                            5 => Some(SharedCfgPin::Addr(27)),
+                            6 => Some(SharedCfgPin::Addr(24)),
+                            7 => Some(SharedCfgPin::Addr(25)),
+                            8 => Some(SharedCfgPin::Addr(22)),
+                            9 => Some(SharedCfgPin::Addr(23)),
+                            10 => Some(SharedCfgPin::Addr(20)),
+                            11 => Some(SharedCfgPin::Addr(21)),
+                            12 => Some(SharedCfgPin::Addr(28)),
+                            13 => Some(SharedCfgPin::Addr(18)),
+                            14 => Some(SharedCfgPin::Addr(19)),
+                            15 => Some(SharedCfgPin::Addr(16)),
+                            16 => Some(SharedCfgPin::Addr(17)),
+                            17 => Some(SharedCfgPin::Data(30)),
+                            18 => Some(SharedCfgPin::Data(31)),
+                            19 => Some(SharedCfgPin::Data(28)),
+                            20 => Some(SharedCfgPin::Data(29)),
+                            21 => Some(SharedCfgPin::Data(26)),
+                            22 => Some(SharedCfgPin::Data(27)),
+                            23 => Some(SharedCfgPin::Data(24)),
+                            24 => Some(SharedCfgPin::Data(25)),
+                            25 => Some(if grid.kind == GridKind::Ultrascale {
+                                SharedCfgPin::PerstN1
+                            } else {
+                                SharedCfgPin::SmbAlert
+                            }),
+                            26 => Some(SharedCfgPin::Data(22)),
+                            27 => Some(SharedCfgPin::Data(23)),
+                            28 => Some(SharedCfgPin::Data(20)),
+                            29 => Some(SharedCfgPin::Data(21)),
+                            30 => Some(SharedCfgPin::Data(18)),
+                            31 => Some(SharedCfgPin::Data(19)),
+                            32 => Some(SharedCfgPin::Data(16)),
+                            33 => Some(SharedCfgPin::Data(17)),
+                            34 => Some(SharedCfgPin::Data(14)),
+                            35 => Some(SharedCfgPin::Data(15)),
+                            36 => Some(SharedCfgPin::Data(12)),
+                            37 => Some(SharedCfgPin::Data(13)),
+                            38 => Some(SharedCfgPin::CsiB),
+                            39 => Some(SharedCfgPin::Data(10)),
+                            40 => Some(SharedCfgPin::Data(11)),
+                            41 => Some(SharedCfgPin::Data(8)),
+                            42 => Some(SharedCfgPin::Data(9)),
+                            43 => Some(SharedCfgPin::Data(6)),
+                            44 => Some(SharedCfgPin::Data(7)),
+                            45 => Some(SharedCfgPin::Data(4)),
+                            46 => Some(SharedCfgPin::Data(5)),
+                            47 => Some(SharedCfgPin::I2cSclk),
+                            48 => Some(SharedCfgPin::I2cSda),
+                            49 => Some(SharedCfgPin::EmCclk),
+                            50 => Some(SharedCfgPin::Dout),
+                            51 => Some(SharedCfgPin::PerstN0),
+                            _ => None,
+                        }
+                    } else {
+                        match idx {
+                            0 => Some(SharedCfgPin::Rs(1)),
+                            1 => Some(SharedCfgPin::FweB),
+                            2 => Some(SharedCfgPin::Rs(0)),
+                            3 => Some(SharedCfgPin::FoeB),
+                            4 => Some(SharedCfgPin::Addr(28)),
+                            5 => Some(SharedCfgPin::Addr(26)),
+                            6 => Some(SharedCfgPin::SmbAlert),
+                            7 => Some(SharedCfgPin::Addr(27)),
+                            8 => Some(SharedCfgPin::Addr(24)),
+                            9 => Some(SharedCfgPin::Addr(22)),
+                            10 => Some(SharedCfgPin::Addr(25)),
+                            11 => Some(SharedCfgPin::Addr(23)),
+                            12 => Some(SharedCfgPin::Addr(20)),
+                            13 => Some(SharedCfgPin::Addr(18)),
+                            14 => Some(SharedCfgPin::Addr(16)),
+                            15 => Some(SharedCfgPin::Addr(19)),
+                            16 => Some(SharedCfgPin::Addr(17)),
+                            17 => Some(SharedCfgPin::Data(30)),
+                            18 => Some(SharedCfgPin::Data(28)),
+                            19 => Some(SharedCfgPin::Data(31)),
+                            20 => Some(SharedCfgPin::Data(29)),
+                            21 => Some(SharedCfgPin::Data(26)),
+                            22 => Some(SharedCfgPin::Data(24)),
+                            23 => Some(SharedCfgPin::Data(27)),
+                            24 => Some(SharedCfgPin::Data(25)),
+                            25 => Some(SharedCfgPin::Addr(21)),
+                            26 => Some(SharedCfgPin::CsiB),
+                            27 => Some(SharedCfgPin::Data(22)),
+                            28 => Some(SharedCfgPin::EmCclk),
+                            29 => Some(SharedCfgPin::Data(23)),
+                            30 => Some(SharedCfgPin::Data(20)),
+                            31 => Some(SharedCfgPin::Data(18)),
+                            32 => Some(SharedCfgPin::Data(21)),
+                            33 => Some(SharedCfgPin::Data(19)),
+                            34 => Some(SharedCfgPin::Data(16)),
+                            35 => Some(SharedCfgPin::Data(14)),
+                            36 => Some(SharedCfgPin::Data(17)),
+                            37 => Some(SharedCfgPin::Data(15)),
+                            38 => Some(SharedCfgPin::Data(12)),
+                            39 => Some(SharedCfgPin::Data(10)),
+                            40 => Some(SharedCfgPin::Data(8)),
+                            41 => Some(SharedCfgPin::Data(11)),
+                            42 => Some(SharedCfgPin::Data(9)),
+                            43 => Some(SharedCfgPin::Data(6)),
+                            44 => Some(SharedCfgPin::Data(4)),
+                            45 => Some(SharedCfgPin::Data(7)),
+                            46 => Some(SharedCfgPin::Data(5)),
+                            47 => Some(SharedCfgPin::I2cSclk),
+                            48 => Some(SharedCfgPin::Dout),
+                            49 => Some(SharedCfgPin::I2cSda),
+                            50 => Some(SharedCfgPin::PerstN0),
+                            51 => Some(SharedCfgPin::Data(13)),
+                            _ => None,
+                        }
+                    } {
+                        die_cfg_io.insert(
+                            cfg,
+                            IoCoord::Hpio(HpioCoord {
+                                die,
+                                col: iocol.col,
+                                side: iocol.side,
+                                reg: grid.reg_cfg(),
+                                iob: TileIobId::from_idx(idx),
+                            }),
+                        );
                     }
-                } else {
-                    match idx {
-                        0 => Some(SharedCfgPin::Rs(1)),
-                        1 => Some(SharedCfgPin::FweB),
-                        2 => Some(SharedCfgPin::Rs(0)),
-                        3 => Some(SharedCfgPin::FoeB),
-                        4 => Some(SharedCfgPin::Addr(28)),
-                        5 => Some(SharedCfgPin::Addr(26)),
-                        6 => Some(SharedCfgPin::SmbAlert),
-                        7 => Some(SharedCfgPin::Addr(27)),
-                        8 => Some(SharedCfgPin::Addr(24)),
-                        9 => Some(SharedCfgPin::Addr(22)),
-                        10 => Some(SharedCfgPin::Addr(25)),
-                        11 => Some(SharedCfgPin::Addr(23)),
-                        12 => Some(SharedCfgPin::Addr(20)),
-                        13 => Some(SharedCfgPin::Addr(18)),
-                        14 => Some(SharedCfgPin::Addr(16)),
-                        15 => Some(SharedCfgPin::Addr(19)),
-                        16 => Some(SharedCfgPin::Addr(17)),
-                        17 => Some(SharedCfgPin::Data(30)),
-                        18 => Some(SharedCfgPin::Data(28)),
-                        19 => Some(SharedCfgPin::Data(31)),
-                        20 => Some(SharedCfgPin::Data(29)),
-                        21 => Some(SharedCfgPin::Data(26)),
-                        22 => Some(SharedCfgPin::Data(24)),
-                        23 => Some(SharedCfgPin::Data(27)),
-                        24 => Some(SharedCfgPin::Data(25)),
-                        25 => Some(SharedCfgPin::Addr(21)),
-                        26 => Some(SharedCfgPin::CsiB),
-                        27 => Some(SharedCfgPin::Data(22)),
-                        28 => Some(SharedCfgPin::EmCclk),
-                        29 => Some(SharedCfgPin::Data(23)),
-                        30 => Some(SharedCfgPin::Data(20)),
-                        31 => Some(SharedCfgPin::Data(18)),
-                        32 => Some(SharedCfgPin::Data(21)),
-                        33 => Some(SharedCfgPin::Data(19)),
-                        34 => Some(SharedCfgPin::Data(16)),
-                        35 => Some(SharedCfgPin::Data(14)),
-                        36 => Some(SharedCfgPin::Data(17)),
-                        37 => Some(SharedCfgPin::Data(15)),
-                        38 => Some(SharedCfgPin::Data(12)),
-                        39 => Some(SharedCfgPin::Data(10)),
-                        40 => Some(SharedCfgPin::Data(8)),
-                        41 => Some(SharedCfgPin::Data(11)),
-                        42 => Some(SharedCfgPin::Data(9)),
-                        43 => Some(SharedCfgPin::Data(6)),
-                        44 => Some(SharedCfgPin::Data(4)),
-                        45 => Some(SharedCfgPin::Data(7)),
-                        46 => Some(SharedCfgPin::Data(5)),
-                        47 => Some(SharedCfgPin::I2cSclk),
-                        48 => Some(SharedCfgPin::Dout),
-                        49 => Some(SharedCfgPin::I2cSda),
-                        50 => Some(SharedCfgPin::PerstN0),
-                        51 => Some(SharedCfgPin::Data(13)),
-                        _ => None,
-                    }
+                }
+            }
+        } else {
+            let hcol = grid
+                .cols_hard
+                .iter()
+                .find(|hcol| hcol.col == col_cfg_io.0 + 1)
+                .unwrap();
+            for idx in 0..84 {
+                if let Some(cfg) = match idx {
+                    14 => Some(SharedCfgPin::Data(31)),
+                    15 => Some(SharedCfgPin::Data(30)),
+                    16 => Some(SharedCfgPin::Data(28)),
+                    17 => Some(SharedCfgPin::Data(26)),
+                    18 => Some(SharedCfgPin::Data(24)),
+                    19 => Some(SharedCfgPin::Data(22)),
+                    21 => Some(SharedCfgPin::Data(20)),
+                    22 => Some(SharedCfgPin::Data(18)),
+                    23 => Some(SharedCfgPin::Data(16)),
+                    24 => Some(SharedCfgPin::Data(14)),
+                    30 => Some(SharedCfgPin::Data(29)),
+                    31 => Some(SharedCfgPin::Data(27)),
+                    32 => Some(SharedCfgPin::Data(25)),
+                    33 => Some(SharedCfgPin::Data(23)),
+                    35 => Some(SharedCfgPin::Data(21)),
+                    36 => Some(SharedCfgPin::Data(19)),
+                    37 => Some(SharedCfgPin::Data(17)),
+                    38 => Some(SharedCfgPin::Data(15)),
+                    39 => Some(SharedCfgPin::Data(13)),
+                    40 => Some(SharedCfgPin::Data(12)),
+                    43 => Some(SharedCfgPin::EmCclk),
+                    57 => Some(SharedCfgPin::Data(11)),
+                    58 => Some(SharedCfgPin::Data(10)),
+                    59 => Some(SharedCfgPin::Data(8)),
+                    60 => Some(SharedCfgPin::Data(7)),
+                    61 => Some(SharedCfgPin::Data(5)),
+                    62 => Some(SharedCfgPin::Busy),
+                    64 => Some(SharedCfgPin::Fcs1B),
+                    65 => Some(SharedCfgPin::CsiB),
+                    66 => Some(SharedCfgPin::I2cSda),
+                    67 => Some(SharedCfgPin::I2cSclk),
+                    68 => Some(SharedCfgPin::PerstN0),
+                    69 => Some(SharedCfgPin::SmbAlert),
+                    73 => Some(SharedCfgPin::Data(9)),
+                    74 => Some(SharedCfgPin::OspiDs),
+                    75 => Some(SharedCfgPin::Data(6)),
+                    76 => Some(SharedCfgPin::Data(4)),
+                    80 => Some(SharedCfgPin::OspiRstB),
+                    81 => Some(SharedCfgPin::OspiEccFail),
+                    _ => None,
                 } {
                     die_cfg_io.insert(
                         cfg,
-                        IoCoord::Hpio(HpioCoord {
+                        IoCoord::HdioLc(HdioCoord {
                             die,
-                            col: iocol.col,
-                            side: iocol.side,
+                            col: hcol.col - 1,
                             reg: grid.reg_cfg(),
-                            iob: HpioIobId::from_idx(idx),
+                            iob: TileIobId::from_idx(idx),
                         }),
                     );
                 }

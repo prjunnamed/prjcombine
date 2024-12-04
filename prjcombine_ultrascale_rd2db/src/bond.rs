@@ -4,7 +4,7 @@ use prjcombine_ultrascale::bond::{
     SharedCfgPin, SysMonPin,
 };
 use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
-use prjcombine_ultrascale::grid::{DisabledPart, GridKind, IoRowKind};
+use prjcombine_ultrascale::grid::{DisabledPart, Grid, GridKind, IoRowKind};
 use prjcombine_ultrascale_naming::ExpandedNamedDevice;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
@@ -12,7 +12,7 @@ use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::split_num;
 
-fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
+fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin, pgrid: &Grid) -> Option<BondPin> {
     match &pin.func[..] {
         "NC" => return Some(BondPin::Nc),
         "GND" => return Some(BondPin::Gnd),
@@ -24,10 +24,13 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
         "VCCINT_IO" => return Some(BondPin::VccIntIo),
         "VCCAUX_IO" => return Some(BondPin::VccAuxIo),
         "VBATT" => return Some(BondPin::VccBatt),
-        "D00_MOSI_0" => return Some(BondPin::Cfg(CfgPin::Data(0))),
+        "D00_MOSI_0" if !pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(0))),
+        "D00_MOSI_DOUT_0" if pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(0))),
         "D01_DIN_0" => return Some(BondPin::Cfg(CfgPin::Data(1))),
-        "D02_0" => return Some(BondPin::Cfg(CfgPin::Data(2))),
-        "D03_0" => return Some(BondPin::Cfg(CfgPin::Data(3))),
+        "D02_0" if !pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(2))),
+        "D02_CS_B_0" if pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(2))),
+        "D03_0" if !pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(3))),
+        "D03_READY_0" if pgrid.has_csec => return Some(BondPin::Cfg(CfgPin::Data(3))),
         "RDWR_FCS_B_0" => return Some(BondPin::Cfg(CfgPin::RdWrB)),
         "TCK_0" => return Some(BondPin::Cfg(CfgPin::Tck)),
         "TDI_0" => return Some(BondPin::Cfg(CfgPin::Tdi)),
@@ -175,6 +178,7 @@ fn lookup_nonpad_pin(rd: &Part, pin: &PkgPin) -> Option<BondPin> {
 }
 
 pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
+    let pgrid = endev.edev.grids[endev.edev.interposer.primary];
     let mut bond_pins = BTreeMap::new();
     let mut io_banks = BTreeMap::new();
     let io_lookup: HashMap<_, _> = endev
@@ -211,6 +215,15 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 let mut exp_func = "IO".to_string();
                 match io {
                     IoCoord::Hdio(crd) => {
+                        write!(
+                            exp_func,
+                            "_L{}{}",
+                            1 + crd.iob.to_idx() / 2,
+                            ['P', 'N'][crd.iob.to_idx() % 2]
+                        )
+                        .unwrap();
+                    }
+                    IoCoord::HdioLc(crd) => {
                         write!(
                             exp_func,
                             "_L{}{}",
@@ -270,10 +283,13 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 {
                     Some(SharedCfgPin::Data(d)) => {
                         if !is_zynq {
-                            if d >= 16 {
+                            if d >= 16 && !pgrid.has_csec {
                                 write!(exp_func, "_A{:02}", d - 16).unwrap();
                             }
                             write!(exp_func, "_D{d:02}").unwrap();
+                            if (4..12).contains(&d) && pgrid.has_csec {
+                                write!(exp_func, "_OSPID{:02}", d - 4).unwrap();
+                            }
                         }
                     }
                     Some(SharedCfgPin::Addr(a)) => {
@@ -308,22 +324,57 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                     }
                     Some(SharedCfgPin::CsiB) => {
                         if !is_zynq {
-                            exp_func += "_CSI_ADV_B"
+                            if pgrid.has_csec {
+                                exp_func += "_CSI_B"
+                            } else {
+                                exp_func += "_CSI_ADV_B"
+                            }
                         }
                     }
-                    Some(SharedCfgPin::PerstN0) => exp_func += "_PERSTN0",
+                    Some(SharedCfgPin::Busy) => {
+                        if !is_zynq {
+                            exp_func += "_BUSY"
+                        }
+                    }
+                    Some(SharedCfgPin::Fcs1B) => {
+                        if !is_zynq {
+                            exp_func += "_FCS1_B"
+                        }
+                    }
+                    Some(SharedCfgPin::OspiDs) => {
+                        if !is_zynq {
+                            exp_func += "_OSPI_DS"
+                        }
+                    }
+                    Some(SharedCfgPin::OspiEccFail) => {
+                        if !is_zynq {
+                            exp_func += "_OSPI_ECC_FAIL"
+                        }
+                    }
+                    Some(SharedCfgPin::OspiRstB) => {
+                        if !is_zynq {
+                            exp_func += "_OSPI_RST_B"
+                        }
+                    }
+                    Some(SharedCfgPin::PerstN0) => {
+                        if pgrid.has_csec {
+                            exp_func += "_PERSTN0_B"
+                        } else {
+                            exp_func += "_PERSTN0"
+                        }
+                    }
                     Some(SharedCfgPin::PerstN1) => exp_func += "_PERSTN1",
                     Some(SharedCfgPin::SmbAlert) => exp_func += "_SMBALERT",
                     Some(SharedCfgPin::I2cSclk) => exp_func += "_I2C_SCLK",
                     Some(SharedCfgPin::I2cSda) => {
-                        exp_func += if endev.edev.kind == GridKind::Ultrascale {
+                        exp_func += if endev.edev.kind == GridKind::Ultrascale || pgrid.has_csec {
                             "_I2C_SDA"
                         } else {
                             "_PERSTN1_I2C_SDA"
                         }
                     }
                     None => (),
-                    _ => unreachable!(),
+                    Some(x) => println!("ummm {x:?}?"),
                 }
                 write!(exp_func, "_{}", io_banks[&io_info.bank]).unwrap();
                 if exp_func != pin.func {
@@ -335,6 +386,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 match io {
                     IoCoord::Hpio(crd) => BondPin::Hpio(io_info.bank, crd.iob),
                     IoCoord::Hdio(crd) => BondPin::Hdio(io_info.bank, crd.iob),
+                    IoCoord::HdioLc(crd) => BondPin::HdioLc(io_info.bank, crd.iob),
                 }
             } else if let Some(&gt) = gt_common_lookup.get(&**pad) {
                 let gt_info = endev.edev.get_gt_info(gt);
@@ -617,7 +669,7 @@ pub fn make_bond(rd: &Part, pkg: &str, endev: &ExpandedNamedDevice, pins: &[PkgP
                 println!("unk iopad {pad} {f}", f = pin.func);
                 continue;
             }
-        } else if let Some(p) = lookup_nonpad_pin(rd, pin) {
+        } else if let Some(p) = lookup_nonpad_pin(rd, pin, pgrid) {
             p
         } else {
             println!("UNK FUNC {} {} {:?}", pkg, pin.func, pin);

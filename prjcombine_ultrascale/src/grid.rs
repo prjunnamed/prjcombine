@@ -1,5 +1,5 @@
 use enum_map::Enum;
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use prjcombine_int::grid::{ColId, DieId, RowId, TileIobId};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeSet;
@@ -7,8 +7,6 @@ use unnamed_entity::{entity_id, EntityId, EntityIds, EntityVec};
 
 entity_id! {
     pub id RegId u32, delta;
-    pub id HdioIobId u8;
-    pub id HpioIobId u8;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -41,6 +39,7 @@ pub struct Grid {
     pub regs: usize,
     pub ps: Option<Ps>,
     pub has_hbm: bool,
+    pub has_csec: bool,
     pub is_dmc: bool,
     pub is_alt_cfg: bool,
 }
@@ -125,6 +124,7 @@ pub enum HardRowKind {
     Ams,
     Hdio,
     HdioAms,
+    HdioLc,
     Pcie,
     PciePlus,
     Cmac,
@@ -144,6 +144,7 @@ pub enum IoRowKind {
     None,
     Hpio,
     Hrio,
+    HdioLc,
     Gth,
     Gty,
     Gtm,
@@ -196,8 +197,8 @@ pub enum DisabledPart {
     Gt(DieId, ColId, RegId),
     GtBufs(DieId, ColId, RegId),
     GtmSpareBufs(DieId, ColId, RegId),
-    HdioIob(DieId, ColId, RegId, HdioIobId),
-    HpioIob(DieId, ColId, RegId, HpioIobId),
+    HdioIob(DieId, ColId, RegId, TileIobId),
+    HpioIob(DieId, ColId, RegId, TileIobId),
     HpioDci(DieId, ColId, RegId),
     Dfe,
     Sdfec,
@@ -346,6 +347,7 @@ impl Grid {
                     HardRowKind::DfeG => "DFE_G".into(),
                     HardRowKind::Hdio => "HDIO".into(),
                     HardRowKind::HdioAms => "HDIO:AMS".into(),
+                    HardRowKind::HdioLc => "HDIOLC".into(),
                 })),
             }))),
             "cols_io": Vec::from_iter(self.cols_io.iter().map(|iocol| json!({
@@ -354,6 +356,7 @@ impl Grid {
                     IoRowKind::None => serde_json::Value::Null,
                     IoRowKind::Hpio => "HPIO".into(),
                     IoRowKind::Hrio => "HRIO".into(),
+                    IoRowKind::HdioLc => "HDIOLC".into(),
                     IoRowKind::Gth => "GTH".into(),
                     IoRowKind::Gty => "GTY".into(),
                     IoRowKind::Gtm => "GTM".into(),
@@ -373,6 +376,7 @@ impl Grid {
                 }),
             },
             "has_hbm": self.has_hbm,
+            "has_csec": self.has_csec,
             "is_alt_cfg": self.is_alt_cfg,
             "is_dmc": self.is_dmc,
         })

@@ -1,9 +1,7 @@
-use prjcombine_int::grid::DieId;
+use prjcombine_int::grid::{DieId, TileIobId};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeMap;
-
-use crate::grid::{HdioIobId, HpioIobId};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
@@ -144,8 +142,9 @@ pub enum RfAdcPin {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     // bank, bel idx
-    Hpio(u32, HpioIobId),
-    Hdio(u32, HdioIobId),
+    Hpio(u32, TileIobId),
+    Hdio(u32, TileIobId),
+    HdioLc(u32, TileIobId),
     IoVref(u32),
     // bank, type
     Gt(u32, GtPin),
@@ -225,13 +224,20 @@ pub enum SharedCfgPin {
     SmbAlert, // Ultrascale+ only
     PerstN0,
     PerstN1, // Ultrascale only (shared with I2C_SDA on Ultrascale+)
+    // CSEC new stuff
+    Busy,
+    Fcs1B,
+    OspiDs,
+    OspiRstB,
+    OspiEccFail,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
-    pub hpios: BTreeMap<(u32, HpioIobId), String>,
-    pub hdios: BTreeMap<(u32, HdioIobId), String>,
+    pub hpios: BTreeMap<(u32, TileIobId), String>,
+    pub hdios: BTreeMap<(u32, TileIobId), String>,
+    pub hdiolcs: BTreeMap<(u32, TileIobId), String>,
     pub gts: BTreeMap<(u32, GtPin), String>,
     pub sysmons: BTreeMap<(DieId, SysMonPin), String>,
 }
@@ -240,6 +246,7 @@ impl Bond {
     pub fn expand(&self) -> ExpandedBond {
         let mut hpios = BTreeMap::new();
         let mut hdios = BTreeMap::new();
+        let mut hdiolcs = BTreeMap::new();
         let mut gts = BTreeMap::new();
         let mut sysmons = BTreeMap::new();
         for (name, pad) in &self.pins {
@@ -249,6 +256,9 @@ impl Bond {
                 }
                 BondPin::Hdio(bank, idx) => {
                     hdios.insert((bank, idx), name.clone());
+                }
+                BondPin::HdioLc(bank, idx) => {
+                    hdiolcs.insert((bank, idx), name.clone());
                 }
                 BondPin::Gt(bank, gtpin) => {
                     gts.insert((bank, gtpin), name.clone());
@@ -263,6 +273,7 @@ impl Bond {
             bond: self,
             hpios,
             hdios,
+            hdiolcs,
             gts,
             sysmons,
         }
@@ -274,6 +285,7 @@ impl Bond {
                 self.pins.iter().map(|(pin, pad)| (pin.clone(), match pad {
                     BondPin::Hpio(bank, io) => format!("HPIO:{bank}:{io}"),
                     BondPin::Hdio(bank, io) => format!("HDIO:{bank}:{io}"),
+                    BondPin::HdioLc(bank, io) => format!("HDIOLC:{bank}:{io}"),
                     BondPin::Gt(bank, pad) => match pad {
                         GtPin::RxP(i) => format!("GT{bank}_RXP{i}"),
                         GtPin::RxN(i) => format!("GT{bank}_RXN{i}"),

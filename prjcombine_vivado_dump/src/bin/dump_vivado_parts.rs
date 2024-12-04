@@ -16,6 +16,8 @@ struct Args {
     toolchain: String,
     target_directory: PathBuf,
     families: Vec<String>,
+    #[arg(long)]
+    parts: Vec<String>,
     #[arg(short, long, default_value = "0")]
     num_threads: usize,
 }
@@ -68,6 +70,9 @@ fn main() {
         );
     }
     for (dev, devparts) in parts {
+        if !args.parts.is_empty() && !args.parts.contains(&dev) {
+            continue;
+        }
         dump_part(&args, &tc, dev, devparts);
     }
 }
