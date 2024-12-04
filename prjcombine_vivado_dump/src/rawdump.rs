@@ -90,7 +90,6 @@ struct TileData {
 
 fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> TileData {
     let mut tts = HashMap::new();
-    let mut tile_cnt = 0;
     let mut width: u16 = 0;
     let mut height: u16 = 0;
     let mut speed_models = HashMap::new();
@@ -128,7 +127,6 @@ fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> TileData {
                     }
                     let gx: u16 = sl[1].parse().unwrap();
                     let gy: u16 = sl[2].parse().unwrap();
-                    tile_cnt += 1;
                     if !tts.contains_key(sl[3]) {
                         tts.insert(sl[3].to_string(), (gx, gy));
                     }
@@ -159,7 +157,6 @@ fn list_tiles(tc: &Toolchain, part: &VivadoPart) -> TileData {
         if !got_end {
             panic!("missing END in tiles");
         }
-        assert_eq!((width as usize) * (height as usize), tile_cnt);
     }
     TileData {
         tts,
@@ -1510,6 +1507,17 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
 
     ctx.bar.finish();
     let mut mctx = ctx.mctx.into_inner().unwrap();
+
+    // ... apparently some tiles are now just straight up missing. sigh.
+    for x in 0..mctx.rd.part.width {
+        for y in 0..mctx.rd.part.height {
+            let crd = Coord { x, y };
+            if !mctx.rd.part.tiles.contains_key(&crd) {
+                mctx.rd
+                    .add_tile(crd, format!("__{x}_{y}__"), "__EMPTY__".into(), &[], &[], &[]);
+            }
+        }
+    }
 
     // STEP 4: stream nodes
     for v in mctx.nodes.into_values() {
