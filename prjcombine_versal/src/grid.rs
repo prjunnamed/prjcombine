@@ -198,3 +198,125 @@ impl Grid {
         self.cols_hard.iter().find(|x| x.col == col)
     }
 }
+
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: Versal")?;
+        writeln!(f, "\tPS: {v:?}", v = self.ps)?;
+        writeln!(f, "\tCPM: {v:?}", v = self.cpm)?;
+        writeln!(f, "\tXRAM TOP: {v:?}", v = self.has_xram_top)?;
+        writeln!(f, "\tTOP: {v:?}", v = self.top)?;
+        writeln!(f, "\tBOTTOM: {v:?}", v = self.bottom)?;
+        writeln!(f, "\tCOLS:")?;
+        for (col, cd) in &self.columns {
+            if self.cols_vbrk.contains(&col) {
+                writeln!(f, "\t\t--- break")?;
+            }
+            if self.cols_cpipe.contains(&col) {
+                writeln!(f, "\t\t--- CPIPE")?;
+            }
+            if matches!(
+                cd.l,
+                ColumnKind::Cle(_)
+                    | ColumnKind::Dsp
+                    | ColumnKind::Hard
+                    | ColumnKind::VNoc
+                    | ColumnKind::VNoc2
+            ) {
+                write!(f, "\t\tX{cl}.R-X{col}.L: ", cl = col - 1)?;
+            } else {
+                write!(f, "\t\tX{col}.L: ")?;
+            }
+            match cd.l {
+                ColumnKind::None => write!(f, "---")?,
+                ColumnKind::Cle(CleKind::Plain) => write!(f, "CLE")?,
+                ColumnKind::Cle(CleKind::Sll) => write!(f, "CLE.SLL")?,
+                ColumnKind::Cle(CleKind::Sll2) => write!(f, "CLE.SLL2")?,
+                ColumnKind::Dsp => write!(f, "DSP")?,
+                ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM")?,
+                ColumnKind::Bram(BramKind::ClkBuf) => write!(f, "BRAM.CLKBUF")?,
+                ColumnKind::Bram(BramKind::ClkBufNoPd) => write!(f, "BRAM.CLKBUF.NOPD")?,
+                ColumnKind::Uram => write!(f, "URAM")?,
+                ColumnKind::Hard => write!(f, "HARD")?,
+                ColumnKind::Gt => write!(f, "GT")?,
+                ColumnKind::Cfrm => write!(f, "CFRM")?,
+                ColumnKind::VNoc => write!(f, "VNOC")?,
+                ColumnKind::VNoc2 => write!(f, "VNOC2")?,
+            }
+            if cd.has_bli_bot_l {
+                write!(f, " BLI.BOT")?;
+            }
+            if cd.has_bli_top_l {
+                write!(f, " BLI.TOP")?;
+            }
+            writeln!(f,)?;
+            for hc in &self.cols_hard {
+                if hc.col == col {
+                    for (reg, kind) in &hc.regs {
+                        writeln!(f, "\t\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                    }
+                }
+            }
+            if matches!(
+                cd.r,
+                ColumnKind::Cle(_)
+                    | ColumnKind::Dsp
+                    | ColumnKind::Hard
+                    | ColumnKind::VNoc
+                    | ColumnKind::VNoc2
+            ) {
+                continue;
+            }
+            write!(f, "\t\tX{col}.R: ")?;
+            match cd.r {
+                ColumnKind::None => write!(f, "---")?,
+                ColumnKind::Cle(CleKind::Plain) => write!(f, "CLE")?,
+                ColumnKind::Cle(CleKind::Sll) => write!(f, "CLE.SLL")?,
+                ColumnKind::Cle(CleKind::Sll2) => write!(f, "CLE.SLL2")?,
+                ColumnKind::Dsp => write!(f, "DSP")?,
+                ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM")?,
+                ColumnKind::Bram(BramKind::ClkBuf) => write!(f, "BRAM.CLKBUF")?,
+                ColumnKind::Bram(BramKind::ClkBufNoPd) => write!(f, "BRAM.CLKBUF.NOPD")?,
+                ColumnKind::Uram => write!(f, "URAM")?,
+                ColumnKind::Hard => write!(f, "HARD")?,
+                ColumnKind::Gt => write!(f, "GT")?,
+                ColumnKind::Cfrm => write!(f, "CFRM")?,
+                ColumnKind::VNoc => write!(f, "VNOC")?,
+                ColumnKind::VNoc2 => write!(f, "VNOC2")?,
+            }
+            if cd.has_bli_bot_r {
+                write!(f, " BLI.BOT")?;
+            }
+            if cd.has_bli_top_r {
+                write!(f, " BLI.TOP")?;
+            }
+            writeln!(f,)?;
+        }
+        writeln!(f, "\tGT LEFT:")?;
+        for (reg, kind) in &self.regs_gt_left {
+            writeln!(f, "\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+        }
+        match self.right {
+            RightKind::Term => {
+                writeln!(f, "\tRIGHT: TERM")?;
+            }
+            RightKind::Term2 => {
+                writeln!(f, "\tRIGHT: TERM2")?;
+            }
+            RightKind::Gt(ref regs_gt_right) => {
+                writeln!(f, "\tRIGHT: GT:\n")?;
+                for (reg, kind) in regs_gt_right {
+                    writeln!(f, "\t\tY{y}: {kind:?}", y = self.row_reg_bot(reg))?;
+                }
+            }
+            RightKind::HNicX => {
+                writeln!(f, "\tRIGHT: HNIC")?;
+            }
+            RightKind::Cidb => {
+                writeln!(f, "\tRIGHT: CIDB")?;
+            }
+        }
+        writeln!(f, "\tREGS: {r}", r = self.regs)?;
+        Ok(())
+    }
+}

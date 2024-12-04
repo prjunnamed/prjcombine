@@ -351,3 +351,168 @@ impl Grid {
         })
     }
 }
+
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: Spartan6")?;
+        writeln!(f, "\tCOLS:")?;
+        for (col, cd) in &self.columns {
+            write!(f, "\t\tX{col}: ")?;
+            match cd.kind {
+                ColumnKind::Io => write!(f, "IO")?,
+                ColumnKind::CleXL => write!(f, "CLEXL")?,
+                ColumnKind::CleXM => write!(f, "CLEXM")?,
+                ColumnKind::CleClk => write!(f, "CLEXL+CLK")?,
+                ColumnKind::Bram => write!(f, "BRAM")?,
+                ColumnKind::Dsp => write!(f, "DSP")?,
+                ColumnKind::DspPlus => write!(f, "DSP*")?,
+            }
+            match cd.bio {
+                ColumnIoKind::None => (),
+                ColumnIoKind::Inner => write!(f, " BIO: I-")?,
+                ColumnIoKind::Outer => write!(f, " BIO: -O")?,
+                ColumnIoKind::Both => write!(f, " BIO: IO")?,
+            }
+            match cd.tio {
+                ColumnIoKind::None => (),
+                ColumnIoKind::Inner => write!(f, " TIO: I-")?,
+                ColumnIoKind::Outer => write!(f, " TIO: -O")?,
+                ColumnIoKind::Both => write!(f, " TIO: IO")?,
+            }
+            if let Some((cl, cr)) = self.cols_clk_fold {
+                if col == cl || col == cr {
+                    write!(f, " FOLD")?;
+                }
+            }
+            if col == self.cols_reg_buf.0 || col == self.cols_reg_buf.1 {
+                write!(f, " REGBUF")?;
+            }
+            if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.gts {
+                if col == cl {
+                    write!(f, " LGT")?;
+                }
+            }
+            if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.gts {
+                if col == cr {
+                    write!(f, " RGT")?;
+                }
+            }
+            writeln!(f,)?;
+        }
+        writeln!(f, "\tROWS:")?;
+        for (row, rd) in &self.rows {
+            if row.to_idx() != 0 && row.to_idx() % 16 == 0 {
+                writeln!(f, "\t\t--- clock break")?;
+            }
+            if row.to_idx() % 16 == 8 {
+                writeln!(f, "\t\t--- clock row")?;
+            }
+            if row == self.row_clk() {
+                writeln!(f, "\t\t--- spine row")?;
+            }
+            if let Some((rl, rr)) = self.rows_bank_split {
+                if row == rl {
+                    writeln!(f, "\t\t--- left bank split")?;
+                }
+                if row == rr {
+                    writeln!(f, "\t\t--- right bank split")?;
+                }
+            }
+            if Some(row) == self.row_mcb_split {
+                writeln!(f, "\t\t--- MCB split")?;
+            }
+            write!(f, "\t\tY{r}: ", r = row.to_idx())?;
+            if rd.lio {
+                write!(f, " LIO")?;
+            }
+            if rd.rio {
+                write!(f, " RIO")?;
+            }
+            if row == self.rows_midbuf.0 || row == self.rows_midbuf.1 {
+                write!(f, " MIDBUF")?;
+            }
+            if row == self.rows_hclkbuf.0 || row == self.rows_hclkbuf.1 {
+                write!(f, " HCLKBUF")?;
+            }
+            for (i, mcb) in self.mcbs.iter().enumerate() {
+                if row == mcb.row_mcb {
+                    write!(f, " MCB{i}.MCB")?;
+                }
+                for (j, &r) in mcb.row_mui.iter().enumerate() {
+                    if row == r {
+                        write!(f, " MCB{i}.MUI{j}")?;
+                    }
+                }
+                for (j, &r) in mcb.iop_dq.iter().enumerate() {
+                    if row == r {
+                        write!(f, " MCB{i}.DQ({jj0},{jj1})", jj0 = j * 2, jj1 = j * 2 + 1)?;
+                    }
+                }
+                for (j, &r) in mcb.iop_dqs.iter().enumerate() {
+                    if row == r {
+                        write!(f, " MCB{i}.DQS{j}")?;
+                    }
+                }
+                if row == mcb.iop_clk {
+                    write!(f, " MCB{i}.CLK")?;
+                }
+                let mut pins: [Option<&'static str>; 2] = [None, None];
+                for (pin, io) in [
+                    ("DM0", mcb.io_dm[0]),
+                    ("DM1", mcb.io_dm[1]),
+                    ("A0", mcb.io_addr[0]),
+                    ("A1", mcb.io_addr[1]),
+                    ("A2", mcb.io_addr[2]),
+                    ("A3", mcb.io_addr[3]),
+                    ("A4", mcb.io_addr[4]),
+                    ("A5", mcb.io_addr[5]),
+                    ("A6", mcb.io_addr[6]),
+                    ("A7", mcb.io_addr[7]),
+                    ("A8", mcb.io_addr[8]),
+                    ("A9", mcb.io_addr[9]),
+                    ("A10", mcb.io_addr[10]),
+                    ("A11", mcb.io_addr[11]),
+                    ("A12", mcb.io_addr[12]),
+                    ("A13", mcb.io_addr[13]),
+                    ("A14", mcb.io_addr[14]),
+                    ("BA0", mcb.io_ba[0]),
+                    ("BA1", mcb.io_ba[1]),
+                    ("BA2", mcb.io_ba[2]),
+                    ("RAS", mcb.io_ras),
+                    ("CAS", mcb.io_cas),
+                    ("WE", mcb.io_we),
+                    ("ODT", mcb.io_odt),
+                    ("CKE", mcb.io_cke),
+                    ("RST", mcb.io_reset),
+                ] {
+                    if row == io.row {
+                        pins[io.iob.to_idx()] = Some(pin);
+                    }
+                }
+                if pins.iter().any(|x| x.is_some()) {
+                    write!(
+                        f,
+                        " MCB{i}.({p0},{p1})",
+                        p0 = pins[0].unwrap(),
+                        p1 = pins[1].unwrap()
+                    )?;
+                }
+            }
+            writeln!(f)?;
+        }
+        match self.gts {
+            Gts::None => (),
+            Gts::Single(..) => writeln!(f, "\tGTS: SINGLE")?,
+            Gts::Double(..) => writeln!(f, "\tGTS: DOUBLE")?,
+            Gts::Quad(..) => writeln!(f, "\tGTS: QUAD")?,
+        }
+        writeln!(f, "\tCFG PINS:")?;
+        for (k, v) in &self.cfg_io {
+            writeln!(f, "\t\t{k:?}: {v}")?;
+        }
+        if self.has_encrypt {
+            writeln!(f, "\tHAS ENCRYPT")?;
+        }
+        Ok(())
+    }
+}

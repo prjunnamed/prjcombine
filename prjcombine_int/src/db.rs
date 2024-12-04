@@ -373,13 +373,13 @@ impl IntDb {
                             },
                             "is_intf_in": pin.is_intf_in,
                         })))),
-                    }))), 
+                    }))),
                 }))
             })),
             "terms": serde_json::Map::from_iter(self.terms.iter().map(|(_, name, term)| {
                 (name.into(), json!({
                     "dir": term.dir.to_string(),
-                    "wires": serde_json::Map::from_iter(term.wires.iter().map(|(wire, ti)| 
+                    "wires": serde_json::Map::from_iter(term.wires.iter().map(|(wire, ti)|
                         (self.wires.key(wire).to_string(), match *ti {
                             TermInfo::BlackHole => json!({
                                 "kind": "BLACKHOLE",

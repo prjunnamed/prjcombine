@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use prjcombine_int::grid::SimpleIoCoord;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -127,5 +128,65 @@ impl Bond {
             ))),
             "vref": Vec::from_iter(self.vref.iter().map(|io| io.to_string())),
         })
+    }
+}
+
+fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
+impl std::fmt::Display for Bond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tBANKS:")?;
+        for (k, v) in &self.io_banks {
+            writeln!(f, "\t\t{k}: {v}")?;
+        }
+        writeln!(f, "\tPINS:")?;
+        for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            write!(f, "\t\t{pin:4}: ")?;
+            match pad {
+                BondPin::Io(io) => write!(f, "{io}")?,
+                BondPin::Gt(bank, gtpin) => {
+                    write!(f, "GT{bank}.")?;
+                    match gtpin {
+                        GtPin::RxP(idx) => write!(f, "RXP{idx}")?,
+                        GtPin::RxN(idx) => write!(f, "RXN{idx}")?,
+                        GtPin::TxP(idx) => write!(f, "TXP{idx}")?,
+                        GtPin::TxN(idx) => write!(f, "TXN{idx}")?,
+                        GtPin::VtRx => write!(f, "VTRX")?,
+                        GtPin::VtTx => write!(f, "VTTX")?,
+                        GtPin::ClkP(idx) => write!(f, "CLKP{idx}")?,
+                        GtPin::ClkN(idx) => write!(f, "CLKN{idx}")?,
+                        GtPin::AVcc => write!(f, "AVCC")?,
+                        GtPin::AVccPll(idx) => write!(f, "AVCCPLL{idx}")?,
+                        GtPin::RRef => write!(f, "RREF")?,
+                        GtPin::AVttRCal => write!(f, "AVTTRCAL")?,
+                    }
+                }
+                BondPin::Nc => write!(f, "NC")?,
+                BondPin::Gnd => write!(f, "GND")?,
+                BondPin::VccInt => write!(f, "VCCINT")?,
+                BondPin::VccAux => write!(f, "VCCAUX")?,
+                BondPin::VccO(bank) => write!(f, "VCCO{bank}")?,
+                BondPin::VccBatt => write!(f, "VCC_BATT")?,
+                BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
+                BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
+                BondPin::Cfg(CfgPin::Tck) => write!(f, "TCK")?,
+                BondPin::Cfg(CfgPin::Tms) => write!(f, "TMS")?,
+                BondPin::Cfg(CfgPin::Tdi) => write!(f, "TDI")?,
+                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
+                BondPin::Cfg(CfgPin::Suspend) => write!(f, "SUSPEND")?,
+                BondPin::Cfg(CfgPin::CmpCsB) => write!(f, "CMPCS_B")?,
+                BondPin::Vfs => write!(f, "VFS")?,
+                BondPin::RFuse => write!(f, "RFUSE")?,
+            }
+            writeln!(f)?;
+        }
+        writeln!(f, "\tVREF:")?;
+        for v in &self.vref {
+            writeln!(f, "\t\t{v}")?;
+        }
+        Ok(())
     }
 }

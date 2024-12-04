@@ -382,3 +382,166 @@ impl Grid {
         })
     }
 }
+
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
+        if let Some(ps) = self.ps {
+            write!(f, "\tPS {v:?}", v = ps.intf_kind)?;
+            if ps.has_vcu {
+                write!(f, " VCU")?;
+            }
+            writeln!(f)?;
+        }
+        if self.has_hbm {
+            writeln!(f, "\tHAS HBM")?;
+        }
+        if self.has_csec {
+            writeln!(f, "\tHAS CSEC")?;
+        }
+        if self.is_dmc {
+            writeln!(f, "\tIS DMC")?;
+        }
+        if self.is_alt_cfg {
+            writeln!(f, "\tIS ALT CFG")?;
+        }
+        writeln!(f, "\tCOLS:")?;
+        for (col, cd) in &self.columns {
+            if self.cols_vbrk.contains(&col) {
+                writeln!(f, "\t\t--- break")?;
+            }
+            if self.cols_fsr_gap.contains(&col) {
+                writeln!(f, "\t\t--- FSR gap")?;
+            }
+            if matches!(
+                cd.l,
+                ColumnKindLeft::Uram
+                    | ColumnKindLeft::Hard(_, _)
+                    | ColumnKindLeft::DfeC
+                    | ColumnKindLeft::DfeDF
+                    | ColumnKindLeft::DfeE
+            ) {
+                write!(f, "\t\tX{cl}.R-X{c}.L: ", cl = col - 1, c = col)?;
+            } else {
+                write!(f, "\t\tX{c}.L: ", c = col.to_idx())?;
+            }
+            match cd.l {
+                ColumnKindLeft::Io(_) => write!(f, "IO")?,
+                ColumnKindLeft::Gt(_) => write!(f, "GT")?,
+                ColumnKindLeft::CleL => write!(f, "CLEL")?,
+                ColumnKindLeft::CleM(CleMKind::Plain) => write!(f, "CLEM")?,
+                ColumnKindLeft::CleM(CleMKind::ClkBuf) => write!(f, "CLEM.CLK")?,
+                ColumnKindLeft::CleM(CleMKind::Laguna) => write!(f, "CLEM.LAGUNA")?,
+                ColumnKindLeft::Bram(BramKind::Plain) => write!(f, "BRAM")?,
+                ColumnKindLeft::Bram(BramKind::AuxClmp) => write!(f, "BRAM.AUX_CLMP")?,
+                ColumnKindLeft::Bram(BramKind::BramClmp) => write!(f, "BRAM.BRAM_CLMP")?,
+                ColumnKindLeft::Bram(BramKind::AuxClmpMaybe) => write!(f, "BRAM.AUX_CLMP*")?,
+                ColumnKindLeft::Bram(BramKind::BramClmpMaybe) => write!(f, "BRAM.BRAM_CLMP*")?,
+                ColumnKindLeft::Bram(BramKind::Td) => write!(f, "BRAM.TD")?,
+                ColumnKindLeft::Uram => write!(f, "URAM")?,
+                ColumnKindLeft::Hard(hk, _) => {
+                    write!(f, "HARD{}", if hk == HardKind::Clk { " CLK" } else { "" })?
+                }
+                ColumnKindLeft::Sdfec => write!(f, "SDFEC")?,
+                ColumnKindLeft::DfeC => write!(f, "DFE_C")?,
+                ColumnKindLeft::DfeDF => write!(f, "DFE_DF")?,
+                ColumnKindLeft::DfeE => write!(f, "DFE_E")?,
+            }
+            if cd.clk_l.iter().any(|x| x.is_some()) {
+                write!(f, " CLK")?;
+                for v in cd.clk_l {
+                    if let Some(v) = v {
+                        write!(f, " {v}")?;
+                    } else {
+                        write!(f, " -")?;
+                    }
+                }
+            }
+            if let Some(ps) = self.ps {
+                if ps.col == col {
+                    write!(f, " PS")?;
+                }
+            }
+            writeln!(f,)?;
+            if let ColumnKindLeft::Io(idx) | ColumnKindLeft::Gt(idx) = cd.l {
+                let ioc = &self.cols_io[idx];
+                for (reg, kind) in &ioc.regs {
+                    writeln!(
+                        f,
+                        "\t\t\tY{y}: {kind:?}",
+                        y = self.row_reg_bot(reg).to_idx()
+                    )?;
+                }
+            }
+            if let ColumnKindLeft::Hard(_, idx) = cd.l {
+                let hc = &self.cols_hard[idx];
+                for (reg, kind) in &hc.regs {
+                    writeln!(
+                        f,
+                        "\t\t\tY{y}: {kind:?}",
+                        y = self.row_reg_bot(reg).to_idx()
+                    )?;
+                }
+            }
+            if matches!(
+                cd.r,
+                ColumnKindRight::Uram
+                    | ColumnKindRight::Hard(HardKind::Clk | HardKind::NonClk, _)
+                    | ColumnKindRight::DfeC
+                    | ColumnKindRight::DfeDF
+                    | ColumnKindRight::DfeE
+            ) {
+                continue;
+            }
+            write!(f, "\t\tX{c}.R: ", c = col.to_idx())?;
+            match cd.r {
+                ColumnKindRight::Io(_) => write!(f, "IO")?,
+                ColumnKindRight::Gt(_) => write!(f, "GT")?,
+                ColumnKindRight::CleL(CleLKind::Plain) => write!(f, "CLEL")?,
+                ColumnKindRight::CleL(CleLKind::Dcg10) => write!(f, "CLEL.DCG10")?,
+                ColumnKindRight::Dsp(DspKind::Plain) => write!(f, "DSP")?,
+                ColumnKindRight::Dsp(DspKind::ClkBuf) => write!(f, "DSP.CLK")?,
+                ColumnKindRight::Uram => write!(f, "URAM")?,
+                ColumnKindRight::Hard(_, _) => write!(f, "HARD TERM")?,
+                ColumnKindRight::DfeB => write!(f, "DFE_B")?,
+                ColumnKindRight::DfeC => write!(f, "DFE_C")?,
+                ColumnKindRight::DfeDF => write!(f, "DFE_DF")?,
+                ColumnKindRight::DfeE => write!(f, "DFE_E")?,
+            }
+            if cd.clk_r.iter().any(|x| x.is_some()) {
+                write!(f, " CLK")?;
+                for v in cd.clk_r {
+                    if let Some(v) = v {
+                        write!(f, " {v}")?;
+                    } else {
+                        write!(f, " -")?;
+                    }
+                }
+            }
+            writeln!(f)?;
+            if let ColumnKindRight::Io(idx) | ColumnKindRight::Gt(idx) = cd.r {
+                let ioc = &self.cols_io[idx];
+                for (reg, kind) in &ioc.regs {
+                    writeln!(
+                        f,
+                        "\t\t\tY{y}: {kind:?}",
+                        y = self.row_reg_bot(reg).to_idx()
+                    )?;
+                }
+            }
+            if let ColumnKindRight::Hard(__, idx) = cd.r {
+                let hc = &self.cols_hard[idx];
+                for (reg, kind) in &hc.regs {
+                    writeln!(
+                        f,
+                        "\t\t\tY{y}: {kind:?}",
+                        y = self.row_reg_bot(reg).to_idx()
+                    )?;
+                }
+            }
+        }
+        writeln!(f, "\tREGS: {r}", r = self.regs)?;
+
+        Ok(())
+    }
+}

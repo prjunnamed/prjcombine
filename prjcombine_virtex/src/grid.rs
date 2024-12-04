@@ -102,3 +102,40 @@ impl Grid {
         })
     }
 }
+
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
+        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
+        writeln!(f, "\tCOLS:")?;
+        let mut clkv_idx = 0;
+        for col in self.columns() {
+            if col == self.cols_clkv[clkv_idx].0 {
+                writeln!(f, "\t\t--- clock column")?;
+            }
+            if col == self.cols_clkv[clkv_idx].2 {
+                writeln!(f, "\t\t--- clock break")?;
+                clkv_idx += 1;
+            }
+            writeln!(
+                f,
+                "\t\tX{c}: {kind}",
+                c = col.to_idx(),
+                kind = if self.cols_bram.contains(&col) {
+                    "BRAM"
+                } else if col == self.col_lio() {
+                    "LIO"
+                } else if col == self.col_rio() {
+                    "RIO"
+                } else {
+                    "CLB"
+                }
+            )?;
+        }
+        writeln!(f, "\tCFG PINS:")?;
+        for (k, v) in &self.cfg_io {
+            writeln!(f, "\t\t{k:?}: {v}",)?;
+        }
+        Ok(())
+    }
+}

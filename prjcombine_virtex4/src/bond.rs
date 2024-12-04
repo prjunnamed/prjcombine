@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -384,5 +385,174 @@ impl Bond {
                 }.into()))
             ),
         })
+    }
+}
+
+fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
+impl std::fmt::Display for Bond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tPINS:")?;
+        for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            write!(f, "\t\t{pin:4}: ")?;
+            match pad {
+                BondPin::Io(bank, idx) => write!(f, "IOB_{bank}_{idx}")?,
+                BondPin::Gt(bank, gtpin) => {
+                    write!(f, "GT{bank}.")?;
+                    match gtpin {
+                        GtPin::RxP(idx) => write!(f, "RXP{idx}")?,
+                        GtPin::RxN(idx) => write!(f, "RXN{idx}")?,
+                        GtPin::TxP(idx) => write!(f, "TXP{idx}")?,
+                        GtPin::TxN(idx) => write!(f, "TXN{idx}")?,
+                        GtPin::ClkP(idx) => write!(f, "CLKP{idx}")?,
+                        GtPin::ClkN(idx) => write!(f, "CLKN{idx}")?,
+                        GtPin::GndA => write!(f, "GNDA")?,
+                        GtPin::AVccAuxTx => write!(f, "AVCCAUXTX")?,
+                        GtPin::AVccAuxRx(idx) => write!(f, "AVCCAUXRX{idx}")?,
+                        GtPin::AVccAuxMgt => write!(f, "AVCCAUXMGT")?,
+                        GtPin::RTerm => write!(f, "RTERM")?,
+                        GtPin::MgtVRef => write!(f, "MGTVREF")?,
+                        GtPin::VtRx(idx) => write!(f, "VTRX{idx}")?,
+                        GtPin::VtTx(idx) => write!(f, "VTTX{idx}")?,
+                        GtPin::AVcc => write!(f, "AVCC")?,
+                        GtPin::AVccPll => write!(f, "AVCCPLL")?,
+                        GtPin::RRef => write!(f, "RREF")?,
+                        GtPin::AVttRCal => write!(f, "AVTTRCAL")?,
+                        GtPin::RBias => write!(f, "RBIAS")?,
+                    }
+                }
+                BondPin::Gtz(bank, gtpin) => {
+                    write!(f, "GTZ{bank}.")?;
+                    match gtpin {
+                        GtzPin::RxP(idx) => write!(f, "RXP{idx}")?,
+                        GtzPin::RxN(idx) => write!(f, "RXN{idx}")?,
+                        GtzPin::TxP(idx) => write!(f, "TXP{idx}")?,
+                        GtzPin::TxN(idx) => write!(f, "TXN{idx}")?,
+                        GtzPin::ClkP(idx) => write!(f, "CLKP{idx}")?,
+                        GtzPin::ClkN(idx) => write!(f, "CLKN{idx}")?,
+                        GtzPin::AGnd => write!(f, "AGND")?,
+                        GtzPin::AVcc => write!(f, "AVCC")?,
+                        GtzPin::VccH => write!(f, "VCCH")?,
+                        GtzPin::VccL => write!(f, "VCCL")?,
+                        GtzPin::ObsClkP => write!(f, "OBSCLKP")?,
+                        GtzPin::ObsClkN => write!(f, "OBSCLKN")?,
+                        GtzPin::ThermIn => write!(f, "THERM_IN")?,
+                        GtzPin::ThermOut => write!(f, "THERM_OUT")?,
+                        GtzPin::SenseAGnd => write!(f, "SENSE_AGND")?,
+                        GtzPin::SenseGnd => write!(f, "SENSE_GND")?,
+                        GtzPin::SenseGndL => write!(f, "SENSE_GNDL")?,
+                        GtzPin::SenseAVcc => write!(f, "SENSE_AVCC")?,
+                        GtzPin::SenseVcc => write!(f, "SENSE_VCC")?,
+                        GtzPin::SenseVccL => write!(f, "SENSE_VCCL")?,
+                        GtzPin::SenseVccH => write!(f, "SENSE_VCCH")?,
+                    }
+                }
+                BondPin::GtRegion(region, gtpin) => {
+                    write!(f, "GTREG")?;
+                    match region {
+                        GtRegion::All => (),
+                        GtRegion::S => write!(f, "S")?,
+                        GtRegion::N => write!(f, "N")?,
+                        GtRegion::L => write!(f, "L")?,
+                        GtRegion::R => write!(f, "R")?,
+                        GtRegion::LS => write!(f, "LS")?,
+                        GtRegion::RS => write!(f, "RS")?,
+                        GtRegion::LN => write!(f, "LN")?,
+                        GtRegion::RN => write!(f, "RN")?,
+                        GtRegion::H => write!(f, "H")?,
+                        GtRegion::LH => write!(f, "LH")?,
+                        GtRegion::RH => write!(f, "RH")?,
+                        GtRegion::Num(n) => write!(f, "{n}")?,
+                    }
+                    write!(f, ".")?;
+                    match gtpin {
+                        GtRegionPin::AVtt => write!(f, "AVTT")?,
+                        GtRegionPin::AGnd => write!(f, "AGND")?,
+                        GtRegionPin::AVcc => write!(f, "AVCC")?,
+                        GtRegionPin::AVccRx => write!(f, "AVCCRX")?,
+                        GtRegionPin::AVccPll => write!(f, "AVCCPLL")?,
+                        GtRegionPin::AVttRxC => write!(f, "AVTTRXC")?,
+                        GtRegionPin::VccAux => write!(f, "VCCAUX")?,
+                    }
+                }
+                BondPin::Nc => write!(f, "NC")?,
+                BondPin::Gnd => write!(f, "GND")?,
+                BondPin::VccInt => write!(f, "VCCINT")?,
+                BondPin::VccAux => write!(f, "VCCAUX")?,
+                BondPin::VccAuxIo(idx) => write!(f, "VCCAUX_IO{idx}")?,
+                BondPin::VccBram => write!(f, "VCCBRAM")?,
+                BondPin::VccO(bank) => write!(f, "VCCO{bank}")?,
+                BondPin::VccBatt => write!(f, "VCC_BATT")?,
+                BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
+                BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
+                BondPin::Cfg(CfgPin::M0) => write!(f, "M0")?,
+                BondPin::Cfg(CfgPin::M1) => write!(f, "M1")?,
+                BondPin::Cfg(CfgPin::M2) => write!(f, "M2")?,
+                BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
+                BondPin::Cfg(CfgPin::InitB) => write!(f, "INIT_B")?,
+                BondPin::Cfg(CfgPin::RdWrB) => write!(f, "RDWR_B")?,
+                BondPin::Cfg(CfgPin::CsiB) => write!(f, "CSI_B")?,
+                BondPin::Cfg(CfgPin::Tck) => write!(f, "TCK")?,
+                BondPin::Cfg(CfgPin::Tms) => write!(f, "TMS")?,
+                BondPin::Cfg(CfgPin::Tdi) => write!(f, "TDI")?,
+                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
+                BondPin::Cfg(CfgPin::PwrdwnB) => write!(f, "PWRDWN_B")?,
+                BondPin::Cfg(CfgPin::HswapEn) => write!(f, "HSWAP_EN")?,
+                BondPin::Cfg(CfgPin::Din) => write!(f, "DIN")?,
+                BondPin::Cfg(CfgPin::Dout) => write!(f, "DOUT")?,
+                BondPin::Cfg(CfgPin::CfgBvs) => write!(f, "CFGBVS")?,
+                BondPin::Dxn => write!(f, "DXN")?,
+                BondPin::Dxp => write!(f, "DXP")?,
+                BondPin::Rsvd => write!(f, "RSVD")?,
+                BondPin::RsvdGnd => write!(f, "RSVDGND")?,
+                BondPin::Vfs => write!(f, "VFS")?,
+                BondPin::SysMon(bank, pin) => {
+                    write!(f, "SYSMON{bank}.")?;
+                    match pin {
+                        SysMonPin::VP => write!(f, "VP")?,
+                        SysMonPin::VN => write!(f, "VN")?,
+                        SysMonPin::AVss => write!(f, "AVSS")?,
+                        SysMonPin::AVdd => write!(f, "AVDD")?,
+                        SysMonPin::VRefP => write!(f, "VREFP")?,
+                        SysMonPin::VRefN => write!(f, "VREFN")?,
+                    }
+                }
+                BondPin::VccPsInt => write!(f, "VCC_PS_INT")?,
+                BondPin::VccPsAux => write!(f, "VCC_PS_AUX")?,
+                BondPin::VccPsPll => write!(f, "VCC_PS_PLL")?,
+                BondPin::PsVref(bank, idx) => write!(f, "PS{bank}.VREF{idx}")?,
+                BondPin::PsIo(bank, pin) => {
+                    write!(f, "PS{bank}.")?;
+                    match pin {
+                        PsPin::Mio(i) => write!(f, "MIO{i}")?,
+                        PsPin::Clk => write!(f, "CLK")?,
+                        PsPin::PorB => write!(f, "POR_B")?,
+                        PsPin::SrstB => write!(f, "SRST_B")?,
+                        PsPin::DdrDq(i) => write!(f, "DDR_DQ{i}")?,
+                        PsPin::DdrDm(i) => write!(f, "DDR_DM{i}")?,
+                        PsPin::DdrDqsP(i) => write!(f, "DDR_DQS_P{i}")?,
+                        PsPin::DdrDqsN(i) => write!(f, "DDR_DQS_N{i}")?,
+                        PsPin::DdrA(i) => write!(f, "DDR_A{i}")?,
+                        PsPin::DdrBa(i) => write!(f, "DDR_BA{i}")?,
+                        PsPin::DdrVrP => write!(f, "DDR_VRP")?,
+                        PsPin::DdrVrN => write!(f, "DDR_VRN")?,
+                        PsPin::DdrCkP => write!(f, "DDR_CKP")?,
+                        PsPin::DdrCkN => write!(f, "DDR_CKN")?,
+                        PsPin::DdrCke => write!(f, "DDR_CKE")?,
+                        PsPin::DdrOdt => write!(f, "DDR_ODT")?,
+                        PsPin::DdrDrstB => write!(f, "DDR_DRST_B")?,
+                        PsPin::DdrCsB => write!(f, "DDR_CS_B")?,
+                        PsPin::DdrRasB => write!(f, "DDR_RAS_B")?,
+                        PsPin::DdrCasB => write!(f, "DDR_CAS_B")?,
+                        PsPin::DdrWeB => write!(f, "DDR_WE_B")?,
+                    }
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }

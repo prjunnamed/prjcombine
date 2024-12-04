@@ -286,3 +286,131 @@ impl Grid {
         })
     }
 }
+
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: {v:?}", v = self.kind)?;
+        if self.has_ps {
+            writeln!(f, "\tHAS PS")?;
+        }
+        if self.has_slr {
+            writeln!(f, "\tHAS SLR")?;
+        }
+        if self.has_no_tbuturn {
+            writeln!(f, "\tHAS NO TB UTURN")?;
+        }
+        writeln!(f, "\tCOLS:")?;
+        for (col, &cd) in &self.columns {
+            if self.cols_vbrk.contains(&col) {
+                writeln!(f, "\t\t--- break")?;
+            }
+            write!(f, "\t\tX{c}: ", c = col.to_idx())?;
+            match cd {
+                ColumnKind::Io => write!(f, "IO")?,
+                ColumnKind::ClbLL => write!(f, "CLBLL")?,
+                ColumnKind::ClbLM => write!(f, "CLBLM")?,
+                ColumnKind::Bram => write!(f, "BRAM")?,
+                ColumnKind::Dsp => write!(f, "DSP")?,
+                ColumnKind::Gt => write!(f, "GT")?,
+                ColumnKind::Cmt => write!(f, "CMT")?,
+                ColumnKind::Clk => write!(f, "CLK")?,
+                ColumnKind::Cfg => write!(f, "CFG")?,
+            }
+            if self.cols_mgt_buf.contains(&col) {
+                write!(f, " MGT_BUF")?;
+            }
+            if let Some((cl, cr)) = self.cols_qbuf {
+                if col == cl || col == cr {
+                    write!(f, " QBUF")?;
+                }
+            }
+            writeln!(f)?;
+            if let Some(ref hard) = self.col_hard {
+                if hard.col == col {
+                    for &row in &hard.rows_pcie {
+                        writeln!(f, "\t\t\tY{y}: PCIE", y = row.to_idx())?;
+                    }
+                    for &row in &hard.rows_emac {
+                        writeln!(f, "\t\t\tY{y}: EMAC", y = row.to_idx())?;
+                    }
+                }
+            }
+            for ioc in &self.cols_io {
+                if ioc.col == col {
+                    for (reg, kind) in &ioc.regs {
+                        if let Some(kind) = kind {
+                            writeln!(
+                                f,
+                                "\t\t\tY{y}: {kind:?}",
+                                y = self.row_reg_bot(reg).to_idx()
+                            )?;
+                        }
+                    }
+                }
+            }
+            for gtc in &self.cols_gt {
+                if gtc.col == col {
+                    let mid = if gtc.is_middle { "MID " } else { "" };
+                    for (reg, kind) in &gtc.regs {
+                        if let Some(kind) = kind {
+                            writeln!(
+                                f,
+                                "\t\t\tY{y}: {mid}{kind:?}",
+                                y = self.row_reg_bot(reg).to_idx()
+                            )?;
+                        }
+                    }
+                }
+            }
+            if cd == ColumnKind::Cfg {
+                for &(row, kind) in &self.rows_cfg {
+                    writeln!(f, "\t\t\tY{y}: {kind:?}", y = row.to_idx())?;
+                }
+            }
+        }
+        writeln!(f, "\tREGS: {r}", r = self.regs)?;
+        writeln!(f, "\tCFG REG: {v:?}", v = self.reg_cfg.to_idx())?;
+        writeln!(f, "\tCLK REG: {v:?}", v = self.reg_clk.to_idx())?;
+        for &(col, row) in &self.holes_ppc {
+            let (col_r, row_t): (ColId, RowId) = match self.kind {
+                GridKind::Virtex4 => (col + 9, row + 24),
+                GridKind::Virtex5 => (col + 14, row + 40),
+                _ => unreachable!(),
+            };
+            writeln!(
+                f,
+                "\tPPC: X{xl}:X{xr} Y{yb}:Y{yt}",
+                xl = col.to_idx(),
+                xr = col_r.to_idx(),
+                yb = row.to_idx(),
+                yt = row_t.to_idx(),
+            )?;
+        }
+        for pcie in &self.holes_pcie2 {
+            writeln!(
+                f,
+                "\tPCIE2.{lr}: X{xl}:X{xr} Y{yb}:Y{yt}",
+                lr = match pcie.kind {
+                    Pcie2Kind::Left => 'L',
+                    Pcie2Kind::Right => 'R',
+                },
+                xl = pcie.col.to_idx(),
+                xr = pcie.col.to_idx() + 4,
+                yb = pcie.row.to_idx(),
+                yt = pcie.row.to_idx() + 25
+            )?;
+        }
+        for &(col, row) in &self.holes_pcie3 {
+            writeln!(
+                f,
+                "\tPCIE3: X{xl}:X{xr} Y{yb}:Y{yt}",
+                xl = col.to_idx(),
+                xr = col.to_idx() + 6,
+                yb = row.to_idx(),
+                yt = row.to_idx() + 50
+            )?;
+        }
+        writeln!(f, "\tHAS BRAM_FX: {v:?}", v = self.has_bram_fx)?;
+        Ok(())
+    }
+}

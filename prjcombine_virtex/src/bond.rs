@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use prjcombine_int::grid::SimpleIoCoord;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -104,5 +105,58 @@ impl Bond {
             "diffp": Vec::from_iter(self.diffp.iter().map(|io| io.to_string())),
             "diffn": Vec::from_iter(self.diffn.iter().map(|io| io.to_string())),
         })
+    }
+}
+
+fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
+impl std::fmt::Display for Bond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tBANKS:")?;
+        for (k, v) in &self.io_banks {
+            writeln!(f, "\t\t{k}: {v}")?;
+        }
+        writeln!(f, "\tPINS:")?;
+        for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            write!(f, "\t\t{pin:4}: ")?;
+            match pad {
+                BondPin::Io(io) => write!(f, "{io}")?,
+                BondPin::Clk(idx) => write!(f, "CLK{idx}")?,
+                BondPin::Nc => write!(f, "NC")?,
+                BondPin::Gnd => write!(f, "GND")?,
+                BondPin::VccInt => write!(f, "VCCINT")?,
+                BondPin::VccAux => write!(f, "VCCAUX")?,
+                BondPin::VccO(bank) => write!(f, "VCCO{bank}")?,
+                BondPin::Cfg(CfgPin::Cclk) => write!(f, "CCLK")?,
+                BondPin::Cfg(CfgPin::Done) => write!(f, "DONE")?,
+                BondPin::Cfg(CfgPin::M0) => write!(f, "M0")?,
+                BondPin::Cfg(CfgPin::M1) => write!(f, "M1")?,
+                BondPin::Cfg(CfgPin::M2) => write!(f, "M2")?,
+                BondPin::Cfg(CfgPin::ProgB) => write!(f, "PROG_B")?,
+                BondPin::Cfg(CfgPin::Tck) => write!(f, "TCK")?,
+                BondPin::Cfg(CfgPin::Tms) => write!(f, "TMS")?,
+                BondPin::Cfg(CfgPin::Tdi) => write!(f, "TDI")?,
+                BondPin::Cfg(CfgPin::Tdo) => write!(f, "TDO")?,
+                BondPin::Dxn => write!(f, "DXN")?,
+                BondPin::Dxp => write!(f, "DXP")?,
+            }
+            writeln!(f)?;
+        }
+        writeln!(f, "\tVREF:")?;
+        for v in &self.vref {
+            writeln!(f, "\t\t{v}")?;
+        }
+        writeln!(f, "\tDIFFP:")?;
+        for v in &self.diffp {
+            writeln!(f, "\t\t{v}")?;
+        }
+        writeln!(f, "\tDIFFN:")?;
+        for v in &self.diffn {
+            writeln!(f, "\t\t{v}")?;
+        }
+        Ok(())
     }
 }

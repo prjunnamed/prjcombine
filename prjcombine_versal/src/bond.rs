@@ -13,3 +13,10 @@ impl Bond {
         ExpandedBond { bond: self }
     }
 }
+
+impl std::fmt::Display for Bond {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // well.
+        Ok(())
+    }
+}

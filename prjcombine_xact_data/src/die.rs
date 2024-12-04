@@ -865,10 +865,16 @@ impl Die {
         assert_eq!(num_prims, prims.len());
         assert_eq!(num_primdefs, primdefs.len());
         assert_eq!(num_boxdefs, boxdefs.len());
-        assert_eq!(num_pins, prims.values().map(|prim| prim.pins.len()).sum::<usize>());
+        assert_eq!(
+            num_pins,
+            prims.values().map(|prim| prim.pins.len()).sum::<usize>()
+        );
         assert_eq!(
             num_pindefs,
-            primdefs.values().map(|primdef| primdef.pins.len()).sum::<usize>()
+            primdefs
+                .values()
+                .map(|primdef| primdef.pins.len())
+                .sum::<usize>()
         );
         assert_eq!(num_tile_cols * num_tile_rows, num_tiles);
         if is_tiled {

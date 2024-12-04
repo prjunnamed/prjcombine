@@ -338,13 +338,7 @@ impl Display for Grid {
         writeln!(f)?;
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(
-                f,
-                "\t\t{k:?}: IOB_X{x}Y{y}B{b}",
-                x = v.col,
-                y = v.row,
-                b = v.iob
-            )?;
+            writeln!(f, "\t\t{k:?}: {v}")?;
         }
         Ok(())
     }

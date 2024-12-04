@@ -30,6 +30,20 @@ pub enum Grid {
     Versal(prjcombine_versal::grid::Grid),
 }
 
+impl std::fmt::Display for Grid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Grid::Xc2000(grid) => write!(f, "{grid}"),
+            Grid::Virtex(grid) => write!(f, "{grid}"),
+            Grid::Virtex2(grid) => write!(f, "{grid}"),
+            Grid::Spartan6(grid) => write!(f, "{grid}"),
+            Grid::Virtex4(grid) => write!(f, "{grid}"),
+            Grid::Ultrascale(grid) => write!(f, "{grid}"),
+            Grid::Versal(grid) => write!(f, "{grid}"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeviceBond {
     pub name: String,
@@ -82,6 +96,20 @@ pub enum Bond {
     Virtex4(prjcombine_virtex4::bond::Bond),
     Ultrascale(prjcombine_ultrascale::bond::Bond),
     Versal(prjcombine_versal::bond::Bond),
+}
+
+impl std::fmt::Display for Bond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Bond::Xc2000(bond) => write!(f, "{bond}"),
+            Bond::Virtex(bond) => write!(f, "{bond}"),
+            Bond::Virtex2(bond) => write!(f, "{bond}"),
+            Bond::Spartan6(bond) => write!(f, "{bond}"),
+            Bond::Virtex4(bond) => write!(f, "{bond}"),
+            Bond::Ultrascale(bond) => write!(f, "{bond}"),
+            Bond::Versal(bond) => write!(f, "{bond}"),
+        }
+    }
 }
 
 pub enum ExpandedBond<'a> {

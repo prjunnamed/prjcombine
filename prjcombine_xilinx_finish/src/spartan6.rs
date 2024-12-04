@@ -1,11 +1,11 @@
 use std::collections::{btree_map, BTreeMap, BTreeSet};
 
-use prjcombine_types::tiledb::TileDb;
 use prjcombine_spartan6::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
     grid::{DisabledPart, Grid},
 };
+use prjcombine_types::tiledb::TileDb;
 use prjcombine_xilinx_geom::GeomDb;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 

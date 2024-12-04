@@ -28,7 +28,13 @@ pub struct SimpleIoCoord {
 
 impl std::fmt::Display for SimpleIoCoord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "IOB_X{x}Y{y}B{b}", x = self.col, y = self.row, b = self.iob)
+        write!(
+            f,
+            "IOB_X{x}Y{y}B{b}",
+            x = self.col,
+            y = self.row,
+            b = self.iob
+        )
     }
 }
 

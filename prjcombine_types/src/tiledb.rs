@@ -1,5 +1,10 @@
 use core::fmt::Debug;
-use std::{collections::{btree_map, BTreeMap}, error::Error, fs::File, path::Path};
+use std::{
+    collections::{btree_map, BTreeMap},
+    error::Error,
+    fs::File,
+    path::Path,
+};
 
 use bitvec::vec::BitVec;
 use itertools::*;
