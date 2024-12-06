@@ -486,6 +486,30 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                 },
                 w,
             );
+            builder.extra_name_tile(
+                match ew {
+                    Dir::E => "CLE_W_VR_CORE",
+                    Dir::W => "CLE_E_VR_CORE",
+                    _ => unreachable!(),
+                },
+                match i {
+                    0 => "CLE_SLICEL_VR_TOP_0_CLK",
+                    1 => "CLE_SLICEM_VR_TOP_1_CLK",
+                    2 => "CLE_SLICEL_VR_TOP_0_RST",
+                    3 => "CLE_SLICEM_VR_TOP_1_RST",
+                    4 => "CLE_SLICEL_VR_TOP_0_CKEN1",
+                    5 => "CLE_SLICEL_VR_TOP_0_CKEN2",
+                    6 => "CLE_SLICEL_VR_TOP_0_CKEN3",
+                    7 => "CLE_SLICEL_VR_TOP_0_CKEN4",
+                    8 => "CLE_SLICEM_VR_TOP_1_WE",
+                    9 => "CLE_SLICEM_VR_TOP_1_CKEN1",
+                    10 => "CLE_SLICEM_VR_TOP_1_CKEN2",
+                    11 => "CLE_SLICEM_VR_TOP_1_CKEN3",
+                    12 => "CLE_SLICEM_VR_TOP_1_CKEN4",
+                    _ => unreachable!(),
+                },
+                w,
+            );
         }
     }
 
@@ -783,7 +807,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     builder.extract_term_conn("TERM.S", Dir::S, "TERM_B_INT_TILE", &[]);
     builder.extract_term_conn("TERM.N", Dir::N, "TERM_T_INT_TILE", &[]);
 
-    for tkn in ["RCLK_INT_L_FT", "RCLK_INT_R_FT"] {
+    for tkn in [
+        "RCLK_INT_L_FT",
+        "RCLK_INT_R_FT",
+        "RCLK_INT_L_VR_FT",
+        "RCLK_INT_R_VR_FT",
+    ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let int_xy = builder.delta(xy, 0, 1);
             let mut int_xy_b = builder.delta(xy, 0, -1);
@@ -802,9 +831,11 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     for (tkn, kind, key0, key1) in [
         ("CLE_W_CORE", "CLE_R", "SLICE_L0", "SLICE_L1"),
         ("CLE_E_CORE", "CLE_L", "SLICE_R0", "SLICE_R1"),
+        ("CLE_W_VR_CORE", "CLE_R.VR", "SLICE_L0", "SLICE_L1"),
+        ("CLE_E_VR_CORE", "CLE_L.VR", "SLICE_R0", "SLICE_R1"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let int_xy = if kind == "CLE_R" {
+            let int_xy = if kind == "CLE_R" || kind == "CLE_R.VR" {
                 builder.walk_to_int(xy, Dir::W, false).unwrap()
             } else {
                 builder.walk_to_int(xy, Dir::E, false).unwrap()
@@ -846,6 +877,8 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     for (dir, tkn) in [
         (Dir::E, "BRAM_LOCF_BR_TILE"),
         (Dir::E, "BRAM_LOCF_TR_TILE"),
+        (Dir::W, "BRAM_LOCF_BL_TILE"),
+        (Dir::W, "BRAM_LOCF_TL_TILE"),
         (Dir::E, "BRAM_ROCF_BR_TILE"),
         (Dir::E, "BRAM_ROCF_TR_TILE"),
         (Dir::W, "BRAM_ROCF_BL_TILE"),
@@ -971,7 +1004,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         }
     }
 
-    for tkn in ["DSP_ROCF_B_TILE", "DSP_ROCF_T_TILE"] {
+    for tkn in [
+        "DSP_LOCF_B_TILE",
+        "DSP_LOCF_T_TILE",
+        "DSP_ROCF_B_TILE",
+        "DSP_ROCF_T_TILE",
+    ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bels = vec![];
             for i in 0..2 {
@@ -1075,6 +1113,9 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         ("PCIE5", "PCIEB5_TOP_TILE", "PCIE50", false),
         ("MRMAC", "MRMAC_BOT_TILE", "MRMAC", false),
         ("MRMAC", "MRMAC_TOP_TILE", "MRMAC", false),
+        ("DFE_CFC_BOT", "DFE_CFC_BOT_TILE", "DFE_CFC_BOT", false),
+        ("DFE_CFC_TOP", "DFE_CFC_TOP_TILE", "DFE_CFC_TOP", false),
+        ("SDFEC", "SDFECA_TOP_TILE", "SDFEC_A", false),
         ("DCMAC", "DCMAC_TILE", "DCMAC", true),
         ("ILKN", "ILKN_TILE", "ILKNF", true),
         ("HSC", "HSC_TILE", "HSC", true),
@@ -1173,17 +1214,26 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         }
     }
 
-    for (tkn, naming_f, naming_h, swz) in [
+    for (tkn, naming_f, naming_h, bkind, swz) in [
         (
             "RCLK_CLE_CORE",
             "RCLK_CLE",
             "RCLK_CLE.HALF",
+            "BUFDIV_LEAF",
             BUFDIV_LEAF_SWZ_A,
+        ),
+        (
+            "RCLK_CLE_VR_CORE",
+            "RCLK_CLE.VR",
+            "RCLK_CLE.HALF.VR",
+            "BUFDIV_LEAF_ULVT",
+            BUFDIV_LEAF_SWZ_B,
         ),
         (
             "RCLK_CLE_LAG_CORE",
             "RCLK_CLE.LAG",
             "RCLK_CLE.HALF.LAG",
+            "BUFDIV_LEAF",
             BUFDIV_LEAF_SWZ_B,
         ),
     ] {
@@ -1191,7 +1241,10 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         let mut done_half = false;
         for &xy in rd.tiles_by_kind_name(tkn) {
             let td = &rd.tiles[&builder.delta(xy, 0, -1)];
-            let is_full = rd.tile_kinds.key(td.kind) == "CLE_W_CORE";
+            let is_full = matches!(
+                &rd.tile_kinds.key(td.kind)[..],
+                "CLE_W_CORE" | "CLE_W_VR_CORE"
+            );
             if is_full {
                 if done_full {
                     continue;
@@ -1206,7 +1259,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(format!("BUFDIV_LEAF.CLE.{i}"), "BUFDIV_LEAF", 0, y as u8)
+                    .bel_xy(format!("BUFDIV_LEAF.CLE.{i}"), bkind, 0, y as u8)
                     .pin_name_only("I", 1)
                     .pin_name_only("O_CASC", 1);
                 if i != 0 {
@@ -1253,31 +1306,147 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         }
     }
 
-    for (dir, naming, tkn, intf_dx, swz, has_dfx) in [
-        (Dir::E, "DSP", "RCLK_DSP_CORE", 0, BUFDIV_LEAF_SWZ_A, false),
-        (Dir::W, "DSP", "RCLK_DSP_CORE", 3, BUFDIV_LEAF_SWZ_AH, true),
-        (Dir::E, "HB", "RCLK_HB_CORE", 0, BUFDIV_LEAF_SWZ_A, false),
-        (Dir::W, "HB", "RCLK_HB_CORE", 2, BUFDIV_LEAF_SWZ_AH, false),
+    for (dir, naming, tkn, bkind, intf_dx, swz, has_dfx) in [
         (
             Dir::E,
-            "HDIO",
-            "RCLK_HDIO_CORE",
+            "DSP",
+            "RCLK_DSP_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
             Dir::W,
-            "HDIO",
-            "RCLK_HDIO_CORE",
+            "DSP",
+            "RCLK_DSP_CORE",
+            "BUFDIV_LEAF",
+            3,
+            BUFDIV_LEAF_SWZ_AH,
+            true,
+        ),
+        (
+            Dir::E,
+            "DSP.VR",
+            "RCLK_DSP_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
+            "DSP.VR",
+            "RCLK_DSP_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            3,
+            BUFDIV_LEAF_SWZ_BH,
+            true,
+        ),
+        (
+            Dir::E,
+            "HB",
+            "RCLK_HB_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_A,
+            false,
+        ),
+        (
+            Dir::E,
+            "HB.VR",
+            "RCLK_HB_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
+            "HB",
+            "RCLK_HB_CORE",
+            "BUFDIV_LEAF",
             2,
             BUFDIV_LEAF_SWZ_AH,
+            false,
+        ),
+        (
+            Dir::W,
+            "HB.VR",
+            "RCLK_HB_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            2,
+            BUFDIV_LEAF_SWZ_BH,
+            false,
+        ),
+        (
+            Dir::E,
+            "SDFEC",
+            "RCLK_SDFEC_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
+            "SDFEC",
+            "RCLK_SDFEC_CORE",
+            "BUFDIV_LEAF_ULVT",
+            2,
+            BUFDIV_LEAF_SWZ_BH,
+            false,
+        ),
+        (
+            Dir::E,
+            "HDIO",
+            "RCLK_HDIO_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_A,
+            false,
+        ),
+        (
+            Dir::E,
+            "HDIO.VR",
+            "RCLK_HDIO_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
+            "HDIO",
+            "RCLK_HDIO_CORE",
+            "BUFDIV_LEAF",
+            2,
+            BUFDIV_LEAF_SWZ_AH,
+            false,
+        ),
+        (
+            Dir::W,
+            "HDIO.VR",
+            "RCLK_HDIO_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            2,
+            BUFDIV_LEAF_SWZ_BH,
             false,
         ),
         (
             Dir::E,
             "HB_HDIO",
             "RCLK_HB_HDIO_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::E,
+            "HB_HDIO.VR",
+            "RCLK_HB_HDIO_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1286,6 +1455,16 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::W,
             "HB_HDIO",
             "RCLK_HB_HDIO_CORE",
+            "BUFDIV_LEAF",
+            2,
+            BUFDIV_LEAF_SWZ_BH,
+            false,
+        ),
+        (
+            Dir::W,
+            "HB_HDIO.VR",
+            "RCLK_HB_HDIO_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
             2,
             BUFDIV_LEAF_SWZ_BH,
             false,
@@ -1294,6 +1473,16 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::W,
             "VNOC",
             "RCLK_INTF_L_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
+            "VNOC.VR",
+            "RCLK_INTF_L_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1302,6 +1491,16 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::E,
             "VNOC",
             "RCLK_INTF_R_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::E,
+            "VNOC.VR",
+            "RCLK_INTF_R_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1310,30 +1509,61 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::W,
             "CFRM",
             "RCLK_INTF_OPT_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
             Dir::W,
+            "CFRM.VR",
+            "RCLK_INTF_OPT_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::W,
             "GT",
             "RCLK_INTF_TERM_LEFT_CORE",
+            "BUFDIV_LEAF",
             1,
             BUFDIV_LEAF_SWZ_A,
+            false,
+        ),
+        (
+            Dir::W,
+            "GT.VR",
+            "RCLK_INTF_TERM_LEFT_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            1,
+            BUFDIV_LEAF_SWZ_B,
             false,
         ),
         (
             Dir::E,
             "GT",
             "RCLK_INTF_TERM_RIGHT_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_A,
             false,
         ),
         (
             Dir::E,
+            "GT.VR",
+            "RCLK_INTF_TERM_RIGHT_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            false,
+        ),
+        (
+            Dir::E,
             "GT.ALT",
             "RCLK_INTF_TERM2_RIGHT_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1342,39 +1572,97 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::W,
             "BRAM",
             "RCLK_BRAM_CORE_MY",
+            "BUFDIV_LEAF",
             1,
             BUFDIV_LEAF_SWZ_A,
+            true,
+        ),
+        (
+            Dir::W,
+            "BRAM.VR",
+            "RCLK_BRAM_VR_CORE_MY",
+            "BUFDIV_LEAF_ULVT",
+            1,
+            BUFDIV_LEAF_SWZ_B,
             true,
         ),
         (
             Dir::W,
             "URAM",
             "RCLK_URAM_CORE_MY",
+            "BUFDIV_LEAF",
             1,
             BUFDIV_LEAF_SWZ_A,
             true,
         ),
-        (Dir::E, "BRAM", "RCLK_BRAM_CORE", 0, BUFDIV_LEAF_SWZ_A, true),
+        (
+            Dir::W,
+            "URAM.VR",
+            "RCLK_URAM_VR_CORE_MY",
+            "BUFDIV_LEAF_ULVT",
+            1,
+            BUFDIV_LEAF_SWZ_B,
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM",
+            "RCLK_BRAM_CORE",
+            "BUFDIV_LEAF",
+            0,
+            BUFDIV_LEAF_SWZ_A,
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM.VR",
+            "RCLK_BRAM_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
+            true,
+        ),
         (
             Dir::E,
             "BRAM.CLKBUF",
             "RCLK_BRAM_CLKBUF_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_A,
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM.CLKBUF.VR",
+            "RCLK_BRAM_CLKBUF_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
             true,
         ),
         (
             Dir::E,
             "BRAM.CLKBUF.NOPD",
             "RCLK_BRAM_CLKBUF_NOPD_CORE",
+            "BUFDIV_LEAF",
             0,
-            BUFDIV_LEAF_SWZ_A,
+            BUFDIV_LEAF_SWZ_B,
+            true,
+        ),
+        (
+            Dir::E,
+            "BRAM.CLKBUF.NOPD.VR",
+            "RCLK_BRAM_CLKBUF_NOPD_VR_CORE",
+            "BUFDIV_LEAF_ULVT",
+            0,
+            BUFDIV_LEAF_SWZ_B,
             true,
         ),
         (
             Dir::W,
             "HB_FULL",
             "RCLK_HB_FULL_R_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1383,6 +1671,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             Dir::E,
             "HB_FULL",
             "RCLK_HB_FULL_L_CORE",
+            "BUFDIV_LEAF",
             0,
             BUFDIV_LEAF_SWZ_B,
             false,
@@ -1424,7 +1713,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             let mut bels = vec![];
             for (i, &y) in swz.iter().enumerate() {
                 let mut bel = builder
-                    .bel_xy(format!("BUFDIV_LEAF.{dir}.{i}"), "BUFDIV_LEAF", 0, y as u8)
+                    .bel_xy(format!("BUFDIV_LEAF.{dir}.{i}"), bkind, 0, y as u8)
                     .pin_name_only("I", 1)
                     .pin_name_only("O_CASC", 1);
                 if i != 0 {
@@ -1485,104 +1774,156 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         }
     }
 
-    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HDIO_CORE").iter().next() {
-        let bel_dpll = builder
-            .bel_virtual("RCLK_HDIO_DPLL")
-            .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
-            .extra_wire("OUT_N", &["IF_RCLK_TOP_CLK_TO_DPLL"]);
-        let mut bel_hdio = builder.bel_virtual("RCLK_HDIO");
-        for i in 0..4 {
-            bel_hdio = bel_hdio
-                .extra_wire(
-                    format!("BUFGCE_OUT_S{i}"),
-                    &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
-                )
-                .extra_wire(
-                    format!("BUFGCE_OUT_N{i}"),
-                    &[format!("IF_RCLK_TOP_CLK_FROM_BUFG{i}")],
-                );
+    for (tkn, naming) in [
+        ("RCLK_HDIO_CORE", "RCLK_HDIO"),
+        ("RCLK_HDIO_VR_CORE", "RCLK_HDIO.VR"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel_dpll = builder
+                .bel_virtual("RCLK_HDIO_DPLL")
+                .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
+                .extra_wire("OUT_N", &["IF_RCLK_TOP_CLK_TO_DPLL"]);
+            let mut bel_hdio = builder.bel_virtual("RCLK_HDIO");
+            for i in 0..4 {
+                bel_hdio = bel_hdio
+                    .extra_wire(
+                        format!("BUFGCE_OUT_S{i}"),
+                        &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
+                    )
+                    .extra_wire(
+                        format!("BUFGCE_OUT_N{i}"),
+                        &[format!("IF_RCLK_TOP_CLK_FROM_BUFG{i}")],
+                    );
+            }
+            let swz = [
+                0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13,
+                14,
+            ];
+            for (i, si) in swz.into_iter().enumerate() {
+                bel_hdio = bel_hdio
+                    .extra_wire(
+                        format!("HDISTR{i}"),
+                        &[
+                            format!("IF_HCLK_CLK_HDISTR{i}"),
+                            match i {
+                                0..8 => format!("CLK_HDISTR_LSB{i}"),
+                                8..12 | 20..24 => format!("CLK_CMT_DRVR_TRI_ULVT_{si}_CLK_OUT_B"),
+                                12..20 => format!("CLK_HDISTR_MSB{ii}", ii = i - 12),
+                                _ => unreachable!(),
+                            },
+                        ],
+                    )
+                    .extra_wire(
+                        format!("HDISTR{i}_MUX"),
+                        &[
+                            format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT"),
+                            format!("CLK_CMT_MUX_8TO1_ULVT_{si}_CLK_OUT"),
+                        ],
+                    );
+            }
+            for i in 0..12 {
+                bel_hdio = bel_hdio
+                    .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
+                    .extra_wire(
+                        format!("HROUTE{i}_MUX"),
+                        &[
+                            format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i),
+                            format!("CLK_CMT_MUX_8TO1_ULVT_{si}_CLK_OUT", si = 24 + i),
+                        ],
+                    );
+            }
+            builder
+                .xnode("RCLK_HDIO", naming, xy)
+                .num_tiles(0)
+                .bel(bel_hdio)
+                .bel(bel_dpll)
+                .extract();
         }
-        let swz = [
-            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
-        ];
-        for (i, si) in swz.into_iter().enumerate() {
-            bel_hdio = bel_hdio
-                .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
-                .extra_wire(
-                    format!("HDISTR{i}_MUX"),
-                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")],
-                );
-        }
-        for i in 0..12 {
-            bel_hdio = bel_hdio
-                .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
-                .extra_wire(
-                    format!("HROUTE{i}_MUX"),
-                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)],
-                );
-        }
-        builder
-            .xnode("RCLK_HDIO", "RCLK_HDIO", xy)
-            .num_tiles(0)
-            .bel(bel_hdio)
-            .bel(bel_dpll)
-            .extract();
     }
 
-    if let Some(&xy) = rd.tiles_by_kind_name("RCLK_HB_HDIO_CORE").iter().next() {
-        let bel_dpll = builder
-            .bel_virtual("RCLK_HDIO_DPLL")
-            .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
-            .extra_wire("OUT_N", &["CLK_CMT_MUX_24_ENC_1_CLK_OUT"]);
-        let mut bel_hdio = builder.bel_virtual("RCLK_HB_HDIO");
-        for i in 0..4 {
-            bel_hdio = bel_hdio.extra_wire(
-                format!("BUFGCE_OUT_S{i}"),
-                &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
-            );
-        }
-        let swz = [
-            0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13, 14,
-        ];
-        for (i, si) in swz.into_iter().enumerate() {
-            bel_hdio = bel_hdio
-                .extra_wire(format!("HDISTR{i}"), &[format!("IF_HCLK_CLK_HDISTR{i}")])
+    for (tkn, naming) in [
+        ("RCLK_HB_HDIO_CORE", "RCLK_HB_HDIO"),
+        ("RCLK_HB_HDIO_VR_CORE", "RCLK_HB_HDIO.VR"),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel_dpll = builder
+                .bel_virtual("RCLK_HDIO_DPLL")
+                .extra_wire("OUT_S", &["IF_RCLK_BOT_CLK_TO_DPLL"])
                 .extra_wire(
-                    format!("HDISTR{i}_MUX"),
-                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT")],
+                    "OUT_N",
+                    &[
+                        "CLK_CMT_MUX_24_ENC_1_CLK_OUT",
+                        "CLK_CMT_MUX_24_ENC_ULVT_1_CLK_OUT",
+                    ],
                 );
-            let b = [
-                0, 92, 120, 124, 128, 132, 136, 140, 8, 12, 4, 48, 16, 28, 32, 36, 40, 44, 52, 56,
-                60, 64, 20, 24,
-            ][i];
-            for j in 0..4 {
+            let mut bel_hdio = builder.bel_virtual("RCLK_HB_HDIO");
+            for i in 0..4 {
                 bel_hdio = bel_hdio.extra_wire(
-                    format!("HDISTR{i}_MUX_DUMMY{j}"),
-                    &[format!("GND_WIRE{k}", k = b + j)],
+                    format!("BUFGCE_OUT_S{i}"),
+                    &[format!("IF_RCLK_BOT_CLK_FROM_BUFG{i}")],
                 );
             }
-        }
-        for i in 0..12 {
-            bel_hdio = bel_hdio
-                .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
-                .extra_wire(
-                    format!("HROUTE{i}_MUX"),
-                    &[format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i)],
-                );
-            let b = [68, 72, 76, 80, 84, 88, 96, 100, 104, 108, 112, 116][i];
-            for j in 0..4 {
-                bel_hdio = bel_hdio.extra_wire(
-                    format!("HROUTE{i}_MUX_DUMMY{j}"),
-                    &[format!("GND_WIRE{k}", k = b + j)],
-                );
+            let swz = [
+                0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 13,
+                14,
+            ];
+            for (i, si) in swz.into_iter().enumerate() {
+                bel_hdio = bel_hdio
+                    .extra_wire(
+                        format!("HDISTR{i}"),
+                        &[
+                            format!("IF_HCLK_CLK_HDISTR{i}"),
+                            match i {
+                                0..8 => format!("CLK_HDISTR_LSB{i}"),
+                                8..12 | 20..24 => format!("CLK_CMT_DRVR_TRI_ULVT_{si}_CLK_OUT_B"),
+                                12..20 => format!("CLK_HDISTR_MSB{ii}", ii = i - 12),
+                                _ => unreachable!(),
+                            },
+                        ],
+                    )
+                    .extra_wire(
+                        format!("HDISTR{i}_MUX"),
+                        &[
+                            format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT"),
+                            format!("CLK_CMT_MUX_8TO1_ULVT_{si}_CLK_OUT"),
+                        ],
+                    );
+                let b = [
+                    0, 92, 120, 124, 128, 132, 136, 140, 8, 12, 4, 48, 16, 28, 32, 36, 40, 44, 52,
+                    56, 60, 64, 20, 24,
+                ][i];
+                for j in 0..4 {
+                    bel_hdio = bel_hdio.extra_wire(
+                        format!("HDISTR{i}_MUX_DUMMY{j}"),
+                        &[format!("GND_WIRE{k}", k = b + j)],
+                    );
+                }
             }
+            for i in 0..12 {
+                bel_hdio = bel_hdio
+                    .extra_wire(format!("HROUTE{i}"), &[format!("IF_HCLK_CLK_HROUTE{i}")])
+                    .extra_wire(
+                        format!("HROUTE{i}_MUX"),
+                        &[
+                            format!("CLK_CMT_MUX_8TO1_{si}_CLK_OUT", si = 24 + i),
+                            format!("CLK_CMT_MUX_8TO1_ULVT_{si}_CLK_OUT", si = 24 + i),
+                        ],
+                    );
+                let b = [68, 72, 76, 80, 84, 88, 96, 100, 104, 108, 112, 116][i];
+                for j in 0..4 {
+                    bel_hdio = bel_hdio.extra_wire(
+                        format!("HROUTE{i}_MUX_DUMMY{j}"),
+                        &[format!("GND_WIRE{k}", k = b + j)],
+                    );
+                }
+            }
+            builder
+                .xnode("RCLK_HB_HDIO", naming, xy)
+                .num_tiles(0)
+                .bel(bel_hdio)
+                .bel(bel_dpll)
+                .extract();
         }
-        builder
-            .xnode("RCLK_HB_HDIO", "RCLK_HB_HDIO", xy)
-            .num_tiles(0)
-            .bel(bel_hdio)
-            .bel(bel_dpll)
-            .extract();
     }
 
     // XXX RCLK_CLKBUF
@@ -1667,9 +2008,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     }
 
     if let Some(&nsu_xy) = rd.tiles_by_kind_name("NOC2_NSU512_VNOC_TILE").iter().next() {
-        let nps_a_xy = builder.delta(nsu_xy, 0, 4);
-        let nps_b_xy = builder.delta(nsu_xy, 0, 8);
-        let nmu_xy = builder.delta(nsu_xy, 0, 11);
+        let mut nps_a_xy = builder.delta(nsu_xy, 0, 4);
+        if rd.tile_kinds.key(rd.tiles[&nps_a_xy].kind) == "NULL" {
+            nps_a_xy = builder.delta(nps_a_xy, -1, 0);
+        }
+        let nps_b_xy = builder.delta(nps_a_xy, 0, 4);
+        let nmu_xy = builder.delta(nps_a_xy, 0, 7);
         let scan_xy = builder.delta(nsu_xy, 1, 0);
         let intf_l = builder.ndb.get_node_naming("INTF.E");
         let intf_r = builder.ndb.get_node_naming("INTF.W");
@@ -1724,8 +2068,88 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             .raw_tile(nmu_xy)
             .raw_tile(scan_xy);
         for i in 0..48 {
-            let intf_l_xy = xn.builder.delta(nsu_xy, -1, -9 + (i + i / 4) as i32);
-            let intf_r_xy = xn.builder.delta(nsu_xy, 3, -9 + (i + i / 4) as i32);
+            let intf_l_xy = xn.builder.delta(nps_a_xy, -1, -13 + (i + i / 4) as i32);
+            let intf_r_xy = xn.builder.delta(nps_a_xy, 3, -13 + (i + i / 4) as i32);
+
+            xn = xn
+                .ref_single(intf_l_xy, i, intf_l)
+                .ref_single(intf_r_xy, i + 48, intf_r)
+        }
+        xn.bels(bels).extract();
+    }
+
+    if let Some(&nsu_xy) = rd
+        .tiles_by_kind_name("NOC2_NSU512_VNOC4_TILE")
+        .iter()
+        .next()
+    {
+        let nps_a_xy = builder.delta(nsu_xy, -1, 4);
+        let nps_b_xy = builder.delta(nps_a_xy, 0, 4);
+        let nmu_xy = builder.delta(nps_a_xy, 0, 7);
+        let scan_xy = builder.delta(nsu_xy, 1, 0);
+        let intf_l = builder.ndb.get_node_naming("INTF.E");
+        let intf_r = builder.ndb.get_node_naming("INTF.W");
+        let mut bel_scan = builder.bel_xy("VNOC4_SCAN", "NOC2_SCAN", 0, 0).raw_tile(4);
+        for i in 7..15 {
+            bel_scan = bel_scan
+                .pin_name_only(&format!("NOC2_SCAN_CHNL_FROM_PL_{i}_"), 1)
+                .pin_name_only(&format!("NOC2_SCAN_CHNL_TO_PL_{i}_"), 1);
+        }
+        for i in 7..14 {
+            bel_scan = bel_scan.pin_name_only(&format!("NOC2_SCAN_CHNL_MASK_FROM_PL_{i}_"), 1);
+        }
+        let bels = [
+            builder
+                .bel_xy("VNOC4_NSU512", "NOC2_NSU512", 0, 0)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+            builder
+                .bel_xy("VNOC4_NPS_A", "NOC2_NPS6X", 0, 0)
+                .raw_tile(1)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("IN_4", 1)
+                .pin_name_only("IN_5", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1)
+                .pin_name_only("OUT_4", 1)
+                .pin_name_only("OUT_5", 1),
+            builder
+                .bel_xy("VNOC4_NPS_B", "NOC2_NPS6X", 0, 0)
+                .raw_tile(2)
+                .pin_name_only("IN_0", 1)
+                .pin_name_only("IN_1", 1)
+                .pin_name_only("IN_2", 1)
+                .pin_name_only("IN_3", 1)
+                .pin_name_only("IN_4", 1)
+                .pin_name_only("IN_5", 1)
+                .pin_name_only("OUT_0", 1)
+                .pin_name_only("OUT_1", 1)
+                .pin_name_only("OUT_2", 1)
+                .pin_name_only("OUT_3", 1)
+                .pin_name_only("OUT_4", 1)
+                .pin_name_only("OUT_5", 1),
+            builder
+                .bel_xy("VNOC4_NMU512", "NOC2_NMU512", 0, 0)
+                .raw_tile(3)
+                .pin_name_only("TO_NOC", 1)
+                .pin_name_only("FROM_NOC", 1),
+            bel_scan,
+        ];
+        let mut xn = builder
+            .xnode("VNOC4", "VNOC4", nsu_xy)
+            .num_tiles(96)
+            .raw_tile(nps_a_xy)
+            .raw_tile(nps_b_xy)
+            .raw_tile(nmu_xy)
+            .raw_tile(scan_xy);
+        for i in 0..48 {
+            let intf_l_xy = xn.builder.delta(nps_a_xy, -1, -13 + (i + i / 4) as i32);
+            let intf_r_xy = xn.builder.delta(nps_a_xy, 5, -13 + (i + i / 4) as i32);
 
             xn = xn
                 .ref_single(intf_l_xy, i, intf_l)

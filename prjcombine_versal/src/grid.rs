@@ -19,6 +19,7 @@ pub struct Grid {
     pub ps: PsKind,
     pub cpm: CpmKind,
     pub has_xram_top: bool,
+    pub is_vr: bool,
     pub top: TopKind,
     pub bottom: BotKind,
     pub right: RightKind,
@@ -57,6 +58,7 @@ pub enum BramKind {
     Plain,
     ClkBuf,
     ClkBufNoPd,
+    MaybeClkBufNoPd,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -70,6 +72,7 @@ pub enum ColumnKind {
     Cfrm,
     VNoc,
     VNoc2,
+    VNoc4,
     None,
 }
 
@@ -83,6 +86,7 @@ pub enum ColSide {
 pub enum PsKind {
     Ps9,
     PsX,
+    PsXc,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -100,6 +104,9 @@ pub enum HardRowKind {
     Pcie4,
     Pcie5,
     Mrmac,
+    SdfecA,
+    DfeCfcB,
+    DfeCfcT,
     IlknB,
     IlknT,
     DcmacB,
@@ -121,9 +128,14 @@ pub enum GtRowKind {
     Gty,
     Gtyp,
     Gtm,
+    RfAdc,
+    RfDac,
     Xram,
     Vdu,
     BfrB,
+    Isp2,
+    Vcu2B,
+    Vcu2T,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -197,6 +209,17 @@ impl Grid {
     pub fn get_col_hard(&self, col: ColId) -> Option<&HardColumn> {
         self.cols_hard.iter().find(|x| x.col == col)
     }
+
+    pub fn get_ps_height(&self) -> usize {
+        match (self.ps, self.cpm) {
+            (PsKind::Ps9, CpmKind::None) => 48 * 2,
+            (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
+            (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
+            (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
+            (PsKind::PsXc, CpmKind::None) => 48 * 6,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl std::fmt::Display for Grid {
@@ -205,6 +228,7 @@ impl std::fmt::Display for Grid {
         writeln!(f, "\tPS: {v:?}", v = self.ps)?;
         writeln!(f, "\tCPM: {v:?}", v = self.cpm)?;
         writeln!(f, "\tXRAM TOP: {v:?}", v = self.has_xram_top)?;
+        writeln!(f, "\tIS VR: {v:?}", v = self.is_vr)?;
         writeln!(f, "\tTOP: {v:?}", v = self.top)?;
         writeln!(f, "\tBOTTOM: {v:?}", v = self.bottom)?;
         writeln!(f, "\tCOLS:")?;
@@ -222,6 +246,7 @@ impl std::fmt::Display for Grid {
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
                     | ColumnKind::VNoc2
+                    | ColumnKind::VNoc4
             ) {
                 write!(f, "\t\tX{cl}.R-X{col}.L: ", cl = col - 1)?;
             } else {
@@ -236,12 +261,14 @@ impl std::fmt::Display for Grid {
                 ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM")?,
                 ColumnKind::Bram(BramKind::ClkBuf) => write!(f, "BRAM.CLKBUF")?,
                 ColumnKind::Bram(BramKind::ClkBufNoPd) => write!(f, "BRAM.CLKBUF.NOPD")?,
+                ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => write!(f, "BRAM.MAYBE.CLKBUF.NOPD")?,
                 ColumnKind::Uram => write!(f, "URAM")?,
                 ColumnKind::Hard => write!(f, "HARD")?,
                 ColumnKind::Gt => write!(f, "GT")?,
                 ColumnKind::Cfrm => write!(f, "CFRM")?,
                 ColumnKind::VNoc => write!(f, "VNOC")?,
                 ColumnKind::VNoc2 => write!(f, "VNOC2")?,
+                ColumnKind::VNoc4 => write!(f, "VNOC4")?,
             }
             if cd.has_bli_bot_l {
                 write!(f, " BLI.BOT")?;
@@ -264,6 +291,7 @@ impl std::fmt::Display for Grid {
                     | ColumnKind::Hard
                     | ColumnKind::VNoc
                     | ColumnKind::VNoc2
+                    | ColumnKind::VNoc4
             ) {
                 continue;
             }
@@ -277,12 +305,14 @@ impl std::fmt::Display for Grid {
                 ColumnKind::Bram(BramKind::Plain) => write!(f, "BRAM")?,
                 ColumnKind::Bram(BramKind::ClkBuf) => write!(f, "BRAM.CLKBUF")?,
                 ColumnKind::Bram(BramKind::ClkBufNoPd) => write!(f, "BRAM.CLKBUF.NOPD")?,
+                ColumnKind::Bram(BramKind::MaybeClkBufNoPd) => write!(f, "BRAM.MAYBE.CLKBUF.NOPD")?,
                 ColumnKind::Uram => write!(f, "URAM")?,
                 ColumnKind::Hard => write!(f, "HARD")?,
                 ColumnKind::Gt => write!(f, "GT")?,
                 ColumnKind::Cfrm => write!(f, "CFRM")?,
                 ColumnKind::VNoc => write!(f, "VNOC")?,
                 ColumnKind::VNoc2 => write!(f, "VNOC2")?,
+                ColumnKind::VNoc4 => write!(f, "VNOC4")?,
             }
             if cd.has_bli_bot_r {
                 write!(f, " BLI.BOT")?;

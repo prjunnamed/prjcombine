@@ -4,9 +4,7 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityVec};
 
 use crate::expanded::ExpandedDevice;
-use crate::grid::{
-    ColumnKind, CpmKind, DisabledPart, Grid, HardRowKind, Interposer, PsKind, RightKind,
-};
+use crate::grid::{ColumnKind, DisabledPart, Grid, HardRowKind, Interposer, RightKind};
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -24,13 +22,6 @@ impl Expander<'_> {
     fn fill_die(&mut self) {
         for (_, &grid) in &self.grids {
             self.egrid.add_die(grid.columns.len(), grid.regs * 48);
-            let ps_height = match (grid.ps, grid.cpm) {
-                (PsKind::Ps9, CpmKind::None) => 48 * 2,
-                (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
-                (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
-                (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
-                _ => unreachable!(),
-            };
             self.die.push(DieInfo {
                 col_cfrm: grid
                     .columns
@@ -38,7 +29,7 @@ impl Expander<'_> {
                     .find(|(_, cd)| cd.l == ColumnKind::Cfrm)
                     .unwrap()
                     .0,
-                ps_height,
+                ps_height: grid.get_ps_height(),
             });
         }
     }
@@ -308,8 +299,16 @@ impl Expander<'_> {
                     if tile.nodes.is_empty() {
                         continue;
                     }
-                    die.add_xnode((col, row), "CLE_R", &[(col, row)]);
-                    die.add_xnode((col + 1, row), "CLE_L", &[(col + 1, row)]);
+                    die.add_xnode(
+                        (col, row),
+                        if grid.is_vr { "CLE_R.VR" } else { "CLE_R" },
+                        &[(col, row)],
+                    );
+                    die.add_xnode(
+                        (col + 1, row),
+                        if grid.is_vr { "CLE_L.VR" } else { "CLE_L" },
+                        &[(col + 1, row)],
+                    );
                 }
             }
         }
@@ -451,6 +450,9 @@ impl Expander<'_> {
                         HardRowKind::DcmacB => ("DCMAC", true),
                         HardRowKind::IlknB => ("ILKN", true),
                         HardRowKind::HscB => ("HSC", true),
+                        HardRowKind::SdfecA => ("SDFEC", false),
+                        HardRowKind::DfeCfcB => ("DFE_CFC_BOT", false),
+                        HardRowKind::DfeCfcT => ("DFE_CFC_TOP", false),
                     };
                     let row = grid.row_reg_bot(reg);
                     let mut crd = vec![];
@@ -471,7 +473,10 @@ impl Expander<'_> {
         for (dieid, grid) in &self.grids {
             let mut die = self.egrid.die_mut(dieid);
             for (col, cd) in &grid.columns {
-                if !matches!(cd.l, ColumnKind::VNoc | ColumnKind::VNoc2) {
+                if !matches!(
+                    cd.l,
+                    ColumnKind::VNoc | ColumnKind::VNoc2 | ColumnKind::VNoc4
+                ) {
                     continue;
                 }
                 if self.disabled.contains(&DisabledPart::Column(die.die, col)) {
@@ -489,10 +494,17 @@ impl Expander<'_> {
                     for i in 0..48 {
                         crd.push((col, row + i));
                     }
-                    if cd.l == ColumnKind::VNoc {
-                        die.add_xnode((col, row), "VNOC", &crd);
-                    } else {
-                        die.add_xnode((col, row), "VNOC2", &crd);
+                    match cd.l {
+                        ColumnKind::VNoc => {
+                            die.add_xnode((col, row), "VNOC", &crd);
+                        }
+                        ColumnKind::VNoc2 => {
+                            die.add_xnode((col, row), "VNOC2", &crd);
+                        }
+                        ColumnKind::VNoc4 => {
+                            die.add_xnode((col, row), "VNOC4", &crd);
+                        }
+                        _ => unreachable!(),
                     }
                     if grid.is_reg_top(reg) {
                         die.add_xnode((col, row), "MISR", &crd);

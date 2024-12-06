@@ -9,7 +9,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(rd);
 
     builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
-    builder.wire("GND", WireKind::Tie1, &["GND_WIRE"]);
+    builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
 
     for i in 0..16 {
         builder.wire(

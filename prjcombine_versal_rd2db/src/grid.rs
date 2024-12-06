@@ -64,10 +64,14 @@ fn make_columns(
 
     for (tkn, kind) in [
         ("CLE_W_CORE", ColumnKind::Cle(CleKind::Plain)),
+        ("CLE_W_VR_CORE", ColumnKind::Cle(CleKind::Plain)),
+        ("DSP_LOCF_B_TILE", ColumnKind::Dsp),
+        ("DSP_LOCF_T_TILE", ColumnKind::Dsp),
         ("DSP_ROCF_B_TILE", ColumnKind::Dsp),
         ("DSP_ROCF_T_TILE", ColumnKind::Dsp),
         ("NOC_NSU512_TOP", ColumnKind::VNoc),
         ("NOC2_NSU512_VNOC_TILE", ColumnKind::VNoc2),
+        ("NOC2_NSU512_VNOC4_TILE", ColumnKind::VNoc4),
     ] {
         for c in int.find_columns(&[tkn]) {
             let c = int.lookup_column_inter(c);
@@ -89,6 +93,8 @@ fn make_columns(
         }
     }
     for (tkn, kind) in [
+        ("BRAM_LOCF_TL_TILE", ColumnKind::Bram(BramKind::Plain)),
+        ("BRAM_LOCF_BL_TILE", ColumnKind::Bram(BramKind::Plain)),
         ("BRAM_ROCF_TL_TILE", ColumnKind::Bram(BramKind::Plain)),
         ("BRAM_ROCF_BL_TILE", ColumnKind::Bram(BramKind::Plain)),
         ("URAM_LOCF_TL_TILE", ColumnKind::Uram),
@@ -117,19 +123,29 @@ fn make_columns(
         res[c].l = ColumnKind::Cle(CleKind::Sll2);
         res[c - 1].r = ColumnKind::Cle(CleKind::Sll2);
     }
-    for c in int.find_columns(&["RCLK_BRAM_CLKBUF_CORE"]) {
+    for c in int.find_columns(&["RCLK_BRAM_CLKBUF_CORE", "RCLK_BRAM_CLKBUF_VR_CORE"]) {
         let c = int.lookup_column_inter(c);
         assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
         res[c - 1].r = ColumnKind::Bram(BramKind::ClkBuf);
     }
-    for c in int.find_columns(&["RCLK_BRAM_CLKBUF_NOPD_CORE"]) {
+    for c in int.find_columns(&[
+        "RCLK_BRAM_CLKBUF_NOPD_CORE",
+        "RCLK_BRAM_CLKBUF_NOPD_VR_CORE",
+    ]) {
         let c = int.lookup_column_inter(c);
         assert_eq!(res[c - 1].r, ColumnKind::Bram(BramKind::Plain));
         res[c - 1].r = ColumnKind::Bram(BramKind::ClkBufNoPd);
     }
+    for c in int.find_columns(&["RCLK_BRAM_CORE", "RCLK_BRAM_VR_CORE"]) {
+        let c = int.lookup_column_inter(c);
+        if res[c - 1].r == ColumnKind::Bram(BramKind::ClkBufNoPd) {
+            res[c - 1].r = ColumnKind::Bram(BramKind::MaybeClkBufNoPd);
+        }
+    }
 
     for c in int.find_columns(&[
         "BLI_CLE_TOP_CORE",
+        "BLI_DSP_LOCF_TR_TILE",
         "BLI_DSP_ROCF_TR_TILE",
         "BLI_BRAM_LOCF_TR_TILE",
         "BLI_BRAM_ROCF_TR_TILE",
@@ -139,6 +155,7 @@ fn make_columns(
     }
     for c in int.find_columns(&[
         "BLI_CLE_TOP_CORE_MY",
+        "BLI_DSP_LOCF_TL_TILE",
         "BLI_DSP_ROCF_TL_TILE",
         "BLI_BRAM_ROCF_TL_TILE",
         "BLI_URAM_LOCF_TL_TILE",
@@ -165,7 +182,10 @@ fn make_columns(
         res[c].has_bli_bot_l = true;
     }
 
-    let col_cfrm = int.lookup_column_inter(int.find_column(&["CFRM_PMC_TILE"]).unwrap());
+    let col_cfrm = int.lookup_column_inter(
+        int.find_column(&["CFRM_PMC_TILE", "CFRM_PMC_VR_TILE"])
+            .unwrap(),
+    );
     res[col_cfrm].l = ColumnKind::Cfrm;
 
     let mut hard_cells = BTreeMap::new();
@@ -178,6 +198,9 @@ fn make_columns(
         ("PCIEB5_BOT_TILE", HardRowKind::Pcie5),
         ("MRMAC_TOP_TILE", HardRowKind::Mrmac),
         ("MRMAC_BOT_TILE", HardRowKind::Mrmac),
+        ("SDFECA_TOP_TILE", HardRowKind::SdfecA),
+        ("DFE_CFC_BOT_TILE", HardRowKind::DfeCfcB),
+        ("DFE_CFC_TOP_TILE", HardRowKind::DfeCfcT),
         ("CPM_EXT_TILE", HardRowKind::CpmExt),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {
@@ -312,10 +335,19 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
         ("VDU_CORE_MY", GtRowKind::Vdu),
         ("BFR_TILE_B_BOT_CORE", GtRowKind::BfrB),
         ("BFR_TILE_B_TOP_CORE", GtRowKind::BfrB),
+        ("ISP2_CORE", GtRowKind::Isp2),
+        ("VCU2_TILE", GtRowKind::Vcu2B),
+        ("RFADC_BOT_CORE", GtRowKind::RfAdc),
+        ("RFADC_TOP_CORE", GtRowKind::RfAdc),
+        ("RFDAC_BOT_CORE", GtRowKind::RfDac),
+        ("RFDAC_TOP_CORE", GtRowKind::RfDac),
     ] {
         for row in int.find_rows(&[tkn]) {
             let reg = RegId::from_idx(int.lookup_row(row).to_idx() / 48);
             res[reg] = kind;
+            if kind == GtRowKind::Vcu2B {
+                res[reg + 1] = GtRowKind::Vcu2T;
+            }
         }
     }
     if res.values().any(|&x| x != GtRowKind::None) {
@@ -325,7 +357,7 @@ fn get_rows_gt_right(int: &IntGrid) -> Option<EntityVec<RegId, GtRowKind>> {
     }
 }
 
-fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
+fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming, is_vnoc2_scan_offset: &mut bool) {
     for (x, y) in int.find_tiles(&["AMS_SAT_VNOC_TILE"]) {
         let col = int.lookup_column_inter(x);
         let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
@@ -333,8 +365,9 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
             x: x as u16,
             y: y as u16,
         }];
-        let xy = extract_site_xy(int.rd, tile, "SYSMON_SAT").unwrap();
-        naming.sysmon_sat_vnoc.insert((col, reg), xy);
+        if let Some(xy) = extract_site_xy(int.rd, tile, "SYSMON_SAT") {
+            naming.sysmon_sat_vnoc.insert((col, reg), xy);
+        }
     }
     for (x, y) in int.find_tiles(&["NOC2_NSU512_VNOC_TILE"]) {
         let col = int.lookup_column_inter(x);
@@ -343,8 +376,12 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
             x: x as u16,
             y: y as u16,
         };
-        let nps_a_crd = nsu_crd.delta(0, 4);
-        let nmu_crd = nsu_crd.delta(0, 11);
+        let mut nps_a_crd = nsu_crd.delta(0, 4);
+        if int.rd.tile_kinds.key(int.rd.tiles[&nps_a_crd].kind) == "NULL" {
+            *is_vnoc2_scan_offset = true;
+            nps_a_crd = nps_a_crd.delta(-1, 0);
+        }
+        let nmu_crd = nps_a_crd.delta(0, 7);
         let scan_crd = nsu_crd.delta(1, 0);
         naming.vnoc2.insert(
             (col, reg),
@@ -356,12 +393,37 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming) {
             },
         );
     }
+    for (x, y) in int.find_tiles(&["NOC2_NSU512_VNOC4_TILE"]) {
+        let col = int.lookup_column_inter(x);
+        let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
+        let nsu_crd = Coord {
+            x: x as u16,
+            y: y as u16,
+        };
+        let mut nps_a_crd = nsu_crd.delta(0, 4);
+        if int.rd.tile_kinds.key(int.rd.tiles[&nps_a_crd].kind) == "NULL" {
+            *is_vnoc2_scan_offset = true;
+            nps_a_crd = nps_a_crd.delta(-1, 0);
+        }
+        let nmu_crd = nps_a_crd.delta(0, 7);
+        let scan_crd = nsu_crd.delta(1, 0);
+        naming.vnoc2.insert(
+            (col, reg),
+            VNoc2Naming {
+                nsu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nsu_crd], "NOC2_NSU512").unwrap(),
+                nmu_xy: extract_site_xy(int.rd, &int.rd.tiles[&nmu_crd], "NOC2_NMU512").unwrap(),
+                nps_xy: extract_site_xy(int.rd, &int.rd.tiles[&nps_a_crd], "NOC2_NPS6X").unwrap(),
+                scan_xy: extract_site_xy(int.rd, &int.rd.tiles[&scan_crd], "NOC2_SCAN").unwrap(),
+            },
+        );
+    }
 }
 
 fn get_grid(
     die: DieId,
     int: &IntGrid<'_>,
     disabled: &mut BTreeSet<DisabledPart>,
+    is_vnoc2_scan_offset: &mut bool,
 ) -> (Grid, DieNaming) {
     let mut naming = DieNaming {
         hdio: BTreeMap::new(),
@@ -373,6 +435,8 @@ fn get_grid(
         PsKind::Ps9
     } else if !int.find_tiles(&["PSXL_CORE"]).is_empty() {
         PsKind::PsX
+    } else if !int.find_tiles(&["PSXC_TILE"]).is_empty() {
+        PsKind::PsXc
     } else {
         unreachable!()
     };
@@ -398,6 +462,7 @@ fn get_grid(
     } else {
         RightKind::Term
     };
+    let is_vr = !int.find_tiles(&["CLE_W_VR_CORE"]).is_empty();
     let grid = Grid {
         columns,
         cols_vbrk: get_cols_vbrk(int),
@@ -408,11 +473,12 @@ fn get_grid(
         ps,
         cpm,
         has_xram_top,
+        is_vr,
         top: TopKind::Ssit,    // XXX
         bottom: BotKind::Ssit, // XXX
         right,
     };
-    get_vnoc_naming(int, &mut naming);
+    get_vnoc_naming(int, &mut naming, is_vnoc2_scan_offset);
     (grid, naming)
 }
 
@@ -434,6 +500,7 @@ pub fn make_grids(
     };
     let mut grids = EntityVec::new();
     let mut namings = EntityVec::new();
+    let mut is_vnoc2_scan_offset = false;
     if ikind == InterposerKind::Column {
         let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
             .into_iter()
@@ -445,7 +512,7 @@ pub fn make_grids(
         for (dieid, w) in rows_slr_split.windows(2).enumerate() {
             let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(die, &int, &mut disabled);
+            let (grid, naming) = get_grid(die, &int, &mut disabled, &mut is_vnoc2_scan_offset);
             grids.push(grid);
             namings.push(naming);
         }
@@ -500,7 +567,7 @@ pub fn make_grids(
         .enumerate()
         {
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(die, &int, &mut disabled);
+            let (grid, naming) = get_grid(die, &int, &mut disabled, &mut is_vnoc2_scan_offset);
             grids.push(grid);
             namings.push(naming);
         }
@@ -658,6 +725,7 @@ pub fn make_grids(
         DeviceNaming {
             die: namings,
             is_dsp_v2,
+            is_vnoc2_scan_offset,
         },
     )
 }

@@ -3980,6 +3980,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         td._rpad { padding: 5px; padding-right:1000px; border: none; position: relative; }
         td._bpad { padding: 5px; padding-bottom:1000px; border: none; position: relative; }
         td._unk { animation: unknown 1s infinite; }
+        td.NULL { border: none; }
+        td.PCIE_NULL { border: none; }
         @keyframes unknown {
             0% { background: white; }
             50% { background: red; }

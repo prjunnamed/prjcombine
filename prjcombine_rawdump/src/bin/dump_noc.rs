@@ -269,6 +269,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             &["AIE_NOC_TO_NOC"],
             &["AIE_NOC_FROM_NOC"],
         ),
+        // AI-ML2
+        (
+            "AIE2P_S_INTF_C_CORE",
+            &[
+                "AIE_NOC_0_TO_NOC",
+                "AIE_NMU_ARBIT_TO_NOC_0",
+                "AIE_NMU_ARBIT_TO_NOC_1",
+            ],
+            &["AIE_NOC_0_FROM_NOC"],
+        ),
         // top XPIO
         (
             "DDRMC_DMC_CORE_MX",
@@ -741,6 +751,44 @@ fn main() -> Result<(), Box<dyn Error>> {
             ],
         ),
         (
+            "NOC2_NPS6X_TOP",
+            &[
+                "NOC2_NPS6X_ATOM_0_OUT_0",
+                "NOC2_NPS6X_ATOM_0_OUT_1",
+                "NOC2_NPS6X_ATOM_0_OUT_2",
+                "NOC2_NPS6X_ATOM_0_OUT_3",
+                "NOC2_NPS6X_ATOM_0_OUT_4",
+                "NOC2_NPS6X_ATOM_0_OUT_5",
+            ],
+            &[
+                "NOC2_NPS6X_ATOM_0_IN_0",
+                "NOC2_NPS6X_ATOM_0_IN_1",
+                "NOC2_NPS6X_ATOM_0_IN_2",
+                "NOC2_NPS6X_ATOM_0_IN_3",
+                "NOC2_NPS6X_ATOM_0_IN_4",
+                "NOC2_NPS6X_ATOM_0_IN_5",
+            ],
+        ),
+        (
+            "NOC2_NPS6X_TOP_MX",
+            &[
+                "NOC2_NPS6X_ATOM_0_OUT_0",
+                "NOC2_NPS6X_ATOM_0_OUT_1",
+                "NOC2_NPS6X_ATOM_0_OUT_2",
+                "NOC2_NPS6X_ATOM_0_OUT_3",
+                "NOC2_NPS6X_ATOM_0_OUT_4",
+                "NOC2_NPS6X_ATOM_0_OUT_5",
+            ],
+            &[
+                "NOC2_NPS6X_ATOM_0_IN_0",
+                "NOC2_NPS6X_ATOM_0_IN_1",
+                "NOC2_NPS6X_ATOM_0_IN_2",
+                "NOC2_NPS6X_ATOM_0_IN_3",
+                "NOC2_NPS6X_ATOM_0_IN_4",
+                "NOC2_NPS6X_ATOM_0_IN_5",
+            ],
+        ),
+        (
             "NOC2_NCRB_TILE",
             &[
                 "NOC_NCRB_TOP_0_OUT_0",
@@ -772,6 +820,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             &["NOC2_NMU128_ATOM_0_FROM_NOC", "NOC2_NMU128_ATOM_0_AXI_IN"],
         ),
         (
+            "NOC2_NMU128_TOP_MX",
+            &["NOC2_NMU128_ATOM_0_TO_NOC"],
+            &["NOC2_NMU128_ATOM_0_FROM_NOC", "NOC2_NMU128_ATOM_0_AXI_IN"],
+        ),
+        (
             "NOC2_NMU128_TOP_MY",
             &["NOC2_NMU128_ATOM_0_TO_NOC"],
             &["NOC2_NMU128_ATOM_0_FROM_NOC", "NOC2_NMU128_ATOM_0_AXI_IN"],
@@ -797,7 +850,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             &["NOC2_NMU512_ATOM_0_FROM_NOC"],
         ),
         (
+            "NOC2_NMU512_VNOC4_TILE",
+            &["NOC2_NMU512_ATOM_0_TO_NOC"],
+            &["NOC2_NMU512_ATOM_0_FROM_NOC"],
+        ),
+        (
             "NOC2_NSU128_TOP",
+            &["NOC2_NSU128_ATOM_0_TO_NOC", "NOC2_NSU128_ATOM_0_AXI_OUT"],
+            &["NOC2_NSU128_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU128_TOP_MX",
             &["NOC2_NSU128_ATOM_0_TO_NOC", "NOC2_NSU128_ATOM_0_AXI_OUT"],
             &["NOC2_NSU128_ATOM_0_FROM_NOC"],
         ),
@@ -813,6 +876,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         ),
         (
             "NOC2_NSU512_VNOC_TILE",
+            &["NOC2_NSU512_ATOM_0_TO_NOC"],
+            &["NOC2_NSU512_ATOM_0_FROM_NOC"],
+        ),
+        (
+            "NOC2_NSU512_VNOC4_TILE",
             &["NOC2_NSU512_ATOM_0_TO_NOC"],
             &["NOC2_NSU512_ATOM_0_FROM_NOC"],
         ),
@@ -905,6 +973,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "HNICX_ATOM_0_HNICX_NOC_AXIS_S2",
                 "HNICX_ATOM_0_HNICX_NOC_AXIS_S3",
             ],
+        ),
+        // ISP2
+        (
+            "ISP2_CORE",
+            &["ISP2_ATOM_0_NMU_ISP_0", "ISP2_ATOM_0_NMU_ISP_1"],
+            &["ISP2_ATOM_0_NSU_ISP"],
+        ),
+        // VCU2
+        (
+            "VCU2_TILE",
+            &[
+                "VCU2_ATOM_0_NMU_VCU2_0",
+                "VCU2_ATOM_0_NMU_VCU2_1",
+                "VCU2_ATOM_0_NMU_VCU2_2",
+                "VCU2_ATOM_0_NMU_VCU2_3",
+            ],
+            &["VCU2_ATOM_0_NSU_VCU2"],
         ),
     ] {
         for &crd in rd.tiles_by_kind_name(tkn) {
