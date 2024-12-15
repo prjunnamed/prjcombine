@@ -8,6 +8,7 @@ use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 use crate::bond::SharedCfgPin;
 use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
 use crate::grid::{CfgRowKind, ColumnKind, DisabledPart, Grid};
+use crate::gtz::GtzDb;
 use bimap::BiHashMap;
 use std::collections::BTreeSet;
 
@@ -543,6 +544,7 @@ pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &'a Grid>,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
+    gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
     assert_eq!(grids.len(), 1);
@@ -634,6 +636,8 @@ pub fn expand_grid<'a>(
         kind: DeviceKind::Virtex4,
         die: [die_bs_geom].into_iter().collect(),
         die_order: vec![expander.die.die],
+        has_gtz_bot: false,
+        has_gtz_top: false,
     };
 
     let mut cfg_io = BiHashMap::new();
@@ -684,8 +688,9 @@ pub fn expand_grid<'a>(
         row_iobdcm,
         io,
         gt,
-        gtz: vec![],
+        gtz: Default::default(),
         cfg_io,
         banklut: EntityVec::new(),
+        gdb,
     }
 }

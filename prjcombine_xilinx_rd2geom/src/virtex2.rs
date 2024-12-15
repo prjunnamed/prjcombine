@@ -1,17 +1,15 @@
 use std::collections::BTreeSet;
 
-use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_virtex2_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, Grid};
-use prjcombine_xilinx_naming::db::NamingDb;
 
 use crate::db::{make_device, PreDevice};
 use prjcombine_virtex2_rd2db::{bond, grid, int_s3, int_v2};
 use prjcombine_virtex2_rdverify::verify_device;
 
-pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
+pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let grid = grid::make_grid(rd);
     let (intdb, ndb) = if rd.family.starts_with("virtex2") {
         int_v2::make_int_db(rd)
@@ -35,9 +33,12 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     } else {
         "spartan3"
     };
-    (
-        make_device(rd, Grid::Virtex2(grid), bonds, BTreeSet::new()),
-        intdb_name.into(),
+    make_device(
+        rd,
+        Grid::Virtex2(grid),
+        bonds,
+        BTreeSet::new(),
+        intdb_name,
         intdb,
         ndb,
     )

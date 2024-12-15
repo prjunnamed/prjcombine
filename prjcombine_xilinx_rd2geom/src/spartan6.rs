@@ -1,14 +1,12 @@
-use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_spartan6_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, DisabledPart, Grid};
-use prjcombine_xilinx_naming::db::NamingDb;
 
 use crate::db::{make_device, PreDevice};
 use prjcombine_spartan6_rd2db::{bond, grid, int};
 use prjcombine_spartan6_rdverify::verify_device;
 
-pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
+pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grid, disabled) = grid::make_grid(rd);
     let (intdb, ndb) = int::make_int_db(rd);
     let edev = grid.expand_grid(&intdb, &disabled);
@@ -22,9 +20,13 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
         verify_device(&endev, rd);
     }
     let disabled = disabled.into_iter().map(DisabledPart::Spartan6).collect();
-    (
-        make_device(rd, Grid::Spartan6(grid), bonds, disabled),
-        "spartan6".into(),
+
+    make_device(
+        rd,
+        Grid::Spartan6(grid),
+        bonds,
+        disabled,
+        "spartan6",
         intdb,
         ndb,
     )

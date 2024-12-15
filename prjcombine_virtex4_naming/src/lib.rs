@@ -1,11 +1,16 @@
-use prjcombine_int::grid::{ColId, DieId, RowId};
+use enum_map::EnumMap;
+use prjcombine_int::{
+    db::Dir,
+    grid::{ColId, DieId, RowId},
+};
 use prjcombine_virtex4::{
     bond::PsPin,
     expanded::{ExpandedDevice, IoCoord},
     grid::{CfgRowKind, GridKind, GtKind, RegId},
+    gtz::GtzIntColId,
 };
 use prjcombine_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use unnamed_entity::EntityId;
+use unnamed_entity::{EntityId, EntityVec};
 
 mod virtex4;
 mod virtex5;
@@ -35,9 +40,21 @@ pub struct Gt<'a> {
     pub pads_rx: Vec<(&'a str, &'a str)>,
 }
 
+#[derive(Debug)]
+pub struct ExpandedNamedGtz {
+    pub tile: String,
+    pub clk_tile: String,
+    pub int_tiles: EntityVec<GtzIntColId, String>,
+    pub bel: String,
+    pub pads_clk: Vec<(String, String)>,
+    pub pads_tx: Vec<(String, String)>,
+    pub pads_rx: Vec<(String, String)>,
+}
+
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,
     pub ngrid: ExpandedGridNaming<'a>,
+    pub gtz: EnumMap<Dir, Option<ExpandedNamedGtz>>,
 }
 
 impl ExpandedNamedDevice<'_> {

@@ -4531,15 +4531,16 @@ impl BelFuzzKV {
 }
 
 #[derive(Debug, Clone)]
-pub enum TileMultiFuzzKV {
+pub enum TileMultiFuzzKV<'a> {
     SiteAttr(BelId, String, MultiValue),
     IobSiteAttr(usize, BelId, String, MultiValue),
     GlobalOpt(String, MultiValue),
     BelGlobalOpt(BelId, BelGlobalKind, String, MultiValue),
+    Raw(Key<'a>, MultiValue),
 }
 
-impl TileMultiFuzzKV {
-    fn apply<'a>(
+impl<'a> TileMultiFuzzKV<'a> {
+    fn apply(
         &self,
         backend: &IseBackend<'a>,
         loc: NodeLoc,
@@ -4563,6 +4564,7 @@ impl TileMultiFuzzKV {
                 let name = kind.apply(backend, opt, site);
                 fuzzer.fuzz_multi(Key::GlobalOpt(name), *val)
             }
+            TileMultiFuzzKV::Raw(key, val) => fuzzer.fuzz_multi(key.clone(), *val),
         }
     }
 }
@@ -6691,7 +6693,7 @@ pub struct TileMultiFuzzerGen<'a> {
     pub feature: FeatureId,
     pub base: Vec<TileKV<'a>>,
     pub width: usize,
-    pub fuzz: TileMultiFuzzKV,
+    pub fuzz: TileMultiFuzzKV<'a>,
     pub extras: Vec<ExtraFeature>,
 }
 

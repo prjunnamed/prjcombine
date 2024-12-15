@@ -1,11 +1,11 @@
-use crate::packet::{Packet, PacketParser};
+use crate::packet::{Crc, Packet, PacketParser};
 use crate::{
     Bitstream, BitstreamGeom, BitstreamMode, DeviceKind, DieBitstream, FrameAddr, FrameMaskMode,
-    KeyData, Reg,
+    GtzBitstream, KeyData, Reg,
 };
 use arrayref::array_ref;
 use bitvec::prelude::*;
-use prjcombine_int::grid::DieId;
+use prjcombine_int::db::Dir;
 use std::collections::HashMap;
 
 fn parse_xc2000_bitstream(bs: &mut Bitstream, data: &[u8]) {
@@ -1346,10 +1346,10 @@ fn parse_virtex4_bitstream(
     bs: &mut Bitstream,
     data: &[u8],
     key: &KeyData,
-    die_order: &[DieId],
+    geom: &BitstreamGeom,
     die_index: usize,
 ) {
-    let die = die_order[die_index];
+    let die = geom.die_order[die_index];
     let mut packets = PacketParser::new(bs.kind, data, key);
     let kind = bs.kind;
     let diebs = &mut bs.die[die];
@@ -1733,6 +1733,10 @@ fn parse_virtex4_bitstream(
                 _ => (),
             }
             match (packets.peek(), state) {
+                (Some(Packet::CmdWcfg), State::Wcfg) => {
+                    packets.next();
+                    assert_eq!(packets.next(), Some(Packet::Nop));
+                }
                 (Some(Packet::Fdri(val)), State::Wcfg) => {
                     packets.next();
                     let frames = val.len() / frame_bytes;
@@ -1913,7 +1917,7 @@ fn parse_virtex4_bitstream(
         _ => unreachable!(),
     }
     diebs.regs[Reg::Ctl0] = Some(ctl0);
-    if die_index != die_order.len() - 1 {
+    if die_index != geom.die_order.len() - 1 {
         packets.desync();
         assert_eq!(packets.next(), Some(Packet::SyncWord));
         assert_eq!(packets.next(), Some(Packet::Nop));
@@ -1925,7 +1929,7 @@ fn parse_virtex4_bitstream(
             Some(Packet::Bout(data)) => data,
             p => panic!("expected bout got {p:?}"),
         };
-        parse_virtex4_bitstream(bs, &subdata, key, die_order, die_index + 1);
+        parse_virtex4_bitstream(bs, &subdata, key, geom, die_index + 1);
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::Nop));
         assert_eq!(packets.next(), Some(Packet::CmdStart));
@@ -1934,8 +1938,161 @@ fn parse_virtex4_bitstream(
     loop {
         match packets.next() {
             Some(Packet::Nop) => (),
-            None => break,
+            Some(Packet::DummyWord) => break,
+            None => return,
             p => panic!("expected end got {p:?}"),
+        }
+    }
+    assert_eq!(die_index, 0);
+    assert!(geom.has_gtz_bot || geom.has_gtz_top);
+    let loader = core::mem::replace(bs, empty(geom));
+    bs.gtz_loader = Some(Box::new(loader));
+    for _ in 0..7 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::WidthDetect));
+    for _ in 0..2 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::SyncWord));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    loop {
+        let pkt = packets.next().unwrap();
+        if let Packet::Axss(data) = pkt {
+            let gtz = parse_gtz_bitstream(&data);
+            if geom.has_gtz_bot && !bs.gtz.contains_key(&Dir::S) {
+                bs.gtz.insert(Dir::S, gtz);
+            } else if geom.has_gtz_top && !bs.gtz.contains_key(&Dir::N) {
+                bs.gtz.insert(Dir::N, gtz);
+            } else {
+                panic!("ummm too many GTZ?");
+            }
+        } else {
+            assert_eq!(pkt, Packet::Crc);
+            break;
+        }
+    }
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+    for _ in 0..8 {
+        assert_eq!(packets.next(), Some(Packet::Nop));
+    }
+    consume_virtex4_shutdown(&mut packets, geom, die_index);
+    consume_virtex4_aghigh(&mut packets, geom, die_index);
+    for _ in 0..100 {
+        assert_eq!(packets.next(), Some(Packet::Nop));
+    }
+    parse_virtex4_bitstream(bs, &data[packets.pos()..], key, geom, die_index)
+}
+
+fn parse_gtz_bitstream(data: &[u32]) -> GtzBitstream {
+    let idcode = data[0];
+    assert_eq!(idcode >> 28, 0);
+    assert_eq!(data[1], 0x00010001);
+    let data_len: usize = data[2].try_into().unwrap();
+    let data_seg = &data[3..(data_len + 3)];
+    let data_seg = data_seg.strip_suffix(&[0; 0x20]).unwrap();
+    let data_crc = data_seg[data_seg.len() - 1];
+    let data_seg = &data_seg[..data_seg.len() - 1];
+    let mut crc = Crc::new(DeviceKind::Virtex7);
+    for &w in &data[..3 + data_len - 0x21] {
+        crc.update(0, w);
+    }
+    assert_eq!(data_crc, crc.get());
+
+    assert_eq!(data[3 + data_len], idcode | 1 << 28);
+    assert_eq!(data[3 + data_len + 1], 0x00010001);
+    let code_len: usize = data[3 + data_len + 2].try_into().unwrap();
+    let code_seg = &data[3 + data_len + 3..3 + data_len + 3 + code_len];
+    assert_eq!(3 + data_len + 3 + code_len, data.len());
+    let code_seg = code_seg.strip_suffix(&[0; 0x20]).unwrap();
+    let code_crc = code_seg[code_seg.len() - 1];
+    let code_seg = &code_seg[..code_seg.len() - 1];
+    let mut crc = Crc::new(DeviceKind::Virtex7);
+    for &w in &data[3 + data_len..3 + data_len + 3 + code_len - 0x21] {
+        crc.update(0, w);
+    }
+    assert_eq!(code_crc, crc.get());
+    GtzBitstream {
+        idcode,
+        data: data_seg.to_vec(),
+        code: code_seg.to_vec(),
+    }
+}
+
+fn consume_virtex4_shutdown(packets: &mut PacketParser, geom: &BitstreamGeom, die_index: usize) {
+    for _ in 0..8 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::WidthDetect));
+    for _ in 0..2 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::SyncWord));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdShutdown));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdRcrc));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+    for _ in 0..8 {
+        assert_eq!(packets.next(), Some(Packet::Nop));
+    }
+    packets.desync();
+    if die_index != geom.die_order.len() - 1 {
+        assert_eq!(packets.next(), Some(Packet::SyncWord));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        let subdata = match packets.next() {
+            Some(Packet::Bout(data)) => data,
+            p => panic!("expected bout got {p:?}"),
+        };
+        let mut subpackets = PacketParser::new(geom.kind, &subdata, &KeyData::None);
+        consume_virtex4_shutdown(&mut subpackets, geom, die_index + 1);
+        assert_eq!(subpackets.next(), None);
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+        for _ in 0..8 {
+            assert_eq!(packets.next(), Some(Packet::Nop));
+        }
+    }
+}
+
+fn consume_virtex4_aghigh(packets: &mut PacketParser, geom: &BitstreamGeom, die_index: usize) {
+    for _ in 0..8 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::WidthDetect));
+    for _ in 0..2 {
+        assert_eq!(packets.next(), Some(Packet::DummyWord));
+    }
+    assert_eq!(packets.next(), Some(Packet::SyncWord));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdAGHigh));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::Nop));
+    assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+    for _ in 0..8 {
+        assert_eq!(packets.next(), Some(Packet::Nop));
+    }
+    packets.desync();
+    if die_index != geom.die_order.len() - 1 {
+        assert_eq!(packets.next(), Some(Packet::SyncWord));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        let subdata = match packets.next() {
+            Some(Packet::Bout(data)) => data,
+            p => panic!("expected bout got {p:?}"),
+        };
+        let mut subpackets = PacketParser::new(geom.kind, &subdata, &KeyData::None);
+        consume_virtex4_aghigh(&mut subpackets, geom, die_index + 1);
+        assert_eq!(subpackets.next(), None);
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::Nop));
+        assert_eq!(packets.next(), Some(Packet::CmdDesynch));
+        for _ in 0..8 {
+            assert_eq!(packets.next(), Some(Packet::Nop));
         }
     }
 }
@@ -2285,8 +2442,8 @@ fn parse_ultrascale_bitstream(bs: &Bitstream, data: &[u8], key: &KeyData) {
     todo!()
 }
 
-pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
-    let mut res = Bitstream {
+fn empty(geom: &BitstreamGeom) -> Bitstream {
+    Bitstream {
         kind: geom.kind,
         die: geom.die.map_values(|dg| DieBitstream {
             regs: Default::default(),
@@ -2304,7 +2461,13 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
             iob_present: false,
             frame_fixups: HashMap::new(),
         }),
-    };
+        gtz: Default::default(),
+        gtz_loader: None,
+    }
+}
+
+pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
+    let mut res = empty(geom);
     match res.kind {
         DeviceKind::Xc2000 => parse_xc2000_bitstream(&mut res, data),
         DeviceKind::Xc4000 | DeviceKind::S40Xl => parse_xc4000_bitstream(&mut res, data),
@@ -2313,19 +2476,19 @@ pub fn parse(geom: &BitstreamGeom, data: &[u8], key: &KeyData) -> Bitstream {
         DeviceKind::Spartan3A => parse_spartan3a_bitstream(&mut res, data, key),
         DeviceKind::Spartan6 => parse_spartan6_bitstream(&mut res, data, key),
         DeviceKind::Virtex4 => {
-            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            parse_virtex4_bitstream(&mut res, data, key, geom, 0);
             check_virtex4_ecc(&res);
         }
         DeviceKind::Virtex5 => {
-            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            parse_virtex4_bitstream(&mut res, data, key, geom, 0);
             check_virtex5_ecc(&res);
         }
         DeviceKind::Virtex6 => {
-            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            parse_virtex4_bitstream(&mut res, data, key, geom, 0);
             check_virtex6_ecc(&res);
         }
         DeviceKind::Virtex7 => {
-            parse_virtex4_bitstream(&mut res, data, key, &geom.die_order, 0);
+            parse_virtex4_bitstream(&mut res, data, key, geom, 0);
             check_virtex7_ecc(&res);
         }
         DeviceKind::Ultrascale | DeviceKind::UltrascalePlus => {

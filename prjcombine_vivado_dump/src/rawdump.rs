@@ -1513,8 +1513,14 @@ pub fn get_rawdump(tc: &Toolchain, parts: &[VivadoPart]) -> Result<Part, Box<dyn
         for y in 0..mctx.rd.part.height {
             let crd = Coord { x, y };
             if !mctx.rd.part.tiles.contains_key(&crd) {
-                mctx.rd
-                    .add_tile(crd, format!("__{x}_{y}__"), "__EMPTY__".into(), &[], &[], &[]);
+                mctx.rd.add_tile(
+                    crd,
+                    format!("__{x}_{y}__"),
+                    "__EMPTY__".into(),
+                    &[],
+                    &[],
+                    &[],
+                );
             }
         }
     }

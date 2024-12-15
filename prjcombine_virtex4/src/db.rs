@@ -9,6 +9,7 @@ use unnamed_entity::{entity_id, EntityId, EntityMap, EntityVec};
 use crate::{
     bond::Bond,
     grid::{DisabledPart, Grid, Interposer},
+    gtz::GtzDb,
 };
 
 entity_id! {
@@ -44,6 +45,7 @@ pub struct Database {
     pub parts: Vec<Part>,
     pub int: IntDb,
     pub tiles: TileDb,
+    pub gtz: GtzDb,
 }
 
 impl Database {
@@ -84,6 +86,7 @@ impl Database {
             })),
             "int": self.int.to_json(),
             "tiles": self.tiles.to_json(),
+            "gtz": self.gtz.to_json(),
         })
     }
 }

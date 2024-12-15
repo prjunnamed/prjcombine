@@ -1040,6 +1040,8 @@ impl Grid {
             kind: DeviceKind::Spartan6,
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![expander.die.die],
+            has_gtz_bot: false,
+            has_gtz_top: false,
         };
         let site_holes = expander.site_holes;
         let col_frame = expander.col_frame;

@@ -340,6 +340,9 @@ macro_rules! fuzz_base {
     ($ctx:ident, (nop)) => {
         $crate::fgen::TileKV::Nop
     };
+    ($ctx:ident, (raw $key:expr, $val:expr)) => {
+        $crate::fgen::TileKV::Raw($key, $val.into())
+    };
 }
 
 #[macro_export]
@@ -499,6 +502,9 @@ macro_rules! fuzz_diff {
     ($ctx:ident, (bel_special $special:expr)) => {
         $crate::fgen::TileFuzzKV::Bel($ctx.bel, $special)
     };
+    ($ctx:ident, (raw $key:expr, $val0:expr, $val1:expr)) => {
+        $crate::fgen::TileFuzzKV::Raw($key, $val0.into(), $val1.into())
+    };
 }
 
 #[macro_export]
@@ -591,6 +597,9 @@ macro_rules! fuzz_diff_multi {
             $attr.to_string(),
             $crate::backend::MultiValue::Bin,
         )
+    };
+    ($ctx:ident, (raw $key:expr, $val:expr)) => {
+        $crate::fgen::TileMultiFuzzKV::Raw($key, $val)
     };
 }
 

@@ -178,6 +178,8 @@ sha2 = "0.10.8"
 
 [profile.dev]
 opt-level = 2
+overflow-checks = false
+debug-assertions = false
 debug = 2
 
 [workspace.lints.clippy]

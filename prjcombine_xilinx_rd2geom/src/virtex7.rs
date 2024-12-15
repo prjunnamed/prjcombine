@@ -1,19 +1,18 @@
-use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::{Part, Source};
 use prjcombine_virtex4::expand_grid;
 use prjcombine_virtex4_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
-use prjcombine_xilinx_naming::db::NamingDb;
 
 use crate::db::{make_device_multi, PreDevice};
-use prjcombine_virtex7_rd2db::{bond, grid, int};
+use prjcombine_virtex7_rd2db::{bond, grid, gtz, int};
 use prjcombine_virtex7_rdverify::verify_device;
 
-pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
+pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grids, interposer, disabled) = grid::make_grids(rd);
     let (intdb, ndb) = int::make_int_db(rd);
+    let gdb = gtz::extract_gtz(rd);
     let grid_refs = grids.map_values(|x| x);
-    let mut edev = expand_grid(&grid_refs, Some(&interposer), &disabled, &intdb);
+    let mut edev = expand_grid(&grid_refs, Some(&interposer), &disabled, &intdb, &gdb);
     if rd.source == Source::Vivado {
         edev.adjust_vivado();
     }
@@ -28,16 +27,15 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     }
     let grids = grids.into_map_values(Grid::Virtex4);
     let disabled = disabled.into_iter().map(DisabledPart::Virtex4).collect();
-    (
-        make_device_multi(
-            rd,
-            grids,
-            Interposer::Virtex4(interposer),
-            bonds,
-            disabled,
-            DeviceNaming::Dummy,
-        ),
-        "virtex7".into(),
+    make_device_multi(
+        rd,
+        grids,
+        Interposer::Virtex4(interposer),
+        gdb,
+        bonds,
+        disabled,
+        DeviceNaming::Dummy,
+        "virtex7",
         intdb,
         ndb,
     )

@@ -1,5 +1,6 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{DieId, ExpandedGrid};
+use prjcombine_virtex4::gtz::GtzDb;
 use prjcombine_virtex_bitstream::BitstreamGeom;
 use prjcombine_xilinx_naming::db::NamingDb;
 use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
@@ -145,6 +146,7 @@ pub struct GeomDb {
     pub devices: Vec<Device>,
     pub ints: BTreeMap<String, IntDb>,
     pub namings: BTreeMap<String, NamingDb>,
+    pub gtz: GtzDb,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -308,7 +310,7 @@ impl GeomDb {
                     _ => unreachable!(),
                 });
                 ExpandedDevice::Virtex4(prjcombine_virtex4::expand_grid(
-                    &grids, interposer, &disabled, intdb,
+                    &grids, interposer, &disabled, intdb, &self.gtz,
                 ))
             }
             Grid::Ultrascale(ref grid) => {

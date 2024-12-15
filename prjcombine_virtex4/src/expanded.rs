@@ -1,8 +1,9 @@
 use crate::bond::{PsPin, SharedCfgPin};
-use crate::grid::{
-    DisabledPart, Grid, GridKind, GtKind, GtzLoc, Interposer, IoKind, RegId, XadcIoLoc,
-};
+use crate::grid::{DisabledPart, Grid, GridKind, GtKind, Interposer, IoKind, RegId, XadcIoLoc};
+use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use bimap::BiHashMap;
+use enum_map::EnumMap;
+use prjcombine_int::db::Dir;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
@@ -20,6 +21,7 @@ pub struct ExpandedDevice<'a> {
     pub kind: GridKind,
     pub grids: EntityVec<DieId, &'a Grid>,
     pub egrid: ExpandedGrid<'a>,
+    pub gdb: &'a GtzDb,
     pub disabled: BTreeSet<DisabledPart>,
     pub interposer: Option<&'a Interposer>,
     pub int_holes: EntityVec<DieId, Vec<Rect>>,
@@ -39,7 +41,7 @@ pub struct ExpandedDevice<'a> {
     pub row_iobdcm: Option<RowId>,
     pub io: Vec<IoCoord>,
     pub gt: Vec<(DieId, ColId, RowId)>,
-    pub gtz: Vec<Gtz>,
+    pub gtz: EnumMap<Dir, Option<ExpandedGtz>>,
     pub cfg_io: BiHashMap<SharedCfgPin, IoCoord>,
     pub banklut: EntityVec<DieId, u32>,
 }
@@ -97,12 +99,12 @@ pub struct PsIo {
 }
 
 #[derive(Debug)]
-pub struct Gtz {
-    pub loc: GtzLoc,
+pub struct ExpandedGtz {
+    pub kind: GtzBelId,
     pub bank: u32,
-    pub pads_clk: Vec<(String, String)>,
-    pub pads_tx: Vec<(String, String)>,
-    pub pads_rx: Vec<(String, String)>,
+    pub die: DieId,
+    pub cols: EntityVec<GtzIntColId, ColId>,
+    pub rows: EntityVec<GtzIntRowId, RowId>,
 }
 
 impl ExpandedDevice<'_> {

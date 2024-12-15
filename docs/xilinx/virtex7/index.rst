@@ -21,4 +21,5 @@ Virtex 7
    gtp
    gtx
    gth
+   gtz
    config

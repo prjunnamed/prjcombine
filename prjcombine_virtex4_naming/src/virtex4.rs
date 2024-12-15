@@ -560,5 +560,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid: namer.ngrid,
+        gtz: Default::default(),
     }
 }

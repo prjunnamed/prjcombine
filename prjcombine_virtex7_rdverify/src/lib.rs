@@ -1,9 +1,16 @@
-use prjcombine_int::grid::{ColId, RowId};
+use prjcombine_int::{
+    db::{Dir, PinDir},
+    grid::{ColId, DieId, RowId},
+};
 use prjcombine_rawdump::{Part, Source};
-use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_virtex4::grid::DisabledPart;
-use prjcombine_virtex4_naming::ExpandedNamedDevice;
-use std::collections::HashMap;
+use prjcombine_rdverify::{verify, BelContext, SitePin, SitePinDir, Verifier};
+use prjcombine_virtex4::{
+    expanded::ExpandedGtz,
+    grid::DisabledPart,
+    gtz::{GtzIntColId, GtzIntRowId},
+};
+use prjcombine_virtex4_naming::{ExpandedNamedDevice, ExpandedNamedGtz};
+use std::collections::{HashMap, HashSet};
 use unnamed_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -3553,7 +3560,229 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
     }
 }
 
+fn verify_gtz(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    egt: &ExpandedGtz,
+    ngt: &ExpandedNamedGtz,
+) {
+    fn int_wire_name_gtz(side: Dir, col: GtzIntColId, row: GtzIntRowId) -> String {
+        let x = col.to_idx();
+        let y = match side {
+            Dir::N => 48 - row.to_idx(),
+            Dir::S => row.to_idx(),
+            _ => unreachable!(),
+        };
+        format!("GTZ_VBRK_INTF_SLV_{x}_{y}")
+    }
+    fn int_wire_name_int_l(
+        side: Dir,
+        icol: GtzIntColId,
+        col: GtzIntColId,
+        row: GtzIntRowId,
+    ) -> String {
+        let x = (86 + icol.to_idx() - col.to_idx() - 1) % 86;
+        let y = match side {
+            Dir::S => 48 - row.to_idx(),
+            Dir::N => row.to_idx(),
+            _ => unreachable!(),
+        };
+        format!("GTZ_INT_L_SLV_{x}_{y}")
+    }
+    fn int_wire_name_int_r(
+        side: Dir,
+        icol: GtzIntColId,
+        col: GtzIntColId,
+        row: GtzIntRowId,
+    ) -> String {
+        let x = (86 + icol.to_idx() - col.to_idx()) % 86;
+        let y = match side {
+            Dir::S => 48 - row.to_idx(),
+            Dir::N => row.to_idx(),
+            _ => unreachable!(),
+        };
+        format!("GTZ_INT_R_SLV_{x}_{y}")
+    }
+    fn int_wire_name_int_i(side: Dir, gcol: ColId, row: GtzIntRowId) -> String {
+        let lr = if gcol.to_idx() % 2 == 0 { 'L' } else { 'R' };
+        let bt = if side == Dir::S { 'T' } else { 'B' };
+        let y = row.to_idx();
+        format!("GTZ_INT_{lr}{bt}_SLV_{y}")
+    }
+    let mut pin_wires = HashMap::new();
+    let mut out_gclk = HashSet::new();
+    let gtz = &endev.edev.gdb.gtz[egt.kind];
+    let crd_gtz = vrf.xlat_tile(&ngt.tile).unwrap();
+    for (pname, pin) in &gtz.pins {
+        let wire = format!("GTZE2_OCTAL_{pname}");
+        let iwire = int_wire_name_gtz(gtz.side, pin.col, pin.row);
+        if pin.dir == PinDir::Output {
+            vrf.claim_pip(crd_gtz, &iwire, &wire);
+        } else {
+            vrf.claim_pip(crd_gtz, &wire, &iwire);
+        }
+        pin_wires.insert(pname.clone(), (pin.dir, wire));
+    }
+    for (pname, pin) in &gtz.clk_pins {
+        let wire = format!("GTZE2_OCTAL_{pname}");
+        let cwire = format!("GTZ_VBRK_INTF_GCLK{idx}", idx = pin.idx);
+        if pin.dir == PinDir::Output {
+            out_gclk.insert(pin.idx);
+            vrf.claim_pip(crd_gtz, &cwire, &wire);
+        } else {
+            vrf.claim_pip(crd_gtz, &wire, &cwire);
+        }
+        pin_wires.insert(pname.clone(), (pin.dir, wire));
+    }
+    let mut pads = vec![];
+    for i in 0..2 {
+        pads.push((format!("GTREFCLK{i}P"), PinDir::Input, &ngt.pads_clk[i].0));
+        pads.push((format!("GTREFCLK{i}N"), PinDir::Input, &ngt.pads_clk[i].1));
+    }
+    for i in 0..8 {
+        pads.push((format!("GTZRXP{i}"), PinDir::Input, &ngt.pads_rx[i].0));
+        pads.push((format!("GTZRXN{i}"), PinDir::Input, &ngt.pads_rx[i].1));
+        pads.push((format!("GTZTXP{i}"), PinDir::Output, &ngt.pads_tx[i].0));
+        pads.push((format!("GTZTXN{i}"), PinDir::Output, &ngt.pads_tx[i].1));
+    }
+    for &(ref pin, dir, _) in &pads {
+        pin_wires.insert(pin.clone(), (dir, format!("GTZE2_OCTAL_{pin}")));
+    }
+    let mut pins = vec![];
+    for (pin, (dir, wire)) in &pin_wires {
+        pins.push(SitePin {
+            dir: match dir {
+                PinDir::Input => SitePinDir::In,
+                PinDir::Output => SitePinDir::Out,
+                PinDir::Inout => unreachable!(),
+            },
+            pin,
+            wire: Some(wire),
+        });
+        vrf.claim_node(&[(crd_gtz, wire)]);
+    }
+    vrf.claim_site(crd_gtz, &ngt.bel, "GTZE2_OCTAL", &pins);
+    for &(ref pin, dir, bel) in &pads {
+        vrf.claim_node(&[(crd_gtz, &format!("GTZE2_OCTAL_{pin}_PAD"))]);
+        match dir {
+            PinDir::Input => {
+                vrf.claim_site(
+                    crd_gtz,
+                    bel,
+                    "IPAD",
+                    &[SitePin {
+                        dir: SitePinDir::Out,
+                        pin: "O",
+                        wire: Some(&format!("GTZE2_OCTAL_{pin}_PAD")),
+                    }],
+                );
+                vrf.claim_pip(
+                    crd_gtz,
+                    &format!("GTZE2_OCTAL_{pin}"),
+                    &format!("GTZE2_OCTAL_{pin}_PAD"),
+                );
+            }
+            PinDir::Output => {
+                vrf.claim_site(
+                    crd_gtz,
+                    bel,
+                    "OPAD",
+                    &[SitePin {
+                        dir: SitePinDir::In,
+                        pin: "I",
+                        wire: Some(&format!("GTZE2_OCTAL_{pin}_PAD")),
+                    }],
+                );
+                vrf.claim_pip(
+                    crd_gtz,
+                    &format!("GTZE2_OCTAL_{pin}_PAD"),
+                    &format!("GTZE2_OCTAL_{pin}"),
+                );
+            }
+            PinDir::Inout => unreachable!(),
+        }
+    }
+    let crd_clk = vrf.xlat_tile(&ngt.clk_tile).unwrap();
+    let (sdie, srow) = if gtz.side == Dir::S {
+        (DieId::from_idx(0), RowId::from_idx(4))
+    } else {
+        let sdie = endev.edev.grids.last_id().unwrap();
+        (sdie, vrf.grid.die(sdie).rows().next_back().unwrap() - 19)
+    };
+    let obel_rebuf = vrf
+        .find_bel(sdie, (endev.edev.col_clk, srow), "CLK_REBUF")
+        .unwrap();
+    for i in 0..32 {
+        let wire = format!("GTZ_CLK_GCLK{i}");
+        vrf.claim_node(&[
+            (crd_clk, &wire),
+            (crd_gtz, &format!("GTZ_VBRK_INTF_GCLK{i}")),
+        ]);
+        let owire = if gtz.side == Dir::S {
+            format!("GTZ_CLK_TOP_IN_GCLK{i}")
+        } else {
+            format!("GTZ_CLK_BOT_IN_GCLK{i}")
+        };
+        if out_gclk.contains(&i) {
+            vrf.claim_pip(crd_clk, &owire, &wire);
+        } else {
+            vrf.claim_pip(crd_clk, &wire, &owire);
+        }
+        let dwire = if gtz.side == Dir::S {
+            format!("GCLK{i}_D")
+        } else {
+            format!("GCLK{i}_U")
+        };
+        vrf.verify_node(&[obel_rebuf.fwire(&dwire), (crd_clk, &owire)]);
+    }
+    let sll_wire = endev.edev.egrid.db.get_wire("LVB.6");
+    for icol in egt.cols.ids() {
+        let crd = vrf.xlat_tile(&ngt.int_tiles[icol]).unwrap();
+        let is_last = icol == egt.cols.last_id().unwrap();
+        let is_first = icol == egt.cols.first_id().unwrap();
+        let crd_next = if is_last {
+            crd_gtz
+        } else {
+            vrf.xlat_tile(&ngt.int_tiles[icol + 1]).unwrap()
+        };
+        let gcol = egt.cols[icol];
+        for col in egt.cols.ids() {
+            for row in egt.rows.ids() {
+                let wire_l = int_wire_name_int_l(gtz.side, icol, col, row);
+                let wire_r = int_wire_name_int_r(gtz.side, icol, col, row);
+                if col == icol {
+                    let wire_i = int_wire_name_int_i(gtz.side, gcol, row);
+                    vrf.claim_pip(crd, &wire_i, &wire_r);
+                    vrf.claim_pip(crd, &wire_r, &wire_i);
+                    let rw = (egt.die, (gcol, egt.rows[row]), sll_wire);
+                    if !vrf.pin_int_wire(crd, &wire_i, rw) {
+                        println!("FAIL TO PIN GTZ {col} {row}");
+                    }
+                } else {
+                    vrf.claim_pip(crd, &wire_l, &wire_r);
+                    vrf.claim_pip(crd, &wire_r, &wire_l);
+                }
+                if is_last {
+                    let wire_gtz = int_wire_name_gtz(gtz.side, col, row);
+                    vrf.claim_node(&[(crd, &wire_r), (crd_gtz, &wire_gtz)]);
+                } else {
+                    let wire_l_next = int_wire_name_int_l(gtz.side, icol + 1, col, row);
+                    vrf.claim_node(&[(crd, &wire_r), (crd_next, &wire_l_next)]);
+                }
+                if is_first {
+                    vrf.claim_node(&[(crd, &wire_l)]);
+                }
+            }
+        }
+    }
+}
+
 fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
+    for (dir, egt) in &endev.edev.gtz {
+        let Some(egt) = egt else { continue };
+        let ngt = endev.gtz[dir].as_ref().unwrap();
+        verify_gtz(endev, vrf, egt, ngt);
+    }
     let mut stub_out_cond = vec![
         "IOI_IMUX_RC0",
         "IOI_IMUX_RC1",
@@ -3645,9 +3874,6 @@ fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
                 }
             }
         }
-    }
-    if endev.edev.interposer.unwrap().gtz_bot || endev.edev.interposer.unwrap().gtz_top {
-        vrf.skip_residual();
     }
 }
 

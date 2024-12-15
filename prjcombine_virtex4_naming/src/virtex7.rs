@@ -1,3 +1,5 @@
+use enum_map::EnumMap;
+use prjcombine_int::{db::Dir, grid::RowId};
 use prjcombine_virtex4::{
     expanded::ExpandedDevice,
     grid::{ColumnKind, GtKind, Pcie2Kind, XadcIoLoc},
@@ -8,7 +10,7 @@ use prjcombine_xilinx_naming::{
 };
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
-use crate::ExpandedNamedDevice;
+use crate::{ExpandedNamedDevice, ExpandedNamedGtz};
 
 fn make_int_tie_grid(
     edev: &ExpandedDevice,
@@ -254,6 +256,82 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 *val ^= 1;
             }
         }
+    }
+    let mut gtz = EnumMap::default();
+    for (dir, egt) in &edev.gtz {
+        let Some(egt) = egt else { continue };
+        let gtzx = 0;
+        let (gtzy, ipy, opy) = if dir == Dir::N && edev.gtz[Dir::S].is_some() {
+            (1, 20, 16)
+        } else {
+            (0, 0, 0)
+        };
+        gtz[dir] = Some(ExpandedNamedGtz {
+            int_tiles: egt.cols.map_values(|&col| {
+                let lr = if col.to_idx() % 2 == 0 { 'L' } else { 'R' };
+                let x = int_grid.xlut[col];
+                let y = if dir == Dir::S {
+                    int_grid.ylut[egt.die][RowId::from_idx(0)] - 1
+                } else {
+                    int_grid.ylut[egt.die][RowId::from_idx(edev.grids[egt.die].regs * 50 - 1)] + 1
+                };
+                let tkn = if dir == Dir::S {
+                    format!("GTZ_INT_{lr}B")
+                } else {
+                    format!("GTZ_INT_{lr}")
+                };
+                format!("{tkn}_X{x}Y{y}")
+            }),
+            clk_tile: {
+                let tkn = if dir == Dir::S {
+                    "GTZ_CLK_B"
+                } else {
+                    "GTZ_CLK"
+                };
+                let x = raw_grid.xlut[edev.col_clk] + 2;
+                let y = if dir == Dir::S {
+                    0
+                } else {
+                    raw_grid.ylut[egt.die][RowId::from_idx(edev.grids[egt.die].regs * 50 - 1)] + 3
+                };
+                format!("{tkn}_X{x}Y{y}")
+            },
+            tile: {
+                let tkn = if dir == Dir::S { "GTZ_BOT" } else { "GTZ_TOP" };
+                let x = raw_grid.xlut[*edev.gtz[Dir::N].as_ref().unwrap().cols.last().unwrap() + 1];
+                let y = if dir == Dir::S {
+                    0
+                } else {
+                    raw_grid.ylut[egt.die][RowId::from_idx(edev.grids[egt.die].regs * 50 - 1)] + 3
+                };
+                format!("{tkn}_X{x}Y{y}")
+            },
+            bel: format!("GTZE2_OCTAL_X{gtzx}Y{gtzy}"),
+            pads_clk: (0..2)
+                .map(|i| {
+                    (
+                        format!("IPAD_X2Y{}", ipy + 1 + 2 * i),
+                        format!("IPAD_X2Y{}", ipy + 2 * i),
+                    )
+                })
+                .collect(),
+            pads_rx: (0..8)
+                .map(|i| {
+                    (
+                        format!("IPAD_X2Y{}", ipy + 5 + 2 * i),
+                        format!("IPAD_X2Y{}", ipy + 4 + 2 * i),
+                    )
+                })
+                .collect(),
+            pads_tx: (0..8)
+                .map(|i| {
+                    (
+                        format!("OPAD_X1Y{}", opy + 1 + 2 * i),
+                        format!("OPAD_X1Y{}", opy + 2 * i),
+                    )
+                })
+                .collect(),
+        });
     }
     for die in egrid.dies() {
         let grid = edev.grids[die.die];
@@ -1263,5 +1341,5 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         }
     }
 
-    ExpandedNamedDevice { edev, ngrid }
+    ExpandedNamedDevice { edev, ngrid, gtz }
 }

@@ -34,6 +34,7 @@ pub enum Packet {
     CmdWcfg,
     CmdMfwr,
     CmdDGHigh,
+    CmdAGHigh,
     CmdStart,
     CmdShutdown,
     CmdRcrc,
@@ -77,6 +78,7 @@ pub enum Packet {
     Testmode(u32),
     Trim(u32),
     Dwc(u32),
+    Axss(Vec<u32>),
     Fdri(Vec<u8>),
     Bout(Vec<u8>),
     EncFdri(Vec<u8>),
@@ -97,7 +99,7 @@ fn bitswap32(data: &mut [u8]) {
 }
 
 #[derive(Debug, Clone)]
-struct Crc {
+pub struct Crc {
     kind: DeviceKind,
     crc: u32,
 }
@@ -202,6 +204,10 @@ impl<'a> PacketParser<'a> {
         self.clone().next()
     }
 
+    pub fn pos(&self) -> usize {
+        self.pos
+    }
+
     pub fn desync(&mut self) {
         self.sync = false;
     }
@@ -274,6 +280,7 @@ impl Iterator for PacketParser<'_> {
                                     self.crc.reset();
                                     Some(Packet::CmdRcrc)
                                 }
+                                8 => Some(Packet::CmdAGHigh),
                                 9 => Some(Packet::CmdSwitch),
                                 10 => Some(Packet::CmdGRestore),
                                 11 => Some(Packet::CmdShutdown),
@@ -435,6 +442,10 @@ impl Iterator for PacketParser<'_> {
                         let prev_crc = self.crc.get();
                         if ph == 0x00000000 && self.kind == DeviceKind::Virtex {
                             Some(Packet::Nop)
+                        } else if ph == 0xffffffff {
+                            // welp.
+                            self.sync = false;
+                            Some(Packet::DummyWord)
                         } else if ph == 0x00000000 && is_v4 {
                             // Not a valid packet, but a manifestation of a bitgen bug
                             // that emits broken debug bitstreams for Virtex4+.
@@ -527,6 +538,7 @@ impl Iterator for PacketParser<'_> {
                                         self.crc.reset();
                                         Some(Packet::CmdRcrc)
                                     }
+                                    8 => Some(Packet::CmdAGHigh),
                                     9 => Some(Packet::CmdSwitch),
                                     10 => Some(Packet::CmdGRestore),
                                     11 => Some(Packet::CmdShutdown),
@@ -583,6 +595,7 @@ impl Iterator for PacketParser<'_> {
                                     Some(Packet::Cbc(data))
                                 }
                                 (0xc, 1) if is_v4 => Some(Packet::Idcode(get_val(0))),
+                                (0xd, 0) if is_v4 => continue,
                                 (0xe, 1) if is_v4 => Some(Packet::Cor1(get_val(0))),
                                 (0x10, 1) if is_v4 => Some(Packet::WBStar(get_val(0))),
                                 (0x11, 1) if is_v4 => Some(Packet::Timer(get_val(0))),
@@ -692,7 +705,13 @@ impl Iterator for PacketParser<'_> {
                                         Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                                     }
                                 }
-                                0x1e => Some(Packet::Bout(src_data[dpos..epos].to_vec())),
+                                0xd if is_v4 => {
+                                    Some(Packet::Axss((0..num).map(get_val).collect()))
+                                }
+                                0x1e => {
+                                    self.crc.set(prev_crc);
+                                    Some(Packet::Bout(src_data[dpos..epos].to_vec()))
+                                }
                                 _ => panic!("unk long write: {reg} times {num}"),
                             }
                         } else if (ph >> 27) == 0xb {
@@ -797,6 +816,7 @@ impl Iterator for PacketParser<'_> {
                             }
                             0xaa995566 => {
                                 self.sync = true;
+                                self.crc.reset();
                                 Some(Packet::SyncWord)
                             }
                             _ => panic!("unk word while desyncd: {ph:08x}"),

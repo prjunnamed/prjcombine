@@ -130,5 +130,6 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
         parts,
         int,
         tiles: tiledb,
+        gtz: geom.gtz,
     }
 }

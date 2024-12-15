@@ -821,6 +821,8 @@ impl Grid {
             },
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![DieId::from_idx(0)],
+            has_gtz_bot: false,
+            has_gtz_top: false,
         };
 
         ExpandedDevice {

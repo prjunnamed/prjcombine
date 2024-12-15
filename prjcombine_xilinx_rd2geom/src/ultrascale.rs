@@ -1,15 +1,13 @@
-use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_ultrascale::expand_grid;
 use prjcombine_ultrascale_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
-use prjcombine_xilinx_naming::db::NamingDb;
 
 use crate::db::{make_device_multi, PreDevice};
 use prjcombine_ultrascale_rd2db::{bond, grid, int_u, int_up};
 use prjcombine_ultrascale_rdverify::verify_device;
 
-pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
+pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grids, interposer, disabled, naming) = grid::make_grids(rd);
     let (intdb, ndb) = if rd.family == "ultrascale" {
         int_u::make_int_db(rd, &naming)
@@ -29,15 +27,14 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     }
     let grids = grids.into_map_values(Grid::Ultrascale);
     let disabled = disabled.into_iter().map(DisabledPart::Ultrascale).collect();
-    (
-        make_device_multi(
-            rd,
-            grids,
-            Interposer::Ultrascale(interposer),
-            bonds,
-            disabled,
-            DeviceNaming::Ultrascale(naming),
-        ),
+    make_device_multi(
+        rd,
+        grids,
+        Interposer::Ultrascale(interposer),
+        Default::default(),
+        bonds,
+        disabled,
+        DeviceNaming::Ultrascale(naming),
         rd.family.clone(),
         intdb,
         ndb,

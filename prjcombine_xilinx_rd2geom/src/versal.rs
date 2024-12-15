@@ -1,15 +1,13 @@
-use prjcombine_int::db::IntDb;
 use prjcombine_rawdump::Part;
 use prjcombine_versal::expand::expand_grid;
 use prjcombine_versal_naming::name_device;
 use prjcombine_xilinx_geom::{Bond, DeviceNaming, DisabledPart, Grid, Interposer};
-use prjcombine_xilinx_naming::db::NamingDb;
 
 use crate::db::{make_device_multi, PreDevice};
 use prjcombine_versal_rd2db::{grid, int};
 use prjcombine_versal_rdverify::verify_device;
 
-pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
+pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grids, interposer, disabled, naming) = grid::make_grids(rd);
     let (intdb, ndb) = int::make_int_db(rd, &naming);
     let mut bonds = Vec::new();
@@ -24,16 +22,15 @@ pub fn ingest(rd: &Part, verify: bool) -> (PreDevice, String, IntDb, NamingDb) {
     }
     let grids = grids.into_map_values(Grid::Versal);
     let disabled = disabled.into_iter().map(DisabledPart::Versal).collect();
-    (
-        make_device_multi(
-            rd,
-            grids,
-            Interposer::Versal(interposer),
-            bonds,
-            disabled,
-            DeviceNaming::Versal(naming),
-        ),
-        "versal".into(),
+    make_device_multi(
+        rd,
+        grids,
+        Interposer::Versal(interposer),
+        Default::default(),
+        bonds,
+        disabled,
+        DeviceNaming::Versal(naming),
+        "versal",
         intdb,
         ndb,
     )

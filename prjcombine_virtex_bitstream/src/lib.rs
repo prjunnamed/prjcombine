@@ -1,8 +1,8 @@
 use arrayvec::ArrayVec;
 use bitvec::prelude::*;
 use enum_map::{Enum, EnumMap};
-use prjcombine_int::grid::DieId;
-use std::collections::HashMap;
+use prjcombine_int::{db::Dir, grid::DieId};
+use std::collections::{BTreeMap, HashMap};
 use unnamed_entity::EntityVec;
 
 mod packet;
@@ -112,6 +112,8 @@ pub struct BitstreamGeom {
     pub kind: DeviceKind,
     pub die: EntityVec<DieId, DieBitstreamGeom>,
     pub die_order: Vec<DieId>,
+    pub has_gtz_bot: bool,
+    pub has_gtz_top: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -125,9 +127,18 @@ pub struct DieBitstreamGeom {
 }
 
 #[derive(Clone, Debug)]
+pub struct GtzBitstream {
+    pub idcode: u32,
+    pub data: Vec<u32>,
+    pub code: Vec<u32>,
+}
+
+#[derive(Clone, Debug)]
 pub struct Bitstream {
     pub kind: DeviceKind,
     pub die: EntityVec<DieId, DieBitstream>,
+    pub gtz: BTreeMap<Dir, GtzBitstream>,
+    pub gtz_loader: Option<Box<Bitstream>>,
 }
 
 impl Bitstream {
@@ -212,6 +223,18 @@ impl Bitstream {
                 }
             }
         }
+        for (&dir, ba) in &a.gtz {
+            let bb = &b.gtz[&dir];
+            for (i, (&wa, &wb)) in ba.data.iter().zip(bb.data.iter()).enumerate() {
+                if wa != wb {
+                    for j in 0..32 {
+                        if (wa >> j & 1) != (wb >> j & 1) {
+                            res.insert(BitPos::Gtz(dir, i, j), (wb >> j & 1) != 0);
+                        }
+                    }
+                }
+            }
+        }
         res
     }
 
@@ -228,6 +251,7 @@ impl Bitstream {
             }
             BitPos::Bram(die, frame, bit) => self.die[die].bram_frame(frame)[bit],
             BitPos::Iob(die, bit) => self.die[die].iob[bit],
+            BitPos::Gtz(dir, frame, bit) => (self.gtz[&dir].data[frame] >> bit & 1) != 0,
         }
     }
 }
@@ -315,6 +339,7 @@ pub enum BitPos {
     Fixup(DieId, usize, usize),
     Bram(DieId, usize, usize),
     Iob(DieId, usize),
+    Gtz(Dir, usize, usize),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
@@ -329,6 +354,7 @@ pub enum BitTile {
     Bram(DieId, usize),
     // Spartan 6 horrible; bit, width
     Iob(DieId, usize, usize),
+    Gtz(Dir),
 }
 
 impl BitTile {
@@ -390,6 +416,7 @@ impl BitTile {
             {
                 Some((0, bbit - bit))
             }
+            (BitTile::Gtz(dir), BitPos::Gtz(bdir, frame, bit)) if dir == bdir => Some((frame, bit)),
             _ => None,
         }
     }
@@ -441,6 +468,7 @@ impl BitTile {
                 assert!(tbit < height);
                 BitPos::Iob(die, bit + tbit)
             }
+            BitTile::Gtz(dir) => BitPos::Gtz(dir, tframe, tbit),
         }
     }
 

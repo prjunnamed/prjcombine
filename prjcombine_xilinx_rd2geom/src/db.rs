@@ -1,6 +1,7 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::DieId;
 use prjcombine_rawdump::Part;
+use prjcombine_virtex4::gtz::GtzDb;
 use prjcombine_xilinx_geom::{
     Bond, BondId, DevBondId, DevSpeedId, Device, DeviceBond, DeviceCombo, DeviceNaming,
     DeviceNamingId, DisabledPart, GeomDb, Grid, GridId, Interposer, InterposerId,
@@ -18,15 +19,24 @@ pub struct PreDevice {
     pub combos: Vec<DeviceCombo>,
     pub disabled: BTreeSet<DisabledPart>,
     pub naming: DeviceNaming,
+    pub intdb_name: String,
+    pub intdb: IntDb,
+    pub ndb: NamingDb,
+    pub gtz: GtzDb,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn make_device_multi(
     rd: &Part,
     grids: EntityVec<DieId, Grid>,
     interposer: Interposer,
+    gtz: GtzDb,
     mut bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
     naming: DeviceNaming,
+    intdb_name: impl Into<String>,
+    intdb: IntDb,
+    ndb: NamingDb,
 ) -> PreDevice {
     let mut speeds = EntitySet::new();
     bonds.sort_by(|x, y| x.0.cmp(&y.0));
@@ -44,11 +54,15 @@ pub fn make_device_multi(
         name: rd.part.clone(),
         grids,
         interposer,
+        gtz,
         bonds: bonds.into_vec(),
         speeds: speeds.into_vec(),
         combos,
         disabled,
         naming,
+        intdb_name: intdb_name.into(),
+        intdb,
+        ndb,
     }
 }
 
@@ -57,6 +71,9 @@ pub fn make_device(
     grid: Grid,
     bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
+    intdb_name: impl Into<String>,
+    intdb: IntDb,
+    ndb: NamingDb,
 ) -> PreDevice {
     let mut grids = EntityVec::new();
     grids.push(grid);
@@ -64,9 +81,13 @@ pub fn make_device(
         rd,
         grids,
         Interposer::None,
+        GtzDb::default(),
         bonds,
         disabled,
         DeviceNaming::Dummy,
+        intdb_name,
+        intdb,
+        ndb,
     )
 }
 
@@ -78,6 +99,7 @@ pub struct DbBuilder {
     devices: Vec<Device>,
     ints: BTreeMap<String, IntDb>,
     namings: BTreeMap<String, NamingDb>,
+    gtz: GtzDb,
 }
 
 impl DbBuilder {
@@ -90,6 +112,7 @@ impl DbBuilder {
             devices: Vec::new(),
             ints: BTreeMap::new(),
             namings: BTreeMap::new(),
+            gtz: GtzDb::default(),
         }
     }
 
@@ -147,9 +170,17 @@ impl DbBuilder {
             disabled: pre.disabled,
             naming,
         });
+        for (_, name, gtz) in pre.gtz.gtz {
+            if let Some(ogtz) = self.gtz.gtz.get(&name) {
+                assert_eq!(ogtz.1, &gtz);
+            } else {
+                self.gtz.gtz.insert(name, gtz);
+            }
+        }
+        self.ingest_int(pre.intdb_name, pre.intdb, pre.ndb);
     }
 
-    pub fn ingest_int(&mut self, name: String, int: IntDb, naming: NamingDb) {
+    fn ingest_int(&mut self, name: String, int: IntDb, naming: NamingDb) {
         match self.ints.entry(name.clone()) {
             btree_map::Entry::Vacant(x) => {
                 x.insert(int);
@@ -273,6 +304,7 @@ impl DbBuilder {
             devices: self.devices,
             ints: self.ints,
             namings: self.namings,
+            gtz: self.gtz,
         }
     }
 }

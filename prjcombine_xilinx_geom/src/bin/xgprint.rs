@@ -35,6 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("NAMINGDB {name}");
             ndb.print(&geom.ints[name], &mut std::io::stdout())?;
         }
+        print!("{}", geom.gtz);
     }
     if args.grids || args.devices {
         for (gid, grid) in &geom.grids {

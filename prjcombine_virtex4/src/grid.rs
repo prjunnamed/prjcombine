@@ -120,12 +120,6 @@ pub struct Interposer {
     pub gtz_top: bool,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum GtzLoc {
-    Top,
-    Bottom,
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum XadcIoLoc {
     Left,

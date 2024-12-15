@@ -1,5 +1,6 @@
 use bimap::BiHashMap;
-use prjcombine_int::db::IntDb;
+use enum_map::EnumMap;
+use prjcombine_int::db::{Dir, IntDb};
 use prjcombine_int::grid::{ColId, DieId, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
@@ -8,8 +9,9 @@ use std::collections::BTreeSet;
 use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPin;
-use crate::expanded::{DieFrameGeom, ExpandedDevice, Gtz, IoCoord};
-use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind, GtzLoc, Interposer, IoKind, Pcie2Kind};
+use crate::expanded::{DieFrameGeom, ExpandedDevice, ExpandedGtz, IoCoord};
+use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind, Interposer, IoKind, Pcie2Kind};
+use crate::gtz::{GtzDb, GtzIntColId};
 
 struct DieExpander<'a, 'b, 'c> {
     grid: &'b Grid,
@@ -868,11 +870,48 @@ impl DieExpander<'_, '_, '_> {
     }
 }
 
+fn get_gtz_cols(grid: &Grid, num_l: usize, num_r: usize) -> EntityVec<GtzIntColId, ColId> {
+    let mut res_l = vec![];
+    let mut res_r = vec![];
+    let col_clk = grid
+        .columns
+        .iter()
+        .find(|&(_, &kind)| kind == ColumnKind::Clk)
+        .unwrap()
+        .0;
+    let col_cfg = grid
+        .columns
+        .iter()
+        .find(|&(_, &kind)| kind == ColumnKind::Cfg)
+        .unwrap()
+        .0;
+    let mut col = col_clk;
+    while res_l.len() < num_l {
+        if matches!(grid.columns[col], ColumnKind::ClbLL | ColumnKind::ClbLM)
+            && !(col >= col_cfg - 6 && col < col_cfg)
+        {
+            res_l.push(col);
+        }
+        col -= 1;
+    }
+    let mut col = col_clk;
+    while res_r.len() < num_r {
+        if matches!(grid.columns[col], ColumnKind::ClbLL | ColumnKind::ClbLM)
+            && !(col >= col_cfg - 6 && col < col_cfg)
+        {
+            res_r.push(col);
+        }
+        col += 1;
+    }
+    res_l.into_iter().rev().chain(res_r).collect()
+}
+
 pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &'a Grid>,
     interposer: &'a Interposer,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
+    gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
     let pgrid = &grids[interposer.primary];
@@ -1052,6 +1091,8 @@ pub fn expand_grid<'a>(
         kind: DeviceKind::Virtex7,
         die: die_bs_geom,
         die_order,
+        has_gtz_bot: interposer.gtz_bot,
+        has_gtz_top: interposer.gtz_top,
     };
 
     let mut cfg_io = BiHashMap::new();
@@ -1140,69 +1181,26 @@ pub fn expand_grid<'a>(
         );
     }
 
-    let mut gtz = vec![];
+    let mut gtz = EnumMap::from_fn(|_| None);
     if interposer.gtz_bot {
-        let ipy = 0;
-        let opy = 0;
-        gtz.push(Gtz {
-            loc: GtzLoc::Bottom,
+        let die = grids.first_id().unwrap();
+        gtz[Dir::S] = Some(ExpandedGtz {
+            kind: gdb.gtz.get("GTZ_BOT").unwrap().0,
             bank: 400,
-            pads_rx: (0..8)
-                .map(|i| {
-                    (
-                        format!("IPAD_X2Y{}", ipy + 5 + 2 * i),
-                        format!("IPAD_X2Y{}", ipy + 4 + 2 * i),
-                    )
-                })
-                .collect(),
-            pads_tx: (0..8)
-                .map(|i| {
-                    (
-                        format!("OPAD_X1Y{}", opy + 1 + 2 * i),
-                        format!("OPAD_X1Y{}", opy + 2 * i),
-                    )
-                })
-                .collect(),
-            pads_clk: (0..2)
-                .map(|i| {
-                    (
-                        format!("IPAD_X2Y{}", ipy + 1 + 2 * i),
-                        format!("IPAD_X2Y{}", ipy + 2 * i),
-                    )
-                })
-                .collect(),
+            die,
+            cols: get_gtz_cols(grids[die], 46, 40),
+            rows: (0..49).map(|i| RowId::from_idx(1 + i)).collect(),
         });
     }
     if interposer.gtz_top {
-        let ipy = if interposer.gtz_bot { 20 } else { 0 };
-        let opy = if interposer.gtz_bot { 16 } else { 0 };
-        gtz.push(Gtz {
-            loc: GtzLoc::Bottom,
+        let die = grids.last_id().unwrap();
+        let row_base = RowId::from_idx(grids[die].regs * 50 - 50);
+        gtz[Dir::N] = Some(ExpandedGtz {
+            kind: gdb.gtz.get("GTZ_TOP").unwrap().0,
             bank: 300,
-            pads_rx: (0..8)
-                .map(|i| {
-                    (
-                        format!("IPAD_X2Y{}", ipy + 5 + 2 * i),
-                        format!("IPAD_X2Y{}", ipy + 4 + 2 * i),
-                    )
-                })
-                .collect(),
-            pads_tx: (0..8)
-                .map(|i| {
-                    (
-                        format!("OPAD_X1Y{}", opy + 1 + 2 * i),
-                        format!("OPAD_X1Y{}", opy + 2 * i),
-                    )
-                })
-                .collect(),
-            pads_clk: (0..2)
-                .map(|i| {
-                    (
-                        format!("IPAD_X2Y{}", ipy + 1 + 2 * i),
-                        format!("IPAD_X2Y{}", ipy + 2 * i),
-                    )
-                })
-                .collect(),
+            die,
+            cols: get_gtz_cols(grids[die], 40, 46),
+            rows: (0..49).map(|i| row_base + i).collect(),
         });
     }
 
@@ -1211,6 +1209,7 @@ pub fn expand_grid<'a>(
         kind: pgrid.kind,
         grids: grids.clone(),
         egrid,
+        gdb,
         interposer: Some(interposer),
         disabled: disabled.clone(),
         int_holes,

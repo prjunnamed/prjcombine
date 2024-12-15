@@ -524,6 +524,8 @@ impl Grid {
             kind: DeviceKind::Virtex,
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![expander.die.die],
+            has_gtz_bot: false,
+            has_gtz_top: false,
         };
 
         egrid.blackhole_wires = expander.blackhole_wires;

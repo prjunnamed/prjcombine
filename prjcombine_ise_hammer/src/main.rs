@@ -3,6 +3,7 @@ use clap::Parser;
 use itertools::Itertools;
 use prjcombine_collector::Collector;
 use prjcombine_hammer::{Backend, Session};
+use prjcombine_int::db::Dir;
 use prjcombine_toolchain::Toolchain;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex_bitstream::Reg;
@@ -24,6 +25,7 @@ mod emac;
 mod fgen;
 mod fuzz;
 mod gt;
+mod gtz;
 mod int;
 mod intf;
 mod io;
@@ -60,6 +62,8 @@ struct Args {
     #[arg(long)]
     skip_gt: bool,
     #[arg(long)]
+    skip_gtz: bool,
+    #[arg(long)]
     skip_hard: bool,
     #[arg(long)]
     skip_core: bool,
@@ -85,6 +89,7 @@ struct RunOpts {
     skip_pll: bool,
     skip_misc: bool,
     skip_gt: bool,
+    skip_gtz: bool,
     skip_hard: bool,
     bali_only: bool,
     devdata_only: bool,
@@ -103,6 +108,7 @@ impl RunOpts {
         self.skip_pll = true;
         self.skip_misc = true;
         self.skip_gt = true;
+        self.skip_gtz = true;
         self.skip_hard = true;
     }
 }
@@ -398,6 +404,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 if !opts.skip_gt {
                     gt::virtex7::add_fuzzers(&mut hammer, &backend);
                 }
+                if !opts.skip_gtz {
+                    gtz::add_fuzzers(&mut hammer, &backend);
+                }
             }
         },
         _ => panic!("unsupported device kind"),
@@ -660,6 +669,9 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
                 if !opts.skip_gt {
                     gt::virtex7::collect_fuzzers(&mut ctx);
                 }
+                if !opts.skip_gtz {
+                    gtz::collect_fuzzers(&mut ctx);
+                }
             }
         },
         _ => panic!("unsupported device kind"),
@@ -676,6 +688,19 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
             ctx.tiledb
                 .insert_device_data(&part.name, format!("IDCODE:{die}"), idcode);
         }
+    }
+    for (&dir, gtzbs) in &ctx.empty_bs.gtz {
+        let which = match dir {
+            Dir::S => "GTZ_BOT",
+            Dir::N => "GTZ_TOP",
+            _ => unreachable!(),
+        };
+        let mut idcode = BitVec::new();
+        for i in 0..32 {
+            idcode.push((gtzbs.idcode & 1 << i) != 0);
+        }
+        ctx.tiledb
+            .insert_device_data(&part.name, format!("IDCODE:{which}"), idcode);
     }
 
     for (feat, data) in ctx.state.features.iter().sorted_by_key(|&(k, _)| k) {
@@ -699,6 +724,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         skip_pll: args.skip_pll,
         skip_misc: args.skip_misc,
         skip_gt: args.skip_gt,
+        skip_gtz: args.skip_gtz,
         skip_hard: args.skip_hard,
         skip_core: args.skip_core,
         bali_only: args.bali_only,
@@ -883,7 +909,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         // left PCIE
                         let mut xopts = opts;
                         xopts.skip_all();
-                        xopts.bali_only = !opts.skip_clk;
                         xopts.skip_hard = opts.skip_hard;
                         xopts.skip_gt = opts.skip_gt;
                         xopts.max_threads = Some(12);
@@ -896,18 +921,23 @@ fn main() -> Result<(), Box<dyn Error>> {
                         xopts.bali_only = !opts.skip_clk;
                         xopts.skip_hard = opts.skip_hard;
                         xopts.skip_gt = opts.skip_gt;
-                        xopts.max_threads = Some(6);
+                        xopts.skip_gtz = opts.skip_gtz;
+                        xopts.max_threads = Some(8);
                         run(&tc, &db, parts_dict[&"xc7vx1140t"], &mut tiledb, &xopts);
+                    }
+                    if !opts.skip_gtz {
+                        // GTZ
+                        let mut xopts = opts;
+                        xopts.skip_all();
+                        xopts.skip_gtz = opts.skip_gtz;
+                        xopts.max_threads = Some(8);
+                        run(&tc, &db, parts_dict[&"xc7vh870t"], &mut tiledb, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            if part.name.contains("7vh") {
-                                // no. not yet.
-                                continue;
-                            }
                             run(&tc, &db, part, &mut tiledb, &xopts);
                         }
                     }

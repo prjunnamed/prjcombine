@@ -1251,6 +1251,8 @@ impl Grid {
             },
             die: [die_bs_geom].into_iter().collect(),
             die_order: vec![expander.die.die],
+            has_gtz_bot: false,
+            has_gtz_top: false,
         };
 
         egrid.finish();

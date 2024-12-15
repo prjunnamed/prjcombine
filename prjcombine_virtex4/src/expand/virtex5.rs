@@ -11,6 +11,7 @@ use crate::bond::SharedCfgPin;
 use crate::grid::{ColumnKind, DisabledPart, Grid, GtKind};
 
 use crate::expanded::{DieFrameGeom, ExpandedDevice, IoCoord};
+use crate::gtz::GtzDb;
 
 struct Expander<'a, 'b> {
     grid: &'b Grid,
@@ -540,6 +541,7 @@ pub fn expand_grid<'a>(
     grids: &EntityVec<DieId, &'a Grid>,
     disabled: &BTreeSet<DisabledPart>,
     db: &'a IntDb,
+    gdb: &'a GtzDb,
 ) -> ExpandedDevice<'a> {
     let mut egrid = ExpandedGrid::new(db);
     assert_eq!(grids.len(), 1);
@@ -628,6 +630,8 @@ pub fn expand_grid<'a>(
         kind: DeviceKind::Virtex5,
         die: [die_bs_geom].into_iter().collect(),
         die_order: vec![expander.die.die],
+        has_gtz_bot: false,
+        has_gtz_top: false,
     };
 
     let cfg_io = [
@@ -701,6 +705,7 @@ pub fn expand_grid<'a>(
         interposer: None,
         disabled: disabled.clone(),
         egrid,
+        gdb,
         int_holes: [int_holes].into_iter().collect(),
         site_holes: [site_holes].into_iter().collect(),
         bs_geom,
@@ -718,7 +723,7 @@ pub fn expand_grid<'a>(
         row_iobdcm: None,
         io,
         gt,
-        gtz: vec![],
+        gtz: Default::default(),
         cfg_io,
         banklut: EntityVec::new(),
     }
