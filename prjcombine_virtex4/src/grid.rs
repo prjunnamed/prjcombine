@@ -408,3 +408,12 @@ impl std::fmt::Display for Grid {
         Ok(())
     }
 }
+
+impl std::fmt::Display for Interposer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tPRIMARY: D{}", self.primary)?;
+        writeln!(f, "\tGTZ BOT: {}", self.gtz_bot)?;
+        writeln!(f, "\tGTZ TOP: {}", self.gtz_top)?;
+        Ok(())
+    }
+}

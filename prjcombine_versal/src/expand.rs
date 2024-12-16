@@ -1,10 +1,10 @@
 use prjcombine_int::db::IntDb;
 use prjcombine_int::grid::{ColId, DieId, ExpandedGrid, RowId};
-use std::collections::BTreeSet;
-use unnamed_entity::{EntityId, EntityVec};
+use std::collections::{BTreeSet, HashMap};
+use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 
-use crate::expanded::ExpandedDevice;
-use crate::grid::{ColumnKind, DisabledPart, Grid, HardRowKind, Interposer, RightKind};
+use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
+use crate::grid::{CleKind, ColumnKind, DisabledPart, Grid, HardRowKind, Interposer, RightKind};
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -21,7 +21,8 @@ struct Expander<'a> {
 impl Expander<'_> {
     fn fill_die(&mut self) {
         for (_, &grid) in &self.grids {
-            self.egrid.add_die(grid.columns.len(), grid.regs * 48);
+            self.egrid
+                .add_die(grid.columns.len(), grid.regs * Grid::ROWS_PER_REG);
             self.die.push(DieInfo {
                 col_cfrm: grid
                     .columns
@@ -57,13 +58,13 @@ impl Expander<'_> {
                         continue;
                     }
                     die.fill_tile((col, row), "INT");
-                    if row.to_idx() % 48 == 0 && grid.is_reg_top(reg) {
+                    if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
                         die.add_xnode((col, row), "RCLK", &[(col, row)]);
                     }
                 }
             }
 
-            if di.ps_height != grid.regs * 48 {
+            if di.ps_height != grid.regs * Grid::ROWS_PER_REG {
                 let row_t = RowId::from_idx(di.ps_height);
                 for dx in 0..ps_width {
                     let col = ColId::from_idx(dx);
@@ -113,7 +114,25 @@ impl Expander<'_> {
                         } else {
                             false
                         };
-                        die.add_xnode((col, row), "CLE_BC", &[(col, row), (col + 1, row)]);
+                        let kind = match cd.r {
+                            ColumnKind::Cle(CleKind::Plain) => "CLE_BC",
+                            ColumnKind::Cle(CleKind::Sll) => {
+                                if has_bli_r {
+                                    "CLE_BC"
+                                } else {
+                                    "CLE_BC.SLL"
+                                }
+                            }
+                            ColumnKind::Cle(CleKind::Sll2) => {
+                                if has_bli_r {
+                                    "CLE_BC"
+                                } else {
+                                    "CLE_BC.SLL2"
+                                }
+                            }
+                            _ => unreachable!(),
+                        };
+                        die.add_xnode((col, row), kind, &[(col, row), (col + 1, row)]);
                         if has_bli_r {
                             die.fill_term_pair(
                                 (col, row),
@@ -125,7 +144,7 @@ impl Expander<'_> {
                             die.fill_term_pair((col, row), (col + 1, row), "CLE.E", "CLE.W");
                         }
                         let reg = grid.row_to_reg(row);
-                        if row.to_idx() % 48 == 0 && grid.is_reg_top(reg) {
+                        if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
                                     (col + 1, row),
@@ -230,7 +249,7 @@ impl Expander<'_> {
                         );
                     }
                     let reg = grid.row_to_reg(row);
-                    if row.to_idx() % 48 == 0 && grid.is_reg_top(reg) {
+                    if row.to_idx() % Grid::ROWS_PER_REG == 0 && grid.is_reg_top(reg) {
                         if !matches!(cd.l, ColumnKind::Cle(_) | ColumnKind::None) {
                             if reg.to_idx() % 2 == 1 {
                                 die.add_xnode(
@@ -302,7 +321,7 @@ impl Expander<'_> {
                     die.add_xnode(
                         (col, row),
                         if grid.is_vr { "CLE_R.VR" } else { "CLE_R" },
-                        &[(col, row)],
+                        &[(col, row), (col + 1, row)],
                     );
                     die.add_xnode(
                         (col + 1, row),
@@ -409,7 +428,7 @@ impl Expander<'_> {
                     let reg = grid.row_to_reg(row);
                     die.add_xnode(
                         (col, row),
-                        if grid.is_reg_top(reg) && row.to_idx() % 48 == 44 {
+                        if grid.is_reg_top(reg) && row.to_idx() % Grid::ROWS_PER_REG == 44 {
                             "URAM_DELAY"
                         } else {
                             "URAM"
@@ -456,7 +475,11 @@ impl Expander<'_> {
                     };
                     let row = grid.row_reg_bot(reg);
                     let mut crd = vec![];
-                    let height = if is_high { 96 } else { 48 };
+                    let height = if is_high {
+                        Grid::ROWS_PER_REG * 2
+                    } else {
+                        Grid::ROWS_PER_REG
+                    };
                     for i in 0..height {
                         crd.push((hc.col - 1, row + i));
                     }
@@ -488,10 +511,10 @@ impl Expander<'_> {
                     }
                     let row = grid.row_reg_bot(reg);
                     let mut crd = vec![];
-                    for i in 0..48 {
+                    for i in 0..Grid::ROWS_PER_REG {
                         crd.push((col - 1, row + i));
                     }
-                    for i in 0..48 {
+                    for i in 0..Grid::ROWS_PER_REG {
                         crd.push((col, row + i));
                     }
                     match cd.l {
@@ -522,15 +545,12 @@ impl Expander<'_> {
 
             for col in die.cols() {
                 for row in die.rows() {
-                    let crow = RowId::from_idx(
-                        if grid.regs % 2 == 1 && row.to_idx() >= (grid.regs - 1) * 48 {
-                            row.to_idx() / 48 * 48
-                        } else if row.to_idx() % 96 < 48 {
-                            row.to_idx() / 96 * 96 + 47
-                        } else {
-                            row.to_idx() / 96 * 96 + 48
-                        },
-                    );
+                    let reg = grid.row_to_reg(row);
+                    let crow = if grid.is_reg_top(reg) {
+                        grid.row_reg_hclk(reg)
+                    } else {
+                        grid.row_reg_hclk(reg) - 1
+                    };
                     die[(col, row)].clkroot = (col, crow);
                 }
             }
@@ -568,11 +588,307 @@ pub fn expand_grid<'a>(
 
     let col_cfrm = expander.die.map_values(|die| die.col_cfrm);
 
+    let mut sll = HashMap::new();
+    match interposer.kind {
+        crate::grid::InterposerKind::Single => (),
+        crate::grid::InterposerKind::Column => {
+            fill_sll_column(interposer, grids, &mut sll);
+        }
+        crate::grid::InterposerKind::MirrorSquare => {
+            fill_sll_mirror_square(interposer, grids, &mut sll);
+        }
+    }
+
     ExpandedDevice {
         grids: expander.grids,
         interposer,
         egrid: expander.egrid,
         disabled: expander.disabled,
         col_cfrm,
+        sll,
+    }
+}
+
+fn fill_sll_column(
+    interposer: &Interposer,
+    grids: &EntityVec<DieId, &Grid>,
+    sll: &mut HashMap<(DieId, ColId, RowId), SllConns>,
+) {
+    let mut curse_queue = vec![];
+    for (die, cols) in &interposer.sll_columns {
+        let grid = grids[die];
+        let all_rows = grid.rows();
+        let has_link_bot = die != grids.first_id().unwrap();
+        let has_link_top = die != grids.last_id().unwrap();
+        for (cidx, &col) in cols.iter().enumerate() {
+            let start = if grid.columns[col].has_bli_bot_l {
+                assert!(!has_link_bot);
+                4
+            } else {
+                0
+            };
+            let end = if grid.columns[col].has_bli_top_l {
+                assert!(!has_link_top);
+                all_rows.len() - 4
+            } else {
+                all_rows.len()
+            };
+            let rows: EntityIds<RowId> = EntityIds::new_range(start, end);
+            for row in rows {
+                let mut conns = SllConns {
+                    conns: (0..6).map(|_| None).collect(),
+                    cursed: EntityBitVec::repeat(false, 6),
+                };
+                if has_link_bot && row.to_idx() < start + 75 {
+                    let odie = die - 1;
+                    let orow = RowId::from_idx(grids[odie].rows().len() - 75 + row.to_idx());
+                    let ocol = interposer.sll_columns[odie][cidx];
+                    for (bump, obump) in [(0, 0), (1, 1), (3, 2), (4, 4), (5, 5)] {
+                        let bump = UbumpId::from_idx(bump);
+                        let obump = UbumpId::from_idx(obump);
+                        conns.conns[bump] = Some((odie, ocol, orow, obump));
+                    }
+                    let bump = UbumpId::from_idx(2);
+                    let obump = UbumpId::from_idx(3);
+                    let orow = row + 75;
+                    conns.conns[bump] = Some((die, col, orow, obump));
+                } else if has_link_top && row.to_idx() >= end - 75 {
+                    let odie = die + 1;
+                    let orow = RowId::from_idx(row.to_idx() - (end - 75));
+                    let ocol = interposer.sll_columns[odie][cidx];
+                    for (bump, obump) in [(0, 0), (1, 1), (2, 3), (4, 4), (5, 5)] {
+                        let bump = UbumpId::from_idx(bump);
+                        let obump = UbumpId::from_idx(obump);
+                        conns.conns[bump] = Some((odie, ocol, orow, obump));
+                    }
+                    let bump = UbumpId::from_idx(3);
+                    let obump = UbumpId::from_idx(2);
+                    let orow = row - 75;
+                    conns.conns[bump] = Some((die, col, orow, obump));
+                } else {
+                    if row.to_idx() < start + 75 {
+                        let bump = UbumpId::from_idx(3);
+                        let triad = (row.to_idx() - start) / 3;
+                        let sub = (row.to_idx() - start) % 3;
+                        let orow = RowId::from_idx(start + (24 - triad) * 3 + sub);
+                        if orow != row {
+                            conns.conns[bump] = Some((die, col, orow, bump));
+                        }
+                    } else {
+                        let bump = UbumpId::from_idx(3);
+                        let obump = UbumpId::from_idx(2);
+                        let orow = row - 75;
+                        conns.conns[bump] = Some((die, col, orow, obump));
+                    }
+                    if row.to_idx() >= end - 75 {
+                        let bump = UbumpId::from_idx(2);
+                        let triad = (row.to_idx() - (end - 75)) / 3;
+                        let sub = (row.to_idx() - (end - 75)) % 3;
+                        let orow = RowId::from_idx(end - 75 + (24 - triad) * 3 + sub);
+                        if orow != row {
+                            conns.conns[bump] = Some((die, col, orow, bump));
+                        }
+                    } else {
+                        let bump = UbumpId::from_idx(2);
+                        let obump = UbumpId::from_idx(3);
+                        let orow = row + 75;
+                        conns.conns[bump] = Some((die, col, orow, obump));
+                    }
+                    if cidx < 10 {
+                        for bump in [1, 5] {
+                            let bump = UbumpId::from_idx(bump);
+                            let ocol = cols[9 - cidx];
+                            conns.conns[bump] = Some((die, ocol, row, bump));
+                        }
+                    } else {
+                        for (bump, obump) in [(1, 0), (5, 4)] {
+                            let bump = UbumpId::from_idx(bump);
+                            let obump = UbumpId::from_idx(obump);
+                            let ocol = cols[cidx - 10];
+                            conns.conns[bump] = Some((die, ocol, row, obump));
+                        }
+                    }
+                    if cidx >= cols.len() - 10 {
+                        for bump in [0, 4] {
+                            let bump = UbumpId::from_idx(bump);
+                            let ocol = cols[cols.len() - 10 + (9 - (cidx - (cols.len() - 10)))];
+                            conns.conns[bump] = Some((die, ocol, row, bump));
+                        }
+                    } else {
+                        for (bump, obump) in [(0, 1), (4, 5)] {
+                            let bump = UbumpId::from_idx(bump);
+                            let obump = UbumpId::from_idx(obump);
+                            let ocol = cols[cidx + 10];
+                            conns.conns[bump] = Some((die, ocol, row, obump));
+                        }
+                    }
+                }
+                sll.insert((die, col, row), conns);
+            }
+            curse_queue.push((die, col, RowId::from_idx(start)));
+            if has_link_top {
+                curse_queue.push((die, col, RowId::from_idx(end - 75)));
+            }
+            if has_link_bot {
+                curse_queue.push((die, col, RowId::from_idx(start + 75)));
+            }
+        }
+    }
+    for (die, col, row) in curse_queue {
+        let conns = sll.get_mut(&(die, col, row)).unwrap();
+        for mut val in conns.cursed.values_mut() {
+            *val = true;
+        }
+        for (odie, ocol, orow, ubump) in conns.conns.clone().into_values().flatten() {
+            let conns = sll.get_mut(&(odie, ocol, orow)).unwrap();
+            conns.cursed.set(ubump, true);
+        }
+    }
+}
+
+fn fill_sll_mirror_square(
+    interposer: &Interposer,
+    grids: &EntityVec<DieId, &Grid>,
+    sll: &mut HashMap<(DieId, ColId, RowId), SllConns>,
+) {
+    let mut curse_queue = vec![];
+    for (die, cols) in &interposer.sll_columns {
+        let grid = grids[die];
+        let all_rows = grid.rows();
+        let col_cfrm = grid
+            .columns
+            .iter()
+            .find(|(_, c)| c.l == ColumnKind::Cfrm)
+            .unwrap()
+            .0;
+        let ps_height = grid.get_ps_height();
+        let cidx_ps = cols.binary_search(&col_cfrm).unwrap_err();
+        for (cidx, &col) in cols.iter().enumerate() {
+            let start = if col < col_cfrm {
+                ps_height
+            } else if grid.columns[col].has_bli_bot_l {
+                4
+            } else {
+                0
+            };
+            let end = all_rows.len();
+            let rows: EntityIds<RowId> = EntityIds::new_range(start, end);
+            for row in rows.clone() {
+                let cidx_l = if row.to_idx() < ps_height { cidx_ps } else { 0 };
+                let mut conns = SllConns {
+                    conns: (0..6).map(|_| None).collect(),
+                    cursed: EntityBitVec::repeat(false, 6),
+                };
+                if row == RowId::from_idx(end - 63) {
+                    // do nothing
+                } else if cidx < cols.len() - 10 {
+                    if row < RowId::from_idx(end - 63) {
+                        if row.to_idx() < start + 75 {
+                            let bump = UbumpId::from_idx(3);
+                            let triad = (row.to_idx() - start) / 3;
+                            let sub = (row.to_idx() - start) % 3;
+                            let orow = RowId::from_idx(start + (24 - triad) * 3 + sub);
+                            if orow != row {
+                                conns.conns[bump] = Some((die, col, orow, bump));
+                            }
+                        } else {
+                            let bump = UbumpId::from_idx(3);
+                            let obump = UbumpId::from_idx(2);
+                            let orow = row - 75;
+                            conns.conns[bump] = Some((die, col, orow, obump));
+                        }
+                        if row.to_idx() >= end - 63 - 75 {
+                            // nothing
+                        } else {
+                            let bump = UbumpId::from_idx(2);
+                            let obump = UbumpId::from_idx(3);
+                            let orow = row + 75;
+                            conns.conns[bump] = Some((die, col, orow, obump));
+                        }
+                        if cidx < cidx_l + 10 {
+                            for bump in [1, 5] {
+                                let bump = UbumpId::from_idx(bump);
+                                let ocol = cols[cidx_l + 9 - (cidx - cidx_l)];
+                                conns.conns[bump] = Some((die, ocol, row, bump));
+                            }
+                        } else {
+                            for (bump, obump) in [(1, 0), (5, 4)] {
+                                let bump = UbumpId::from_idx(bump);
+                                let obump = UbumpId::from_idx(obump);
+                                let ocol = cols[cidx - 10];
+                                conns.conns[bump] = Some((die, ocol, row, obump));
+                            }
+                        }
+                        for (bump, obump) in [(0, 1), (4, 5)] {
+                            let bump = UbumpId::from_idx(bump);
+                            let obump = UbumpId::from_idx(obump);
+                            let ocol = cols[cidx + 10];
+                            conns.conns[bump] = Some((die, ocol, row, obump));
+                        }
+                    } else {
+                        for bump in 0..6 {
+                            let bump = UbumpId::from_idx(bump);
+                            let odie = DieId::from_idx(die.to_idx() ^ 1);
+                            let orow = RowId::from_idx(end - 62 + (end - 1 - row.to_idx()));
+                            conns.conns[bump] = Some((odie, col, orow, bump));
+                        }
+                    }
+                } else {
+                    if !(46..50).contains(&(row.to_idx() % (Grid::ROWS_PER_REG * 2))) {
+                        for bump in [0, 2, 4] {
+                            let bump = UbumpId::from_idx(bump);
+                            let odie = DieId::from_idx(die.to_idx() ^ 3);
+                            let ocol = cols[cols.len() - 10 + (cols.len() - 1 - cidx)];
+                            conns.conns[bump] = Some((odie, ocol, row, bump));
+                        }
+                    }
+                    if row.to_idx() % (Grid::ROWS_PER_REG * 2) == 50 {
+                        for bump in [0, 2, 4] {
+                            let bump = UbumpId::from_idx(bump);
+                            curse_queue.push((die, col, row, bump));
+                        }
+                    }
+                    if row < RowId::from_idx(end - 63) {
+                        for (bump, obump) in [(1, 0), (5, 4)] {
+                            let bump = UbumpId::from_idx(bump);
+                            let obump = UbumpId::from_idx(obump);
+                            let ocol = cols[cidx - 10];
+                            conns.conns[bump] = Some((die, ocol, row, obump));
+                        }
+                        if row.to_idx() % (Grid::ROWS_PER_REG * 2) == 50 {
+                            for bump in [1, 5] {
+                                let bump = UbumpId::from_idx(bump);
+                                curse_queue.push((die, col, row, bump));
+                            }
+                        }
+                    }
+                }
+                sll.insert((die, col, row), conns);
+            }
+            for bump in 0..6 {
+                let bump = UbumpId::from_idx(bump);
+                if cidx < cols.len() - 10 || bump.to_idx() != 3 {
+                    curse_queue.push((die, col, RowId::from_idx(start), bump));
+                }
+                if cidx < cols.len() - 10 || matches!(bump.to_idx(), 0 | 2 | 4) {
+                    curse_queue.push((die, col, RowId::from_idx(end - 63), bump));
+                }
+            }
+            if cidx < 10 {
+                let row = RowId::from_idx(ps_height);
+                for bump in [1, 5] {
+                    let bump = UbumpId::from_idx(bump);
+                    curse_queue.push((die, col, row, bump));
+                }
+            }
+        }
+    }
+    for (die, col, row, bump) in curse_queue {
+        let conns = sll.get_mut(&(die, col, row)).unwrap();
+        conns.cursed.set(bump, true);
+        if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
+            let conns = sll.get_mut(&(odie, ocol, orow)).unwrap();
+            conns.cursed.set(obump, true);
+        }
     }
 }

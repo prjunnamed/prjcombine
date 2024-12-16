@@ -27,6 +27,7 @@ pub struct Grid {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum InterposerKind {
+    Single,
     Column,
     MirrorSquare,
 }
@@ -34,6 +35,7 @@ pub enum InterposerKind {
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Interposer {
     pub kind: InterposerKind,
+    pub sll_columns: EntityVec<DieId, Vec<ColId>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -190,12 +192,19 @@ pub enum DisabledPart {
 }
 
 impl Grid {
+    pub const ROWS_PER_REG: usize = 48;
+
     pub fn row_to_reg(&self, row: RowId) -> RegId {
-        RegId::from_idx(row.to_idx() / 48)
+        RegId::from_idx(row.to_idx() / Self::ROWS_PER_REG)
     }
 
     pub fn row_reg_bot(&self, reg: RegId) -> RowId {
-        RowId::from_idx(reg.to_idx() * 48)
+        RowId::from_idx(reg.to_idx() * Self::ROWS_PER_REG)
+    }
+
+    pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
+        let reg = if self.is_reg_top(reg) { reg } else { reg + 1 };
+        self.row_reg_bot(reg)
     }
 
     pub fn is_reg_top(&self, reg: RegId) -> bool {
@@ -206,17 +215,21 @@ impl Grid {
         EntityIds::new(self.regs)
     }
 
+    pub fn rows(&self) -> EntityIds<RowId> {
+        EntityIds::new(self.regs * Self::ROWS_PER_REG)
+    }
+
     pub fn get_col_hard(&self, col: ColId) -> Option<&HardColumn> {
         self.cols_hard.iter().find(|x| x.col == col)
     }
 
     pub fn get_ps_height(&self) -> usize {
         match (self.ps, self.cpm) {
-            (PsKind::Ps9, CpmKind::None) => 48 * 2,
-            (PsKind::Ps9, CpmKind::Cpm4) => 48 * 3,
-            (PsKind::Ps9, CpmKind::Cpm5) => 48 * 6,
-            (PsKind::PsX, CpmKind::Cpm5N) => 48 * 9,
-            (PsKind::PsXc, CpmKind::None) => 48 * 6,
+            (PsKind::Ps9, CpmKind::None) => Self::ROWS_PER_REG * 2,
+            (PsKind::Ps9, CpmKind::Cpm4) => Self::ROWS_PER_REG * 3,
+            (PsKind::Ps9, CpmKind::Cpm5) => Self::ROWS_PER_REG * 6,
+            (PsKind::PsX, CpmKind::Cpm5N) => Self::ROWS_PER_REG * 9,
+            (PsKind::PsXc, CpmKind::None) => Self::ROWS_PER_REG * 6,
             _ => unreachable!(),
         }
     }
@@ -347,6 +360,22 @@ impl std::fmt::Display for Grid {
             }
         }
         writeln!(f, "\tREGS: {r}", r = self.regs)?;
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for Interposer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "\tKIND: {:?}", self.kind)?;
+        for (die, die_sll_columns) in &self.sll_columns {
+            if !die_sll_columns.is_empty() {
+                write!(f, "\tSLL COLUMNS D{die}:")?;
+                for &col in die_sll_columns {
+                    write!(f, " X{col}")?;
+                }
+                writeln!(f)?;
+            }
+        }
         Ok(())
     }
 }

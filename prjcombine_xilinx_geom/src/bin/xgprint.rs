@@ -65,8 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.grids {
-                // XXX pretty
-                println!("{ip:#?}");
+                print!("{ip}");
             }
         }
     }

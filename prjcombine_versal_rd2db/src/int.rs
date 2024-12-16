@@ -156,6 +156,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                     let w =
                         builder.branch(w_b, Dir::S, format!("{name}.{bwd}.{ew_b}.{i}.0.S"), &[""]);
                     builder.extra_name_tile_sub("CLE_BC_CORE", "BNODE_TAP0", 1, w);
+                    builder.extra_name_tile_sub("CLE_BC_CORE_MX", "BNODE_TAP0", 1, w);
                     builder.extra_name_tile_sub("SLL", "BNODE_TAP0", 1, w);
                     builder.extra_name_tile_sub("SLL2", "BNODE_TAP0", 1, w);
                 }
@@ -374,6 +375,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         }
     }
 
+    for i in 0..6 {
+        let w = builder.mux_out(format!("IMUX.LAG{i}"), &[""]);
+        builder.extra_name_tile_sub("SLL", format!("LAG_CASCOUT_TXI{i}"), 1, w);
+        builder.extra_name_tile_sub("SLL2", format!("LAG_CASCOUT_TXI{i}"), 1, w);
+    }
+
     let mut bnodes = Vec::new();
     for dir in [Dir::E, Dir::W] {
         for i in 0..64 {
@@ -407,6 +414,7 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             let cw = builder.wire(format!("CLE.OUT.{ew}.{i}"), WireKind::Branch(ew), &[""]);
             builder.test_mux_pass(cw);
             builder.extra_name_tile_sub("CLE_BC_CORE", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
+            builder.extra_name_tile_sub("CLE_BC_CORE_MX", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             builder.extra_name_tile_sub("SLL", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             builder.extra_name_tile_sub("SLL2", format!("LOGIC_OUTS_{we}{i}"), sub, cw);
             if ew == Dir::E {
@@ -415,6 +423,14 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
                 logic_outs_w.insert(cw, TermInfo::PassNear(w));
             }
         }
+    }
+
+    for i in 0..6 {
+        let w = builder.logic_out(format!("OUT.LAG{i}"), &[""]);
+        builder.extra_name_tile_sub("CLE_BC_CORE", format!("VCC_WIRE{i}"), 1, w);
+        builder.extra_name_tile_sub("CLE_BC_CORE_MX", format!("VCC_WIRE{i}"), 1, w);
+        builder.extra_name_tile_sub("SLL", format!("LAG_OUT{i}"), 1, w);
+        builder.extra_name_tile_sub("SLL2", format!("LAG_OUT{i}"), 1, w);
     }
 
     for ew in [Dir::E, Dir::W] {
@@ -643,7 +659,12 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
 
     builder.node_type("INT", "INT", "INT");
 
-    for tkn in ["CLE_BC_CORE", "SLL", "SLL2"] {
+    for (kind, tkn) in [
+        ("CLE_BC", "CLE_BC_CORE"),
+        ("CLE_BC", "CLE_BC_CORE_MX"),
+        ("CLE_BC.SLL", "SLL"),
+        ("CLE_BC.SLL2", "SLL2"),
+    ] {
         for &xy in rd.tiles_by_kind_name(tkn) {
             let td = &rd.tiles[&builder.delta(xy, 0, -1)];
             if rd.tile_kinds.key(td.kind) != tkn {
@@ -655,7 +676,18 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             }
             let xy_l = builder.walk_to_int(xy, Dir::W, false).unwrap();
             let xy_r = builder.walk_to_int(xy, Dir::E, false).unwrap();
-            builder.extract_xnode("CLE_BC", xy, &[], &[xy_l, xy_r], "CLE_BC", &[], &[]);
+            let mut bels = vec![];
+            if kind != "CLE_BC" {
+                let mut bel = builder.bel_virtual("LAGUNA");
+                for i in 0..6 {
+                    bel = bel
+                        .extra_int_in(format!("IN{i}"), &[format!("LAG_CASCOUT_TXI{i}")])
+                        .extra_int_out(format!("OUT{i}"), &[format!("LAG_OUT{i}")])
+                        .extra_wire(format!("UBUMP{i}"), &[format!("UBUMP{i}")]);
+                }
+                bels.push(bel);
+            }
+            builder.extract_xnode(kind, xy, &[], &[xy_l, xy_r], kind, &bels, &[]);
             let tile = &rd.tiles[&xy];
             let tk = &rd.tile_kinds[tile.kind];
             let naming = builder.ndb.get_node_naming("CLE_BC");
@@ -840,37 +872,37 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
             } else {
                 builder.walk_to_int(xy, Dir::E, false).unwrap()
             };
-            builder.extract_xnode_bels(
-                kind,
-                xy,
-                &[],
-                &[int_xy],
-                kind,
-                &[
-                    builder
-                        .bel_xy(key0, "SLICE", 0, 0)
-                        .pin_name_only("LAG_W1", 1)
-                        .pin_name_only("LAG_W2", 1)
-                        .pin_name_only("LAG_E1", 1)
-                        .pin_name_only("LAG_E2", 1)
-                        .pin_name_only("LAG_S", 1)
-                        .pin_name_only("LAG_N", 1)
-                        .pin_name_only("CIN", 1)
-                        .pin_name_only("COUT", 1),
-                    builder
-                        .bel_xy(key1, "SLICE", 1, 0)
-                        .pin_name_only("LAG_W1", 1)
-                        .pin_name_only("LAG_W2", 1)
-                        .pin_name_only("LAG_E1", 1)
-                        .pin_name_only("LAG_E2", 1)
-                        .pin_name_only("LAG_S", 1)
-                        .pin_name_only("LAG_N", 1)
-                        .pin_name_only("SRL_IN_B", 1)
-                        .pin_name_only("SRL_OUT_B", 1)
-                        .pin_name_only("CIN", 1)
-                        .pin_name_only("COUT", 1),
-                ],
-            );
+            let bel_slicel = builder
+                .bel_xy(key0, "SLICE", 0, 0)
+                .pin_name_only("CIN", 1)
+                .pin_name_only("COUT", 1);
+            let bel_slicem = builder
+                .bel_xy(key1, "SLICE", 1, 0)
+                .pin_name_only("SRL_IN_B", 1)
+                .pin_name_only("SRL_OUT_B", 1)
+                .pin_name_only("CIN", 1)
+                .pin_name_only("COUT", 1);
+            let cle_bc_xy = builder.delta(xy, if kind.starts_with("CLE_R") { 1 } else { -1 }, 0);
+            let cle_bc_kind = rd.tiles[&cle_bc_xy].kind;
+            let cle_bc_naming = match &rd.tile_kinds.key(cle_bc_kind)[..] {
+                "CLE_BC_CORE" | "CLE_BC_CORE_MX" => "CLE_BC",
+                "SLL" => "CLE_BC.SLL",
+                "SLL2" => "CLE_BC.SLL2",
+                _ => unreachable!(),
+            };
+            let cle_bc_naming = builder.ndb.get_node_naming(cle_bc_naming);
+            let mut xn = builder
+                .xnode(kind, kind, xy)
+                .num_tiles(if kind.starts_with("CLE_R") { 2 } else { 1 })
+                .bel(bel_slicel)
+                .bel(bel_slicem)
+                .ref_int(int_xy, 0);
+            if kind.starts_with("CLE_R") {
+                xn = xn.ref_xlat(cle_bc_xy, &[None, Some(1)], cle_bc_naming);
+            } else {
+                xn = xn.ref_xlat(cle_bc_xy, &[None, Some(0)], cle_bc_naming);
+            }
+            xn.extract();
         }
     }
 

@@ -525,31 +525,11 @@ pub fn name_device<'a>(
                                 )],
                             );
                         }
-                        "CLE_BC" => {
-                            let cd = &grid.columns[col];
-                            let has_bli_r = if row.to_idx() < 4 {
-                                cd.has_bli_bot_r
-                            } else if row.to_idx() >= die.rows().len() - 4 {
-                                cd.has_bli_top_r
-                            } else {
-                                false
-                            };
-                            let tk = match cd.r {
-                                ColumnKind::Cle(CleKind::Plain) => "CLE_BC_CORE",
-                                ColumnKind::Cle(CleKind::Sll) => {
-                                    if has_bli_r {
-                                        "CLE_BC_CORE"
-                                    } else {
-                                        "SLL"
-                                    }
-                                }
-                                ColumnKind::Cle(CleKind::Sll2) => {
-                                    if has_bli_r {
-                                        "CLE_BC_CORE"
-                                    } else {
-                                        "SLL2"
-                                    }
-                                }
+                        "CLE_BC" | "CLE_BC.SLL" | "CLE_BC.SLL2" => {
+                            let tk = match &kind[..] {
+                                "CLE_BC" => "CLE_BC_CORE",
+                                "CLE_BC.SLL" => "SLL",
+                                "CLE_BC.SLL2" => "SLL2",
                                 _ => unreachable!(),
                             };
                             let bump_cur = col >= edev.col_cfrm[die.die]
@@ -560,7 +540,7 @@ pub fn name_device<'a>(
                                 && grid.cols_vbrk.contains(&col);
                             ngrid.name_node(
                                 nloc,
-                                "CLE_BC",
+                                kind,
                                 [int_grid.name(
                                     &if bump_prev && !bump_cur {
                                         format!("{tk}_1")

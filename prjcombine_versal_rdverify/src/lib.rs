@@ -1,6 +1,6 @@
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
-use prjcombine_versal::grid::DisabledPart;
+use prjcombine_versal::{expanded::UbumpId, grid::DisabledPart};
 use prjcombine_versal_naming::ExpandedNamedDevice;
 use unnamed_entity::EntityId;
 
@@ -10,16 +10,7 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     } else {
         "SLICEL"
     };
-    let mut pins = vec![
-        ("CIN", SitePinDir::In),
-        ("COUT", SitePinDir::Out),
-        ("LAG_E1", SitePinDir::In),
-        ("LAG_E2", SitePinDir::In),
-        ("LAG_W1", SitePinDir::In),
-        ("LAG_W2", SitePinDir::In),
-        ("LAG_S", SitePinDir::In),
-        ("LAG_N", SitePinDir::In),
-    ];
+    let mut pins = vec![("CIN", SitePinDir::In), ("COUT", SitePinDir::Out)];
     if kind == "SLICEM" {
         pins.extend([("SRL_IN_B", SitePinDir::In), ("SRL_OUT_B", SitePinDir::Out)]);
     }
@@ -50,7 +41,45 @@ fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
             vrf.claim_node(&[bel.fwire_far("SRL_IN_B")]);
         }
     }
-    // XXX LAG_*
+}
+
+fn verify_laguna(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    let edev = endev.edev;
+    for i in 0..6 {
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("OUT{i}")),
+            bel.wire(&format!("UBUMP{i}")),
+        );
+        vrf.claim_pip(
+            bel.crd(),
+            bel.wire(&format!("UBUMP{i}")),
+            bel.wire(&format!("IN{i}")),
+        );
+        let bump = UbumpId::from_idx(i);
+        if let Some(conns) = edev.sll.get(&(bel.die, bel.col + 1, bel.row)) {
+            if !conns.cursed[bump] {
+                if let Some((odie, ocol, orow, obump)) = conns.conns[bump] {
+                    let obel = vrf.find_bel(odie, (ocol - 1, orow), "LAGUNA").unwrap();
+                    if (bel.die, bel.col + 1, bel.row, bump) < (odie, ocol, orow, obump) {
+                        vrf.claim_node(&[
+                            bel.fwire(&format!("UBUMP{i}")),
+                            obel.fwire(&format!("UBUMP{obump}")),
+                        ]);
+                    } else {
+                        vrf.verify_node(&[
+                            bel.fwire(&format!("UBUMP{i}")),
+                            obel.fwire(&format!("UBUMP{obump}")),
+                        ]);
+                    }
+                } else {
+                    vrf.claim_node(&[bel.fwire(&format!("UBUMP{i}"))]);
+                }
+            }
+        } else {
+            vrf.claim_node(&[bel.fwire(&format!("UBUMP{i}"))]);
+        }
+    }
 }
 
 fn verify_dsp(vrf: &mut Verifier, bel: &BelContext<'_>) {
@@ -891,6 +920,7 @@ fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
     match bel.key {
+        "LAGUNA" => verify_laguna(endev, vrf, bel),
         "DSP0" | "DSP1" => verify_dsp(vrf, bel),
         "DSP_CPLX" => verify_dsp_cplx(vrf, bel),
         "BRAM_L_F" | "BRAM_R_F" => verify_bram_f(vrf, bel),

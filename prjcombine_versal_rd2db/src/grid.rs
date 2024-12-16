@@ -1,5 +1,5 @@
 use prjcombine_int::grid::{ColId, DieId};
-use prjcombine_rawdump::{Coord, Part, Tile, TkSiteSlot};
+use prjcombine_rawdump::{Coord, NodeOrWire, Part, Tile, TkSiteSlot};
 use prjcombine_versal::grid::{
     BotKind, BramKind, CleKind, Column, ColumnKind, CpmKind, DisabledPart, Grid, GtRowKind,
     HardColumn, HardRowKind, Interposer, InterposerKind, PsKind, RegId, RightKind, TopKind,
@@ -424,6 +424,7 @@ fn get_grid(
     int: &IntGrid<'_>,
     disabled: &mut BTreeSet<DisabledPart>,
     is_vnoc2_scan_offset: &mut bool,
+    sll_columns: &mut EntityVec<DieId, Vec<ColId>>,
 ) -> (Grid, DieNaming) {
     let mut naming = DieNaming {
         hdio: BTreeMap::new(),
@@ -479,6 +480,26 @@ fn get_grid(
         right,
     };
     get_vnoc_naming(int, &mut naming, is_vnoc2_scan_offset);
+    let mut die_sll_columns = BTreeSet::new();
+    for (x, y) in int.find_tiles(&["SLL", "SLL2"]) {
+        let crd = Coord {
+            x: x as u16,
+            y: y as u16,
+        };
+        let Some(nw) = int.rd.lookup_wire(crd, "UBUMP2") else {
+            continue;
+        };
+        let NodeOrWire::Node(node) = nw else {
+            continue;
+        };
+        let node = &int.rd.nodes[node];
+        let templ = &int.rd.templates[node.template];
+        if templ.len() > 1 {
+            let col = int.lookup_column_inter(x);
+            die_sll_columns.insert(col);
+        }
+    }
+    sll_columns.push(Vec::from_iter(die_sll_columns));
     (grid, naming)
 }
 
@@ -493,7 +514,7 @@ pub fn make_grids(
     let mut disabled = BTreeSet::new();
     let crd = rd.tiles_by_kind_name("INT").first().unwrap();
     let tile = &rd.tiles[crd];
-    let ikind = if tile.name.contains("_S") {
+    let mut ikind = if tile.name.contains("_S") {
         InterposerKind::MirrorSquare
     } else {
         InterposerKind::Column
@@ -501,18 +522,28 @@ pub fn make_grids(
     let mut grids = EntityVec::new();
     let mut namings = EntityVec::new();
     let mut is_vnoc2_scan_offset = false;
+    let mut sll_columns = EntityVec::new();
     if ikind == InterposerKind::Column {
         let mut rows_slr_split: BTreeSet<_> = find_rows(rd, &["NOC_TNOC_BRIDGE_BOT_CORE"])
             .into_iter()
             .map(|r| r as u16)
             .collect();
+        if rows_slr_split.is_empty() {
+            ikind = InterposerKind::Single;
+        }
         rows_slr_split.insert(0);
         rows_slr_split.insert(rd.height);
         let rows_slr_split: Vec<_> = rows_slr_split.iter().collect();
         for (dieid, w) in rows_slr_split.windows(2).enumerate() {
             let int = extract_int_slr_column(rd, &["INT"], &[], *w[0], *w[1]);
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(die, &int, &mut disabled, &mut is_vnoc2_scan_offset);
+            let (grid, naming) = get_grid(
+                die,
+                &int,
+                &mut disabled,
+                &mut is_vnoc2_scan_offset,
+                &mut sll_columns,
+            );
             grids.push(grid);
             namings.push(naming);
         }
@@ -567,7 +598,13 @@ pub fn make_grids(
         .enumerate()
         {
             let die = DieId::from_idx(dieid);
-            let (grid, naming) = get_grid(die, &int, &mut disabled, &mut is_vnoc2_scan_offset);
+            let (grid, naming) = get_grid(
+                die,
+                &int,
+                &mut disabled,
+                &mut is_vnoc2_scan_offset,
+                &mut sll_columns,
+            );
             grids.push(grid);
             namings.push(naming);
         }
@@ -717,7 +754,10 @@ pub fn make_grids(
         col_gt_r[RegId::from_idx(13)] = GtRowKind::Gtm;
     }
     let is_dsp_v2 = rd.wires.contains("DSP_DSP58_4_CLK");
-    let interposer = Interposer { kind: ikind };
+    let interposer = Interposer {
+        kind: ikind,
+        sll_columns,
+    };
     (
         grids,
         interposer,
