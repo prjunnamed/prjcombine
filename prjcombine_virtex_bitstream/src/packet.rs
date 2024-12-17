@@ -705,9 +705,7 @@ impl Iterator for PacketParser<'_> {
                                         Some(Packet::Fdri(src_data[dpos..epos].to_vec()))
                                     }
                                 }
-                                0xd if is_v4 => {
-                                    Some(Packet::Axss((0..num).map(get_val).collect()))
-                                }
+                                0xd if is_v4 => Some(Packet::Axss((0..num).map(get_val).collect())),
                                 0x1e => {
                                     self.crc.set(prev_crc);
                                     Some(Packet::Bout(src_data[dpos..epos].to_vec()))

@@ -1973,6 +1973,67 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         xn.bel(bel).extract();
     }
 
+    for (kind, dpll_kind, tkn, intf_kind, int_dir) in [
+        (
+            "SYSMON_SAT.LGT",
+            "DPLL.LGT",
+            "AMS_SAT_GT_BOT_TILE_MY",
+            "INTF.W.TERM.GT",
+            Dir::E,
+        ),
+        (
+            "SYSMON_SAT.LGT",
+            "DPLL.LGT",
+            "AMS_SAT_GT_TOP_TILE_MY",
+            "INTF.W.TERM.GT",
+            Dir::E,
+        ),
+        (
+            "SYSMON_SAT.RGT",
+            "DPLL.RGT",
+            "AMS_SAT_GT_BOT_TILE",
+            "INTF.E.TERM.GT",
+            Dir::W,
+        ),
+        (
+            "SYSMON_SAT.RGT",
+            "DPLL.RGT",
+            "AMS_SAT_GT_TOP_TILE",
+            "INTF.E.TERM.GT",
+            Dir::W,
+        ),
+    ] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder.bel_xy(kind, "SYSMON_SAT", 0, 0);
+            let intf = builder.ndb.get_node_naming(intf_kind);
+            let base_xy = builder.delta(xy, 0, -24);
+            let int_xy = builder.walk_to_int(base_xy, int_dir, true).unwrap();
+            let intf_xy = builder.delta(int_xy, if int_dir == Dir::E { -1 } else { 1 }, 0);
+            let mut xn = builder.xnode(kind, kind, xy).num_tiles(48);
+            for i in 0..48 {
+                let intf_xy = xn.builder.delta(intf_xy, 0, (i + i / 4) as i32);
+                xn = xn.ref_single(intf_xy, i, intf)
+            }
+            xn.bel(bel).extract();
+            let bel = builder
+                .bel_xy(dpll_kind, "DPLL", 0, 0)
+                .pin_name_only("CLKIN", 1)
+                .pin_name_only("CLKIN_DESKEW", 1)
+                .pin_name_only("CLKOUT0", 1)
+                .pin_name_only("CLKOUT1", 1)
+                .pin_name_only("CLKOUT2", 1)
+                .pin_name_only("CLKOUT3", 1)
+                .pin_name_only("TMUXOUT", 1);
+            let dpll_xy = builder.delta(xy, 0, -15);
+            let mut xn = builder.xnode(dpll_kind, dpll_kind, dpll_xy).num_tiles(48);
+            for i in 0..48 {
+                let intf_xy = xn.builder.delta(intf_xy, 0, (i + i / 4) as i32);
+                xn = xn.ref_single(intf_xy, i, intf)
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
     if let Some(&xy) = rd.tiles_by_kind_name("MISR_TILE").iter().next() {
         let bel = builder.bel_xy("MISR", "MISR", 0, 0);
         let intf_r = builder.ndb.get_node_naming("INTF.W");

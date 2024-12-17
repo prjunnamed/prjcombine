@@ -25,6 +25,8 @@ pub struct DeviceNaming {
 pub struct DieNaming {
     pub hdio: BTreeMap<(ColId, RegId), HdioNaming>,
     pub sysmon_sat_vnoc: BTreeMap<(ColId, RegId), (u32, u32)>,
+    pub sysmon_sat_gt: BTreeMap<(ColId, RegId), (u32, u32)>,
+    pub dpll_gt: BTreeMap<(ColId, RegId), (u32, u32)>,
     pub vnoc2: BTreeMap<(ColId, RegId), VNoc2Naming>,
 }
 
@@ -2382,6 +2384,41 @@ pub fn name_device<'a>(
                             );
                             let (sx, sy) = dev_naming.die[die.die].sysmon_sat_vnoc[&(col, reg)];
                             nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
+                        }
+                        "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
+                            let bt = if grid.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [int_grid.name(
+                                    &format!("AMS_SAT_GT_{bt}_TILE"),
+                                    die.die,
+                                    col,
+                                    ColSide::Left,
+                                    row + 19,
+                                    0,
+                                    0,
+                                )],
+                            );
+                            let (sx, sy) = dev_naming.die[die.die].sysmon_sat_gt[&(col, reg)];
+                            nnode.add_bel(0, vnoc_grid.name_manual("SYSMON_SAT", die.die, sx, sy));
+                        }
+                        "DPLL.LGT" | "DPLL.RGT" => {
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [int_grid.name(
+                                    "CMT_DPLL",
+                                    die.die,
+                                    col,
+                                    ColSide::Left,
+                                    row + 7,
+                                    0,
+                                    0,
+                                )],
+                            );
+                            let (sx, sy) = dev_naming.die[die.die].dpll_gt[&(col, reg)];
+                            nnode.add_bel(0, vnoc_grid.name_manual("DPLL", die.die, sx, sy));
                         }
 
                         _ => panic!("how to {kind}"),

@@ -611,6 +611,36 @@ fn verify_dpll_hdio(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     }
 }
 
+fn verify_dpll_gt(_endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "DPLL",
+        &[
+            ("CLKIN", SitePinDir::In),
+            ("CLKIN_DESKEW", SitePinDir::In),
+            ("CLKOUT0", SitePinDir::Out),
+            ("CLKOUT1", SitePinDir::Out),
+            ("CLKOUT2", SitePinDir::Out),
+            ("CLKOUT3", SitePinDir::Out),
+            ("TMUXOUT", SitePinDir::Out),
+        ],
+        &[],
+    );
+
+    for pin in ["CLKIN", "CLKIN_DESKEW"] {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        // TODO: source instead
+        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
+    }
+
+    for pin in ["CLKOUT0", "CLKOUT1", "CLKOUT2", "CLKOUT3", "TMUXOUT"] {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_node(&[bel.fwire_far(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire_far(pin), bel.wire(pin));
+    }
+}
+
 fn verify_rclk_hdio_dpll(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_vcc = vrf.find_bel_sibling(bel, "VCC.RCLK_INTF.W");
     let obel_hdistr_loc = vrf.find_bel_sibling(bel, "RCLK_HDISTR_LOC.W");
@@ -936,8 +966,11 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         "DFE_CFC_BOT" => verify_hardip(endev, vrf, bel, "DFE_CFC_BOT"),
         "DFE_CFC_TOP" => verify_hardip(endev, vrf, bel, "DFE_CFC_TOP"),
         "RCLK_DFX_TEST.E" | "RCLK_DFX_TEST.W" => vrf.verify_bel(bel, "RCLK_DFX_TEST", &[], &[]),
-        "SYSMON_SAT.VNOC" => vrf.verify_bel(bel, "SYSMON_SAT", &[], &[]),
+        "SYSMON_SAT.VNOC" | "SYSMON_SAT.LGT" | "SYSMON_SAT.RGT" => {
+            vrf.verify_bel(bel, "SYSMON_SAT", &[], &[])
+        }
         "DPLL.HDIO" => verify_dpll_hdio(endev, vrf, bel),
+        "DPLL.LGT" | "DPLL.RGT" => verify_dpll_gt(endev, vrf, bel),
         "RCLK_HDIO_DPLL" => verify_rclk_hdio_dpll(vrf, bel),
         "RCLK_HDIO" => verify_rclk_hdio(endev, vrf, bel),
         "RCLK_HB_HDIO" => verify_rclk_hb_hdio(endev, vrf, bel),

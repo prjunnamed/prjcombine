@@ -419,6 +419,37 @@ fn get_vnoc_naming(int: &IntGrid, naming: &mut DieNaming, is_vnoc2_scan_offset: 
     }
 }
 
+fn get_gt_naming(int: &IntGrid, naming: &mut DieNaming) {
+    for tkn in [
+        "AMS_SAT_GT_BOT_TILE",
+        "AMS_SAT_GT_TOP_TILE",
+        "AMS_SAT_GT_BOT_TILE_MY",
+        "AMS_SAT_GT_TOP_TILE_MY",
+    ] {
+        for (x, y) in int.find_tiles(&[tkn]) {
+            let mut col = int.lookup_column_inter(x);
+            if col.to_idx() != 0 {
+                col -= 1;
+            }
+            let reg = RegId::from_idx(int.lookup_row(y + 1).to_idx() / 48);
+            let tile = &int.rd.tiles[&Coord {
+                x: x as u16,
+                y: y as u16,
+            }];
+            if let Some(xy) = extract_site_xy(int.rd, tile, "SYSMON_SAT") {
+                naming.sysmon_sat_gt.insert((col, reg), xy);
+            }
+            let tile = &int.rd.tiles[&Coord {
+                x: x as u16,
+                y: (y - 15) as u16,
+            }];
+            if let Some(xy) = extract_site_xy(int.rd, tile, "DPLL") {
+                naming.dpll_gt.insert((col, reg), xy);
+            }
+        }
+    }
+}
+
 fn get_grid(
     die: DieId,
     int: &IntGrid<'_>,
@@ -429,6 +460,8 @@ fn get_grid(
     let mut naming = DieNaming {
         hdio: BTreeMap::new(),
         sysmon_sat_vnoc: BTreeMap::new(),
+        sysmon_sat_gt: BTreeMap::new(),
+        dpll_gt: BTreeMap::new(),
         vnoc2: BTreeMap::new(),
     };
     let (columns, cols_hard) = make_columns(die, int, disabled, &mut naming);
@@ -480,6 +513,7 @@ fn get_grid(
         right,
     };
     get_vnoc_naming(int, &mut naming, is_vnoc2_scan_offset);
+    get_gt_naming(int, &mut naming);
     let mut die_sll_columns = BTreeSet::new();
     for (x, y) in int.find_tiles(&["SLL", "SLL2"]) {
         let crd = Coord {

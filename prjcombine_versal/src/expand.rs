@@ -539,6 +539,41 @@ impl Expander<'_> {
         }
     }
 
+    fn fill_lgt(&mut self) {
+        for (dieid, grid) in &self.grids {
+            let mut die = self.egrid.die_mut(dieid);
+            let col = die.cols().next().unwrap();
+            let ps_height = grid.get_ps_height();
+            for reg in grid.regs() {
+                let row = grid.row_reg_bot(reg);
+                if row.to_idx() < ps_height {
+                    continue;
+                }
+                let crds: [_; Grid::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
+                die.add_xnode(crds[0], "SYSMON_SAT.LGT", &crds);
+                die.add_xnode(crds[0], "DPLL.LGT", &crds);
+                // TODO: actual GT
+            }
+        }
+    }
+
+    fn fill_rgt(&mut self) {
+        for (dieid, grid) in &self.grids {
+            if !matches!(grid.right, RightKind::Gt(_) | RightKind::HNicX) {
+                continue;
+            }
+            let mut die = self.egrid.die_mut(dieid);
+            let col = die.cols().next_back().unwrap();
+            for reg in grid.regs() {
+                let row = grid.row_reg_bot(reg);
+                let crds: [_; Grid::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
+                die.add_xnode(crds[0], "SYSMON_SAT.RGT", &crds);
+                die.add_xnode(crds[0], "DPLL.RGT", &crds);
+                // TODO: actual GT
+            }
+        }
+    }
+
     fn fill_clkroot(&mut self) {
         for (dieid, grid) in &self.grids {
             let mut die = self.egrid.die_mut(dieid);
@@ -583,6 +618,8 @@ pub fn expand_grid<'a>(
     expander.fill_uram();
     expander.fill_hard();
     expander.fill_vnoc();
+    expander.fill_lgt();
+    expander.fill_rgt();
     expander.fill_clkroot();
     expander.egrid.finish();
 
