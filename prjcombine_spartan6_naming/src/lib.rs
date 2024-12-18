@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use prjcombine_int::{
     db::BelId,
-    grid::{ColId, DieId, RowId, SimpleIoCoord},
+    grid::{ColId, DieId, EdgeIoCoord, RowId},
 };
 use prjcombine_spartan6::{
     expanded::ExpandedDevice,
@@ -30,18 +30,18 @@ pub struct Gt<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = DieId::from_idx(0);
+        let (col, row, bel) = self.grid.get_io_loc(io);
         let layer = self
             .edev
             .egrid
-            .find_node_loc(die, (coord.col, coord.row), |node| {
+            .find_node_loc(die, (col, row), |node| {
                 self.edev.egrid.db.nodes.key(node.kind) == "IOB"
             })
             .unwrap()
             .0;
-        let nnode = &self.ngrid.nodes[&(die, coord.col, coord.row, layer)];
-        let bel = BelId::from_idx(coord.iob.to_idx());
+        let nnode = &self.ngrid.nodes[&(die, col, row, layer)];
         &nnode.bels[bel]
     }
 
@@ -1667,9 +1667,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
 
     let mut pad_cnt = 1;
     for &io in &edev.io {
+        let (col, row, bel) = grid.get_io_loc(io);
         let layer = edev
             .egrid
-            .find_node_loc(DieId::from_idx(0), (io.col, io.row), |node| {
+            .find_node_loc(DieId::from_idx(0), (col, row), |node| {
                 edev.egrid.db.nodes.key(node.kind) == "IOB"
             })
             .unwrap()
@@ -1677,9 +1678,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let nnode = namer
             .ngrid
             .nodes
-            .get_mut(&(DieId::from_idx(0), io.col, io.row, layer))
+            .get_mut(&(DieId::from_idx(0), col, row, layer))
             .unwrap();
-        nnode.add_bel(io.iob.to_idx(), format!("PAD{pad_cnt}"));
+        nnode.add_bel(bel.to_idx(), format!("PAD{pad_cnt}"));
         pad_cnt += 1;
     }
 

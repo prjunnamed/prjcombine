@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::grid::{ColId, SimpleIoCoord, TileIobId};
+use prjcombine_int::{db::BelId, grid::{ColId, EdgeIoCoord}};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, SharedCfgPin};
 use unnamed_entity::EntityId;
@@ -76,14 +76,11 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
         for (k, v) in &tile.sites {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
-                    io_lookup.insert(
-                        v.clone(),
-                        SimpleIoCoord {
-                            col: int.lookup_column(crd.x.into()),
-                            row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize),
-                        },
-                    );
+                    let bel = BelId::from_idx(idx as usize);
+                    let col = int.lookup_column(crd.x.into());
+                    let row = int.lookup_row(crd.y.into());
+                    let io = grid.get_io_crd(col, row, bel);
+                    io_lookup.insert(v.clone(), io);
                 }
             }
         }
@@ -117,13 +114,23 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         "IO_WRITE" => SharedCfgPin::RdWrB,
                         "IO_DOUT_BUSY" => SharedCfgPin::Dout,
                         "IO_IRDY" => {
-                            assert_eq!(coord.iob.to_idx(), 3);
-                            assert_eq!(coord.row, grid.row_mid());
+                            match coord {
+                                EdgeIoCoord::L(row, iob) | EdgeIoCoord::R(row, iob) => {
+                                    assert_eq!(iob.to_idx(), 3);
+                                    assert_eq!(row, grid.row_mid());
+                                }
+                                _ => unreachable!(),
+                            }
                             continue;
                         }
                         "IO_TRDY" => {
-                            assert_eq!(coord.iob.to_idx(), 1);
-                            assert_eq!(coord.row, grid.row_mid() - 1);
+                            match coord {
+                                EdgeIoCoord::L(row, iob) | EdgeIoCoord::R(row, iob) => {
+                                    assert_eq!(iob.to_idx(), 1);
+                                    assert_eq!(row, grid.row_mid() - 1);
+                                }
+                                _ => unreachable!(),
+                            }
                             continue;
                         }
                         _ => panic!("UNK FUNC {func} {coord:?}"),

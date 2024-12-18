@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 use itertools::Itertools;
-use prjcombine_int::grid::SimpleIoCoord;
+use prjcombine_int::grid::EdgeIoCoord;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -20,7 +20,7 @@ pub enum CfgPin {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum BondPin {
-    Io(SimpleIoCoord),
+    Io(EdgeIoCoord),
     Gnd,
     Vcc,
     Nc,
@@ -37,7 +37,7 @@ pub struct Bond {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
-    pub ios: BTreeMap<SimpleIoCoord, String>,
+    pub ios: BTreeMap<EdgeIoCoord, String>,
 }
 
 impl Bond {
@@ -87,9 +87,7 @@ impl Display for Bond {
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
             write!(f, "\t\t{pin:4}: ")?;
             match pad {
-                BondPin::Io(io) => {
-                    write!(f, "IOB_X{x}Y{y}B{b}", x = io.col, y = io.row, b = io.iob)?
-                }
+                BondPin::Io(io) => write!(f, "{io}")?,
                 BondPin::Gnd => write!(f, "GND")?,
                 BondPin::Vcc => write!(f, "VCC")?,
                 BondPin::VccInt => write!(f, "VCCINT")?,

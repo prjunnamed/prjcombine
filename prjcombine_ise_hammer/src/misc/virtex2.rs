@@ -9,7 +9,7 @@ use prjcombine_collector::{
 use prjcombine_hammer::Session;
 use prjcombine_int::grid::DieId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
-use prjcombine_virtex2::{expanded::IoDiffKind, grid::GridKind, iob::IobKind};
+use prjcombine_virtex2::{grid::GridKind, grid::IoDiffKind, iob::IobKind};
 use prjcombine_virtex_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use unnamed_entity::EntityId;
@@ -468,14 +468,15 @@ pub fn add_fuzzers<'a>(
                 let (io_vrp, io_vrn) = io_vr.unwrap();
                 let site_vrp = endev.get_io_name(io_vrp);
                 let site_vrn = endev.get_io_name(io_vrn);
-                for io in edev.get_bonded_ios().into_iter().rev() {
-                    let ioinfo = edev.get_io_info(io);
-                    if ioinfo.bank == bank && coords.insert((io.col, io.row)) {
-                        btiles.push(edev.btile_main(io.col, io.row));
-                        if io.col == edev.grid.col_left() || io.col == edev.grid.col_right() {
-                            btiles.push(edev.btile_lrterm(io.col, io.row));
+                for io in edev.grid.get_bonded_ios().into_iter().rev() {
+                    let ioinfo = edev.grid.get_io_info(io);
+                    let (io_col, io_row, _) = edev.grid.get_io_loc(io);
+                    if ioinfo.bank == bank && coords.insert((io_col, io_row)) {
+                        btiles.push(edev.btile_main(io_col, io_row));
+                        if io_col == edev.grid.col_left() || io_col == edev.grid.col_right() {
+                            btiles.push(edev.btile_lrterm(io_col, io_row));
                         } else {
-                            btiles.push(edev.btile_btterm(io.col, io.row));
+                            btiles.push(edev.btile_btterm(io_col, io_row));
                         }
                     }
                     if ebond.ios.contains_key(&io)
@@ -939,8 +940,8 @@ pub fn add_fuzzers<'a>(
                 }
                 let bits = TileBits::Raw(btiles);
                 let mut ios = vec![];
-                for io in edev.get_bonded_ios().into_iter().rev() {
-                    let ioinfo = edev.get_io_info(io);
+                for io in edev.grid.get_bonded_ios().into_iter().rev() {
+                    let ioinfo = edev.grid.get_io_info(io);
                     if ebond.ios.contains_key(&io)
                         && matches!(ioinfo.diff, IoDiffKind::P(_))
                         && ioinfo.pad_kind == Some(IobKind::Iob)

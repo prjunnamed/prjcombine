@@ -42,7 +42,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
         let bpin = if let Some(ref pad) = pin.pad {
             if let Some(&io) = io_lookup.get(&**pad) {
                 //assert_eq!(pin.vref_bank, Some(bank));
-                let bank = endev.edev.get_io_bank(io);
+                let bank = endev.grid.get_io_bank(io);
                 let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));
                 if pin.func.contains("VREF") {

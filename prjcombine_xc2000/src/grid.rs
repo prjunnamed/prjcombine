@@ -3,10 +3,13 @@ use std::{
     fmt::Display,
 };
 
-use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
+use prjcombine_int::{
+    db::BelId,
+    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use unnamed_entity::EntityId;
+use unnamed_entity::{EntityId, EntityIds};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum SharedCfgPin {
@@ -90,7 +93,7 @@ pub struct Grid {
     // XC2000 only
     pub cols_bidi: BTreeSet<ColId>,
     pub rows_bidi: BTreeSet<RowId>,
-    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
 }
 
 impl Grid {
@@ -134,29 +137,255 @@ impl Grid {
         RowId::from_idx(3 * self.rows / 4)
     }
 
-    pub fn io_xtl1(&self) -> SimpleIoCoord {
-        SimpleIoCoord {
-            col: self.col_rio(),
-            row: self.row_bio(),
-            iob: TileIobId::from_idx(1),
+    pub fn columns(&self) -> EntityIds<ColId> {
+        EntityIds::new(self.columns)
+    }
+
+    pub fn rows(&self) -> EntityIds<RowId> {
+        EntityIds::new(self.rows)
+    }
+
+    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
+        match self.kind {
+            GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => {
+                let iob = if bel.to_idx() < 3 {
+                    TileIobId::from_idx(bel.to_idx() - 1)
+                } else {
+                    TileIobId::from_idx(bel.to_idx() - 3)
+                };
+                if row == self.row_bio() && bel.to_idx() < 3 {
+                    EdgeIoCoord::B(col, iob)
+                } else if row == self.row_tio() && bel.to_idx() < 3 {
+                    EdgeIoCoord::T(col, iob)
+                } else if col == self.col_lio() {
+                    EdgeIoCoord::L(row, iob)
+                } else if col == self.col_rio() {
+                    EdgeIoCoord::R(row, iob)
+                } else {
+                    unreachable!()
+                }
+            }
+            GridKind::Xc4000
+            | GridKind::Xc4000A
+            | GridKind::Xc4000H
+            | GridKind::Xc4000E
+            | GridKind::Xc4000Ex
+            | GridKind::Xc4000Xla
+            | GridKind::Xc4000Xv
+            | GridKind::SpartanXl
+            | GridKind::Xc5200 => {
+                let iob = TileIobId::from_idx(bel.to_idx());
+                if col == self.col_lio() {
+                    EdgeIoCoord::L(row, iob)
+                } else if col == self.col_rio() {
+                    EdgeIoCoord::R(row, iob)
+                } else if row == self.row_bio() {
+                    EdgeIoCoord::B(col, iob)
+                } else if row == self.row_tio() {
+                    EdgeIoCoord::T(col, iob)
+                } else {
+                    unreachable!()
+                }
+            }
         }
     }
 
-    pub fn io_xtl2(&self) -> SimpleIoCoord {
-        SimpleIoCoord {
-            col: self.col_rio(),
-            row: self.row_bio(),
-            iob: TileIobId::from_idx(2),
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+        match self.kind {
+            GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => match io {
+                EdgeIoCoord::T(col, iob) => {
+                    (col, self.row_tio(), BelId::from_idx(1 + iob.to_idx()))
+                }
+                EdgeIoCoord::R(row, iob) => {
+                    let bel = if row == self.row_bio() || row == self.row_tio() {
+                        BelId::from_idx(3 + iob.to_idx())
+                    } else {
+                        BelId::from_idx(1 + iob.to_idx())
+                    };
+                    (self.col_rio(), row, bel)
+                }
+                EdgeIoCoord::B(col, iob) => {
+                    (col, self.row_bio(), BelId::from_idx(1 + iob.to_idx()))
+                }
+                EdgeIoCoord::L(row, iob) => {
+                    let bel = if row == self.row_bio() || row == self.row_tio() {
+                        BelId::from_idx(3 + iob.to_idx())
+                    } else {
+                        BelId::from_idx(1 + iob.to_idx())
+                    };
+                    (self.col_lio(), row, bel)
+                }
+            },
+            GridKind::Xc4000
+            | GridKind::Xc4000A
+            | GridKind::Xc4000H
+            | GridKind::Xc4000E
+            | GridKind::Xc4000Ex
+            | GridKind::Xc4000Xla
+            | GridKind::Xc4000Xv
+            | GridKind::SpartanXl
+            | GridKind::Xc5200 => {
+                let (col, row, iob) = match io {
+                    EdgeIoCoord::T(col, iob) => (col, self.row_tio(), iob),
+                    EdgeIoCoord::R(row, iob) => (self.col_rio(), row, iob),
+                    EdgeIoCoord::B(col, iob) => (col, self.row_bio(), iob),
+                    EdgeIoCoord::L(row, iob) => (self.col_lio(), row, iob),
+                };
+                (col, row, BelId::from_idx(iob.to_idx()))
+            }
         }
     }
 
-    pub fn io_tclk(&self) -> SimpleIoCoord {
+    pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
+        let mut res = vec![];
+        match self.kind {
+            GridKind::Xc2000 => {
+                for col in self.columns() {
+                    for iob in [0, 1] {
+                        res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows().rev() {
+                    if row == self.row_bio() || row == self.row_tio() || row == self.row_mid() - 1 {
+                        res.push(EdgeIoCoord::R(row, TileIobId::from_idx(0)));
+                    } else {
+                        for iob in [0, 1] {
+                            res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                        }
+                    }
+                }
+                for col in self.columns().rev() {
+                    for iob in [1, 0] {
+                        res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows() {
+                    if row == self.row_bio() || row == self.row_tio() || row == self.row_mid() - 1 {
+                        res.push(EdgeIoCoord::L(row, TileIobId::from_idx(0)));
+                    } else {
+                        for iob in [1, 0] {
+                            res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                        }
+                    }
+                }
+            }
+            GridKind::Xc3000 | GridKind::Xc3000A => {
+                for col in self.columns() {
+                    for iob in [0, 1] {
+                        res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows().rev() {
+                    for iob in [0, 1] {
+                        res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                    }
+                }
+                for col in self.columns().rev() {
+                    for iob in [1, 0] {
+                        res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows() {
+                    for iob in [1, 0] {
+                        res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                    }
+                }
+            }
+            GridKind::Xc4000
+            | GridKind::Xc4000A
+            | GridKind::Xc4000H
+            | GridKind::Xc4000E
+            | GridKind::Xc4000Ex
+            | GridKind::Xc4000Xla
+            | GridKind::Xc4000Xv
+            | GridKind::SpartanXl => {
+                let iobs = if self.kind == GridKind::Xc4000H {
+                    0..4
+                } else {
+                    0..2
+                };
+                for col in self.columns() {
+                    if col == self.col_lio() || col == self.col_rio() {
+                        continue;
+                    }
+                    for iob in iobs.clone() {
+                        res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows().rev() {
+                    if row == self.row_bio() || row == self.row_tio() {
+                        continue;
+                    }
+                    for iob in iobs.clone() {
+                        res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                    }
+                }
+                for col in self.columns().rev() {
+                    if col == self.col_lio() || col == self.col_rio() {
+                        continue;
+                    }
+                    for iob in iobs.clone().rev() {
+                        res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows() {
+                    if row == self.row_bio() || row == self.row_tio() {
+                        continue;
+                    }
+                    for iob in iobs.clone().rev() {
+                        res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                    }
+                }
+            }
+            GridKind::Xc5200 => {
+                for col in self.columns() {
+                    if col == self.col_lio() || col == self.col_rio() {
+                        continue;
+                    }
+                    for iob in [3, 2, 1, 0] {
+                        res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows().rev() {
+                    if row == self.row_bio() || row == self.row_tio() {
+                        continue;
+                    }
+                    for iob in [3, 2, 1, 0] {
+                        res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                    }
+                }
+                for col in self.columns().rev() {
+                    if col == self.col_lio() || col == self.col_rio() {
+                        continue;
+                    }
+                    for iob in [0, 1, 2, 3] {
+                        res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                    }
+                }
+                for row in self.rows() {
+                    if row == self.row_bio() || row == self.row_tio() {
+                        continue;
+                    }
+                    for iob in [0, 1, 2, 3] {
+                        res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                    }
+                }
+            }
+        }
+        res
+    }
+
+    pub fn io_xtl1(&self) -> EdgeIoCoord {
+        EdgeIoCoord::B(self.col_rio(), TileIobId::from_idx(1))
+    }
+
+    pub fn io_xtl2(&self) -> EdgeIoCoord {
+        EdgeIoCoord::R(self.row_bio(), TileIobId::from_idx(0))
+    }
+
+    pub fn io_tclk(&self) -> EdgeIoCoord {
         assert!(self.kind.is_xc3000());
-        SimpleIoCoord {
-            col: self.col_lio(),
-            row: self.row_tio(),
-            iob: TileIobId::from_idx(2),
-        }
+        EdgeIoCoord::L(self.row_tio(), TileIobId::from_idx(0))
     }
 
     pub fn btile_height_main(&self, row: RowId) -> usize {

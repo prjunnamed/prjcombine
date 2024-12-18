@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use prjcombine_int::grid::SimpleIoCoord;
+use prjcombine_int::grid::EdgeIoCoord;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
@@ -21,7 +21,7 @@ pub enum CfgPin {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Clk(u32),
-    Io(SimpleIoCoord),
+    Io(EdgeIoCoord),
     Nc,
     Gnd,
     VccInt,
@@ -37,15 +37,15 @@ pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
     // device bank -> pkg bank
     pub io_banks: BTreeMap<u32, u32>,
-    pub vref: BTreeSet<SimpleIoCoord>,
-    pub diffp: BTreeSet<SimpleIoCoord>,
-    pub diffn: BTreeSet<SimpleIoCoord>,
+    pub vref: BTreeSet<EdgeIoCoord>,
+    pub diffp: BTreeSet<EdgeIoCoord>,
+    pub diffn: BTreeSet<EdgeIoCoord>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExpandedBond<'a> {
     pub bond: &'a Bond,
-    pub ios: BTreeMap<SimpleIoCoord, String>,
+    pub ios: BTreeMap<EdgeIoCoord, String>,
     pub clks: BTreeMap<u32, String>,
 }
 

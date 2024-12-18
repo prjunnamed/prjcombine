@@ -20,21 +20,32 @@ entity_id! {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize)]
-pub struct SimpleIoCoord {
-    pub col: ColId,
-    pub row: RowId,
-    pub iob: TileIobId,
+pub enum EdgeIoCoord {
+    T(ColId, TileIobId),
+    R(RowId, TileIobId),
+    B(ColId, TileIobId),
+    L(RowId, TileIobId),
 }
 
-impl std::fmt::Display for SimpleIoCoord {
+impl EdgeIoCoord {
+    pub fn with_iob(self, iob: TileIobId) -> Self {
+        match self {
+            EdgeIoCoord::T(col, _) => EdgeIoCoord::T(col, iob),
+            EdgeIoCoord::R(row, _) => EdgeIoCoord::R(row, iob),
+            EdgeIoCoord::B(col, _) => EdgeIoCoord::B(col, iob),
+            EdgeIoCoord::L(row, _) => EdgeIoCoord::L(row, iob),
+        }
+    }
+}
+
+impl std::fmt::Display for EdgeIoCoord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "IOB_X{x}Y{y}B{b}",
-            x = self.col,
-            y = self.row,
-            b = self.iob
-        )
+        match self {
+            EdgeIoCoord::T(col, iob) => write!(f, "IOB_T{col}_{iob}"),
+            EdgeIoCoord::R(row, iob) => write!(f, "IOB_R{row}_{iob}"),
+            EdgeIoCoord::B(col, iob) => write!(f, "IOB_B{col}_{iob}"),
+            EdgeIoCoord::L(row, iob) => write!(f, "IOB_L{row}_{iob}"),
+        }
     }
 }
 

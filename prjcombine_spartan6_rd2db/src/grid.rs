@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
+use prjcombine_int::grid::{ColId, EdgeIoCoord, RowId, TileIobId};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_spartan6::grid::{
     Column, ColumnIoKind, ColumnKind, DisabledPart, Grid, Gts, Mcb, McbIo, RegId, Row, SharedCfgPin,
@@ -303,7 +303,7 @@ fn has_encrypt(rd: &Part) -> bool {
     false
 }
 
-fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: SimpleIoCoord) {
+fn set_cfg(grid: &mut Grid, cfg: SharedCfgPin, coord: EdgeIoCoord) {
     let old = grid.cfg_io.insert(cfg, coord);
     assert!(old.is_none() || old == Some(coord));
 }
@@ -317,37 +317,25 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
             if let &TkSiteSlot::Indexed(sn, idx) = tk.sites.key(k) {
                 if rd.slot_kinds[sn] == "IOB" {
                     let crd = if tkn.starts_with('T') {
-                        SimpleIoCoord {
-                            col: int.lookup_column(crd.x.into()),
-                            row: if idx < 2 {
-                                grid.row_tio_outer()
-                            } else {
-                                grid.row_tio_inner()
-                            },
-                            iob: TileIobId::from_idx([1, 0, 1, 0][idx as usize]),
-                        }
+                        EdgeIoCoord::T(
+                            int.lookup_column(crd.x.into()),
+                            TileIobId::from_idx(3 - (idx as usize)),
+                        )
                     } else if tkn.starts_with('B') {
-                        SimpleIoCoord {
-                            col: int.lookup_column(crd.x.into()),
-                            row: if idx < 2 {
-                                grid.row_bio_inner()
-                            } else {
-                                grid.row_bio_outer()
-                            },
-                            iob: TileIobId::from_idx([1, 0, 0, 1][idx as usize]),
-                        }
+                        EdgeIoCoord::B(
+                            int.lookup_column(crd.x.into()),
+                            TileIobId::from_idx([1, 0, 2, 3][idx as usize]),
+                        )
                     } else if tkn.starts_with('L') {
-                        SimpleIoCoord {
-                            col: grid.col_lio(),
-                            row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize ^ 1),
-                        }
+                        EdgeIoCoord::L(
+                            int.lookup_row(crd.y.into()),
+                            TileIobId::from_idx(idx as usize ^ 1),
+                        )
                     } else if tkn.starts_with('R') {
-                        SimpleIoCoord {
-                            col: grid.col_rio(),
-                            row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize ^ 1),
-                        }
+                        EdgeIoCoord::R(
+                            int.lookup_row(crd.y.into()),
+                            TileIobId::from_idx(idx as usize ^ 1),
+                        )
                     } else {
                         unreachable!();
                     };
@@ -430,80 +418,85 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         "M5" => (grid.columns.last_id().unwrap(), 1),
                         _ => unreachable!(),
                     };
-                    assert_eq!(coord.col, col);
+                    let (io_col, io_row, iob) = match coord {
+                        EdgeIoCoord::L(row, iob) => (grid.col_lio(), row, iob),
+                        EdgeIoCoord::R(row, iob) => (grid.col_rio(), row, iob),
+                        _ => unreachable!(),
+                    };
+                    assert_eq!(io_col, col);
                     let mcb = &grid.mcbs[mi];
                     let epos = f.find('_').unwrap();
                     let mf = &f[2..epos];
                     match mf {
                         "RASN" => {
-                            assert_eq!(coord.row, mcb.io_ras.row);
-                            assert_eq!(coord.iob, mcb.io_ras.iob);
+                            assert_eq!(io_row, mcb.io_ras.row);
+                            assert_eq!(iob, mcb.io_ras.iob);
                         }
                         "CASN" => {
-                            assert_eq!(coord.row, mcb.io_cas.row);
-                            assert_eq!(coord.iob, mcb.io_cas.iob);
+                            assert_eq!(io_row, mcb.io_cas.row);
+                            assert_eq!(iob, mcb.io_cas.iob);
                         }
                         "WE" => {
-                            assert_eq!(coord.row, mcb.io_we.row);
-                            assert_eq!(coord.iob, mcb.io_we.iob);
+                            assert_eq!(io_row, mcb.io_we.row);
+                            assert_eq!(iob, mcb.io_we.iob);
                         }
                         "ODT" => {
-                            assert_eq!(coord.row, mcb.io_odt.row);
-                            assert_eq!(coord.iob, mcb.io_odt.iob);
+                            assert_eq!(io_row, mcb.io_odt.row);
+                            assert_eq!(iob, mcb.io_odt.iob);
                         }
                         "CKE" => {
-                            assert_eq!(coord.row, mcb.io_cke.row);
-                            assert_eq!(coord.iob, mcb.io_cke.iob);
+                            assert_eq!(io_row, mcb.io_cke.row);
+                            assert_eq!(iob, mcb.io_cke.iob);
                         }
                         "RESET" => {
-                            assert_eq!(coord.row, mcb.io_reset.row);
-                            assert_eq!(coord.iob, mcb.io_reset.iob);
+                            assert_eq!(io_row, mcb.io_reset.row);
+                            assert_eq!(iob, mcb.io_reset.iob);
                         }
                         "LDM" => {
-                            assert_eq!(coord.row, mcb.io_dm[0].row);
-                            assert_eq!(coord.iob, mcb.io_dm[0].iob);
+                            assert_eq!(io_row, mcb.io_dm[0].row);
+                            assert_eq!(iob, mcb.io_dm[0].iob);
                         }
                         "UDM" => {
-                            assert_eq!(coord.row, mcb.io_dm[1].row);
-                            assert_eq!(coord.iob, mcb.io_dm[1].iob);
+                            assert_eq!(io_row, mcb.io_dm[1].row);
+                            assert_eq!(iob, mcb.io_dm[1].iob);
                         }
                         "LDQS" => {
-                            assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(io_row, mcb.iop_dqs[0]);
+                            assert_eq!(iob.to_idx(), 1);
                         }
                         "LDQSN" => {
-                            assert_eq!(coord.row, mcb.iop_dqs[0]);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(io_row, mcb.iop_dqs[0]);
+                            assert_eq!(iob.to_idx(), 0);
                         }
                         "UDQS" => {
-                            assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(io_row, mcb.iop_dqs[1]);
+                            assert_eq!(iob.to_idx(), 1);
                         }
                         "UDQSN" => {
-                            assert_eq!(coord.row, mcb.iop_dqs[1]);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(io_row, mcb.iop_dqs[1]);
+                            assert_eq!(iob.to_idx(), 0);
                         }
                         "CLK" => {
-                            assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.iob.to_idx(), 1);
+                            assert_eq!(io_row, mcb.iop_clk);
+                            assert_eq!(iob.to_idx(), 1);
                         }
                         "CLKN" => {
-                            assert_eq!(coord.row, mcb.iop_clk);
-                            assert_eq!(coord.iob.to_idx(), 0);
+                            assert_eq!(io_row, mcb.iop_clk);
+                            assert_eq!(iob.to_idx(), 0);
                         }
                         _ => {
                             if let Some(i) = mf.strip_prefix('A') {
                                 let i: usize = i.parse().unwrap();
-                                assert_eq!(coord.row, mcb.io_addr[i].row);
-                                assert_eq!(coord.iob, mcb.io_addr[i].iob);
+                                assert_eq!(io_row, mcb.io_addr[i].row);
+                                assert_eq!(iob, mcb.io_addr[i].iob);
                             } else if let Some(i) = mf.strip_prefix("BA") {
                                 let i: usize = i.parse().unwrap();
-                                assert_eq!(coord.row, mcb.io_ba[i].row);
-                                assert_eq!(coord.iob, mcb.io_ba[i].iob);
+                                assert_eq!(io_row, mcb.io_ba[i].row);
+                                assert_eq!(iob, mcb.io_ba[i].iob);
                             } else if let Some(i) = mf.strip_prefix("DQ") {
                                 let i: usize = i.parse().unwrap();
-                                assert_eq!(coord.row, mcb.iop_dq[i / 2]);
-                                assert_eq!(coord.iob.to_idx(), (i % 2) ^ 1);
+                                assert_eq!(io_row, mcb.iop_dq[i / 2]);
+                                assert_eq!(iob.to_idx(), (i % 2) ^ 1);
                             } else {
                                 println!("MCB {mf}");
                             }

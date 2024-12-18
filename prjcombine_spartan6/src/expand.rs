@@ -1,7 +1,7 @@
 use enum_map::EnumMap;
 use prjcombine_int::db::{Dir, IntDb};
 use prjcombine_int::grid::{
-    ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, SimpleIoCoord, TileIobId,
+    ColId, Coord, EdgeIoCoord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
 };
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
@@ -22,7 +22,7 @@ struct Expander<'a, 'b> {
     frame_info: Vec<FrameInfo>,
     bram_frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
-    io: Vec<SimpleIoCoord>,
+    io: Vec<EdgeIoCoord>,
     col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     col_width: EntityVec<ColId, usize>,
     spine_frame: EntityVec<RegId, usize>,
@@ -818,15 +818,38 @@ impl Expander<'_, '_> {
 
     fn fill_iob(&mut self, crd: Coord) {
         self.die.add_xnode(crd, "IOB", &[]);
-        let crd_p = SimpleIoCoord {
-            col: crd.0,
-            row: crd.1,
-            iob: TileIobId::from_idx(1),
-        };
-        let crd_n = SimpleIoCoord {
-            col: crd.0,
-            row: crd.1,
-            iob: TileIobId::from_idx(0),
+        let (crd_p, crd_n) = if crd.0 == self.grid.col_lio() {
+            (
+                EdgeIoCoord::L(crd.1, TileIobId::from_idx(1)),
+                EdgeIoCoord::L(crd.1, TileIobId::from_idx(0)),
+            )
+        } else if crd.0 == self.grid.col_rio() {
+            (
+                EdgeIoCoord::R(crd.1, TileIobId::from_idx(1)),
+                EdgeIoCoord::R(crd.1, TileIobId::from_idx(0)),
+            )
+        } else if crd.1 == self.grid.row_bio_outer() {
+            (
+                EdgeIoCoord::B(crd.0, TileIobId::from_idx(3)),
+                EdgeIoCoord::B(crd.0, TileIobId::from_idx(2)),
+            )
+        } else if crd.1 == self.grid.row_bio_inner() {
+            (
+                EdgeIoCoord::B(crd.0, TileIobId::from_idx(1)),
+                EdgeIoCoord::B(crd.0, TileIobId::from_idx(0)),
+            )
+        } else if crd.1 == self.grid.row_tio_outer() {
+            (
+                EdgeIoCoord::T(crd.0, TileIobId::from_idx(3)),
+                EdgeIoCoord::T(crd.0, TileIobId::from_idx(2)),
+            )
+        } else if crd.1 == self.grid.row_tio_inner() {
+            (
+                EdgeIoCoord::T(crd.0, TileIobId::from_idx(1)),
+                EdgeIoCoord::T(crd.0, TileIobId::from_idx(0)),
+            )
+        } else {
+            unreachable!()
         };
         self.io.extend([crd_p, crd_n]);
     }

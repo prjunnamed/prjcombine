@@ -1,7 +1,4 @@
-use prjcombine_int::{
-    db::BelId,
-    grid::{DieId, LayerId, SimpleIoCoord},
-};
+use prjcombine_int::grid::{DieId, EdgeIoCoord, LayerId};
 use prjcombine_xc2000::{
     expanded::ExpandedDevice,
     grid::{Grid, GridKind},
@@ -16,10 +13,10 @@ pub struct ExpandedNamedDevice<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = self.edev.egrid.die(DieId::from_idx(0));
-        let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
-        let bel = BelId::from_idx(coord.iob.to_idx());
+        let (col, row, bel) = self.grid.get_io_loc(io);
+        let nnode = &self.ngrid.nodes[&(die.die, col, row, LayerId::from_idx(0))];
         &nnode.bels[bel]
     }
 }

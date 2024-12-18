@@ -6,10 +6,7 @@ use prjcombine_collector::{
     xlat_item_tile_fwd, Diff, OcdMode,
 };
 use prjcombine_hammer::Session;
-use prjcombine_int::{
-    db::BelId,
-    grid::{SimpleIoCoord, TileIobId},
-};
+use prjcombine_int::db::BelId;
 use prjcombine_types::tiledb::{TileBit, TileItem, TileItemKind};
 use prjcombine_virtex2::grid::GridKind;
 use prjcombine_xilinx_geom::{Bond, Device, ExpandedDevice, GeomDb};
@@ -311,11 +308,7 @@ fn has_any_vref<'a>(
         } else {
             col += ioi_tile
         }
-        let crd = SimpleIoCoord {
-            col,
-            row,
-            iob: TileIobId::from_idx(ioi_bel.to_idx()),
-        };
+        let crd = edev.grid.get_io_crd(col, row, ioi_bel);
         if let Some(&pkg) = bonded_ios.get(&crd) {
             return Some(pkg);
         }
@@ -352,11 +345,7 @@ fn has_any_vr<'a>(
         } else {
             col += ioi_tile
         }
-        let crd = SimpleIoCoord {
-            col,
-            row,
-            iob: TileIobId::from_idx(ioi_bel.to_idx()),
-        };
+        let crd = edev.grid.get_io_crd(col, row, ioi_bel);
         if let Some(&pkg) = bonded_ios.get(&crd) {
             for bank in 0..8 {
                 if let Some(alt_vr) = edev.grid.dci_io_alt.get(&bank) {

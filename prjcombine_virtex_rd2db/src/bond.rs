@@ -10,7 +10,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut diffp = BTreeSet::new();
     let mut diffn = BTreeSet::new();
     let io_lookup: HashMap<_, _> = endev
-        .edev
+        .grid
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))
@@ -30,7 +30,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
                 BondPin::Clk(bank)
             } else {
                 let io = io_lookup[&**pad];
-                let bank = endev.edev.get_io_bank(io);
+                let bank = endev.grid.get_io_bank(io);
                 assert_eq!(pin.vref_bank, Some(bank));
                 let old = io_banks.insert(bank, pin.vcco_bank.unwrap());
                 assert!(old.is_none() || old == Some(pin.vcco_bank.unwrap()));

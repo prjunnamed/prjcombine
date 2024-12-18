@@ -1,4 +1,7 @@
-use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord};
+use prjcombine_int::{
+    db::BelId,
+    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
@@ -27,7 +30,7 @@ pub struct Grid {
     pub cols_bram: BTreeSet<ColId>,
     pub cols_clkv: Vec<(ColId, ColId, ColId)>,
     pub rows: usize,
-    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -77,6 +80,108 @@ impl Grid {
 
     pub fn rows(&self) -> EntityIds<RowId> {
         EntityIds::new(self.rows)
+    }
+
+    pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
+        match io {
+            EdgeIoCoord::T(col, _) => {
+                if col < self.col_clk() {
+                    0
+                } else {
+                    1
+                }
+            }
+            EdgeIoCoord::R(row, _) => {
+                if row < self.row_mid() {
+                    3
+                } else {
+                    2
+                }
+            }
+            EdgeIoCoord::B(col, _) => {
+                if col < self.col_clk() {
+                    5
+                } else {
+                    4
+                }
+            }
+            EdgeIoCoord::L(row, _) => {
+                if row < self.row_mid() {
+                    6
+                } else {
+                    7
+                }
+            }
+        }
+    }
+
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+        let (col, row, iob) = match io {
+            EdgeIoCoord::T(col, iob) => (col, self.row_tio(), iob),
+            EdgeIoCoord::R(row, iob) => (self.col_rio(), row, iob),
+            EdgeIoCoord::B(col, iob) => (col, self.row_bio(), iob),
+            EdgeIoCoord::L(row, iob) => (self.col_lio(), row, iob),
+        };
+        let bel = BelId::from_idx(iob.to_idx());
+        (col, row, bel)
+    }
+
+    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
+        let iob = TileIobId::from_idx(bel.to_idx());
+        if col == self.col_lio() {
+            EdgeIoCoord::L(row, iob)
+        } else if col == self.col_rio() {
+            EdgeIoCoord::R(row, iob)
+        } else if row == self.row_bio() {
+            EdgeIoCoord::B(col, iob)
+        } else if row == self.row_tio() {
+            EdgeIoCoord::T(col, iob)
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
+        let mut res = vec![];
+        for col in self.columns() {
+            if self.cols_bram.contains(&col) {
+                continue;
+            }
+            if col == self.col_lio() || col == self.col_rio() {
+                continue;
+            }
+            for iob in [2, 1] {
+                res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+            }
+        }
+        for row in self.rows().rev() {
+            if row == self.row_bio() || row == self.row_tio() {
+                continue;
+            }
+            for iob in [1, 2, 3] {
+                res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+            }
+        }
+        for col in self.columns().rev() {
+            if self.cols_bram.contains(&col) {
+                continue;
+            }
+            if col == self.col_lio() || col == self.col_rio() {
+                continue;
+            }
+            for iob in [1, 2] {
+                res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+            }
+        }
+        for row in self.rows() {
+            if row == self.row_bio() || row == self.row_tio() {
+                continue;
+            }
+            for iob in [3, 2, 1] {
+                res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+            }
+        }
+        res
     }
 
     pub fn to_json(&self) -> serde_json::Value {

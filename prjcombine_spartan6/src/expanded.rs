@@ -1,7 +1,7 @@
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::Dir,
-    grid::{ColId, DieId, ExpandedGrid, Rect, RowId, SimpleIoCoord},
+    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, Rect, RowId},
 };
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
@@ -15,27 +15,13 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
-    pub io: Vec<SimpleIoCoord>,
+    pub io: Vec<EdgeIoCoord>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub col_width: EntityVec<ColId, usize>,
     pub spine_frame: EntityVec<RegId, usize>,
     pub bram_frame: EntityVec<RegId, EntityPartVec<ColId, usize>>,
     pub iob_frame: HashMap<(ColId, RowId), usize>,
     pub reg_frame: EnumMap<Dir, usize>,
-}
-
-#[derive(Clone, Debug)]
-pub struct Io {
-    pub crd: SimpleIoCoord,
-    pub name: String,
-    pub bank: u32,
-    pub diff: IoDiffKind,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum IoDiffKind {
-    P(SimpleIoCoord),
-    N(SimpleIoCoord),
 }
 
 impl ExpandedDevice<'_> {
@@ -46,36 +32,6 @@ impl ExpandedDevice<'_> {
             }
         }
         false
-    }
-
-    pub fn get_io_bank(&self, io: SimpleIoCoord) -> u32 {
-        if io.col == self.grid.col_lio() {
-            if let Some((rs, _)) = self.grid.rows_bank_split {
-                if io.row < rs {
-                    3
-                } else {
-                    4
-                }
-            } else {
-                3
-            }
-        } else if io.col == self.grid.col_rio() {
-            if let Some((_, rs)) = self.grid.rows_bank_split {
-                if io.row < rs {
-                    1
-                } else {
-                    5
-                }
-            } else {
-                1
-            }
-        } else if io.row == self.grid.row_bio_inner() || io.row == self.grid.row_bio_outer() {
-            2
-        } else if io.row == self.grid.row_tio_inner() || io.row == self.grid.row_tio_outer() {
-            0
-        } else {
-            unreachable!()
-        }
     }
 
     pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {

@@ -6,7 +6,7 @@ use prjcombine_int::{
         BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
         WireKind,
     },
-    grid::{DieId, LayerId, SimpleIoCoord},
+    grid::{DieId, LayerId, EdgeIoCoord},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
@@ -1182,9 +1182,9 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     name: &str,
     pkg: &BTreeMap<String, String>,
-) -> (Bond, BTreeMap<SharedCfgPin, SimpleIoCoord>) {
+) -> (Bond, BTreeMap<SharedCfgPin, EdgeIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
-        .edev
+        .grid
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))

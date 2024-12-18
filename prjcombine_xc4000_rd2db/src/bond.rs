@@ -1,4 +1,4 @@
-use prjcombine_int::grid::SimpleIoCoord;
+use prjcombine_int::grid::EdgeIoCoord;
 use prjcombine_rawdump::PkgPin;
 use prjcombine_xc2000::{
     bond::{Bond, BondPin, CfgPin},
@@ -11,11 +11,11 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     pkg: &str,
     pins: &[PkgPin],
-    cfg_io: &mut BTreeMap<SharedCfgPin, SimpleIoCoord>,
+    cfg_io: &mut BTreeMap<SharedCfgPin, EdgeIoCoord>,
 ) -> Bond {
     let mut bond_pins = BTreeMap::new();
     let io_lookup: HashMap<_, _> = endev
-        .edev
+        .grid
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))

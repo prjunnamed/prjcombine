@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
+use prjcombine_int::{db::BelId, grid::{ColId, RowId}};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex2::grid::{
     Column, ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, RowIoKind, SharedCfgPin,
@@ -421,11 +421,11 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                 if rd.slot_kinds[sn] == "IOB" {
                     io_lookup.insert(
                         v.clone(),
-                        SimpleIoCoord {
-                            col: int.lookup_column(crd.x.into()),
-                            row: int.lookup_row(crd.y.into()),
-                            iob: TileIobId::from_idx(idx as usize),
-                        },
+                        grid.get_io_crd(
+                            int.lookup_column(crd.x.into()),
+                            int.lookup_row(crd.y.into()),
+                            BelId::from_idx(idx as usize)
+                        ),
                     );
                 }
             }

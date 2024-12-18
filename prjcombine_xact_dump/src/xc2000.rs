@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
-    grid::{ColId, DieId, LayerId, RowId, SimpleIoCoord},
+    grid::{ColId, DieId, LayerId, RowId, EdgeIoCoord},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
@@ -607,9 +607,9 @@ pub fn make_bond(
     endev: &ExpandedNamedDevice,
     name: &str,
     pkg: &BTreeMap<String, String>,
-) -> (Bond, BTreeMap<SharedCfgPin, SimpleIoCoord>) {
+) -> (Bond, BTreeMap<SharedCfgPin, EdgeIoCoord>) {
     let io_lookup: BTreeMap<_, _> = endev
-        .edev
+        .grid
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))

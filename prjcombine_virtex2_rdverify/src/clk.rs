@@ -32,7 +32,7 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
     };
     if endev.grid.kind.is_virtex2() || endev.grid.kind == GridKind::Spartan3 {
         if let Some(crd) = endev.grid.get_clk_io(edge, bel.bid.to_idx()) {
-            let obel = get_bel_iob(vrf, crd);
+            let obel = get_bel_iob(endev, vrf, crd);
             vrf.claim_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
             vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         } else {
@@ -54,11 +54,11 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
         }
     } else if matches!(edge, Dir::S | Dir::N) {
         let crd = endev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
-        let obel = get_bel_iob(vrf, crd);
+        let obel = get_bel_iob(endev, vrf, crd);
         vrf.claim_node(&[bel.fwire("CKIR"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         let crd = endev.grid.get_clk_io(edge, bel.bid.to_idx() + 4).unwrap();
-        let obel = get_bel_iob(vrf, crd);
+        let obel = get_bel_iob(endev, vrf, crd);
         vrf.claim_node(&[bel.fwire("CKIL"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKIL"));
@@ -140,7 +140,7 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Bel
         }
     } else {
         let crd = endev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
-        let obel = get_bel_iob(vrf, crd);
+        let obel = get_bel_iob(endev, vrf, crd);
         vrf.verify_node(&[bel.fwire("CKI"), obel.fwire("IBUF")]);
         vrf.claim_pip(obel.crd(), obel.wire("IBUF"), obel.wire("I"));
         vrf.claim_pip(bel.crd(), bel.wire("CLK"), bel.wire("CKI"));
@@ -205,11 +205,12 @@ pub fn verify_bufg(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         unreachable!()
     };
     let crd = endev.grid.get_clk_io(edge, bel.bid.to_idx()).unwrap();
+    let (col, row, io_bel) = endev.grid.get_io_loc(crd);
     let obel = vrf
         .find_bel(
             bel.die,
-            (crd.col, crd.row),
-            match crd.iob.to_idx() {
+            (col, row),
+            match io_bel.to_idx() {
                 0 => "IBUF0",
                 1 => "IBUF1",
                 2 => "IBUF2",

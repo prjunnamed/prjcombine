@@ -78,7 +78,7 @@ pub enum Interposer {
 impl std::fmt::Display for Interposer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Interposer::None => write!(f, "\t[NONE]"),
+            Interposer::None => writeln!(f, "\t[NONE]"),
             Interposer::Virtex4(ip) => write!(f, "{ip}"),
             Interposer::Ultrascale(ip) => write!(f, "{ip}"),
             Interposer::Versal(ip) => write!(f, "{ip}"),

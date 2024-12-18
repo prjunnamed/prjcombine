@@ -1,9 +1,6 @@
 use std::ops::Range;
 
-use prjcombine_int::{
-    db::BelId,
-    grid::{ColId, DieId, LayerId, RowId, SimpleIoCoord},
-};
+use prjcombine_int::grid::{ColId, DieId, EdgeIoCoord, LayerId, RowId};
 use prjcombine_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
     expanded::ExpandedDevice,
@@ -22,23 +19,10 @@ pub struct ExpandedNamedDevice<'a> {
 }
 
 impl<'a> ExpandedNamedDevice<'a> {
-    pub fn get_io_name(&'a self, coord: SimpleIoCoord) -> &'a str {
+    pub fn get_io_name(&'a self, io: EdgeIoCoord) -> &'a str {
         let die = self.edev.egrid.die(DieId::from_idx(0));
-        let nnode = &self.ngrid.nodes[&(die.die, coord.col, coord.row, LayerId::from_idx(0))];
-        let bel = match self.edev.grid.kind {
-            GridKind::Xc2000 | GridKind::Xc3000 | GridKind::Xc3000A => {
-                BelId::from_idx(1 + coord.iob.to_idx())
-            }
-            GridKind::Xc4000
-            | GridKind::Xc4000A
-            | GridKind::Xc4000H
-            | GridKind::Xc4000E
-            | GridKind::Xc4000Ex
-            | GridKind::Xc4000Xla
-            | GridKind::Xc4000Xv
-            | GridKind::SpartanXl
-            | GridKind::Xc5200 => BelId::from_idx(coord.iob.to_idx()),
-        };
+        let (col, row, bel) = self.grid.get_io_loc(io);
+        let nnode = &self.ngrid.nodes[&(die.die, col, row, LayerId::from_idx(0))];
         &nnode.bels[bel][0]
     }
 }

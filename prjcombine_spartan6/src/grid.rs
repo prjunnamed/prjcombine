@@ -1,4 +1,7 @@
-use prjcombine_int::grid::{ColId, RowId, SimpleIoCoord, TileIobId};
+use prjcombine_int::{
+    db::BelId,
+    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -22,7 +25,7 @@ pub struct Grid {
     pub row_mcb_split: Option<RowId>,
     pub gts: Gts,
     pub mcbs: Vec<Mcb>,
-    pub cfg_io: BTreeMap<SharedCfgPin, SimpleIoCoord>,
+    pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
     pub has_encrypt: bool,
 }
 
@@ -265,6 +268,74 @@ impl Grid {
                 (self.row_top() - 8, PllKind::TopOut1),
             ],
             _ => unreachable!(),
+        }
+    }
+
+    pub fn get_io_crd(&self, col: ColId, row: RowId, bel: BelId) -> EdgeIoCoord {
+        if col == self.col_lio() {
+            EdgeIoCoord::L(row, TileIobId::from_idx(bel.to_idx()))
+        } else if col == self.col_rio() {
+            EdgeIoCoord::R(row, TileIobId::from_idx(bel.to_idx()))
+        } else if row == self.row_bio_inner() {
+            EdgeIoCoord::B(col, TileIobId::from_idx(bel.to_idx()))
+        } else if row == self.row_bio_outer() {
+            EdgeIoCoord::B(col, TileIobId::from_idx(bel.to_idx() + 2))
+        } else if row == self.row_tio_inner() {
+            EdgeIoCoord::T(col, TileIobId::from_idx(bel.to_idx()))
+        } else if row == self.row_tio_outer() {
+            EdgeIoCoord::T(col, TileIobId::from_idx(bel.to_idx() + 2))
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn get_io_loc(&self, io: EdgeIoCoord) -> (ColId, RowId, BelId) {
+        match io {
+            EdgeIoCoord::T(col, iob) => {
+                if iob.to_idx() < 2 {
+                    (col, self.row_tio_inner(), BelId::from_idx(iob.to_idx()))
+                } else {
+                    (col, self.row_tio_outer(), BelId::from_idx(iob.to_idx() - 2))
+                }
+            }
+            EdgeIoCoord::R(row, iob) => (self.col_rio(), row, BelId::from_idx(iob.to_idx())),
+            EdgeIoCoord::B(col, iob) => {
+                if iob.to_idx() < 2 {
+                    (col, self.row_bio_inner(), BelId::from_idx(iob.to_idx()))
+                } else {
+                    (col, self.row_bio_outer(), BelId::from_idx(iob.to_idx() - 2))
+                }
+            }
+            EdgeIoCoord::L(row, iob) => (self.col_lio(), row, BelId::from_idx(iob.to_idx())),
+        }
+    }
+
+    pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
+        match io {
+            EdgeIoCoord::T(_, _) => 0,
+            EdgeIoCoord::R(row, _) => {
+                if let Some((_, rs)) = self.rows_bank_split {
+                    if row < rs {
+                        1
+                    } else {
+                        5
+                    }
+                } else {
+                    1
+                }
+            }
+            EdgeIoCoord::B(_, _) => 2,
+            EdgeIoCoord::L(row, _) => {
+                if let Some((rs, _)) = self.rows_bank_split {
+                    if row < rs {
+                        3
+                    } else {
+                        4
+                    }
+                } else {
+                    3
+                }
+            }
         }
     }
 

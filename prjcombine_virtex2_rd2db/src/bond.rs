@@ -12,7 +12,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut io_banks = BTreeMap::new();
     let mut vref = BTreeSet::new();
     let io_lookup: HashMap<_, _> = endev
-        .edev
+        .grid
         .get_bonded_ios()
         .into_iter()
         .map(|io| (endev.get_io_name(io), io))
@@ -21,7 +21,7 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
         let bpin = if let Some(ref pad) = pin.pad {
             if pad.starts_with("PAD") || pad.starts_with("IPAD") || pad.starts_with("CLK") {
                 let io = io_lookup[&**pad];
-                let info = endev.edev.get_io_info(io);
+                let info = endev.grid.get_io_info(io);
                 if endev.grid.kind != GridKind::FpgaCore {
                     assert_eq!(pin.vref_bank, Some(info.bank));
                     let old = io_banks.insert(info.bank, pin.vcco_bank.unwrap());

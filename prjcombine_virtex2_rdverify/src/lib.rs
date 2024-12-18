@@ -1,4 +1,4 @@
-use prjcombine_int::grid::{DieId, SimpleIoCoord};
+use prjcombine_int::grid::{DieId, EdgeIoCoord};
 use prjcombine_rawdump::Part;
 use prjcombine_rdverify::{verify, BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::grid::GridKind;
@@ -9,11 +9,16 @@ mod clb;
 mod clk;
 mod io;
 
-fn get_bel_iob<'a>(vrf: &Verifier<'a>, crd: SimpleIoCoord) -> BelContext<'a> {
+fn get_bel_iob<'a>(
+    endev: &ExpandedNamedDevice,
+    vrf: &Verifier<'a>,
+    crd: EdgeIoCoord,
+) -> BelContext<'a> {
+    let (col, row, bel) = endev.grid.get_io_loc(crd);
     vrf.find_bel(
         DieId::from_idx(0),
-        (crd.col, crd.row),
-        match crd.iob.to_idx() {
+        (col, row),
+        match bel.to_idx() {
             0 => "IOI0",
             1 => "IOI1",
             2 => "IOI2",

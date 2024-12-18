@@ -1,7 +1,7 @@
 use prjcombine_collector::{FeatureId, State};
 use prjcombine_int::{
     db::{BelId, Dir, NodeKindId, NodeTileId, NodeWireId},
-    grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, SimpleIoCoord, TileIobId},
+    grid::{ColId, DieId, IntWire, LayerId, NodeLoc, RowId, TileIobId},
 };
 use prjcombine_virtex2::iob::IobKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
@@ -3234,22 +3234,20 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.ios.contains_key(&crd) {
                             return None;
                         }
                         fuzzer
                     }
                     ExpandedBond::Spartan6(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Spartan6(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.ios.contains_key(&crd) {
                             return None;
                         }
@@ -3282,12 +3280,8 @@ impl<'a> BelKV {
             }
             BelKV::IsBank(bank) => match backend.edev {
                 ExpandedDevice::Spartan6(edev) => {
-                    let crd = SimpleIoCoord {
-                        col: loc.1,
-                        row: loc.2,
-                        iob: TileIobId::from_idx(bel.to_idx()),
-                    };
-                    if edev.get_io_bank(crd) != *bank {
+                    let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
+                    if edev.grid.get_io_bank(crd) != *bank {
                         return None;
                     }
                     fuzzer
@@ -3300,11 +3294,10 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.diffp.contains(&crd) && !ebond.bond.diffn.contains(&crd) {
                             return None;
                         }
@@ -3319,33 +3312,30 @@ impl<'a> BelKV {
                 };
                 match &backend.ebonds[pkg] {
                     ExpandedBond::Virtex(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
                         }
                         fuzzer
                     }
                     ExpandedBond::Virtex2(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Virtex2(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
                         }
                         fuzzer
                     }
                     ExpandedBond::Spartan6(ebond) => {
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
+                        let ExpandedNamedDevice::Spartan6(endev) = backend.endev else {
+                            unreachable!()
                         };
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
                         if !ebond.bond.vref.contains(&crd) {
                             return None;
                         }
@@ -3384,11 +3374,7 @@ impl<'a> BelKV {
                     let ExpandedBond::Virtex2(ref ebond) = backend.ebonds[pkg] else {
                         unreachable!()
                     };
-                    let crd = SimpleIoCoord {
-                        col: loc.1,
-                        row: loc.2,
-                        iob: TileIobId::from_idx(bel.to_idx()),
-                    };
+                    let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
                     let mut is_vr = false;
                     for (bank, vr) in &edev.grid.dci_io {
                         if vr.0 == crd || vr.1 == crd {
@@ -3925,12 +3911,8 @@ impl<'a> BelKV {
                         };
                         let bel_key = backend.egrid.db.nodes[node.kind].bels.key(bel);
                         let (crd, orig_bank) = if bel_key.starts_with("IOB") {
-                            let crd = SimpleIoCoord {
-                                col: loc.1,
-                                row: loc.2,
-                                iob: TileIobId::from_idx(bel.to_idx()),
-                            };
-                            (Some(crd), edev.get_io_bank(crd))
+                            let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
+                            (Some(crd), edev.grid.get_io_bank(crd))
                         } else {
                             (
                                 None,
@@ -3949,8 +3931,8 @@ impl<'a> BelKV {
                                 },
                             )
                         };
-                        for io in edev.get_bonded_ios() {
-                            let bank = edev.get_io_bank(io);
+                        for io in edev.grid.get_bonded_ios() {
+                            let bank = edev.grid.get_io_bank(io);
                             if Some(io) != crd && bank == orig_bank && ebond.ios.contains_key(&io) {
                                 let site = endev.get_io_name(io);
 
@@ -3977,20 +3959,15 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
-                        };
-                        let orig_io_info = edev.get_io_info(crd);
-                        for io in edev.get_bonded_ios() {
-                            let io_info = edev.get_io_info(io);
+                        let crd = endev.grid.get_io_crd(loc.1, loc.2, bel);
+                        let orig_io_info = edev.grid.get_io_info(crd);
+                        for io in edev.grid.get_bonded_ios() {
+                            let io_info = edev.grid.get_io_info(io);
                             if io != crd
                                 && orig_io_info.bank == io_info.bank
                                 && io_info.pad_kind != Some(IobKind::Clk)
                                 && (!is_diff
-                                    || io_info.diff
-                                        != prjcombine_virtex2::expanded::IoDiffKind::None)
+                                    || io_info.diff != prjcombine_virtex2::grid::IoDiffKind::None)
                                 && ebond.ios.contains_key(&io)
                             {
                                 let site = endev.get_io_name(io);
@@ -3999,7 +3976,7 @@ impl<'a> BelKV {
                                     Key::SiteMode(site),
                                     if is_diff {
                                         match io_info.diff {
-                                            prjcombine_virtex2::expanded::IoDiffKind::P(_) => {
+                                            prjcombine_virtex2::grid::IoDiffKind::P(_) => {
                                                 if edev.grid.kind.is_spartan3a() {
                                                     "DIFFMI_NDT"
                                                 } else if edev.grid.kind.is_spartan3ea() {
@@ -4008,7 +3985,7 @@ impl<'a> BelKV {
                                                     "DIFFM"
                                                 }
                                             }
-                                            prjcombine_virtex2::expanded::IoDiffKind::N(_) => {
+                                            prjcombine_virtex2::grid::IoDiffKind::N(_) => {
                                                 if edev.grid.kind.is_spartan3a() {
                                                     "DIFFSI_NDT"
                                                 } else if edev.grid.kind.is_spartan3ea() {
@@ -4017,7 +3994,7 @@ impl<'a> BelKV {
                                                     "DIFFS"
                                                 }
                                             }
-                                            prjcombine_virtex2::expanded::IoDiffKind::None => {
+                                            prjcombine_virtex2::grid::IoDiffKind::None => {
                                                 unreachable!()
                                             }
                                         }
@@ -4072,19 +4049,15 @@ impl<'a> BelKV {
                         let ExpandedNamedDevice::Virtex2(ref endev) = backend.endev else {
                             unreachable!()
                         };
-                        let crd = SimpleIoCoord {
-                            col: loc.1,
-                            row: loc.2,
-                            iob: TileIobId::from_idx(bel.to_idx()),
-                        };
+                        let crd = edev.grid.get_io_crd(loc.1, loc.2, bel);
                         let stds = if let Some(stdb) = stdb {
                             &[stda, stdb][..]
                         } else {
                             &[stda][..]
                         };
-                        let bank = edev.get_io_info(crd).bank;
+                        let bank = edev.grid.get_io_info(crd).bank;
                         let mut done = 0;
-                        let mut ios = edev.get_bonded_ios();
+                        let mut ios = edev.grid.get_bonded_ios();
                         if edev.grid.kind != prjcombine_virtex2::grid::GridKind::Spartan3ADsp {
                             ios.reverse();
                         }
@@ -4097,23 +4070,19 @@ impl<'a> BelKV {
                                     continue;
                                 }
                             }
-                            let io_info = edev.get_io_info(io);
+                            let io_info = edev.grid.get_io_info(io);
                             if !ebond.ios.contains_key(&io)
                                 || io_info.bank != bank
                                 || io_info.pad_kind != Some(IobKind::Iob)
                             {
                                 continue;
                             }
-                            let prjcombine_virtex2::expanded::IoDiffKind::P(other_iob) =
-                                io_info.diff
+                            let prjcombine_virtex2::grid::IoDiffKind::P(other_iob) = io_info.diff
                             else {
                                 continue;
                             };
                             // okay, got a pair.
-                            let other_io = SimpleIoCoord {
-                                iob: other_iob,
-                                ..io
-                            };
+                            let other_io = io.with_iob(other_iob);
                             let site_p = endev.get_io_name(io);
                             let site_n = endev.get_io_name(other_io);
                             let std = stds[done];

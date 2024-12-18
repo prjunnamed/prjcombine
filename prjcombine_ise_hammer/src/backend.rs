@@ -273,7 +273,7 @@ impl<'a> Backend for IseBackend<'a> {
                     site_to_place.insert(name.to_string(), k.to_string());
                 }
             }
-            for io in endev.edev.get_bonded_ios() {
+            for io in endev.grid.get_bonded_ios() {
                 let name = endev.get_io_name(io);
                 match site_to_place.entry(name.to_string()) {
                     hash_map::Entry::Occupied(_) => (),
