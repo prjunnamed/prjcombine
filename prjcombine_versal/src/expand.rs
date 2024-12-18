@@ -4,7 +4,9 @@ use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 
 use crate::expanded::{ExpandedDevice, SllConns, UbumpId};
-use crate::grid::{CleKind, ColumnKind, DisabledPart, Grid, HardRowKind, Interposer, RightKind};
+use crate::grid::{
+    CleKind, ColumnKind, DisabledPart, Grid, GtRowKind, HardRowKind, Interposer, RightKind,
+};
 
 struct DieInfo {
     col_cfrm: ColId,
@@ -559,17 +561,60 @@ impl Expander<'_> {
 
     fn fill_rgt(&mut self) {
         for (dieid, grid) in &self.grids {
-            if !matches!(grid.right, RightKind::Gt(_) | RightKind::HNicX) {
-                continue;
-            }
             let mut die = self.egrid.die_mut(dieid);
             let col = die.cols().next_back().unwrap();
+            match grid.right {
+                RightKind::Gt(ref regs) => {
+                    for (reg, &kind) in regs {
+                        let row = grid.row_reg_bot(reg);
+                        let crds: [_; Grid::ROWS_PER_REG] =
+                            core::array::from_fn(|dy| (col, row + dy));
+                        match kind {
+                            GtRowKind::None => (),
+                            GtRowKind::Gty => {
+                                // TODO
+                            }
+                            GtRowKind::Gtyp => {
+                                // TODO
+                            }
+                            GtRowKind::Gtm => {
+                                // TODO
+                            }
+                            GtRowKind::RfAdc => {
+                                // TODO
+                            }
+                            GtRowKind::RfDac => {
+                                // TODO
+                            }
+                            GtRowKind::Xram => unreachable!(),
+                            GtRowKind::Vdu => {
+                                die.add_xnode(crds[0], "VDU.E", &crds);
+                            }
+                            GtRowKind::BfrB => {
+                                die.add_xnode(crds[0], "BFR_B.E", &crds);
+                            }
+                            GtRowKind::Isp2 => {
+                                // TODO
+                            }
+                            GtRowKind::Vcu2B => {
+                                // TODO
+                            }
+                            GtRowKind::Vcu2T => {
+                                // handled in bottom tile
+                            }
+                        }
+                    }
+                }
+                RightKind::HNicX => {
+                    // TODO
+                }
+                _ => continue,
+            }
             for reg in grid.regs() {
                 let row = grid.row_reg_bot(reg);
                 let crds: [_; Grid::ROWS_PER_REG] = core::array::from_fn(|dy| (col, row + dy));
                 die.add_xnode(crds[0], "SYSMON_SAT.RGT", &crds);
                 die.add_xnode(crds[0], "DPLL.RGT", &crds);
-                // TODO: actual GT
             }
         }
     }

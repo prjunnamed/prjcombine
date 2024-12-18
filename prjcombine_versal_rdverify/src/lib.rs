@@ -944,6 +944,24 @@ fn verify_vnoc_scan(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(bel, "NOC2_SCAN", &pins, &[]);
 }
 
+fn verify_vdu(vrf: &mut Verifier, bel: &BelContext<'_>) {
+    vrf.verify_bel(
+        bel,
+        "VDU",
+        &[
+            ("VDUCORECLK", SitePinDir::In),
+            ("VDUMCUCLK", SitePinDir::In),
+        ],
+        &[],
+    );
+    let obel = vrf.find_bel_sibling(bel, "DPLL.RGT");
+    for (pin, pllpin) in [("VDUCORECLK", "CLKOUT2"), ("VDUMCUCLK", "CLKOUT3")] {
+        vrf.claim_node(&[bel.fwire(pin)]);
+        vrf.claim_pip(bel.crd(), bel.wire(pin), bel.wire_far(pin));
+        vrf.verify_node(&[bel.fwire_far(pin), obel.fwire_far(pllpin)]);
+    }
+}
+
 fn verify_vcc(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.claim_vcc_node(bel.fwire("VCC"));
 }
@@ -979,9 +997,10 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<
         "VNOC_NPS_A" | "VNOC_NPS_B" | "VNOC2_NPS_A" | "VNOC2_NPS_B" => verify_vnoc_nps(vrf, bel),
         "VNOC4_NPS_A" | "VNOC4_NPS_B" => verify_vnoc_nps6x(vrf, bel),
         "VNOC2_SCAN" | "VNOC4_SCAN" => verify_vnoc_scan(vrf, bel),
-        "HDIO_BIAS" | "RPI_HD_APB" | "HDLOGIC_APB" | "MISR" => {
+        "HDIO_BIAS" | "RPI_HD_APB" | "HDLOGIC_APB" | "MISR" | "BFR_B" => {
             vrf.verify_bel(bel, bel.key, &[], &[])
         }
+        "VDU" => verify_vdu(vrf, bel),
 
         _ if bel.key.starts_with("SLICE") => verify_slice(vrf, bel),
         _ if bel.key.starts_with("BUFDIV_LEAF") => verify_bufdiv_leaf(endev, vrf, bel),

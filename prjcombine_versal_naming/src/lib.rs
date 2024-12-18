@@ -487,6 +487,20 @@ pub fn name_device<'a>(
         (1, 1),
         (0, 0),
     );
+    let vdu_grid = make_grid(
+        edev,
+        |_, node, _| node == "VDU.E",
+        |_, _, _| false,
+        (1, 1),
+        (0, 0),
+    );
+    let bfr_b_grid = make_grid(
+        edev,
+        |_, node, _| node == "BFR_B.E",
+        |_, _, _| false,
+        (1, 1),
+        (0, 0),
+    );
 
     let mut ngrid = ExpandedGridNaming::new(ndb, egrid);
 
@@ -2419,6 +2433,46 @@ pub fn name_device<'a>(
                             );
                             let (sx, sy) = dev_naming.die[die.die].dpll_gt[&(col, reg)];
                             nnode.add_bel(0, vnoc_grid.name_manual("DPLL", die.die, sx, sy));
+                        }
+                        "BFR_B.E" => {
+                            let bt = if grid.is_reg_top(reg) { "TOP" } else { "BOT" };
+                            let nnode = ngrid.name_node(
+                                nloc,
+                                kind,
+                                [int_grid.name(
+                                    &format!("BFR_TILE_B_{bt}_CORE"),
+                                    die.die,
+                                    col,
+                                    ColSide::Left,
+                                    row,
+                                    0,
+                                    0,
+                                )],
+                            );
+                            nnode.add_bel(
+                                0,
+                                bfr_b_grid.name("BFR_B", die.die, col, ColSide::Left, row, 0, 0),
+                            );
+                        }
+                        "VDU.E" => {
+                            let nnode =
+                                ngrid.name_node(
+                                    nloc,
+                                    kind,
+                                    [int_grid.name(
+                                        "VDU_CORE",
+                                        die.die,
+                                        col,
+                                        ColSide::Left,
+                                        row,
+                                        0,
+                                        0,
+                                    )],
+                                );
+                            nnode.add_bel(
+                                0,
+                                vdu_grid.name("VDU", die.die, col, ColSide::Left, row, 0, 0),
+                            );
                         }
 
                         _ => panic!("how to {kind}"),

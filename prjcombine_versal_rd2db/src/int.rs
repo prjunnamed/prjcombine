@@ -2251,5 +2251,32 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
         xn.bels(bels).extract();
     }
 
+    if let Some(&xy) = rd.tiles_by_kind_name("VDU_CORE_MY").iter().next() {
+        let bel = builder
+            .bel_xy("VDU", "VDU", 0, 0)
+            .pin_name_only("VDUCORECLK", 1)
+            .pin_name_only("VDUMCUCLK", 1);
+        let intf_l = builder.ndb.get_node_naming("INTF.E.TERM.GT");
+        let int_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+        let mut xn = builder.xnode("VDU.E", "VDU.E", xy).num_tiles(48);
+        for i in 0..48 {
+            xn = xn.ref_single(int_xy.delta(1, (i + i / 4) as i32), i, intf_l)
+        }
+        xn.bel(bel).extract();
+    }
+
+    for tkn in ["BFR_TILE_B_BOT_CORE", "BFR_TILE_B_TOP_CORE"] {
+        if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
+            let bel = builder.bel_xy("BFR_B", "BFR_B", 0, 0);
+            let intf_l = builder.ndb.get_node_naming("INTF.E.TERM.GT");
+            let int_xy = builder.walk_to_int(xy, Dir::W, false).unwrap();
+            let mut xn = builder.xnode("BFR_B.E", "BFR_B.E", xy).num_tiles(48);
+            for i in 0..48 {
+                xn = xn.ref_single(int_xy.delta(1, (i + i / 4) as i32), i, intf_l)
+            }
+            xn.bel(bel).extract();
+        }
+    }
+
     builder.build()
 }
