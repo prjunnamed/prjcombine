@@ -575,6 +575,7 @@ pub fn make_grid(die: &Die) -> Grid {
         is_buff_large: false,
         cols_bidi: Default::default(),
         rows_bidi: Default::default(),
+        unbonded_io: BTreeSet::new(),
     }
 }
 

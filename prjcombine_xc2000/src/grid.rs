@@ -94,6 +94,7 @@ pub struct Grid {
     pub cols_bidi: BTreeSet<ColId>,
     pub rows_bidi: BTreeSet<RowId>,
     pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
+    pub unbonded_io: BTreeSet<EdgeIoCoord>,
 }
 
 impl Grid {
@@ -545,6 +546,7 @@ impl Grid {
                     SharedCfgPin::M1 => "M1".to_string(),
                 }, io.to_string().into())
             })),
+            "unbonded_io": Vec::from_iter(self.unbonded_io.iter().map(|&io| io.to_string())),
         })
     }
 }
@@ -568,6 +570,12 @@ impl Display for Grid {
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
             writeln!(f, "\t\t{k:?}: {v}")?;
+        }
+        if !self.unbonded_io.is_empty() {
+            writeln!(f, "\tUNBONDED IO:")?;
+            for &io in &self.unbonded_io {
+                writeln!(f, "\t\t{io}")?;
+            }
         }
         Ok(())
     }

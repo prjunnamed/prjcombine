@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use prjcombine_rawdump::Part;
 use prjcombine_xc2000::grid::{Grid, GridKind};
 
@@ -15,5 +17,6 @@ pub fn make_grid(rd: &Part) -> Grid {
         is_buff_large: false,
         cols_bidi: Default::default(),
         rows_bidi: Default::default(),
+        unbonded_io: BTreeSet::new(),
     }
 }

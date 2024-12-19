@@ -805,11 +805,12 @@ pub fn make_grid(die: &Die) -> Grid {
         is_small: false,
         cols_bidi: Default::default(),
         rows_bidi: Default::default(),
+        unbonded_io: BTreeSet::new(),
     }
 }
 
-pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
-    let grid = make_grid(die);
+pub fn dump_grid(die: &Die, noblock: &[String]) -> (Grid, IntDb, NamingDb) {
+    let mut grid = make_grid(die);
     let mut intdb = make_intdb(grid.kind);
     let mut ndb = NamingDb::default();
     for name in intdb.nodes.keys() {
@@ -1746,8 +1747,21 @@ pub fn dump_grid(die: &Die) -> (Grid, IntDb, NamingDb) {
         }
     }
 
+    let io_lookup: BTreeMap<_, _> = endev
+        .grid
+        .get_bonded_ios()
+        .into_iter()
+        .map(|io| (endev.get_io_name(io).to_string(), io))
+        .collect();
+
     let finisher = extractor.finish();
     finisher.finish(&mut intdb, &mut ndb);
+
+    for pad in noblock {
+        let io = io_lookup[pad];
+        grid.unbonded_io.insert(io);
+    }
+
     (grid, intdb, ndb)
 }
 

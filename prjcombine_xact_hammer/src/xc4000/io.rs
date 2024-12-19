@@ -75,35 +75,51 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             for bel in ["HIOB0", "HIOB1", "HIOB2", "HIOB3"] {
                 let mut bctx = ctx.bel(bel);
                 bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .test_enum("PAD", &["PULLDOWN", "PULLUP"]);
                 bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .cfg("OUT", "O")
                     .test_enum("TRI", &["TS", "TP"]);
                 bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .cfg("OUT", "O")
                     .test_cfg("TRI", "NOT");
-                bctx.mode("IO").test_cfg("IN", "I");
-                bctx.mode("IO").cfg("IN", "I").test_cfg("IN", "NOT");
+                bctx.mode("IO").bonded_io().test_cfg("IN", "I");
                 bctx.mode("IO")
+                    .bonded_io()
+                    .cfg("IN", "I")
+                    .test_cfg("IN", "NOT");
+                bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .test_enum("IN", &["CMOS", "TTL"]);
-                bctx.mode("IO").cfg("IN", "I").test_cfg("OUT", "O");
                 bctx.mode("IO")
+                    .bonded_io()
+                    .cfg("IN", "I")
+                    .test_cfg("OUT", "O");
+                bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .cfg("OUT", "O")
                     .test_cfg("OUT", "NOT");
                 bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .cfg("OUT", "O")
                     .test_enum("OUT", &["CMOS", "TTL"]);
                 bctx.mode("IO")
+                    .bonded_io()
                     .cfg("IN", "I")
                     .cfg("OUT", "O")
                     .test_enum("OUT", &["CAP", "RES"]);
-                bctx.mode("IO").cfg("IN", "I").test_cfg("RDBK", "I");
+                bctx.mode("IO")
+                    .bonded_io()
+                    .cfg("IN", "I")
+                    .test_cfg("RDBK", "I");
             }
         }
         for bel in ["DEC0", "DEC1", "DEC2"] {

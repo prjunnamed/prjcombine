@@ -9,9 +9,7 @@ use prjcombine_int::{
 use crate::{
     backend::{Key, Value, XactBackend},
     fgen::{
-        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, ExtraTile, FuzzBelConfig,
-        FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate, FuzzEquateFixed,
-        FuzzRaw, PinMutexExclusive, Prop, XactFuzzerGen,
+        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BondedIo, ExtraTile, FuzzBelConfig, FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate, FuzzEquateFixed, FuzzRaw, PinMutexExclusive, Prop, XactFuzzerGen
     },
 };
 
@@ -328,6 +326,11 @@ impl<'sm, 'a> FuzzBuilderBel<'sm, 'a> {
 
     pub fn cfg(self, attr: impl Into<String>, val: impl Into<String>) -> Self {
         let prop = BaseBelConfig::new(self.bel, attr.into(), val.into());
+        self.prop(prop)
+    }
+
+    pub fn bonded_io(self) -> Self {
+        let prop = BondedIo::new(self.bel);
         self.prop(prop)
     }
 

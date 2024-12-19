@@ -550,6 +550,37 @@ impl Prop for FuzzBelPipPin {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct BondedIo {
+    pub bel: BelId,
+}
+
+impl BondedIo {
+    pub fn new(bel: BelId) -> Self {
+        Self { bel }
+    }
+}
+
+impl Prop for BondedIo {
+    fn dyn_clone(&self) -> Box<dyn Prop> {
+        Box::new(Clone::clone(self))
+    }
+
+    fn apply<'a>(
+        &self,
+        backend: &XactBackend<'a>,
+        nloc: NodeLoc,
+        fuzzer: Fuzzer<XactBackend<'a>>,
+    ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
+        let io = backend.edev.grid.get_io_crd(nloc.1, nloc.2, self.bel);
+        if backend.edev.grid.unbonded_io.contains(&io) {
+            None
+        } else {
+            Some((fuzzer, false))
+        }
+    }
+}
+
 pub fn get_bits(backend: &XactBackend, nloc: NodeLoc) -> Vec<BitTile> {
     let edev = backend.edev;
     let node = backend.egrid.node(nloc);

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
-    grid::{DieId, LayerId, EdgeIoCoord},
+    grid::{DieId, EdgeIoCoord, LayerId},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};
@@ -431,6 +431,7 @@ pub fn make_grid(die: &Die, kind: GridKind) -> Grid {
         is_small: clb_x.len() == 8,
         is_buff_large: false,
         cfg_io: Default::default(),
+        unbonded_io: BTreeSet::new(),
     }
 }
 

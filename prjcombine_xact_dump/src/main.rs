@@ -69,7 +69,10 @@ fn main() {
                             GridKind::Xc3000
                         },
                     ),
-                    PartKind::Xc4000 => xc4000::dump_grid(&die),
+                    PartKind::Xc4000 => xc4000::dump_grid(
+                        &die,
+                        part.kv.get("NOBLOCK").map(|x| &x[..]).unwrap_or(&[]),
+                    ),
                     PartKind::Xc5200 => xc5200::dump_grid(&die),
                     PartKind::Xc7000 => unreachable!(),
                 };

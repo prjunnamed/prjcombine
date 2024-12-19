@@ -1,7 +1,7 @@
 use prjcombine_int::db::BelId;
 use prjcombine_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::grid::{Grid, GridKind, SharedCfgPin};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
 use prjcombine_rdgrid::{extract_int, IntGrid};
@@ -72,6 +72,7 @@ pub fn make_grid(rd: &Part) -> Grid {
         is_small: false,
         cols_bidi: Default::default(),
         rows_bidi: Default::default(),
+        unbonded_io: BTreeSet::new(),
     };
     handle_spec_io(rd, &mut grid, &int);
     grid
