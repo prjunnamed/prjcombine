@@ -9,7 +9,9 @@ use prjcombine_int::{
 use crate::{
     backend::{Key, Value, XactBackend},
     fgen::{
-        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BondedIo, ExtraTile, FuzzBelConfig, FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate, FuzzEquateFixed, FuzzRaw, PinMutexExclusive, Prop, XactFuzzerGen
+        BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BondedIo, ExtraTile, FuzzBelConfig,
+        FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin, FuzzEquate, FuzzEquateFixed,
+        FuzzRaw, PinMutexExclusive, Prop, XactFuzzerGen,
     },
 };
 

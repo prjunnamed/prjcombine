@@ -1,6 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::{db::BelId, grid::{ColId, EdgeIoCoord}};
+use prjcombine_int::{
+    db::BelId,
+    grid::{ColId, EdgeIoCoord},
+};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::grid::{DisabledPart, Grid, GridKind, SharedCfgPin};
 use unnamed_entity::EntityId;

@@ -1,8 +1,6 @@
 use enum_map::EnumMap;
 use prjcombine_int::db::{Dir, IntDb};
-use prjcombine_int::grid::{
-    ColId, Coord, EdgeIoCoord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId, TileIobId,
-};
+use prjcombine_int::grid::{ColId, Coord, ExpandedDieRefMut, ExpandedGrid, Rect, RowId};
 use prjcombine_virtex_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
@@ -22,7 +20,6 @@ struct Expander<'a, 'b> {
     frame_info: Vec<FrameInfo>,
     bram_frame_info: Vec<FrameInfo>,
     iob_frame_len: usize,
-    io: Vec<EdgeIoCoord>,
     col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     col_width: EntityVec<ColId, usize>,
     spine_frame: EntityVec<RegId, usize>,
@@ -203,7 +200,7 @@ impl Expander<'_, '_> {
         for (row, &rd) in &self.grid.rows {
             if rd.lio {
                 self.fill_ioi((col, row));
-                self.fill_iob((col, row));
+                self.die.add_xnode((col, row), "IOB", &[]);
             } else {
                 self.die.add_xnode((col, row), "INTF", &[(col, row)]);
                 if row == self.grid.row_bio_outer() {
@@ -245,7 +242,7 @@ impl Expander<'_, '_> {
         for (row, &rd) in self.grid.rows.iter().rev() {
             if rd.rio {
                 self.fill_ioi((col, row));
-                self.fill_iob((col, row));
+                self.die.add_xnode((col, row), "IOB", &[]);
             } else {
                 self.die.add_xnode((col, row), "INTF", &[(col, row)]);
                 if row == self.grid.row_bio_outer() {
@@ -301,7 +298,7 @@ impl Expander<'_, '_> {
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
-                    self.fill_iob((col, row));
+                    self.die.add_xnode((col, row), "IOB", &[]);
                 }
             }
             let row = self.grid.row_tio_outer();
@@ -331,7 +328,7 @@ impl Expander<'_, '_> {
             ] {
                 self.fill_ioi((col, row));
                 if !unused {
-                    self.fill_iob((col, row));
+                    self.die.add_xnode((col, row), "IOB", &[]);
                 }
             }
             let row = self.grid.row_bio_outer();
@@ -816,44 +813,6 @@ impl Expander<'_, '_> {
         self.die.add_xnode(crd, kind, &[crd]);
     }
 
-    fn fill_iob(&mut self, crd: Coord) {
-        self.die.add_xnode(crd, "IOB", &[]);
-        let (crd_p, crd_n) = if crd.0 == self.grid.col_lio() {
-            (
-                EdgeIoCoord::L(crd.1, TileIobId::from_idx(1)),
-                EdgeIoCoord::L(crd.1, TileIobId::from_idx(0)),
-            )
-        } else if crd.0 == self.grid.col_rio() {
-            (
-                EdgeIoCoord::R(crd.1, TileIobId::from_idx(1)),
-                EdgeIoCoord::R(crd.1, TileIobId::from_idx(0)),
-            )
-        } else if crd.1 == self.grid.row_bio_outer() {
-            (
-                EdgeIoCoord::B(crd.0, TileIobId::from_idx(3)),
-                EdgeIoCoord::B(crd.0, TileIobId::from_idx(2)),
-            )
-        } else if crd.1 == self.grid.row_bio_inner() {
-            (
-                EdgeIoCoord::B(crd.0, TileIobId::from_idx(1)),
-                EdgeIoCoord::B(crd.0, TileIobId::from_idx(0)),
-            )
-        } else if crd.1 == self.grid.row_tio_outer() {
-            (
-                EdgeIoCoord::T(crd.0, TileIobId::from_idx(3)),
-                EdgeIoCoord::T(crd.0, TileIobId::from_idx(2)),
-            )
-        } else if crd.1 == self.grid.row_tio_inner() {
-            (
-                EdgeIoCoord::T(crd.0, TileIobId::from_idx(1)),
-                EdgeIoCoord::T(crd.0, TileIobId::from_idx(0)),
-            )
-        } else {
-            unreachable!()
-        };
-        self.io.extend([crd_p, crd_n]);
-    }
-
     fn fill_intf_rterm(&mut self, crd: Coord) {
         self.die.fill_term(crd, "TERM.E");
         self.die.add_xnode(crd, "INTF", &[crd]);
@@ -1019,7 +978,6 @@ impl Grid {
             frame_info: vec![],
             bram_frame_info: vec![],
             iob_frame_len: 0,
-            io: vec![],
             col_frame: EntityVec::new(),
             col_width: EntityVec::new(),
             spine_frame: EntityVec::new(),
@@ -1050,8 +1008,6 @@ impl Grid {
         expander.fill_frame_info();
         expander.fill_iob_frame_info();
 
-        let io = expander.io;
-
         let die_bs_geom = DieBitstreamGeom {
             frame_len: 1040,
             frame_info: expander.frame_info,
@@ -1081,7 +1037,6 @@ impl Grid {
             egrid,
             site_holes,
             bs_geom,
-            io,
             col_frame,
             col_width,
             spine_frame,

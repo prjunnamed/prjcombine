@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
     Tck,
     Tdi,
@@ -18,7 +18,7 @@ pub enum CfgPin {
     M2,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Clk(u32),
     Io(EdgeIoCoord),
@@ -32,7 +32,7 @@ pub enum BondPin {
     Dxp,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Bond {
     pub pins: BTreeMap<String, BondPin>,
     // device bank -> pkg bank

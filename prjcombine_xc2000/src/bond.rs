@@ -5,7 +5,7 @@ use prjcombine_int::grid::EdgeIoCoord;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum CfgPin {
     Cclk,
     Done,
@@ -18,7 +18,7 @@ pub enum CfgPin {
     M2,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum BondPin {
     Io(EdgeIoCoord),
     Gnd,

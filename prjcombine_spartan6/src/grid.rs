@@ -339,6 +339,63 @@ impl Grid {
         }
     }
 
+    pub fn get_bonded_ios(&self) -> Vec<EdgeIoCoord> {
+        let mut res = vec![];
+        // TIO
+        for (col, &cd) in &self.columns {
+            if cd.tio == ColumnIoKind::None {
+                continue;
+            }
+            for (iob, unused) in [
+                // outer
+                (3, cd.tio == ColumnIoKind::Inner),
+                (2, cd.tio == ColumnIoKind::Inner),
+                // inner
+                (1, cd.tio == ColumnIoKind::Outer),
+                (0, cd.tio == ColumnIoKind::Outer),
+            ] {
+                if !unused {
+                    res.push(EdgeIoCoord::T(col, TileIobId::from_idx(iob)));
+                }
+            }
+        }
+        // RIO
+        for (row, &rd) in self.rows.iter().rev() {
+            if rd.rio {
+                for iob in [1, 0] {
+                    res.push(EdgeIoCoord::R(row, TileIobId::from_idx(iob)));
+                }
+            }
+        }
+        // BIO
+        for (col, &cd) in self.columns.iter().rev() {
+            if cd.bio == ColumnIoKind::None {
+                continue;
+            }
+            for (iob, unused) in [
+                // outer
+                (3, cd.bio == ColumnIoKind::Inner),
+                (2, cd.bio == ColumnIoKind::Inner),
+                // inner
+                (1, cd.bio == ColumnIoKind::Outer),
+                (0, cd.bio == ColumnIoKind::Outer),
+            ] {
+                if !unused {
+                    res.push(EdgeIoCoord::B(col, TileIobId::from_idx(iob)));
+                }
+            }
+        }
+        // LIO
+        for (row, &rd) in &self.rows {
+            if rd.lio {
+                for iob in [1, 0] {
+                    res.push(EdgeIoCoord::L(row, TileIobId::from_idx(iob)));
+                }
+            }
+        }
+        res
+    }
+
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "columns": Vec::from_iter(self.columns.values().map(|column| {

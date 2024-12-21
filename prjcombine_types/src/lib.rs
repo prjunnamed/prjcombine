@@ -3,6 +3,7 @@ use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use unnamed_entity::entity_id;
 
+pub mod bscan;
 pub mod tiledb;
 
 entity_id! {

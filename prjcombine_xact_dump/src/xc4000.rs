@@ -6,7 +6,7 @@ use prjcombine_int::{
         BelId, BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind,
         WireKind,
     },
-    grid::{DieId, LayerId, EdgeIoCoord},
+    grid::{DieId, EdgeIoCoord, LayerId},
 };
 use prjcombine_xact_data::die::Die;
 use prjcombine_xact_naming::db::{NamingDb, NodeNaming};

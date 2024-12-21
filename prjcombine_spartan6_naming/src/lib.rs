@@ -1666,7 +1666,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     }
 
     let mut pad_cnt = 1;
-    for &io in &edev.io {
+    for io in edev.grid.get_bonded_ios() {
         let (col, row, bel) = grid.get_io_loc(io);
         let layer = edev
             .egrid

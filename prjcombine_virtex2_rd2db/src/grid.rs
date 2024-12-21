@@ -1,6 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use prjcombine_int::{db::BelId, grid::{ColId, RowId}};
+use prjcombine_int::{
+    db::BelId,
+    grid::{ColId, RowId},
+};
 use prjcombine_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex2::grid::{
     Column, ColumnIoKind, ColumnKind, Dcms, Grid, GridKind, RowIoKind, SharedCfgPin,
@@ -424,7 +427,7 @@ fn handle_spec_io(rd: &Part, grid: &mut Grid, int: &IntGrid) {
                         grid.get_io_crd(
                             int.lookup_column(crd.x.into()),
                             int.lookup_row(crd.y.into()),
-                            BelId::from_idx(idx as usize)
+                            BelId::from_idx(idx as usize),
                         ),
                     );
                 }

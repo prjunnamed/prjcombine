@@ -1,7 +1,7 @@
 use enum_map::EnumMap;
 use prjcombine_int::{
     db::Dir,
-    grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, Rect, RowId},
+    grid::{ColId, DieId, ExpandedGrid, Rect, RowId},
 };
 use prjcombine_virtex_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
@@ -15,7 +15,6 @@ pub struct ExpandedDevice<'a> {
     pub egrid: ExpandedGrid<'a>,
     pub site_holes: Vec<Rect>,
     pub bs_geom: BitstreamGeom,
-    pub io: Vec<EdgeIoCoord>,
     pub col_frame: EntityVec<RegId, EntityVec<ColId, usize>>,
     pub col_width: EntityVec<ColId, usize>,
     pub spine_frame: EntityVec<RegId, usize>,

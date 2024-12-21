@@ -11,10 +11,10 @@ pub fn make_bond(endev: &ExpandedNamedDevice, pins: &[PkgPin]) -> Bond {
     let mut io_banks = BTreeMap::new();
     let mut vref = BTreeSet::new();
     let io_lookup: HashMap<_, _> = endev
-        .edev
-        .io
-        .iter()
-        .map(|&io| (endev.get_io_name(io), io))
+        .grid
+        .get_bonded_ios()
+        .into_iter()
+        .map(|io| (endev.get_io_name(io), io))
         .collect();
     let mut gt_lookup: HashMap<_, (String, u32, GtPin)> = HashMap::new();
     for gt in endev.get_gts() {
