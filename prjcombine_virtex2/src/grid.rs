@@ -9,7 +9,7 @@ use crate::iob::{
     get_iob_data_b, get_iob_data_l, get_iob_data_r, get_iob_data_t, IobKind, IobTileData,
 };
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Virtex2,
     Virtex2P,

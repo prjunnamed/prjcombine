@@ -1,12 +1,17 @@
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use std::{
+    collections::{btree_map, BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
 
+use itertools::Itertools;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex2::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
-    grid::Grid,
+    grid::{Grid, GridKind},
 };
 use prjcombine_xilinx_geom::GeomDb;
+use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
@@ -14,6 +19,67 @@ struct TmpPart<'a> {
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum PartKind {
+    Virtex2,
+    QVirtex2,
+    QRVirtex2,
+    Spartan3,
+    ASpartan3,
+    Spartan3L,
+    Spartan3N,
+    FpgaCore,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct SortKey<'a> {
+    kind: GridKind,
+    width: usize,
+    height: usize,
+    part_kind: PartKind,
+    name: &'a str,
+}
+
+static RE_VIRTEX2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc2v(|p|px)[0-9]+$").unwrap());
+static RE_QVIRTEX2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xq2v(|p|px)[0-9]+$").unwrap());
+static RE_QRVIRTEX2: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^xqr2v(|p|px)[0-9]+$").unwrap());
+static RE_SPARTAN3: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc3sd?[0-9]+(|e|a)$").unwrap());
+static RE_ASPARTAN3: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^xa3sd?[0-9]+(|e|a)$").unwrap());
+static RE_SPARTAN3L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc3s[0-9]+l$").unwrap());
+static RE_SPARTAN3N: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc3s[0-9]+an$").unwrap());
+static RE_FPGACORE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcexf[0-9]+$").unwrap());
+
+fn sort_key<'a>(name: &'a str, grid: &'a Grid) -> SortKey<'a> {
+    let part_kind = if RE_VIRTEX2.is_match(name) {
+        PartKind::Virtex2
+    } else if RE_QVIRTEX2.is_match(name) {
+        PartKind::QVirtex2
+    } else if RE_QRVIRTEX2.is_match(name) {
+        PartKind::QRVirtex2
+    } else if RE_SPARTAN3.is_match(name) {
+        PartKind::Spartan3
+    } else if RE_ASPARTAN3.is_match(name) {
+        PartKind::ASpartan3
+    } else if RE_SPARTAN3L.is_match(name) {
+        PartKind::Spartan3L
+    } else if RE_SPARTAN3N.is_match(name) {
+        PartKind::Spartan3N
+    } else if RE_FPGACORE.is_match(name) {
+        PartKind::FpgaCore
+    } else {
+        panic!("ummm {name}?")
+    };
+    SortKey {
+        kind: grid.kind,
+        width: grid.columns.len(),
+        height: grid.rows.len(),
+        part_kind,
+        name,
+    }
 }
 
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
@@ -57,7 +123,10 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut grids = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
-    for (name, tpart) in tmp_parts {
+    for (name, tpart) in tmp_parts
+        .into_iter()
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
+    {
         let grid = grids.insert(tpart.grid.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {

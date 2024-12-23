@@ -7,7 +7,7 @@ use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 use unnamed_entity::{EntityId, EntityIds};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum GridKind {
     Virtex,
     VirtexE,

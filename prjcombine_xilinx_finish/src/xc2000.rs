@@ -1,5 +1,9 @@
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use std::{
+    collections::{btree_map, BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
 
+use itertools::Itertools;
 use prjcombine_int::db::{BelInfo, NodeTileId};
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_xc2000::{
@@ -7,6 +11,7 @@ use prjcombine_xc2000::{
     db::{Database, DeviceCombo, Part},
     grid::Grid,
 };
+use regex::Regex;
 use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
@@ -14,6 +19,122 @@ struct TmpPart<'a> {
     bonds: BTreeMap<&'a str, &'a Bond>,
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct SortKey<'a> {
+    width: usize,
+    height: usize,
+    part_kind: PartKind,
+    name: &'a str,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum PartKind {
+    Xc2000,
+    Xc2000L,
+    Xc3000,
+    Xc3100,
+    Xc3000A,
+    Xc3000L,
+    Xc3100A,
+    Xc3100L,
+    Xc4000,
+    Xc4000D,
+    Xc4000A,
+    Xc4000H,
+    Xc4000E,
+    Xc4000L,
+    Spartan,
+    Xc4000Ex,
+    Xc4000Xl,
+    Xc4000Xla,
+    Xc4000Xv,
+    SpartanXl,
+    Xc5200,
+    Xc5200L,
+}
+
+static RE_2000: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc20[0-9]{2}$").unwrap());
+static RE_2000L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc20[0-9]{2}l$").unwrap());
+
+static RE_3000: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc30[0-9]{2}$").unwrap());
+static RE_3100: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc31[0-9]{2}$").unwrap());
+static RE_3000A: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc30[0-9]{2}a$").unwrap());
+static RE_3000L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc30[0-9]{2}l$").unwrap());
+static RE_3100A: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc31[0-9]{2}a$").unwrap());
+static RE_3100L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc31[0-9]{2}l$").unwrap());
+
+static RE_4000: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}$").unwrap());
+static RE_4000D: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}d$").unwrap());
+static RE_4000A: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}a$").unwrap());
+static RE_4000H: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}h$").unwrap());
+static RE_4000E: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}e$").unwrap());
+static RE_4000L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}l$").unwrap());
+static RE_SPARTAN: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcs[0-9]{2}$").unwrap());
+static RE_4000EX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}ex$").unwrap());
+static RE_4000XL: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}xl$").unwrap());
+static RE_4000XLA: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{2}xla$").unwrap());
+static RE_4000XV: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc40[0-9]{3}xv$").unwrap());
+static RE_SPARTANXL: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcs[0-9]{2}xl$").unwrap());
+
+static RE_5200: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}$").unwrap());
+static RE_5200L: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc52[0-9]{2}l$").unwrap());
+
+fn sort_key<'a>(name: &'a str, grid: &'a Grid) -> SortKey<'a> {
+    let part_kind = if RE_2000.is_match(name) {
+        PartKind::Xc2000
+    } else if RE_2000L.is_match(name) {
+        PartKind::Xc2000L
+    } else if RE_3000.is_match(name) {
+        PartKind::Xc3000
+    } else if RE_3100.is_match(name) {
+        PartKind::Xc3100
+    } else if RE_3000A.is_match(name) {
+        PartKind::Xc3000A
+    } else if RE_3000L.is_match(name) {
+        PartKind::Xc3000L
+    } else if RE_3100A.is_match(name) {
+        PartKind::Xc3100A
+    } else if RE_3100L.is_match(name) {
+        PartKind::Xc3100L
+    } else if RE_4000.is_match(name) {
+        PartKind::Xc4000
+    } else if RE_4000D.is_match(name) {
+        PartKind::Xc4000D
+    } else if RE_4000A.is_match(name) {
+        PartKind::Xc4000A
+    } else if RE_4000H.is_match(name) {
+        PartKind::Xc4000H
+    } else if RE_4000E.is_match(name) {
+        PartKind::Xc4000E
+    } else if RE_4000L.is_match(name) {
+        PartKind::Xc4000L
+    } else if RE_SPARTAN.is_match(name) {
+        PartKind::Spartan
+    } else if RE_4000EX.is_match(name) {
+        PartKind::Xc4000Ex
+    } else if RE_4000XL.is_match(name) {
+        PartKind::Xc4000Xl
+    } else if RE_4000XLA.is_match(name) {
+        PartKind::Xc4000Xla
+    } else if RE_4000XV.is_match(name) {
+        PartKind::Xc4000Xv
+    } else if RE_SPARTANXL.is_match(name) {
+        PartKind::SpartanXl
+    } else if RE_5200.is_match(name) {
+        PartKind::Xc5200
+    } else if RE_5200L.is_match(name) {
+        PartKind::Xc5200L
+    } else {
+        panic!("ummm {name}?")
+    };
+    SortKey {
+        width: grid.columns,
+        height: grid.rows,
+        part_kind,
+        name,
+    }
 }
 
 pub fn finish(
@@ -85,7 +206,10 @@ pub fn finish(
     let mut grids = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
-    for (name, tpart) in tmp_parts {
+    for (name, tpart) in tmp_parts
+        .into_iter()
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
+    {
         let grid = grids.insert(tpart.grid.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {

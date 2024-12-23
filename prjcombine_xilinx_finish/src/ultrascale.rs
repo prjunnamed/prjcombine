@@ -1,13 +1,18 @@
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use std::{
+    collections::{btree_map, BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
 
+use itertools::Itertools;
 use prjcombine_int::grid::DieId;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_ultrascale::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid, Interposer},
+    grid::{CleMKind, ColumnKindLeft, DisabledPart, Grid, HardRowKind, Interposer, IoRowKind},
 };
 use prjcombine_xilinx_geom::GeomDb;
+use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
@@ -17,6 +22,166 @@ struct TmpPart<'a> {
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
     disabled: BTreeSet<DisabledPart>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum DeviceKind {
+    Spartan,
+    Virtex,
+    VirtexSlr,
+    VirtexHbm,
+    Zynq,
+    ZynqHsAdc,
+    ZynqRfAdc,
+    ZynqDfe,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum PsKind {
+    Ev,
+    Eg,
+    Dr,
+    Cg,
+    None,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Suffix {
+    None,
+    Es1,
+    Civ,
+    Se,
+    Lr,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Prefix {
+    Xc,
+    Xa,
+    Xq,
+    Xqr,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum PartKind {
+    Zynq,
+    Virtex,
+    Kintex,
+    Artix,
+    Spartan,
+    Kria,
+    Alveo,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct SortKey<'a> {
+    kind: DeviceKind,
+    height: usize,
+    width: usize,
+    die_num: usize,
+    part_kind: PartKind,
+    size_neg: i32,
+    ps: PsKind,
+    suffix: Suffix,
+    prefix: Prefix,
+    name: &'a str,
+}
+
+static RE_ULTRASCALE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        "^(xc|xa|xq|xqr)(k|u|ux|au|su|ku|vu|zu)([0-9]+)t?(|p|c|n|eg|ev|cg|dr)(|-es1|_CIV|_SE|_LR)$",
+    )
+    .unwrap()
+});
+
+fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
+    let grid = part.grids.first().unwrap();
+    let width = grid.columns.len();
+    let height = grid.regs;
+    let captures = RE_ULTRASCALE
+        .captures(name)
+        .unwrap_or_else(|| panic!("ummm {name}?"));
+    let prefix = match &captures[1] {
+        "xc" => Prefix::Xc,
+        "xq" => Prefix::Xq,
+        "xqr" => Prefix::Xqr,
+        "xa" => Prefix::Xa,
+        _ => unreachable!(),
+    };
+    let part_kind = match &captures[2] {
+        "su" => PartKind::Spartan,
+        "au" => PartKind::Artix,
+        "ku" => PartKind::Kintex,
+        "vu" => PartKind::Virtex,
+        "zu" => PartKind::Zynq,
+        "u" | "ux" => PartKind::Alveo,
+        "k" => PartKind::Kria,
+        _ => unreachable!(),
+    };
+    let size: i32 = captures[3].parse().unwrap();
+    let ps = match &captures[4] {
+        "ev" => PsKind::Ev,
+        "eg" => PsKind::Eg,
+        "dr" => PsKind::Dr,
+        "cg" => PsKind::Cg,
+        _ => PsKind::None,
+    };
+    let suffix = match &captures[5] {
+        "" => Suffix::None,
+        "-es1" => Suffix::Es1,
+        "_CIV" => Suffix::Civ,
+        "_SE" => Suffix::Se,
+        "_LR" => Suffix::Lr,
+        _ => unreachable!(),
+    };
+    let kind = if grid.ps.is_some() {
+        if grid
+            .cols_hard
+            .iter()
+            .any(|hcol| hcol.regs.values().any(|&kind| kind == HardRowKind::DfeA))
+        {
+            DeviceKind::ZynqDfe
+        } else if grid
+            .cols_io
+            .iter()
+            .any(|iocol| iocol.regs.values().any(|&kind| kind == IoRowKind::RfAdc))
+        {
+            DeviceKind::ZynqRfAdc
+        } else if grid
+            .cols_io
+            .iter()
+            .any(|iocol| iocol.regs.values().any(|&kind| kind == IoRowKind::HsAdc))
+        {
+            DeviceKind::ZynqHsAdc
+        } else {
+            DeviceKind::Zynq
+        }
+    } else if grid.has_csec {
+        DeviceKind::Spartan
+    } else if grid.has_hbm {
+        DeviceKind::VirtexHbm
+    } else if grid
+        .columns
+        .values()
+        .any(|col| col.l == ColumnKindLeft::CleM(CleMKind::Laguna))
+    {
+        DeviceKind::VirtexSlr
+    } else {
+        DeviceKind::Virtex
+    };
+
+    SortKey {
+        kind,
+        height,
+        width,
+        die_num: part.grids.len(),
+        part_kind,
+        size_neg: -size,
+        ps,
+        suffix,
+        prefix,
+        name,
+    }
 }
 
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
@@ -81,7 +246,10 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut interposers = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
-    for (name, tpart) in tmp_parts {
+    for (name, tpart) in tmp_parts
+        .into_iter()
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart))
+    {
         let grids = tpart.grids.map_values(|&grid| grids.insert(grid.clone()).0);
         let interposer = interposers.insert(tpart.interposer.clone()).0;
         let mut dev_bonds = EntityMap::new();

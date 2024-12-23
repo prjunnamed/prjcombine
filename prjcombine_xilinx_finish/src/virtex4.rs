@@ -1,13 +1,18 @@
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use std::{
+    collections::{btree_map, BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
 
+use itertools::Itertools;
 use prjcombine_int::grid::DieId;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex4::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid, Interposer},
+    grid::{DisabledPart, Grid, GtKind, Interposer},
 };
 use prjcombine_xilinx_geom::GeomDb;
+use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
@@ -17,6 +22,170 @@ struct TmpPart<'a> {
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
     disabled: BTreeSet<DisabledPart>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum DeviceKind {
+    // Virtex 4/5/6
+    Lx,
+    Lxt,
+    Sx,
+    Sxt,
+    Fx,
+    Fxt,
+    Txt,
+    // Virtex 7
+    Spartan,
+    Artix,
+    Kintex,
+    Virtex,
+    VirtexSlr,
+    VirtexGth,
+    VirtexGthSlr,
+    Zynq,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Suffix {
+    None,
+    I,
+    L,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Prefix {
+    Xc,
+    Xa,
+    Xq,
+    Xqr,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct SortKey<'a> {
+    kind: DeviceKind,
+    height: usize,
+    width: usize,
+    has_gth: bool,
+    is_spartan: bool,
+    size_neg: i32,
+    is_cx: bool,
+    suffix: Suffix,
+    prefix: Prefix,
+    name: &'a str,
+}
+
+static RE_VIRTEX456: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^(xc|xq|xqr)[456]v(lx|sx|fx|tx|hx|cx)([0-9]+)(t?)(l?)$").unwrap());
+static RE_VIRTEX7: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^(xc|xa|xq|xqr)7(s|a|k|v|vx|vh|z)([0-9]+)t?s?([il]?)$").unwrap());
+
+fn sort_key<'a>(name: &'a str, grid: &Grid) -> SortKey<'a> {
+    let width = grid.columns.len();
+    let height = grid.regs;
+
+    if let Some(captures) = RE_VIRTEX456.captures(name) {
+        let prefix = match &captures[1] {
+            "xc" => Prefix::Xc,
+            "xq" => Prefix::Xq,
+            "xqr" => Prefix::Xqr,
+            _ => unreachable!(),
+        };
+        let kind = match (&captures[2], &captures[4]) {
+            ("lx", "") => DeviceKind::Lx,
+            ("lx", "t") => DeviceKind::Lxt,
+            ("cx", "t") => DeviceKind::Lxt,
+            ("sx", "") => DeviceKind::Sx,
+            ("sx", "t") => DeviceKind::Sxt,
+            ("fx", "") => DeviceKind::Fx,
+            ("fx", "t") => DeviceKind::Fxt,
+            ("tx" | "hx", "t") => DeviceKind::Txt,
+            _ => panic!("ummm {name}?"),
+        };
+        let suffix = match &captures[5] {
+            "" => Suffix::None,
+            "l" => Suffix::L,
+            _ => unreachable!(),
+        };
+        let size: i32 = captures[3].parse().unwrap();
+        SortKey {
+            kind,
+            height,
+            width,
+            has_gth: grid
+                .cols_gt
+                .iter()
+                .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gth))),
+            is_spartan: false,
+            size_neg: -size,
+            is_cx: &captures[2] == "cx",
+            suffix,
+            prefix,
+            name,
+        }
+    } else if let Some(captures) = RE_VIRTEX7.captures(name) {
+        let prefix = match &captures[1] {
+            "xc" => Prefix::Xc,
+            "xa" => Prefix::Xa,
+            "xq" => Prefix::Xq,
+            "xqr" => Prefix::Xqr,
+            _ => unreachable!(),
+        };
+        let size: i32 = captures[3].parse().unwrap();
+        let suffix = match &captures[4] {
+            "" => Suffix::None,
+            "l" => Suffix::L,
+            "i" => Suffix::I,
+            _ => unreachable!(),
+        };
+        let kind = if grid.has_ps {
+            DeviceKind::Zynq
+        } else if grid
+            .cols_gt
+            .iter()
+            .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gth)))
+        {
+            if grid.has_slr {
+                DeviceKind::VirtexGthSlr
+            } else {
+                DeviceKind::VirtexGth
+            }
+        } else if grid.cols_io.len() == 2 && grid.cols_io[1].col != grid.columns.last_id().unwrap()
+        {
+            if grid.has_slr {
+                DeviceKind::VirtexSlr
+            } else {
+                DeviceKind::Virtex
+            }
+        } else if grid
+            .cols_gt
+            .iter()
+            .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gtx)))
+        {
+            DeviceKind::Kintex
+        } else if grid
+            .cols_gt
+            .iter()
+            .any(|gtcol| gtcol.regs.values().any(|&kind| kind == Some(GtKind::Gtp)))
+        {
+            DeviceKind::Artix
+        } else {
+            DeviceKind::Spartan
+        };
+        SortKey {
+            kind,
+            height,
+            width,
+            has_gth: false,
+            is_spartan: &captures[2] == "s",
+            size_neg: -size,
+            is_cx: false,
+            suffix,
+            prefix,
+            name,
+        }
+    } else {
+        panic!("ummm {name}?")
+    }
 }
 
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
@@ -81,7 +250,10 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut interposers = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
-    for (name, tpart) in tmp_parts {
+    for (name, tpart) in tmp_parts
+        .into_iter()
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grids.first().unwrap()))
+    {
         let grids = tpart.grids.map_values(|&grid| grids.insert(grid.clone()).0);
         let interposer = tpart
             .interposer

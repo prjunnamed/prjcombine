@@ -1,12 +1,17 @@
-use std::collections::{btree_map, BTreeMap, BTreeSet};
+use std::{
+    collections::{btree_map, BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
 
+use itertools::Itertools;
 use prjcombine_types::tiledb::TileDb;
 use prjcombine_virtex::{
     bond::Bond,
     db::{Database, DeviceCombo, Part},
-    grid::{DisabledPart, Grid},
+    grid::{DisabledPart, Grid, GridKind},
 };
 use prjcombine_xilinx_geom::GeomDb;
+use regex::Regex;
 use unnamed_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
@@ -15,6 +20,53 @@ struct TmpPart<'a> {
     speeds: BTreeSet<&'a str>,
     combos: BTreeSet<(&'a str, &'a str)>,
     disabled: BTreeSet<DisabledPart>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum PartKind {
+    Virtex,
+    QVirtex,
+    QRVirtex,
+    Spartan2,
+    ASpartan2,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct SortKey<'a> {
+    kind: GridKind,
+    width: usize,
+    height: usize,
+    part_kind: PartKind,
+    name: &'a str,
+}
+
+static RE_VIRTEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xcv[0-9]+e?$").unwrap());
+static RE_QVIRTEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xqv[0-9]+e?$").unwrap());
+static RE_QRVIRTEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xqvr[0-9]+e?$").unwrap());
+static RE_SPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xc2s[0-9]+e?$").unwrap());
+static RE_ASPARTAN2: LazyLock<Regex> = LazyLock::new(|| Regex::new("^xa2s[0-9]+e?$").unwrap());
+
+fn sort_key<'a>(name: &'a str, grid: &'a Grid) -> SortKey<'a> {
+    let part_kind = if RE_VIRTEX.is_match(name) {
+        PartKind::Virtex
+    } else if RE_QVIRTEX.is_match(name) {
+        PartKind::QVirtex
+    } else if RE_QRVIRTEX.is_match(name) {
+        PartKind::QRVirtex
+    } else if RE_SPARTAN2.is_match(name) {
+        PartKind::Spartan2
+    } else if RE_ASPARTAN2.is_match(name) {
+        PartKind::ASpartan2
+    } else {
+        panic!("ummm {name}?")
+    };
+    SortKey {
+        kind: grid.kind,
+        width: grid.columns,
+        height: grid.rows,
+        part_kind,
+        name,
+    }
 }
 
 pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
@@ -70,7 +122,10 @@ pub fn finish(geom: GeomDb, tiledb: TileDb) -> Database {
     let mut grids = EntitySet::new();
     let mut bonds = EntitySet::new();
     let mut parts = vec![];
-    for (name, tpart) in tmp_parts {
+    for (name, tpart) in tmp_parts
+        .into_iter()
+        .sorted_by_key(|(name, tpart)| sort_key(name, tpart.grid))
+    {
         let grid = grids.insert(tpart.grid.clone()).0;
         let mut dev_bonds = EntityMap::new();
         for (bname, bond) in tpart.bonds {
