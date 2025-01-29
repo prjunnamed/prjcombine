@@ -5,10 +5,10 @@ Project Combine
    :maxdepth: 1
    :caption: Contents:
 
+   xilinx/index
    xc9500/index
    xpla3/index
    xc2c/index
-   xilinx/index
 
 
 
