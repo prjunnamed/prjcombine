@@ -2,6 +2,30 @@
 
 An FPGA reverse engineering project.
 
+The goals of this project are:
+
+- providing a deduplicated geometry database for target devices
+  - types and locations of all logical primitives within the device
+  - geometry of all interconnect wires
+  - interconnection points between the wires
+  - package pinouts
+- providing a timing database for target devices
+  - combinational and sequential timings of logical primitives
+  - interconnect parameters and timing formulas
+- providing a bitstream format database for target devices
+  - the location and semantics of all configuration bits
+- making all of the above available both for use by external programs and as human-readable documentation
+- providing Rust libraries for loading and operating on the above databases
+- documenting the behavior of target devices and their logical primitives
+
+The target devices currently include:
+
+- all SiliconBlue FPGAs
+- all Xilinx FPGAs
+- all Xilinx CPLDs
+
+More targets are expected to be added in the future.
+
 ## Generated documentation
 
 See https://prjunnamed.github.io/prjcombine/
@@ -14,6 +38,8 @@ See https://prjunnamed.github.io/prjcombine/
 
 ## Roadmap
 
+For each of the supported device families:
+
 - phase 1: geometry database extraction
 - phase 2: bitstream reverse engineering
 - phase 3: timing database extraction
@@ -21,31 +47,25 @@ See https://prjunnamed.github.io/prjcombine/
 
 ## Status
 
-- Xilinx XC9500/XC9500XL/XC9500XV CPLDs: phase 4 complete
-- Xilinx/Philips Coolrunner XPLA3 CPLDs: phase 4 complete
-- Xilinx Coolrunner 2 CPLDs: phase 4 in progress
-- Xilinx FPGAs:
+| Target                                              | Geometry | Bitstream | Timing | Test | Final documentation |
+| --------------------------------------------------- | -------- | --------- | ------ | ---- | ------------------- |
+| iCE65, iCE40                                        | 👷🏼‍♀️        | 👷🏼‍♀️         | ❌      | ❌    | ❌                   |
+| XC2000, XC3000, XC4000, Spartan, Spartan XL, XC5200 | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Virtex, Virtex E, Spartan 2, Spartan 2E             | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Virtex 2, Virtex 2 Pro                              | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Spartan 3 (all variants)                            | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Spartan 6                                           | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Virtex 4, 5, 6                                      | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Virtex 7, Kintex 7, Artix 7, Spartan 7, Zynq 7000   | ✅        | ✅         | ❌      | ❌    | ❌                   |
+| Ultrascale, Ultrascale+                             | ✅        | ❌         | ❌      | ❌    | ❌                   |
+| Versal                                              | 👷🏼‍♀️        | ❌         | ❌      | ❌    | ❌                   |
+| XC9500, XC9500XL, XC9500XV                          | ✅        | ✅         | ✅      | ✅    | ✅                   |
+| Coolrunner XPLA3                                    | ✅        | ✅         | ✅      | ✅    | ✅                   |
+| Coolrunner 2                                        | ✅        | ✅         | ✅      | ✅    | 👷🏼‍♀️                   |
 
-  - XC2000, XC2000L: phase 2 complete
-  - XC3000, XC3100: phase 2 complete
-  - XC3000A, XC3100A, XC3000L, XC3100L: phase 2 complete
-  - XC4000, XC4000D: phase 2 complete
-  - XC4000A: phase 2 complete
-  - XC4000H: phase 2 complete
-  - XC4000E, XC4000L, Spartan: phase 2 complete
-  - XC4000EX, XC4000XL: phase 2 complete
-  - XC4000XLA: phase 2 complete
-  - XC4000XV: phase 2 complete
-  - Spartan XL: phase 2 complete
-  - Virtex, Virtex E, Spartan 2, Spartan 2E: phase 2 complete
-  - Virtex 2, Virtex 2 Pro: phase 2 complete
-  - Spartan 3, Spartan 3E, Spartan 3A, Spartan 3AN, Spartan 3A DSP: phase 2 complete
-  - FPGAcore: phase 2 complete
-  - Spartan 6: phase 2 complete
-  - Virtex 4: phase 2 complete
-  - Virtex 5: phase 2 complete
-  - Virtex 6: phase 2 complete
-  - Virtex 7, Kintex 7, Artix 7, Spartan 7, Zynq 7000: phase 2 complete
-  - Ultrascale: phase 1 complete
-  - Ultrascale+: phase 1 complete
-  - Versal: phase 1 in progress
+## License
+
+Project Combine is distributed under the terms of the [0-clause BSD license](LICENSE-0BSD.txt) and the [Apache License (Version 2.0)](LICENSE-Apache-2.0.txt).
+
+By submitting your contribution you agree to be bound by all provisions of both of these licenses, including the clause 3 (Grant of Patent License) of the Apache License (Version 2.0).
+

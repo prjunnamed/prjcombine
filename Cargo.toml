@@ -1,5 +1,5 @@
 [workspace]
-
+resolver = "3"
 members = [
 	"prjcombine_types",
 	"prjcombine_toolchain",
@@ -74,11 +74,13 @@ members = [
 	"prjcombine_xpla3",
 	"prjcombine_xc2c",
 ]
-resolver = "2"
 
 [workspace.package]
 edition = "2021"
 version = "0.1.0"
+license = "0BSD OR Apache-2.0"
+repository = "https://github.com/prjunnamed/prjcombine"
+authors = []
 
 [workspace.dependencies]
 prjcombine_types = { path = "prjcombine_types" }
