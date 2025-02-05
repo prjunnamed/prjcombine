@@ -1,6 +1,5 @@
 use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::prelude::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
@@ -190,11 +189,11 @@ fn gen_bscan_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     }
 
     make_in(test, ctx, &mut inst, &mut ti, "TDO");
-    let chain = ctx.rng.gen_range(1..5);
+    let chain = ctx.rng.random_range(1..5);
     inst.param_int("JTAG_CHAIN", chain);
     ti.cfg_int("JTAG_CHAIN", chain);
     if matches!(pk, Mode::Virtex6 | Mode::Virtex7) {
-        let dis = ctx.rng.gen();
+        let dis = ctx.rng.random();
         inst.param_bool("DISABLE_JTAG", dis);
         ti.cfg_bool("DISABLE_JTAG", dis);
     } else if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
@@ -328,7 +327,7 @@ fn gen_startup_v4(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         make_in(test, ctx, &mut inst, &mut ti, "KEYCLEARB");
         make_in(test, ctx, &mut inst, &mut ti, "PACK");
         make_out(test, ctx, &mut inst, &mut ti, "PREQ");
-        let prog_usr = ctx.rng.gen();
+        let prog_usr = ctx.rng.random();
         inst.param_bool("PROG_USR", prog_usr);
         ti.cfg_bool("PROG_USR", prog_usr);
     } else if matches!(mode, Mode::Virtex6 | Mode::Virtex7) {
@@ -356,7 +355,7 @@ fn gen_capture(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
     let mut inst = SrcInst::new(ctx, prim);
     let mut ti = TgtInst::new(&["CAPTURE"]);
 
-    let oneshot = ctx.rng.gen();
+    let oneshot = ctx.rng.random();
     inst.param_bool("ONESHOT", oneshot);
 
     if matches!(
@@ -552,7 +551,7 @@ fn gen_frame_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: Mode) {
         } else {
             make_outs(test, ctx, &mut inst, &mut ti, "FAR", 25, 0);
         }
-        let far = if ctx.rng.gen() { "FAR" } else { "EFAR" };
+        let far = if ctx.rng.random() { "FAR" } else { "EFAR" };
         inst.param_str("FARSRC", far);
         ti.cfg("FARSRC", far);
     } else {
@@ -684,17 +683,17 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             gen_capture(test, ctx, mode, Mode::Virtex);
         }
         Mode::Virtex2 | Mode::Virtex2P => {
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_bscan_v(test, ctx, mode, Mode::Virtex);
             } else {
                 gen_bscan_v(test, ctx, mode, Mode::Virtex2);
             }
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_startup_v(test, ctx, mode, Mode::Virtex);
             } else {
                 gen_startup_v(test, ctx, mode, Mode::Virtex2);
             }
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, Mode::Virtex);
             } else {
                 gen_capture(test, ctx, mode, Mode::Virtex2);
@@ -706,7 +705,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         }
         Mode::Spartan3 | Mode::Spartan3E => {
             gen_bscan_v(test, ctx, mode, Mode::Spartan3);
-            if mode == Mode::Spartan3E && ctx.rng.gen() {
+            if mode == Mode::Spartan3E && ctx.rng.random() {
                 gen_startup_v(test, ctx, mode, Mode::Spartan3E);
             } else {
                 gen_startup_v(test, ctx, mode, Mode::Spartan3);
@@ -714,7 +713,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             gen_capture(test, ctx, mode, Mode::Spartan3);
         }
         Mode::Spartan3A | Mode::Spartan3ADsp => {
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_bscan_v(test, ctx, mode, Mode::Spartan3);
             } else {
                 gen_bscan_v(test, ctx, mode, Mode::Spartan3A);
@@ -723,7 +722,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
                 .choose(&mut ctx.rng)
                 .unwrap();
             gen_startup_v(test, ctx, mode, pk);
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, Mode::Spartan3);
             } else {
                 gen_capture(test, ctx, mode, Mode::Spartan3A);
@@ -738,7 +737,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         Mode::Virtex4 => {
             gen_bscan_v4(test, ctx, mode, Mode::Virtex4);
             gen_startup_v4(test, ctx, mode, Mode::Virtex4);
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, Mode::Virtex4);
             } else {
                 gen_frame_ecc(test, ctx, mode, Mode::Virtex4);
@@ -753,7 +752,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             let pk = *[Mode::Virtex4, Mode::Virtex5].choose(&mut ctx.rng).unwrap();
             gen_startup_v4(test, ctx, mode, pk);
             let pk = *[Mode::Virtex4, Mode::Virtex5].choose(&mut ctx.rng).unwrap();
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, pk);
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);
@@ -778,7 +777,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6]
                 .choose(&mut ctx.rng)
                 .unwrap();
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, pk);
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);
@@ -806,7 +805,7 @@ pub fn gen_cfg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
             let pk = *[Mode::Virtex4, Mode::Virtex5, Mode::Virtex6, Mode::Virtex7]
                 .choose(&mut ctx.rng)
                 .unwrap();
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 gen_capture(test, ctx, mode, pk);
             } else {
                 gen_frame_ecc(test, ctx, mode, pk);

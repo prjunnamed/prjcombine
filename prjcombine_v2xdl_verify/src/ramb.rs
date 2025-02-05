@@ -1,6 +1,6 @@
 use crate::types::{BitVal, SrcInst, Test, TestGenCtx, TgtInst};
 
-use rand::{seq::SliceRandom, Rng};
+use rand::prelude::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -31,15 +31,15 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
     let mut awlog2;
     let mut bwlog2;
     if sz == 4 {
-        awlog2 = ctx.rng.gen_range(0..5);
-        bwlog2 = ctx.rng.gen_range(0..5);
+        awlog2 = ctx.rng.random_range(0..5);
+        bwlog2 = ctx.rng.random_range(0..5);
     } else {
         if bwe {
-            awlog2 = ctx.rng.gen_range(4..6);
-            bwlog2 = ctx.rng.gen_range(3..6);
+            awlog2 = ctx.rng.random_range(4..6);
+            bwlog2 = ctx.rng.random_range(3..6);
         } else {
-            awlog2 = ctx.rng.gen_range(0..6);
-            bwlog2 = ctx.rng.gen_range(0..6);
+            awlog2 = ctx.rng.random_range(0..6);
+            bwlog2 = ctx.rng.random_range(0..6);
         }
     }
     if dp {
@@ -88,7 +88,7 @@ fn gen_ramb_v(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, dp: boo
         }
     };
     let mut inst = SrcInst::new(ctx, &prim);
-    let ul = if ctx.rng.gen() { "U" } else { "L" };
+    let ul = if ctx.rng.random() { "U" } else { "L" };
     let is_36 = awlog2 == 5 || bwlog2 == 5;
     let uls = if is_36 {
         vec!["L", "U"]
@@ -765,7 +765,7 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
     let (use_a, use_b) = if sdp {
         (true, true)
     } else {
-        match ctx.rng.gen_range(0..3) {
+        match ctx.rng.random_range(0..3) {
             0 => (true, true),
             1 => (false, true),
             2 => (true, false),
@@ -777,11 +777,11 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
         awlog2 = 5;
         bwlog2 = 5;
     } else if sz == 8 {
-        awlog2 = ctx.rng.gen_range(0..5);
-        bwlog2 = ctx.rng.gen_range(0..5);
+        awlog2 = ctx.rng.random_range(0..5);
+        bwlog2 = ctx.rng.random_range(0..5);
     } else {
-        awlog2 = ctx.rng.gen_range(0..6);
-        bwlog2 = ctx.rng.gen_range(0..6);
+        awlog2 = ctx.rng.random_range(0..6);
+        bwlog2 = ctx.rng.random_range(0..6);
     }
     if !use_a {
         awlog2 = 0;
@@ -822,7 +822,7 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
         }
     }
 
-    let rsttype = if ctx.rng.gen() { "ASYNC" } else { "SYNC" };
+    let rsttype = if ctx.rng.random() { "ASYNC" } else { "SYNC" };
     inst.param_str("RSTTYPE", rsttype);
     ti.cfg("RSTTYPE", rsttype);
 
@@ -835,7 +835,7 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
             ti.cfg_int(&format!("DATA_WIDTH_{a}"), 0);
         }
 
-        let do_reg = ctx.rng.gen_range(0..2);
+        let do_reg = ctx.rng.random_range(0..2);
         inst.param_int(&format!("DO{a}_REG"), do_reg);
         ti.cfg_int(&format!("DO{a}_REG"), do_reg);
         let wrmode = *["WRITE_FIRST", "READ_FIRST", "NO_CHANGE"]
@@ -897,10 +897,10 @@ fn gen_ramb_bwer(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, sdp:
         ti.cfg_hex(&format!("SRVAL_{a}"), &srval, true);
 
         if mode == Mode::Spartan6 {
-            let en_rstram = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+            let en_rstram = if ctx.rng.random() { "TRUE" } else { "FALSE" };
             inst.param_str(&format!("EN_RSTRAM_{a}"), en_rstram);
             ti.cfg(&format!("EN_RSTRAM_{a}"), en_rstram);
-            let rst_priority = if ctx.rng.gen() { "CE" } else { "SR" };
+            let rst_priority = if ctx.rng.random() { "CE" } else { "SR" };
             inst.param_str(&format!("RST_PRIORITY_{a}"), rst_priority);
             ti.cfg(&format!("RST_PRIORITY_{a}"), rst_priority);
         }
@@ -1010,8 +1010,8 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
     let mut tis = Vec::new();
     let clka_x = test.make_bufg(ctx);
     let clkb_x = test.make_bufg(ctx);
-    let clka_inv = ctx.rng.gen();
-    let clkb_inv = ctx.rng.gen();
+    let clka_inv = ctx.rng.random();
+    let clkb_inv = ctx.rng.random();
 
     let clka_v = if clka_inv {
         test.make_inv(ctx, &clka_x)
@@ -1028,12 +1028,12 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
         let (ar_en, br_en) = *[(true, true), (false, true), (true, false)]
             .choose(&mut ctx.rng)
             .unwrap();
-        let aw_en = ctx.rng.gen();
-        let bw_en = ctx.rng.gen();
-        let arwlog2 = ctx.rng.gen_range(0..6);
-        let awwlog2 = ctx.rng.gen_range(0..6);
-        let brwlog2 = ctx.rng.gen_range(0..6);
-        let bwwlog2 = ctx.rng.gen_range(0..6);
+        let aw_en = ctx.rng.random();
+        let bw_en = ctx.rng.random();
+        let arwlog2 = ctx.rng.random_range(0..6);
+        let awwlog2 = ctx.rng.random_range(0..6);
+        let brwlog2 = ctx.rng.random_range(0..6);
+        let bwwlog2 = ctx.rng.random_range(0..6);
         let arw = if ar_en { WIDTHS[arwlog2] } else { 0 };
         let aww = if aw_en { WIDTHS[awwlog2] } else { 0 };
         let brw = if br_en { WIDTHS[brwlog2] } else { 0 };
@@ -1102,8 +1102,8 @@ fn gen_ramb16(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                 }
             }
 
-            let do_reg = ctx.rng.gen_range(0..2);
-            let invert_do_reg = if do_reg == 1 && ctx.rng.gen() {
+            let do_reg = ctx.rng.random_range(0..2);
+            let invert_do_reg = if do_reg == 1 && ctx.rng.random() {
                 "TRUE"
             } else {
                 "FALSE"
@@ -1229,7 +1229,7 @@ fn gen_ramb32_ecc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let mut inst = SrcInst::new(ctx, "RAMB32_S64_ECC");
 
     let do_reg = if mode == Mode::Virtex4 {
-        ctx.rng.gen_range(0..2)
+        ctx.rng.random_range(0..2)
     } else {
         0
     };
@@ -1526,22 +1526,22 @@ fn gen_ramb18(test: &mut Test, ctx: &mut TestGenCtx) {
     let (ar_en, br_en) = *[(true, true), (false, true), (true, false)]
         .choose(&mut ctx.rng)
         .unwrap();
-    let aw_en = ctx.rng.gen();
-    let bw_en = ctx.rng.gen();
-    let arwlog2 = ctx.rng.gen_range(0..5);
-    let awwlog2 = ctx.rng.gen_range(0..5);
-    let brwlog2 = ctx.rng.gen_range(0..5);
-    let bwwlog2 = ctx.rng.gen_range(0..5);
+    let aw_en = ctx.rng.random();
+    let bw_en = ctx.rng.random();
+    let arwlog2 = ctx.rng.random_range(0..5);
+    let awwlog2 = ctx.rng.random_range(0..5);
+    let brwlog2 = ctx.rng.random_range(0..5);
+    let bwwlog2 = ctx.rng.random_range(0..5);
     let arw = if ar_en { WIDTHS[arwlog2] } else { 0 };
     let aww = if aw_en { WIDTHS[awwlog2] } else { 0 };
     let brw = if br_en { WIDTHS[brwlog2] } else { 0 };
     let bww = if bw_en { WIDTHS[bwwlog2] } else { 0 };
 
-    let is_18 = ctx.rng.gen();
+    let is_18 = ctx.rng.random();
 
     let mut inst = SrcInst::new(ctx, if is_18 { "RAMB18" } else { "RAMB16" });
     let mut ti = TgtInst::new(&["RAMB18X2"]);
-    let ul = if ctx.rng.gen() { "U" } else { "L" };
+    let ul = if ctx.rng.random() { "U" } else { "L" };
     if ul == "U" {
         ti.bel("RAMB18X2_UPPER", &inst.name, "");
         inst.attr_str("BEL", "UPPER");
@@ -1613,11 +1613,11 @@ fn gen_ramb18(test: &mut Test, ctx: &mut TestGenCtx) {
             }
         }
 
-        let do_reg = ctx.rng.gen_range(0..2);
+        let do_reg = ctx.rng.random_range(0..2);
         inst.param_int(&format!("DO{l}_REG"), do_reg);
         ti.cfg_int(&format!("DO{l}_REG_{ul}"), do_reg);
 
-        let invert_do_reg = !is_18 && do_reg == 1 && ctx.rng.gen();
+        let invert_do_reg = !is_18 && do_reg == 1 && ctx.rng.random();
         if !is_18 {
             inst.param_str(
                 &format!("INVERT_CLK_DO{l}_REG"),
@@ -1712,12 +1712,12 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
         let (ar_en, br_en) = *[(true, true), (false, true), (true, false)]
             .choose(&mut ctx.rng)
             .unwrap();
-        let aw_en = ctx.rng.gen();
-        let bw_en = ctx.rng.gen();
-        let arwlog2 = ctx.rng.gen_range(0..6);
-        let awwlog2 = ctx.rng.gen_range(0..6);
-        let brwlog2 = ctx.rng.gen_range(0..6);
-        let bwwlog2 = ctx.rng.gen_range(0..6);
+        let aw_en = ctx.rng.random();
+        let bw_en = ctx.rng.random();
+        let arwlog2 = ctx.rng.random_range(0..6);
+        let awwlog2 = ctx.rng.random_range(0..6);
+        let brwlog2 = ctx.rng.random_range(0..6);
+        let bwwlog2 = ctx.rng.random_range(0..6);
         let arw = if ar_en { WIDTHS[arwlog2] } else { 0 };
         let aww = if aw_en { WIDTHS[awwlog2] } else { 0 };
         let brw = if br_en { WIDTHS[brwlog2] } else { 0 };
@@ -1787,7 +1787,7 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
                 }
             }
 
-            let do_reg = ctx.rng.gen_range(0..2);
+            let do_reg = ctx.rng.random_range(0..2);
             inst.param_int(&format!("DO{l}_REG"), do_reg);
             ti.cfg_int(&format!("DO{l}_REG"), do_reg);
 
@@ -1931,11 +1931,11 @@ fn gen_ramb36(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
 }
 
 fn gen_ramb18sdp(test: &mut Test, ctx: &mut TestGenCtx) {
-    let is_18 = ctx.rng.gen();
+    let is_18 = ctx.rng.random();
 
     let mut inst = SrcInst::new(ctx, if is_18 { "RAMB18SDP" } else { "RAMB16" });
     let mut ti = TgtInst::new(&["RAMB18X2SDP", "RAMBFIFO18_36"]);
-    let ul = if ctx.rng.gen() { "U" } else { "L" };
+    let ul = if ctx.rng.random() { "U" } else { "L" };
     if ul == "U" {
         ti.cond_bel("RAMB18X2SDP_UPPER", &inst.name, "", "RAMB18X2SDP");
         ti.cond_bel("RAMBFIFO18_36_UPPER", &inst.name, "", "RAMBFIFO18_36");
@@ -1993,7 +1993,7 @@ fn gen_ramb18sdp(test: &mut Test, ctx: &mut TestGenCtx) {
         ti.pin_in(&format!("DIP{ul}{i}"), &dip[i]);
     }
 
-    let do_reg = ctx.rng.gen_range(0..2);
+    let do_reg = ctx.rng.random_range(0..2);
     if !is_18 {
         inst.param_int("DOA_REG", do_reg);
     } else {
@@ -2001,7 +2001,7 @@ fn gen_ramb18sdp(test: &mut Test, ctx: &mut TestGenCtx) {
     }
     ti.cfg_int(&format!("DO_REG_{ul}"), do_reg);
 
-    let invert_do_reg = !is_18 && do_reg == 1 && ctx.rng.gen();
+    let invert_do_reg = !is_18 && do_reg == 1 && ctx.rng.random();
     if !is_18 {
         inst.param_str(
             "INVERT_CLK_DOB_REG",
@@ -2135,12 +2135,12 @@ fn gen_ramb36sdp(test: &mut Test, ctx: &mut TestGenCtx) {
         ti.pin_in(&format!("DIP{i}"), &dip[i]);
     }
 
-    let do_reg = ctx.rng.gen_range(0..2);
+    let do_reg = ctx.rng.random_range(0..2);
     inst.param_int("DO_REG", do_reg);
     ti.cfg_int("DO_REG", do_reg);
 
     for p in ["EN_ECC_READ", "EN_ECC_WRITE"] {
-        let v = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+        let v = if ctx.rng.random() { "TRUE" } else { "FALSE" };
         inst.param_str(p, v);
         ti.cfg(p, v);
     }
@@ -2225,16 +2225,16 @@ fn gen_ramb36sdp(test: &mut Test, ctx: &mut TestGenCtx) {
 }
 
 fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let is_sdp = ctx.rng.gen();
+    let is_sdp = ctx.rng.random();
     let (ar_en, br_en) = *[(true, true), (false, true), (true, false)]
         .choose(&mut ctx.rng)
         .unwrap();
-    let aw_en = ctx.rng.gen();
-    let bw_en = ctx.rng.gen();
-    let arwlog2 = ctx.rng.gen_range(0..6);
-    let awwlog2 = ctx.rng.gen_range(0..5);
-    let brwlog2 = ctx.rng.gen_range(0..5);
-    let bwwlog2 = ctx.rng.gen_range(0..6);
+    let aw_en = ctx.rng.random();
+    let bw_en = ctx.rng.random();
+    let arwlog2 = ctx.rng.random_range(0..6);
+    let awwlog2 = ctx.rng.random_range(0..5);
+    let brwlog2 = ctx.rng.random_range(0..5);
+    let bwwlog2 = ctx.rng.random_range(0..6);
     let arw = if ar_en { WIDTHS[arwlog2] } else { 0 };
     let aww = if aw_en { WIDTHS[awwlog2] } else { 0 };
     let brw = if br_en { WIDTHS[brwlog2] } else { 0 };
@@ -2268,15 +2268,15 @@ fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     inst.param_str("RAM_MODE", if is_sdp { "SDP" } else { "TDP" });
     ti.cfg("RAM_MODE", if is_sdp { "SDP" } else { "TDP" });
 
-    let col = if ctx.rng.gen() {
+    let col = if ctx.rng.random() {
         "DELAYED_WRITE"
     } else {
         "PERFORMANCE"
     };
     inst.param_str("RDADDR_COLLISION_HWCONFIG", col);
     ti.cfg("RDADDR_COLLISION_HWCONFIG", col);
-    let do_reg_sdp = ctx.rng.gen_range(0..2);
-    let rst_prio_sdp = if ctx.rng.gen() { "RSTREG" } else { "REGCE" };
+    let do_reg_sdp = ctx.rng.random_range(0..2);
+    let rst_prio_sdp = if ctx.rng.random() { "RSTREG" } else { "REGCE" };
 
     for (rw, l) in [("RD", 'A'), ("WR", 'B')] {
         let init = ctx.gen_bits(18);
@@ -2289,7 +2289,7 @@ fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
         let do_reg = if is_sdp {
             do_reg_sdp
         } else {
-            ctx.rng.gen_range(0..2)
+            ctx.rng.random_range(0..2)
         };
         inst.param_int(&format!("DO{l}_REG"), do_reg);
         ti.cfg_int(&format!("DO{l}_REG"), do_reg);
@@ -2306,7 +2306,7 @@ fn gen_ramb18e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
         let rst_prio = if is_sdp {
             rst_prio_sdp
-        } else if ctx.rng.gen() {
+        } else if ctx.rng.random() {
             "RSTREG"
         } else {
             "REGCE"
@@ -2443,16 +2443,16 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let mut insts = Vec::new();
     let mut tis = Vec::new();
     for _ in 0..num {
-        let is_sdp = num == 1 && ctx.rng.gen();
+        let is_sdp = num == 1 && ctx.rng.random();
         let (mut ar_en, mut br_en) = *[(true, true), (false, true), (true, false)]
             .choose(&mut ctx.rng)
             .unwrap();
-        let mut aw_en = ctx.rng.gen();
-        let mut bw_en = ctx.rng.gen();
-        let mut arwlog2 = ctx.rng.gen_range(0..7);
-        let mut awwlog2 = ctx.rng.gen_range(0..6);
-        let mut brwlog2 = ctx.rng.gen_range(0..6);
-        let mut bwwlog2 = ctx.rng.gen_range(0..7);
+        let mut aw_en = ctx.rng.random();
+        let mut bw_en = ctx.rng.random();
+        let mut arwlog2 = ctx.rng.random_range(0..7);
+        let mut awwlog2 = ctx.rng.random_range(0..6);
+        let mut brwlog2 = ctx.rng.random_range(0..6);
+        let mut bwwlog2 = ctx.rng.random_range(0..7);
         if mode == Mode::Virtex7 && num == 2 {
             arwlog2 = 0;
             awwlog2 = 0;
@@ -2496,20 +2496,20 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         inst.param_str("RAM_MODE", if is_sdp { "SDP" } else { "TDP" });
         ti.cfg("RAM_MODE", if is_sdp { "SDP" } else { "TDP" });
 
-        let col = if ctx.rng.gen() {
+        let col = if ctx.rng.random() {
             "DELAYED_WRITE"
         } else {
             "PERFORMANCE"
         };
         inst.param_str("RDADDR_COLLISION_HWCONFIG", col);
         ti.cfg("RDADDR_COLLISION_HWCONFIG", col);
-        let do_reg_sdp = ctx.rng.gen_range(0..2);
-        let rst_prio_sdp = if ctx.rng.gen() { "RSTREG" } else { "REGCE" };
+        let do_reg_sdp = ctx.rng.random_range(0..2);
+        let rst_prio_sdp = if ctx.rng.random() { "RSTREG" } else { "REGCE" };
 
-        let en_ecc_read = is_sdp && ctx.rng.gen();
+        let en_ecc_read = is_sdp && ctx.rng.random();
         inst.param_bool("EN_ECC_READ", en_ecc_read);
         ti.cfg_bool("EN_ECC_READ", en_ecc_read);
-        let en_ecc_write = is_sdp && bww == 72 && ctx.rng.gen();
+        let en_ecc_write = is_sdp && bww == 72 && ctx.rng.random();
         inst.param_bool("EN_ECC_WRITE", en_ecc_write);
         ti.cfg_bool("EN_ECC_WRITE", en_ecc_write);
         for o in ["SBITERR", "DBITERR"] {
@@ -2546,7 +2546,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
             let do_reg = if is_sdp {
                 do_reg_sdp
             } else {
-                ctx.rng.gen_range(0..2)
+                ctx.rng.random_range(0..2)
             };
             inst.param_int(&format!("DO{l}_REG"), do_reg);
             ti.cfg_int(&format!("DO{l}_REG"), do_reg);
@@ -2563,7 +2563,7 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
             let rst_prio = if is_sdp {
                 rst_prio_sdp
-            } else if ctx.rng.gen() {
+            } else if ctx.rng.random() {
                 "RSTREG"
             } else {
                 "REGCE"
@@ -2768,18 +2768,18 @@ fn gen_ramb36e1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
 fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     let wlog2;
-    let is_sdp = ctx.rng.gen();
+    let is_sdp = ctx.rng.random();
     if sz == 16 {
         if is_sdp {
             wlog2 = 5;
         } else {
-            wlog2 = ctx.rng.gen_range(2..5);
+            wlog2 = ctx.rng.random_range(2..5);
         }
     } else {
         if is_sdp {
             wlog2 = 6;
         } else {
-            wlog2 = ctx.rng.gen_range(2..6);
+            wlog2 = ctx.rng.random_range(2..6);
         }
     }
     let prim = match (pk, sz, is_sdp) {
@@ -2821,8 +2821,8 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
     let en_syn;
     let do_reg;
     if pk != 4 && is_sdp && sz == 32 {
-        en_ecc_read = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
-        en_ecc_write = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+        en_ecc_read = if ctx.rng.random() { "TRUE" } else { "FALSE" };
+        en_ecc_write = if ctx.rng.random() { "TRUE" } else { "FALSE" };
         inst.param_str("EN_ECC_READ", en_ecc_read);
         inst.param_str("EN_ECC_WRITE", en_ecc_write);
     } else {
@@ -2830,8 +2830,8 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         en_ecc_write = "FALSE";
     }
     if pk != 4 {
-        en_syn = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
-        do_reg = i32::from(en_syn == "FALSE" || ctx.rng.gen());
+        en_syn = if ctx.rng.random() { "TRUE" } else { "FALSE" };
+        do_reg = i32::from(en_syn == "FALSE" || ctx.rng.random());
         inst.param_str("EN_SYN", en_syn);
         inst.param_int("DO_REG", do_reg);
     } else {
@@ -3256,7 +3256,7 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         }
     }
 
-    let fwft = if do_reg == 1 && en_syn == "FALSE" && ctx.rng.gen() {
+    let fwft = if do_reg == 1 && en_syn == "FALSE" && ctx.rng.random() {
         "TRUE"
     } else {
         "FALSE"
@@ -3274,33 +3274,33 @@ fn gen_fifo(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8, pk: u8) {
         match mode {
             Mode::Virtex4 => {
                 if fwft == "TRUE" {
-                    ae_off = ctx.rng.gen_range(6..(num_e - 2));
+                    ae_off = ctx.rng.random_range(6..(num_e - 2));
                 } else {
-                    ae_off = ctx.rng.gen_range(5..(num_e - 3));
+                    ae_off = ctx.rng.random_range(5..(num_e - 3));
                 }
-                af_off = ctx.rng.gen_range(4..(num_e - 4));
+                af_off = ctx.rng.random_range(4..(num_e - 4));
             }
             Mode::Virtex5 | Mode::Virtex6 => {
                 if fwft == "TRUE" {
-                    ae_off = ctx.rng.gen_range(6..(num_e - 3));
+                    ae_off = ctx.rng.random_range(6..(num_e - 3));
                 } else {
-                    ae_off = ctx.rng.gen_range(5..(num_e - 4));
+                    ae_off = ctx.rng.random_range(5..(num_e - 4));
                 }
-                af_off = ctx.rng.gen_range(4..(num_e - 4));
+                af_off = ctx.rng.random_range(4..(num_e - 4));
             }
             Mode::Virtex7 => {
                 if fwft == "TRUE" {
-                    ae_off = ctx.rng.gen_range(6..(num_e - 4));
+                    ae_off = ctx.rng.random_range(6..(num_e - 4));
                 } else {
-                    ae_off = ctx.rng.gen_range(5..(num_e - 5));
+                    ae_off = ctx.rng.random_range(5..(num_e - 5));
                 }
-                af_off = ctx.rng.gen_range(4..(num_e - 6));
+                af_off = ctx.rng.random_range(4..(num_e - 6));
             }
             _ => unreachable!(),
         }
     } else {
-        ae_off = ctx.rng.gen_range(1..(num_e - 1));
-        af_off = ctx.rng.gen_range(1..(num_e - 1));
+        ae_off = ctx.rng.random_range(1..(num_e - 1));
+        af_off = ctx.rng.random_range(1..(num_e - 1));
     }
     inst.param_int("ALMOST_EMPTY_OFFSET", ae_off);
     inst.param_int("ALMOST_FULL_OFFSET", af_off);
@@ -3364,15 +3364,15 @@ pub fn gen_io_fifo(test: &mut Test, ctx: &mut TestGenCtx, is_out: bool) {
     // This is a primitive parameter, but a TRUE is rejected anyway.
     ti.cfg("SYNCHRONOUS_MODE", "FALSE");
 
-    let aev = ctx.rng.gen_range(1..3);
+    let aev = ctx.rng.random_range(1..3);
     inst.param_int("ALMOST_EMPTY_VALUE", aev);
     ti.cfg_int("ALMOST_EMPTY_VALUE", aev);
-    let afv = ctx.rng.gen_range(1..3);
+    let afv = ctx.rng.random_range(1..3);
     inst.param_int("ALMOST_FULL_VALUE", afv);
     ti.cfg_int("ALMOST_FULL_VALUE", afv);
 
     if is_out {
-        let od = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+        let od = if ctx.rng.random() { "TRUE" } else { "FALSE" };
         inst.param_str("OUTPUT_DISABLE", od);
         ti.cfg("OUTPUT_DISABLE", od);
     }

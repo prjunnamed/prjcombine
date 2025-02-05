@@ -1,6 +1,5 @@
 use crate::types::{BitVal, SrcInst, Test, TestGenCtx, TgtInst};
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::prelude::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum EmacMode {
@@ -10,7 +9,7 @@ pub enum EmacMode {
 }
 
 fn make_param_bool(ctx: &mut TestGenCtx, inst: &mut SrcInst, ti: &mut TgtInst, name: &str) {
-    let val = ctx.rng.gen();
+    let val = ctx.rng.random();
     inst.param_bool(name, val);
     ti.cfg_bool(name, val);
 }
@@ -963,7 +962,7 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
         make_in(test, ctx, &mut inst, &mut ti, "CPMC405TIMERTICK");
     }
     if is_adv {
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             inst.connect("CPMC405SYNCBYPASS", "1'b1");
             ti.cfg("PLB_SYNC_MODE", "SYNCBYPASS");
             ti.pin_tie("CPMC405SYNCBYPASS", true);
@@ -1018,7 +1017,7 @@ pub fn gen_ppc405(test: &mut Test, ctx: &mut TestGenCtx, is_adv: bool) {
         make_ins(test, ctx, &mut inst, &mut ti, "EXTDCRDBUSIN", 0, 31);
         make_ins_inv(test, ctx, &mut inst, &mut ti, "TIEDCRADDR", 0, 5);
 
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let dcr = EmacDcr {
                 clk: test.make_wire(ctx),
                 enable: test.make_wire(ctx),
@@ -1565,7 +1564,7 @@ pub fn gen_ppc440(test: &mut Test, ctx: &mut TestGenCtx) {
     make_out(test, ctx, &mut inst, &mut ti, "C440CPMTIMERRESETREQ");
     make_out(test, ctx, &mut inst, &mut ti, "C440CPMWDIRPTREQ");
     make_in_inv(test, ctx, &mut inst, &mut ti, "CPMDCRCLK");
-    let clk_inv = ctx.rng.gen();
+    let clk_inv = ctx.rng.random();
     if clk_inv {
         let clk = test.make_inv(ctx, &clkout);
         inst.connect("CPMC440CLK", &clk);

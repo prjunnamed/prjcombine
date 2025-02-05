@@ -315,7 +315,7 @@ impl Test {
 
     pub fn make_in_inv(&mut self, ctx: &mut TestGenCtx) -> (String, String, bool) {
         let raw = self.make_in(ctx);
-        let inv = ctx.rng.gen();
+        let inv = ctx.rng.random();
         if inv {
             let res = self.make_inv(ctx, &raw);
             (res, raw, true)
@@ -352,7 +352,7 @@ impl TestGenCtx {
     pub fn new() -> Self {
         Self {
             ctr: 0,
-            rng: SmallRng::from_entropy(),
+            rng: SmallRng::from_os_rng(),
         }
     }
     pub fn get_ctr(&mut self) -> u32 {
@@ -362,7 +362,7 @@ impl TestGenCtx {
     pub fn gen_bits(&mut self, num: usize) -> Vec<BitVal> {
         (0..num)
             .map(|_| {
-                if self.rng.gen() {
+                if self.rng.random() {
                     BitVal::S1
                 } else {
                     BitVal::S0

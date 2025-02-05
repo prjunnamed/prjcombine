@@ -1,6 +1,6 @@
 use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
 
-use rand::{seq::SliceRandom, Rng};
+use rand::prelude::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -15,7 +15,7 @@ pub enum Mode {
 }
 
 fn gen_mult18x18(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let sync = ctx.rng.gen();
+    let sync = ctx.rng.random();
     let mut inst = SrcInst::new(ctx, if sync { "MULT18X18S" } else { "MULT18X18" });
     let hwprim = match mode {
         Mode::Virtex2 => "MULT18X18",
@@ -405,9 +405,9 @@ fn gen_mult18x18sio(test: &mut Test, ctx: &mut TestGenCtx, num: usize) {
         } else {
             bcin = None;
         }
-        let areg = ctx.rng.gen_range(0..2);
-        let breg = ctx.rng.gen_range(0..2);
-        let preg = ctx.rng.gen_range(0..2);
+        let areg = ctx.rng.random_range(0..2);
+        let breg = ctx.rng.random_range(0..2);
+        let preg = ctx.rng.random_range(0..2);
         let (clk_v, clk_x, clk_inv) = test.make_in_inv(ctx);
         let (cea_v, cea_x, cea_inv) = test.make_in_inv(ctx);
         let (ceb_v, ceb_x, ceb_inv) = test.make_in_inv(ctx);
@@ -477,7 +477,7 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
             ti.pin_in(&format!("OPMODE{i}"), &opmode[i]);
         }
         // ...cannot both be used?
-        if pk == 6 && ctx.rng.gen() && midx != num - 1 {
+        if pk == 6 && ctx.rng.random() && midx != num - 1 {
             let m = test.make_outs(ctx, 36);
             inst.connect_bus("M", &m);
             for i in 0..36 {
@@ -522,7 +522,7 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
             ti.cfg("B_INPUT", "DIRECT");
         }
         if midx != num - 1 {
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 let bcout = test.make_bus(ctx, 18);
                 inst.connect_bus("BCOUT", &bcout);
                 for i in 0..18 {
@@ -579,21 +579,21 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
             "OPMODEREG",
             "CARRYINREG",
         ] {
-            let v = ctx.rng.gen_range(0..2);
+            let v = ctx.rng.random_range(0..2);
             inst.param_int(p, v);
             ti.cfg_int(p, v);
         }
         if pk == 6 {
-            let v = ctx.rng.gen_range(0..2);
+            let v = ctx.rng.random_range(0..2);
             inst.param_int("CARRYOUTREG", v);
             ti.cfg_int("CARRYOUTREG", v);
         } else if mode == Mode::Spartan6 {
             ti.cfg_int("CARRYOUTREG", 0);
         }
-        let v = if ctx.rng.gen() { "SYNC" } else { "ASYNC" };
+        let v = if ctx.rng.random() { "SYNC" } else { "ASYNC" };
         inst.param_str("RSTTYPE", v);
         ti.cfg("RSTTYPE", v);
-        let v = if ctx.rng.gen() { "CARRYIN" } else { "OPMODE5" };
+        let v = if ctx.rng.random() { "CARRYIN" } else { "OPMODE5" };
         inst.param_str("CARRYINSEL", v);
         ti.cfg("CARRYINSEL", v);
 
@@ -636,10 +636,10 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         ti.pin_in_inv("CLK", &clk_x, clk_inv);
 
         // These have a weird interdependency.
-        let areg = ctx.rng.gen_range(0..3);
+        let areg = ctx.rng.random_range(0..3);
         inst.param_int("AREG", areg);
         ti.cfg_int("AREG", areg);
-        let breg = ctx.rng.gen_range(0..3);
+        let breg = ctx.rng.random_range(0..3);
         inst.param_int("BREG", breg);
         ti.cfg_int("BREG", breg);
 
@@ -668,7 +668,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 for i in 0..30 {
                     ti.pin_in(&format!("ACIN{i}"), &acin[i]);
                 }
-                if ctx.rng.gen() {
+                if ctx.rng.random() {
                     a_input = "CASCADE";
                 } else {
                     a_input = "DIRECT";
@@ -692,7 +692,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 ti.cfg_int("ACASCREG", areg);
             } else {
                 let acascreg = if areg == 2 {
-                    ctx.rng.gen_range(1..3)
+                    ctx.rng.random_range(1..3)
                 } else {
                     areg
                 };
@@ -748,7 +748,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             for i in 0..18 {
                 ti.pin_in(&format!("BCIN{i}"), &bcin[i]);
             }
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 b_input = "CASCADE";
             } else {
                 b_input = "DIRECT";
@@ -771,7 +771,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 ti.cfg_int("BCASCREG", breg);
             } else {
                 let bcascreg = if breg == 2 {
-                    ctx.rng.gen_range(1..3)
+                    ctx.rng.random_range(1..3)
                 } else {
                     breg
                 };
@@ -821,7 +821,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         for i in 0..48 {
             ti.pin_in(&format!("C{i}"), &c[i]);
         }
-        let creg = ctx.rng.gen_range(0..2);
+        let creg = ctx.rng.random_range(0..2);
         inst.param_int("CREG", creg);
         ti.cfg_int("CREG", creg);
         if mode == Mode::Virtex4 {
@@ -848,10 +848,10 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 for i in 0..25 {
                     ti.pin_in(&format!("D{i}"), &d[i]);
                 }
-                let dreg = ctx.rng.gen_range(0..2);
+                let dreg = ctx.rng.random_range(0..2);
                 inst.param_int("DREG", dreg);
                 ti.cfg_int("DREG", dreg);
-                let adreg = ctx.rng.gen_range(0..2);
+                let adreg = ctx.rng.random_range(0..2);
                 inst.param_int("ADREG", adreg);
                 ti.cfg_int("ADREG", adreg);
                 let rst = test.make_in(ctx);
@@ -871,7 +871,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                     inmode.push(om_v);
                 }
                 inst.connect_bus("INMODE", &inmode);
-                let inmodereg = ctx.rng.gen_range(0..2);
+                let inmodereg = ctx.rng.random_range(0..2);
                 inst.param_int("INMODEREG", inmodereg);
                 ti.cfg_int("INMODEREG", inmodereg);
                 let rst = test.make_in(ctx);
@@ -881,7 +881,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 inst.connect("CEINMODE", &ce);
                 ti.pin_in("CEINMODE", &ce);
 
-                let use_d = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
+                let use_d = if ctx.rng.random() { "TRUE" } else { "FALSE" };
                 inst.param_str("USE_DPORT", use_d);
                 ti.cfg("USE_DPORT", use_d);
             } else {
@@ -906,7 +906,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         }
 
         // M
-        let mreg = ctx.rng.gen_range(0..2);
+        let mreg = ctx.rng.random_range(0..2);
         inst.param_int("MREG", mreg);
         ti.cfg_int("MREG", mreg);
         if mode == Mode::Virtex4 {
@@ -931,7 +931,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             inst.param_str("USE_MULT", use_mult);
             ti.cfg("USE_MULT", use_mult);
         } else {
-            let use_mult = ctx.rng.gen();
+            let use_mult = ctx.rng.random();
             if pk == 4 {
                 inst.param_str(
                     "LEGACY_MODE",
@@ -998,7 +998,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             opmode.push(om_v);
         }
         inst.connect_bus("OPMODE", &opmode);
-        let opmodereg = ctx.rng.gen_range(0..2);
+        let opmodereg = ctx.rng.random_range(0..2);
         inst.param_int("OPMODEREG", opmodereg);
         ti.cfg_int("OPMODEREG", opmodereg);
         if mode == Mode::Virtex4 {
@@ -1024,7 +1024,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         if pk == 4 {
             let (sub_v, sub_x, sub_inv) = test.make_in_inv(ctx);
             inst.connect("SUBTRACT", &sub_v);
-            let subreg = ctx.rng.gen_range(0..2);
+            let subreg = ctx.rng.random_range(0..2);
             inst.param_int("SUBTRACTREG", subreg);
             if mode == Mode::Virtex4 {
                 ti.pin_in_inv("SUBTRACT", &sub_x, sub_inv);
@@ -1044,7 +1044,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 alumode.push(om_v);
             }
             inst.connect_bus("ALUMODE", &alumode);
-            let alumodereg = ctx.rng.gen_range(0..2);
+            let alumodereg = ctx.rng.random_range(0..2);
             inst.param_int("ALUMODEREG", alumodereg);
             ti.cfg_int("ALUMODEREG", alumodereg);
 
@@ -1060,7 +1060,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         let (cin_v, cin_x, cin_inv) = test.make_in_inv(ctx);
         inst.connect("CARRYIN", &cin_v);
         ti.pin_in_inv("CARRYIN", &cin_x, cin_inv);
-        let carryinreg = ctx.rng.gen_range(0..2);
+        let carryinreg = ctx.rng.random_range(0..2);
         inst.param_int("CARRYINREG", carryinreg);
         ti.cfg_int("CARRYINREG", carryinreg);
         if pk == 4 {
@@ -1073,8 +1073,8 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 }
                 inst.connect_bus("CARRYINSEL", &cinsel);
             } else {
-                if ctx.rng.gen() {
-                    let val = ctx.rng.gen_range(0..4);
+                if ctx.rng.random() {
+                    let val = ctx.rng.random_range(0..4);
                     inst.connect("CARRYINSEL", &format!("{val}"));
                     // well...
                     ti.pin_tie("CARRYINSEL0", (val & 1) != 0);
@@ -1092,7 +1092,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             if mode == Mode::Virtex5 {
                 ti.cfg_int("MULTCARRYINREG", 1);
             }
-            let carryinselreg = ctx.rng.gen_range(0..2);
+            let carryinselreg = ctx.rng.random_range(0..2);
             inst.param_int("CARRYINSELREG", carryinselreg);
             ti.cfg_int("CARRYINSELREG", carryinselreg);
             if mode == Mode::Virtex4 {
@@ -1125,7 +1125,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             for i in 0..3 {
                 ti.pin_in(&format!("CARRYINSEL{i}"), &cinsel[i]);
             }
-            let carryinselreg = ctx.rng.gen_range(0..2);
+            let carryinselreg = ctx.rng.random_range(0..2);
             inst.param_int("CARRYINSELREG", carryinselreg);
             ti.cfg_int("CARRYINSELREG", carryinselreg);
             let rst = test.make_in(ctx);
@@ -1135,7 +1135,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
             inst.connect("CECARRYIN", &ce);
             ti.pin_in("CECARRYIN", &ce);
             if pk == 5 {
-                let multcarryinreg = ctx.rng.gen_range(0..2);
+                let multcarryinreg = ctx.rng.random_range(0..2);
                 inst.param_int("MULTCARRYINREG", multcarryinreg);
                 if mode == Mode::Virtex5 {
                     ti.cfg_int("MULTCARRYINREG", multcarryinreg);
@@ -1155,7 +1155,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
         }
 
         // P out
-        let preg = ctx.rng.gen_range(0..2);
+        let preg = ctx.rng.random_range(0..2);
         inst.param_int("PREG", preg);
         ti.cfg_int("PREG", preg);
         if mode == Mode::Virtex4 {
@@ -1235,7 +1235,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                     ti.pin_out(p, &w);
                 }
 
-                let use_pat = if ctx.rng.gen() { "PATDET" } else { "NO_PATDET" };
+                let use_pat = if ctx.rng.random() { "PATDET" } else { "NO_PATDET" };
                 inst.param_str("USE_PATTERN_DETECT", use_pat);
                 ti.cfg("USE_PATTERN_DETECT", use_pat);
 
@@ -1252,7 +1252,7 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 if pk == 5 {
                     let sel_mask = *["C", "MASK"].choose(&mut ctx.rng).unwrap();
                     inst.param_str("SEL_MASK", sel_mask);
-                    let rm = ctx.rng.gen_range(0..3);
+                    let rm = ctx.rng.random_range(0..3);
                     let srm = match rm {
                         0 => "SEL_MASK",
                         1 => "MODE1",
@@ -1283,8 +1283,8 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                 }
 
                 if pk == 5 {
-                    let arpd = if ctx.rng.gen() { "TRUE" } else { "FALSE" };
-                    let arpdi = if ctx.rng.gen() { "NOT_MATCH" } else { "MATCH" };
+                    let arpd = if ctx.rng.random() { "TRUE" } else { "FALSE" };
+                    let arpdi = if ctx.rng.random() { "NOT_MATCH" } else { "MATCH" };
                     inst.param_str("AUTORESET_PATTERN_DETECT", arpd);
                     inst.param_str("AUTORESET_PATTERN_DETECT_OPTINV", arpdi);
                     if mode == Mode::Virtex5 {

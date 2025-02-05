@@ -1,6 +1,6 @@
 use crate::types::{BitVal, SrcInst, Test, TestGenCtx, TgtInst};
 
-use rand::{seq::SliceRandom, Rng};
+use rand::prelude::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -81,7 +81,7 @@ fn make_ffs(
             ti.pin_in(&format!("D{c}"), &tmp);
         }
     }
-    let latch = clk.is_none() && ctx.rng.gen();
+    let latch = clk.is_none() && ctx.rng.random();
     let clk_v = match clk {
         None => {
             let (x, clk_x, clk_inv) = test.make_in_inv(ctx);
@@ -95,7 +95,7 @@ fn make_ffs(
         }
         Some(x) => x.to_string(),
     };
-    let ce = if ctx.rng.gen() {
+    let ce = if ctx.rng.random() {
         let (ce_v, ce_x, ce_inv) = test.make_in_inv(ctx);
         if mode == Mode::Virtex {
             ti.cfg("CEMUX", if ce_inv { "CE_B" } else { "CE" });
@@ -107,7 +107,7 @@ fn make_ffs(
     } else {
         None
     };
-    let sr = if ctx.rng.gen() && !nosr {
+    let sr = if ctx.rng.random() && !nosr {
         let (sr_v, sr_x, sr_inv) = test.make_in_inv(ctx);
         if mode == Mode::Virtex {
             ti.cfg("SRMUX", if sr_inv { "SR_B" } else { "SR" });
@@ -124,7 +124,7 @@ fn make_ffs(
     } else {
         None
     };
-    let rev = if (mode == Mode::Virtex || sr.is_some()) && !norev && ctx.rng.gen() {
+    let rev = if (mode == Mode::Virtex || sr.is_some()) && !norev && ctx.rng.random() {
         let (rev_v, rev_x, rev_inv) = test.make_in_inv(ctx);
         if mode == Mode::Virtex {
             ti.cfg("BYMUX", if rev_inv { "BY_B" } else { "BY" });
@@ -142,11 +142,11 @@ fn make_ffs(
     } else {
         None
     };
-    let async_ = latch || ctx.rng.gen();
+    let async_ = latch || ctx.rng.random();
     ti.cfg("SYNC_ATTR", if async_ { "ASYNC" } else { "SYNC" });
     for &(c, d) in ffs {
-        let init = ctx.rng.gen();
-        let mut rval = ctx.rng.gen();
+        let init = ctx.rng.random();
+        let mut rval = ctx.rng.random();
         if mode == Mode::Virtex {
             if rev.is_some() ^ sr.is_some() {
                 rval = init ^ rev.is_some();
@@ -279,7 +279,7 @@ fn gen_lut(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
     let init = gen_lut_init(sz, ctx);
     inst.param_bits("INIT", &init);
 
-    if ctx.rng.gen() && sz != 1 {
+    if ctx.rng.random() && sz != 1 {
         let out = test.make_wire(ctx);
         inst.connect("O", &out);
         if mode == Mode::Virtex4 {
@@ -335,7 +335,7 @@ fn gen_muxf5(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 
     ti.bel("F5MUX", &inst.name, "");
     ti.cfg("FXMUX", "F5");
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let o = test.make_wire(ctx);
         inst.connect("O", &o);
         if mode == Mode::Virtex4 {
@@ -440,7 +440,7 @@ fn gen_muxf678(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
                 } else {
                     ti.cfg("GYMUX", "FX");
                 }
-                if ctx.rng.gen() {
+                if ctx.rng.random() {
                     let o = test.make_wire(ctx);
                     inst.connect("O", &o);
                     if mode == Mode::Virtex4 {
@@ -523,11 +523,11 @@ fn gen_cy(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
         let cymode;
         if f == "F" {
-            cymode = ctx.rng.gen_range(0..4);
+            cymode = ctx.rng.random_range(0..4);
         } else if mode == Mode::Virtex {
             cymode = prevcymode.unwrap();
         } else {
-            cymode = ctx.rng.gen_range(0..5);
+            cymode = ctx.rng.random_range(0..5);
         }
         prevcymode = Some(cymode);
         let mut do_backflip = false;
@@ -731,7 +731,7 @@ fn gen_rom16x1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     for i in 0..4 {
         inst.connect(&format!("A{i}"), &inp[i]);
     }
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let out = test.make_wire(ctx);
         inst.connect("O", &out);
         if mode == Mode::Virtex4 {
@@ -910,7 +910,7 @@ fn gen_rom32px1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
 
     if sz == 0 {
         tis[0].cfg("FXMUX", "F5");
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let o = test.make_wire(ctx);
             inst.connect("O", &o);
             if mode == Mode::Virtex4 {
@@ -944,7 +944,7 @@ fn gen_rom32px1(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
     } else {
         let i = 1 << (sz - 1);
         tis[i].cfg("GYMUX", "FX");
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let o = test.make_wire(ctx);
             inst.connect("O", &o);
             if mode == Mode::Virtex4 {
@@ -994,7 +994,7 @@ fn gen_ram16s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let (ce_v, ce_x, ce_inv) = test.make_in_inv(ctx);
     let uset = ctx.gen_name();
     let rloc = if mode == Mode::Virtex {
-        format!("R0C0.S{}", ctx.rng.gen_range(0..2))
+        format!("R0C0.S{}", ctx.rng.random_range(0..2))
     } else {
         "X0Y0".to_string()
     };
@@ -1030,7 +1030,7 @@ fn gen_ram16s(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         inst.connect("WCLK", &clk_v);
     }
 
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let mut outs = Vec::new();
         for _ in 0..num {
             outs.push(test.make_wire(ctx));
@@ -1240,7 +1240,7 @@ fn gen_ram32ps(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
 
     if sz == 0 {
         tis[0].cfg("FXMUX", "F5");
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let o = test.make_wire(ctx);
             inst.connect("O", &o);
             if mode == Mode::Virtex4 {
@@ -1274,7 +1274,7 @@ fn gen_ram32ps(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
     } else {
         let i = 1 << (sz - 1);
         tis[i].cfg("GYMUX", "FX");
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let o = test.make_wire(ctx);
             inst.connect("O", &o);
             if mode == Mode::Virtex4 {
@@ -1480,7 +1480,7 @@ fn gen_ram16d(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     ti.bel_ram("F", &sf, 4, val);
     ti.bel_ram("G", &sg, 4, val);
 
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let spo = test.make_wire(ctx);
         let dpo = test.make_wire(ctx);
         inst.connect("SPO", &spo);
@@ -1603,7 +1603,7 @@ fn gen_ram16d_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) 
         inst.connect("WCLK", &clk_v);
     }
 
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let mut spos = Vec::new();
         let mut dpos = Vec::new();
         for _ in 0..num {
@@ -1713,7 +1713,7 @@ fn gen_srl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     let (ce_v, ce_x, ce_inv) = test.make_in_inv(ctx);
     let uset = ctx.gen_name();
     let rloc = if mode == Mode::Virtex {
-        format!("R0C0.S{}", ctx.rng.gen_range(0..2))
+        format!("R0C0.S{}", ctx.rng.random_range(0..2))
     } else {
         "X0Y0".to_string()
     };
@@ -1746,7 +1746,7 @@ fn gen_srl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
         inst.connect("CLK", &clk_v);
     }
 
-    if ctx.rng.gen() {
+    if ctx.rng.random() {
         let mut outs = Vec::new();
         for _ in 0..num {
             outs.push(test.make_wire(ctx));
@@ -1928,7 +1928,7 @@ fn gen_ram32pd_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
 
         if sz == 0 {
             tis[0].cfg("FXMUX", "F5");
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 let o = test.make_wire(ctx);
                 inst.connect(&format!("{sd}PO"), &o);
                 if mode == Mode::Virtex4 {
@@ -1961,7 +1961,7 @@ fn gen_ram32pd_v2(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, sz: u8) {
             }
         } else {
             tis[1].cfg("GYMUX", "FX");
-            if ctx.rng.gen() {
+            if ctx.rng.random() {
                 let o = test.make_wire(ctx);
                 inst.connect(&format!("{sd}PO"), &o);
                 if mode == Mode::Virtex4 {
@@ -2154,7 +2154,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
     for i in 0..(num / 2) {
         let ti = &mut tis[i];
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let of = test.make_wire(ctx);
             let og = test.make_wire(ctx);
             insts[2 * i].connect("Q", &og);
@@ -2195,7 +2195,7 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
     }
     if num % 2 == 1 {
         let ti = &mut tis[num / 2];
-        if ctx.rng.gen() {
+        if ctx.rng.random() {
             let og = test.make_wire(ctx);
             insts[num - 1].connect("Q", &og);
             if mode == Mode::Virtex4 {
@@ -2236,11 +2236,11 @@ fn gen_srlc(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, num: usize) {
 
 fn gen_ff(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
     let mut ti = TgtInst::new(slice_kind(mode));
-    let num = if ctx.rng.gen() { 1 } else { 2 };
+    let num = if ctx.rng.random() { 1 } else { 2 };
     let mut stuff = Vec::new();
     let uset = ctx.gen_name();
     let rloc = if mode == Mode::Virtex {
-        format!("R0C0.S{}", ctx.rng.gen_range(0..2))
+        format!("R0C0.S{}", ctx.rng.random_range(0..2))
     } else {
         "X0Y0".to_string()
     };

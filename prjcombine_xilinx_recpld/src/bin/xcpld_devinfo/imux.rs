@@ -13,7 +13,7 @@ use prjcombine_xilinx_recpld::{
     db::ImuxData,
     v2vm6::{v2vm6, FitOpts},
 };
-use rand::seq::SliceRandom;
+use rand::prelude::*;
 use rayon::prelude::*;
 use unnamed_entity::{EntityId, EntityVec};
 
@@ -23,7 +23,7 @@ fn gather_imux_once(
     dev: &Device,
     pkg: &Package,
 ) -> Result<Option<ImuxData>, Box<dyn Error>> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let sz = match dev.kind {
         DeviceKind::Xc9500 => 34,
         DeviceKind::Xc9500Xl | DeviceKind::Xc9500Xv => 48,

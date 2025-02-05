@@ -1,6 +1,5 @@
 use crate::types::{SrcInst, Test, TestGenCtx, TgtInst};
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::prelude::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Mode {
@@ -121,7 +120,7 @@ fn gen_bufg(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 }
 
 fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let dis_attr = ctx.rng.gen();
+    let dis_attr = ctx.rng.random();
     let mut inst = SrcInst::new(ctx, if dis_attr { "BUFGCE_1" } else { "BUFGCE" });
     let prim = match mode {
         Mode::Virtex2 | Mode::Spartan3 | Mode::Spartan6 => "BUFGMUX",
@@ -184,8 +183,8 @@ fn gen_bufgce(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 }
 
 fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let dis_attr = ctx.rng.gen();
-    let st = if mode != Mode::Spartan6 || ctx.rng.gen() {
+    let dis_attr = ctx.rng.random();
+    let st = if mode != Mode::Spartan6 || ctx.rng.random() {
         "SYNC"
     } else {
         "ASYNC"
@@ -253,7 +252,7 @@ fn gen_bufgmux(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
 }
 
 fn gen_bufgmux_ctrl(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode) {
-    let prim = if ctx.rng.gen() || mode == Mode::Virtex4 {
+    let prim = if ctx.rng.random() || mode == Mode::Virtex4 {
         "BUFGMUX_VIRTEX4"
     } else {
         "BUFGMUX_CTRL"

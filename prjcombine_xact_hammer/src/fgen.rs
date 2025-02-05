@@ -9,7 +9,7 @@ use prjcombine_int::{
 };
 use prjcombine_virtex_bitstream::BitTile;
 use prjcombine_xc2000::grid::GridKind;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::prelude::*;
 
 use crate::backend::{FuzzerFeature, FuzzerInfo, Key, MultiValue, Value, XactBackend};
 
@@ -832,7 +832,7 @@ impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerGen {
         Option<Box<dyn FuzzerGen<XactBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, sad_props) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
@@ -878,7 +878,7 @@ impl<'b> FuzzerGen<XactBackend<'b>> for XactFuzzerChainGen {
         Option<Box<dyn FuzzerGen<XactBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.orig.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, mut sad_props) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {

@@ -7,8 +7,7 @@ use prjcombine_virtex2::iob::IobKind;
 use prjcombine_virtex_bitstream::{BitTile, Reg};
 use prjcombine_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_xilinx_naming::db::{IntfWireInNaming, IntfWireOutNaming, NodeRawTileId};
-use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::prelude::*;
 use std::collections::{BTreeSet, HashMap};
 use unnamed_entity::EntityId;
 
@@ -6564,7 +6563,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerGen<'b> {
         Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
@@ -6614,7 +6613,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileFuzzerChainGen<'b> {
         Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.orig.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
@@ -6716,7 +6715,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerGen<'b> {
         Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {
@@ -6766,7 +6765,7 @@ impl<'b> FuzzerGen<IseBackend<'b>> for TileMultiFuzzerChainGen<'b> {
         Option<Box<dyn FuzzerGen<IseBackend<'b>> + 'a>>,
     )> {
         let locs = &backend.egrid.node_index[self.orig.node];
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let (res, extras) = 'find: {
             if locs.len() > 20 {
                 for &loc in locs.choose_multiple(&mut rng, 20) {

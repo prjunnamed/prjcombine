@@ -4,7 +4,6 @@ use bimap::BiHashMap;
 use indicatif::ProgressBar;
 use itertools::Itertools;
 use rand::seq::{IteratorRandom, SliceRandom};
-use rand::thread_rng;
 use std::collections::hash_map::Entry;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Condvar;
@@ -43,7 +42,7 @@ fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
             bits.push((fid, i));
         }
     }
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     bits.shuffle(&mut rng);
     let mut width = 1u32;
     let mut code;
@@ -272,7 +271,7 @@ fn diagnose_cw_fail<B: Backend>(
     let mut skip: HashSet<BatchFuzzerId> = HashSet::new();
     'big: loop {
         let mut left: Vec<_> = batch.fuzzers.ids().filter(|f| !skip.contains(f)).collect();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         if left.len() > 3 {
             for _try in 0..3 {
                 let cut_a = (left.len() + 1) / 3;
@@ -438,7 +437,7 @@ impl<'a, B: Backend> Session<'a, B> {
                 gens.push(i);
             }
         }
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         gens.shuffle(&mut rng);
         let fgens = core::mem::take(&mut self.fgens);
         for i in gens {

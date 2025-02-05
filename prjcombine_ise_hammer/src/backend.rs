@@ -150,13 +150,13 @@ pub enum PostProc {}
 
 impl IseBackend<'_> {
     fn gen_key(&self, gopts: &mut HashMap<String, String>) -> KeyData {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         match self.edev {
             ExpandedDevice::Virtex2(_) => {
-                let key_passes = rng.gen_range(1..=6);
-                let start_key = rng.gen_range(0..(6 - key_passes + 1));
+                let key_passes = rng.random_range(1..=6);
+                let start_key = rng.random_range(0..(6 - key_passes + 1));
                 let mut key = KeyDataDes {
-                    key: rng.gen(),
+                    key: rng.random(),
                     keyseq: core::array::from_fn(|_| {
                         *[KeySeq::First, KeySeq::Middle, KeySeq::Last, KeySeq::Single]
                             .choose(&mut rng)
@@ -190,7 +190,7 @@ impl IseBackend<'_> {
                 KeyData::Des(key)
             }
             ExpandedDevice::Spartan6(_) | ExpandedDevice::Virtex4(_) => {
-                let key = KeyDataAes { key: rng.gen() };
+                let key = KeyDataAes { key: rng.random() };
                 gopts.insert("KEY0".into(), hex::encode(key.key));
                 KeyData::Aes(key)
             }
@@ -618,7 +618,7 @@ impl<'a> Backend for IseBackend<'a> {
                 xdl.version = "".to_string();
             }
         }
-        xdl.instances.shuffle(&mut rand::thread_rng());
+        xdl.instances.shuffle(&mut rand::rng());
         let vccaux = if let Some(Value::String(val)) = kv.get(&Key::VccAux) {
             if val.is_empty() {
                 None
