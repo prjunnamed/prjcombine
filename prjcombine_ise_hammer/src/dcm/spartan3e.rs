@@ -625,7 +625,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             diff.apply_enum_diff(clkdv_mode, "HALF", "INT");
             diff.apply_bitvec_diff_int(clkdv_count_max, 2 * i, 1);
             diff.apply_bitvec_diff_int(clkdv_count_fall, (i - 1) / 2, 0);
-            diff.apply_bitvec_diff_int(clkdv_count_fall_2, (3 * i + 1) / 2, 0);
+            diff.apply_bitvec_diff_int(clkdv_count_fall_2, (3 * i).div_ceil(2), 0);
             diff.apply_bitvec_diff_int(clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }

@@ -45,12 +45,12 @@ fn prep_batch<B: Backend>(batch: &Batch<B>) -> BatchData<B> {
     }
     let mut rng = thread_rng();
     bits.shuffle(&mut rng);
-    let mut width = 1;
+    let mut width = 1u32;
     let mut code;
     'cb: loop {
         code = BiHashMap::new();
         let mut cw: u64 = 0;
-        let hw = (width + 1) / 2;
+        let hw = width.div_ceil(2);
         for &x in &bits {
             loop {
                 if cw >= 1 << width {

@@ -57,7 +57,7 @@ fn resolve_tile_relation(
 ) -> Option<NodeLoc> {
     match relation {
         TileRelation::ClbTbusRight => loop {
-            if loc.1 == backend.egrid.die(loc.0).cols().last().unwrap() {
+            if loc.1 == backend.egrid.die(loc.0).cols().next_back().unwrap() {
                 return None;
             }
             loc.1 += 1;
@@ -4967,7 +4967,7 @@ impl TileBits {
                         if row < edev.grids[die].row_bufg() {
                             res.push(edev.btile_spine(die, RowId::from_idx(0)))
                         } else {
-                            res.push(edev.btile_spine(die, edev.grids[die].rows().last().unwrap()))
+                            res.push(edev.btile_spine(die, edev.grids[die].rows().next_back().unwrap()))
                         }
                         res
                     }

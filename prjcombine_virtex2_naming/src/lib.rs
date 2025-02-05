@@ -1808,7 +1808,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, kind, names);
                             let vy = namer.vcc_ylut[grid.row_mid()] - 1;
                             let vx = 0;
-                            let gsy = (grid.rows_hclk.len() + 1) / 2 + 1;
+                            let gsy = grid.rows_hclk.len().div_ceil(2) + 1;
                             nnode.add_bel(0, "BUFGMUX_X0Y2".to_string());
                             nnode.add_bel(1, "BUFGMUX_X0Y3".to_string());
                             nnode.add_bel(2, "BUFGMUX_X0Y4".to_string());
@@ -1837,7 +1837,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             let nnode = namer.ngrid.name_node(nloc, kind, names);
                             let vy = namer.vcc_ylut[grid.row_mid()] - 1;
                             let vx = namer.vcc_xlut[grid.col_right()] + 1;
-                            let gsy = (grid.rows_hclk.len() + 1) / 2 + 1;
+                            let gsy = grid.rows_hclk.len().div_ceil(2) + 1;
                             nnode.add_bel(0, "BUFGMUX_X3Y2".to_string());
                             nnode.add_bel(1, "BUFGMUX_X3Y3".to_string());
                             nnode.add_bel(2, "BUFGMUX_X3Y4".to_string());

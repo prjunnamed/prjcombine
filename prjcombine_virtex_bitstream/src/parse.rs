@@ -361,7 +361,7 @@ fn virtex7_far(addr: FrameAddr) -> u32 {
 
 fn insert_virtex_frame(kind: DeviceKind, bs: &mut DieBitstream, fi: usize, data: &[u8]) {
     let frame_len = bs.frame_len;
-    let frame_words = (frame_len + 31) / 32;
+    let frame_words = frame_len.div_ceil(32);
     if kind == DeviceKind::Virtex {
         assert_eq!(data.len(), (frame_words + 1) * 4);
     } else {
@@ -394,7 +394,7 @@ fn fixup_virtex_frame(kind: DeviceKind, bs: &mut DieBitstream, fi: usize, data: 
         panic!("FIXUP ON NOT PRESENT FRAME {fi}");
     }
     let frame_len = bs.frame_len;
-    let frame_words = (frame_len + 31) / 32;
+    let frame_words = frame_len.div_ceil(32);
     if kind == DeviceKind::Virtex {
         assert_eq!(data.len(), (frame_words + 1) * 4);
     } else {
@@ -505,7 +505,7 @@ fn fixup_spartan6_frame(bs: &mut DieBitstream, fi: usize, data: &[u8]) {
 
 fn insert_virtex4_frame(bs: &mut DieBitstream, fi: usize, data: &[u8]) {
     let frame_len = bs.frame_len;
-    let frame_words = (frame_len + 31) / 32;
+    let frame_words = frame_len.div_ceil(32);
     assert_eq!(data.len(), frame_words * 4);
     let frame = bs.frame_mut(fi);
     for i in 0..frame_words {
@@ -541,7 +541,7 @@ fn parse_virtex_bitstream(bs: &mut Bitstream, data: &[u8], key: &KeyData) {
     }
     assert_eq!(packets.next(), Some(Packet::CmdRcrc));
     let frame_words = if kind == DeviceKind::Virtex {
-        (bs.frame_len + 31) / 32 + 1
+        bs.frame_len.div_ceil(32) + 1
     } else {
         bs.frame_len / 32
     };

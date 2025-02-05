@@ -105,7 +105,7 @@ fn fmt_hex(val: &[BitVal], uppercase: bool) -> String {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
         ]
     };
-    for i in (0..((val.len() + 3) / 4)).rev() {
+    for i in (0..val.len().div_ceil(4)).rev() {
         let mut v = 0;
         for j in 0..4 {
             if 4 * i + j < val.len() && val[4 * i + j] == BitVal::S1 {
