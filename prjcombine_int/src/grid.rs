@@ -537,15 +537,15 @@ impl ExpandedGrid<'_> {
         while let Some(wire) = queue.pop() {
             let die = self.die(wire.0);
             let tile = &die[wire.1];
-            res.push(wire);
             if matches!(self.db.wires[wire.2], WireKind::ClkOut(_)) && tile.clkroot == wire.1 {
                 for &crd in &die.clk_root_tiles[&wire.1] {
                     if crd != wire.1 {
                         queue.push((wire.0, crd, wire.2));
                     }
                 }
+            } else {
+                res.push(wire);
             }
-            res.push(wire);
             for &wt in &self.db_index.buf_ins[wire.2] {
                 queue.push((wire.0, wire.1, wt));
             }
