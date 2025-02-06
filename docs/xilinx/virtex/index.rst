@@ -7,6 +7,7 @@ Virtex
    :maxdepth: 2
    :caption: Contents:
 
+   intro
    clb
    bram
    io

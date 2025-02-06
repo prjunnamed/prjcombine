@@ -18,5 +18,6 @@ Spartan 3
    dcm-s3
    dcm-s3e
    corner
+   pcilogicse
    config-s3
    config-s3a
