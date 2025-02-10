@@ -13,7 +13,7 @@ use prjcombine_xilinx_geom::{
 };
 use prjcombine_xilinx_naming::grid::ExpandedGridNaming;
 use rand::prelude::*;
-use std::collections::{hash_map, HashMap};
+use std::collections::{btree_map, hash_map, HashMap};
 use std::fmt::{Debug, Write};
 
 pub struct IseBackend<'a> {
@@ -727,7 +727,7 @@ impl<'a> Backend for IseBackend<'a> {
                 }
             } else {
                 match state.features.entry(feat.id.clone()) {
-                    hash_map::Entry::Occupied(mut e) => {
+                    btree_map::Entry::Occupied(mut e) => {
                         let v = e.get_mut();
                         if v.diffs != xdiffs {
                             eprintln!(
@@ -740,7 +740,7 @@ impl<'a> Backend for IseBackend<'a> {
                             v.fuzzers.push(fid);
                         }
                     }
-                    hash_map::Entry::Vacant(e) => {
+                    btree_map::Entry::Vacant(e) => {
                         e.insert(FeatureData {
                             diffs: xdiffs,
                             fuzzers: vec![fid],

@@ -177,14 +177,15 @@ fn make_ffs(
     } else {
         None
     };
-    let rev = if mode == Mode::Virtex5 && !norev && sr.is_some() && clk.is_none() && ctx.rng.random() {
-        let rev = test.make_in(ctx);
-        ti.pin_in("DX", &rev);
-        ti.cfg("REVUSED", "0");
-        Some(rev)
-    } else {
-        None
-    };
+    let rev =
+        if mode == Mode::Virtex5 && !norev && sr.is_some() && clk.is_none() && ctx.rng.random() {
+            let rev = test.make_in(ctx);
+            ti.pin_in("DX", &rev);
+            ti.cfg("REVUSED", "0");
+            Some(rev)
+        } else {
+            None
+        };
     let async_ = latch || ctx.rng.random();
     ti.cfg("SYNC_ATTR", if async_ { "ASYNC" } else { "SYNC" });
     for &(c, n, d) in ffs {

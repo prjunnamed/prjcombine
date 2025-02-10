@@ -1,6 +1,5 @@
 use bitvec::vec::BitVec;
 use clap::Parser;
-use itertools::Itertools;
 use prjcombine_collector::Collector;
 use prjcombine_hammer::{Backend, Session};
 use prjcombine_int::db::Dir;
@@ -703,7 +702,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut TileDb, opts: &R
             .insert_device_data(&part.name, format!("IDCODE:{which}"), idcode);
     }
 
-    for (feat, data) in ctx.state.features.iter().sorted_by_key(|&(k, _)| k) {
+    for (feat, data) in &ctx.state.features {
         println!(
             "{} {} {} {}: {:?}",
             feat.tile, feat.bel, feat.attr, feat.val, data.diffs

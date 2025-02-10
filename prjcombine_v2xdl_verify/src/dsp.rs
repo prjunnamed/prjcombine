@@ -593,7 +593,11 @@ fn gen_dsp48a(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: us
         let v = if ctx.rng.random() { "SYNC" } else { "ASYNC" };
         inst.param_str("RSTTYPE", v);
         ti.cfg("RSTTYPE", v);
-        let v = if ctx.rng.random() { "CARRYIN" } else { "OPMODE5" };
+        let v = if ctx.rng.random() {
+            "CARRYIN"
+        } else {
+            "OPMODE5"
+        };
         inst.param_str("CARRYINSEL", v);
         ti.cfg("CARRYINSEL", v);
 
@@ -1235,7 +1239,11 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
                     ti.pin_out(p, &w);
                 }
 
-                let use_pat = if ctx.rng.random() { "PATDET" } else { "NO_PATDET" };
+                let use_pat = if ctx.rng.random() {
+                    "PATDET"
+                } else {
+                    "NO_PATDET"
+                };
                 inst.param_str("USE_PATTERN_DETECT", use_pat);
                 ti.cfg("USE_PATTERN_DETECT", use_pat);
 
@@ -1284,7 +1292,11 @@ fn gen_dsp48(test: &mut Test, ctx: &mut TestGenCtx, mode: Mode, pk: u8, num: usi
 
                 if pk == 5 {
                     let arpd = if ctx.rng.random() { "TRUE" } else { "FALSE" };
-                    let arpdi = if ctx.rng.random() { "NOT_MATCH" } else { "MATCH" };
+                    let arpdi = if ctx.rng.random() {
+                        "NOT_MATCH"
+                    } else {
+                        "MATCH"
+                    };
                     inst.param_str("AUTORESET_PATTERN_DETECT", arpd);
                     inst.param_str("AUTORESET_PATTERN_DETECT_OPTINV", arpdi);
                     if mode == Mode::Virtex5 {

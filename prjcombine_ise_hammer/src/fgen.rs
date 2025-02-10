@@ -4966,7 +4966,9 @@ impl TileBits {
                         if row < edev.grids[die].row_bufg() {
                             res.push(edev.btile_spine(die, RowId::from_idx(0)))
                         } else {
-                            res.push(edev.btile_spine(die, edev.grids[die].rows().next_back().unwrap()))
+                            res.push(
+                                edev.btile_spine(die, edev.grids[die].rows().next_back().unwrap()),
+                            )
                         }
                         res
                     }

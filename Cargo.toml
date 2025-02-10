@@ -66,6 +66,9 @@ members = [
 	"prjcombine_xact_hammer",
 	"prjcombine_xilinx_rdis",
 	"prjcombine_xilinx_finish",
+	"prjcombine_harvester",
+	"prjcombine_siliconblue",
+	"prjcombine_icecube_harvester",
 	"prjcombine_vm6",
 	"prjcombine_xilinx_cpld",
 	"prjcombine_xilinx_recpld",
@@ -138,6 +141,8 @@ prjcombine_xact_naming = { path = "prjcombine_xact_naming" }
 prjcombine_xc2000_xact = { path = "prjcombine_xc2000_xact" }
 prjcombine_xact_geom = { path = "prjcombine_xact_geom" }
 prjcombine_xact_data = { path = "prjcombine_xact_data" }
+prjcombine_harvester = { path = "prjcombine_harvester" }
+prjcombine_siliconblue = { path = "prjcombine_siliconblue" }
 prjcombine_vm6 = { path = "prjcombine_vm6" }
 prjcombine_xilinx_cpld = { path = "prjcombine_xilinx_cpld" }
 prjcombine_ise_dump = { path = "prjcombine_ise_dump" }

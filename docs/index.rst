@@ -6,6 +6,7 @@ Project Combine
    :caption: Contents:
 
    xilinx/index
+   siliconblue/index
    xc9500/index
    xpla3/index
    xc2c/index

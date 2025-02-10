@@ -18,11 +18,6 @@ struct Args {
     namings: bool,
 }
 
-pub fn pad_sort_key(name: &str) -> (usize, &str, u32) {
-    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
-    (pos, &name[..pos], name[pos..].parse().unwrap())
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let geom = GeomDb::from_file(args.file)?;

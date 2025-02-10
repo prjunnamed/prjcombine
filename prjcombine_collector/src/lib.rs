@@ -591,10 +591,14 @@ pub struct FeatureData {
 
 #[derive(Debug, Default)]
 pub struct State {
-    pub features: HashMap<FeatureId, FeatureData>,
+    pub features: BTreeMap<FeatureId, FeatureData>,
 }
 
 impl State {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn get_diffs(
         &mut self,
         tile: impl Into<String>,

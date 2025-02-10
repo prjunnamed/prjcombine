@@ -22,6 +22,17 @@ for (kind, dbname) in [
     ("xc5v", "virtex5"),
     ("xc6v", "virtex6"),
     ("xc7v", "virtex7"),
+    ("ice65l01", "iCE65L01"),
+    # ("ice65l04", "iCE65L04"),
+    # ("ice65l08", "iCE65L08"),
+    # ("ice65p04", "iCE65P04"),
+    ("ice40p01", "iCE40LP1K"),
+    ("ice40p03", "iCE40LP384"),
+    ("ice40p08", "iCE40LP8K"),
+    # ("ice40r04", "iCE40LM4K"),
+    ("ice40t04", "iCE5LP4K"),
+    ("ice40t01", "iCE40UL1K"),
+    ("ice40t05", "iCE40UP5K"),
 ]:
     with open(f"../databases/{dbname}.json") as dbf:
         db = json.load(dbf)
@@ -117,6 +128,11 @@ for (kind, dbname) in [
         for item in tile.values():
             for bt, _, _ in item["bits"]:
                 num_bittiles = max(bt + 1, num_bittiles)
+        # TODO: HACK
+        if kind.startswith("ice"):
+            for item in tile.values():
+                for bit in item["bits"]:
+                    bit[1], bit[2] = bit[2], bit[1]
         bt_dims = [(0, 0) for _ in range(num_bittiles)]
         for item in tile.values():
             for bt, frame, bit in item["bits"]:
@@ -125,7 +141,11 @@ for (kind, dbname) in [
                     max(bit + 1, bt_dims[bt][1]),
                 )
 
-        with open(f"xilinx/gen/tile-{kind}-{tile_name}.html", "w") as f:
+        if kind.startswith("ice"):
+            vendor = "siliconblue"
+        else:
+            vendor = "xilinx"
+        with open(f"{vendor}/gen/tile-{kind}-{tile_name}.html", "w") as f:
             rev = {}
             for name, item in tile.items():
                 for j, bit in enumerate(item["bits"]):

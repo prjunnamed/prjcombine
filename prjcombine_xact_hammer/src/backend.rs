@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map, BTreeMap, HashMap},
+    collections::{btree_map, BTreeMap, HashMap},
     fs::{read_to_string, File},
     io::Write,
     path::Path,
@@ -413,7 +413,7 @@ impl<'a> Backend for XactBackend<'a> {
                 }
             } else {
                 match state.features.entry(feat.id.clone()) {
-                    hash_map::Entry::Occupied(mut e) => {
+                    btree_map::Entry::Occupied(mut e) => {
                         let v = e.get_mut();
                         if v.diffs != xdiffs {
                             eprintln!(
@@ -426,7 +426,7 @@ impl<'a> Backend for XactBackend<'a> {
                             v.fuzzers.push(fid);
                         }
                     }
-                    hash_map::Entry::Vacant(e) => {
+                    btree_map::Entry::Vacant(e) => {
                         e.insert(FeatureData {
                             diffs: xdiffs,
                             fuzzers: vec![fid],

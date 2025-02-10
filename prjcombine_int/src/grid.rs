@@ -36,6 +36,15 @@ impl EdgeIoCoord {
             EdgeIoCoord::L(row, _) => EdgeIoCoord::L(row, iob),
         }
     }
+
+    pub fn edge(&self) -> Dir {
+        match self {
+            EdgeIoCoord::T(..) => Dir::N,
+            EdgeIoCoord::R(..) => Dir::E,
+            EdgeIoCoord::B(..) => Dir::S,
+            EdgeIoCoord::L(..) => Dir::W,
+        }
+    }
 }
 
 impl std::fmt::Display for EdgeIoCoord {
