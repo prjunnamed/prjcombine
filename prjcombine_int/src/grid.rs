@@ -37,6 +37,15 @@ impl EdgeIoCoord {
         }
     }
 
+    pub fn iob(self) -> TileIobId {
+        match self {
+            EdgeIoCoord::T(_, iob) => iob,
+            EdgeIoCoord::R(_, iob) => iob,
+            EdgeIoCoord::B(_, iob) => iob,
+            EdgeIoCoord::L(_, iob) => iob,
+        }
+    }
+
     pub fn edge(&self) -> Dir {
         match self {
             EdgeIoCoord::T(..) => Dir::N,
