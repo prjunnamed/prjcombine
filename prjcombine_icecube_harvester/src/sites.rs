@@ -559,6 +559,7 @@ pub fn find_io_latch_locs(
 pub struct BelPins {
     pub ins: BTreeMap<String, IntWire>,
     pub outs: BTreeMap<String, Vec<IntWire>>,
+    pub wire_names: BTreeMap<(u32, u32, String), IntWire>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -591,6 +592,7 @@ pub fn find_bel_pins(
                     result.ins.insert(format!("{pin}_{index}"), iw);
                 }
             }
+            result.wire_names.insert(site.in_wires[k].clone(), iw);
         }
         if kind.starts_with("SB_PLL") {
             let row = if site.loc.y == 0 {
@@ -606,6 +608,9 @@ pub fn find_bel_pins(
                         edev.egrid.db.get_wire(&format!("OUT.LC{idx}")),
                     )
                 }));
+                result
+                    .wire_names
+                    .insert(site.out_wires[&InstPin::Simple(pin.into())].clone(), iws[0]);
                 result.outs.insert(pin.into(), iws);
             }
         }
@@ -631,7 +636,6 @@ pub fn find_bel_pins(
             inst.loc = Some(site.loc);
         }
         let mut trace_ins = BTreeMap::new();
-        let mut trace_outs = vec![];
 
         for (&pname, pin) in &prim.pins {
             if pin.dir == PinDir::Input && !pin.is_pad {
@@ -658,20 +662,31 @@ pub fn find_bel_pins(
                 if (kind == "SB_IR_DRV" && pname == "IRPU")
                     || (kind == "SB_RGB_DRV" && pname == "RGBPU")
                 {
+                    let mut drv = Instance::new("SB_LED_DRV_CUR");
+
                     let mut lut = Instance::new("SB_LUT4");
                     lut.prop("LUT_INIT", "16'h0000");
                     let lut = design.insts.push(lut);
-
-                    let mut drv = Instance::new("SB_LED_DRV_CUR");
+                    trace_ins.insert(
+                        (lut, InstPin::Simple("O".into())),
+                        InstPin::Simple("LED_DRV_CUR__EN".into()),
+                    );
                     drv.connect("EN", lut, InstPin::Simple("O".into()));
+
+                    for i in 0..10 {
+                        let mut lut = Instance::new("SB_LUT4");
+                        lut.prop("LUT_INIT", "16'h0000");
+                        let lut = design.insts.push(lut);
+                        trace_ins.insert(
+                            (lut, InstPin::Simple("O".into())),
+                            InstPin::Simple(format!("LED_DRV_CUR__TRIM{i}")),
+                        );
+                        drv.connect(&format!("TRIM{i}"), lut, InstPin::Simple("O".into()));
+                    }
+
                     let drv = design.insts.push(drv);
 
                     inst.connect(pname, drv, InstPin::Simple("LEDPU".into()));
-
-                    trace_ins.insert(
-                        (lut, InstPin::Simple("O".into())),
-                        InstPin::Simple(pname.into()),
-                    );
 
                     continue;
                 }
@@ -781,7 +796,6 @@ pub fn find_bel_pins(
                     || (kind.starts_with("SB_PLL") && pname == "SDO")
                 {
                     let pin = InstPin::Simple(pname.into());
-                    trace_outs.push(pin.clone());
                     let mut lut = Instance::new("SB_LUT4");
                     lut.connect("I0", inst, pin);
                     lut.prop("LUT_INIT", "16'haaaa");
@@ -794,13 +808,11 @@ pub fn find_bel_pins(
                         for i in 0..n {
                             let pin = InstPin::Indexed(pname.to_string(), i);
                             outps.push((inst, pin.clone()));
-                            trace_outs.push(pin);
                         }
                     }
                     None => {
                         let pin = InstPin::Simple(pname.to_string());
                         outps.push((inst, pin.clone()));
-                        trace_outs.push(pin);
                     }
                 }
             }
@@ -830,20 +842,33 @@ pub fn find_bel_pins(
         let res = run(sbt, &design).unwrap();
         let mut iwmap_in = BTreeMap::new();
         let mut iwmap_out = BTreeMap::new();
+        let mut wnmap: BTreeMap<_, Vec<_>> = BTreeMap::new();
         for (src, paths) in res.routes {
             if src.0 == inst {
                 for path in paths {
                     for (x, y, wn) in path {
-                        if let GenericNet::Int(iw) = xlat_wire(edev, x, y, &wn) {
-                            iwmap_out.insert(iw, src.1.clone());
+                        match xlat_wire(edev, x, y, &wn) {
+                            GenericNet::Int(iw) => {
+                                iwmap_out.insert(iw, src.1.clone());
+                            }
+                            GenericNet::Unknown => {
+                                wnmap.entry(src.1.clone()).or_default().push((x, y, wn));
+                            }
+                            _ => (),
                         }
                     }
                 }
             } else if let Some(pin) = trace_ins.get(&src) {
                 for path in paths {
                     for (x, y, wn) in path {
-                        if let GenericNet::Int(iw) = xlat_wire(edev, x, y, &wn) {
-                            iwmap_in.insert(iw, pin.clone());
+                        match xlat_wire(edev, x, y, &wn) {
+                            GenericNet::Int(iw) => {
+                                iwmap_in.insert(iw, pin.clone());
+                            }
+                            GenericNet::Unknown => {
+                                wnmap.entry(pin.clone()).or_default().push((x, y, wn));
+                            }
+                            _ => (),
                         }
                     }
                 }
@@ -913,6 +938,11 @@ pub fn find_bel_pins(
                         let wf = edev.egrid.resolve_wire(wf).unwrap();
                         if let Some(pin) = iwmap_in.get(&wf) {
                             let wt = (DieId::from_idx(0), (col, row), edev.egrid.db.get_wire(wtn));
+                            if let Some(wnames) = wnmap.get(pin) {
+                                for wn in wnames {
+                                    result.wire_names.insert(wn.clone(), wt);
+                                }
+                            }
                             let pin = match pin {
                                 InstPin::Simple(pin) => pin.clone(),
                                 InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
@@ -945,6 +975,11 @@ pub fn find_bel_pins(
                             } else {
                                 vec![wf]
                             };
+                            if let Some(wnames) = wnmap.get(pin) {
+                                for wn in wnames {
+                                    result.wire_names.insert(wn.clone(), wfs[0]);
+                                }
+                            }
                             let pin = match pin {
                                 InstPin::Simple(pin) => pin.clone(),
                                 InstPin::Indexed(pin, index) => format!("{pin}_{index}"),

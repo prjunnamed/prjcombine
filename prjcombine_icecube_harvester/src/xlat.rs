@@ -4,7 +4,10 @@ use prjcombine_int::{
     db::{Dir, WireId},
     grid::{ColId, DieId, IntWire, RowId},
 };
-use prjcombine_siliconblue::{expanded::ExpandedDevice, grid::GridKind};
+use prjcombine_siliconblue::{
+    expanded::ExpandedDevice,
+    grid::{ExtraNodeLoc, GridKind},
+};
 use unnamed_entity::EntityId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -17,7 +20,6 @@ pub enum GenericNet {
     Ltout(ColId, RowId, usize),
     GlobalPadIn(ColId, RowId),
     DummyHold(ColId, RowId),
-    DummyWarmboot(usize),
     CascAddr(ColId, RowId, usize),
     Unknown,
 }
@@ -148,8 +150,8 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else {
                 unreachable!()
             };
-            if let Some(crd) = edev.grid.io_latch[edge] {
-                return GenericNet::Int((DieId::from_idx(0), crd, wire));
+            if let Some(node) = edev.grid.extra_nodes.get(&ExtraNodeLoc::LatchIo(edge)) {
+                return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
             } else {
                 return GenericNet::DummyHold(col, row);
             }
@@ -169,31 +171,6 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         "wire_logic_cluster/carry_in_mux/cout"
         | "wire_mult/carry_in_mux/cout"
         | "wire_con_box/carry_in_mux/cout" => return GenericNet::Cmux(col, row),
-        "wire_warmboot/sel_0"
-        | "sel_0"
-        | "wire_warmboot/sel_1"
-        | "sel_1"
-        | "wire_warmboot/boot"
-        | "boot" => {
-            let pin_name = name.strip_prefix("wire_warmboot/").unwrap_or(name);
-            let (bel_pin, index) = match pin_name {
-                "sel_0" => ("S0", 0),
-                "sel_1" => ("S1", 1),
-                "boot" => ("BOOT", 2),
-                _ => unreachable!(),
-            };
-            if let Some(ref tiles) = edev.grid.warmboot {
-                let node = edev.egrid.db.get_node("WARMBOOT");
-                let node = &edev.egrid.db.nodes[node];
-                let bel = node.bels.get("WARMBOOT").unwrap().1;
-                let pin = &bel.pins[bel_pin];
-                let tile = pin.wires.iter().next().unwrap().0.to_idx();
-                let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
-                return GenericNet::Int((DieId::from_idx(0), tiles[tile], wire));
-            } else {
-                return GenericNet::DummyWarmboot(index);
-            }
-        }
         "wire_pll/outcoreb" | "outcoreb" => {
             col += 1;
             wname = "OUT.LC0".into();
@@ -288,11 +265,12 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
                 let wire = edev.egrid.db.get_wire("IMUX.IO.EXTRA");
-                return GenericNet::Int((DieId::from_idx(0), edev.grid.gbin_fabric[idx], wire));
+                let node = &edev.grid.extra_nodes[&ExtraNodeLoc::GbFabric(idx)];
+                return GenericNet::Int((DieId::from_idx(0), *node.tiles.first().unwrap(), wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
-                if let Some(io) = edev.grid.gbin_io[idx] {
-                    let crd = edev.grid.get_io_loc(io);
+                if let Some(node) = edev.grid.extra_nodes.get(&ExtraNodeLoc::GbIo(idx)) {
+                    let crd = edev.grid.get_io_loc(node.io[0]);
                     return GenericNet::GlobalPadIn(crd.0, crd.1);
                 } else {
                     return GenericNet::Unknown;

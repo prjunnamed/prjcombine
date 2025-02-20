@@ -203,6 +203,18 @@ pub fn collect(
         }
         // TODO: split.
         collector.collect_bit_wide(tile, "IO", "NEG_TRIGGER", "");
+        let has_lvds = if edev.grid.kind == GridKind::Ice65L01 {
+            false
+        } else if edev.grid.kind.has_actual_lrio() {
+            tile == "IO.L"
+        } else if edev.grid.kind == GridKind::Ice40R04 {
+            tile == "IO.T"
+        } else {
+            true
+        };
+        if has_lvds {
+            collector.collect_bit_wide(tile, "IO", "LVDS_INPUT", "");
+        }
     }
 
     {

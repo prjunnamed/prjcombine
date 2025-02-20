@@ -1,13 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use enum_map::EnumMap;
 use prjcombine_int::{
-    db::{BelId, Dir},
+    db::{BelId, Dir, NodeTileId},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use unnamed_entity::{EntityId, EntityIds};
+use unnamed_entity::{EntityId, EntityIds, EntityVec};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum GridKind {
@@ -115,10 +114,82 @@ pub enum SharedCfgPin {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Pll {
-    pub pad: EdgeIoCoord,
-    pub pad_b: EdgeIoCoord,
-    pub tiles: Vec<(ColId, RowId)>,
+pub struct ExtraNode {
+    pub io: Vec<EdgeIoCoord>,
+    pub tiles: EntityVec<NodeTileId, (ColId, RowId)>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum ExtraNodeLoc {
+    GbFabric(usize),
+    GbIo(usize),
+    LatchIo(Dir),
+    Warmboot,
+    Pll(Dir),
+    Spi(Dir),
+    I2c(Dir),
+    I2cFifo(Dir),
+    LsOsc,
+    HsOsc,
+    LfOsc,
+    HfOsc,
+    IoI3c(EdgeIoCoord),
+    IrDrv,
+    RgbDrv,
+    BarcodeDrv,
+    Ir400Drv,
+    RgbaDrv,
+    LedDrvCur,
+    LeddIp,
+    LeddaIp,
+    IrIp,
+    Mac16(ColId, RowId),
+    SpramPair(Dir),
+}
+
+impl ExtraNodeLoc {
+    pub fn node_kind(self) -> String {
+        match self {
+            ExtraNodeLoc::GbFabric(_) => "GB_FABRIC".to_string(),
+            ExtraNodeLoc::LatchIo(_) => "IO_LATCH".to_string(),
+            ExtraNodeLoc::IoI3c(crd) => {
+                let iob = crd.iob();
+                format!("IO_I3C_{iob}")
+            }
+            _ => self.to_string(),
+        }
+    }
+}
+
+impl std::fmt::Display for ExtraNodeLoc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExtraNodeLoc::GbFabric(idx) => write!(f, "GB{idx}_FABRIC"),
+            ExtraNodeLoc::GbIo(idx) => write!(f, "GB{idx}_IO"),
+            ExtraNodeLoc::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
+            ExtraNodeLoc::Warmboot => write!(f, "WARMBOOT"),
+            ExtraNodeLoc::Pll(edge) => write!(f, "PLL_{edge}"),
+            ExtraNodeLoc::Spi(edge) => write!(f, "SPI_{edge}"),
+            ExtraNodeLoc::I2c(edge) => write!(f, "I2C_{edge}"),
+            ExtraNodeLoc::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
+            ExtraNodeLoc::LsOsc => write!(f, "LSOSC"),
+            ExtraNodeLoc::HsOsc => write!(f, "HSOSC"),
+            ExtraNodeLoc::LfOsc => write!(f, "LFOSC"),
+            ExtraNodeLoc::HfOsc => write!(f, "HFOSC"),
+            ExtraNodeLoc::IoI3c(crd) => write!(f, "IO_I3C_{crd}"),
+            ExtraNodeLoc::IrDrv => write!(f, "IR_DRV"),
+            ExtraNodeLoc::RgbDrv => write!(f, "RGB_DRV"),
+            ExtraNodeLoc::BarcodeDrv => write!(f, "BARCODE_DRV"),
+            ExtraNodeLoc::Ir400Drv => write!(f, "IR400_DRV"),
+            ExtraNodeLoc::RgbaDrv => write!(f, "RGBA_DRV"),
+            ExtraNodeLoc::LedDrvCur => write!(f, "LED_DRV_CUR"),
+            ExtraNodeLoc::LeddIp => write!(f, "LEDD_IP"),
+            ExtraNodeLoc::LeddaIp => write!(f, "LEDDA_IP"),
+            ExtraNodeLoc::IrIp => write!(f, "IR_IP"),
+            ExtraNodeLoc::Mac16(col, row) => write!(f, "MAC16_X{col}Y{row}"),
+            ExtraNodeLoc::SpramPair(edge) => write!(f, "SPRAM_PAIR_{edge}"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -132,11 +203,9 @@ pub struct Grid {
     // (hclk row, start row, end row)
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
     pub cfg_io: BTreeMap<SharedCfgPin, EdgeIoCoord>,
-    pub io_latch: EnumMap<Dir, Option<(ColId, RowId)>>,
-    pub pll: EnumMap<Dir, Option<Pll>>,
-    pub gbin_io: [Option<EdgeIoCoord>; 8],
-    pub gbin_fabric: [(ColId, RowId); 8],
-    pub warmboot: Option<Vec<(ColId, RowId)>>,
+    pub io_iob: BTreeMap<EdgeIoCoord, EdgeIoCoord>,
+    pub io_od: BTreeSet<EdgeIoCoord>,
+    pub extra_nodes: BTreeMap<ExtraNodeLoc, ExtraNode>,
 }
 
 impl Grid {
@@ -211,6 +280,27 @@ impl Grid {
         }
     }
 
+    pub fn io_has_lvds(&self, crd: EdgeIoCoord) -> bool {
+        let iob = match crd {
+            EdgeIoCoord::T(_, iob) => iob,
+            EdgeIoCoord::R(_, iob) => iob,
+            EdgeIoCoord::B(_, iob) => iob,
+            EdgeIoCoord::L(_, iob) => iob,
+        };
+        if iob.to_idx() != 0 {
+            return false;
+        }
+        if self.kind == GridKind::Ice65L01 {
+            false
+        } else if self.kind.has_actual_lrio() {
+            crd.edge() == Dir::W
+        } else if self.kind == GridKind::Ice40R04 {
+            crd.edge() == Dir::N
+        } else {
+            !self.io_od.contains(&crd)
+        }
+    }
+
     pub fn has_int_at(&self, col: ColId, row: RowId) -> bool {
         if col != self.col_lio() && col != self.col_rio() {
             return false;
@@ -264,11 +354,9 @@ impl Grid {
                     SharedCfgPin::CbSel1 => "CBSEL1",
                 }.to_string(), io.to_string().into())
             })),
-            "io_latch": self.io_latch,
-            // TODO: pll
-            "gbin_io": self.gbin_io,
-            "gbin_fabric": self.gbin_fabric,
-            "warmboot": self.warmboot,
+            "io_iob": serde_json::Map::from_iter(self.io_iob.iter().map(|(&k, &v)| (k.to_string(), json!(v.to_string())))),
+            "io_od": Vec::from_iter(self.io_od.iter().map(|crd| crd.to_string())),
+            "extra_nodes": serde_json::Map::from_iter(self.extra_nodes.iter().map(|(&k, v)| (k.to_string(), json!(v)))),
         })
     }
 }
@@ -292,27 +380,15 @@ impl std::fmt::Display for Grid {
                 writeln!(f, "\t\t{row_mid}: {row_bot}..{row_top}")?;
             }
         }
-        for (dir, &crd) in &self.io_latch {
-            if let Some((col, row)) = crd {
-                writeln!(f, "\tIO LATCH {dir}: X{col}Y{row}")?;
+        for (&loc, node) in &self.extra_nodes {
+            writeln!(f, "\tEXTRA {loc}:")?;
+            for (idx, io) in node.io.iter().enumerate() {
+                writeln!(f, "\t\tIO {idx}: {io}")?;
+            }
+            for (tile, (col, row)) in &node.tiles {
+                writeln!(f, "\t\tTILE {tile}: X{col}Y{row}")?;
             }
         }
-        for (idx, crd) in self.gbin_io.into_iter().enumerate() {
-            if let Some(crd) = crd {
-                writeln!(f, "\tGB {idx} IO: {crd}")?;
-            }
-        }
-        for (idx, (col, row)) in self.gbin_fabric.into_iter().enumerate() {
-            writeln!(f, "\tGB {idx} FABRIC: X{col}Y{row}")?;
-        }
-        if let Some(ref tiles) = self.warmboot {
-            write!(f, "\tWARMBOOT:")?;
-            for &(col, row) in tiles {
-                write!(f, " X{col}Y{row}")?;
-            }
-            writeln!(f)?;
-        }
-        // TODO: PLL
         writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
             writeln!(f, "\t\t{k:?}: {v}",)?;

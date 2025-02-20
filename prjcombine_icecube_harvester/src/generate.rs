@@ -1,14 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use bitvec::prelude::*;
 use prjcombine_int::{
-    db::Dir,
+    db::{BelId, Dir},
     grid::{ColId, EdgeIoCoord, RowId},
 };
 use prjcombine_siliconblue::{
     bond::{Bond, BondPin},
     expanded::ExpandedDevice,
-    grid::GridKind,
+    grid::{ExtraNodeLoc, GridKind},
 };
 use rand::prelude::*;
 use unnamed_entity::EntityId;
@@ -27,7 +27,6 @@ pub struct GeneratorConfig<'a> {
     pub bel_info: &'a BTreeMap<&'static str, Vec<SiteInfo>>,
     pub pkg_bel_info: &'a BTreeMap<(&'static str, &'static str), Vec<SiteInfo>>,
     pub allow_global: bool,
-    pub io_od_locs: &'a BTreeSet<EdgeIoCoord>,
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
 }
 
@@ -106,16 +105,17 @@ impl Generator<'_> {
         self.gb_net[index] = Some((iid, InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())));
     }
 
-    fn emit_io(&mut self) {
+    fn emit_io(&mut self) -> usize {
         let crd = self.unused_io.pop().unwrap();
-        let is_od = self.cfg.io_od_locs.contains(&crd);
-        let mut global_idx = self
-            .cfg
-            .edev
-            .grid
-            .gbin_io
-            .iter()
-            .position(|&gcrd| Some(crd) == gcrd);
+        let is_od = self.cfg.edev.grid.io_od.contains(&crd);
+        let mut global_idx = None;
+        for (&loc, node) in &self.cfg.edev.grid.extra_nodes {
+            if let ExtraNodeLoc::GbIo(idx) = loc {
+                if node.io[0] == crd {
+                    global_idx = Some(idx);
+                }
+            }
+        }
         if !self.cfg.allow_global {
             global_idx = None;
         }
@@ -126,6 +126,24 @@ impl Generator<'_> {
         }
         if self.rng.random() {
             global_idx = None;
+        }
+        let (col, row, bel) = self.cfg.edev.grid.get_io_loc(crd);
+        let mut lvds = self.cfg.allow_global
+            && self.rng.random()
+            && !is_od
+            && self.cfg.edev.grid.io_has_lvds(crd);
+        if lvds {
+            let other = self
+                .cfg
+                .edev
+                .grid
+                .get_io_crd(col, row, BelId::from_idx(bel.to_idx() ^ 1));
+            let other_idx = self.unused_io.iter().position(|x| *x == other);
+            if let Some(other_idx) = other_idx {
+                self.unused_io.swap_remove(other_idx);
+            } else {
+                lvds = false;
+            }
         }
         let pad = self.io_map[&crd];
         let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
@@ -141,7 +159,9 @@ impl Generator<'_> {
         io.top_port(package_pin);
 
         if !is_od {
-            if self.cfg.allow_global {
+            if lvds {
+                io.prop("PULLUP", "1'b0");
+            } else if self.cfg.allow_global {
                 if matches!(self.cfg.part.kind, GridKind::Ice40T01 | GridKind::Ice40T05)
                     && self.rng.random()
                     && global_idx.is_none()
@@ -166,7 +186,9 @@ impl Generator<'_> {
                 pin_type.set(i, true);
             }
         }
-        if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
+        if lvds {
+            io.prop("IO_STANDARD", "SB_LVDS_INPUT");
+        } else if crd.edge() == Dir::W && self.cfg.part.kind.has_vref() {
             let iostd = [
                 "SB_LVCMOS33_8",
                 "SB_LVCMOS25_16",
@@ -188,7 +210,6 @@ impl Generator<'_> {
                 "SB_MDDR8",
                 "SB_MDDR4",
                 "SB_MDDR2",
-                "SB_LVDS_INPUT",
             ]
             .choose(&mut self.rng)
             .unwrap();
@@ -258,6 +279,9 @@ impl Generator<'_> {
         if !pin_type[4] && !pin_type[5] {
             pin_type.set(4, true);
         }
+        if lvds {
+            pin_type.set(1, false);
+        }
 
         if pin_type[1] && self.rng.random_bool(0.5) && self.io_latch_ok.contains(&crd.edge()) {
             self.io_latch_ok.remove(&crd.edge());
@@ -286,6 +310,11 @@ impl Generator<'_> {
         }
         if let Some(idx) = global_idx {
             self.gb_net[idx] = Some((iid, InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())));
+        }
+        if lvds {
+            2
+        } else {
+            1
         }
     }
 
@@ -592,10 +621,6 @@ impl Generator<'_> {
     }
 
     fn emit_warmboot(&mut self) {
-        if self.design.kind.is_ultra() {
-            // TODO
-            return;
-        }
         let mut inst = Instance::new("SB_WARMBOOT");
         for pin in ["S0", "S1", "BOOT"] {
             if self.rng.random() {
@@ -622,7 +647,7 @@ impl Generator<'_> {
     fn final_output(&mut self) {
         while !self.unused_signals.is_empty() {
             let crd = self.unused_io.pop().unwrap();
-            let is_od = self.cfg.io_od_locs.contains(&crd);
+            let is_od = self.cfg.edev.grid.io_od.contains(&crd);
             let pad = self.io_map[&crd];
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
@@ -702,9 +727,8 @@ impl Generator<'_> {
         for thing in things {
             match thing {
                 Thing::Io => {
-                    if actual_ios != 0 {
-                        self.emit_io();
-                        actual_ios -= 1;
+                    if actual_ios >= 6 {
+                        actual_ios -= self.emit_io();
                     }
                 }
                 Thing::Lut => {
@@ -727,7 +751,14 @@ impl Generator<'_> {
             }
         }
 
-        if self.cfg.edev.grid.warmboot.is_some() && self.rng.random() {
+        if self
+            .cfg
+            .edev
+            .grid
+            .extra_nodes
+            .contains_key(&ExtraNodeLoc::Warmboot)
+            && self.rng.random()
+        {
             self.emit_warmboot();
         }
 

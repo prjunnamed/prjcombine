@@ -417,12 +417,12 @@ fn parse_pin_table(pin_table: &str) -> BTreeMap<String, PinTableEntry> {
                 line[1].to_string(),
                 line[9].to_string(),
             ),
-            12 => (
+            11 | 12 => (
                 line[0].to_ascii_uppercase(),
                 line[1].to_string(),
                 line[10].to_string(),
             ),
-            _ => unreachable!(),
+            _ => panic!("ummmmm {line:?}"),
         };
         res.insert(pin, PinTableEntry { typ, bank });
     }

@@ -44,20 +44,13 @@ impl Grid {
             }
         }
 
-        for &crd in self.io_latch.values() {
-            let Some(crd) = crd else { continue };
-            die.add_xnode(crd, "IO_LATCH", &[crd]);
+        for (&loc, node) in &self.extra_nodes {
+            die.add_xnode(
+                *node.tiles.first().unwrap(),
+                &loc.node_kind(),
+                &Vec::from_iter(node.tiles.values().copied()),
+            );
         }
-
-        for &crd in &self.gbin_fabric {
-            die.add_xnode(crd, "GBIN", &[crd]);
-        }
-
-        if let Some(ref tiles) = self.warmboot {
-            die.add_xnode(tiles[0], "WARMBOOT", tiles);
-        }
-
-        // TODO: PLL, hard IP, ...
 
         die.fill_main_passes();
 

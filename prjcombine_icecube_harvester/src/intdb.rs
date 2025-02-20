@@ -1,11 +1,14 @@
-use std::collections::BTreeSet;
+use std::collections::{hash_map, BTreeSet, HashMap};
 
 use enum_map::EnumMap;
-use prjcombine_int::db::{
-    BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind,
+use prjcombine_int::{
+    db::{BelInfo, BelPin, Dir, IntDb, NodeKind, NodeTileId, PinDir, TermInfo, TermKind, WireKind},
+    grid::{ColId, EdgeIoCoord, RowId},
 };
-use prjcombine_siliconblue::grid::GridKind;
+use prjcombine_siliconblue::grid::{ExtraNode, GridKind};
 use unnamed_entity::{EntityId, EntityVec};
+
+use crate::sites::BelPins;
 
 fn add_input(db: &IntDb, bel: &mut BelInfo, name: &str, tile: usize, wire: &str) {
     bel.pins.insert(
@@ -350,8 +353,8 @@ pub fn make_intdb(kind: GridKind) -> IntDb {
         };
         let mut bel = BelInfo::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
-        node.bels.insert("GBIN".into(), bel);
-        db.nodes.insert("GBIN".into(), node);
+        node.bels.insert("GB_FABRIC".into(), bel);
+        db.nodes.insert("GB_FABRIC".into(), node);
     }
 
     {
@@ -376,110 +379,117 @@ pub fn make_intdb(kind: GridKind) -> IntDb {
         db.nodes.insert("GBOUT".into(), node);
     }
 
-    if kind != GridKind::Ice40P03 {
-        {
-            let mut node = NodeKind {
-                tiles: EntityVec::from_iter([()]),
+    db
+}
+
+pub struct MiscNodeBuilder {
+    pub node: NodeKind,
+    pub io: Vec<EdgeIoCoord>,
+    pub fixed_tiles: usize,
+    pub tiles: EntityVec<NodeTileId, (ColId, RowId)>,
+    pub tiles_map: HashMap<(ColId, RowId), NodeTileId>,
+}
+
+impl MiscNodeBuilder {
+    pub fn new(fixed_tiles: &[(ColId, RowId)]) -> Self {
+        let mut tiles = EntityVec::new();
+        let mut tiles_map = HashMap::new();
+        for &crd in fixed_tiles {
+            let tile = tiles.push(crd);
+            tiles_map.insert(crd, tile);
+        }
+        Self {
+            node: NodeKind {
+                tiles: EntityVec::from_iter(tiles.iter().map(|_| ())),
                 muxes: Default::default(),
                 iris: Default::default(),
                 intfs: Default::default(),
                 bels: Default::default(),
-            };
-            let mut bel = BelInfo::default();
-            for pin in ["BOOT", "S0", "S1"] {
-                add_input(&db, &mut bel, pin, node.tiles.len(), "IMUX.IO.EXTRA");
-                node.tiles.push(());
+            },
+            io: vec![],
+            fixed_tiles: fixed_tiles.len(),
+            tiles,
+            tiles_map,
+        }
+    }
+
+    pub fn get_tile(&mut self, crd: (ColId, RowId)) -> NodeTileId {
+        match self.tiles_map.entry(crd) {
+            hash_map::Entry::Occupied(entry) => *entry.get(),
+            hash_map::Entry::Vacant(entry) => {
+                let tile = self.node.tiles.push(());
+                self.tiles.push(crd);
+                entry.insert(tile);
+                tile
             }
-            node.bels.insert("WARMBOOT".into(), bel);
-            db.nodes.insert("WARMBOOT".into(), node);
         }
     }
 
-    if kind == GridKind::Ice65P04 {
-        let mut node = NodeKind {
-            tiles: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
+    pub fn add_bel(&mut self, name: &str, pins: &BelPins) {
         let mut bel = BelInfo::default();
-        for pin in ["SDO", "LOCK"] {
-            add_output(
-                &db,
-                &mut bel,
-                pin,
-                node.tiles.len(),
-                &[
-                    "OUT.LC0", "OUT.LC1", "OUT.LC2", "OUT.LC3", "OUT.LC4", "OUT.LC5", "OUT.LC6",
-                    "OUT.LC7",
-                ],
+        for (pin, &(_, crd, wire)) in &pins.ins {
+            let tile = self.get_tile(crd);
+            bel.pins.insert(
+                pin.clone(),
+                BelPin {
+                    wires: BTreeSet::from_iter([(tile, wire)]),
+                    dir: PinDir::Input,
+                    is_intf_in: false,
+                },
             );
-            node.tiles.push(());
         }
-
-        for pin in [
-            "DYNAMICDELAY_0",
-            "DYNAMICDELAY_1",
-            "DYNAMICDELAY_2",
-            "DYNAMICDELAY_3",
-            "REFERENCECLK",
-            "EXTFEEDBACK",
-            "BYPASS",
-            "RESET",
-            "SCLK",
-            "SDI",
-        ] {
-            add_input(&db, &mut bel, pin, node.tiles.len(), "IMUX.IO.EXTRA");
-            node.tiles.push(());
-        }
-        node.bels.insert("PLL".into(), bel);
-        db.nodes.insert("PLL".into(), node);
-    } else if kind.is_ice40() && kind != GridKind::Ice40P03 {
-        let mut node = NodeKind {
-            tiles: EntityVec::from_iter([()]),
-            muxes: Default::default(),
-            iris: Default::default(),
-            intfs: Default::default(),
-            bels: Default::default(),
-        };
-        let mut bel = BelInfo::default();
-        for pin in ["SDO", "LOCK"] {
-            add_output(
-                &db,
-                &mut bel,
-                pin,
-                node.tiles.len(),
-                &[
-                    "OUT.LC0", "OUT.LC1", "OUT.LC2", "OUT.LC3", "OUT.LC4", "OUT.LC5", "OUT.LC6",
-                    "OUT.LC7",
-                ],
+        for (pin, iwires) in &pins.outs {
+            let mut wires = BTreeSet::new();
+            for &(_, crd, wire) in iwires {
+                let tile = self.get_tile(crd);
+                wires.insert((tile, wire));
+            }
+            bel.pins.insert(
+                pin.clone(),
+                BelPin {
+                    wires,
+                    dir: PinDir::Output,
+                    is_intf_in: false,
+                },
             );
-            node.tiles.push(());
         }
-
-        for pin in [
-            "DYNAMICDELAY_0",
-            "DYNAMICDELAY_1",
-            "DYNAMICDELAY_2",
-            "DYNAMICDELAY_3",
-            "DYNAMICDELAY_4",
-            "DYNAMICDELAY_5",
-            "DYNAMICDELAY_6",
-            "DYNAMICDELAY_7",
-            "REFERENCECLK",
-            "EXTFEEDBACK",
-            "BYPASS",
-            "RESETB",
-            "SCLK",
-            "SDI",
-        ] {
-            add_input(&db, &mut bel, pin, node.tiles.len(), "IMUX.IO.EXTRA");
-            node.tiles.push(());
-        }
-        node.bels.insert("PLL".into(), bel);
-        db.nodes.insert("PLL".into(), node);
+        self.node.bels.insert(name.into(), bel);
     }
 
-    db
+    pub fn finish(mut self) -> (NodeKind, ExtraNode) {
+        let mut tiles_sorted = Vec::from_iter(self.tiles.values().copied());
+        let mut new_tiles: EntityVec<NodeTileId, _> =
+            EntityVec::from_iter(tiles_sorted[..self.fixed_tiles].iter().copied());
+        let mut new_tiles_map: HashMap<_, _> =
+            HashMap::from_iter(new_tiles.iter().map(|(k, &v)| (v, k)));
+        tiles_sorted.sort();
+        for crd in tiles_sorted {
+            match new_tiles_map.entry(crd) {
+                hash_map::Entry::Occupied(_) => (),
+                hash_map::Entry::Vacant(entry) => {
+                    let tile = new_tiles.push(crd);
+                    entry.insert(tile);
+                }
+            }
+        }
+        for bel in self.node.bels.values_mut() {
+            for pin in bel.pins.values_mut() {
+                pin.wires = pin
+                    .wires
+                    .iter()
+                    .map(|&(tile, wire)| {
+                        let new_tile = new_tiles_map[&self.tiles[tile]];
+                        (new_tile, wire)
+                    })
+                    .collect();
+            }
+        }
+        (
+            self.node,
+            ExtraNode {
+                io: self.io,
+                tiles: new_tiles,
+            },
+        )
+    }
 }

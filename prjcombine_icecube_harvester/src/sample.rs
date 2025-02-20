@@ -3,13 +3,13 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use bitvec::prelude::*;
 use prjcombine_harvester::Sample;
 use prjcombine_int::{
-    db::{NodeKindId, NodeWireId, WireId},
+    db::{BelId, NodeKindId, NodeWireId, WireId},
     grid::{ColId, DieId, EdgeIoCoord, IntWire, RowId},
 };
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
     expanded::{BitOwner, ExpandedDevice},
-    grid::GridKind,
+    grid::{ExtraNodeLoc, GridKind},
 };
 use unnamed_entity::EntityId;
 
@@ -28,6 +28,7 @@ pub fn make_sample(
     xlat_row: &[RowId],
     xlat_io: &BTreeMap<(u32, u32, u32), EdgeIoCoord>,
     rows_colbuf: &[(RowId, RowId, RowId)],
+    extra_wire_names: &BTreeMap<(u32, u32, String), IntWire>,
 ) -> (Sample<BitOwner>, HashSet<(NodeKindId, WireId, WireId)>) {
     let mut sample = Sample::default();
     let mut pips = HashSet::new();
@@ -55,8 +56,16 @@ pub fn make_sample(
                 let &[(ax, ay, ref aw), (bx, by, ref bw)] = window else {
                     unreachable!()
                 };
-                let na = xlat_wire(edev, ax, ay, aw);
-                let nb = xlat_wire(edev, bx, by, bw);
+                let na = if let Some(&iw) = extra_wire_names.get(&(ax, ay, aw.clone())) {
+                    GenericNet::Int(iw)
+                } else {
+                    xlat_wire(edev, ax, ay, aw)
+                };
+                let nb = if let Some(&iw) = extra_wire_names.get(&(bx, by, bw.clone())) {
+                    GenericNet::Int(iw)
+                } else {
+                    xlat_wire(edev, bx, by, bw)
+                };
                 if na == nb {
                     continue;
                 }
@@ -382,6 +391,26 @@ pub fn make_sample(
                         EdgeIoCoord::B(..) => "IO.B",
                         EdgeIoCoord::L(..) => "IO.L",
                     };
+                    let mut global_idx = None;
+                    for (&loc, node) in &edev.grid.extra_nodes {
+                        if let ExtraNodeLoc::GbIo(idx) = loc {
+                            if node.io[0] == io {
+                                global_idx = Some(idx);
+                            }
+                        }
+                    }
+
+                    let iostd = inst.props.get("IO_STANDARD").map(|x| x.as_str());
+                    let is_lvds = iostd == Some("SB_LVDS_INPUT");
+                    if is_lvds {
+                        sample.add_tiled_pattern_single(
+                            &[BitOwner::Main(col, row)],
+                            format!("{tile_kind}:IO:LVDS_INPUT:BIT0"),
+                        );
+                        let obel = BelId::from_idx(bel.to_idx() ^ 1);
+                        sample.add_global_pattern(format!("IO:{col}.{row}.{obel}:PULLUP:DISABLE"));
+                    }
+
                     if let Some(pin_type) = inst.props.get("PIN_TYPE") {
                         let mut value = bitvec![];
                         for (i, c) in pin_type.chars().rev().enumerate() {
@@ -407,11 +436,17 @@ pub fn make_sample(
                                 &[BitOwner::Main(col, row)],
                                 format!("{tile_kind}:IO{bel}:OUTPUT_ENABLE:BIT0"),
                             );
+                            if is_lvds {
+                                let obel = BelId::from_idx(bel.to_idx() ^ 1);
+                                sample.add_tiled_pattern(
+                                    &[BitOwner::Main(col, row)],
+                                    format!("{tile_kind}:IO{obel}:OUTPUT_ENABLE:BIT0"),
+                                );
+                            }
                         }
                         if value[1] && inst.kind == "SB_GB_IO" {
-                            sample.add_global_pattern(format!(
-                                "IO:{col}.{row}.{bel}:LATCH_GLOBAL_OUT:BIT0"
-                            ));
+                            let key = ExtraNodeLoc::GbIo(global_idx.unwrap());
+                            sample.add_global_pattern(format!("{key}:LATCH_GLOBAL_OUT:BIT0"));
                         }
                     }
                     if let Some(neg_trigger) = inst.props.get("NEG_TRIGGER") {
@@ -422,8 +457,9 @@ pub fn make_sample(
                             );
                         }
                     }
+
                     if let Some(pullup) = inst.props.get("PULLUP") {
-                        if pullup.ends_with('0') {
+                        if pullup.ends_with('0') || is_lvds {
                             sample
                                 .add_global_pattern(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
                         } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR") {
@@ -434,14 +470,14 @@ pub fn make_sample(
                     } else {
                         sample.add_global_pattern(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
                     }
-                    if let Some(iostd) = inst.props.get("IO_STANDARD") {
+                    if let Some(iostd) = iostd {
                         if col == edev.grid.col_lio() && edev.grid.kind.has_vref() {
                             sample
                                 .add_global_pattern(format!("IO:{col}.{row}.{bel}:IOSTD:{iostd}"));
                         }
                     }
 
-                    if ibuf_used.contains(&iid) {
+                    if ibuf_used.contains(&iid) && !is_lvds {
                         if col == edev.grid.col_lio() && edev.grid.kind.has_vref() {
                             let iostd = inst.props["IO_STANDARD"].as_str();
                             let mode = match iostd {
@@ -715,6 +751,18 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             }
         }
         result.push(format!("{tile}:IO:NEG_TRIGGER:BIT0"));
+        let has_lvds = if edev.grid.kind == GridKind::Ice65L01 {
+            false
+        } else if edev.grid.kind.has_actual_lrio() {
+            tile == "IO.L"
+        } else if edev.grid.kind == GridKind::Ice40R04 {
+            tile == "IO.T"
+        } else {
+            true
+        };
+        if has_lvds {
+            result.push(format!("{tile}:IO:LVDS_INPUT:BIT0"));
+        }
     }
     // misc
     for i in 0..8 {
@@ -728,6 +776,54 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         result.push("SPEED:SPEED:SPEED:LOW".into());
         result.push("SPEED:SPEED:SPEED:MEDIUM".into());
         result.push("SPEED:SPEED:SPEED:HIGH".into());
+    }
+    result
+}
+
+pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
+    let mut result = vec![];
+    for &loc in edev.grid.extra_nodes.keys() {
+        match loc {
+            ExtraNodeLoc::GbFabric(_) => (),
+            ExtraNodeLoc::GbIo(_) => {
+                result.push(format!("{loc}:LATCH_GLOBAL_OUT:BIT0"));
+            }
+            ExtraNodeLoc::LatchIo(_) => (),
+            ExtraNodeLoc::Warmboot => (),
+            // TODO from here on
+            ExtraNodeLoc::Pll(_) => (),
+            ExtraNodeLoc::Spi(_) => (),
+            ExtraNodeLoc::I2c(_) => (),
+            ExtraNodeLoc::I2cFifo(_) => (),
+            ExtraNodeLoc::LsOsc => (),
+            ExtraNodeLoc::HsOsc => (),
+            ExtraNodeLoc::LfOsc => (),
+            ExtraNodeLoc::HfOsc => (),
+            ExtraNodeLoc::IoI3c(_) => (),
+            ExtraNodeLoc::IrDrv => (),
+            ExtraNodeLoc::RgbDrv => (),
+            ExtraNodeLoc::BarcodeDrv => (),
+            ExtraNodeLoc::Ir400Drv => (),
+            ExtraNodeLoc::RgbaDrv => (),
+            ExtraNodeLoc::LedDrvCur => (),
+            ExtraNodeLoc::LeddIp => (),
+            ExtraNodeLoc::LeddaIp => (),
+            ExtraNodeLoc::IrIp => (),
+            ExtraNodeLoc::Mac16(_, _) => (),
+            ExtraNodeLoc::SpramPair(_) => (),
+        }
+    }
+    for &crd in edev.grid.io_iob.keys() {
+        let (col, row, bel) = edev.grid.get_io_loc(crd);
+        let is_od = edev.grid.io_od.contains(&crd);
+        result.push(format!("IO:{col}.{row}.{bel}:IBUF_ENABLE:BIT0"));
+        result.push(format!("IO:{col}.{row}.{bel}:PULLUP:DISABLE"));
+        if matches!(edev.grid.kind, GridKind::Ice40T01 | GridKind::Ice40T05) && !is_od {
+            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:3P3K"));
+            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:6P8K"));
+            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:10K"));
+            result.push(format!("IO:{col}.{row}.{bel}:PULLUP:100K"));
+        }
     }
     result
 }
